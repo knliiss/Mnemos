@@ -1,0 +1,2 @@
+com.mnemos.common.web.autoconfigure.MnemosWebAutoConfiguration
+com.mnemos.common.web.autoconfigure.MnemosExceptionAutoConfiguration

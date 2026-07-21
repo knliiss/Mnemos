@@ -1,0 +1,18 @@
+name: ${COMPOSE_PROJECT_NAME:-mnemos}
+
+services: {}
+
+networks:
+  mnemos-network:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-network
+    driver: bridge
+
+volumes:
+  app-postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-app-postgres-data
+
+  keycloak-postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-keycloak-postgres-data
+
+  kafka-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-data

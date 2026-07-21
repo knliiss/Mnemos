@@ -1,0 +1,54 @@
+services:
+  app-postgres:
+    image: "postgres:${POSTGRES_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-app-postgres"
+    hostname: "app-postgres"
+    restart: unless-stopped
+
+    environment:
+      - "POSTGRES_DB=${APP_POSTGRES_DB}"
+      - "POSTGRES_USER=${APP_POSTGRES_USER}"
+      - "POSTGRES_PASSWORD=${APP_POSTGRES_PASSWORD}"
+
+    ports:
+      - "${APP_POSTGRES_HOST_PORT}:5432"
+
+    volumes:
+      - "app-postgres-data:/var/lib/postgresql/data"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_POSTGRES_USER} -d ${APP_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    networks:
+      - mnemos-network
+
+  keycloak-postgres:
+    image: "postgres:${POSTGRES_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-keycloak-postgres"
+    hostname: "keycloak-postgres"
+    restart: unless-stopped
+
+    environment:
+      - "POSTGRES_DB=${KEYCLOAK_POSTGRES_DB}"
+      - "POSTGRES_USER=${KEYCLOAK_POSTGRES_USER}"
+      - "POSTGRES_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}"
+
+    ports:
+      - "${KEYCLOAK_POSTGRES_HOST_PORT}:5432"
+
+    volumes:
+      - "keycloak-postgres-data:/var/lib/postgresql/data"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_POSTGRES_USER} -d ${KEYCLOAK_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    networks:
+      - mnemos-network

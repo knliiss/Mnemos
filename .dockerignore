@@ -1,0 +1,52 @@
+# Git
+.git/
+.gitignore
+
+# Gradle
+.gradle/
+.kotlin/
+build/
+**/build/classes/
+**/build/generated/
+**/build/kotlin/
+**/build/reports/
+**/build/resources/
+**/build/test-results/
+**/build/tmp/
+gradle-wrapper.jar
+
+# Keep application JARs for Docker images
+!apps/account-service/build/
+!apps/account-service/build/libs/
+!apps/account-service/build/libs/account-service.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Node.js
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Documentation
+help/
+*.md
+
+# Logs
+*.log

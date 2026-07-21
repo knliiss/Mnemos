@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/UserRepositoryAdapter.kt" value="26eaf7f6-43f5-478d-a00e-f310cd62e572" />
+    <file url="file://$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V1__create_users.sql" value="26eaf7f6-43f5-478d-a00e-f310cd62e572" />
+    <file url="file://$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V2__init_accounts_and_account_members.sql" value="26eaf7f6-43f5-478d-a00e-f310cd62e572" />
+    <file url="file://$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V3__add_active_account_to_user.sql" value="26eaf7f6-43f5-478d-a00e-f310cd62e572" />
+  </component>
+</project>

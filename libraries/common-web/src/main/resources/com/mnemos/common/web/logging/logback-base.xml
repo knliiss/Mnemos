@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<included>
+    <springProperty
+            scope="context"
+            name="SERVICE_NAME"
+            source="spring.application.name"
+            defaultValue="unknown-service"
+    />
+
+    <conversionRule
+            conversionWord="httpContext"
+            converterClass="com.mnemos.common.web.logging.HttpLogContextConverter"
+    />
+
+    <property
+            name="MNEMOS_CONSOLE_PATTERN"
+            value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level service=${SERVICE_NAME} %httpContext[%thread] %logger{40} - %msg%n%ex"
+    />
+
+    <appender name="MNEMOS_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${MNEMOS_CONSOLE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+</included>

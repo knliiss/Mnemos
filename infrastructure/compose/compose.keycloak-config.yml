@@ -1,0 +1,33 @@
+services:
+  keycloak-config:
+    image: "adorsys/keycloak-config-cli:${KEYCLOAK_CONFIG_CLI_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-keycloak-config"
+    restart: "no"
+
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_USER: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+      KEYCLOAK_AVAILABILITYCHECK_ENABLED: "true"
+      IMPORT_FILES_LOCATIONS: /config/*.yaml
+      IMPORT_CACHE_ENABLED: "false"
+
+      LOGGING_LEVEL_ROOT: info
+
+      IMPORT_VARSUBSTITUTION_ENABLED: "true"
+      IMPORT_VARSUBSTITUTION_UNDEFINEDISERROR: "true"
+
+      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+      MNEMOS_ACCOUNT_SERVICE_CLIENT_ID: ${MNEMOS_ACCOUNT_SERVICE_CLIENT_ID}
+      KEYCLOAK_ACCOUNT_SERVICE_CLIENT_SECRET: ${KEYCLOAK_ACCOUNT_SERVICE_CLIENT_SECRET}
+
+    volumes:
+      - "../keycloak/config:/config:ro"
+
+    depends_on:
+      keycloak:
+        condition: service_started
+
+    networks:
+      - mnemos-network

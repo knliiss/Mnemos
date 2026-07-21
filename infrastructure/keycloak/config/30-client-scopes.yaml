@@ -1,0 +1,19 @@
+realm: mnemos
+
+clientScopes:
+  - name: account-service-admin-roles
+    description: Allowed Keycloak Admin API roles for account-service
+    protocol: openid-connect
+
+    attributes:
+      include.in.token.scope: "false"
+      display.on.consent.screen: "false"
+
+clientScopeMappings:
+  realm-management:
+    - clientScope: account-service-admin-roles
+
+      roles:
+        - manage-users
+        - view-users
+        - query-users

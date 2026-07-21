@@ -1,0 +1,23 @@
+realm: mnemos
+
+requiredActions:
+  - alias: VERIFY_PROFILE
+    name: Verify Profile
+    providerId: VERIFY_PROFILE
+    enabled: false
+    defaultAction: false
+    priority: 10
+    config: {}
+
+authenticationFlows:
+  - alias: Telegram Mini App
+    description: Authentication through Telegram Mini App initData
+    providerId: basic-flow
+    topLevel: true
+    builtIn: false
+    authenticationExecutions:
+      - authenticator: mnemos-telegram-mini-app
+        requirement: REQUIRED
+        priority: 10
+        userSetupAllowed: false
+        authenticatorFlow: false

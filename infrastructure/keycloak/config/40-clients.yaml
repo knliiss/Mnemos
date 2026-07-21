@@ -1,0 +1,70 @@
+realm: mnemos
+
+clients:
+  - clientId: mnemos-mini-app
+    name: Mnemos Telegram Mini App
+    description: Public OIDC client for the Mnemos Telegram Mini App
+    enabled: true
+    protocol: openid-connect
+    publicClient: true
+    bearerOnly: false
+    standardFlowEnabled: true
+    implicitFlowEnabled: false
+    directAccessGrantsEnabled: false
+    serviceAccountsEnabled: false
+    authorizationServicesEnabled: false
+    fullScopeAllowed: true
+    consentRequired: false
+    redirectUris:
+      - "https://app.knalis.rest/*"
+    webOrigins:
+      - "https://app.knalis.rest"
+    attributes:
+      pkce.code.challenge.method: S256
+      post.logout.redirect.uris: "https://app.knalis.rest/*"
+    authenticationFlowBindingOverrides:
+      browser: Telegram Mini App
+    defaultClientScopes:
+      - web-origins
+      - acr
+      - roles
+      - profile
+      - basic
+    optionalClientScopes:
+      - offline_access
+      - microprofile-jwt
+    protocolMappers:
+      - name: telegram-id
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: telegram_user_id
+          claim.name: telegram_id
+          jsonType.label: long
+          access.token.claim: "true"
+          id.token.claim: "true"
+          userinfo.token.claim: "true"
+          multivalued: "false"
+
+  - clientId: "$(env:MNEMOS_ACCOUNT_SERVICE_CLIENT_ID)"
+    name: Account Service Admin
+    description: Service account used by account-service to manage users
+    enabled: true
+    protocol: openid-connect
+    publicClient: false
+    bearerOnly: false
+    clientAuthenticatorType: client-secret
+    standardFlowEnabled: false
+    implicitFlowEnabled: false
+    directAccessGrantsEnabled: false
+    serviceAccountsEnabled: true
+    authorizationServicesEnabled: false
+    fullScopeAllowed: false
+    consentRequired: false
+    secret: "$(env:KEYCLOAK_ACCOUNT_SERVICE_CLIENT_SECRET)"
+    redirectUris: []
+    webOrigins: []
+    defaultClientScopes:
+      - roles
+      - account-service-admin-roles
+    optionalClientScopes: []

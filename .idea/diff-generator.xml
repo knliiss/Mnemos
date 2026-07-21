@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DiffGenerationConfig">
+    <option name="snapshotDb" value="false" />
+    <option name="snapshotModelValue" value="Mnemos.apps.account-service.main:Mnemos.apps.account-service.main" />
+    <option name="sourceModelValue" value="Mnemos.apps.account-service.main:Mnemos.apps.account-service.main" />
+    <option name="targetDbValue" value="26eaf7f6-43f5-478d-a00e-f310cd62e572" />
+  </component>
+</project>

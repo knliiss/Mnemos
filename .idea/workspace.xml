@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BackgroundAgentGlobalSettings">
+    <option name="selectedModelId" value="auto" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="15387ddd-5b51-4426-807e-6bda60cd17ac" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/diff-generator.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jpb-settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/AccountServiceApplication.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/controller/account/AccountController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/controller/account/CurrentAccountController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/controller/user/CurrentUserController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/account/AccountResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/account/AvailableAccountResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/account/CreateAccountRequest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/user/UpdateLocalizationRequest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/user/UpdateUsernameRequest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/dto/user/UserResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/mapper/account/AccountMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/api/mapper/user/UserMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/security/CurrentUserProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/service/UserService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/service/account/AccountQueryService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/service/account/ChangeActiveAccountService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/service/account/CreateAccountService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/application/service/account/LeaveActiveAccountService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/AccountAccessDeniedException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/AccountIdentityConflictException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/AccountNotFoundException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/AccountOwnerCannotLeaveException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/CristalixAuthorizationException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/CristalixInvalidResponseException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/CristalixPlayerNotFoundException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/CristalixRateLimitExceededException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/account/CristalixUnavailableException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/user/UserIdentityConflictException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/exception/user/UserNotFoundException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/account/Account.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/account/AccountMember.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/account/AccountMemberId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/account/CristalixNickname.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/account/CristalixUuid.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/model/user/User.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/repository/AccountMemberRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/repository/AccountRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/domain/repository/UserRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/CristalixIdentityProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/CristalixIdentityProviderAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/config/CristalixApiProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/config/CristalixClientConfig.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/dto/CristalixPlayerResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/cristalix/model/CristalixPlayer.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/keycloak/client/KeycloakAdminClient.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/keycloak/config/KeycloakAdminProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/keycloak/config/KeycloakFeignConfig.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/integration/keycloak/dto/KeycloakUserResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/entity/AccountEntity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/entity/AccountMemberEntity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/entity/UserEntity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/mapper/AccountMemberPersistenceMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/mapper/AccountPersistenceMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/mapper/UserPersistenceMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/JpaUserRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/UserRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/account/AccountMemberRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/account/AccountRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/account/JpaAccountMemberRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/accountservice/persistence/repository/account/JpaAccountRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application-docker.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application-local.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application-test.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V1__create_users.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V2__init_accounts_and_account_members.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V3__add_active_account_to_user.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/logback-spring.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/test/kotlin/com/mnemos/accountservice/AccountServiceApplicationTests.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/test/kotlin/com/mnemos/accountservice/api/CurrentUserControllerIntegrationTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/test/kotlin/com/mnemos/accountservice/application/service/account/CreateAccountServiceTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/settings.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.keycloak-extension.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.kotlin-common.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.spring-integration-test.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.spring-library.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.spring-service.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradle/libs.version.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.account-service.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.base.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.kafka.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak-config.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.postgres.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/00-realm-settings.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/10-roles-groups.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/20-authentication.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/30-client-scopes.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/40-clients.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/50-service-accounts.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/60-user-profile.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/themes/mnemos/login/telegram-login.ftl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/themes/mnemos/login/theme.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticatorFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramInitData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramInitDataValidator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramUser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/resources/META-INF/services/org.keycloak.authentication.AuthenticatorFactory" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/AccountId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/KeycloakId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/TelegramId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/UserId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/user/LocalizationLanguage.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/user/UserRole.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/user/Username.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-core/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/autoconfigure/MnemosExceptionAutoConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/autoconfigure/MnemosWebAutoConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/dto/ErrorResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/exception/DomainException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/exception/GlobalExceptionHandler.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/logging/HttpLogContextConverter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/logging/MdcKeys.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/logging/MnemosHeaders.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/kotlin/com/mnemos/common/web/logging/RequestIdFilter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/common-web/src/main/resources/com/mnemos/common/web/logging/logback-base.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/MnemosJwtAuthenticationConverter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/MnemosPrincipal.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/MnemosSecurityAutoConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/MnemosSecurityProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/config/CorsConfig.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/exception/InvalidAuthenticationPrincipalException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/handler/MnemosAccessDeniedHandler.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/handler/MnemosAuthenticationEntryPoint.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/handler/SecurityErrorResponseWriter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/src/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/src/style.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/telegram-mini-app-test/vite.config.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="5d4071a3-913d-4920-93bc-95cb92853a02" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="5d4071a3-913d-4920-93bc-95cb92853a02" />
+            <option name="modeId" value="Ask" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/Users/knalis/Documents/dev/kotlin/Mnemos" value="3GPrEgehsQHCx1f9WpCDVYd1C3D" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="646" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/apps/account-service">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/apps/mnemos-auth-service">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/libs/security-core">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/security-core">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Mnemos" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Mnemos" type="f1a62948:ProjectNode" />
+                <item name="Mnemos" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Mnemos" type="f1a62948:ProjectNode" />
+                <item name="Mnemos" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Mnemos" type="f1a62948:ProjectNode" />
+                <item name="Mnemos" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="CSS File" />
+        <option value="Dockerfile" />
+        <option value="JUnit5 Test Class" />
+        <option value="Kotlin Enum" />
+        <option value="com.intellij.jpb.FlywayMigrationScript" />
+        <option value="Kotlin File" />
+        <option value="Kotlin Interface" />
+        <option value="Kotlin Object" />
+        <option value="Kotlin Data Class" />
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.2.21/bd4e3cc059a403f4a0a4f8543c66b1535976956/kotlin-stdlib-2.2.21-sources.jar!/commonMain/kotlin/util/Preconditions.kt" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework/spring-web/7.0.8/497e9008f9ddde811690cc3a17f5a38bc73f6d63/spring-web-7.0.8-sources.jar!/org/springframework/http/HttpStatus.java" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="V4rgnPiX" />
+  </component>
+  <component name="Make.Settings">
+    <option name="autoScrollToSourceInToolWindow" value="true" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.2051470672698563" />
+      <entry key="MS500" value="2.285648737868058" />
+      <entry key="S2" value="6.998252213121261" />
+      <entry key="S5" value="15.693841882262106" />
+      <entry key="S10" value="25.251349516403167" />
+      <entry key="S30" value="38.74884211220128" />
+      <entry key="S60" value="44.13200420904815" />
+      <entry key="M2" value="47.342860900287896" />
+      <entry key="M5" value="49.47758888254411" />
+      <entry key="M10" value="50.23730648685782" />
+      <entry key="M15" value="50.58992198771101" />
+      <entry key="M30" value="52.19950606803271" />
+      <entry key="H1" value="60.750977526871594" />
+      <entry key="H2" value="100.4812429298009" />
+      <entry key="H4" value="198.4905744563263" />
+      <entry key="D1" value="969.5064266911244" />
+      <entry key="W1" value="2937.627079050241" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="5.056966525472406E-194" />
+      <entry key="S30" value="5.241594351034947E-65" />
+      <entry key="S60" value="1.1562491869647544E-32" />
+      <entry key="M2" value="1.8224549707066117E-16" />
+      <entry key="M5" value="9.733327110236405E-7" />
+      <entry key="M10" value="0.0017081056386358375" />
+      <entry key="M15" value="0.020864019365395715" />
+      <entry key="M30" value="0.34720730346144035" />
+      <entry key="H1" value="3.377427884472297" />
+      <entry key="H2" value="20.012504416174078" />
+      <entry key="H4" value="61.98840117779728" />
+      <entry key="D1" value="265.9746111033637" />
+      <entry key="W1" value="574.2175339961045" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.1546928785051105" />
+      <entry key="MS500" value="2.2657803756400474" />
+      <entry key="S2" value="6.985208670269048" />
+      <entry key="S5" value="15.683108328414367" />
+      <entry key="S10" value="25.242921527515428" />
+      <entry key="S30" value="38.74452155528307" />
+      <entry key="S60" value="44.12952591639917" />
+      <entry key="M2" value="47.341524349835645" />
+      <entry key="M5" value="49.47702890139144" />
+      <entry key="M10" value="50.23872544071638" />
+      <entry key="M15" value="50.610561846530885" />
+      <entry key="M30" value="52.54624963028307" />
+      <entry key="H1" value="64.125595396263" />
+      <entry key="H2" value="120.48374852839103" />
+      <entry key="H4" value="260.4621880552068" />
+      <entry key="D1" value="1235.4664184817607" />
+      <entry key="W1" value="3511.8397553220743" />
+    </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="3GPrEgehsQHCx1f9WpCDVYd1C3D" />
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_id" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+        <option name="worktreeMode" value="WORKSPACE" />
+      </template>
+    </option>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="false" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;CidrDebugProfileConversion&quot;: &quot;true&quot;,
+    &quot;Gradle.AccountServiceApplicationTests.contextLoads.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build Mnemos.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateAccountServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Mnemos [:keycloak-extensions:telegram-authenticator:build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Mnemos [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UserControllerIntegrationTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UserControllerIntegrationTest.should update current user localization.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UserControllerIntegrationTest.should update current user username.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.UserControllerIntegrationTest.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.AccountServiceApplication (1).executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;copilot.chat.legacySessionMetadata.migrated&quot;: &quot;true&quot;,
+    &quot;create.test.in.the.same.root&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/knalis/Documents/dev/kotlin/Mnemos/infrastructure/keycloak/config&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;/Users/knalis/Documents/dev/kotlin/Mnemos/libs/common/src/main/kotlin/Main.kt&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
+    ]
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/infrastructure/keycloak/config" />
+      <recent name="$PROJECT_DIR$/apps/account-service/src/main/resources" />
+      <recent name="$PROJECT_DIR$/libraries/common-web/src/main/resources" />
+      <recent name="$PROJECT_DIR$/libraries/common-web" />
+      <recent name="$PROJECT_DIR$/libraries/common-core" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration" />
+      <recent name="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/resources/test/com/mnemos/keycloak/telegram" />
+      <recent name="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/resources/test/com.mnemos.keycloak.telegram" />
+      <recent name="$PROJECT_DIR$/tools/telegram-mini-app-test" />
+      <recent name="$PROJECT_DIR$/tools/telegram-mini-app-test/src" />
+    </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateKotlinClassDialog.RecentsKey">
+      <recent name="com.mnemos.accountservice.integration.cristalix.config" />
+      <recent name="com.mnemos.accountservice.api.dto" />
+      <recent name="com.mnemos.accountservice.exception" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="com.mnemos.keycloak.telegram" />
+    </key>
+    <key name="K2MoveDeclarationsDialog.RECENT_PACKAGE_KEY">
+      <recent name="com.mnemos.accountservice.api.controller.user" />
+      <recent name="com.mnemos.accountservice.api.controller." />
+      <recent name="com.mnemos.accountservice.api.controller" />
+      <recent name="com.mnemos.accountservice.api.dto.user" />
+      <recent name="com.mnemos.accountservice.api.dto." />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="test" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.CreateAccountServiceTest">
+    <configuration name="CreateAccountServiceTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":apps:account-service:test" />
+            <option value="--tests" />
+            <option value="&quot;com.mnemos.accountservice.application.service.account.CreateAccountServiceTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="Mnemos [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="UserControllerIntegrationTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":apps:account-service:test" />
+            <option value="--tests" />
+            <option value="&quot;com.mnemos.accountservice.api.UserControllerIntegrationTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="UserControllerIntegrationTest.should update current user localization" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":apps:account-service:test" />
+            <option value="--tests" />
+            <option value="&quot;com.mnemos.accountservice.api.UserControllerIntegrationTest.should update current user localization&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="CurrentUserControllerIntegrationTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Mnemos.apps.account-service.test" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.mnemos.accountservice.api.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.mnemos.accountservice.api" />
+      <option name="MAIN_CLASS_NAME" value="com.mnemos.accountservice.api.CurrentUserControllerIntegrationTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Mnemos.keycloak-extensions.telegram-authenticator.main" type="QuarkusRunConfigurationType" factoryName="Quarkus" nameIsGenerated="true">
+      <module name="Mnemos.keycloak-extensions.telegram-authenticator.main" />
+      <QsGradleRunConfiguration>
+        <ExternalSystemSettings>
+          <option name="executionName" />
+          <option name="externalProjectPath" value="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator" />
+          <option name="externalSystemIdString" value="GRADLE" />
+          <option name="scriptParameters" />
+          <option name="taskDescriptions">
+            <list />
+          </option>
+          <option name="taskNames">
+            <list />
+          </option>
+          <option name="vmOptions" />
+        </ExternalSystemSettings>
+        <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+        <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+        <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+        <DebugAllEnabled>false</DebugAllEnabled>
+        <RunAsTest>false</RunAsTest>
+        <GradleProfilingDisabled>false</GradleProfilingDisabled>
+        <GradleCoverageDisabled>false</GradleCoverageDisabled>
+        <profile>dev</profile>
+      </QsGradleRunConfiguration>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AccountServiceApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="local" />
+      <module name="Mnemos.apps.account-service.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.accountservice.AccountServiceApplication" />
+      <extension name="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        </ENTRIES>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AccountServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Mnemos.apps.account-service.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.accountservice.AccountServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MnemosAuthServiceApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Mnemos.apps.mnemos-auth-service.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.mnemosauthservice.MnemosAuthServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MnemosAuthServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Mnemos.apps.auth-service.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.mnemosauthservice.MnemosAuthServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SecurityCoreApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Mnemos.security-core.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.securitycore.SecurityCoreApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Gradle.CreateAccountServiceTest" />
+      <item itemvalue="Gradle.Mnemos [build]" />
+      <item itemvalue="Gradle.UserControllerIntegrationTest" />
+      <item itemvalue="Gradle.UserControllerIntegrationTest.should update current user localization" />
+      <item itemvalue="JUnit.CurrentUserControllerIntegrationTest" />
+      <item itemvalue="Quarkus.Mnemos.keycloak-extensions.telegram-authenticator.main" />
+      <item itemvalue="Spring Boot.AccountServiceApplication" />
+      <item itemvalue="Spring Boot.AccountServiceApplication (1)" />
+      <item itemvalue="Spring Boot.MnemosAuthServiceApplication" />
+      <item itemvalue="Spring Boot.MnemosAuthServiceApplication (1)" />
+      <item itemvalue="Spring Boot.SecurityCoreApplication" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.CreateAccountServiceTest" />
+        <item itemvalue="Gradle.Mnemos [build]" />
+        <item itemvalue="Gradle.UserControllerIntegrationTest" />
+        <item itemvalue="Gradle.UserControllerIntegrationTest.should update current user localization" />
+        <item itemvalue="JUnit.CurrentUserControllerIntegrationTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.258" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.258" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="StructureViewState">
+    <option name="selectedTab" value="Logical" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="15387ddd-5b51-4426-807e-6bda60cd17ac" name="Changes" comment="" />
+      <created>1783883936495</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1783883936495</updated>
+      <workItem from="1783884232580" duration="6000" />
+      <workItem from="1783884257855" duration="1153000" />
+      <workItem from="1783885443480" duration="6241000" />
+      <workItem from="1783892963312" duration="7350000" />
+      <workItem from="1783966808187" duration="27979000" />
+      <workItem from="1784324921053" duration="84656000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
+          <line>13</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

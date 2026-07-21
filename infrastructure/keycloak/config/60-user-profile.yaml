@@ -1,0 +1,36 @@
+realm: mnemos
+
+userProfile:
+  attributes:
+    - name: username
+      displayName: '${username}'
+      validations:
+        length:
+          min: 3
+          max: 255
+        username-prohibited-characters: {}
+        up-username-not-idn-homograph: {}
+      permissions:
+        view:
+          - admin
+          - user
+        edit:
+          - admin
+      multivalued: false
+
+    - name: telegram_user_id
+      displayName: Telegram user ID
+      validations: {}
+      annotations: {}
+      permissions:
+        view:
+          - admin
+          - user
+        edit:
+          - admin
+      multivalued: false
+
+  groups:
+    - name: user-metadata
+      displayHeader: User metadata
+      displayDescription: Mnemos user metadata

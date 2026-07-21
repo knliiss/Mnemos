@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+    <meta name="color-scheme" content="dark light">
+    <title>Mnemos Mini App</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<main class="app-shell">
+    <header class="hero card">
+        <div class="hero-top">
+            <div class="brand-mark">M</div>
+
+            <div class="hero-text">
+                <h1>Mnemos</h1>
+                <p id="status" class="status">Завантаження...</p>
+            </div>
+        </div>
+    </header>
+
+    <section id="user-card" class="card hidden" aria-live="polite">
+        <div class="section-head">
+            <h2>Поточний користувач</h2>
+            <span class="badge">Active</span>
+        </div>
+
+        <dl class="details">
+            <dt>ID</dt>
+            <dd id="user-id"></dd>
+
+            <dt>Username</dt>
+            <dd id="username"></dd>
+
+            <dt>Telegram ID</dt>
+            <dd id="telegram-id"></dd>
+
+            <dt>Keycloak ID</dt>
+            <dd id="keycloak-id"></dd>
+
+            <dt>Створено</dt>
+            <dd id="created-at"></dd>
+        </dl>
+    </section>
+
+    <section id="username-section" class="card hidden">
+        <div class="section-head">
+            <h2>Змінити username</h2>
+            <span class="badge muted">Profile</span>
+        </div>
+
+        <label class="field">
+            <span class="field-label">Нове ім'я користувача</span>
+            <input
+                    type="text"
+                    id="username-input"
+                    placeholder="Введіть нове ім'я користувача"
+                    minlength="3"
+                    maxlength="32"
+                    autocomplete="off"
+                    spellcheck="false"
+                    required
+            >
+        </label>
+
+        <button id="update-username-button" type="button" class="primary-button">
+            Змінити ім'я користувача
+        </button>
+    </section>
+
+    <section id="buttons" class="actions hidden">
+        <button id="reload-button" type="button" class="secondary-button">
+            Повторити запит
+        </button>
+
+        <button id="logout-button" type="button" class="danger-button">
+            Вийти
+        </button>
+    </section>
+
+    <section id="error" class="error hidden" aria-live="assertive"></section>
+</main>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

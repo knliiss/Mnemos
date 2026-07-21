@@ -1,0 +1,35 @@
+realm: mnemos
+displayName: Mnemos
+enabled: true
+loginTheme: mnemos
+
+registrationAllowed: false
+registrationEmailAsUsername: false
+loginWithEmailAllowed: false
+duplicateEmailsAllowed: false
+editUsernameAllowed: true
+
+resetPasswordAllowed: false
+verifyEmail: false
+rememberMe: true
+
+bruteForceProtected: true
+permanentLockout: false
+failureFactor: 5
+waitIncrementSeconds: 60
+maxFailureWaitSeconds: 900
+minimumQuickLoginWaitSeconds: 60
+quickLoginCheckMilliSeconds: 1000
+maxDeltaTimeSeconds: 43200
+
+accessTokenLifespan: 600
+ssoSessionIdleTimeout: 1800
+ssoSessionMaxLifespan: 36000
+offlineSessionIdleTimeout: 2592000
+
+passwordPolicy: "length(10) and maxLength(128) and notUsername(undefined)"
+
+eventsEnabled: true
+eventsExpiration: 604800
+adminEventsEnabled: true
+adminEventsDetailsEnabled: true
