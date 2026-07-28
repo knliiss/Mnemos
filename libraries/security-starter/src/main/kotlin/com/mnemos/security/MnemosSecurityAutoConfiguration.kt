@@ -3,16 +3,21 @@ package com.mnemos.security
 import com.mnemos.security.handler.MnemosAccessDeniedHandler
 import com.mnemos.security.handler.MnemosAuthenticationEntryPoint
 import com.mnemos.security.handler.SecurityErrorResponseWriter
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import tools.jackson.databind.ObjectMapper
 
 @AutoConfiguration
@@ -23,6 +28,36 @@ import tools.jackson.databind.ObjectMapper
     Jwt::class
 )
 class MnemosSecurityAutoConfiguration {
+
+    @Bean("mnemosCorsConfigurationSource")
+    @ConditionalOnMissingBean(name = ["mnemosCorsConfigurationSource"])
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration().apply {
+            allowedOrigins = listOf(
+                "https://app.knalis.rest"
+            )
+            allowedMethods = listOf(
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+            )
+            allowedHeaders = listOf(
+                "Authorization",
+                "Content-Type",
+                "Accept"
+            )
+            maxAge = 3600
+            allowCredentials = true
+        }
+
+
+        return UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration("/**", configuration)
+        }
+    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -61,14 +96,23 @@ class MnemosSecurityAutoConfiguration {
         properties: MnemosSecurityProperties,
         jwtAuthenticationConverter: MnemosJwtAuthenticationConverter,
         authenticationEntryPoint: MnemosAuthenticationEntryPoint,
-        accessDeniedHandler: MnemosAccessDeniedHandler
+        accessDeniedHandler: MnemosAccessDeniedHandler,
+        @Qualifier("mnemosCorsConfigurationSource")
+        corsConfigurationSource: CorsConfigurationSource
     ): SecurityFilterChain {
         http
+            .cors {
+                it.configurationSource(corsConfigurationSource)
+            }
             .csrf { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .authorizeHttpRequests { authorization ->
+                authorization
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                    .permitAll()
+
                 properties.publicPaths.forEach { path ->
                     authorization.requestMatchers(path).permitAll()
                 }

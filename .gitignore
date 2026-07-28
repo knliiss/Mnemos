@@ -47,4 +47,9 @@ bin/
 
 ### Project specific ###
 /.env
-/tools/telegram-mini-app-test/node_modules/
+
+**/node_modules/
+**/dist/
+**/build/
+.idea/
+*.zip

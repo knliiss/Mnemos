@@ -1,0 +1,3 @@
+import {useEffect,useRef} from "react"
+import {runtimeConfig} from "@/shared/config/runtimeConfig"
+export function SkinHead({size=48,className=""}:{size?:number;className?:string}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const image=new Image();image.crossOrigin="anonymous";image.onload=()=>{const canvas=ref.current;if(!canvas)return;canvas.width=size;canvas.height=size;const ctx=canvas.getContext("2d");if(!ctx)return;ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,size,size);ctx.drawImage(image,8,8,8,8,0,0,size,size);ctx.drawImage(image,40,8,8,8,0,0,size,size)};image.src=runtimeConfig.skinUrl},[size]);return <canvas ref={ref} className={`skin-head ${className}`} style={{width:size,height:size}}/>}

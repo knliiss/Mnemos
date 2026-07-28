@@ -1,0 +1,8 @@
+import {useEffect,useState} from "react"
+import {useParams} from "react-router-dom"
+import {useTranslation} from "react-i18next"
+import {contentRepository} from "@/shared/api/contentRepository"
+import type {EventCard} from "@/shared/types/domain"
+import {PageHeader} from "@/shared/ui/PageHeader"
+import {ItemIcon} from "@/entities/item/ui/ItemIcon"
+export function BetDetailPage(){const {id=""}=useParams();const {t}=useTranslation();const [e,setE]=useState<EventCard|null>(null);useEffect(()=>{contentRepository.getEvent(id).then(setE)},[id]);if(!e)return null;return <div className="page"><PageHeader title={e.title}/><div className="race-hero card"><ItemIcon kind={e.type==="RACE"?"weapon":"artifact"}/><strong>{e.pool.toLocaleString()}</strong><span>{t("bets.pool")}</span></div><div className="detail-grid card"><div><span>{t("bets.participants")}</span><strong>{e.participants}</strong></div><div><span>Статус</span><strong>{e.status}</strong></div></div><div className="my-bet card"><span>Моя ставка</span><strong>✦ {e.myBet||0}</strong><span>Множитель: x{e.multiplier||1}</span></div><div className="leaderboard card">{["Knalis","Mirabel","Vexor","LightSoul"].map((n,i)=><div key={n}><b>{i+1}</b><span>{n}</span><strong>{100-i*20}</strong><small>x{(2.85-i*.45).toFixed(2)}</small></div>)}</div><button className="primary" onClick={()=>console.log("bet action",e.id)}>{e.type==="RACE"?t("bets.join"):t("bets.place")}</button></div>}

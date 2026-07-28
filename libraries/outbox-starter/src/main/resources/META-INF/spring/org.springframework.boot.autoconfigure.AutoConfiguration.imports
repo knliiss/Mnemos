@@ -1,0 +1,3 @@
+com.mnemos.messaging.outbox.config.MnemosOutboxAutoConfiguration
+com.mnemos.messaging.outbox.config.MnemosOutboxPublisherAutoConfiguration
+com.mnemos.messaging.outbox.config.MnemosOutboxCleanupAutoConfiguration

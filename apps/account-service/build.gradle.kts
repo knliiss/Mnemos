@@ -9,6 +9,10 @@ dependencies {
     implementation(project(":libraries:common-web"))
     implementation(project(":libraries:security-starter"))
 
+    implementation(project(":contracts:account-events"))
+    implementation(project(":libraries:outbox-starter"))
+    implementation(project(":libraries:kafka-starter"))
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -20,13 +24,13 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("io.github.openfeign:feign-okhttp")
 
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.testcontainers:testcontainers-postgresql")
-
 }
 dependencyManagement {
     imports {

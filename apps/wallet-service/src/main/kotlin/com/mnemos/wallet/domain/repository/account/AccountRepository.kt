@@ -1,0 +1,24 @@
+package com.mnemos.accountservice.domain.repository.account
+
+import com.mnemos.accountservice.domain.model.account.Account
+import com.mnemos.accountservice.domain.model.account.CristalixUuid
+import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.user.UserId
+
+interface AccountRepository {
+    fun create(account: Account): Account
+
+    fun update(account: Account): Account
+
+    fun findActiveById(accountId: AccountId): Account?
+
+    fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean
+
+    fun findAllAvailableForUser(userId: UserId): List<Account>
+
+    fun lockById(id: AccountId): Boolean
+
+    fun findByIdForUpdate(accountId: AccountId): Account?
+
+    fun findByIdIncludingInactive(accountId: AccountId): Account?
+}

@@ -18,6 +18,10 @@ dependencies {
     )
 
     implementation(
+        "org.jlleitschuh.gradle:ktlint-gradle:13.1.0"
+    )
+
+    implementation(
         "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
     )
 

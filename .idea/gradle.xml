@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
@@ -16,17 +15,24 @@
           </compositeBuild>
         </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="homebrew-25" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/apps" />
             <option value="$PROJECT_DIR$/apps/account-service" />
+            <option value="$PROJECT_DIR$/apps/wallet-service" />
             <option value="$PROJECT_DIR$/build-logic" />
+            <option value="$PROJECT_DIR$/contracts" />
+            <option value="$PROJECT_DIR$/contracts/account-events" />
             <option value="$PROJECT_DIR$/keycloak-extensions" />
             <option value="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator" />
             <option value="$PROJECT_DIR$/libraries" />
             <option value="$PROJECT_DIR$/libraries/common-core" />
             <option value="$PROJECT_DIR$/libraries/common-web" />
+            <option value="$PROJECT_DIR$/libraries/kafka-starter" />
+            <option value="$PROJECT_DIR$/libraries/messaging-core" />
+            <option value="$PROJECT_DIR$/libraries/outbox-starter" />
             <option value="$PROJECT_DIR$/libraries/security-starter" />
           </set>
         </option>

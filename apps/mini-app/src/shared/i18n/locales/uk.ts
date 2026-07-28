@@ -1,0 +1,81 @@
+export const uk = {
+    nav: {settings: "Налаштування", history: "Історія", home: "Головна", search: "Пошук", account: "Акаунт"},
+    common: {
+        all: "Усі",
+        myAccount: "Мій акаунт",
+        loading: "Завантаження...",
+        back: "Назад",
+        save: "Зберегти",
+        cancel: "Скасувати",
+        soon: "Незабаром"
+    },
+    home: {
+        online: "Онлайн",
+        days: "днів",
+        reward: "Забрати нагороду",
+        coins: "Коїни",
+        primes: "Прайми",
+        latest: "Останні предмети",
+        bets: "Ставки",
+        shop: "Магазин",
+        admin: "Адмін",
+        news: "Новини",
+        proposals: "Пропозиції",
+        swipe: "Проведіть угору, щоб відкрити список"
+    },
+    account: {
+        owner: "Власник",
+        participant: "Учасник",
+        likes: "Вподобань",
+        members: "Учасників",
+        comments: "Коментарів",
+        about: "Про себе",
+        personalization: "Персоналізація",
+        leave: "Вийти з акаунта",
+        delete: "Видалити акаунт",
+        transferFirst: "Спочатку передайте власника",
+        available: "Доступні акаунти",
+        create: "Реєстрація",
+        invite: "За інвайт-кодом",
+        nickname: "Cristalix nickname",
+        inviteCode: "UUID інвайт-коду",
+        connect: "Підключити",
+        createAccount: "Створити акаунт",
+        noActive: "Оберіть або створіть акаунт"
+    },
+    history: {title: "Історія", items: "Предмети", bets: "Ставки", transactions: "Транзакції"},
+    comments: {title: "Коментарі", placeholder: "Залишити коментар..."},
+    search: {placeholder: "Пошук акаунтів", recent: "Нещодавні"},
+    bets: {
+        title: "Ставки",
+        events: "Події",
+        race: "Гонка за предметом",
+        active: "Активні",
+        past: "Минулі",
+        place: "Зробити ставку",
+        enter: "Увійти в гонку",
+        pool: "Призовий фонд",
+        participants: "Учасників"
+    },
+    settings: {
+        title: "Налаштування",
+        language: "Мова",
+        theme: "Тема",
+        notifications: "Сповіщення",
+        privacy: "Конфіденційність",
+        security: "Безпека",
+        linked: "Пов’язані акаунти",
+        display: "Налаштування відображення",
+        support: "Допомога та підтримка",
+        about: "Про застосунок",
+        dark: "Темна",
+        light: "Світла",
+        system: "Системна"
+    },
+    auth: {
+        authorizing: "Авторизація...",
+        telegramOnly: "Відкрийте застосунок усередині Telegram",
+        error: "Не вдалося авторизуватися"
+    },
+    error: {title: "Сталася помилка", retry: "Повторити"}
+} as const
