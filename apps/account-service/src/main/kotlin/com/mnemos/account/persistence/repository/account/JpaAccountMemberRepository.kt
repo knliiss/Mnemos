@@ -13,17 +13,10 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
         userId: UUID,
     ): AccountMemberEntity?
 
-    fun findAllByUserId(userId: UUID): List<AccountMemberEntity>
-
     fun existsByAccountIdAndUserId(
         accountId: UUID,
         userId: UUID,
     ): Boolean
-
-    fun deleteByAccountIdAndUserId(
-        accountId: UUID,
-        userId: UUID,
-    )
 
     fun countByAccountId(accountId: UUID): Long
 

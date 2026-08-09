@@ -29,7 +29,7 @@ class InboxCleanupServiceTest {
 
         val service = InboxCleanupService(
             repository = repository,
-            clock = InboxClock { now },
+            clock = { now },
             properties = properties(maxBatchesPerRun = 10),
         )
 
@@ -54,7 +54,7 @@ class InboxCleanupServiceTest {
 
         val service = InboxCleanupService(
             repository = repository,
-            clock = InboxClock { now },
+            clock = { now },
             properties = properties(maxBatchesPerRun = 2),
         )
 

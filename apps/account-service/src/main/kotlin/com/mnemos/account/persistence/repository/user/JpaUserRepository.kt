@@ -17,8 +17,6 @@ interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
 
     fun existsByTelegramId(telegramId: TelegramId): Boolean
 
-    fun existsByKeycloakId(keycloakId: KeycloakId): Boolean
-
     @Query(
         """
     select case when count(user) > 0 then true else false end

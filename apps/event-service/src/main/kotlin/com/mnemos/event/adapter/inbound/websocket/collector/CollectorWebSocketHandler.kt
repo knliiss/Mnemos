@@ -97,21 +97,21 @@ class CollectorWebSocketHandler(
     ): CollectorClientMessage? =
         try {
             messageCodec.decode(payload)
-        } catch (exception: StreamReadException) {
+        } catch (_: StreamReadException) {
             sendError(
                 session = session,
                 code = CollectorErrorCode.MALFORMED_JSON,
                 message = "Malformed JSON",
             )
             null
-        } catch (exception: DatabindException) {
+        } catch (_: DatabindException) {
             sendError(
                 session = session,
                 code = CollectorErrorCode.INVALID_MESSAGE,
                 message = "Invalid message",
             )
             null
-        } catch (exception: JacksonException) {
+        } catch (_: JacksonException) {
             sendError(
                 session = session,
                 code = CollectorErrorCode.INVALID_MESSAGE,

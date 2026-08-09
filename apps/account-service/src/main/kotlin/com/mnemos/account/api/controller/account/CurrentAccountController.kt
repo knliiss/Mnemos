@@ -26,10 +26,7 @@ class CurrentAccountController(
     private val leaveActiveAccountService: LeaveActiveAccountService,
 ) {
     @GetMapping
-    fun getAvailableAccounts(): List<AccountSummaryResponse> =
-        accountQueryService
-            .getAvailableAccounts()
-            .map { it.toResponse() }
+    fun getAvailableAccounts(): List<AccountSummaryResponse> = accountQueryService.getAvailableAccounts().map { it.toResponse() }
 
     @GetMapping("/active")
     fun getActiveAccount(): ResponseEntity<AccountDetailsResponse> {

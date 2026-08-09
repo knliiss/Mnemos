@@ -9,7 +9,6 @@ class EventCandidate private constructor(
     val fingerprint: EventFingerprint,
     val report: CollectorEventReport,
     val referenceObservedAt: Instant,
-    val createdAt: Instant,
     val expiresAt: Instant,
     val requiredConfirmations: Int,
     private val observations: MutableMap<CollectorId, EventObservation>,
@@ -127,7 +126,6 @@ class EventCandidate private constructor(
                 fingerprint = fingerprint,
                 report = report,
                 referenceObservedAt = observation.observedAt,
-                createdAt = observation.receivedAt,
                 expiresAt = expiresAt,
                 requiredConfirmations = requiredConfirmations,
                 observations =

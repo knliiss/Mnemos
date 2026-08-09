@@ -84,10 +84,7 @@ class CreateAccountService(
                     account = createdAccount,
                     ownerMember = createdOwnerMember,
                 ),
-            metadata =
-                EventMetadata(
-                    actorUserId = owner.id.id,
-                ),
+            metadata = EventMetadata(actorUserId = owner.id.id),
         )
 
         return CreateAccountResult(

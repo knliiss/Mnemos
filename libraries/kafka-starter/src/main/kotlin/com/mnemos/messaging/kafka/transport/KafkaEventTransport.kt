@@ -37,6 +37,6 @@ class KafkaEventTransport(
 
         return kafkaTemplate
             .send(record)
-            .thenApply { Unit }
+            .thenApply { }
     }
 }

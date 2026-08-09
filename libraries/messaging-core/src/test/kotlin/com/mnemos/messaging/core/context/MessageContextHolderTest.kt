@@ -27,13 +27,13 @@ class MessageContextHolderTest {
         val inner = context()
 
         MessageContextHolder.withContext(outer) {
-            assertEquals(outer, MessageContextHolder.current())
+            assertEquals(MessageContextHolder.current(), outer)
 
             MessageContextHolder.withContext(inner) {
-                assertEquals(inner, MessageContextHolder.current())
+                assertEquals(MessageContextHolder.current(), inner)
             }
 
-            assertEquals(outer, MessageContextHolder.current())
+            assertEquals(MessageContextHolder.current(), outer)
         }
 
         assertNull(MessageContextHolder.current())

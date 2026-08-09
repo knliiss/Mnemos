@@ -6,6 +6,7 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.wallet.application.transaction.CreateTransactionRequest
 import com.mnemos.wallet.application.transaction.ProcessCreateTransactionCommandService
+import com.mnemos.wallet.application.transaction.policy.WalletCommandProducerPolicy
 import com.mnemos.wallet.contracts.wallet.WalletCommandContract
 import com.mnemos.wallet.contracts.wallet.WalletCommandType
 import com.mnemos.wallet.contracts.wallet.command.WalletCreateTransactionCommand
@@ -24,7 +25,12 @@ import java.util.UUID
 
 class WalletCreateTransactionCommandHandlerTest {
     private val processService = mock<ProcessCreateTransactionCommandService>()
-    private val handler = WalletCreateTransactionCommandHandler(processService)
+    private val producerPolicy = mock<WalletCommandProducerPolicy>()
+    private val handler =
+        WalletCreateTransactionCommandHandler(
+            producerPolicy = producerPolicy,
+            processCreateTransactionCommandService = processService,
+        )
 
     @Test
     fun `definition matches create transaction command contract`() {

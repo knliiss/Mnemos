@@ -22,7 +22,7 @@ data class MnemosInboxProperties(
             CronExpression.parse(cron)
             ZoneId.of(zone)
 
-            require(retention.isPositive()) {
+            require(retention.isPositive) {
                 "Inbox cleanup retention must be positive"
             }
             require(batchSize > 0) {
@@ -32,9 +32,5 @@ data class MnemosInboxProperties(
                 "Inbox cleanup max batches per run must be positive"
             }
         }
-    }
-
-    private companion object {
-        fun Duration.isPositive(): Boolean = !isZero && !isNegative
     }
 }

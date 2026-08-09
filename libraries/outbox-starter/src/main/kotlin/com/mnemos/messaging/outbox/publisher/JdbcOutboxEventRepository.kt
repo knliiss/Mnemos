@@ -59,7 +59,7 @@ class JdbcOutboxEventRepository(
                 MARK_PUBLISHED_SQL,
                 parameters,
             ) == 1
-        } ?: false
+        }
 
     override fun markFailed(
         eventId: UUID,
@@ -92,7 +92,7 @@ class JdbcOutboxEventRepository(
                 MARK_FAILED_SQL,
                 parameters,
             ) == 1
-        } ?: false
+        }
 
     override fun markDead(
         eventId: UUID,
@@ -125,7 +125,7 @@ class JdbcOutboxEventRepository(
                 MARK_DEAD_SQL,
                 parameters,
             ) == 1
-        } ?: false
+        }
 
     private companion object {
 

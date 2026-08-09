@@ -8,6 +8,7 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.wallet.application.transaction.ProcessCreateTransactionCommandService
 import com.mnemos.wallet.application.transaction.WalletCreateTransactionCommandMapper.toRequest
+import com.mnemos.wallet.application.transaction.policy.WalletCommandProducerPolicy
 import com.mnemos.wallet.contracts.wallet.WalletCommandContract
 import com.mnemos.wallet.contracts.wallet.WalletCommandType
 import com.mnemos.wallet.contracts.wallet.command.WalletCreateTransactionCommand
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class WalletCreateTransactionCommandHandler(
+    private val producerPolicy: WalletCommandProducerPolicy,
     private val processCreateTransactionCommandService: ProcessCreateTransactionCommandService,
 ) : KafkaMessageHandler<WalletCreateTransactionCommand> {
     override val definition: KafkaMessageDefinition<WalletCreateTransactionCommand> =
@@ -35,6 +37,12 @@ class WalletCreateTransactionCommandHandler(
 
     override fun handle(message: ConsumedMessage<WalletCreateTransactionCommand>) {
         val command = message.payload
+
+        producerPolicy.requireAllowed(
+            producer = message.producer,
+            command = message.payload,
+            actorUserId = message.metadata.actorUserId,
+        )
 
         processCreateTransactionCommandService.process(
             request = command.toRequest(),

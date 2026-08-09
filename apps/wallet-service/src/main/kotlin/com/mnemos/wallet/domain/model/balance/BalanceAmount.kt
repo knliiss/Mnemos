@@ -31,8 +31,6 @@ value class BalanceAmount(
 
     override fun compareTo(other: BalanceAmount): Int = value.compareTo(other.value)
 
-    fun isZero(): Boolean = value == 0L
-
     init {
         require(value >= 0) {
             "Balance amount cannot be negative."
