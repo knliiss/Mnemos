@@ -84,10 +84,10 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
           AND permission.permission = :permission
     )
     """,
-        nativeQuery = true
+        nativeQuery = true,
     )
     fun hasPermission(
         @Param("memberId") memberId: UUID,
-        @Param("permission") permission: String
+        @Param("permission") permission: String,
     ): Boolean
 }

@@ -1,4 +1,4 @@
-package com.mnemos.messaging.kafka.topic
+package com.mnemos.messaging.kafka.config
 
 import org.apache.kafka.clients.admin.NewTopic
 import org.springframework.kafka.config.TopicBuilder

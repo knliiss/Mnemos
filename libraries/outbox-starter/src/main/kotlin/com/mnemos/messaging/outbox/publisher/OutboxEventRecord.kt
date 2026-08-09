@@ -25,38 +25,62 @@ data class OutboxEventRecord(
     val envelope: String,
     val occurredAt: Instant,
 
-    val attempts: Int
+    val failureCount: Int,
 ) {
+
     fun toEventMessage(): EventMessage =
         EventMessage(
-            destination = EventDestination(
-                topic = topic,
-                key = eventKey
-            ),
+            destination =
+                EventDestination(
+                    topic = topic,
+                    key = eventKey,
+                ),
             payload = envelope,
-            headers = buildMap {
-                put(EventHeaders.EVENT_ID, id.toString())
-                put(EventHeaders.EVENT_TYPE, eventType)
-                put(EventHeaders.EVENT_VERSION, eventVersion.toString())
+            headers =
+                buildMap {
+                    put(EventHeaders.EVENT_ID, id.toString())
+                    put(EventHeaders.EVENT_TYPE, eventType)
+                    put(
+                        EventHeaders.EVENT_VERSION,
+                        eventVersion.toString(),
+                    )
 
-                put(EventHeaders.PRODUCER, producer)
+                    put(EventHeaders.PRODUCER, producer)
 
-                put(EventHeaders.AGGREGATE_TYPE, aggregateType)
-                put(EventHeaders.AGGREGATE_ID, aggregateId.toString())
+                    put(
+                        EventHeaders.AGGREGATE_TYPE,
+                        aggregateType,
+                    )
+                    put(
+                        EventHeaders.AGGREGATE_ID,
+                        aggregateId.toString(),
+                    )
 
-                put(EventHeaders.OCCURRED_AT, occurredAt.toString())
+                    put(
+                        EventHeaders.OCCURRED_AT,
+                        occurredAt.toString(),
+                    )
 
-                correlationId?.let {
-                    put(EventHeaders.CORRELATION_ID, it)
-                }
+                    correlationId?.let {
+                        put(
+                            EventHeaders.CORRELATION_ID,
+                            it,
+                        )
+                    }
 
-                causationId?.let {
-                    put(EventHeaders.CAUSATION_ID, it.toString())
-                }
+                    causationId?.let {
+                        put(
+                            EventHeaders.CAUSATION_ID,
+                            it.toString(),
+                        )
+                    }
 
-                actorUserId?.let {
-                    put(EventHeaders.ACTOR_USER_ID, it.toString())
-                }
-            }
+                    actorUserId?.let {
+                        put(
+                            EventHeaders.ACTOR_USER_ID,
+                            it.toString(),
+                        )
+                    }
+                },
         )
 }

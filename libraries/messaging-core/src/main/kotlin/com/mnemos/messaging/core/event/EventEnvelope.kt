@@ -1,5 +1,6 @@
 package com.mnemos.messaging.core.event
 
+import com.mnemos.messaging.core.publisher.IntegrationEventRoute
 import java.time.Instant
 import java.util.UUID
 
@@ -12,8 +13,9 @@ data class EventEnvelope<T : Any>(
     val aggregateId: UUID,
     val occurredAt: Instant,
     val metadata: EventMetadata,
-    val payload: T
+    val payload: T,
 ) {
+
     init {
         require(eventType.isNotBlank()) {
             "Event type cannot be blank"
@@ -33,22 +35,25 @@ data class EventEnvelope<T : Any>(
     }
 
     companion object {
+
         fun <T : Any> from(
             eventId: UUID,
             producer: String,
             metadata: EventMetadata,
-            event: IntegrationEvent<T>
-        ): EventEnvelope<T> = EventEnvelope(
-            eventId = eventId,
-            eventType = event.eventType,
-            eventVersion = event.eventVersion,
-            producer = producer,
-            aggregateType = event.aggregateType,
-            aggregateId = event.aggregateId,
-            occurredAt = event.occurredAt,
-            metadata = metadata,
-            payload = event.payload
-        )
+            event: IntegrationEvent<T>,
+            route: IntegrationEventRoute,
+        ): EventEnvelope<T> =
+            EventEnvelope(
+                eventId = eventId,
+                eventType = event.type,
+                eventVersion = route.version,
+                producer = producer,
+                aggregateType = route.aggregateType,
+                aggregateId = event.aggregateId,
+                occurredAt = event.occurredAt,
+                metadata = metadata,
+                payload = event.payload,
+            )
 
         private val PRODUCER_PATTERN =
             Regex("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")

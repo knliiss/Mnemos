@@ -8,8 +8,6 @@ class CristalixApiProperties(
     val url: String,
     val projectToken: String,
     val projectKey: String,
-    val connectTimeout: Duration,
-    var readTimeout: Duration,
     val rateLimit: RateLimit,
 ) {
     data class RateLimit(

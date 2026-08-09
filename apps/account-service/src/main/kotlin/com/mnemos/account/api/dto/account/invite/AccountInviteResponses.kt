@@ -33,7 +33,7 @@ enum class AccountInviteStatusResponse {
 
 fun CreateAccountInviteResult.toResponse(): CreateAccountInviteResponse =
     CreateAccountInviteResponse(
-        id = id.value,
+        id = id.id,
         code = code.value,
         createdAt = createdAt,
         expiresAt = expiresAt,
@@ -41,9 +41,9 @@ fun CreateAccountInviteResult.toResponse(): CreateAccountInviteResponse =
 
 fun AccountInviteListItem.toResponse(): AccountInviteListItemResponse =
     AccountInviteListItemResponse(
-        id = id.value,
+        id = id.id,
         code = code.value,
-        createdByUserId = createdByUserId.value,
+        createdByUserId = createdByUserId.id,
         createdAt = createdAt,
         expiresAt = expiresAt,
         consumedAt = consumedAt,

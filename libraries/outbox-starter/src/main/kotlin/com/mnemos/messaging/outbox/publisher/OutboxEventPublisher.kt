@@ -14,32 +14,72 @@ class OutboxEventPublisher(
     private val retryPolicy: OutboxRetryPolicy,
     private val clock: OutboxClock,
     private val instanceId: String,
-    private val properties: MnemosOutboxProperties.Publisher
+    private val properties: MnemosOutboxProperties.Publisher,
 ) {
+
     fun publishBatch(): Int {
-        val now = clock.now()
+        var processed = 0
 
-        val events = repository.claimPending(
-            instanceId = instanceId,
-            now = now,
-            lockedUntil = now.plus(properties.leaseDuration),
-            batchSize = properties.batchSize
-        )
+        repeat(properties.maxEventsPerRun) {
+            if (Thread.currentThread().isInterrupted) {
+                logger.debug(
+                    "Outbox publishing interrupted: processed={}, instanceId={}",
+                    processed,
+                    instanceId,
+                )
+                return processed
+            }
 
-        events.forEach(::publish)
+            val claimedAt = clock.now()
 
-        return events.size
+            val event = repository.claimNextPending(
+                instanceId = instanceId,
+                now = claimedAt,
+                lockedUntil = claimedAt.plus(properties.leaseDuration),
+            ) ?: return processed
+
+            processed++
+
+            logger.debug(
+                "Claimed outbox event: eventId={}, type={}, topic={}, eventKey={}, failureCount={}, instanceId={}",
+                event.id,
+                event.eventType,
+                event.topic,
+                event.eventKey,
+                event.failureCount,
+                instanceId,
+            )
+
+            if (!publish(event)) {
+                return processed
+            }
+        }
+
+        return processed
     }
 
-    private fun publish(event: OutboxEventRecord) {
+    private fun publish(event: OutboxEventRecord): Boolean {
+        logger.debug(
+            "Publishing outbox event: eventId={}, type={}, topic={}, eventKey={}, attempt={}",
+            event.id,
+            event.eventType,
+            event.topic,
+            event.eventKey,
+            event.failureCount + 1,
+        )
+
         val failure = send(event)
 
         if (failure != null) {
-            handleFailure(event, failure)
-            return
+            handleFailure(
+                event = event,
+                failure = failure,
+            )
+
+            return false
         }
 
-        markPublished(event)
+        return markPublished(event)
     }
 
     private fun send(event: OutboxEventRecord): Throwable? =
@@ -49,110 +89,163 @@ class OutboxEventPublisher(
                 .toCompletableFuture()
                 .get(
                     properties.sendTimeout.toMillis(),
-                    TimeUnit.MILLISECONDS
+                    TimeUnit.MILLISECONDS,
                 )
+
+            logger.debug(
+                "Outbox event accepted by transport: eventId={}, type={}, topic={}",
+                event.id,
+                event.eventType,
+                event.topic,
+            )
 
             null
         } catch (exception: InterruptedException) {
             Thread.currentThread().interrupt()
-            exception
-        } catch (exception: Throwable) {
+
+            logger.warn(
+                "Outbox event publishing interrupted: eventId={}, type={}, topic={}",
+                event.id,
+                event.eventType,
+                event.topic,
+            )
+
+            throw exception
+        } catch (exception: Exception) {
             unwrap(exception)
         }
 
-    private fun markPublished(event: OutboxEventRecord) {
+    private fun markPublished(event: OutboxEventRecord): Boolean =
         try {
+            val publishedAt = clock.now()
+
             val updated = repository.markPublished(
                 eventId = event.id,
                 instanceId = instanceId,
-                publishedAt = clock.now()
+                publishedAt = publishedAt,
             )
 
             if (!updated) {
                 logger.warn(
-                    "Could not mark outbox event as published because lock ownership was lost: eventId={}",
-                    event.id
+                    "Could not mark outbox event as published because lock ownership was lost: eventId={}, type={}, topic={}, instanceId={}",
+                    event.id,
+                    event.eventType,
+                    event.topic,
+                    instanceId,
                 )
+
+                false
+            } else {
+                logger.debug(
+                    "Outbox event published: eventId={}, type={}, topic={}, publishedAt={}",
+                    event.id,
+                    event.eventType,
+                    event.topic,
+                    publishedAt,
+                )
+
+                true
             }
         } catch (exception: Throwable) {
-            /*
-             * Kafka already accepted the event.
-             * Do not call markFailed here, otherwise we would pretend
-             * that the Kafka send itself failed.
-             *
-             * The lease will expire and the event may be published
-             * again. Consumers therefore must be idempotent by eventId.
-             */
             logger.error(
-                "Kafka accepted outbox event but database publish marking failed: eventId={}",
+                "Transport accepted outbox event but database publish marking failed: eventId={}, type={}, topic={}",
                 event.id,
-                exception
+                event.eventType,
+                event.topic,
+                exception,
             )
+
+            false
         }
-    }
 
     private fun handleFailure(
         event: OutboxEventRecord,
-        failure: Throwable
+        failure: Throwable,
     ) {
         val failedAt = clock.now()
 
         val decision = retryPolicy.afterFailure(
-            previousAttempts = event.attempts,
-            now = failedAt
+            previousFailureCount = event.failureCount,
+            now = failedAt,
         )
 
         val error = formatError(failure)
 
         try {
-            val updated = if (decision.dead) {
-                repository.markDead(
-                    eventId = event.id,
-                    instanceId = instanceId,
-                    previousAttempts = event.attempts,
-                    attempts = decision.attempts,
-                    deadAt = failedAt,
-                    error = error
-                )
-            } else {
-                repository.markFailed(
-                    eventId = event.id,
-                    instanceId = instanceId,
-                    previousAttempts = event.attempts,
-                    attempts = decision.attempts,
-                    nextAttemptAt =
-                        requireNotNull(decision.nextAttemptAt),
-                    error = error
-                )
-            }
+            val updated =
+                if (decision.dead) {
+                    repository.markDead(
+                        eventId = event.id,
+                        instanceId = instanceId,
+                        previousFailureCount = event.failureCount,
+                        failureCount = decision.failureCount,
+                        deadAt = failedAt,
+                        error = error,
+                    )
+                } else {
+                    repository.markFailed(
+                        eventId = event.id,
+                        instanceId = instanceId,
+                        previousFailureCount = event.failureCount,
+                        failureCount = decision.failureCount,
+                        nextAttemptAt = requireNotNull(decision.nextAttemptAt),
+                        error = error,
+                    )
+                }
 
             if (!updated) {
                 logger.warn(
-                    "Could not update failed outbox event because lock ownership was lost: eventId={}",
-                    event.id
+                    "Could not update failed outbox event because lock ownership was lost: eventId={}, type={}, topic={}, instanceId={}",
+                    event.id,
+                    event.eventType,
+                    event.topic,
+                    instanceId,
+                )
+                return
+            }
+
+            if (decision.dead) {
+                logger.error(
+                    "Outbox event moved to DEAD: eventId={}, type={}, topic={}, failureCount={}, error={}",
+                    event.id,
+                    event.eventType,
+                    event.topic,
+                    decision.failureCount,
+                    error,
+                )
+            } else {
+                logger.warn(
+                    "Outbox event publish failed, retry scheduled: eventId={}, type={}, topic={}, failureCount={}, nextAttemptAt={}, error={}",
+                    event.id,
+                    event.eventType,
+                    event.topic,
+                    decision.failureCount,
+                    decision.nextAttemptAt,
+                    error,
                 )
             }
         } catch (exception: Throwable) {
             logger.error(
-                "Could not persist outbox publishing failure: eventId={}",
+                "Could not persist outbox publishing failure: eventId={}, type={}, topic={}",
                 event.id,
-                exception
+                event.eventType,
+                event.topic,
+                exception,
             )
         }
     }
 
     private fun formatError(failure: Throwable): String {
-        val type = failure::class.qualifiedName
-            ?: failure::class.simpleName
-            ?: "UnknownException"
+        val type =
+            failure::class.qualifiedName
+                ?: failure::class.simpleName
+                ?: "UnknownException"
 
         return "$type: ${failure.message.orEmpty()}"
             .take(MAX_ERROR_LENGTH)
     }
 
-    private tailrec fun unwrap(
-        exception: Throwable
-    ): Throwable =
+    private tailrec fun unwrap(exception: Throwable): Throwable =
         when (exception) {
             is ExecutionException,
             is CompletionException ->
@@ -164,7 +257,6 @@ class OutboxEventPublisher(
     private companion object {
         const val MAX_ERROR_LENGTH = 4_000
 
-        val logger =
-            LoggerFactory.getLogger(OutboxEventPublisher::class.java)
+        val logger = LoggerFactory.getLogger(OutboxEventPublisher::class.java)
     }
 }

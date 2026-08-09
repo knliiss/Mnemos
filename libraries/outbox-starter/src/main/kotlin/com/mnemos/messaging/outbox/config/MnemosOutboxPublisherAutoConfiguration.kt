@@ -7,8 +7,9 @@ import com.mnemos.messaging.outbox.publisher.OutboxEventRepository
 import com.mnemos.messaging.outbox.publisher.OutboxPublisherScheduler
 import com.mnemos.messaging.outbox.publisher.OutboxRetryPolicy
 import com.mnemos.messaging.outbox.support.OutboxClock
+import com.mnemos.messaging.outbox.support.OutboxProducer
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -19,77 +20,103 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 
 @AutoConfiguration(after = [MnemosOutboxAutoConfiguration::class])
-@ConditionalOnBean(
-    EventTransport::class,
-    NamedParameterJdbcOperations::class,
-    PlatformTransactionManager::class
-)
 @ConditionalOnProperty(
     prefix = "mnemos.outbox.publisher",
     name = ["enabled"],
     havingValue = "true",
-    matchIfMissing = false
+    matchIfMissing = false,
 )
 @EnableScheduling
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class MnemosOutboxPublisherAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(OutboxEventRepository::class)
     fun outboxEventRepository(
         jdbcOperations: NamedParameterJdbcOperations,
-        transactionManager: PlatformTransactionManager
-    ): OutboxEventRepository =
-        JdbcOutboxEventRepository(
+        transactionManager: PlatformTransactionManager,
+    ): JdbcOutboxEventRepository {
+        logger.info(
+            "Configuring outbox event repository",
+        )
+
+        return JdbcOutboxEventRepository(
             jdbcOperations = jdbcOperations,
-            transactionOperations =
-                TransactionTemplate(transactionManager)
+            transactionOperations = TransactionTemplate(transactionManager),
         )
+    }
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(OutboxRetryPolicy::class)
     fun outboxRetryPolicy(
-        properties: MnemosOutboxProperties
-    ): OutboxRetryPolicy =
-        OutboxRetryPolicy(
-            maxAttempts =
-                properties.publisher.maxAttempts,
-            initialBackoff =
-                properties.publisher.initialBackoff,
-            maxBackoff =
-                properties.publisher.maxBackoff
+        properties: MnemosOutboxProperties,
+    ): OutboxRetryPolicy {
+        logger.info(
+            "Configuring outbox retry policy: maxAttempts={}, initialBackoff={}, maxBackoff={}",
+            properties.publisher.maxAttempts,
+            properties.publisher.initialBackoff,
+            properties.publisher.maxBackoff,
         )
 
+        return OutboxRetryPolicy(
+            maxAttempts = properties.publisher.maxAttempts,
+            initialBackoff = properties.publisher.initialBackoff,
+            maxBackoff = properties.publisher.maxBackoff,
+        )
+    }
+
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(OutboxEventPublisher::class)
     fun outboxEventPublisher(
         repository: OutboxEventRepository,
         eventTransport: EventTransport,
         retryPolicy: OutboxRetryPolicy,
         clock: OutboxClock,
-        properties: MnemosOutboxProperties
-    ): OutboxEventPublisher =
-        OutboxEventPublisher(
+        producer: OutboxProducer,
+        properties: MnemosOutboxProperties,
+    ): OutboxEventPublisher {
+        val instanceId = createInstanceId(producer.value)
+
+        logger.info(
+            "Configuring outbox publisher: producer={}, instanceId={}, maxEventsPerRun={}, leaseDuration={}, sendTimeout={}",
+            producer.value,
+            instanceId,
+            properties.publisher.maxEventsPerRun,
+            properties.publisher.leaseDuration,
+            properties.publisher.sendTimeout,
+        )
+
+        return OutboxEventPublisher(
             repository = repository,
             eventTransport = eventTransport,
             retryPolicy = retryPolicy,
             clock = clock,
-            instanceId = createInstanceId(
-                producer = requireNotNull(
-                    properties.producer
-                ) {
-                    "mnemos.outbox.producer must be configured"
-                }
-            ),
-            properties = properties.publisher
+            instanceId = instanceId,
+            properties = properties.publisher,
         )
+    }
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(OutboxPublisherScheduler::class)
     fun outboxPublisherScheduler(
-        publisher: OutboxEventPublisher
-    ): OutboxPublisherScheduler =
-        OutboxPublisherScheduler(publisher)
+        publisher: OutboxEventPublisher,
+    ): OutboxPublisherScheduler {
+        logger.info(
+            "Configuring outbox publisher scheduler",
+        )
 
-    private fun createInstanceId(producer: String): String =
+        return OutboxPublisherScheduler(publisher)
+    }
+
+    private fun createInstanceId(
+        producer: String,
+    ): String =
         "$producer:${UUID.randomUUID()}"
+
+    private companion object {
+        val logger =
+            LoggerFactory.getLogger(
+                MnemosOutboxPublisherAutoConfiguration::class.java,
+            )
+    }
 }

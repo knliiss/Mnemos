@@ -13,7 +13,7 @@ class InvalidRoleHierarchyException(
         httpStatus = HttpStatus.BAD_REQUEST,
         details =
             mapOf(
-                "accountId" to accountId.value,
+                "accountId" to accountId.id,
                 "reason" to reason,
             ),
     )

@@ -2,15 +2,13 @@
 kotlin = "2.4.10"
 spring-boot = "4.1.0"
 spring-dependency-management = "1.1.7"
-testcontainers = "2.0.1"
 mockito-kotlin = "6.3.0"
+uuid-creator = "6.1.1"
 
 [libraries]
-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 
-spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
@@ -18,20 +16,16 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 
-spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
-
-testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
-testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
-
 spring-boot-starter-kafka = { module = "org.springframework.boot:spring-boot-starter-kafka" }
 spring-boot-starter-jdbc = { module = "org.springframework.boot:spring-boot-starter-jdbc" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 
+spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
+
 jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 
-resilience4j-ratelimiter = { module = "io.github.resilience4j:resilience4j-ratelimiter" }
+uuid-creator = {module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator"}
 
 [bundles]
 spring-web = [

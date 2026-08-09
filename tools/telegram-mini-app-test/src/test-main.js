@@ -136,9 +136,7 @@ async function api(path, options = {}) {
 }
 
 async function loadCurrentUser() {
-
     try {
-
         hideError()
 
         setStatus("Завантаження користувача...")
@@ -150,18 +148,15 @@ async function loadCurrentUser() {
             }
         )
 
+        await keycloak.updateToken(-1)
+
         renderUser(user)
 
         setStatus("Готово")
-
     } catch (error) {
-
         showError(error)
-
     }
-
 }
-
 async function updateUsername() {
 
     if (!ui.usernameInput.reportValidity()) {

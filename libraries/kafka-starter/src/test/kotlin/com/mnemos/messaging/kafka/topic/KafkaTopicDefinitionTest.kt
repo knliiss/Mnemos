@@ -1,5 +1,6 @@
 package com.mnemos.messaging.kafka.topic
 
+import com.mnemos.messaging.kafka.config.KafkaTopicDefinition
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test

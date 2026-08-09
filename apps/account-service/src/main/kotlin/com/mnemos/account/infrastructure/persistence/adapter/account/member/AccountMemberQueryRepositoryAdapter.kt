@@ -18,7 +18,7 @@ class AccountMemberQueryRepositoryAdapter(
 ) : AccountMemberQueryRepository {
     override fun findAllByAccountId(accountId: AccountId): List<AccountMemberListItem> =
         repository
-            .findAllByAccountId(accountId.value)
+            .findAllByAccountId(accountId.id)
             .map { it.toListItem() }
 }
 

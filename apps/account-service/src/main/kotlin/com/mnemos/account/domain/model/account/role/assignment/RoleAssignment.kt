@@ -3,7 +3,7 @@ package com.mnemos.account.domain.model.account.role.assignment
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import java.time.Instant
 
 class RoleAssignment private constructor(

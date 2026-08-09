@@ -22,6 +22,8 @@ help: ## Show available commands
 	@printf "\n$(DIM)Examples$(RESET)\n"
 	@printf "  $(CYAN)make infra-up$(RESET)              build the Keycloak provider and start infrastructure\n"
 	@printf "  $(CYAN)make account-up$(RESET)            build and start account-service with all dependencies\n"
+	@printf "  $(CYAN)make wallet-up$(RESET)             build and start wallet-service with all dependencies\n"
+	@printf "  $(CYAN)make event-up$(RESET)              build and start event-service with all dependencies\n"
 	@printf "  $(CYAN)make keycloak-restart$(RESET)      rebuild the provider before recreating Keycloak\n"
 	@printf "  $(CYAN)make kafka-topics$(RESET)          list Kafka topics\n"
 	@printf "  $(CYAN)make status$(RESET)                show health, restarts, ports and provider state\n"
@@ -84,6 +86,8 @@ status: check-env ## Show detailed stack, endpoint and provider status
 	printf "\n$(BOLD)Endpoints$(RESET)\n"; \
 	account_port="$${MNEMOS_ACCOUNT_SERVICE_HOST_PORT:-$${ACCOUNT_SERVICE_PORT:-8081}}"; \
 	printf "  Account API     http://localhost:%s\n" "$$account_port"; \
+	wallet_port="$${MNEMOS_WALLET_SERVICE_HOST_PORT:-8082}"; \
+	printf "  Wallet API      http://localhost:%s\n" "$$wallet_port"; \
 	printf "  Keycloak        http://localhost:%s\n" "$${KEYCLOAK_HOST_PORT:-8080}"; \
 	printf "  App PostgreSQL  localhost:%s\n" "$${APP_POSTGRES_HOST_PORT:-5433}"; \
 	printf "  KC PostgreSQL   localhost:%s\n" "$${KEYCLOAK_POSTGRES_HOST_PORT:-5434}"; \
@@ -97,6 +101,8 @@ urls: check-env ## Show configured local and public endpoints
 	@set -a; source "$(ENV_FILE)"; set +a; \
 	account_port="$${MNEMOS_ACCOUNT_SERVICE_HOST_PORT:-$${ACCOUNT_SERVICE_PORT:-8081}}"; \
 	printf "Account API:      http://localhost:%s\n" "$$account_port"; \
+	wallet_port="$${MNEMOS_WALLET_SERVICE_HOST_PORT:-8082}"; \
+	printf "Wallet API:       http://localhost:%s\n" "$$wallet_port"; \
 	printf "Keycloak:         http://localhost:%s\n" "$${KEYCLOAK_HOST_PORT:-8080}"; \
 	printf "App PostgreSQL:   localhost:%s\n" "$${APP_POSTGRES_HOST_PORT:-5433}"; \
 	printf "KC PostgreSQL:    localhost:%s\n" "$${KEYCLOAK_POSTGRES_HOST_PORT:-5434}"; \

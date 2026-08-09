@@ -10,5 +10,5 @@ class AccountIdentityConflictException(
         message = "Cristalix account is already linked",
         code = "ACCOUNT_IDENTITY_CONFLICT",
         httpStatus = HttpStatus.CONFLICT,
-        details = mapOf("cristalixUuid" to cristalixUuid.value),
+        details = mapOf("cristalixUuid" to cristalixUuid.id),
     )

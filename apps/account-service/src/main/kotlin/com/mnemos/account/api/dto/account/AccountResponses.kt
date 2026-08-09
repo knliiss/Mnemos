@@ -36,15 +36,15 @@ data class AccountDetailsResponse(
 
 fun CreateAccountResult.toResponse(): CreateAccountResponse =
     CreateAccountResponse(
-        accountId = accountId.value,
-        memberId = memberId.value,
+        accountId = accountId.id,
+        memberId = memberId.id,
     )
 
 fun AccountSummary.toResponse(): AccountSummaryResponse =
     AccountSummaryResponse(
-        id = id.value,
+        id = id.id,
         cristalixNickname = cristalixNickname,
-        currentMemberId = currentMemberId.value,
+        currentMemberId = currentMemberId.id,
         memberCount = memberCount,
         maxMembers = maxMembers,
         owner = owner,
@@ -53,10 +53,10 @@ fun AccountSummary.toResponse(): AccountSummaryResponse =
 
 fun AccountDetails.toResponse(): AccountDetailsResponse =
     AccountDetailsResponse(
-        id = id.value,
+        id = id.id,
         cristalixUuid = cristalixUuid,
         cristalixNickname = cristalixNickname,
-        currentMemberId = currentMemberId.value,
+        currentMemberId = currentMemberId.id,
         memberCount = memberCount,
         maxMembers = maxMembers,
         owner = owner,

@@ -12,5 +12,5 @@ class RoleNotFoundException(
         message = "Role not found",
         code = "ROLE_NOT_FOUND",
         httpStatus = HttpStatus.NOT_FOUND,
-        details = mapOf("roleId" to roleId.value, "accountId" to accountId.value),
+        details = mapOf("roleId" to roleId.id, "accountId" to accountId.id),
     )

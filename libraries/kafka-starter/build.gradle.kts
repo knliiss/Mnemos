@@ -5,8 +5,12 @@ plugins {
 dependencies {
     api(project(":libraries:messaging-core"))
 
-    implementation(libs.spring.boot.starter.kafka)
+    compileOnly(project(":libraries:inbox-starter"))
+    testImplementation(project(":libraries:inbox-starter"))
+
+    api(libs.spring.boot.starter.kafka)
     implementation(libs.spring.boot.autoconfigure)
+    api(libs.jackson.kotlin)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.mockito.kotlin)

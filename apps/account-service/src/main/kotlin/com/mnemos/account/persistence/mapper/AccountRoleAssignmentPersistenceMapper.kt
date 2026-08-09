@@ -8,7 +8,7 @@ import com.mnemos.account.persistence.entity.role.RoleAssignmentActorType
 import com.mnemos.account.persistence.entity.role.RoleAssignmentEntity
 import com.mnemos.account.persistence.entity.role.RoleAssignmentEntityId
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import java.util.UUID
 
 object AccountRoleAssignmentPersistenceMapper {
@@ -18,10 +18,10 @@ object AccountRoleAssignmentPersistenceMapper {
         return RoleAssignmentEntity(
             id =
                 RoleAssignmentEntityId(
-                    accountMemberId = accountMemberId.value,
-                    roleId = roleId.value,
+                    accountMemberId = accountMemberId.id,
+                    roleId = roleId.id,
                 ),
-            accountId = accountId.value,
+            accountId = accountId.id,
             assignedByType = actor.type,
             assignedByUserId = actor.userId,
             assignmentReason = reason,
@@ -44,7 +44,7 @@ object AccountRoleAssignmentPersistenceMapper {
             is RoleAssignmentActor.User ->
                 AssignmentActorData(
                     type = RoleAssignmentActorType.USER,
-                    userId = userId.value,
+                    userId = userId.id,
                 )
 
             RoleAssignmentActor.System ->

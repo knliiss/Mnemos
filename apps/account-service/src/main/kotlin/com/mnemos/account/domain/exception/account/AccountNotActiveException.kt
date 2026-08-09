@@ -10,5 +10,5 @@ class AccountNotActiveException(
         message = "Account is not active",
         code = "ACCOUNT_NOT_ACTIVE",
         httpStatus = HttpStatus.FORBIDDEN,
-        details = mapOf("accountId" to id.value),
+        details = mapOf("accountId" to id.id),
     )

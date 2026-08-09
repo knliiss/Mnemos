@@ -4,15 +4,15 @@ import com.mnemos.account.domain.model.account.invite.InviteCode
 import com.mnemos.account.domain.model.account.invite.InviteId
 import com.mnemos.account.persistence.entity.invite.AccountInviteEntity
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 
 object AccountInvitePersistenceMapper {
     fun AccountInvite.toEntity(): AccountInviteEntity =
         AccountInviteEntity(
-            id = id.value,
-            accountId = accountId.value,
+            id = id.id,
+            accountId = accountId.id,
             code = code.value,
-            createdByUserId = createdByUserId.value,
+            createdByUserId = createdByUserId.id,
             createdAt = createdAt,
             expiresAt = expiresAt,
             consumedAt = consumedAt,

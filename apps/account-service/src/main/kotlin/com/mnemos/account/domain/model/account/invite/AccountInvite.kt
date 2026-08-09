@@ -2,7 +2,7 @@ package com.mnemos.account.domain.model.account.invite
 
 import com.mnemos.account.domain.exception.invite.AccountInviteUnavailableException
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import java.time.Instant
 
 class AccountInvite private constructor(

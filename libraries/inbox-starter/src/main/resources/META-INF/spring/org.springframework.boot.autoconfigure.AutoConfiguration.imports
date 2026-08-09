@@ -1,0 +1,2 @@
+com.mnemos.messaging.inbox.config.MnemosInboxAutoConfiguration
+com.mnemos.messaging.inbox.config.MnemosInboxCleanupAutoConfiguration

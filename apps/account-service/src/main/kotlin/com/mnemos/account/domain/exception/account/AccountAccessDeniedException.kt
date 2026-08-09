@@ -10,5 +10,5 @@ class AccountAccessDeniedException(
         message = "You have not allowed to access the account",
         code = "ACCOUNT_ACCESS_DENIED",
         httpStatus = HttpStatus.FORBIDDEN,
-        details = mapOf("accountId" to accountId.value),
+        details = mapOf("accountId" to accountId.id),
     )

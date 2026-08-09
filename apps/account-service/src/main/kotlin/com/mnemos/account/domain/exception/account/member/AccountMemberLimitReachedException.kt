@@ -13,7 +13,7 @@ class AccountMemberLimitReachedException(
         httpStatus = HttpStatus.CONFLICT,
         details =
             mapOf(
-                "accountId" to accountId.value,
+                "accountId" to accountId.id,
                 "maxMembers" to maxMembers,
             ),
     )

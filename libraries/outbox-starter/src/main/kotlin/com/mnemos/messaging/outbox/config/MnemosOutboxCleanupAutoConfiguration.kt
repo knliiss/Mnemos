@@ -6,7 +6,6 @@ import com.mnemos.messaging.outbox.cleanup.OutboxCleanupScheduler
 import com.mnemos.messaging.outbox.cleanup.OutboxCleanupService
 import com.mnemos.messaging.outbox.support.OutboxClock
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -14,15 +13,14 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @AutoConfiguration(after = [MnemosOutboxAutoConfiguration::class])
-@ConditionalOnBean(
-    NamedParameterJdbcOperations::class,
-    OutboxClock::class
-)
 @ConditionalOnProperty(
-    prefix = "mnemos.outbox.cleanup",
-    name = ["enabled"],
+    prefix = "mnemos.outbox",
+    name = [
+        "enabled",
+        "cleanup.enabled",
+    ],
     havingValue = "true",
-    matchIfMissing = false
+    matchIfMissing = false,
 )
 @EnableScheduling
 class MnemosOutboxCleanupAutoConfiguration {
@@ -30,7 +28,7 @@ class MnemosOutboxCleanupAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     fun outboxCleanupRepository(
-        jdbcOperations: NamedParameterJdbcOperations
+        jdbcOperations: NamedParameterJdbcOperations,
     ): OutboxCleanupRepository =
         JdbcOutboxCleanupRepository(jdbcOperations)
 
@@ -39,18 +37,18 @@ class MnemosOutboxCleanupAutoConfiguration {
     fun outboxCleanupService(
         repository: OutboxCleanupRepository,
         clock: OutboxClock,
-        properties: MnemosOutboxProperties
+        properties: MnemosOutboxProperties,
     ): OutboxCleanupService =
         OutboxCleanupService(
             repository = repository,
             clock = clock,
-            properties = properties.cleanup
+            properties = properties.cleanup,
         )
 
     @Bean
     @ConditionalOnMissingBean
     fun outboxCleanupScheduler(
-        cleanupService: OutboxCleanupService
+        cleanupService: OutboxCleanupService,
     ): OutboxCleanupScheduler =
         OutboxCleanupScheduler(cleanupService)
 }

@@ -1,9 +1,9 @@
 package com.mnemos.account.application.context
 
-import com.mnemos.account.domain.exception.UserNotFoundException
+import com.mnemos.account.domain.exception.user.UserNotFoundException
 import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.user.UserRepository
-import com.mnemos.common.core.model.user.KeycloakId
+import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.security.CurrentMnemosUser
 import org.jboss.logging.Logger
 import org.springframework.stereotype.Component

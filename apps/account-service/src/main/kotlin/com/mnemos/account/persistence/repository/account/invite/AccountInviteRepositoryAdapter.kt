@@ -28,12 +28,12 @@ class AccountInviteRepositoryAdapter(
     ): AccountInvite? =
         repository
             .findByIdAndAccountIdForUpdate(
-                inviteId = inviteId.value,
-                accountId = accountId.value,
+                inviteId = inviteId.id,
+                accountId = accountId.id,
             )?.toDomain()
 
     override fun findAllByAccountId(accountId: AccountId): List<AccountInvite> =
         repository
-            .findAllByAccountIdOrderByCreatedAtDesc(accountId.value)
+            .findAllByAccountIdOrderByCreatedAtDesc(accountId.id)
             .map { it.toDomain() }
 }

@@ -5,34 +5,33 @@ import java.util.UUID
 
 interface OutboxEventRepository {
 
-    fun claimPending(
+    fun claimNextPending(
         instanceId: String,
         now: Instant,
         lockedUntil: Instant,
-        batchSize: Int
-    ): List<OutboxEventRecord>
+    ): OutboxEventRecord?
 
     fun markPublished(
         eventId: UUID,
         instanceId: String,
-        publishedAt: Instant
+        publishedAt: Instant,
     ): Boolean
 
     fun markFailed(
         eventId: UUID,
         instanceId: String,
-        previousAttempts: Int,
-        attempts: Int,
+        previousFailureCount: Int,
+        failureCount: Int,
         nextAttemptAt: Instant,
-        error: String
+        error: String,
     ): Boolean
 
     fun markDead(
         eventId: UUID,
         instanceId: String,
-        previousAttempts: Int,
-        attempts: Int,
+        previousFailureCount: Int,
+        failureCount: Int,
         deadAt: Instant,
-        error: String
+        error: String,
     ): Boolean
 }

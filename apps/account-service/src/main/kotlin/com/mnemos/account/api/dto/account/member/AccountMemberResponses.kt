@@ -27,7 +27,7 @@ data class JoinAccountResponse(
 
 fun AccountMemberListItem.toResponse(): AccountMemberListItemResponse =
     AccountMemberListItemResponse(
-        id = id.value,
+        id = id.id,
         name = name,
         owner = owner,
         highestRole = highestRole?.toResponse(),
@@ -36,13 +36,13 @@ fun AccountMemberListItem.toResponse(): AccountMemberListItemResponse =
 
 private fun AccountMemberRoleSummary.toResponse(): AccountMemberRoleSummaryResponse =
     AccountMemberRoleSummaryResponse(
-        id = id.value,
+        id = id.id,
         name = name.value,
         color = color.value,
     )
 
 fun JoinAccountResult.toResponse(): JoinAccountResponse =
     JoinAccountResponse(
-        accountId = accountId.value,
-        memberId = memberId.value,
+        accountId = accountId.id,
+        memberId = memberId.id,
     )

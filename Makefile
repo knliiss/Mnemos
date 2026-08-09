@@ -20,6 +20,7 @@ doctor:
 config:
 config-infra:
 config-account:
+config-wallet:
 config-keycloak:
 
 build:
@@ -89,6 +90,34 @@ account-config:
 account-shell:
 account-health:
 
+wallet-jar:
+wallet-image:
+wallet-build:
+wallet-rebuild-image:
+wallet-up:
+wallet-stop:
+wallet-down:
+wallet-restart:
+wallet-logs:
+wallet-errors:
+wallet-config:
+wallet-shell:
+wallet-health:
+
+event-jar:
+event-image:
+event-build:
+event-rebuild-image:
+event-up:
+event-stop:
+event-down:
+event-restart:
+event-logs:
+event-errors:
+event-config:
+event-shell:
+event-health:
+
 include $(MAKE_DIR)/config.mk
 include $(MAKE_DIR)/ui.mk
 include $(MAKE_DIR)/validation.mk
@@ -100,3 +129,5 @@ include $(MAKE_DIR)/postgres.mk
 include $(MAKE_DIR)/kafka.mk
 include $(MAKE_DIR)/keycloak.mk
 include $(MAKE_DIR)/account.mk
+include $(MAKE_DIR)/wallet.mk
+include $(MAKE_DIR)/event.mk

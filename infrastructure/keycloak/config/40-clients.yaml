@@ -46,6 +46,18 @@ clients:
           userinfo.token.claim: "true"
           multivalued: "false"
 
+      - name: mnemos-user-id
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: mnemos_user_id
+          claim.name: mnemos_user_id
+          jsonType.label: String
+          access.token.claim: "true"
+          id.token.claim: "true"
+          userinfo.token.claim: "true"
+          multivalued: "false"
+
   - clientId: "$(env:MNEMOS_ACCOUNT_SERVICE_CLIENT_ID)"
     name: Account Service Admin
     description: Service account used by account-service to manage users

@@ -17,21 +17,25 @@ class OutboxRetryPolicyTest {
         OutboxRetryPolicy(
             maxAttempts = 4,
             initialBackoff = Duration.ofSeconds(1),
-            maxBackoff = Duration.ofSeconds(3)
+            maxBackoff = Duration.ofSeconds(3),
         )
 
     @Test
     fun `first failure retries after initial backoff`() {
-        val decision = policy.afterFailure(
-            previousAttempts = 0,
-            now = now
-        )
+        val decision =
+            policy.afterFailure(
+                previousFailureCount = 0,
+                now = now,
+            )
 
-        assertEquals(1, decision.attempts)
+        assertEquals(
+            1,
+            decision.failureCount,
+        )
         assertFalse(decision.dead)
         assertEquals(
             now.plusSeconds(1),
-            decision.nextAttemptAt
+            decision.nextAttemptAt,
         )
     }
 
@@ -39,23 +43,33 @@ class OutboxRetryPolicyTest {
     fun `backoff grows exponentially and is capped`() {
         assertEquals(
             now.plusSeconds(2),
-            policy.afterFailure(1, now).nextAttemptAt
+            policy.afterFailure(
+                previousFailureCount = 1,
+                now = now,
+            ).nextAttemptAt,
         )
 
         assertEquals(
             now.plusSeconds(3),
-            policy.afterFailure(2, now).nextAttemptAt
+            policy.afterFailure(
+                previousFailureCount = 2,
+                now = now,
+            ).nextAttemptAt,
         )
     }
 
     @Test
-    fun `event becomes dead after maximum attempts`() {
-        val decision = policy.afterFailure(
-            previousAttempts = 3,
-            now = now
-        )
+    fun `event becomes dead after maximum failures`() {
+        val decision =
+            policy.afterFailure(
+                previousFailureCount = 3,
+                now = now,
+            )
 
-        assertEquals(4, decision.attempts)
+        assertEquals(
+            4,
+            decision.failureCount,
+        )
         assertTrue(decision.dead)
         assertNull(decision.nextAttemptAt)
     }

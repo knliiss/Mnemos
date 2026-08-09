@@ -14,7 +14,7 @@ class AccountUnavailableException(
         httpStatus = HttpStatus.FORBIDDEN,
         details =
             mapOf(
-                "accountId" to accountId.value,
+                "accountId" to accountId.id,
                 "status" to status.name,
             ),
     )

@@ -10,5 +10,5 @@ class AccountNotFoundException(
         message = "Account not found",
         code = "ACCOUNT_NOT_FOUND",
         httpStatus = HttpStatus.NOT_FOUND,
-        details = mapOf("accountId" to accountId.value),
+        details = mapOf("accountId" to accountId.id),
     )

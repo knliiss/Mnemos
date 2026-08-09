@@ -17,7 +17,7 @@ data class RoleResponse(
 
 fun RoleView.toResponse(): RoleResponse =
     RoleResponse(
-        id = id.value,
+        id = id.id,
         name = name,
         color = color,
         hierarchyRank = hierarchyRank,

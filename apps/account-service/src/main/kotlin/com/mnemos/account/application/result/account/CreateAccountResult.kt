@@ -5,5 +5,5 @@ import com.mnemos.common.core.model.id.AccountId
 
 data class CreateAccountResult(
     val accountId: AccountId,
-    val memberId: AccountMemberId
+    val memberId: AccountMemberId,
 )

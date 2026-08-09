@@ -1,8 +1,8 @@
 package com.mnemos.account.persistence.repository.user
 
 import com.mnemos.account.persistence.entity.user.UserEntity
+import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
-import com.mnemos.common.core.model.user.KeycloakId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -56,6 +56,44 @@ interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
     fun clearActiveAccountIfMatches(
         @Param("userId") userId: UUID,
         @Param("accountId") accountId: UUID,
-        @Param("updatedAt") updatedAt: Instant
+        @Param("updatedAt") updatedAt: Instant,
+    ): Int
+
+    @Modifying
+    @Query(
+        value = """
+        INSERT INTO users (
+            id,
+            keycloak_id,
+            telegram_id,
+            username,
+            localization_language,
+            active_account_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            :id,
+            :keycloakId,
+            :telegramId,
+            :username,
+            :localizationLanguage,
+            :activeAccountId,
+            :createdAt,
+            :updatedAt
+        )
+        ON CONFLICT (keycloak_id) DO NOTHING
+    """,
+        nativeQuery = true,
+    )
+    fun insertIfAbsentByKeycloakId(
+        id: UUID,
+        keycloakId: UUID,
+        telegramId: Long,
+        username: String,
+        localizationLanguage: String,
+        activeAccountId: UUID?,
+        createdAt: Instant,
+        updatedAt: Instant,
     ): Int
 }

@@ -1,15 +1,15 @@
 package com.mnemos.account.persistence.repository.user
 
-import com.mnemos.account.domain.exception.UserNotFoundException
+import com.mnemos.account.domain.exception.user.UserNotFoundException
 import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.account.persistence.mapper.UserPersistenceMapper.toDomain
 import com.mnemos.account.persistence.mapper.UserPersistenceMapper.toEntity
 import com.mnemos.account.persistence.mapper.UserPersistenceMapper.updateFrom
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
-import com.mnemos.common.core.model.user.KeycloakId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.Username
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -23,7 +23,7 @@ class UserRepositoryAdapter(
     override fun update(user: User): User {
         val entity =
             jpaUserRepository
-                .findById(user.id.value)
+                .findById(user.id.id)
                 .orElseThrow { UserNotFoundException(user.keycloakId) }
         entity.updateFrom(user)
         return jpaUserRepository.save(entity).toDomain()
@@ -39,7 +39,7 @@ class UserRepositoryAdapter(
         accountId: AccountId,
         now: Instant,
     ) {
-        jpaUserRepository.clearActiveAccountByAccountId(accountId.value, now)
+        jpaUserRepository.clearActiveAccountByAccountId(accountId.id, now)
     }
 
     override fun clearActiveAccountIfMatches(
@@ -48,10 +48,30 @@ class UserRepositoryAdapter(
         updatedAt: Instant,
     ): Boolean =
         jpaUserRepository.clearActiveAccountIfMatches(
-            userId = userId.value,
-            accountId = accountId.value,
+            userId = userId.id,
+            accountId = accountId.id,
             updatedAt = updatedAt,
         ) > 0
+
+    override fun createIfAbsentByKeycloakId(user: User): User {
+        jpaUserRepository.insertIfAbsentByKeycloakId(
+            id = user.id.id,
+            keycloakId = user.keycloakId.id,
+            telegramId = user.telegramId.value,
+            username = user.username.value,
+            localizationLanguage = user.localizationLanguage.name,
+            activeAccountId = user.activeAccountId?.id,
+            createdAt = user.createdAt,
+            updatedAt = user.updatedAt,
+        )
+
+        return jpaUserRepository
+            .findByKeycloakId(user.keycloakId)
+            ?.toDomain()
+            ?: error(
+                "User was neither created nor found after insert attempt: keycloakId=${user.keycloakId.id}",
+            )
+    }
 
     override fun existsByUsername(username: Username): Boolean = jpaUserRepository.existsByUsernameIgnoreCase(username.value)
 }

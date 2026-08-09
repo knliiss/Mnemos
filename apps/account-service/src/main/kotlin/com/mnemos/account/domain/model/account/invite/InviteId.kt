@@ -4,7 +4,7 @@ import java.util.UUID
 
 @JvmInline
 value class InviteId(
-    val value: UUID,
+    val id: UUID,
 ) {
     companion object {
         fun generate() = InviteId(UUID.randomUUID())

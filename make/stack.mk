@@ -4,7 +4,7 @@
 
 .PHONY: up stop down restart rebuild pull logs reset
 
-up: validate telegram-auth-build account-build ## Build and start the complete stack
+up: validate telegram-auth-build account-build wallet-build ## Build and start the complete stack
 	$(call info,Starting complete stack)
 	@$(DC_ALL) up -d --wait --wait-timeout $(WAIT_TIMEOUT)
 	@$(MAKE) --no-print-directory keycloak-config
@@ -16,13 +16,13 @@ stop: check-env ## Stop all stack services without removing containers
 down: check-env ## Remove stack containers and orphaned containers
 	@$(DC_ALL) down --remove-orphans
 
-restart: validate telegram-auth-build account-build ## Rebuild artifacts and recreate the complete stack
+restart: validate telegram-auth-build account-build wallet-build ## Rebuild artifacts and recreate the complete stack
 	$(call info,Recreating complete stack)
 	@$(DC_ALL) up -d --force-recreate --wait --wait-timeout $(WAIT_TIMEOUT)
 	@$(MAKE) --no-print-directory keycloak-config
 	@$(MAKE) --no-print-directory status
 
-rebuild: validate telegram-auth-clean telegram-auth-build account-rebuild-image ## Clean-build artifacts and recreate the stack
+rebuild: validate telegram-auth-clean telegram-auth-build account-rebuild-image wallet-rebuild-image ## Clean-build artifacts and recreate the stack
 	$(call info,Recreating complete stack from clean application artifacts)
 	@$(DC_ALL) up -d --force-recreate --wait --wait-timeout $(WAIT_TIMEOUT)
 	@$(MAKE) --no-print-directory keycloak-config

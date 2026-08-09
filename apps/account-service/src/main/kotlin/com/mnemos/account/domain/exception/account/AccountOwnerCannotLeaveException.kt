@@ -10,5 +10,5 @@ class AccountOwnerCannotLeaveException(
         message = "Owner cannot leave the account",
         code = "ACCOUNT_OWNER_CANNOT_LEAVE_ACCOUNT",
         httpStatus = HttpStatus.CONFLICT,
-        details = mapOf("accountId" to accountId.value),
+        details = mapOf("accountId" to accountId.id),
     )

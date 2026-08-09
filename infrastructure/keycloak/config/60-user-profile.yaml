@@ -30,6 +30,19 @@ userProfile:
           - admin
       multivalued: false
 
+    - name: mnemos_user_id
+      displayName: Mnemos user ID
+      validations: {}
+      annotations: {}
+      permissions:
+        - view:
+            - admin
+            - user
+        - edit:
+            - admin
+      multivalued: false
+
+
   groups:
     - name: user-metadata
       displayHeader: User metadata

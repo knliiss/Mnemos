@@ -15,3 +15,8 @@ data class CheckAccountPermissionResponse(
 data class EffectivePermissionsResponse(
     val permissions: Set<RolePermission>,
 )
+
+data class CheckAccountPermissionByKeycloakIdRequest(
+    val keycloakId: UUID,
+    val permission: RolePermission,
+)

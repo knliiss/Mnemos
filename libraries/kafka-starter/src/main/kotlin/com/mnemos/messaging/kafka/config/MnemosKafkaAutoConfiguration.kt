@@ -1,7 +1,7 @@
 package com.mnemos.messaging.kafka.config
 
 import com.mnemos.messaging.core.transport.EventTransport
-import com.mnemos.messaging.kafka.topic.KafkaTopicDefinition
+import com.mnemos.messaging.kafka.serialization.KafkaEventEnvelopeReader
 import com.mnemos.messaging.kafka.transport.KafkaEventTransport
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -14,6 +14,7 @@ import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.KafkaAdmin
 import org.springframework.kafka.core.KafkaTemplate
+import tools.jackson.databind.json.JsonMapper
 
 @AutoConfiguration(after = [KafkaAutoConfiguration::class])
 @ConditionalOnClass(KafkaTemplate::class)
@@ -32,6 +33,12 @@ class MnemosKafkaAutoConfiguration {
     fun kafkaEventTransport(
         kafkaTemplate: KafkaTemplate<String, String>
     ): EventTransport = KafkaEventTransport(kafkaTemplate)
+
+    @Bean
+    @ConditionalOnMissingBean
+    fun kafkaEventEnvelopeReader(
+        jsonMapper: JsonMapper
+    ): KafkaEventEnvelopeReader = KafkaEventEnvelopeReader(jsonMapper)
 
     @Bean(name = ["mnemosKafkaTopics"])
     @ConditionalOnBean(KafkaTopicDefinition::class)

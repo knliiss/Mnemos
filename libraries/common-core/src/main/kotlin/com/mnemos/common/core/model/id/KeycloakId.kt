@@ -1,8 +1,8 @@
-package com.mnemos.common.core.model.user
+package com.mnemos.common.core.model.id
 
 import java.util.UUID
 
 @JvmInline
-value class KeycloakId(val value: UUID) {
-    override fun toString(): String = value.toString()
+value class KeycloakId(val id: UUID) {
+    override fun toString(): String = id.toString()
 }

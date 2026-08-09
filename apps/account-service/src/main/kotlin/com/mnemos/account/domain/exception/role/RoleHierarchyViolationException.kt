@@ -15,9 +15,9 @@ class RoleHierarchyViolationException(
         httpStatus = HttpStatus.FORBIDDEN,
         details =
             buildMap {
-                put("actorMemberId", actorMemberId.value)
+                put("actorMemberId", actorMemberId.id)
 
-                if (roleId != null) put("roleId", roleId.value)
-                if (subjectMemberId != null) put("subjectMemberId", subjectMemberId.value)
+                if (roleId != null) put("roleId", roleId.id)
+                if (subjectMemberId != null) put("subjectMemberId", subjectMemberId.id)
             },
     )

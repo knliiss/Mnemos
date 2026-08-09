@@ -25,9 +25,32 @@ class CurrentMnemosUser(
         return MnemosPrincipal(
             keycloakId = extractKeycloakId(jwt),
             username = extractUsername(jwt),
+            userId = extractUserId(jwt),
             telegramId = extractTelegramId(jwt),
             roles = extractRoles(authentication)
         )
+    }
+
+    fun requireUserId(): UUID =
+        get().userId
+            ?: throw InvalidAuthenticationPrincipalException(
+                message = "Required JWT claim mnemos_user_id is missing",
+            )
+
+    private fun extractUserId(jwt: Jwt): UUID? {
+        val value =
+            jwt.getClaimAsString(MNEMOS_USER_ID_CLAIM)
+                ?.takeIf { it.isNotBlank() }
+                ?: return null
+
+        return try {
+            UUID.fromString(value)
+        } catch (exception: IllegalArgumentException) {
+            throw InvalidAuthenticationPrincipalException(
+                message = "JWT claim mnemos_user_id is not a valid UUID",
+                cause = exception,
+            )
+        }
     }
 
     private fun extractKeycloakId(jwt: Jwt): UUID {
@@ -106,5 +129,9 @@ class CurrentMnemosUser(
         }
 
         return roles
+    }
+
+    private companion object {
+        const val MNEMOS_USER_ID_CLAIM = "mnemos_user_id"
     }
 }

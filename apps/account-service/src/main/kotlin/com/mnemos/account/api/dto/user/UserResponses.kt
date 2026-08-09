@@ -16,10 +16,10 @@ data class UserResponse(
 
 fun CurrentUserView.toResponse(): UserResponse =
     UserResponse(
-        id = id.value,
+        id = id.id,
         username = username.value,
         localizationLanguage = localizationLanguage,
-        activeAccountId = activeAccountId?.value,
+        activeAccountId = activeAccountId?.id,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )

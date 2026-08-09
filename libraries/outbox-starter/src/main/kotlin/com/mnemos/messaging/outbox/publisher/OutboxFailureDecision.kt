@@ -4,16 +4,17 @@ import java.time.Duration
 import java.time.Instant
 
 data class OutboxFailureDecision(
-    val attempts: Int,
+    val failureCount: Int,
     val dead: Boolean,
-    val nextAttemptAt: Instant?
+    val nextAttemptAt: Instant?,
 )
 
 class OutboxRetryPolicy(
     private val maxAttempts: Int,
     private val initialBackoff: Duration,
-    private val maxBackoff: Duration
+    private val maxBackoff: Duration,
 ) {
+
     init {
         require(maxAttempts > 0)
         require(!initialBackoff.isZero && !initialBackoff.isNegative)
@@ -21,42 +22,45 @@ class OutboxRetryPolicy(
     }
 
     fun afterFailure(
-        previousAttempts: Int,
-        now: Instant
+        previousFailureCount: Int,
+        now: Instant,
     ): OutboxFailureDecision {
-        require(previousAttempts >= 0)
+        require(previousFailureCount >= 0)
 
-        val attempts = previousAttempts + 1
+        val failureCount = previousFailureCount + 1
 
-        if (attempts >= maxAttempts) {
+        if (failureCount >= maxAttempts) {
             return OutboxFailureDecision(
-                attempts = attempts,
+                failureCount = failureCount,
                 dead = true,
-                nextAttemptAt = null
+                nextAttemptAt = null,
             )
         }
 
         return OutboxFailureDecision(
-            attempts = attempts,
+            failureCount = failureCount,
             dead = false,
             nextAttemptAt = now.plus(
-                calculateBackoff(attempts)
-            )
+                calculateBackoff(failureCount),
+            ),
         )
     }
 
-    private fun calculateBackoff(attempts: Int): Duration {
+    private fun calculateBackoff(
+        failureCount: Int,
+    ): Duration {
         var delay = initialBackoff
 
-        repeat(attempts - 1) {
-            delay = try {
-                minOf(
-                    delay.multipliedBy(2),
+        repeat(failureCount - 1) {
+            delay =
+                try {
+                    minOf(
+                        delay.multipliedBy(2),
+                        maxBackoff,
+                    )
+                } catch (_: ArithmeticException) {
                     maxBackoff
-                )
-            } catch (_: ArithmeticException) {
-                maxBackoff
-            }
+                }
         }
 
         return delay

@@ -3,7 +3,7 @@ package com.mnemos.account.domain.repository.account
 import com.mnemos.account.domain.model.account.Account
 import com.mnemos.account.domain.model.account.CristalixUuid
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 
 interface AccountRepository {
     fun create(account: Account): Account

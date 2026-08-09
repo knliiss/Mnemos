@@ -1,49 +1,67 @@
-DROP TABLE IF EXISTS outbox_events;
-
 CREATE TABLE outbox_events
 (
-    id               UUID PRIMARY KEY,
+    id UUID PRIMARY KEY,
 
-    topic            VARCHAR(255) NOT NULL,
-    event_key        VARCHAR(255) NOT NULL,
+    sequence_no BIGINT GENERATED ALWAYS AS IDENTITY,
 
-    event_type       VARCHAR(150) NOT NULL,
-    event_version    INTEGER NOT NULL,
+    topic VARCHAR(255) NOT NULL,
+    event_key VARCHAR(255) NOT NULL,
 
-    producer         VARCHAR(100) NOT NULL,
+    event_type VARCHAR(150) NOT NULL,
+    event_version INTEGER NOT NULL,
 
-    aggregate_type   VARCHAR(100) NOT NULL,
-    aggregate_id     UUID NOT NULL,
+    producer VARCHAR(100) NOT NULL,
 
-    correlation_id   VARCHAR(255),
-    causation_id     UUID,
-    actor_user_id    UUID,
+    aggregate_type VARCHAR(100) NOT NULL,
+    aggregate_id UUID NOT NULL,
 
-    envelope         JSONB NOT NULL,
+    correlation_id VARCHAR(255),
+    causation_id UUID,
+    actor_user_id UUID,
 
-    occurred_at      TIMESTAMPTZ NOT NULL,
-    created_at       TIMESTAMPTZ NOT NULL,
+    envelope JSONB NOT NULL,
 
-    status           VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    occurred_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
 
-    attempts         INTEGER NOT NULL DEFAULT 0,
-    next_attempt_at  TIMESTAMPTZ NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
 
-    locked_by        VARCHAR(255),
-    locked_until     TIMESTAMPTZ,
+    failure_count INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TIMESTAMPTZ NOT NULL,
 
-    published_at     TIMESTAMPTZ,
-    dead_at          TIMESTAMPTZ,
+    locked_by VARCHAR(255),
+    locked_until TIMESTAMPTZ,
 
-    last_error       TEXT,
+    published_at TIMESTAMPTZ,
+    dead_at TIMESTAMPTZ,
 
-    CONSTRAINT chk_outbox_event_version_positive
+    last_error TEXT,
+
+    CONSTRAINT uq_outbox_events_sequence_no
+        UNIQUE (sequence_no),
+
+    CONSTRAINT ck_outbox_event_topic_not_blank
+        CHECK (LENGTH(TRIM(topic)) > 0),
+
+    CONSTRAINT ck_outbox_event_key_not_blank
+        CHECK (LENGTH(TRIM(event_key)) > 0),
+
+    CONSTRAINT ck_outbox_event_type_not_blank
+        CHECK (LENGTH(TRIM(event_type)) > 0),
+
+    CONSTRAINT ck_outbox_event_version_positive
         CHECK (event_version > 0),
 
-    CONSTRAINT chk_outbox_attempts_non_negative
-        CHECK (attempts >= 0),
+    CONSTRAINT ck_outbox_producer_not_blank
+        CHECK (LENGTH(TRIM(producer)) > 0),
 
-    CONSTRAINT chk_outbox_status
+    CONSTRAINT ck_outbox_aggregate_type_not_blank
+        CHECK (LENGTH(TRIM(aggregate_type)) > 0),
+
+    CONSTRAINT ck_outbox_failure_count_non_negative
+        CHECK (failure_count >= 0),
+
+    CONSTRAINT ck_outbox_status
         CHECK (
             status IN (
                        'PENDING',
@@ -52,7 +70,7 @@ CREATE TABLE outbox_events
                 )
             ),
 
-    CONSTRAINT chk_outbox_lock_consistency
+    CONSTRAINT ck_outbox_lock_consistency
         CHECK (
             (
                 locked_by IS NULL
@@ -65,7 +83,7 @@ CREATE TABLE outbox_events
                 )
             ),
 
-    CONSTRAINT chk_outbox_state_consistency
+    CONSTRAINT ck_outbox_state_consistency
         CHECK (
             (
                 status = 'PENDING'
@@ -88,39 +106,40 @@ CREATE TABLE outbox_events
                     AND locked_by IS NULL
                     AND locked_until IS NULL
                 )
+            ),
+
+    CONSTRAINT ck_outbox_published_after_creation
+        CHECK (
+            published_at IS NULL
+                OR published_at >= created_at
+            ),
+
+    CONSTRAINT ck_outbox_dead_after_creation
+        CHECK (
+            dead_at IS NULL
+                OR dead_at >= created_at
             )
 );
 
 CREATE INDEX idx_outbox_events_pending
     ON outbox_events (
                       next_attempt_at,
-                      created_at,
-                      id
+                      sequence_no
         )
     WHERE status = 'PENDING';
 
-CREATE INDEX idx_outbox_events_locked
-    ON outbox_events (
-                      locked_until
-        )
-    WHERE status = 'PENDING'
-        AND locked_until IS NOT NULL;
-
-CREATE INDEX idx_outbox_events_published_cleanup
-    ON outbox_events (
-                      published_at
-        )
-    WHERE status = 'PUBLISHED';
-
-CREATE INDEX idx_outbox_events_dead
-    ON outbox_events (
-                      dead_at
-        )
-    WHERE status = 'DEAD';
-
-CREATE INDEX idx_outbox_events_aggregate
+CREATE INDEX idx_outbox_events_pending_aggregate
     ON outbox_events (
                       aggregate_type,
                       aggregate_id,
-                      created_at
-        );
+                      sequence_no
+        )
+    WHERE status = 'PENDING';
+
+CREATE INDEX idx_outbox_events_published_cleanup
+    ON outbox_events (published_at)
+    WHERE status = 'PUBLISHED';
+
+CREATE INDEX idx_outbox_events_dead_cleanup
+    ON outbox_events (dead_at)
+    WHERE status = 'DEAD';

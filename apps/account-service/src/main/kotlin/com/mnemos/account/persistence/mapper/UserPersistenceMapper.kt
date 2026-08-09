@@ -3,22 +3,22 @@ package com.mnemos.account.persistence.mapper
 import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.persistence.entity.user.UserEntity
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
-import com.mnemos.common.core.model.user.KeycloakId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.Username
 
 object UserPersistenceMapper {
     fun User.toEntity() =
         UserEntity(
-            id = id.value,
+            id = id.id,
             telegramId = telegramId.value,
             username = username.value,
-            keycloakId = keycloakId.value,
+            keycloakId = keycloakId.id,
             createdAt = createdAt,
             updatedAt = updatedAt,
             localizationLanguage = localizationLanguage,
-            activeAccountId = activeAccountId?.value,
+            activeAccountId = activeAccountId?.id,
         )
 
     fun UserEntity.toDomain() =
@@ -37,6 +37,6 @@ object UserPersistenceMapper {
         username = user.username.value
         localizationLanguage = user.localizationLanguage
         updatedAt = user.updatedAt
-        activeAccountId = user.activeAccountId?.value
+        activeAccountId = user.activeAccountId?.id
     }
 }

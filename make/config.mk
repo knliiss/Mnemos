@@ -18,6 +18,8 @@ KAFKA_FILE := $(COMPOSE_DIR)/compose.kafka.yml
 KEYCLOAK_FILE := $(COMPOSE_DIR)/compose.keycloak.yml
 KEYCLOAK_CONFIG_FILE := $(COMPOSE_DIR)/compose.keycloak-config.yml
 ACCOUNT_SERVICE_FILE := $(APPS_COMPOSE_DIR)/compose.account-service.yml
+WALLET_SERVICE_FILE := $(APPS_COMPOSE_DIR)/compose.wallet-service.yml
+EVENT_SERVICE_FILE := $(APPS_COMPOSE_DIR)/compose.event-service.yml
 
 DC := docker compose --env-file $(ENV_FILE)
 DC_BASE := $(DC) -f $(BASE_FILE)
@@ -28,7 +30,9 @@ DC_KEYCLOAK_CONFIG := $(DC_AUTH) -f $(KEYCLOAK_CONFIG_FILE)
 
 # account-service always uses the complete infrastructure set, including Kafka.
 DC_ACCOUNT := $(DC_INFRA) -f $(ACCOUNT_SERVICE_FILE)
-DC_ALL := $(DC_ACCOUNT)
+DC_WALLET := $(DC_INFRA) -f $(WALLET_SERVICE_FILE)
+DC_EVENT := $(DC_INFRA) -f $(EVENT_SERVICE_FILE)
+DC_ALL := $(DC_INFRA) -f $(ACCOUNT_SERVICE_FILE) -f $(WALLET_SERVICE_FILE) -f $(EVENT_SERVICE_FILE)
 
 APP_POSTGRES_SERVICE := app-postgres
 KEYCLOAK_POSTGRES_SERVICE := keycloak-postgres
@@ -36,8 +40,12 @@ KAFKA_SERVICE := kafka
 KEYCLOAK_SERVICE := keycloak
 KEYCLOAK_CONFIG_SERVICE := keycloak-config
 ACCOUNT_SERVICE := account-service
+WALLET_SERVICE := wallet-service
+EVENT_SERVICE := event-service
 
 ACCOUNT_MODULE := :apps:account-service
+WALLET_MODULE := :apps:wallet-service
+EVENT_MODULE := :apps:event-service
 TELEGRAM_AUTH_MODULE := :keycloak-extensions:telegram-authenticator
 TELEGRAM_AUTH_JAR := keycloak-extensions/telegram-authenticator/build/libs/mnemos-telegram-authenticator.jar
 TELEGRAM_AUTH_SERVICE_FILE := META-INF/services/org.keycloak.authentication.AuthenticatorFactory

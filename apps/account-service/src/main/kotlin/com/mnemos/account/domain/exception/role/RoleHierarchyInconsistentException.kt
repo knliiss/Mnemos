@@ -12,6 +12,6 @@ class RoleHierarchyInconsistentException(
         httpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
         details =
             mapOf(
-                "accountMemberId" to accountMemberId.value,
+                "accountMemberId" to accountMemberId.id,
             ),
     )

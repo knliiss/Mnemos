@@ -2,8 +2,8 @@ FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-COPY apps/account-service/build/libs/account-service.jar app.jar
+COPY apps/wallet-service/build/libs/wallet-service.jar app.jar
 
-EXPOSE 8081
+EXPOSE 8082
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

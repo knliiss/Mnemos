@@ -24,10 +24,10 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
                     AND member.userId = :userId
               )
             ORDER BY account.createdAt ASC
-        """
+        """,
     )
     fun findAllAvailableForUser(
-        @Param("userId") userId: UUID
+        @Param("userId") userId: UUID,
     ): List<AccountEntity>
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -39,7 +39,7 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
         """,
     )
     fun findByIdForUpdate(
-        @Param("id") id: UUID
+        @Param("id") id: UUID,
     ): AccountEntity?
 
     @Query(

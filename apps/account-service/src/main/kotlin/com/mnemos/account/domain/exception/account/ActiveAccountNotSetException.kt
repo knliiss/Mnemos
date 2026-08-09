@@ -1,6 +1,6 @@
 package com.mnemos.account.domain.exception.account
 
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.web.exception.AppException
 import org.springframework.http.HttpStatus
 

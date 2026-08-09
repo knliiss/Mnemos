@@ -15,7 +15,7 @@ data class MnemosOutboxProperties(
         val enabled: Boolean = false,
         val initialDelay: Duration = Duration.ofSeconds(1),
         val fixedDelay: Duration = Duration.ofMillis(500),
-        val batchSize: Int = 100,
+        val maxEventsPerRun: Int = 100,
         val leaseDuration: Duration = Duration.ofSeconds(30),
         val sendTimeout: Duration = Duration.ofSeconds(10),
         val maxAttempts: Int = 10,
@@ -31,15 +31,15 @@ data class MnemosOutboxProperties(
                 "Outbox publisher fixed delay must be positive"
             }
 
-            require(batchSize > 0) {
-                "Outbox publisher batch size must be positive"
+            require(maxEventsPerRun > 0) {
+                "Outbox publisher maxEventsPerRun size must be positive"
             }
 
-            require(leaseDuration.isPositive()) {
+            require(leaseDuration.isPositive) {
                 "Outbox publisher lease duration must be positive"
             }
 
-            require(sendTimeout.isPositive()) {
+            require(sendTimeout.isPositive) {
                 "Outbox publisher send timeout must be positive"
             }
 
@@ -47,7 +47,7 @@ data class MnemosOutboxProperties(
                 "Outbox publisher max attempts must be positive"
             }
 
-            require(initialBackoff.isPositive()) {
+            require(initialBackoff.isPositive) {
                 "Outbox publisher initial backoff must be positive"
             }
 
@@ -71,15 +71,15 @@ data class MnemosOutboxProperties(
                 "Outbox cleanup initial delay cannot be negative"
             }
 
-            require(fixedDelay.isPositive()) {
+            require(fixedDelay.isPositive) {
                 "Outbox cleanup fixed delay must be positive"
             }
 
-            require(publishedRetention.isPositive()) {
+            require(publishedRetention.isPositive) {
                 "Outbox published retention must be positive"
             }
 
-            require(deadRetention.isPositive()) {
+            require(deadRetention.isPositive) {
                 "Outbox dead retention must be positive"
             }
 
@@ -93,8 +93,4 @@ data class MnemosOutboxProperties(
         }
     }
 
-    private companion object {
-        fun Duration.isPositive(): Boolean =
-            !isZero && !isNegative
-    }
 }

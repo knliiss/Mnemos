@@ -4,5 +4,5 @@ import java.util.UUID
 
 @JvmInline
 value class CristalixUuid(
-    val value: UUID,
+    val id: UUID,
 )

@@ -35,7 +35,7 @@ class CreateRoleService(
         accountId: AccountId,
         name: String,
         color: String,
-        permissions: Set<RolePermission>
+        permissions: Set<RolePermission>,
     ): RoleView {
         val context = accountContextProvider.requirePermission(accountId, CREATE_ROLES)
 
@@ -44,17 +44,19 @@ class CreateRoleService(
         }
 
         val maxRank = roleRepository.findMaxRank(accountId)
-        val finalPermissions = permissions
-            .ifEmpty { basePermissions }
-            .toMutableSet()
+        val finalPermissions =
+            permissions
+                .ifEmpty { basePermissions }
+                .toMutableSet()
 
-        val role = Role.create(
-            accountId = context.account.id,
-            hierarchyRank = maxRank + Role.RANK_STEP,
-            roleColor = HexColor(color),
-            roleName = AccountRoleName(name),
-            permissions = finalPermissions
-        )
+        val role =
+            Role.create(
+                accountId = context.account.id,
+                hierarchyRank = maxRank + Role.RANK_STEP,
+                roleColor = HexColor(color),
+                roleName = AccountRoleName(name),
+                permissions = finalPermissions,
+            )
 
         return roleRepository.create(role).toView()
     }

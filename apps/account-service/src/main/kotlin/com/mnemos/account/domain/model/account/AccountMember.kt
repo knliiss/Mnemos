@@ -1,7 +1,7 @@
 package com.mnemos.account.domain.model.account
 
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import java.time.Instant
 
 class AccountMember private constructor(

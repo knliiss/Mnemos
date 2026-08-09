@@ -33,11 +33,15 @@ include(
     ":libraries:messaging-core",
     ":libraries:kafka-starter",
     ":libraries:outbox-starter",
+    ":libraries:inbox-starter",
 
     ":contracts:account-events",
+    ":contracts:wallet-contracts",
+    ":contracts:event-contracts",
 
     ":keycloak-extensions:telegram-authenticator",
 
     ":apps:account-service",
     ":apps:wallet-service",
+    ":apps:event-service"
 )

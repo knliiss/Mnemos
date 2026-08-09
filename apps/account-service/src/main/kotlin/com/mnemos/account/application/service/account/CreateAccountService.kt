@@ -16,10 +16,8 @@ import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.account.integration.cristalix.CristalixIdentityProvider
 import com.mnemos.account.integration.cristalix.model.CristalixPlayer
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.contracts.account.AccountEventContract
-import com.mnemos.messaging.core.transport.EventDestination
-import com.mnemos.messaging.outbox.metadata.EventMetadataProvider
-import com.mnemos.messaging.outbox.writer.OutboxEventWriter
+import com.mnemos.messaging.core.event.EventMetadata
+import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -30,20 +28,20 @@ class CreateAccountService(
     private val userRepository: UserRepository,
     private val cristalixIdentityProvider: CristalixIdentityProvider,
     private val currentUserProvider: CurrentUserProvider,
-    private val outboxEventWriter: OutboxEventWriter,
-    private val eventMetadataProvider: EventMetadataProvider,
-    private val transactionTemplate: TransactionTemplate
+    private val integrationEventPublisher: IntegrationEventPublisher,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     fun createAccount(request: CreateAccountRequest): CreateAccountResult {
         val nickname = CristalixNickname(request.cristalixNickname)
 
-        val player = cristalixIdentityProvider.findByNickname(nickname)
-            ?: throw CristalixPlayerNotFoundException(nickname)
+        val player =
+            cristalixIdentityProvider.findByNickname(nickname)
+                ?: throw CristalixPlayerNotFoundException(nickname)
 
         return requireNotNull(
             transactionTemplate.execute {
                 createFromPlayer(player)
-            }
+            },
         ) {
             "Create account transaction returned no result"
         }
@@ -59,18 +57,20 @@ class CreateAccountService(
         val accountId = AccountId.generate()
         val ownerMemberId = AccountMemberId.generate()
 
-        val account = Account.create(
-            id = accountId,
-            ownerMemberId = ownerMemberId,
-            cristalixUuid = player.uuid,
-            cristalixNickname = player.nickname
-        )
+        val account =
+            Account.create(
+                id = accountId,
+                ownerMemberId = ownerMemberId,
+                cristalixUuid = player.uuid,
+                cristalixNickname = player.nickname,
+            )
 
-        val ownerMember = AccountMember.create(
-            id = ownerMemberId,
-            accountId = accountId,
-            userId = owner.id
-        )
+        val ownerMember =
+            AccountMember.create(
+                id = ownerMemberId,
+                accountId = accountId,
+                userId = owner.id,
+            )
 
         val createdAccount = accountRepository.create(account)
         val createdOwnerMember = accountMemberRepository.create(ownerMember)
@@ -78,25 +78,21 @@ class CreateAccountService(
         owner.changeActiveAccount(createdAccount.id)
         userRepository.update(owner)
 
-        val metadata = eventMetadataProvider.current().copy(
-            actorUserId = owner.id.value
-        )
-
-        outboxEventWriter.append(
-            destination = EventDestination(
-                topic = AccountEventContract.TOPIC,
-                key = createdAccount.id.value.toString()
-            ),
-            event = AccountIntegrationEvents.created(
-                account = createdAccount,
-                ownerMember = createdOwnerMember
-            ),
-            metadata = metadata
+        integrationEventPublisher.publish(
+            event =
+                AccountIntegrationEvents.created(
+                    account = createdAccount,
+                    ownerMember = createdOwnerMember,
+                ),
+            metadata =
+                EventMetadata(
+                    actorUserId = owner.id.id,
+                ),
         )
 
         return CreateAccountResult(
             accountId = createdAccount.id,
-            memberId = createdOwnerMember.id
+            memberId = createdOwnerMember.id,
         )
     }
 }

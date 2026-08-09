@@ -8,7 +8,7 @@ import com.mnemos.account.domain.model.account.invite.InviteId
 import com.mnemos.account.infrastructure.persistence.projection.account.invite.AccountInviteListProjection
 import com.mnemos.account.infrastructure.persistence.repository.account.invite.AccountInviteQueryEntityRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Repository
 import java.time.Instant
 
@@ -21,7 +21,7 @@ class AccountInviteQueryRepositoryAdapter(
         now: Instant,
     ): List<AccountInviteListItem> =
         repository
-            .findAllByAccountId(accountId.value)
+            .findAllByAccountId(accountId.id)
             .map { it.toListItem(now) }
 }
 

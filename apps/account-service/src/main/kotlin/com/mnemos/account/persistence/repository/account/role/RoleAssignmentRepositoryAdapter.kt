@@ -22,8 +22,8 @@ class RoleAssignmentRepositoryAdapter(
     ): Boolean {
         val id =
             RoleAssignmentEntityId(
-                accountMemberId = accountMemberId.value,
-                roleId = roleId.value,
+                accountMemberId = accountMemberId.id,
+                roleId = roleId.id,
             )
         if (!jpaRepository.existsById(id)) {
             throw RoleAssignmentNotFoundException(
@@ -42,8 +42,8 @@ class RoleAssignmentRepositoryAdapter(
     ): RoleAssignment? {
         val id =
             RoleAssignmentEntityId(
-                accountMemberId = accountMemberId.value,
-                roleId = roleId.value,
+                accountMemberId = accountMemberId.id,
+                roleId = roleId.id,
             )
         return jpaRepository
             .findById(id)
@@ -53,26 +53,26 @@ class RoleAssignmentRepositoryAdapter(
 
     override fun findAllByMemberId(accountMemberId: AccountMemberId): List<RoleAssignment> =
         jpaRepository
-            .findAllByMemberId(accountMemberId.value)
+            .findAllByMemberId(accountMemberId.id)
             .map { it.toDomain() }
             .toList()
 
     override fun findAllByRoleId(roleId: RoleId): List<RoleAssignment> =
         jpaRepository
-            .findAllByRoleId(roleId.value)
+            .findAllByRoleId(roleId.id)
             .map { it.toDomain() }
             .toList()
 
-    override fun countByRoleId(roleId: RoleId): Int = jpaRepository.countByRoleId(roleId.value)
+    override fun countByRoleId(roleId: RoleId): Int = jpaRepository.countByRoleId(roleId.id)
 
     override fun findMaxRankByMemberId(accountMemberId: AccountMemberId): Long =
-        jpaRepository.findMaxRankByMemberId(accountMemberId.value) ?: Long.MAX_VALUE
+        jpaRepository.findMaxRankByMemberId(accountMemberId.id) ?: Long.MAX_VALUE
 
     override fun findMinRankByMemberId(accountMemberId: AccountMemberId): Long =
-        jpaRepository.findMinRanksByMemberId(accountMemberId.value) ?: Long.MAX_VALUE
+        jpaRepository.findMinRanksByMemberId(accountMemberId.id) ?: Long.MAX_VALUE
 
     override fun exists(
         accountMemberId: AccountMemberId,
         roleId: RoleId,
-    ): Boolean = jpaRepository.existsByAccountMemberIdAndRoleId(accountMemberId.value, roleId.value)
+    ): Boolean = jpaRepository.existsByAccountMemberIdAndRoleId(accountMemberId.id, roleId.id)
 }

@@ -3,8 +3,8 @@ package com.mnemos.account.domain.repository.account
 import com.mnemos.account.domain.model.account.AccountMember
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.core.model.user.UserId
 
 interface AccountMemberRepository {
     fun create(member: AccountMember): AccountMember

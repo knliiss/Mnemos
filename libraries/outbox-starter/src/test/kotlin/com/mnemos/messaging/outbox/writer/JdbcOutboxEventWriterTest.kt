@@ -3,8 +3,7 @@ package com.mnemos.messaging.outbox.writer
 import com.mnemos.messaging.core.event.EventEnvelope
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
-import com.mnemos.messaging.core.transport.EventDestination
-import com.mnemos.messaging.outbox.metadata.EventMetadataProvider
+import com.mnemos.messaging.core.publisher.IntegrationEventRoute
 import com.mnemos.messaging.outbox.serialization.EventEnvelopeSerializer
 import com.mnemos.messaging.outbox.support.OutboxClock
 import com.mnemos.messaging.outbox.support.OutboxEventIdGenerator
@@ -50,204 +49,296 @@ class JdbcOutboxEventWriterTest {
         val createdAt =
             Instant.parse("2026-07-27T14:00:01Z")
 
-        val metadata = EventMetadata(
-            correlationId = "request-1",
-            actorUserId = actorUserId
-        )
+        val metadata =
+            EventMetadata(
+                correlationId = "request-1",
+                actorUserId = actorUserId,
+            )
 
-        lateinit var capturedEnvelope: EventEnvelope<*>
+        val event =
+            IntegrationEvent(
+                type = "account.created",
+                aggregateId = aggregateId,
+                occurredAt = occurredAt,
+                payload = TestPayload("Knalis"),
+            )
 
-        val serializer = EventEnvelopeSerializer { envelope ->
-            capturedEnvelope = envelope
-            """{"eventId":"$eventId"}"""
-        }
+        val route =
+            IntegrationEventRoute(
+                topic = "mnemos.account.events.v1",
+                version = 1,
+                aggregateType = "ACCOUNT",
+            )
+
+        lateinit var capturedEnvelope:
+                EventEnvelope<*>
+
+        val serializer =
+            EventEnvelopeSerializer { envelope ->
+                capturedEnvelope = envelope
+                """{"eventId":"$eventId"}"""
+            }
 
         whenever(
             jdbcOperations.update(
                 any<String>(),
-                any<SqlParameterSource>()
-            )
+                any<SqlParameterSource>(),
+            ),
         ).thenReturn(1)
 
-        val writer = JdbcOutboxEventWriter(
-            jdbcOperations = jdbcOperations,
-            serializer = serializer,
-            metadataProvider = EventMetadataProvider { metadata },
-            eventIdGenerator = OutboxEventIdGenerator { eventId },
-            clock = OutboxClock { createdAt },
-            producer = "account-service",
-            requireTransaction = true
-        )
-
-        val result = writer.append(
-            destination = EventDestination(
-                topic = "mnemos.account.events.v1",
-                key = aggregateId.toString()
-            ),
-            event = IntegrationEvent(
-                eventType = "account.created",
-                eventVersion = 1,
-                aggregateType = "ACCOUNT",
-                aggregateId = aggregateId,
-                occurredAt = occurredAt,
-                payload = TestPayload("Knalis")
+        val writer =
+            JdbcOutboxEventWriter(
+                jdbcOperations = jdbcOperations,
+                serializer = serializer,
+                eventIdGenerator =
+                    OutboxEventIdGenerator {
+                        eventId
+                    },
+                clock =
+                    OutboxClock {
+                        createdAt
+                    },
+                producer = "account-service",
+                requireTransaction = true,
             )
-        )
 
-        assertEquals(eventId, result)
+        val result =
+            writer.append(
+                route = route,
+                event = event,
+                metadata = metadata,
+            )
 
-        assertEquals(eventId, capturedEnvelope.eventId)
-        assertEquals("account.created", capturedEnvelope.eventType)
-        assertEquals("account-service", capturedEnvelope.producer)
-        assertEquals(metadata, capturedEnvelope.metadata)
-
-        val sqlCaptor = argumentCaptor<String>()
-        val parametersCaptor =
-            argumentCaptor<SqlParameterSource>()
-
-        verify(jdbcOperations).update(
-            sqlCaptor.capture(),
-            parametersCaptor.capture()
-        )
-
-        val parameters = parametersCaptor.firstValue
-
-        assertEquals(true, sqlCaptor.firstValue.contains("outbox_events"))
-        assertEquals(eventId, parameters.getValue("id"))
         assertEquals(
-            "mnemos.account.events.v1",
-            parameters.getValue("topic")
+            eventId,
+            result,
         )
+
         assertEquals(
-            aggregateId.toString(),
-            parameters.getValue("eventKey")
+            eventId,
+            capturedEnvelope.eventId,
         )
         assertEquals(
             "account.created",
-            parameters.getValue("eventType")
+            capturedEnvelope.eventType,
+        )
+        assertEquals(
+            1,
+            capturedEnvelope.eventVersion,
+        )
+        assertEquals(
+            "account-service",
+            capturedEnvelope.producer,
+        )
+        assertEquals(
+            "ACCOUNT",
+            capturedEnvelope.aggregateType,
         )
         assertEquals(
             aggregateId,
-            parameters.getValue("aggregateId")
+            capturedEnvelope.aggregateId,
         )
+        assertEquals(
+            metadata,
+            capturedEnvelope.metadata,
+        )
+
+        val sqlCaptor =
+            argumentCaptor<String>()
+
+        val parametersCaptor =
+            argumentCaptor<SqlParameterSource>()
+
+        verify(jdbcOperations)
+            .update(
+                sqlCaptor.capture(),
+                parametersCaptor.capture(),
+            )
+
+        val parameters =
+            parametersCaptor.firstValue
+
+        assertEquals(
+            true,
+            sqlCaptor.firstValue.contains(
+                "outbox_events",
+            ),
+        )
+
+        assertEquals(
+            eventId,
+            parameters.getValue("id"),
+        )
+
+        assertEquals(
+            "mnemos.account.events.v1",
+            parameters.getValue("topic"),
+        )
+
+        assertEquals(
+            aggregateId.toString(),
+            parameters.getValue("eventKey"),
+        )
+
+        assertEquals(
+            "account.created",
+            parameters.getValue("eventType"),
+        )
+
+        assertEquals(
+            1,
+            parameters.getValue("eventVersion"),
+        )
+
+        assertEquals(
+            "ACCOUNT",
+            parameters.getValue("aggregateType"),
+        )
+
+        assertEquals(
+            aggregateId,
+            parameters.getValue("aggregateId"),
+        )
+
+        assertEquals(
+            "request-1",
+            parameters.getValue("correlationId"),
+        )
+
         assertEquals(
             actorUserId,
-            parameters.getValue("actorUserId")
+            parameters.getValue("actorUserId"),
         )
+
         assertEquals(
-            occurredAt.atOffset(ZoneOffset.UTC),
-            parameters.getValue("occurredAt")
+            occurredAt.atOffset(
+                ZoneOffset.UTC,
+            ),
+            parameters.getValue("occurredAt"),
         )
+
         assertEquals(
-            createdAt.atOffset(ZoneOffset.UTC),
-            parameters.getValue("createdAt")
+            createdAt.atOffset(
+                ZoneOffset.UTC,
+            ),
+            parameters.getValue("createdAt"),
         )
     }
 
     @Test
-    fun `explicit metadata overrides metadata provider`() {
+    fun `append stores supplied metadata unchanged`() {
         TransactionSynchronizationManager
             .setActualTransactionActive(true)
 
-        val eventId = UUID.randomUUID()
+        val eventId =
+            UUID.randomUUID()
 
-        val providerMetadata = EventMetadata(
-            correlationId = "provider"
-        )
+        val causationId =
+            UUID.randomUUID()
 
-        val explicitMetadata = EventMetadata(
-            correlationId = "explicit"
-        )
+        val metadata =
+            EventMetadata(
+                correlationId = "request-1",
+                causationId = causationId,
+            )
 
-        lateinit var capturedEnvelope: EventEnvelope<*>
+        lateinit var capturedEnvelope:
+                EventEnvelope<*>
 
         whenever(
             jdbcOperations.update(
                 any<String>(),
-                any<SqlParameterSource>()
-            )
+                any<SqlParameterSource>(),
+            ),
         ).thenReturn(1)
 
-        val writer = JdbcOutboxEventWriter(
-            jdbcOperations = jdbcOperations,
-            serializer = EventEnvelopeSerializer { envelope ->
-                capturedEnvelope = envelope
-                "{}"
-            },
-            metadataProvider = EventMetadataProvider {
-                providerMetadata
-            },
-            eventIdGenerator = OutboxEventIdGenerator {
-                eventId
-            },
-            clock = OutboxClock {
-                Instant.parse("2026-07-27T14:00:00Z")
-            },
-            producer = "account-service",
-            requireTransaction = true
-        )
+        val writer =
+            JdbcOutboxEventWriter(
+                jdbcOperations = jdbcOperations,
+                serializer =
+                    EventEnvelopeSerializer { envelope ->
+                        capturedEnvelope = envelope
+                        "{}"
+                    },
+                eventIdGenerator =
+                    OutboxEventIdGenerator {
+                        eventId
+                    },
+                clock =
+                    OutboxClock {
+                        Instant.parse(
+                            "2026-07-27T14:00:00Z",
+                        )
+                    },
+                producer = "account-service",
+                requireTransaction = true,
+            )
 
         writer.append(
-            destination = EventDestination(
-                topic = "mnemos.account.events.v1",
-                key = UUID.randomUUID().toString()
-            ),
-            event = IntegrationEvent(
-                eventType = "account.created",
-                eventVersion = 1,
-                aggregateType = "ACCOUNT",
-                aggregateId = UUID.randomUUID(),
-                occurredAt = Instant.now(),
-                payload = TestPayload("Knalis")
-            ),
-            metadata = explicitMetadata
+            route = route(),
+            event = event(),
+            metadata = metadata,
         )
 
         assertEquals(
-            explicitMetadata,
-            capturedEnvelope.metadata
+            metadata,
+            capturedEnvelope.metadata,
         )
     }
 
     @Test
     fun `append outside transaction is rejected`() {
-        val writer = JdbcOutboxEventWriter(
-            jdbcOperations = jdbcOperations,
-            serializer = EventEnvelopeSerializer { "{}" },
-            metadataProvider = EventMetadataProvider {
-                EventMetadata()
-            },
-            eventIdGenerator = OutboxEventIdGenerator {
-                UUID.randomUUID()
-            },
-            clock = OutboxClock(Instant::now),
-            producer = "account-service",
-            requireTransaction = true
-        )
+        val writer =
+            JdbcOutboxEventWriter(
+                jdbcOperations = jdbcOperations,
+                serializer =
+                    EventEnvelopeSerializer {
+                        "{}"
+                    },
+                eventIdGenerator =
+                    OutboxEventIdGenerator {
+                        UUID.randomUUID()
+                    },
+                clock =
+                    OutboxClock(
+                        Instant::now,
+                    ),
+                producer = "account-service",
+                requireTransaction = true,
+            )
 
         assertThrows(
-            OutboxTransactionRequiredException::class.java
+            OutboxTransactionRequiredException::class.java,
         ) {
             writer.append(
-                destination = EventDestination(
-                    topic = "mnemos.account.events.v1",
-                    key = UUID.randomUUID().toString()
-                ),
-                event = IntegrationEvent(
-                    eventType = "account.created",
-                    eventVersion = 1,
-                    aggregateType = "ACCOUNT",
-                    aggregateId = UUID.randomUUID(),
-                    occurredAt = Instant.now(),
-                    payload = TestPayload("Knalis")
-                )
+                route = route(),
+                event = event(),
+                metadata = EventMetadata(),
             )
         }
 
-        verifyNoInteractions(jdbcOperations)
+        verifyNoInteractions(
+            jdbcOperations,
+        )
     }
 
+    private fun route(): IntegrationEventRoute =
+        IntegrationEventRoute(
+            topic = "mnemos.account.events.v1",
+            version = 1,
+            aggregateType = "ACCOUNT",
+        )
+
+    private fun event():
+            IntegrationEvent<TestPayload> =
+        IntegrationEvent(
+            type = "account.created",
+            aggregateId = UUID.randomUUID(),
+            occurredAt = Instant.now(),
+            payload = TestPayload("Knalis"),
+        )
+
     private data class TestPayload(
-        val nickname: String
+        val nickname: String,
     )
 }

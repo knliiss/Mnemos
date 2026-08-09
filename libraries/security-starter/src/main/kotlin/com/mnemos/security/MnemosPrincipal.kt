@@ -7,5 +7,6 @@ data class MnemosPrincipal(
     val keycloakId: UUID,
     val username: String,
     val telegramId: Long,
+    val userId: UUID?,
     val roles: Set<UserRole>
 )

@@ -1,1 +1,2 @@
 com.mnemos.messaging.kafka.config.MnemosKafkaAutoConfiguration
+com.mnemos.messaging.kafka.config.MnemosKafkaConsumerAutoConfiguration

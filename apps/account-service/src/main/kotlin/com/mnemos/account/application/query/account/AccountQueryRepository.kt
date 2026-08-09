@@ -1,7 +1,7 @@
 package com.mnemos.account.application.query.account
 
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 
 interface AccountQueryRepository {
     fun findSummariesByUserId(

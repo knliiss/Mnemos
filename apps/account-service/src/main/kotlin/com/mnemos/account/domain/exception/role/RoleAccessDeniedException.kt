@@ -1,4 +1,4 @@
-package com.mnemos.account.domain.exception.account.role
+package com.mnemos.account.domain.exception.role
 
 import com.mnemos.account.domain.exception.role.RoleAccessDeniedReason
 import com.mnemos.common.core.model.id.AccountId
@@ -14,7 +14,7 @@ class RoleAccessDeniedException(
         httpStatus = HttpStatus.FORBIDDEN,
         details =
             mapOf(
-                "accountId" to accountId.value,
+                "accountId" to accountId.id,
                 "reason" to reason.name,
             ),
     )

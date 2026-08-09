@@ -7,10 +7,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class MnemosSecurityProperties(
     val publicPaths: List<String> = listOf(
         "/actuator/health",
-        "/actuator/health/**"
+        "/actuator/health/**",
+        "/ws/v1/collector"
     ),
 
     val rolePrefix: String = "ROLE_",
+    val principalClaim: String = "preferred_username",
+    val internal: InternalSecurityProperties = InternalSecurityProperties()
+)
 
-    val principalClaim: String = "preferred_username"
+data class InternalSecurityProperties(
+    val serviceHeader: String = "X-Mnemos-Service",
+    val apiKeyHeader: String = "X-Mnemos-API-Key",
+    val apiKeys: Map<String, String> = emptyMap(),
 )

@@ -8,7 +8,7 @@ import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.toDomain
 import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.toEntity
 import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.updateFrom
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -20,30 +20,29 @@ class AccountRepositoryAdapter(
     override fun update(account: Account): Account {
         val entity =
             jpaAccountRepository
-                .findById(account.id.value)
+                .findById(account.id.id)
                 .orElseThrow { AccountNotFoundException(account.id) }
 
         entity.updateFrom(account)
         return jpaAccountRepository.save(entity).toDomain()
     }
 
-    override fun findActiveById(accountId: AccountId): Account? = jpaAccountRepository.findActiveById(accountId.value)?.toDomain()
+    override fun findActiveById(accountId: AccountId): Account? = jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
 
-    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean =
-        jpaAccountRepository.existsByCristalixUuid(cristalixUuid.value)
+    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
 
     override fun findAllAvailableForUser(userId: UserId): List<Account> =
         jpaAccountRepository
-            .findAllAvailableForUser(userId.value)
+            .findAllAvailableForUser(userId.id)
             .map { it.toDomain() }
 
-    override fun lockById(id: AccountId): Boolean = jpaAccountRepository.findByIdForUpdate(id.value) != null
+    override fun lockById(id: AccountId): Boolean = jpaAccountRepository.findByIdForUpdate(id.id) != null
 
-    override fun findByIdForUpdate(accountId: AccountId): Account? = jpaAccountRepository.findByIdForUpdate(accountId.value)?.toDomain()
+    override fun findByIdForUpdate(accountId: AccountId): Account? = jpaAccountRepository.findByIdForUpdate(accountId.id)?.toDomain()
 
     override fun findByIdIncludingInactive(accountId: AccountId): Account? =
         jpaAccountRepository
-            .findById(accountId.value)
+            .findById(accountId.id)
             .map { it.toDomain() }
             .orElse(null)
 }

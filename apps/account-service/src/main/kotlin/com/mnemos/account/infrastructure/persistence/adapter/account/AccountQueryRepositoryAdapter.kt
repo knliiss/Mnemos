@@ -8,7 +8,7 @@ import com.mnemos.account.infrastructure.persistence.projection.account.AccountD
 import com.mnemos.account.infrastructure.persistence.projection.account.AccountSummaryProjection
 import com.mnemos.account.infrastructure.persistence.repository.account.AccountQueryEntityRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -20,7 +20,7 @@ class AccountQueryRepositoryAdapter(
         activeAccountId: AccountId?,
     ): List<AccountSummary> =
         repository
-            .findSummariesByUserId(userId.value)
+            .findSummariesByUserId(userId.id)
             .map { it.toSummary(activeAccountId) }
 
     override fun findDetailsByAccountIdAndUserId(
@@ -30,8 +30,8 @@ class AccountQueryRepositoryAdapter(
     ): AccountDetails? =
         repository
             .findDetailsByAccountIdAndUserId(
-                accountId = accountId.value,
-                userId = userId.value,
+                accountId = accountId.id,
+                userId = userId.id,
             )?.toDetails(activeAccountId)
 }
 

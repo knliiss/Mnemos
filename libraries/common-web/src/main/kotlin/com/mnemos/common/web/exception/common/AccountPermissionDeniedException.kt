@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus
 
 class AccountPermissionDeniedException(
     accountId: AccountId,
-    requiredPermissions: Set<String>,
+    requiredPermissions: Set<String> = mutableSetOf()
 ): AppException(
     message = "Account permission denied",
     code = "ACCOUNT_PERMISSION_DENIED",
     httpStatus = HttpStatus.FORBIDDEN,
-    details = mapOf("accountId" to accountId.value, "neededPermissions" to requiredPermissions)
+    details = mapOf("accountId" to accountId.id, "neededPermissions" to requiredPermissions)
 ) {
 }

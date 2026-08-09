@@ -13,7 +13,7 @@ class AccountMemberKickForbiddenException(
         httpStatus = HttpStatus.FORBIDDEN,
         details =
             mapOf(
-                "actorMemberId" to actorMemberId.value,
-                "targetMemberId" to targetMemberId.value,
+                "actorMemberId" to actorMemberId.id,
+                "targetMemberId" to targetMemberId.id,
             ),
     )

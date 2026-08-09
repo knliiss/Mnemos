@@ -1,0 +1,8 @@
+package com.mnemos.event.domain.global.model
+
+enum class DomainGlobalEventType {
+    DARKNESS,
+    MOON,
+    ECLIPSE,
+    EXPLOSION,
+}

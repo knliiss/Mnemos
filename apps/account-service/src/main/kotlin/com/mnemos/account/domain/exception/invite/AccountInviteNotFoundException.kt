@@ -14,7 +14,7 @@ class AccountInviteNotFoundException(
         httpStatus = HttpStatus.NOT_FOUND,
         details =
             mapOf(
-                "inviteId" to inviteId.value,
-                "accountId" to accountId.value,
+                "inviteId" to inviteId.id,
+                "accountId" to accountId.id,
             ),
     )

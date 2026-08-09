@@ -14,7 +14,7 @@ class RoleAlreadyAssignedException(
         httpStatus = HttpStatus.CONFLICT,
         details =
             mapOf(
-                "accountMemberId" to accountMemberId.value,
-                "roleId" to roleId.value,
+                "accountMemberId" to accountMemberId.id,
+                "roleId" to roleId.id,
             ),
     )

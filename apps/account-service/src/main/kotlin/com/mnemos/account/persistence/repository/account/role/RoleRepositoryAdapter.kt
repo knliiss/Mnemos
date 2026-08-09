@@ -21,7 +21,7 @@ class RoleRepositoryAdapter(
     override fun update(role: Role): Role {
         val entity =
             jpaRoleRepository
-                .findById(role.id.value)
+                .findById(role.id.id)
                 .orElseThrow { RoleNotFoundException(roleId = role.id, accountId = role.accountId) }
         entity.updateFrom(role)
 
@@ -29,12 +29,12 @@ class RoleRepositoryAdapter(
     }
 
     override fun deleteById(id: RoleId) {
-        jpaRoleRepository.deleteById(id.value)
+        jpaRoleRepository.deleteById(id.id)
     }
 
     override fun findById(id: RoleId): Role? =
         jpaRoleRepository
-            .findById(id.value)
+            .findById(id.id)
             .map { it.toDomain() }
             .orElse(null)
 
@@ -43,22 +43,22 @@ class RoleRepositoryAdapter(
         name: AccountRoleName,
     ): Boolean =
         jpaRoleRepository.existsByAccountIdAndRoleName(
-            accountId = accountId.value,
+            accountId = accountId.id,
             roleName = name.value,
         )
 
     override fun findByIdAndAccountId(
         roleId: RoleId,
         accountId: AccountId,
-    ): Role? = jpaRoleRepository.findByIdAndAccountId(roleId.value, accountId.value)?.toDomain()
+    ): Role? = jpaRoleRepository.findByIdAndAccountId(roleId.id, accountId.id)?.toDomain()
 
-    override fun findMinRank(accountId: AccountId): Long = jpaRoleRepository.findMinRank(accountId.value) ?: 0L
+    override fun findMinRank(accountId: AccountId): Long = jpaRoleRepository.findMinRank(accountId.id) ?: 0L
 
-    override fun findMaxRank(accountId: AccountId): Long = jpaRoleRepository.findMaxRank(accountId.value) ?: Long.MAX_VALUE
+    override fun findMaxRank(accountId: AccountId): Long = jpaRoleRepository.findMaxRank(accountId.id) ?: Long.MAX_VALUE
 
     override fun findAllByAccountIdOrderByRank(accountId: AccountId): List<Role> =
         jpaRoleRepository
-            .findAllByAccountIdOrderByHierarchyRank(accountId.value)
+            .findAllByAccountIdOrderByHierarchyRank(accountId.id)
             .map { it.toDomain() }
             .toList()
 
@@ -74,13 +74,13 @@ class RoleRepositoryAdapter(
     ): List<Role> =
         jpaRoleRepository
             .findAllByMemberIdAndAccountIdOrderByRank(
-                memberId = memberId.value,
-                accountId = accountId.value,
+                memberId = memberId.id,
+                accountId = accountId.id,
             ).map { it.toDomain() }
 
     override fun findAllByAccountId(accountId: AccountId): List<Role> =
         jpaRoleRepository
-            .findAllByAccountIdOrderByHierarchyRank(accountId = accountId.value)
+            .findAllByAccountIdOrderByHierarchyRank(accountId = accountId.id)
             .map { it.toDomain() }
 
     override fun findAllByMemberId(
@@ -89,7 +89,7 @@ class RoleRepositoryAdapter(
     ): List<Role> =
         jpaRoleRepository
             .findAllByMemberIdAndAccountIdOrderByRank(
-                memberId = memberId.value,
-                accountId = accountId.value,
+                memberId = memberId.id,
+                accountId = accountId.id,
             ).map { it.toDomain() }
 }

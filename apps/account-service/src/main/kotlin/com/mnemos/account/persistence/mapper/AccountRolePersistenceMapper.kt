@@ -10,8 +10,8 @@ import com.mnemos.common.core.model.id.AccountId
 object AccountRolePersistenceMapper {
     fun Role.toEntity(): RoleEntity =
         RoleEntity(
-            id = id.value,
-            accountId = accountId.value,
+            id = id.id,
+            accountId = accountId.id,
             roleName = roleName.value,
             roleColor = roleColor.value,
             hierarchyRank = hierarchyRank,

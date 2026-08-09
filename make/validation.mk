@@ -2,7 +2,7 @@
 ##@ Validation
 # =============================================================================
 
-.PHONY: check-tools check-env validate doctor config config-infra config-account config-keycloak
+.PHONY: check-tools check-env validate doctor config config-infra config-account config-wallet config-keycloak
 
 check-tools: ## Check required local tools
 	@set -eu; \
@@ -33,6 +33,7 @@ check-env: ## Validate .env and required variables
 		APP_POSTGRES_USER \
 		APP_POSTGRES_PASSWORD \
 		APP_POSTGRES_HOST_PORT \
+		WALLET_DATASOURCE_URL \
 		KEYCLOAK_POSTGRES_DB \
 		KEYCLOAK_POSTGRES_USER \
 		KEYCLOAK_POSTGRES_PASSWORD \
@@ -90,6 +91,9 @@ config-infra: check-env ## Print merged infrastructure Compose configuration
 
 config-account: check-env ## Print merged account-service Compose configuration
 	@$(DC_ACCOUNT) config
+
+config-wallet: check-env ## Print merged wallet-service Compose configuration
+	@$(DC_WALLET) config
 
 config-keycloak: check-env ## Print merged Keycloak configuration runner Compose configuration
 	@$(DC_KEYCLOAK_CONFIG) config

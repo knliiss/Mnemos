@@ -11,9 +11,9 @@ import com.mnemos.common.core.model.id.AccountId
 object AccountPersistenceMapper {
     fun Account.toEntity() =
         AccountEntity(
-            id = id.value,
-            ownerMemberId = ownerMemberId.value,
-            cristalixUuid = cristalixUuid.value,
+            id = id.id,
+            ownerMemberId = ownerMemberId.id,
+            cristalixUuid = cristalixUuid.id,
             cristalixNickname = cristalixNickname.value,
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -21,7 +21,7 @@ object AccountPersistenceMapper {
             deletionRequestedAt = deletionRequestedAt,
             status = status,
             maxMembers = maxMembers,
-            baseRoleId = baseRoleId?.value,
+            baseRoleId = baseRoleId?.id,
         )
 
     fun AccountEntity.toDomain() =
@@ -48,6 +48,6 @@ object AccountPersistenceMapper {
         status = account.status
 
         maxMembers = account.maxMembers
-        baseRoleId = account.baseRoleId?.value
+        baseRoleId = account.baseRoleId?.id
     }
 }

@@ -12,6 +12,6 @@ class AccountOwnerRequiredException(
         httpStatus = HttpStatus.FORBIDDEN,
         details =
             mapOf(
-                "accountId" to accountId.value,
+                "accountId" to accountId.id,
             ),
     )

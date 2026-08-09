@@ -1,7 +1,7 @@
 package com.mnemos.account.domain.exception.account.member
 
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.user.UserId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.web.exception.AppException
 import org.springframework.http.HttpStatus
 
@@ -14,7 +14,7 @@ class AccountMemberAlreadyExistsException(
         httpStatus = HttpStatus.CONFLICT,
         details =
             mapOf(
-                "accountId" to accountId.value,
-                "userId" to userId.value,
+                "accountId" to accountId.id,
+                "userId" to userId.id,
             ),
     )
