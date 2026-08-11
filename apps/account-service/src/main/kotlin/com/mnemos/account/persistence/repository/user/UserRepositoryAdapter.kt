@@ -57,7 +57,7 @@ class UserRepositoryAdapter(
         jpaUserRepository.insertIfAbsentByKeycloakId(
             id = user.id.id,
             keycloakId = user.keycloakId.id,
-            telegramId = user.telegramId.value,
+            telegramId = user.telegramId.id,
             username = user.username.value,
             localizationLanguage = user.localizationLanguage.name,
             activeAccountId = user.activeAccountId?.id,

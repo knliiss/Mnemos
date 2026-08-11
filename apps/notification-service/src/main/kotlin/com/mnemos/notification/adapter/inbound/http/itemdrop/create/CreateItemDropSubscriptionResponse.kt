@@ -1,0 +1,7 @@
+package com.mnemos.notification.adapter.inbound.http.itemdrop.create
+
+import java.util.UUID
+
+data class CreateItemDropSubscriptionResponse(
+    val subscriptionId: UUID,
+)

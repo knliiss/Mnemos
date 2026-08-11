@@ -33,7 +33,7 @@ include(
     ":libraries:outbox-starter",
     ":libraries:inbox-starter",
 
-    ":contracts:account-events",
+    ":contracts:account-contracts",
     ":contracts:wallet-contracts",
     ":contracts:event-contracts",
 
@@ -41,5 +41,6 @@ include(
 
     ":apps:account-service",
     ":apps:wallet-service",
-    ":apps:event-service"
+    ":apps:event-service",
+    ":apps:notification-service"
 )

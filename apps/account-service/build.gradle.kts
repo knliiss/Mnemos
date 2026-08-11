@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":libraries:common-web"))
     implementation(project(":libraries:security-starter"))
 
-    implementation(project(":contracts:account-events"))
+    implementation(project(":contracts:account-contracts"))
     implementation(project(":libraries:outbox-starter"))
     implementation(project(":libraries:kafka-starter"))
 

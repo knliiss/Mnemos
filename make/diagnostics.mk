@@ -92,6 +92,7 @@ status: check-env ## Show detailed stack, endpoint and provider status
 	printf "  App PostgreSQL  localhost:%s\n" "$${APP_POSTGRES_HOST_PORT:-5433}"; \
 	printf "  KC PostgreSQL   localhost:%s\n" "$${KEYCLOAK_POSTGRES_HOST_PORT:-5434}"; \
 	printf "  Kafka           localhost:%s\n" "$${KAFKA_HOST_PORT:-9092}"; \
+	printf "  Redis           localhost:%s\n" "$${REDIS_HOST_PORT:-6379}"; \
 	[ -n "$${MNEMOS_FRONTEND_ORIGIN:-}" ] && printf "  Frontend        %s\n" "$$MNEMOS_FRONTEND_ORIGIN" || true; \
 	[ -n "$${MNEMOS_API_ORIGIN:-}" ] && printf "  Public API      %s\n" "$$MNEMOS_API_ORIGIN" || true; \
 	[ -n "$${MNEMOS_AUTH_ORIGIN:-}" ] && printf "  Public Auth     %s\n" "$$MNEMOS_AUTH_ORIGIN" || true; \
@@ -107,6 +108,7 @@ urls: check-env ## Show configured local and public endpoints
 	printf "App PostgreSQL:   localhost:%s\n" "$${APP_POSTGRES_HOST_PORT:-5433}"; \
 	printf "KC PostgreSQL:    localhost:%s\n" "$${KEYCLOAK_POSTGRES_HOST_PORT:-5434}"; \
 	printf "Kafka:            localhost:%s\n" "$${KAFKA_HOST_PORT:-9092}"; \
+	printf "Redis:            localhost:%s\n" "$${REDIS_HOST_PORT:-6379}"; \
 	[ -n "$${MNEMOS_FRONTEND_ORIGIN:-}" ] && printf "Frontend:         %s\n" "$$MNEMOS_FRONTEND_ORIGIN" || true; \
 	[ -n "$${MNEMOS_API_ORIGIN:-}" ] && printf "Public API:       %s\n" "$$MNEMOS_API_ORIGIN" || true; \
 	[ -n "$${MNEMOS_AUTH_ORIGIN:-}" ] && printf "Public Auth:      %s\n" "$$MNEMOS_AUTH_ORIGIN" || true

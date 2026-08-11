@@ -4,7 +4,7 @@ import com.mnemos.account.api.dto.user.UpdateLocalizationRequest
 import com.mnemos.account.api.dto.user.UpdateUsernameRequest
 import com.mnemos.account.api.dto.user.UserResponse
 import com.mnemos.account.api.dto.user.toResponse
-import com.mnemos.account.application.service.UserService
+import com.mnemos.account.application.service.user.UserService
 import com.mnemos.common.core.model.user.Username
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping

@@ -16,3 +16,6 @@ volumes:
 
   kafka-data:
     name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-data
+
+  redis-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-redis-data

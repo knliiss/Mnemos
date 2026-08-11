@@ -12,7 +12,7 @@ object UserPersistenceMapper {
     fun User.toEntity() =
         UserEntity(
             id = id.id,
-            telegramId = telegramId.value,
+            telegramId = telegramId.id,
             username = username.value,
             keycloakId = keycloakId.id,
             createdAt = createdAt,

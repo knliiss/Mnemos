@@ -1,5 +1,6 @@
 package com.mnemos.security.handler
 
+import com.github.f4b6a3.uuid.UuidCreator
 import com.mnemos.common.web.dto.ErrorResponse
 import com.mnemos.common.web.logging.MdcKeys
 import jakarta.servlet.http.HttpServletRequest
@@ -44,6 +45,6 @@ class SecurityErrorResponseWriter(
     private fun resolveRequestId(): String {
         return MDC.get(MdcKeys.REQUEST_ID)
             ?.takeIf { it.isNotBlank() }
-            ?: UUID.randomUUID().toString()
+            ?: UuidCreator.getTimeOrderedEpoch().toString()
     }
 }

@@ -23,10 +23,11 @@
             <option value="$PROJECT_DIR$/apps" />
             <option value="$PROJECT_DIR$/apps/account-service" />
             <option value="$PROJECT_DIR$/apps/event-service" />
+            <option value="$PROJECT_DIR$/apps/notification-service" />
             <option value="$PROJECT_DIR$/apps/wallet-service" />
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/contracts" />
-            <option value="$PROJECT_DIR$/contracts/account-events" />
+            <option value="$PROJECT_DIR$/contracts/account-contracts" />
             <option value="$PROJECT_DIR$/contracts/event-contracts" />
             <option value="$PROJECT_DIR$/contracts/wallet-contracts" />
             <option value="$PROJECT_DIR$/keycloak-extensions" />

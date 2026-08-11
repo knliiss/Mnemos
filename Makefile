@@ -63,6 +63,13 @@ kafka-topic-describe:
 kafka-topic-delete:
 kafka-api-versions:
 
+redis-up:
+redis-stop:
+redis-restart:
+redis-logs:
+redis-status:
+redis-cli:
+
 telegram-auth-clean:
 telegram-auth-build:
 telegram-auth-verify:
@@ -118,6 +125,20 @@ event-config:
 event-shell:
 event-health:
 
+notification-jar:
+notification-image:
+notification-build:
+notification-rebuild-image:
+notification-up:
+notification-stop:
+notification-down:
+notification-restart:
+notification-logs:
+notification-errors:
+notification-config:
+notification-shell:
+notification-health:
+
 include $(MAKE_DIR)/config.mk
 include $(MAKE_DIR)/ui.mk
 include $(MAKE_DIR)/validation.mk
@@ -127,7 +148,9 @@ include $(MAKE_DIR)/stack.mk
 include $(MAKE_DIR)/infra.mk
 include $(MAKE_DIR)/postgres.mk
 include $(MAKE_DIR)/kafka.mk
+include $(MAKE_DIR)/redis.mk
 include $(MAKE_DIR)/keycloak.mk
 include $(MAKE_DIR)/account.mk
 include $(MAKE_DIR)/wallet.mk
 include $(MAKE_DIR)/event.mk
+include $(MAKE_DIR)/notification.mk

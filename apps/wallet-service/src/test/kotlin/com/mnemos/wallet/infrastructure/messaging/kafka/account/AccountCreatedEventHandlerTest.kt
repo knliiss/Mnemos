@@ -1,6 +1,7 @@
 package com.mnemos.wallet.infrastructure.messaging.kafka.account
 
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.contracts.account.AccountEventAggregateType
 import com.mnemos.contracts.account.AccountEventContract
 import com.mnemos.contracts.account.AccountEventType
 import com.mnemos.contracts.account.v1.AccountCreatedV1
@@ -23,7 +24,7 @@ class AccountCreatedEventHandlerTest {
         assertEquals(AccountEventContract.TOPIC, handler.definition.topic)
         assertEquals(AccountEventType.ACCOUNT_CREATED, handler.definition.type)
         assertEquals(AccountEventContract.VERSION, handler.definition.version)
-        assertEquals(AccountEventContract.AGGREGATE_TYPE, handler.definition.aggregateType)
+        assertEquals(AccountEventAggregateType.ACCOUNT_AGGREGATE_TYPE, handler.definition.aggregateType)
         assertEquals(AccountCreatedV1::class.java, handler.definition.payloadType)
     }
 
@@ -37,7 +38,7 @@ class AccountCreatedEventHandlerTest {
                 type = AccountEventType.ACCOUNT_CREATED,
                 version = AccountEventContract.VERSION,
                 producer = "account-service",
-                aggregateType = AccountEventContract.AGGREGATE_TYPE,
+                aggregateType = AccountEventAggregateType.ACCOUNT_AGGREGATE_TYPE,
                 aggregateId = accountId,
                 occurredAt = Instant.parse("2026-08-09T00:00:00Z"),
                 metadata = EventMetadata(),

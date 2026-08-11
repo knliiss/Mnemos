@@ -12,7 +12,7 @@ class KeycloakUserIdentitySynchronizer(
     private val keycloakAdminProperties: KeycloakAdminProperties,
     private val keycloakTokenProvider: KeycloakTokenProvider,
 ) {
-    fun synchronize(user: User) {
+    fun synchronize(user: User): User {
         val authorization = "Bearer ${keycloakTokenProvider.token()}"
 
         val keycloakUser =
@@ -30,7 +30,7 @@ class KeycloakUserIdentitySynchronizer(
                 ?.singleOrNull()
 
         if (currentUserId == expectedUserId) {
-            return
+            return user
         }
 
         val attributes =
@@ -50,6 +50,7 @@ class KeycloakUserIdentitySynchronizer(
                     attributes = attributes,
                 ),
         )
+        return user
     }
 
     private companion object {

@@ -1,6 +1,7 @@
 package com.mnemos.wallet.infrastructure.messaging.kafka.account
 
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.contracts.account.AccountEventAggregateType
 import com.mnemos.contracts.account.AccountEventContract
 import com.mnemos.contracts.account.AccountEventType
 import com.mnemos.contracts.account.v1.AccountCreatedV1
@@ -20,7 +21,7 @@ class AccountCreatedEventHandler(
             topic = AccountEventContract.TOPIC,
             type = AccountEventType.ACCOUNT_CREATED,
             version = AccountEventContract.VERSION,
-            aggregateType = AccountEventContract.AGGREGATE_TYPE,
+            aggregateType = AccountEventAggregateType.ACCOUNT_AGGREGATE_TYPE,
         )
 
     override val consumer = "wallet-service.account-created"

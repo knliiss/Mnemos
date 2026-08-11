@@ -1,0 +1,53 @@
+services:
+  notification-service:
+    container_name: mnemos-notification-service
+
+    build:
+      context: ../..
+      dockerfile: apps/notification-service/Dockerfile
+
+    image: mnemos/notfication-service:${NOTIFICATION_SERVICE_VERSION:-local}
+
+    restart: unless-stopped
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+      SERVER_PORT: 8084
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=notification
+      SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${MNEMOS_AUTH_ORIGIN}/realms/mnemos
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/mnemos/protocol/openid-connect/certs
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      NOTIFICATION_TELEGRAM_ENABLED: ${NOTIFICATION_TELEGRAM_ENABLED:-false}
+      MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
+      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+
+    ports:
+      - "${MNEMOS_NOTIFICATION_SERVICE_HOST_PORT:-8084}:8084"
+
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+
+      keycloak:
+        condition: service_healthy
+
+      kafka:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - mnemos-network

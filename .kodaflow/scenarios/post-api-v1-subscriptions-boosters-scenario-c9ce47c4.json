@@ -1,0 +1,187 @@
+{
+  "id": "c9ce47c4-c055-4e09-acfd-1a46913f3fd2",
+  "name": "POST /api/v1/subscriptions/boosters — scenario",
+  "endpointId": "com.mnemos.notification.adapter.inbound.http.booster.BoosterSubscriptionController.create:POST:/api/v1/subscriptions/boosters",
+  "endpointSourcePath": "/Users/knalis/Documents/dev/kotlin/Mnemos/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/BoosterSubscriptionController.kt",
+  "inputs": {
+    "request.boosterType": ""
+  },
+  "branchDecisions": {
+  },
+  "invocationBehaviors": [
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:709:getContext",
+      "displayName": "getContext",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:785:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:958:MnemosPrincipal",
+      "displayName": "MnemosPrincipal",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".isNotBlank()",
+      "displayName": "isNotBlank",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".takeIf((T) -> kotlin.Boolean)",
+      "displayName": "takeIf",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2089:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2234:fromString",
+      "displayName": "fromString",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2328:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2566:getClaimAsString",
+      "displayName": "getClaimAsString",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2667:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:1514:getClaimAsString",
+      "displayName": "getClaimAsString",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:1668:fromString",
+      "displayName": "fromString",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:1760:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:2914:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "kotlin.Number.toLong()",
+      "displayName": "toLong",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:3176:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".orEmpty()",
+      "displayName": "orEmpty",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:3336:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".trim()",
+      "displayName": "trim",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".uppercase()",
+      "displayName": "uppercase",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".removePrefix(kotlin.CharSequence)",
+      "displayName": "removePrefix",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".firstOrNull((T) -> kotlin.Boolean)",
+      "displayName": "firstOrNull",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": ".mapNotNull((T) -> R?)",
+      "displayName": "mapNotNull",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:4361:warn",
+      "displayName": "warn",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/libraries/security-starter/src/main/kotlin/com/mnemos/security/CurrentMnemosUser.kt:1299:InvalidAuthenticationPrincipalException",
+      "displayName": "InvalidAuthenticationPrincipalException",
+      "kind": "UNKNOWN",
+      "expression": ""
+    },
+    {
+      "callId": "/Users/knalis/Documents/dev/kotlin/Mnemos/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/BoosterSubscriptionController.kt:1366:UserId",
+      "displayName": "UserId",
+      "kind": "UNKNOWN",
+      "expression": ""
+    }
+  ],
+  "auth": {
+    "authenticated": true,
+    "principalExpression": "",
+    "authorities": [
+    ]
+  },
+  "expectations": {
+    "httpStatus": null,
+    "responseExpression": "",
+    "expectedCalls": {
+    },
+    "forbiddenCalls": [
+    ]
+  },
+  "testTarget": "MOCK_MVC",
+  "managedTestMode": "MANAGED",
+  "generatedTestPath": null,
+  "generatedTestMethod": null
+}
