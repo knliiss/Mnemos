@@ -64,4 +64,29 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
         """,
     )
     fun findActiveById(accountId: UUID): AccountEntity?
+
+    @Query(
+        """
+        SELECT account FROM AccountEntity account
+        WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+          AND LOWER(account.cristalixNickname) = LOWER(:nickname)
+    """,
+    )
+    fun findActiveByCristalixNickname(
+        @Param("nickname") nickname: String,
+    ): AccountEntity?
+
+    @Query(
+        """
+        SELECT account FROM AccountEntity account
+        WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+          AND EXISTS (
+              SELECT user.id FROM UserEntity user
+              WHERE user.id = :userId AND user.activeAccountId = account.id
+          )
+    """,
+    )
+    fun findActiveByUserId(
+        @Param("userId") userId: UUID,
+    ): AccountEntity?
 }

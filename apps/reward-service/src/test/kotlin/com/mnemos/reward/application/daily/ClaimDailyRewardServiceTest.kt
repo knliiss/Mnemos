@@ -1,0 +1,90 @@
+package com.mnemos.reward.application.daily
+
+import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.reward.application.daily.port.out.RewardRandom
+import com.mnemos.reward.application.daily.port.out.RewardWallet
+import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
+import com.mnemos.reward.configuration.RewardProperties
+import com.mnemos.reward.domain.daily.model.DailyStreak
+import com.mnemos.reward.domain.daily.repository.DailyStreakRepository
+import com.mnemos.wallet.contracts.wallet.shared.Currency
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+
+class ClaimDailyRewardServiceTest {
+    @Test fun `claim credits random coins and prime when roll succeeds`() {
+        val accountId = AccountId.generate()
+        val repo = MemoryRepo()
+        val wallet = RecordingWallet()
+        val clock = Clock.fixed(Instant.parse("2026-08-11T10:00:00Z"), ZoneOffset.UTC)
+        val service = ClaimDailyRewardService({ accountId }, repo, wallet, FixedRandom(60, 0.0), RewardProperties(), clock)
+        val result = service.claim()
+        assertEquals(1, result.streak)
+        assertEquals(60, result.coins)
+        assertEquals(1, result.primes)
+        assertEquals(listOf(Currency.COIN to 60L, Currency.PRIME to 1L), wallet.credits)
+    }
+
+    @Test fun `prime chance grows with streak and is capped`() {
+        val service =
+            ClaimDailyRewardService({
+                AccountId.generate()
+            }, MemoryRepo(), RecordingWallet(), FixedRandom(1, 1.0), RewardProperties(), Clock.systemUTC())
+        assertEquals(0.001, service.primeChance(1), 0.0000001)
+        assertEquals(0.0039, service.primeChance(30), 0.0000001)
+        assertEquals(0.01, service.primeChance(500), 0.0000001)
+    }
+
+    private class MemoryRepo : DailyStreakRepository {
+        var value: DailyStreak? = null
+
+        override fun findByAccountId(accountId: AccountId) = value
+
+        override fun findByAccountIdForUpdate(accountId: AccountId) = value
+
+        override fun save(streak: DailyStreak): DailyStreak {
+            value = streak
+            return streak
+        }
+
+        override fun findMissedForUpdate(cutoff: LocalDate) = emptyList<DailyStreak>()
+    }
+
+    private class RecordingWallet : RewardWallet {
+        val credits = mutableListOf<Pair<Currency, Long>>()
+
+        override fun creditDaily(
+            accountId: AccountId,
+            currency: Currency,
+            amount: Long,
+            rewardDate: LocalDate,
+        ) {
+            credits +=
+                currency to amount
+        }
+
+        override fun creditItemDrop(
+            accountId: AccountId,
+            amount: Long,
+            eventId: java.util.UUID,
+        ) {
+            credits += Currency.COIN to amount
+        }
+    }
+
+    private class FixedRandom(
+        private val long: Long,
+        private val double: Double,
+    ) : RewardRandom {
+        override fun nextLong(
+            fromInclusive: Long,
+            toInclusive: Long,
+        ) = long
+
+        override fun nextDouble() = double
+    }
+}

@@ -42,5 +42,6 @@ include(
     ":apps:account-service",
     ":apps:wallet-service",
     ":apps:event-service",
-    ":apps:notification-service"
+    ":apps:notification-service",
+    ":apps:reward-service"
 )

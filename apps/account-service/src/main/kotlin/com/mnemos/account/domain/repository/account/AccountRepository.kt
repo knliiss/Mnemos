@@ -12,6 +12,10 @@ interface AccountRepository {
 
     fun findActiveById(accountId: AccountId): Account?
 
+    fun findActiveByCristalixNickname(nickname: String): Account?
+
+    fun findActiveByUserId(userId: UserId): Account?
+
     fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean
 
     fun findAllAvailableForUser(userId: UserId): List<Account>

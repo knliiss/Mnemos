@@ -24,6 +24,7 @@
             <option value="$PROJECT_DIR$/apps/account-service" />
             <option value="$PROJECT_DIR$/apps/event-service" />
             <option value="$PROJECT_DIR$/apps/notification-service" />
+            <option value="$PROJECT_DIR$/apps/reward-service" />
             <option value="$PROJECT_DIR$/apps/wallet-service" />
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/contracts" />

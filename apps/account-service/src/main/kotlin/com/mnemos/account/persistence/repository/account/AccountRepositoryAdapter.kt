@@ -29,6 +29,11 @@ class AccountRepositoryAdapter(
 
     override fun findActiveById(accountId: AccountId): Account? = jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
 
+    override fun findActiveByCristalixNickname(nickname: String): Account? =
+        jpaAccountRepository.findActiveByCristalixNickname(nickname)?.toDomain()
+
+    override fun findActiveByUserId(userId: UserId): Account? = jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
+
     override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
 
     override fun findAllAvailableForUser(userId: UserId): List<Account> =

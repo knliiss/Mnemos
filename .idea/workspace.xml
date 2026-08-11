@@ -5,277 +5,90 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="de7a34bd-ad28-4154-aec1-d4119e7714da" name="Changes" comment="cleanup code">
-      <change afterPath="$PROJECT_DIR$/.kodaflow/scenarios/post-api-v1-subscriptions-boosters-scenario-c9ce47c4.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/user/UserIntegrationEvents.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/NotificationServiceApplication.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/BoosterSubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/create/CreateBoosterSubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/create/CreateBoosterSubscriptionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/booster/create/CreateBoosterSubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/common/pagination/PageResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/common/pagination/PageResponseMappings.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/dungeon/DungeonSubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/dungeon/create/CreateDungeonSubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/dungeon/create/CreateDungeonSubscriptionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/dungeon/create/CreateDungeonSubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/global/GlobalSubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/global/create/CreateGlobalSubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/global/create/CreateGlobalSubscriptionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/global/create/CreateGlobalSubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/itemdrop/ItemDropSubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/itemdrop/create/CreateItemDropSubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/itemdrop/create/CreateItemDropSubscriptionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/itemdrop/create/CreateItemDropSubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/raid/RaidSubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/raid/create/CreateRaidSubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/raid/create/CreateRaidSubscriptionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/raid/create/CreateRaidSubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/subscription/ListSubscriptionsRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/subscription/SubscriptionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/subscription/SubscriptionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http/subscription/SubscriptionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/account/AccountEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/booster/BoosterActivatedEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/booster/BoosterActivatedEventMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/event/EventEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/global/GlobalStartedEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/global/GlobalStartedEventMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/itemdrop/ItemDroppedEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/itemdrop/ItemDroppedEventMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/raid/RaidStartedEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/raid/RaidStartedEventMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/recipient/UserCreatedEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/scheduling/dungeon/DungeonNotificationScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/scheduling/notification/NotificationPipelineScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/scheduling/notification/TelegramDeliveryScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/telegram/TelegramLongPollingConsumer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/message/local/LocalNotificationMessageRenderer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/message/local/ResolvedNotification.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/message/local/StandardMessageResolver.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/booster/BoosterSubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/booster/BoosterSubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/booster/BoosterSubscriptionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/booster/BoosterSubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/common/pagination/PageMappings.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/dungeon/DungeonSubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/dungeon/DungeonSubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/dungeon/DungeonSubscriptionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/dungeon/DungeonSubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/global/GlobalSubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/global/GlobalSubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/global/GlobalSubscriptionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/global/GlobalSubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/itemdrop/ItemDropSubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/itemdrop/ItemDropSubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/itemdrop/ItemDropSubscriptionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/itemdrop/ItemDropSubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/raid/RaidSubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/raid/RaidSubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/raid/RaidSubscriptionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/raid/RaidSubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/query/RecipientQueryJpaAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/query/RecipientViewProjection.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/SubscriptionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/SubscriptionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/SubscriptionPersistenceWriter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/SubscriptionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/query/SubscriptionQueryJpaAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/subscription/query/SubscriptionViewProjection.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/redis/aggregation/RedisNotificationAggregationStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/redis/delivery/RedisNotificationDeliveryQueue.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/redis/immediate/RedisImmediateNotificationQueue.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/redis/model/RedisNotificationMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/redis/model/RedisNotificationModels.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGateway.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/matcher/BoosterSubscriptionMatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/create/CreateBoosterSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/create/CreateBoosterSubscriptionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/create/CreateBoosterSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/create/CreateBoosterSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/process/ProcessBoosterEventCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/process/ProcessBoosterEventService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/process/ProcessBoosterEventUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/common/pagination/PageQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/common/pagination/PageResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/matcher/DungeonSubscriptionMatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/create/CreateDungeonSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/create/CreateDungeonSubscriptionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/create/CreateDungeonSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/create/CreateDungeonSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/process/ProcessDungeonEventCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/process/ProcessDungeonEventService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/dungeon/usecase/process/ProcessDungeonEventUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/matcher/GlobalSubscriptionMatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/create/CreateGlobalSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/create/CreateGlobalSubscriptionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/create/CreateGlobalSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/create/CreateGlobalSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/process/ProcessGlobalEventCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/process/ProcessGlobalEventService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase/process/ProcessGlobalEventUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/matcher/ItemDropSubscriptionMatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/create/CreateItemDropSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/create/CreateItemDropSubscriptionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/create/CreateItemDropSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/create/CreateItemDropSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/process/ProcessItemDropEventCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/process/ProcessItemDropEventService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop/usecase/process/ProcessItemDropEventUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/aggregation/model/ClaimedNotificationAggregation.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/aggregation/port/out/NotificationAggregationStore.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/ClaimedDeliveryCandidate.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/DeliveryCandidate.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/DeliveryCandidateId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/DeliveryPriority.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/DeliveryResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/model/RenderedMessage.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/port/out/MessageDeliveryGateway.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/port/out/NotificationDeliveryQueue.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery/port/out/NotificationMessageRenderer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/immediate/model/ClaimedImmediateNotification.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/immediate/port/out/ImmediateNotificationQueue.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/model/NotificationBatch.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/model/NotificationItem.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/model/NotificationPayload.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/model/NotificationType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/policy/DeliverySchedulingPolicy.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/policy/EventPriority.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/policy/NotificationExpirationPolicy.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/policy/NotificationPolicyRegistry.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/policy/NotificationTypePolicy.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/service/NotificationDeliveryService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/service/NotificationDispatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/service/NotificationQueueDispatchService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/matcher/RaidSubscriptionMatcher.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/create/CreateRaidSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/create/CreateRaidSubscriptionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/create/CreateRaidSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/create/CreateRaidSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/process/ProcessRaidEventCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/process/ProcessRaidEventService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/raid/usecase/process/ProcessRaidEventUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/recipient/model/RecipientView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/recipient/port/out/RecipientReader.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/recipient/usecase/upsert/UpsertRecipientCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/recipient/usecase/upsert/UpsertRecipientService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/recipient/usecase/upsert/UpsertRecipientUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/model/SubscriptionView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/port/out/SubscriptionReader.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/delete/DeleteSubscriptionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/delete/DeleteSubscriptionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/delete/DeleteSubscriptionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/list/ListSubscriptionsQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/list/ListSubscriptionsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/subscription/usecase/list/ListSubscriptionsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/telegram/start/TelegramStartContext.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/MessagePackProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/NotificationDeliveryConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/NotificationDeliveryProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/NotificationDeliveryWorkerProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/NotificationPolicyProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/notification/NotificationProcessingProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/redis/ImmediateNotificationRedisProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/redis/NotificationAggregationRedisProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/redis/NotificationDeliveryQueueRedisProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/redis/NotificationRedisConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/scheduling/SchedulingConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/telegram/TelegramBotProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/telegram/TelegramConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/booster/model/BoosterSubscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/booster/model/DomainBoosterType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/booster/repository/BoosterSubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/dungeon/model/DomainDungeonType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/dungeon/model/DungeonSubscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/dungeon/repository/DungeonSubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/global/model/DomainGlobalEventType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/global/model/GlobalSubscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/global/repository/GlobalSubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/itemdrop/model/ItemDropSubscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/itemdrop/repository/ItemDropSubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/raid/model/RaidSubscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/raid/repository/RaidSubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/model/Recipient.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/model/RecipientPriority.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/repository/RecipientRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/subscription/exception/SubscriptionNotFoundException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/subscription/model/Subscription.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/subscription/model/SubscriptionId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/subscription/model/SubscriptionType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/subscription/repository/SubscriptionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V1__create_inbox_events.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V2__create_notification_subscriptions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V3__create_recipients.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V4__add_recipient_priority.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V5__create_subscription_views.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/logback-spring.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/add-aggregation.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/claim-aggregation.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/claim-json-queue.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/complete-processing.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/enqueue-immediate.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/handoff-aggregation.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/handoff-immediate.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/release-aggregation.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/redis/release-json-queue.lua" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/adapter/inbound/telegram/TelegramLongPollingConsumerTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/adapter/out/message/local/LocalNotificationMessageRendererTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGatewayTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/application/notification/policy/NotificationExpirationPolicyTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/application/notification/service/NotificationDispatcherTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartServiceTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/configuration/telegram/TelegramBotPropertiesTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/integration/subscription/SubscriptionIntegrationTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/integration/subscription/SubscriptionReadDeleteIntegrationTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/account-contracts/src/main/kotlin/com/mnemos/contracts/account/v1/UserCreatedV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/event-contracts/src/main/kotlin/com/mnemos/event/contracts/contract/v1/RainActivatedV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/event-contracts/src/main/kotlin/com/mnemos/event/contracts/shared/ContractRainType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.notification-service.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/compose/compose.redis.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/make/notification.mk" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/make/redis.mk" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/internal/InternalAccountResolveController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/account/InternalAccountQueryService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/RewardServiceApplication.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/http/daily/ClaimDailyRewardResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/http/daily/DailyRewardApiMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/http/daily/DailyRewardController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/http/daily/DailyRewardStateResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/http/daily/RestoreDailyStreakResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/messaging/event/EventEventsKafkaListener.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/inbound/messaging/event/ItemDroppedRewardHandler.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/account/AccountInternalClient.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/account/AccountInternalFeignConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/account/AccountProviderAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/messaging/RewardIntegrationEventConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/messaging/RewardKafkaTopicConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/messaging/RewardWalletAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/persistence/daily/DailyStreakEntity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/persistence/daily/DailyStreakJpaRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/persistence/daily/DailyStreakPersistenceMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/persistence/daily/DailyStreakRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/model/ClaimedDailyReward.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/model/DailyRewardState.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/AccountByNicknameProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/ActiveAccountProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/RewardRandom.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/RewardWallet.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/claim/ClaimDailyRewardService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/get/GetDailyRewardStateService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/reset/ResetMissedDailyStreaksService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/restore/RestoreDailyStreakService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/itemdrop/usecase/ProcessItemDropRewardCommand.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/itemdrop/usecase/ProcessItemDropRewardService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/configuration/DailyCoinRange.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/configuration/DailyRewardProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/configuration/ItemDropRewardProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/configuration/RewardConfiguration.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/configuration/RewardProperties.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/exception/ActiveAccountRequiredException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/exception/DailyRewardAlreadyClaimedException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/exception/DailyStreakNotRecoverableException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/exception/DailyStreakRestoreLimitReachedException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/model/DailyStreak.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/domain/daily/repository/DailyStreakRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/resources/db/migration/V1__create_outbox_events.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/resources/db/migration/V2__create_inbox_events.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/resources/db/migration/V3__create_daily_streaks.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/main/resources/logback-spring.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/daily/ClaimDailyRewardServiceTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/itemdrop/ProcessItemDropRewardServiceTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/domain/daily/DailyStreakTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contracts/account-contracts/src/main/kotlin/com/mnemos/contracts/account/internal/v1/InternalAccountResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.reward-service.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/make/compose.mk" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.kodaflow/scenarios/post-api-v1-subscriptions-boosters-scenario-c9ce47c4.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/user/CurrentUserController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/user/CurrentUserController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/UserService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/user/UserService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/AccountMemberId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/AccountMemberId.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/invite/InviteId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/invite/InviteId.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/infrastructure/messaging/config/AccountIntegrationEventConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/infrastructure/messaging/config/AccountIntegrationEventConfiguration.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/integration/keycloak/service/KeycloakUserIdentitySynchronizer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/integration/keycloak/service/KeycloakUserIdentitySynchronizer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/mapper/UserPersistenceMapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/mapper/UserPersistenceMapper.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/user/UserRepositoryAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/user/UserRepositoryAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/event-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/event-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/wallet-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/wallet-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandlerTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandlerTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.spring-integration-test.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build-logic/src/main/kotlin/mnemos.spring-integration-test.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contracts/account-events/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/account-contracts/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contracts/account-events/src/main/kotlin/com/mnemos/contracts/account/AccountEventContract.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/account-contracts/src/main/kotlin/com/mnemos/contracts/account/AccountEventContract.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contracts/account-events/src/main/kotlin/com/mnemos/contracts/account/v1/AccountCreatedV1.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/account-contracts/src/main/kotlin/com/mnemos/contracts/account/v1/AccountCreatedV1.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/libs.version.toml" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/libs.version.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.event-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.event-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/compose.base.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/compose.base.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/common-core/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/common-core/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/AccountId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/AccountId.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/TelegramId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/TelegramId.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/UserId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/id/UserId.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/security-starter/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/security-starter/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/handler/SecurityErrorResponseWriter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/security-starter/src/main/kotlin/com/mnemos/security/handler/SecurityErrorResponseWriter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/user/User.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/user/User.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/repository/account/AccountRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/repository/account/AccountRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/account/AccountRepositoryAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/account/AccountRepositoryAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/account/JpaAccountRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/repository/account/JpaAccountRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/WalletCommandProducerPolicy.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/WalletCommandProducerPolicy.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/TransactionSource.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/TransactionSource.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.account-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.account-service.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/account.mk" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/make/config.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/config.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/diagnostics.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/diagnostics.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/diagnostics.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/event.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/infra.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/kafka.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/kafka.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/keycloak.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/keycloak.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/notification.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/postgres.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/postgres.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/project.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/project.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/redis.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/stack.mk" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/ui.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/ui.mk" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/make/validation.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/validation.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/make/wallet.mk" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -420,61 +233,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.000000001513459" />
-      <entry key="S5" value="1.0004491045613517" />
-      <entry key="S10" value="1.0301874524699415" />
-      <entry key="S30" value="1.566633267589701" />
-      <entry key="S60" value="2.7324141457327746" />
-      <entry key="M2" value="7.198795673815953" />
-      <entry key="M5" value="21.72616689549842" />
-      <entry key="M10" value="36.8279540739122" />
-      <entry key="M15" value="48.27375219895418" />
-      <entry key="M30" value="74.41250785899419" />
-      <entry key="H1" value="108.04764972425251" />
-      <entry key="H2" value="151.57275042814257" />
-      <entry key="H4" value="213.041975669229" />
-      <entry key="D1" value="1207.7294850250432" />
-      <entry key="W1" value="4317.767702720739" />
+      <entry key="MS100" value="1.7699535611069357" />
+      <entry key="MS500" value="3.761457490345371" />
+      <entry key="S2" value="7.178720735920437" />
+      <entry key="S5" value="11.137235664798222" />
+      <entry key="S10" value="15.069351105142383" />
+      <entry key="S30" value="22.021795649765803" />
+      <entry key="S60" value="25.37496300789005" />
+      <entry key="M2" value="27.99723851531325" />
+      <entry key="M5" value="37.22818692043787" />
+      <entry key="M10" value="54.94125763968976" />
+      <entry key="M15" value="72.17938660706209" />
+      <entry key="M30" value="115.98542715690466" />
+      <entry key="H1" value="173.78801425658332" />
+      <entry key="H2" value="240.03693502013567" />
+      <entry key="H4" value="318.4533048842518" />
+      <entry key="D1" value="1320.0943870568663" />
+      <entry key="W1" value="4445.024494534754" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="4.792514518536789E-156" />
-      <entry key="S2" value="1.4795882007760186E-39" />
-      <entry key="S5" value="2.9380307977445574E-16" />
-      <entry key="S10" value="1.714107475822857E-8" />
-      <entry key="S30" value="0.0026514062239674082" />
-      <entry key="S60" value="0.05932503842521215" />
-      <entry key="M2" value="0.3200843530687526" />
-      <entry key="M5" value="1.2915279020228412" />
-      <entry key="M10" value="3.3943416192893667" />
-      <entry key="M15" value="5.346641328119311" />
-      <entry key="M30" value="9.279769182646712" />
-      <entry key="H1" value="13.349123251602286" />
-      <entry key="H2" value="18.158238807609788" />
-      <entry key="H4" value="28.646624936341123" />
-      <entry key="D1" value="354.4949417755265" />
-      <entry key="W1" value="1329.3534553326133" />
+      <entry key="MS500" value="5.715136641316277E-295" />
+      <entry key="S2" value="2.7495185532306426E-74" />
+      <entry key="S5" value="3.764459783343256E-30" />
+      <entry key="S10" value="1.940221580991011E-15" />
+      <entry key="S30" value="1.2472616238028945E-5" />
+      <entry key="S60" value="0.0035518440323689887" />
+      <entry key="M2" value="0.06578769610907324" />
+      <entry key="M5" value="0.5305961536512129" />
+      <entry key="M10" value="1.3889390007892" />
+      <entry key="M15" value="2.3460151463793584" />
+      <entry key="M30" value="5.600264999456349" />
+      <entry key="H1" value="10.785483526003048" />
+      <entry key="H2" value="17.255916339446852" />
+      <entry key="H4" value="28.64467479330141" />
+      <entry key="D1" value="350.1892372102779" />
+      <entry key="W1" value="1328.8738640569723" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9526379980439373" />
-      <entry key="MS500" value="0.9903428719330246" />
-      <entry key="S2" value="0.9975769267766229" />
-      <entry key="S5" value="0.9994790145185234" />
-      <entry key="S10" value="1.0296971267045159" />
-      <entry key="S30" value="1.5688349892196574" />
-      <entry key="S60" value="2.7889335594926687" />
-      <entry key="M2" value="7.511802606256908" />
-      <entry key="M5" value="23.00518311887841" />
-      <entry key="M10" value="40.20628921514287" />
-      <entry key="M15" value="53.60433472779825" />
-      <entry key="M30" value="83.6793843712948" />
-      <entry key="H1" value="121.3880448449989" />
-      <entry key="H2" value="169.72529380859814" />
-      <entry key="H4" value="241.68394767998112" />
-      <entry key="D1" value="1562.2123802159745" />
-      <entry key="W1" value="5647.113918534463" />
+      <entry key="MS100" value="1.6940754533583067" />
+      <entry key="MS500" value="3.7279085262008964" />
+      <entry key="S2" value="7.163128156037446" />
+      <entry key="S5" value="11.127783282313398" />
+      <entry key="S10" value="15.063039694842328" />
+      <entry key="S30" value="22.018776247382753" />
+      <entry key="S60" value="25.37670587902465" />
+      <entry key="M2" value="28.0614243680052" />
+      <entry key="M5" value="37.75630209190421" />
+      <entry key="M10" value="56.327039786238345" />
+      <entry key="M15" value="74.5213600484895" />
+      <entry key="M30" value="121.57984868002454" />
+      <entry key="H1" value="184.56751140757908" />
+      <entry key="H2" value="257.28798570520536" />
+      <entry key="H4" value="347.093637143251" />
+      <entry key="D1" value="1670.2718055228565" />
+      <entry key="W1" value="5773.891135786584" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -519,7 +332,7 @@
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_directory_selection": "/Users/knalis/Documents/dev/kotlin/Mnemos/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/delivery",
-    "last_opened_file_path": "/Users/knalis/Documents/dev/kotlin/Mnemos/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/process",
+    "last_opened_file_path": "/Users/knalis/Documents/dev/kotlin/Mnemos/apps",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
     "node.js.detected.package.tslint": "true",
@@ -544,18 +357,18 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/apps" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/booster/usecase/process" />
       <recent name="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global/usecase" />
       <recent name="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/itemdrop" />
-      <recent name="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/global" />
-      <recent name="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/http" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/infrastructure/compose/apps" />
       <recent name="$PROJECT_DIR$/apps/notification-service" />
       <recent name="$PROJECT_DIR$/libraries/outbox-starter/src/test/resources/db" />
       <recent name="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/http" />
       <recent name="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet" />
-      <recent name="$PROJECT_DIR$/contracts/account-events" />
     </key>
     <key name="CreateKotlinClassDialog.RecentsKey">
       <recent name="com.mnemos.notification.application.recipient.model" />
@@ -587,7 +400,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Gradle.LocalNotificationMessageRendererTest">
+  <component name="RunManager" selected="Gradle.Mnemos [:apps:account-service:ktlintFormat]">
     <configuration name="LocalNotificationMessageRendererTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -795,6 +608,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="RewardServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="Mnemos.apps.reward-service.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.reward.RewardServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="WalletServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="Mnemos.apps.wallet-service.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.mnemos.wallet.WalletServiceApplication" />
@@ -804,8 +624,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.LocalNotificationMessageRendererTest" />
         <item itemvalue="Gradle.Mnemos [:apps:account-service:ktlintFormat]" />
+        <item itemvalue="Gradle.LocalNotificationMessageRendererTest" />
         <item itemvalue="Gradle.Mnemos [ktlintFormat]" />
         <item itemvalue="Gradle.Tests in 'Mnemos.apps.notification-service.test'" />
         <item itemvalue="Gradle.SubscriptionIntegrationTest" />

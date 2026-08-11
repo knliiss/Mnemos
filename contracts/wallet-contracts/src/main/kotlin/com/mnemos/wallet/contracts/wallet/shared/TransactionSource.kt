@@ -2,6 +2,7 @@ package com.mnemos.wallet.contracts.wallet.shared
 
 enum class TransactionSource {
     DAILY_REWARD,
+    ITEM_DROP_REWARD,
 
     BET_PLACE,
     BET_WIN,

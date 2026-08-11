@@ -16,7 +16,7 @@ class WalletCommandProducerPolicy {
     ) {
         val allowed =
             when (producer) {
-                "reward-service" -> command.isDailyReward()
+                "reward-service" -> command.isReward()
                 "bet-service" -> command.isBetOperation()
                 "personalization-service" -> command.isPersonalizationOperation()
                 "payment-service" -> command.isPrimePurchase()
@@ -34,10 +34,12 @@ class WalletCommandProducerPolicy {
         }
     }
 
-    private fun WalletCreateTransactionCommand.isDailyReward(): Boolean =
-        source == TransactionSource.DAILY_REWARD &&
-            type == TransactionType.CREDIT &&
-            currency == Currency.COIN
+    private fun WalletCreateTransactionCommand.isReward(): Boolean =
+        when (source) {
+            TransactionSource.DAILY_REWARD -> type == TransactionType.CREDIT && (currency == Currency.COIN || currency == Currency.PRIME)
+            TransactionSource.ITEM_DROP_REWARD -> type == TransactionType.CREDIT && currency == Currency.COIN
+            else -> false
+        }
 
     private fun WalletCreateTransactionCommand.isBetOperation(): Boolean =
         when (source) {

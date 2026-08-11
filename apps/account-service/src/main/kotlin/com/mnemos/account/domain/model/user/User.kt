@@ -103,6 +103,6 @@ class User private constructor(
 
     override fun toString(): String {
         val s = String.format("User [id=%s],[username=%s]", id, username.value)
-        return s.toString()
+        return s
     }
 }

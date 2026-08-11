@@ -1,0 +1,21 @@
+package com.mnemos.reward.adapter.out.account
+
+import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
+import java.util.UUID
+
+@FeignClient(
+    name = "rewardAccountInternalClient",
+    url = "\${mnemos.clients.account-service.url}",
+    configuration = [AccountInternalFeignConfiguration::class],
+    dismiss404 = true,
+)
+interface AccountInternalClient {
+    @GetMapping("/internal/v1/accounts/resolve")
+    fun resolve(
+        @RequestParam(required = false) userId: UUID? = null,
+        @RequestParam(required = false) cristalixNickname: String? = null,
+    ): InternalAccountResponse?
+}
