@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: gateway-service
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${MNEMOS_AUTH_ORIGIN:http://localhost:8080}/realms/mnemos
+          jwk-set-uri: ${MNEMOS_KEYCLOAK_INTERNAL_URL:http://localhost:8080}/realms/mnemos/protocol/openid-connect/certs
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: wallet-api
+              uri: ${WALLET_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**
+
+            - id: account-api
+              uri: ${ACCOUNT_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/v1/accounts/**,/api/v1/account/**,/api/v1/account-memberships/**,/api/v1/me/accounts/**,/api/v1/users/**,/api/v1/admin/accounts/**
+
+            - id: event-api
+              uri: ${EVENT_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/v1/item-drop-events/**,/api/v1/global-events/**,/api/v1/booster-events/**,/api/v1/raid-events/**
+
+            - id: notification-api
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/api/v1/subscriptions/**
+
+            - id: reward-api
+              uri: ${REWARD_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/api/v1/rewards/**
+
+            - id: bet-api
+              uri: ${BET_SERVICE_URL:http://localhost:8086}
+              predicates:
+                - Path=/api/v1/bets/**
+
+            - id: moderation-api
+              uri: ${MODERATION_SERVICE_URL:http://localhost:8087}
+              predicates:
+                - Path=/api/v1/moderation/**
+
+            - id: collector-websocket
+              uri: ws://${EVENT_SERVICE_HOST:localhost}:8083
+              predicates:
+                - Path=/ws/v1/collector
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    listener:
+      ack-mode: record
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+mnemos:
+  kafka:
+    manage-topics: ${MNEMOS_KAFKA_MANAGE_TOPICS:true}
+
+  gateway:
+    moderation:
+      url: ${MODERATION_SERVICE_URL:http://localhost:8087}
+      api-key: ${GATEWAY_MODERATION_API_KEY}
+
+    rate-limit:
+      anonymous:
+        sustained-per-minute: 30
+        burst-capacity: 10
+      user:
+        sustained-per-minute: 120
+        burst-capacity: 40
+      moderator:
+        sustained-per-minute: 240
+        burst-capacity: 80
+      admin:
+        sustained-per-minute: 360
+        burst-capacity: 120
+      super-admin:
+        sustained-per-minute: 600
+        burst-capacity: 200
+      expensive-request-divisor: 4

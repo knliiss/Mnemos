@@ -6,6 +6,7 @@ import com.mnemos.account.api.dto.account.UpdateAccountBaseRoleRequest
 import com.mnemos.account.api.dto.account.toResponse
 import com.mnemos.account.application.service.account.CreateAccountService
 import com.mnemos.account.application.service.account.DeleteAccountService
+import com.mnemos.account.application.service.account.ReactivateAccountService
 import com.mnemos.account.application.service.account.TransferAccountOwnerShipService
 import com.mnemos.account.application.service.account.UpdateAccountBaseRoleService
 import com.mnemos.account.domain.model.account.AccountMemberId
@@ -29,6 +30,7 @@ import java.util.UUID
 class AccountController(
     private val createAccountService: CreateAccountService,
     private val deleteAccountService: DeleteAccountService,
+    private val reactivateAccountService: ReactivateAccountService,
     private val transferAccountOwnershipService: TransferAccountOwnerShipService,
     private val updateAccountBaseRoleService: UpdateAccountBaseRoleService,
 ) {
@@ -44,6 +46,14 @@ class AccountController(
         @PathVariable accountId: UUID,
     ) {
         deleteAccountService.deleteAccount(AccountId(accountId))
+    }
+
+    @PostMapping("/{accountId}/reactivate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun reactivateAccount(
+        @PathVariable accountId: UUID,
+    ) {
+        reactivateAccountService.reactivate(AccountId(accountId))
     }
 
     @PutMapping("/{accountId}/owner/{memberId}")

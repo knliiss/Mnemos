@@ -21,7 +21,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-ratelimiter")
 
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("io.github.openfeign:feign-okhttp")

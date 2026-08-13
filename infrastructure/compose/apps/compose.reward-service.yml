@@ -18,8 +18,6 @@ services:
       MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
       ACCOUNT_SERVICE_URL: http://account-service:8081
       REWARD_SERVICE_ACCOUNT_API_KEY: ${REWARD_SERVICE_ACCOUNT_API_KEY}
-    ports:
-      - "${MNEMOS_REWARD_SERVICE_HOST_PORT:-8085}:8085"
     depends_on:
       app-postgres:
         condition: service_healthy
@@ -31,3 +29,4 @@ services:
         condition: service_started
     networks:
       - mnemos-network
+

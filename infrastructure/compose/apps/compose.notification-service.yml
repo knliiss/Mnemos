@@ -33,8 +33,6 @@ services:
       MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
       MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
 
-    ports:
-      - "${MNEMOS_NOTIFICATION_SERVICE_HOST_PORT:-8084}:8084"
 
     depends_on:
       app-postgres:

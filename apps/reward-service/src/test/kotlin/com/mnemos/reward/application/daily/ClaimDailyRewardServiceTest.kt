@@ -14,26 +14,64 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.util.UUID
 
 class ClaimDailyRewardServiceTest {
-    @Test fun `claim credits random coins and prime when roll succeeds`() {
+    @Test
+    fun `claim credits random coins and prime when roll succeeds`() {
         val accountId = AccountId.generate()
-        val repo = MemoryRepo()
+        val repository = MemoryRepo()
         val wallet = RecordingWallet()
-        val clock = Clock.fixed(Instant.parse("2026-08-11T10:00:00Z"), ZoneOffset.UTC)
-        val service = ClaimDailyRewardService({ accountId }, repo, wallet, FixedRandom(60, 0.0), RewardProperties(), clock)
+        val clock =
+            Clock.fixed(
+                Instant.parse("2026-08-11T10:00:00Z"),
+                ZoneOffset.UTC,
+            )
+
+        val service =
+            ClaimDailyRewardService(
+                activeAccountProvider = { accountId },
+                repository = repository,
+                wallet = wallet,
+                random =
+                    FixedRandom(
+                        long = 60,
+                        double = 0.0,
+                    ),
+                properties = RewardProperties(),
+                clock = clock,
+            )
+
         val result = service.claim()
+
         assertEquals(1, result.streak)
         assertEquals(60, result.coins)
         assertEquals(1, result.primes)
-        assertEquals(listOf(Currency.COIN to 60L, Currency.PRIME to 1L), wallet.credits)
+        assertEquals(
+            listOf(
+                Currency.COIN to 60L,
+                Currency.PRIME to 1L,
+            ),
+            wallet.credits,
+        )
     }
 
-    @Test fun `prime chance grows with streak and is capped`() {
+    @Test
+    fun `prime chance grows with streak and is capped`() {
         val service =
-            ClaimDailyRewardService({
-                AccountId.generate()
-            }, MemoryRepo(), RecordingWallet(), FixedRandom(1, 1.0), RewardProperties(), Clock.systemUTC())
+            ClaimDailyRewardService(
+                activeAccountProvider = { AccountId.generate() },
+                repository = MemoryRepo(),
+                wallet = RecordingWallet(),
+                random =
+                    FixedRandom(
+                        long = 1,
+                        double = 1.0,
+                    ),
+                properties = RewardProperties(),
+                clock = Clock.systemUTC(),
+            )
+
         assertEquals(0.001, service.primeChance(1), 0.0000001)
         assertEquals(0.0039, service.primeChance(30), 0.0000001)
         assertEquals(0.01, service.primeChance(500), 0.0000001)
@@ -42,16 +80,16 @@ class ClaimDailyRewardServiceTest {
     private class MemoryRepo : DailyStreakRepository {
         var value: DailyStreak? = null
 
-        override fun findByAccountId(accountId: AccountId) = value
+        override fun findByAccountId(accountId: AccountId): DailyStreak? = value
 
-        override fun findByAccountIdForUpdate(accountId: AccountId) = value
+        override fun findByAccountIdForUpdate(accountId: AccountId): DailyStreak? = value
 
         override fun save(streak: DailyStreak): DailyStreak {
             value = streak
             return streak
         }
 
-        override fun findMissedForUpdate(cutoff: LocalDate) = emptyList<DailyStreak>()
+        override fun findMissedForUpdate(cutoff: LocalDate): List<DailyStreak> = emptyList()
     }
 
     private class RecordingWallet : RewardWallet {
@@ -63,14 +101,13 @@ class ClaimDailyRewardServiceTest {
             amount: Long,
             rewardDate: LocalDate,
         ) {
-            credits +=
-                currency to amount
+            credits += currency to amount
         }
 
         override fun creditItemDrop(
             accountId: AccountId,
             amount: Long,
-            eventId: java.util.UUID,
+            eventId: UUID,
         ) {
             credits += Currency.COIN to amount
         }
@@ -83,8 +120,8 @@ class ClaimDailyRewardServiceTest {
         override fun nextLong(
             fromInclusive: Long,
             toInclusive: Long,
-        ) = long
+        ): Long = long
 
-        override fun nextDouble() = double
+        override fun nextDouble(): Double = double
     }
 }

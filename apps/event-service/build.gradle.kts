@@ -22,7 +22,7 @@ dependencies {
     implementation(libs.uuid.creator)
     implementation(libs.spring.boot.starter.websocket)
 
-    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 

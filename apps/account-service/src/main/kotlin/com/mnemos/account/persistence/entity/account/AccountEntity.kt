@@ -29,10 +29,8 @@ class AccountEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: AccountStatus,
-    @Column(name = "deletion_requested_at")
-    var deletionRequestedAt: Instant?,
-    @Column(name = "deleted_at")
-    var deletedAt: Instant?,
+    @Column(name = "deactivated_at")
+    var deactivatedAt: Instant?,
     @Column(name = "max_members", nullable = false)
     var maxMembers: Int,
     @Column(name = "base_role_id")

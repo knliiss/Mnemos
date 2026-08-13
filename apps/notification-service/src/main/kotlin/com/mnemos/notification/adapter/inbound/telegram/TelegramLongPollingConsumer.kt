@@ -15,6 +15,7 @@ import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import java.net.SocketTimeoutException
 
 @Component
 @ConditionalOnProperty(prefix = "mnemos.notification.telegram", name = ["enabled"], havingValue = "true")
@@ -79,9 +80,17 @@ class TelegramLongPollingConsumer(
                 response.errorCode(),
                 response.description(),
             )
-        } else {
-            log.warn("Telegram long polling failed", exception)
+            return
         }
+
+        val cause = exception.cause
+
+        if (cause is SocketTimeoutException) {
+            log.debug("Telegram long polling timed out, retrying")
+            return
+        }
+
+        log.warn("Telegram long polling failed", exception)
     }
 
     private companion object {

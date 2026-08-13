@@ -17,9 +17,8 @@ object AccountPersistenceMapper {
             cristalixNickname = cristalixNickname.value,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            deletedAt = deletedAt,
-            deletionRequestedAt = deletionRequestedAt,
             status = status,
+            deactivatedAt = deactivatedAt,
             maxMembers = maxMembers,
             baseRoleId = baseRoleId?.id,
         )
@@ -32,9 +31,8 @@ object AccountPersistenceMapper {
             cristalixNickname = CristalixNickname(cristalixNickname),
             createdAt = createdAt,
             updatedAt = updatedAt,
-            deletedAt = deletedAt,
-            deletionRequestedAt = deletionRequestedAt,
             status = status,
+            deactivatedAt = deactivatedAt,
             maxMembers = maxMembers,
             baseRoleId = baseRoleId?.let { RoleId(it) },
         )
@@ -42,11 +40,8 @@ object AccountPersistenceMapper {
     fun AccountEntity.updateFrom(account: Account) {
         cristalixNickname = account.cristalixNickname.value
         updatedAt = account.updatedAt
-
-        deletionRequestedAt = account.deletionRequestedAt
-        deletedAt = account.deletedAt
         status = account.status
-
+        deactivatedAt = account.deactivatedAt
         maxMembers = account.maxMembers
         baseRoleId = account.baseRoleId?.id
     }

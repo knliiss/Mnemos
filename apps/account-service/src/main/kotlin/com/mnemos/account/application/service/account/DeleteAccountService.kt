@@ -47,7 +47,7 @@ class DeleteAccountService(
 
         val now = Instant.now()
 
-        account.requestDeletion(now)
+        account.deactivate(now)
 
         userRepository.clearActiveAccountByAccountId(
             accountId = accountId,

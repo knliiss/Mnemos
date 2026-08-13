@@ -26,7 +26,14 @@ class RewardWalletAdapter(
         rewardDate: LocalDate,
     ) {
         val sourceReferenceId = UuidCreator.getNameBasedSha1("reward:daily:${accountId.id}:$rewardDate")
-        publish(accountId, currency, amount, TransactionSource.DAILY_REWARD, sourceReferenceId, "${currency.name.lowercase()}:$rewardDate")
+        publish(
+            accountId = accountId,
+            currency = currency,
+            amount = amount,
+            source = TransactionSource.DAILY_REWARD,
+            sourceReferenceId = sourceReferenceId,
+            discriminator = "${currency.name.lowercase()}:$rewardDate",
+        )
     }
 
     override fun creditItemDrop(
@@ -34,7 +41,14 @@ class RewardWalletAdapter(
         amount: Long,
         eventId: UUID,
     ) {
-        publish(accountId, Currency.COIN, amount, TransactionSource.ITEM_DROP_REWARD, eventId, eventId.toString())
+        publish(
+            accountId = accountId,
+            currency = Currency.COIN,
+            amount = amount,
+            source = TransactionSource.ITEM_DROP_REWARD,
+            sourceReferenceId = eventId,
+            discriminator = eventId.toString(),
+        )
     }
 
     private fun publish(
@@ -47,7 +61,15 @@ class RewardWalletAdapter(
     ) {
         val requestId = UuidCreator.getNameBasedSha1("reward:${accountId.id}:${source.name}:$discriminator")
         val command =
-            WalletCreateTransactionCommand(requestId, accountId.id, currency, TransactionType.CREDIT, source, sourceReferenceId, amount)
+            WalletCreateTransactionCommand(
+                requestId = requestId,
+                accountId = accountId.id,
+                currency = currency,
+                type = TransactionType.CREDIT,
+                source = source,
+                sourceReferenceId = sourceReferenceId,
+                amount = amount,
+            )
         publisher.publish(IntegrationEvent(WalletCommandType.CREATE_TRANSACTION, requestId, Instant.now(), command))
     }
 }

@@ -1,6 +1,7 @@
 package com.mnemos.notification.adapter.out.persistence.recipient
 
 import com.mnemos.notification.adapter.out.persistence.recipient.query.RecipientViewProjection
+import com.mnemos.notification.domain.recipient.model.RecipientDeliveryStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -13,15 +14,20 @@ interface RecipientJpaRepository : JpaRepository<RecipientEntity, UUID> {
         value = """
             INSERT INTO recipients (
                 user_id,
-                telegram_id
+                telegram_id,
+                priority,
+                delivery_status
             )
             VALUES (
                 :userId,
-                :telegramId
+                :telegramId,
+                'STANDARD',
+                'ACTIVE'
             )
             ON CONFLICT (user_id)
             DO UPDATE SET
-                telegram_id = EXCLUDED.telegram_id
+                telegram_id = EXCLUDED.telegram_id,
+                delivery_status = 'ACTIVE'
         """,
         nativeQuery = true,
     )
@@ -38,7 +44,9 @@ interface RecipientJpaRepository : JpaRepository<RecipientEntity, UUID> {
             r.priority
         FROM RecipientEntity r
         WHERE r.userId IN :userIds
-    """,
+          AND r.deliveryStatus =
+              com.mnemos.notification.domain.recipient.model.RecipientDeliveryStatus.ACTIVE
+        """,
     )
     fun findViewsByUserIdIn(
         @Param("userIds") userIds: Set<UUID>,
@@ -52,9 +60,24 @@ interface RecipientJpaRepository : JpaRepository<RecipientEntity, UUID> {
             r.priority
         FROM RecipientEntity r
         WHERE r.telegramId = :telegramId
+          AND r.deliveryStatus =
+              com.mnemos.notification.domain.recipient.model.RecipientDeliveryStatus.ACTIVE
         """,
     )
-    fun findViewByTelegramId(
+    fun findActiveViewByTelegramId(
         @Param("telegramId") telegramId: Long,
     ): RecipientViewProjection?
+
+    @Modifying
+    @Query(
+        """
+        UPDATE RecipientEntity recipient
+        SET recipient.deliveryStatus = :status
+        WHERE recipient.telegramId = :telegramId
+        """,
+    )
+    fun updateDeliveryStatus(
+        @Param("telegramId") telegramId: Long,
+        @Param("status") status: RecipientDeliveryStatus,
+    )
 }

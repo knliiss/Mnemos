@@ -1,9 +1,12 @@
 package com.mnemos.messaging.kafka.config
 
 import com.mnemos.messaging.inbox.InboxEventProcessor
+import com.mnemos.messaging.kafka.consumer.DirectKafkaMessageProcessor
+import com.mnemos.messaging.kafka.consumer.InboxKafkaMessageProcessor
 import com.mnemos.messaging.kafka.consumer.KafkaDeadLetterTopic
 import com.mnemos.messaging.kafka.consumer.KafkaMessageDispatcher
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
+import com.mnemos.messaging.kafka.consumer.KafkaMessageProcessor
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.serialization.KafkaEventEnvelopeReader
 import org.apache.kafka.common.TopicPartition
@@ -48,6 +51,7 @@ class MnemosKafkaConsumerAutoConfiguration {
         }
 
         val retry = properties.consumer.retry
+
         val backOff = ExponentialBackOffWithMaxRetries(retry.maxAttempts - 1).apply {
             initialInterval = retry.initialBackoff.toMillis()
             multiplier = retry.multiplier
@@ -59,21 +63,42 @@ class MnemosKafkaConsumerAutoConfiguration {
         }
     }
 
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(name = ["com.mnemos.messaging.inbox.InboxEventProcessor"])
-    class InboxDispatcherConfiguration {
-
-        @Bean
-        @ConditionalOnBean(KafkaMessageHandler::class)
-        @ConditionalOnMissingBean(KafkaMessageDispatcher::class)
-        fun kafkaMessageDispatcher(
-            envelopeReader: KafkaEventEnvelopeReader,
-            inboxEventProcessor: InboxEventProcessor,
-            handlers: List<KafkaMessageHandler<*>>,
-        ): KafkaMessageDispatcher = KafkaMessageDispatcher(
+    @Bean
+    @ConditionalOnBean(KafkaMessageHandler::class)
+    @ConditionalOnMissingBean(KafkaMessageDispatcher::class)
+    fun kafkaMessageDispatcher(
+        envelopeReader: KafkaEventEnvelopeReader,
+        messageProcessor: KafkaMessageProcessor,
+        handlers: List<KafkaMessageHandler<*>>,
+    ): KafkaMessageDispatcher =
+        KafkaMessageDispatcher(
             envelopeReader = envelopeReader,
-            inboxEventProcessor = inboxEventProcessor,
+            messageProcessor = messageProcessor,
             handlers = handlers,
         )
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = ["com.mnemos.messaging.inbox.InboxEventProcessor"])
+    @ConditionalOnBean(type = ["com.mnemos.messaging.inbox.InboxEventProcessor"])
+    class InboxMessageProcessorConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean(KafkaMessageProcessor::class)
+        fun inboxKafkaMessageProcessor(
+            inboxEventProcessor: InboxEventProcessor,
+        ): KafkaMessageProcessor =
+            InboxKafkaMessageProcessor(
+                inboxEventProcessor = inboxEventProcessor,
+            )
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnMissingBean(type = ["com.mnemos.messaging.inbox.InboxEventProcessor"])
+    class DirectMessageProcessorConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean(KafkaMessageProcessor::class)
+        fun directKafkaMessageProcessor(): KafkaMessageProcessor =
+            DirectKafkaMessageProcessor()
     }
 }

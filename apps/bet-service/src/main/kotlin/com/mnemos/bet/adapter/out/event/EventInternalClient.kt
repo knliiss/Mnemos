@@ -1,0 +1,35 @@
+package com.mnemos.bet.adapter.out.event
+
+import com.mnemos.bet.contracts.shared.BetItemType
+import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
+import java.time.Instant
+
+@FeignClient(
+    name = "betEventInternalClient",
+    url = "\${mnemos.clients.event-service.url}",
+    configuration = [EventInternalFeignConfiguration::class],
+    dismiss404 = true,
+)
+interface EventInternalClient {
+    @GetMapping("/internal/v1/collectors/coverage")
+    fun collectorCoverage(
+        @RequestParam
+        from: Instant,
+        @RequestParam
+        to: Instant,
+    ): CollectorCoverageResponse
+
+    @GetMapping("/internal/v1/item-drops/first")
+    fun firstItemDrop(
+        @RequestParam
+        itemName: String,
+        @RequestParam
+        itemType: BetItemType,
+        @RequestParam
+        from: Instant,
+        @RequestParam
+        to: Instant,
+    ): FirstItemDropResponse?
+}

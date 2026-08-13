@@ -1,5 +1,6 @@
 package com.mnemos.notification.adapter.out.persistence.recipient
 
+import com.mnemos.notification.domain.recipient.model.RecipientDeliveryStatus
 import com.mnemos.notification.domain.recipient.model.RecipientPriority
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -20,4 +21,7 @@ class RecipientEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false)
     var priority: RecipientPriority,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_status", nullable = false)
+    var deliveryStatus: RecipientDeliveryStatus,
 )

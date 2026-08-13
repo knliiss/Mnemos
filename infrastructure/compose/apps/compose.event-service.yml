@@ -24,9 +24,8 @@ services:
 
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      BET_SERVICE_EVENT_API_KEY: ${BET_SERVICE_EVENT_API_KEY}
 
-    ports:
-      - "${MNEMOS_EVENT_SERVICE_HOST_PORT:-8083}:8083"
 
     depends_on:
       app-postgres:

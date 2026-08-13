@@ -49,6 +49,11 @@ class TelegramMessageDeliveryGateway(
                 response.isOk() ->
                     DeliveryResult.Delivered
 
+                response.errorCode() == 403 ->
+                    DeliveryResult.PermanentFailure(
+                        "TELEGRAM_BLOCKED",
+                    )
+
                 response.errorCode() == 429 ->
                     DeliveryResult.Retryable()
 

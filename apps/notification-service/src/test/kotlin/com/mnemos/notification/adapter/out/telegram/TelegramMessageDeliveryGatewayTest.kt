@@ -117,7 +117,7 @@ class TelegramMessageDeliveryGatewayTest {
 
         assertEquals(
             DeliveryResult.PermanentFailure(
-                "bot was blocked by the user",
+                "TELEGRAM_BLOCKED",
             ),
             result,
         )

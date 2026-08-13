@@ -1,0 +1,35 @@
+services:
+  bet-service:
+    container_name: mnemos-bet-service
+    build:
+      context: ../..
+      dockerfile: apps/bet-service/Dockerfile
+    image: mnemos/bet-service:${BET_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8086
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=bet
+      SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      EVENT_SERVICE_URL: http://event-service:8083
+      BET_SERVICE_ACCOUNT_API_KEY: ${BET_SERVICE_ACCOUNT_API_KEY}
+      BET_SERVICE_EVENT_API_KEY: ${BET_SERVICE_EVENT_API_KEY}
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+    networks:
+      - mnemos-network

@@ -1,24 +1,26 @@
 realm: mnemos
-
 roles:
   realm:
-    - name: USER
-      description: Regular Mnemos user
-    - name: MODERATOR
-      description: Mnemos moderation access
-    - name: ADMIN
-      description: Mnemos administration access
-
+  - name: USER
+    description: Regular Mnemos user
+  - name: MODERATOR
+    description: Mnemos moderation access
+  - name: ADMIN
+    description: Mnemos administration access
+  - name: SUPER_ADMIN
+    description: Mnemos highest administration access
 groups:
-  - name: users
-    realmRoles:
-      - USER
-  - name: moderators
-    realmRoles:
-      - MODERATOR
-  - name: admins
-    realmRoles:
-      - ADMIN
-
+- name: users
+  realmRoles:
+  - USER
+- name: moderators
+  realmRoles:
+  - MODERATOR
+- name: admins
+  realmRoles:
+  - ADMIN
+- name: super-admins
+  realmRoles:
+  - SUPER_ADMIN
 defaultGroups:
-  - /users
+- /users

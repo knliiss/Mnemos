@@ -15,6 +15,9 @@ dependencies {
 
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:account-contracts"))
+    implementation(project(":contracts:moderation-contracts"))
+    implementation(project(":contracts:bet-contracts"))
+    implementation(project(":contracts:moderation-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -25,7 +28,7 @@ dependencies {
     implementation(libs.telegram.bot)
     implementation(libs.uuid.creator)
 
-    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 

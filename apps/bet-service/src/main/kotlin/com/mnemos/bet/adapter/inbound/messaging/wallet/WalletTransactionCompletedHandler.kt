@@ -1,0 +1,37 @@
+package com.mnemos.bet.adapter.inbound.messaging.wallet
+
+import com.mnemos.bet.application.wallet.usecase.process.ProcessWalletTransactionCompletedCommand
+import com.mnemos.bet.application.wallet.usecase.process.ProcessWalletTransactionCompletedUseCase
+import com.mnemos.bet.domain.wallet.model.WalletRequestId
+import com.mnemos.bet.domain.wallet.model.WalletTransactionId
+import com.mnemos.messaging.core.message.ConsumedMessage
+import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
+import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
+import com.mnemos.wallet.contracts.wallet.WalletEventContract
+import com.mnemos.wallet.contracts.wallet.WalletEventType
+import com.mnemos.wallet.contracts.wallet.event.WalletTransactionCompletedEvent
+import org.springframework.stereotype.Component
+
+@Component
+class WalletTransactionCompletedHandler(
+    private val useCase: ProcessWalletTransactionCompletedUseCase,
+) : KafkaMessageHandler<WalletTransactionCompletedEvent> {
+    override val definition =
+        kafkaMessageDefinition<WalletTransactionCompletedEvent>(
+            WalletEventContract.TOPIC,
+            WalletEventType.TRANSACTION_COMPLETED,
+            WalletEventContract.VERSION,
+            WalletEventContract.AGGREGATE_TYPE,
+        )
+
+    override val consumer = "bet-service.wallet-completed"
+
+    override fun handle(message: ConsumedMessage<WalletTransactionCompletedEvent>) {
+        useCase.execute(
+            ProcessWalletTransactionCompletedCommand(
+                requestId = WalletRequestId(message.payload.requestId),
+                transactionId = WalletTransactionId(message.payload.transactionId),
+            ),
+        )
+    }
+}

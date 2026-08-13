@@ -14,8 +14,7 @@ class Account private constructor(
     val createdAt: Instant,
     updatedAt: Instant,
     status: AccountStatus,
-    deletionRequestedAt: Instant?,
-    deletedAt: Instant?,
+    deactivatedAt: Instant?,
     maxMembers: Int,
     baseRoleId: RoleId?,
 ) {
@@ -31,10 +30,7 @@ class Account private constructor(
     var status = status
         private set
 
-    var deletionRequestedAt = deletionRequestedAt
-        private set
-
-    var deletedAt = deletedAt
+    var deactivatedAt = deactivatedAt
         private set
 
     var maxMembers = maxMembers
@@ -65,8 +61,7 @@ class Account private constructor(
                 cristalixNickname = cristalixNickname,
                 createdAt = now,
                 updatedAt = now,
-                deletionRequestedAt = null,
-                deletedAt = null,
+                deactivatedAt = null,
                 maxMembers = maxMembers,
                 baseRoleId = baseRoleId,
             )
@@ -80,8 +75,7 @@ class Account private constructor(
             status: AccountStatus,
             createdAt: Instant,
             updatedAt: Instant,
-            deletionRequestedAt: Instant?,
-            deletedAt: Instant?,
+            deactivatedAt: Instant?,
             maxMembers: Int,
             baseRoleId: RoleId?,
         ): Account =
@@ -93,8 +87,7 @@ class Account private constructor(
                 cristalixNickname = cristalixNickname,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
-                deletionRequestedAt = deletionRequestedAt,
-                deletedAt = deletedAt,
+                deactivatedAt = deactivatedAt,
                 maxMembers = maxMembers,
                 baseRoleId = baseRoleId,
             )
@@ -118,23 +111,23 @@ class Account private constructor(
         updatedAt = Instant.now()
     }
 
-    fun requestDeletion(now: Instant = Instant.now()) {
+    fun deactivate(now: Instant = Instant.now()) {
         if (status != AccountStatus.ACTIVE) {
             throw AccountDeletionUnavailableException(id, status)
         }
 
-        status = AccountStatus.DELETING
-        deletionRequestedAt = now
+        status = AccountStatus.DEACTIVATED
+        deactivatedAt = now
         updatedAt = now
     }
 
-    fun completeDeletion(now: Instant = Instant.now()) {
-        if (status != AccountStatus.DELETING) {
+    fun reactivate(now: Instant = Instant.now()) {
+        if (status != AccountStatus.DEACTIVATED) {
             throw AccountDeletionUnavailableException(id, status)
         }
 
-        status = AccountStatus.DELETED
-        deletedAt = now
+        status = AccountStatus.ACTIVE
+        deactivatedAt = null
         updatedAt = now
     }
 

@@ -4,4 +4,5 @@ enum class UserRole {
     USER,
     MODERATOR,
     ADMIN,
+    SUPER_ADMIN,
 }

@@ -1,0 +1,30 @@
+services:
+  moderation-service:
+    container_name: mnemos-moderation-service
+    build:
+      context: ../..
+      dockerfile: apps/moderation-service/Dockerfile
+    image: mnemos/moderation-service:${MODERATION_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8087
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=moderation
+      SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      MNEMOS_MODERATION_SERVICE_CLIENT_ID: ${MNEMOS_MODERATION_SERVICE_CLIENT_ID}
+      KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET: ${KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET}
+      GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - mnemos-network

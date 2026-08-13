@@ -1,14 +1,14 @@
-.PHONY: validate require-service require-container-target require-topic
-validate:
-	@test -f "$(ENV_FILE)" || { echo "Missing $(ENV_FILE). Copy .env.example and configure it."; exit 1; }
-	@command -v docker >/dev/null || { echo "docker is required"; exit 1; }
-	@test -x "$(GRADLEW)" || { echo "$(GRADLEW) is not executable"; exit 1; }
+.PHONY: require-gradle require-docker require-env require-compose
 
-require-service:
-	@test -n "$(SERVICE)" || { echo "SERVICE is required. Example: make up SERVICE=reward"; exit 2; }
+require-gradle:
+	@test -x "$(GRADLEW)" || { printf "\033[31m✗\033[0m %s is missing or not executable\n" "$(GRADLEW)" >&2; exit 2; }
 
-require-container-target:
-	@test -n "$(CONTAINER_TARGET)" || { echo "SERVICE or TARGET is required. Examples: SERVICE=reward or TARGET=kafka"; exit 2; }
+require-docker:
+	@command -v docker >/dev/null 2>&1 || { printf "\033[31m✗\033[0m Docker is required\n" >&2; exit 2; }
+	@docker compose version >/dev/null 2>&1 || { printf "\033[31m✗\033[0m Docker Compose is required\n" >&2; exit 2; }
 
-require-topic:
-	@test -n "$(TOPIC)" || { echo "TOPIC is required."; exit 2; }
+require-env:
+	@test -f "$(ENV_FILE)" || { printf "\033[31m✗\033[0m %s not found\n" "$(ENV_FILE)" >&2; exit 2; }
+
+require-compose: require-docker require-env
+	@test -f "$(BASE_COMPOSE)" || { printf "\033[31m✗\033[0m %s not found\n" "$(BASE_COMPOSE)" >&2; exit 2; }

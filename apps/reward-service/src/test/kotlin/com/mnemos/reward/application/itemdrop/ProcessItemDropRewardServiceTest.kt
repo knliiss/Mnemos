@@ -17,7 +17,6 @@ class ProcessItemDropRewardServiceTest {
     fun `mythical reward is cheaper than secret reward`() {
         val accountId = AccountId.generate()
         val wallet = RecordingWallet()
-
         val service =
             ProcessItemDropRewardService(
                 accounts = { accountId },
@@ -43,6 +42,30 @@ class ProcessItemDropRewardServiceTest {
 
         assertEquals(
             listOf(75L, 150L),
+            wallet.amounts,
+        )
+    }
+
+    @Test
+    fun `drop without Mnemos account is ignored`() {
+        val wallet = RecordingWallet()
+        val service =
+            ProcessItemDropRewardService(
+                accounts = { null },
+                wallet = wallet,
+                properties = RewardProperties(),
+            )
+
+        service.process(
+            ProcessItemDropRewardCommand(
+                eventId = UUID.randomUUID(),
+                droppedFor = "Unknown",
+                rarity = ContractItemRarity.SECRET,
+            ),
+        )
+
+        assertEquals(
+            emptyList<Long>(),
             wallet.amounts,
         )
     }

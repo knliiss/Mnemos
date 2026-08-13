@@ -7,6 +7,7 @@ import com.mnemos.notification.application.notification.delivery.port.out.Notifi
 import com.mnemos.notification.application.notification.delivery.port.out.NotificationMessageRenderer
 import com.mnemos.notification.application.notification.policy.DeliverySchedulingPolicy
 import com.mnemos.notification.configuration.notification.NotificationDeliveryWorkerProperties
+import com.mnemos.notification.domain.recipient.repository.RecipientRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import java.time.Clock
@@ -18,6 +19,7 @@ class NotificationDeliveryService(
     private val schedulingPolicy: DeliverySchedulingPolicy,
     private val renderer: NotificationMessageRenderer,
     private val gateway: MessageDeliveryGateway,
+    private val recipientRepository: RecipientRepository,
     private val properties: NotificationDeliveryWorkerProperties,
     private val clock: Clock,
 ) {
@@ -56,9 +58,15 @@ class NotificationDeliveryService(
             val message = renderer.renderNotification(candidate.userId, activeItems)
 
             when (val result = gateway.deliver(candidate.recipient.telegramId, message)) {
-                DeliveryResult.Delivered,
-                is DeliveryResult.PermanentFailure,
-                -> queue.complete(claim)
+                DeliveryResult.Delivered -> queue.complete(claim)
+
+                is DeliveryResult.PermanentFailure -> {
+                    if (result.reason == "TELEGRAM_BLOCKED") {
+                        recipientRepository.blockByTelegramId(candidate.recipient.telegramId)
+                    }
+
+                    queue.complete(claim)
+                }
 
                 is DeliveryResult.Retryable ->
                     queue.release(

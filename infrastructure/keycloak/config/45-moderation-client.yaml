@@ -1,0 +1,24 @@
+realm: mnemos
+
+clients:
+  - clientId: "$(env:MNEMOS_MODERATION_SERVICE_CLIENT_ID)"
+    name: Moderation Service Admin
+    description: Service account used by moderation-service to inspect realm roles
+    enabled: true
+    protocol: openid-connect
+    publicClient: false
+    bearerOnly: false
+    clientAuthenticatorType: client-secret
+    standardFlowEnabled: false
+    implicitFlowEnabled: false
+    directAccessGrantsEnabled: false
+    serviceAccountsEnabled: true
+    authorizationServicesEnabled: false
+    fullScopeAllowed: false
+    consentRequired: false
+    secret: "$(env:KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET)"
+    redirectUris: []
+    webOrigins: []
+    defaultClientScopes:
+      - roles
+    optionalClientScopes: []

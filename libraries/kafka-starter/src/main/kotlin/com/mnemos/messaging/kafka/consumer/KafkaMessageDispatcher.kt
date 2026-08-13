@@ -4,15 +4,13 @@ import com.mnemos.messaging.core.context.MessageContext
 import com.mnemos.messaging.core.context.MessageContextHolder
 import com.mnemos.messaging.core.event.EventEnvelope
 import com.mnemos.messaging.core.message.ConsumedMessage
-import com.mnemos.messaging.inbox.InboxEventProcessor
-import com.mnemos.messaging.inbox.InboxProcessingResult
 import com.mnemos.messaging.kafka.serialization.KafkaEventEnvelopeReader
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 
 class KafkaMessageDispatcher(
     private val envelopeReader: KafkaEventEnvelopeReader,
-    private val inboxEventProcessor: InboxEventProcessor,
+    private val messageProcessor: KafkaMessageProcessor,
     handlers: List<KafkaMessageHandler<*>>,
 ) {
     private val handlersByMessage = handlers
@@ -57,7 +55,7 @@ class KafkaMessageDispatcher(
 
         typedHandlers.forEach { handler ->
             try {
-                val result = inboxEventProcessor.process(
+                val result = messageProcessor.process(
                     consumer = handler.consumer,
                     eventId = envelope.eventId,
                 ) {
@@ -67,8 +65,9 @@ class KafkaMessageDispatcher(
                 }
 
                 when (result) {
-                    InboxProcessingResult.PROCESSED -> {
+                    KafkaMessageProcessingResult.PROCESSED -> {
                         processed = true
+
                         logger.debug(
                             "Processed Kafka message: topic={}, type={}, messageId={}, consumer={}",
                             record.topic(),
@@ -78,13 +77,15 @@ class KafkaMessageDispatcher(
                         )
                     }
 
-                    InboxProcessingResult.DUPLICATE -> logger.debug(
-                        "Skipped duplicate Kafka message: topic={}, type={}, messageId={}, consumer={}",
-                        record.topic(),
-                        envelope.eventType,
-                        envelope.eventId,
-                        handler.consumer,
-                    )
+                    KafkaMessageProcessingResult.DUPLICATE -> {
+                        logger.debug(
+                            "Skipped duplicate Kafka message: topic={}, type={}, messageId={}, consumer={}",
+                            record.topic(),
+                            envelope.eventType,
+                            envelope.eventId,
+                            handler.consumer,
+                        )
+                    }
                 }
             } catch (exception: Exception) {
                 logger.warn(

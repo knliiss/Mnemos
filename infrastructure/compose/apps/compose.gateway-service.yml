@@ -1,0 +1,50 @@
+services:
+  gateway-service:
+    container_name: mnemos-gateway
+    build:
+      context: ../..
+      dockerfile: apps/gateway-service/Dockerfile
+    image: mnemos/gateway:${GATEWAY_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      WALLET_SERVICE_URL: http://wallet-service:8082
+      EVENT_SERVICE_URL: http://event-service:8083
+      EVENT_SERVICE_HOST: event-service
+      NOTIFICATION_SERVICE_URL: http://notification-service:8084
+      REWARD_SERVICE_URL: http://reward-service:8085
+      BET_SERVICE_URL: http://bet-service:8086
+      MODERATION_SERVICE_URL: http://moderation-service:8087
+      GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "${GATEWAY_HOST_PORT:-8080}:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+      wallet-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      reward-service:
+        condition: service_started
+      bet-service:
+        condition: service_started
+      moderation-service:
+        condition: service_started
+    networks:
+      - mnemos-network

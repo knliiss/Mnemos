@@ -9,6 +9,7 @@ import com.mnemos.notification.application.notification.delivery.port.out.Notifi
 import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
 import com.mnemos.notification.domain.recipient.model.RecipientPriority
+import com.mnemos.notification.domain.recipient.repository.RecipientRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -22,7 +23,8 @@ class HandleTelegramStartServiceTest {
     private val renderer = mock<NotificationMessageRenderer>()
     private val gateway = mock<MessageDeliveryGateway>()
     private val recipientReader = mock<RecipientReader>()
-    private val service = HandleTelegramStartService(renderer, gateway, recipientReader)
+    private val recipientRepository = mock<RecipientRepository>()
+    private val service = HandleTelegramStartService(renderer, gateway, recipientReader, recipientRepository)
 
     @Test
     fun `start rendering receives resolved user id`() {
