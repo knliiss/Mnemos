@@ -8,7 +8,6 @@ import com.mnemos.reward.configuration.RewardProperties
 import com.mnemos.reward.domain.daily.exception.DailyRewardAlreadyClaimedException
 import com.mnemos.reward.domain.daily.model.DailyStreak
 import com.mnemos.reward.domain.daily.repository.DailyStreakRepository
-import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -26,19 +25,41 @@ class ClaimDailyRewardService(
 ) {
     @Transactional
     fun claim(): ClaimedDailyReward {
-        val accountId = activeAccountProvider.getActiveAccountId()
+        val activeAccount = activeAccountProvider.getActiveAccountContext()
+        val accountId = activeAccount.accountId
         val today = LocalDate.now(clock.withZone(MOSCOW))
-        val streak = repository.findByAccountIdForUpdate(accountId) ?: DailyStreak.create(accountId, today)
-        if (!streak.canClaim(today)) throw DailyRewardAlreadyClaimedException()
+        val streak =
+            repository.findByAccountIdForUpdate(accountId)
+                ?: DailyStreak.create(accountId, today)
+
+        if (!streak.canClaim(today)) {
+            throw DailyRewardAlreadyClaimedException()
+        }
+
         streak.breakIfMissed(today)
+
         val current = streak.claim(today)
         val range = properties.daily.coinRanges[(current - 1) % properties.daily.coinRanges.size]
         val coins = random.nextLong(range.min, range.max)
         val primeChance = primeChance(current)
-        val primes = if (random.nextDouble() < primeChance) properties.daily.primeAmount else 0
+        val primes =
+            if (random.nextDouble() < primeChance) {
+                properties.daily.primeAmount
+            } else {
+                0
+            }
+
         repository.save(streak)
-        wallet.creditDaily(accountId, Currency.COIN, coins, today)
-        if (primes > 0) wallet.creditDaily(accountId, Currency.PRIME, primes, today)
+        wallet.creditDailyCoin(accountId, coins, today)
+
+        if (primes > 0) {
+            wallet.creditDailyPrime(
+                userId = activeAccount.userId,
+                amount = primes,
+                rewardDate = today,
+            )
+        }
+
         return ClaimedDailyReward(current, coins, primes, primeChance)
     }
 

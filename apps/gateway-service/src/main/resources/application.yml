@@ -23,7 +23,7 @@ spring:
             - id: wallet-api
               uri: ${WALLET_SERVICE_URL:http://localhost:8082}
               predicates:
-                - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**
+                - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**,/api/v1/users/me/balances/**,/api/v1/users/me/transactions/**
 
             - id: account-api
               uri: ${ACCOUNT_SERVICE_URL:http://localhost:8081}

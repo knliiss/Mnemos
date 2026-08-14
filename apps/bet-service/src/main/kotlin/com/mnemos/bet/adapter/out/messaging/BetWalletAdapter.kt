@@ -10,6 +10,8 @@ import com.mnemos.wallet.contracts.wallet.command.WalletCreateTransactionCommand
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import com.mnemos.wallet.contracts.wallet.shared.TransactionSource
 import com.mnemos.wallet.contracts.wallet.shared.TransactionType
+import com.mnemos.wallet.contracts.wallet.shared.WalletOwner
+import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import org.springframework.stereotype.Component
 
 @Component
@@ -35,7 +37,11 @@ class BetWalletAdapter(
         val command =
             WalletCreateTransactionCommand(
                 requestId = operation.requestId.id,
-                accountId = operation.accountId.id,
+                owner =
+                    WalletOwner(
+                        type = WalletOwnerType.ACCOUNT,
+                        id = operation.accountId.id,
+                    ),
                 currency = Currency.COIN,
                 type = type,
                 source = source,

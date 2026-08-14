@@ -1,6 +1,8 @@
 package com.mnemos.reward.application.daily
 
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
+import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.RewardRandom
 import com.mnemos.reward.application.daily.port.out.RewardWallet
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
@@ -20,6 +22,7 @@ class ClaimDailyRewardServiceTest {
     @Test
     fun `claim credits random coins and prime when roll succeeds`() {
         val accountId = AccountId.generate()
+        val userId = UserId.generate()
         val repository = MemoryRepo()
         val wallet = RecordingWallet()
         val clock =
@@ -30,7 +33,7 @@ class ClaimDailyRewardServiceTest {
 
         val service =
             ClaimDailyRewardService(
-                activeAccountProvider = { accountId },
+                activeAccountProvider = { ActiveAccountContext(accountId = accountId, userId = userId) },
                 repository = repository,
                 wallet = wallet,
                 random =
@@ -60,7 +63,7 @@ class ClaimDailyRewardServiceTest {
     fun `prime chance grows with streak and is capped`() {
         val service =
             ClaimDailyRewardService(
-                activeAccountProvider = { AccountId.generate() },
+                activeAccountProvider = { ActiveAccountContext(accountId = AccountId.generate(), userId = UserId.generate()) },
                 repository = MemoryRepo(),
                 wallet = RecordingWallet(),
                 random =
@@ -95,13 +98,20 @@ class ClaimDailyRewardServiceTest {
     private class RecordingWallet : RewardWallet {
         val credits = mutableListOf<Pair<Currency, Long>>()
 
-        override fun creditDaily(
+        override fun creditDailyCoin(
             accountId: AccountId,
-            currency: Currency,
             amount: Long,
             rewardDate: LocalDate,
         ) {
-            credits += currency to amount
+            credits += Currency.COIN to amount
+        }
+
+        override fun creditDailyPrime(
+            userId: UserId,
+            amount: Long,
+            rewardDate: LocalDate,
+        ) {
+            credits += Currency.PRIME to amount
         }
 
         override fun creditItemDrop(

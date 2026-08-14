@@ -14,7 +14,6 @@ dependencies {
 
     implementation(project(":libraries:inbox-starter"))
 
-    implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:wallet-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")

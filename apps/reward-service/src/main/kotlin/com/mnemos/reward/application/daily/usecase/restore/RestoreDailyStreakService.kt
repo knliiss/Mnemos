@@ -21,7 +21,7 @@ class RestoreDailyStreakService(
 ) {
     @Transactional
     fun restore(): Int {
-        val accountId = activeAccountProvider.getActiveAccountId()
+        val accountId = activeAccountProvider.getActiveAccountContext().accountId
         val today = LocalDate.now(clock.withZone(ClaimDailyRewardService.MOSCOW))
         val streak = repository.findByAccountIdForUpdate(accountId) ?: throw DailyStreakNotRecoverableException()
         streak.breakIfMissed(today)

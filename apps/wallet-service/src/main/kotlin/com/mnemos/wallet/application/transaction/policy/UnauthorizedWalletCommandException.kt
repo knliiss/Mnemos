@@ -10,5 +10,5 @@ class UnauthorizedWalletCommandException(
     type: TransactionType,
     currency: Currency,
 ) : RuntimeException(
-        "Producer $producer cannot perform $type $source transaction in $currency",
+        "Producer $producer is not allowed to create $type/$currency transaction for source $source.",
     )

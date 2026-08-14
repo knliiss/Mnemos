@@ -4,420 +4,140 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="de7a34bd-ad28-4154-aec1-d4119e7714da" name="Changes" comment="init rewards in reward service">
-      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/account/AdminAccountController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/account/ReactivateAccountService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V10__replace_deleting_with_deactivated.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/db/migration/V11__create_inbox_events.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/BetServiceApplication.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/eventbet/AdminEventBetRoundController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/eventbet/ResolveEventBetRoundRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/itemrace/AdminItemRaceController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/itemrace/CreateItemRaceRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/wallet/AdminWalletOperationController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/wallet/AdminWalletOperationMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/admin/wallet/FailedWalletOperationResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/EventBetApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/EventBetController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/EventBetResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/EventBetRoundController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/EventBetRoundResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/IncreaseEventBetRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/eventbet/PlaceEventBetRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/ItemRaceApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/ItemRaceController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/ItemRaceParticipantController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/ItemRaceParticipantResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/ItemRaceResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/http/itemrace/JoinItemRaceRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/messaging/event/EventEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/messaging/event/GlobalStartedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/messaging/wallet/WalletEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/messaging/wallet/WalletTransactionCompletedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/messaging/wallet/WalletTransactionFailedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/scheduling/EventBetRoundCreationScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/scheduling/EventBetSettlementScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/inbound/scheduling/ItemRaceSettlementScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/account/AccountInternalClient.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/account/AccountInternalFeignConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/account/AccountProviderAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/event/CollectorCoverageResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/event/EventInternalClient.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/event/EventInternalFeignConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/event/EventServiceAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/event/FirstItemDropResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/messaging/BetIntegrationEventConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/messaging/BetKafkaTopicConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/messaging/BetWalletAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetReaderAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetResolutionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetResolutionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetRoundEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/eventbet/EventBetRoundJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceParticipantEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceParticipantJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRacePersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceReaderAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/itemrace/ItemRaceRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/occurrence/GlobalOccurrenceEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/occurrence/GlobalOccurrenceJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/occurrence/GlobalOccurrenceRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/wallet/WalletOperationEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/wallet/WalletOperationJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/wallet/WalletOperationPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/persistence/wallet/WalletOperationRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/security/CurrentActorProviderAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/account/model/AccountSnapshot.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/account/port/out/AccountProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/event/model/CollectorCoverage.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/event/model/FirstMatchingItemDrop.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/event/port/out/CollectorCoverageProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/event/port/out/ItemDropHistoryProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/model/EventBetRoundView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/model/EventBetScheduleSlot.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/model/EventBetView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/port/out/EventBetReader.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/service/EventBetResolutionProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/service/EventBetSchedulePlanner.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/create/CreateEventBetRoundCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/create/CreateEventBetRoundResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/create/CreateEventBetRoundService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/create/CreateEventBetRoundUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/get/GetEventBetRoundQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/get/GetEventBetRoundResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/get/GetEventBetRoundService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/get/GetEventBetRoundUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/history/ListMyEventBetsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/history/ListMyEventBetsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/increase/IncreaseEventBetCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/increase/IncreaseEventBetResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/increase/IncreaseEventBetService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/increase/IncreaseEventBetUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/list/ListEventBetRoundsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/list/ListEventBetRoundsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/place/PlaceEventBetCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/place/PlaceEventBetResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/place/PlaceEventBetService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/place/PlaceEventBetUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/resolve/ResolveEventBetRoundCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/resolve/ResolveEventBetRoundService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/resolve/ResolveEventBetRoundUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/settle/SynchronizeEventBetRoundsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventbet/usecase/settle/SynchronizeEventBetRoundsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventoccurrence/usecase/record/RecordGlobalOccurrenceCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventoccurrence/usecase/record/RecordGlobalOccurrenceService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/eventoccurrence/usecase/record/RecordGlobalOccurrenceUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/model/ItemRaceParticipantView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/model/ItemRaceView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/port/out/ItemRaceReader.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/service/ItemRaceRefundProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/service/ItemRaceSettlementProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/cancel/CancelItemRaceCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/cancel/CancelItemRaceService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/cancel/CancelItemRaceUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/create/CreateItemRaceCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/create/CreateItemRaceResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/create/CreateItemRaceService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/create/CreateItemRaceUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/get/GetItemRaceQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/get/GetItemRaceResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/get/GetItemRaceService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/get/GetItemRaceUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/history/ListMyItemRaceHistoryService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/history/ListMyItemRaceHistoryUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/join/JoinItemRaceCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/join/JoinItemRaceResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/join/JoinItemRaceService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/join/JoinItemRaceUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/list/ListItemRacesService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/list/ListItemRacesUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/settle/SynchronizeItemRacesService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/itemrace/usecase/settle/SynchronizeItemRacesUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/security/port/out/CurrentActorProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/port/out/BetWallet.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/failed/FailedWalletOperationView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/failed/ListFailedWalletOperationsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/failed/ListFailedWalletOperationsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionCompletedCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionCompletedService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionCompletedUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionFailedCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionFailedService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionFailedUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/request/RequestWalletCreditCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/request/RequestWalletOperationService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/request/RequestWalletOperationUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/request/RequestWalletStakeCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/retry/RetryWalletOperationCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/retry/RetryWalletOperationService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/application/wallet/usecase/retry/RetryWalletOperationUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/configuration/BetConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/configuration/EventBetOdds.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/configuration/EventBetProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/configuration/ItemRaceProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/DomainBetGlobalEventType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/DomainBetSide.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBet.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetOutcome.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetResolution.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetResolutionId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetResolutionSource.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetRound.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetRoundId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetRoundStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/eventbet/repository/EventBetRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/exception/BetConflictException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/exception/BetNotFoundException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/DomainItemType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRace.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceParticipant.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceParticipantId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceParticipantStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/itemrace/repository/ItemRaceRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/occurrence/model/ExternalEventId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/occurrence/model/GlobalOccurrence.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/occurrence/repository/GlobalOccurrenceRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletOperation.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletOperationId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletOperationKind.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletOperationStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletRequestId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/model/WalletTransactionId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/domain/wallet/repository/WalletOperationRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/resources/db/migration/V1__create_outbox_events.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/resources/db/migration/V2__create_inbox_events.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/resources/db/migration/V3__create_bet_tables.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/main/resources/db/migration/V4__rebuild_bet_domain_schema.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/application/eventbet/service/EventBetResolutionProcessorTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/application/eventbet/service/EventBetSchedulePlannerTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/application/eventbet/usecase/settle/SynchronizeEventBetRoundsServiceTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/application/wallet/usecase/process/ProcessWalletTransactionCompletedServiceTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetRoundTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/domain/eventbet/model/EventBetTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceParticipantTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/domain/itemrace/model/ItemRaceTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/bet-service/src/test/kotlin/com/mnemos/bet/domain/wallet/model/WalletOperationTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/http/internal/CollectorCoverageResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/http/internal/FirstItemDropResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/http/internal/InternalCollectorController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/http/internal/InternalItemDropController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/memory/collector/CollectorActivitySnapshot.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/memory/collector/CollectorCoverageTracker.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/persistence/drop/query/FirstItemDropProjection.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/persistence/drop/query/FirstItemDropQueryJpaAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/collector/model/CollectorCoverage.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/collector/port/out/CollectorCoverageProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/collector/usecase/coverage/GetCollectorCoverageQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/collector/usecase/coverage/GetCollectorCoverageService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/collector/usecase/coverage/GetCollectorCoverageUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/itemdrop/model/FirstItemDropView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/itemdrop/port/out/FirstItemDropReader.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/itemdrop/usecase/first/FindFirstItemDropQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/itemdrop/usecase/first/FindFirstItemDropService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/application/itemdrop/usecase/first/FindFirstItemDropUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/configuration/EventTimeConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/event-service/src/test/kotlin/com/mnemos/event/adapter/out/memory/collector/CollectorCoverageTrackerTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/GatewayServiceApplication.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/configuration/GatewayConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/configuration/ModerationClientProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/messaging/GatewayKafkaTopicConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/messaging/ModerationEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/ActiveBanResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/BanCache.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/BanGlobalFilter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/BanState.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/ModerationDeactivatedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/ModerationEventHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/ModerationSnapshotClient.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/moderation/ModerationSnapshotInitializer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/ExpensiveRequestClassifier.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/GatewayRateLimitPolicy.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/GatewayRateLimitProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/JwtUserRoleResolver.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/RateLimitGlobalFilter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/RateLimitIdentity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/RateLimitIdentityResolver.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/RateLimitRule.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/ratelimit/RedisTokenBucketRateLimiter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/security/GatewayCorsConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/kotlin/com/mnemos/gateway/security/GatewaySecurityConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/test/kotlin/com/mnemos/gateway/moderation/BanCacheTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/test/kotlin/com/mnemos/gateway/ratelimit/GatewayRateLimitPolicyTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/gateway-service/src/test/kotlin/com/mnemos/gateway/ratelimit/JwtUserRoleResolverTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/ModerationServiceApplication.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/admin/sanction/AdminSanctionController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/admin/sanction/CreateSanctionRequest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/admin/sanction/SanctionApiMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/admin/sanction/SanctionResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/internal/ActiveBanResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/http/internal/ModerationInternalController.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/inbound/scheduling/SanctionExpirationScheduler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakAdminClient.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakAdminConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakAdminProperties.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakRoleResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakTokenProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakUserResponse.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/keycloak/KeycloakUserRoleProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/messaging/ModerationIntegrationEventConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/messaging/ModerationKafkaTopicConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/persistence/sanction/SanctionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/persistence/sanction/SanctionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/persistence/sanction/SanctionPersistenceMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/persistence/sanction/SanctionRepositoryAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/adapter/out/security/CurrentModeratorProviderAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/mapper/SanctionIntegrationEventMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/mapper/SanctionViewMapper.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/model/SanctionView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/active/ActiveBanView.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/active/GetActiveBansService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/active/GetActiveBansUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/create/CreateSanctionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/create/CreateSanctionResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/create/CreateSanctionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/create/CreateSanctionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/expire/ExpireSanctionsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/expire/ExpireSanctionsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/list/ListSanctionsQuery.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/list/ListSanctionsService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/list/ListSanctionsUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/revoke/RevokeSanctionCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/revoke/RevokeSanctionService.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/sanction/usecase/revoke/RevokeSanctionUseCase.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/security/model/ModeratorActor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/security/port/out/CurrentModeratorProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/application/security/port/out/UserRoleProvider.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/configuration/ModerationConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/exception/SanctionConflictException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/exception/SanctionDurationExceededException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/exception/SanctionNotFoundException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/exception/SanctionTargetAccessDeniedException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/exception/SelfSanctionException.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/model/DomainSanctionStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/model/DomainSanctionType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/model/Sanction.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/model/SanctionId.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/policy/SanctionPolicy.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/kotlin/com/mnemos/moderation/domain/sanction/repository/SanctionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/resources/application.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/resources/db/migration/V1__create_outbox_events.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/main/resources/db/migration/V3__create_sanctions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/test/kotlin/com/mnemos/moderation/application/sanction/usecase/create/CreateSanctionServiceTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/test/kotlin/com/mnemos/moderation/domain/sanction/model/SanctionTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/moderation-service/src/test/kotlin/com/mnemos/moderation/domain/sanction/policy/SanctionPolicyTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/ModerationEventsKafkaListener.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/SanctionActivatedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/messaging/SanctionDeactivatedHandler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/moderation/NotificationSuspensionEntity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/moderation/NotificationSuspensionJpaRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/moderation/NotificationSuspensionRepository.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/messaging/NotificationKafkaTopicConfiguration.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/model/RecipientDeliveryStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V6__add_recipient_delivery_status.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/notification-service/src/main/resources/db/migration/V7__create_notification_suspensions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/BetAggregateType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/BetEventContract.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/BetEventType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/event/EventBetOpenedV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/event/EventBetSettledV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/event/ItemRaceOpenedV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/event/ItemRaceSettledV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/shared/BetEventType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/shared/BetItemType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/shared/BetResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/bet-contracts/src/main/kotlin/com/mnemos/bet/contracts/shared/BetSide.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/src/main/kotlin/com/mnemos/moderation/contracts/ModerationEventContract.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/src/main/kotlin/com/mnemos/moderation/contracts/ModerationEventType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/src/main/kotlin/com/mnemos/moderation/contracts/event/SanctionStateV1.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/src/main/kotlin/com/mnemos/moderation/contracts/shared/SanctionStatus.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/contracts/moderation-contracts/src/main/kotlin/com/mnemos/moderation/contracts/shared/SanctionType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.bet-service.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.gateway-service.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.moderation-service.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/45-moderation-client.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/51-moderation-service-account.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/DirectKafkaMessageProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/InboxKafkaMessageProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageProcessingResult.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageProcessor.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/make/completion.mk" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/make/completion.zsh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+    <list default="true" id="de7a34bd-ad28-4154-aec1-d4119e7714da" name="Changes" comment="Add bet service, gateway, and moderation service integration">
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/WalletApiMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/account/AccountWalletController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/balance/BalanceResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/common/PageRequest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/common/PageResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/transaction/TransactionResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/http/user/UserWalletController.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalanceReaderAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalanceRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/common/WalletOwnerPersistenceMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/transaction/TransactionReaderAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/transaction/TransactionRepositoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/security/CurrentUserProviderAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/model/BalanceView.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/port/out/BalanceReader.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/usecase/get/GetAccountBalancesService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/usecase/get/GetAccountBalancesUseCase.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/usecase/get/GetCurrentUserBalancesService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/usecase/get/GetCurrentUserBalancesUseCase.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/common/pagination/PageQuery.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/common/pagination/PageResult.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/security/port/out/CurrentUserProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/mapper/WalletCreateTransactionCommandMapper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/model/TransactionView.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/port/out/TransactionReader.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/CreateTransactionResponse.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/WalletTransactionAuthorizationService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/list/ListAccountTransactionsQuery.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/list/ListAccountTransactionsService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/list/ListAccountTransactionsUseCase.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/list/ListCurrentUserTransactionsService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/list/ListCurrentUserTransactionsUseCase.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/balance/model/BalanceAmount.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/balance/repository/BalanceRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/RequestId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/TransactionAmount.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/TransactionId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/TransactionSourceReferenceId.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/repository/TransactionRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/repository/TransactionRequestRepository.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/wallet/model/WalletOwner.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/wallet/policy/WalletCurrencyPolicy.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/application/WalletCommandProducerPolicyTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/application/WalletTransactionAuthorizationServiceTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/domain/balance/BalanceTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/domain/wallet/WalletCurrencyPolicyTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/WalletOwner.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/WalletOwnerType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/account/AccountController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/api/controller/account/AccountController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/account/DeleteAccountService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/application/service/account/DeleteAccountService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/Account.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/Account.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/AccountStatus.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/domain/model/account/AccountStatus.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/entity/account/AccountEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/entity/account/AccountEntity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/mapper/AccountPersistenceMapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/kotlin/com/mnemos/account/persistence/mapper/AccountPersistenceMapper.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/account-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/apps/account-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/event-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/event-service/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/websocket/collector/CollectorSessionRegistry.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/inbound/websocket/collector/CollectorSessionRegistry.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/persistence/drop/ItemDropEventJpaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/event-service/src/main/kotlin/com/mnemos/event/adapter/out/persistence/drop/ItemDropEventJpaRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/event-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/apps/event-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/telegram/TelegramLongPollingConsumer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/inbound/telegram/TelegramLongPollingConsumer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientEntity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientJpaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientJpaRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientRepositoryAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/RecipientRepositoryAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/query/RecipientQueryJpaAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/persistence/recipient/query/RecipientQueryJpaAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGateway.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGateway.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/service/NotificationDeliveryService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/notification/service/NotificationDeliveryService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/telegram/TelegramConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/configuration/telegram/TelegramConfiguration.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/repository/RecipientRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/main/kotlin/com/mnemos/notification/domain/recipient/repository/RecipientRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGatewayTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/adapter/out/telegram/TelegramMessageDeliveryGatewayTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartServiceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/notification-service/src/test/kotlin/com/mnemos/notification/application/telegram/start/HandleTelegramStartServiceTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/reward-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/messaging/BetWalletAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/bet-service/src/main/kotlin/com/mnemos/bet/adapter/out/messaging/BetWalletAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/gateway-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/apps/gateway-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/account/AccountProviderAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/account/AccountProviderAdapter.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/messaging/RewardWalletAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/adapter/out/messaging/RewardWalletAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/ActiveAccountProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/ActiveAccountProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/RewardWallet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/port/out/RewardWallet.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/claim/ClaimDailyRewardService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/claim/ClaimDailyRewardService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/get/GetDailyRewardStateService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/get/GetDailyRewardStateService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/restore/RestoreDailyStreakService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/main/kotlin/com/mnemos/reward/application/daily/usecase/restore/RestoreDailyStreakService.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/daily/ClaimDailyRewardServiceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/daily/ClaimDailyRewardServiceTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/itemdrop/ProcessItemDropRewardServiceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/reward-service/src/test/kotlin/com/mnemos/reward/application/itemdrop/ProcessItemDropRewardServiceTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.account-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.account-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.event-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.event-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.notification-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.notification-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.reward-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.reward-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/apps/compose.wallet-service.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/apps/compose.wallet-service.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak-config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak-config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak.yml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/compose/compose.keycloak.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/keycloak/config/10-roles-groups.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/keycloak/config/10-roles-groups.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticator.java" beforeDir="false" afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticatorFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator/src/main/java/com/mnemos/keycloak/telegram/TelegramAuthenticatorFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/user/UserRole.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/common-core/src/main/kotlin/com/mnemos/common/core/model/user/UserRole.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/config/MnemosKafkaConsumerAutoConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/config/MnemosKafkaConsumerAutoConfiguration.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageDispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/main/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageDispatcher.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libraries/kafka-starter/src/test/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageDispatcherTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/libraries/kafka-starter/src/test/kotlin/com/mnemos/messaging/kafka/consumer/KafkaMessageDispatcherTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/compose.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/compose.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/config.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/config.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/kafka.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/kafka.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/keycloak.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/keycloak.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/postgres.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/postgres.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/project.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/project.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/ui.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/ui.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/make/validation.mk" beforeDir="false" afterPath="$PROJECT_DIR$/make/validation.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/api/controller/AccountTransactionController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/api/controller/BalanceController.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/api/dto/BalanceResponse.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/api/dto/TransactionSummaryResponse.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/BalanceQueryService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/balance/InitializeAccountBalancesService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/event/WalletTransactionIntegrationEvents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/event/WalletTransactionIntegrationEvents.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/port/account/AccountPermissionProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/account/port/out/AccountPermissionProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/CreateTransactionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/CreateTransactionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/CreateTransactionResponse.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/CreateTransactionResult.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/CreateTransactionResult.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/CreateTransactionService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/CreateTransactionService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/ProcessCreateTransactionCommandService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/usecase/create/ProcessCreateTransactionCommandService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/TransactionHistoryQueryService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/WalletCreateTransactionCommandMapper.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/WalletTransactionAuthorizationService.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/UnauthorizedWalletCommandException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/UnauthorizedWalletCommandException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/WalletCommandProducerPolicy.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/application/transaction/policy/WalletCommandProducerPolicy.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/exception/BalanceLimitExceededException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/exception/BalanceLimitExceededException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/exception/InsufficientBalanceException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/exception/InsufficientBalanceException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/balance/Balance.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/balance/model/Balance.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/balance/BalanceAmount.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/balance/BalanceChange.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/balance/model/BalanceChange.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/request/TransactionRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/TransactionRequest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/request/TransactionRequestStatus.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/TransactionRequestStatus.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/transaction/RequestId.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/transaction/Transaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/transaction/model/Transaction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/transaction/TransactionAmount.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/transaction/TransactionId.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/model/transaction/TransactionSourceReferenceId.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/repository/BalanceRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/repository/TransactionRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/domain/repository/TransactionRequestRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/config/WalletIntegrationEventConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/configuration/WalletIntegrationEventConfiguration.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandler.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountEventsKafkaListener.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/config/WalletKafkaTopicConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/configuration/WalletKafkaTopicConfiguration.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/transaction/WalletCommandsKafkaListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/messaging/transaction/WalletCommandsKafkaListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/transaction/WalletCreateTransactionCommandHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/inbound/messaging/transaction/WalletCreateTransactionCommandHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalanceEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalanceEntity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalanceEntityId.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalanceEntityId.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalanceJpaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalanceJpaRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalancePersistenceMapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalancePersistenceMapper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalancePersistenceWriter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/balance/BalancePersistenceWriter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/balance/BalanceRepositoryAdapter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/request/TransactionRequestEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/request/TransactionRequestEntity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/request/TransactionRequestJpaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/request/TransactionRequestJpaRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/request/TransactionRequestPersistenceMapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/request/TransactionRequestPersistenceMapper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/request/TransactionRequestPersistenceWriter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/request/TransactionRequestPersistenceWriter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/request/TransactionRequestRepositoryAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/request/TransactionRequestRepositoryAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/transaction/TransactionEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/transaction/TransactionEntity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/transaction/TransactionJpaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/transaction/TransactionJpaRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/transaction/TransactionPersistenceMapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/persistence/transaction/TransactionPersistenceMapper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/transaction/TransactionPersistenceWriter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/infrastructure/persistence/transaction/TransactionRepositoryAdapter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/integration/account/AccountPermissionProviderAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/account/AccountPermissionProviderAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/integration/account/client/AccountPermissionClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/account/AccountPermissionClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/integration/account/config/AccountPermissionFeignConfiguration.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/configuration/AccountPermissionFeignConfiguration.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/integration/account/dto/AccountPermissionDtos.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/kotlin/com/mnemos/wallet/adapter/out/account/dto/AccountPermissionDtos.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/db/migration/V2__init_wallet.sql" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/db/migration/V2__init_wallet.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/db/migration/V3__create_transaction_requests_and_outbox.sql" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/main/resources/db/migration/V3__create_transaction_requests.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/application/CreateTransactionServiceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/application/CreateTransactionServiceTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/domain/BalanceTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/account/AccountCreatedEventHandlerTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/wallet-service/src/test/kotlin/com/mnemos/wallet/infrastructure/messaging/kafka/transaction/WalletCreateTransactionCommandHandlerTest.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/WalletContract.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/WalletContract.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/command/WalletCreateTransactionCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/command/WalletCreateTransactionCommand.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/event/WalletTransactionCompletedEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/event/WalletTransactionCompletedEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/event/WalletTransactionFailedEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/event/WalletTransactionFailedEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/TransactionSource.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/TransactionSource.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/WalletTransactionFailureReason.kt" beforeDir="false" afterPath="$PROJECT_DIR$/contracts/wallet-contracts/src/main/kotlin/com/mnemos/wallet/contracts/wallet/shared/WalletTransactionFailureReason.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -561,61 +281,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.377977563486449" />
-      <entry key="MS500" value="2.7479649279757448" />
-      <entry key="S2" value="4.1280654825501255" />
-      <entry key="S5" value="4.7026730340026255" />
-      <entry key="S10" value="5.791070824797313" />
-      <entry key="S30" value="9.862371619633377" />
-      <entry key="S60" value="12.33003616474655" />
-      <entry key="M2" value="13.983167890374112" />
-      <entry key="M5" value="15.187601730730787" />
-      <entry key="M10" value="16.83571725947816" />
-      <entry key="M15" value="20.493920172035953" />
-      <entry key="M30" value="37.46253491699355" />
-      <entry key="H1" value="65.62541841729127" />
-      <entry key="H2" value="94.93332008954637" />
-      <entry key="H4" value="120.16913387979031" />
-      <entry key="D1" value="537.3550512355151" />
-      <entry key="W1" value="3975.7629292111847" />
+      <entry key="MS100" value="1.29967712647707" />
+      <entry key="MS500" value="2.83721972160369" />
+      <entry key="S2" value="8.946451709371651" />
+      <entry key="S5" value="17.406798773554485" />
+      <entry key="S10" value="24.490453613141952" />
+      <entry key="S30" value="35.246678966787115" />
+      <entry key="S60" value="41.75139370226018" />
+      <entry key="M2" value="47.31285726475011" />
+      <entry key="M5" value="53.695489894828" />
+      <entry key="M10" value="60.025180744399826" />
+      <entry key="M15" value="64.08153060985943" />
+      <entry key="M30" value="72.57536196692283" />
+      <entry key="H1" value="92.97664673922527" />
+      <entry key="H2" value="133.45863675802312" />
+      <entry key="H4" value="182.35167201583937" />
+      <entry key="D1" value="617.0019655390188" />
+      <entry key="W1" value="4054.4462390102703" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="1.3494102118978312E-179" />
-      <entry key="S10" value="3.6734321433766833E-90" />
-      <entry key="S30" value="1.5523535833947473E-30" />
-      <entry key="S60" value="1.3788761844417114E-15" />
-      <entry key="M2" value="5.177153231012755E-8" />
-      <entry key="M5" value="0.00222639493022653" />
-      <entry key="M10" value="0.08576800498628373" />
-      <entry key="M15" value="0.306001186973988" />
-      <entry key="M30" value="1.1711365826448419" />
-      <entry key="H1" value="2.459154444169726" />
-      <entry key="H2" value="4.125388032456899" />
-      <entry key="H4" value="6.181982192140896" />
-      <entry key="D1" value="97.90375594934609" />
-      <entry key="W1" value="1101.8374522350657" />
+      <entry key="S2" value="4.020825835235291E-167" />
+      <entry key="S5" value="2.7651971761327185E-67" />
+      <entry key="S10" value="5.258514216138159E-34" />
+      <entry key="S30" value="8.071501852610863E-12" />
+      <entry key="S60" value="2.8410388685498196E-6" />
+      <entry key="M2" value="0.001685538153988163" />
+      <entry key="M5" value="0.07774911156774006" />
+      <entry key="M10" value="0.27883681871494737" />
+      <entry key="M15" value="0.4270172737694782" />
+      <entry key="M30" value="0.6839849407120872" />
+      <entry key="H1" value="1.206297549444704" />
+      <entry key="H2" value="2.55872982470883" />
+      <entry key="H4" value="4.869285330557147" />
+      <entry key="D1" value="91.74107937138275" />
+      <entry key="W1" value="1090.957169117234" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.3356985799006635" />
-      <entry key="MS500" value="2.702434584758009" />
-      <entry key="S2" value="4.106819737380238" />
-      <entry key="S5" value="4.692766372326747" />
-      <entry key="S10" value="5.785646911258438" />
-      <entry key="S30" value="9.860196160941234" />
-      <entry key="S60" value="12.328845784109104" />
-      <entry key="M2" value="13.982538882828477" />
-      <entry key="M5" value="15.189536457611668" />
-      <entry key="M10" value="16.920823512063844" />
-      <entry key="M15" value="20.798604160783636" />
-      <entry key="M30" value="38.63130039352038" />
-      <entry key="H1" value="68.08210951731151" />
-      <entry key="H2" value="99.05666837745395" />
-      <entry key="H4" value="126.34961062391793" />
-      <entry key="D1" value="635.2554377190862" />
-      <entry key="W1" value="5077.594387991185" />
+      <entry key="MS100" value="1.2527217233296233" />
+      <entry key="MS500" value="2.8197207621225013" />
+      <entry key="S2" value="8.932957265553677" />
+      <entry key="S5" value="17.39646773980918" />
+      <entry key="S10" value="24.483250290559287" />
+      <entry key="S30" value="35.24320477178073" />
+      <entry key="S60" value="41.749291379291996" />
+      <entry key="M2" value="47.313307590653054" />
+      <entry key="M5" value="53.772411873222666" />
+      <entry key="M10" value="60.30322932931774" />
+      <entry key="M15" value="64.50783994801112" />
+      <entry key="M30" value="73.25878835567977" />
+      <entry key="H1" value="94.18224180439091" />
+      <entry key="H2" value="136.0163742348043" />
+      <entry key="H4" value="187.2199102298596" />
+      <entry key="D1" value="708.7399052116966" />
+      <entry key="W1" value="5145.397476910714" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -670,8 +390,8 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
+    "project.structure.proportion": "0.0855432",
+    "project.structure.side.proportion": "0.21730383",
     "run.configurations.included.in.services": "true",
     "settings.editor.selected.configurable": "preferences.pluginManager",
     "sql.codeStylePanel.last.previewDialect": "PostgreSQL",
@@ -1028,7 +748,15 @@
       <option name="project" value="LOCAL" />
       <updated>1786484336022</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Add bet service, gateway, and moderation service integration">
+      <option name="closed" value="true" />
+      <created>1786656582104</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1786656582104</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1056,7 +784,8 @@
     <MESSAGE value="init event service&#10;improved messaging libraries" />
     <MESSAGE value="cleanup code" />
     <MESSAGE value="init rewards in reward service" />
-    <option name="LAST_COMMIT_MESSAGE" value="init rewards in reward service" />
+    <MESSAGE value="Add bet service, gateway, and moderation service integration" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add bet service, gateway, and moderation service integration" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

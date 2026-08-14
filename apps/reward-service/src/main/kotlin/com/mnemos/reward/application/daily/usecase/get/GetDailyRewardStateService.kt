@@ -20,7 +20,7 @@ class GetDailyRewardStateService(
     private val clock: Clock,
 ) {
     fun get(): DailyRewardState {
-        val accountId = activeAccountProvider.getActiveAccountId()
+        val accountId = activeAccountProvider.getActiveAccountContext().accountId
         val today = LocalDate.now(clock.withZone(MOSCOW))
 
         val streak = repository.findByAccountId(accountId)

@@ -1,8 +1,8 @@
 package com.mnemos.wallet.contracts.wallet
 
 object WalletCommandContract {
-    const val TOPIC = "mnemos.wallet.commands.v1"
-    const val VERSION = 1
+    const val TOPIC = "mnemos.wallet.commands.v2"
+    const val VERSION = 2
     const val AGGREGATE_TYPE = "WALLET_TRANSACTION_REQUEST"
 }
 
@@ -11,8 +11,8 @@ object WalletCommandType {
 }
 
 object WalletEventContract {
-    const val TOPIC = "mnemos.wallet.events.v1"
-    const val VERSION = 1
+    const val TOPIC = "mnemos.wallet.events.v2"
+    const val VERSION = 2
     const val AGGREGATE_TYPE = "WALLET_TRANSACTION_REQUEST"
 }
 

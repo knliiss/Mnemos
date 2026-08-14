@@ -1,34 +1,33 @@
 package com.mnemos.wallet.application
 
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
-import com.mnemos.wallet.api.dto.BalanceResponse
-import com.mnemos.wallet.api.dto.TransactionSummaryResponse
-import com.mnemos.wallet.application.balance.InitializeAccountBalancesService
-import com.mnemos.wallet.application.transaction.CreateTransactionRequest
-import com.mnemos.wallet.application.transaction.CreateTransactionResult
-import com.mnemos.wallet.application.transaction.CreateTransactionService
+import com.mnemos.wallet.application.transaction.usecase.create.CreateTransactionRequest
+import com.mnemos.wallet.application.transaction.usecase.create.CreateTransactionResult
+import com.mnemos.wallet.application.transaction.usecase.create.CreateTransactionService
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionCompletedEvent
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionFailedEvent
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import com.mnemos.wallet.contracts.wallet.shared.TransactionSource
 import com.mnemos.wallet.contracts.wallet.shared.TransactionType
+import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import com.mnemos.wallet.contracts.wallet.shared.WalletTransactionFailureReason
-import com.mnemos.wallet.domain.model.balance.Balance
-import com.mnemos.wallet.domain.model.request.TransactionRequest
-import com.mnemos.wallet.domain.model.request.TransactionRequestStatus
-import com.mnemos.wallet.domain.model.transaction.RequestId
-import com.mnemos.wallet.domain.model.transaction.Transaction
-import com.mnemos.wallet.domain.model.transaction.TransactionSourceReferenceId
-import com.mnemos.wallet.domain.repository.BalanceRepository
-import com.mnemos.wallet.domain.repository.TransactionRepository
-import com.mnemos.wallet.domain.repository.TransactionRequestRepository
+import com.mnemos.wallet.domain.balance.model.Balance
+import com.mnemos.wallet.domain.balance.repository.BalanceRepository
+import com.mnemos.wallet.domain.transaction.model.RequestId
+import com.mnemos.wallet.domain.transaction.model.Transaction
+import com.mnemos.wallet.domain.transaction.model.TransactionRequest
+import com.mnemos.wallet.domain.transaction.model.TransactionSourceReferenceId
+import com.mnemos.wallet.domain.transaction.repository.TransactionRepository
+import com.mnemos.wallet.domain.transaction.repository.TransactionRequestRepository
+import com.mnemos.wallet.domain.wallet.model.WalletOwner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import org.springframework.data.domain.Pageable
 import java.util.UUID
 
 class CreateTransactionServiceTest {
@@ -39,7 +38,6 @@ class CreateTransactionServiceTest {
 
     private val service =
         CreateTransactionService(
-            initializeAccountBalancesService = InitializeAccountBalancesService(balances),
             balanceRepository = balances,
             transactionRepository = transactions,
             transactionRequestRepository = requests,
@@ -47,8 +45,9 @@ class CreateTransactionServiceTest {
         )
 
     @Test
-    fun `credit lazily initializes both balances and creates transaction`() {
-        val request = request(type = TransactionType.CREDIT, amount = 100)
+    fun `account coin credit lazily creates only account coin balance`() {
+        val owner = WalletOwner.Account(AccountId.generate())
+        val request = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 100)
 
         val result =
             service.create(
@@ -56,306 +55,126 @@ class CreateTransactionServiceTest {
                 metadata = EventMetadata(correlationId = "test"),
             )
 
-        assertInstanceOf(
-            CreateTransactionResult.Completed::class.java,
-            result,
-        )
-        assertEquals(
-            100,
-            balances
-                .get(
-                    request.accountId,
-                    Currency.COIN,
-                ).amount.value,
-        )
-        assertEquals(
-            0,
-            balances
-                .get(
-                    request.accountId,
-                    Currency.PRIME,
-                ).amount.value,
-        )
-        assertEquals(
-            1,
-            transactions.values.size,
-        )
-        assertEquals(
-            1,
-            eventPublisher.events.size,
-        )
+        assertInstanceOf(CreateTransactionResult.Completed::class.java, result)
+        assertEquals(100, balances.get(owner, Currency.COIN).amount.value)
+        assertNull(balances.findForUpdate(owner, Currency.PRIME))
+        assertEquals(1, transactions.values.size)
+        assertEquals(1, eventPublisher.events.size)
         assertInstanceOf(
             WalletTransactionCompletedEvent::class.java,
             eventPublisher.events
                 .single()
-                .event
-                .payload,
+                .event.payload,
         )
         assertEquals(
             "test",
             eventPublisher.events
                 .single()
-                .metadata
-                .correlationId,
+                .metadata.correlationId,
+        )
+    }
+
+    @Test
+    fun `user prime credit creates user prime balance`() {
+        val owner = WalletOwner.User(UserId.generate())
+        val request = request(owner = owner, currency = Currency.PRIME, type = TransactionType.CREDIT, amount = 25)
+
+        service.create(
+            request = request,
+            metadata = EventMetadata(),
+        )
+
+        assertEquals(25, balances.get(owner, Currency.PRIME).amount.value)
+        assertEquals(owner, transactions.values.single().owner)
+    }
+
+    @Test
+    fun `owner currency mismatch is deterministic failure`() {
+        val owner = WalletOwner.User(UserId.generate())
+        val request = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 25)
+
+        val first = service.create(request, EventMetadata())
+        val repeated = service.create(request, EventMetadata())
+
+        assertEquals(
+            WalletTransactionFailureReason.OWNER_CURRENCY_MISMATCH,
+            (first as CreateTransactionResult.Failed).reason,
+        )
+        assertEquals(
+            WalletTransactionFailureReason.OWNER_CURRENCY_MISMATCH,
+            (repeated as CreateTransactionResult.Failed).reason,
+        )
+        assertEquals(0, transactions.values.size)
+        assertEquals(1, eventPublisher.events.size)
+        assertInstanceOf(
+            WalletTransactionFailedEvent::class.java,
+            eventPublisher.events
+                .single()
+                .event.payload,
         )
     }
 
     @Test
     fun `successful duplicate does not apply balance twice`() {
-        val request = request(type = TransactionType.CREDIT, amount = 100)
+        val owner = WalletOwner.Account(AccountId.generate())
+        val request = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 100)
 
-        service.create(
-            request = request,
-            metadata = EventMetadata(),
-        )
-        service.create(
-            request = request,
-            metadata = EventMetadata(),
-        )
+        service.create(request, EventMetadata())
+        service.create(request, EventMetadata())
 
-        assertEquals(
-            100,
-            balances
-                .get(
-                    request.accountId,
-                    Currency.COIN,
-                ).amount.value,
-        )
-        assertEquals(
-            1,
-            transactions.values.size,
-        )
-        assertEquals(
-            2,
-            eventPublisher.events.size,
-        )
-
-        eventPublisher.events.forEach {
-            assertInstanceOf(
-                WalletTransactionCompletedEvent::class.java,
-                it.event.payload,
-            )
-        }
-    }
-
-    @Test
-    fun `failed debit remains failed after later top up`() {
-        val accountId = AccountId.generate()
-
-        val debit =
-            request(
-                accountId = accountId,
-                type = TransactionType.DEBIT,
-                amount = 50,
-            )
-
-        val firstResult =
-            service.create(
-                request = debit,
-                metadata = EventMetadata(),
-            )
-
-        service.create(
-            request =
-                request(
-                    accountId = accountId,
-                    type = TransactionType.CREDIT,
-                    amount = 100,
-                ),
-            metadata = EventMetadata(),
-        )
-
-        val repeatedResult =
-            service.create(
-                request = debit,
-                metadata = EventMetadata(),
-            )
-
-        assertEquals(
-            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
-            (firstResult as CreateTransactionResult.Failed).reason,
-        )
-        assertEquals(
-            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
-            (repeatedResult as CreateTransactionResult.Failed).reason,
-        )
-        assertEquals(
-            100,
-            balances
-                .get(
-                    accountId,
-                    Currency.COIN,
-                ).amount.value,
-        )
-        assertEquals(
-            1,
-            transactions.values.size,
-        )
-
-        assertEquals(
-            3,
-            eventPublisher.events.size,
-        )
-
-        assertInstanceOf(
-            WalletTransactionFailedEvent::class.java,
-            eventPublisher.events[0]
-                .event
-                .payload,
-        )
-        assertInstanceOf(
-            WalletTransactionCompletedEvent::class.java,
-            eventPublisher.events[1]
-                .event
-                .payload,
-        )
-        assertInstanceOf(
-            WalletTransactionFailedEvent::class.java,
-            eventPublisher.events[2]
-                .event
-                .payload,
-        )
+        assertEquals(100, balances.get(owner, Currency.COIN).amount.value)
+        assertEquals(1, transactions.values.size)
+        assertEquals(1, eventPublisher.events.size)
     }
 
     @Test
     fun `same request id with another payload is rejected`() {
-        val original =
-            request(
-                type = TransactionType.CREDIT,
-                amount = 100,
-            )
+        val owner = WalletOwner.Account(AccountId.generate())
+        val original = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 100)
+        val conflicting = original.copy(amount = 200)
 
-        val conflicting =
-            original.copy(
-                amount = 200,
-            )
-
-        service.create(
-            request = original,
-            metadata = EventMetadata(),
-        )
-
-        val result =
-            service.create(
-                request = conflicting,
-                metadata = EventMetadata(),
-            )
+        service.create(original, EventMetadata())
+        val result = service.create(conflicting, EventMetadata())
 
         assertEquals(
             WalletTransactionFailureReason.IDEMPOTENCY_CONFLICT,
             (result as CreateTransactionResult.Failed).reason,
         )
-        assertEquals(
-            100,
-            balances
-                .get(
-                    original.accountId,
-                    Currency.COIN,
-                ).amount.value,
-        )
-        assertEquals(
-            1,
-            transactions.values.size,
-        )
-        assertEquals(
-            2,
-            eventPublisher.events.size,
-        )
-        assertInstanceOf(
-            WalletTransactionFailedEvent::class.java,
-            eventPublisher.events
-                .last()
-                .event
-                .payload,
-        )
+        assertEquals(100, balances.get(owner, Currency.COIN).amount.value)
+        assertEquals(1, transactions.values.size)
     }
 
     @Test
-    fun `credit that exceeds bigint balance limit is deterministic failure`() {
-        val accountId = AccountId.generate()
+    fun `failed debit stays failed after later credit`() {
+        val owner = WalletOwner.Account(AccountId.generate())
+        val debit = request(owner = owner, currency = Currency.COIN, type = TransactionType.DEBIT, amount = 50)
 
+        val first = service.create(debit, EventMetadata())
         service.create(
-            request =
-                request(
-                    accountId = accountId,
-                    type = TransactionType.CREDIT,
-                    amount = Long.MAX_VALUE,
-                ),
-            metadata = EventMetadata(),
+            request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 100),
+            EventMetadata(),
         )
-
-        val overflow =
-            request(
-                accountId = accountId,
-                type = TransactionType.CREDIT,
-                amount = 1,
-            )
-
-        val first =
-            service.create(
-                request = overflow,
-                metadata = EventMetadata(),
-            )
-
-        val repeated =
-            service.create(
-                request = overflow,
-                metadata = EventMetadata(),
-            )
+        val repeated = service.create(debit, EventMetadata())
 
         assertEquals(
-            WalletTransactionFailureReason.BALANCE_LIMIT_EXCEEDED,
+            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
             (first as CreateTransactionResult.Failed).reason,
         )
         assertEquals(
-            WalletTransactionFailureReason.BALANCE_LIMIT_EXCEEDED,
+            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
             (repeated as CreateTransactionResult.Failed).reason,
         )
-        assertEquals(
-            Long.MAX_VALUE,
-            balances
-                .get(
-                    accountId,
-                    Currency.COIN,
-                ).amount.value,
-        )
-        assertEquals(
-            1,
-            transactions.values.size,
-        )
-
-        assertEquals(
-            3,
-            eventPublisher.events.size,
-        )
-        assertInstanceOf(
-            WalletTransactionFailedEvent::class.java,
-            eventPublisher.events
-                .last()
-                .event
-                .payload,
-        )
+        assertEquals(100, balances.get(owner, Currency.COIN).amount.value)
+        assertEquals(1, transactions.values.size)
     }
 
     @Test
     fun `non positive amount is stored as deterministic failure`() {
-        val request =
-            request(
-                type = TransactionType.CREDIT,
-                amount = 0,
-            )
+        val owner = WalletOwner.Account(AccountId.generate())
+        val request = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 0)
 
-        val first =
-            service.create(
-                request = request,
-                metadata = EventMetadata(),
-            )
-
-        val repeated =
-            service.create(
-                request = request,
-                metadata = EventMetadata(),
-            )
+        val first = service.create(request, EventMetadata())
+        val repeated = service.create(request, EventMetadata())
 
         assertEquals(
             WalletTransactionFailureReason.INVALID_AMOUNT,
@@ -365,132 +184,79 @@ class CreateTransactionServiceTest {
             WalletTransactionFailureReason.INVALID_AMOUNT,
             (repeated as CreateTransactionResult.Failed).reason,
         )
-        assertEquals(
-            0,
-            transactions.values.size,
-        )
-        assertEquals(
-            2,
-            eventPublisher.events.size,
-        )
-
-        eventPublisher.events.forEach {
-            assertInstanceOf(
-                WalletTransactionFailedEvent::class.java,
-                it.event.payload,
-            )
-        }
+        assertEquals(0, transactions.values.size)
     }
 
     private fun request(
-        accountId: AccountId = AccountId.generate(),
+        owner: WalletOwner,
+        currency: Currency,
         type: TransactionType,
         amount: Long,
     ): CreateTransactionRequest =
         CreateTransactionRequest(
-            requestId = RequestId(UUID.randomUUID()),
-            accountId = accountId,
-            currency = Currency.COIN,
+            requestId = RequestId.generate(),
+            owner = owner,
+            currency = currency,
             type = type,
             source = TransactionSource.ADMIN_ADJUSTMENT,
-            sourceReferenceId =
-                TransactionSourceReferenceId(
-                    UUID.randomUUID(),
-                ),
+            sourceReferenceId = TransactionSourceReferenceId.generate(),
             amount = amount,
         )
 
     private class InMemoryBalanceRepository : BalanceRepository {
-        private val values =
-            linkedMapOf<Pair<AccountId, Currency>, Balance>()
+        private val values = linkedMapOf<Triple<WalletOwnerType, UUID, Currency>, Balance>()
 
-        override fun findByAccountIdAndCurrencyForUpdate(
-            accountId: AccountId,
+        override fun findForUpdate(
+            owner: WalletOwner,
             currency: Currency,
-        ): Balance? =
-            values[
-                accountId to currency,
-            ]
+        ): Balance? = values[key(owner, currency)]
+
+        override fun createIfAbsent(balance: Balance): Boolean = values.putIfAbsent(key(balance.owner, balance.currency), balance) == null
 
         override fun update(balance: Balance) {
-            values[
-                balance.accountId to balance.currency,
-            ] = balance
+            values[key(balance.owner, balance.currency)] = balance
         }
 
-        override fun createIfAbsent(balance: Balance): Boolean =
-            values.putIfAbsent(
-                balance.accountId to balance.currency,
-                balance,
-            ) == null
-
-        override fun findAllByAccountId(accountId: AccountId): List<BalanceResponse> = emptyList()
-
         fun get(
-            accountId: AccountId,
+            owner: WalletOwner,
             currency: Currency,
-        ): Balance =
-            requireNotNull(
-                values[
-                    accountId to currency,
-                ],
-            )
+        ): Balance = requireNotNull(values[key(owner, currency)])
+
+        private fun key(
+            owner: WalletOwner,
+            currency: Currency,
+        ) = Triple(owner.type, owner.id, currency)
     }
 
     private class InMemoryTransactionRepository : TransactionRepository {
-        val values =
-            mutableListOf<Transaction>()
-
-        override fun findByRequestId(requestId: RequestId): Transaction? =
-            values.firstOrNull {
-                it.requestId == requestId
-            }
+        val values = mutableListOf<Transaction>()
 
         override fun create(transaction: Transaction) {
             values += transaction
         }
-
-        override fun findByAccountId(
-            accountId: AccountId,
-            page: Pageable,
-        ): List<TransactionSummaryResponse> = emptyList()
     }
 
     private class InMemoryTransactionRequestRepository : TransactionRequestRepository {
-        private val values =
-            linkedMapOf<RequestId, TransactionRequest>()
+        private val values = linkedMapOf<RequestId, TransactionRequest>()
 
-        override fun createIfAbsent(request: TransactionRequest): Boolean =
-            values.putIfAbsent(
-                request.requestId,
-                request,
-            ) == null
+        override fun createIfAbsent(request: TransactionRequest): Boolean = values.putIfAbsent(request.requestId, request) == null
 
         override fun findByRequestIdForUpdate(requestId: RequestId): TransactionRequest? = values[requestId]
 
         override fun update(request: TransactionRequest) {
-            values[request.requestId] =
-                request
+            values[request.requestId] = request
         }
-
-        override fun findStatusByRequestId(requestId: RequestId): TransactionRequestStatus? = values[requestId]?.status
     }
 
     private class RecordingIntegrationEventPublisher : IntegrationEventPublisher {
-        val events =
-            mutableListOf<PublishedEvent>()
+        val events = mutableListOf<PublishedEvent>()
 
         override fun <T : Any> publish(
             event: IntegrationEvent<T>,
             metadata: EventMetadata,
         ): UUID {
-            events +=
-                PublishedEvent(
-                    event = event,
-                    metadata = metadata,
-                )
-
-            return UUID.randomUUID()
+            events += PublishedEvent(event, metadata)
+            return RequestId.generate().id
         }
     }
 

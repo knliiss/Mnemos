@@ -1,14 +1,19 @@
 package com.mnemos.reward.application.daily.port.out
 
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.wallet.contracts.wallet.shared.Currency
+import com.mnemos.common.core.model.id.UserId
 import java.time.LocalDate
 import java.util.UUID
 
 interface RewardWallet {
-    fun creditDaily(
+    fun creditDailyCoin(
         accountId: AccountId,
-        currency: Currency,
+        amount: Long,
+        rewardDate: LocalDate,
+    )
+
+    fun creditDailyPrime(
+        userId: UserId,
         amount: Long,
         rewardDate: LocalDate,
     )
