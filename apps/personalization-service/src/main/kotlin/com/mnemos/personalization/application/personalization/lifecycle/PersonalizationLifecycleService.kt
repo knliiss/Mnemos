@@ -167,7 +167,7 @@ class PersonalizationLifecycleService(
     ) {
         val owner = PersonalizationOwner.User(userId)
         val activeOwnership =
-            ownershipRepository.findActive(
+            ownershipRepository.findActiveForUpdate(
                 owner = owner,
                 type = PersonalizationType.NOTIFICATION_PACK,
             ) ?: return
