@@ -5,8 +5,6 @@ import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
-import com.mnemos.personalization.application.common.pagination.PageQuery
-import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
@@ -341,20 +339,6 @@ class PersonalizationLifecycleServiceTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             listOf(personalization).filter { it.status == status }
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-            page: PageQuery,
-        ): PageResult<Personalization> =
-            PageResult(
-                items = emptyList(),
-                page = page.page,
-                size = page.size,
-                totalItems = 0,
-                totalPages = 0,
-                hasNextPage = false,
-            )
     }
 
     private class FakeOwnedPersonalizationRepository(
