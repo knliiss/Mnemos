@@ -16,8 +16,22 @@ data class PersonalizationPricingProperties(
     val profileEffectCoin: Range = Range(1_500, 150_000),
     val profileEffectPrime: Range = Range(15, 1_500),
 ) {
+    init {
+        require(customNotificationPackPrime.min > notificationPackPrime.min) {
+            "Custom notification pack minimum price must be higher than regular notification pack minimum price"
+        }
+        require(customNotificationPackPurchasePrime in customNotificationPackPrime.min..customNotificationPackPrime.max) {
+            "Private custom notification pack purchase price must fit the custom notification pack price range"
+        }
+    }
+
     data class Range(
         val min: Long,
         val max: Long,
-    )
+    ) {
+        init {
+            require(min > 0) { "Personalization minimum price must be positive" }
+            require(max >= min) { "Personalization maximum price must be greater than or equal to minimum price" }
+        }
+    }
 }
