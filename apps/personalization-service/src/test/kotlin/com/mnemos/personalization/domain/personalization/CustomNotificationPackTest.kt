@@ -29,7 +29,7 @@ class CustomNotificationPackTest {
     }
 
     @Test
-    fun `custom pack can become public after moderation`() {
+    fun `published custom pack is purchasable by others but not by its author`() {
         val personalization = createCustomPack()
 
         personalization.submitForReview(createdAt.plusSeconds(1))
@@ -40,6 +40,7 @@ class CustomNotificationPackTest {
         personalization.publish(createdAt.plusSeconds(3))
 
         assertTrue(personalization.isPurchasableBy(otherUserId))
+        assertFalse(personalization.isPurchasableBy(creatorUserId))
         assertTrue(personalization.visibility == PersonalizationVisibility.PUBLIC)
         assertTrue(personalization.status == PersonalizationStatus.PUBLISHED)
     }
@@ -55,7 +56,7 @@ class CustomNotificationPackTest {
 
     private fun notificationPackContent(): PersonalizationContent.NotificationPack =
         PersonalizationContent.NotificationPack(
-            mixedAggregateTitle = "❄️ <b>Several events</b>",
+            mixedAggregateTitle = "❄️ Several events",
             templates =
                 NotificationTemplateKey.entries.associateWith { key ->
                     NotificationTemplate(
