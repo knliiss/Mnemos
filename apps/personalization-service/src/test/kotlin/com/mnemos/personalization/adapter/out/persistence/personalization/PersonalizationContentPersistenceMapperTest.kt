@@ -45,7 +45,7 @@ class PersonalizationContentPersistenceMapperTest {
     fun `notification pack survives document round trip`() {
         val content =
             PersonalizationContent.NotificationPack(
-                mixedAggregateTitle = "🔔 <b>Несколько событий</b>",
+                mixedAggregateTitle = "🔔 Несколько событий",
                 templates =
                     NotificationTemplateKey.entries.associateWith { key ->
                         NotificationTemplate(
