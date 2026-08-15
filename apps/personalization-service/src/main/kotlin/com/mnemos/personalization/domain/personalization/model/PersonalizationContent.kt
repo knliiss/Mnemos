@@ -58,7 +58,7 @@ sealed interface PersonalizationContent {
 
             templates.forEach { (key, template) ->
                 template.emoji?.let { emoji ->
-                    validateStaticText(emoji, "$key emoji")
+                    validateEmoji(emoji, key)
                 }
 
                 validateTemplate(key, template.soloTitle)
@@ -79,6 +79,14 @@ sealed interface PersonalizationContent {
             require(placeholders.all { it in key.allowedPlaceholders }) {
                 "Template $key contains unsupported placeholders"
             }
+        }
+
+        private fun validateEmoji(
+            emoji: String,
+            key: NotificationTemplateKey,
+        ) {
+            validateStaticText(emoji, "$key emoji")
+            require(emoji.length <= 16) { "Notification $key emoji is too long" }
         }
 
         private fun validateStaticText(
