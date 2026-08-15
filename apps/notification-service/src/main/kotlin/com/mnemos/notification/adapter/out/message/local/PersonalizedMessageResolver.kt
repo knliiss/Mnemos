@@ -56,24 +56,25 @@ class PersonalizedMessageResolver {
             soloTitle = template.withEmoji(template.soloTitle.render(values)),
             soloBody = template.soloBody.render(values),
             compact = template.withEmoji(template.compact.render(values)),
-            aggregateTitle = template.withEmoji(template.aggregateTitle),
+            aggregateTitle = template.withEmoji(TelegramHtmlEscaper.escape(template.aggregateTitle)),
         )
     }
 
-    private fun String.render(values: Map<String, String>): String =
-        values.entries.fold(this) { result, (name, value) ->
-            result.replace("{$name}", value.escapeHtml())
+    private fun String.render(values: Map<String, String>): String {
+        val escapedTemplate = TelegramHtmlEscaper.escape(this)
+
+        return values.entries.fold(escapedTemplate) { result, (name, value) ->
+            result.replace(
+                oldValue = "{$name}",
+                newValue = TelegramHtmlEscaper.escape(value),
+            )
         }
+    }
 
     private fun NotificationPackTemplate.withEmoji(value: String): String =
         if (emoji.isNullOrBlank()) {
             value
         } else {
-            "$emoji $value"
+            "${TelegramHtmlEscaper.escape(emoji)} $value"
         }
-
-    private fun String.escapeHtml(): String =
-        replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
 }
