@@ -1,10 +1,13 @@
 package com.mnemos.personalization.application.personalization.lifecycle
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
+import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
+import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
@@ -28,6 +31,8 @@ class PersonalizationLifecycleService(
     private val actorProvider: CurrentPersonalizationActorProvider,
     private val pricePolicy: PersonalizationPricePolicy,
     private val repository: PersonalizationRepository,
+    private val ownershipRepository: OwnedPersonalizationRepository,
+    private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val clock: Clock,
 ) {
     @Transactional
@@ -75,7 +80,14 @@ class PersonalizationLifecycleService(
             now = clock.instant(),
         )
 
-        return repository.save(personalization)
+        val saved = repository.save(personalization)
+
+        republishActiveNotificationPack(
+            personalization = saved,
+            userId = actor.userId,
+        )
+
+        return saved
     }
 
     @Transactional
@@ -112,6 +124,27 @@ class PersonalizationLifecycleService(
         val actor = actorProvider.requireActor()
 
         return repository.findByCreatorUserId(actor.userId)
+    }
+
+    private fun republishActiveNotificationPack(
+        personalization: Personalization,
+        userId: UserId,
+    ) {
+        val owner = PersonalizationOwner.User(userId)
+        val activeOwnership =
+            ownershipRepository.findActive(
+                owner = owner,
+                type = PersonalizationType.NOTIFICATION_PACK,
+            ) ?: return
+
+        if (activeOwnership.personalizationId != personalization.id) {
+            return
+        }
+
+        notificationPackSelectionEventPublisher.publishSelected(
+            userId = userId,
+            personalization = personalization,
+        )
     }
 
     private fun requireOwned(
