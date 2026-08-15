@@ -66,11 +66,18 @@ class WalletCommandProducerPolicy {
 
     private fun WalletCreateTransactionCommand.isPersonalizationOperation(): Boolean =
         when (source) {
-            TransactionSource.PERSONALIZATION_PURCHASE -> type == TransactionType.DEBIT
+            TransactionSource.PERSONALIZATION_PURCHASE ->
+                type == TransactionType.DEBIT &&
+                    (
+                        (currency == Currency.COIN && owner.type == WalletOwnerType.ACCOUNT) ||
+                            (currency == Currency.PRIME && owner.type == WalletOwnerType.USER)
+                    )
+
             TransactionSource.CREATOR_REVENUE ->
                 type == TransactionType.CREDIT &&
                     currency == Currency.PRIME &&
                     owner.type == WalletOwnerType.USER
+
             else -> false
         }
 
