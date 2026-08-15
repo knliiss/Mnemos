@@ -5,6 +5,7 @@ import com.mnemos.personalization.application.ownership.event.NotificationPackSe
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
+import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -38,6 +39,9 @@ class PersonalizationLifecycleService(
     @Transactional
     fun update(command: UpdatePersonalizationCommand): Personalization {
         val actor = actorProvider.requireActor()
+
+        requireMarketplaceCreator(actor)
+
         val personalization = requireOwned(command.personalizationId, actor.userId)
 
         command.price?.let { price ->
@@ -93,13 +97,10 @@ class PersonalizationLifecycleService(
     @Transactional
     fun submit(personalizationId: PersonalizationId): Personalization {
         val actor = actorProvider.requireActor()
-        val personalization = requireOwned(personalizationId, actor.userId)
 
-        if (personalization.origin == PersonalizationOrigin.CUSTOM &&
-            !actor.canCreateMarketplacePersonalization()
-        ) {
-            throw PersonalizationAccessDeniedException()
-        }
+        requireMarketplaceCreator(actor)
+
+        val personalization = requireOwned(personalizationId, actor.userId)
 
         personalization.submitForReview(clock.instant())
 
@@ -109,11 +110,10 @@ class PersonalizationLifecycleService(
     @Transactional
     fun publish(personalizationId: PersonalizationId): Personalization {
         val actor = actorProvider.requireActor()
-        val personalization = requireOwned(personalizationId, actor.userId)
 
-        if (!actor.canCreateMarketplacePersonalization()) {
-            throw PersonalizationAccessDeniedException()
-        }
+        requireMarketplaceCreator(actor)
+
+        val personalization = requireOwned(personalizationId, actor.userId)
 
         personalization.publish(clock.instant())
 
@@ -124,6 +124,12 @@ class PersonalizationLifecycleService(
         val actor = actorProvider.requireActor()
 
         return repository.findByCreatorUserId(actor.userId)
+    }
+
+    private fun requireMarketplaceCreator(actor: PersonalizationActor) {
+        if (!actor.canCreateMarketplacePersonalization()) {
+            throw PersonalizationAccessDeniedException()
+        }
     }
 
     private fun republishActiveNotificationPack(
