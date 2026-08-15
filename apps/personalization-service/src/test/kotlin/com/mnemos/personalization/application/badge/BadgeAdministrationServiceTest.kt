@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -73,6 +74,35 @@ class BadgeAdministrationServiceTest {
         assertEquals(existing, result)
         verify(repository).findByIdForUpdate(badge.id)
         verify(repository, never()).saveUserBadge(any())
+    }
+
+    @Test
+    fun `revoke locks badge definition before assignment`() {
+        val repository = mock<BadgeRepository>()
+        val service = service(repository)
+        val userId = UserId.generate()
+        val badge = badge()
+        val existing =
+            UserBadge(
+                userId = userId,
+                badgeId = badge.id,
+                grantedAt = now.minusSeconds(60),
+                active = false,
+            )
+
+        whenever(repository.findByIdForUpdate(badge.id)).thenReturn(badge)
+        whenever(repository.findUserBadgeForUpdate(userId, badge.id)).thenReturn(existing)
+
+        service.revoke(
+            userId = userId,
+            badgeId = badge.id,
+        )
+
+        inOrder(repository) {
+            verify(repository).findByIdForUpdate(badge.id)
+            verify(repository).findUserBadgeForUpdate(userId, badge.id)
+            verify(repository).deleteUserBadge(userId, badge.id)
+        }
     }
 
     private fun service(repository: BadgeRepository): BadgeAdministrationService =
