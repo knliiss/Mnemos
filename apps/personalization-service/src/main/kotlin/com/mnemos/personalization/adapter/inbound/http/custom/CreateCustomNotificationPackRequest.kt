@@ -1,6 +1,6 @@
 package com.mnemos.personalization.adapter.inbound.http.custom
 
-import com.mnemos.personalization.adapter.inbound.http.personalization.NotificationTemplateRequest
+import com.mnemos.personalization.adapter.inbound.http.personalization.request.NotificationTemplateRequest
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank

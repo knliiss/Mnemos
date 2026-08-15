@@ -1,5 +1,6 @@
 package com.mnemos.personalization.adapter.inbound.http.personalization
 
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationContentResponse
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType

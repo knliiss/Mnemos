@@ -1,12 +1,16 @@
 package com.mnemos.personalization.application.ownership
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.exception.ActiveAccountRequiredException
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
+import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
+import com.mnemos.personalization.application.ownership.port.out.OwnedPersonalizationReader
+import com.mnemos.personalization.application.ownership.query.ListOwnedPersonalizationsQuery
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -32,6 +36,7 @@ class PersonalizationOwnershipService(
     private val accountAccess: PersonalizationAccountAccess,
     private val personalizationRepository: PersonalizationRepository,
     private val ownershipRepository: OwnedPersonalizationRepository,
+    private val ownershipReader: OwnedPersonalizationReader,
     private val purchaseOperationRepository: PurchaseOperationRepository,
     private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val clock: Clock,
@@ -107,25 +112,21 @@ class PersonalizationOwnershipService(
         return saved
     }
 
-    fun listMine(): List<OwnedPersonalization> {
+    fun listMine(
+        query: ListOwnedPersonalizationsQuery,
+    ): PageResult<OwnedPersonalization> {
         val actor = actorProvider.requireActor()
-        val result =
-            ownershipRepository
-                .findAll(PersonalizationOwner.User(actor.userId))
-                .toMutableList()
+        val accountId = resolveReadableAccountId(actor.userId)
 
-        appendAccountPersonalizationsIfAllowed(
+        return ownershipReader.findOwned(
             userId = actor.userId,
-            result = result,
+            accountId = accountId,
+            type = query.type,
+            page = query.page,
         )
-
-        return result
     }
 
-    private fun appendAccountPersonalizationsIfAllowed(
-        userId: UserId,
-        result: MutableList<OwnedPersonalization>,
-    ) {
+    private fun resolveReadableAccountId(userId: UserId): AccountId? =
         try {
             val accountId = accountAccess.requireActiveAccount(userId)
             val canView =
@@ -135,13 +136,10 @@ class PersonalizationOwnershipService(
                     permission = RolePermission.VIEW_PERSONALIZATIONS,
                 )
 
-            if (canView) {
-                result += ownershipRepository.findAll(PersonalizationOwner.Account(accountId))
-            }
+            accountId.takeIf { canView }
         } catch (_: ActiveAccountRequiredException) {
-            // A user can own user-scoped personalization without having an active account.
+            null
         }
-    }
 
     private fun resolveOwner(
         personalization: Personalization,

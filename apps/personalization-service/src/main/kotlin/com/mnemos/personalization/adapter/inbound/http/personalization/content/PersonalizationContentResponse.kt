@@ -1,0 +1,3 @@
+package com.mnemos.personalization.adapter.inbound.http.personalization.content
+
+sealed interface PersonalizationContentResponse

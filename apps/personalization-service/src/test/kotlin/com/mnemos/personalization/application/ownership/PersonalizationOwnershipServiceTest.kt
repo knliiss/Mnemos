@@ -7,6 +7,7 @@ import com.mnemos.personalization.application.account.port.out.PersonalizationAc
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
+import com.mnemos.personalization.application.ownership.port.out.OwnedPersonalizationReader
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
@@ -49,6 +50,7 @@ class PersonalizationOwnershipServiceTest {
                 accountAccess = UnusedAccountAccess(),
                 personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = ownershipRepository,
+                ownershipReader = mock<OwnedPersonalizationReader>(),
                 purchaseOperationRepository = mock<PurchaseOperationRepository>(),
                 notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
                 clock = clock,
@@ -70,6 +72,7 @@ class PersonalizationOwnershipServiceTest {
                 accountAccess = UnusedAccountAccess(),
                 personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                ownershipReader = mock<OwnedPersonalizationReader>(),
                 purchaseOperationRepository = mock<PurchaseOperationRepository>(),
                 notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
                 clock = clock,
@@ -101,6 +104,7 @@ class PersonalizationOwnershipServiceTest {
                 accountAccess = FixedAccountAccess(accountId),
                 personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                ownershipReader = mock<OwnedPersonalizationReader>(),
                 purchaseOperationRepository = purchaseOperationRepository,
                 notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
                 clock = clock,

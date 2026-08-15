@@ -3,6 +3,8 @@ package com.mnemos.personalization.adapter.out.persistence.ownership
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Modifying
@@ -60,6 +62,73 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
         ownerId: UUID,
         personalizationType: PersonalizationType,
     ): OwnedPersonalizationEntity?
+
+    @Query(
+        value =
+            """
+            SELECT ownership
+            FROM OwnedPersonalizationEntity ownership
+            WHERE ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.USER
+              AND ownership.ownerId = :userId
+              AND (:personalizationType IS NULL OR ownership.personalizationType = :personalizationType)
+            ORDER BY ownership.acquiredAt DESC, ownership.id DESC
+            """,
+        countQuery =
+            """
+            SELECT COUNT(ownership)
+            FROM OwnedPersonalizationEntity ownership
+            WHERE ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.USER
+              AND ownership.ownerId = :userId
+              AND (:personalizationType IS NULL OR ownership.personalizationType = :personalizationType)
+            """,
+    )
+    fun findOwnedByUser(
+        userId: UUID,
+        personalizationType: PersonalizationType?,
+        pageable: Pageable,
+    ): Page<OwnedPersonalizationEntity>
+
+    @Query(
+        value =
+            """
+            SELECT ownership
+            FROM OwnedPersonalizationEntity ownership
+            WHERE (
+                    (
+                        ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.USER
+                        AND ownership.ownerId = :userId
+                    )
+                    OR (
+                        ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.ACCOUNT
+                        AND ownership.ownerId = :accountId
+                    )
+                )
+              AND (:personalizationType IS NULL OR ownership.personalizationType = :personalizationType)
+            ORDER BY ownership.acquiredAt DESC, ownership.id DESC
+            """,
+        countQuery =
+            """
+            SELECT COUNT(ownership)
+            FROM OwnedPersonalizationEntity ownership
+            WHERE (
+                    (
+                        ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.USER
+                        AND ownership.ownerId = :userId
+                    )
+                    OR (
+                        ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.ACCOUNT
+                        AND ownership.ownerId = :accountId
+                    )
+                )
+              AND (:personalizationType IS NULL OR ownership.personalizationType = :personalizationType)
+            """,
+    )
+    fun findOwnedByUserAndAccount(
+        userId: UUID,
+        accountId: UUID,
+        personalizationType: PersonalizationType?,
+        pageable: Pageable,
+    ): Page<OwnedPersonalizationEntity>
 
     fun findAllByOwnerTypeAndOwnerIdOrderByAcquiredAtDesc(
         ownerType: PersonalizationTarget,

@@ -8,7 +8,7 @@ import com.mnemos.wallet.contracts.wallet.shared.Currency
 
 interface PersonalizationCatalogReader {
     fun findPublished(
-        type: PersonalizationType?,
+        type: PersonalizationType,
         currency: Currency?,
         page: PageQuery,
     ): PageResult<Personalization>

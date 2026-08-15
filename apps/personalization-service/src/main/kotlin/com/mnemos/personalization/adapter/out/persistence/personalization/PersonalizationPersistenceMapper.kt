@@ -1,8 +1,8 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization
 
 import com.mnemos.common.core.model.id.UserId
-import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDocument
-import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDomain
+import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDocument
+import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDomain
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice

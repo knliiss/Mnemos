@@ -14,7 +14,7 @@ import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.stereotype.Service
 
 data class ListPersonalizationsQuery(
-    val type: PersonalizationType?,
+    val type: PersonalizationType,
     val currency: Currency?,
     val page: PageQuery,
 )

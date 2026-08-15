@@ -1,7 +1,7 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization
 
-import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDocument
-import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDomain
+import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDocument
+import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDomain
 import com.mnemos.personalization.domain.personalization.model.EffectType
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
