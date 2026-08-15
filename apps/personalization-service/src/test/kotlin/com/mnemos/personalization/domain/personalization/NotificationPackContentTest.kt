@@ -79,6 +79,23 @@ class NotificationPackContentTest {
         }
     }
 
+    @Test
+    fun `notification pack rejects emoji longer than sixteen characters`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.GLOBAL] =
+            templates.getValue(NotificationTemplateKey.GLOBAL).copy(
+                emoji = "x".repeat(17),
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
     private fun validTemplates(): Map<NotificationTemplateKey, NotificationTemplate> =
         NotificationTemplateKey.entries.associateWith { key ->
             NotificationTemplate(
