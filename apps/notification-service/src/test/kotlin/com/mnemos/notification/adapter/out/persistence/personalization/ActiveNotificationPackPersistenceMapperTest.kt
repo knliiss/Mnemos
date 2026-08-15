@@ -1,6 +1,7 @@
 package com.mnemos.notification.adapter.out.persistence.personalization
 
 import com.mnemos.notification.adapter.out.persistence.personalization.ActiveNotificationPackPersistenceMapper.toDomainOrNull
+import com.mnemos.notification.application.notification.model.NotificationType
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -27,12 +28,22 @@ class ActiveNotificationPackPersistenceMapperTest {
 
     @Test
     fun `invalid persisted template document is rejected`() {
+        val templates =
+            NotificationType.entries.associate { type ->
+                type.name to validTemplateDocument()
+            }.toMutableMap()
+
+        templates[NotificationType.RAID.name] =
+            validTemplateDocument().toMutableMap().apply {
+                this["soloTitle"] = 123
+            }
+
         val entity =
             ActiveNotificationPackEntity(
                 userId = USER_ID,
                 personalizationId = PERSONALIZATION_ID,
                 mixedAggregateTitle = "Events",
-                templates = mapOf("RAID" to mapOf("soloTitle" to 123)),
+                templates = templates,
                 lastRevision = 1,
                 lastEventId = EVENT_ID,
                 lastEventAt = Instant.parse("2026-08-15T19:40:00Z"),
@@ -52,6 +63,15 @@ class ActiveNotificationPackPersistenceMapperTest {
             lastRevision = 0,
             lastEventId = ZERO_ID,
             lastEventAt = Instant.EPOCH,
+        )
+
+    private fun validTemplateDocument(): Map<String, Any?> =
+        mapOf(
+            "emoji" to null,
+            "soloTitle" to "Title",
+            "soloBody" to "Body",
+            "compact" to "Compact",
+            "aggregateTitle" to "Events",
         )
 
     private companion object {
