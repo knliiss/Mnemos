@@ -10,6 +10,8 @@ interface BadgeRepository {
 
     fun findById(id: BadgeId): Badge?
 
+    fun findByIdForUpdate(id: BadgeId): Badge? = findById(id)
+
     fun findByCode(code: String): Badge?
 
     fun saveUserBadge(userBadge: UserBadge): UserBadge
