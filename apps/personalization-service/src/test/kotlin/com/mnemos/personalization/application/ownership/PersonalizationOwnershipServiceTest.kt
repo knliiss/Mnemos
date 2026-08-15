@@ -11,6 +11,8 @@ import com.mnemos.personalization.application.security.port.out.CurrentPersonali
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
+import com.mnemos.personalization.domain.personalization.model.GradientStop
+import com.mnemos.personalization.domain.personalization.model.HexColor
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.Personalization
@@ -20,10 +22,12 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationPr
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
+import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.dao.DataIntegrityViolationException
 import java.time.Clock
 import java.time.Instant
@@ -44,6 +48,38 @@ class PersonalizationOwnershipServiceTest {
                 accountAccess = UnusedAccountAccess(),
                 personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = ownershipRepository,
+                purchaseOperationRepository = mock<PurchaseOperationRepository>(),
+                notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
+                clock = clock,
+            )
+
+        assertThrows(PersonalizationOwnershipConflictException::class.java) {
+            service.activate(personalization.id)
+        }
+    }
+
+    @Test
+    fun `creator claim is rejected while account purchase is pending`() {
+        val creatorUserId = UserId.generate()
+        val accountId = AccountId.generate()
+        val personalization = publishedNickStyle(creatorUserId)
+        val owner = PersonalizationOwner.Account(accountId)
+        val purchaseOperationRepository = mock<PurchaseOperationRepository>()
+
+        whenever(
+            purchaseOperationRepository.existsPending(
+                owner = owner,
+                personalizationId = personalization.id,
+            ),
+        ).thenReturn(true)
+
+        val service =
+            PersonalizationOwnershipService(
+                actorProvider = FixedActorProvider(creatorUserId),
+                accountAccess = FixedAccountAccess(accountId),
+                personalizationRepository = FixedPersonalizationRepository(personalization),
+                ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                purchaseOperationRepository = purchaseOperationRepository,
                 notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
                 clock = clock,
             )
@@ -65,6 +101,43 @@ class PersonalizationOwnershipServiceTest {
                 type = PersonalizationType.NOTIFICATION_PACK,
                 name = "Creator Pack",
                 content = notificationPack(),
+                price = price,
+                now = now.minusSeconds(60),
+            )
+
+        personalization.submitForReview(now.minusSeconds(50))
+        personalization.approve(
+            moderatedPrice = price,
+            now = now.minusSeconds(40),
+        )
+        personalization.publish(now.minusSeconds(30))
+
+        return personalization
+    }
+
+    private fun publishedNickStyle(userId: UserId): Personalization {
+        val price = PersonalizationPrice(Currency.COIN, 500)
+        val personalization =
+            Personalization.createCreatorDraft(
+                creatorUserId = userId,
+                type = PersonalizationType.NICK_STYLE,
+                name = "Creator Nick Style",
+                content =
+                    PersonalizationContent.NickStyle(
+                        colors =
+                            listOf(
+                                GradientStop(
+                                    color = HexColor("#F5FBFF"),
+                                    position = 0,
+                                ),
+                                GradientStop(
+                                    color = HexColor("#8ACBFF"),
+                                    position = 100,
+                                ),
+                            ),
+                        angleDegrees = 90,
+                        glow = null,
+                    ),
                 price = price,
                 now = now.minusSeconds(60),
             )
@@ -117,6 +190,18 @@ class PersonalizationOwnershipServiceTest {
         ): Boolean = error("Account access must not be used for user-target personalization")
     }
 
+    private class FixedAccountAccess(
+        private val accountId: AccountId,
+    ) : PersonalizationAccountAccess {
+        override fun requireActiveAccount(userId: UserId): AccountId = accountId
+
+        override fun hasPermission(
+            accountId: AccountId,
+            userId: UserId,
+            permission: RolePermission,
+        ): Boolean = permission == RolePermission.APPLY_PERSONALIZATIONS
+    }
+
     private class FixedPersonalizationRepository(
         private val personalization: Personalization,
     ) : PersonalizationRepository {
@@ -133,6 +218,32 @@ class PersonalizationOwnershipServiceTest {
             type: PersonalizationType?,
             currency: Currency?,
         ): List<Personalization> = emptyList()
+    }
+
+    private class EmptyOwnedPersonalizationRepository : OwnedPersonalizationRepository {
+        override fun save(ownership: OwnedPersonalization): OwnedPersonalization = ownership
+
+        override fun exists(
+            owner: PersonalizationOwner,
+            personalizationId: PersonalizationId,
+        ): Boolean = false
+
+        override fun find(
+            owner: PersonalizationOwner,
+            personalizationId: PersonalizationId,
+        ): OwnedPersonalization? = null
+
+        override fun findActive(
+            owner: PersonalizationOwner,
+            type: PersonalizationType,
+        ): OwnedPersonalization? = null
+
+        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
+
+        override fun deactivateActive(
+            owner: PersonalizationOwner,
+            type: PersonalizationType,
+        ) = Unit
     }
 
     private class ConflictingOwnedPersonalizationRepository : OwnedPersonalizationRepository {
