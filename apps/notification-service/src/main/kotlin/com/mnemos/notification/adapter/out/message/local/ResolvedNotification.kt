@@ -7,4 +7,5 @@ data class ResolvedNotification(
     val soloTitle: String,
     val soloBody: String,
     val compact: String,
+    val aggregateTitle: String? = null,
 )

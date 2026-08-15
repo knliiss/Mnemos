@@ -5,6 +5,7 @@ import com.mnemos.event.contracts.EventEventContract
 import com.mnemos.messaging.kafka.config.KafkaTopicDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaDeadLetterTopic
 import com.mnemos.moderation.contracts.ModerationEventContract
+import com.mnemos.personalization.contracts.PersonalizationEventContract
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -54,6 +55,22 @@ class NotificationKafkaTopicConfiguration {
     fun moderationEventsDeadLetterTopic(): KafkaTopicDefinition =
         KafkaTopicDefinition(
             name = KafkaDeadLetterTopic.name(ModerationEventContract.TOPIC),
+            partitions = 3,
+            replicationFactor = 1,
+        )
+
+    @Bean
+    fun personalizationEventsTopic(): KafkaTopicDefinition =
+        KafkaTopicDefinition(
+            name = PersonalizationEventContract.TOPIC,
+            partitions = 3,
+            replicationFactor = 1,
+        )
+
+    @Bean
+    fun personalizationEventsDeadLetterTopic(): KafkaTopicDefinition =
+        KafkaTopicDefinition(
+            name = KafkaDeadLetterTopic.name(PersonalizationEventContract.TOPIC),
             partitions = 3,
             replicationFactor = 1,
         )

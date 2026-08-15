@@ -23,6 +23,13 @@ class PersonalizationIntegrationEventConfiguration {
                         aggregateType = PersonalizationAggregateType.PURCHASE_OPERATION,
                     )
 
+                PersonalizationEventType.NOTIFICATION_PACK_SELECTION_CHANGED ->
+                    IntegrationEventRoute(
+                        topic = PersonalizationEventContract.TOPIC,
+                        version = PersonalizationEventContract.VERSION,
+                        aggregateType = PersonalizationAggregateType.USER_NOTIFICATION_PACK_SELECTION,
+                    )
+
                 WalletCommandType.CREATE_TRANSACTION ->
                     IntegrationEventRoute(
                         topic = WalletCommandContract.TOPIC,

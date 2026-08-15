@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:moderation-contracts"))
     implementation(project(":contracts:bet-contracts"))
-    implementation(project(":contracts:moderation-contracts"))
+    implementation(project(":contracts:personalization-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")

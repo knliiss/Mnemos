@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.exception.ActiveAccountRequiredException
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
+import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
@@ -15,6 +16,7 @@ import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
+import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
@@ -27,6 +29,7 @@ class PersonalizationOwnershipService(
     private val accountAccess: PersonalizationAccountAccess,
     private val personalizationRepository: PersonalizationRepository,
     private val ownershipRepository: OwnedPersonalizationRepository,
+    private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val clock: Clock,
 ) {
     @Transactional
@@ -60,8 +63,16 @@ class PersonalizationOwnershipService(
         )
 
         ownership.activate()
+        val saved = ownershipRepository.save(ownership)
 
-        return ownershipRepository.save(ownership)
+        if (owner is PersonalizationOwner.User && personalization.type == PersonalizationType.NOTIFICATION_PACK) {
+            notificationPackSelectionEventPublisher.publishSelected(
+                userId = actor.userId,
+                personalization = personalization,
+            )
+        }
+
+        return saved
     }
 
     @Transactional
@@ -72,10 +83,20 @@ class PersonalizationOwnershipService(
         val ownership =
             ownershipRepository.find(owner, personalization.id)
                 ?: throw PersonalizationNotOwnedException()
+        val wasActive = ownership.active
 
         ownership.deactivate()
+        val saved = ownershipRepository.save(ownership)
 
-        return ownershipRepository.save(ownership)
+        if (
+            wasActive &&
+            owner is PersonalizationOwner.User &&
+            personalization.type == PersonalizationType.NOTIFICATION_PACK
+        ) {
+            notificationPackSelectionEventPublisher.publishCleared(actor.userId)
+        }
+
+        return saved
     }
 
     fun listMine(): List<OwnedPersonalization> {

@@ -6,6 +6,8 @@ import com.mnemos.notification.application.notification.delivery.model.RenderedM
 import com.mnemos.notification.application.notification.delivery.port.out.NotificationMessageRenderer
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationType
+import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
+import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Component
 )
 class LocalNotificationMessageRenderer(
     private val resolver: StandardMessageResolver,
+    private val personalizedResolver: PersonalizedMessageResolver,
+    private val activeNotificationPackRepository: ActiveNotificationPackRepository,
 ) : NotificationMessageRenderer {
     override fun renderNotification(
         userId: UserId,
@@ -26,14 +30,23 @@ class LocalNotificationMessageRenderer(
     ): RenderedMessage {
         require(items.isNotEmpty())
 
-        val resolved = items.map(resolver::resolve)
+        val pack = activeNotificationPackRepository.find(userId)
+        val resolved =
+            if (pack == null) {
+                items.map(resolver::resolve)
+            } else {
+                items.map { item -> personalizedResolver.resolve(item, pack) }
+            }
 
         return RenderedMessage(
             text =
                 if (resolved.size == 1) {
                     renderSolo(resolved.single())
                 } else {
-                    renderAggregated(resolved)
+                    renderAggregated(
+                        notifications = resolved,
+                        pack = pack,
+                    )
                 },
         )
     }
@@ -51,8 +64,11 @@ class LocalNotificationMessageRenderer(
 
     private fun renderSolo(notification: ResolvedNotification): String = "${notification.soloTitle}\n${notification.soloBody}"
 
-    private fun renderAggregated(notifications: List<ResolvedNotification>): String {
-        val header = resolveAggregateHeader(notifications)
+    private fun renderAggregated(
+        notifications: List<ResolvedNotification>,
+        pack: ActiveNotificationPack?,
+    ): String {
+        val header = resolveAggregateHeader(notifications, pack)
 
         return buildString {
             append(header)
@@ -70,8 +86,19 @@ class LocalNotificationMessageRenderer(
         }
     }
 
-    private fun resolveAggregateHeader(notifications: List<ResolvedNotification>): String {
+    private fun resolveAggregateHeader(
+        notifications: List<ResolvedNotification>,
+        pack: ActiveNotificationPack?,
+    ): String {
         val types = notifications.map { it.type }.toSet()
+
+        if (pack != null) {
+            return if (types.size > 1) {
+                pack.mixedAggregateTitle
+            } else {
+                requireNotNull(notifications.first().aggregateTitle)
+            }
+        }
 
         if (types.size > 1) {
             return "🔔 <b>Сразу несколько событий</b>"
