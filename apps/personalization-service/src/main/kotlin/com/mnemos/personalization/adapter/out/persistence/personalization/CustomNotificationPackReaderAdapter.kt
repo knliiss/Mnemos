@@ -1,10 +1,10 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization
 
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationPersistenceMapper.toDomain
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.personalization.custom.port.out.CustomNotificationPackReader
-import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
