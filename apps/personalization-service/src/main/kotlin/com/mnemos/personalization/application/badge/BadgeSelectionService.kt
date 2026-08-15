@@ -25,7 +25,9 @@ class BadgeSelectionService(
         val actor = actorProvider.requireActor()
         val badge = repository.findById(badgeId) ?: throw BadgeNotOwnedException()
         val userBadge =
-            repository.findUserBadge(actor.userId, badgeId)
+            repository
+                .findUserBadgesForUpdate(actor.userId)
+                .firstOrNull { it.badgeId == badgeId }
                 ?: throw BadgeNotOwnedException()
 
         repository.deactivateActiveUserBadge(actor.userId)
