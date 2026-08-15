@@ -54,12 +54,19 @@ class PurchasePersonalizationService(
 
                 PersonalizationTarget.ACCOUNT -> {
                     val accountId = accountAccess.requireActiveAccount(actor.userId)
-                    val granted =
-                        accountAccess.hasPermission(
-                            accountId = accountId,
-                            userId = actor.userId,
-                            permission = RolePermission.BUY_PERSONALIZATIONS,
+                    val requiredPermissions =
+                        setOf(
+                            RolePermission.BUY_PERSONALIZATIONS,
+                            RolePermission.SPEND_WALLET_FUNDS,
                         )
+                    val granted =
+                        requiredPermissions.all { permission ->
+                            accountAccess.hasPermission(
+                                accountId = accountId,
+                                userId = actor.userId,
+                                permission = permission,
+                            )
+                        }
 
                     if (!granted) {
                         throw PersonalizationAccessDeniedException()

@@ -8,5 +8,17 @@ interface AccountProvider {
 
     fun requireActiveAccount(permission: RolePermission): AccountSnapshot = requireActiveAccount()
 
+    fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot {
+        require(permissions.isNotEmpty()) { "At least one account permission is required" }
+
+        var account: AccountSnapshot? = null
+
+        permissions.forEach { permission ->
+            account = requireActiveAccount(permission)
+        }
+
+        return requireNotNull(account)
+    }
+
     fun findByNickname(nickname: String): AccountSnapshot?
 }

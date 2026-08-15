@@ -21,23 +21,30 @@ class AccountProviderAdapter(
         return resolveActiveAccount(userId)
     }
 
-    override fun requireActiveAccount(permission: RolePermission): AccountSnapshot {
+    override fun requireActiveAccount(permission: RolePermission): AccountSnapshot =
+        requireActiveAccount(setOf(permission))
+
+    override fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot {
+        require(permissions.isNotEmpty()) { "At least one account permission is required" }
+
         val userId = currentUser.requireUserId()
         val account = resolveActiveAccount(userId)
-        val granted =
-            client.checkPermission(
-                accountId = account.id.id,
-                request =
-                    CheckAccountPermissionRequest(
-                        userId = userId,
-                        permission = permission,
-                    ),
-            ).granted
+        val missingPermissions =
+            permissions.filterNot { permission ->
+                client.checkPermission(
+                    accountId = account.id.id,
+                    request =
+                        CheckAccountPermissionRequest(
+                            userId = userId,
+                            permission = permission,
+                        ),
+                ).granted
+            }
 
-        if (!granted) {
+        if (missingPermissions.isNotEmpty()) {
             throw AccountPermissionDeniedException(
                 accountId = account.id,
-                requiredPermissions = setOf(permission.name),
+                requiredPermissions = permissions.mapTo(mutableSetOf()) { it.name },
             )
         }
 
