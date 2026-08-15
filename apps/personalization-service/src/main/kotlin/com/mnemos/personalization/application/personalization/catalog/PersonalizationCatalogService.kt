@@ -2,6 +2,7 @@ package com.mnemos.personalization.application.personalization.catalog
 
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
+import com.mnemos.personalization.application.personalization.catalog.port.out.PersonalizationCatalogReader
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
@@ -21,9 +22,10 @@ data class ListPersonalizationsQuery(
 @Service
 class PersonalizationCatalogService(
     private val repository: PersonalizationRepository,
+    private val catalogReader: PersonalizationCatalogReader,
 ) {
     fun list(query: ListPersonalizationsQuery): PageResult<Personalization> =
-        repository.findPublished(
+        catalogReader.findPublished(
             type = query.type,
             currency = query.currency,
             page = query.page,
