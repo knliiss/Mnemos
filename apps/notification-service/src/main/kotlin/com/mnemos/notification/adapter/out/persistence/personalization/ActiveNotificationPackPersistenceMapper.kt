@@ -11,19 +11,38 @@ object ActiveNotificationPackPersistenceMapper {
             .mapValues { (_, template) -> template.toDocument() }
 
     fun ActiveNotificationPackEntity.toDomainOrNull(): ActiveNotificationPack? {
-        val personalizationId = personalizationId ?: return null
-        val mixedAggregateTitle = mixedAggregateTitle ?: return null
-        val templates = templates ?: return null
+        val snapshotFields =
+            listOf(
+                personalizationId,
+                mixedAggregateTitle,
+                templates,
+            )
 
-        return ActiveNotificationPack(
-            userId = UserId(userId),
-            personalizationId = personalizationId,
-            mixedAggregateTitle = mixedAggregateTitle,
-            templates =
-                templates.map { (rawType, rawTemplate) ->
-                    NotificationType.valueOf(rawType) to requireDocument(rawTemplate).toDomain()
-                }.toMap(),
-        )
+        if (snapshotFields.all { it == null }) {
+            return null
+        }
+
+        check(snapshotFields.all { it != null }) {
+            "Persisted notification pack projection for user $userId contains a partial snapshot"
+        }
+
+        return try {
+            ActiveNotificationPack(
+                userId = UserId(userId),
+                personalizationId = requireNotNull(personalizationId),
+                mixedAggregateTitle = requireNotNull(mixedAggregateTitle),
+                templates =
+                    requireNotNull(templates)
+                        .map { (rawType, rawTemplate) ->
+                            NotificationType.valueOf(rawType) to requireDocument(rawTemplate).toDomain()
+                        }.toMap(),
+            )
+        } catch (exception: IllegalArgumentException) {
+            throw IllegalStateException(
+                "Persisted notification pack projection for user $userId contains invalid state",
+                exception,
+            )
+        }
     }
 
     private fun NotificationPackTemplate.toDocument(): Map<String, Any?> =
