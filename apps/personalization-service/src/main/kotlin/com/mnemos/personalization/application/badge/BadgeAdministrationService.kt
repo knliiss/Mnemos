@@ -80,6 +80,7 @@ class BadgeAdministrationService(
         badgeId: BadgeId,
     ) {
         requireAdministrator()
+        requireBadgeForUpdate(badgeId)
 
         if (repository.findUserBadgeForUpdate(userId, badgeId) == null) {
             throw BadgeNotFoundException()
