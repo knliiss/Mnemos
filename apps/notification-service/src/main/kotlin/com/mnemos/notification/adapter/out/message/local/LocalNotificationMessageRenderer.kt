@@ -9,6 +9,7 @@ import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
@@ -30,22 +31,17 @@ class LocalNotificationMessageRenderer(
     ): RenderedMessage {
         require(items.isNotEmpty())
 
-        val pack = activeNotificationPackRepository.find(userId)
-        val resolved =
-            if (pack == null) {
-                items.map(resolver::resolve)
-            } else {
-                items.map { item -> personalizedResolver.resolve(item, pack) }
-            }
+        val activePack = activeNotificationPackRepository.find(userId)
+        val resolution = resolveNotifications(userId, items, activePack)
 
         return RenderedMessage(
             text =
-                if (resolved.size == 1) {
-                    renderSolo(resolved.single())
+                if (resolution.notifications.size == 1) {
+                    renderSolo(resolution.notifications.single())
                 } else {
                     renderAggregated(
-                        notifications = resolved,
-                        pack = pack,
+                        notifications = resolution.notifications,
+                        pack = resolution.pack,
                     )
                 },
         )
@@ -62,7 +58,40 @@ class LocalNotificationMessageRenderer(
                 ),
         )
 
-    private fun renderSolo(notification: ResolvedNotification): String = "${notification.soloTitle}\n${notification.soloBody}"
+    private fun resolveNotifications(
+        userId: UserId,
+        items: List<NotificationItem>,
+        pack: ActiveNotificationPack?,
+    ): NotificationResolution {
+        if (pack == null) {
+            return NotificationResolution(
+                notifications = items.map(resolver::resolve),
+                pack = null,
+            )
+        }
+
+        return try {
+            NotificationResolution(
+                notifications = items.map { item -> personalizedResolver.resolve(item, pack) },
+                pack = pack,
+            )
+        } catch (exception: RuntimeException) {
+            logger.warn(
+                "Failed to render active notification pack, falling back to standard templates: userId={}, personalizationId={}",
+                userId.id,
+                pack.personalizationId,
+                exception,
+            )
+
+            NotificationResolution(
+                notifications = items.map(resolver::resolve),
+                pack = null,
+            )
+        }
+    }
+
+    private fun renderSolo(notification: ResolvedNotification): String =
+        "${notification.soloTitle}\n${notification.soloBody}"
 
     private fun renderAggregated(
         notifications: List<ResolvedNotification>,
@@ -122,8 +151,15 @@ class LocalNotificationMessageRenderer(
         }
     }
 
+    private data class NotificationResolution(
+        val notifications: List<ResolvedNotification>,
+        val pack: ActiveNotificationPack?,
+    )
+
     private companion object {
         const val MAX_MESSAGE_LENGTH = 4096
         const val TRUNCATION_SUFFIX = "\n\n…и ещё несколько событий"
+
+        val logger = LoggerFactory.getLogger(LocalNotificationMessageRenderer::class.java)
     }
 }
