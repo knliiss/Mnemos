@@ -37,6 +37,7 @@ class Personalization(
         requireName(name)
         requireContentMatchesType(type, content)
         requirePrice(type, origin, visibility, price)
+        requireLifecycleState()
     }
 
     fun updateDraft(
@@ -110,7 +111,7 @@ class Personalization(
     ) {
         require(status == PersonalizationStatus.IN_REVIEW) { "Personalization is not in review" }
         require(reason.isNotBlank()) { "Rejection reason cannot be blank" }
-        require(reason.length <= 500) { "Rejection reason is too long" }
+        require(reason.length <= MAX_REJECTION_REASON_LENGTH) { "Rejection reason is too long" }
 
         rejectionReason = reason.trim()
         status = PersonalizationStatus.REJECTED
@@ -195,7 +196,79 @@ class Personalization(
         }
     }
 
+    private fun requireLifecycleState() {
+        if (origin == PersonalizationOrigin.CUSTOM) {
+            require(type == PersonalizationType.NOTIFICATION_PACK) {
+                "Only notification packs can use custom origin"
+            }
+        }
+
+        when (status) {
+            PersonalizationStatus.DRAFT -> {
+                require(origin == PersonalizationOrigin.CREATOR) {
+                    "Draft personalization must use creator origin"
+                }
+                require(visibility == PersonalizationVisibility.PRIVATE) {
+                    "Draft personalization must be private"
+                }
+                require(rejectionReason == null) {
+                    "Draft personalization cannot have a rejection reason"
+                }
+            }
+
+            PersonalizationStatus.PRIVATE -> {
+                require(origin == PersonalizationOrigin.CUSTOM) {
+                    "Private status is reserved for custom personalization"
+                }
+                require(visibility == PersonalizationVisibility.PRIVATE) {
+                    "Private personalization must use private visibility"
+                }
+                require(rejectionReason == null) {
+                    "Private personalization cannot have a rejection reason"
+                }
+            }
+
+            PersonalizationStatus.IN_REVIEW -> {
+                require(visibility == PersonalizationVisibility.PRIVATE) {
+                    "Personalization in review must remain private"
+                }
+                require(rejectionReason == null) {
+                    "Personalization in review cannot have a rejection reason"
+                }
+            }
+
+            PersonalizationStatus.REJECTED -> {
+                require(visibility == PersonalizationVisibility.PRIVATE) {
+                    "Rejected personalization must remain private"
+                }
+                require(!rejectionReason.isNullOrBlank()) {
+                    "Rejected personalization requires a rejection reason"
+                }
+                require(rejectionReason.length <= MAX_REJECTION_REASON_LENGTH) {
+                    "Rejection reason is too long"
+                }
+            }
+
+            PersonalizationStatus.APPROVED,
+            PersonalizationStatus.PUBLISHED,
+            PersonalizationStatus.UNLISTED,
+            -> {
+                require(visibility == PersonalizationVisibility.PUBLIC) {
+                    "Approved marketplace personalization must be public"
+                }
+                require(price != null) {
+                    "Approved marketplace personalization requires a price"
+                }
+                require(rejectionReason == null) {
+                    "Approved marketplace personalization cannot have a rejection reason"
+                }
+            }
+        }
+    }
+
     companion object {
+        private const val MAX_REJECTION_REASON_LENGTH = 500
+
         fun createCreatorDraft(
             creatorUserId: UserId,
             type: PersonalizationType,
