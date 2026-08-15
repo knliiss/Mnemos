@@ -6,19 +6,9 @@ import com.mnemos.common.core.model.permission.RolePermission
 interface AccountProvider {
     fun requireActiveAccount(): AccountSnapshot
 
-    fun requireActiveAccount(permission: RolePermission): AccountSnapshot = requireActiveAccount()
+    fun requireActiveAccount(permission: RolePermission): AccountSnapshot
 
-    fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot {
-        require(permissions.isNotEmpty()) { "At least one account permission is required" }
-
-        var account: AccountSnapshot? = null
-
-        permissions.forEach { permission ->
-            account = requireActiveAccount(permission)
-        }
-
-        return requireNotNull(account)
-    }
+    fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot
 
     fun findByNickname(nickname: String): AccountSnapshot?
 }

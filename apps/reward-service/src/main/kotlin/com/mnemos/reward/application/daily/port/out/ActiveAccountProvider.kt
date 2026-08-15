@@ -9,8 +9,8 @@ data class ActiveAccountContext(
     val userId: UserId,
 )
 
-fun interface ActiveAccountProvider {
+interface ActiveAccountProvider {
     fun getActiveAccountContext(): ActiveAccountContext
 
-    fun getActiveAccountContext(permission: RolePermission): ActiveAccountContext = getActiveAccountContext()
+    fun getActiveAccountContext(permission: RolePermission): ActiveAccountContext
 }
