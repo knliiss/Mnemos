@@ -7,8 +7,7 @@ import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
-import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
-import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.repository.CustomNotificationPackFreeGrantRepository
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -29,20 +28,20 @@ class CreateCustomNotificationPackService(
     private val actorProvider: CurrentPersonalizationActorProvider,
     private val personalizationRepository: PersonalizationRepository,
     private val ownershipRepository: OwnedPersonalizationRepository,
+    private val freeGrantRepository: CustomNotificationPackFreeGrantRepository,
     private val pricePolicy: PersonalizationPricePolicy,
     private val clock: Clock,
 ) {
     @Transactional
     fun execute(command: CreateCustomNotificationPackCommand): CreateCustomNotificationPackResult {
         val actor = actorProvider.requireActor()
-        val firstCreatorCustomPack =
+        val now = clock.instant()
+        val grantedForFree =
             actor.canCreateMarketplacePersonalization() &&
-                personalizationRepository
-                    .findByCreatorUserId(actor.userId)
-                    .none { personalization ->
-                        personalization.origin == PersonalizationOrigin.CUSTOM &&
-                            personalization.type == PersonalizationType.NOTIFICATION_PACK
-                    }
+                freeGrantRepository.claim(
+                    userId = actor.userId,
+                    claimedAt = now,
+                )
 
         val personalization =
             Personalization.createCustomNotificationPack(
@@ -50,23 +49,23 @@ class CreateCustomNotificationPackService(
                 name = command.name,
                 content = command.content,
                 price =
-                    if (firstCreatorCustomPack) {
+                    if (grantedForFree) {
                         null
                     } else {
                         pricePolicy.customNotificationPackPurchasePrice()
                     },
-                now = clock.instant(),
+                now = now,
             )
 
         val saved = personalizationRepository.save(personalization)
 
-        if (firstCreatorCustomPack) {
+        if (grantedForFree) {
             ownershipRepository.save(
                 OwnedPersonalization(
                     owner = PersonalizationOwner.User(actor.userId),
                     personalizationId = saved.id,
                     type = saved.type,
-                    acquiredAt = clock.instant(),
+                    acquiredAt = now,
                     active = false,
                 ),
             )
@@ -74,7 +73,7 @@ class CreateCustomNotificationPackService(
 
         return CreateCustomNotificationPackResult(
             personalization = saved,
-            grantedForFree = firstCreatorCustomPack,
+            grantedForFree = grantedForFree,
         )
     }
 }
