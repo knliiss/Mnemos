@@ -18,6 +18,7 @@ import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -99,7 +100,7 @@ class PurchasePersonalizationService(
                 now = clock.instant(),
             )
 
-        val saved = purchaseOperationRepository.save(operation)
+        val saved = savePending(operation)
 
         wallet.requestDebit(saved)
 
@@ -107,5 +108,25 @@ class PurchasePersonalizationService(
             personalizationId = personalization.id,
             operationId = saved.id,
         )
+    }
+
+    private fun savePending(operation: PurchaseOperation): PurchaseOperation =
+        try {
+            purchaseOperationRepository.save(operation)
+        } catch (exception: DataIntegrityViolationException) {
+            if (exception.isPendingPurchaseConflict()) {
+                throw PersonalizationPurchaseInProgressException()
+            }
+
+            throw exception
+        }
+
+    private fun DataIntegrityViolationException.isPendingPurchaseConflict(): Boolean =
+        generateSequence<Throwable>(this) { throwable -> throwable.cause }
+            .mapNotNull(Throwable::message)
+            .any { message -> PENDING_PURCHASE_CONSTRAINT in message }
+
+    private companion object {
+        const val PENDING_PURCHASE_CONSTRAINT = "uq_purchase_operations_pending_owner_item"
     }
 }

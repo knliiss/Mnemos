@@ -17,7 +17,7 @@ class PurchaseOperationRepositoryAdapter(
     private val repository: PurchaseOperationJpaRepository,
 ) : PurchaseOperationRepository {
     override fun save(operation: PurchaseOperation): PurchaseOperation =
-        repository.save(operation.toEntity()).toDomain()
+        repository.saveAndFlush(operation.toEntity()).toDomain()
 
     override fun findById(id: PurchaseOperationId): PurchaseOperation? =
         repository.findById(id.id).orElse(null)?.toDomain()
