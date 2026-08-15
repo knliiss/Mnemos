@@ -1,5 +1,6 @@
 package com.mnemos.gateway.forwarding
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
 import org.springframework.core.Ordered
@@ -11,7 +12,16 @@ import java.net.InetSocketAddress
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 50)
-class RealtimeClientIpGlobalFilter : GlobalFilter {
+class RealtimeClientIpGlobalFilter(
+    @Value("\${mnemos.gateway.realtime-forwarding-token}")
+    private val forwardingToken: String,
+) : GlobalFilter {
+    init {
+        require(forwardingToken.isNotBlank()) {
+            "Realtime forwarding token must not be blank"
+        }
+    }
+
     override fun filter(
         exchange: ServerWebExchange,
         chain: GatewayFilterChain,
@@ -23,9 +33,11 @@ class RealtimeClientIpGlobalFilter : GlobalFilter {
                 .mutate()
                 .headers { headers ->
                     headers.remove(INTERNAL_CLIENT_IP_HEADER)
+                    headers.remove(INTERNAL_FORWARDING_TOKEN_HEADER)
 
                     if (realtimeRequest) {
                         headers.set(INTERNAL_CLIENT_IP_HEADER, clientIp)
+                        headers.set(INTERNAL_FORWARDING_TOKEN_HEADER, forwardingToken)
                     }
                 }.build()
 
@@ -40,6 +52,7 @@ class RealtimeClientIpGlobalFilter : GlobalFilter {
     private companion object {
         const val REALTIME_API_PREFIX = "/api/v1/realtime/"
         const val INTERNAL_CLIENT_IP_HEADER = "X-Mnemos-Client-IP"
+        const val INTERNAL_FORWARDING_TOKEN_HEADER = "X-Mnemos-Forwarding-Token"
         const val UNKNOWN_ADDRESS = "unknown"
     }
 }

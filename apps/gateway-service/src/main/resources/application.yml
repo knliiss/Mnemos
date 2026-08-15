@@ -93,6 +93,8 @@ mnemos:
     manage-topics: ${MNEMOS_KAFKA_MANAGE_TOPICS:true}
 
   gateway:
+    realtime-forwarding-token: ${MNEMOS_REALTIME_FORWARDING_TOKEN}
+
     moderation:
       url: ${MODERATION_SERVICE_URL:http://localhost:8087}
       api-key: ${GATEWAY_MODERATION_API_KEY}
