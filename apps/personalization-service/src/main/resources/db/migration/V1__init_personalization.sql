@@ -14,6 +14,8 @@ CREATE TABLE personalizations
     created_at       TIMESTAMPTZ  NOT NULL,
     updated_at       TIMESTAMPTZ  NOT NULL,
 
+    CONSTRAINT uq_personalizations_id_type
+        UNIQUE (id, type),
     CONSTRAINT ck_personalizations_type
         CHECK (type IN (
             'NOTIFICATION_PACK',
@@ -133,13 +135,16 @@ CREATE TABLE owned_personalizations
     id                   UUID PRIMARY KEY,
     owner_type           VARCHAR(16) NOT NULL,
     owner_id             UUID        NOT NULL,
-    personalization_id   UUID        NOT NULL REFERENCES personalizations(id),
+    personalization_id   UUID        NOT NULL,
     personalization_type VARCHAR(32) NOT NULL,
     acquired_at          TIMESTAMPTZ NOT NULL,
     active               BOOLEAN     NOT NULL DEFAULT FALSE,
 
     CONSTRAINT uq_owned_personalizations_owner_item
         UNIQUE (owner_type, owner_id, personalization_id),
+    CONSTRAINT fk_owned_personalizations_personalization
+        FOREIGN KEY (personalization_id, personalization_type)
+            REFERENCES personalizations (id, type),
     CONSTRAINT ck_owned_personalizations_owner_type
         CHECK (owner_type IN ('USER', 'ACCOUNT')),
     CONSTRAINT ck_owned_personalizations_type
