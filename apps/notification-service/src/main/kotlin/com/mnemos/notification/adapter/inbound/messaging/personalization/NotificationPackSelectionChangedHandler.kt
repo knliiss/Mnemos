@@ -40,6 +40,18 @@ class NotificationPackSelectionChangedHandler(
                 )
             }
 
+            if (envelope.metadata.actorUserId != envelope.payload.userId) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selection actor must match userId",
+                )
+            }
+
+            if (envelope.occurredAt != envelope.payload.occurredAt) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selection occurredAt must match envelope occurredAt",
+                )
+            }
+
             val hasPersonalization = envelope.payload.personalizationId != null
             val hasPack = envelope.payload.pack != null
 
