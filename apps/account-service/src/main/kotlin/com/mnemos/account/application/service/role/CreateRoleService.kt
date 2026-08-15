@@ -1,6 +1,7 @@
 package com.mnemos.account.application.service.role
 
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
+import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
 import com.mnemos.account.application.query.account.role.toView
 import com.mnemos.account.domain.exception.account.AccountNotFoundException
@@ -20,6 +21,7 @@ class CreateRoleService(
     private val roleRepository: RoleRepository,
     private val accountRepository: AccountRepository,
     private val accountContextProvider: ActiveAccountContextProvider,
+    private val roleAccessGuard: RoleAccessGuard,
 ) {
     private val basePermissions =
         setOf(
@@ -48,6 +50,11 @@ class CreateRoleService(
             permissions
                 .ifEmpty { basePermissions }
                 .toMutableSet()
+
+        roleAccessGuard.requireCanGrantPermissions(
+            context = context,
+            permissions = finalPermissions,
+        )
 
         val role =
             Role.create(

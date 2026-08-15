@@ -13,12 +13,14 @@ import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.permission.RolePermission
 import org.springframework.stereotype.Component
 
 @Component
 class RoleAccessGuard(
     private val roleRepository: RoleRepository,
     private val accountMemberRepository: AccountMemberRepository,
+    private val rolePermissionGrantPolicy: RolePermissionGrantPolicy,
 ) {
     fun requireCanManageRole(
         context: ActiveAccountContext,
@@ -56,7 +58,166 @@ class RoleAccessGuard(
         )
     }
 
-    fun requireCanChangeRoleAssignment(
+    fun requireCanGrantPermissions(
+        context: ActiveAccountContext,
+        permissions: Collection<RolePermission>,
+    ) {
+        val isOwner = context.account.isOwner(context.member.id)
+        val actorPermissions =
+            if (isOwner) {
+                emptySet()
+            } else {
+                accountMemberRepository.findPermissions(context.member.id)
+            }
+
+        rolePermissionGrantPolicy.requireAllowed(
+            accountId = context.account.id,
+            isOwner = isOwner,
+            actorPermissions = actorPermissions,
+            requestedPermissions = permissions,
+        )
+    }
+
+    fun requireCanAssignRole(
+        context: ActiveAccountContext,
+        targetMemberId: AccountMemberId,
+        roleId: RoleId,
+    ): RoleAssignmentAccess {
+        val access =
+            requireCanChangeRoleAssignment(
+                context = context,
+                targetMemberId = targetMemberId,
+                roleId = roleId,
+            )
+
+        requireCanGrantPermissions(
+            context = context,
+            permissions = access.role.permissions,
+        )
+
+        return access
+    }
+
+    fun requireCanRevokeRole(
+        context: ActiveAccountContext,
+        targetMemberId: AccountMemberId,
+        roleId: RoleId,
+    ): RoleAssignmentAccess =
+        requireCanChangeRoleAssignment(
+            context = context,
+            targetMemberId = targetMemberId,
+            roleId = roleId,
+        )
+
+    fun requireCanKickMember(
+        context: ActiveAccountContext,
+        targetMemberId: AccountMemberId,
+    ): AccountMember {
+        val targetMember =
+            requireMember(
+                accountId = context.account.id,
+                memberId = targetMemberId,
+            )
+
+        if (targetMember.id == context.member.id) {
+            throw RoleAccessDeniedException(
+                accountId = context.account.id,
+                reason = RoleAccessDeniedReason.SELF_KICK,
+            )
+        }
+
+        if (context.account.isOwner(targetMember.id)) {
+            throw RoleAccessDeniedException(
+                accountId = context.account.id,
+                reason = RoleAccessDeniedReason.TARGET_IS_OWNER,
+            )
+        }
+
+        if (context.account.isOwner(context.member.id)) {
+            return targetMember
+        }
+
+        val actorHighestRole = requireActorHighestRole(context)
+        val targetHighestRole =
+            findHighestRole(
+                accountId = context.account.id,
+                memberId = targetMember.id,
+            )
+
+        if (
+            targetHighestRole != null &&
+            actorHighestRole.hierarchyRank >= targetHighestRole.hierarchyRank
+        ) {
+            throw RoleAccessDeniedException(
+                accountId = context.account.id,
+                reason = RoleAccessDeniedReason.TARGET_MEMBER_NOT_LOWER,
+            )
+        }
+
+        return targetMember
+    }
+
+    fun requireCanUseAsBaseRole(
+        context: ActiveAccountContext,
+        roleId: RoleId,
+    ): Role {
+        val role =
+            requireCanManageRole(
+                context = context,
+                roleId = roleId,
+            )
+
+        requireCanGrantPermissions(
+            context = context,
+            permissions = role.permissions,
+        )
+
+        return role
+    }
+
+    fun requireCanUpdateHierarchy(
+        context: ActiveAccountContext,
+        roles: List<Role>,
+        orderedRoleIds: List<RoleId>,
+    ) {
+        requireValidRoleSet(
+            accountId = context.account.id,
+            roles = roles,
+            orderedRoleIds = orderedRoleIds,
+        )
+
+        if (context.account.isOwner(context.member.id)) {
+            return
+        }
+
+        val actorHighestRole = requireActorHighestRole(context)
+        val currentOrder =
+            roles
+                .sortedBy(Role::hierarchyRank)
+                .map(Role::id)
+        val protectedRoleIds =
+            roles
+                .filter { it.hierarchyRank <= actorHighestRole.hierarchyRank }
+                .sortedBy(Role::hierarchyRank)
+                .map(Role::id)
+        val newProtectedOrder = orderedRoleIds.take(protectedRoleIds.size)
+
+        if (newProtectedOrder != protectedRoleIds) {
+            throw RoleAccessDeniedException(
+                accountId = context.account.id,
+                reason = RoleAccessDeniedReason.PROTECTED_HIERARCHY_CHANGED,
+            )
+        }
+
+        if (currentOrder.indexOf(actorHighestRole.id) != orderedRoleIds.indexOf(actorHighestRole.id)) {
+            throw RoleAccessDeniedException(
+                accountId = context.account.id,
+                reason = RoleAccessDeniedReason.OWN_ROLE_POSITION_CHANGED,
+            )
+        }
+    }
+
+    private fun requireCanChangeRoleAssignment(
         context: ActiveAccountContext,
         targetMemberId: AccountMemberId,
         roleId: RoleId,
@@ -66,7 +227,6 @@ class RoleAccessGuard(
                 accountId = context.account.id,
                 memberId = targetMemberId,
             )
-
         val role =
             requireRole(
                 accountId = context.account.id,
@@ -122,109 +282,6 @@ class RoleAccessGuard(
             targetMember = targetMember,
             role = role,
         )
-    }
-
-    fun requireCanKickMember(
-        context: ActiveAccountContext,
-        targetMemberId: AccountMemberId,
-    ): AccountMember {
-        val targetMember =
-            requireMember(
-                accountId = context.account.id,
-                memberId = targetMemberId,
-            )
-
-        if (targetMember.id == context.member.id) {
-            throw RoleAccessDeniedException(
-                accountId = context.account.id,
-                reason = RoleAccessDeniedReason.SELF_KICK,
-            )
-        }
-
-        if (context.account.isOwner(targetMember.id)) {
-            throw RoleAccessDeniedException(
-                accountId = context.account.id,
-                reason = RoleAccessDeniedReason.TARGET_IS_OWNER,
-            )
-        }
-
-        if (context.account.isOwner(context.member.id)) {
-            return targetMember
-        }
-
-        val actorHighestRole = requireActorHighestRole(context)
-
-        val targetHighestRole =
-            findHighestRole(
-                accountId = context.account.id,
-                memberId = targetMember.id,
-            )
-
-        if (
-            targetHighestRole != null &&
-            actorHighestRole.hierarchyRank >= targetHighestRole.hierarchyRank
-        ) {
-            throw RoleAccessDeniedException(
-                accountId = context.account.id,
-                reason = RoleAccessDeniedReason.TARGET_MEMBER_NOT_LOWER,
-            )
-        }
-
-        return targetMember
-    }
-
-    fun requireCanUseAsBaseRole(
-        context: ActiveAccountContext,
-        roleId: RoleId,
-    ): Role =
-        requireCanManageRole(
-            context = context,
-            roleId = roleId,
-        )
-
-    fun requireCanUpdateHierarchy(
-        context: ActiveAccountContext,
-        roles: List<Role>,
-        orderedRoleIds: List<RoleId>,
-    ) {
-        requireValidRoleSet(
-            accountId = context.account.id,
-            roles = roles,
-            orderedRoleIds = orderedRoleIds,
-        )
-
-        if (context.account.isOwner(context.member.id)) {
-            return
-        }
-
-        val actorHighestRole = requireActorHighestRole(context)
-
-        val currentOrder =
-            roles
-                .sortedBy(Role::hierarchyRank)
-                .map(Role::id)
-
-        val protectedRoleIds =
-            roles
-                .filter { it.hierarchyRank <= actorHighestRole.hierarchyRank }
-                .sortedBy(Role::hierarchyRank)
-                .map(Role::id)
-
-        val newProtectedOrder = orderedRoleIds.take(protectedRoleIds.size)
-
-        if (newProtectedOrder != protectedRoleIds) {
-            throw RoleAccessDeniedException(
-                accountId = context.account.id,
-                reason = RoleAccessDeniedReason.PROTECTED_HIERARCHY_CHANGED,
-            )
-        }
-
-        if (currentOrder.indexOf(actorHighestRole.id) != orderedRoleIds.indexOf(actorHighestRole.id)) {
-            throw RoleAccessDeniedException(
-                accountId = context.account.id,
-                reason = RoleAccessDeniedReason.OWN_ROLE_POSITION_CHANGED,
-            )
-        }
     }
 
     private fun requireActorHighestRole(context: ActiveAccountContext): Role =

@@ -17,22 +17,45 @@ class SseConnectionRegistry(
     private val telemetry: RealtimeDeliveryTelemetry,
 ) : ConnectedRealtimeEventSink {
     private val connectionsByUser = ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Connection>>()
+    private var totalConnections = 0
 
+    @Synchronized
     fun register(
         userId: UUID,
         emitter: SseEmitter,
     ): UUID {
-        val connectionId = UUID.randomUUID()
-
         val userConnections =
             connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
 
+        if (userConnections.size >= properties.maxConnectionsPerUser) {
+            if (userConnections.isEmpty()) {
+                connectionsByUser.remove(userId, userConnections)
+            }
+
+            throw RealtimeConnectionLimitExceededException(
+                limit = properties.maxConnectionsPerUser,
+                scope = "USER",
+            )
+        }
+
+        if (totalConnections >= properties.maxConnectionsTotal) {
+            if (userConnections.isEmpty()) {
+                connectionsByUser.remove(userId, userConnections)
+            }
+
+            throw RealtimeConnectionLimitExceededException(
+                limit = properties.maxConnectionsTotal,
+                scope = "INSTANCE",
+            )
+        }
+
+        val connectionId = UUID.randomUUID()
         userConnections[connectionId] =
             Connection(
                 emitter = emitter,
                 deduplicationLimit = properties.deduplicationLimit,
             )
-
+        totalConnections += 1
         telemetry.connectionOpened()
 
         emitter.onCompletion {
@@ -134,6 +157,7 @@ class SseConnectionRegistry(
         )
     }
 
+    @Synchronized
     private fun remove(
         userId: UUID,
         connectionId: UUID,
@@ -141,6 +165,7 @@ class SseConnectionRegistry(
         val connections = connectionsByUser[userId] ?: return
         connections.remove(connectionId) ?: return
 
+        totalConnections -= 1
         telemetry.connectionClosed()
 
         if (connections.isEmpty()) {

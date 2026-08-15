@@ -5,6 +5,8 @@ import com.mnemos.realtime.application.delivery.model.RealtimeEventType
 import com.mnemos.realtime.application.delivery.model.WalletTransactionCompletedPayload
 import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import com.mnemos.realtime.support.RecordingRealtimeEventSink
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doThrow
@@ -62,12 +64,82 @@ class SseConnectionRegistryTest {
             .whenever(emitter)
             .send(any<SseEmitter.SseEventBuilder>())
 
-        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException::class.java) {
+        assertThrows(IllegalStateException::class.java) {
             registry.completeReplay(
                 userId = userId,
                 connectionId = connectionId,
                 replayEvents = listOf(replayedEvent),
             )
+        }
+    }
+
+    @Test
+    fun `rejects connections above per user limit`() {
+        val registry =
+            SseConnectionRegistry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsTotal = 10,
+                    ),
+                telemetry = RecordingRealtimeEventSink(),
+            )
+        val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000025")
+
+        registry.register(userId, mock())
+
+        assertThrows(RealtimeConnectionLimitExceededException::class.java) {
+            registry.register(userId, mock())
+        }
+    }
+
+    @Test
+    fun `rejects connections above instance limit`() {
+        val registry =
+            SseConnectionRegistry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsTotal = 1,
+                    ),
+                telemetry = RecordingRealtimeEventSink(),
+            )
+
+        registry.register(
+            userId = UUID.fromString("019c1129-ef54-7000-8000-000000000026"),
+            emitter = mock(),
+        )
+
+        assertThrows(RealtimeConnectionLimitExceededException::class.java) {
+            registry.register(
+                userId = UUID.fromString("019c1129-ef54-7000-8000-000000000027"),
+                emitter = mock(),
+            )
+        }
+    }
+
+    @Test
+    fun `releases quota when connection is unregistered`() {
+        val registry =
+            SseConnectionRegistry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsTotal = 1,
+                    ),
+                telemetry = RecordingRealtimeEventSink(),
+            )
+        val firstUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000028")
+        val secondUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000029")
+        val connectionId = registry.register(firstUserId, mock())
+
+        registry.unregister(
+            userId = firstUserId,
+            connectionId = connectionId,
+        )
+
+        assertDoesNotThrow {
+            registry.register(secondUserId, mock())
         }
     }
 

@@ -29,7 +29,6 @@ class UpdateRoleService(
         color: String?,
     ): RoleView {
         val context = accountContextProvider.requirePermission(accountId, EDIT_ROLE_DETAILS)
-
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
@@ -46,7 +45,9 @@ class UpdateRoleService(
             updated = role.updateRoleName(AccountRoleName(name)) || updated
         }
 
-        if (!updated) return role.toView()
+        if (!updated) {
+            return role.toView()
+        }
 
         return roleRepository.update(role).toView()
     }
@@ -58,14 +59,20 @@ class UpdateRoleService(
         permissions: Map<RolePermission, Boolean>,
     ): RoleView {
         val context = accountContextProvider.requirePermission(accountId, EDIT_ROLE_PERMISSIONS)
-
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
                 roleId = roleId,
             )
 
-        if (!role.updatePermissions(permissions)) return role.toView()
+        roleAccessGuard.requireCanGrantPermissions(
+            context = context,
+            permissions = permissions.filterValues { enabled -> enabled }.keys,
+        )
+
+        if (!role.updatePermissions(permissions)) {
+            return role.toView()
+        }
 
         return roleRepository.update(role).toView()
     }
