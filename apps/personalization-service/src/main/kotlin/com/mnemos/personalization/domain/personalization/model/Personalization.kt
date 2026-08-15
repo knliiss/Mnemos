@@ -245,10 +245,15 @@ class Personalization(
                 require(visibility == PersonalizationVisibility.PRIVATE) {
                     "Rejected personalization must remain private"
                 }
-                require(!rejectionReason.isNullOrBlank()) {
+
+                val reason = requireNotNull(rejectionReason) {
                     "Rejected personalization requires a rejection reason"
                 }
-                require(rejectionReason.length <= MAX_REJECTION_REASON_LENGTH) {
+
+                require(reason.isNotBlank()) {
+                    "Rejected personalization requires a rejection reason"
+                }
+                require(reason.length <= MAX_REJECTION_REASON_LENGTH) {
                     "Rejection reason is too long"
                 }
             }
