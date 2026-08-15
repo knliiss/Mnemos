@@ -10,6 +10,7 @@ data class CreatorRevenueProperties(
     val coinPerPrime: Long = 100,
     val revenueRetryDelay: Duration = Duration.ofSeconds(30),
     val revenueRetryBatchSize: Int = 100,
+    val retryScanDelayMs: Long = 10_000,
 ) {
     init {
         require(primeSharePercent in 1..100) { "Creator PRIME share must be between 1 and 100 percent" }
@@ -18,5 +19,6 @@ data class CreatorRevenueProperties(
         require(coinPerPrime > 0) { "COIN per PRIME conversion must be positive" }
         require(!revenueRetryDelay.isNegative && !revenueRetryDelay.isZero) { "Creator revenue retry delay must be positive" }
         require(revenueRetryBatchSize > 0) { "Creator revenue retry batch size must be positive" }
+        require(retryScanDelayMs > 0) { "Creator revenue retry scan delay must be positive" }
     }
 }
