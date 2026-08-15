@@ -44,6 +44,10 @@ class PersonalizationLifecycleService(
 
         val personalization = requireOwned(command.personalizationId, actor.userId)
 
+        if (personalization.origin != PersonalizationOrigin.CREATOR) {
+            throw PersonalizationAccessDeniedException()
+        }
+
         command.price?.let { price ->
             pricePolicy.requireAllowed(
                 type = personalization.type,
