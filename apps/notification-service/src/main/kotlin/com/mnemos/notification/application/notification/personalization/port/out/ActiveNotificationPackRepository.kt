@@ -11,6 +11,7 @@ interface ActiveNotificationPackRepository {
     fun apply(
         userId: UserId,
         pack: ActiveNotificationPack?,
+        selectionRevision: Long,
         eventId: UUID,
         occurredAt: Instant,
     )
