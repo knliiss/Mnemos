@@ -49,6 +49,21 @@ CREATE TABLE comment_likes
 
 CREATE INDEX idx_comment_likes_comment ON comment_likes (comment_id);
 
+CREATE TABLE account_social_summaries
+(
+    account_id UUID PRIMARY KEY,
+    likes      BIGINT      NOT NULL DEFAULT 0,
+    dislikes   BIGINT      NOT NULL DEFAULT 0,
+    comments   BIGINT      NOT NULL DEFAULT 0,
+    revision   BIGINT      NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT ck_account_social_summaries_counts
+        CHECK (likes >= 0 AND dislikes >= 0 AND comments >= 0),
+    CONSTRAINT ck_account_social_summaries_revision
+        CHECK (revision >= 0)
+);
+
 CREATE TABLE notification_pack_selections
 (
     user_id             UUID PRIMARY KEY,
