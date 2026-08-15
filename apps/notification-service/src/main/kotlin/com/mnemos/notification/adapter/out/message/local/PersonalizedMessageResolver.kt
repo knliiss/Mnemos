@@ -63,11 +63,14 @@ class PersonalizedMessageResolver {
     private fun String.render(values: Map<String, String>): String {
         val escapedTemplate = TelegramHtmlEscaper.escape(this)
 
-        return values.entries.fold(escapedTemplate) { result, (name, value) ->
-            result.replace(
-                oldValue = "{$name}",
-                newValue = TelegramHtmlEscaper.escape(value),
-            )
+        return PLACEHOLDER.replace(escapedTemplate) { match ->
+            val name = match.groupValues[1]
+            val value =
+                requireNotNull(values[name]) {
+                    "Notification template value is missing for placeholder {$name}"
+                }
+
+            TelegramHtmlEscaper.escape(value)
         }
     }
 
@@ -77,4 +80,8 @@ class PersonalizedMessageResolver {
         } else {
             "${TelegramHtmlEscaper.escape(emoji)} $value"
         }
+
+    private companion object {
+        val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)}")
+    }
 }
