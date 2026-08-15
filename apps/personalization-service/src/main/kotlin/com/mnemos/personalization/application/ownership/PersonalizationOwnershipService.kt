@@ -180,10 +180,7 @@ class PersonalizationOwnershipService(
     ): Boolean =
         personalization.creatorUserId == userId &&
             personalization.visibility == PersonalizationVisibility.PUBLIC &&
-            (
-                personalization.status == PersonalizationStatus.PUBLISHED ||
-                    personalization.status == PersonalizationStatus.UNLISTED
-            )
+            personalization.status == PersonalizationStatus.PUBLISHED
 
     private fun saveOwnership(ownership: OwnedPersonalization): OwnedPersonalization =
         try {
