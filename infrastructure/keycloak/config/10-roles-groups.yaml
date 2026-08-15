@@ -3,6 +3,10 @@ roles:
   realm:
   - name: USER
     description: Regular Mnemos user
+  - name: PERSONALIZATION_CREATOR
+    description: Can create personalization marketplace items
+  - name: PERSONALIZATION_MODERATOR
+    description: Can review and manage personalization marketplace items
   - name: MODERATOR
     description: Mnemos moderation access
   - name: ADMIN
@@ -13,6 +17,12 @@ groups:
 - name: users
   realmRoles:
   - USER
+- name: personalization-creators
+  realmRoles:
+  - PERSONALIZATION_CREATOR
+- name: personalization-moderators
+  realmRoles:
+  - PERSONALIZATION_MODERATOR
 - name: moderators
   realmRoles:
   - MODERATOR
