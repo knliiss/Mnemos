@@ -7,6 +7,7 @@ import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @Component
 class SocialActorProvider(
@@ -17,16 +18,31 @@ class SocialActorProvider(
         val userId = currentMnemosUser.requireUserId()
         val actor = accountAccessPort.resolveActiveActor(userId)
 
-        if (permission != null && !accountAccessPort.hasPermission(actor.accountId, actor.userId, permission)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Account permission is required: $permission")
+        if (
+            permission != null &&
+            !accountAccessPort.hasPermission(
+                accountId = actor.accountId,
+                userId = actor.userId,
+                permission = permission,
+            )
+        ) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Account permission is required: $permission",
+            )
         }
 
         return actor
     }
 
     fun hasPermission(
-        accountId: java.util.UUID,
-        userId: java.util.UUID,
+        accountId: UUID,
+        userId: UUID,
         permission: RolePermission,
-    ): Boolean = accountAccessPort.hasPermission(accountId, userId, permission)
+    ): Boolean =
+        accountAccessPort.hasPermission(
+            accountId = accountId,
+            userId = userId,
+            permission = permission,
+        )
 }

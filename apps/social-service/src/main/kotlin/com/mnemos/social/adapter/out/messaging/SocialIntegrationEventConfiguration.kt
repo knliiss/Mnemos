@@ -16,18 +16,19 @@ class SocialIntegrationEventConfiguration {
         IntegrationEventRouteResolver { event ->
             when (event.type) {
                 SocialEventType.DROP_SPOTLIGHT_PUBLISHED,
-                SocialEventType.ACCOUNT_SOCIAL_SUMMARY_CHANGED,
-                -> IntegrationEventRoute(
-                    topic = SocialEventContract.TOPIC,
-                    version = SocialEventContract.VERSION,
-                    aggregateType = SocialEventContract.AGGREGATE_TYPE,
-                )
+                SocialEventType.ACCOUNT_SOCIAL_SUMMARY_CHANGED ->
+                    IntegrationEventRoute(
+                        topic = SocialEventContract.TOPIC,
+                        version = SocialEventContract.VERSION,
+                        aggregateType = SocialEventContract.AGGREGATE_TYPE,
+                    )
 
-                WalletCommandType.CREATE_TRANSACTION -> IntegrationEventRoute(
-                    topic = WalletCommandContract.TOPIC,
-                    version = WalletCommandContract.VERSION,
-                    aggregateType = WalletCommandContract.AGGREGATE_TYPE,
-                )
+                WalletCommandType.CREATE_TRANSACTION ->
+                    IntegrationEventRoute(
+                        topic = WalletCommandContract.TOPIC,
+                        version = WalletCommandContract.VERSION,
+                        aggregateType = WalletCommandContract.AGGREGATE_TYPE,
+                    )
 
                 else -> error("Unsupported social integration event type: ${event.type}")
             }
