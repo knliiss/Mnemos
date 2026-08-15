@@ -1,11 +1,17 @@
 package com.mnemos.personalization.application.purchase
 
 import com.mnemos.personalization.application.purchase.event.PersonalizationPurchaseEventPublisher
+import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
+import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
+import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
+import com.mnemos.wallet.contracts.wallet.shared.TransactionSource
+import com.mnemos.wallet.contracts.wallet.shared.TransactionType
+import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -21,16 +27,18 @@ class ProcessPurchaseWalletResultService(
 ) {
     @Transactional
     fun complete(
-        requestId: UUID,
+        result: WalletResultContext,
         transactionId: UUID,
     ) {
         val operation =
-            operationRepository.findByRequestIdForUpdate(requestId)
+            operationRepository.findByRequestIdForUpdate(result.requestId)
                 ?: return
 
         if (operation.status != PurchaseOperationStatus.PENDING) {
             return
         }
+
+        requireExpectedResult(operation, result)
 
         val personalization =
             requireNotNull(personalizationRepository.findById(operation.personalizationId)) {
@@ -57,20 +65,64 @@ class ProcessPurchaseWalletResultService(
 
     @Transactional
     fun fail(
-        requestId: UUID,
+        result: WalletResultContext,
         reason: String,
     ) {
         val operation =
-            operationRepository.findByRequestIdForUpdate(requestId)
+            operationRepository.findByRequestIdForUpdate(result.requestId)
                 ?: return
 
         if (operation.status != PurchaseOperationStatus.PENDING) {
             return
         }
 
+        requireExpectedResult(operation, result)
+
         operation.fail(reason)
         operationRepository.save(operation)
 
         eventPublisher.publish(operation)
+    }
+
+    private fun requireExpectedResult(
+        operation: PurchaseOperation,
+        result: WalletResultContext,
+    ) {
+        val expectedOwnerType: WalletOwnerType
+        val expectedOwnerId: UUID
+
+        when (val owner = operation.owner) {
+            is PersonalizationOwner.User -> {
+                expectedOwnerType = WalletOwnerType.USER
+                expectedOwnerId = owner.userId.id
+            }
+
+            is PersonalizationOwner.Account -> {
+                expectedOwnerType = WalletOwnerType.ACCOUNT
+                expectedOwnerId = owner.accountId.id
+            }
+        }
+
+        check(result.actorUserId == operation.buyerUserId.id) {
+            "Personalization purchase wallet result actor does not match buyer"
+        }
+        check(result.ownerType == expectedOwnerType && result.ownerId == expectedOwnerId) {
+            "Personalization purchase wallet result owner does not match operation"
+        }
+        check(result.currency == operation.currency) {
+            "Personalization purchase wallet result currency does not match operation"
+        }
+        check(result.transactionType == TransactionType.DEBIT) {
+            "Personalization purchase wallet result must be a debit"
+        }
+        check(result.source == TransactionSource.PERSONALIZATION_PURCHASE) {
+            "Personalization purchase wallet result source does not match operation"
+        }
+        check(result.sourceReferenceId == operation.id.id) {
+            "Personalization purchase wallet result source reference does not match operation"
+        }
+        check(result.amount == operation.amount) {
+            "Personalization purchase wallet result amount does not match operation"
+        }
     }
 }
