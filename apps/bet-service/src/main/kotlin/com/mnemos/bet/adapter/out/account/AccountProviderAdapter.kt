@@ -21,8 +21,7 @@ class AccountProviderAdapter(
         return resolveActiveAccount(userId)
     }
 
-    override fun requireActiveAccount(permission: RolePermission): AccountSnapshot =
-        requireActiveAccount(setOf(permission))
+    override fun requireActiveAccount(permission: RolePermission): AccountSnapshot = requireActiveAccount(setOf(permission))
 
     override fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot {
         require(permissions.isNotEmpty()) { "At least one account permission is required" }
@@ -38,7 +37,8 @@ class AccountProviderAdapter(
                             userId = userId,
                             permission = permission,
                         ),
-                ).granted
+                )
+                    .granted
             }
 
         if (missingPermissions.isNotEmpty()) {
