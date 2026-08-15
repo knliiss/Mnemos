@@ -59,12 +59,36 @@ class OwnedPersonalizationRepositoryAdapter(
             )
             ?.toDomain()
 
+    override fun findForUpdate(
+        owner: PersonalizationOwner,
+        personalizationId: PersonalizationId,
+    ): OwnedPersonalization? =
+        repository
+            .findByOwnerTypeAndOwnerIdAndPersonalizationIdForUpdate(
+                ownerType = owner.target,
+                ownerId = owner.id,
+                personalizationId = personalizationId.id,
+            )
+            ?.toDomain()
+
     override fun findActive(
         owner: PersonalizationOwner,
         type: PersonalizationType,
     ): OwnedPersonalization? =
         repository
             .findByOwnerTypeAndOwnerIdAndPersonalizationTypeAndActiveTrue(
+                ownerType = owner.target,
+                ownerId = owner.id,
+                personalizationType = type,
+            )
+            ?.toDomain()
+
+    override fun findActiveForUpdate(
+        owner: PersonalizationOwner,
+        type: PersonalizationType,
+    ): OwnedPersonalization? =
+        repository
+            .findActiveForUpdate(
                 ownerType = owner.target,
                 ownerId = owner.id,
                 personalizationType = type,
