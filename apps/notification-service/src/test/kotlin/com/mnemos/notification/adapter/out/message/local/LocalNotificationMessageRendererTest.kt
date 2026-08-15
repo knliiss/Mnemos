@@ -80,6 +80,22 @@ class LocalNotificationMessageRendererTest {
     }
 
     @Test
+    fun `invalid active pack falls back to standard templates`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = invalidPack(userId)
+        val item = itemDrop(now, "Knalis", "Elucidator", NotificationItemRarity.SECRET)
+
+        val message = renderer.renderNotification(userId, listOf(item))
+
+        assertEquals(
+            "🗡️ <b>Новое секретное оружие</b>\n" +
+                "Игрок <b>Knalis</b> выбил секретное оружие <b>«Elucidator»</b>.",
+            message.text,
+        )
+    }
+
+    @Test
     fun `large aggregation stays within telegram message limit`() {
         val now = Instant.parse("2026-08-11T16:00:00Z")
         val items =
@@ -154,15 +170,39 @@ class LocalNotificationMessageRendererTest {
                             aggregateTitle = "<b>Custom loot</b>",
                         )
                     } else {
-                        NotificationPackTemplate(
-                            emoji = null,
-                            soloTitle = type.name,
-                            soloBody = "Event",
-                            compact = "Event",
-                            aggregateTitle = "${type.name} events",
-                        )
+                        defaultTemplate(type)
                     }
                 },
+        )
+
+    private fun invalidPack(userId: UserId): ActiveNotificationPack =
+        ActiveNotificationPack(
+            userId = userId,
+            personalizationId = UUID.randomUUID(),
+            mixedAggregateTitle = "Invalid events",
+            templates =
+                NotificationType.entries.associateWith { type ->
+                    if (type == NotificationType.ITEM_DROP) {
+                        NotificationPackTemplate(
+                            emoji = null,
+                            soloTitle = "{unknown}",
+                            soloBody = "{player} found {item}",
+                            compact = "{player} — {item}",
+                            aggregateTitle = "Custom loot",
+                        )
+                    } else {
+                        defaultTemplate(type)
+                    }
+                },
+        )
+
+    private fun defaultTemplate(type: NotificationType): NotificationPackTemplate =
+        NotificationPackTemplate(
+            emoji = null,
+            soloTitle = type.name,
+            soloBody = "Event",
+            compact = "Event",
+            aggregateTitle = "${type.name} events",
         )
 
     private class FakeActiveNotificationPackRepository : ActiveNotificationPackRepository {
