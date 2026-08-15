@@ -24,9 +24,11 @@ data class RealtimeEvent(
                     "Generic wallet events must not expose a domain operationId"
                 }
 
-            RealtimeEventType.BET_OPERATION_COMPLETED ->
+            RealtimeEventType.BET_OPERATION_COMPLETED,
+            RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED,
+            ->
                 requireNotNull(operationId) {
-                    "Bet operation events must expose their operationId"
+                    "Domain operation events must expose their operationId"
                 }
         }
     }

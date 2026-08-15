@@ -49,9 +49,20 @@ export type BetOperationCompletedEvent = RealtimeEventEnvelope<
     }
 >
 
+export type PersonalizationPurchaseCompletedEvent = RealtimeEventEnvelope<
+    "personalization.purchase.completed",
+    {
+        personalizationId: string
+        status: "CONFIRMED" | "FAILED"
+        walletTransactionId: string | null
+        failureReason: string | null
+    }
+>
+
 export type RealtimeEvent =
     | WalletTransactionCompletedEvent
     | WalletTransactionFailedEvent
     | BetOperationCompletedEvent
+    | PersonalizationPurchaseCompletedEvent
 
 export type RealtimeEventListener = (event: RealtimeEvent) => void

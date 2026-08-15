@@ -10,7 +10,10 @@ class GatewayRateLimitPolicy(
     fun global(identity: RateLimitIdentity): RateLimitRule =
         when (identity.role) {
             null -> properties.anonymous
-            UserRole.USER -> properties.user
+            UserRole.USER,
+            UserRole.PERSONALIZATION_CREATOR,
+            UserRole.PERSONALIZATION_MODERATOR,
+            -> properties.user
             UserRole.MODERATOR -> properties.moderator
             UserRole.ADMIN -> properties.admin
             UserRole.SUPER_ADMIN -> properties.superAdmin

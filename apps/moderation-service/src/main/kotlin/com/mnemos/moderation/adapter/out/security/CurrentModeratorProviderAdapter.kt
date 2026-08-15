@@ -14,18 +14,17 @@ class CurrentModeratorProviderAdapter(
     override fun current(): ModeratorActor {
         val principal = currentMnemosUser.get()
         val userId = requireNotNull(principal.userId)
+        val role =
+            when {
+                UserRole.SUPER_ADMIN in principal.roles -> UserRole.SUPER_ADMIN
+                UserRole.ADMIN in principal.roles -> UserRole.ADMIN
+                UserRole.MODERATOR in principal.roles -> UserRole.MODERATOR
+                else -> UserRole.USER
+            }
 
         return ModeratorActor(
             userId = UserId(userId),
-            role = principal.roles.maxByOrNull { role -> role.rank() } ?: UserRole.USER,
+            role = role,
         )
     }
-
-    private fun UserRole.rank(): Int =
-        when (this) {
-            UserRole.USER -> 0
-            UserRole.MODERATOR -> 1
-            UserRole.ADMIN -> 2
-            UserRole.SUPER_ADMIN -> 3
-        }
 }

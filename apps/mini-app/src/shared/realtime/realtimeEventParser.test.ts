@@ -21,6 +21,23 @@ describe("parseRealtimeEvent", () => {
         expect(event?.type).toBe("bet.operation.completed")
     })
 
+    it("accepts a personalization purchase completion event", () => {
+        const event = parseRealtimeEvent(JSON.stringify({
+            id: "019c1129-ef54-7000-8000-000000000305",
+            type: "personalization.purchase.completed",
+            occurredAt: "2026-08-15T10:00:00Z",
+            operationId: "019c1129-ef54-7000-8000-000000000306",
+            payload: {
+                personalizationId: "019c1129-ef54-7000-8000-000000000307",
+                status: "CONFIRMED",
+                walletTransactionId: "019c1129-ef54-7000-8000-000000000308",
+                failureReason: null
+            }
+        }))
+
+        expect(event?.type).toBe("personalization.purchase.completed")
+    })
+
     it("rejects a wallet event that incorrectly exposes a domain operation id", () => {
         const event = parseRealtimeEvent(JSON.stringify({
             id: "019c1129-ef54-7000-8000-000000000311",

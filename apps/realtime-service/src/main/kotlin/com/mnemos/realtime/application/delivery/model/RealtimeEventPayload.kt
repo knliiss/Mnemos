@@ -35,6 +35,13 @@ data class BetOperationCompletedPayload(
     val failureReason: String?,
 ) : RealtimeEventPayload
 
+data class PersonalizationPurchaseCompletedPayload(
+    val personalizationId: UUID,
+    val status: String,
+    val walletTransactionId: UUID?,
+    val failureReason: String?,
+) : RealtimeEventPayload
+
 fun RealtimeEventPayload.eventType(): RealtimeEventType =
     when (this) {
         is WalletTransactionCompletedPayload ->
@@ -45,4 +52,7 @@ fun RealtimeEventPayload.eventType(): RealtimeEventType =
 
         is BetOperationCompletedPayload ->
             RealtimeEventType.BET_OPERATION_COMPLETED
+
+        is PersonalizationPurchaseCompletedPayload ->
+            RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED
     }

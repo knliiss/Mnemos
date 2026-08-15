@@ -47,6 +47,23 @@ class RealtimeEventTest {
         }
     }
 
+    @Test
+    fun `rejects a personalization purchase result without its operation id`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            event(
+                type = RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED,
+                operationId = null,
+                payload =
+                    PersonalizationPurchaseCompletedPayload(
+                        personalizationId = UUID.randomUUID(),
+                        status = "CONFIRMED",
+                        walletTransactionId = UUID.randomUUID(),
+                        failureReason = null,
+                    ),
+            )
+        }
+    }
+
     private fun event(
         type: RealtimeEventType,
         operationId: UUID?,
