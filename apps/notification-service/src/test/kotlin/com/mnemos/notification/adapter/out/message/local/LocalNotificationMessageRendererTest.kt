@@ -171,16 +171,14 @@ class LocalNotificationMessageRendererTest {
         override fun find(userId: UserId): ActiveNotificationPack? =
             active?.takeIf { it.userId == userId }
 
-        override fun save(pack: ActiveNotificationPack): ActiveNotificationPack {
-            active = pack
-
-            return pack
-        }
-
-        override fun delete(userId: UserId) {
-            if (active?.userId == userId) {
-                active = null
-            }
+        override fun apply(
+            userId: UserId,
+            pack: ActiveNotificationPack?,
+            selectionRevision: Long,
+            eventId: UUID,
+            occurredAt: Instant,
+        ) {
+            active = pack?.takeIf { it.userId == userId }
         }
     }
 }
