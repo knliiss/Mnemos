@@ -1,7 +1,6 @@
 package com.mnemos.personalization.application.purchase
 
 import com.mnemos.personalization.application.purchase.event.PersonalizationPurchaseEventPublisher
-import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
@@ -53,10 +52,7 @@ class ProcessPurchaseWalletResultService(
             )
         }
 
-        eventPublisher.publish(
-            operation = operation,
-            status = PersonalizationPurchaseStatus.CONFIRMED,
-        )
+        eventPublisher.publish(operation)
     }
 
     @Transactional
@@ -75,10 +71,6 @@ class ProcessPurchaseWalletResultService(
         operation.fail(reason)
         operationRepository.save(operation)
 
-        eventPublisher.publish(
-            operation = operation,
-            status = PersonalizationPurchaseStatus.FAILED,
-            failureReason = reason,
-        )
+        eventPublisher.publish(operation)
     }
 }
