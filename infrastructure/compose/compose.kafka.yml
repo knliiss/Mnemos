@@ -20,7 +20,31 @@ services:
       - "KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:${KAFKA_INTERNAL_PORT},EXTERNAL://localhost:${KAFKA_HOST_PORT}"
       - "KAFKA_SASL_ENABLED_MECHANISMS=PLAIN"
       - "KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN"
-      - "KAFKA_OPTS=-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf"
+      - >-
+        KAFKA_LISTENER_NAME_INTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="broker"
+        password="${KAFKA_BROKER_PASSWORD}"
+        user_broker="${KAFKA_BROKER_PASSWORD}"
+        user_kafka_admin="${KAFKA_ADMIN_PASSWORD}"
+        user_account_service="${KAFKA_ACCOUNT_SERVICE_PASSWORD}"
+        user_wallet_service="${KAFKA_WALLET_SERVICE_PASSWORD}"
+        user_event_service="${KAFKA_EVENT_SERVICE_PASSWORD}"
+        user_notification_service="${KAFKA_NOTIFICATION_SERVICE_PASSWORD}"
+        user_reward_service="${KAFKA_REWARD_SERVICE_PASSWORD}"
+        user_bet_service="${KAFKA_BET_SERVICE_PASSWORD}"
+        user_moderation_service="${KAFKA_MODERATION_SERVICE_PASSWORD}"
+        user_gateway_service="${KAFKA_GATEWAY_SERVICE_PASSWORD}"
+        user_realtime_service="${KAFKA_REALTIME_SERVICE_PASSWORD}"
+        user_personalization_service="${KAFKA_PERSONALIZATION_SERVICE_PASSWORD}";
+      - >-
+        KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="broker"
+        password="${KAFKA_BROKER_PASSWORD}"
+        user_kafka_admin="${KAFKA_ADMIN_PASSWORD}";
+      - "KAFKA_AUTHORIZER_CLASS_NAME=org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      - "KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND=false"
+      - "KAFKA_SUPER_USERS=User:broker;User:kafka_admin"
+      - "KAFKA_EARLY_START_LISTENERS=CONTROLLER"
       - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1"
@@ -31,18 +55,38 @@ services:
 
     volumes:
       - "kafka-data:/var/lib/kafka/data"
-      - "../../.secrets/kafka/kafka_server_jaas.conf:/etc/kafka/secrets/kafka_server_jaas.conf:ro"
 
     healthcheck:
       test:
         - CMD-SHELL
         - >-
-          printf '%s\n' 'security.protocol=SASL_PLAINTEXT' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="mnemos_apps" password="${KAFKA_APP_PASSWORD}";' > /tmp/kafka-health.properties &&
+          printf '%s\n' 'security.protocol=SASL_PLAINTEXT' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka_admin" password="${KAFKA_ADMIN_PASSWORD}";' > /tmp/kafka-health.properties &&
           /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
       interval: 10s
       timeout: 10s
       retries: 10
       start_period: 25s
+
+    networks:
+      - mnemos-network
+
+  kafka-init:
+    image: "apache/kafka:${KAFKA_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-kafka-init"
+    restart: "no"
+
+    environment:
+      KAFKA_BOOTSTRAP_SERVER: kafka:${KAFKA_INTERNAL_PORT}
+      KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD}
+
+    volumes:
+      - "../kafka/bootstrap.sh:/opt/mnemos/bootstrap.sh:ro"
+
+    entrypoint: ["/bin/sh", "/opt/mnemos/bootstrap.sh"]
+
+    depends_on:
+      kafka:
+        condition: service_healthy
 
     networks:
       - mnemos-network

@@ -17,8 +17,8 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
       SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
-      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"mnemos_apps\" password=\"${KAFKA_APP_PASSWORD}\";"
-      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"personalization_service\" password=\"${KAFKA_PERSONALIZATION_SERVICE_PASSWORD}\";"
+      MNEMOS_KAFKA_MANAGE_TOPICS: "false"
       MNEMOS_KAFKA_MESSAGE_AUTH_ENABLED: "true"
       MNEMOS_KAFKA_MESSAGE_AUTH_PRIVATE_KEY: ${PERSONALIZATION_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
       MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
@@ -32,8 +32,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
       account-service:
         condition: service_started
     networks:
