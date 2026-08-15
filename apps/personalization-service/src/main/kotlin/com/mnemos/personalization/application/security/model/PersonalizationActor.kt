@@ -17,6 +17,9 @@ data class PersonalizationActor(
             UserRole.ADMIN in roles ||
             UserRole.SUPER_ADMIN in roles
 
+    fun canModerateOwnPersonalization(): Boolean =
+        UserRole.ADMIN in roles || UserRole.SUPER_ADMIN in roles
+
     fun canManageBadges(): Boolean =
         UserRole.ADMIN in roles || UserRole.SUPER_ADMIN in roles
 }

@@ -3,6 +3,7 @@ package com.mnemos.personalization.application.personalization.moderation
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
+import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
@@ -25,10 +26,13 @@ class ModeratePersonalizationService(
         personalizationId: PersonalizationId,
         price: PersonalizationPrice,
     ): Personalization {
-        requireModerator()
-
+        val actor = requireModerator()
         val personalization = requirePersonalization(personalizationId)
 
+        requireCanModerate(
+            actor = actor,
+            personalization = personalization,
+        )
         pricePolicy.requireAllowed(
             type = personalization.type,
             origin = personalization.origin,
@@ -47,10 +51,13 @@ class ModeratePersonalizationService(
         personalizationId: PersonalizationId,
         reason: String,
     ): Personalization {
-        requireModerator()
-
+        val actor = requireModerator()
         val personalization = requirePersonalization(personalizationId)
 
+        requireCanModerate(
+            actor = actor,
+            personalization = personalization,
+        )
         personalization.reject(
             reason = reason,
             now = clock.instant(),
@@ -61,10 +68,13 @@ class ModeratePersonalizationService(
 
     @Transactional
     fun unlist(personalizationId: PersonalizationId): Personalization {
-        requireModerator()
-
+        val actor = requireModerator()
         val personalization = requirePersonalization(personalizationId)
 
+        requireCanModerate(
+            actor = actor,
+            personalization = personalization,
+        )
         personalization.unlist(clock.instant())
 
         return repository.save(personalization)
@@ -72,10 +82,13 @@ class ModeratePersonalizationService(
 
     @Transactional
     fun relist(personalizationId: PersonalizationId): Personalization {
-        requireModerator()
-
+        val actor = requireModerator()
         val personalization = requirePersonalization(personalizationId)
 
+        requireCanModerate(
+            actor = actor,
+            personalization = personalization,
+        )
         personalization.relist(clock.instant())
 
         return repository.save(personalization)
@@ -87,8 +100,24 @@ class ModeratePersonalizationService(
         return repository.findByStatus(PersonalizationStatus.IN_REVIEW)
     }
 
-    private fun requireModerator() {
-        if (!actorProvider.requireActor().canModeratePersonalization()) {
+    private fun requireModerator(): PersonalizationActor {
+        val actor = actorProvider.requireActor()
+
+        if (!actor.canModeratePersonalization()) {
+            throw PersonalizationAccessDeniedException()
+        }
+
+        return actor
+    }
+
+    private fun requireCanModerate(
+        actor: PersonalizationActor,
+        personalization: Personalization,
+    ) {
+        if (
+            personalization.creatorUserId == actor.userId &&
+            !actor.canModerateOwnPersonalization()
+        ) {
             throw PersonalizationAccessDeniedException()
         }
     }
