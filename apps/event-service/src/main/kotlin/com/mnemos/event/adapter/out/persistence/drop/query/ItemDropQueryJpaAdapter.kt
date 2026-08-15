@@ -21,15 +21,13 @@ class ItemDropQueryJpaAdapter(
                 droppedFor = query.droppedFor,
                 itemName = query.itemName,
                 itemRarity = query.itemRarity,
-                pageable =
-                    PageRequest.of(
-                        query.page.page,
-                        query.page.size,
-                    ),
+                pageable = PageRequest.of(query.page.page, query.page.size),
             )
 
         return page.toPageResult { it.toView() }
     }
+
+    override fun findById(id: EventId): ItemDropView? = itemDropEventJpaRepository.findViewById(id.id)?.toView()
 
     private fun ItemDropViewProjection.toView(): ItemDropView =
         ItemDropView(

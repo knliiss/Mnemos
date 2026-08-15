@@ -17,8 +17,9 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
         SELECT
             e.id,
             i.id AS item_id,
-            i.name,
-            i.type,
+            i.name AS item_name,
+            i.type AS item_type,
+            i.rarity AS item_rarity,
             e.dropped_for,
             e.occurred_at
         FROM item_drop_events e
@@ -48,6 +49,24 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
     @Query(
         value = """
         SELECT
+            e.id,
+            i.id AS item_id,
+            i.name AS item_name,
+            i.type AS item_type,
+            i.rarity AS item_rarity,
+            e.dropped_for,
+            e.occurred_at
+        FROM item_drop_events e
+        JOIN items i ON i.id = e.item_id
+        WHERE e.id = :id
+        """,
+        nativeQuery = true,
+    )
+    fun findViewById(@Param("id") id: UUID): ItemDropViewProjection?
+
+    @Query(
+        value = """
+        SELECT
             e.dropped_for AS dropped_for,
             e.occurred_at AS occurred_at
         FROM item_drop_events e
@@ -62,13 +81,9 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
         nativeQuery = true,
     )
     fun findFirstInRange(
-        @Param("itemName")
-        itemName: String,
-        @Param("itemType")
-        itemType: String,
-        @Param("from")
-        from: Instant,
-        @Param("to")
-        to: Instant,
+        @Param("itemName") itemName: String,
+        @Param("itemType") itemType: String,
+        @Param("from") from: Instant,
+        @Param("to") to: Instant,
     ): FirstItemDropProjection?
 }

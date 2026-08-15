@@ -10,10 +10,8 @@ CREATE TABLE comments
     updated_at        TIMESTAMPTZ  NOT NULL,
     deleted_at        TIMESTAMPTZ,
 
-    CONSTRAINT fk_comments_parent
-        FOREIGN KEY (parent_comment_id) REFERENCES comments (id),
-    CONSTRAINT ck_comments_not_empty
-        CHECK (char_length(trim(content)) > 0)
+    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_comment_id) REFERENCES comments (id),
+    CONSTRAINT ck_comments_not_empty CHECK (char_length(trim(content)) > 0)
 );
 
 CREATE INDEX idx_comments_target_root_created
@@ -49,5 +47,69 @@ CREATE TABLE comment_likes
     PRIMARY KEY (comment_id, actor_account_id)
 );
 
-CREATE INDEX idx_comment_likes_comment
-    ON comment_likes (comment_id);
+CREATE INDEX idx_comment_likes_comment ON comment_likes (comment_id);
+
+CREATE TABLE notification_pack_selections
+(
+    user_id             UUID PRIMARY KEY,
+    personalization_id  UUID,
+    selection_revision  BIGINT      NOT NULL,
+    snapshot_json       TEXT,
+    occurred_at         TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT ck_notification_pack_selection_revision CHECK (selection_revision > 0),
+    CONSTRAINT ck_notification_pack_selection_snapshot CHECK (
+        (personalization_id IS NULL AND snapshot_json IS NULL)
+        OR (personalization_id IS NOT NULL AND snapshot_json IS NOT NULL)
+    )
+);
+
+CREATE TABLE spotlight_queue_state
+(
+    id               SMALLINT PRIMARY KEY,
+    last_reserved_at TIMESTAMPTZ,
+    next_sequence    BIGINT NOT NULL,
+
+    CONSTRAINT ck_spotlight_queue_singleton CHECK (id = 1),
+    CONSTRAINT ck_spotlight_queue_sequence CHECK (next_sequence > 0)
+);
+
+INSERT INTO spotlight_queue_state (id, last_reserved_at, next_sequence)
+VALUES (1, NULL, 1);
+
+CREATE TABLE drop_spotlights
+(
+    id                                UUID PRIMARY KEY,
+    sequence                          BIGINT       NOT NULL UNIQUE,
+    buyer_user_id                     UUID         NOT NULL,
+    source_account_id                 UUID         NOT NULL,
+    item_drop_event_id                UUID         NOT NULL UNIQUE,
+    item_id                           UUID         NOT NULL,
+    item_name                         VARCHAR(128) NOT NULL,
+    item_rarity                       VARCHAR(32)  NOT NULL,
+    item_type                         VARCHAR(32)  NOT NULL,
+    dropped_for                       VARCHAR(64)  NOT NULL,
+    drop_occurred_at                  TIMESTAMPTZ  NOT NULL,
+    notification_pack_id              UUID,
+    notification_pack_revision        BIGINT,
+    notification_pack_snapshot_json   TEXT,
+    price_prime                       BIGINT       NOT NULL,
+    wallet_request_id                 UUID         NOT NULL UNIQUE,
+    wallet_transaction_id             UUID,
+    status                            VARCHAR(24)  NOT NULL,
+    scheduled_at                      TIMESTAMPTZ  NOT NULL,
+    published_at                      TIMESTAMPTZ,
+    expires_at                        TIMESTAMPTZ,
+    created_at                        TIMESTAMPTZ  NOT NULL,
+    updated_at                        TIMESTAMPTZ  NOT NULL,
+
+    CONSTRAINT ck_drop_spotlights_price CHECK (price_prime > 0),
+    CONSTRAINT ck_drop_spotlights_status CHECK (status IN ('PENDING_PAYMENT', 'QUEUED', 'PUBLISHED', 'PAYMENT_FAILED')),
+    CONSTRAINT ck_drop_spotlights_pack_snapshot CHECK (
+        (notification_pack_id IS NULL AND notification_pack_revision IS NULL AND notification_pack_snapshot_json IS NULL)
+        OR (notification_pack_id IS NOT NULL AND notification_pack_revision IS NOT NULL AND notification_pack_snapshot_json IS NOT NULL)
+    )
+);
+
+CREATE INDEX idx_drop_spotlights_buyer_created ON drop_spotlights (buyer_user_id, created_at DESC);
+CREATE INDEX idx_drop_spotlights_due ON drop_spotlights (status, scheduled_at);
