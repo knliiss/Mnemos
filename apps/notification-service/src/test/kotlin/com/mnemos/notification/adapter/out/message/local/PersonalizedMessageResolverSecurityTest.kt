@@ -36,7 +36,14 @@ class PersonalizedMessageResolverSecurityTest {
 
         val resolved = resolver.resolve(item, pack)
 
-        assertEquals("&lt;i&gt;❄️& $resolved", resolved.soloTitle)
+        assertEquals(
+            "&lt;i&gt;❄️&amp; &lt;b&gt;&lt;Knalis&gt;&lt;/b&gt; &amp; Sword &amp; Shield",
+            resolved.soloTitle,
+        )
+        assertEquals(
+            "&lt;i&gt;❄️&amp; &lt;b&gt;Loot&lt;/b&gt;",
+            resolved.aggregateTitle,
+        )
     }
 
     private fun activePack(userId: UserId): ActiveNotificationPack =
