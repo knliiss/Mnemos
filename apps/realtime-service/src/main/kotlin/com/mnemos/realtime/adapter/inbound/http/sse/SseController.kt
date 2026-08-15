@@ -4,6 +4,7 @@ import com.mnemos.realtime.adapter.sse.connection.SseConnectionRegistry
 import com.mnemos.realtime.application.delivery.port.out.RealtimeEventReplayStore
 import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import com.mnemos.security.CurrentMnemosUser
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -29,6 +30,7 @@ class SseController(
     fun events(
         @RequestHeader(LAST_EVENT_ID_HEADER, required = false)
         lastEventId: String?,
+        request: HttpServletRequest,
         response: HttpServletResponse,
     ): SseEmitter {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-transform")
@@ -40,6 +42,7 @@ class SseController(
         val connectionId =
             connectionRegistry.register(
                 userId = userId,
+                clientIp = request.remoteAddr,
                 emitter = emitter,
             )
 

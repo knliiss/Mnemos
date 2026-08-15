@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 class SseConnectionRegistry(
     private val properties: RealtimeDeliveryProperties,
     private val telemetry: RealtimeDeliveryTelemetry,
+    private val leaseStore: SseConnectionLeaseStore,
 ) : ConnectedRealtimeEventSink {
     private val connectionsByUser = ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Connection>>()
     private var totalConnections = 0
@@ -22,15 +23,14 @@ class SseConnectionRegistry(
     @Synchronized
     fun register(
         userId: UUID,
+        clientIp: String,
         emitter: SseEmitter,
     ): UUID {
         val userConnections =
             connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
 
         if (userConnections.size >= properties.maxConnectionsPerUser) {
-            if (userConnections.isEmpty()) {
-                connectionsByUser.remove(userId, userConnections)
-            }
+            removeEmptyUserConnections(userId, userConnections)
 
             throw RealtimeConnectionLimitExceededException(
                 limit = properties.maxConnectionsPerUser,
@@ -39,9 +39,7 @@ class SseConnectionRegistry(
         }
 
         if (totalConnections >= properties.maxConnectionsTotal) {
-            if (userConnections.isEmpty()) {
-                connectionsByUser.remove(userId, userConnections)
-            }
+            removeEmptyUserConnections(userId, userConnections)
 
             throw RealtimeConnectionLimitExceededException(
                 limit = properties.maxConnectionsTotal,
@@ -50,13 +48,48 @@ class SseConnectionRegistry(
         }
 
         val connectionId = UUID.randomUUID()
-        userConnections[connectionId] =
-            Connection(
-                emitter = emitter,
-                deduplicationLimit = properties.deduplicationLimit,
+
+        when (
+            leaseStore.acquire(
+                userId = userId,
+                clientIp = clientIp,
+                connectionId = connectionId,
             )
-        totalConnections += 1
-        telemetry.connectionOpened()
+        ) {
+            SseConnectionLeaseAcquireResult.ACQUIRED -> Unit
+            SseConnectionLeaseAcquireResult.USER_LIMIT_EXCEEDED ->
+                throw RealtimeConnectionLimitExceededException(
+                    limit = properties.maxConnectionsPerUser,
+                    scope = "CLUSTER_USER",
+                )
+
+            SseConnectionLeaseAcquireResult.CLIENT_IP_LIMIT_EXCEEDED ->
+                throw RealtimeConnectionLimitExceededException(
+                    limit = properties.maxConnectionsPerClientIp,
+                    scope = "CLUSTER_CLIENT_IP",
+                )
+
+            SseConnectionLeaseAcquireResult.TOTAL_LIMIT_EXCEEDED ->
+                throw RealtimeConnectionLimitExceededException(
+                    limit = properties.maxConnectionsTotal,
+                    scope = "CLUSTER",
+                )
+        }
+
+        try {
+            userConnections[connectionId] =
+                Connection(
+                    emitter = emitter,
+                    clientIp = clientIp,
+                    deduplicationLimit = properties.deduplicationLimit,
+                )
+            totalConnections += 1
+            telemetry.connectionOpened()
+        } catch (exception: Exception) {
+            releaseLease(userId, clientIp, connectionId)
+            removeEmptyUserConnections(userId, userConnections)
+            throw exception
+        }
 
         emitter.onCompletion {
             remove(
@@ -134,6 +167,17 @@ class SseConnectionRegistry(
         connectionsByUser.forEach { (userId, connections) ->
             connections.forEach { (connectionId, connection) ->
                 try {
+                    val renewed =
+                        leaseStore.renew(
+                            userId = userId,
+                            clientIp = connection.clientIp,
+                            connectionId = connectionId,
+                        )
+
+                    check(renewed) {
+                        "SSE connection lease expired"
+                    }
+
                     connection.heartbeat()
                 } catch (exception: Exception) {
                     telemetry.recordSseSendFailure()
@@ -163,11 +207,46 @@ class SseConnectionRegistry(
         connectionId: UUID,
     ) {
         val connections = connectionsByUser[userId] ?: return
-        connections.remove(connectionId) ?: return
+        val connection = connections.remove(connectionId) ?: return
 
         totalConnections -= 1
         telemetry.connectionClosed()
+        releaseLease(
+            userId = userId,
+            clientIp = connection.clientIp,
+            connectionId = connectionId,
+        )
 
+        if (connections.isEmpty()) {
+            connectionsByUser.remove(userId, connections)
+        }
+    }
+
+    private fun releaseLease(
+        userId: UUID,
+        clientIp: String,
+        connectionId: UUID,
+    ) {
+        try {
+            leaseStore.release(
+                userId = userId,
+                clientIp = clientIp,
+                connectionId = connectionId,
+            )
+        } catch (exception: Exception) {
+            log.warn(
+                "Failed to release SSE connection lease, userId={}, connectionId={}",
+                userId,
+                connectionId,
+                exception,
+            )
+        }
+    }
+
+    private fun removeEmptyUserConnections(
+        userId: UUID,
+        connections: ConcurrentHashMap<UUID, Connection>,
+    ) {
         if (connections.isEmpty()) {
             connectionsByUser.remove(userId, connections)
         }
@@ -175,6 +254,7 @@ class SseConnectionRegistry(
 
     private class Connection(
         val emitter: SseEmitter,
+        val clientIp: String,
         private val deduplicationLimit: Int,
     ) {
         private val pendingEvents = mutableListOf<RealtimeEvent>()
