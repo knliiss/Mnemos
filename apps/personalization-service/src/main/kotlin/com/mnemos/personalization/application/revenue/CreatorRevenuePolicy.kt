@@ -25,6 +25,10 @@ class CreatorRevenuePolicy(
     private fun percentage(
         amount: Long,
         percent: Int,
-    ): Long =
-        Math.multiplyExact(amount, percent.toLong()) / 100
+    ): Long {
+        val wholeHundreds = amount / 100
+        val remainder = amount % 100
+
+        return wholeHundreds * percent + remainder * percent / 100
+    }
 }
