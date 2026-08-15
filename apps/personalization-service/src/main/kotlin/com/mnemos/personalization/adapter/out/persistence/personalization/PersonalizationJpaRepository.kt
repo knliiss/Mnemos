@@ -4,6 +4,8 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationSt
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
@@ -32,5 +34,6 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
     fun findPublished(
         type: PersonalizationType?,
         currency: Currency?,
-    ): List<PersonalizationEntity>
+        pageable: Pageable,
+    ): Page<PersonalizationEntity>
 }
