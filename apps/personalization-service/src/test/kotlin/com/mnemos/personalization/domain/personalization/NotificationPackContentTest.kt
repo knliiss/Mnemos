@@ -8,6 +8,40 @@ import org.junit.jupiter.api.Test
 
 class NotificationPackContentTest {
     @Test
+    fun `notification pack rejects raw telegram html`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.ITEM_DROP] =
+            templates.getValue(NotificationTemplateKey.ITEM_DROP).copy(
+                soloTitle = "<b>{player}</b>",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
+    fun `notification pack rejects malformed placeholders`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.ITEM_DROP] =
+            templates.getValue(NotificationTemplateKey.ITEM_DROP).copy(
+                soloBody = "{player found {item}",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
     fun `notification pack rejects unsupported placeholders`() {
         val templates = validTemplates().toMutableMap()
 
