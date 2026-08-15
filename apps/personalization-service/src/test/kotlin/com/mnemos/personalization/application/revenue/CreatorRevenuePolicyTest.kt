@@ -31,6 +31,20 @@ class CreatorRevenuePolicyTest {
         assertEquals(50L, policy.calculatePrime(operation))
     }
 
+    @Test
+    fun `small prime purchase still produces positive creator revenue`() {
+        val lowSharePolicy =
+            CreatorRevenuePolicy(
+                CreatorRevenueProperties(
+                    primeSharePercent = 2,
+                    coinSharePercent = 1,
+                ),
+            )
+        val operation = operation(Currency.PRIME, 5)
+
+        assertEquals(1L, lowSharePolicy.calculatePrime(operation))
+    }
+
     private fun operation(
         currency: Currency,
         amount: Long,
