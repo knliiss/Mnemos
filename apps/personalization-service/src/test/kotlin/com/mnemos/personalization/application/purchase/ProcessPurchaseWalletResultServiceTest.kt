@@ -5,6 +5,7 @@ import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.purchase.event.PersonalizationPurchaseEventPublisher
+import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.personalization.contracts.event.PersonalizationPurchaseCompletedV1
 import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
@@ -24,9 +25,13 @@ import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
+import com.mnemos.wallet.contracts.wallet.shared.TransactionSource
+import com.mnemos.wallet.contracts.wallet.shared.TransactionType
+import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -43,14 +48,15 @@ class ProcessPurchaseWalletResultServiceTest {
         val personalization = paidCustomNotificationPack(UserId.generate())
         val operation = purchaseOperation(personalization)
         val fixture = fixture(personalization, operation)
+        val result = walletResult(operation)
         val transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000011")
 
         fixture.service.complete(
-            requestId = operation.requestId,
+            result = result,
             transactionId = transactionId,
         )
         fixture.service.complete(
-            requestId = operation.requestId,
+            result = result,
             transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000012"),
         )
 
@@ -79,13 +85,14 @@ class ProcessPurchaseWalletResultServiceTest {
         val personalization = paidCustomNotificationPack(UserId.generate())
         val operation = purchaseOperation(personalization)
         val fixture = fixture(personalization, operation)
+        val result = walletResult(operation)
 
         fixture.service.fail(
-            requestId = operation.requestId,
+            result = result,
             reason = "INSUFFICIENT_BALANCE",
         )
         fixture.service.fail(
-            requestId = operation.requestId,
+            result = result,
             reason = "SHOULD_BE_IGNORED",
         )
 
@@ -100,6 +107,26 @@ class ProcessPurchaseWalletResultServiceTest {
         assertEquals("INSUFFICIENT_BALANCE", payload.failureReason)
         assertNull(payload.walletTransactionId)
         assertEquals(1, fixture.operationRepository.saveCalls)
+    }
+
+    @Test
+    fun `wallet result with different amount cannot complete purchase`() {
+        val personalization = paidCustomNotificationPack(UserId.generate())
+        val operation = purchaseOperation(personalization)
+        val fixture = fixture(personalization, operation)
+        val mismatchedResult = walletResult(operation).copy(amount = operation.amount + 1)
+
+        assertThrows(IllegalStateException::class.java) {
+            fixture.service.complete(
+                result = mismatchedResult,
+                transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000014"),
+            )
+        }
+
+        assertEquals(PurchaseOperationStatus.PENDING, operation.status)
+        assertTrue(fixture.ownershipRepository.saved.isEmpty())
+        assertTrue(fixture.publisher.events.isEmpty())
+        assertEquals(0, fixture.operationRepository.saveCalls)
     }
 
     private fun fixture(
@@ -155,6 +182,22 @@ class ProcessPurchaseWalletResultServiceTest {
             currency = Currency.PRIME,
             amount = 50,
             now = now.minusSeconds(30),
+        )
+    }
+
+    private fun walletResult(operation: PurchaseOperation): WalletResultContext {
+        val owner = operation.owner as PersonalizationOwner.User
+
+        return WalletResultContext(
+            requestId = operation.requestId,
+            actorUserId = operation.buyerUserId.id,
+            ownerType = WalletOwnerType.USER,
+            ownerId = owner.userId.id,
+            currency = operation.currency,
+            transactionType = TransactionType.DEBIT,
+            source = TransactionSource.PERSONALIZATION_PURCHASE,
+            sourceReferenceId = operation.id.id,
+            amount = operation.amount,
         )
     }
 
