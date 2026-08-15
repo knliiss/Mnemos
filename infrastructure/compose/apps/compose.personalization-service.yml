@@ -1,0 +1,40 @@
+services:
+  personalization-service:
+    container_name: mnemos-personalization-service
+    build:
+      context: ../..
+      dockerfile: apps/personalization-service/Dockerfile
+    image: mnemos/personalization-service:${PERSONALIZATION_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8089
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=personalization
+      SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
+      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"mnemos_apps\" password=\"${KAFKA_APP_PASSWORD}\";"
+      MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
+      MNEMOS_KAFKA_MESSAGE_AUTH_ENABLED: "true"
+      MNEMOS_KAFKA_MESSAGE_AUTH_PRIVATE_KEY: ${PERSONALIZATION_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
+      MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      PERSONALIZATION_SERVICE_ACCOUNT_API_KEY: ${PERSONALIZATION_SERVICE_ACCOUNT_API_KEY}
+      MNEMOS_PERSONALIZATION_CREATOR_PRIME_SHARE_PERCENT: ${MNEMOS_PERSONALIZATION_CREATOR_PRIME_SHARE_PERCENT:-70}
+      MNEMOS_PERSONALIZATION_CREATOR_COIN_SHARE_PERCENT: ${MNEMOS_PERSONALIZATION_CREATOR_COIN_SHARE_PERCENT:-50}
+      MNEMOS_PERSONALIZATION_CREATOR_COIN_PER_PRIME: ${MNEMOS_PERSONALIZATION_CREATOR_COIN_PER_PRIME:-100}
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+    networks:
+      - mnemos-network

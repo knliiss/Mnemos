@@ -15,11 +15,14 @@ class ExpensiveRequestClassifier {
 
         val path = exchange.request.path.value()
 
-        return path.startsWith(BET_API_PREFIX) || path.startsWith(MODERATION_API_PREFIX)
+        return path.startsWith(BET_API_PREFIX) ||
+            path.startsWith(MODERATION_API_PREFIX) ||
+            path.startsWith(PERSONALIZATIONS_API_PREFIX)
     }
 
     private companion object {
         const val BET_API_PREFIX = "/api/v1/bets/"
         const val MODERATION_API_PREFIX = "/api/v1/moderation/"
+        const val PERSONALIZATIONS_API_PREFIX = "/api/v1/personalizations/"
     }
 }

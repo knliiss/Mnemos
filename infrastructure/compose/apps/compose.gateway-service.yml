@@ -21,6 +21,7 @@ services:
       MODERATION_SERVICE_URL: http://moderation-service:8087
       REALTIME_SERVICE_URL: http://realtime-service:8088
       REALTIME_SERVICE_HOST: realtime-service
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
       GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
@@ -55,6 +56,8 @@ services:
       moderation-service:
         condition: service_started
       realtime-service:
+        condition: service_started
+      personalization-service:
         condition: service_started
     networks:
       - mnemos-network
