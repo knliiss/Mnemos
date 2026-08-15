@@ -26,12 +26,9 @@ class SseConnectionRegistry(
         clientIp: String,
         emitter: SseEmitter,
     ): UUID {
-        val userConnections =
-            connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
+        val existingUserConnections = connectionsByUser[userId]
 
-        if (userConnections.size >= properties.maxConnectionsPerUser) {
-            removeEmptyUserConnections(userId, userConnections)
-
+        if ((existingUserConnections?.size ?: 0) >= properties.maxConnectionsPerUser) {
             throw RealtimeConnectionLimitExceededException(
                 limit = properties.maxConnectionsPerUser,
                 scope = "USER",
@@ -39,8 +36,6 @@ class SseConnectionRegistry(
         }
 
         if (totalConnections >= properties.maxConnectionsTotal) {
-            removeEmptyUserConnections(userId, userConnections)
-
             throw RealtimeConnectionLimitExceededException(
                 limit = properties.maxConnectionsTotal,
                 scope = "INSTANCE",
@@ -48,14 +43,14 @@ class SseConnectionRegistry(
         }
 
         val connectionId = UUID.randomUUID()
-
-        when (
+        val leaseResult =
             leaseStore.acquire(
                 userId = userId,
                 clientIp = clientIp,
                 connectionId = connectionId,
             )
-        ) {
+
+        when (leaseResult) {
             SseConnectionLeaseAcquireResult.ACQUIRED -> Unit
             SseConnectionLeaseAcquireResult.USER_LIMIT_EXCEEDED ->
                 throw RealtimeConnectionLimitExceededException(
@@ -75,6 +70,9 @@ class SseConnectionRegistry(
                     scope = "CLUSTER",
                 )
         }
+
+        val userConnections =
+            connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
 
         try {
             userConnections[connectionId] =
