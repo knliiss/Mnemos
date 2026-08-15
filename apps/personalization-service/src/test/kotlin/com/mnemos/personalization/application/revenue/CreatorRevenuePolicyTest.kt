@@ -45,6 +45,20 @@ class CreatorRevenuePolicyTest {
         assertEquals(1L, lowSharePolicy.calculatePrime(operation))
     }
 
+    @Test
+    fun `percentage calculation does not overflow for large purchase amount`() {
+        val fullSharePolicy =
+            CreatorRevenuePolicy(
+                CreatorRevenueProperties(
+                    primeSharePercent = 100,
+                    coinSharePercent = 99,
+                ),
+            )
+        val operation = operation(Currency.PRIME, Long.MAX_VALUE)
+
+        assertEquals(Long.MAX_VALUE, fullSharePolicy.calculatePrime(operation))
+    }
+
     private fun operation(
         currency: Currency,
         amount: Long,
