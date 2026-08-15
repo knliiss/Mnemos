@@ -13,10 +13,12 @@ import com.mnemos.wallet.contracts.wallet.shared.TransactionType
 import com.mnemos.wallet.contracts.wallet.shared.WalletOwner
 import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import org.springframework.stereotype.Component
+import java.time.Clock
 
 @Component
 class CreatorRevenueWalletAdapter(
     private val publisher: IntegrationEventPublisher,
+    private val clock: Clock,
 ) : CreatorRevenueWallet {
     override fun requestCredit(operation: CreatorRevenueOperation) {
         val command =
@@ -39,7 +41,7 @@ class CreatorRevenueWalletAdapter(
                 IntegrationEvent(
                     type = WalletCommandType.CREATE_TRANSACTION,
                     aggregateId = operation.requestId,
-                    occurredAt = operation.createdAt,
+                    occurredAt = clock.instant(),
                     payload = command,
                 ),
             metadata = EventMetadata(),
