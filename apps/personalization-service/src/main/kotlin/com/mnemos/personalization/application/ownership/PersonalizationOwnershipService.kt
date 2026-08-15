@@ -106,14 +106,33 @@ class PersonalizationOwnershipService(
                 .findAll(PersonalizationOwner.User(actor.userId))
                 .toMutableList()
 
+        appendAccountPersonalizationsIfAllowed(
+            userId = actor.userId,
+            result = result,
+        )
+
+        return result
+    }
+
+    private fun appendAccountPersonalizationsIfAllowed(
+        userId: UserId,
+        result: MutableList<OwnedPersonalization>,
+    ) {
         try {
-            val accountId = accountAccess.requireActiveAccount(actor.userId)
-            result += ownershipRepository.findAll(PersonalizationOwner.Account(accountId))
+            val accountId = accountAccess.requireActiveAccount(userId)
+            val canView =
+                accountAccess.hasPermission(
+                    accountId = accountId,
+                    userId = userId,
+                    permission = RolePermission.VIEW_PERSONALIZATIONS,
+                )
+
+            if (canView) {
+                result += ownershipRepository.findAll(PersonalizationOwner.Account(accountId))
+            }
         } catch (_: ActiveAccountRequiredException) {
             // A user can own user-scoped personalization without having an active account.
         }
-
-        return result
     }
 
     private fun resolveOwner(
