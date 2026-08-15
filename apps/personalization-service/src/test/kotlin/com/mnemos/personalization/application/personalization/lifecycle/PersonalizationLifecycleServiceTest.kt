@@ -6,6 +6,7 @@ import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
@@ -102,6 +103,38 @@ class PersonalizationLifecycleServiceTest {
     }
 
     @Test
+    fun `custom notification pack cannot be repriced through creator update flow`() {
+        val userId = UserId.generate()
+        val personalization = paidCustomNotificationPack(userId)
+        val ownership = ownership(personalization, userId, active = false)
+        val fixture =
+            fixture(
+                personalization = personalization,
+                ownership = ownership,
+                userId = userId,
+                roles = setOf(UserRole.PERSONALIZATION_CREATOR),
+            )
+
+        assertThrows(PersonalizationAccessDeniedException::class.java) {
+            fixture.service.update(
+                UpdatePersonalizationCommand(
+                    personalizationId = personalization.id,
+                    name = "Cheaper custom pack",
+                    content = notificationPack("Updated"),
+                    price =
+                        PersonalizationPrice(
+                            currency = Currency.PRIME,
+                            amount = 30,
+                        ),
+                ),
+            )
+        }
+
+        assertEquals(50L, personalization.price?.amount)
+        assertEquals(PersonalizationStatus.PRIVATE, personalization.status)
+    }
+
+    @Test
     fun `creator draft cannot be submitted after creator role is removed`() {
         val userId = UserId.generate()
         val personalization = creatorNotificationPack(userId)
@@ -176,6 +209,19 @@ class PersonalizationLifecycleServiceTest {
             rejectionReason = null,
             createdAt = now.minusSeconds(60),
             updatedAt = now.minusSeconds(60),
+        )
+
+    private fun paidCustomNotificationPack(userId: UserId): Personalization =
+        Personalization.createCustomNotificationPack(
+            creatorUserId = userId,
+            name = "Paid Custom Pack",
+            content = notificationPack("Original"),
+            price =
+                PersonalizationPrice(
+                    currency = Currency.PRIME,
+                    amount = 50,
+                ),
+            now = now.minusSeconds(60),
         )
 
     private fun creatorNotificationPack(userId: UserId): Personalization =
