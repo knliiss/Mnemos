@@ -137,6 +137,7 @@ allow_consumer gateway_service gateway-service mnemos.moderation.events.v1
 allow_consumer notification_service notification-service mnemos.account.events.v1
 allow_consumer notification_service notification-service mnemos.event.events.v1
 allow_consumer notification_service notification-service mnemos.moderation.events.v1
+allow_consumer notification_service notification-service mnemos.personalization.events.v1
 
 allow_topic_write realtime_service mnemos.collector.ingress.v2
 allow_consumer realtime_service realtime-service mnemos.wallet.events.v2
@@ -144,6 +145,7 @@ allow_consumer realtime_service realtime-service mnemos.bet.events.v1
 allow_consumer realtime_service realtime-service mnemos.personalization.events.v1
 
 allow_consumer personalization_service personalization-service mnemos.wallet.events.v2
+allow_consumer personalization_service personalization-service mnemos.personalization.events.v1
 allow_topic_write personalization_service mnemos.wallet.commands.v2
 allow_topic_write personalization_service mnemos.personalization.events.v1
 
