@@ -14,10 +14,13 @@ class Badge(
     init {
         require(CODE.matches(code)) { "Badge code must use upper snake case" }
         require(name.isNotBlank()) { "Badge name cannot be blank" }
+        require(name.length <= MAX_TEXT_LENGTH) { "Badge name is too long" }
         require(icon.isNotBlank()) { "Badge icon cannot be blank" }
+        require(icon.length <= MAX_TEXT_LENGTH) { "Badge icon is too long" }
     }
 
     companion object {
+        private const val MAX_TEXT_LENGTH = 64
         private val CODE = Regex("^[A-Z][A-Z0-9_]{1,31}$")
 
         fun create(
