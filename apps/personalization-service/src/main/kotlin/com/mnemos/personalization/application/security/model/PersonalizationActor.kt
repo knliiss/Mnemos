@@ -7,8 +7,11 @@ data class PersonalizationActor(
     val userId: UserId,
     val roles: Set<UserRole>,
 ) {
+    fun isPersonalizationCreator(): Boolean =
+        UserRole.PERSONALIZATION_CREATOR in roles
+
     fun canCreateMarketplacePersonalization(): Boolean =
-        UserRole.PERSONALIZATION_CREATOR in roles ||
+        isPersonalizationCreator() ||
             UserRole.ADMIN in roles ||
             UserRole.SUPER_ADMIN in roles
 
