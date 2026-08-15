@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":libraries:kafka-starter"))
 
     implementation(project(":contracts:event-contracts"))
+    implementation(project(":contracts:realtime-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -20,7 +21,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation(libs.uuid.creator)
-    implementation(libs.spring.boot.starter.websocket)
 
     implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")

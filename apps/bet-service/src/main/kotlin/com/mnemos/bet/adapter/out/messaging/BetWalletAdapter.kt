@@ -3,6 +3,7 @@ package com.mnemos.bet.adapter.out.messaging
 import com.mnemos.bet.application.wallet.port.out.BetWallet
 import com.mnemos.bet.domain.wallet.model.WalletOperation
 import com.mnemos.bet.domain.wallet.model.WalletOperationKind
+import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.wallet.contracts.wallet.WalletCommandType
@@ -50,12 +51,17 @@ class BetWalletAdapter(
             )
 
         publisher.publish(
-            IntegrationEvent(
-                type = WalletCommandType.CREATE_TRANSACTION,
-                aggregateId = operation.requestId.id,
-                occurredAt = operation.createdAt,
-                payload = command,
-            ),
+            event =
+                IntegrationEvent(
+                    type = WalletCommandType.CREATE_TRANSACTION,
+                    aggregateId = operation.requestId.id,
+                    occurredAt = operation.createdAt,
+                    payload = command,
+                ),
+            metadata =
+                EventMetadata(
+                    actorUserId = operation.initiatedByUserId?.id,
+                ),
         )
     }
 }

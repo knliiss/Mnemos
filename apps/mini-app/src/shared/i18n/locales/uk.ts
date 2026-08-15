@@ -77,5 +77,11 @@ export const uk = {
         telegramOnly: "Відкрийте застосунок усередині Telegram",
         error: "Не вдалося авторизуватися"
     },
+    realtime: {
+        transactionFailed: "Не вдалося провести транзакцію",
+        betConfirmed: "Ставку підтверджено",
+        betRejected: "Ставку відхилено, кошти буде повернуто",
+        betFailed: "Не вдалося обробити ставку"
+    },
     error: {title: "Сталася помилка", retry: "Повторити"}
 } as const

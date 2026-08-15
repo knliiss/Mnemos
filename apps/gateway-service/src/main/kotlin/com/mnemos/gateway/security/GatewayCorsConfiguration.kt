@@ -30,6 +30,7 @@ class GatewayCorsConfiguration {
                         "Authorization",
                         "Content-Type",
                         "Accept",
+                        "Last-Event-ID",
                     )
                 allowCredentials = true
                 maxAge = 3600

@@ -8,6 +8,7 @@ import com.mnemos.bet.domain.wallet.model.WalletOperation
 import com.mnemos.bet.domain.wallet.model.WalletOperationKind
 import com.mnemos.bet.domain.wallet.repository.WalletOperationRepository
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Instant
@@ -23,6 +24,7 @@ class RequestWalletOperationService(
 
         return createAndPublish(
             accountId = command.accountId,
+            initiatedByUserId = command.initiatedByUserId,
             amount = command.amount,
             kind = WalletOperationKind.STAKE,
             eventBetId = command.eventBetId,
@@ -38,6 +40,7 @@ class RequestWalletOperationService(
 
         return createAndPublish(
             accountId = command.accountId,
+            initiatedByUserId = null,
             amount = command.amount,
             kind = command.kind,
             eventBetId = command.eventBetId,
@@ -49,6 +52,7 @@ class RequestWalletOperationService(
 
     private fun createAndPublish(
         accountId: AccountId,
+        initiatedByUserId: UserId?,
         amount: Long,
         kind: WalletOperationKind,
         eventBetId: EventBetId?,
@@ -59,6 +63,7 @@ class RequestWalletOperationService(
         val operation =
             WalletOperation.create(
                 accountId = accountId,
+                initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
                 eventBetId = eventBetId,

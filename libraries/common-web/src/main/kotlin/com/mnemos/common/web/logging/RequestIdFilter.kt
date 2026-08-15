@@ -1,5 +1,6 @@
 package com.mnemos.common.web.logging
 
+import com.github.f4b6a3.uuid.UuidCreator
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -25,7 +26,7 @@ class RequestIdFilter : OncePerRequestFilter() {
 
     private fun resolveRequestId(request: HttpServletRequest): String {
         val incomingRequestId = request.getHeader(MnemosHeaders.REQUEST_ID)?.trim()
-        return incomingRequestId?.takeIf { isValidRequestId(it) } ?: UUID.randomUUID().toString()
+        return incomingRequestId?.takeIf { isValidRequestId(it) } ?: UuidCreator.getTimeOrderedEpoch().toString()
     }
 
     private fun isValidRequestId(requestId: String): Boolean {

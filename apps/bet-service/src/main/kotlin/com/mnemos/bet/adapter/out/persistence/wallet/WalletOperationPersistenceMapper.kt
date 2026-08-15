@@ -8,6 +8,7 @@ import com.mnemos.bet.domain.wallet.model.WalletOperationId
 import com.mnemos.bet.domain.wallet.model.WalletRequestId
 import com.mnemos.bet.domain.wallet.model.WalletTransactionId
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 
 object WalletOperationPersistenceMapper {
     fun WalletOperation.toEntity(): WalletOperationEntity =
@@ -15,6 +16,7 @@ object WalletOperationPersistenceMapper {
             id = id.id,
             requestId = requestId.id,
             accountId = accountId.id,
+            initiatedByUserId = initiatedByUserId?.id,
             amount = amount,
             kind = kind,
             eventBetId = eventBetId?.id,
@@ -31,6 +33,7 @@ object WalletOperationPersistenceMapper {
             id = WalletOperationId(id),
             requestId = WalletRequestId(requestId),
             accountId = AccountId(accountId),
+            initiatedByUserId = initiatedByUserId?.let(::UserId),
             amount = amount,
             kind = kind,
             eventBetId = eventBetId?.let(::EventBetId),

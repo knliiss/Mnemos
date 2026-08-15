@@ -20,6 +20,14 @@ class BetKafkaTopicConfiguration {
         )
 
     @Bean
+    fun betEventsDeadLetterTopic(): KafkaTopicDefinition =
+        KafkaTopicDefinition(
+            name = KafkaDeadLetterTopic.name(BetEventContract.TOPIC),
+            partitions = 3,
+            replicationFactor = 1,
+        )
+
+    @Bean
     fun eventEventsTopic(): KafkaTopicDefinition =
         KafkaTopicDefinition(
             name = EventEventContract.TOPIC,

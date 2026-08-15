@@ -7,7 +7,7 @@ import java.time.Duration
 data class EventVerificationProperties(
     val matchingWindow: Duration = Duration.ofSeconds(5),
     val candidateTtl: Duration = Duration.ofMinutes(1),
-    val confirmationRatio: Double = 0.6,
+    val confirmationRatio: Double = 0.5,
     val minimumConfirmations: Int = 2,
 ) {
     init {

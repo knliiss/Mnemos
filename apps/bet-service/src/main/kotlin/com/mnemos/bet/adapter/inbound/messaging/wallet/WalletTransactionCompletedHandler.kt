@@ -6,6 +6,7 @@ import com.mnemos.bet.domain.wallet.model.WalletRequestId
 import com.mnemos.bet.domain.wallet.model.WalletTransactionId
 import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
+import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
 import com.mnemos.wallet.contracts.wallet.WalletEventType
@@ -22,7 +23,15 @@ class WalletTransactionCompletedHandler(
             WalletEventType.TRANSACTION_COMPLETED,
             WalletEventContract.VERSION,
             WalletEventContract.AGGREGATE_TYPE,
-        )
+        ) { envelope ->
+            if (envelope.producer != WALLET_SERVICE) {
+                throw KafkaMessageProtocolException("Wallet results must be produced by wallet-service")
+            }
+
+            if (envelope.aggregateId != envelope.payload.requestId) {
+                throw KafkaMessageProtocolException("Wallet result aggregateId must match requestId")
+            }
+        }
 
     override val consumer = "bet-service.wallet-completed"
 
@@ -33,5 +42,9 @@ class WalletTransactionCompletedHandler(
                 transactionId = WalletTransactionId(message.payload.transactionId),
             ),
         )
+    }
+
+    private companion object {
+        const val WALLET_SERVICE = "wallet-service"
     }
 }

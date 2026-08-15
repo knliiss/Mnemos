@@ -73,5 +73,11 @@ export const en = {
         system: "System"
     },
     auth: {authorizing: "Authorizing...", telegramOnly: "Open the app inside Telegram", error: "Authorization failed"},
+    realtime: {
+        transactionFailed: "The transaction could not be completed",
+        betConfirmed: "The bet was confirmed",
+        betRejected: "The bet was rejected and the funds will be refunded",
+        betFailed: "The bet could not be processed"
+    },
     error: {title: "Something went wrong", retry: "Retry"}
 } as const

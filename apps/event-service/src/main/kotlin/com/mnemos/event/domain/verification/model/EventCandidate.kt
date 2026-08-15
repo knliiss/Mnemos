@@ -3,6 +3,7 @@ package com.mnemos.event.domain.verification.model
 import com.mnemos.event.domain.verification.model.report.CollectorEventReport
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 
 class EventCandidate private constructor(
     val id: EventCandidateId,
@@ -24,7 +25,7 @@ class EventCandidate private constructor(
 
     fun hasMessage(
         collectorId: CollectorId,
-        messageId: java.util.UUID,
+        messageId: UUID,
     ): Boolean = observations[collectorId]?.messageId == messageId
 
     fun matchesTime(

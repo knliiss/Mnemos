@@ -7,8 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class MnemosSecurityProperties(
     val publicPaths: List<String> = listOf(
         "/actuator/health",
-        "/actuator/health/**",
-        "/ws/v1/collector"
+        "/actuator/health/**"
     ),
 
     val rolePrefix: String = "ROLE_",

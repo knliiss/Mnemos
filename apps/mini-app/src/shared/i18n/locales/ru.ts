@@ -77,5 +77,11 @@ export const ru = {
         telegramOnly: "Откройте приложение внутри Telegram",
         error: "Не удалось авторизоваться"
     },
+    realtime: {
+        transactionFailed: "Не удалось провести транзакцию",
+        betConfirmed: "Ставка подтверждена",
+        betRejected: "Ставка отклонена, средства будут возвращены",
+        betFailed: "Не удалось обработать ставку"
+    },
     error: {title: "Произошла ошибка", retry: "Повторить"}
 } as const

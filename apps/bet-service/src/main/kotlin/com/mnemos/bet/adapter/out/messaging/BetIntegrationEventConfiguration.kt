@@ -34,6 +34,13 @@ class BetIntegrationEventConfiguration {
                         aggregateType = BetAggregateType.ITEM_RACE,
                     )
 
+                BetEventType.OPERATION_COMPLETED ->
+                    IntegrationEventRoute(
+                        topic = BetEventContract.TOPIC,
+                        version = BetEventContract.VERSION,
+                        aggregateType = BetAggregateType.OPERATION,
+                    )
+
                 WalletCommandType.CREATE_TRANSACTION ->
                     IntegrationEventRoute(
                         topic = WalletCommandContract.TOPIC,

@@ -1,5 +1,6 @@
 package com.mnemos.bet.adapter.inbound.http.eventbet
 
+import com.mnemos.bet.adapter.inbound.http.common.AcceptedBetOperationResponse
 import com.mnemos.bet.adapter.inbound.http.eventbet.EventBetApiMapper.toResponse
 import com.mnemos.bet.application.eventbet.usecase.history.ListMyEventBetsUseCase
 import com.mnemos.bet.application.eventbet.usecase.increase.IncreaseEventBetCommand
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/bets/event-bets")
@@ -27,36 +27,47 @@ class EventBetController(
     private val listMyEventBetsUseCase: ListMyEventBetsUseCase,
 ) {
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     fun place(
         @RequestBody
         @Valid
         request: PlaceEventBetRequest,
-    ): UUID =
-        placeEventBetUseCase
-            .execute(
+    ): AcceptedBetOperationResponse {
+        val result =
+            placeEventBetUseCase.execute(
                 PlaceEventBetCommand(
                     roundId = EventBetRoundId(request.roundId),
                     side = DomainBetSide.valueOf(request.side.name),
                     amount = request.amount,
                 ),
-            ).betId
-            .id
+            )
+
+        return AcceptedBetOperationResponse(
+            resourceId = result.betId.id,
+            operationId = result.operationId.id,
+        )
+    }
 
     @PatchMapping("/increase")
+    @ResponseStatus(HttpStatus.ACCEPTED)
     fun increase(
         @RequestBody
         @Valid
         request: IncreaseEventBetRequest,
-    ): UUID =
-        increaseEventBetUseCase
-            .execute(
+    ): AcceptedBetOperationResponse {
+        val result =
+            increaseEventBetUseCase.execute(
                 IncreaseEventBetCommand(
                     roundId = EventBetRoundId(request.roundId),
                     amount = request.amount,
                 ),
-            ).betId
-            .id
+            )
+
+        return AcceptedBetOperationResponse(
+            resourceId = result.betId.id,
+            operationId = result.operationId.id,
+        )
+    }
 
     @GetMapping("/me")
     fun history(): List<EventBetResponse> = listMyEventBetsUseCase.execute().map { it.toResponse() }

@@ -1,5 +1,6 @@
 package com.mnemos.bet.adapter.inbound.http.itemrace
 
+import com.mnemos.bet.adapter.inbound.http.common.AcceptedBetOperationResponse
 import com.mnemos.bet.adapter.inbound.http.itemrace.ItemRaceApiMapper.toResponse
 import com.mnemos.bet.application.itemrace.usecase.history.ListMyItemRaceHistoryUseCase
 import com.mnemos.bet.application.itemrace.usecase.join.JoinItemRaceCommand
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/bets/item-race-participants")
@@ -22,19 +22,24 @@ class ItemRaceParticipantController(
     private val listMyItemRaceHistoryUseCase: ListMyItemRaceHistoryUseCase,
 ) {
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     fun join(
         @RequestBody
         @Valid
         request: JoinItemRaceRequest,
-    ): UUID =
-        joinItemRaceUseCase
-            .execute(
+    ): AcceptedBetOperationResponse {
+        val result =
+            joinItemRaceUseCase.execute(
                 JoinItemRaceCommand(
                     raceId = ItemRaceId(request.raceId),
                 ),
-            ).participantId
-            .id
+            )
+
+        return AcceptedBetOperationResponse(
+            resourceId = result.participantId.id,
+            operationId = result.operationId.id,
+        )
+    }
 
     @GetMapping("/me")
     fun history(): List<ItemRaceParticipantResponse> = listMyItemRaceHistoryUseCase.execute().map { it.toResponse() }

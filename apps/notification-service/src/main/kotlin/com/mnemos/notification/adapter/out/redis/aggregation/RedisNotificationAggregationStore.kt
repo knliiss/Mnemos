@@ -1,5 +1,6 @@
 package com.mnemos.notification.adapter.out.redis.aggregation
 
+import com.github.f4b6a3.uuid.UuidCreator
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.adapter.out.redis.model.RedisNotificationItem
 import com.mnemos.notification.adapter.out.redis.model.RedisNotificationMapper.toDomain
@@ -156,7 +157,7 @@ class RedisNotificationAggregationStore(
         userId: UserId,
         now: Instant,
     ): ClaimedNotificationAggregation? {
-        val claimId = UUID.randomUUID()
+        val claimId = UuidCreator.getTimeOrderedEpoch()
         val processingKey = properties.processingKey(userId, claimId)
         val visibilityDeadline = now.plus(properties.visibilityTimeout)
 

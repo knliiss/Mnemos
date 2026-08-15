@@ -45,7 +45,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     const text = await response.text()
     if (!text) return null as T
     try { return JSON.parse(text) as T }
-    catch (error) { throw new ApiError(response.status, "Сервер вернул некорректный JSON") }
+    catch { throw new ApiError(response.status, "Сервер вернул некорректный JSON") }
 }
 
 async function readResponseBody(response: Response): Promise<ApiErrorBody | string> {

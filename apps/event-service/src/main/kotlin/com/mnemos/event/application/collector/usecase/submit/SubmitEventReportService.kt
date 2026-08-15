@@ -1,6 +1,5 @@
 package com.mnemos.event.application.collector.usecase.submit
 
-import com.mnemos.event.application.collector.port.out.ActiveCollectorProvider
 import com.mnemos.event.application.collector.port.out.EventCandidateLock
 import com.mnemos.event.application.collector.service.ConfirmedEventRecorder
 import com.mnemos.event.application.collector.verification.EventConfirmationPolicy
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service
 class SubmitEventReportService(
     private val candidateRepository: EventCandidateRepository,
     private val candidateLock: EventCandidateLock,
-    private val activeCollectorProvider: ActiveCollectorProvider,
     private val confirmationPolicy: EventConfirmationPolicy,
     private val confirmedEventRecorder: ConfirmedEventRecorder,
     private val properties: EventVerificationProperties,
@@ -125,7 +123,7 @@ class SubmitEventReportService(
     ): ProcessingResult {
         val requiredConfirmations =
             confirmationPolicy.requiredConfirmations(
-                activeCollectorProvider.activeCollectorCount(),
+                command.activeCollectorCount,
             )
 
         val candidate =

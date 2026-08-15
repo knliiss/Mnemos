@@ -6,6 +6,7 @@ import com.mnemos.security.handler.SecurityErrorResponseWriter
 import com.mnemos.security.internal.InternalApiKeyAuthenticationFilter
 import com.mnemos.security.internal.InternalApiKeyAuthenticationFilter.Companion.INTERNAL_SERVICE_AUTHORITY
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -35,10 +36,13 @@ class MnemosSecurityAutoConfiguration {
 
     @Bean("mnemosCorsConfigurationSource")
     @ConditionalOnMissingBean(name = ["mnemosCorsConfigurationSource"])
-    fun corsConfigurationSource(): CorsConfigurationSource {
+    fun corsConfigurationSource(
+        @Value("\${MNEMOS_FRONTEND_ORIGIN:https://app.knalis.rest}")
+        frontendOrigin: String,
+    ): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
-                "https://app.knalis.rest"
+                frontendOrigin
             )
             allowedMethods = listOf(
                 "GET",
@@ -51,7 +55,8 @@ class MnemosSecurityAutoConfiguration {
             allowedHeaders = listOf(
                 "Authorization",
                 "Content-Type",
-                "Accept"
+                "Accept",
+                "Last-Event-ID"
             )
             maxAge = 3600
             allowCredentials = true

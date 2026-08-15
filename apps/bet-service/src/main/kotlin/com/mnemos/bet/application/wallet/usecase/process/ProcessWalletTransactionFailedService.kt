@@ -1,5 +1,7 @@
 package com.mnemos.bet.application.wallet.usecase.process
 
+import com.mnemos.bet.application.wallet.event.BetOperationEventPublisher
+import com.mnemos.bet.contracts.shared.BetOperationStatus
 import com.mnemos.bet.domain.eventbet.repository.EventBetRepository
 import com.mnemos.bet.domain.itemrace.repository.ItemRaceRepository
 import com.mnemos.bet.domain.wallet.model.WalletOperationKind
@@ -13,6 +15,7 @@ class ProcessWalletTransactionFailedService(
     private val walletOperationRepository: WalletOperationRepository,
     private val eventBetRepository: EventBetRepository,
     private val itemRaceRepository: ItemRaceRepository,
+    private val operationEventPublisher: BetOperationEventPublisher,
 ) : ProcessWalletTransactionFailedUseCase {
     @Transactional
     override fun execute(command: ProcessWalletTransactionFailedCommand) {
@@ -50,5 +53,11 @@ class ProcessWalletTransactionFailedService(
 
             itemRaceRepository.saveParticipant(participant)
         }
+
+        operationEventPublisher.publish(
+            operation = operation,
+            status = BetOperationStatus.FAILED,
+            failureReason = command.reason.name,
+        )
     }
 }

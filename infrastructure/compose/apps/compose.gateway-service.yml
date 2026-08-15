@@ -19,6 +19,8 @@ services:
       REWARD_SERVICE_URL: http://reward-service:8085
       BET_SERVICE_URL: http://bet-service:8086
       MODERATION_SERVICE_URL: http://moderation-service:8087
+      REALTIME_SERVICE_URL: http://realtime-service:8088
+      REALTIME_SERVICE_HOST: realtime-service
       GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       MNEMOS_KAFKA_MANAGE_TOPICS: ${MNEMOS_KAFKA_MANAGE_TOPICS:-true}
@@ -45,6 +47,8 @@ services:
       bet-service:
         condition: service_started
       moderation-service:
+        condition: service_started
+      realtime-service:
         condition: service_started
     networks:
       - mnemos-network

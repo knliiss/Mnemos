@@ -1,5 +1,6 @@
 import {BrowserRouter} from "react-router-dom"
 import {AppProvider} from "@/app/providers/AppProvider"
+import {RealtimeProvider} from "@/app/providers/RealtimeProvider"
 import {AppRouter} from "@/app/router/AppRouter"
 import {AuthGate} from "@/features/auth/ui/AuthGate"
 import {NotificationHost} from "@/shared/notifications/NotificationHost"
@@ -11,7 +12,9 @@ export function App() {
         <RootErrorBoundary>
             <AuthGate>
                 <AppProvider>
-                    <BrowserRouter><AppRouter/></BrowserRouter>
+                    <RealtimeProvider>
+                        <BrowserRouter><AppRouter/></BrowserRouter>
+                    </RealtimeProvider>
                 </AppProvider>
             </AuthGate>
         </RootErrorBoundary>

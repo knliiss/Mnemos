@@ -4,12 +4,14 @@ import com.mnemos.bet.domain.eventbet.model.EventBetId
 import com.mnemos.bet.domain.eventbet.model.EventBetResolutionId
 import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipantId
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 import java.time.Instant
 
 class WalletOperation private constructor(
     val id: WalletOperationId,
     val requestId: WalletRequestId,
     val accountId: AccountId,
+    val initiatedByUserId: UserId?,
     val amount: Long,
     val kind: WalletOperationKind,
     val eventBetId: EventBetId?,
@@ -29,6 +31,7 @@ class WalletOperation private constructor(
     companion object {
         fun create(
             accountId: AccountId,
+            initiatedByUserId: UserId? = null,
             amount: Long,
             kind: WalletOperationKind,
             eventBetId: EventBetId?,
@@ -44,6 +47,7 @@ class WalletOperation private constructor(
                 id = WalletOperationId.generate(),
                 requestId = WalletRequestId.generate(),
                 accountId = accountId,
+                initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
                 eventBetId = eventBetId,
@@ -60,6 +64,7 @@ class WalletOperation private constructor(
             id: WalletOperationId,
             requestId: WalletRequestId,
             accountId: AccountId,
+            initiatedByUserId: UserId?,
             amount: Long,
             kind: WalletOperationKind,
             eventBetId: EventBetId?,
@@ -74,6 +79,7 @@ class WalletOperation private constructor(
                 id = id,
                 requestId = requestId,
                 accountId = accountId,
+                initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
                 eventBetId = eventBetId,
@@ -94,6 +100,7 @@ class WalletOperation private constructor(
             id = WalletOperationId.generate(),
             requestId = WalletRequestId.generate(),
             accountId = accountId,
+            initiatedByUserId = initiatedByUserId,
             amount = amount,
             kind = kind,
             eventBetId = eventBetId,

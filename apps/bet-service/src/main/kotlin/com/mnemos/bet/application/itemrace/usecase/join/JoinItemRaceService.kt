@@ -1,6 +1,7 @@
 package com.mnemos.bet.application.itemrace.usecase.join
 
 import com.mnemos.bet.application.account.port.out.AccountProvider
+import com.mnemos.bet.application.security.port.out.CurrentActorProvider
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletOperationUseCase
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletStakeCommand
 import com.mnemos.bet.domain.exception.BetConflictException
@@ -15,6 +16,7 @@ import java.time.Clock
 class JoinItemRaceService(
     private val repository: ItemRaceRepository,
     private val accountProvider: AccountProvider,
+    private val currentActorProvider: CurrentActorProvider,
     private val requestWalletOperationUseCase: RequestWalletOperationUseCase,
     private val clock: Clock,
 ) : JoinItemRaceUseCase {
@@ -41,18 +43,21 @@ class JoinItemRaceService(
 
         repository.createParticipant(participant)
 
-        requestWalletOperationUseCase.requestStake(
-            RequestWalletStakeCommand(
-                accountId = account.id,
-                amount = race.entryAmount,
-                eventBetId = null,
-                raceParticipantId = participant.id,
-                eligibleAt = race.registrationClosesAt,
-            ),
-        )
+        val operation =
+            requestWalletOperationUseCase.requestStake(
+                RequestWalletStakeCommand(
+                    accountId = account.id,
+                    initiatedByUserId = currentActorProvider.requireUserId(),
+                    amount = race.entryAmount,
+                    eventBetId = null,
+                    raceParticipantId = participant.id,
+                    eligibleAt = race.registrationClosesAt,
+                ),
+            )
 
         return JoinItemRaceResult(
             participantId = participant.id,
+            operationId = operation.id,
         )
     }
 }

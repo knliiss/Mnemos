@@ -10,5 +10,10 @@ data class SubmitEventReportCommand(
     val messageId: UUID,
     val observedAt: Instant,
     val receivedAt: Instant,
+    val activeCollectorCount: Int,
     val report: CollectorEventReport,
-)
+) {
+    init {
+        require(activeCollectorCount > 0)
+    }
+}

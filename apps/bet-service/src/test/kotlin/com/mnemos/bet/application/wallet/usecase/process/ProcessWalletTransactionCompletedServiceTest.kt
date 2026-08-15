@@ -1,7 +1,9 @@
 package com.mnemos.bet.application.wallet.usecase.process
 
+import com.mnemos.bet.application.wallet.event.BetOperationEventPublisher
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletCreditCommand
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletOperationUseCase
+import com.mnemos.bet.contracts.shared.BetOperationStatus
 import com.mnemos.bet.domain.eventbet.model.DomainBetGlobalEventType
 import com.mnemos.bet.domain.eventbet.model.DomainBetSide
 import com.mnemos.bet.domain.eventbet.model.EventBet
@@ -35,6 +37,7 @@ class ProcessWalletTransactionCompletedServiceTest {
     private val eventBetRepository = mock<EventBetRepository>()
     private val itemRaceRepository = mock<ItemRaceRepository>()
     private val requestWalletOperationUseCase = mock<RequestWalletOperationUseCase>()
+    private val operationEventPublisher = mock<BetOperationEventPublisher>()
 
     @Test
     fun `late event bet debit is refunded without becoming confirmed stake`() {
@@ -85,6 +88,7 @@ class ProcessWalletTransactionCompletedServiceTest {
                 eventBetRepository = eventBetRepository,
                 itemRaceRepository = itemRaceRepository,
                 requestWalletOperationUseCase = requestWalletOperationUseCase,
+                operationEventPublisher = operationEventPublisher,
                 clock = clock,
             )
 
@@ -109,6 +113,11 @@ class ProcessWalletTransactionCompletedServiceTest {
                     eligibleAt = now,
                 ),
             ),
+        )
+        verify(operationEventPublisher).publish(
+            operation = operation,
+            status = BetOperationStatus.REJECTED,
+            failureReason = "BETTING_CLOSED",
         )
     }
 
@@ -160,6 +169,7 @@ class ProcessWalletTransactionCompletedServiceTest {
                 eventBetRepository = eventBetRepository,
                 itemRaceRepository = itemRaceRepository,
                 requestWalletOperationUseCase = requestWalletOperationUseCase,
+                operationEventPublisher = operationEventPublisher,
                 clock = clock,
             )
 
@@ -185,6 +195,11 @@ class ProcessWalletTransactionCompletedServiceTest {
                     eligibleAt = now,
                 ),
             ),
+        )
+        verify(operationEventPublisher).publish(
+            operation = operation,
+            status = BetOperationStatus.REJECTED,
+            failureReason = "REGISTRATION_CLOSED",
         )
     }
 }

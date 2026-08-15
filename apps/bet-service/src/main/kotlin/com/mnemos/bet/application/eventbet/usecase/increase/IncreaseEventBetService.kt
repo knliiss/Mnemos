@@ -1,6 +1,7 @@
 package com.mnemos.bet.application.eventbet.usecase.increase
 
 import com.mnemos.bet.application.account.port.out.AccountProvider
+import com.mnemos.bet.application.security.port.out.CurrentActorProvider
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletOperationUseCase
 import com.mnemos.bet.application.wallet.usecase.request.RequestWalletStakeCommand
 import com.mnemos.bet.configuration.EventBetProperties
@@ -14,6 +15,7 @@ import java.time.Clock
 class IncreaseEventBetService(
     private val repository: EventBetRepository,
     private val accountProvider: AccountProvider,
+    private val currentActorProvider: CurrentActorProvider,
     private val requestWalletOperationUseCase: RequestWalletOperationUseCase,
     private val properties: EventBetProperties,
     private val clock: Clock,
@@ -39,18 +41,21 @@ class IncreaseEventBetService(
         )
         repository.saveBet(bet)
 
-        requestWalletOperationUseCase.requestStake(
-            RequestWalletStakeCommand(
-                accountId = account.id,
-                amount = command.amount,
-                eventBetId = bet.id,
-                raceParticipantId = null,
-                eligibleAt = round.closesAt,
-            ),
-        )
+        val operation =
+            requestWalletOperationUseCase.requestStake(
+                RequestWalletStakeCommand(
+                    accountId = account.id,
+                    initiatedByUserId = currentActorProvider.requireUserId(),
+                    amount = command.amount,
+                    eventBetId = bet.id,
+                    raceParticipantId = null,
+                    eligibleAt = round.closesAt,
+                ),
+            )
 
         return IncreaseEventBetResult(
             betId = bet.id,
+            operationId = operation.id,
         )
     }
 }

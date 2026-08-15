@@ -27,6 +27,7 @@
             <option value="$PROJECT_DIR$/apps/gateway-service" />
             <option value="$PROJECT_DIR$/apps/moderation-service" />
             <option value="$PROJECT_DIR$/apps/notification-service" />
+            <option value="$PROJECT_DIR$/apps/realtime-service" />
             <option value="$PROJECT_DIR$/apps/reward-service" />
             <option value="$PROJECT_DIR$/apps/wallet-service" />
             <option value="$PROJECT_DIR$/build-logic" />
@@ -35,6 +36,7 @@
             <option value="$PROJECT_DIR$/contracts/bet-contracts" />
             <option value="$PROJECT_DIR$/contracts/event-contracts" />
             <option value="$PROJECT_DIR$/contracts/moderation-contracts" />
+            <option value="$PROJECT_DIR$/contracts/realtime-contracts" />
             <option value="$PROJECT_DIR$/contracts/wallet-contracts" />
             <option value="$PROJECT_DIR$/keycloak-extensions" />
             <option value="$PROJECT_DIR$/keycloak-extensions/telegram-authenticator" />

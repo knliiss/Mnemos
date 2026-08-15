@@ -20,6 +20,8 @@ class WalletOperationEntity(
     var requestId: UUID,
     @Column(name = "account_id", nullable = false)
     var accountId: UUID,
+    @Column(name = "initiated_by_user_id")
+    var initiatedByUserId: UUID?,
     @Column(name = "amount", nullable = false)
     var amount: Long,
     @Enumerated(EnumType.STRING)

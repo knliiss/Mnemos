@@ -2,6 +2,7 @@ package com.mnemos.event.adapter.out.memory.collector
 
 import com.mnemos.event.application.collector.model.CollectorCoverage
 import com.mnemos.event.application.collector.port.out.CollectorCoverageProvider
+import com.mnemos.event.application.collector.port.out.CollectorCoverageRecorder
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -11,9 +12,11 @@ import java.util.ArrayDeque
 @Component
 class CollectorCoverageTracker(
     private val clock: Clock,
-) : CollectorCoverageProvider {
+) : CollectorCoverageProvider,
+    CollectorCoverageRecorder {
     private val startedAt: Instant = clock.instant()
     private val snapshots = ArrayDeque<CollectorActivitySnapshot>()
+    private var latestRevision: Long = 0
 
     init {
         snapshots.addLast(
@@ -25,17 +28,30 @@ class CollectorCoverageTracker(
     }
 
     @Synchronized
-    fun record(activeCollectors: Int) {
-        val now = clock.instant()
-        val last = snapshots.lastOrNull()
+    override fun record(
+        activeCollectors: Int,
+        occurredAt: Instant,
+        revision: Long,
+    ) {
+        require(activeCollectors >= 0)
+        require(revision >= 0)
 
-        if (last?.activeCollectors == activeCollectors) {
+        if (revision <= latestRevision) {
+            return
+        }
+
+        latestRevision = revision
+
+        val now = clock.instant()
+        val last = requireNotNull(snapshots.lastOrNull())
+
+        if (last.activeCollectors == activeCollectors) {
             return
         }
 
         snapshots.addLast(
             CollectorActivitySnapshot(
-                occurredAt = now,
+                occurredAt = maxOf(startedAt, occurredAt, last.occurredAt),
                 activeCollectors = activeCollectors,
             ),
         )
