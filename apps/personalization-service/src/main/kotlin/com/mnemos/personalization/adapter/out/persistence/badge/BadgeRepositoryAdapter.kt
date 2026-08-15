@@ -41,11 +41,19 @@ class BadgeRepositoryAdapter(
         badgeId: BadgeId,
     ): UserBadge? = userBadgeRepository.findByUserIdAndBadgeId(userId.id, badgeId.id)?.toDomain()
 
+    override fun findUserBadgeForUpdate(
+        userId: UserId,
+        badgeId: BadgeId,
+    ): UserBadge? = userBadgeRepository.findByUserIdAndBadgeIdForUpdate(userId.id, badgeId.id)?.toDomain()
+
     override fun findActiveUserBadge(userId: UserId): UserBadge? =
         userBadgeRepository.findByUserIdAndActiveTrue(userId.id)?.toDomain()
 
     override fun findUserBadges(userId: UserId): List<UserBadge> =
         userBadgeRepository.findAllByUserIdOrderByGrantedAtDesc(userId.id).map { it.toDomain() }
+
+    override fun findUserBadgesForUpdate(userId: UserId): List<UserBadge> =
+        userBadgeRepository.findAllByUserIdForUpdate(userId.id).map { it.toDomain() }
 
     override fun deactivateActiveUserBadge(userId: UserId) {
         userBadgeRepository.deactivateActive(userId.id)
