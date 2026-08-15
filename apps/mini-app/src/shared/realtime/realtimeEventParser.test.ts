@@ -38,19 +38,53 @@ describe("parseRealtimeEvent", () => {
         expect(event?.type).toBe("personalization.purchase.completed")
     })
 
+    it("rejects confirmed personalization purchase without wallet transaction", () => {
+        const event = parseRealtimeEvent(JSON.stringify({
+            id: "019c1129-ef54-7000-8000-000000000309",
+            type: "personalization.purchase.completed",
+            occurredAt: "2026-08-15T10:00:00Z",
+            operationId: "019c1129-ef54-7000-8000-000000000310",
+            payload: {
+                personalizationId: "019c1129-ef54-7000-8000-000000000311",
+                status: "CONFIRMED",
+                walletTransactionId: null,
+                failureReason: null
+            }
+        }))
+
+        expect(event).toBeNull()
+    })
+
+    it("rejects failed personalization purchase carrying wallet transaction", () => {
+        const event = parseRealtimeEvent(JSON.stringify({
+            id: "019c1129-ef54-7000-8000-000000000312",
+            type: "personalization.purchase.completed",
+            occurredAt: "2026-08-15T10:00:00Z",
+            operationId: "019c1129-ef54-7000-8000-000000000313",
+            payload: {
+                personalizationId: "019c1129-ef54-7000-8000-000000000314",
+                status: "FAILED",
+                walletTransactionId: "019c1129-ef54-7000-8000-000000000315",
+                failureReason: "INSUFFICIENT_BALANCE"
+            }
+        }))
+
+        expect(event).toBeNull()
+    })
+
     it("rejects a wallet event that incorrectly exposes a domain operation id", () => {
         const event = parseRealtimeEvent(JSON.stringify({
-            id: "019c1129-ef54-7000-8000-000000000311",
+            id: "019c1129-ef54-7000-8000-000000000321",
             type: "wallet.transaction.failed",
             occurredAt: "2026-08-15T10:00:00Z",
-            operationId: "019c1129-ef54-7000-8000-000000000312",
+            operationId: "019c1129-ef54-7000-8000-000000000322",
             payload: {
-                requestId: "019c1129-ef54-7000-8000-000000000313",
+                requestId: "019c1129-ef54-7000-8000-000000000323",
                 ownerType: "ACCOUNT",
-                ownerId: "019c1129-ef54-7000-8000-000000000314",
+                ownerId: "019c1129-ef54-7000-8000-000000000324",
                 currency: "COIN",
                 source: "BET_PLACE",
-                sourceReferenceId: "019c1129-ef54-7000-8000-000000000312",
+                sourceReferenceId: "019c1129-ef54-7000-8000-000000000322",
                 amount: 500,
                 reason: "INSUFFICIENT_BALANCE"
             }
@@ -82,17 +116,17 @@ describe("parseRealtimeEvent", () => {
 
     it("rejects timestamps that the backend cannot emit as an Instant", () => {
         const event = parseRealtimeEvent(JSON.stringify({
-            id: "019c1129-ef54-7000-8000-000000000321",
+            id: "019c1129-ef54-7000-8000-000000000331",
             type: "wallet.transaction.failed",
             occurredAt: "2026-08-15",
             operationId: null,
             payload: {
-                requestId: "019c1129-ef54-7000-8000-000000000322",
+                requestId: "019c1129-ef54-7000-8000-000000000332",
                 ownerType: "ACCOUNT",
-                ownerId: "019c1129-ef54-7000-8000-000000000323",
+                ownerId: "019c1129-ef54-7000-8000-000000000333",
                 currency: "COIN",
                 source: "BET_PLACE",
-                sourceReferenceId: "019c1129-ef54-7000-8000-000000000324",
+                sourceReferenceId: "019c1129-ef54-7000-8000-000000000334",
                 amount: 500,
                 reason: "INSUFFICIENT_BALANCE"
             }
