@@ -24,4 +24,9 @@ interface OwnedPersonalizationRepository {
     ): OwnedPersonalization?
 
     fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization>
+
+    fun deactivateActive(
+        owner: PersonalizationOwner,
+        type: PersonalizationType,
+    )
 }

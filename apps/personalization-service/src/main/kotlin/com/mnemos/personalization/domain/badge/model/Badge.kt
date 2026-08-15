@@ -17,7 +17,23 @@ class Badge(
         require(icon.isNotBlank()) { "Badge icon cannot be blank" }
     }
 
-    private companion object {
-        val CODE = Regex("^[A-Z][A-Z0-9_]{1,31}$")
+    companion object {
+        private val CODE = Regex("^[A-Z][A-Z0-9_]{1,31}$")
+
+        fun create(
+            code: String,
+            name: String,
+            icon: String,
+            color: HexColor,
+            now: Instant,
+        ): Badge =
+            Badge(
+                id = BadgeId.generate(),
+                code = code,
+                name = name,
+                icon = icon,
+                color = color,
+                createdAt = now,
+            )
     }
 }

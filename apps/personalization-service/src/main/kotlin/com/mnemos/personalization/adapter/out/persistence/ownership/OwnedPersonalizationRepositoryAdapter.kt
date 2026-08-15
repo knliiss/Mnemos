@@ -79,6 +79,17 @@ class OwnedPersonalizationRepositoryAdapter(
             )
             .map { it.toDomain() }
 
+    override fun deactivateActive(
+        owner: PersonalizationOwner,
+        type: PersonalizationType,
+    ) {
+        repository.deactivateActive(
+            ownerType = owner.target,
+            ownerId = owner.id,
+            personalizationType = type,
+        )
+    }
+
     private fun OwnedPersonalizationEntity.toDomain(): OwnedPersonalization =
         OwnedPersonalization(
             owner =

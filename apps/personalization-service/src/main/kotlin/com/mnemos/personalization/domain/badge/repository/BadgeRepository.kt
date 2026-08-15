@@ -23,6 +23,8 @@ interface BadgeRepository {
 
     fun findUserBadges(userId: UserId): List<UserBadge>
 
+    fun deactivateActiveUserBadge(userId: UserId)
+
     fun deleteUserBadge(
         userId: UserId,
         badgeId: BadgeId,
