@@ -6,6 +6,7 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.personalization.application.purchase.ProcessPurchaseWalletResultService
 import com.mnemos.personalization.application.revenue.ProcessCreatorRevenueWalletResultService
+import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
 import com.mnemos.wallet.contracts.wallet.WalletEventType
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionFailedEvent
@@ -31,29 +32,49 @@ class WalletTransactionFailedHandler(
             if (envelope.aggregateId != envelope.payload.requestId) {
                 throw KafkaMessageProtocolException("Wallet result aggregateId must match requestId")
             }
+
+            if (envelope.occurredAt != envelope.payload.occurredAt) {
+                throw KafkaMessageProtocolException("Wallet result occurredAt must match envelope occurredAt")
+            }
         }
 
     override val consumer = "personalization-service.wallet-failed"
 
     override fun handle(message: ConsumedMessage<WalletTransactionFailedEvent>) {
         val payload = message.payload
+        val result = payload.toResultContext(message)
 
         when (payload.source) {
             TransactionSource.PERSONALIZATION_PURCHASE ->
                 purchaseService.fail(
-                    requestId = payload.requestId,
+                    result = result,
                     reason = payload.reason.name,
                 )
 
             TransactionSource.CREATOR_REVENUE ->
                 creatorRevenueService.fail(
-                    requestId = payload.requestId,
+                    result = result,
                     reason = payload.reason.name,
                 )
 
             else -> Unit
         }
     }
+
+    private fun WalletTransactionFailedEvent.toResultContext(
+        message: ConsumedMessage<WalletTransactionFailedEvent>,
+    ): WalletResultContext =
+        WalletResultContext(
+            requestId = requestId,
+            actorUserId = message.metadata.actorUserId,
+            ownerType = owner.type,
+            ownerId = owner.id,
+            currency = currency,
+            transactionType = type,
+            source = source,
+            sourceReferenceId = sourceReferenceId,
+            amount = amount,
+        )
 
     private companion object {
         const val WALLET_SERVICE = "wallet-service"
