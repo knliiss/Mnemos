@@ -1,11 +1,12 @@
 package com.mnemos.personalization.application.personalization.lifecycle
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
-import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
+import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -20,12 +21,14 @@ import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
+import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -79,10 +82,60 @@ class PersonalizationLifecycleServiceTest {
         assertTrue(fixture.publisher.events.isEmpty())
     }
 
+    @Test
+    fun `creator draft cannot be updated after creator role is removed`() {
+        val userId = UserId.generate()
+        val personalization = creatorNotificationPack(userId)
+        val ownership = ownership(personalization, userId, active = false)
+        val fixture = fixture(personalization, ownership, userId)
+
+        assertThrows(PersonalizationAccessDeniedException::class.java) {
+            fixture.service.update(
+                UpdatePersonalizationCommand(
+                    personalizationId = personalization.id,
+                    name = "Updated creator pack",
+                    content = notificationPack("Updated"),
+                    price = personalization.price,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `creator draft cannot be submitted after creator role is removed`() {
+        val userId = UserId.generate()
+        val personalization = creatorNotificationPack(userId)
+        val ownership = ownership(personalization, userId, active = false)
+        val fixture = fixture(personalization, ownership, userId)
+
+        assertThrows(PersonalizationAccessDeniedException::class.java) {
+            fixture.service.submit(personalization.id)
+        }
+    }
+
+    @Test
+    fun `creator can submit own custom notification pack`() {
+        val userId = UserId.generate()
+        val personalization = customNotificationPack(userId)
+        val ownership = ownership(personalization, userId, active = false)
+        val fixture =
+            fixture(
+                personalization = personalization,
+                ownership = ownership,
+                userId = userId,
+                roles = setOf(UserRole.PERSONALIZATION_CREATOR),
+            )
+
+        val result = fixture.service.submit(personalization.id)
+
+        assertEquals(PersonalizationStatus.IN_REVIEW, result.status)
+    }
+
     private fun fixture(
         personalization: Personalization,
         ownership: OwnedPersonalization,
         userId: UserId,
+        roles: Set<UserRole> = emptySet(),
     ): Fixture {
         val personalizationRepository = FakePersonalizationRepository(personalization)
         val ownershipRepository = FakeOwnedPersonalizationRepository(ownership)
@@ -95,7 +148,7 @@ class PersonalizationLifecycleServiceTest {
             )
         val service =
             PersonalizationLifecycleService(
-                actorProvider = FixedActorProvider(userId),
+                actorProvider = FixedActorProvider(userId, roles),
                 pricePolicy = PersonalizationPricePolicy(PersonalizationPricingProperties()),
                 repository = personalizationRepository,
                 ownershipRepository = ownershipRepository,
@@ -123,6 +176,20 @@ class PersonalizationLifecycleServiceTest {
             rejectionReason = null,
             createdAt = now.minusSeconds(60),
             updatedAt = now.minusSeconds(60),
+        )
+
+    private fun creatorNotificationPack(userId: UserId): Personalization =
+        Personalization.createCreatorDraft(
+            creatorUserId = userId,
+            type = PersonalizationType.NOTIFICATION_PACK,
+            name = "Creator Pack",
+            content = notificationPack("Creator"),
+            price =
+                PersonalizationPrice(
+                    currency = Currency.PRIME,
+                    amount = 100,
+                ),
+            now = now.minusSeconds(60),
         )
 
     private fun ownership(
@@ -160,8 +227,13 @@ class PersonalizationLifecycleServiceTest {
 
     private class FixedActorProvider(
         userId: UserId,
+        roles: Set<UserRole>,
     ) : CurrentPersonalizationActorProvider {
-        private val actor = PersonalizationActor(userId = userId, roles = emptySet())
+        private val actor =
+            PersonalizationActor(
+                userId = userId,
+                roles = roles,
+            )
 
         override fun requireActor(): PersonalizationActor = actor
     }
@@ -216,7 +288,7 @@ class PersonalizationLifecycleServiceTest {
             personalizationId: PersonalizationId,
         ): OwnedPersonalization? =
             ownership.takeIf {
-                it.owner == owner && it.personalizationId == personalizationId
+                it.owner == owner && ownership.personalizationId == personalizationId
             }
 
         override fun findActive(
