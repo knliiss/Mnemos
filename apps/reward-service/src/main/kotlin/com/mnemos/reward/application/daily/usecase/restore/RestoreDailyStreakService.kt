@@ -1,5 +1,6 @@
 package com.mnemos.reward.application.daily.usecase.restore
 
+import com.mnemos.common.core.model.permission.RolePermission.CLAIM_DAILY_REWARD
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
 import com.mnemos.reward.configuration.RewardProperties
@@ -21,17 +22,25 @@ class RestoreDailyStreakService(
 ) {
     @Transactional
     fun restore(): Int {
-        val accountId = activeAccountProvider.getActiveAccountContext().accountId
+        val accountId = activeAccountProvider.getActiveAccountContext(CLAIM_DAILY_REWARD).accountId
         val today = LocalDate.now(clock.withZone(ClaimDailyRewardService.MOSCOW))
-        val streak = repository.findByAccountIdForUpdate(accountId) ?: throw DailyStreakNotRecoverableException()
+        val streak =
+            repository.findByAccountIdForUpdate(accountId)
+                ?: throw DailyStreakNotRecoverableException()
+
         streak.breakIfMissed(today)
-        if (streak.currentStreak != 0 || streak.recoverableStreak <= 0) throw DailyStreakNotRecoverableException()
+
+        if (streak.currentStreak != 0 || streak.recoverableStreak <= 0) {
+            throw DailyStreakNotRecoverableException()
+        }
+
         if (streak.restoresRemaining(YearMonth.from(today), properties.daily.monthlyRestoreLimit) <= 0) {
             throw DailyStreakRestoreLimitReachedException()
         }
 
         val restored = streak.restore(today, properties.daily.monthlyRestoreLimit)
         repository.save(streak)
+
         return restored
     }
 }

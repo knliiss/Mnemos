@@ -2,7 +2,9 @@ package com.mnemos.reward.application.daily
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
+import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.port.out.RewardRandom
 import com.mnemos.reward.application.daily.port.out.RewardWallet
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
@@ -25,6 +27,13 @@ class ClaimDailyRewardServiceTest {
         val userId = UserId.generate()
         val repository = MemoryRepo()
         val wallet = RecordingWallet()
+        val accountProvider =
+            RecordingActiveAccountProvider(
+                ActiveAccountContext(
+                    accountId = accountId,
+                    userId = userId,
+                ),
+            )
         val clock =
             Clock.fixed(
                 Instant.parse("2026-08-11T10:00:00Z"),
@@ -33,7 +42,7 @@ class ClaimDailyRewardServiceTest {
 
         val service =
             ClaimDailyRewardService(
-                activeAccountProvider = { ActiveAccountContext(accountId = accountId, userId = userId) },
+                activeAccountProvider = accountProvider,
                 repository = repository,
                 wallet = wallet,
                 random =
@@ -50,6 +59,7 @@ class ClaimDailyRewardServiceTest {
         assertEquals(1, result.streak)
         assertEquals(60, result.coins)
         assertEquals(1, result.primes)
+        assertEquals(setOf(RolePermission.CLAIM_DAILY_REWARD), accountProvider.requestedPermissions)
         assertEquals(
             listOf(
                 Currency.COIN to 60L,
@@ -61,9 +71,16 @@ class ClaimDailyRewardServiceTest {
 
     @Test
     fun `prime chance grows with streak and is capped`() {
+        val accountProvider =
+            RecordingActiveAccountProvider(
+                ActiveAccountContext(
+                    accountId = AccountId.generate(),
+                    userId = UserId.generate(),
+                ),
+            )
         val service =
             ClaimDailyRewardService(
-                activeAccountProvider = { ActiveAccountContext(accountId = AccountId.generate(), userId = UserId.generate()) },
+                activeAccountProvider = accountProvider,
                 repository = MemoryRepo(),
                 wallet = RecordingWallet(),
                 random =
@@ -80,6 +97,20 @@ class ClaimDailyRewardServiceTest {
         assertEquals(0.01, service.primeChance(500), 0.0000001)
     }
 
+    private class RecordingActiveAccountProvider(
+        private val context: ActiveAccountContext,
+    ) : ActiveAccountProvider {
+        val requestedPermissions = mutableSetOf<RolePermission>()
+
+        override fun getActiveAccountContext(): ActiveAccountContext = context
+
+        override fun getActiveAccountContext(permission: RolePermission): ActiveAccountContext {
+            requestedPermissions += permission
+
+            return context
+        }
+    }
+
     private class MemoryRepo : DailyStreakRepository {
         var value: DailyStreak? = null
 
@@ -89,6 +120,7 @@ class ClaimDailyRewardServiceTest {
 
         override fun save(streak: DailyStreak): DailyStreak {
             value = streak
+
             return streak
         }
 

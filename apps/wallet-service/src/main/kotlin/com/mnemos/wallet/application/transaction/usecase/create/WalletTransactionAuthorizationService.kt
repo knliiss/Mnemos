@@ -27,15 +27,21 @@ class WalletTransactionAuthorizationService(
         owner: WalletOwner.Account,
         actorUserId: UUID?,
     ): WalletTransactionFailureReason? {
-        val requiredPermission = requiredAccountPermission(request.source) ?: return null
-        val userId = actorUserId?.let(::UserId) ?: return WalletTransactionFailureReason.PERMISSION_DENIED
+        val requiredPermissions = requiredAccountPermissions(request.source)
 
+        if (requiredPermissions.isEmpty()) {
+            return null
+        }
+
+        val userId = actorUserId?.let(::UserId) ?: return WalletTransactionFailureReason.PERMISSION_DENIED
         val granted =
-            accountPermissionProvider.hasPermission(
-                accountId = owner.accountId,
-                userId = userId,
-                permission = requiredPermission,
-            )
+            requiredPermissions.all { permission ->
+                accountPermissionProvider.hasPermission(
+                    accountId = owner.accountId,
+                    userId = userId,
+                    permission = permission,
+                )
+            }
 
         return if (granted) null else WalletTransactionFailureReason.PERMISSION_DENIED
     }
@@ -56,12 +62,21 @@ class WalletTransactionAuthorizationService(
         }
     }
 
-    private fun requiredAccountPermission(source: TransactionSource): RolePermission? =
+    private fun requiredAccountPermissions(source: TransactionSource): Set<RolePermission> =
         when (source) {
-            TransactionSource.BET_PLACE,
-            TransactionSource.PERSONALIZATION_PURCHASE,
-            -> RolePermission.SPEND_WALLET_FUNDS
-            else -> null
+            TransactionSource.BET_PLACE ->
+                setOf(
+                    RolePermission.PLACE_BETS,
+                    RolePermission.SPEND_WALLET_FUNDS,
+                )
+
+            TransactionSource.PERSONALIZATION_PURCHASE ->
+                setOf(
+                    RolePermission.BUY_PERSONALIZATIONS,
+                    RolePermission.SPEND_WALLET_FUNDS,
+                )
+
+            else -> emptySet()
         }
 
     private fun requiresUserOwnership(source: TransactionSource): Boolean =

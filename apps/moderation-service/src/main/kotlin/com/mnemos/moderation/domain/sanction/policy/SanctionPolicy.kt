@@ -58,7 +58,10 @@ object SanctionPolicy {
     private val UserRole.rank: Int
         get() =
             when (this) {
-                UserRole.USER -> 0
+                UserRole.USER,
+                UserRole.PERSONALIZATION_CREATOR,
+                UserRole.PERSONALIZATION_MODERATOR,
+                -> 0
                 UserRole.MODERATOR -> 1
                 UserRole.ADMIN -> 2
                 UserRole.SUPER_ADMIN -> 3

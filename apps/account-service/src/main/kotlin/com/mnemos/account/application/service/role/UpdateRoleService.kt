@@ -2,6 +2,7 @@ package com.mnemos.account.application.service.role
 
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
+import com.mnemos.account.application.policy.role.RolePermissionMutationGuard
 import com.mnemos.account.application.query.account.role.RoleView
 import com.mnemos.account.application.query.account.role.toView
 import com.mnemos.account.domain.model.account.role.AccountRoleName
@@ -20,6 +21,7 @@ class UpdateRoleService(
     private val accountContextProvider: ActiveAccountContextProvider,
     private val roleRepository: RoleRepository,
     private val roleAccessGuard: RoleAccessGuard,
+    private val rolePermissionMutationGuard: RolePermissionMutationGuard,
 ) {
     @Transactional
     fun updateDetails(
@@ -28,8 +30,11 @@ class UpdateRoleService(
         name: String?,
         color: String?,
     ): RoleView {
-        val context = accountContextProvider.requirePermission(accountId, EDIT_ROLE_DETAILS)
-
+        val context =
+            accountContextProvider.requirePermissionForUpdate(
+                accountId = accountId,
+                permission = EDIT_ROLE_DETAILS,
+            )
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
@@ -46,7 +51,9 @@ class UpdateRoleService(
             updated = role.updateRoleName(AccountRoleName(name)) || updated
         }
 
-        if (!updated) return role.toView()
+        if (!updated) {
+            return role.toView()
+        }
 
         return roleRepository.update(role).toView()
     }
@@ -57,15 +64,29 @@ class UpdateRoleService(
         roleId: RoleId,
         permissions: Map<RolePermission, Boolean>,
     ): RoleView {
-        val context = accountContextProvider.requirePermission(accountId, EDIT_ROLE_PERMISSIONS)
-
+        val context =
+            accountContextProvider.requirePermissionForUpdate(
+                accountId = accountId,
+                permission = EDIT_ROLE_PERMISSIONS,
+            )
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
                 roleId = roleId,
             )
 
-        if (!role.updatePermissions(permissions)) return role.toView()
+        rolePermissionMutationGuard.requireRoleNotAssignedToActor(
+            context = context,
+            role = role,
+        )
+        roleAccessGuard.requireCanGrantPermissions(
+            context = context,
+            permissions = permissions.filterValues { enabled -> enabled }.keys,
+        )
+
+        if (!role.updatePermissions(permissions)) {
+            return role.toView()
+        }
 
         return roleRepository.update(role).toView()
     }

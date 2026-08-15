@@ -1,6 +1,7 @@
 package com.mnemos.realtime.adapter.redis.delivery.serialization
 
 import com.mnemos.realtime.application.delivery.model.BetOperationCompletedPayload
+import com.mnemos.realtime.application.delivery.model.PersonalizationPurchaseCompletedPayload
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.model.RealtimeEventPayload
 import com.mnemos.realtime.application.delivery.model.RealtimeEventType
@@ -67,6 +68,12 @@ class RedisRealtimeEventCodec(
                 jsonMapper.treeToValue(
                     payload,
                     BetOperationCompletedPayload::class.java,
+                )
+
+            RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED ->
+                jsonMapper.treeToValue(
+                    payload,
+                    PersonalizationPurchaseCompletedPayload::class.java,
                 )
         }
 

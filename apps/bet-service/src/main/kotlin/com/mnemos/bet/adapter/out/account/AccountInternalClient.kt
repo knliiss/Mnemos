@@ -3,6 +3,9 @@ package com.mnemos.bet.adapter.out.account
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
@@ -18,4 +21,10 @@ interface AccountInternalClient {
         @RequestParam(required = false) userId: UUID? = null,
         @RequestParam(required = false) cristalixNickname: String? = null,
     ): InternalAccountResponse?
+
+    @PostMapping("/internal/v1/accounts/{accountId}/permissions/check")
+    fun checkPermission(
+        @PathVariable accountId: UUID,
+        @RequestBody request: CheckAccountPermissionRequest,
+    ): CheckAccountPermissionResponse
 }

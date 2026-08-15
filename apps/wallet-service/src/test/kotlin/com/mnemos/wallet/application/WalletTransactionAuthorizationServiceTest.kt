@@ -24,7 +24,12 @@ class WalletTransactionAuthorizationServiceTest {
     @Test
     fun `user prime debit requires same actor`() {
         val userId = UserId.generate()
-        val request = request(WalletOwner.User(userId), Currency.PRIME, TransactionSource.PERSONALIZATION_PURCHASE)
+        val request =
+            request(
+                owner = WalletOwner.User(userId),
+                currency = Currency.PRIME,
+                source = TransactionSource.PERSONALIZATION_PURCHASE,
+            )
 
         assertNull(service.resolveFailureReason(request, userId.id))
         assertEquals(
@@ -34,14 +39,93 @@ class WalletTransactionAuthorizationServiceTest {
     }
 
     @Test
-    fun `account coin debit requires spend permission`() {
+    fun `bet debit requires place bets and spend wallet permissions`() {
         val accountId = AccountId.generate()
         val userId = UserId.generate()
-        accountPermissionProvider.granted = true
-        val request = request(WalletOwner.Account(accountId), Currency.COIN, TransactionSource.BET_PLACE)
+        val request =
+            request(
+                owner = WalletOwner.Account(accountId),
+                currency = Currency.COIN,
+                source = TransactionSource.BET_PLACE,
+            )
+
+        accountPermissionProvider.grantedPermissions =
+            setOf(
+                RolePermission.PLACE_BETS,
+                RolePermission.SPEND_WALLET_FUNDS,
+            )
 
         assertNull(service.resolveFailureReason(request, userId.id))
-        assertEquals(RolePermission.SPEND_WALLET_FUNDS, accountPermissionProvider.lastPermission)
+        assertEquals(
+            listOf(
+                RolePermission.PLACE_BETS,
+                RolePermission.SPEND_WALLET_FUNDS,
+            ),
+            accountPermissionProvider.checkedPermissions,
+        )
+    }
+
+    @Test
+    fun `bet debit is denied when actor can spend but cannot place bets`() {
+        val accountId = AccountId.generate()
+        val userId = UserId.generate()
+        val request =
+            request(
+                owner = WalletOwner.Account(accountId),
+                currency = Currency.COIN,
+                source = TransactionSource.BET_PLACE,
+            )
+        accountPermissionProvider.grantedPermissions = setOf(RolePermission.SPEND_WALLET_FUNDS)
+
+        assertEquals(
+            WalletTransactionFailureReason.PERMISSION_DENIED,
+            service.resolveFailureReason(request, userId.id),
+        )
+    }
+
+    @Test
+    fun `account personalization debit requires buy and spend wallet permissions`() {
+        val accountId = AccountId.generate()
+        val userId = UserId.generate()
+        val request =
+            request(
+                owner = WalletOwner.Account(accountId),
+                currency = Currency.COIN,
+                source = TransactionSource.PERSONALIZATION_PURCHASE,
+            )
+
+        accountPermissionProvider.grantedPermissions =
+            setOf(
+                RolePermission.BUY_PERSONALIZATIONS,
+                RolePermission.SPEND_WALLET_FUNDS,
+            )
+
+        assertNull(service.resolveFailureReason(request, userId.id))
+        assertEquals(
+            listOf(
+                RolePermission.BUY_PERSONALIZATIONS,
+                RolePermission.SPEND_WALLET_FUNDS,
+            ),
+            accountPermissionProvider.checkedPermissions,
+        )
+    }
+
+    @Test
+    fun `account personalization debit is denied without spend wallet permission`() {
+        val accountId = AccountId.generate()
+        val userId = UserId.generate()
+        val request =
+            request(
+                owner = WalletOwner.Account(accountId),
+                currency = Currency.COIN,
+                source = TransactionSource.PERSONALIZATION_PURCHASE,
+            )
+        accountPermissionProvider.grantedPermissions = setOf(RolePermission.BUY_PERSONALIZATIONS)
+
+        assertEquals(
+            WalletTransactionFailureReason.PERMISSION_DENIED,
+            service.resolveFailureReason(request, userId.id),
+        )
     }
 
     private fun request(
@@ -60,16 +144,17 @@ class WalletTransactionAuthorizationServiceTest {
         )
 
     private class FakeAccountPermissionProvider : AccountPermissionProvider {
-        var granted = false
-        var lastPermission: RolePermission? = null
+        var grantedPermissions: Set<RolePermission> = emptySet()
+        val checkedPermissions = mutableListOf<RolePermission>()
 
         override fun hasPermission(
             accountId: AccountId,
             userId: UserId,
             permission: RolePermission,
         ): Boolean {
-            lastPermission = permission
-            return granted
+            checkedPermissions += permission
+
+            return permission in grantedPermissions
         }
     }
 }

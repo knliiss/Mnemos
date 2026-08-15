@@ -29,6 +29,12 @@ export function parseRealtimeEvent(data: string): RealtimeEvent | null {
                     ? candidate as RealtimeEvent
                     : null
 
+            case "personalization.purchase.completed":
+                return isPersonalizationPurchaseCompletedPayload(candidate.payload)
+                    && typeof candidate.operationId === "string"
+                    ? candidate as RealtimeEvent
+                    : null
+
             default:
                 return null
         }
@@ -79,6 +85,24 @@ function isBetCompletedPayload(payload: Record<string, unknown>): boolean {
         && isPositiveSafeInteger(payload.amount)
         && isNullableUuid(payload.walletTransactionId)
         && isNullableString(payload.failureReason)
+}
+
+function isPersonalizationPurchaseCompletedPayload(payload: Record<string, unknown>): boolean {
+    if (!isUuid(payload.personalizationId)) {
+        return false
+    }
+
+    if (payload.status === "CONFIRMED") {
+        return isUuid(payload.walletTransactionId)
+            && payload.failureReason === null
+    }
+
+    if (payload.status === "FAILED") {
+        return payload.walletTransactionId === null
+            && isNonBlankString(payload.failureReason)
+    }
+
+    return false
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

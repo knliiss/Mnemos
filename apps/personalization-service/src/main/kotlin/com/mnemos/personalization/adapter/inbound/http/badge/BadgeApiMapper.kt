@@ -1,0 +1,22 @@
+package com.mnemos.personalization.adapter.inbound.http.badge
+
+import com.mnemos.personalization.application.badge.UserBadgeView
+import com.mnemos.personalization.domain.badge.model.Badge
+
+object BadgeApiMapper {
+    fun Badge.toResponse(): BadgeResponse =
+        BadgeResponse(
+            id = id.id,
+            code = code,
+            name = name,
+            icon = icon,
+            color = color.value,
+        )
+
+    fun UserBadgeView.toResponse(): UserBadgeResponse =
+        UserBadgeResponse(
+            badge = badge.toResponse(),
+            grantedAt = grantedAt,
+            active = active,
+        )
+}

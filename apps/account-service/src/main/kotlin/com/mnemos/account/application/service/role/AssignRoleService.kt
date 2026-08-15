@@ -30,12 +30,11 @@ class AssignRoleService(
                 permission = ASSIGN_MEMBER_ROLES,
             )
 
-        val target =
-            roleAccessGuard.requireCanChangeRoleAssignment(
-                context = context,
-                targetMemberId = memberId,
-                roleId = roleId,
-            )
+        roleAccessGuard.requireCanAssignRole(
+            context = context,
+            targetMemberId = memberId,
+            roleId = roleId,
+        )
 
         val now = Instant.now()
         val assignment =
@@ -62,7 +61,7 @@ class AssignRoleService(
                 permission = ASSIGN_MEMBER_ROLES,
             )
 
-        roleAccessGuard.requireCanChangeRoleAssignment(
+        roleAccessGuard.requireCanRevokeRole(
             context = context,
             targetMemberId = memberId,
             roleId = roleId,

@@ -39,6 +39,7 @@ include(
     ":contracts:moderation-contracts",
     ":contracts:bet-contracts",
     ":contracts:realtime-contracts",
+    ":contracts:personalization-contracts",
 
     ":keycloak-extensions:telegram-authenticator",
 
@@ -51,4 +52,5 @@ include(
     ":apps:moderation-service",
     ":apps:gateway-service",
     ":apps:realtime-service",
+    ":apps:personalization-service",
 )

@@ -13,6 +13,10 @@ data class RealtimeDeliveryProperties(
     val streamPollTimeout: Duration = Duration.ofMillis(250),
     val streamBatchSize: Int = 100,
     val streamMaxLength: Long = 100_000,
+    val maxConnectionsPerUser: Int = 3,
+    val maxConnectionsPerClientIp: Int = 20,
+    val maxConnectionsTotal: Int = 5_000,
+    val connectionLeaseTtl: Duration = Duration.ofSeconds(45),
 ) {
     init {
         require(!timeout.isNegative && !timeout.isZero)
@@ -23,5 +27,13 @@ data class RealtimeDeliveryProperties(
         require(!streamPollTimeout.isNegative && !streamPollTimeout.isZero)
         require(streamBatchSize > 0)
         require(streamMaxLength >= replayLimit)
+        require(maxConnectionsPerUser > 0)
+        require(maxConnectionsPerClientIp > 0)
+        require(maxConnectionsTotal > 0)
+        require(maxConnectionsPerUser <= maxConnectionsPerClientIp)
+        require(maxConnectionsPerClientIp <= maxConnectionsTotal)
+        require(connectionLeaseTtl >= heartbeatInterval.multipliedBy(2)) {
+            "Realtime connection lease TTL must cover at least two heartbeat intervals"
+        }
     }
 }

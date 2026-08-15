@@ -1,0 +1,109 @@
+package com.mnemos.personalization.domain.personalization
+
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
+import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
+
+class NotificationPackContentTest {
+    @Test
+    fun `notification pack rejects raw telegram html`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.ITEM_DROP] =
+            templates.getValue(NotificationTemplateKey.ITEM_DROP).copy(
+                soloTitle = "<b>{player}</b>",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
+    fun `notification pack rejects malformed placeholders`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.ITEM_DROP] =
+            templates.getValue(NotificationTemplateKey.ITEM_DROP).copy(
+                soloBody = "{player found {item}",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
+    fun `notification pack rejects unsupported placeholders`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.RAID] =
+            NotificationTemplate(
+                emoji = "⚔️",
+                soloTitle = "Raid",
+                soloBody = "Location {player}",
+                compact = "Raid",
+                aggregateTitle = "Raids",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
+    fun `notification pack rejects event placeholders in aggregate title`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.RAID] =
+            templates.getValue(NotificationTemplateKey.RAID).copy(
+                aggregateTitle = "Raids at {locations}",
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    @Test
+    fun `notification pack rejects emoji longer than sixteen characters`() {
+        val templates = validTemplates().toMutableMap()
+
+        templates[NotificationTemplateKey.GLOBAL] =
+            templates.getValue(NotificationTemplateKey.GLOBAL).copy(
+                emoji = "x".repeat(17),
+            )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "Several events",
+                templates = templates,
+            )
+        }
+    }
+
+    private fun validTemplates(): Map<NotificationTemplateKey, NotificationTemplate> =
+        NotificationTemplateKey.entries.associateWith { key ->
+            NotificationTemplate(
+                emoji = null,
+                soloTitle = key.name,
+                soloBody = "Notification",
+                compact = "Notification",
+                aggregateTitle = "${key.name} events",
+            )
+        }
+}

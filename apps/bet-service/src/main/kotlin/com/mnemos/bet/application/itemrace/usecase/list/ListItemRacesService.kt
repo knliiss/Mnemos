@@ -1,7 +1,9 @@
 package com.mnemos.bet.application.itemrace.usecase.list
 
+import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.itemrace.model.ItemRaceView
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
+import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -9,6 +11,11 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ListItemRacesService(
     private val reader: ItemRaceReader,
+    private val accountProvider: AccountProvider,
 ) : ListItemRacesUseCase {
-    override fun execute(): List<ItemRaceView> = reader.findCurrent()
+    override fun execute(): List<ItemRaceView> {
+        accountProvider.requireActiveAccount(VIEW_BETS)
+
+        return reader.findCurrent()
+    }
 }

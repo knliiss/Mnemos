@@ -4,11 +4,9 @@ import com.mnemos.account.application.context.account.ActiveAccountContextProvid
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
 import com.mnemos.account.application.query.account.role.toView
-import com.mnemos.account.domain.exception.account.AccountNotFoundException
 import com.mnemos.account.domain.exception.role.InvalidRoleHierarchyException
 import com.mnemos.account.domain.model.account.role.Role
 import com.mnemos.account.domain.model.account.role.RoleId
-import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ROLE_HIERARCHY
@@ -18,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class UpdateRoleHierarchyService(
     private val contextProvider: ActiveAccountContextProvider,
-    private val accountRepository: AccountRepository,
     private val roleRepository: RoleRepository,
     private val roleAccessGuard: RoleAccessGuard,
 ) {
@@ -28,14 +25,10 @@ class UpdateRoleHierarchyService(
         orderedRoleIds: List<RoleId>,
     ): List<RoleView> {
         val context =
-            contextProvider.requirePermission(
+            contextProvider.requirePermissionForUpdate(
                 accountId = accountId,
                 permission = MANAGE_ROLE_HIERARCHY,
             )
-
-        if (!accountRepository.lockById(accountId)) {
-            throw AccountNotFoundException(accountId)
-        }
 
         val currentRoles = roleRepository.findAllByAccountIdOrderByRank(accountId)
 

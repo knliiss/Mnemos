@@ -7,6 +7,8 @@ import com.mnemos.bet.application.wallet.usecase.request.RequestWalletStakeComma
 import com.mnemos.bet.configuration.EventBetProperties
 import com.mnemos.bet.domain.eventbet.repository.EventBetRepository
 import com.mnemos.bet.domain.exception.BetNotFoundException
+import com.mnemos.common.core.model.permission.RolePermission.PLACE_BETS
+import com.mnemos.common.core.model.permission.RolePermission.SPEND_WALLET_FUNDS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -24,7 +26,7 @@ class IncreaseEventBetService(
     override fun execute(command: IncreaseEventBetCommand): IncreaseEventBetResult {
         require(command.amount > 0)
 
-        val account = accountProvider.requireActiveAccount()
+        val account = accountProvider.requireActiveAccount(setOf(PLACE_BETS, SPEND_WALLET_FUNDS))
         val round =
             repository.findRoundByIdForUpdate(command.roundId)
                 ?: throw BetNotFoundException("Event bet round ${command.roundId} was not found")

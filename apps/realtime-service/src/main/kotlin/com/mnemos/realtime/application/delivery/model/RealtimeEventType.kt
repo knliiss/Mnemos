@@ -6,6 +6,7 @@ enum class RealtimeEventType(
     WALLET_TRANSACTION_COMPLETED("wallet.transaction.completed"),
     WALLET_TRANSACTION_FAILED("wallet.transaction.failed"),
     BET_OPERATION_COMPLETED("bet.operation.completed"),
+    PERSONALIZATION_PURCHASE_COMPLETED("personalization.purchase.completed"),
     ;
 
     companion object {

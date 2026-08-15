@@ -47,6 +47,7 @@ bin/
 
 ### Project specific ###
 /.env
+/.secrets/
 
 **/node_modules/
 **/dist/
