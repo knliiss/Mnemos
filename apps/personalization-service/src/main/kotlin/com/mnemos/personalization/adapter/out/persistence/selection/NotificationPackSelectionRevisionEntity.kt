@@ -17,7 +17,7 @@ class NotificationPackSelectionRevisionEntity(
     var revision: Long,
 ) {
     fun increment(): Long {
-        revision += 1
+        revision = Math.addExact(revision, 1L)
 
         return revision
     }
