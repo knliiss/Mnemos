@@ -18,14 +18,21 @@ object BadgePersistenceMapper {
         )
 
     fun BadgeEntity.toDomain(): Badge =
-        Badge(
-            id = BadgeId(id),
-            code = code,
-            name = name,
-            icon = icon,
-            color = HexColor(color),
-            createdAt = createdAt,
-        )
+        try {
+            Badge(
+                id = BadgeId(id),
+                code = code,
+                name = name,
+                icon = icon,
+                color = HexColor(color),
+                createdAt = createdAt,
+            )
+        } catch (exception: IllegalArgumentException) {
+            throw IllegalStateException(
+                "Persisted badge $id contains invalid domain state",
+                exception,
+            )
+        }
 
     fun UserBadgeEntity.toDomain(): UserBadge =
         UserBadge(
