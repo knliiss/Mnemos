@@ -20,6 +20,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationTa
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
+import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,13 +32,14 @@ class PersonalizationOwnershipService(
     private val accountAccess: PersonalizationAccountAccess,
     private val personalizationRepository: PersonalizationRepository,
     private val ownershipRepository: OwnedPersonalizationRepository,
+    private val purchaseOperationRepository: PurchaseOperationRepository,
     private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val clock: Clock,
 ) {
     @Transactional
     fun activate(personalizationId: PersonalizationId): OwnedPersonalization {
         val actor = actorProvider.requireActor()
-        val personalization = requirePersonalization(personalizationId)
+        val personalization = requirePersonalizationForUpdate(personalizationId)
         val owner = resolveOwner(personalization, actor.userId)
 
         var ownership = ownershipRepository.findForUpdate(owner, personalization.id)
@@ -45,6 +47,10 @@ class PersonalizationOwnershipService(
         if (ownership == null) {
             if (!canCreatorClaim(personalization, actor.userId)) {
                 throw PersonalizationNotOwnedException()
+            }
+
+            if (purchaseOperationRepository.existsPending(owner, personalization.id)) {
+                throw PersonalizationOwnershipConflictException()
             }
 
             ownership =
@@ -162,6 +168,10 @@ class PersonalizationOwnershipService(
 
     private fun requirePersonalization(personalizationId: PersonalizationId): Personalization =
         personalizationRepository.findById(personalizationId)
+            ?: throw PersonalizationNotFoundException()
+
+    private fun requirePersonalizationForUpdate(personalizationId: PersonalizationId): Personalization =
+        personalizationRepository.findByIdForUpdate(personalizationId)
             ?: throw PersonalizationNotFoundException()
 
     private fun canCreatorClaim(
