@@ -6,6 +6,7 @@ import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperation
 import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperationId
 import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperationStatus
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -76,7 +77,7 @@ class CreatorRevenueOperationTest {
         assertNull(operation.walletTransactionId)
         assertNull(operation.failureReason)
         assertNull(operation.nextRetryAt)
-        assertEquals(false, previousRequestId == operation.requestId)
+        assertNotEquals(previousRequestId, operation.requestId)
     }
 
     private fun operation(
