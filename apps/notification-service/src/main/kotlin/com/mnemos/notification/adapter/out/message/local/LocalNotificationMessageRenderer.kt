@@ -94,7 +94,7 @@ class LocalNotificationMessageRenderer(
 
         if (pack != null) {
             return if (types.size > 1) {
-                pack.mixedAggregateTitle
+                TelegramHtmlEscaper.escape(pack.mixedAggregateTitle)
             } else {
                 requireNotNull(notifications.first().aggregateTitle)
             }
