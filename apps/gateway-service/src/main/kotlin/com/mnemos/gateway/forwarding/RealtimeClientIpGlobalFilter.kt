@@ -39,7 +39,8 @@ class RealtimeClientIpGlobalFilter(
                         headers.set(INTERNAL_CLIENT_IP_HEADER, clientIp)
                         headers.set(INTERNAL_FORWARDING_TOKEN_HEADER, forwardingToken)
                     }
-                }.build()
+                }
+                .build()
 
         return chain.filter(exchange.mutate().request(request).build())
     }
