@@ -115,15 +115,22 @@ class OwnedPersonalizationRepositoryAdapter(
     }
 
     private fun OwnedPersonalizationEntity.toDomain(): OwnedPersonalization =
-        OwnedPersonalization(
-            owner =
-                when (ownerType) {
-                    PersonalizationTarget.USER -> PersonalizationOwner.User(UserId(ownerId))
-                    PersonalizationTarget.ACCOUNT -> PersonalizationOwner.Account(AccountId(ownerId))
-                },
-            personalizationId = PersonalizationId(personalizationId),
-            type = personalizationType,
-            acquiredAt = acquiredAt,
-            active = active,
-        )
+        try {
+            OwnedPersonalization(
+                owner =
+                    when (ownerType) {
+                        PersonalizationTarget.USER -> PersonalizationOwner.User(UserId(ownerId))
+                        PersonalizationTarget.ACCOUNT -> PersonalizationOwner.Account(AccountId(ownerId))
+                    },
+                personalizationId = PersonalizationId(personalizationId),
+                type = personalizationType,
+                acquiredAt = acquiredAt,
+                active = active,
+            )
+        } catch (exception: IllegalArgumentException) {
+            throw IllegalStateException(
+                "Persisted personalization ownership $id contains invalid domain state",
+                exception,
+            )
+        }
 }
