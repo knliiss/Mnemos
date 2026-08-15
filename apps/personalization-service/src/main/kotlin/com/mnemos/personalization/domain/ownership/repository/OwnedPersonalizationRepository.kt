@@ -18,10 +18,20 @@ interface OwnedPersonalizationRepository {
         personalizationId: PersonalizationId,
     ): OwnedPersonalization?
 
+    fun findForUpdate(
+        owner: PersonalizationOwner,
+        personalizationId: PersonalizationId,
+    ): OwnedPersonalization? = find(owner, personalizationId)
+
     fun findActive(
         owner: PersonalizationOwner,
         type: PersonalizationType,
     ): OwnedPersonalization?
+
+    fun findActiveForUpdate(
+        owner: PersonalizationOwner,
+        type: PersonalizationType,
+    ): OwnedPersonalization? = findActive(owner, type)
 
     fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization>
 
