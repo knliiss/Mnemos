@@ -42,7 +42,7 @@ class PurchasePersonalizationService(
     fun execute(personalizationId: PersonalizationId): PurchasePersonalizationResult {
         val actor = actorProvider.requireActor()
         val personalization =
-            personalizationRepository.findById(personalizationId)
+            personalizationRepository.findByIdForUpdate(personalizationId)
                 ?: throw PersonalizationNotFoundException()
 
         if (!personalization.isPurchasableBy(actor.userId)) {
