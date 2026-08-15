@@ -16,6 +16,7 @@ object CreatorRevenueOperationPersistenceMapper {
             status = status,
             walletTransactionId = walletTransactionId,
             failureReason = failureReason,
+            nextRetryAt = nextRetryAt,
             createdAt = createdAt,
         )
 
@@ -30,5 +31,6 @@ object CreatorRevenueOperationPersistenceMapper {
             status = status,
             walletTransactionId = walletTransactionId,
             failureReason = failureReason,
+            nextRetryAt = nextRetryAt,
         )
 }

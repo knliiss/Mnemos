@@ -31,6 +31,8 @@ class CreatorRevenueOperationEntity(
     var walletTransactionId: UUID?,
     @Column(name = "failure_reason", length = 128)
     var failureReason: String?,
+    @Column(name = "next_retry_at")
+    var nextRetryAt: Instant?,
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
 )
