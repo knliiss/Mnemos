@@ -8,6 +8,7 @@ import com.mnemos.personalization.contracts.PersonalizationAggregateType
 import com.mnemos.personalization.contracts.PersonalizationEventContract
 import com.mnemos.personalization.contracts.PersonalizationEventType
 import com.mnemos.personalization.contracts.event.PersonalizationPurchaseCompletedV1
+import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
 import com.mnemos.realtime.application.delivery.model.PersonalizationPurchaseCompletedPayload
 import com.mnemos.realtime.application.delivery.usecase.publish.PublishRealtimeEventCommand
 import com.mnemos.realtime.application.delivery.usecase.publish.PublishRealtimeEventUseCase
@@ -41,6 +42,14 @@ class PersonalizationPurchaseCompletedHandler(
                     "Personalization purchase actor must match userId",
                 )
             }
+
+            if (envelope.occurredAt != envelope.payload.occurredAt) {
+                throw KafkaMessageProtocolException(
+                    "Personalization purchase occurredAt must match envelope occurredAt",
+                )
+            }
+
+            validateResultState(envelope.payload)
         }
 
     override val consumer = "realtime-service.personalization-purchase-completed"
@@ -63,6 +72,23 @@ class PersonalizationPurchaseCompletedHandler(
                     ),
             ),
         )
+    }
+
+    private fun validateResultState(payload: PersonalizationPurchaseCompletedV1) {
+        val valid =
+            when (payload.status) {
+                PersonalizationPurchaseStatus.CONFIRMED ->
+                    payload.walletTransactionId != null && payload.failureReason == null
+
+                PersonalizationPurchaseStatus.FAILED ->
+                    payload.walletTransactionId == null && !payload.failureReason.isNullOrBlank()
+            }
+
+        if (!valid) {
+            throw KafkaMessageProtocolException(
+                "Personalization purchase result fields do not match status",
+            )
+        }
     }
 
     private companion object {
