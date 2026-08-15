@@ -16,6 +16,7 @@ interface ActiveNotificationPackJpaRepository : JpaRepository<ActiveNotification
                 personalization_id,
                 mixed_aggregate_title,
                 templates,
+                last_revision,
                 last_event_id,
                 last_event_at
             )
@@ -24,6 +25,7 @@ interface ActiveNotificationPackJpaRepository : JpaRepository<ActiveNotification
                 NULL,
                 NULL,
                 NULL,
+                0,
                 CAST('00000000-0000-0000-0000-000000000000' AS UUID),
                 TIMESTAMPTZ '1970-01-01 00:00:00+00'
             )
