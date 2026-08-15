@@ -59,8 +59,10 @@ class CreatorRevenueOperation(
 
     fun prepareRetry(now: Instant) {
         require(status == CreatorRevenueOperationStatus.FAILED) { "Only failed creator revenue can retry" }
-        requireNotNull(nextRetryAt) { "Failed creator revenue must have a retry time" }
-        require(!nextRetryAt!!.isAfter(now)) { "Creator revenue retry is not due yet" }
+
+        val retryAt = requireNotNull(nextRetryAt) { "Failed creator revenue must have a retry time" }
+
+        require(!retryAt.isAfter(now)) { "Creator revenue retry is not due yet" }
 
         requestId = UuidCreator.getTimeOrderedEpoch()
         status = CreatorRevenueOperationStatus.PENDING
