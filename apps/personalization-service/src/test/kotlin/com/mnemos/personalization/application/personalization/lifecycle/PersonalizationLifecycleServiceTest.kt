@@ -7,6 +7,7 @@ import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
+import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
@@ -147,7 +148,7 @@ class PersonalizationLifecycleServiceTest {
     }
 
     @Test
-    fun `creator can submit own custom notification pack`() {
+    fun `creator can submit owned custom notification pack`() {
         val userId = UserId.generate()
         val personalization = customNotificationPack(userId)
         val ownership = ownership(personalization, userId, active = false)
@@ -162,6 +163,33 @@ class PersonalizationLifecycleServiceTest {
         val result = fixture.service.submit(personalization.id)
 
         assertEquals(PersonalizationStatus.IN_REVIEW, result.status)
+    }
+
+    @Test
+    fun `creator cannot submit unpaid custom notification pack`() {
+        val userId = UserId.generate()
+        val personalization = paidCustomNotificationPack(userId)
+        val unrelatedOwnership =
+            OwnedPersonalization(
+                owner = PersonalizationOwner.User(userId),
+                personalizationId = PersonalizationId.generate(),
+                type = PersonalizationType.NOTIFICATION_PACK,
+                acquiredAt = now.minusSeconds(30),
+                active = false,
+            )
+        val fixture =
+            fixture(
+                personalization = personalization,
+                ownership = unrelatedOwnership,
+                userId = userId,
+                roles = setOf(UserRole.PERSONALIZATION_CREATOR),
+            )
+
+        assertThrows(PersonalizationNotOwnedException::class.java) {
+            fixture.service.submit(personalization.id)
+        }
+
+        assertEquals(PersonalizationStatus.PRIVATE, personalization.status)
     }
 
     private fun fixture(
