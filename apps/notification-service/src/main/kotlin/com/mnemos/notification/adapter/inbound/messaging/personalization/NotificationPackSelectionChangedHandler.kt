@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
+import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
@@ -26,18 +27,40 @@ class NotificationPackSelectionChangedHandler(
             type = PersonalizationEventType.NOTIFICATION_PACK_SELECTION_CHANGED,
             version = PersonalizationEventContract.VERSION,
             aggregateType = PersonalizationAggregateType.USER_NOTIFICATION_PACK_SELECTION,
-        )
+        ) { envelope ->
+            if (envelope.producer != PERSONALIZATION_SERVICE) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selections must be produced by personalization-service",
+                )
+            }
+
+            if (envelope.aggregateId != envelope.payload.userId) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selection aggregate must match userId",
+                )
+            }
+
+            val hasPersonalization = envelope.payload.personalizationId != null
+            val hasPack = envelope.payload.pack != null
+
+            if (hasPersonalization != hasPack) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selection must contain both personalizationId and pack, or neither",
+                )
+            }
+
+            if (envelope.payload.selectionRevision <= 0) {
+                throw KafkaMessageProtocolException(
+                    "Notification pack selection revision must be positive",
+                )
+            }
+        }
 
     override val consumer = "notification-service.notification-pack-selection-changed"
 
     override fun handle(message: ConsumedMessage<NotificationPackSelectionChangedV1>) {
         val payload = message.payload
         val userId = UserId(payload.userId)
-
-        require(message.aggregateId == payload.userId) {
-            "Notification pack selection aggregate must match user"
-        }
-
         val pack =
             payload.pack?.let { snapshot ->
                 val personalizationId = requireNotNull(payload.personalizationId)
@@ -69,5 +92,9 @@ class NotificationPackSelectionChangedHandler(
                 occurredAt = message.occurredAt,
             ),
         )
+    }
+
+    private companion object {
+        const val PERSONALIZATION_SERVICE = "personalization-service"
     }
 }
