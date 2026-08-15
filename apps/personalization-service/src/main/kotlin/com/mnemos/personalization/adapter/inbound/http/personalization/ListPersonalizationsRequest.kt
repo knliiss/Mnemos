@@ -1,6 +1,5 @@
 package com.mnemos.personalization.adapter.inbound.http.personalization
 
-import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import jakarta.validation.constraints.Max
@@ -12,6 +11,6 @@ data class ListPersonalizationsRequest(
     @field:Min(0)
     val page: Int = 0,
     @field:Min(1)
-    @field:Max(PageQuery.MAX_PAGE_SIZE.toLong())
+    @field:Max(100)
     val size: Int = 20,
 )
