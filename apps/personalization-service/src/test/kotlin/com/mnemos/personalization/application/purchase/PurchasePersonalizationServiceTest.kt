@@ -26,7 +26,6 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationTy
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
-import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -70,7 +69,6 @@ class PurchasePersonalizationServiceTest {
         assertEquals(buyerUserId, operation.buyerUserId)
         assertEquals(Currency.COIN, operation.currency)
         assertEquals(1_000L, operation.amount)
-        assertEquals(PurchaseOperationStatus.PENDING, operation.status)
         assertEquals(listOf(operation), fixture.wallet.requestedDebits)
         assertEquals(
             listOf(
@@ -322,11 +320,6 @@ class PurchasePersonalizationServiceTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-        ): List<Personalization> = emptyList()
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {
