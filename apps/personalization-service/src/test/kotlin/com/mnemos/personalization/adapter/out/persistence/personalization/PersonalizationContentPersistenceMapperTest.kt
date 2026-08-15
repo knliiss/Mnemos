@@ -2,6 +2,7 @@ package com.mnemos.personalization.adapter.out.persistence.personalization
 
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDocument
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationContentPersistenceMapper.toDomain
+import com.mnemos.personalization.domain.personalization.model.EffectType
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -42,6 +43,61 @@ class PersonalizationContentPersistenceMapperTest {
     }
 
     @Test
+    fun `profile theme survives document round trip`() {
+        val content =
+            PersonalizationContent.ProfileTheme(
+                background = HexColor("#05070A"),
+                surface = HexColor("#10151C"),
+                accent = HexColor("#A8DDFF"),
+                text = HexColor("#F5FBFF"),
+                border = HexColor("#334455"),
+                glow =
+                    GlowStyle(
+                        color = HexColor("#BCE8FF"),
+                        strength = 35,
+                    ),
+            )
+
+        val restored = content.toDocument().toDomain(PersonalizationType.PROFILE_THEME)
+
+        assertEquals(content, restored)
+    }
+
+    @Test
+    fun `avatar frame survives document round trip`() {
+        val content =
+            PersonalizationContent.AvatarFrame(
+                borderColor = HexColor("#DDEEFF"),
+                borderWidthPx = 4,
+                radiusPx = 18,
+                glow =
+                    GlowStyle(
+                        color = HexColor("#FFFFFF"),
+                        strength = 60,
+                    ),
+            )
+
+        val restored = content.toDocument().toDomain(PersonalizationType.AVATAR_FRAME)
+
+        assertEquals(content, restored)
+    }
+
+    @Test
+    fun `profile effect survives document round trip`() {
+        val content =
+            PersonalizationContent.ProfileEffect(
+                effect = EffectType.AURORA,
+                intensity = 70,
+                primaryColor = HexColor("#8ACBFF"),
+                secondaryColor = HexColor("#D7F3FF"),
+            )
+
+        val restored = content.toDocument().toDomain(PersonalizationType.PROFILE_EFFECT)
+
+        assertEquals(content, restored)
+    }
+
+    @Test
     fun `notification pack survives document round trip`() {
         val content =
             PersonalizationContent.NotificationPack(
@@ -61,5 +117,36 @@ class PersonalizationContentPersistenceMapperTest {
         val restored = content.toDocument().toDomain(PersonalizationType.NOTIFICATION_PACK)
 
         assertEquals(content, restored)
+    }
+
+    @Test
+    fun `numeric content restores from long json numbers`() {
+        val document =
+            mapOf<String, Any?>(
+                "borderColor" to "#DDEEFF",
+                "borderWidthPx" to 4L,
+                "radiusPx" to 18L,
+                "glow" to
+                    mapOf<String, Any?>(
+                        "color" to "#FFFFFF",
+                        "strength" to 60L,
+                    ),
+            )
+
+        val restored = document.toDomain(PersonalizationType.AVATAR_FRAME)
+
+        assertEquals(
+            PersonalizationContent.AvatarFrame(
+                borderColor = HexColor("#DDEEFF"),
+                borderWidthPx = 4,
+                radiusPx = 18,
+                glow =
+                    GlowStyle(
+                        color = HexColor("#FFFFFF"),
+                        strength = 60,
+                    ),
+            ),
+            restored,
+        )
     }
 }
