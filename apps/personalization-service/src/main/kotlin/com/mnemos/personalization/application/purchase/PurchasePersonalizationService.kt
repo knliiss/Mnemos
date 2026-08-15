@@ -17,6 +17,7 @@ import com.mnemos.personalization.domain.personalization.repository.Personalizat
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
+import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -47,6 +48,7 @@ class PurchasePersonalizationService(
             throw PersonalizationNotPurchasableException()
         }
 
+        val price = personalization.price ?: throw PersonalizationNotPurchasableException()
         val owner =
             when (personalization.type.target) {
                 PersonalizationTarget.USER ->
@@ -55,10 +57,13 @@ class PurchasePersonalizationService(
                 PersonalizationTarget.ACCOUNT -> {
                     val accountId = accountAccess.requireActiveAccount(actor.userId)
                     val requiredPermissions =
-                        setOf(
-                            RolePermission.BUY_PERSONALIZATIONS,
-                            RolePermission.SPEND_WALLET_FUNDS,
-                        )
+                        buildSet {
+                            add(RolePermission.BUY_PERSONALIZATIONS)
+
+                            if (price.currency == Currency.COIN) {
+                                add(RolePermission.SPEND_WALLET_FUNDS)
+                            }
+                        }
                     val granted =
                         requiredPermissions.all { permission ->
                             accountAccess.hasPermission(
@@ -84,7 +89,6 @@ class PurchasePersonalizationService(
             throw PersonalizationPurchaseInProgressException()
         }
 
-        val price = personalization.price ?: throw PersonalizationNotPurchasableException()
         val operation =
             PurchaseOperation.create(
                 personalizationId = personalization.id,
