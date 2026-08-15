@@ -19,11 +19,12 @@ class PurchaseOperationTest {
 
     @Test
     fun `new purchase starts pending without wallet result`() {
+        val buyerUserId = UserId.generate()
         val operation =
             PurchaseOperation.create(
                 personalizationId = PersonalizationId.generate(),
-                buyerUserId = UserId.generate(),
-                owner = PersonalizationOwner.User(UserId.generate()),
+                buyerUserId = buyerUserId,
+                owner = PersonalizationOwner.User(buyerUserId),
                 currency = Currency.PRIME,
                 amount = 50,
                 now = now,
@@ -58,11 +59,12 @@ class PurchaseOperationTest {
 
     @Test
     fun `failure reason longer than persistence limit is rejected`() {
+        val buyerUserId = UserId.generate()
         val operation =
             PurchaseOperation.create(
                 personalizationId = PersonalizationId.generate(),
-                buyerUserId = UserId.generate(),
-                owner = PersonalizationOwner.User(UserId.generate()),
+                buyerUserId = buyerUserId,
+                owner = PersonalizationOwner.User(buyerUserId),
                 currency = Currency.PRIME,
                 amount = 50,
                 now = now,
@@ -73,17 +75,49 @@ class PurchaseOperationTest {
         }
     }
 
+    @Test
+    fun `coin purchase with user owner is rejected`() {
+        val buyerUserId = UserId.generate()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            PurchaseOperation.create(
+                personalizationId = PersonalizationId.generate(),
+                buyerUserId = buyerUserId,
+                owner = PersonalizationOwner.User(buyerUserId),
+                currency = Currency.COIN,
+                amount = 500,
+                now = now,
+            )
+        }
+    }
+
+    @Test
+    fun `user owned purchase for another user is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PurchaseOperation.create(
+                personalizationId = PersonalizationId.generate(),
+                buyerUserId = UserId.generate(),
+                owner = PersonalizationOwner.User(UserId.generate()),
+                currency = Currency.PRIME,
+                amount = 50,
+                now = now,
+            )
+        }
+    }
+
     private fun operation(
         status: PurchaseOperationStatus,
         walletTransactionId: UUID?,
         failureReason: String?,
-    ): PurchaseOperation =
-        PurchaseOperation(
+    ): PurchaseOperation {
+        val buyerUserId = UserId.generate()
+
+        return PurchaseOperation(
             id = PurchaseOperationId.generate(),
             requestId = UUID.fromString("019c1177-10c0-7000-8000-000000000001"),
             personalizationId = PersonalizationId.generate(),
-            buyerUserId = UserId.generate(),
-            owner = PersonalizationOwner.User(UserId.generate()),
+            buyerUserId = buyerUserId,
+            owner = PersonalizationOwner.User(buyerUserId),
             currency = Currency.PRIME,
             amount = 50,
             createdAt = now,
@@ -91,4 +125,5 @@ class PurchaseOperationTest {
             walletTransactionId = walletTransactionId,
             failureReason = failureReason,
         )
+    }
 }
