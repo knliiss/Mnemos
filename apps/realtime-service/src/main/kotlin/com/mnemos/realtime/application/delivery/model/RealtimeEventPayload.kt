@@ -40,7 +40,28 @@ data class PersonalizationPurchaseCompletedPayload(
     val status: String,
     val walletTransactionId: UUID?,
     val failureReason: String?,
-) : RealtimeEventPayload
+) : RealtimeEventPayload {
+    init {
+        when (status) {
+            CONFIRMED ->
+                require(walletTransactionId != null && failureReason == null) {
+                    "Confirmed personalization purchase requires a wallet transaction"
+                }
+
+            FAILED ->
+                require(walletTransactionId == null && !failureReason.isNullOrBlank()) {
+                    "Failed personalization purchase requires a failure reason and no wallet transaction"
+                }
+
+            else -> throw IllegalArgumentException("Unknown personalization purchase status: $status")
+        }
+    }
+
+    private companion object {
+        const val CONFIRMED = "CONFIRMED"
+        const val FAILED = "FAILED"
+    }
+}
 
 fun RealtimeEventPayload.eventType(): RealtimeEventType =
     when (this) {
