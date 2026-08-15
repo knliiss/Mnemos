@@ -30,6 +30,7 @@ class PurchaseOperation(
 
     init {
         require(amount > 0) { "Purchase amount must be positive" }
+        requireValidResultState()
     }
 
     fun complete(transactionId: UUID) {
@@ -43,12 +44,40 @@ class PurchaseOperation(
     fun fail(reason: String) {
         require(status == PurchaseOperationStatus.PENDING) { "Only pending purchase can fail" }
         require(reason.isNotBlank()) { "Purchase failure reason cannot be blank" }
+        require(reason.length <= MAX_FAILURE_REASON_LENGTH) { "Purchase failure reason is too long" }
 
         status = PurchaseOperationStatus.FAILED
+        walletTransactionId = null
         failureReason = reason
     }
 
+    private fun requireValidResultState() {
+        failureReason?.let { reason ->
+            require(reason.isNotBlank()) { "Purchase failure reason cannot be blank" }
+            require(reason.length <= MAX_FAILURE_REASON_LENGTH) { "Purchase failure reason is too long" }
+        }
+
+        when (status) {
+            PurchaseOperationStatus.PENDING ->
+                require(walletTransactionId == null && failureReason == null) {
+                    "Pending purchase cannot contain a wallet result"
+                }
+
+            PurchaseOperationStatus.CONFIRMED ->
+                require(walletTransactionId != null && failureReason == null) {
+                    "Confirmed purchase requires a wallet transaction and no failure reason"
+                }
+
+            PurchaseOperationStatus.FAILED ->
+                require(walletTransactionId == null && failureReason != null) {
+                    "Failed purchase requires a failure reason and no wallet transaction"
+                }
+        }
+    }
+
     companion object {
+        private const val MAX_FAILURE_REASON_LENGTH = 128
+
         fun create(
             personalizationId: PersonalizationId,
             buyerUserId: UserId,
