@@ -78,6 +78,7 @@ class PersonalizationTest {
                 visibility = PersonalizationVisibility.PRIVATE,
                 status = PersonalizationStatus.PRIVATE,
                 rejectionReason = null,
+                price = PersonalizationPrice(Currency.PRIME, 10),
             )
         }
     }
@@ -121,6 +122,7 @@ class PersonalizationTest {
         visibility: PersonalizationVisibility,
         status: PersonalizationStatus,
         rejectionReason: String?,
+        price: PersonalizationPrice = PersonalizationPrice(Currency.COIN, 1_000),
     ): Personalization =
         Personalization(
             id = PersonalizationId.generate(),
@@ -130,7 +132,7 @@ class PersonalizationTest {
             visibility = visibility,
             name = "Ice Gradient",
             content = nickStyleContent(),
-            price = PersonalizationPrice(Currency.COIN, 1_000),
+            price = price,
             status = status,
             rejectionReason = rejectionReason,
             createdAt = createdAt,
