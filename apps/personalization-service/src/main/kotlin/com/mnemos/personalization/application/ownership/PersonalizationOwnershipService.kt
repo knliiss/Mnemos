@@ -40,7 +40,7 @@ class PersonalizationOwnershipService(
         val personalization = requirePersonalization(personalizationId)
         val owner = resolveOwner(personalization, actor.userId)
 
-        var ownership = ownershipRepository.find(owner, personalization.id)
+        var ownership = ownershipRepository.findForUpdate(owner, personalization.id)
 
         if (ownership == null) {
             if (!canCreatorClaim(personalization, actor.userId)) {
@@ -83,7 +83,7 @@ class PersonalizationOwnershipService(
         val personalization = requirePersonalization(personalizationId)
         val owner = resolveOwner(personalization, actor.userId)
         val ownership =
-            ownershipRepository.find(owner, personalization.id)
+            ownershipRepository.findForUpdate(owner, personalization.id)
                 ?: throw PersonalizationNotOwnedException()
         val wasActive = ownership.active
 
