@@ -45,8 +45,13 @@ class Personalization(
         price: PersonalizationPrice?,
         now: Instant,
     ) {
-        require(status == PersonalizationStatus.DRAFT || status == PersonalizationStatus.REJECTED) {
-            "Only draft or rejected personalization can be edited"
+        val editable =
+            status == PersonalizationStatus.DRAFT ||
+                status == PersonalizationStatus.REJECTED ||
+                (status == PersonalizationStatus.PRIVATE && origin == PersonalizationOrigin.CUSTOM)
+
+        require(editable) {
+            "Personalization cannot be edited from status $status"
         }
 
         requireName(name)
@@ -57,7 +62,12 @@ class Personalization(
         this.content = content
         this.price = price
         rejectionReason = null
-        status = PersonalizationStatus.DRAFT
+        status =
+            if (origin == PersonalizationOrigin.CUSTOM && visibility == PersonalizationVisibility.PRIVATE) {
+                PersonalizationStatus.PRIVATE
+            } else {
+                PersonalizationStatus.DRAFT
+            }
         updatedAt = now
     }
 
