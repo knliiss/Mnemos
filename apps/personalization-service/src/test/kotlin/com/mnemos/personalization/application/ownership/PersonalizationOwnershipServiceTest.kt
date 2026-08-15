@@ -5,6 +5,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -54,6 +55,27 @@ class PersonalizationOwnershipServiceTest {
             )
 
         assertThrows(PersonalizationOwnershipConflictException::class.java) {
+            service.activate(personalization.id)
+        }
+    }
+
+    @Test
+    fun `creator cannot claim an unlisted personalization`() {
+        val userId = UserId.generate()
+        val personalization = publishedNotificationPack(userId)
+        personalization.unlist(now.minusSeconds(20))
+        val service =
+            PersonalizationOwnershipService(
+                actorProvider = FixedActorProvider(userId),
+                accountAccess = UnusedAccountAccess(),
+                personalizationRepository = FixedPersonalizationRepository(personalization),
+                ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                purchaseOperationRepository = mock<PurchaseOperationRepository>(),
+                notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
+                clock = clock,
+            )
+
+        assertThrows(PersonalizationNotOwnedException::class.java) {
             service.activate(personalization.id)
         }
     }
