@@ -213,11 +213,6 @@ class PersonalizationOwnershipServiceTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-        ): List<Personalization> = emptyList()
     }
 
     private class EmptyOwnedPersonalizationRepository : OwnedPersonalizationRepository {
