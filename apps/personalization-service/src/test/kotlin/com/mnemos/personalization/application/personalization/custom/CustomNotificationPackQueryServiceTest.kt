@@ -29,7 +29,7 @@ class CustomNotificationPackQueryServiceTest {
                 items = emptyList(),
                 page = 1,
                 size = 20,
-                totalItems = 20,
+                totalItems = 40,
                 totalPages = 2,
                 hasNextPage = false,
             )
