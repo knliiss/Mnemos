@@ -26,6 +26,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationTy
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
+import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -69,6 +70,7 @@ class PurchasePersonalizationServiceTest {
         assertEquals(buyerUserId, operation.buyerUserId)
         assertEquals(Currency.COIN, operation.currency)
         assertEquals(1_000L, operation.amount)
+        assertEquals(PurchaseOperationStatus.PENDING, operation.status)
         assertEquals(listOf(operation), fixture.wallet.requestedDebits)
         assertEquals(
             listOf(
