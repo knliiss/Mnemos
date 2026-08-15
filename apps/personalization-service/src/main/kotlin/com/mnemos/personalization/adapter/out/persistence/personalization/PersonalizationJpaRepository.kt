@@ -21,15 +21,25 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
     fun findAllByStatusOrderByCreatedAtAsc(status: PersonalizationStatus): List<PersonalizationEntity>
 
     @Query(
-        """
-        SELECT personalization
-        FROM PersonalizationEntity personalization
-        WHERE personalization.status = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.PUBLISHED
-          AND personalization.visibility = com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility.PUBLIC
-          AND (:type IS NULL OR personalization.type = :type)
-          AND (:currency IS NULL OR personalization.priceCurrency = :currency)
-        ORDER BY personalization.createdAt DESC, personalization.id DESC
-        """,
+        value =
+            """
+            SELECT personalization
+            FROM PersonalizationEntity personalization
+            WHERE personalization.status = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.PUBLISHED
+              AND personalization.visibility = com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility.PUBLIC
+              AND (:type IS NULL OR personalization.type = :type)
+              AND (:currency IS NULL OR personalization.priceCurrency = :currency)
+            ORDER BY personalization.createdAt DESC, personalization.id DESC
+            """,
+        countQuery =
+            """
+            SELECT COUNT(personalization)
+            FROM PersonalizationEntity personalization
+            WHERE personalization.status = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.PUBLISHED
+              AND personalization.visibility = com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility.PUBLIC
+              AND (:type IS NULL OR personalization.type = :type)
+              AND (:currency IS NULL OR personalization.priceCurrency = :currency)
+            """,
     )
     fun findPublished(
         type: PersonalizationType?,
