@@ -27,7 +27,7 @@ class ModeratePersonalizationService(
         price: PersonalizationPrice,
     ): Personalization {
         val actor = requireModerator()
-        val personalization = requirePersonalization(personalizationId)
+        val personalization = requirePersonalizationForUpdate(personalizationId)
 
         requireCanModerate(
             actor = actor,
@@ -52,7 +52,7 @@ class ModeratePersonalizationService(
         reason: String,
     ): Personalization {
         val actor = requireModerator()
-        val personalization = requirePersonalization(personalizationId)
+        val personalization = requirePersonalizationForUpdate(personalizationId)
 
         requireCanModerate(
             actor = actor,
@@ -69,7 +69,7 @@ class ModeratePersonalizationService(
     @Transactional
     fun unlist(personalizationId: PersonalizationId): Personalization {
         val actor = requireModerator()
-        val personalization = requirePersonalization(personalizationId)
+        val personalization = requirePersonalizationForUpdate(personalizationId)
 
         requireCanModerate(
             actor = actor,
@@ -83,7 +83,7 @@ class ModeratePersonalizationService(
     @Transactional
     fun relist(personalizationId: PersonalizationId): Personalization {
         val actor = requireModerator()
-        val personalization = requirePersonalization(personalizationId)
+        val personalization = requirePersonalizationForUpdate(personalizationId)
 
         requireCanModerate(
             actor = actor,
@@ -122,7 +122,7 @@ class ModeratePersonalizationService(
         }
     }
 
-    private fun requirePersonalization(personalizationId: PersonalizationId): Personalization =
-        repository.findById(personalizationId)
+    private fun requirePersonalizationForUpdate(personalizationId: PersonalizationId): Personalization =
+        repository.findByIdForUpdate(personalizationId)
             ?: throw PersonalizationNotFoundException()
 }
