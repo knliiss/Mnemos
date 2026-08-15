@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
+import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.contracts.PersonalizationEventType
 import com.mnemos.personalization.contracts.event.NotificationPackSelectionChangedV1
 import com.mnemos.personalization.contracts.event.NotificationPackSnapshotV1
@@ -17,6 +18,7 @@ import java.time.Clock
 @Component
 class NotificationPackSelectionEventPublisher(
     private val publisher: IntegrationEventPublisher,
+    private val revisionStore: NotificationPackSelectionRevisionStore,
     private val clock: Clock,
 ) {
     fun publishSelected(
@@ -26,6 +28,7 @@ class NotificationPackSelectionEventPublisher(
         val content =
             personalization.content as? PersonalizationContent.NotificationPack
                 ?: error("Notification pack personalization must contain notification pack content")
+        val selectionRevision = revisionStore.next(userId)
         val occurredAt = clock.instant()
 
         publisher.publish(
@@ -39,6 +42,7 @@ class NotificationPackSelectionEventPublisher(
                             userId = userId.id,
                             personalizationId = personalization.id.id,
                             pack = content.toContract(),
+                            selectionRevision = selectionRevision,
                             occurredAt = occurredAt,
                         ),
                 ),
@@ -47,6 +51,7 @@ class NotificationPackSelectionEventPublisher(
     }
 
     fun publishCleared(userId: UserId) {
+        val selectionRevision = revisionStore.next(userId)
         val occurredAt = clock.instant()
 
         publisher.publish(
@@ -60,6 +65,7 @@ class NotificationPackSelectionEventPublisher(
                             userId = userId.id,
                             personalizationId = null,
                             pack = null,
+                            selectionRevision = selectionRevision,
                             occurredAt = occurredAt,
                         ),
                 ),
