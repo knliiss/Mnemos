@@ -191,16 +191,6 @@ class ScheduleCreatorRevenueServiceTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             listOf(personalization).filter { it.status == status }
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-        ): List<Personalization> =
-            listOf(personalization).filter { value ->
-                value.status == PersonalizationStatus.PUBLISHED &&
-                    (type == null || value.type == type) &&
-                    (currency == null || value.price?.currency == currency)
-            }
     }
 
     private class FakeCreatorRevenueOperationRepository : CreatorRevenueOperationRepository {
