@@ -84,6 +84,7 @@ class SseConnectionRegistryTest {
                 properties =
                     RealtimeDeliveryProperties(
                         maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 10,
                         maxConnectionsTotal = 10,
                     ),
             )
@@ -111,6 +112,7 @@ class SseConnectionRegistryTest {
                 properties =
                     RealtimeDeliveryProperties(
                         maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 1,
                         maxConnectionsTotal = 1,
                     ),
             )
@@ -157,6 +159,7 @@ class SseConnectionRegistryTest {
                 properties =
                     RealtimeDeliveryProperties(
                         maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 1,
                         maxConnectionsTotal = 1,
                     ),
                 leaseStore = leaseStore,
