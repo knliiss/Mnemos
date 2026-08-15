@@ -43,7 +43,7 @@ class PersonalizationLifecycleService(
 
         requireMarketplaceCreator(actor)
 
-        val personalization = requireOwned(command.personalizationId, actor.userId)
+        val personalization = requireOwnedForUpdate(command.personalizationId, actor.userId)
 
         if (personalization.origin != PersonalizationOrigin.CREATOR) {
             throw PersonalizationAccessDeniedException()
@@ -74,7 +74,7 @@ class PersonalizationLifecycleService(
         content: PersonalizationContent.NotificationPack,
     ): Personalization {
         val actor = actorProvider.requireActor()
-        val personalization = requireOwned(personalizationId, actor.userId)
+        val personalization = requireOwnedForUpdate(personalizationId, actor.userId)
 
         if (personalization.origin != PersonalizationOrigin.CUSTOM ||
             personalization.type != PersonalizationType.NOTIFICATION_PACK
@@ -105,7 +105,7 @@ class PersonalizationLifecycleService(
 
         requireMarketplaceCreator(actor)
 
-        val personalization = requireOwned(personalizationId, actor.userId)
+        val personalization = requireOwnedForUpdate(personalizationId, actor.userId)
 
         requireCustomPackOwnershipBeforeSubmission(
             personalization = personalization,
@@ -123,7 +123,7 @@ class PersonalizationLifecycleService(
 
         requireMarketplaceCreator(actor)
 
-        val personalization = requireOwned(personalizationId, actor.userId)
+        val personalization = requireOwnedForUpdate(personalizationId, actor.userId)
 
         personalization.publish(clock.instant())
 
@@ -182,12 +182,12 @@ class PersonalizationLifecycleService(
         )
     }
 
-    private fun requireOwned(
+    private fun requireOwnedForUpdate(
         personalizationId: PersonalizationId,
         userId: UserId,
     ): Personalization {
         val personalization =
-            repository.findById(personalizationId)
+            repository.findByIdForUpdate(personalizationId)
                 ?: throw PersonalizationNotFoundException()
 
         if (personalization.creatorUserId != userId) {
