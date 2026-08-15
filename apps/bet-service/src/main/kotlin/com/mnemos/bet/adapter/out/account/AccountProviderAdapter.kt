@@ -30,15 +30,15 @@ class AccountProviderAdapter(
         val account = resolveActiveAccount(userId)
         val missingPermissions =
             permissions.filterNot { permission ->
-                client.checkPermission(
-                    accountId = account.id.id,
-                    request =
-                        CheckAccountPermissionRequest(
-                            userId = userId,
-                            permission = permission,
-                        ),
-                )
-                    .granted
+                client
+                    .checkPermission(
+                        accountId = account.id.id,
+                        request =
+                            CheckAccountPermissionRequest(
+                                userId = userId,
+                                permission = permission,
+                            ),
+                    ).granted
             }
 
         if (missingPermissions.isNotEmpty()) {

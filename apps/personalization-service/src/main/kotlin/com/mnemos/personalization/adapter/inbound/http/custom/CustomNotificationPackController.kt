@@ -69,11 +69,10 @@ class CustomNotificationPackController(
         @RequestBody
         @Valid
         request: CreateCustomNotificationPackRequest,
-    ) =
-        lifecycleService
-            .updateCustomNotificationPack(
-                personalizationId = PersonalizationId(personalizationId),
-                name = request.name,
-                content = request.templates.toContent(request.mixedAggregateTitle),
-            ).toResponse()
+    ) = lifecycleService
+        .updateCustomNotificationPack(
+            personalizationId = PersonalizationId(personalizationId),
+            name = request.name,
+            content = request.templates.toContent(request.mixedAggregateTitle),
+        ).toResponse()
 }

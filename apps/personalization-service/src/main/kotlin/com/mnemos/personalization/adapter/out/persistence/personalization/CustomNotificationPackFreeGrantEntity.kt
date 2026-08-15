@@ -13,7 +13,6 @@ class CustomNotificationPackFreeGrantEntity(
     @Id
     @Column(name = "user_id", nullable = false, updatable = false)
     val userId: UUID,
-
     @Column(name = "claimed_at", nullable = false, updatable = false)
     val claimedAt: Instant,
 )

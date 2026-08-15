@@ -15,28 +15,21 @@ class ActiveNotificationPackEntity(
     @Id
     @Column(name = "user_id", nullable = false)
     var userId: UUID,
-
     @Column(name = "personalization_id")
     var personalizationId: UUID?,
-
     @Column(name = "mixed_aggregate_title", length = 512)
     var mixedAggregateTitle: String?,
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "templates", columnDefinition = "jsonb")
     var templates: Map<String, Any?>?,
-
     @Column(name = "last_revision", nullable = false)
     var lastRevision: Long,
-
     @Column(name = "last_event_id", nullable = false)
     var lastEventId: UUID,
-
     @Column(name = "last_event_at", nullable = false)
     var lastEventAt: Instant,
 ) {
-    fun shouldApply(selectionRevision: Long): Boolean =
-        selectionRevision > lastRevision
+    fun shouldApply(selectionRevision: Long): Boolean = selectionRevision > lastRevision
 
     fun select(
         personalizationId: UUID,

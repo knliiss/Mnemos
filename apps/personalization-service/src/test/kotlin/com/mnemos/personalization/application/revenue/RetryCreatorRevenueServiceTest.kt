@@ -44,17 +44,18 @@ class RetryCreatorRevenueServiceTest {
     }
 
     private fun failedOperation(): CreatorRevenueOperation =
-        CreatorRevenueOperation.create(
-            purchaseOperationId = PurchaseOperationId.generate(),
-            creatorUserId = UserId.generate(),
-            amountPrime = 10,
-            now = now.minusSeconds(60),
-        ).also { operation ->
-            operation.fail(
-                reason = "TEMPORARY_FAILURE",
-                retryAt = now.minusSeconds(1),
-            )
-        }
+        CreatorRevenueOperation
+            .create(
+                purchaseOperationId = PurchaseOperationId.generate(),
+                creatorUserId = UserId.generate(),
+                amountPrime = 10,
+                now = now.minusSeconds(60),
+            ).also { operation ->
+                operation.fail(
+                    reason = "TEMPORARY_FAILURE",
+                    retryAt = now.minusSeconds(1),
+                )
+            }
 
     private class FakeWallet : CreatorRevenueWallet {
         val requestIds = mutableListOf<UUID>()

@@ -49,7 +49,8 @@ object PersonalizationContentPersistenceMapper {
                 mapOf(
                     "mixedAggregateTitle" to mixedAggregateTitle,
                     "templates" to
-                        templates.mapKeys { (key, _) -> key.name }
+                        templates
+                            .mapKeys { (key, _) -> key.name }
                             .mapValues { (_, template) -> template.toDocument() },
                 )
         }
@@ -105,19 +106,20 @@ object PersonalizationContentPersistenceMapper {
         return PersonalizationContent.NotificationPack(
             mixedAggregateTitle = requireString("mixedAggregateTitle"),
             templates =
-                templates.map { (rawKey, rawTemplate) ->
-                    val key = NotificationTemplateKey.valueOf(rawKey)
-                    val template = requireDocument(rawTemplate)
+                templates
+                    .map { (rawKey, rawTemplate) ->
+                        val key = NotificationTemplateKey.valueOf(rawKey)
+                        val template = requireDocument(rawTemplate)
 
-                    key to
-                        NotificationTemplate(
-                            emoji = template.stringOrNull("emoji"),
-                            soloTitle = template.requireString("soloTitle"),
-                            soloBody = template.requireString("soloBody"),
-                            compact = template.requireString("compact"),
-                            aggregateTitle = template.requireString("aggregateTitle"),
-                        )
-                }.toMap(),
+                        key to
+                            NotificationTemplate(
+                                emoji = template.stringOrNull("emoji"),
+                                soloTitle = template.requireString("soloTitle"),
+                                soloBody = template.requireString("soloBody"),
+                                compact = template.requireString("compact"),
+                                aggregateTitle = template.requireString("aggregateTitle"),
+                            )
+                    }.toMap(),
         )
     }
 
@@ -176,8 +178,7 @@ object PersonalizationContentPersistenceMapper {
         requireValue(key) as? List<*>
             ?: throw IllegalArgumentException("Personalization content field $key must be a list")
 
-    private fun Map<String, Any?>.documentOrNull(key: String): Map<String, Any?>? =
-        this[key]?.let(::requireDocument)
+    private fun Map<String, Any?>.documentOrNull(key: String): Map<String, Any?>? = this[key]?.let(::requireDocument)
 
     @Suppress("UNCHECKED_CAST")
     private fun requireDocument(value: Any?): Map<String, Any?> =

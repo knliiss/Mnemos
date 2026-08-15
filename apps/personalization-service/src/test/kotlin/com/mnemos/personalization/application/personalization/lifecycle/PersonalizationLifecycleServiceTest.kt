@@ -331,8 +331,7 @@ class PersonalizationLifecycleServiceTest {
             return personalization
         }
 
-        override fun findById(id: PersonalizationId): Personalization? =
-            personalization.takeIf { it.id == id }
+        override fun findById(id: PersonalizationId): Personalization? = personalization.takeIf { it.id == id }
 
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
             listOf(personalization).filter { it.creatorUserId == creatorUserId }
@@ -349,8 +348,7 @@ class PersonalizationLifecycleServiceTest {
         override fun exists(
             owner: PersonalizationOwner,
             personalizationId: PersonalizationId,
-        ): Boolean =
-            ownership.owner == owner && ownership.personalizationId == personalizationId
+        ): Boolean = ownership.owner == owner && ownership.personalizationId == personalizationId
 
         override fun find(
             owner: PersonalizationOwner,
@@ -368,8 +366,7 @@ class PersonalizationLifecycleServiceTest {
                 it.owner == owner && it.type == type && it.active
             }
 
-        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
-            listOf(ownership).filter { it.owner == owner }
+        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = listOf(ownership).filter { it.owner == owner }
 
         override fun deactivateActive(
             owner: PersonalizationOwner,

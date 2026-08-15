@@ -7,7 +7,8 @@ import com.mnemos.notification.application.notification.personalization.model.No
 
 object ActiveNotificationPackPersistenceMapper {
     fun ActiveNotificationPack.toTemplateDocuments(): Map<String, Any?> =
-        templates.mapKeys { (type, _) -> type.name }
+        templates
+            .mapKeys { (type, _) -> type.name }
             .mapValues { (_, template) -> template.toDocument() }
 
     fun ActiveNotificationPackEntity.toDomainOrNull(): ActiveNotificationPack? {

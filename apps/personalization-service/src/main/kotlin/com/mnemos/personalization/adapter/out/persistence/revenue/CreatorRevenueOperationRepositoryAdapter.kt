@@ -20,8 +20,7 @@ class CreatorRevenueOperationRepositoryAdapter(
     override fun save(operation: CreatorRevenueOperation): CreatorRevenueOperation =
         repository.saveAndFlush(operation.toEntity()).toDomain()
 
-    override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? =
-        repository.findByRequestId(requestId)?.toDomain()
+    override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = repository.findByRequestId(requestId)?.toDomain()
 
     override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean =
         repository.existsByPurchaseOperationId(purchaseOperationId.id)

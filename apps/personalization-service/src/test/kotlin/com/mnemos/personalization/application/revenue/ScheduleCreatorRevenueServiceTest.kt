@@ -164,11 +164,9 @@ class ScheduleCreatorRevenueServiceTest {
     ) : PurchaseOperationRepository {
         override fun save(operation: PurchaseOperation): PurchaseOperation = operation
 
-        override fun findById(id: PurchaseOperationId): PurchaseOperation? =
-            operation.takeIf { it.id == id }
+        override fun findById(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
-        override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? =
-            operation.takeIf { it.id == id }
+        override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
         override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = null
 
@@ -183,8 +181,7 @@ class ScheduleCreatorRevenueServiceTest {
     ) : PersonalizationRepository {
         override fun save(personalization: Personalization): Personalization = personalization
 
-        override fun findById(id: PersonalizationId): Personalization? =
-            personalization.takeIf { it.id == id }
+        override fun findById(id: PersonalizationId): Personalization? = personalization.takeIf { it.id == id }
 
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
             listOf(personalization).filter { it.creatorUserId == creatorUserId }

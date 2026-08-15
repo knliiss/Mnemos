@@ -17,8 +17,7 @@ class PersonalizationOwnershipController(
     private val ownershipService: PersonalizationOwnershipService,
 ) {
     @GetMapping("/me")
-    fun listMine(): List<OwnedPersonalizationResponse> =
-        ownershipService.listMine().map { ownership -> ownership.toResponse() }
+    fun listMine(): List<OwnedPersonalizationResponse> = ownershipService.listMine().map { ownership -> ownership.toResponse() }
 
     @PutMapping("/{personalizationId}/active")
     fun activate(

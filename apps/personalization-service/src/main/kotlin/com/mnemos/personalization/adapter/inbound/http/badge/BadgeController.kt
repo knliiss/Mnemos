@@ -19,8 +19,7 @@ class BadgeController(
     private val badgeSelectionService: BadgeSelectionService,
 ) {
     @GetMapping("/me")
-    fun listMine(): List<UserBadgeResponse> =
-        badgeSelectionService.listMine().map { userBadge -> userBadge.toResponse() }
+    fun listMine(): List<UserBadgeResponse> = badgeSelectionService.listMine().map { userBadge -> userBadge.toResponse() }
 
     @PutMapping("/{badgeId}/active")
     fun activate(

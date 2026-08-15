@@ -27,14 +27,15 @@ class AccountProviderAdapter(
         val userId = UserId(currentUser.requireUserId())
         val context = resolveActiveAccount(userId)
         val granted =
-            client.checkPermission(
-                accountId = context.accountId.id,
-                request =
-                    CheckAccountPermissionRequest(
-                        userId = userId.id,
-                        permission = permission,
-                    ),
-            ).granted
+            client
+                .checkPermission(
+                    accountId = context.accountId.id,
+                    request =
+                        CheckAccountPermissionRequest(
+                            userId = userId.id,
+                            permission = permission,
+                        ),
+                ).granted
 
         if (!granted) {
             throw AccountPermissionDeniedException(

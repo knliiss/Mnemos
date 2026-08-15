@@ -12,7 +12,8 @@ class PersonalizationAccountAccessAdapter(
     private val client: PersonalizationAccountInternalClient,
 ) : PersonalizationAccountAccess {
     override fun requireActiveAccount(userId: UserId): AccountId =
-        client.resolve(userId = userId.id)
+        client
+            .resolve(userId = userId.id)
             ?.let { response -> AccountId(response.accountId) }
             ?: throw ActiveAccountRequiredException()
 
@@ -29,6 +30,5 @@ class PersonalizationAccountAccessAdapter(
                         userId = userId.id,
                         permission = permission,
                     ),
-            )
-            .granted
+            ).granted
 }

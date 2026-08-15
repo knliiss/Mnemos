@@ -303,14 +303,11 @@ class ProcessPurchaseWalletResultServiceTest {
             return operation
         }
 
-        override fun findById(id: PurchaseOperationId): PurchaseOperation? =
-            operation.takeIf { it.id == id }
+        override fun findById(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
-        override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? =
-            operation.takeIf { it.id == id }
+        override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
-        override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? =
-            operation.takeIf { it.requestId == requestId }
+        override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = operation.takeIf { it.requestId == requestId }
 
         override fun existsPending(
             owner: PersonalizationOwner,
@@ -326,8 +323,7 @@ class ProcessPurchaseWalletResultServiceTest {
     ) : PersonalizationRepository {
         override fun save(personalization: Personalization): Personalization = personalization
 
-        override fun findById(id: PersonalizationId): Personalization? =
-            personalization.takeIf { it.id == id }
+        override fun findById(id: PersonalizationId): Personalization? = personalization.takeIf { it.id == id }
 
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
@@ -362,8 +358,7 @@ class ProcessPurchaseWalletResultServiceTest {
         override fun findActive(
             owner: PersonalizationOwner,
             type: PersonalizationType,
-        ): OwnedPersonalization? =
-            saved.firstOrNull { ownership -> ownership.owner == owner && ownership.type == type && ownership.active }
+        ): OwnedPersonalization? = saved.firstOrNull { ownership -> ownership.owner == owner && ownership.type == type && ownership.active }
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
             saved.filter { ownership -> ownership.owner == owner }

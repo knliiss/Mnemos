@@ -17,11 +17,9 @@ class BadgeRepositoryAdapter(
 ) : BadgeRepository {
     override fun save(badge: Badge): Badge = badgeRepository.saveAndFlush(badge.toEntity()).toDomain()
 
-    override fun findById(id: BadgeId): Badge? =
-        badgeRepository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: BadgeId): Badge? = badgeRepository.findById(id.id).orElse(null)?.toDomain()
 
-    override fun findByIdForUpdate(id: BadgeId): Badge? =
-        badgeRepository.findByIdForUpdate(id.id)?.toDomain()
+    override fun findByIdForUpdate(id: BadgeId): Badge? = badgeRepository.findByIdForUpdate(id.id)?.toDomain()
 
     override fun findByCode(code: String): Badge? = badgeRepository.findByCode(code)?.toDomain()
 
@@ -49,8 +47,7 @@ class BadgeRepositoryAdapter(
         badgeId: BadgeId,
     ): UserBadge? = userBadgeRepository.findByUserIdAndBadgeIdForUpdate(userId.id, badgeId.id)?.toDomain()
 
-    override fun findActiveUserBadge(userId: UserId): UserBadge? =
-        userBadgeRepository.findByUserIdAndActiveTrue(userId.id)?.toDomain()
+    override fun findActiveUserBadge(userId: UserId): UserBadge? = userBadgeRepository.findByUserIdAndActiveTrue(userId.id)?.toDomain()
 
     override fun findUserBadges(userId: UserId): List<UserBadge> =
         userBadgeRepository.findAllByUserIdOrderByGrantedAtDesc(userId.id).map { it.toDomain() }

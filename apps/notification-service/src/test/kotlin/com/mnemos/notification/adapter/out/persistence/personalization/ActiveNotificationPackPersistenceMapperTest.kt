@@ -29,9 +29,10 @@ class ActiveNotificationPackPersistenceMapperTest {
     @Test
     fun `invalid persisted template document is rejected`() {
         val templates =
-            NotificationType.entries.associate { type ->
-                type.name to validTemplateDocument()
-            }.toMutableMap()
+            NotificationType.entries
+                .associate { type ->
+                    type.name to validTemplateDocument()
+                }.toMutableMap()
 
         templates[NotificationType.RAID.name] =
             validTemplateDocument().toMutableMap().apply {

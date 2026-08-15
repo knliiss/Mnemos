@@ -16,17 +16,13 @@ import java.util.UUID
 class PurchaseOperationRepositoryAdapter(
     private val repository: PurchaseOperationJpaRepository,
 ) : PurchaseOperationRepository {
-    override fun save(operation: PurchaseOperation): PurchaseOperation =
-        repository.saveAndFlush(operation.toEntity()).toDomain()
+    override fun save(operation: PurchaseOperation): PurchaseOperation = repository.saveAndFlush(operation.toEntity()).toDomain()
 
-    override fun findById(id: PurchaseOperationId): PurchaseOperation? =
-        repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: PurchaseOperationId): PurchaseOperation? = repository.findById(id.id).orElse(null)?.toDomain()
 
-    override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? =
-        repository.findByIdForUpdate(id.id)?.toDomain()
+    override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = repository.findByIdForUpdate(id.id)?.toDomain()
 
-    override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? =
-        repository.findByRequestId(requestId)?.toDomain()
+    override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = repository.findByRequestId(requestId)?.toDomain()
 
     override fun existsPending(
         owner: PersonalizationOwner,

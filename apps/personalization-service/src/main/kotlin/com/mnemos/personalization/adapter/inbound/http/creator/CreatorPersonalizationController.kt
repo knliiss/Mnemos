@@ -28,8 +28,7 @@ class CreatorPersonalizationController(
     private val lifecycleService: PersonalizationLifecycleService,
 ) {
     @GetMapping("/me")
-    fun listMine(): List<PersonalizationResponse> =
-        lifecycleService.listMine().map { personalization -> personalization.toResponse() }
+    fun listMine(): List<PersonalizationResponse> = lifecycleService.listMine().map { personalization -> personalization.toResponse() }
 
     @PostMapping("/nick-styles")
     @ResponseStatus(HttpStatus.CREATED)

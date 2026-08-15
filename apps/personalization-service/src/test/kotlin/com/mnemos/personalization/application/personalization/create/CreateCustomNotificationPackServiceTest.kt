@@ -185,14 +185,12 @@ class CreateCustomNotificationPackServiceTest {
             return personalization
         }
 
-        override fun findById(id: PersonalizationId): Personalization? =
-            personalizations.find { it.id == id }
+        override fun findById(id: PersonalizationId): Personalization? = personalizations.find { it.id == id }
 
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
             personalizations.filter { it.creatorUserId == creatorUserId }
 
-        override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
-            personalizations.filter { it.status == status }
+        override fun findByStatus(status: PersonalizationStatus): List<Personalization> = personalizations.filter { it.status == status }
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {

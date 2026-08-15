@@ -246,9 +246,10 @@ class Personalization(
                     "Rejected personalization must remain private"
                 }
 
-                val reason = requireNotNull(rejectionReason) {
-                    "Rejected personalization requires a rejection reason"
-                }
+                val reason =
+                    requireNotNull(rejectionReason) {
+                        "Rejected personalization requires a rejection reason"
+                    }
 
                 require(reason.isNotBlank()) {
                     "Rejected personalization requires a rejection reason"

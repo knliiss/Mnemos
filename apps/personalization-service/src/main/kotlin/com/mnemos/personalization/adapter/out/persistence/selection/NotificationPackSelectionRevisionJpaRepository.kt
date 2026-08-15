@@ -7,8 +7,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
-interface NotificationPackSelectionRevisionJpaRepository :
-    JpaRepository<NotificationPackSelectionRevisionEntity, UUID> {
+interface NotificationPackSelectionRevisionJpaRepository : JpaRepository<NotificationPackSelectionRevisionEntity, UUID> {
     @Modifying
     @Query(
         value = """

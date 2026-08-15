@@ -39,7 +39,8 @@ class PersonalizationHttpExceptionHandler(
     }
 
     private fun resolveRequestId(): String =
-        MDC.get(MdcKeys.REQUEST_ID)
+        MDC
+            .get(MdcKeys.REQUEST_ID)
             ?.takeIf { it.isNotBlank() }
             ?: UUID.randomUUID().toString()
 }

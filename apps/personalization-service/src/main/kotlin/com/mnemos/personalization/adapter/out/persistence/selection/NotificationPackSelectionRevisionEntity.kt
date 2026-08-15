@@ -12,7 +12,6 @@ class NotificationPackSelectionRevisionEntity(
     @Id
     @Column(name = "user_id", nullable = false, updatable = false)
     val userId: UUID,
-
     @Column(name = "revision", nullable = false)
     var revision: Long,
 ) {

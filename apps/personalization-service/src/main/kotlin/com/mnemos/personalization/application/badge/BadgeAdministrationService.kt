@@ -95,6 +95,5 @@ class BadgeAdministrationService(
         }
     }
 
-    private fun requireBadgeForUpdate(badgeId: BadgeId): Badge =
-        repository.findByIdForUpdate(badgeId) ?: throw BadgeNotFoundException()
+    private fun requireBadgeForUpdate(badgeId: BadgeId): Badge = repository.findByIdForUpdate(badgeId) ?: throw BadgeNotFoundException()
 }

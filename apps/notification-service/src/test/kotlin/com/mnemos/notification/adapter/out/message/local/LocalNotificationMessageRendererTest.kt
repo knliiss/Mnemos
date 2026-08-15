@@ -208,8 +208,7 @@ class LocalNotificationMessageRendererTest {
     private class FakeActiveNotificationPackRepository : ActiveNotificationPackRepository {
         var active: ActiveNotificationPack? = null
 
-        override fun find(userId: UserId): ActiveNotificationPack? =
-            active?.takeIf { it.userId == userId }
+        override fun find(userId: UserId): ActiveNotificationPack? = active?.takeIf { it.userId == userId }
 
         override fun apply(
             userId: UserId,

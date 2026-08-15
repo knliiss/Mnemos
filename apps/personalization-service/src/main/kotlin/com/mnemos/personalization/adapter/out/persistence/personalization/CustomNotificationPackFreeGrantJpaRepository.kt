@@ -6,8 +6,7 @@ import org.springframework.data.jpa.repository.Query
 import java.time.Instant
 import java.util.UUID
 
-interface CustomNotificationPackFreeGrantJpaRepository :
-    JpaRepository<CustomNotificationPackFreeGrantEntity, UUID> {
+interface CustomNotificationPackFreeGrantJpaRepository : JpaRepository<CustomNotificationPackFreeGrantEntity, UUID> {
     @Modifying
     @Query(
         value = """

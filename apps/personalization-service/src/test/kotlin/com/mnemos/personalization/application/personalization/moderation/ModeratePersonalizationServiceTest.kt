@@ -151,8 +151,7 @@ class ModeratePersonalizationServiceTest {
             return personalization
         }
 
-        override fun findById(id: PersonalizationId): Personalization? =
-            personalization.takeIf { it.id == id }
+        override fun findById(id: PersonalizationId): Personalization? = personalization.takeIf { it.id == id }
 
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 

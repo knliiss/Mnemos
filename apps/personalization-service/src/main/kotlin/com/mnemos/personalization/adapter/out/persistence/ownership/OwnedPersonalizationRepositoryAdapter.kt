@@ -56,8 +56,7 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
                 personalizationId = personalizationId.id,
-            )
-            ?.toDomain()
+            )?.toDomain()
 
     override fun findForUpdate(
         owner: PersonalizationOwner,
@@ -68,8 +67,7 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
                 personalizationId = personalizationId.id,
-            )
-            ?.toDomain()
+            )?.toDomain()
 
     override fun findActive(
         owner: PersonalizationOwner,
@@ -80,8 +78,7 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
                 personalizationType = type,
-            )
-            ?.toDomain()
+            )?.toDomain()
 
     override fun findActiveForUpdate(
         owner: PersonalizationOwner,
@@ -92,16 +89,14 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
                 personalizationType = type,
-            )
-            ?.toDomain()
+            )?.toDomain()
 
     override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
         repository
             .findAllByOwnerTypeAndOwnerIdOrderByAcquiredAtDesc(
                 ownerType = owner.target,
                 ownerId = owner.id,
-            )
-            .map { it.toDomain() }
+            ).map { it.toDomain() }
 
     override fun deactivateActive(
         owner: PersonalizationOwner,

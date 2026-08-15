@@ -130,8 +130,7 @@ object CreatorPersonalizationApiMapper {
             secondaryColor = secondaryColor?.let(::HexColor),
         )
 
-    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack =
-        templates.toContent(mixedAggregateTitle)
+    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack = templates.toContent(mixedAggregateTitle)
 
     fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(
         mixedAggregateTitle: String,

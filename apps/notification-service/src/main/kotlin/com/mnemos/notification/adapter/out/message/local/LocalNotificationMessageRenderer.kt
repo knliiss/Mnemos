@@ -90,8 +90,7 @@ class LocalNotificationMessageRenderer(
         }
     }
 
-    private fun renderSolo(notification: ResolvedNotification): String =
-        "${notification.soloTitle}\n${notification.soloBody}"
+    private fun renderSolo(notification: ResolvedNotification): String = "${notification.soloTitle}\n${notification.soloBody}"
 
     private fun renderAggregated(
         notifications: List<ResolvedNotification>,

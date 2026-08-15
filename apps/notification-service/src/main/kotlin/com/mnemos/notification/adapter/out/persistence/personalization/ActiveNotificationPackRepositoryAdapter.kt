@@ -13,8 +13,7 @@ import java.util.UUID
 class ActiveNotificationPackRepositoryAdapter(
     private val repository: ActiveNotificationPackJpaRepository,
 ) : ActiveNotificationPackRepository {
-    override fun find(userId: UserId): ActiveNotificationPack? =
-        repository.findById(userId.id).orElse(null)?.toDomainOrNull()
+    override fun find(userId: UserId): ActiveNotificationPack? = repository.findById(userId.id).orElse(null)?.toDomainOrNull()
 
     override fun apply(
         userId: UserId,
