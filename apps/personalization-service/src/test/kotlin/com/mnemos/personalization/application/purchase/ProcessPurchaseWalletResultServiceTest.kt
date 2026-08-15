@@ -332,11 +332,6 @@ class ProcessPurchaseWalletResultServiceTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-        ): List<Personalization> = emptyList()
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {
@@ -368,9 +363,7 @@ class ProcessPurchaseWalletResultServiceTest {
             owner: PersonalizationOwner,
             type: PersonalizationType,
         ): OwnedPersonalization? =
-            saved.firstOrNull { ownership ->
-                ownership.owner == owner && ownership.type == type && ownership.active
-            }
+            saved.firstOrNull { ownership -> ownership.owner == owner && ownership.type == type && ownership.active }
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
             saved.filter { ownership -> ownership.owner == owner }
