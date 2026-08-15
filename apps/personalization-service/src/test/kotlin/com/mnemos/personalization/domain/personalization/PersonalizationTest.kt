@@ -5,6 +5,8 @@ import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.PersonalizationId
+import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
@@ -68,6 +70,42 @@ class PersonalizationTest {
         }
     }
 
+    @Test
+    fun `custom origin cannot restore non notification pack`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            restore(
+                origin = PersonalizationOrigin.CUSTOM,
+                visibility = PersonalizationVisibility.PRIVATE,
+                status = PersonalizationStatus.PRIVATE,
+                rejectionReason = null,
+            )
+        }
+    }
+
+    @Test
+    fun `published personalization cannot restore with private visibility`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            restore(
+                origin = PersonalizationOrigin.CREATOR,
+                visibility = PersonalizationVisibility.PRIVATE,
+                status = PersonalizationStatus.PUBLISHED,
+                rejectionReason = null,
+            )
+        }
+    }
+
+    @Test
+    fun `rejected personalization requires rejection reason on restore`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            restore(
+                origin = PersonalizationOrigin.CREATOR,
+                visibility = PersonalizationVisibility.PRIVATE,
+                status = PersonalizationStatus.REJECTED,
+                rejectionReason = null,
+            )
+        }
+    }
+
     private fun createNickStyleDraft(): Personalization =
         Personalization.createCreatorDraft(
             creatorUserId = creatorUserId,
@@ -76,6 +114,27 @@ class PersonalizationTest {
             content = nickStyleContent(),
             price = PersonalizationPrice(Currency.COIN, 1_000),
             now = createdAt,
+        )
+
+    private fun restore(
+        origin: PersonalizationOrigin,
+        visibility: PersonalizationVisibility,
+        status: PersonalizationStatus,
+        rejectionReason: String?,
+    ): Personalization =
+        Personalization(
+            id = PersonalizationId.generate(),
+            creatorUserId = creatorUserId,
+            type = PersonalizationType.NICK_STYLE,
+            origin = origin,
+            visibility = visibility,
+            name = "Ice Gradient",
+            content = nickStyleContent(),
+            price = PersonalizationPrice(Currency.COIN, 1_000),
+            status = status,
+            rejectionReason = rejectionReason,
+            createdAt = createdAt,
+            updatedAt = createdAt,
         )
 
     private fun nickStyleContent(): PersonalizationContent.NickStyle =
