@@ -1,5 +1,7 @@
 package com.mnemos.personalization.adapter.inbound.http.personalization
 
+import com.mnemos.personalization.adapter.inbound.http.common.PageResponse
+import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
@@ -7,6 +9,16 @@ import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 
 object PersonalizationApiMapper {
+    fun PageResult<Personalization>.toResponse(): PageResponse<PersonalizationResponse> =
+        PageResponse(
+            items = items.map { personalization -> personalization.toResponse() },
+            page = page,
+            size = size,
+            totalItems = totalItems,
+            totalPages = totalPages,
+            hasNextPage = hasNextPage,
+        )
+
     fun Personalization.toResponse(): PersonalizationResponse =
         PersonalizationResponse(
             id = id.id,
