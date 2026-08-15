@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.pricing
 
+import com.mnemos.personalization.application.pricing.model.PersonalizationPriceRange
 import com.mnemos.personalization.application.pricing.model.PriceRange
 import com.mnemos.personalization.configuration.pricing.PersonalizationPricingProperties
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
@@ -29,6 +30,22 @@ class PersonalizationPricePolicy(
             currency = Currency.PRIME,
             amount = properties.customNotificationPackPurchasePrime,
         )
+
+    fun marketplaceRanges(): List<PersonalizationPriceRange> =
+        buildList {
+            addRange(PersonalizationType.NOTIFICATION_PACK, PersonalizationOrigin.CREATOR, Currency.PRIME)
+            addRange(PersonalizationType.NOTIFICATION_PACK, PersonalizationOrigin.CUSTOM, Currency.PRIME)
+
+            listOf(
+                PersonalizationType.NICK_STYLE,
+                PersonalizationType.PROFILE_THEME,
+                PersonalizationType.AVATAR_FRAME,
+                PersonalizationType.PROFILE_EFFECT,
+            ).forEach { type ->
+                addRange(type, PersonalizationOrigin.CREATOR, Currency.COIN)
+                addRange(type, PersonalizationOrigin.CREATOR, Currency.PRIME)
+            }
+        }
 
     fun rangeFor(
         type: PersonalizationType,
@@ -74,6 +91,21 @@ class PersonalizationPricePolicy(
         return PriceRange(
             min = range.min,
             max = range.max,
+        )
+    }
+
+    private fun MutableList<PersonalizationPriceRange>.addRange(
+        type: PersonalizationType,
+        origin: PersonalizationOrigin,
+        currency: Currency,
+    ) {
+        add(
+            PersonalizationPriceRange(
+                type = type,
+                origin = origin,
+                currency = currency,
+                range = rangeFor(type, origin, currency),
+            ),
         )
     }
 }

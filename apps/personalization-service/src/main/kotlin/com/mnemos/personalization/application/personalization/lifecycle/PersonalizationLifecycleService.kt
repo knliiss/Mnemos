@@ -10,6 +10,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationCo
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
+import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -53,6 +54,31 @@ class PersonalizationLifecycleService(
     }
 
     @Transactional
+    fun updateCustomNotificationPack(
+        personalizationId: PersonalizationId,
+        name: String,
+        content: PersonalizationContent.NotificationPack,
+    ): Personalization {
+        val actor = actorProvider.requireActor()
+        val personalization = requireOwned(personalizationId, actor.userId)
+
+        if (personalization.origin != PersonalizationOrigin.CUSTOM ||
+            personalization.type != PersonalizationType.NOTIFICATION_PACK
+        ) {
+            throw PersonalizationAccessDeniedException()
+        }
+
+        personalization.updateDraft(
+            name = name,
+            content = content,
+            price = personalization.price,
+            now = clock.instant(),
+        )
+
+        return repository.save(personalization)
+    }
+
+    @Transactional
     fun submit(personalizationId: PersonalizationId): Personalization {
         val actor = actorProvider.requireActor()
         val personalization = requireOwned(personalizationId, actor.userId)
@@ -72,6 +98,10 @@ class PersonalizationLifecycleService(
     fun publish(personalizationId: PersonalizationId): Personalization {
         val actor = actorProvider.requireActor()
         val personalization = requireOwned(personalizationId, actor.userId)
+
+        if (!actor.canCreateMarketplacePersonalization()) {
+            throw PersonalizationAccessDeniedException()
+        }
 
         personalization.publish(clock.instant())
 

@@ -1,11 +1,30 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization
 
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
+import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
 interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UUID> {
     fun findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId: UUID): List<PersonalizationEntity>
 
     fun findAllByStatusOrderByCreatedAtAsc(status: PersonalizationStatus): List<PersonalizationEntity>
+
+    @Query(
+        """
+        SELECT personalization
+        FROM PersonalizationEntity personalization
+        WHERE personalization.status = com.mnemos.personalization.domain.personalization.model.PersonalizationStatus.PUBLISHED
+          AND personalization.visibility = com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility.PUBLIC
+          AND (:type IS NULL OR personalization.type = :type)
+          AND (:currency IS NULL OR personalization.priceCurrency = :currency)
+        ORDER BY personalization.createdAt DESC
+        """,
+    )
+    fun findPublished(
+        type: PersonalizationType?,
+        currency: Currency?,
+    ): List<PersonalizationEntity>
 }

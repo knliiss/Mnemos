@@ -4,6 +4,8 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
+import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.wallet.contracts.wallet.shared.Currency
 
 interface PersonalizationRepository {
     fun save(personalization: Personalization): Personalization
@@ -13,4 +15,9 @@ interface PersonalizationRepository {
     fun findByCreatorUserId(creatorUserId: UserId): List<Personalization>
 
     fun findByStatus(status: PersonalizationStatus): List<Personalization>
+
+    fun findPublished(
+        type: PersonalizationType?,
+        currency: Currency?,
+    ): List<Personalization>
 }

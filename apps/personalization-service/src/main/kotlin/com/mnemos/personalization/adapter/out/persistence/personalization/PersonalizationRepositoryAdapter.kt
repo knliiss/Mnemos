@@ -6,7 +6,9 @@ import com.mnemos.personalization.adapter.out.persistence.personalization.Person
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
+import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
+import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,4 +26,9 @@ class PersonalizationRepositoryAdapter(
 
     override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
         repository.findAllByStatusOrderByCreatedAtAsc(status).map { it.toDomain() }
+
+    override fun findPublished(
+        type: PersonalizationType?,
+        currency: Currency?,
+    ): List<Personalization> = repository.findPublished(type, currency).map { it.toDomain() }
 }
