@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
-import java.time.Clock
 import java.util.Base64
 import java.util.UUID
 
@@ -13,21 +12,17 @@ import java.util.UUID
 class RedisSseConnectionLeaseStore(
     private val redisTemplate: StringRedisTemplate,
     private val properties: RealtimeDeliveryProperties,
-    private val clock: Clock,
 ) : SseConnectionLeaseStore {
     override fun acquire(
         userId: UUID,
         clientIp: String,
         connectionId: UUID,
     ): SseConnectionLeaseAcquireResult {
-        val now = clock.millis()
-        val expiresAt = now + properties.connectionLeaseTtl.toMillis()
         val result =
             redisTemplate.execute(
                 ACQUIRE_SCRIPT,
                 keys(userId, clientIp),
-                now.toString(),
-                expiresAt.toString(),
+                properties.connectionLeaseTtl.toMillis().toString(),
                 connectionId.toString(),
                 properties.maxConnectionsPerUser.toString(),
                 properties.maxConnectionsPerClientIp.toString(),
@@ -49,12 +44,11 @@ class RedisSseConnectionLeaseStore(
         clientIp: String,
         connectionId: UUID,
     ): Boolean {
-        val expiresAt = clock.millis() + properties.connectionLeaseTtl.toMillis()
         val result =
             redisTemplate.execute(
                 RENEW_SCRIPT,
                 keys(userId, clientIp),
-                expiresAt.toString(),
+                properties.connectionLeaseTtl.toMillis().toString(),
                 connectionId.toString(),
                 leaseKeyTtlSeconds().toString(),
             ) ?: 0L
@@ -102,13 +96,15 @@ class RedisSseConnectionLeaseStore(
         val ACQUIRE_SCRIPT =
             DefaultRedisScript(
                 """
-                local now = tonumber(ARGV[1])
-                local expiresAt = tonumber(ARGV[2])
-                local connectionId = ARGV[3]
-                local userLimit = tonumber(ARGV[4])
-                local ipLimit = tonumber(ARGV[5])
-                local totalLimit = tonumber(ARGV[6])
-                local keyTtlSeconds = tonumber(ARGV[7])
+                local leaseTtlMillis = tonumber(ARGV[1])
+                local connectionId = ARGV[2]
+                local userLimit = tonumber(ARGV[3])
+                local ipLimit = tonumber(ARGV[4])
+                local totalLimit = tonumber(ARGV[5])
+                local keyTtlSeconds = tonumber(ARGV[6])
+                local time = redis.call('TIME')
+                local now = (time[1] * 1000) + math.floor(time[2] / 1000)
+                local expiresAt = now + leaseTtlMillis
 
                 for index = 1, 3 do
                     redis.call('ZREMRANGEBYSCORE', KEYS[index], '-inf', now)
@@ -139,13 +135,17 @@ class RedisSseConnectionLeaseStore(
         val RENEW_SCRIPT =
             DefaultRedisScript(
                 """
-                local expiresAt = tonumber(ARGV[1])
+                local leaseTtlMillis = tonumber(ARGV[1])
                 local connectionId = ARGV[2]
                 local keyTtlSeconds = tonumber(ARGV[3])
 
                 if redis.call('ZSCORE', KEYS[1], connectionId) == false then
                     return 0
                 end
+
+                local time = redis.call('TIME')
+                local now = (time[1] * 1000) + math.floor(time[2] / 1000)
+                local expiresAt = now + leaseTtlMillis
 
                 for index = 1, 3 do
                     redis.call('ZADD', KEYS[index], expiresAt, connectionId)
