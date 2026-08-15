@@ -33,6 +33,7 @@ class MnemosKafkaAutoConfiguration {
         prefix = "mnemos.kafka.message-auth",
         name = ["enabled"],
         havingValue = "true",
+        matchIfMissing = true,
     )
     fun kafkaMessageAuthenticator(
         properties: MnemosKafkaProperties,

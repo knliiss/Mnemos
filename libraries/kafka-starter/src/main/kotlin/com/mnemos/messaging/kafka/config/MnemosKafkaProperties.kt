@@ -35,7 +35,7 @@ data class MnemosKafkaProperties(
     }
 
     data class MessageAuth(
-        val enabled: Boolean = false,
+        val enabled: Boolean = true,
         val privateKey: String = "",
         val trustedPublicKeys: String = "",
     ) {

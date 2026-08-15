@@ -19,4 +19,5 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    systemProperty("mnemos.kafka.message-auth.enabled", "false")
 }
