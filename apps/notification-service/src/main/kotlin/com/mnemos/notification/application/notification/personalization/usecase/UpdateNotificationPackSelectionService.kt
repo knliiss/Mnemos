@@ -21,6 +21,7 @@ class UpdateNotificationPackSelectionService(
         repository.apply(
             userId = command.userId,
             pack = pack,
+            selectionRevision = command.selectionRevision,
             eventId = command.eventId,
             occurredAt = command.occurredAt,
         )
