@@ -31,9 +31,7 @@ class CreatorRevenueOperation(
 
     init {
         require(amountPrime > 0) { "Creator revenue must be positive" }
-        require((status == CreatorRevenueOperationStatus.FAILED) == (nextRetryAt != null)) {
-            "Only failed creator revenue can have a retry time"
-        }
+        requireValidResultState()
     }
 
     fun complete(transactionId: UUID) {
@@ -51,8 +49,10 @@ class CreatorRevenueOperation(
     ) {
         require(status == CreatorRevenueOperationStatus.PENDING) { "Only pending creator revenue can fail" }
         require(reason.isNotBlank()) { "Creator revenue failure reason cannot be blank" }
+        require(reason.length <= MAX_FAILURE_REASON_LENGTH) { "Creator revenue failure reason is too long" }
 
         status = CreatorRevenueOperationStatus.FAILED
+        walletTransactionId = null
         failureReason = reason
         nextRetryAt = retryAt
     }
@@ -66,11 +66,38 @@ class CreatorRevenueOperation(
 
         requestId = UuidCreator.getTimeOrderedEpoch()
         status = CreatorRevenueOperationStatus.PENDING
+        walletTransactionId = null
         failureReason = null
         nextRetryAt = null
     }
 
+    private fun requireValidResultState() {
+        failureReason?.let { reason ->
+            require(reason.isNotBlank()) { "Creator revenue failure reason cannot be blank" }
+            require(reason.length <= MAX_FAILURE_REASON_LENGTH) { "Creator revenue failure reason is too long" }
+        }
+
+        when (status) {
+            CreatorRevenueOperationStatus.PENDING ->
+                require(walletTransactionId == null && failureReason == null && nextRetryAt == null) {
+                    "Pending creator revenue cannot contain a wallet result or retry time"
+                }
+
+            CreatorRevenueOperationStatus.CONFIRMED ->
+                require(walletTransactionId != null && failureReason == null && nextRetryAt == null) {
+                    "Confirmed creator revenue requires a wallet transaction and no failure state"
+                }
+
+            CreatorRevenueOperationStatus.FAILED ->
+                require(walletTransactionId == null && failureReason != null && nextRetryAt != null) {
+                    "Failed creator revenue requires a failure reason and retry time"
+                }
+        }
+    }
+
     companion object {
+        private const val MAX_FAILURE_REASON_LENGTH = 128
+
         fun create(
             purchaseOperationId: PurchaseOperationId,
             creatorUserId: UserId,
