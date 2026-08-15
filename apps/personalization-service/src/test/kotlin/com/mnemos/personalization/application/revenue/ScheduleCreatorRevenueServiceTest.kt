@@ -63,6 +63,22 @@ class ScheduleCreatorRevenueServiceTest {
         assertEquals(revenue, fixture.wallet.operations.single())
     }
 
+    @Test
+    fun `existing revenue operation prevents duplicate wallet credit`() {
+        val creatorUserId = UserId.generate()
+        val buyerUserId = UserId.generate()
+        val personalization = personalization(creatorUserId)
+        val purchase = purchase(personalization.id, buyerUserId)
+        val fixture = fixture(personalization, purchase)
+
+        fixture.revenueRepository.purchaseOperationIds += purchase.id
+
+        fixture.service.execute(purchase.id)
+
+        assertTrue(fixture.revenueRepository.operations.isEmpty())
+        assertTrue(fixture.wallet.operations.isEmpty())
+    }
+
     private fun fixture(
         personalization: Personalization,
         purchase: PurchaseOperation,
@@ -151,6 +167,9 @@ class ScheduleCreatorRevenueServiceTest {
         override fun findById(id: PurchaseOperationId): PurchaseOperation? =
             operation.takeIf { it.id == id }
 
+        override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? =
+            operation.takeIf { it.id == id }
+
         override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = null
 
         override fun existsPending(
@@ -186,16 +205,19 @@ class ScheduleCreatorRevenueServiceTest {
 
     private class FakeCreatorRevenueOperationRepository : CreatorRevenueOperationRepository {
         val operations = mutableListOf<CreatorRevenueOperation>()
+        val purchaseOperationIds = mutableSetOf<PurchaseOperationId>()
 
         override fun save(operation: CreatorRevenueOperation): CreatorRevenueOperation {
             operations += operation
+            purchaseOperationIds += operation.purchaseOperationId
 
             return operation
         }
 
         override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = null
 
-        override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean = false
+        override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean =
+            purchaseOperationId in purchaseOperationIds
     }
 
     private class RecordingCreatorRevenueWallet : CreatorRevenueWallet {

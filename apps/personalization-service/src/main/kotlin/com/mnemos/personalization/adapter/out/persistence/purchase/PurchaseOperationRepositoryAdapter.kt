@@ -22,6 +22,9 @@ class PurchaseOperationRepositoryAdapter(
     override fun findById(id: PurchaseOperationId): PurchaseOperation? =
         repository.findById(id.id).orElse(null)?.toDomain()
 
+    override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? =
+        repository.findByIdForUpdate(id.id)?.toDomain()
+
     override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? =
         repository.findByRequestId(requestId)?.toDomain()
 
