@@ -53,13 +53,31 @@ class RealtimeEventTest {
             event(
                 type = RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED,
                 operationId = null,
-                payload =
-                    PersonalizationPurchaseCompletedPayload(
-                        personalizationId = UUID.randomUUID(),
-                        status = "CONFIRMED",
-                        walletTransactionId = UUID.randomUUID(),
-                        failureReason = null,
-                    ),
+                payload = confirmedPersonalizationPurchasePayload(),
+            )
+        }
+    }
+
+    @Test
+    fun `rejects confirmed personalization purchase without wallet transaction`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationPurchaseCompletedPayload(
+                personalizationId = UUID.randomUUID(),
+                status = "CONFIRMED",
+                walletTransactionId = null,
+                failureReason = null,
+            )
+        }
+    }
+
+    @Test
+    fun `rejects failed personalization purchase carrying wallet transaction`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PersonalizationPurchaseCompletedPayload(
+                personalizationId = UUID.randomUUID(),
+                status = "FAILED",
+                walletTransactionId = UUID.randomUUID(),
+                failureReason = "INSUFFICIENT_BALANCE",
             )
         }
     }
@@ -88,5 +106,13 @@ class RealtimeEventTest {
             source = "BET_PLACE",
             sourceReferenceId = UUID.randomUUID(),
             amount = 500,
+        )
+
+    private fun confirmedPersonalizationPurchasePayload(): PersonalizationPurchaseCompletedPayload =
+        PersonalizationPurchaseCompletedPayload(
+            personalizationId = UUID.randomUUID(),
+            status = "CONFIRMED",
+            walletTransactionId = UUID.randomUUID(),
+            failureReason = null,
         )
 }
