@@ -64,15 +64,66 @@ class CreateCustomNotificationPackServiceTest {
         assertTrue(ownershipRepository.saved.isEmpty())
     }
 
+    @Test
+    fun `admin without creator role does not receive free custom pack`() {
+        val userId = UserId.generate()
+        val grantRepository = FakeFreeGrantRepository(available = true)
+        val ownershipRepository = FakeOwnedPersonalizationRepository()
+        val pricingProperties = PersonalizationPricingProperties()
+        val fixture =
+            fixture(
+                userId = userId,
+                grantRepository = grantRepository,
+                ownershipRepository = ownershipRepository,
+                pricingProperties = pricingProperties,
+                roles = setOf(UserRole.ADMIN),
+            )
+
+        val result = fixture.execute()
+
+        assertFalse(result.grantedForFree)
+        assertEquals(Currency.PRIME, result.personalization.price?.currency)
+        assertEquals(pricingProperties.customNotificationPackPurchasePrime, result.personalization.price?.amount)
+        assertNull(grantRepository.claimedUserId)
+        assertNull(grantRepository.claimedAt)
+        assertTrue(ownershipRepository.saved.isEmpty())
+    }
+
+    @Test
+    fun `super admin without creator role does not receive free custom pack`() {
+        val userId = UserId.generate()
+        val grantRepository = FakeFreeGrantRepository(available = true)
+        val ownershipRepository = FakeOwnedPersonalizationRepository()
+        val pricingProperties = PersonalizationPricingProperties()
+        val fixture =
+            fixture(
+                userId = userId,
+                grantRepository = grantRepository,
+                ownershipRepository = ownershipRepository,
+                pricingProperties = pricingProperties,
+                roles = setOf(UserRole.SUPER_ADMIN),
+            )
+
+        val result = fixture.execute()
+
+        assertFalse(result.grantedForFree)
+        assertEquals(Currency.PRIME, result.personalization.price?.currency)
+        assertEquals(pricingProperties.customNotificationPackPurchasePrime, result.personalization.price?.amount)
+        assertNull(grantRepository.claimedUserId)
+        assertNull(grantRepository.claimedAt)
+        assertTrue(ownershipRepository.saved.isEmpty())
+    }
+
     private fun fixture(
         userId: UserId,
         grantRepository: FakeFreeGrantRepository,
         ownershipRepository: FakeOwnedPersonalizationRepository,
         pricingProperties: PersonalizationPricingProperties = PersonalizationPricingProperties(),
+        roles: Set<UserRole> = setOf(UserRole.PERSONALIZATION_CREATOR),
     ): Fixture {
         val service =
             CreateCustomNotificationPackService(
-                actorProvider = FixedActorProvider(userId),
+                actorProvider = FixedActorProvider(userId, roles),
                 personalizationRepository = FakePersonalizationRepository(),
                 ownershipRepository = ownershipRepository,
                 freeGrantRepository = grantRepository,
@@ -97,11 +148,12 @@ class CreateCustomNotificationPackServiceTest {
 
     private class FixedActorProvider(
         userId: UserId,
+        roles: Set<UserRole>,
     ) : CurrentPersonalizationActorProvider {
         private val actor =
             PersonalizationActor(
                 userId = userId,
-                roles = setOf(UserRole.PERSONALIZATION_CREATOR),
+                roles = roles,
             )
 
         override fun requireActor(): PersonalizationActor = actor
