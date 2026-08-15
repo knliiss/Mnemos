@@ -66,6 +66,17 @@ class NotificationPackSelectionChangedHandler(
                     "Notification pack selection revision must be positive",
                 )
             }
+
+            envelope.payload.pack?.let { snapshot ->
+                val templateTypes = snapshot.templates.map { template -> template.type.name }
+                val expectedTypes = NotificationType.entries.map(NotificationType::name).toSet()
+
+                if (templateTypes.size != expectedTypes.size || templateTypes.toSet() != expectedTypes) {
+                    throw KafkaMessageProtocolException(
+                        "Notification pack selection must define every notification type exactly once",
+                    )
+                }
+            }
         }
 
     override val consumer = "notification-service.notification-pack-selection-changed"
