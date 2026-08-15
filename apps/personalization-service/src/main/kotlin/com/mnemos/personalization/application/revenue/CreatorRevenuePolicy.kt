@@ -11,7 +11,10 @@ class CreatorRevenuePolicy(
 ) {
     fun calculatePrime(operation: PurchaseOperation): Long =
         when (operation.currency) {
-            Currency.PRIME -> percentage(operation.amount, properties.primeSharePercent)
+            Currency.PRIME ->
+                percentage(operation.amount, properties.primeSharePercent)
+                    .coerceAtLeast(1)
+
             Currency.COIN -> {
                 val sharedCoin = percentage(operation.amount, properties.coinSharePercent)
 
