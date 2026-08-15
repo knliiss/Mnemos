@@ -12,6 +12,8 @@ interface PersonalizationRepository {
 
     fun findById(id: PersonalizationId): Personalization?
 
+    fun findByIdForUpdate(id: PersonalizationId): Personalization? = findById(id)
+
     fun findByCreatorUserId(creatorUserId: UserId): List<Personalization>
 
     fun findByStatus(status: PersonalizationStatus): List<Personalization>
