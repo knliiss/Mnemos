@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "${KAFKA_HOST_PORT}:9092"
+      - "127.0.0.1:${KAFKA_HOST_PORT}:9092"
 
     environment:
       - "CLUSTER_ID=${KAFKA_CLUSTER_ID}"
@@ -15,9 +15,12 @@ services:
       - "KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:${KAFKA_CONTROLLER_PORT}"
       - "KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER"
       - "KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL"
-      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT"
       - "KAFKA_LISTENERS=INTERNAL://0.0.0.0:${KAFKA_INTERNAL_PORT},EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:${KAFKA_CONTROLLER_PORT}"
       - "KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:${KAFKA_INTERNAL_PORT},EXTERNAL://localhost:${KAFKA_HOST_PORT}"
+      - "KAFKA_SASL_ENABLED_MECHANISMS=PLAIN"
+      - "KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN"
+      - "KAFKA_OPTS=-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf"
       - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1"
@@ -28,9 +31,14 @@ services:
 
     volumes:
       - "kafka-data:/var/lib/kafka/data"
+      - "../../.secrets/kafka/kafka_server_jaas.conf:/etc/kafka/secrets/kafka_server_jaas.conf:ro"
 
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      test:
+        - CMD-SHELL
+        - >-
+          printf '%s\n' 'security.protocol=SASL_PLAINTEXT' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="mnemos_apps" password="${KAFKA_APP_PASSWORD}";' > /tmp/kafka-health.properties &&
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
       interval: 10s
       timeout: 10s
       retries: 10

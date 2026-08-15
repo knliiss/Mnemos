@@ -6,6 +6,7 @@ import java.time.Duration
 @ConfigurationProperties("mnemos.kafka")
 data class MnemosKafkaProperties(
     val consumer: Consumer = Consumer(),
+    val messageAuth: MessageAuth = MessageAuth(),
 ) {
     data class Consumer(
         val retry: Retry = Retry(),
@@ -30,6 +31,55 @@ data class MnemosKafkaProperties(
             require(maxBackoff >= initialBackoff) {
                 "Kafka consumer retry maxBackoff must be greater than or equal to initialBackoff"
             }
+        }
+    }
+
+    data class MessageAuth(
+        val enabled: Boolean = false,
+        val privateKey: String = "",
+        val trustedPublicKeys: String = "",
+    ) {
+        fun requireTrustedPublicKeys(): Map<String, String> {
+            require(trustedPublicKeys.isNotBlank()) {
+                "Kafka message authentication trusted public keys must not be blank"
+            }
+
+            val entries =
+                trustedPublicKeys
+                    .split(';')
+                    .map(String::trim)
+                    .filter(String::isNotEmpty)
+
+            val parsed =
+                entries.map { entry ->
+                    val separator = entry.indexOf('=')
+
+                    require(separator > 0 && separator < entry.lastIndex) {
+                        "Kafka trusted public key must use producer=base64 format"
+                    }
+
+                    val producer = entry.substring(0, separator).trim()
+                    val publicKey = entry.substring(separator + 1).trim()
+
+                    require(PRODUCER_PATTERN.matches(producer)) {
+                        "Invalid Kafka trusted producer: $producer"
+                    }
+                    require(publicKey.isNotBlank()) {
+                        "Kafka trusted public key for $producer must not be blank"
+                    }
+
+                    producer to publicKey
+                }
+
+            require(parsed.map { it.first }.distinct().size == parsed.size) {
+                "Kafka trusted public key producers must be unique"
+            }
+
+            return parsed.toMap()
+        }
+
+        private companion object {
+            val PRODUCER_PATTERN = Regex("^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
         }
     }
 }

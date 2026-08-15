@@ -3,24 +3,32 @@ package com.mnemos.messaging.kafka.consumer
 import com.mnemos.messaging.core.context.MessageContext
 import com.mnemos.messaging.core.context.MessageContextHolder
 import com.mnemos.messaging.core.event.EventEnvelope
+import com.mnemos.messaging.core.event.EventHeaders
 import com.mnemos.messaging.core.message.ConsumedMessage
+import com.mnemos.messaging.kafka.security.KafkaMessageAuthenticationHeaders
+import com.mnemos.messaging.kafka.security.KafkaMessageAuthenticator
 import com.mnemos.messaging.kafka.serialization.KafkaEventEnvelopeReader
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.header.Header
 import org.slf4j.LoggerFactory
+import java.nio.charset.StandardCharsets
 
 class KafkaMessageDispatcher(
     private val envelopeReader: KafkaEventEnvelopeReader,
     private val messageProcessor: KafkaMessageProcessor,
     handlers: List<KafkaMessageHandler<*>>,
+    private val messageAuthenticator: KafkaMessageAuthenticator? = null,
 ) {
-    private val handlersByMessage = handlers
-        .also(::validateHandlers)
-        .groupBy { MessageKey(it.definition.topic, it.definition.type) }
+    private val handlersByMessage =
+        handlers
+            .also(::validateHandlers)
+            .groupBy { MessageKey(it.definition.topic, it.definition.type) }
 
     fun dispatch(
         record: ConsumerRecord<String, String>,
         unknownMessagePolicy: UnknownKafkaMessagePolicy = UnknownKafkaMessagePolicy.IGNORE,
     ): KafkaMessageDispatchResult {
+        val authenticatedProducer = authenticate(record)
         val type = readMessageType(record.value())
         val handlers = handlersByMessage[MessageKey(record.topic(), type)]
 
@@ -32,19 +40,31 @@ class KafkaMessageDispatcher(
             )
         }
 
-        return dispatchToHandlers(record, handlers)
+        return dispatchToHandlers(
+            record = record,
+            handlers = handlers,
+            authenticatedProducer = authenticatedProducer,
+        )
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun dispatchToHandlers(
         record: ConsumerRecord<String, String>,
         handlers: List<KafkaMessageHandler<*>>,
+        authenticatedProducer: String?,
     ): KafkaMessageDispatchResult {
         val typedHandlers = handlers.map { it as KafkaMessageHandler<Any> }
         val definition = typedHandlers.first().definition
         val envelope = readEnvelope(record.value(), definition)
 
         validateEnvelope(record, envelope, definition)
+
+        if (authenticatedProducer != null && envelope.producer != authenticatedProducer) {
+            throw KafkaMessageProtocolException(
+                "Authenticated producer does not match envelope producer: authenticated=$authenticatedProducer, envelope=${envelope.producer}",
+            )
+        }
+
         typedHandlers.forEach { validateDefinition(envelope, it.definition) }
 
         val message = envelope.toConsumedMessage()
@@ -55,14 +75,15 @@ class KafkaMessageDispatcher(
 
         typedHandlers.forEach { handler ->
             try {
-                val result = messageProcessor.process(
-                    consumer = handler.consumer,
-                    eventId = envelope.eventId,
-                ) {
-                    MessageContextHolder.withContext(context) {
-                        handler.handle(message)
+                val result =
+                    messageProcessor.process(
+                        consumer = handler.consumer,
+                        eventId = envelope.eventId,
+                    ) {
+                        MessageContextHolder.withContext(context) {
+                            handler.handle(message)
+                        }
                     }
-                }
 
                 when (result) {
                     KafkaMessageProcessingResult.PROCESSED -> {
@@ -113,6 +134,60 @@ class KafkaMessageDispatcher(
             KafkaMessageDispatchResult.DUPLICATE
         }
     }
+
+    private fun authenticate(record: ConsumerRecord<String, String>): String? {
+        val authenticator = messageAuthenticator ?: return null
+
+        try {
+            val producer = record.requireSingleHeader(EventHeaders.PRODUCER)
+            val signatureVersion =
+                record.requireSingleHeader(KafkaMessageAuthenticationHeaders.SIGNATURE_VERSION)
+            val signature = record.requireSingleHeader(KafkaMessageAuthenticationHeaders.SIGNATURE)
+
+            if (signatureVersion != KafkaMessageAuthenticationHeaders.ED25519_V1) {
+                throw KafkaMessageProtocolException(
+                    "Unsupported Kafka message signature version: $signatureVersion",
+                )
+            }
+
+            if (
+                !authenticator.verify(
+                    producer = producer,
+                    topic = record.topic(),
+                    key = record.key(),
+                    payload = record.value(),
+                    encodedSignature = signature,
+                )
+            ) {
+                throw KafkaMessageProtocolException(
+                    "Kafka message signature verification failed for producer $producer",
+                )
+            }
+
+            return producer
+        } catch (exception: KafkaMessageProtocolException) {
+            throw exception
+        } catch (exception: Exception) {
+            throw KafkaMessageProtocolException(
+                message = "Kafka message authentication failed",
+                cause = exception,
+            )
+        }
+    }
+
+    private fun ConsumerRecord<String, String>.requireSingleHeader(name: String): String {
+        val values = headers().headers(name).toList()
+
+        if (values.size != 1) {
+            throw KafkaMessageProtocolException(
+                "Kafka message must contain exactly one $name header",
+            )
+        }
+
+        return values.single().asUtf8()
+    }
+
+    private fun Header.asUtf8(): String = String(value(), StandardCharsets.UTF_8)
 
     private fun readMessageType(value: String): String {
         return try {
@@ -225,9 +300,10 @@ class KafkaMessageDispatcher(
             }
         }
 
-        val duplicateConsumers = handlers
-            .groupBy { it.consumer }
-            .filterValues { it.size > 1 }
+        val duplicateConsumers =
+            handlers
+                .groupBy { it.consumer }
+                .filterValues { it.size > 1 }
 
         require(duplicateConsumers.isEmpty()) {
             "Duplicate Kafka message consumers registered: ${duplicateConsumers.keys.joinToString()}"
@@ -251,8 +327,8 @@ class KafkaMessageDispatcher(
 
             require(
                 current.version == first.version &&
-                        current.aggregateType == first.aggregateType &&
-                        current.payloadType == first.payloadType,
+                    current.aggregateType == first.aggregateType &&
+                    current.payloadType == first.payloadType,
             ) {
                 "Handlers for ${first.topic}/${first.type} must use the same version, aggregate type and payload type"
             }
