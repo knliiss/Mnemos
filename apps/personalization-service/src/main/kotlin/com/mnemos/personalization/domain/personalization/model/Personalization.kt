@@ -143,14 +143,18 @@ class Personalization(
 
     fun isPurchasableBy(userId: UserId): Boolean {
         if (status == PersonalizationStatus.PRIVATE) {
-            return origin == PersonalizationOrigin.CUSTOM && creatorUserId == userId
+            return origin == PersonalizationOrigin.CUSTOM &&
+                creatorUserId == userId &&
+                price != null
         }
 
         if (creatorUserId == userId) {
             return false
         }
 
-        return status == PersonalizationStatus.PUBLISHED && visibility == PersonalizationVisibility.PUBLIC
+        return status == PersonalizationStatus.PUBLISHED &&
+            visibility == PersonalizationVisibility.PUBLIC &&
+            price != null
     }
 
     private fun requireName(name: String) {
