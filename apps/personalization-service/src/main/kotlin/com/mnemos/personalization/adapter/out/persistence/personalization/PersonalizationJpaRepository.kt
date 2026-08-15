@@ -28,7 +28,7 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
           AND personalization.visibility = com.mnemos.personalization.domain.personalization.model.PersonalizationVisibility.PUBLIC
           AND (:type IS NULL OR personalization.type = :type)
           AND (:currency IS NULL OR personalization.priceCurrency = :currency)
-        ORDER BY personalization.createdAt DESC
+        ORDER BY personalization.createdAt DESC, personalization.id DESC
         """,
     )
     fun findPublished(
