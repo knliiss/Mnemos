@@ -41,25 +41,38 @@ set_env() {
     cat "$temp_file" > "$TARGET_ENV"
 }
 
-broker_password="$(openssl rand -hex 32)"
-app_password="$(openssl rand -hex 32)"
+remove_env() {
+    key="$1"
+    temp_file="$TEMP_DIR/env"
 
-set_env "KAFKA_BROKER_PASSWORD" "$broker_password"
-set_env "KAFKA_APP_PASSWORD" "$app_password"
+    awk -v key="$key" 'index($0, key "=") != 1 { print }' "$TARGET_ENV" > "$temp_file"
+    cat "$temp_file" > "$TARGET_ENV"
+}
+
+service_variable_name() {
+    printf '%s' "$1" | tr '[:lower:]-' '[:upper:]_'
+}
 
 services="account-service wallet-service event-service notification-service reward-service bet-service moderation-service gateway-service realtime-service personalization-service"
+
+set_env "KAFKA_BROKER_PASSWORD" "$(openssl rand -hex 32)"
+set_env "KAFKA_ADMIN_PASSWORD" "$(openssl rand -hex 32)"
+remove_env "KAFKA_APP_PASSWORD"
+
 trusted_public_keys=""
 
 for service in $services; do
+    service_variable="$(service_variable_name "$service")"
     private_pem="$TEMP_DIR/$service-private.pem"
+
+    set_env "KAFKA_${service_variable}_PASSWORD" "$(openssl rand -hex 32)"
 
     openssl genpkey -algorithm ED25519 -out "$private_pem" >/dev/null 2>&1
 
     private_key="$(openssl pkey -in "$private_pem" -outform DER | openssl base64 -A)"
     public_key="$(openssl pkey -in "$private_pem" -pubout -outform DER | openssl base64 -A)"
-    variable_name="$(printf '%s' "$service" | tr '[:lower:]-' '[:upper:]_')_KAFKA_SIGNING_PRIVATE_KEY"
 
-    set_env "$variable_name" "$private_key"
+    set_env "${service_variable}_KAFKA_SIGNING_PRIVATE_KEY" "$private_key"
 
     if [ -z "$trusted_public_keys" ]; then
         trusted_public_keys="$service=$public_key"
@@ -70,20 +83,4 @@ done
 
 set_env "MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS" "$trusted_public_keys"
 
-secrets_dir=".secrets/kafka"
-mkdir -p "$secrets_dir"
-chmod 700 ".secrets" "$secrets_dir"
-
-cat > "$secrets_dir/kafka_server_jaas.conf" <<EOF
-KafkaServer {
-    org.apache.kafka.common.security.plain.PlainLoginModule required
-    username="broker"
-    password="$broker_password"
-    user_broker="$broker_password"
-    user_mnemos_apps="$app_password";
-};
-EOF
-
-chmod 600 "$secrets_dir/kafka_server_jaas.conf"
-
-echo "Kafka broker credentials and Ed25519 message signing keys updated"
+echo "Kafka broker, admin, service credentials and Ed25519 signing keys updated"
