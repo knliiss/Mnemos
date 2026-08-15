@@ -75,7 +75,7 @@ class BadgeAdministrationService(
     ) {
         requireAdministrator()
 
-        if (repository.findUserBadge(userId, badgeId) == null) {
+        if (repository.findUserBadgeForUpdate(userId, badgeId) == null) {
             throw BadgeNotFoundException()
         }
 
