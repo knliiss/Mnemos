@@ -34,16 +34,22 @@ object PersonalizationPersistenceMapper {
             visibility = visibility,
             name = name,
             content = content.toDomain(type),
-            price =
-                priceCurrency?.let { currency ->
-                    PersonalizationPrice(
-                        currency = currency,
-                        amount = requireNotNull(priceAmount),
-                    )
-                },
+            price = toPrice(),
             status = status,
             rejectionReason = rejectionReason,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
+
+    private fun PersonalizationEntity.toPrice(): PersonalizationPrice? =
+        when {
+            priceCurrency == null && priceAmount == null -> null
+            priceCurrency != null && priceAmount != null ->
+                PersonalizationPrice(
+                    currency = requireNotNull(priceCurrency),
+                    amount = requireNotNull(priceAmount),
+                )
+
+            else -> throw IllegalStateException("Persisted personalization price must contain both currency and amount")
+        }
 }
