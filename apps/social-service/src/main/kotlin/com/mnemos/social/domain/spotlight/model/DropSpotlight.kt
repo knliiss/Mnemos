@@ -1,8 +1,6 @@
 package com.mnemos.social.domain.spotlight.model
 
 import com.github.f4b6a3.uuid.UuidCreator
-import com.mnemos.social.application.spotlight.model.ItemDropSnapshot
-import com.mnemos.social.application.spotlight.model.NotificationPackSelectionSnapshot
 import java.time.Instant
 import java.util.UUID
 
@@ -50,6 +48,7 @@ data class DropSpotlight(
         expiresAt: Instant,
     ) {
         require(status == DropSpotlightStatus.QUEUED) { "Only queued spotlight can be published" }
+
         status = DropSpotlightStatus.PUBLISHED
         publishedAt = now
         this.expiresAt = expiresAt

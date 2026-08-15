@@ -1,4 +1,4 @@
-package com.mnemos.social.application.spotlight.model
+package com.mnemos.social.domain.spotlight.model
 
 import java.time.Instant
 import java.util.UUID

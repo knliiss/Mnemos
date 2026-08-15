@@ -1,5 +1,6 @@
 package com.mnemos.social.adapter.inbound.messaging.personalization
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class NotificationPackSelectionChangedHandler(
     private val service: UpdateNotificationPackSelectionService,
+    private val objectMapper: ObjectMapper,
 ) : KafkaMessageHandler<NotificationPackSelectionChangedV1> {
     override val definition =
         kafkaMessageDefinition<NotificationPackSelectionChangedV1>(
@@ -36,7 +38,15 @@ class NotificationPackSelectionChangedHandler(
     override val consumer = "social-service.notification-pack-selection-changed"
 
     override fun handle(message: ConsumedMessage<NotificationPackSelectionChangedV1>) {
-        service.execute(message.payload)
+        val event = message.payload
+
+        service.execute(
+            userId = event.userId,
+            personalizationId = event.personalizationId,
+            snapshotJson = event.pack?.let(objectMapper::writeValueAsString),
+            revision = event.selectionRevision,
+            occurredAt = event.occurredAt,
+        )
     }
 
     private companion object {

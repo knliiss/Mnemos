@@ -1,12 +1,10 @@
 package com.mnemos.social.adapter.out.persistence.spotlight
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.mnemos.personalization.contracts.event.NotificationPackSnapshotV1
-import com.mnemos.social.application.spotlight.model.ItemDropSnapshot
-import com.mnemos.social.application.spotlight.model.NotificationPackSelectionSnapshot
 import com.mnemos.social.domain.spotlight.model.DropSpotlight
 import com.mnemos.social.domain.spotlight.model.DropSpotlightId
 import com.mnemos.social.domain.spotlight.model.DropSpotlightStatus
+import com.mnemos.social.domain.spotlight.model.ItemDropSnapshot
+import com.mnemos.social.domain.spotlight.model.NotificationPackSelectionSnapshot
 import com.mnemos.social.domain.spotlight.repository.DropSpotlightRepository
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -15,7 +13,6 @@ import java.util.UUID
 @Repository
 class DropSpotlightPersistenceAdapter(
     private val repository: DropSpotlightJpaRepository,
-    private val objectMapper: ObjectMapper,
 ) : DropSpotlightRepository {
     override fun save(spotlight: DropSpotlight): DropSpotlight = repository.save(spotlight.toEntity()).toDomain()
 
@@ -28,8 +25,10 @@ class DropSpotlightPersistenceAdapter(
 
     override fun findDue(now: Instant): List<DropSpotlight> =
         repository
-            .findTop20ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(DropSpotlightStatus.QUEUED, now)
-            .map { it.toDomain() }
+            .findTop20ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
+                DropSpotlightStatus.QUEUED,
+                now,
+            ).map { it.toDomain() }
 
     private fun DropSpotlight.toEntity(): DropSpotlightEntity =
         DropSpotlightEntity(
@@ -46,7 +45,7 @@ class DropSpotlightPersistenceAdapter(
             dropOccurredAt = itemDrop.occurredAt,
             notificationPackId = notificationPack?.personalizationId,
             notificationPackRevision = notificationPack?.revision,
-            notificationPackSnapshotJson = notificationPack?.pack?.let(objectMapper::writeValueAsString),
+            notificationPackSnapshotJson = notificationPack?.snapshotJson,
             pricePrime = pricePrime,
             walletRequestId = walletRequestId,
             walletTransactionId = walletTransactionId,
@@ -64,15 +63,16 @@ class DropSpotlightPersistenceAdapter(
             sequence = sequence,
             buyerUserId = buyerUserId,
             sourceAccountId = sourceAccountId,
-            itemDrop = ItemDropSnapshot(
-                id = itemDropEventId,
-                itemId = itemId,
-                itemName = itemName,
-                itemRarity = itemRarity,
-                itemType = itemType,
-                droppedFor = droppedFor,
-                occurredAt = dropOccurredAt,
-            ),
+            itemDrop =
+                ItemDropSnapshot(
+                    id = itemDropEventId,
+                    itemId = itemId,
+                    itemName = itemName,
+                    itemRarity = itemRarity,
+                    itemType = itemType,
+                    droppedFor = droppedFor,
+                    occurredAt = dropOccurredAt,
+                ),
             notificationPack = notificationPackSelection(),
             pricePrime = pricePrime,
             walletRequestId = walletRequestId,
@@ -93,7 +93,7 @@ class DropSpotlightPersistenceAdapter(
         return NotificationPackSelectionSnapshot(
             personalizationId = personalizationId,
             revision = revision,
-            pack = objectMapper.readValue(snapshotJson, NotificationPackSnapshotV1::class.java),
+            snapshotJson = snapshotJson,
         )
     }
 }
