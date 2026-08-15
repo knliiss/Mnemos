@@ -1,0 +1,30 @@
+package com.mnemos.social.adapter.out.persistence.comment
+
+import com.mnemos.social.adapter.out.persistence.comment.CommentPersistenceMapper.toDomain
+import com.mnemos.social.adapter.out.persistence.comment.CommentPersistenceMapper.toEntity
+import com.mnemos.social.domain.comment.model.Comment
+import com.mnemos.social.domain.comment.model.CommentId
+import com.mnemos.social.domain.comment.repository.CommentRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Component
+import java.util.UUID
+
+@Component
+class CommentRepositoryAdapter(
+    private val repository: CommentJpaRepository,
+) : CommentRepository {
+    override fun save(comment: Comment): Comment = repository.save(comment.toEntity()).toDomain()
+
+    override fun findById(id: CommentId): Comment? = repository.findById(id.id).orElse(null)?.toDomain()
+
+    override fun findRootByAccountId(
+        accountId: UUID,
+        pageable: Pageable,
+    ): Page<Comment> = repository.findByTargetAccountIdAndParentCommentIdIsNull(accountId, pageable).map { it.toDomain() }
+
+    override fun findReplies(
+        parentCommentId: CommentId,
+        pageable: Pageable,
+    ): Page<Comment> = repository.findByParentCommentId(parentCommentId.id, pageable).map { it.toDomain() }
+}
