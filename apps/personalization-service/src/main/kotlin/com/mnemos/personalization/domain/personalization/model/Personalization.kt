@@ -145,6 +145,10 @@ class Personalization(
             return origin == PersonalizationOrigin.CUSTOM && creatorUserId == userId
         }
 
+        if (creatorUserId == userId) {
+            return false
+        }
+
         return status == PersonalizationStatus.PUBLISHED && visibility == PersonalizationVisibility.PUBLIC
     }
 
