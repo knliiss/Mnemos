@@ -88,10 +88,21 @@ function isBetCompletedPayload(payload: Record<string, unknown>): boolean {
 }
 
 function isPersonalizationPurchaseCompletedPayload(payload: Record<string, unknown>): boolean {
-    return isUuid(payload.personalizationId)
-        && (payload.status === "CONFIRMED" || payload.status === "FAILED")
-        && isNullableUuid(payload.walletTransactionId)
-        && isNullableString(payload.failureReason)
+    if (!isUuid(payload.personalizationId)) {
+        return false
+    }
+
+    if (payload.status === "CONFIRMED") {
+        return isUuid(payload.walletTransactionId)
+            && payload.failureReason === null
+    }
+
+    if (payload.status === "FAILED") {
+        return payload.walletTransactionId === null
+            && isNonBlankString(payload.failureReason)
+    }
+
+    return false
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
