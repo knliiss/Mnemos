@@ -37,7 +37,7 @@ class CreateCustomNotificationPackService(
         val actor = actorProvider.requireActor()
         val now = clock.instant()
         val grantedForFree =
-            actor.canCreateMarketplacePersonalization() &&
+            actor.isPersonalizationCreator() &&
                 freeGrantRepository.claim(
                     userId = actor.userId,
                     claimedAt = now,
