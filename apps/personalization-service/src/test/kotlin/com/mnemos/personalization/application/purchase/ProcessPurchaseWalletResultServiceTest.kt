@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.purchase
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
@@ -11,6 +12,8 @@ import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
+import com.mnemos.personalization.domain.personalization.model.GradientStop
+import com.mnemos.personalization.domain.personalization.model.HexColor
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.Personalization
@@ -129,6 +132,47 @@ class ProcessPurchaseWalletResultServiceTest {
         assertEquals(0, fixture.operationRepository.saveCalls)
     }
 
+    @Test
+    fun `prime account purchase result is correlated to buyer user wallet`() {
+        val buyerUserId = UserId.generate()
+        val accountId = AccountId.generate()
+        val personalization = accountPersonalization(buyerUserId)
+        val operation =
+            PurchaseOperation.create(
+                personalizationId = personalization.id,
+                buyerUserId = buyerUserId,
+                owner = PersonalizationOwner.Account(accountId),
+                currency = Currency.PRIME,
+                amount = 25,
+                now = now.minusSeconds(30),
+            )
+        val fixture = fixture(personalization, operation)
+        val transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000015")
+        val result =
+            WalletResultContext(
+                requestId = operation.requestId,
+                actorUserId = buyerUserId.id,
+                ownerType = WalletOwnerType.USER,
+                ownerId = buyerUserId.id,
+                currency = Currency.PRIME,
+                transactionType = TransactionType.DEBIT,
+                source = TransactionSource.PERSONALIZATION_PURCHASE,
+                sourceReferenceId = operation.id.id,
+                amount = operation.amount,
+            )
+
+        fixture.service.complete(
+            result = result,
+            transactionId = transactionId,
+        )
+
+        val ownership = fixture.ownershipRepository.saved.single()
+
+        assertEquals(PurchaseOperationStatus.CONFIRMED, operation.status)
+        assertEquals(PersonalizationOwner.Account(accountId), ownership.owner)
+        assertEquals(transactionId, operation.walletTransactionId)
+    }
+
     private fun fixture(
         personalization: Personalization,
         operation: PurchaseOperation,
@@ -169,6 +213,31 @@ class ProcessPurchaseWalletResultServiceTest {
                     currency = Currency.PRIME,
                     amount = 50,
                 ),
+            now = now.minusSeconds(60),
+        )
+
+    private fun accountPersonalization(userId: UserId): Personalization =
+        Personalization.createCreatorDraft(
+            creatorUserId = userId,
+            type = PersonalizationType.NICK_STYLE,
+            name = "Prime Account Style",
+            content =
+                PersonalizationContent.NickStyle(
+                    colors =
+                        listOf(
+                            GradientStop(
+                                color = HexColor("#F5FBFF"),
+                                position = 0,
+                            ),
+                            GradientStop(
+                                color = HexColor("#8ACBFF"),
+                                position = 100,
+                            ),
+                        ),
+                    angleDegrees = 90,
+                    glow = null,
+                ),
+            price = PersonalizationPrice(Currency.PRIME, 25),
             now = now.minusSeconds(60),
         )
 
