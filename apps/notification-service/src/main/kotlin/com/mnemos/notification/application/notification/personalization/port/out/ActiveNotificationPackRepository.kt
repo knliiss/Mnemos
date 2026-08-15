@@ -2,11 +2,16 @@ package com.mnemos.notification.application.notification.personalization.port.ou
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
+import java.time.Instant
+import java.util.UUID
 
 interface ActiveNotificationPackRepository {
     fun find(userId: UserId): ActiveNotificationPack?
 
-    fun save(pack: ActiveNotificationPack): ActiveNotificationPack
-
-    fun delete(userId: UserId)
+    fun apply(
+        userId: UserId,
+        pack: ActiveNotificationPack?,
+        eventId: UUID,
+        occurredAt: Instant,
+    )
 }

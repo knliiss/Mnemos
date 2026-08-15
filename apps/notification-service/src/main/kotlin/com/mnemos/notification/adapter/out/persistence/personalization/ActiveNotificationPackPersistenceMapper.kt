@@ -4,22 +4,18 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
-import java.time.Instant
 
 object ActiveNotificationPackPersistenceMapper {
-    fun ActiveNotificationPack.toEntity(now: Instant): ActiveNotificationPackEntity =
-        ActiveNotificationPackEntity(
-            userId = userId.id,
-            personalizationId = personalizationId,
-            mixedAggregateTitle = mixedAggregateTitle,
-            templates =
-                templates.mapKeys { (type, _) -> type.name }
-                    .mapValues { (_, template) -> template.toDocument() },
-            updatedAt = now,
-        )
+    fun ActiveNotificationPack.toTemplateDocuments(): Map<String, Any?> =
+        templates.mapKeys { (type, _) -> type.name }
+            .mapValues { (_, template) -> template.toDocument() }
 
-    fun ActiveNotificationPackEntity.toDomain(): ActiveNotificationPack =
-        ActiveNotificationPack(
+    fun ActiveNotificationPackEntity.toDomainOrNull(): ActiveNotificationPack? {
+        val personalizationId = personalizationId ?: return null
+        val mixedAggregateTitle = mixedAggregateTitle ?: return null
+        val templates = templates ?: return null
+
+        return ActiveNotificationPack(
             userId = UserId(userId),
             personalizationId = personalizationId,
             mixedAggregateTitle = mixedAggregateTitle,
@@ -28,6 +24,7 @@ object ActiveNotificationPackPersistenceMapper {
                     NotificationType.valueOf(rawType) to requireDocument(rawTemplate).toDomain()
                 }.toMap(),
         )
+    }
 
     private fun NotificationPackTemplate.toDocument(): Map<String, Any?> =
         mapOf(

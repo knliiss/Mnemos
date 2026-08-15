@@ -12,15 +12,17 @@ class UpdateNotificationPackSelectionService(
     fun execute(command: UpdateNotificationPackSelectionCommand) {
         val pack = command.pack
 
-        if (pack == null) {
-            repository.delete(command.userId)
-            return
+        if (pack != null) {
+            require(pack.userId == command.userId) {
+                "Notification pack user does not match selection user"
+            }
         }
 
-        require(pack.userId == command.userId) {
-            "Notification pack user does not match selection user"
-        }
-
-        repository.save(pack)
+        repository.apply(
+            userId = command.userId,
+            pack = pack,
+            eventId = command.eventId,
+            occurredAt = command.occurredAt,
+        )
     }
 }
