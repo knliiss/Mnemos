@@ -19,9 +19,16 @@ interface BadgeRepository {
         badgeId: BadgeId,
     ): UserBadge?
 
+    fun findUserBadgeForUpdate(
+        userId: UserId,
+        badgeId: BadgeId,
+    ): UserBadge? = findUserBadge(userId, badgeId)
+
     fun findActiveUserBadge(userId: UserId): UserBadge?
 
     fun findUserBadges(userId: UserId): List<UserBadge>
+
+    fun findUserBadgesForUpdate(userId: UserId): List<UserBadge> = findUserBadges(userId)
 
     fun deactivateActiveUserBadge(userId: UserId)
 
