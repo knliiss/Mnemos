@@ -2,8 +2,6 @@ package com.mnemos.personalization.application.personalization.create
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
-import com.mnemos.personalization.application.common.pagination.PageQuery
-import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -143,20 +141,6 @@ class CreateCustomNotificationPackServiceTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             personalizations.filter { it.status == status }
-
-        override fun findPublished(
-            type: PersonalizationType?,
-            currency: Currency?,
-            page: PageQuery,
-        ): PageResult<Personalization> =
-            PageResult(
-                items = emptyList(),
-                page = page.page,
-                size = page.size,
-                totalItems = 0,
-                totalPages = 0,
-                hasNextPage = false,
-            )
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {
