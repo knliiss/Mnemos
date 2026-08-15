@@ -36,6 +36,20 @@ class CreatorRevenuePurchaseCompletedHandler(
                     "Personalization purchase aggregateId must match operationId",
                 )
             }
+
+            if (envelope.metadata.actorUserId != envelope.payload.userId) {
+                throw KafkaMessageProtocolException(
+                    "Personalization purchase actor must match userId",
+                )
+            }
+
+            if (envelope.occurredAt != envelope.payload.occurredAt) {
+                throw KafkaMessageProtocolException(
+                    "Personalization purchase occurredAt must match envelope occurredAt",
+                )
+            }
+
+            validateResultState(envelope.payload)
         }
 
     override val consumer = "personalization-service.creator-revenue-purchase-completed"
@@ -46,6 +60,23 @@ class CreatorRevenuePurchaseCompletedHandler(
         }
 
         service.execute(PurchaseOperationId(message.payload.operationId))
+    }
+
+    private fun validateResultState(payload: PersonalizationPurchaseCompletedV1) {
+        val valid =
+            when (payload.status) {
+                PersonalizationPurchaseStatus.CONFIRMED ->
+                    payload.walletTransactionId != null && payload.failureReason == null
+
+                PersonalizationPurchaseStatus.FAILED ->
+                    payload.walletTransactionId == null && !payload.failureReason.isNullOrBlank()
+            }
+
+        if (!valid) {
+            throw KafkaMessageProtocolException(
+                "Personalization purchase result fields do not match status",
+            )
+        }
     }
 
     private companion object {
