@@ -7,6 +7,7 @@ import com.mnemos.personalization.contracts.PersonalizationEventType
 import com.mnemos.personalization.contracts.event.PersonalizationPurchaseCompletedV1
 import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
+import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import org.springframework.stereotype.Component
 import java.time.Clock
 
@@ -15,11 +16,13 @@ class PersonalizationPurchaseEventPublisher(
     private val publisher: IntegrationEventPublisher,
     private val clock: Clock,
 ) {
-    fun publish(
-        operation: PurchaseOperation,
-        status: PersonalizationPurchaseStatus,
-        failureReason: String? = null,
-    ) {
+    fun publish(operation: PurchaseOperation) {
+        val status =
+            when (operation.status) {
+                PurchaseOperationStatus.CONFIRMED -> PersonalizationPurchaseStatus.CONFIRMED
+                PurchaseOperationStatus.FAILED -> PersonalizationPurchaseStatus.FAILED
+                PurchaseOperationStatus.PENDING -> error("Pending personalization purchase cannot be published as completed")
+            }
         val occurredAt = clock.instant()
 
         publisher.publish(
@@ -35,7 +38,7 @@ class PersonalizationPurchaseEventPublisher(
                             userId = operation.buyerUserId.id,
                             status = status,
                             walletTransactionId = operation.walletTransactionId,
-                            failureReason = failureReason,
+                            failureReason = operation.failureReason,
                             occurredAt = occurredAt,
                         ),
                 ),
