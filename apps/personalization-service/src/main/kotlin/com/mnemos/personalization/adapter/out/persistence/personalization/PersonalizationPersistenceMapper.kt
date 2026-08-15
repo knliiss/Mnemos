@@ -26,20 +26,27 @@ object PersonalizationPersistenceMapper {
         )
 
     fun PersonalizationEntity.toDomain(): Personalization =
-        Personalization(
-            id = PersonalizationId(id),
-            creatorUserId = UserId(creatorUserId),
-            type = type,
-            origin = origin,
-            visibility = visibility,
-            name = name,
-            content = content.toDomain(type),
-            price = toPrice(),
-            status = status,
-            rejectionReason = rejectionReason,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-        )
+        try {
+            Personalization(
+                id = PersonalizationId(id),
+                creatorUserId = UserId(creatorUserId),
+                type = type,
+                origin = origin,
+                visibility = visibility,
+                name = name,
+                content = content.toDomain(type),
+                price = toPrice(),
+                status = status,
+                rejectionReason = rejectionReason,
+                createdAt = createdAt,
+                updatedAt = updatedAt,
+            )
+        } catch (exception: IllegalArgumentException) {
+            throw IllegalStateException(
+                "Persisted personalization $id contains invalid domain state",
+                exception,
+            )
+        }
 
     private fun PersonalizationEntity.toPrice(): PersonalizationPrice? =
         when {
