@@ -34,7 +34,7 @@ class OwnedPersonalizationRepositoryAdapter(
                 active = ownership.active,
             )
 
-        return repository.save(entity).toDomain()
+        return repository.saveAndFlush(entity).toDomain()
     }
 
     override fun exists(
