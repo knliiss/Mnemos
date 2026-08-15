@@ -64,6 +64,7 @@ class NotificationPackSelectionChangedHandler(
             UpdateNotificationPackSelectionCommand(
                 userId = userId,
                 pack = pack,
+                selectionRevision = payload.selectionRevision,
                 eventId = message.messageId,
                 occurredAt = message.occurredAt,
             ),
