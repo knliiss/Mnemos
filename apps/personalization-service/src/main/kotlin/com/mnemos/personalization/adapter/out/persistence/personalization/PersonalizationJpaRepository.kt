@@ -3,11 +3,17 @@ package com.mnemos.personalization.adapter.out.persistence.personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.wallet.contracts.wallet.shared.Currency
+import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
 interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT personalization FROM PersonalizationEntity personalization WHERE personalization.id = :id")
+    fun findByIdForUpdate(id: UUID): PersonalizationEntity?
+
     fun findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId: UUID): List<PersonalizationEntity>
 
     fun findAllByStatusOrderByCreatedAtAsc(status: PersonalizationStatus): List<PersonalizationEntity>
