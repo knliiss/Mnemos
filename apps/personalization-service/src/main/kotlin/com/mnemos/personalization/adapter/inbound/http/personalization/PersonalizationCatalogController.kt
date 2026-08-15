@@ -1,15 +1,16 @@
 package com.mnemos.personalization.adapter.inbound.http.personalization
 
+import com.mnemos.personalization.adapter.inbound.http.common.PageResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
+import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.personalization.catalog.ListPersonalizationsQuery
 import com.mnemos.personalization.application.personalization.catalog.PersonalizationCatalogService
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
-import com.mnemos.personalization.domain.personalization.model.PersonalizationType
-import com.mnemos.wallet.contracts.wallet.shared.Currency
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -20,16 +21,20 @@ class PersonalizationCatalogController(
 ) {
     @GetMapping
     fun list(
-        @RequestParam(required = false) type: PersonalizationType?,
-        @RequestParam(required = false) currency: Currency?,
-    ): List<PersonalizationResponse> =
+        @Valid @ModelAttribute request: ListPersonalizationsRequest,
+    ): PageResponse<PersonalizationResponse> =
         catalogService
             .list(
                 ListPersonalizationsQuery(
-                    type = type,
-                    currency = currency,
+                    type = request.type,
+                    currency = request.currency,
+                    page =
+                        PageQuery(
+                            page = request.page,
+                            size = request.size,
+                        ),
                 ),
-            ).map { personalization -> personalization.toResponse() }
+            ).toResponse()
 
     @GetMapping("/{personalizationId}")
     fun get(
