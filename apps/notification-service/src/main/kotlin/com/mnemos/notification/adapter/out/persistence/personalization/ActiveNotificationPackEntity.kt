@@ -26,44 +26,43 @@ class ActiveNotificationPackEntity(
     @Column(name = "templates", columnDefinition = "jsonb")
     var templates: Map<String, Any?>?,
 
+    @Column(name = "last_revision", nullable = false)
+    var lastRevision: Long,
+
     @Column(name = "last_event_id", nullable = false)
     var lastEventId: UUID,
 
     @Column(name = "last_event_at", nullable = false)
     var lastEventAt: Instant,
 ) {
-    fun shouldApply(
-        eventId: UUID,
-        occurredAt: Instant,
-    ): Boolean {
-        if (occurredAt != lastEventAt) {
-            return occurredAt.isAfter(lastEventAt)
-        }
-
-        return eventId.toString() > lastEventId.toString()
-    }
+    fun shouldApply(selectionRevision: Long): Boolean =
+        selectionRevision > lastRevision
 
     fun select(
         personalizationId: UUID,
         mixedAggregateTitle: String,
         templates: Map<String, Any?>,
+        selectionRevision: Long,
         eventId: UUID,
         occurredAt: Instant,
     ) {
         this.personalizationId = personalizationId
         this.mixedAggregateTitle = mixedAggregateTitle
         this.templates = templates
+        lastRevision = selectionRevision
         lastEventId = eventId
         lastEventAt = occurredAt
     }
 
     fun clear(
+        selectionRevision: Long,
         eventId: UUID,
         occurredAt: Instant,
     ) {
         personalizationId = null
         mixedAggregateTitle = null
         templates = null
+        lastRevision = selectionRevision
         lastEventId = eventId
         lastEventAt = occurredAt
     }
