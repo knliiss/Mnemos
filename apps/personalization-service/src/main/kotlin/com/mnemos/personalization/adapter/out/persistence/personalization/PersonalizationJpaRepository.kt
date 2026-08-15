@@ -46,4 +46,28 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
         currency: Currency?,
         pageable: Pageable,
     ): Page<PersonalizationEntity>
+
+    @Query(
+        value =
+            """
+            SELECT personalization
+            FROM PersonalizationEntity personalization
+            WHERE personalization.creatorUserId = :creatorUserId
+              AND personalization.origin = com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin.CUSTOM
+              AND personalization.type = com.mnemos.personalization.domain.personalization.model.PersonalizationType.NOTIFICATION_PACK
+            ORDER BY personalization.createdAt DESC, personalization.id DESC
+            """,
+        countQuery =
+            """
+            SELECT COUNT(personalization)
+            FROM PersonalizationEntity personalization
+            WHERE personalization.creatorUserId = :creatorUserId
+              AND personalization.origin = com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin.CUSTOM
+              AND personalization.type = com.mnemos.personalization.domain.personalization.model.PersonalizationType.NOTIFICATION_PACK
+            """,
+    )
+    fun findCustomNotificationPacks(
+        creatorUserId: UUID,
+        pageable: Pageable,
+    ): Page<PersonalizationEntity>
 }
