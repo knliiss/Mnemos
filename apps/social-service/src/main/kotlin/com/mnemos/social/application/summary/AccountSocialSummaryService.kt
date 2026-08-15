@@ -5,6 +5,7 @@ import com.mnemos.social.application.summary.port.out.AccountSocialSummaryReposi
 import com.mnemos.social.domain.reaction.model.AccountReactionType
 import com.mnemos.social.domain.summary.model.AccountSocialSummary
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
@@ -13,6 +14,16 @@ class AccountSocialSummaryService(
     private val repository: AccountSocialSummaryRepository,
     private val publisher: AccountSocialSummaryEventPublisher,
 ) {
+    @Transactional
+    fun lockAccount(
+        accountId: UUID,
+        now: Instant,
+    ) {
+        repository.ensureExists(accountId, now)
+        repository.findForUpdate(accountId)
+    }
+
+    @Transactional
     fun commentAdded(
         accountId: UUID,
         actorUserId: UUID,
@@ -23,6 +34,7 @@ class AccountSocialSummaryService(
         }
     }
 
+    @Transactional
     fun commentRemoved(
         accountId: UUID,
         actorUserId: UUID,
@@ -33,6 +45,7 @@ class AccountSocialSummaryService(
         }
     }
 
+    @Transactional
     fun reactionChanged(
         accountId: UUID,
         actorUserId: UUID,
@@ -50,6 +63,7 @@ class AccountSocialSummaryService(
         }
     }
 
+    @Transactional
     fun reactionRemoved(
         accountId: UUID,
         actorUserId: UUID,

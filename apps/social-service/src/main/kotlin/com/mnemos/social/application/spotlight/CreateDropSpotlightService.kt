@@ -32,23 +32,28 @@ class CreateDropSpotlightService(
     fun execute(itemDropEventId: UUID): DropSpotlight {
         val actor = actorProvider.requireActor()
         val now = clock.instant()
-        val itemDrop = itemDropLookup.findById(itemDropEventId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item drop was not found")
+        val itemDrop =
+            itemDropLookup.findById(itemDropEventId)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item drop was not found")
 
         if (!itemDrop.droppedFor.equals(actor.cristalixNickname, ignoreCase = true)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Item drop does not belong to the active account")
         }
 
         val age = Duration.between(itemDrop.occurredAt, now)
+
         if (age.isNegative || age > properties.dropMaxAge) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Item drop is outside the spotlight purchase window")
         }
+
+        val reservation = queue.reserve(now)
 
         if (repository.existsByItemDropEventId(itemDropEventId)) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Item drop has already been spotlighted")
         }
 
         val latest = repository.findLatestByBuyerUserId(actor.userId)
+
         if (
             latest != null &&
             latest.status != DropSpotlightStatus.PAYMENT_FAILED &&
@@ -57,7 +62,6 @@ class CreateDropSpotlightService(
             throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Spotlight buyer cooldown is active")
         }
 
-        val reservation = queue.reserve(now)
         if (reservation.scheduledAt.isAfter(now.plus(properties.maxQueueDelay))) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Spotlight queue is longer than allowed")
         }
@@ -76,6 +80,7 @@ class CreateDropSpotlightService(
         val saved = repository.save(spotlight)
 
         wallet.requestDebit(saved)
+
         return saved
     }
 }

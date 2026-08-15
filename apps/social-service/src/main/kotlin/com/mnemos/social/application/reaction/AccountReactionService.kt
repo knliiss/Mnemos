@@ -1,12 +1,11 @@
 package com.mnemos.social.application.reaction
 
 import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.social.adapter.out.persistence.reaction.AccountReactionEntity
-import com.mnemos.social.adapter.out.persistence.reaction.AccountReactionEntityId
-import com.mnemos.social.adapter.out.persistence.reaction.AccountReactionJpaRepository
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.summary.AccountSocialSummaryService
+import com.mnemos.social.domain.reaction.model.AccountReaction
 import com.mnemos.social.domain.reaction.model.AccountReactionType
+import com.mnemos.social.domain.reaction.repository.AccountReactionRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +15,7 @@ import java.util.UUID
 
 @Service
 class AccountReactionService(
-    private val repository: AccountReactionJpaRepository,
+    private val repository: AccountReactionRepository,
     private val actorProvider: SocialActorProvider,
     private val summaryService: AccountSocialSummaryService,
     private val clock: Clock,
@@ -35,14 +34,19 @@ class AccountReactionService(
             )
         }
 
-        val id = AccountReactionEntityId(actor.accountId, targetAccountId)
         val now = clock.instant()
-        val existing = repository.findById(id).orElse(null)
+        summaryService.lockAccount(targetAccountId, now)
+
+        val existing =
+            repository.find(
+                actorAccountId = actor.accountId,
+                targetAccountId = targetAccountId,
+            )
         val previous = existing?.type
 
         if (existing == null) {
             repository.save(
-                AccountReactionEntity(
+                AccountReaction(
                     actorAccountId = actor.accountId,
                     targetAccountId = targetAccountId,
                     type = type,
@@ -68,11 +72,19 @@ class AccountReactionService(
     @Transactional
     fun remove(targetAccountId: UUID) {
         val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
-        val id = AccountReactionEntityId(actor.accountId, targetAccountId)
-        val existing = repository.findById(id).orElse(null) ?: return
         val now = clock.instant()
+        summaryService.lockAccount(targetAccountId, now)
 
-        repository.delete(existing)
+        val existing =
+            repository.find(
+                actorAccountId = actor.accountId,
+                targetAccountId = targetAccountId,
+            ) ?: return
+
+        repository.delete(
+            actorAccountId = actor.accountId,
+            targetAccountId = targetAccountId,
+        )
         summaryService.reactionRemoved(
             accountId = targetAccountId,
             actorUserId = actor.userId,
@@ -84,14 +96,16 @@ class AccountReactionService(
     @Transactional(readOnly = true)
     fun summary(targetAccountId: UUID): AccountReactionSummary =
         AccountReactionSummary(
-            likes = repository.countByTargetAccountIdAndType(
-                targetAccountId,
-                AccountReactionType.LIKE,
-            ),
-            dislikes = repository.countByTargetAccountIdAndType(
-                targetAccountId,
-                AccountReactionType.DISLIKE,
-            ),
+            likes =
+                repository.countByTargetAndType(
+                    targetAccountId = targetAccountId,
+                    type = AccountReactionType.LIKE,
+                ),
+            dislikes =
+                repository.countByTargetAndType(
+                    targetAccountId = targetAccountId,
+                    type = AccountReactionType.DISLIKE,
+                ),
         )
 }
 
