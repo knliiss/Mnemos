@@ -54,13 +54,17 @@ sealed interface PersonalizationContent {
                 "Notification pack must define every supported template exactly once"
             }
 
-            validateStaticTitle(mixedAggregateTitle, "mixed aggregate title")
+            validateStaticText(mixedAggregateTitle, "mixed aggregate title")
 
             templates.forEach { (key, template) ->
+                template.emoji?.let { emoji ->
+                    validateStaticText(emoji, "$key emoji")
+                }
+
                 validateTemplate(key, template.soloTitle)
                 validateTemplate(key, template.soloBody)
                 validateTemplate(key, template.compact)
-                validateStaticTitle(template.aggregateTitle, "$key aggregate title")
+                validateStaticText(template.aggregateTitle, "$key aggregate title")
             }
         }
 
@@ -77,12 +81,13 @@ sealed interface PersonalizationContent {
             }
         }
 
-        private fun validateStaticTitle(
-            title: String,
+        private fun validateStaticText(
+            value: String,
             description: String,
         ) {
-            validateText(title, "Notification $description")
-            require(placeholders(title).isEmpty()) {
+            validateText(value, "Notification $description")
+
+            require(placeholders(value).isEmpty()) {
                 "Notification $description cannot contain placeholders"
             }
         }
@@ -93,6 +98,15 @@ sealed interface PersonalizationContent {
         ) {
             require(value.isNotBlank()) { "$description cannot be blank" }
             require(value.length <= 512) { "$description is too long" }
+            require('<' !in value && '>' !in value) {
+                "$description cannot contain raw Telegram HTML"
+            }
+
+            val valueWithoutPlaceholders = PLACEHOLDER.replace(value, "")
+
+            require('{' !in valueWithoutPlaceholders && '}' !in valueWithoutPlaceholders) {
+                "$description contains malformed placeholders"
+            }
         }
 
         private fun placeholders(value: String): Set<String> =
