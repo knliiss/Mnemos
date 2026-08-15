@@ -98,11 +98,11 @@ class BadgeAdministrationServiceTest {
             badgeId = badge.id,
         )
 
-        inOrder(repository) {
-            verify(repository).findByIdForUpdate(badge.id)
-            verify(repository).findUserBadgeForUpdate(userId, badge.id)
-            verify(repository).deleteUserBadge(userId, badge.id)
-        }
+        val order = inOrder(repository)
+
+        order.verify(repository).findByIdForUpdate(badge.id)
+        order.verify(repository).findUserBadgeForUpdate(userId, badge.id)
+        order.verify(repository).deleteUserBadge(userId, badge.id)
     }
 
     private fun service(repository: BadgeRepository): BadgeAdministrationService =
