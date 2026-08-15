@@ -30,6 +30,7 @@ class PurchaseOperation(
 
     init {
         require(amount > 0) { "Purchase amount must be positive" }
+        requireValidOwnerState()
         requireValidResultState()
     }
 
@@ -49,6 +50,20 @@ class PurchaseOperation(
         status = PurchaseOperationStatus.FAILED
         walletTransactionId = null
         failureReason = reason
+    }
+
+    private fun requireValidOwnerState() {
+        if (currency == Currency.COIN) {
+            require(owner is PersonalizationOwner.Account) {
+                "COIN personalization purchase requires an account owner"
+            }
+        }
+
+        if (owner is PersonalizationOwner.User) {
+            require(owner.userId == buyerUserId) {
+                "User-owned personalization purchase must belong to the buyer"
+            }
+        }
     }
 
     private fun requireValidResultState() {
