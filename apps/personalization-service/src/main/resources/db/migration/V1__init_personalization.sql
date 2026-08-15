@@ -26,6 +26,8 @@ CREATE TABLE personalizations
         CHECK (origin IN ('CREATOR', 'CUSTOM')),
     CONSTRAINT ck_personalizations_visibility
         CHECK (visibility IN ('PRIVATE', 'PUBLIC')),
+    CONSTRAINT ck_personalizations_name
+        CHECK (CHAR_LENGTH(BTRIM(name)) BETWEEN 3 AND 64),
     CONSTRAINT ck_personalizations_status
         CHECK (status IN (
             'DRAFT',
@@ -46,23 +48,85 @@ CREATE TABLE personalizations
         CHECK (price_currency IS NULL OR price_currency IN ('COIN', 'PRIME')),
     CONSTRAINT ck_personalizations_price_amount
         CHECK (price_amount IS NULL OR price_amount > 0),
-    CONSTRAINT ck_notification_pack_prime_only
+    CONSTRAINT ck_personalizations_notification_pack_prime_only
         CHECK (
             type <> 'NOTIFICATION_PACK'
             OR price_currency IS NULL
             OR price_currency = 'PRIME'
+        ),
+    CONSTRAINT ck_personalizations_custom_origin_type
+        CHECK (
+            origin <> 'CUSTOM'
+            OR type = 'NOTIFICATION_PACK'
+        ),
+    CONSTRAINT ck_personalizations_lifecycle_state
+        CHECK (
+            (
+                status = 'DRAFT'
+                AND origin = 'CREATOR'
+                AND visibility = 'PRIVATE'
+                AND rejection_reason IS NULL
+            )
+            OR
+            (
+                status = 'PRIVATE'
+                AND origin = 'CUSTOM'
+                AND visibility = 'PRIVATE'
+                AND rejection_reason IS NULL
+            )
+            OR
+            (
+                status = 'IN_REVIEW'
+                AND visibility = 'PRIVATE'
+                AND rejection_reason IS NULL
+            )
+            OR
+            (
+                status = 'REJECTED'
+                AND visibility = 'PRIVATE'
+                AND rejection_reason IS NOT NULL
+                AND BTRIM(rejection_reason) <> ''
+            )
+            OR
+            (
+                status IN ('APPROVED', 'PUBLISHED', 'UNLISTED')
+                AND visibility = 'PUBLIC'
+                AND price_currency IS NOT NULL
+                AND price_amount IS NOT NULL
+                AND rejection_reason IS NULL
+            )
         )
 );
 
 CREATE INDEX idx_personalizations_creator_created_at
-    ON personalizations (creator_user_id, created_at DESC);
+    ON personalizations (creator_user_id, created_at DESC, id DESC);
 
 CREATE INDEX idx_personalizations_status_created_at
-    ON personalizations (status, created_at ASC);
+    ON personalizations (status, created_at ASC, id ASC);
 
 CREATE INDEX idx_personalizations_marketplace
-    ON personalizations (type, price_currency, created_at DESC)
+    ON personalizations (
+        type,
+        price_currency,
+        created_at DESC,
+        id DESC
+    )
     WHERE status = 'PUBLISHED' AND visibility = 'PUBLIC';
+
+CREATE INDEX idx_personalizations_marketplace_created_at
+    ON personalizations (
+        created_at DESC,
+        id DESC
+    )
+    WHERE status = 'PUBLISHED' AND visibility = 'PUBLIC';
+
+CREATE INDEX idx_personalizations_custom_creator_created_at
+    ON personalizations (
+        creator_user_id,
+        created_at DESC,
+        id DESC
+    )
+    WHERE origin = 'CUSTOM' AND type = 'NOTIFICATION_PACK';
 
 CREATE TABLE owned_personalizations
 (
@@ -85,11 +149,17 @@ CREATE TABLE owned_personalizations
             'PROFILE_THEME',
             'AVATAR_FRAME',
             'PROFILE_EFFECT'
-        ))
+        )),
+    CONSTRAINT ck_owned_personalizations_target
+        CHECK (
+            (personalization_type = 'NOTIFICATION_PACK' AND owner_type = 'USER')
+            OR
+            (personalization_type <> 'NOTIFICATION_PACK' AND owner_type = 'ACCOUNT')
+        )
 );
 
 CREATE INDEX idx_owned_personalizations_owner
-    ON owned_personalizations (owner_type, owner_id, acquired_at DESC);
+    ON owned_personalizations (owner_type, owner_id, acquired_at DESC, id DESC);
 
 CREATE UNIQUE INDEX uq_owned_personalizations_active_slot
     ON owned_personalizations (owner_type, owner_id, personalization_type)
@@ -98,12 +168,18 @@ CREATE UNIQUE INDEX uq_owned_personalizations_active_slot
 CREATE TABLE badges
 (
     id         UUID PRIMARY KEY,
-    code       VARCHAR(32)  NOT NULL UNIQUE,
-    name       VARCHAR(64)  NOT NULL,
-    icon       VARCHAR(64)  NOT NULL,
-    color      VARCHAR(7)   NOT NULL,
-    created_at TIMESTAMPTZ  NOT NULL,
+    code       VARCHAR(32) NOT NULL UNIQUE,
+    name       VARCHAR(64) NOT NULL,
+    icon       VARCHAR(64) NOT NULL,
+    color      VARCHAR(7)  NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
 
+    CONSTRAINT ck_badges_code_not_blank
+        CHECK (BTRIM(code) <> ''),
+    CONSTRAINT ck_badges_name_not_blank
+        CHECK (BTRIM(name) <> ''),
+    CONSTRAINT ck_badges_icon_not_blank
+        CHECK (BTRIM(icon) <> ''),
     CONSTRAINT ck_badges_color
         CHECK (color ~ '^#[0-9A-Fa-f]{6}$')
 );
@@ -121,7 +197,7 @@ CREATE TABLE user_badges
 );
 
 CREATE INDEX idx_user_badges_user
-    ON user_badges (user_id, granted_at DESC);
+    ON user_badges (user_id, granted_at DESC, id DESC);
 
 CREATE UNIQUE INDEX uq_user_badges_active
     ON user_badges (user_id)
@@ -149,11 +225,46 @@ CREATE TABLE purchase_operations
     CONSTRAINT ck_purchase_operations_amount
         CHECK (amount > 0),
     CONSTRAINT ck_purchase_operations_status
-        CHECK (status IN ('PENDING', 'CONFIRMED', 'FAILED'))
+        CHECK (status IN ('PENDING', 'CONFIRMED', 'FAILED')),
+    CONSTRAINT ck_purchase_operations_coin_owner
+        CHECK (
+            currency <> 'COIN'
+            OR owner_type = 'ACCOUNT'
+        ),
+    CONSTRAINT ck_purchase_operations_user_owner_buyer
+        CHECK (
+            owner_type <> 'USER'
+            OR owner_id = buyer_user_id
+        ),
+    CONSTRAINT ck_purchase_operations_result_state
+        CHECK (
+            (
+                status = 'PENDING'
+                AND wallet_transaction_id IS NULL
+                AND failure_reason IS NULL
+            )
+            OR
+            (
+                status = 'CONFIRMED'
+                AND wallet_transaction_id IS NOT NULL
+                AND failure_reason IS NULL
+            )
+            OR
+            (
+                status = 'FAILED'
+                AND wallet_transaction_id IS NULL
+                AND failure_reason IS NOT NULL
+                AND BTRIM(failure_reason) <> ''
+            )
+        )
 );
 
+CREATE UNIQUE INDEX uq_purchase_operations_pending_owner_item
+    ON purchase_operations (owner_type, owner_id, personalization_id)
+    WHERE status = 'PENDING';
+
 CREATE INDEX idx_purchase_operations_buyer_created_at
-    ON purchase_operations (buyer_user_id, created_at DESC);
+    ON purchase_operations (buyer_user_id, created_at DESC, id DESC);
 
 CREATE INDEX idx_purchase_operations_personalization
-    ON purchase_operations (personalization_id, created_at DESC);
+    ON purchase_operations (personalization_id, created_at DESC, id DESC);
