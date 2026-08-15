@@ -1,6 +1,9 @@
 package com.mnemos.realtime.adapter.sse.connection
 
+import com.mnemos.realtime.adapter.inbound.http.sse.RealtimeBroadcastResponse
 import com.mnemos.realtime.adapter.sse.protocol.RealtimeEventResponse
+import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
+import com.mnemos.realtime.application.broadcast.port.out.ConnectedRealtimeBroadcastSink
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.port.out.ConnectedRealtimeEventSink
 import com.mnemos.realtime.application.delivery.port.out.RealtimeDeliveryTelemetry
@@ -16,7 +19,8 @@ class SseConnectionRegistry(
     private val properties: RealtimeDeliveryProperties,
     private val telemetry: RealtimeDeliveryTelemetry,
     private val leaseStore: SseConnectionLeaseStore,
-) : ConnectedRealtimeEventSink {
+) : ConnectedRealtimeEventSink,
+    ConnectedRealtimeBroadcastSink {
     private val connectionsByUser = ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Connection>>()
     private var totalConnections = 0
 
@@ -27,60 +31,28 @@ class SseConnectionRegistry(
         emitter: SseEmitter,
     ): UUID {
         val existingUserConnections = connectionsByUser[userId]
-
         if ((existingUserConnections?.size ?: 0) >= properties.maxConnectionsPerUser) {
-            throw RealtimeConnectionLimitExceededException(
-                limit = properties.maxConnectionsPerUser,
-                scope = "USER",
-            )
+            throw RealtimeConnectionLimitExceededException(properties.maxConnectionsPerUser, "USER")
         }
-
         if (totalConnections >= properties.maxConnectionsTotal) {
-            throw RealtimeConnectionLimitExceededException(
-                limit = properties.maxConnectionsTotal,
-                scope = "INSTANCE",
-            )
+            throw RealtimeConnectionLimitExceededException(properties.maxConnectionsTotal, "INSTANCE")
         }
 
         val connectionId = UUID.randomUUID()
-        val leaseResult =
-            leaseStore.acquire(
-                userId = userId,
-                clientIp = clientIp,
-                connectionId = connectionId,
-            )
-
+        val leaseResult = leaseStore.acquire(userId, clientIp, connectionId)
         when (leaseResult) {
             SseConnectionLeaseAcquireResult.ACQUIRED -> Unit
             SseConnectionLeaseAcquireResult.USER_LIMIT_EXCEEDED ->
-                throw RealtimeConnectionLimitExceededException(
-                    limit = properties.maxConnectionsPerUser,
-                    scope = "CLUSTER_USER",
-                )
-
+                throw RealtimeConnectionLimitExceededException(properties.maxConnectionsPerUser, "CLUSTER_USER")
             SseConnectionLeaseAcquireResult.CLIENT_IP_LIMIT_EXCEEDED ->
-                throw RealtimeConnectionLimitExceededException(
-                    limit = properties.maxConnectionsPerClientIp,
-                    scope = "CLUSTER_CLIENT_IP",
-                )
-
+                throw RealtimeConnectionLimitExceededException(properties.maxConnectionsPerClientIp, "CLUSTER_CLIENT_IP")
             SseConnectionLeaseAcquireResult.TOTAL_LIMIT_EXCEEDED ->
-                throw RealtimeConnectionLimitExceededException(
-                    limit = properties.maxConnectionsTotal,
-                    scope = "CLUSTER",
-                )
+                throw RealtimeConnectionLimitExceededException(properties.maxConnectionsTotal, "CLUSTER")
         }
 
-        val userConnections =
-            connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
-
+        val userConnections = connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
         try {
-            userConnections[connectionId] =
-                Connection(
-                    emitter = emitter,
-                    clientIp = clientIp,
-                    deduplicationLimit = properties.deduplicationLimit,
-                )
+            userConnections[connectionId] = Connection(emitter, clientIp, properties.deduplicationLimit)
             totalConnections += 1
             telemetry.connectionOpened()
         } catch (exception: Exception) {
@@ -89,74 +61,38 @@ class SseConnectionRegistry(
             throw exception
         }
 
-        emitter.onCompletion {
-            remove(
-                userId = userId,
-                connectionId = connectionId,
-            )
-        }
-        emitter.onTimeout {
-            remove(
-                userId = userId,
-                connectionId = connectionId,
-            )
-        }
-        emitter.onError {
-            remove(
-                userId = userId,
-                connectionId = connectionId,
-            )
-        }
-
+        emitter.onCompletion { remove(userId, connectionId) }
+        emitter.onTimeout { remove(userId, connectionId) }
+        emitter.onError { remove(userId, connectionId) }
         return connectionId
     }
 
     override fun send(event: RealtimeEvent) {
-        connectionsByUser[event.userId]
-            ?.forEach { (connectionId, connection) ->
-                try {
-                    connection.sendOrQueue(event)
-                } catch (exception: Exception) {
-                    telemetry.recordSseSendFailure()
-                    log.debug(
-                        "Removing failed SSE connection, userId={}, connectionId={}",
-                        event.userId,
-                        connectionId,
-                        exception,
-                    )
+        connectionsByUser[event.userId]?.forEach { (connectionId, connection) ->
+            sendSafely(event.userId, connectionId, connection) { connection.sendOrQueue(event) }
+        }
+    }
 
-                    connection.completeWithError(exception)
-                    remove(
-                        userId = event.userId,
-                        connectionId = connectionId,
-                    )
-                }
+    override fun send(broadcast: RealtimeBroadcast) {
+        connectionsByUser.forEach { (userId, connections) ->
+            connections.forEach { (connectionId, connection) ->
+                sendSafely(userId, connectionId, connection) { connection.sendOrQueue(broadcast) }
             }
+        }
     }
 
     fun completeReplay(
         userId: UUID,
         connectionId: UUID,
         replayEvents: List<RealtimeEvent>,
+        replayBroadcasts: List<RealtimeBroadcast>,
     ) {
         val connection = connectionsByUser[userId]?.get(connectionId) ?: return
-
         try {
-            connection.completeReplay(replayEvents)
+            connection.completeReplay(replayEvents, replayBroadcasts)
         } catch (exception: Exception) {
             telemetry.recordSseSendFailure()
-            log.debug(
-                "Removing failed SSE connection during replay, userId={}, connectionId={}",
-                userId,
-                connectionId,
-                exception,
-            )
-
-            remove(
-                userId = userId,
-                connectionId = connectionId,
-            )
-
+            remove(userId, connectionId)
             throw exception
         }
     }
@@ -165,25 +101,12 @@ class SseConnectionRegistry(
         connectionsByUser.forEach { (userId, connections) ->
             connections.forEach { (connectionId, connection) ->
                 try {
-                    val renewed =
-                        leaseStore.renew(
-                            userId = userId,
-                            clientIp = connection.clientIp,
-                            connectionId = connectionId,
-                        )
-
-                    check(renewed) {
-                        "SSE connection lease expired"
-                    }
-
+                    check(leaseStore.renew(userId, connection.clientIp, connectionId)) { "SSE connection lease expired" }
                     connection.heartbeat()
                 } catch (exception: Exception) {
                     telemetry.recordSseSendFailure()
                     connection.completeWithError(exception)
-                    remove(
-                        userId = userId,
-                        connectionId = connectionId,
-                    )
+                    remove(userId, connectionId)
                 }
             }
         }
@@ -193,10 +116,23 @@ class SseConnectionRegistry(
         userId: UUID,
         connectionId: UUID,
     ) {
-        remove(
-            userId = userId,
-            connectionId = connectionId,
-        )
+        remove(userId, connectionId)
+    }
+
+    private fun sendSafely(
+        userId: UUID,
+        connectionId: UUID,
+        connection: Connection,
+        send: () -> Unit,
+    ) {
+        try {
+            send()
+        } catch (exception: Exception) {
+            telemetry.recordSseSendFailure()
+            log.debug("Removing failed SSE connection, userId={}, connectionId={}", userId, connectionId, exception)
+            connection.completeWithError(exception)
+            remove(userId, connectionId)
+        }
     }
 
     @Synchronized
@@ -206,15 +142,9 @@ class SseConnectionRegistry(
     ) {
         val connections = connectionsByUser[userId] ?: return
         val connection = connections.remove(connectionId) ?: return
-
         totalConnections -= 1
         telemetry.connectionClosed()
-        releaseLease(
-            userId = userId,
-            clientIp = connection.clientIp,
-            connectionId = connectionId,
-        )
-
+        releaseLease(userId, connection.clientIp, connectionId)
         if (connections.isEmpty()) {
             connectionsByUser.remove(userId, connections)
         }
@@ -226,18 +156,9 @@ class SseConnectionRegistry(
         connectionId: UUID,
     ) {
         try {
-            leaseStore.release(
-                userId = userId,
-                clientIp = clientIp,
-                connectionId = connectionId,
-            )
+            leaseStore.release(userId, clientIp, connectionId)
         } catch (exception: Exception) {
-            log.warn(
-                "Failed to release SSE connection lease, userId={}, connectionId={}",
-                userId,
-                connectionId,
-                exception,
-            )
+            log.warn("Failed to release SSE connection lease, userId={}, connectionId={}", userId, connectionId, exception)
         }
     }
 
@@ -256,6 +177,7 @@ class SseConnectionRegistry(
         private val deduplicationLimit: Int,
     ) {
         private val pendingEvents = mutableListOf<RealtimeEvent>()
+        private val pendingBroadcasts = mutableListOf<RealtimeBroadcast>()
         private val sentEventIds = mutableSetOf<UUID>()
         private val sentEventOrder = ArrayDeque<UUID>()
         private var replayInProgress = true
@@ -264,38 +186,44 @@ class SseConnectionRegistry(
         fun sendOrQueue(event: RealtimeEvent) {
             if (replayInProgress) {
                 pendingEvents += event
-                return
+            } else {
+                send(event)
             }
-
-            send(event)
         }
 
         @Synchronized
-        fun completeReplay(replayEvents: List<RealtimeEvent>) {
-            val events =
-                (replayEvents + pendingEvents)
-                    .distinctBy(RealtimeEvent::id)
+        fun sendOrQueue(broadcast: RealtimeBroadcast) {
+            if (replayInProgress) {
+                pendingBroadcasts += broadcast
+            } else {
+                send(broadcast)
+            }
+        }
 
+        @Synchronized
+        fun completeReplay(
+            replayEvents: List<RealtimeEvent>,
+            replayBroadcasts: List<RealtimeBroadcast>,
+        ) {
+            val events = (replayEvents + pendingEvents).distinctBy(RealtimeEvent::id)
+            val broadcasts = (replayBroadcasts + pendingBroadcasts).distinctBy(RealtimeBroadcast::id).sortedBy(RealtimeBroadcast::sequence)
             pendingEvents.clear()
+            pendingBroadcasts.clear()
             replayInProgress = false
-
             events.forEach(::send)
+            broadcasts.forEach(::send)
         }
 
         @Synchronized
         fun heartbeat() {
-            emitter.send(
-                SseEmitter
-                    .event()
-                    .comment("heartbeat"),
-            )
+            emitter.send(SseEmitter.event().comment("heartbeat"))
         }
 
         fun completeWithError(exception: Exception) {
             try {
                 emitter.completeWithError(exception)
             } catch (_: Exception) {
-                // The connection is removed by the registry regardless of emitter state.
+                // Connection registry removes the connection regardless of emitter state.
             }
         }
 
@@ -303,31 +231,47 @@ class SseConnectionRegistry(
             if (event.id in sentEventIds) {
                 return
             }
-
             remember(event.id)
-
             emitter.send(
-                SseEmitter
-                    .event()
+                SseEmitter.event()
                     .id(event.id.toString())
                     .name(event.type.eventName)
-                    .data(event.toResponse()),
+                    .data(
+                        RealtimeEventResponse(
+                            id = event.id,
+                            type = event.type.eventName,
+                            occurredAt = event.occurredAt,
+                            operationId = event.operationId,
+                            payload = event.payload,
+                        ),
+                    ),
             )
         }
 
-        private fun RealtimeEvent.toResponse(): RealtimeEventResponse =
-            RealtimeEventResponse(
-                id = id,
-                type = type.eventName,
-                occurredAt = occurredAt,
-                operationId = operationId,
-                payload = payload,
+        private fun send(broadcast: RealtimeBroadcast) {
+            if (broadcast.id in sentEventIds) {
+                return
+            }
+            remember(broadcast.id)
+            emitter.send(
+                SseEmitter.event()
+                    .name("drop-spotlight")
+                    .data(
+                        RealtimeBroadcastResponse(
+                            id = broadcast.id,
+                            type = "drop-spotlight",
+                            sequence = broadcast.sequence,
+                            occurredAt = broadcast.occurredAt,
+                            expiresAt = broadcast.expiresAt,
+                            payload = broadcast.payload,
+                        ),
+                    ),
             )
+        }
 
         private fun remember(eventId: UUID) {
             sentEventIds += eventId
             sentEventOrder += eventId
-
             while (sentEventOrder.size > deduplicationLimit) {
                 sentEventIds -= sentEventOrder.removeFirst()
             }
