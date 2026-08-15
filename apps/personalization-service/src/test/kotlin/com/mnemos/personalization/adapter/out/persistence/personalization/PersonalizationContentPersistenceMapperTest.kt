@@ -5,6 +5,8 @@ import com.mnemos.personalization.adapter.out.persistence.personalization.Person
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -35,6 +37,28 @@ class PersonalizationContentPersistenceMapperTest {
             )
 
         val restored = content.toDocument().toDomain(PersonalizationType.NICK_STYLE)
+
+        assertEquals(content, restored)
+    }
+
+    @Test
+    fun `notification pack survives document round trip`() {
+        val content =
+            PersonalizationContent.NotificationPack(
+                mixedAggregateTitle = "🔔 <b>Несколько событий</b>",
+                templates =
+                    NotificationTemplateKey.entries.associateWith { key ->
+                        NotificationTemplate(
+                            emoji = null,
+                            soloTitle = "Событие",
+                            soloBody = "Описание",
+                            compact = "Коротко",
+                            aggregateTitle = "${key.name} события",
+                        )
+                    },
+            )
+
+        val restored = content.toDocument().toDomain(PersonalizationType.NOTIFICATION_PACK)
 
         assertEquals(content, restored)
     }

@@ -67,7 +67,6 @@ class WalletCommandProducerPolicy {
     private fun WalletCreateTransactionCommand.isPersonalizationOperation(): Boolean =
         when (source) {
             TransactionSource.PERSONALIZATION_PURCHASE -> type == TransactionType.DEBIT
-            TransactionSource.PERSONALIZATION_REFUND -> type == TransactionType.CREDIT
             TransactionSource.CREATOR_REVENUE ->
                 type == TransactionType.CREDIT &&
                     currency == Currency.PRIME &&

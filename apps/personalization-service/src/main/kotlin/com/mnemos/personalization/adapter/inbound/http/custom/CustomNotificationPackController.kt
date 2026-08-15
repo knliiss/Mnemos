@@ -34,7 +34,7 @@ class CustomNotificationPackController(
             createService.execute(
                 CreateCustomNotificationPackCommand(
                     name = request.name,
-                    content = request.templates.toContent(),
+                    content = request.templates.toContent(request.mixedAggregateTitle),
                 ),
             )
 
@@ -55,6 +55,6 @@ class CustomNotificationPackController(
             .updateCustomNotificationPack(
                 personalizationId = PersonalizationId(personalizationId),
                 name = request.name,
-                content = request.templates.toContent(),
+                content = request.templates.toContent(request.mixedAggregateTitle),
             ).toResponse()
 }

@@ -47,6 +47,7 @@ object PersonalizationContentPersistenceMapper {
 
             is PersonalizationContent.NotificationPack ->
                 mapOf(
+                    "mixedAggregateTitle" to mixedAggregateTitle,
                     "templates" to
                         templates.mapKeys { (key, _) -> key.name }
                             .mapValues { (_, template) -> template.toDocument() },
@@ -102,6 +103,7 @@ object PersonalizationContentPersistenceMapper {
         val templates = requireDocument(requireValue("templates"))
 
         return PersonalizationContent.NotificationPack(
+            mixedAggregateTitle = requireString("mixedAggregateTitle"),
             templates =
                 templates.map { (rawKey, rawTemplate) ->
                     val key = NotificationTemplateKey.valueOf(rawKey)
@@ -113,6 +115,7 @@ object PersonalizationContentPersistenceMapper {
                             soloTitle = template.requireString("soloTitle"),
                             soloBody = template.requireString("soloBody"),
                             compact = template.requireString("compact"),
+                            aggregateTitle = template.requireString("aggregateTitle"),
                         )
                 }.toMap(),
         )
@@ -148,6 +151,7 @@ object PersonalizationContentPersistenceMapper {
             "soloTitle" to soloTitle,
             "soloBody" to soloBody,
             "compact" to compact,
+            "aggregateTitle" to aggregateTitle,
         )
 
     private fun Map<String, Any?>.requireValue(key: String): Any =

@@ -66,6 +66,7 @@ object PersonalizationApiMapper {
 
             is PersonalizationContent.NotificationPack ->
                 NotificationPackContentResponse(
+                    mixedAggregateTitle = mixedAggregateTitle,
                     templates =
                         templates.mapValues { (_, template) ->
                             template.toResponse()
@@ -91,5 +92,6 @@ object PersonalizationApiMapper {
             soloTitle = soloTitle,
             soloBody = soloBody,
             compact = compact,
+            aggregateTitle = aggregateTitle,
         )
 }

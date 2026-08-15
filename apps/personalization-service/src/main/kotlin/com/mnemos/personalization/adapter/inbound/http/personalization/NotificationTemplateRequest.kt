@@ -15,4 +15,7 @@ data class NotificationTemplateRequest(
     @field:NotBlank
     @field:Size(max = 512)
     val compact: String,
+    @field:NotBlank
+    @field:Size(max = 512)
+    val aggregateTitle: String,
 )

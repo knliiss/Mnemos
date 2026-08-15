@@ -5,4 +5,5 @@ data class NotificationTemplateResponse(
     val soloTitle: String,
     val soloBody: String,
     val compact: String,
+    val aggregateTitle: String,
 )

@@ -131,10 +131,13 @@ object CreatorPersonalizationApiMapper {
         )
 
     fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack =
-        templates.toContent()
+        templates.toContent(mixedAggregateTitle)
 
-    fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(): PersonalizationContent.NotificationPack =
+    fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(
+        mixedAggregateTitle: String,
+    ): PersonalizationContent.NotificationPack =
         PersonalizationContent.NotificationPack(
+            mixedAggregateTitle = mixedAggregateTitle,
             templates = mapValues { (_, template) -> template.toDomain() },
         )
 
@@ -162,5 +165,6 @@ object CreatorPersonalizationApiMapper {
             soloTitle = soloTitle,
             soloBody = soloBody,
             compact = compact,
+            aggregateTitle = aggregateTitle,
         )
 }

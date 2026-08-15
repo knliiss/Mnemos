@@ -11,6 +11,9 @@ data class CreateNotificationPackRequest(
     @field:NotBlank
     @field:Size(min = 3, max = 64)
     val name: String,
+    @field:NotBlank
+    @field:Size(max = 512)
+    val mixedAggregateTitle: String,
     @field:Valid
     @field:Size(min = 5, max = 5)
     val templates: Map<NotificationTemplateKey, NotificationTemplateRequest>,

@@ -55,13 +55,15 @@ class CustomNotificationPackTest {
 
     private fun notificationPackContent(): PersonalizationContent.NotificationPack =
         PersonalizationContent.NotificationPack(
+            mixedAggregateTitle = "❄️ <b>Several events</b>",
             templates =
                 NotificationTemplateKey.entries.associateWith { key ->
                     NotificationTemplate(
                         emoji = "❄️",
-                        soloTitle = "${key.name}",
+                        soloTitle = key.name,
                         soloBody = "Notification",
                         compact = "Notification",
+                        aggregateTitle = "${key.name} events",
                     )
                 },
         )

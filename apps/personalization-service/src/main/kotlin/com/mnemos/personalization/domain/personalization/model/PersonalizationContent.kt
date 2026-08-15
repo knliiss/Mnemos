@@ -46,17 +46,21 @@ sealed interface PersonalizationContent {
     }
 
     data class NotificationPack(
+        val mixedAggregateTitle: String,
         val templates: Map<NotificationTemplateKey, NotificationTemplate>,
     ) : PersonalizationContent {
         init {
-            require(templates.keys.containsAll(NotificationTemplateKey.entries)) {
-                "Notification pack must define every supported template"
+            require(templates.keys == NotificationTemplateKey.entries.toSet()) {
+                "Notification pack must define every supported template exactly once"
             }
+
+            validateStaticTitle(mixedAggregateTitle, "mixed aggregate title")
 
             templates.forEach { (key, template) ->
                 validateTemplate(key, template.soloTitle)
                 validateTemplate(key, template.soloBody)
                 validateTemplate(key, template.compact)
+                validateStaticTitle(template.aggregateTitle, "$key aggregate title")
             }
         }
 
@@ -64,19 +68,38 @@ sealed interface PersonalizationContent {
             key: NotificationTemplateKey,
             template: String,
         ) {
-            require(template.isNotBlank()) { "Notification template cannot be blank" }
-            require(template.length <= 512) { "Notification template is too long" }
+            validateText(template, "Notification template")
 
-            val placeholders =
-                PLACEHOLDER
-                    .findAll(template)
-                    .map { it.groupValues[1] }
-                    .toSet()
+            val placeholders = placeholders(template)
 
             require(placeholders.all { it in key.allowedPlaceholders }) {
                 "Template $key contains unsupported placeholders"
             }
         }
+
+        private fun validateStaticTitle(
+            title: String,
+            description: String,
+        ) {
+            validateText(title, "Notification $description")
+            require(placeholders(title).isEmpty()) {
+                "Notification $description cannot contain placeholders"
+            }
+        }
+
+        private fun validateText(
+            value: String,
+            description: String,
+        ) {
+            require(value.isNotBlank()) { "$description cannot be blank" }
+            require(value.length <= 512) { "$description is too long" }
+        }
+
+        private fun placeholders(value: String): Set<String> =
+            PLACEHOLDER
+                .findAll(value)
+                .map { it.groupValues[1] }
+                .toSet()
 
         private companion object {
             val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)}")
@@ -114,6 +137,7 @@ data class NotificationTemplate(
     val soloTitle: String,
     val soloBody: String,
     val compact: String,
+    val aggregateTitle: String,
 )
 
 enum class NotificationTemplateKey(
