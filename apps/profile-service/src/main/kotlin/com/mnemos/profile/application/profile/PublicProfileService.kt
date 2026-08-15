@@ -1,6 +1,8 @@
 package com.mnemos.profile.application.profile
 
+import com.mnemos.profile.application.profile.port.out.PendingSocialSummaryRepository
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
+import com.mnemos.profile.domain.profile.model.PendingSocialSummary
 import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -14,6 +16,7 @@ import java.util.UUID
 @Service
 class PublicProfileService(
     private val repository: PublicProfileRepository,
+    private val pendingSocialSummaryRepository: PendingSocialSummaryRepository,
 ) {
     @Transactional(readOnly = true)
     fun get(accountId: UUID): PublicProfile =
@@ -27,6 +30,7 @@ class PublicProfileService(
     ): Page<PublicProfile> {
         val normalized = query.trim()
         require(normalized.isNotEmpty()) { "Profile search query cannot be blank" }
+
         return repository.search(normalized, pageable)
     }
 
@@ -37,23 +41,25 @@ class PublicProfileService(
         cristalixNickname: String,
         occurredAt: Instant,
     ) {
-        if (repository.findByAccountId(accountId) != null) {
-            return
+        val existing = repository.findByAccountId(accountId)
+
+        if (existing == null) {
+            repository.save(
+                PublicProfile(
+                    accountId = accountId,
+                    cristalixUuid = cristalixUuid,
+                    cristalixNickname = cristalixNickname,
+                    likes = 0,
+                    dislikes = 0,
+                    comments = 0,
+                    socialRevision = 0,
+                    createdAt = occurredAt,
+                    updatedAt = occurredAt,
+                ),
+            )
         }
 
-        repository.save(
-            PublicProfile(
-                accountId = accountId,
-                cristalixUuid = cristalixUuid,
-                cristalixNickname = cristalixNickname,
-                likes = 0,
-                dislikes = 0,
-                comments = 0,
-                socialRevision = 0,
-                createdAt = occurredAt,
-                updatedAt = occurredAt,
-            ),
-        )
+        applyPendingSocialSummary(accountId)
     }
 
     @Transactional
@@ -65,19 +71,92 @@ class PublicProfileService(
         revision: Long,
         occurredAt: Instant,
     ) {
-        val current = repository.findByAccountId(accountId) ?: return
-        if (revision <= current.socialRevision) {
-            return
-        }
+        val current = repository.findByAccountId(accountId)
 
-        repository.save(
-            current.copy(
+        if (current == null) {
+            savePendingSocialSummary(
+                accountId = accountId,
                 likes = likes,
                 dislikes = dislikes,
                 comments = comments,
-                socialRevision = revision,
-                updatedAt = occurredAt,
+                revision = revision,
+                occurredAt = occurredAt,
+            )
+
+            return
+        }
+
+        if (revision > current.socialRevision) {
+            repository.save(
+                current.copy(
+                    likes = likes,
+                    dislikes = dislikes,
+                    comments = comments,
+                    socialRevision = revision,
+                    updatedAt = maxOf(current.updatedAt, occurredAt),
+                ),
+            )
+        }
+
+        applyPendingSocialSummary(accountId)
+    }
+
+    @Transactional
+    fun reconcilePendingSocialSummaries(limit: Int) {
+        require(limit > 0) { "Pending social summary reconciliation limit must be positive" }
+
+        pendingSocialSummaryRepository
+            .findReady(limit)
+            .forEach { summary ->
+                applyPendingSocialSummary(summary.accountId)
+            }
+    }
+
+    private fun savePendingSocialSummary(
+        accountId: UUID,
+        likes: Long,
+        dislikes: Long,
+        comments: Long,
+        revision: Long,
+        occurredAt: Instant,
+    ) {
+        val existing = pendingSocialSummaryRepository.findByAccountId(accountId)
+
+        if (existing != null && revision <= existing.revision) {
+            return
+        }
+
+        pendingSocialSummaryRepository.save(
+            PendingSocialSummary(
+                accountId = accountId,
+                likes = likes,
+                dislikes = dislikes,
+                comments = comments,
+                revision = revision,
+                occurredAt = occurredAt,
             ),
+        )
+    }
+
+    private fun applyPendingSocialSummary(accountId: UUID) {
+        val profile = repository.findByAccountId(accountId) ?: return
+        val pending = pendingSocialSummaryRepository.findByAccountId(accountId) ?: return
+
+        if (pending.revision > profile.socialRevision) {
+            repository.save(
+                profile.copy(
+                    likes = pending.likes,
+                    dislikes = pending.dislikes,
+                    comments = pending.comments,
+                    socialRevision = pending.revision,
+                    updatedAt = maxOf(profile.updatedAt, pending.occurredAt),
+                ),
+            )
+        }
+
+        pendingSocialSummaryRepository.deleteIfRevision(
+            accountId = accountId,
+            revision = pending.revision,
         )
     }
 }

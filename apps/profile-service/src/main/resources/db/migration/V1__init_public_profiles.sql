@@ -22,6 +22,24 @@ CREATE INDEX idx_public_profiles_nickname_trgm
     ON public_profiles
         USING gin (cristalix_nickname gin_trgm_ops);
 
+CREATE TABLE pending_social_summaries
+(
+    account_id   UUID PRIMARY KEY,
+    likes        BIGINT      NOT NULL,
+    dislikes     BIGINT      NOT NULL,
+    comments     BIGINT      NOT NULL,
+    revision     BIGINT      NOT NULL,
+    occurred_at  TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT ck_pending_social_summaries_counts
+        CHECK (likes >= 0 AND dislikes >= 0 AND comments >= 0),
+    CONSTRAINT ck_pending_social_summaries_revision
+        CHECK (revision > 0)
+);
+
+CREATE INDEX idx_pending_social_summaries_occurred_at
+    ON pending_social_summaries (occurred_at);
+
 CREATE TABLE inbox_events
 (
     event_id         UUID         NOT NULL,
