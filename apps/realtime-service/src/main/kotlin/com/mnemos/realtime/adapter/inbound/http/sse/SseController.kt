@@ -21,6 +21,7 @@ class SseController(
     private val currentUser: CurrentMnemosUser,
     private val replayStore: RealtimeEventReplayStore,
     private val connectionRegistry: SseConnectionRegistry,
+    private val clientIpResolver: SseClientIpResolver,
     private val properties: RealtimeDeliveryProperties,
 ) {
     @GetMapping(
@@ -37,12 +38,13 @@ class SseController(
         response.setHeader("X-Accel-Buffering", "no")
 
         val userId = currentUser.requireUserId()
+        val clientIp = clientIpResolver.resolve(request)
         val emitter = SseEmitter(properties.timeout.toMillis())
 
         val connectionId =
             connectionRegistry.register(
                 userId = userId,
-                clientIp = request.remoteAddr,
+                clientIp = clientIp,
                 emitter = emitter,
             )
 
