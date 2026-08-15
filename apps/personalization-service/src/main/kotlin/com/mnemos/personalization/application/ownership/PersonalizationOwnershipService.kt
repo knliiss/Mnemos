@@ -112,9 +112,7 @@ class PersonalizationOwnershipService(
         return saved
     }
 
-    fun listMine(
-        query: ListOwnedPersonalizationsQuery,
-    ): PageResult<OwnedPersonalization> {
+    fun listMine(query: ListOwnedPersonalizationsQuery): PageResult<OwnedPersonalization> {
         val actor = actorProvider.requireActor()
         val accountId = resolveReadableAccountId(actor.userId)
 
