@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class BadgeTest {
+    private val createdAt = Instant.parse("2026-08-15T00:00:00Z")
+
     @Test
     fun `creates a valid system badge`() {
-        val createdAt = Instant.parse("2026-08-15T00:00:00Z")
-
         val badge =
             Badge.create(
                 code = "MODERATOR",
@@ -33,7 +33,33 @@ class BadgeTest {
                 name = "Moderator",
                 icon = "🛡️",
                 color = HexColor("#8ACBFF"),
-                now = Instant.parse("2026-08-15T00:00:00Z"),
+                now = createdAt,
+            )
+        }
+    }
+
+    @Test
+    fun `rejects badge name longer than persistence limit`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            Badge.create(
+                code = "LONG_NAME",
+                name = "x".repeat(65),
+                icon = "🛡️",
+                color = HexColor("#8ACBFF"),
+                now = createdAt,
+            )
+        }
+    }
+
+    @Test
+    fun `rejects badge icon longer than persistence limit`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            Badge.create(
+                code = "LONG_ICON",
+                name = "Long icon",
+                icon = "x".repeat(65),
+                color = HexColor("#8ACBFF"),
+                now = createdAt,
             )
         }
     }
