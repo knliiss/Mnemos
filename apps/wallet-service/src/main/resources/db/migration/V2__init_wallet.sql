@@ -41,6 +41,7 @@ CREATE TABLE transactions
             'BET_WIN',
             'BET_REFUND',
             'PERSONALIZATION_PURCHASE',
+            'PERSONALIZATION_REFUND',
             'CREATOR_REVENUE',
             'SPOTLIGHT_PURCHASE',
             'PRIME_PURCHASE',
