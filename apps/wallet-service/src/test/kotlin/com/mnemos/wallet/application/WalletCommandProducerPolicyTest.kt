@@ -23,7 +23,13 @@ class WalletCommandProducerPolicyTest {
         assertDoesNotThrow {
             policy.requireAllowed(
                 producer = "bet-service",
-                command = command(WalletOwnerType.ACCOUNT, Currency.COIN, TransactionSource.BET_PLACE, TransactionType.DEBIT),
+                command =
+                    command(
+                        ownerType = WalletOwnerType.ACCOUNT,
+                        currency = Currency.COIN,
+                        source = TransactionSource.BET_PLACE,
+                        type = TransactionType.DEBIT,
+                    ),
                 actorUserId = UserId.generate().id,
             )
         }
@@ -31,7 +37,13 @@ class WalletCommandProducerPolicyTest {
         assertThrows(UnauthorizedWalletCommandException::class.java) {
             policy.requireAllowed(
                 producer = "bet-service",
-                command = command(WalletOwnerType.USER, Currency.PRIME, TransactionSource.BET_PLACE, TransactionType.DEBIT),
+                command =
+                    command(
+                        ownerType = WalletOwnerType.USER,
+                        currency = Currency.PRIME,
+                        source = TransactionSource.BET_PLACE,
+                        type = TransactionType.DEBIT,
+                    ),
                 actorUserId = UserId.generate().id,
             )
         }
@@ -42,7 +54,13 @@ class WalletCommandProducerPolicyTest {
         assertDoesNotThrow {
             policy.requireAllowed(
                 producer = "reward-service",
-                command = command(WalletOwnerType.ACCOUNT, Currency.COIN, TransactionSource.DAILY_REWARD, TransactionType.CREDIT),
+                command =
+                    command(
+                        ownerType = WalletOwnerType.ACCOUNT,
+                        currency = Currency.COIN,
+                        source = TransactionSource.DAILY_REWARD,
+                        type = TransactionType.CREDIT,
+                    ),
                 actorUserId = null,
             )
         }
@@ -50,7 +68,103 @@ class WalletCommandProducerPolicyTest {
         assertDoesNotThrow {
             policy.requireAllowed(
                 producer = "reward-service",
-                command = command(WalletOwnerType.USER, Currency.PRIME, TransactionSource.DAILY_REWARD, TransactionType.CREDIT),
+                command =
+                    command(
+                        ownerType = WalletOwnerType.USER,
+                        currency = Currency.PRIME,
+                        source = TransactionSource.DAILY_REWARD,
+                        type = TransactionType.CREDIT,
+                    ),
+                actorUserId = null,
+            )
+        }
+    }
+
+    @Test
+    fun `personalization purchase supports account coin and user prime only`() {
+        assertDoesNotThrow {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.ACCOUNT,
+                        currency = Currency.COIN,
+                        source = TransactionSource.PERSONALIZATION_PURCHASE,
+                        type = TransactionType.DEBIT,
+                    ),
+                actorUserId = UserId.generate().id,
+            )
+        }
+
+        assertDoesNotThrow {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.USER,
+                        currency = Currency.PRIME,
+                        source = TransactionSource.PERSONALIZATION_PURCHASE,
+                        type = TransactionType.DEBIT,
+                    ),
+                actorUserId = UserId.generate().id,
+            )
+        }
+
+        assertThrows(UnauthorizedWalletCommandException::class.java) {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.ACCOUNT,
+                        currency = Currency.PRIME,
+                        source = TransactionSource.PERSONALIZATION_PURCHASE,
+                        type = TransactionType.DEBIT,
+                    ),
+                actorUserId = UserId.generate().id,
+            )
+        }
+
+        assertThrows(UnauthorizedWalletCommandException::class.java) {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.USER,
+                        currency = Currency.COIN,
+                        source = TransactionSource.PERSONALIZATION_PURCHASE,
+                        type = TransactionType.DEBIT,
+                    ),
+                actorUserId = UserId.generate().id,
+            )
+        }
+    }
+
+    @Test
+    fun `creator revenue supports only prime credit to user`() {
+        assertDoesNotThrow {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.USER,
+                        currency = Currency.PRIME,
+                        source = TransactionSource.CREATOR_REVENUE,
+                        type = TransactionType.CREDIT,
+                    ),
+                actorUserId = null,
+            )
+        }
+
+        assertThrows(UnauthorizedWalletCommandException::class.java) {
+            policy.requireAllowed(
+                producer = "personalization-service",
+                command =
+                    command(
+                        ownerType = WalletOwnerType.ACCOUNT,
+                        currency = Currency.COIN,
+                        source = TransactionSource.CREATOR_REVENUE,
+                        type = TransactionType.CREDIT,
+                    ),
                 actorUserId = null,
             )
         }
@@ -67,7 +181,12 @@ class WalletCommandProducerPolicyTest {
             owner =
                 WalletOwner(
                     type = ownerType,
-                    id = if (ownerType == WalletOwnerType.ACCOUNT) AccountId.generate().id else UserId.generate().id,
+                    id =
+                        if (ownerType == WalletOwnerType.ACCOUNT) {
+                            AccountId.generate().id
+                        } else {
+                            UserId.generate().id
+                        },
                 ),
             currency = currency,
             type = type,
