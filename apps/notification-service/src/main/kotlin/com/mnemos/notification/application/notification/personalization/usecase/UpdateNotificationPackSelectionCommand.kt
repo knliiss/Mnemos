@@ -8,6 +8,7 @@ import java.util.UUID
 data class UpdateNotificationPackSelectionCommand(
     val userId: UserId,
     val pack: ActiveNotificationPack?,
+    val selectionRevision: Long,
     val eventId: UUID,
     val occurredAt: Instant,
 )
