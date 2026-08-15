@@ -5,6 +5,7 @@ import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -59,6 +60,7 @@ class PersonalizationLifecycleServiceTest {
         assertEquals(userId.id, event.aggregateId)
         assertEquals(personalization.id.id, payload.personalizationId)
         assertEquals(updatedContent.mixedAggregateTitle, payload.pack?.mixedAggregateTitle)
+        assertEquals(1L, payload.selectionRevision)
     }
 
     @Test
@@ -85,7 +87,12 @@ class PersonalizationLifecycleServiceTest {
         val personalizationRepository = FakePersonalizationRepository(personalization)
         val ownershipRepository = FakeOwnedPersonalizationRepository(ownership)
         val publisher = RecordingIntegrationEventPublisher()
-        val selectionEventPublisher = NotificationPackSelectionEventPublisher(publisher, clock)
+        val selectionEventPublisher =
+            NotificationPackSelectionEventPublisher(
+                publisher = publisher,
+                revisionStore = IncrementingSelectionRevisionStore(),
+                clock = clock,
+            )
         val service =
             PersonalizationLifecycleService(
                 actorProvider = FixedActorProvider(userId),
@@ -157,6 +164,16 @@ class PersonalizationLifecycleServiceTest {
         private val actor = PersonalizationActor(userId = userId, roles = emptySet())
 
         override fun requireActor(): PersonalizationActor = actor
+    }
+
+    private class IncrementingSelectionRevisionStore : NotificationPackSelectionRevisionStore {
+        private var revision = 0L
+
+        override fun next(userId: UserId): Long {
+            revision += 1
+
+            return revision
+        }
     }
 
     private class FakePersonalizationRepository(
@@ -232,7 +249,11 @@ class PersonalizationLifecycleServiceTest {
         ): UUID {
             events += event
 
-            return UUID.randomUUID()
+            return MESSAGE_ID
         }
+    }
+
+    private companion object {
+        val MESSAGE_ID: UUID = UUID.fromString("019c1129-ef54-7000-8000-000000000031")
     }
 }
