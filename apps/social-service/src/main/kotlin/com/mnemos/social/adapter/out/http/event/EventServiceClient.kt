@@ -9,6 +9,8 @@ import java.util.UUID
 @FeignClient(
     name = "social-event-service-client",
     url = "\${mnemos.social.event-service.base-url}",
+    configuration = [SocialEventFeignConfiguration::class],
+    dismiss404 = true,
 )
 interface EventServiceClient {
     @GetMapping("/internal/v1/item-drops/{itemDropEventId}")

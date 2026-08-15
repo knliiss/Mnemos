@@ -1,0 +1,32 @@
+services:
+  profile-service:
+    container_name: mnemos-profile-service
+    build:
+      context: ../..
+      dockerfile: apps/profile-service/Dockerfile
+    image: mnemos/profile-service:${PROFILE_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8091
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=profile
+      APP_POSTGRES_USER: ${APP_POSTGRES_USER}
+      APP_POSTGRES_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
+      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"profile_service\" password=\"${KAFKA_PROFILE_SERVICE_PASSWORD}\";"
+      MNEMOS_KAFKA_MANAGE_TOPICS: "false"
+      MNEMOS_KAFKA_MESSAGE_AUTH_ENABLED: "true"
+      MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - mnemos-network

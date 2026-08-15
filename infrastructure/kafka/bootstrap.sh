@@ -98,6 +98,8 @@ create_topic mnemos.moderation.events.v1 3
 create_topic mnemos.moderation.events.v1.dlt 3
 create_topic mnemos.personalization.events.v1 3
 create_topic mnemos.personalization.events.v1.dlt 3
+create_topic mnemos.social.events.v1 3
+create_topic mnemos.social.events.v1.dlt 3
 create_topic \
     mnemos.collector.ingress.v2 \
     1 \
@@ -143,10 +145,19 @@ allow_topic_write realtime_service mnemos.collector.ingress.v2
 allow_consumer realtime_service realtime-service mnemos.wallet.events.v2
 allow_consumer realtime_service realtime-service mnemos.bet.events.v1
 allow_consumer realtime_service realtime-service mnemos.personalization.events.v1
+allow_consumer realtime_service realtime-service mnemos.social.events.v1
 
 allow_consumer personalization_service personalization-service mnemos.wallet.events.v2
 allow_consumer personalization_service personalization-service mnemos.personalization.events.v1
 allow_topic_write personalization_service mnemos.wallet.commands.v2
 allow_topic_write personalization_service mnemos.personalization.events.v1
+
+allow_consumer social_service social-service mnemos.wallet.events.v2
+allow_consumer social_service social-service mnemos.personalization.events.v1
+allow_topic_write social_service mnemos.wallet.commands.v2
+allow_topic_write social_service mnemos.social.events.v1
+
+allow_consumer profile_service profile-service mnemos.account.events.v1
+allow_consumer profile_service profile-service mnemos.social.events.v1
 
 printf '%s\n' 'Kafka topics and ACLs are configured.'

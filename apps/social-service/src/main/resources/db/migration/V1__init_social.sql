@@ -128,3 +128,106 @@ CREATE TABLE drop_spotlights
 
 CREATE INDEX idx_drop_spotlights_buyer_created ON drop_spotlights (buyer_user_id, created_at DESC);
 CREATE INDEX idx_drop_spotlights_due ON drop_spotlights (status, scheduled_at);
+
+CREATE TABLE outbox_events
+(
+    id              UUID         PRIMARY KEY,
+    topic           VARCHAR(249) NOT NULL,
+    message_key     VARCHAR(512) NOT NULL,
+    producer        VARCHAR(128) NOT NULL,
+    event_type      VARCHAR(150) NOT NULL,
+    event_version   INT          NOT NULL,
+    aggregate_type  VARCHAR(150) NOT NULL,
+    aggregate_id    UUID         NOT NULL,
+    occurred_at     TIMESTAMPTZ  NOT NULL,
+    metadata_json   TEXT         NOT NULL,
+    payload_json    TEXT         NOT NULL,
+    status          VARCHAR(20)  NOT NULL,
+    attempt_count   INT          NOT NULL DEFAULT 0,
+    next_attempt_at TIMESTAMPTZ  NOT NULL,
+    claimed_by      VARCHAR(200),
+    claim_until     TIMESTAMPTZ,
+    sent_at         TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ  NOT NULL,
+
+    CONSTRAINT ck_outbox_status
+        CHECK (status IN ('PENDING', 'SENDING', 'SENT', 'FAILED')),
+    CONSTRAINT ck_outbox_topic_not_blank
+        CHECK (BTRIM(topic) <> ''),
+    CONSTRAINT ck_outbox_message_key_not_blank
+        CHECK (BTRIM(message_key) <> ''),
+    CONSTRAINT ck_outbox_producer_not_blank
+        CHECK (BTRIM(producer) <> ''),
+    CONSTRAINT ck_outbox_event_type_not_blank
+        CHECK (BTRIM(event_type) <> ''),
+    CONSTRAINT ck_outbox_event_version_positive
+        CHECK (event_version > 0),
+    CONSTRAINT ck_outbox_aggregate_type_not_blank
+        CHECK (BTRIM(aggregate_type) <> ''),
+    CONSTRAINT ck_outbox_attempt_count_non_negative
+        CHECK (attempt_count >= 0)
+);
+
+CREATE INDEX idx_outbox_events_ready
+    ON outbox_events (status, next_attempt_at, created_at);
+
+CREATE INDEX idx_outbox_events_claim
+    ON outbox_events (status, claim_until);
+
+CREATE INDEX idx_outbox_events_aggregate
+    ON outbox_events (aggregate_type, aggregate_id, created_at);
+
+CREATE INDEX idx_outbox_events_sent_at
+    ON outbox_events (sent_at);
+
+CREATE TABLE inbox_events
+(
+    event_id         UUID         NOT NULL,
+    consumer         VARCHAR(200) NOT NULL,
+    topic            VARCHAR(249) NOT NULL,
+    partition_number INT          NOT NULL,
+    offset_value     BIGINT       NOT NULL,
+    event_type       VARCHAR(150) NOT NULL,
+    event_version    INT          NOT NULL,
+    aggregate_type   VARCHAR(150) NOT NULL,
+    aggregate_id     UUID         NOT NULL,
+    producer         VARCHAR(128) NOT NULL,
+    occurred_at      TIMESTAMPTZ  NOT NULL,
+    metadata_json    TEXT         NOT NULL,
+    payload_json     TEXT         NOT NULL,
+    status           VARCHAR(20)  NOT NULL,
+    last_error       TEXT,
+    received_at      TIMESTAMPTZ  NOT NULL,
+    processed_at     TIMESTAMPTZ,
+    updated_at       TIMESTAMPTZ  NOT NULL,
+
+    CONSTRAINT pk_inbox_events
+        PRIMARY KEY (event_id, consumer),
+    CONSTRAINT ck_inbox_status
+        CHECK (status IN ('PROCESSING', 'PROCESSED', 'FAILED')),
+    CONSTRAINT ck_inbox_consumer_not_blank
+        CHECK (BTRIM(consumer) <> ''),
+    CONSTRAINT ck_inbox_topic_not_blank
+        CHECK (BTRIM(topic) <> ''),
+    CONSTRAINT ck_inbox_partition_non_negative
+        CHECK (partition_number >= 0),
+    CONSTRAINT ck_inbox_offset_non_negative
+        CHECK (offset_value >= 0),
+    CONSTRAINT ck_inbox_event_type_not_blank
+        CHECK (BTRIM(event_type) <> ''),
+    CONSTRAINT ck_inbox_event_version_positive
+        CHECK (event_version > 0),
+    CONSTRAINT ck_inbox_aggregate_type_not_blank
+        CHECK (BTRIM(aggregate_type) <> ''),
+    CONSTRAINT ck_inbox_producer_not_blank
+        CHECK (BTRIM(producer) <> '')
+);
+
+CREATE INDEX idx_inbox_events_status_received_at
+    ON inbox_events (status, received_at);
+
+CREATE INDEX idx_inbox_events_consumer_status
+    ON inbox_events (consumer, status);
+
+CREATE INDEX idx_inbox_events_aggregate
+    ON inbox_events (aggregate_type, aggregate_id, occurred_at);
