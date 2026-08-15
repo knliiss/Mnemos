@@ -13,7 +13,7 @@ class CreatorRevenueOperationRepositoryAdapter(
     private val repository: CreatorRevenueOperationJpaRepository,
 ) : CreatorRevenueOperationRepository {
     override fun save(operation: CreatorRevenueOperation): CreatorRevenueOperation =
-        repository.save(operation.toEntity()).toDomain()
+        repository.saveAndFlush(operation.toEntity()).toDomain()
 
     override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? =
         repository.findByRequestId(requestId)?.toDomain()

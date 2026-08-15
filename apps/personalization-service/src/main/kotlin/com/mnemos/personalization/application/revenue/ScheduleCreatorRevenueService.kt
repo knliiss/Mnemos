@@ -7,6 +7,7 @@ import com.mnemos.personalization.domain.purchase.model.PurchaseOperationStatus
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperation
 import com.mnemos.personalization.domain.revenue.repository.CreatorRevenueOperationRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -49,7 +50,31 @@ class ScheduleCreatorRevenueService(
                 now = clock.instant(),
             )
 
-        revenueOperationRepository.save(operation)
+        if (!savePending(operation)) {
+            return
+        }
+
         wallet.requestCredit(operation)
+    }
+
+    private fun savePending(operation: CreatorRevenueOperation): Boolean =
+        try {
+            revenueOperationRepository.save(operation)
+            true
+        } catch (exception: DataIntegrityViolationException) {
+            if (exception.isDuplicatePurchaseRevenue()) {
+                false
+            } else {
+                throw exception
+            }
+        }
+
+    private fun DataIntegrityViolationException.isDuplicatePurchaseRevenue(): Boolean =
+        generateSequence<Throwable>(this) { throwable -> throwable.cause }
+            .mapNotNull(Throwable::message)
+            .any { message -> PURCHASE_REVENUE_CONSTRAINT in message }
+
+    private companion object {
+        const val PURCHASE_REVENUE_CONSTRAINT = "uq_creator_revenue_operations_purchase_operation_id"
     }
 }
