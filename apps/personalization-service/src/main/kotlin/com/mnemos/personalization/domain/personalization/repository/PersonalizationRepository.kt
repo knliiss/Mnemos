@@ -1,6 +1,8 @@
 package com.mnemos.personalization.domain.personalization.repository
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.personalization.application.common.pagination.PageQuery
+import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
@@ -21,5 +23,6 @@ interface PersonalizationRepository {
     fun findPublished(
         type: PersonalizationType?,
         currency: Currency?,
-    ): List<Personalization>
+        page: PageQuery,
+    ): PageResult<Personalization>
 }
