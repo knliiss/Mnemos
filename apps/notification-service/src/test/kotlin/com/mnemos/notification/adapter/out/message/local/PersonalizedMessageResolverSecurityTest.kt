@@ -19,19 +19,7 @@ class PersonalizedMessageResolverSecurityTest {
     @Test
     fun `creator controlled markup is rendered as text and placeholder values are escaped`() {
         val userId = UserId.generate()
-        val item =
-            NotificationItem(
-                sourceId = UUID.randomUUID(),
-                payload =
-                    ItemDropNotificationPayload(
-                        droppedFor = "<Knalis>",
-                        itemName = "Sword & Shield",
-                        itemType = NotificationItemType.SWORD,
-                        itemRarity = NotificationItemRarity.SECRET,
-                    ),
-                occurredAt = Instant.parse("2026-08-15T16:00:00Z"),
-                expiresAt = Instant.parse("2026-08-15T16:01:00Z"),
-            )
+        val item = itemDrop(player = "<Knalis>", itemName = "Sword & Shield")
         val pack = activePack(userId)
 
         val resolved = resolver.resolve(item, pack)
@@ -45,6 +33,38 @@ class PersonalizedMessageResolverSecurityTest {
             resolved.aggregateTitle,
         )
     }
+
+    @Test
+    fun `placeholder text inside substituted value is not rendered recursively`() {
+        val userId = UserId.generate()
+        val item = itemDrop(player = "{item}", itemName = "Elucidator")
+        val pack = activePack(userId)
+
+        val resolved = resolver.resolve(item, pack)
+
+        assertEquals(
+            "&lt;i&gt;❄️&amp; &lt;b&gt;{item}&lt;/b&gt; &amp; Elucidator",
+            resolved.soloTitle,
+        )
+        assertEquals("{item} found Elucidator", resolved.soloBody)
+    }
+
+    private fun itemDrop(
+        player: String,
+        itemName: String,
+    ): NotificationItem =
+        NotificationItem(
+            sourceId = UUID.randomUUID(),
+            payload =
+                ItemDropNotificationPayload(
+                    droppedFor = player,
+                    itemName = itemName,
+                    itemType = NotificationItemType.SWORD,
+                    itemRarity = NotificationItemRarity.SECRET,
+                ),
+            occurredAt = Instant.parse("2026-08-15T16:00:00Z"),
+            expiresAt = Instant.parse("2026-08-15T16:01:00Z"),
+        )
 
     private fun activePack(userId: UserId): ActiveNotificationPack =
         ActiveNotificationPack(
