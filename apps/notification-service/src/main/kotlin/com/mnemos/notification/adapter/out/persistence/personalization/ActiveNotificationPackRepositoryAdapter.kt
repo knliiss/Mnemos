@@ -19,9 +19,14 @@ class ActiveNotificationPackRepositoryAdapter(
     override fun apply(
         userId: UserId,
         pack: ActiveNotificationPack?,
+        selectionRevision: Long,
         eventId: UUID,
         occurredAt: Instant,
     ) {
+        require(selectionRevision > 0) {
+            "Notification pack selection revision must be positive"
+        }
+
         repository.ensureState(userId.id)
 
         val state =
@@ -29,12 +34,13 @@ class ActiveNotificationPackRepositoryAdapter(
                 "Notification pack projection state was not created"
             }
 
-        if (!state.shouldApply(eventId, occurredAt)) {
+        if (!state.shouldApply(selectionRevision)) {
             return
         }
 
         if (pack == null) {
             state.clear(
+                selectionRevision = selectionRevision,
                 eventId = eventId,
                 occurredAt = occurredAt,
             )
@@ -43,6 +49,7 @@ class ActiveNotificationPackRepositoryAdapter(
                 personalizationId = pack.personalizationId,
                 mixedAggregateTitle = pack.mixedAggregateTitle,
                 templates = pack.toTemplateDocuments(),
+                selectionRevision = selectionRevision,
                 eventId = eventId,
                 occurredAt = occurredAt,
             )
