@@ -69,7 +69,7 @@ class NotificationPackSelectionChangedHandler(
 
             envelope.payload.pack?.let { snapshot ->
                 val templateTypes = snapshot.templates.map { template -> template.type.name }
-                val expectedTypes = NotificationType.entries.map(NotificationType::name).toSet()
+                val expectedTypes = NotificationType.entries.map { type -> type.name }.toSet()
 
                 if (templateTypes.size != expectedTypes.size || templateTypes.toSet() != expectedTypes) {
                     throw KafkaMessageProtocolException(
