@@ -10,6 +10,7 @@ import com.mnemos.personalization.domain.badge.model.BadgeId
 import com.mnemos.personalization.domain.badge.model.UserBadge
 import com.mnemos.personalization.domain.badge.repository.BadgeRepository
 import com.mnemos.personalization.domain.personalization.model.HexColor
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -35,15 +36,20 @@ class BadgeAdministrationService(
             throw BadgeAlreadyExistsException()
         }
 
-        return repository.save(
+        val badge =
             Badge.create(
                 code = command.code,
                 name = command.name,
                 icon = command.icon,
                 color = command.color,
                 now = clock.instant(),
-            ),
-        )
+            )
+
+        return try {
+            repository.save(badge)
+        } catch (_: DataIntegrityViolationException) {
+            throw BadgeAlreadyExistsException()
+        }
     }
 
     @Transactional
@@ -52,7 +58,7 @@ class BadgeAdministrationService(
         badgeId: BadgeId,
     ): UserBadge {
         requireAdministrator()
-        requireBadge(badgeId)
+        requireBadgeForUpdate(badgeId)
 
         repository.findUserBadge(userId, badgeId)?.let { existing ->
             return existing
@@ -88,6 +94,6 @@ class BadgeAdministrationService(
         }
     }
 
-    private fun requireBadge(badgeId: BadgeId): Badge =
-        repository.findById(badgeId) ?: throw BadgeNotFoundException()
+    private fun requireBadgeForUpdate(badgeId: BadgeId): Badge =
+        repository.findByIdForUpdate(badgeId) ?: throw BadgeNotFoundException()
 }
