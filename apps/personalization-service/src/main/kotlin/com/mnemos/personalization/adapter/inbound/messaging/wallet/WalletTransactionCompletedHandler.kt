@@ -5,14 +5,17 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.personalization.application.purchase.ProcessPurchaseWalletResultService
+import com.mnemos.personalization.application.revenue.ProcessCreatorRevenueWalletResultService
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
 import com.mnemos.wallet.contracts.wallet.WalletEventType
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionCompletedEvent
+import com.mnemos.wallet.contracts.wallet.shared.TransactionSource
 import org.springframework.stereotype.Component
 
 @Component
 class WalletTransactionCompletedHandler(
-    private val service: ProcessPurchaseWalletResultService,
+    private val purchaseService: ProcessPurchaseWalletResultService,
+    private val creatorRevenueService: ProcessCreatorRevenueWalletResultService,
 ) : KafkaMessageHandler<WalletTransactionCompletedEvent> {
     override val definition =
         kafkaMessageDefinition<WalletTransactionCompletedEvent>(
@@ -33,10 +36,23 @@ class WalletTransactionCompletedHandler(
     override val consumer = "personalization-service.wallet-completed"
 
     override fun handle(message: ConsumedMessage<WalletTransactionCompletedEvent>) {
-        service.complete(
-            requestId = message.payload.requestId,
-            transactionId = message.payload.transactionId,
-        )
+        val payload = message.payload
+
+        when (payload.source) {
+            TransactionSource.PERSONALIZATION_PURCHASE ->
+                purchaseService.complete(
+                    requestId = payload.requestId,
+                    transactionId = payload.transactionId,
+                )
+
+            TransactionSource.CREATOR_REVENUE ->
+                creatorRevenueService.complete(
+                    requestId = payload.requestId,
+                    transactionId = payload.transactionId,
+                )
+
+            else -> Unit
+        }
     }
 
     private companion object {
