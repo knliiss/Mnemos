@@ -29,6 +29,21 @@ class CustomNotificationPackTest {
     }
 
     @Test
+    fun `free private custom pack is not purchasable`() {
+        val personalization =
+            Personalization.createCustomNotificationPack(
+                creatorUserId = creatorUserId,
+                name = "Free Personal Pack",
+                content = notificationPackContent(),
+                price = null,
+                now = createdAt,
+            )
+
+        assertFalse(personalization.isPurchasableBy(creatorUserId))
+        assertFalse(personalization.isPurchasableBy(otherUserId))
+    }
+
+    @Test
     fun `published custom pack is purchasable by others but not by its author`() {
         val personalization = createCustomPack()
 
