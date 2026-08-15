@@ -45,7 +45,7 @@ class PurchasePersonalizationService(
             personalizationRepository.findById(personalizationId)
                 ?: throw PersonalizationNotFoundException()
 
-        if (personalization.creatorUserId == actor.userId || !personalization.isPurchasableBy(actor.userId)) {
+        if (!personalization.isPurchasableBy(actor.userId)) {
             throw PersonalizationNotPurchasableException()
         }
 
