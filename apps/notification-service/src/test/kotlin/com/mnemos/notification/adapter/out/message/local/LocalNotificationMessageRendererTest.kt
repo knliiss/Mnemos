@@ -74,7 +74,7 @@ class LocalNotificationMessageRendererTest {
 
         val message = renderer.renderNotification(userId, items)
 
-        assertTrue(message.text.startsWith("❄️ <b>Custom loot</b>"))
+        assertTrue(message.text.startsWith("❄️ &lt;b&gt;Custom loot&lt;/b&gt;"))
         assertTrue(message.text.contains("&lt;Knalis&gt;"))
         assertTrue(message.text.contains("Sword &amp; Shield"))
     }
