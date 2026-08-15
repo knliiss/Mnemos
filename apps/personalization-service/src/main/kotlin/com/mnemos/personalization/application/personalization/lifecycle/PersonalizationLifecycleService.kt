@@ -2,6 +2,7 @@ package com.mnemos.personalization.application.personalization.lifecycle
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationNotFoundException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
@@ -106,6 +107,11 @@ class PersonalizationLifecycleService(
 
         val personalization = requireOwned(personalizationId, actor.userId)
 
+        requireCustomPackOwnershipBeforeSubmission(
+            personalization = personalization,
+            userId = actor.userId,
+        )
+
         personalization.submitForReview(clock.instant())
 
         return repository.save(personalization)
@@ -133,6 +139,25 @@ class PersonalizationLifecycleService(
     private fun requireMarketplaceCreator(actor: PersonalizationActor) {
         if (!actor.canCreateMarketplacePersonalization()) {
             throw PersonalizationAccessDeniedException()
+        }
+    }
+
+    private fun requireCustomPackOwnershipBeforeSubmission(
+        personalization: Personalization,
+        userId: UserId,
+    ) {
+        if (personalization.origin != PersonalizationOrigin.CUSTOM) {
+            return
+        }
+
+        val owned =
+            ownershipRepository.exists(
+                owner = PersonalizationOwner.User(userId),
+                personalizationId = personalization.id,
+            )
+
+        if (!owned) {
+            throw PersonalizationNotOwnedException()
         }
     }
 
