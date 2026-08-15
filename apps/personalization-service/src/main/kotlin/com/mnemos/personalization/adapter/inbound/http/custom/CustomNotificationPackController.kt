@@ -1,13 +1,19 @@
 package com.mnemos.personalization.adapter.inbound.http.custom
 
+import com.mnemos.personalization.adapter.inbound.http.common.PageResponse
 import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonalizationApiMapper.toContent
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
+import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.personalization.create.CreateCustomNotificationPackCommand
 import com.mnemos.personalization.application.personalization.create.CreateCustomNotificationPackService
+import com.mnemos.personalization.application.personalization.custom.CustomNotificationPackQueryService
 import com.mnemos.personalization.application.personalization.lifecycle.PersonalizationLifecycleService
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -21,8 +27,21 @@ import java.util.UUID
 @RequestMapping("/api/v1/personalizations/custom-notification-packs")
 class CustomNotificationPackController(
     private val createService: CreateCustomNotificationPackService,
+    private val queryService: CustomNotificationPackQueryService,
     private val lifecycleService: PersonalizationLifecycleService,
 ) {
+    @GetMapping("/me")
+    fun listMine(
+        @Valid @ModelAttribute request: ListCustomNotificationPacksRequest,
+    ): PageResponse<PersonalizationResponse> =
+        queryService
+            .listMine(
+                PageQuery(
+                    page = request.page,
+                    size = request.size,
+                ),
+            ).toResponse()
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(
