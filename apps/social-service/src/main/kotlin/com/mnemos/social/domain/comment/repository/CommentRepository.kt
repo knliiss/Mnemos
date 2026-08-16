@@ -11,6 +11,8 @@ interface CommentRepository {
 
     fun findById(id: CommentId): Comment?
 
+    fun findByIdForUpdate(id: CommentId): Comment?
+
     fun findRootByAccountId(
         accountId: UUID,
         pageable: Pageable,

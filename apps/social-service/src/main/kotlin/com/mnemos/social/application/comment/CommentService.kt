@@ -30,13 +30,13 @@ class CommentService(
         parentCommentId: UUID?,
         content: String,
     ): Comment {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
+        val actor = actorProvider.requireActor()
 
         if (!accountAccessPort.isActiveAccount(targetAccountId)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
         }
 
-        val parent = parentCommentId?.let { requireComment(CommentId(it)) }
+        val parent = parentCommentId?.let { requireCommentForUpdate(CommentId(it)) }
 
         if (parent != null) {
             if (parent.deleted) {
@@ -78,7 +78,7 @@ class CommentService(
         content: String,
     ): Comment {
         val actor = actorProvider.requireActor()
-        val comment = requireComment(CommentId(commentId))
+        val comment = requireCommentForUpdate(CommentId(commentId))
 
         if (comment.authorUserId != actor.userId) {
             throw ResponseStatusException(
@@ -95,21 +95,25 @@ class CommentService(
     @Transactional
     fun delete(commentId: UUID) {
         val actor = actorProvider.requireActor()
-        val comment = requireComment(CommentId(commentId))
-        val isAuthor = comment.authorUserId == actor.userId
+        val id = CommentId(commentId)
+        val preview = requireComment(id)
+        val isAuthor = preview.authorUserId == actor.userId
         val canModerate =
-            actorProvider.hasPermission(
-                accountId = comment.targetAccountId,
-                userId = actor.userId,
-                permission = RolePermission.MODERATE_COMMENTS,
-            )
+            isAuthor ||
+                actorProvider.hasPermission(
+                    accountId = preview.targetAccountId,
+                    userId = actor.userId,
+                    permission = RolePermission.MODERATE_COMMENTS,
+                )
 
-        if (!isAuthor && !canModerate) {
+        if (!canModerate) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,
                 "Comment moderation permission is required",
             )
         }
+
+        val comment = requireCommentForUpdate(id)
 
         if (comment.deleted) {
             return
@@ -148,6 +152,13 @@ class CommentService(
 
     private fun requireComment(id: CommentId): Comment =
         repository.findById(id)
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Comment was not found",
+            )
+
+    private fun requireCommentForUpdate(id: CommentId): Comment =
+        repository.findByIdForUpdate(id)
             ?: throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Comment was not found",

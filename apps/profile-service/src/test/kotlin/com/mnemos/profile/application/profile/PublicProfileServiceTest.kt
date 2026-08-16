@@ -173,6 +173,8 @@ class PublicProfileServiceTest {
 
         override fun findByAccountId(accountId: UUID): PublicProfile? = profiles[accountId]
 
+        override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? = profiles[accountId]
+
         override fun search(
             query: String,
             pageable: Pageable,

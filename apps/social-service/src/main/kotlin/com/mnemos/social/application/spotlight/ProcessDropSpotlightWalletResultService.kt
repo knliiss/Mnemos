@@ -17,15 +17,24 @@ class ProcessDropSpotlightWalletResultService(
         spotlightId: UUID,
         transactionId: UUID,
     ) {
-        val spotlight = repository.findById(DropSpotlightId(spotlightId)) ?: return
-        spotlight.paymentCompleted(transactionId, clock.instant())
-        repository.save(spotlight)
+        val spotlight = repository.findByIdForUpdate(DropSpotlightId(spotlightId)) ?: return
+        val changed =
+            spotlight.paymentCompleted(
+                transactionId = transactionId,
+                now = clock.instant(),
+            )
+
+        if (changed) {
+            repository.save(spotlight)
+        }
     }
 
     @Transactional
     fun failed(spotlightId: UUID) {
-        val spotlight = repository.findById(DropSpotlightId(spotlightId)) ?: return
-        spotlight.paymentFailed(clock.instant())
-        repository.save(spotlight)
+        val spotlight = repository.findByIdForUpdate(DropSpotlightId(spotlightId)) ?: return
+
+        if (spotlight.paymentFailed(clock.instant())) {
+            repository.save(spotlight)
+        }
     }
 }

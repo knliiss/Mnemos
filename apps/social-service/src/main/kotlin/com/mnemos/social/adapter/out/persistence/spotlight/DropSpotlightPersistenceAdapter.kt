@@ -16,9 +16,14 @@ class DropSpotlightPersistenceAdapter(
 ) : DropSpotlightRepository {
     override fun save(spotlight: DropSpotlight): DropSpotlight = repository.save(spotlight.toEntity()).toDomain()
 
-    override fun findById(id: DropSpotlightId): DropSpotlight? = repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: DropSpotlightId): DropSpotlight? =
+        repository.findById(id.id).orElse(null)?.toDomain()
 
-    override fun existsByItemDropEventId(itemDropEventId: UUID): Boolean = repository.existsByItemDropEventId(itemDropEventId)
+    override fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight? =
+        repository.findByIdForUpdate(id.id)?.toDomain()
+
+    override fun existsByItemDropEventId(itemDropEventId: UUID): Boolean =
+        repository.existsByItemDropEventId(itemDropEventId)
 
     override fun findLatestByBuyerUserId(userId: UUID): DropSpotlight? =
         repository.findTopByBuyerUserIdOrderByCreatedAtDesc(userId)?.toDomain()
@@ -28,7 +33,7 @@ class DropSpotlightPersistenceAdapter(
             .findTop20ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
                 DropSpotlightStatus.QUEUED,
                 now,
-            ).map { it.toDomain() }
+            ).map { entity -> entity.toDomain() }
 
     private fun DropSpotlight.toEntity(): DropSpotlightEntity =
         DropSpotlightEntity(

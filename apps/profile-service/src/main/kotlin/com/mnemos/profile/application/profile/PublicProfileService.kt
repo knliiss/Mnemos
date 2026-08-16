@@ -29,7 +29,10 @@ class PublicProfileService(
         pageable: Pageable,
     ): Page<PublicProfile> {
         val normalized = query.trim()
-        require(normalized.isNotEmpty()) { "Profile search query cannot be blank" }
+
+        require(normalized.isNotEmpty()) {
+            "Profile search query cannot be blank"
+        }
 
         return repository.search(normalized, pageable)
     }
@@ -41,7 +44,7 @@ class PublicProfileService(
         cristalixNickname: String,
         occurredAt: Instant,
     ) {
-        val existing = repository.findByAccountId(accountId)
+        val existing = repository.findByAccountIdForUpdate(accountId)
 
         if (existing == null) {
             repository.save(
@@ -71,7 +74,7 @@ class PublicProfileService(
         revision: Long,
         occurredAt: Instant,
     ) {
-        val current = repository.findByAccountId(accountId)
+        val current = repository.findByAccountIdForUpdate(accountId)
 
         if (current == null) {
             savePendingSocialSummary(
@@ -103,7 +106,9 @@ class PublicProfileService(
 
     @Transactional
     fun reconcilePendingSocialSummaries(limit: Int) {
-        require(limit > 0) { "Pending social summary reconciliation limit must be positive" }
+        require(limit > 0) {
+            "Pending social summary reconciliation limit must be positive"
+        }
 
         pendingSocialSummaryRepository
             .findReady(limit)
@@ -139,7 +144,7 @@ class PublicProfileService(
     }
 
     private fun applyPendingSocialSummary(accountId: UUID) {
-        val profile = repository.findByAccountId(accountId) ?: return
+        val profile = repository.findByAccountIdForUpdate(accountId) ?: return
         val pending = pendingSocialSummaryRepository.findByAccountId(accountId) ?: return
 
         if (pending.revision > profile.socialRevision) {

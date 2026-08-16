@@ -24,30 +24,36 @@ data class DropSpotlight(
     fun paymentCompleted(
         transactionId: UUID,
         now: Instant,
-    ) {
+    ): Boolean {
         if (status != DropSpotlightStatus.PENDING_PAYMENT) {
-            return
+            return false
         }
 
         walletTransactionId = transactionId
         status = DropSpotlightStatus.QUEUED
         updatedAt = now
+
+        return true
     }
 
-    fun paymentFailed(now: Instant) {
+    fun paymentFailed(now: Instant): Boolean {
         if (status != DropSpotlightStatus.PENDING_PAYMENT) {
-            return
+            return false
         }
 
         status = DropSpotlightStatus.PAYMENT_FAILED
         updatedAt = now
+
+        return true
     }
 
     fun publish(
         now: Instant,
         expiresAt: Instant,
     ) {
-        require(status == DropSpotlightStatus.QUEUED) { "Only queued spotlight can be published" }
+        require(status == DropSpotlightStatus.QUEUED) {
+            "Only queued spotlight can be published"
+        }
 
         status = DropSpotlightStatus.PUBLISHED
         publishedAt = now

@@ -18,8 +18,14 @@ class PublicProfileRepositoryAdapter(
     override fun findByAccountId(accountId: UUID): PublicProfile? =
         repository.findById(accountId).orElse(null)?.toDomain()
 
+    override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? =
+        repository.findForUpdate(accountId)?.toDomain()
+
     override fun search(
         query: String,
         pageable: Pageable,
-    ): Page<PublicProfile> = repository.searchByNickname(query, pageable).map { it.toDomain() }
+    ): Page<PublicProfile> =
+        repository
+            .searchByNickname(query, pageable)
+            .map { entity -> entity.toDomain() }
 }

@@ -10,6 +10,8 @@ interface PublicProfileRepository {
 
     fun findByAccountId(accountId: UUID): PublicProfile?
 
+    fun findByAccountIdForUpdate(accountId: UUID): PublicProfile?
+
     fun search(
         query: String,
         pageable: Pageable,

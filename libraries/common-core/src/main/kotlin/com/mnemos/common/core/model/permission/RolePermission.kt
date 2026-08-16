@@ -31,8 +31,6 @@ enum class RolePermission {
     CLAIM_DAILY_REWARD,
 
     // SOCIAL
-    PUBLISH_COMMENTS,
-    PUBLISH_REACTIONS,
     MODERATE_COMMENTS,
 
     // BETS

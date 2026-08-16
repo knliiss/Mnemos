@@ -18,13 +18,21 @@ class CommentRepositoryAdapter(
 
     override fun findById(id: CommentId): Comment? = repository.findById(id.id).orElse(null)?.toDomain()
 
+    override fun findByIdForUpdate(id: CommentId): Comment? = repository.findForUpdate(id.id)?.toDomain()
+
     override fun findRootByAccountId(
         accountId: UUID,
         pageable: Pageable,
-    ): Page<Comment> = repository.findByTargetAccountIdAndParentCommentIdIsNull(accountId, pageable).map { it.toDomain() }
+    ): Page<Comment> =
+        repository
+            .findByTargetAccountIdAndParentCommentIdIsNull(accountId, pageable)
+            .map { entity -> entity.toDomain() }
 
     override fun findReplies(
         parentCommentId: CommentId,
         pageable: Pageable,
-    ): Page<Comment> = repository.findByParentCommentId(parentCommentId.id, pageable).map { it.toDomain() }
+    ): Page<Comment> =
+        repository
+            .findByParentCommentId(parentCommentId.id, pageable)
+            .map { entity -> entity.toDomain() }
 }
