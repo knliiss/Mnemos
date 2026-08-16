@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":contracts:personalization-contracts"))
+    api(project(":contracts:personalization-contracts"))
 }
