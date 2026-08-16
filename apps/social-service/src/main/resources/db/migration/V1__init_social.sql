@@ -81,16 +81,15 @@ CREATE TABLE notification_pack_selections
 
 CREATE TABLE spotlight_queue_state
 (
-    id               SMALLINT PRIMARY KEY,
-    last_reserved_at TIMESTAMPTZ,
-    next_sequence    BIGINT NOT NULL,
+    id            SMALLINT PRIMARY KEY,
+    next_sequence BIGINT NOT NULL,
 
     CONSTRAINT ck_spotlight_queue_singleton CHECK (id = 1),
     CONSTRAINT ck_spotlight_queue_sequence CHECK (next_sequence > 0)
 );
 
-INSERT INTO spotlight_queue_state (id, last_reserved_at, next_sequence)
-VALUES (1, NULL, 1);
+INSERT INTO spotlight_queue_state (id, next_sequence)
+VALUES (1, 1);
 
 CREATE TABLE drop_spotlights
 (
