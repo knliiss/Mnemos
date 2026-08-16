@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.purchase
+package com.mnemos.personalization.application.purchase.usecase.purchase
 
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
@@ -15,18 +15,12 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
-import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-
-data class PurchasePersonalizationResult(
-    val personalizationId: PersonalizationId,
-    val operationId: PurchaseOperationId,
-)
 
 @Service
 class PurchasePersonalizationService(
@@ -37,9 +31,9 @@ class PurchasePersonalizationService(
     private val purchaseOperationRepository: PurchaseOperationRepository,
     private val wallet: PersonalizationWallet,
     private val clock: Clock,
-) {
+) : PurchasePersonalizationUseCase {
     @Transactional
-    fun execute(personalizationId: PersonalizationId): PurchasePersonalizationResult {
+    override fun execute(personalizationId: PersonalizationId): PurchasePersonalizationResult {
         val actor = actorProvider.requireActor()
         val personalization =
             personalizationRepository.findByIdForUpdate(personalizationId)
@@ -52,9 +46,7 @@ class PurchasePersonalizationService(
         val price = personalization.price ?: throw PersonalizationNotPurchasableException()
         val owner =
             when (personalization.type.target) {
-                PersonalizationTarget.USER ->
-                    PersonalizationOwner.User(actor.userId)
-
+                PersonalizationTarget.USER -> PersonalizationOwner.User(actor.userId)
                 PersonalizationTarget.ACCOUNT -> {
                     val accountId = accountAccess.requireActiveAccount(actor.userId)
                     val requiredPermissions =
@@ -99,7 +91,6 @@ class PurchasePersonalizationService(
                 amount = price.amount,
                 now = clock.instant(),
             )
-
         val saved = savePending(operation)
 
         wallet.requestDebit(saved)

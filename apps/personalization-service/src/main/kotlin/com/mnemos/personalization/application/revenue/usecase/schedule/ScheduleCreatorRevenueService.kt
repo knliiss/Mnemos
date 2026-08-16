@@ -1,5 +1,6 @@
-package com.mnemos.personalization.application.revenue
+package com.mnemos.personalization.application.revenue.usecase.schedule
 
+import com.mnemos.personalization.application.revenue.CreatorRevenuePolicy
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
@@ -19,12 +20,10 @@ class ScheduleCreatorRevenueService(
     private val revenuePolicy: CreatorRevenuePolicy,
     private val wallet: CreatorRevenueWallet,
     private val clock: Clock,
-) {
+) : ScheduleCreatorRevenueUseCase {
     @Transactional
-    fun execute(purchaseOperationId: PurchaseOperationId) {
-        val purchase =
-            purchaseOperationRepository.findByIdForUpdate(purchaseOperationId)
-                ?: return
+    override fun execute(purchaseOperationId: PurchaseOperationId) {
+        val purchase = purchaseOperationRepository.findByIdForUpdate(purchaseOperationId) ?: return
 
         if (purchase.status != PurchaseOperationStatus.CONFIRMED) {
             return

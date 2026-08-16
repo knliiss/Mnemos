@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.revenue
+package com.mnemos.personalization.application.revenue.usecase.retry
 
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
@@ -15,9 +15,9 @@ class RetryCreatorRevenueService(
     private val wallet: CreatorRevenueWallet,
     private val properties: CreatorRevenueProperties,
     private val clock: Clock,
-) {
+) : RetryCreatorRevenueUseCase {
     @Transactional
-    fun execute(): Int {
+    override fun execute(): Int {
         val now = clock.instant()
         val operations =
             retryRepository.findDueForRetryForUpdate(

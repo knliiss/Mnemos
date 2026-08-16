@@ -4,8 +4,8 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
-import com.mnemos.personalization.application.purchase.ProcessPurchaseWalletResultService
-import com.mnemos.personalization.application.revenue.ProcessCreatorRevenueWalletResultService
+import com.mnemos.personalization.application.purchase.usecase.failwallet.FailPurchaseWalletUseCase
+import com.mnemos.personalization.application.revenue.usecase.failwallet.FailCreatorRevenueWalletUseCase
 import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
 import com.mnemos.wallet.contracts.wallet.WalletEventType
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class WalletTransactionFailedHandler(
-    private val purchaseService: ProcessPurchaseWalletResultService,
-    private val creatorRevenueService: ProcessCreatorRevenueWalletResultService,
+    private val failPurchaseWalletUseCase: FailPurchaseWalletUseCase,
+    private val failCreatorRevenueWalletUseCase: FailCreatorRevenueWalletUseCase,
 ) : KafkaMessageHandler<WalletTransactionFailedEvent> {
     override val definition =
         kafkaMessageDefinition<WalletTransactionFailedEvent>(
@@ -46,13 +46,13 @@ class WalletTransactionFailedHandler(
 
         when (payload.source) {
             TransactionSource.PERSONALIZATION_PURCHASE ->
-                purchaseService.fail(
+                failPurchaseWalletUseCase.execute(
                     result = result,
                     reason = payload.reason.name,
                 )
 
             TransactionSource.CREATOR_REVENUE ->
-                creatorRevenueService.fail(
+                failCreatorRevenueWalletUseCase.execute(
                     result = result,
                     reason = payload.reason.name,
                 )
@@ -61,7 +61,9 @@ class WalletTransactionFailedHandler(
         }
     }
 
-    private fun WalletTransactionFailedEvent.toResultContext(message: ConsumedMessage<WalletTransactionFailedEvent>): WalletResultContext =
+    private fun WalletTransactionFailedEvent.toResultContext(
+        message: ConsumedMessage<WalletTransactionFailedEvent>,
+    ): WalletResultContext =
         WalletResultContext(
             requestId = requestId,
             actorUserId = message.metadata.actorUserId,
