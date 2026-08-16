@@ -64,21 +64,6 @@ CREATE TABLE account_social_summaries
         CHECK (revision >= 0)
 );
 
-CREATE TABLE notification_pack_selections
-(
-    user_id             UUID PRIMARY KEY,
-    personalization_id  UUID,
-    selection_revision  BIGINT      NOT NULL,
-    snapshot_json       TEXT,
-    occurred_at         TIMESTAMPTZ NOT NULL,
-
-    CONSTRAINT ck_notification_pack_selection_revision CHECK (selection_revision > 0),
-    CONSTRAINT ck_notification_pack_selection_snapshot CHECK (
-        (personalization_id IS NULL AND snapshot_json IS NULL)
-        OR (personalization_id IS NOT NULL AND snapshot_json IS NOT NULL)
-    )
-);
-
 CREATE TABLE spotlight_queue_state
 (
     id            SMALLINT PRIMARY KEY,

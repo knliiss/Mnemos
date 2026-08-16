@@ -24,8 +24,10 @@ services:
       MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
       ACCOUNT_SERVICE_URL: http://account-service:8081
       EVENT_SERVICE_URL: http://event-service:8083
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
       SOCIAL_SERVICE_ACCOUNT_API_KEY: ${SOCIAL_SERVICE_ACCOUNT_API_KEY}
       SOCIAL_SERVICE_EVENT_API_KEY: ${SOCIAL_SERVICE_EVENT_API_KEY}
+      SOCIAL_SERVICE_PERSONALIZATION_API_KEY: ${SOCIAL_SERVICE_PERSONALIZATION_API_KEY}
       SPOTLIGHT_PRICE_PRIME: ${SPOTLIGHT_PRICE_PRIME:-25}
     depends_on:
       app-postgres:
@@ -37,6 +39,8 @@ services:
       account-service:
         condition: service_started
       event-service:
+        condition: service_started
+      personalization-service:
         condition: service_started
     networks:
       - mnemos-network

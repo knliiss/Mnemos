@@ -2,7 +2,6 @@ package com.mnemos.social.adapter.out.messaging
 
 import com.mnemos.messaging.kafka.config.KafkaTopicDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaDeadLetterTopic
-import com.mnemos.personalization.contracts.PersonalizationEventContract
 import com.mnemos.social.contracts.SocialEventContract
 import com.mnemos.wallet.contracts.wallet.WalletCommandContract
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
@@ -47,22 +46,6 @@ class SocialKafkaTopicConfiguration {
     fun walletEventsDeadLetterTopic(): KafkaTopicDefinition =
         KafkaTopicDefinition(
             name = KafkaDeadLetterTopic.name(WalletEventContract.TOPIC),
-            partitions = 3,
-            replicationFactor = 1,
-        )
-
-    @Bean
-    fun personalizationEventsTopic(): KafkaTopicDefinition =
-        KafkaTopicDefinition(
-            name = PersonalizationEventContract.TOPIC,
-            partitions = 3,
-            replicationFactor = 1,
-        )
-
-    @Bean
-    fun personalizationEventsDeadLetterTopic(): KafkaTopicDefinition =
-        KafkaTopicDefinition(
-            name = KafkaDeadLetterTopic.name(PersonalizationEventContract.TOPIC),
             partitions = 3,
             replicationFactor = 1,
         )

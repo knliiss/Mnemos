@@ -153,7 +153,6 @@ allow_topic_write personalization_service mnemos.wallet.commands.v2
 allow_topic_write personalization_service mnemos.personalization.events.v1
 
 allow_consumer social_service social-service mnemos.wallet.events.v2
-allow_consumer social_service social-service mnemos.personalization.events.v1
 allow_topic_write social_service mnemos.wallet.commands.v2
 allow_topic_write social_service mnemos.social.events.v1
 

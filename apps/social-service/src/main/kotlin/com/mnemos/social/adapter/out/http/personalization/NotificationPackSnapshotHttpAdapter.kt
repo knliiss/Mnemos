@@ -1,23 +1,23 @@
-package com.mnemos.social.adapter.out.persistence.spotlight
+package com.mnemos.social.adapter.out.http.personalization
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.social.application.spotlight.port.out.NotificationPackSnapshotProvider
 import com.mnemos.social.domain.spotlight.model.NotificationPackSelectionSnapshot
 import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-class NotificationPackSnapshotAdapter(
-    private val repository: NotificationPackSelectionJpaRepository,
+class NotificationPackSnapshotHttpAdapter(
+    private val client: PersonalizationServiceClient,
+    private val objectMapper: ObjectMapper,
 ) : NotificationPackSnapshotProvider {
     override fun findActive(userId: UUID): NotificationPackSelectionSnapshot? {
-        val selection = repository.findById(userId).orElse(null) ?: return null
-        val personalizationId = selection.personalizationId ?: return null
-        val snapshotJson = selection.snapshotJson ?: return null
+        val selection = client.getNotificationPackSelection(userId) ?: return null
 
         return NotificationPackSelectionSnapshot(
-            personalizationId = personalizationId,
+            personalizationId = selection.personalizationId,
             revision = selection.selectionRevision,
-            snapshotJson = snapshotJson,
+            snapshotJson = objectMapper.writeValueAsString(selection.pack),
         )
     }
 }
