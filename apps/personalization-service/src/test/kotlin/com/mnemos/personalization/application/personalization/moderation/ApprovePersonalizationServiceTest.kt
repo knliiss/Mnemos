@@ -3,6 +3,8 @@ package com.mnemos.personalization.application.personalization.moderation
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
+import com.mnemos.personalization.application.personalization.support.PersonalizationModerationSupport
+import com.mnemos.personalization.application.personalization.usecase.approve.ApprovePersonalizationService
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -24,7 +26,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 
-class ModeratePersonalizationServiceTest {
+class ApprovePersonalizationServiceTest {
     private val now = Instant.parse("2026-08-15T16:30:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
@@ -43,7 +45,7 @@ class ModeratePersonalizationServiceTest {
             )
 
         assertThrows(PersonalizationAccessDeniedException::class.java) {
-            service.approve(
+            service.execute(
                 personalizationId = personalization.id,
                 price = PersonalizationPrice(Currency.COIN, 1_000),
             )
@@ -64,7 +66,7 @@ class ModeratePersonalizationServiceTest {
             )
 
         val result =
-            service.approve(
+            service.execute(
                 personalizationId = personalization.id,
                 price = PersonalizationPrice(Currency.COIN, 1_000),
             )
@@ -87,7 +89,7 @@ class ModeratePersonalizationServiceTest {
             )
 
         val result =
-            service.approve(
+            service.execute(
                 personalizationId = personalization.id,
                 price = PersonalizationPrice(Currency.COIN, 1_000),
             )
@@ -98,13 +100,21 @@ class ModeratePersonalizationServiceTest {
     private fun service(
         personalization: Personalization,
         actor: PersonalizationActor,
-    ): ModeratePersonalizationService =
-        ModeratePersonalizationService(
-            actorProvider = FixedActorProvider(actor),
+    ): ApprovePersonalizationService {
+        val repository = FakePersonalizationRepository(personalization)
+        val support =
+            PersonalizationModerationSupport(
+                actorProvider = FixedActorProvider(actor),
+                repository = repository,
+            )
+
+        return ApprovePersonalizationService(
+            support = support,
             pricePolicy = PersonalizationPricePolicy(PersonalizationPricingProperties()),
-            repository = FakePersonalizationRepository(personalization),
+            repository = repository,
             clock = clock,
         )
+    }
 
     private fun personalizationInReview(creatorUserId: UserId): Personalization =
         Personalization

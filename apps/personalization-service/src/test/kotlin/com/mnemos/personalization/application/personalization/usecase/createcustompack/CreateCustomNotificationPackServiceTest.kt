@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.personalization.create
+package com.mnemos.personalization.application.personalization.usecase.createcustompack
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
@@ -190,7 +190,8 @@ class CreateCustomNotificationPackServiceTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
             personalizations.filter { it.creatorUserId == creatorUserId }
 
-        override fun findByStatus(status: PersonalizationStatus): List<Personalization> = personalizations.filter { it.status == status }
+        override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
+            personalizations.filter { it.status == status }
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {
@@ -225,8 +226,8 @@ class CreateCustomNotificationPackServiceTest {
         ) = Unit
     }
 
-    companion object {
-        private fun notificationPack(): PersonalizationContent.NotificationPack =
+    private companion object {
+        fun notificationPack(): PersonalizationContent.NotificationPack =
             PersonalizationContent.NotificationPack(
                 mixedAggregateTitle = "Mixed events",
                 templates =

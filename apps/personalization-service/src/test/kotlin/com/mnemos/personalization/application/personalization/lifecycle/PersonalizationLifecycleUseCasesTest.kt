@@ -9,6 +9,12 @@ import com.mnemos.personalization.application.ownership.event.NotificationPackSe
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
+import com.mnemos.personalization.application.personalization.support.PersonalizationCreatorSupport
+import com.mnemos.personalization.application.personalization.usecase.submit.SubmitPersonalizationService
+import com.mnemos.personalization.application.personalization.usecase.updatecreator.UpdateCreatorPersonalizationService
+import com.mnemos.personalization.application.personalization.usecase.updatecreator.UpdatePersonalizationCommand
+import com.mnemos.personalization.application.personalization.usecase.updatecustompack.UpdateCustomNotificationPackCommand
+import com.mnemos.personalization.application.personalization.usecase.updatecustompack.UpdateCustomNotificationPackService
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -38,7 +44,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-class PersonalizationLifecycleServiceTest {
+class PersonalizationLifecycleUseCasesTest {
     private val now = Instant.parse("2026-08-15T14:40:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
@@ -51,10 +57,12 @@ class PersonalizationLifecycleServiceTest {
         val updatedContent = notificationPack("Updated")
 
         val result =
-            fixture.service.updateCustomNotificationPack(
-                personalizationId = personalization.id,
-                name = "Updated Pack",
-                content = updatedContent,
+            fixture.updateCustomService.execute(
+                UpdateCustomNotificationPackCommand(
+                    personalizationId = personalization.id,
+                    name = "Updated Pack",
+                    content = updatedContent,
+                ),
             )
 
         val event = fixture.publisher.events.single()
@@ -75,10 +83,12 @@ class PersonalizationLifecycleServiceTest {
         val ownership = ownership(personalization, userId, active = false)
         val fixture = fixture(personalization, ownership, userId)
 
-        fixture.service.updateCustomNotificationPack(
-            personalizationId = personalization.id,
-            name = "Updated Pack",
-            content = notificationPack("Updated"),
+        fixture.updateCustomService.execute(
+            UpdateCustomNotificationPackCommand(
+                personalizationId = personalization.id,
+                name = "Updated Pack",
+                content = notificationPack("Updated"),
+            ),
         )
 
         assertTrue(fixture.publisher.events.isEmpty())
@@ -92,7 +102,7 @@ class PersonalizationLifecycleServiceTest {
         val fixture = fixture(personalization, ownership, userId)
 
         assertThrows(PersonalizationAccessDeniedException::class.java) {
-            fixture.service.update(
+            fixture.updateCreatorService.execute(
                 UpdatePersonalizationCommand(
                     personalizationId = personalization.id,
                     name = "Updated creator pack",
@@ -117,7 +127,7 @@ class PersonalizationLifecycleServiceTest {
             )
 
         assertThrows(PersonalizationAccessDeniedException::class.java) {
-            fixture.service.update(
+            fixture.updateCreatorService.execute(
                 UpdatePersonalizationCommand(
                     personalizationId = personalization.id,
                     name = "Cheaper custom pack",
@@ -143,7 +153,7 @@ class PersonalizationLifecycleServiceTest {
         val fixture = fixture(personalization, ownership, userId)
 
         assertThrows(PersonalizationAccessDeniedException::class.java) {
-            fixture.service.submit(personalization.id)
+            fixture.submitService.execute(personalization.id)
         }
     }
 
@@ -160,7 +170,7 @@ class PersonalizationLifecycleServiceTest {
                 roles = setOf(UserRole.PERSONALIZATION_CREATOR),
             )
 
-        val result = fixture.service.submit(personalization.id)
+        val result = fixture.submitService.execute(personalization.id)
 
         assertEquals(PersonalizationStatus.IN_REVIEW, result.status)
     }
@@ -186,7 +196,7 @@ class PersonalizationLifecycleServiceTest {
             )
 
         assertThrows(PersonalizationNotOwnedException::class.java) {
-            fixture.service.submit(personalization.id)
+            fixture.submitService.execute(personalization.id)
         }
 
         assertEquals(PersonalizationStatus.PRIVATE, personalization.status)
@@ -207,18 +217,34 @@ class PersonalizationLifecycleServiceTest {
                 revisionStore = IncrementingSelectionRevisionStore(),
                 clock = clock,
             )
-        val service =
-            PersonalizationLifecycleService(
+        val support =
+            PersonalizationCreatorSupport(
                 actorProvider = FixedActorProvider(userId, roles),
-                pricePolicy = PersonalizationPricePolicy(PersonalizationPricingProperties()),
                 repository = personalizationRepository,
                 ownershipRepository = ownershipRepository,
-                notificationPackSelectionEventPublisher = selectionEventPublisher,
-                clock = clock,
+                selectionEventPublisher = selectionEventPublisher,
             )
 
         return Fixture(
-            service = service,
+            updateCustomService =
+                UpdateCustomNotificationPackService(
+                    support = support,
+                    repository = personalizationRepository,
+                    clock = clock,
+                ),
+            updateCreatorService =
+                UpdateCreatorPersonalizationService(
+                    support = support,
+                    pricePolicy = PersonalizationPricePolicy(PersonalizationPricingProperties()),
+                    repository = personalizationRepository,
+                    clock = clock,
+                ),
+            submitService =
+                SubmitPersonalizationService(
+                    support = support,
+                    repository = personalizationRepository,
+                    clock = clock,
+                ),
             publisher = publisher,
         )
     }
@@ -295,7 +321,9 @@ class PersonalizationLifecycleServiceTest {
         )
 
     private data class Fixture(
-        val service: PersonalizationLifecycleService,
+        val updateCustomService: UpdateCustomNotificationPackService,
+        val updateCreatorService: UpdateCreatorPersonalizationService,
+        val submitService: SubmitPersonalizationService,
         val publisher: RecordingIntegrationEventPublisher,
     )
 
@@ -355,7 +383,7 @@ class PersonalizationLifecycleServiceTest {
             personalizationId: PersonalizationId,
         ): OwnedPersonalization? =
             ownership.takeIf {
-                it.owner == owner && ownership.personalizationId == personalizationId
+                it.owner == owner && it.personalizationId == personalizationId
             }
 
         override fun findActive(
@@ -366,7 +394,8 @@ class PersonalizationLifecycleServiceTest {
                 it.owner == owner && it.type == type && it.active
             }
 
-        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = listOf(ownership).filter { it.owner == owner }
+        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
+            listOf(ownership).filter { it.owner == owner }
 
         override fun deactivateActive(
             owner: PersonalizationOwner,
