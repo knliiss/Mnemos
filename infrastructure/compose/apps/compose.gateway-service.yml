@@ -22,6 +22,8 @@ services:
       REALTIME_SERVICE_URL: http://realtime-service:8088
       REALTIME_SERVICE_HOST: realtime-service
       PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
+      SOCIAL_SERVICE_URL: http://social-service:8090
+      PROFILE_SERVICE_URL: http://profile-service:8091
       GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
       MNEMOS_REALTIME_FORWARDING_TOKEN: ${MNEMOS_REALTIME_FORWARDING_TOKEN}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
@@ -61,6 +63,10 @@ services:
       realtime-service:
         condition: service_started
       personalization-service:
+        condition: service_started
+      social-service:
+        condition: service_started
+      profile-service:
         condition: service_started
     networks:
       - mnemos-network

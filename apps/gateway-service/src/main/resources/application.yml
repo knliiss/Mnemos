@@ -25,6 +25,11 @@ spring:
               predicates:
                 - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**,/api/v1/users/me/balances/**,/api/v1/users/me/transactions/**
 
+            - id: social-api
+              uri: ${SOCIAL_SERVICE_URL:http://localhost:8090}
+              predicates:
+                - Path=/api/v1/accounts/*/comments/**,/api/v1/accounts/*/reaction/**,/api/v1/comments/**,/api/v1/drop-spotlights/**
+
             - id: account-api
               uri: ${ACCOUNT_SERVICE_URL:http://localhost:8081}
               predicates:
@@ -64,6 +69,11 @@ spring:
               uri: ${PERSONALIZATION_SERVICE_URL:http://localhost:8089}
               predicates:
                 - Path=/api/v1/personalizations/**
+
+            - id: profile-api
+              uri: ${PROFILE_SERVICE_URL:http://localhost:8091}
+              predicates:
+                - Path=/api/v1/profiles/**
 
             - id: collector-websocket
               uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
