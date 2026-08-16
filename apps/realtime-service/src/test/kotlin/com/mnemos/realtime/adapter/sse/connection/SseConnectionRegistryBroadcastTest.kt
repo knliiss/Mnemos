@@ -1,10 +1,10 @@
 package com.mnemos.realtime.adapter.sse.connection
 
+import com.mnemos.realtime.application.broadcast.model.DropSpotlightBroadcastPayload
 import com.mnemos.realtime.application.broadcast.model.DropSpotlightPresentationMode
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import com.mnemos.realtime.support.RecordingRealtimeEventSink
-import com.mnemos.social.contracts.event.DropSpotlightPublishedV1
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -88,7 +88,7 @@ class SseConnectionRegistryBroadcastTest {
         val publishedAt = Instant.parse("2026-08-16T00:00:00Z")
         val expiresAt = Instant.parse("2026-08-16T01:00:00Z")
         val payload =
-            DropSpotlightPublishedV1(
+            DropSpotlightBroadcastPayload(
                 spotlightId = spotlightId,
                 sequence = 7,
                 sourceAccountId = UUID.fromString("019c1ab0-5500-7000-8000-000000000011"),

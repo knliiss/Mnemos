@@ -1,9 +1,9 @@
 package com.mnemos.realtime.application.broadcast
 
+import com.mnemos.realtime.application.broadcast.model.DropSpotlightBroadcastPayload
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastFanout
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastReplayStore
-import com.mnemos.social.contracts.event.DropSpotlightPublishedV1
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -55,8 +55,8 @@ class PublishRealtimeBroadcastServiceTest {
     private fun createBroadcast(expiresAt: Instant): RealtimeBroadcast {
         val spotlightId = UUID.fromString("019c1ab0-4400-7000-8000-000000000001")
         val publishedAt = Instant.parse("2026-08-16T00:00:00Z")
-        val event =
-            DropSpotlightPublishedV1(
+        val payload =
+            DropSpotlightBroadcastPayload(
                 spotlightId = spotlightId,
                 sequence = 10,
                 sourceAccountId = UUID.fromString("019c1ab0-4400-7000-8000-000000000002"),
@@ -74,10 +74,10 @@ class PublishRealtimeBroadcastServiceTest {
 
         return RealtimeBroadcast(
             id = spotlightId,
-            sequence = event.sequence,
+            sequence = payload.sequence,
             occurredAt = publishedAt,
             expiresAt = expiresAt,
-            payload = event,
+            payload = payload,
         )
     }
 }

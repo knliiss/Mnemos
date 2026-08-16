@@ -4,8 +4,8 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
+import com.mnemos.realtime.adapter.inbound.messaging.social.DropSpotlightPublishedMessageMapper.toRealtimeBroadcast
 import com.mnemos.realtime.application.broadcast.PublishRealtimeBroadcastService
-import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.social.contracts.SocialEventContract
 import com.mnemos.social.contracts.SocialEventType
 import com.mnemos.social.contracts.event.DropSpotlightPublishedV1
@@ -36,17 +36,7 @@ class DropSpotlightPublishedHandler(
     override val consumer = "realtime-service.drop-spotlight-published"
 
     override fun handle(message: ConsumedMessage<DropSpotlightPublishedV1>) {
-        val event = message.payload
-
-        service.execute(
-            RealtimeBroadcast(
-                id = event.spotlightId,
-                sequence = event.sequence,
-                occurredAt = event.publishedAt,
-                expiresAt = event.expiresAt,
-                payload = event,
-            ),
-        )
+        service.execute(message.payload.toRealtimeBroadcast())
     }
 
     private companion object {
