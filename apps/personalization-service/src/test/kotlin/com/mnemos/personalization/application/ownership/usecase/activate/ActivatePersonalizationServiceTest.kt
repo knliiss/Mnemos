@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.ownership
+package com.mnemos.personalization.application.ownership.usecase.activate
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
@@ -8,10 +8,8 @@ import com.mnemos.personalization.application.ownership.event.NotificationPackSe
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
 import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
-import com.mnemos.personalization.application.ownership.usecase.activate.ActivatePersonalizationService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
-import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.GradientStop
@@ -20,15 +18,14 @@ import com.mnemos.personalization.domain.personalization.model.NotificationTempl
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
-import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
-import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.springframework.dao.DataIntegrityViolationException
@@ -44,17 +41,25 @@ class ActivatePersonalizationServiceTest {
     fun `concurrent creator claim conflict returns application conflict`() {
         val userId = UserId.generate()
         val personalization = publishedNotificationPack(userId)
-        val ownershipRepository = ConflictingOwnedPersonalizationRepository()
-        val service =
-            createService(
+        val ownershipRepository = mock<OwnedPersonalizationRepository>()
+        val fixture =
+            fixture(
                 userId = userId,
                 personalization = personalization,
-                accountAccess = UnusedAccountAccess(),
                 ownershipRepository = ownershipRepository,
             )
+        val owner = PersonalizationOwner.User(userId)
+
+        whenever(ownershipRepository.findForUpdate(owner, personalization.id)).thenReturn(null)
+        whenever(fixture.purchaseOperationRepository.existsPending(owner, personalization.id)).thenReturn(false)
+        whenever(ownershipRepository.save(any())).thenThrow(
+            DataIntegrityViolationException(
+                "duplicate key value violates unique constraint \"uq_owned_personalizations_owner_item\"",
+            ),
+        )
 
         assertThrows(PersonalizationOwnershipConflictException::class.java) {
-            service.execute(personalization.id)
+            fixture.service.execute(personalization.id)
         }
     }
 
@@ -63,16 +68,19 @@ class ActivatePersonalizationServiceTest {
         val userId = UserId.generate()
         val personalization = publishedNotificationPack(userId)
         personalization.unlist(now.minusSeconds(20))
-        val service =
-            createService(
+        val ownershipRepository = mock<OwnedPersonalizationRepository>()
+        val fixture =
+            fixture(
                 userId = userId,
                 personalization = personalization,
-                accountAccess = UnusedAccountAccess(),
-                ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                ownershipRepository = ownershipRepository,
             )
+        val owner = PersonalizationOwner.User(userId)
+
+        whenever(ownershipRepository.findForUpdate(owner, personalization.id)).thenReturn(null)
 
         assertThrows(PersonalizationNotOwnedException::class.java) {
-            service.execute(personalization.id)
+            fixture.service.execute(personalization.id)
         }
     }
 
@@ -81,38 +89,51 @@ class ActivatePersonalizationServiceTest {
         val creatorUserId = UserId.generate()
         val accountId = AccountId.generate()
         val personalization = publishedNickStyle(creatorUserId)
-        val owner = PersonalizationOwner.Account(accountId)
-        val purchaseOperationRepository = mock<PurchaseOperationRepository>()
-
-        whenever(
-            purchaseOperationRepository.existsPending(
-                owner = owner,
-                personalizationId = personalization.id,
-            ),
-        ).thenReturn(true)
-
-        val service =
-            createService(
+        val ownershipRepository = mock<OwnedPersonalizationRepository>()
+        val accountAccess = mock<PersonalizationAccountAccess>()
+        val fixture =
+            fixture(
                 userId = creatorUserId,
                 personalization = personalization,
-                accountAccess = FixedAccountAccess(accountId),
-                ownershipRepository = EmptyOwnedPersonalizationRepository(),
-                purchaseOperationRepository = purchaseOperationRepository,
+                ownershipRepository = ownershipRepository,
+                accountAccess = accountAccess,
             )
+        val owner = PersonalizationOwner.Account(accountId)
+
+        whenever(accountAccess.requireActiveAccount(creatorUserId)).thenReturn(accountId)
+        whenever(
+            accountAccess.hasPermission(
+                accountId = accountId,
+                userId = creatorUserId,
+                permission = RolePermission.APPLY_PERSONALIZATIONS,
+            ),
+        ).thenReturn(true)
+        whenever(ownershipRepository.findForUpdate(owner, personalization.id)).thenReturn(null)
+        whenever(fixture.purchaseOperationRepository.existsPending(owner, personalization.id)).thenReturn(true)
 
         assertThrows(PersonalizationOwnershipConflictException::class.java) {
-            service.execute(personalization.id)
+            fixture.service.execute(personalization.id)
         }
     }
 
-    private fun createService(
+    private fun fixture(
         userId: UserId,
         personalization: Personalization,
-        accountAccess: PersonalizationAccountAccess,
         ownershipRepository: OwnedPersonalizationRepository,
-        purchaseOperationRepository: PurchaseOperationRepository = mock(),
-    ): ActivatePersonalizationService {
-        val personalizationRepository = FixedPersonalizationRepository(personalization)
+        accountAccess: PersonalizationAccountAccess = mock(),
+    ): Fixture {
+        val actorProvider = mock<CurrentPersonalizationActorProvider>()
+        val personalizationRepository = mock<PersonalizationRepository>()
+        val purchaseOperationRepository = mock<PurchaseOperationRepository>()
+
+        whenever(actorProvider.requireActor()).thenReturn(
+            PersonalizationActor(
+                userId = userId,
+                roles = emptySet(),
+            ),
+        )
+        whenever(personalizationRepository.findByIdForUpdate(personalization.id)).thenReturn(personalization)
+
         val support =
             PersonalizationOwnershipSupport(
                 accountAccess = accountAccess,
@@ -120,13 +141,18 @@ class ActivatePersonalizationServiceTest {
                 ownershipRepository = ownershipRepository,
                 purchaseOperationRepository = purchaseOperationRepository,
             )
+        val service =
+            ActivatePersonalizationService(
+                actorProvider = actorProvider,
+                ownershipRepository = ownershipRepository,
+                support = support,
+                selectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
+                clock = clock,
+            )
 
-        return ActivatePersonalizationService(
-            actorProvider = FixedActorProvider(userId),
-            ownershipRepository = ownershipRepository,
-            support = support,
-            selectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
-            clock = clock,
+        return Fixture(
+            service = service,
+            purchaseOperationRepository = purchaseOperationRepository,
         )
     }
 
@@ -212,105 +238,8 @@ class ActivatePersonalizationServiceTest {
                 },
         )
 
-    private class FixedActorProvider(
-        userId: UserId,
-    ) : CurrentPersonalizationActorProvider {
-        private val actor =
-            PersonalizationActor(
-                userId = userId,
-                roles = emptySet(),
-            )
-
-        override fun requireActor(): PersonalizationActor = actor
-    }
-
-    private class UnusedAccountAccess : PersonalizationAccountAccess {
-        override fun requireActiveAccount(userId: UserId): AccountId =
-            error("Account access must not be used for user-target personalization")
-
-        override fun hasPermission(
-            accountId: AccountId,
-            userId: UserId,
-            permission: RolePermission,
-        ): Boolean = error("Account access must not be used for user-target personalization")
-    }
-
-    private class FixedAccountAccess(
-        private val accountId: AccountId,
-    ) : PersonalizationAccountAccess {
-        override fun requireActiveAccount(userId: UserId): AccountId = accountId
-
-        override fun hasPermission(
-            accountId: AccountId,
-            userId: UserId,
-            permission: RolePermission,
-        ): Boolean = permission == RolePermission.APPLY_PERSONALIZATIONS
-    }
-
-    private class FixedPersonalizationRepository(
-        private val personalization: Personalization,
-    ) : PersonalizationRepository {
-        override fun save(personalization: Personalization): Personalization = personalization
-
-        override fun findById(id: PersonalizationId): Personalization? = personalization.takeIf { it.id == id }
-
-        override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
-
-        override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
-    }
-
-    private class EmptyOwnedPersonalizationRepository : OwnedPersonalizationRepository {
-        override fun save(ownership: OwnedPersonalization): OwnedPersonalization = ownership
-
-        override fun exists(
-            owner: PersonalizationOwner,
-            personalizationId: PersonalizationId,
-        ): Boolean = false
-
-        override fun find(
-            owner: PersonalizationOwner,
-            personalizationId: PersonalizationId,
-        ): OwnedPersonalization? = null
-
-        override fun findActive(
-            owner: PersonalizationOwner,
-            type: PersonalizationType,
-        ): OwnedPersonalization? = null
-
-        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
-
-        override fun deactivateActive(
-            owner: PersonalizationOwner,
-            type: PersonalizationType,
-        ) = Unit
-    }
-
-    private class ConflictingOwnedPersonalizationRepository : OwnedPersonalizationRepository {
-        override fun save(ownership: OwnedPersonalization): OwnedPersonalization =
-            throw DataIntegrityViolationException(
-                "duplicate key value violates unique constraint \"uq_owned_personalizations_owner_item\"",
-            )
-
-        override fun exists(
-            owner: PersonalizationOwner,
-            personalizationId: PersonalizationId,
-        ): Boolean = false
-
-        override fun find(
-            owner: PersonalizationOwner,
-            personalizationId: PersonalizationId,
-        ): OwnedPersonalization? = null
-
-        override fun findActive(
-            owner: PersonalizationOwner,
-            type: PersonalizationType,
-        ): OwnedPersonalization? = null
-
-        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
-
-        override fun deactivateActive(
-            owner: PersonalizationOwner,
-            type: PersonalizationType,
-        ) = Unit
-    }
+    private data class Fixture(
+        val service: ActivatePersonalizationService,
+        val purchaseOperationRepository: PurchaseOperationRepository,
+    )
 }

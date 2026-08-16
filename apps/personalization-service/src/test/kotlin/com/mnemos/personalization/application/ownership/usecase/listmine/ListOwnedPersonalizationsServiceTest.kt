@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.ownership
+package com.mnemos.personalization.application.ownership.usecase.listmine
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
@@ -9,8 +9,6 @@ import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.ownership.port.out.OwnedPersonalizationReader
 import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
-import com.mnemos.personalization.application.ownership.usecase.listmine.ListOwnedPersonalizationsQuery
-import com.mnemos.personalization.application.ownership.usecase.listmine.ListOwnedPersonalizationsService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
