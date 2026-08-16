@@ -3,6 +3,11 @@ package com.mnemos.personalization.application.badge
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.personalization.application.badge.exception.BadgeAlreadyExistsException
+import com.mnemos.personalization.application.badge.model.CreateBadgeCommand
+import com.mnemos.personalization.application.badge.support.BadgeAdministrationSupport
+import com.mnemos.personalization.application.badge.usecase.create.CreateBadgeService
+import com.mnemos.personalization.application.badge.usecase.grant.GrantBadgeService
+import com.mnemos.personalization.application.badge.usecase.revoke.RevokeBadgeService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.badge.model.Badge
@@ -24,20 +29,25 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 
-class BadgeAdministrationServiceTest {
+class BadgeAdministrationUseCasesTest {
     private val now = Instant.parse("2026-08-15T20:00:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     @Test
     fun `concurrent badge code conflict returns application conflict`() {
         val repository = mock<BadgeRepository>()
-        val service = service(repository)
+        val service =
+            CreateBadgeService(
+                support = support(repository),
+                repository = repository,
+                clock = clock,
+            )
 
         whenever(repository.findByCode("EARLY_SUPPORTER")).thenReturn(null)
         whenever(repository.save(any())).thenThrow(DataIntegrityViolationException("duplicate badge code"))
 
         assertThrows(BadgeAlreadyExistsException::class.java) {
-            service.create(
+            service.execute(
                 CreateBadgeCommand(
                     code = "EARLY_SUPPORTER",
                     name = "Early Supporter",
@@ -51,7 +61,12 @@ class BadgeAdministrationServiceTest {
     @Test
     fun `grant returns existing assignment after locking badge definition`() {
         val repository = mock<BadgeRepository>()
-        val service = service(repository)
+        val service =
+            GrantBadgeService(
+                support = support(repository),
+                repository = repository,
+                clock = clock,
+            )
         val userId = UserId.generate()
         val badge = badge()
         val existing =
@@ -66,7 +81,7 @@ class BadgeAdministrationServiceTest {
         whenever(repository.findUserBadge(userId, badge.id)).thenReturn(existing)
 
         val result =
-            service.grant(
+            service.execute(
                 userId = userId,
                 badgeId = badge.id,
             )
@@ -79,7 +94,11 @@ class BadgeAdministrationServiceTest {
     @Test
     fun `revoke locks badge definition before assignment`() {
         val repository = mock<BadgeRepository>()
-        val service = service(repository)
+        val service =
+            RevokeBadgeService(
+                support = support(repository),
+                repository = repository,
+            )
         val userId = UserId.generate()
         val badge = badge()
         val existing =
@@ -93,7 +112,7 @@ class BadgeAdministrationServiceTest {
         whenever(repository.findByIdForUpdate(badge.id)).thenReturn(badge)
         whenever(repository.findUserBadgeForUpdate(userId, badge.id)).thenReturn(existing)
 
-        service.revoke(
+        service.execute(
             userId = userId,
             badgeId = badge.id,
         )
@@ -105,8 +124,8 @@ class BadgeAdministrationServiceTest {
         order.verify(repository).deleteUserBadge(userId, badge.id)
     }
 
-    private fun service(repository: BadgeRepository): BadgeAdministrationService =
-        BadgeAdministrationService(
+    private fun support(repository: BadgeRepository): BadgeAdministrationSupport =
+        BadgeAdministrationSupport(
             actorProvider =
                 FixedActorProvider(
                     PersonalizationActor(
@@ -115,7 +134,6 @@ class BadgeAdministrationServiceTest {
                     ),
                 ),
             repository = repository,
-            clock = clock,
         )
 
     private fun badge(): Badge =

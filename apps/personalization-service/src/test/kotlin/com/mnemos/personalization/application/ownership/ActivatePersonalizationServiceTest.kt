@@ -7,7 +7,8 @@ import com.mnemos.personalization.application.account.port.out.PersonalizationAc
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
-import com.mnemos.personalization.application.ownership.port.out.OwnedPersonalizationReader
+import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
+import com.mnemos.personalization.application.ownership.usecase.activate.ActivatePersonalizationService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
@@ -35,7 +36,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 
-class PersonalizationOwnershipServiceTest {
+class ActivatePersonalizationServiceTest {
     private val now = Instant.parse("2026-08-15T19:20:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
@@ -45,19 +46,15 @@ class PersonalizationOwnershipServiceTest {
         val personalization = publishedNotificationPack(userId)
         val ownershipRepository = ConflictingOwnedPersonalizationRepository()
         val service =
-            PersonalizationOwnershipService(
-                actorProvider = FixedActorProvider(userId),
+            createService(
+                userId = userId,
+                personalization = personalization,
                 accountAccess = UnusedAccountAccess(),
-                personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = ownershipRepository,
-                ownershipReader = mock<OwnedPersonalizationReader>(),
-                purchaseOperationRepository = mock<PurchaseOperationRepository>(),
-                notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
-                clock = clock,
             )
 
         assertThrows(PersonalizationOwnershipConflictException::class.java) {
-            service.activate(personalization.id)
+            service.execute(personalization.id)
         }
     }
 
@@ -67,19 +64,15 @@ class PersonalizationOwnershipServiceTest {
         val personalization = publishedNotificationPack(userId)
         personalization.unlist(now.minusSeconds(20))
         val service =
-            PersonalizationOwnershipService(
-                actorProvider = FixedActorProvider(userId),
+            createService(
+                userId = userId,
+                personalization = personalization,
                 accountAccess = UnusedAccountAccess(),
-                personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = EmptyOwnedPersonalizationRepository(),
-                ownershipReader = mock<OwnedPersonalizationReader>(),
-                purchaseOperationRepository = mock<PurchaseOperationRepository>(),
-                notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
-                clock = clock,
             )
 
         assertThrows(PersonalizationNotOwnedException::class.java) {
-            service.activate(personalization.id)
+            service.execute(personalization.id)
         }
     }
 
@@ -99,20 +92,42 @@ class PersonalizationOwnershipServiceTest {
         ).thenReturn(true)
 
         val service =
-            PersonalizationOwnershipService(
-                actorProvider = FixedActorProvider(creatorUserId),
+            createService(
+                userId = creatorUserId,
+                personalization = personalization,
                 accountAccess = FixedAccountAccess(accountId),
-                personalizationRepository = FixedPersonalizationRepository(personalization),
                 ownershipRepository = EmptyOwnedPersonalizationRepository(),
-                ownershipReader = mock<OwnedPersonalizationReader>(),
                 purchaseOperationRepository = purchaseOperationRepository,
-                notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
-                clock = clock,
             )
 
         assertThrows(PersonalizationOwnershipConflictException::class.java) {
-            service.activate(personalization.id)
+            service.execute(personalization.id)
         }
+    }
+
+    private fun createService(
+        userId: UserId,
+        personalization: Personalization,
+        accountAccess: PersonalizationAccountAccess,
+        ownershipRepository: OwnedPersonalizationRepository,
+        purchaseOperationRepository: PurchaseOperationRepository = mock(),
+    ): ActivatePersonalizationService {
+        val personalizationRepository = FixedPersonalizationRepository(personalization)
+        val support =
+            PersonalizationOwnershipSupport(
+                accountAccess = accountAccess,
+                personalizationRepository = personalizationRepository,
+                ownershipRepository = ownershipRepository,
+                purchaseOperationRepository = purchaseOperationRepository,
+            )
+
+        return ActivatePersonalizationService(
+            actorProvider = FixedActorProvider(userId),
+            ownershipRepository = ownershipRepository,
+            support = support,
+            selectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
+            clock = clock,
+        )
     }
 
     private fun publishedNotificationPack(userId: UserId): Personalization {
@@ -142,7 +157,11 @@ class PersonalizationOwnershipServiceTest {
     }
 
     private fun publishedNickStyle(userId: UserId): Personalization {
-        val price = PersonalizationPrice(Currency.COIN, 500)
+        val price =
+            PersonalizationPrice(
+                currency = Currency.COIN,
+                amount = 500,
+            )
         val personalization =
             Personalization.createCreatorDraft(
                 creatorUserId = userId,

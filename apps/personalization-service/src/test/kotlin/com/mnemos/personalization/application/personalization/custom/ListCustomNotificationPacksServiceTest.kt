@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.personalization.custom.port.out.CustomNotificationPackReader
+import com.mnemos.personalization.application.personalization.usecase.listcustompacks.ListCustomNotificationPacksService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.personalization.model.Personalization
@@ -13,7 +14,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-class CustomNotificationPackQueryServiceTest {
+class ListCustomNotificationPacksServiceTest {
     @Test
     fun `list mine queries only current users custom packs`() {
         val userId = UserId.generate()
@@ -48,12 +49,12 @@ class CustomNotificationPackQueryServiceTest {
         ).thenReturn(expected)
 
         val service =
-            CustomNotificationPackQueryService(
+            ListCustomNotificationPacksService(
                 actorProvider = actorProvider,
                 reader = reader,
             )
 
-        val result = service.listMine(page)
+        val result = service.execute(page)
 
         assertEquals(expected, result)
         verify(reader).findByCreatorUserId(

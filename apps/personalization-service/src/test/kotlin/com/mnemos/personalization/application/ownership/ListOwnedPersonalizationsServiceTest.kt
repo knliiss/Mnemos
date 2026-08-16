@@ -7,9 +7,10 @@ import com.mnemos.personalization.application.account.exception.ActiveAccountReq
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
-import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.port.out.OwnedPersonalizationReader
-import com.mnemos.personalization.application.ownership.query.ListOwnedPersonalizationsQuery
+import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
+import com.mnemos.personalization.application.ownership.usecase.listmine.ListOwnedPersonalizationsQuery
+import com.mnemos.personalization.application.ownership.usecase.listmine.ListOwnedPersonalizationsService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
@@ -22,9 +23,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Clock
 
-class PersonalizationOwnershipListingServiceTest {
+class ListOwnedPersonalizationsServiceTest {
     @Test
     fun `list mine delegates category and page with readable active account`() {
         val userId = UserId.generate()
@@ -82,7 +82,7 @@ class PersonalizationOwnershipListingServiceTest {
                 ownershipReader = ownershipReader,
             )
 
-        val result = service.listMine(query)
+        val result = service.execute(query)
 
         assertEquals(expected, result)
         verify(ownershipReader).findOwned(
@@ -143,7 +143,7 @@ class PersonalizationOwnershipListingServiceTest {
                 ownershipReader = ownershipReader,
             )
 
-        val result = service.listMine(query)
+        val result = service.execute(query)
 
         assertEquals(expected, result)
         verify(ownershipReader).findOwned(
@@ -158,15 +158,19 @@ class PersonalizationOwnershipListingServiceTest {
         actorProvider: CurrentPersonalizationActorProvider,
         accountAccess: PersonalizationAccountAccess,
         ownershipReader: OwnedPersonalizationReader,
-    ): PersonalizationOwnershipService =
-        PersonalizationOwnershipService(
+    ): ListOwnedPersonalizationsService {
+        val support =
+            PersonalizationOwnershipSupport(
+                accountAccess = accountAccess,
+                personalizationRepository = mock<PersonalizationRepository>(),
+                ownershipRepository = mock<OwnedPersonalizationRepository>(),
+                purchaseOperationRepository = mock<PurchaseOperationRepository>(),
+            )
+
+        return ListOwnedPersonalizationsService(
             actorProvider = actorProvider,
-            accountAccess = accountAccess,
-            personalizationRepository = mock<PersonalizationRepository>(),
-            ownershipRepository = mock<OwnedPersonalizationRepository>(),
-            ownershipReader = ownershipReader,
-            purchaseOperationRepository = mock<PurchaseOperationRepository>(),
-            notificationPackSelectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
-            clock = Clock.systemUTC(),
+            reader = ownershipReader,
+            support = support,
         )
+    }
 }
