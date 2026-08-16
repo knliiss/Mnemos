@@ -1,5 +1,6 @@
 plugins {
     id("mnemos.kotlin-common")
+    id("java-library")
 }
 
 dependencies {
