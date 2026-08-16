@@ -6,12 +6,12 @@ import com.mnemos.social.application.spotlight.port.out.DropSpotlightQueue
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightReservation
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightWallet
 import com.mnemos.social.application.spotlight.port.out.ItemDropLookup
-import com.mnemos.social.application.spotlight.port.out.NotificationPackSnapshotProvider
 import com.mnemos.social.configuration.spotlight.DropSpotlightProperties
 import com.mnemos.social.domain.spotlight.model.DropSpotlight
 import com.mnemos.social.domain.spotlight.model.ItemDropSnapshot
 import com.mnemos.social.domain.spotlight.repository.DropSpotlightRepository
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -51,6 +51,8 @@ class CreateDropSpotlightServiceTest {
         assertEquals(fixture.actor.userId, result.buyerUserId)
         assertEquals(fixture.actor.accountId, result.sourceAccountId)
         assertEquals(25, result.pricePrime)
+        assertNull(result.notificationPack)
+
         verify(fixture.wallet).requestDebit(result)
     }
 
@@ -74,6 +76,7 @@ class CreateDropSpotlightServiceTest {
             }
 
         assertEquals(HttpStatus.CONFLICT, exception.statusCode)
+
         verify(fixture.wallet, never()).requestDebit(any())
         verify(fixture.repository, never()).save(any())
     }
@@ -97,15 +100,17 @@ class CreateDropSpotlightServiceTest {
             }
 
         assertEquals(HttpStatus.CONFLICT, exception.statusCode)
+
         verify(fixture.queue).reserve(fixture.now)
         verify(fixture.wallet, never()).requestDebit(any())
     }
 
     @Test
     fun `rejects drop owned by another account`() {
-        val fixture = Fixture(
-            itemDropOwner = "AnotherPlayer",
-        )
+        val fixture =
+            Fixture(
+                itemDropOwner = "AnotherPlayer",
+            )
 
         val exception =
             assertThrows(ResponseStatusException::class.java) {
@@ -113,6 +118,7 @@ class CreateDropSpotlightServiceTest {
             }
 
         assertEquals(HttpStatus.FORBIDDEN, exception.statusCode)
+
         verify(fixture.queue, never()).reserve(any())
         verify(fixture.wallet, never()).requestDebit(any())
     }
@@ -149,7 +155,6 @@ class CreateDropSpotlightServiceTest {
             )
         val actorProvider = mock<SocialActorProvider>()
         val itemDropLookup = mock<ItemDropLookup>()
-        val notificationPackSnapshotProvider = mock<NotificationPackSnapshotProvider>()
         val repository = mock<DropSpotlightRepository>()
         val queue = mock<DropSpotlightQueue>()
         val wallet = mock<DropSpotlightWallet>()
@@ -157,7 +162,6 @@ class CreateDropSpotlightServiceTest {
             CreateDropSpotlightService(
                 actorProvider = actorProvider,
                 itemDropLookup = itemDropLookup,
-                notificationPackSnapshotProvider = notificationPackSnapshotProvider,
                 repository = repository,
                 queue = queue,
                 wallet = wallet,
@@ -168,7 +172,6 @@ class CreateDropSpotlightServiceTest {
         init {
             whenever(actorProvider.requireActor()).thenReturn(actor)
             whenever(itemDropLookup.findById(itemDrop.id)).thenReturn(itemDrop)
-            whenever(notificationPackSnapshotProvider.findActive(actor.userId)).thenReturn(null)
         }
     }
 }

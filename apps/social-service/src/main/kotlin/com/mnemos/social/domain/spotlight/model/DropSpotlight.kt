@@ -10,7 +10,7 @@ data class DropSpotlight(
     val buyerUserId: UUID,
     val sourceAccountId: UUID,
     val itemDrop: ItemDropSnapshot,
-    val notificationPack: NotificationPackSelectionSnapshot?,
+    var notificationPack: NotificationPackSelectionSnapshot?,
     val pricePrime: Long,
     val walletRequestId: UUID,
     var walletTransactionId: UUID?,
@@ -48,6 +48,7 @@ data class DropSpotlight(
     }
 
     fun publish(
+        notificationPack: NotificationPackSelectionSnapshot?,
         now: Instant,
         expiresAt: Instant,
     ) {
@@ -55,6 +56,7 @@ data class DropSpotlight(
             "Only queued spotlight can be published"
         }
 
+        this.notificationPack = notificationPack
         status = DropSpotlightStatus.PUBLISHED
         publishedAt = now
         this.expiresAt = expiresAt
@@ -67,7 +69,6 @@ data class DropSpotlight(
             buyerUserId: UUID,
             sourceAccountId: UUID,
             itemDrop: ItemDropSnapshot,
-            notificationPack: NotificationPackSelectionSnapshot?,
             pricePrime: Long,
             scheduledAt: Instant,
             now: Instant,
@@ -78,7 +79,7 @@ data class DropSpotlight(
                 buyerUserId = buyerUserId,
                 sourceAccountId = sourceAccountId,
                 itemDrop = itemDrop,
-                notificationPack = notificationPack,
+                notificationPack = null,
                 pricePrime = pricePrime,
                 walletRequestId = UuidCreator.getTimeOrderedEpoch(),
                 walletTransactionId = null,

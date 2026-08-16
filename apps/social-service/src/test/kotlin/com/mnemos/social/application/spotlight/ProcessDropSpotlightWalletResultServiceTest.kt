@@ -37,6 +37,7 @@ class ProcessDropSpotlightWalletResultServiceTest {
 
         assertEquals(DropSpotlightStatus.QUEUED, spotlight.status)
         assertEquals(transactionId, spotlight.walletTransactionId)
+
         verify(repository).findByIdForUpdate(spotlight.id)
         verify(repository).save(spotlight)
     }
@@ -54,6 +55,7 @@ class ProcessDropSpotlightWalletResultServiceTest {
             now = paidAt,
         )
         spotlight.publish(
+            notificationPack = null,
             now = publishedAt,
             expiresAt = publishedAt.plusSeconds(3600),
         )
@@ -62,6 +64,7 @@ class ProcessDropSpotlightWalletResultServiceTest {
         service.failed(matchingResult(spotlight))
 
         assertEquals(DropSpotlightStatus.PUBLISHED, spotlight.status)
+
         verify(repository).findByIdForUpdate(spotlight.id)
         verify(repository, never()).save(spotlight)
     }
@@ -83,6 +86,7 @@ class ProcessDropSpotlightWalletResultServiceTest {
         }
 
         assertEquals(DropSpotlightStatus.PENDING_PAYMENT, spotlight.status)
+
         verify(repository, never()).save(spotlight)
     }
 
@@ -143,7 +147,6 @@ class ProcessDropSpotlightWalletResultServiceTest {
                     droppedFor = "Knalis",
                     occurredAt = createdAt.minusSeconds(60),
                 ),
-            notificationPack = null,
             pricePrime = 25,
             scheduledAt = createdAt.plusSeconds(15),
             now = createdAt,

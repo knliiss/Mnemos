@@ -5,6 +5,7 @@ import com.mnemos.social.domain.spotlight.model.DropSpotlightStatus
 import com.mnemos.social.domain.spotlight.model.ItemDropSnapshot
 import com.mnemos.social.domain.spotlight.model.NotificationPackSelectionSnapshot
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -19,21 +20,31 @@ class DropSpotlightTest {
         val paidAt = Instant.parse("2026-08-16T00:00:01Z")
         val publishedAt = Instant.parse("2026-08-16T00:00:15Z")
         val expiresAt = Instant.parse("2026-08-16T01:00:15Z")
+        val notificationPack = notificationPack()
 
         spotlight.paymentCompleted(
             transactionId = transactionId,
             now = paidAt,
         )
         spotlight.publish(
+            notificationPack = notificationPack,
             now = publishedAt,
             expiresAt = expiresAt,
         )
 
         assertEquals(DropSpotlightStatus.PUBLISHED, spotlight.status)
         assertEquals(transactionId, spotlight.walletTransactionId)
+        assertEquals(notificationPack, spotlight.notificationPack)
         assertEquals(publishedAt, spotlight.publishedAt)
         assertEquals(expiresAt, spotlight.expiresAt)
         assertEquals(publishedAt, spotlight.updatedAt)
+    }
+
+    @Test
+    fun `starts without notification pack snapshot`() {
+        val spotlight = createSpotlight(Instant.parse("2026-08-16T00:00:00Z"))
+
+        assertNull(spotlight.notificationPack)
     }
 
     @Test
@@ -82,6 +93,7 @@ class DropSpotlightTest {
 
         assertThrows(IllegalArgumentException::class.java) {
             spotlight.publish(
+                notificationPack = notificationPack(),
                 now = Instant.parse("2026-08-16T00:00:15Z"),
                 expiresAt = Instant.parse("2026-08-16T01:00:15Z"),
             )
@@ -103,14 +115,15 @@ class DropSpotlightTest {
                     droppedFor = "Knalis",
                     occurredAt = now.minusSeconds(60),
                 ),
-            notificationPack =
-                NotificationPackSelectionSnapshot(
-                    personalizationId = UUID.fromString("019c1ab0-2200-7000-8000-000000000014"),
-                    revision = 5,
-                    snapshotJson = "{\"mixedAggregateTitle\":\"Drops\",\"templates\":[]}",
-                ),
             pricePrime = 25,
             scheduledAt = now.plusSeconds(15),
             now = now,
+        )
+
+    private fun notificationPack(): NotificationPackSelectionSnapshot =
+        NotificationPackSelectionSnapshot(
+            personalizationId = UUID.fromString("019c1ab0-2200-7000-8000-000000000014"),
+            revision = 5,
+            snapshotJson = "{\"mixedAggregateTitle\":\"Drops\",\"templates\":[]}",
         )
 }

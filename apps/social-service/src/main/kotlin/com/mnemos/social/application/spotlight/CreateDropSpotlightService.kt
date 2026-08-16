@@ -4,7 +4,6 @@ import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightQueue
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightWallet
 import com.mnemos.social.application.spotlight.port.out.ItemDropLookup
-import com.mnemos.social.application.spotlight.port.out.NotificationPackSnapshotProvider
 import com.mnemos.social.configuration.spotlight.DropSpotlightProperties
 import com.mnemos.social.domain.spotlight.model.DropSpotlight
 import com.mnemos.social.domain.spotlight.model.DropSpotlightStatus
@@ -21,7 +20,6 @@ import java.util.UUID
 class CreateDropSpotlightService(
     private val actorProvider: SocialActorProvider,
     private val itemDropLookup: ItemDropLookup,
-    private val notificationPackSnapshotProvider: NotificationPackSnapshotProvider,
     private val repository: DropSpotlightRepository,
     private val queue: DropSpotlightQueue,
     private val wallet: DropSpotlightWallet,
@@ -72,7 +70,6 @@ class CreateDropSpotlightService(
                 buyerUserId = actor.userId,
                 sourceAccountId = actor.accountId,
                 itemDrop = itemDrop,
-                notificationPack = notificationPackSnapshotProvider.findActive(actor.userId),
                 pricePrime = properties.pricePrime,
                 scheduledAt = reservation.scheduledAt,
                 now = now,
