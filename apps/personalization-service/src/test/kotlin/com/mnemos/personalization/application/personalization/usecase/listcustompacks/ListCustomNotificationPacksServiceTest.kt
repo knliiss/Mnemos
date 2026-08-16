@@ -1,10 +1,9 @@
-package com.mnemos.personalization.application.personalization.custom
+package com.mnemos.personalization.application.personalization.usecase.listcustompacks
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.application.personalization.custom.port.out.CustomNotificationPackReader
-import com.mnemos.personalization.application.personalization.usecase.listcustompacks.ListCustomNotificationPacksService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.personalization.model.Personalization

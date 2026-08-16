@@ -1,10 +1,9 @@
-package com.mnemos.personalization.application.personalization.moderation
+package com.mnemos.personalization.application.personalization.usecase.approve
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.personalization.support.PersonalizationModerationSupport
-import com.mnemos.personalization.application.personalization.usecase.approve.ApprovePersonalizationService
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
