@@ -7,8 +7,6 @@ import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.comment.model.Comment
 import com.mnemos.social.domain.comment.model.CommentId
 import com.mnemos.social.domain.comment.repository.CommentRepository
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -145,26 +143,6 @@ class CommentService(
             actorUserId = actor.userId,
             now = now,
         )
-    }
-
-    @Transactional(readOnly = true)
-    fun listRoot(
-        accountId: UUID,
-        pageable: Pageable,
-    ): Page<Comment> = repository.findRootByAccountId(accountId, pageable)
-
-    @Transactional(readOnly = true)
-    fun listReplies(
-        commentId: UUID,
-        pageable: Pageable,
-    ): Page<Comment> {
-        val root = requireComment(CommentId(commentId))
-
-        if (root.parentCommentId != null) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Replies can only be listed for a root comment")
-        }
-
-        return repository.findReplies(root.id, pageable)
     }
 
     private fun requireComment(id: CommentId): Comment =

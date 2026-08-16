@@ -1,6 +1,7 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toResponse
+import com.mnemos.social.application.comment.CommentQueryService
 import com.mnemos.social.application.comment.CommentService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
@@ -20,36 +21,60 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1")
 class CommentController(
-    private val service: CommentService,
+    private val commandService: CommentService,
+    private val queryService: CommentQueryService,
 ) {
     @PostMapping("/accounts/{accountId}/comments")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: CreateCommentRequest,
-    ): CommentResponse = service.create(accountId, request.parentCommentId, request.content).toResponse()
+    ): CommentResponse {
+        val comment =
+            commandService.create(
+                targetAccountId = accountId,
+                parentCommentId = request.parentCommentId,
+                content = request.content,
+            )
+
+        return queryService
+            .get(comment.id.id)
+            .toResponse()
+    }
 
     @PatchMapping("/comments/{commentId}")
     fun edit(
         @PathVariable commentId: UUID,
         @Valid @RequestBody request: EditCommentRequest,
-    ): CommentResponse = service.edit(commentId, request.content).toResponse()
+    ): CommentResponse {
+        val comment = commandService.edit(commentId, request.content)
+
+        return queryService
+            .get(comment.id.id)
+            .toResponse()
+    }
 
     @DeleteMapping("/comments/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable commentId: UUID) {
-        service.delete(commentId)
+        commandService.delete(commentId)
     }
 
     @GetMapping("/accounts/{accountId}/comments")
     fun list(
         @PathVariable accountId: UUID,
         pageable: Pageable,
-    ): Page<CommentResponse> = service.listRoot(accountId, pageable).map { it.toResponse() }
+    ): Page<CommentResponse> =
+        queryService
+            .listRoot(accountId, pageable)
+            .map { view -> view.toResponse() }
 
     @GetMapping("/comments/{commentId}/replies")
     fun replies(
         @PathVariable commentId: UUID,
         pageable: Pageable,
-    ): Page<CommentResponse> = service.listReplies(commentId, pageable).map { it.toResponse() }
+    ): Page<CommentResponse> =
+        queryService
+            .listReplies(commentId, pageable)
+            .map { view -> view.toResponse() }
 }

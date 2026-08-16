@@ -10,6 +10,8 @@ data class CommentResponse(
     val parentCommentId: UUID?,
     val content: String?,
     val deleted: Boolean,
+    val likes: Long,
+    val replies: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
