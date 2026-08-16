@@ -19,19 +19,23 @@ class PublishDueDropSpotlightsService(
     @Transactional
     fun execute() {
         val now = clock.instant()
-        val due = repository.findDue(now)
+        val spotlight = repository.findNextDue(now) ?: return
+        val latestPublishedAt = repository.findLatestPublishedAt()
+        val nextAllowedPublishAt = latestPublishedAt?.plus(properties.globalGap)
 
-        due.forEach { spotlight ->
-            val notificationPack = notificationPackSnapshotProvider.findActive(spotlight.buyerUserId)
-
-            spotlight.publish(
-                notificationPack = notificationPack,
-                now = now,
-                expiresAt = now.plus(properties.lifetime),
-            )
-            val saved = repository.save(spotlight)
-
-            publisher.publish(saved)
+        if (nextAllowedPublishAt != null && nextAllowedPublishAt.isAfter(now)) {
+            return
         }
+
+        val notificationPack = notificationPackSnapshotProvider.findActive(spotlight.buyerUserId)
+
+        spotlight.publish(
+            notificationPack = notificationPack,
+            now = now,
+            expiresAt = now.plus(properties.lifetime),
+        )
+        val saved = repository.save(spotlight)
+
+        publisher.publish(saved)
     }
 }

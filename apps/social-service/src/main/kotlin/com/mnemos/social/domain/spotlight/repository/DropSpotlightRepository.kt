@@ -16,5 +16,7 @@ interface DropSpotlightRepository {
 
     fun findLatestByBuyerUserId(userId: UUID): DropSpotlight?
 
-    fun findDue(now: Instant): List<DropSpotlight>
+    fun findNextDue(now: Instant): DropSpotlight?
+
+    fun findLatestPublishedAt(): Instant?
 }

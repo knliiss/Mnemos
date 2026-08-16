@@ -21,8 +21,12 @@ interface DropSpotlightJpaRepository : JpaRepository<DropSpotlightEntity, UUID> 
     fun findTopByStatusInOrderByScheduledAtDesc(statuses: Collection<DropSpotlightStatus>): DropSpotlightEntity?
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    fun findTop20ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
+    fun findFirstByStatusAndScheduledAtLessThanEqualOrderBySequenceAsc(
         status: DropSpotlightStatus,
         scheduledAt: Instant,
-    ): List<DropSpotlightEntity>
+    ): DropSpotlightEntity?
+
+    fun findTopByStatusAndPublishedAtIsNotNullOrderByPublishedAtDesc(
+        status: DropSpotlightStatus,
+    ): DropSpotlightEntity?
 }

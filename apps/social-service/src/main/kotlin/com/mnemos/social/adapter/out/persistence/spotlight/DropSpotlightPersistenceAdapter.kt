@@ -28,12 +28,17 @@ class DropSpotlightPersistenceAdapter(
     override fun findLatestByBuyerUserId(userId: UUID): DropSpotlight? =
         repository.findTopByBuyerUserIdOrderByCreatedAtDesc(userId)?.toDomain()
 
-    override fun findDue(now: Instant): List<DropSpotlight> =
+    override fun findNextDue(now: Instant): DropSpotlight? =
         repository
-            .findTop20ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
-                DropSpotlightStatus.QUEUED,
-                now,
-            ).map { entity -> entity.toDomain() }
+            .findFirstByStatusAndScheduledAtLessThanEqualOrderBySequenceAsc(
+                status = DropSpotlightStatus.QUEUED,
+                scheduledAt = now,
+            )?.toDomain()
+
+    override fun findLatestPublishedAt(): Instant? =
+        repository
+            .findTopByStatusAndPublishedAtIsNotNullOrderByPublishedAtDesc(DropSpotlightStatus.PUBLISHED)
+            ?.publishedAt
 
     private fun DropSpotlight.toEntity(): DropSpotlightEntity =
         DropSpotlightEntity(
