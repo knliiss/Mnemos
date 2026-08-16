@@ -1,6 +1,6 @@
-package com.mnemos.profile.application.profile.bootstrap.port.out
+package com.mnemos.profile.application.profile.port.out
 
-import com.mnemos.profile.application.profile.bootstrap.model.AccountBootstrapSnapshot
+import com.mnemos.profile.application.profile.model.AccountBootstrapSnapshot
 import java.util.UUID
 
 interface AccountBootstrapSource {

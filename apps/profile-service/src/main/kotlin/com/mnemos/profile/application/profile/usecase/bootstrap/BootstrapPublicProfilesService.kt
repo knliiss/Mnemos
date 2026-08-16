@@ -1,23 +1,23 @@
-package com.mnemos.profile.application.profile.bootstrap
+package com.mnemos.profile.application.profile.usecase.bootstrap
 
-import com.mnemos.profile.application.profile.PublicProfileService
-import com.mnemos.profile.application.profile.bootstrap.port.out.AccountBootstrapSource
+import com.mnemos.profile.application.profile.port.out.AccountBootstrapSource
+import com.mnemos.profile.application.profile.usecase.sync.SyncPublicProfileUseCase
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class PublicProfileBootstrapService(
+class BootstrapPublicProfilesService(
     private val source: AccountBootstrapSource,
-    private val profileService: PublicProfileService,
+    private val syncPublicProfileUseCase: SyncPublicProfileUseCase,
     @Value("\${mnemos.profile.bootstrap.batch-size:200}")
     private val batchSize: Int,
-) {
+) : BootstrapPublicProfilesUseCase {
     private var afterAccountId: UUID? = null
     private var completed = false
 
     @Synchronized
-    fun execute() {
+    override fun execute() {
         if (completed) {
             return
         }
@@ -38,7 +38,7 @@ class PublicProfileBootstrapService(
         }
 
         batch.forEach { account ->
-            profileService.bootstrapAccount(
+            syncPublicProfileUseCase.execute(
                 accountId = account.accountId,
                 cristalixUuid = account.cristalixUuid,
                 cristalixNickname = account.cristalixNickname,

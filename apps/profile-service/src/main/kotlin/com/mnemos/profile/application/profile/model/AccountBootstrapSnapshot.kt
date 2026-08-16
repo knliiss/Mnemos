@@ -1,4 +1,4 @@
-package com.mnemos.profile.application.profile.bootstrap.model
+package com.mnemos.profile.application.profile.model
 
 import java.time.Instant
 import java.util.UUID

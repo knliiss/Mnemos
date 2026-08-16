@@ -1,7 +1,12 @@
-package com.mnemos.profile.application.profile
+package com.mnemos.profile.application.profile.usecase
 
 import com.mnemos.profile.application.profile.port.out.PendingSocialSummaryRepository
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
+import com.mnemos.profile.application.profile.support.PendingSocialSummaryCoordinator
+import com.mnemos.profile.application.profile.usecase.applysocialsummary.ApplyAccountSocialSummaryService
+import com.mnemos.profile.application.profile.usecase.projectaccount.ProjectAccountCreatedService
+import com.mnemos.profile.application.profile.usecase.reconcile.ReconcilePendingSocialSummariesService
+import com.mnemos.profile.application.profile.usecase.sync.SyncPublicProfileService
 import com.mnemos.profile.domain.profile.model.PendingSocialSummary
 import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,18 +17,16 @@ import org.springframework.data.domain.Pageable
 import java.time.Instant
 import java.util.UUID
 
-class PublicProfileServiceTest {
+class PublicProfileProjectionUseCaseTest {
     @Test
     fun `applies pending social summary when account projection arrives`() {
-        val profiles = FakePublicProfileRepository()
-        val pending = FakePendingSocialSummaryRepository(profiles)
-        val service = PublicProfileService(profiles, pending)
+        val fixture = Fixture()
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000001")
         val cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000002")
         val accountCreatedAt = Instant.parse("2026-08-16T00:00:00Z")
         val socialOccurredAt = Instant.parse("2026-08-16T00:05:00Z")
 
-        service.socialSummaryChanged(
+        fixture.applySocialSummary.execute(
             accountId = accountId,
             likes = 7,
             dislikes = 2,
@@ -32,34 +35,32 @@ class PublicProfileServiceTest {
             occurredAt = socialOccurredAt,
         )
 
-        assertNull(profiles.findByAccountId(accountId))
-        assertEquals(3, pending.findByAccountId(accountId)?.revision)
+        assertNull(fixture.profiles.findByAccountId(accountId))
+        assertEquals(3, fixture.pending.findByAccountId(accountId)?.revision)
 
-        service.accountCreated(
+        fixture.projectAccount.execute(
             accountId = accountId,
             cristalixUuid = cristalixUuid,
             cristalixNickname = "Knalis",
             occurredAt = accountCreatedAt,
         )
 
-        val profile = requireNotNull(profiles.findByAccountId(accountId))
+        val profile = requireNotNull(fixture.profiles.findByAccountId(accountId))
 
         assertEquals(7, profile.likes)
         assertEquals(2, profile.dislikes)
         assertEquals(4, profile.comments)
         assertEquals(3, profile.socialRevision)
         assertEquals(socialOccurredAt, profile.updatedAt)
-        assertNull(pending.findByAccountId(accountId))
+        assertNull(fixture.pending.findByAccountId(accountId))
     }
 
     @Test
     fun `keeps newest social revision while account projection is missing`() {
-        val profiles = FakePublicProfileRepository()
-        val pending = FakePendingSocialSummaryRepository(profiles)
-        val service = PublicProfileService(profiles, pending)
+        val fixture = Fixture()
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000003")
 
-        service.socialSummaryChanged(
+        fixture.applySocialSummary.execute(
             accountId = accountId,
             likes = 10,
             dislikes = 1,
@@ -67,7 +68,7 @@ class PublicProfileServiceTest {
             revision = 5,
             occurredAt = Instant.parse("2026-08-16T00:10:00Z"),
         )
-        service.socialSummaryChanged(
+        fixture.applySocialSummary.execute(
             accountId = accountId,
             likes = 1,
             dislikes = 0,
@@ -76,7 +77,7 @@ class PublicProfileServiceTest {
             occurredAt = Instant.parse("2026-08-16T00:06:00Z"),
         )
 
-        val stored = requireNotNull(pending.findByAccountId(accountId))
+        val stored = requireNotNull(fixture.pending.findByAccountId(accountId))
 
         assertEquals(5, stored.revision)
         assertEquals(10, stored.likes)
@@ -85,18 +86,16 @@ class PublicProfileServiceTest {
 
     @Test
     fun `ignores stale social summary after profile exists`() {
-        val profiles = FakePublicProfileRepository()
-        val pending = FakePendingSocialSummaryRepository(profiles)
-        val service = PublicProfileService(profiles, pending)
+        val fixture = Fixture()
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000004")
 
-        service.accountCreated(
+        fixture.projectAccount.execute(
             accountId = accountId,
             cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000005"),
             cristalixNickname = "Knalis",
             occurredAt = Instant.parse("2026-08-16T00:00:00Z"),
         )
-        service.socialSummaryChanged(
+        fixture.applySocialSummary.execute(
             accountId = accountId,
             likes = 6,
             dislikes = 2,
@@ -104,7 +103,7 @@ class PublicProfileServiceTest {
             revision = 4,
             occurredAt = Instant.parse("2026-08-16T00:04:00Z"),
         )
-        service.socialSummaryChanged(
+        fixture.applySocialSummary.execute(
             accountId = accountId,
             likes = 1,
             dislikes = 1,
@@ -113,7 +112,7 @@ class PublicProfileServiceTest {
             occurredAt = Instant.parse("2026-08-16T00:02:00Z"),
         )
 
-        val profile = requireNotNull(profiles.findByAccountId(accountId))
+        val profile = requireNotNull(fixture.profiles.findByAccountId(accountId))
 
         assertEquals(6, profile.likes)
         assertEquals(2, profile.dislikes)
@@ -123,12 +122,10 @@ class PublicProfileServiceTest {
 
     @Test
     fun `reconciliation applies pending summary when matching profile already exists`() {
-        val profiles = FakePublicProfileRepository()
-        val pending = FakePendingSocialSummaryRepository(profiles)
-        val service = PublicProfileService(profiles, pending)
+        val fixture = Fixture()
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000006")
 
-        profiles.save(
+        fixture.profiles.save(
             PublicProfile(
                 accountId = accountId,
                 cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000007"),
@@ -141,7 +138,7 @@ class PublicProfileServiceTest {
                 updatedAt = Instant.parse("2026-08-16T00:00:00Z"),
             ),
         )
-        pending.save(
+        fixture.pending.save(
             PendingSocialSummary(
                 accountId = accountId,
                 likes = 2,
@@ -152,26 +149,24 @@ class PublicProfileServiceTest {
             ),
         )
 
-        service.reconcilePendingSocialSummaries(limit = 100)
+        fixture.reconcile.execute(limit = 100)
 
-        val profile = requireNotNull(profiles.findByAccountId(accountId))
+        val profile = requireNotNull(fixture.profiles.findByAccountId(accountId))
 
         assertEquals(2, profile.likes)
         assertEquals(3, profile.dislikes)
         assertEquals(5, profile.comments)
         assertEquals(6, profile.socialRevision)
-        assertNull(pending.findByAccountId(accountId))
+        assertNull(fixture.pending.findByAccountId(accountId))
     }
 
     @Test
-    fun `bootstrap refreshes account identity without overwriting social counters`() {
-        val profiles = FakePublicProfileRepository()
-        val pending = FakePendingSocialSummaryRepository(profiles)
-        val service = PublicProfileService(profiles, pending)
+    fun `sync refreshes account identity without overwriting social counters`() {
+        val fixture = Fixture()
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000008")
         val createdAt = Instant.parse("2026-08-15T20:00:00Z")
 
-        profiles.save(
+        fixture.profiles.save(
             PublicProfile(
                 accountId = accountId,
                 cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000009"),
@@ -185,14 +180,14 @@ class PublicProfileServiceTest {
             ),
         )
 
-        service.bootstrapAccount(
+        fixture.sync.execute(
             accountId = accountId,
             cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000010"),
             cristalixNickname = "CurrentNickname",
             createdAt = createdAt,
         )
 
-        val profile = requireNotNull(profiles.findByAccountId(accountId))
+        val profile = requireNotNull(fixture.profiles.findByAccountId(accountId))
 
         assertEquals("CurrentNickname", profile.cristalixNickname)
         assertEquals(createdAt, profile.createdAt)
@@ -200,6 +195,16 @@ class PublicProfileServiceTest {
         assertEquals(1, profile.dislikes)
         assertEquals(4, profile.comments)
         assertEquals(8, profile.socialRevision)
+    }
+
+    private class Fixture {
+        val profiles = FakePublicProfileRepository()
+        val pending = FakePendingSocialSummaryRepository(profiles)
+        private val coordinator = PendingSocialSummaryCoordinator(profiles, pending)
+        val projectAccount = ProjectAccountCreatedService(profiles, coordinator)
+        val applySocialSummary = ApplyAccountSocialSummaryService(profiles, coordinator)
+        val reconcile = ReconcilePendingSocialSummariesService(pending, coordinator)
+        val sync = SyncPublicProfileService(profiles, coordinator)
     }
 
     private class FakePublicProfileRepository : PublicProfileRepository {

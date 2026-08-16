@@ -1,8 +1,8 @@
 package com.mnemos.profile.adapter.out.http.account
 
 import com.mnemos.contracts.account.internal.v1.InternalAccountBootstrapResponse
-import com.mnemos.profile.application.profile.bootstrap.model.AccountBootstrapSnapshot
-import com.mnemos.profile.application.profile.bootstrap.port.out.AccountBootstrapSource
+import com.mnemos.profile.application.profile.model.AccountBootstrapSnapshot
+import com.mnemos.profile.application.profile.port.out.AccountBootstrapSource
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component

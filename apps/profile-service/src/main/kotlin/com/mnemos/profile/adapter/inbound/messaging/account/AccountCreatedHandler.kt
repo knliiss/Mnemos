@@ -8,12 +8,12 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
-import com.mnemos.profile.application.profile.PublicProfileService
+import com.mnemos.profile.application.profile.usecase.projectaccount.ProjectAccountCreatedUseCase
 import org.springframework.stereotype.Component
 
 @Component
 class AccountCreatedHandler(
-    private val service: PublicProfileService,
+    private val projectAccountCreatedUseCase: ProjectAccountCreatedUseCase,
 ) : KafkaMessageHandler<AccountCreatedV1> {
     override val definition =
         kafkaMessageDefinition<AccountCreatedV1>(
@@ -32,7 +32,7 @@ class AccountCreatedHandler(
     override fun handle(message: ConsumedMessage<AccountCreatedV1>) {
         val event = message.payload
 
-        service.accountCreated(
+        projectAccountCreatedUseCase.execute(
             accountId = message.aggregateId,
             cristalixUuid = event.cristalixUuid,
             cristalixNickname = event.cristalixNickname,

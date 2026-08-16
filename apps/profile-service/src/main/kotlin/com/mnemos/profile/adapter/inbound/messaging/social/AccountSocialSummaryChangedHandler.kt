@@ -4,7 +4,7 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
-import com.mnemos.profile.application.profile.PublicProfileService
+import com.mnemos.profile.application.profile.usecase.applysocialsummary.ApplyAccountSocialSummaryUseCase
 import com.mnemos.social.contracts.SocialEventContract
 import com.mnemos.social.contracts.SocialEventType
 import com.mnemos.social.contracts.event.AccountSocialSummaryChangedV1
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AccountSocialSummaryChangedHandler(
-    private val service: PublicProfileService,
+    private val applyAccountSocialSummaryUseCase: ApplyAccountSocialSummaryUseCase,
 ) : KafkaMessageHandler<AccountSocialSummaryChangedV1> {
     override val definition =
         kafkaMessageDefinition<AccountSocialSummaryChangedV1>(
@@ -35,7 +35,7 @@ class AccountSocialSummaryChangedHandler(
     override fun handle(message: ConsumedMessage<AccountSocialSummaryChangedV1>) {
         val event = message.payload
 
-        service.socialSummaryChanged(
+        applyAccountSocialSummaryUseCase.execute(
             accountId = event.accountId,
             likes = event.likes,
             dislikes = event.dislikes,

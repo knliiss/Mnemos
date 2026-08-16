@@ -1,8 +1,8 @@
-package com.mnemos.profile.application.profile.bootstrap
+package com.mnemos.profile.application.profile.usecase.bootstrap
 
-import com.mnemos.profile.application.profile.PublicProfileService
-import com.mnemos.profile.application.profile.bootstrap.model.AccountBootstrapSnapshot
-import com.mnemos.profile.application.profile.bootstrap.port.out.AccountBootstrapSource
+import com.mnemos.profile.application.profile.model.AccountBootstrapSnapshot
+import com.mnemos.profile.application.profile.port.out.AccountBootstrapSource
+import com.mnemos.profile.application.profile.usecase.sync.SyncPublicProfileUseCase
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
@@ -13,15 +13,15 @@ import org.mockito.kotlin.whenever
 import java.time.Instant
 import java.util.UUID
 
-class PublicProfileBootstrapServiceTest {
+class BootstrapPublicProfilesServiceTest {
     @Test
     fun `advances cursor and stops after empty batch`() {
         val source = mock<AccountBootstrapSource>()
-        val profileService = mock<PublicProfileService>()
+        val syncPublicProfileUseCase = mock<SyncPublicProfileUseCase>()
         val service =
-            PublicProfileBootstrapService(
+            BootstrapPublicProfilesService(
                 source = source,
-                profileService = profileService,
+                syncPublicProfileUseCase = syncPublicProfileUseCase,
                 batchSize = 2,
             )
         val first = snapshot("019c1ab0-9900-7000-8000-000000000001", "First")
@@ -37,13 +37,13 @@ class PublicProfileBootstrapServiceTest {
         verify(source).fetch(null, 2)
         verify(source).fetch(second.accountId, 2)
         verify(source, times(2)).fetch(anyOrNull(), eq(2))
-        verify(profileService).bootstrapAccount(
+        verify(syncPublicProfileUseCase).execute(
             accountId = first.accountId,
             cristalixUuid = first.cristalixUuid,
             cristalixNickname = first.cristalixNickname,
             createdAt = first.createdAt,
         )
-        verify(profileService).bootstrapAccount(
+        verify(syncPublicProfileUseCase).execute(
             accountId = second.accountId,
             cristalixUuid = second.cristalixUuid,
             cristalixNickname = second.cristalixNickname,

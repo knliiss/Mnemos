@@ -1,16 +1,16 @@
 package com.mnemos.profile.adapter.inbound.scheduling.profile
 
-import com.mnemos.profile.application.profile.PublicProfileService
+import com.mnemos.profile.application.profile.usecase.reconcile.ReconcilePendingSocialSummariesUseCase
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
 class PendingSocialSummaryReconciliationScheduler(
-    private val service: PublicProfileService,
+    private val reconcilePendingSocialSummariesUseCase: ReconcilePendingSocialSummariesUseCase,
 ) {
     @Scheduled(fixedDelayString = "\${mnemos.profile.social-reconciliation-delay-ms:5000}")
     fun reconcile() {
-        service.reconcilePendingSocialSummaries(BATCH_SIZE)
+        reconcilePendingSocialSummariesUseCase.execute(BATCH_SIZE)
     }
 
     private companion object {
