@@ -18,7 +18,9 @@ class BroadcastAckController(
 ) {
     @PostMapping("/{sequence}/ack")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun acknowledge(@PathVariable sequence: Long) {
+    fun acknowledge(
+        @PathVariable sequence: Long,
+    ) {
         val userId = currentUser.requireUserId()
         if (!replayStore.acknowledge(userId, sequence)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Realtime broadcast was not found")

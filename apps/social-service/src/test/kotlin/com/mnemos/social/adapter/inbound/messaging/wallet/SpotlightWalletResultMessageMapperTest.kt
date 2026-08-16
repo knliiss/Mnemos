@@ -41,10 +41,11 @@ class SpotlightWalletResultMessageMapperTest {
         val wrongType = event().copy(type = TransactionType.CREDIT)
         val wrongOwner =
             event().copy(
-                owner = WalletOwner(
-                    type = WalletOwnerType.ACCOUNT,
-                    id = UUID.fromString("019c1ab0-8800-7000-8000-000000000009"),
-                ),
+                owner =
+                    WalletOwner(
+                        type = WalletOwnerType.ACCOUNT,
+                        id = UUID.fromString("019c1ab0-8800-7000-8000-000000000009"),
+                    ),
             )
 
         assertThrows(KafkaMessageProtocolException::class.java) {

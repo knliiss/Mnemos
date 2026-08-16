@@ -35,15 +35,16 @@ object DropSpotlightPublishedMessageMapper {
     private fun NotificationPackSnapshotV1.toBroadcastSnapshot(): NotificationPackBroadcastSnapshot =
         NotificationPackBroadcastSnapshot(
             mixedAggregateTitle = mixedAggregateTitle,
-            templates = templates.map { template ->
-                NotificationPackBroadcastTemplate(
-                    type = template.type.name,
-                    emoji = template.emoji,
-                    soloTitle = template.soloTitle,
-                    soloBody = template.soloBody,
-                    compact = template.compact,
-                    aggregateTitle = template.aggregateTitle,
-                )
-            },
+            templates =
+                templates.map { template ->
+                    NotificationPackBroadcastTemplate(
+                        type = template.type.name,
+                        emoji = template.emoji,
+                        soloTitle = template.soloTitle,
+                        soloBody = template.soloBody,
+                        compact = template.compact,
+                        aggregateTitle = template.aggregateTitle,
+                    )
+                },
         )
 }

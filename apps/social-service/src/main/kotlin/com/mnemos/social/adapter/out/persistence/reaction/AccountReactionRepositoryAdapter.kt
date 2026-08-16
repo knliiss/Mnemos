@@ -25,8 +25,7 @@ class AccountReactionRepositoryAdapter(
             ).orElse(null)
             ?.toDomain()
 
-    override fun save(reaction: AccountReaction): AccountReaction =
-        repository.save(reaction.toEntity()).toDomain()
+    override fun save(reaction: AccountReaction): AccountReaction = repository.save(reaction.toEntity()).toDomain()
 
     override fun delete(
         actorAccountId: UUID,

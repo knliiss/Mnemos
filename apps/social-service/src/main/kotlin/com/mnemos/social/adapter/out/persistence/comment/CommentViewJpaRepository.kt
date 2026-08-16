@@ -36,7 +36,9 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
         """,
         nativeQuery = true,
     )
-    fun findViewById(@Param("commentId") commentId: UUID): CommentViewProjection?
+    fun findViewById(
+        @Param("commentId") commentId: UUID,
+    ): CommentViewProjection?
 
     @Query(
         value = """

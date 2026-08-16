@@ -16,11 +16,9 @@ class DropSpotlightPersistenceAdapter(
 ) : DropSpotlightRepository {
     override fun save(spotlight: DropSpotlight): DropSpotlight = repository.save(spotlight.toEntity()).toDomain()
 
-    override fun findById(id: DropSpotlightId): DropSpotlight? =
-        repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: DropSpotlightId): DropSpotlight? = repository.findById(id.id).orElse(null)?.toDomain()
 
-    override fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight? =
-        repository.findByIdForUpdate(id.id)?.toDomain()
+    override fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight? = repository.findByIdForUpdate(id.id)?.toDomain()
 
     override fun existsNonFailedByItemDropEventId(itemDropEventId: UUID): Boolean =
         repository.existsByItemDropEventIdAndStatusNot(

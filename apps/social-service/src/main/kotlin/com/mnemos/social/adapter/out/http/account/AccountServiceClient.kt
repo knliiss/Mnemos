@@ -17,10 +17,14 @@ import java.util.UUID
 )
 interface AccountServiceClient {
     @GetMapping("/internal/v1/accounts/resolve")
-    fun resolveActiveAccount(@RequestParam userId: UUID): InternalAccountResponse?
+    fun resolveActiveAccount(
+        @RequestParam userId: UUID,
+    ): InternalAccountResponse?
 
     @GetMapping("/internal/v1/accounts/resolve")
-    fun findActiveAccount(@RequestParam accountId: UUID): InternalAccountResponse?
+    fun findActiveAccount(
+        @RequestParam accountId: UUID,
+    ): InternalAccountResponse?
 
     @PostMapping("/internal/v1/accounts/{accountId}/permissions/check")
     fun checkPermission(

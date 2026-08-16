@@ -46,7 +46,9 @@ class DropSpotlightPublishedMessageMapperTest {
         assertEquals(pack.mixedAggregateTitle, broadcast.payload.notificationPack?.mixedAggregateTitle)
         assertEquals(
             NotificationPackTemplateType.entries.map { it.name },
-            broadcast.payload.notificationPack?.templates?.map { it.type },
+            broadcast.payload.notificationPack
+                ?.templates
+                ?.map { it.type },
         )
     }
 

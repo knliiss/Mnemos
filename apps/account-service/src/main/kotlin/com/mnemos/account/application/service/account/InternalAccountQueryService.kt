@@ -13,14 +13,11 @@ import java.util.UUID
 class InternalAccountQueryService(
     private val accountRepository: AccountRepository,
 ) {
-    fun findActiveByAccountId(accountId: UUID): Account? =
-        accountRepository.findActiveById(AccountId(accountId))
+    fun findActiveByAccountId(accountId: UUID): Account? = accountRepository.findActiveById(AccountId(accountId))
 
-    fun findActiveByUserId(userId: UUID): Account? =
-        accountRepository.findActiveByUserId(UserId(userId))
+    fun findActiveByUserId(userId: UUID): Account? = accountRepository.findActiveByUserId(UserId(userId))
 
-    fun findActiveByCristalixNickname(nickname: String): Account? =
-        accountRepository.findActiveByCristalixNickname(nickname)
+    fun findActiveByCristalixNickname(nickname: String): Account? = accountRepository.findActiveByCristalixNickname(nickname)
 
     fun findBootstrapBatch(
         afterAccountId: UUID?,

@@ -62,7 +62,9 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
         """,
         nativeQuery = true,
     )
-    fun findViewById(@Param("id") id: UUID): ItemDropViewProjection?
+    fun findViewById(
+        @Param("id") id: UUID,
+    ): ItemDropViewProjection?
 
     @Query(
         value = """

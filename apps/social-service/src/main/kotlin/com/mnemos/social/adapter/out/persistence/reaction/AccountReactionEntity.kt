@@ -18,18 +18,14 @@ class AccountReactionEntity(
     @Id
     @Column(name = "actor_account_id", nullable = false)
     var actorAccountId: UUID,
-
     @Id
     @Column(name = "target_account_id", nullable = false)
     var targetAccountId: UUID,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 8)
     var type: AccountReactionType,
-
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
-
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant,
 )

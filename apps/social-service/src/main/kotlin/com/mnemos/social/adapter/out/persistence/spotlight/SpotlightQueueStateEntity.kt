@@ -11,7 +11,6 @@ class SpotlightQueueStateEntity(
     @Id
     @Column(name = "id", nullable = false)
     var id: Short,
-
     @Column(name = "next_sequence", nullable = false)
     var nextSequence: Long,
 )

@@ -61,9 +61,7 @@ class WalletTransactionFailedHandler(
         }
     }
 
-    private fun WalletTransactionFailedEvent.toResultContext(
-        message: ConsumedMessage<WalletTransactionFailedEvent>,
-    ): WalletResultContext =
+    private fun WalletTransactionFailedEvent.toResultContext(message: ConsumedMessage<WalletTransactionFailedEvent>): WalletResultContext =
         WalletResultContext(
             requestId = requestId,
             actorUserId = message.metadata.actorUserId,

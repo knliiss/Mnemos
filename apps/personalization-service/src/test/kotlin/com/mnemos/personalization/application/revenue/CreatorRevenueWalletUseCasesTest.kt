@@ -131,8 +131,7 @@ class CreatorRevenueWalletUseCasesTest {
             return operation
         }
 
-        override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? =
-            operation.takeIf { it.requestId == requestId }
+        override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = operation.takeIf { it.requestId == requestId }
 
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean = false
     }

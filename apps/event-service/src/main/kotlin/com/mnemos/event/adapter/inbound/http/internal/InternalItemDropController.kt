@@ -48,7 +48,9 @@ class InternalItemDropController(
             }
 
     @GetMapping("/{itemDropId}")
-    fun getById(@PathVariable itemDropId: UUID): ResponseEntity<InternalItemDropResponse> {
+    fun getById(
+        @PathVariable itemDropId: UUID,
+    ): ResponseEntity<InternalItemDropResponse> {
         val itemDrop =
             getItemDropUseCase.execute(EventId(itemDropId))
                 ?: return ResponseEntity.notFound().build()

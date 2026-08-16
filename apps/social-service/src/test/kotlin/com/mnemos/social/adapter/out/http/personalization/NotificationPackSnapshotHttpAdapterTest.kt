@@ -2,7 +2,9 @@ package com.mnemos.social.adapter.out.http.personalization
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.personalization.contracts.event.NotificationPackSnapshotV1
+import com.mnemos.personalization.contracts.event.NotificationPackTemplateV1
 import com.mnemos.personalization.contracts.internal.v1.InternalNotificationPackSelectionResponse
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -20,7 +22,17 @@ class NotificationPackSnapshotHttpAdapterTest {
         val pack =
             NotificationPackSnapshotV1(
                 mixedAggregateTitle = "Drops",
-                templates = emptyList(),
+                templates =
+                    NotificationPackTemplateType.entries.map { type ->
+                        NotificationPackTemplateV1(
+                            type = type,
+                            emoji = null,
+                            soloTitle = "$type title",
+                            soloBody = "$type body",
+                            compact = "$type compact",
+                            aggregateTitle = "$type aggregate",
+                        )
+                    },
             )
         val response =
             InternalNotificationPackSelectionResponse(

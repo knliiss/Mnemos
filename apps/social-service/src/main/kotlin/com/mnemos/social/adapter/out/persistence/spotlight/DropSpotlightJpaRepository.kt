@@ -12,7 +12,9 @@ import java.util.UUID
 interface DropSpotlightJpaRepository : JpaRepository<DropSpotlightEntity, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select spotlight from DropSpotlightEntity spotlight where spotlight.id = :spotlightId")
-    fun findByIdForUpdate(@Param("spotlightId") spotlightId: UUID): DropSpotlightEntity?
+    fun findByIdForUpdate(
+        @Param("spotlightId") spotlightId: UUID,
+    ): DropSpotlightEntity?
 
     fun existsByItemDropEventIdAndStatusNot(
         itemDropEventId: UUID,
@@ -29,7 +31,5 @@ interface DropSpotlightJpaRepository : JpaRepository<DropSpotlightEntity, UUID> 
         scheduledAt: Instant,
     ): DropSpotlightEntity?
 
-    fun findTopByStatusAndPublishedAtIsNotNullOrderByPublishedAtDesc(
-        status: DropSpotlightStatus,
-    ): DropSpotlightEntity?
+    fun findTopByStatusAndPublishedAtIsNotNullOrderByPublishedAtDesc(status: DropSpotlightStatus): DropSpotlightEntity?
 }

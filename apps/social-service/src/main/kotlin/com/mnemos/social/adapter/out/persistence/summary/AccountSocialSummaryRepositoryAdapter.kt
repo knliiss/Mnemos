@@ -19,9 +19,7 @@ class AccountSocialSummaryRepositoryAdapter(
         repository.ensureExists(accountId, now)
     }
 
-    override fun findForUpdate(accountId: UUID): AccountSocialSummary =
-        repository.findForUpdate(accountId).toDomain()
+    override fun findForUpdate(accountId: UUID): AccountSocialSummary = repository.findForUpdate(accountId).toDomain()
 
-    override fun save(summary: AccountSocialSummary): AccountSocialSummary =
-        repository.save(summary.toEntity()).toDomain()
+    override fun save(summary: AccountSocialSummary): AccountSocialSummary = repository.save(summary.toEntity()).toDomain()
 }

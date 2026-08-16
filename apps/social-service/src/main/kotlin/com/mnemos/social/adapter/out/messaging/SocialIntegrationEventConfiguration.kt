@@ -16,7 +16,8 @@ class SocialIntegrationEventConfiguration {
         IntegrationEventRouteResolver { event ->
             when (event.type) {
                 SocialEventType.DROP_SPOTLIGHT_PUBLISHED,
-                SocialEventType.ACCOUNT_SOCIAL_SUMMARY_CHANGED ->
+                SocialEventType.ACCOUNT_SOCIAL_SUMMARY_CHANGED,
+                ->
                     IntegrationEventRoute(
                         topic = SocialEventContract.TOPIC,
                         version = SocialEventContract.VERSION,

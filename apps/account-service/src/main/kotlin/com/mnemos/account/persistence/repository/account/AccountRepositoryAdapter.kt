@@ -29,17 +29,14 @@ class AccountRepositoryAdapter(
         return jpaAccountRepository.save(entity).toDomain()
     }
 
-    override fun findActiveById(accountId: AccountId): Account? =
-        jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
+    override fun findActiveById(accountId: AccountId): Account? = jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
 
     override fun findActiveByCristalixNickname(nickname: String): Account? =
         jpaAccountRepository.findActiveByCristalixNickname(nickname)?.toDomain()
 
-    override fun findActiveByUserId(userId: UserId): Account? =
-        jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
+    override fun findActiveByUserId(userId: UserId): Account? = jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
 
-    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean =
-        jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
+    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
 
     override fun findAllAvailableForUser(userId: UserId): List<Account> =
         jpaAccountRepository
@@ -63,8 +60,7 @@ class AccountRepositoryAdapter(
 
     override fun lockById(id: AccountId): Boolean = jpaAccountRepository.findByIdForUpdate(id.id) != null
 
-    override fun findByIdForUpdate(accountId: AccountId): Account? =
-        jpaAccountRepository.findByIdForUpdate(accountId.id)?.toDomain()
+    override fun findByIdForUpdate(accountId: AccountId): Account? = jpaAccountRepository.findByIdForUpdate(accountId.id)?.toDomain()
 
     override fun findByIdIncludingInactive(accountId: AccountId): Account? =
         jpaAccountRepository

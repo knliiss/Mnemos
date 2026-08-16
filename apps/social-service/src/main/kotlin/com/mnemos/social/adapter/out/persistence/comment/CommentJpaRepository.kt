@@ -10,5 +10,7 @@ import java.util.UUID
 interface CommentJpaRepository : JpaRepository<CommentEntity, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select comment from CommentEntity comment where comment.id = :commentId")
-    fun findForUpdate(@Param("commentId") commentId: UUID): CommentEntity?
+    fun findForUpdate(
+        @Param("commentId") commentId: UUID,
+    ): CommentEntity?
 }

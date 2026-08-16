@@ -13,5 +13,7 @@ import java.util.UUID
 )
 interface EventServiceClient {
     @GetMapping("/internal/v1/item-drops/{itemDropEventId}")
-    fun getItemDrop(@PathVariable itemDropEventId: UUID): InternalItemDropResponse?
+    fun getItemDrop(
+        @PathVariable itemDropEventId: UUID,
+    ): InternalItemDropResponse?
 }

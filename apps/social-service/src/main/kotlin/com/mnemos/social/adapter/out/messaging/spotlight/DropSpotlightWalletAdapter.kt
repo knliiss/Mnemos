@@ -20,20 +20,22 @@ class DropSpotlightWalletAdapter(
 ) : DropSpotlightWallet {
     override fun requestDebit(spotlight: DropSpotlight) {
         publisher.publish(
-            event = IntegrationEvent(
-                type = WalletCommandType.CREATE_TRANSACTION,
-                aggregateId = spotlight.walletRequestId,
-                occurredAt = spotlight.createdAt,
-                payload = WalletCreateTransactionCommand(
-                    requestId = spotlight.walletRequestId,
-                    owner = WalletOwner(WalletOwnerType.USER, spotlight.buyerUserId),
-                    currency = Currency.PRIME,
-                    type = TransactionType.DEBIT,
-                    source = TransactionSource.SPOTLIGHT_PURCHASE,
-                    sourceReferenceId = spotlight.id.id,
-                    amount = spotlight.pricePrime,
+            event =
+                IntegrationEvent(
+                    type = WalletCommandType.CREATE_TRANSACTION,
+                    aggregateId = spotlight.walletRequestId,
+                    occurredAt = spotlight.createdAt,
+                    payload =
+                        WalletCreateTransactionCommand(
+                            requestId = spotlight.walletRequestId,
+                            owner = WalletOwner(WalletOwnerType.USER, spotlight.buyerUserId),
+                            currency = Currency.PRIME,
+                            type = TransactionType.DEBIT,
+                            source = TransactionSource.SPOTLIGHT_PURCHASE,
+                            sourceReferenceId = spotlight.id.id,
+                            amount = spotlight.pricePrime,
+                        ),
                 ),
-            ),
             metadata = EventMetadata(actorUserId = spotlight.buyerUserId),
         )
     }

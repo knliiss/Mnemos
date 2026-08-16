@@ -23,10 +23,15 @@ class RedisRealtimeBroadcastReplayStoreTest {
         val userId = UUID.fromString("019c1ab0-8800-7000-8000-000000000001")
         val older = broadcast(sequence = 9)
         val newer = broadcast(sequence = 10)
-        val objectMapper = ObjectMapper().findAndRegisterModules()
+
+        val olderJson = "older"
+        val newerJson = "newer"
+
+        val objectMapper = mock<ObjectMapper>()
         val redisTemplate = mock<StringRedisTemplate>()
         val zSetOperations = mock<ZSetOperations<String, String>>()
         val setOperations = mock<SetOperations<String, String>>()
+
         val store =
             RedisRealtimeBroadcastReplayStore(
                 redisTemplate = redisTemplate,
@@ -37,6 +42,7 @@ class RedisRealtimeBroadcastReplayStoreTest {
 
         whenever(redisTemplate.opsForZSet()).thenReturn(zSetOperations)
         whenever(redisTemplate.opsForSet()).thenReturn(setOperations)
+
         whenever(
             zSetOperations.rangeByScore(
                 "realtime:sse:broadcast-expirations:v1",
@@ -44,25 +50,57 @@ class RedisRealtimeBroadcastReplayStoreTest {
                 now.toEpochMilli().toDouble(),
             ),
         ).thenReturn(emptySet())
-        whenever(zSetOperations.range("realtime:sse:broadcasts:v1", 0, -1))
-            .thenReturn(
-                setOf(
-                    objectMapper.writeValueAsString(older),
-                    objectMapper.writeValueAsString(newer),
-                ),
-            )
-        whenever(setOperations.members("realtime:sse:broadcast-acknowledged:v1:$userId"))
-            .thenReturn(setOf(newer.sequence.toString()))
+
+        whenever(
+            zSetOperations.range(
+                "realtime:sse:broadcasts:v1",
+                0,
+                -1,
+            ),
+        ).thenReturn(
+            setOf(
+                olderJson,
+                newerJson,
+            ),
+        )
+
+        whenever(
+            objectMapper.readValue(
+                olderJson,
+                RealtimeBroadcast::class.java,
+            ),
+        ).thenReturn(older)
+
+        whenever(
+            objectMapper.readValue(
+                newerJson,
+                RealtimeBroadcast::class.java,
+            ),
+        ).thenReturn(newer)
+
+        whenever(
+            setOperations.members(
+                "realtime:sse:broadcast-acknowledged:v1:$userId",
+            ),
+        ).thenReturn(
+            setOf(newer.sequence.toString()),
+        )
 
         val pending = store.findPending(userId)
 
-        assertEquals(listOf(older.sequence), pending.map(RealtimeBroadcast::sequence))
+        assertEquals(
+            listOf(older.sequence),
+            pending.map(RealtimeBroadcast::sequence),
+        )
     }
 
     private fun broadcast(sequence: Long): RealtimeBroadcast {
         val publishedAt = Instant.parse("2026-08-16T00:00:00Z").plusSeconds(sequence)
         val expiresAt = publishedAt.plusSeconds(3600)
-        val spotlightId = UUID.fromString("019c1ab0-8800-7000-8000-%012d".format(sequence))
+        val spotlightId =
+            UUID.fromString(
+                "019c1ab0-8800-7000-8000-%012d".format(sequence),
+            )
 
         return RealtimeBroadcast(
             id = spotlightId,

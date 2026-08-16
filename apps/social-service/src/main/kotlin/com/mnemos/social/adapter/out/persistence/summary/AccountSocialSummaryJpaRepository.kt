@@ -33,5 +33,7 @@ interface AccountSocialSummaryJpaRepository : JpaRepository<AccountSocialSummary
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select summary from AccountSocialSummaryEntity summary where summary.accountId = :accountId")
-    fun findForUpdate(@Param("accountId") accountId: UUID): AccountSocialSummaryEntity
+    fun findForUpdate(
+        @Param("accountId") accountId: UUID,
+    ): AccountSocialSummaryEntity
 }

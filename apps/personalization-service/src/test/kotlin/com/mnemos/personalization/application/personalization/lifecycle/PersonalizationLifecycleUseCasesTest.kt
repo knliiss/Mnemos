@@ -348,6 +348,8 @@ class PersonalizationLifecycleUseCasesTest {
 
             return revision
         }
+
+        override fun current(userId: UserId): Long = revision
     }
 
     private class FakePersonalizationRepository(
@@ -394,8 +396,7 @@ class PersonalizationLifecycleUseCasesTest {
                 it.owner == owner && it.type == type && it.active
             }
 
-        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
-            listOf(ownership).filter { it.owner == owner }
+        override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = listOf(ownership).filter { it.owner == owner }
 
         override fun deactivateActive(
             owner: PersonalizationOwner,

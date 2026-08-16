@@ -6,9 +6,13 @@ plugins {
 dependencyManagement {
     imports {
         mavenBom(
-            "org.springframework.boot:spring-boot-dependencies:4.1.0"
+            "org.springframework.boot:spring-boot-dependencies:4.1.0",
         )
     }
+}
+
+dependencies {
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {

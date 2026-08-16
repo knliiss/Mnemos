@@ -15,11 +15,9 @@ class CommentLikeEntity(
     @Id
     @Column(name = "comment_id", nullable = false)
     var commentId: UUID,
-
     @Id
     @Column(name = "actor_account_id", nullable = false)
     var actorAccountId: UUID,
-
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
 )
