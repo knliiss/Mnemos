@@ -23,6 +23,8 @@ class CreateRoleService(
     private val basePermissions =
         setOf(
             RolePermission.CLAIM_DAILY_REWARD,
+            RolePermission.PUBLISH_COMMENTS,
+            RolePermission.PUBLISH_REACTIONS,
             RolePermission.VIEW_BETS,
             RolePermission.VIEW_BET_HISTORY,
             RolePermission.VIEW_PERSONALIZATIONS,

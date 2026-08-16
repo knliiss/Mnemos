@@ -1,5 +1,6 @@
 package com.mnemos.social.application.reaction
 
+import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.domain.comment.model.CommentId
 import com.mnemos.social.domain.comment.repository.CommentRepository
@@ -20,7 +21,7 @@ class CommentLikeService(
 ) {
     @Transactional
     fun like(commentId: UUID) {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
         val comment =
             commentRepository.findByIdForUpdate(CommentId(commentId))
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
@@ -38,7 +39,7 @@ class CommentLikeService(
 
     @Transactional
     fun unlike(commentId: UUID) {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
 
         repository.remove(
             commentId = commentId,

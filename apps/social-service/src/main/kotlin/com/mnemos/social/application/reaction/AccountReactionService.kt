@@ -1,5 +1,6 @@
 package com.mnemos.social.application.reaction
 
+import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
@@ -26,7 +27,7 @@ class AccountReactionService(
         targetAccountId: UUID,
         type: AccountReactionType,
     ) {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
 
         if (actor.accountId == targetAccountId) {
             throw ResponseStatusException(
@@ -74,7 +75,7 @@ class AccountReactionService(
 
     @Transactional
     fun remove(targetAccountId: UUID) {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
 
         requireActiveTargetAccount(targetAccountId)
 

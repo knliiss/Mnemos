@@ -30,7 +30,7 @@ class CommentService(
         parentCommentId: UUID?,
         content: String,
     ): Comment {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
 
         if (!accountAccessPort.isActiveAccount(targetAccountId)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
@@ -77,7 +77,7 @@ class CommentService(
         commentId: UUID,
         content: String,
     ): Comment {
-        val actor = actorProvider.requireActor()
+        val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
         val comment = requireCommentForUpdate(CommentId(commentId))
 
         if (comment.authorUserId != actor.userId) {
