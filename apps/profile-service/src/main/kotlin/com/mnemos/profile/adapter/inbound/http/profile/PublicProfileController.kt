@@ -17,7 +17,9 @@ class PublicProfileController(
     private val service: PublicProfileService,
 ) {
     @GetMapping("/{accountId}")
-    fun get(@PathVariable accountId: UUID): PublicProfileResponse = service.get(accountId).toResponse()
+    fun get(
+        @PathVariable accountId: UUID,
+    ): PublicProfileResponse = service.get(accountId).toResponse()
 
     @GetMapping
     fun search(

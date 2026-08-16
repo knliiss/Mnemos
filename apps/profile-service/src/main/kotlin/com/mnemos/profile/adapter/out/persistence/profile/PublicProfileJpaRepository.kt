@@ -50,7 +50,9 @@ interface PublicProfileJpaRepository : JpaRepository<PublicProfileEntity, UUID> 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select profile from PublicProfileEntity profile where profile.accountId = :accountId")
-    fun findForUpdate(@Param("accountId") accountId: UUID): PublicProfileEntity?
+    fun findForUpdate(
+        @Param("accountId") accountId: UUID,
+    ): PublicProfileEntity?
 
     @Query(
         value = """

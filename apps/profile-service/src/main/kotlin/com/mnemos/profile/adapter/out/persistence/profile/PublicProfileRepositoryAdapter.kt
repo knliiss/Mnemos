@@ -28,14 +28,11 @@ class PublicProfileRepositoryAdapter(
         )
     }
 
-    override fun save(profile: PublicProfile): PublicProfile =
-        repository.save(profile.toEntity()).toDomain()
+    override fun save(profile: PublicProfile): PublicProfile = repository.save(profile.toEntity()).toDomain()
 
-    override fun findByAccountId(accountId: UUID): PublicProfile? =
-        repository.findById(accountId).orElse(null)?.toDomain()
+    override fun findByAccountId(accountId: UUID): PublicProfile? = repository.findById(accountId).orElse(null)?.toDomain()
 
-    override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? =
-        repository.findForUpdate(accountId)?.toDomain()
+    override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? = repository.findForUpdate(accountId)?.toDomain()
 
     override fun search(
         query: String,

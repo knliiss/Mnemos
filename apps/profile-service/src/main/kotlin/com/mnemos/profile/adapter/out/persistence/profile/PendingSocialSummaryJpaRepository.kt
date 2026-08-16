@@ -21,7 +21,9 @@ interface PendingSocialSummaryJpaRepository : JpaRepository<PendingSocialSummary
         """,
         nativeQuery = true,
     )
-    fun findReady(@Param("limit") limit: Int): List<PendingSocialSummaryEntity>
+    fun findReady(
+        @Param("limit") limit: Int,
+    ): List<PendingSocialSummaryEntity>
 
     @Modifying
     @Query(

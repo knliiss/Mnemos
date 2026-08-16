@@ -11,14 +11,11 @@ import java.util.UUID
 class PendingSocialSummaryRepositoryAdapter(
     private val repository: PendingSocialSummaryJpaRepository,
 ) : PendingSocialSummaryRepository {
-    override fun save(summary: PendingSocialSummary): PendingSocialSummary =
-        repository.save(summary.toEntity()).toDomain()
+    override fun save(summary: PendingSocialSummary): PendingSocialSummary = repository.save(summary.toEntity()).toDomain()
 
-    override fun findByAccountId(accountId: UUID): PendingSocialSummary? =
-        repository.findById(accountId).orElse(null)?.toDomain()
+    override fun findByAccountId(accountId: UUID): PendingSocialSummary? = repository.findById(accountId).orElse(null)?.toDomain()
 
-    override fun findReady(limit: Int): List<PendingSocialSummary> =
-        repository.findReady(limit).map { it.toDomain() }
+    override fun findReady(limit: Int): List<PendingSocialSummary> = repository.findReady(limit).map { it.toDomain() }
 
     override fun deleteIfRevision(
         accountId: UUID,
