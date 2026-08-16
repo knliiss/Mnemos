@@ -22,7 +22,7 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                            FROM comment_likes comment_like
                            WHERE comment_like.comment_id = c.id
                        )
-                       ELSE 0::bigint
+                       ELSE CAST(0 AS bigint)
                    END AS "likes",
                    (
                        SELECT count(*)
@@ -52,7 +52,7 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                            FROM comment_likes comment_like
                            WHERE comment_like.comment_id = c.id
                        )
-                       ELSE 0::bigint
+                       ELSE CAST(0 AS bigint)
                    END AS "likes",
                    (
                        SELECT count(*)
@@ -93,9 +93,9 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                            FROM comment_likes comment_like
                            WHERE comment_like.comment_id = c.id
                        )
-                       ELSE 0::bigint
+                       ELSE CAST(0 AS bigint)
                    END AS "likes",
-                   0::bigint AS "replies",
+                   CAST(0 AS bigint) AS "replies",
                    c.created_at AS "createdAt",
                    c.updated_at AS "updatedAt"
             FROM comments c
