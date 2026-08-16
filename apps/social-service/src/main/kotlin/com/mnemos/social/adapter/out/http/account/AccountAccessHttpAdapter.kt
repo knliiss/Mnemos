@@ -24,6 +24,8 @@ class AccountAccessHttpAdapter(
         )
     }
 
+    override fun isActiveAccount(accountId: UUID): Boolean = client.findActiveAccount(accountId) != null
+
     override fun hasPermission(
         accountId: UUID,
         userId: UUID,

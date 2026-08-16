@@ -1,10 +1,10 @@
 package com.mnemos.event.adapter.inbound.http.internal
 
+import com.mnemos.event.adapter.inbound.http.internal.InternalItemDropApiMapper.toInternalResponse
 import com.mnemos.event.application.itemdrop.usecase.first.FindFirstItemDropQuery
 import com.mnemos.event.application.itemdrop.usecase.first.FindFirstItemDropUseCase
 import com.mnemos.event.application.itemdrop.usecase.get.GetItemDropUseCase
 import com.mnemos.event.domain.EventId
-import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -49,29 +49,10 @@ class InternalItemDropController(
 
     @GetMapping("/{itemDropId}")
     fun getById(@PathVariable itemDropId: UUID): ResponseEntity<InternalItemDropResponse> {
-        val itemDrop = getItemDropUseCase.execute(EventId(itemDropId))
-            ?: return ResponseEntity.notFound().build()
+        val itemDrop =
+            getItemDropUseCase.execute(EventId(itemDropId))
+                ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(
-            InternalItemDropResponse(
-                id = itemDrop.id.id,
-                itemId = itemDrop.itemId.id,
-                itemName = itemDrop.itemName,
-                itemRarity = itemDrop.itemRarity,
-                itemType = itemDrop.itemType,
-                droppedFor = itemDrop.droppedFor,
-                occurredAt = itemDrop.occurredAt,
-            ),
-        )
+        return ResponseEntity.ok(itemDrop.toInternalResponse())
     }
 }
-
-data class InternalItemDropResponse(
-    val id: UUID,
-    val itemId: UUID,
-    val itemName: String,
-    val itemRarity: DomainItemRarity,
-    val itemType: DomainItemType,
-    val droppedFor: String,
-    val occurredAt: Instant,
-)

@@ -1,6 +1,5 @@
 package com.mnemos.social.adapter.out.http.account
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,18 +19,12 @@ interface AccountServiceClient {
     @GetMapping("/internal/v1/accounts/resolve")
     fun resolveActiveAccount(@RequestParam userId: UUID): InternalAccountResponse?
 
+    @GetMapping("/internal/v1/accounts/resolve")
+    fun findActiveAccount(@RequestParam accountId: UUID): InternalAccountResponse?
+
     @PostMapping("/internal/v1/accounts/{accountId}/permissions/check")
     fun checkPermission(
         @PathVariable accountId: UUID,
         @RequestBody request: CheckAccountPermissionRequest,
     ): CheckAccountPermissionResponse
 }
-
-data class CheckAccountPermissionRequest(
-    val userId: UUID,
-    val permission: RolePermission,
-)
-
-data class CheckAccountPermissionResponse(
-    val granted: Boolean,
-)

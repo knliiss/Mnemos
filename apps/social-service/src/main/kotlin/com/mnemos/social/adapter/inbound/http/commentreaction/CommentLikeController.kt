@@ -30,9 +30,7 @@ class CommentLikeController(
 
     @GetMapping("/count")
     fun count(@PathVariable commentId: UUID): CommentLikeCountResponse =
-        CommentLikeCountResponse(service.count(commentId))
+        CommentLikeCountResponse(
+            likes = service.count(commentId),
+        )
 }
-
-data class CommentLikeCountResponse(
-    val likes: Long,
-)

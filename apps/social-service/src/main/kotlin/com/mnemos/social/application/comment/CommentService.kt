@@ -2,6 +2,7 @@ package com.mnemos.social.application.comment
 
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.comment.model.Comment
 import com.mnemos.social.domain.comment.model.CommentId
@@ -19,6 +20,7 @@ import java.util.UUID
 class CommentService(
     private val repository: CommentRepository,
     private val actorProvider: SocialActorProvider,
+    private val accountAccessPort: AccountAccessPort,
     private val summaryService: AccountSocialSummaryService,
     private val clock: Clock,
 ) {
@@ -29,9 +31,17 @@ class CommentService(
         content: String,
     ): Comment {
         val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
+
+        if (!accountAccessPort.isActiveAccount(targetAccountId)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
+        }
+
         val parent = parentCommentId?.let { requireComment(CommentId(it)) }
 
         if (parent != null) {
+            if (parent.deleted) {
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Deleted comment cannot receive replies")
+            }
             require(parent.targetAccountId == targetAccountId) {
                 "Reply must target the same account as its parent"
             }
@@ -78,6 +88,7 @@ class CommentService(
         }
 
         comment.edit(content, clock.instant())
+
         return repository.save(comment)
     }
 
@@ -127,6 +138,7 @@ class CommentService(
         pageable: Pageable,
     ): Page<Comment> {
         val root = requireComment(CommentId(commentId))
+
         require(root.parentCommentId == null) {
             "Replies can only be listed for a root comment"
         }

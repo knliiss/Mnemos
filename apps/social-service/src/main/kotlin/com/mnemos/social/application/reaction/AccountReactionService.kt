@@ -2,6 +2,7 @@ package com.mnemos.social.application.reaction
 
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.reaction.model.AccountReaction
 import com.mnemos.social.domain.reaction.model.AccountReactionType
@@ -17,6 +18,7 @@ import java.util.UUID
 class AccountReactionService(
     private val repository: AccountReactionRepository,
     private val actorProvider: SocialActorProvider,
+    private val accountAccessPort: AccountAccessPort,
     private val summaryService: AccountSocialSummaryService,
     private val clock: Clock,
 ) {
@@ -33,6 +35,8 @@ class AccountReactionService(
                 "An account cannot react to itself",
             )
         }
+
+        requireActiveTargetAccount(targetAccountId)
 
         val now = clock.instant()
         summaryService.lockAccount(targetAccountId, now)
@@ -72,6 +76,9 @@ class AccountReactionService(
     @Transactional
     fun remove(targetAccountId: UUID) {
         val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+
+        requireActiveTargetAccount(targetAccountId)
+
         val now = clock.instant()
         summaryService.lockAccount(targetAccountId, now)
 
@@ -107,9 +114,10 @@ class AccountReactionService(
                     type = AccountReactionType.DISLIKE,
                 ),
         )
-}
 
-data class AccountReactionSummary(
-    val likes: Long,
-    val dislikes: Long,
-)
+    private fun requireActiveTargetAccount(accountId: UUID) {
+        if (!accountAccessPort.isActiveAccount(accountId)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
+        }
+    }
+}

@@ -7,6 +7,8 @@ import java.util.UUID
 interface AccountAccessPort {
     fun resolveActiveActor(userId: UUID): SocialActor
 
+    fun isActiveAccount(accountId: UUID): Boolean
+
     fun hasPermission(
         accountId: UUID,
         userId: UUID,

@@ -1,9 +1,8 @@
 package com.mnemos.social.adapter.inbound.http.accountreaction
 
+import com.mnemos.social.adapter.inbound.http.accountreaction.AccountReactionApiMapper.toResponse
 import com.mnemos.social.application.reaction.AccountReactionService
-import com.mnemos.social.application.reaction.AccountReactionSummary
-import com.mnemos.social.domain.reaction.model.AccountReactionType
-import jakarta.validation.constraints.NotNull
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,11 +14,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-data class SetAccountReactionRequest(
-    @field:NotNull
-    val type: AccountReactionType,
-)
-
 @RestController
 @RequestMapping("/api/v1/accounts/{accountId}/reaction")
 class AccountReactionController(
@@ -29,7 +23,7 @@ class AccountReactionController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun set(
         @PathVariable accountId: UUID,
-        @RequestBody request: SetAccountReactionRequest,
+        @Valid @RequestBody request: SetAccountReactionRequest,
     ) {
         service.set(accountId, request.type)
     }
@@ -41,5 +35,8 @@ class AccountReactionController(
     }
 
     @GetMapping("/summary")
-    fun summary(@PathVariable accountId: UUID): AccountReactionSummary = service.summary(accountId)
+    fun summary(@PathVariable accountId: UUID): AccountReactionSummaryResponse =
+        service
+            .summary(accountId)
+            .toResponse()
 }
