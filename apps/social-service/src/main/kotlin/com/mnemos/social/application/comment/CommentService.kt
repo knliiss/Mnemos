@@ -42,11 +42,11 @@ class CommentService(
             if (parent.deleted) {
                 throw ResponseStatusException(HttpStatus.CONFLICT, "Deleted comment cannot receive replies")
             }
-            require(parent.targetAccountId == targetAccountId) {
-                "Reply must target the same account as its parent"
+            if (parent.targetAccountId != targetAccountId) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Reply must target the same account as its parent")
             }
-            require(parent.parentCommentId == null) {
-                "Replies can only target root comments"
+            if (parent.parentCommentId != null) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Replies can only target root comments")
             }
         }
 
@@ -143,8 +143,8 @@ class CommentService(
     ): Page<Comment> {
         val root = requireComment(CommentId(commentId))
 
-        require(root.parentCommentId == null) {
-            "Replies can only be listed for a root comment"
+        if (root.parentCommentId != null) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Replies can only be listed for a root comment")
         }
 
         return repository.findReplies(root.id, pageable)

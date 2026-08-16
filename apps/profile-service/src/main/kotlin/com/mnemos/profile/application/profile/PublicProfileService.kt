@@ -30,8 +30,8 @@ class PublicProfileService(
     ): Page<PublicProfile> {
         val normalized = query.trim()
 
-        require(normalized.isNotEmpty()) {
-            "Profile search query cannot be blank"
+        if (normalized.isEmpty()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile search query cannot be blank")
         }
 
         return repository.search(normalized, pageable)
