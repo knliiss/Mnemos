@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.ownership.query
+package com.mnemos.personalization.application.ownership.model
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent

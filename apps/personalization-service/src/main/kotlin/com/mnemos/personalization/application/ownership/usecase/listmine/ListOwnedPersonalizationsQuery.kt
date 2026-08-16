@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.ownership.query
+package com.mnemos.personalization.application.ownership.usecase.listmine
 
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType

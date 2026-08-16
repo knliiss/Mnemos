@@ -1,7 +1,8 @@
-package com.mnemos.personalization.application.ownership.query
+package com.mnemos.personalization.application.ownership.usecase.getactivepack
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
+import com.mnemos.personalization.application.ownership.model.ActiveNotificationPackSelection
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
@@ -9,18 +10,16 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationTy
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
-class ActiveNotificationPackSelectionQueryService(
+class GetActiveNotificationPackService(
     private val ownershipRepository: OwnedPersonalizationRepository,
     private val personalizationRepository: PersonalizationRepository,
     private val revisionStore: NotificationPackSelectionRevisionStore,
-) {
+) : GetActiveNotificationPackUseCase {
     @Transactional(readOnly = true)
-    fun find(userId: UUID): ActiveNotificationPackSelection? {
-        val typedUserId = UserId(userId)
-        val owner = PersonalizationOwner.User(typedUserId)
+    override fun execute(userId: UserId): ActiveNotificationPackSelection? {
+        val owner = PersonalizationOwner.User(userId)
         val ownership =
             ownershipRepository.findActive(
                 owner = owner,
@@ -34,9 +33,9 @@ class ActiveNotificationPackSelectionQueryService(
                 ?: error("Active notification pack has invalid content type")
 
         return ActiveNotificationPackSelection(
-            userId = typedUserId,
+            userId = userId,
             personalizationId = personalization.id,
-            selectionRevision = revisionStore.current(typedUserId),
+            selectionRevision = revisionStore.current(userId),
             content = content,
         )
     }
