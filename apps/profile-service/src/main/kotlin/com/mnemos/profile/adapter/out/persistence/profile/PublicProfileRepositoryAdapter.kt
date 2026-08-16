@@ -7,13 +7,29 @@ import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.Instant
 import java.util.UUID
 
 @Repository
 class PublicProfileRepositoryAdapter(
     private val repository: PublicProfileJpaRepository,
 ) : PublicProfileRepository {
-    override fun save(profile: PublicProfile): PublicProfile = repository.save(profile.toEntity()).toDomain()
+    override fun ensureExists(
+        accountId: UUID,
+        cristalixUuid: UUID,
+        cristalixNickname: String,
+        createdAt: Instant,
+    ) {
+        repository.ensureExists(
+            accountId = accountId,
+            cristalixUuid = cristalixUuid,
+            cristalixNickname = cristalixNickname,
+            createdAt = createdAt,
+        )
+    }
+
+    override fun save(profile: PublicProfile): PublicProfile =
+        repository.save(profile.toEntity()).toDomain()
 
     override fun findByAccountId(accountId: UUID): PublicProfile? =
         repository.findById(accountId).orElse(null)?.toDomain()

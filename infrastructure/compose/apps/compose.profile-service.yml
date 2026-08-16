@@ -21,6 +21,10 @@ services:
       MNEMOS_KAFKA_MANAGE_TOPICS: "false"
       MNEMOS_KAFKA_MESSAGE_AUTH_ENABLED: "true"
       MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      PROFILE_SERVICE_ACCOUNT_API_KEY: ${PROFILE_SERVICE_ACCOUNT_API_KEY}
+      PROFILE_BOOTSTRAP_BATCH_SIZE: ${PROFILE_BOOTSTRAP_BATCH_SIZE:-200}
+      PROFILE_BOOTSTRAP_DELAY_MS: ${PROFILE_BOOTSTRAP_DELAY_MS:-2000}
     depends_on:
       app-postgres:
         condition: service_healthy
@@ -28,5 +32,7 @@ services:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
+      account-service:
+        condition: service_started
     networks:
       - mnemos-network

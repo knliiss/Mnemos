@@ -163,8 +163,69 @@ class PublicProfileServiceTest {
         assertNull(pending.findByAccountId(accountId))
     }
 
+    @Test
+    fun `bootstrap refreshes account identity without overwriting social counters`() {
+        val profiles = FakePublicProfileRepository()
+        val pending = FakePendingSocialSummaryRepository(profiles)
+        val service = PublicProfileService(profiles, pending)
+        val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000008")
+        val createdAt = Instant.parse("2026-08-15T20:00:00Z")
+
+        profiles.save(
+            PublicProfile(
+                accountId = accountId,
+                cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000009"),
+                cristalixNickname = "OldNickname",
+                likes = 9,
+                dislikes = 1,
+                comments = 4,
+                socialRevision = 8,
+                createdAt = Instant.parse("2026-08-15T20:00:01Z"),
+                updatedAt = Instant.parse("2026-08-16T00:00:00Z"),
+            ),
+        )
+
+        service.bootstrapAccount(
+            accountId = accountId,
+            cristalixUuid = UUID.fromString("019c1ab0-1200-7000-8000-000000000010"),
+            cristalixNickname = "CurrentNickname",
+            createdAt = createdAt,
+        )
+
+        val profile = requireNotNull(profiles.findByAccountId(accountId))
+
+        assertEquals("CurrentNickname", profile.cristalixNickname)
+        assertEquals(createdAt, profile.createdAt)
+        assertEquals(9, profile.likes)
+        assertEquals(1, profile.dislikes)
+        assertEquals(4, profile.comments)
+        assertEquals(8, profile.socialRevision)
+    }
+
     private class FakePublicProfileRepository : PublicProfileRepository {
         private val profiles = mutableMapOf<UUID, PublicProfile>()
+
+        override fun ensureExists(
+            accountId: UUID,
+            cristalixUuid: UUID,
+            cristalixNickname: String,
+            createdAt: Instant,
+        ) {
+            profiles.putIfAbsent(
+                accountId,
+                PublicProfile(
+                    accountId = accountId,
+                    cristalixUuid = cristalixUuid,
+                    cristalixNickname = cristalixNickname,
+                    likes = 0,
+                    dislikes = 0,
+                    comments = 0,
+                    socialRevision = 0,
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                ),
+            )
+        }
 
         override fun save(profile: PublicProfile): PublicProfile {
             profiles[profile.accountId] = profile

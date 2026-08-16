@@ -44,20 +44,42 @@ class PublicProfileService(
         cristalixNickname: String,
         occurredAt: Instant,
     ) {
-        val existing = repository.findByAccountIdForUpdate(accountId)
+        ensureProfileExists(
+            accountId = accountId,
+            cristalixUuid = cristalixUuid,
+            cristalixNickname = cristalixNickname,
+            createdAt = occurredAt,
+        )
 
-        if (existing == null) {
+        applyPendingSocialSummary(accountId)
+    }
+
+    @Transactional
+    fun bootstrapAccount(
+        accountId: UUID,
+        cristalixUuid: UUID,
+        cristalixNickname: String,
+        createdAt: Instant,
+    ) {
+        ensureProfileExists(
+            accountId = accountId,
+            cristalixUuid = cristalixUuid,
+            cristalixNickname = cristalixNickname,
+            createdAt = createdAt,
+        )
+
+        val current = requireNotNull(repository.findByAccountIdForUpdate(accountId))
+
+        if (
+            current.cristalixUuid != cristalixUuid ||
+            current.cristalixNickname != cristalixNickname ||
+            current.createdAt != createdAt
+        ) {
             repository.save(
-                PublicProfile(
-                    accountId = accountId,
+                current.copy(
                     cristalixUuid = cristalixUuid,
                     cristalixNickname = cristalixNickname,
-                    likes = 0,
-                    dislikes = 0,
-                    comments = 0,
-                    socialRevision = 0,
-                    createdAt = occurredAt,
-                    updatedAt = occurredAt,
+                    createdAt = createdAt,
                 ),
             )
         }
@@ -115,6 +137,20 @@ class PublicProfileService(
             .forEach { summary ->
                 applyPendingSocialSummary(summary.accountId)
             }
+    }
+
+    private fun ensureProfileExists(
+        accountId: UUID,
+        cristalixUuid: UUID,
+        cristalixNickname: String,
+        createdAt: Instant,
+    ) {
+        repository.ensureExists(
+            accountId = accountId,
+            cristalixUuid = cristalixUuid,
+            cristalixNickname = cristalixNickname,
+            createdAt = createdAt,
+        )
     }
 
     private fun savePendingSocialSummary(

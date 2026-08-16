@@ -9,6 +9,7 @@ import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.toEntity
 import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.updateFrom
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -24,30 +25,50 @@ class AccountRepositoryAdapter(
                 .orElseThrow { AccountNotFoundException(account.id) }
 
         entity.updateFrom(account)
+
         return jpaAccountRepository.save(entity).toDomain()
     }
 
-    override fun findActiveById(accountId: AccountId): Account? = jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
+    override fun findActiveById(accountId: AccountId): Account? =
+        jpaAccountRepository.findActiveById(accountId.id)?.toDomain()
 
     override fun findActiveByCristalixNickname(nickname: String): Account? =
         jpaAccountRepository.findActiveByCristalixNickname(nickname)?.toDomain()
 
-    override fun findActiveByUserId(userId: UserId): Account? = jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
+    override fun findActiveByUserId(userId: UserId): Account? =
+        jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
 
-    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
+    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean =
+        jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
 
     override fun findAllAvailableForUser(userId: UserId): List<Account> =
         jpaAccountRepository
             .findAllAvailableForUser(userId.id)
-            .map { it.toDomain() }
+            .map { entity -> entity.toDomain() }
+
+    override fun findBootstrapBatch(
+        afterAccountId: AccountId?,
+        limit: Int,
+    ): List<Account> {
+        val pageable = PageRequest.of(0, limit)
+        val entities =
+            if (afterAccountId == null) {
+                jpaAccountRepository.findAllByOrderByIdAsc(pageable)
+            } else {
+                jpaAccountRepository.findByIdGreaterThanOrderByIdAsc(afterAccountId.id, pageable)
+            }
+
+        return entities.map { entity -> entity.toDomain() }
+    }
 
     override fun lockById(id: AccountId): Boolean = jpaAccountRepository.findByIdForUpdate(id.id) != null
 
-    override fun findByIdForUpdate(accountId: AccountId): Account? = jpaAccountRepository.findByIdForUpdate(accountId.id)?.toDomain()
+    override fun findByIdForUpdate(accountId: AccountId): Account? =
+        jpaAccountRepository.findByIdForUpdate(accountId.id)?.toDomain()
 
     override fun findByIdIncludingInactive(accountId: AccountId): Account? =
         jpaAccountRepository
             .findById(accountId.id)
-            .map { it.toDomain() }
+            .map { entity -> entity.toDomain() }
             .orElse(null)
 }
