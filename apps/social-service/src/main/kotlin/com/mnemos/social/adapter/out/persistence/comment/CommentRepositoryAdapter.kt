@@ -25,7 +25,7 @@ class CommentRepositoryAdapter(
         pageable: Pageable,
     ): Page<Comment> =
         repository
-            .findByTargetAccountIdAndParentCommentIdIsNull(accountId, pageable)
+            .findRootByAccountId(accountId, pageable)
             .map { entity -> entity.toDomain() }
 
     override fun findReplies(
@@ -33,6 +33,6 @@ class CommentRepositoryAdapter(
         pageable: Pageable,
     ): Page<Comment> =
         repository
-            .findByParentCommentId(parentCommentId.id, pageable)
+            .findReplies(parentCommentId.id, pageable)
             .map { entity -> entity.toDomain() }
 }

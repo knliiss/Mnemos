@@ -14,13 +14,30 @@ interface CommentJpaRepository : JpaRepository<CommentEntity, UUID> {
     @Query("select comment from CommentEntity comment where comment.id = :commentId")
     fun findForUpdate(@Param("commentId") commentId: UUID): CommentEntity?
 
-    fun findByTargetAccountIdAndParentCommentIdIsNull(
-        targetAccountId: UUID,
+    @Query(
+        """
+            SELECT comment
+            FROM CommentEntity comment
+            WHERE comment.targetAccountId = :targetAccountId
+              AND comment.parentCommentId IS NULL
+            ORDER BY comment.createdAt DESC, comment.id DESC
+        """,
+    )
+    fun findRootByAccountId(
+        @Param("targetAccountId") targetAccountId: UUID,
         pageable: Pageable,
     ): Page<CommentEntity>
 
-    fun findByParentCommentId(
-        parentCommentId: UUID,
+    @Query(
+        """
+            SELECT comment
+            FROM CommentEntity comment
+            WHERE comment.parentCommentId = :parentCommentId
+            ORDER BY comment.createdAt ASC, comment.id ASC
+        """,
+    )
+    fun findReplies(
+        @Param("parentCommentId") parentCommentId: UUID,
         pageable: Pageable,
     ): Page<CommentEntity>
 }
