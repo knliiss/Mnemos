@@ -34,6 +34,12 @@ class AccountReactionController(
         service.remove(accountId)
     }
 
+    @GetMapping
+    fun current(@PathVariable accountId: UUID): AccountReactionStateResponse =
+        AccountReactionStateResponse(
+            type = service.current(accountId),
+        )
+
     @GetMapping("/summary")
     fun summary(@PathVariable accountId: UUID): AccountReactionSummaryResponse =
         service

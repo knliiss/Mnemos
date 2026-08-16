@@ -28,6 +28,12 @@ class CommentLikeController(
         service.unlike(commentId)
     }
 
+    @GetMapping
+    fun state(@PathVariable commentId: UUID): CommentLikeStateResponse =
+        CommentLikeStateResponse(
+            liked = service.isLiked(commentId),
+        )
+
     @GetMapping("/count")
     fun count(@PathVariable commentId: UUID): CommentLikeCountResponse =
         CommentLikeCountResponse(

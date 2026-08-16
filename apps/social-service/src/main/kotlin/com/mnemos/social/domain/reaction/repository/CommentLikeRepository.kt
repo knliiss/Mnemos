@@ -15,5 +15,10 @@ interface CommentLikeRepository {
         actorAccountId: UUID,
     ): Boolean
 
+    fun exists(
+        commentId: UUID,
+        actorAccountId: UUID,
+    ): Boolean
+
     fun countByCommentId(commentId: UUID): Long
 }

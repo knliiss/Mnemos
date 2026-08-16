@@ -37,5 +37,10 @@ interface CommentLikeJpaRepository : JpaRepository<CommentLikeEntity, CommentLik
         @Param("actorAccountId") actorAccountId: UUID,
     ): Int
 
+    fun existsByCommentIdAndActorAccountId(
+        commentId: UUID,
+        actorAccountId: UUID,
+    ): Boolean
+
     fun countByCommentId(commentId: UUID): Long
 }

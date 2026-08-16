@@ -100,6 +100,19 @@ class AccountReactionService(
     }
 
     @Transactional(readOnly = true)
+    fun current(targetAccountId: UUID): AccountReactionType? {
+        val actor = actorProvider.requireActor()
+
+        requireActiveTargetAccount(targetAccountId)
+
+        return repository
+            .find(
+                actorAccountId = actor.accountId,
+                targetAccountId = targetAccountId,
+            )?.type
+    }
+
+    @Transactional(readOnly = true)
     fun summary(targetAccountId: UUID): AccountReactionSummary =
         AccountReactionSummary(
             likes =

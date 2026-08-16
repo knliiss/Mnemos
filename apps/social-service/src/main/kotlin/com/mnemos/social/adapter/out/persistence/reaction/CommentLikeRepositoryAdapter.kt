@@ -29,5 +29,14 @@ class CommentLikeRepositoryAdapter(
             actorAccountId = actorAccountId,
         ) > 0
 
+    override fun exists(
+        commentId: UUID,
+        actorAccountId: UUID,
+    ): Boolean =
+        repository.existsByCommentIdAndActorAccountId(
+            commentId = commentId,
+            actorAccountId = actorAccountId,
+        )
+
     override fun countByCommentId(commentId: UUID): Long = repository.countByCommentId(commentId)
 }

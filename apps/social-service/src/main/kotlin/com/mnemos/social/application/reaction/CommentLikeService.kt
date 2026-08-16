@@ -47,5 +47,22 @@ class CommentLikeService(
     }
 
     @Transactional(readOnly = true)
+    fun isLiked(commentId: UUID): Boolean {
+        val actor = actorProvider.requireActor()
+        val comment =
+            commentRepository.findById(CommentId(commentId))
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
+
+        if (comment.deleted) {
+            return false
+        }
+
+        return repository.exists(
+            commentId = commentId,
+            actorAccountId = actor.accountId,
+        )
+    }
+
+    @Transactional(readOnly = true)
     fun count(commentId: UUID): Long = repository.countByCommentId(commentId)
 }
