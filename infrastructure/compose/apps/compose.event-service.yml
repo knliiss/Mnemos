@@ -15,7 +15,7 @@ services:
 
       SERVER_PORT: 8083
 
-      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=event
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=event,public
       SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
 

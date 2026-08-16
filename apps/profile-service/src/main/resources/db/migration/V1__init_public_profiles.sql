@@ -1,4 +1,20 @@
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+DO $$
+DECLARE
+    extension_schema TEXT;
+BEGIN
+    SELECT namespace.nspname
+    INTO extension_schema
+    FROM pg_extension extension
+             JOIN pg_namespace namespace ON namespace.oid = extension.extnamespace
+    WHERE extension.extname = 'pg_trgm';
+
+    IF extension_schema <> 'public' THEN
+        EXECUTE 'ALTER EXTENSION pg_trgm SET SCHEMA public';
+    END IF;
+END
+$$;
 
 CREATE TABLE public_profiles
 (
@@ -20,7 +36,7 @@ CREATE TABLE public_profiles
 
 CREATE INDEX idx_public_profiles_nickname_trgm
     ON public_profiles
-        USING gin (cristalix_nickname gin_trgm_ops);
+        USING gin (cristalix_nickname public.gin_trgm_ops);
 
 CREATE TABLE pending_social_summaries
 (

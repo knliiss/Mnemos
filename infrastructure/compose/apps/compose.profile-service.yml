@@ -9,7 +9,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8091
-      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=profile
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=profile,public
       APP_POSTGRES_USER: ${APP_POSTGRES_USER}
       APP_POSTGRES_PASSWORD: ${APP_POSTGRES_PASSWORD}
       MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
