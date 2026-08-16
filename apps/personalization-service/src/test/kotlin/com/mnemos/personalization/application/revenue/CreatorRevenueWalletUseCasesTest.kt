@@ -1,6 +1,9 @@
 package com.mnemos.personalization.application.revenue
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.personalization.application.revenue.support.CreatorRevenueWalletResultValidator
+import com.mnemos.personalization.application.revenue.usecase.completewallet.CompleteCreatorRevenueWalletService
+import com.mnemos.personalization.application.revenue.usecase.failwallet.FailCreatorRevenueWalletService
 import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
@@ -20,7 +23,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-class ProcessCreatorRevenueWalletResultServiceTest {
+class CreatorRevenueWalletUseCasesTest {
     private val now = Instant.parse("2026-08-15T19:30:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
@@ -28,10 +31,10 @@ class ProcessCreatorRevenueWalletResultServiceTest {
     fun `matching wallet result confirms creator revenue`() {
         val operation = operation()
         val repository = FakeRepository(operation)
-        val service = service(repository)
+        val service = completeService(repository)
         val transactionId = UUID.fromString("019c1190-0000-7000-8000-000000000001")
 
-        service.complete(
+        service.execute(
             result = walletResult(operation),
             transactionId = transactionId,
         )
@@ -45,14 +48,14 @@ class ProcessCreatorRevenueWalletResultServiceTest {
     fun `creator revenue result with actor metadata is rejected`() {
         val operation = operation()
         val repository = FakeRepository(operation)
-        val service = service(repository)
+        val service = completeService(repository)
         val result =
             walletResult(operation).copy(
                 actorUserId = UserId.generate().id,
             )
 
         assertThrows(IllegalStateException::class.java) {
-            service.complete(
+            service.execute(
                 result = result,
                 transactionId = UUID.fromString("019c1190-0000-7000-8000-000000000002"),
             )
@@ -67,11 +70,11 @@ class ProcessCreatorRevenueWalletResultServiceTest {
     fun `creator revenue result with different amount is rejected`() {
         val operation = operation()
         val repository = FakeRepository(operation)
-        val service = service(repository)
+        val service = failService(repository)
         val result = walletResult(operation).copy(amount = operation.amountPrime + 1)
 
         assertThrows(IllegalStateException::class.java) {
-            service.fail(
+            service.execute(
                 result = result,
                 reason = "TEMPORARY_FAILURE",
             )
@@ -82,9 +85,16 @@ class ProcessCreatorRevenueWalletResultServiceTest {
         assertEquals(0, repository.saveCalls)
     }
 
-    private fun service(repository: CreatorRevenueOperationRepository): ProcessCreatorRevenueWalletResultService =
-        ProcessCreatorRevenueWalletResultService(
+    private fun completeService(repository: CreatorRevenueOperationRepository): CompleteCreatorRevenueWalletService =
+        CompleteCreatorRevenueWalletService(
             repository = repository,
+            validator = CreatorRevenueWalletResultValidator(),
+        )
+
+    private fun failService(repository: CreatorRevenueOperationRepository): FailCreatorRevenueWalletService =
+        FailCreatorRevenueWalletService(
+            repository = repository,
+            validator = CreatorRevenueWalletResultValidator(),
             properties = CreatorRevenueProperties(),
             clock = clock,
         )
@@ -121,7 +131,8 @@ class ProcessCreatorRevenueWalletResultServiceTest {
             return operation
         }
 
-        override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = operation.takeIf { it.requestId == requestId }
+        override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? =
+            operation.takeIf { it.requestId == requestId }
 
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean = false
     }

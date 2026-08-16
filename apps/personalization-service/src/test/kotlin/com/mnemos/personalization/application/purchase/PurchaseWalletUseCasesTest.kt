@@ -6,6 +6,9 @@ import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.purchase.event.PersonalizationPurchaseEventPublisher
+import com.mnemos.personalization.application.purchase.support.PurchaseWalletResultValidator
+import com.mnemos.personalization.application.purchase.usecase.completewallet.CompletePurchaseWalletService
+import com.mnemos.personalization.application.purchase.usecase.failwallet.FailPurchaseWalletService
 import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.personalization.contracts.event.PersonalizationPurchaseCompletedV1
 import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
@@ -42,7 +45,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.util.UUID
 
-class ProcessPurchaseWalletResultServiceTest {
+class PurchaseWalletUseCasesTest {
     private val now = Instant.parse("2026-08-15T17:30:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
@@ -54,11 +57,11 @@ class ProcessPurchaseWalletResultServiceTest {
         val result = walletResult(operation)
         val transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000011")
 
-        fixture.service.complete(
+        fixture.completeService.execute(
             result = result,
             transactionId = transactionId,
         )
-        fixture.service.complete(
+        fixture.completeService.execute(
             result = result,
             transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000012"),
         )
@@ -90,11 +93,11 @@ class ProcessPurchaseWalletResultServiceTest {
         val fixture = fixture(personalization, operation)
         val result = walletResult(operation)
 
-        fixture.service.fail(
+        fixture.failService.execute(
             result = result,
             reason = "INSUFFICIENT_BALANCE",
         )
-        fixture.service.fail(
+        fixture.failService.execute(
             result = result,
             reason = "SHOULD_BE_IGNORED",
         )
@@ -120,7 +123,7 @@ class ProcessPurchaseWalletResultServiceTest {
         val mismatchedResult = walletResult(operation).copy(amount = operation.amount + 1)
 
         assertThrows(IllegalStateException::class.java) {
-            fixture.service.complete(
+            fixture.completeService.execute(
                 result = mismatchedResult,
                 transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000014"),
             )
@@ -161,7 +164,7 @@ class ProcessPurchaseWalletResultServiceTest {
                 amount = operation.amount,
             )
 
-        fixture.service.complete(
+        fixture.completeService.execute(
             result = result,
             transactionId = transactionId,
         )
@@ -186,17 +189,24 @@ class ProcessPurchaseWalletResultServiceTest {
                 publisher = publisher,
                 clock = clock,
             )
-        val service =
-            ProcessPurchaseWalletResultService(
-                operationRepository = operationRepository,
-                personalizationRepository = personalizationRepository,
-                ownershipRepository = ownershipRepository,
-                eventPublisher = eventPublisher,
-                clock = clock,
-            )
+        val validator = PurchaseWalletResultValidator()
 
         return Fixture(
-            service = service,
+            completeService =
+                CompletePurchaseWalletService(
+                    operationRepository = operationRepository,
+                    personalizationRepository = personalizationRepository,
+                    ownershipRepository = ownershipRepository,
+                    validator = validator,
+                    eventPublisher = eventPublisher,
+                    clock = clock,
+                ),
+            failService =
+                FailPurchaseWalletService(
+                    operationRepository = operationRepository,
+                    validator = validator,
+                    eventPublisher = eventPublisher,
+                ),
             operationRepository = operationRepository,
             ownershipRepository = ownershipRepository,
             publisher = publisher,
@@ -286,7 +296,8 @@ class ProcessPurchaseWalletResultServiceTest {
         )
 
     private data class Fixture(
-        val service: ProcessPurchaseWalletResultService,
+        val completeService: CompletePurchaseWalletService,
+        val failService: FailPurchaseWalletService,
         val operationRepository: FakePurchaseOperationRepository,
         val ownershipRepository: FakeOwnedPersonalizationRepository,
         val publisher: RecordingIntegrationEventPublisher,
@@ -358,7 +369,10 @@ class ProcessPurchaseWalletResultServiceTest {
         override fun findActive(
             owner: PersonalizationOwner,
             type: PersonalizationType,
-        ): OwnedPersonalization? = saved.firstOrNull { ownership -> ownership.owner == owner && ownership.type == type && ownership.active }
+        ): OwnedPersonalization? =
+            saved.firstOrNull { ownership ->
+                ownership.owner == owner && ownership.type == type && ownership.active
+            }
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
             saved.filter { ownership -> ownership.owner == owner }
