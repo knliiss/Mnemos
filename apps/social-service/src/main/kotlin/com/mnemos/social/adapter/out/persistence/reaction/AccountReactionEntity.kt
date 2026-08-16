@@ -8,14 +8,8 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.IdClass
 import jakarta.persistence.Table
-import java.io.Serializable
 import java.time.Instant
 import java.util.UUID
-
-data class AccountReactionEntityId(
-    var actorAccountId: UUID? = null,
-    var targetAccountId: UUID? = null,
-) : Serializable
 
 @Entity
 @Table(name = "account_reactions")
