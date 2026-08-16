@@ -125,8 +125,14 @@ CREATE TABLE drop_spotlights
     )
 );
 
-CREATE INDEX idx_drop_spotlights_buyer_created ON drop_spotlights (buyer_user_id, created_at DESC);
-CREATE INDEX idx_drop_spotlights_due ON drop_spotlights (status, scheduled_at);
+CREATE INDEX idx_drop_spotlights_buyer_created
+    ON drop_spotlights (buyer_user_id, created_at DESC);
+
+CREATE INDEX idx_drop_spotlights_due
+    ON drop_spotlights (status, scheduled_at);
+
+CREATE INDEX idx_drop_spotlights_published
+    ON drop_spotlights (status, published_at DESC);
 
 CREATE TABLE outbox_events
 (
