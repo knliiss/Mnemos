@@ -77,7 +77,7 @@ class CommentService(
         commentId: UUID,
         content: String,
     ): Comment {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
+        val actor = actorProvider.requireActor()
         val comment = requireCommentForUpdate(CommentId(commentId))
 
         if (comment.authorUserId != actor.userId) {
@@ -89,6 +89,19 @@ class CommentService(
 
         if (comment.deleted) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Deleted comment cannot be edited")
+        }
+
+        if (
+            !actorProvider.hasPermission(
+                accountId = comment.authorAccountId,
+                userId = actor.userId,
+                permission = RolePermission.PUBLISH_COMMENTS,
+            )
+        ) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Account permission is required: ${RolePermission.PUBLISH_COMMENTS}",
+            )
         }
 
         comment.edit(content, clock.instant())
