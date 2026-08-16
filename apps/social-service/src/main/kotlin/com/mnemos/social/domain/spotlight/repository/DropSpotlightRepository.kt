@@ -12,7 +12,7 @@ interface DropSpotlightRepository {
 
     fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight?
 
-    fun existsByItemDropEventId(itemDropEventId: UUID): Boolean
+    fun existsNonFailedByItemDropEventId(itemDropEventId: UUID): Boolean
 
     fun findLatestByBuyerUserId(userId: UUID): DropSpotlight?
 

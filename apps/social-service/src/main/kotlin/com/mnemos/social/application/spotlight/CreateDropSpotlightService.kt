@@ -46,7 +46,7 @@ class CreateDropSpotlightService(
 
         val reservation = queue.reserve(now)
 
-        if (repository.existsByItemDropEventId(itemDropEventId)) {
+        if (repository.existsNonFailedByItemDropEventId(itemDropEventId)) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "Item drop has already been spotlighted")
         }
 

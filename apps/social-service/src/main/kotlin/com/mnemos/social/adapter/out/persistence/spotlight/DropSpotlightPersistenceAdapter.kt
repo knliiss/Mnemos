@@ -22,8 +22,11 @@ class DropSpotlightPersistenceAdapter(
     override fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight? =
         repository.findByIdForUpdate(id.id)?.toDomain()
 
-    override fun existsByItemDropEventId(itemDropEventId: UUID): Boolean =
-        repository.existsByItemDropEventId(itemDropEventId)
+    override fun existsNonFailedByItemDropEventId(itemDropEventId: UUID): Boolean =
+        repository.existsByItemDropEventIdAndStatusNot(
+            itemDropEventId = itemDropEventId,
+            status = DropSpotlightStatus.PAYMENT_FAILED,
+        )
 
     override fun findLatestByBuyerUserId(userId: UUID): DropSpotlight? =
         repository.findTopByBuyerUserIdOrderByCreatedAtDesc(userId)?.toDomain()

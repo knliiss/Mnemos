@@ -40,7 +40,7 @@ class CreateDropSpotlightServiceTest {
                     scheduledAt = scheduledAt,
                 ),
             )
-        whenever(fixture.repository.existsByItemDropEventId(fixture.itemDrop.id)).thenReturn(false)
+        whenever(fixture.repository.existsNonFailedByItemDropEventId(fixture.itemDrop.id)).thenReturn(false)
         whenever(fixture.repository.findLatestByBuyerUserId(fixture.actor.userId)).thenReturn(null)
         whenever(fixture.repository.save(any())).thenAnswer { invocation -> invocation.getArgument<DropSpotlight>(0) }
 
@@ -67,7 +67,7 @@ class CreateDropSpotlightServiceTest {
                     scheduledAt = fixture.now.plus(fixture.properties.maxQueueDelay).plusSeconds(1),
                 ),
             )
-        whenever(fixture.repository.existsByItemDropEventId(fixture.itemDrop.id)).thenReturn(false)
+        whenever(fixture.repository.existsNonFailedByItemDropEventId(fixture.itemDrop.id)).thenReturn(false)
         whenever(fixture.repository.findLatestByBuyerUserId(fixture.actor.userId)).thenReturn(null)
 
         val exception =
@@ -92,7 +92,7 @@ class CreateDropSpotlightServiceTest {
                     scheduledAt = fixture.now,
                 ),
             )
-        whenever(fixture.repository.existsByItemDropEventId(fixture.itemDrop.id)).thenReturn(true)
+        whenever(fixture.repository.existsNonFailedByItemDropEventId(fixture.itemDrop.id)).thenReturn(true)
 
         val exception =
             assertThrows(ResponseStatusException::class.java) {

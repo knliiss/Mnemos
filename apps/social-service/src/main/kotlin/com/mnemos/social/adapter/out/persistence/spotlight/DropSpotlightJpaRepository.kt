@@ -14,7 +14,10 @@ interface DropSpotlightJpaRepository : JpaRepository<DropSpotlightEntity, UUID> 
     @Query("select spotlight from DropSpotlightEntity spotlight where spotlight.id = :spotlightId")
     fun findByIdForUpdate(@Param("spotlightId") spotlightId: UUID): DropSpotlightEntity?
 
-    fun existsByItemDropEventId(itemDropEventId: UUID): Boolean
+    fun existsByItemDropEventIdAndStatusNot(
+        itemDropEventId: UUID,
+        status: DropSpotlightStatus,
+    ): Boolean
 
     fun findTopByBuyerUserIdOrderByCreatedAtDesc(buyerUserId: UUID): DropSpotlightEntity?
 

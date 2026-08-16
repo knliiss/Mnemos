@@ -82,7 +82,7 @@ CREATE TABLE drop_spotlights
     sequence                          BIGINT       NOT NULL UNIQUE,
     buyer_user_id                     UUID         NOT NULL,
     source_account_id                 UUID         NOT NULL,
-    item_drop_event_id                UUID         NOT NULL UNIQUE,
+    item_drop_event_id                UUID         NOT NULL,
     item_id                           UUID         NOT NULL,
     item_name                         VARCHAR(128) NOT NULL,
     item_rarity                       VARCHAR(32)  NOT NULL,
@@ -109,6 +109,10 @@ CREATE TABLE drop_spotlights
         OR (notification_pack_id IS NOT NULL AND notification_pack_revision IS NOT NULL AND notification_pack_snapshot_json IS NOT NULL)
     )
 );
+
+CREATE UNIQUE INDEX uq_drop_spotlights_item_drop_non_failed
+    ON drop_spotlights (item_drop_event_id)
+    WHERE status <> 'PAYMENT_FAILED';
 
 CREATE INDEX idx_drop_spotlights_buyer_created
     ON drop_spotlights (buyer_user_id, created_at DESC);
