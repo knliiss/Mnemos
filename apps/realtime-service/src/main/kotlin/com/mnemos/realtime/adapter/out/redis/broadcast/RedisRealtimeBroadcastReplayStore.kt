@@ -53,7 +53,10 @@ class RedisRealtimeBroadcastReplayStore(
         return serialized
             .map { value -> objectMapper.readValue(value, RealtimeBroadcast::class.java) }
             .filterNot { broadcast -> acknowledged.contains(broadcast.sequence) }
-            .sortedBy(RealtimeBroadcast::sequence)
+            .sortedWith(
+                compareBy<RealtimeBroadcast> { broadcast -> broadcast.occurredAt }
+                    .thenBy { broadcast -> broadcast.sequence },
+            )
     }
 
     override fun acknowledge(

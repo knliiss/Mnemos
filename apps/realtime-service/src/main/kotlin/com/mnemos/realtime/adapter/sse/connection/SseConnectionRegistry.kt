@@ -312,7 +312,10 @@ class SseConnectionRegistry(
             val broadcasts =
                 (replayBroadcasts + pendingBroadcasts)
                     .distinctBy(RealtimeBroadcast::id)
-                    .sortedBy(RealtimeBroadcast::sequence)
+                    .sortedWith(
+                        compareBy<RealtimeBroadcast> { broadcast -> broadcast.occurredAt }
+                            .thenBy { broadcast -> broadcast.sequence },
+                    )
 
             pendingEvents.clear()
             pendingBroadcasts.clear()
