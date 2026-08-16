@@ -45,7 +45,7 @@ services:
         user_kafka_admin="${KAFKA_ADMIN_PASSWORD}";
       - "KAFKA_AUTHORIZER_CLASS_NAME=org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       - "KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND=false"
-      - "KAFKA_SUPER_USERS=User:broker;User:kafka_admin"
+      - "KAFKA_SUPER_USERS=User:broker;User:kafka_admin;User:ANONYMOUS"
       - "KAFKA_EARLY_START_LISTENERS=CONTROLLER"
       - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1"
