@@ -1,6 +1,7 @@
 package com.mnemos.social.application.actor
 
 import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.security.CurrentMnemosUser
 import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
@@ -33,6 +34,14 @@ class SocialActorProvider(
         }
 
         return actor
+    }
+
+    fun requireUserId(): UUID = currentMnemosUser.requireUserId()
+
+    fun hasAnyUserRole(vararg roles: UserRole): Boolean {
+        val currentRoles = currentMnemosUser.get().roles
+
+        return roles.any(currentRoles::contains)
     }
 
     fun hasPermission(

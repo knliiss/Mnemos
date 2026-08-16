@@ -1,6 +1,7 @@
 package com.mnemos.social.application.comment
 
 import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
@@ -75,10 +76,10 @@ class CommentService(
         commentId: UUID,
         content: String,
     ): Comment {
-        val actor = actorProvider.requireActor()
+        val userId = actorProvider.requireUserId()
         val comment = requireCommentForUpdate(CommentId(commentId))
 
-        if (comment.authorUserId != actor.userId) {
+        if (comment.authorUserId != userId) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,
                 "Only the author user can edit this comment",
@@ -92,7 +93,7 @@ class CommentService(
         if (
             !actorProvider.hasPermission(
                 accountId = comment.authorAccountId,
-                userId = actor.userId,
+                userId = userId,
                 permission = RolePermission.PUBLISH_COMMENTS,
             )
         ) {
@@ -109,19 +110,25 @@ class CommentService(
 
     @Transactional
     fun delete(commentId: UUID) {
-        val actor = actorProvider.requireActor()
+        val userId = actorProvider.requireUserId()
         val id = CommentId(commentId)
         val preview = requireComment(id)
-        val isAuthor = preview.authorUserId == actor.userId
-        val canModerate =
-            isAuthor ||
+        val isAuthor = preview.authorUserId == userId
+        val isGlobalAdmin =
+            actorProvider.hasAnyUserRole(
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+            )
+        val canModerateAccount =
+            !isAuthor &&
+                !isGlobalAdmin &&
                 actorProvider.hasPermission(
                     accountId = preview.targetAccountId,
-                    userId = actor.userId,
+                    userId = userId,
                     permission = RolePermission.MODERATE_COMMENTS,
                 )
 
-        if (!canModerate) {
+        if (!isAuthor && !isGlobalAdmin && !canModerateAccount) {
             throw ResponseStatusException(
                 HttpStatus.FORBIDDEN,
                 "Comment moderation permission is required",
@@ -140,7 +147,7 @@ class CommentService(
 
         summaryService.commentRemoved(
             accountId = comment.targetAccountId,
-            actorUserId = actor.userId,
+            actorUserId = userId,
             now = now,
         )
     }
