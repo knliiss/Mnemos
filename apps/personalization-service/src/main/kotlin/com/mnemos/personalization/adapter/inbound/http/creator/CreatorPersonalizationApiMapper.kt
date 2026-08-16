@@ -9,8 +9,8 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.request.G
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.GradientStopRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.NotificationTemplateRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.PersonalizationPriceRequest
-import com.mnemos.personalization.application.personalization.create.CreateCreatorPersonalizationCommand
-import com.mnemos.personalization.application.personalization.lifecycle.UpdatePersonalizationCommand
+import com.mnemos.personalization.application.personalization.usecase.createcreator.CreateCreatorPersonalizationCommand
+import com.mnemos.personalization.application.personalization.usecase.updatecreator.UpdatePersonalizationCommand
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -135,7 +135,8 @@ object CreatorPersonalizationApiMapper {
             secondaryColor = secondaryColor?.let(::HexColor),
         )
 
-    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack = templates.toContent(mixedAggregateTitle)
+    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack =
+        templates.toContent(mixedAggregateTitle)
 
     fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(
         mixedAggregateTitle: String,

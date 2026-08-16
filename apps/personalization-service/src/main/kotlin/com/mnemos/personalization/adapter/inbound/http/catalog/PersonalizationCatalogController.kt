@@ -4,8 +4,9 @@ import com.mnemos.personalization.adapter.inbound.http.common.PageResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
 import com.mnemos.personalization.application.common.pagination.PageQuery
-import com.mnemos.personalization.application.personalization.catalog.ListPersonalizationsQuery
-import com.mnemos.personalization.application.personalization.catalog.PersonalizationCatalogService
+import com.mnemos.personalization.application.personalization.usecase.getcatalog.GetPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.listcatalog.ListPersonalizationsQuery
+import com.mnemos.personalization.application.personalization.usecase.listcatalog.ListPersonalizationsUseCase
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,14 +19,17 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/personalizations")
 class PersonalizationCatalogController(
-    private val catalogService: PersonalizationCatalogService,
+    private val listPersonalizationsUseCase: ListPersonalizationsUseCase,
+    private val getPersonalizationUseCase: GetPersonalizationUseCase,
 ) {
     @GetMapping
     fun list(
-        @Valid @ModelAttribute request: ListPersonalizationsRequest,
+        @Valid
+        @ModelAttribute
+        request: ListPersonalizationsRequest,
     ): PageResponse<PersonalizationResponse> =
-        catalogService
-            .list(
+        listPersonalizationsUseCase
+            .execute(
                 ListPersonalizationsQuery(
                     type = request.type,
                     currency = request.currency,
@@ -41,7 +45,7 @@ class PersonalizationCatalogController(
     fun get(
         @PathVariable personalizationId: UUID,
     ): PersonalizationResponse =
-        catalogService
-            .get(PersonalizationId(personalizationId))
+        getPersonalizationUseCase
+            .execute(PersonalizationId(personalizationId))
             .toResponse()
 }

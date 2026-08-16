@@ -5,10 +5,11 @@ import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonaliz
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
 import com.mnemos.personalization.application.common.pagination.PageQuery
-import com.mnemos.personalization.application.personalization.create.CreateCustomNotificationPackCommand
-import com.mnemos.personalization.application.personalization.create.CreateCustomNotificationPackService
-import com.mnemos.personalization.application.personalization.custom.CustomNotificationPackQueryService
-import com.mnemos.personalization.application.personalization.lifecycle.PersonalizationLifecycleService
+import com.mnemos.personalization.application.personalization.usecase.createcustompack.CreateCustomNotificationPackCommand
+import com.mnemos.personalization.application.personalization.usecase.createcustompack.CreateCustomNotificationPackUseCase
+import com.mnemos.personalization.application.personalization.usecase.listcustompacks.ListCustomNotificationPacksUseCase
+import com.mnemos.personalization.application.personalization.usecase.updatecustompack.UpdateCustomNotificationPackCommand
+import com.mnemos.personalization.application.personalization.usecase.updatecustompack.UpdateCustomNotificationPackUseCase
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -26,16 +27,18 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/personalizations/custom-notification-packs")
 class CustomNotificationPackController(
-    private val createService: CreateCustomNotificationPackService,
-    private val queryService: CustomNotificationPackQueryService,
-    private val lifecycleService: PersonalizationLifecycleService,
+    private val createCustomNotificationPackUseCase: CreateCustomNotificationPackUseCase,
+    private val listCustomNotificationPacksUseCase: ListCustomNotificationPacksUseCase,
+    private val updateCustomNotificationPackUseCase: UpdateCustomNotificationPackUseCase,
 ) {
     @GetMapping("/me")
     fun listMine(
-        @Valid @ModelAttribute request: ListCustomNotificationPacksRequest,
+        @Valid
+        @ModelAttribute
+        request: ListCustomNotificationPacksRequest,
     ): PageResponse<PersonalizationResponse> =
-        queryService
-            .listMine(
+        listCustomNotificationPacksUseCase
+            .execute(
                 PageQuery(
                     page = request.page,
                     size = request.size,
@@ -50,7 +53,7 @@ class CustomNotificationPackController(
         request: CreateCustomNotificationPackRequest,
     ): CreateCustomNotificationPackResponse {
         val result =
-            createService.execute(
+            createCustomNotificationPackUseCase.execute(
                 CreateCustomNotificationPackCommand(
                     name = request.name,
                     content = request.templates.toContent(request.mixedAggregateTitle),
@@ -69,10 +72,13 @@ class CustomNotificationPackController(
         @RequestBody
         @Valid
         request: CreateCustomNotificationPackRequest,
-    ) = lifecycleService
-        .updateCustomNotificationPack(
-            personalizationId = PersonalizationId(personalizationId),
-            name = request.name,
-            content = request.templates.toContent(request.mixedAggregateTitle),
-        ).toResponse()
+    ): PersonalizationResponse =
+        updateCustomNotificationPackUseCase
+            .execute(
+                UpdateCustomNotificationPackCommand(
+                    personalizationId = PersonalizationId(personalizationId),
+                    name = request.name,
+                    content = request.templates.toContent(request.mixedAggregateTitle),
+                ),
+            ).toResponse()
 }

@@ -1,24 +1,14 @@
-package com.mnemos.personalization.application.personalization.create
+package com.mnemos.personalization.application.personalization.usecase.createcreator
 
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.personalization.model.Personalization
-import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
-import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
-import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-
-data class CreateCreatorPersonalizationCommand(
-    val type: PersonalizationType,
-    val name: String,
-    val content: PersonalizationContent,
-    val price: PersonalizationPrice,
-)
 
 @Service
 class CreateCreatorPersonalizationService(
@@ -26,9 +16,9 @@ class CreateCreatorPersonalizationService(
     private val pricePolicy: PersonalizationPricePolicy,
     private val repository: PersonalizationRepository,
     private val clock: Clock,
-) {
+) : CreateCreatorPersonalizationUseCase {
     @Transactional
-    fun execute(command: CreateCreatorPersonalizationCommand): Personalization {
+    override fun execute(command: CreateCreatorPersonalizationCommand): Personalization {
         val actor = actorProvider.requireActor()
 
         if (!actor.canCreateMarketplacePersonalization()) {

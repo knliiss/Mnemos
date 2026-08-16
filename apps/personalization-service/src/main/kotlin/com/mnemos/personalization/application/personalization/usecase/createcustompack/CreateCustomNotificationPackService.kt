@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.personalization.create
+package com.mnemos.personalization.application.personalization.usecase.createcustompack
 
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -6,22 +6,11 @@ import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
-import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.repository.CustomNotificationPackFreeGrantRepository
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-
-data class CreateCustomNotificationPackCommand(
-    val name: String,
-    val content: PersonalizationContent.NotificationPack,
-)
-
-data class CreateCustomNotificationPackResult(
-    val personalization: Personalization,
-    val grantedForFree: Boolean,
-)
 
 @Service
 class CreateCustomNotificationPackService(
@@ -31,9 +20,9 @@ class CreateCustomNotificationPackService(
     private val freeGrantRepository: CustomNotificationPackFreeGrantRepository,
     private val pricePolicy: PersonalizationPricePolicy,
     private val clock: Clock,
-) {
+) : CreateCustomNotificationPackUseCase {
     @Transactional
-    fun execute(command: CreateCustomNotificationPackCommand): CreateCustomNotificationPackResult {
+    override fun execute(command: CreateCustomNotificationPackCommand): CreateCustomNotificationPackResult {
         val actor = actorProvider.requireActor()
         val now = clock.instant()
         val grantedForFree =
@@ -42,7 +31,6 @@ class CreateCustomNotificationPackService(
                     userId = actor.userId,
                     claimedAt = now,
                 )
-
         val personalization =
             Personalization.createCustomNotificationPack(
                 creatorUserId = actor.userId,
@@ -56,7 +44,6 @@ class CreateCustomNotificationPackService(
                     },
                 now = now,
             )
-
         val saved = personalizationRepository.save(personalization)
 
         if (grantedForFree) {

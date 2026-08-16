@@ -3,7 +3,11 @@ package com.mnemos.personalization.adapter.inbound.http.moderation
 import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonalizationApiMapper.toDomain
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
-import com.mnemos.personalization.application.personalization.moderation.ModeratePersonalizationService
+import com.mnemos.personalization.application.personalization.usecase.approve.ApprovePersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.listreviewqueue.ListPersonalizationReviewQueueUseCase
+import com.mnemos.personalization.application.personalization.usecase.reject.RejectPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.relist.RelistPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.unlist.UnlistPersonalizationUseCase
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import jakarta.validation.Valid
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,11 +23,15 @@ import java.util.UUID
 @RequestMapping("/api/v1/personalizations/moderation")
 @PreAuthorize("hasAnyRole('PERSONALIZATION_MODERATOR', 'ADMIN', 'SUPER_ADMIN')")
 class PersonalizationModerationController(
-    private val moderationService: ModeratePersonalizationService,
+    private val listReviewQueueUseCase: ListPersonalizationReviewQueueUseCase,
+    private val approvePersonalizationUseCase: ApprovePersonalizationUseCase,
+    private val rejectPersonalizationUseCase: RejectPersonalizationUseCase,
+    private val unlistPersonalizationUseCase: UnlistPersonalizationUseCase,
+    private val relistPersonalizationUseCase: RelistPersonalizationUseCase,
 ) {
     @GetMapping("/review")
     fun reviewQueue(): List<PersonalizationResponse> =
-        moderationService.listReviewQueue().map { personalization -> personalization.toResponse() }
+        listReviewQueueUseCase.execute().map { personalization -> personalization.toResponse() }
 
     @PostMapping("/{personalizationId}/approve")
     fun approve(
@@ -32,8 +40,8 @@ class PersonalizationModerationController(
         @Valid
         request: ApprovePersonalizationRequest,
     ): PersonalizationResponse =
-        moderationService
-            .approve(
+        approvePersonalizationUseCase
+            .execute(
                 personalizationId = PersonalizationId(personalizationId),
                 price = request.price.toDomain(),
             ).toResponse()
@@ -45,8 +53,8 @@ class PersonalizationModerationController(
         @Valid
         request: RejectPersonalizationRequest,
     ): PersonalizationResponse =
-        moderationService
-            .reject(
+        rejectPersonalizationUseCase
+            .execute(
                 personalizationId = PersonalizationId(personalizationId),
                 reason = request.reason,
             ).toResponse()
@@ -55,15 +63,15 @@ class PersonalizationModerationController(
     fun unlist(
         @PathVariable personalizationId: UUID,
     ): PersonalizationResponse =
-        moderationService
-            .unlist(PersonalizationId(personalizationId))
+        unlistPersonalizationUseCase
+            .execute(PersonalizationId(personalizationId))
             .toResponse()
 
     @PostMapping("/{personalizationId}/relist")
     fun relist(
         @PathVariable personalizationId: UUID,
     ): PersonalizationResponse =
-        moderationService
-            .relist(PersonalizationId(personalizationId))
+        relistPersonalizationUseCase
+            .execute(PersonalizationId(personalizationId))
             .toResponse()
 }

@@ -1,4 +1,4 @@
-package com.mnemos.personalization.application.personalization.custom
+package com.mnemos.personalization.application.personalization.usecase.listcustompacks
 
 import com.mnemos.personalization.application.common.pagination.PageQuery
 import com.mnemos.personalization.application.common.pagination.PageResult
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class CustomNotificationPackQueryService(
+class ListCustomNotificationPacksService(
     private val actorProvider: CurrentPersonalizationActorProvider,
     private val reader: CustomNotificationPackReader,
-) {
+) : ListCustomNotificationPacksUseCase {
     @Transactional(readOnly = true)
-    fun listMine(page: PageQuery): PageResult<Personalization> {
+    override fun execute(page: PageQuery): PageResult<Personalization> {
         val actor = actorProvider.requireActor()
 
         return reader.findByCreatorUserId(
