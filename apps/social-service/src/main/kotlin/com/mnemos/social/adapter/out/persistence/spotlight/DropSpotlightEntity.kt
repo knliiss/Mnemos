@@ -22,7 +22,7 @@ class DropSpotlightEntity(
     var buyerUserId: UUID,
     @Column(name = "source_account_id", nullable = false)
     var sourceAccountId: UUID,
-    @Column(name = "item_drop_event_id", nullable = false, unique = true)
+    @Column(name = "item_drop_event_id", nullable = false)
     var itemDropEventId: UUID,
     @Column(name = "item_id", nullable = false)
     var itemId: UUID,
