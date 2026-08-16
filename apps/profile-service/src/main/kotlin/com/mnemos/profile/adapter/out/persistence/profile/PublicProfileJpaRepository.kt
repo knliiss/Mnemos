@@ -56,14 +56,14 @@ interface PublicProfileJpaRepository : JpaRepository<PublicProfileEntity, UUID> 
         value = """
             SELECT p.*
             FROM public_profiles p
-            WHERE :query <% p.cristalix_nickname
-            ORDER BY strict_word_similarity(:query, p.cristalix_nickname) DESC,
+            WHERE :query % p.cristalix_nickname
+            ORDER BY similarity(:query, p.cristalix_nickname) DESC,
                      p.cristalix_nickname ASC
         """,
         countQuery = """
             SELECT count(*)
             FROM public_profiles p
-            WHERE :query <% p.cristalix_nickname
+            WHERE :query % p.cristalix_nickname
         """,
         nativeQuery = true,
     )
