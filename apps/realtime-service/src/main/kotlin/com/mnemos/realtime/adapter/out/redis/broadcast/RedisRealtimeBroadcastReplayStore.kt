@@ -3,10 +3,10 @@ package com.mnemos.realtime.adapter.out.redis.broadcast
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastReplayStore
+import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Clock
-import java.time.Duration
 import java.util.UUID
 
 @Component
@@ -14,6 +14,7 @@ class RedisRealtimeBroadcastReplayStore(
     private val redisTemplate: StringRedisTemplate,
     private val objectMapper: ObjectMapper,
     private val clock: Clock,
+    private val properties: RealtimeDeliveryProperties,
 ) : RealtimeBroadcastReplayStore {
     override fun append(broadcast: RealtimeBroadcast) {
         removeExpired()
@@ -35,8 +36,8 @@ class RedisRealtimeBroadcastReplayStore(
                 broadcast.expiresAt.toEpochMilli().toDouble(),
             )
 
-        redisTemplate.expire(BROADCASTS_KEY, BROADCASTS_TTL)
-        redisTemplate.expire(EXPIRATIONS_KEY, BROADCASTS_TTL)
+        redisTemplate.expire(BROADCASTS_KEY, properties.replayTtl)
+        redisTemplate.expire(EXPIRATIONS_KEY, properties.replayTtl)
     }
 
     override fun findPending(userId: UUID): List<RealtimeBroadcast> {
@@ -84,7 +85,7 @@ class RedisRealtimeBroadcastReplayStore(
         redisTemplate
             .opsForSet()
             .add(key, sequence.toString())
-        redisTemplate.expire(key, ACKNOWLEDGED_TTL)
+        redisTemplate.expire(key, properties.replayTtl)
 
         return true
     }
@@ -123,8 +124,5 @@ class RedisRealtimeBroadcastReplayStore(
         const val BROADCASTS_KEY = "realtime:sse:broadcasts:v1"
         const val EXPIRATIONS_KEY = "realtime:sse:broadcast-expirations:v1"
         const val ACKNOWLEDGED_KEY_PREFIX = "realtime:sse:broadcast-acknowledged:v1:"
-
-        val BROADCASTS_TTL: Duration = Duration.ofHours(2)
-        val ACKNOWLEDGED_TTL: Duration = Duration.ofHours(2)
     }
 }

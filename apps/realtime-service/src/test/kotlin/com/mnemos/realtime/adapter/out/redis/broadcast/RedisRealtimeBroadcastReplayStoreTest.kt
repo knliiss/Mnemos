@@ -3,6 +3,7 @@ package com.mnemos.realtime.adapter.out.redis.broadcast
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.realtime.application.broadcast.model.DropSpotlightBroadcastPayload
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
+import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -31,6 +32,7 @@ class RedisRealtimeBroadcastReplayStoreTest {
                 redisTemplate = redisTemplate,
                 objectMapper = objectMapper,
                 clock = Clock.fixed(now, ZoneOffset.UTC),
+                properties = RealtimeDeliveryProperties(),
             )
 
         whenever(redisTemplate.opsForZSet()).thenReturn(zSetOperations)
