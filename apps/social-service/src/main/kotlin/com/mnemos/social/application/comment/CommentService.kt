@@ -87,6 +87,10 @@ class CommentService(
             )
         }
 
+        if (comment.deleted) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Deleted comment cannot be edited")
+        }
+
         comment.edit(content, clock.instant())
 
         return repository.save(comment)
