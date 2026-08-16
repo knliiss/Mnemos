@@ -42,18 +42,16 @@ class RedisRealtimeBroadcastReplayStore(
     override fun findPending(userId: UUID): List<RealtimeBroadcast> {
         removeExpired()
 
-        val cursor = readCursor(userId)
+        val acknowledged = readAcknowledgedSequences(userId)
         val serialized =
             redisTemplate
                 .opsForZSet()
-                .rangeByScore(
-                    BROADCASTS_KEY,
-                    (cursor + 1).toDouble(),
-                    Double.POSITIVE_INFINITY,
-                ).orEmpty()
+                .range(BROADCASTS_KEY, 0, -1)
+                .orEmpty()
 
         return serialized
             .map { value -> objectMapper.readValue(value, RealtimeBroadcast::class.java) }
+            .filterNot { broadcast -> acknowledged.contains(broadcast.sequence) }
             .sortedBy(RealtimeBroadcast::sequence)
     }
 
@@ -81,17 +79,12 @@ class RedisRealtimeBroadcastReplayStore(
             return false
         }
 
-        val current = readCursor(userId)
+        val key = acknowledgedKey(userId)
 
-        if (sequence > current) {
-            redisTemplate
-                .opsForValue()
-                .set(
-                    cursorKey(userId),
-                    sequence.toString(),
-                    CURSOR_TTL,
-                )
-        }
+        redisTemplate
+            .opsForSet()
+            .add(key, sequence.toString())
+        redisTemplate.expire(key, ACKNOWLEDGED_TTL)
 
         return true
     }
@@ -116,21 +109,22 @@ class RedisRealtimeBroadcastReplayStore(
         redisTemplate.opsForZSet().remove(EXPIRATIONS_KEY, *members)
     }
 
-    private fun readCursor(userId: UUID): Long =
+    private fun readAcknowledgedSequences(userId: UUID): Set<Long> =
         redisTemplate
-            .opsForValue()
-            .get(cursorKey(userId))
-            ?.toLongOrNull()
-            ?: 0L
+            .opsForSet()
+            .members(acknowledgedKey(userId))
+            .orEmpty()
+            .mapNotNull(String::toLongOrNull)
+            .toSet()
 
-    private fun cursorKey(userId: UUID): String = "$CURSOR_KEY_PREFIX$userId"
+    private fun acknowledgedKey(userId: UUID): String = "$ACKNOWLEDGED_KEY_PREFIX$userId"
 
     private companion object {
         const val BROADCASTS_KEY = "realtime:sse:broadcasts:v1"
         const val EXPIRATIONS_KEY = "realtime:sse:broadcast-expirations:v1"
-        const val CURSOR_KEY_PREFIX = "realtime:sse:broadcast-cursor:v1:"
+        const val ACKNOWLEDGED_KEY_PREFIX = "realtime:sse:broadcast-acknowledged:v1:"
 
         val BROADCASTS_TTL: Duration = Duration.ofHours(2)
-        val CURSOR_TTL: Duration = Duration.ofDays(7)
+        val ACKNOWLEDGED_TTL: Duration = Duration.ofHours(2)
     }
 }
