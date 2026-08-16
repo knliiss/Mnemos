@@ -1,11 +1,11 @@
 package com.mnemos.realtime.adapter.out.redis.broadcast
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastReplayStore
 import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 import java.time.Clock
 import java.util.UUID
 

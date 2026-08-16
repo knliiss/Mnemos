@@ -17,7 +17,7 @@ services:
       start_period: 30s
 
     command:
-      - start-dev
+      - start
 
     environment:
       KC_DB: postgres
@@ -31,9 +31,9 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT: "true"
       KC_PROXY_HEADERS: xforwarded
-      KC_HOSTNAME: https://auth.knalis.rest
+      KC_HOSTNAME: ${MNEMOS_AUTH_ORIGIN}
 
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"

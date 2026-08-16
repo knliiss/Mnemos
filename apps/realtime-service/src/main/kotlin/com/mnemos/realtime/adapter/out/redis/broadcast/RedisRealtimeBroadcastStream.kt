@@ -1,6 +1,5 @@
 package com.mnemos.realtime.adapter.out.redis.broadcast
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.realtime.adapter.redis.broadcast.protocol.RealtimeBroadcastStreamContract
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastFanout
@@ -8,6 +7,7 @@ import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import org.springframework.data.redis.connection.RedisStreamCommands
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
+import tools.jackson.databind.ObjectMapper
 
 @Component
 class RedisRealtimeBroadcastStream(

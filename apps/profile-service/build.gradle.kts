@@ -3,6 +3,8 @@ plugins {
     id("mnemos.spring-integration-test")
 }
 
+val springCloudVersion by extra("2025.1.2")
+
 dependencies {
     implementation(project(":libraries:common-core"))
     implementation(project(":libraries:common-web"))
@@ -18,6 +20,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation(libs.uuid.creator)
 
@@ -26,6 +29,12 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.testcontainers:testcontainers-postgresql")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+    }
 }
 
 tasks.bootJar {
