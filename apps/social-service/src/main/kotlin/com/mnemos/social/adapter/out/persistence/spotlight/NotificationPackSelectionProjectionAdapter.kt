@@ -16,20 +16,12 @@ class NotificationPackSelectionProjectionAdapter(
         revision: Long,
         occurredAt: Instant,
     ) {
-        val current = repository.findById(userId).orElse(null)
-
-        if (current != null && current.selectionRevision >= revision) {
-            return
-        }
-
-        repository.save(
-            NotificationPackSelectionEntity(
-                userId = userId,
-                personalizationId = personalizationId,
-                selectionRevision = revision,
-                snapshotJson = snapshotJson,
-                occurredAt = occurredAt,
-            ),
+        repository.applyIfNewer(
+            userId = userId,
+            personalizationId = personalizationId,
+            revision = revision,
+            snapshotJson = snapshotJson,
+            occurredAt = occurredAt,
         )
     }
 }
