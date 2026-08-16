@@ -1,15 +1,17 @@
 package com.mnemos.social.application.spotlight
 
+import com.mnemos.social.application.spotlight.model.SpotlightWalletResult
 import com.mnemos.social.domain.spotlight.model.DropSpotlight
 import com.mnemos.social.domain.spotlight.model.DropSpotlightStatus
 import com.mnemos.social.domain.spotlight.model.ItemDropSnapshot
 import com.mnemos.social.domain.spotlight.repository.DropSpotlightRepository
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -22,13 +24,14 @@ class ProcessDropSpotlightWalletResultServiceTest {
         val repository = mock<DropSpotlightRepository>()
         val spotlight = createSpotlight()
         val transactionId = UUID.fromString("019c1ab0-7700-7000-8000-000000000001")
+        val result = matchingResult(spotlight)
         val service = service(repository, now)
 
         whenever(repository.findByIdForUpdate(spotlight.id)).thenReturn(spotlight)
         whenever(repository.save(spotlight)).thenReturn(spotlight)
 
         service.completed(
-            spotlightId = spotlight.id.id,
+            result = result,
             transactionId = transactionId,
         )
 
@@ -56,12 +59,63 @@ class ProcessDropSpotlightWalletResultServiceTest {
         )
         whenever(repository.findByIdForUpdate(spotlight.id)).thenReturn(spotlight)
 
-        service.failed(spotlight.id.id)
+        service.failed(matchingResult(spotlight))
 
         assertEquals(DropSpotlightStatus.PUBLISHED, spotlight.status)
         verify(repository).findByIdForUpdate(spotlight.id)
         verify(repository, never()).save(spotlight)
     }
+
+    @Test
+    fun `rejects wallet result with mismatched request id`() {
+        val repository = mock<DropSpotlightRepository>()
+        val spotlight = createSpotlight()
+        val service = service(repository, Instant.parse("2026-08-16T00:00:01Z"))
+        val result =
+            matchingResult(spotlight).copy(
+                requestId = UUID.fromString("019c1ab0-7700-7000-8000-000000000099"),
+            )
+
+        whenever(repository.findByIdForUpdate(spotlight.id)).thenReturn(spotlight)
+
+        assertThrows(IllegalStateException::class.java) {
+            service.failed(result)
+        }
+
+        assertEquals(DropSpotlightStatus.PENDING_PAYMENT, spotlight.status)
+        verify(repository, never()).save(spotlight)
+    }
+
+    @Test
+    fun `rejects wallet result with mismatched buyer or amount`() {
+        val repository = mock<DropSpotlightRepository>()
+        val spotlight = createSpotlight()
+        val service = service(repository, Instant.parse("2026-08-16T00:00:01Z"))
+        val wrongOwner =
+            matchingResult(spotlight).copy(
+                ownerUserId = UUID.fromString("019c1ab0-7700-7000-8000-000000000098"),
+            )
+        val wrongAmount = matchingResult(spotlight).copy(amount = spotlight.pricePrime + 1)
+
+        whenever(repository.findByIdForUpdate(spotlight.id)).thenReturn(spotlight)
+
+        assertThrows(IllegalStateException::class.java) {
+            service.failed(wrongOwner)
+        }
+        assertThrows(IllegalStateException::class.java) {
+            service.failed(wrongAmount)
+        }
+
+        verify(repository, never()).save(spotlight)
+    }
+
+    private fun matchingResult(spotlight: DropSpotlight): SpotlightWalletResult =
+        SpotlightWalletResult(
+            requestId = spotlight.walletRequestId,
+            spotlightId = spotlight.id.id,
+            ownerUserId = spotlight.buyerUserId,
+            amount = spotlight.pricePrime,
+        )
 
     private fun service(
         repository: DropSpotlightRepository,
