@@ -1,6 +1,6 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
-import com.mnemos.social.application.comment.query.CommentView
+import com.mnemos.social.application.comment.model.CommentView
 
 object CommentApiMapper {
     fun CommentView.toResponse(): CommentResponse =

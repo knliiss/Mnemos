@@ -1,7 +1,10 @@
 package com.mnemos.social.adapter.inbound.http.accountreaction
 
 import com.mnemos.social.adapter.inbound.http.accountreaction.AccountReactionApiMapper.toResponse
-import com.mnemos.social.application.reaction.AccountReactionService
+import com.mnemos.social.application.accountreaction.usecase.get.GetAccountReactionUseCase
+import com.mnemos.social.application.accountreaction.usecase.remove.RemoveAccountReactionUseCase
+import com.mnemos.social.application.accountreaction.usecase.set.SetAccountReactionUseCase
+import com.mnemos.social.application.accountreaction.usecase.summary.GetAccountReactionSummaryUseCase
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -17,7 +20,10 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/accounts/{accountId}/reaction")
 class AccountReactionController(
-    private val service: AccountReactionService,
+    private val setAccountReactionUseCase: SetAccountReactionUseCase,
+    private val removeAccountReactionUseCase: RemoveAccountReactionUseCase,
+    private val getAccountReactionUseCase: GetAccountReactionUseCase,
+    private val getAccountReactionSummaryUseCase: GetAccountReactionSummaryUseCase,
 ) {
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -25,24 +31,30 @@ class AccountReactionController(
         @PathVariable accountId: UUID,
         @Valid @RequestBody request: SetAccountReactionRequest,
     ) {
-        service.set(accountId, request.type)
+        setAccountReactionUseCase.execute(accountId, request.type)
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun remove(@PathVariable accountId: UUID) {
-        service.remove(accountId)
+    fun remove(
+        @PathVariable accountId: UUID,
+    ) {
+        removeAccountReactionUseCase.execute(accountId)
     }
 
     @GetMapping
-    fun current(@PathVariable accountId: UUID): AccountReactionStateResponse =
+    fun current(
+        @PathVariable accountId: UUID,
+    ): AccountReactionStateResponse =
         AccountReactionStateResponse(
-            type = service.current(accountId),
+            type = getAccountReactionUseCase.execute(accountId),
         )
 
     @GetMapping("/summary")
-    fun summary(@PathVariable accountId: UUID): AccountReactionSummaryResponse =
-        service
-            .summary(accountId)
+    fun summary(
+        @PathVariable accountId: UUID,
+    ): AccountReactionSummaryResponse =
+        getAccountReactionSummaryUseCase
+            .execute(accountId)
             .toResponse()
 }

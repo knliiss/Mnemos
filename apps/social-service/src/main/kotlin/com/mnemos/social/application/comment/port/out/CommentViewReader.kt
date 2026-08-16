@@ -1,6 +1,6 @@
 package com.mnemos.social.application.comment.port.out
 
-import com.mnemos.social.application.comment.query.CommentView
+import com.mnemos.social.application.comment.model.CommentView
 import com.mnemos.social.domain.comment.model.CommentId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
