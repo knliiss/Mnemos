@@ -1,6 +1,6 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import App from "./App"
+import AppFinal from "./AppFinal"
 import "./styles.css"
 import "./feature-details.css"
 import "./event-details.css"
@@ -9,9 +9,10 @@ import "./bets-details.css"
 import "./skin-details.css"
 import "./visual-system.css"
 import "./redesign-2026.css"
+import "./final-revision.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <AppFinal />
   </StrictMode>,
 )
