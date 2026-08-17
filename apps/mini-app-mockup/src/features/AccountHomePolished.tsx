@@ -128,12 +128,12 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
 
           {claimAvailable ? (
             <motion.button whileTap={{ scale: 0.97 }} onClick={claimDaily}>
-              <Glyph name="gift" size={15} />
+              <Glyph name="daily" size={15} />
               <span>Забрати</span>
             </motion.button>
           ) : restoreAvailable ? (
             <motion.button className="is-restore" whileTap={{ scale: 0.97 }} onClick={restoreDaily}>
-              <Glyph name="refresh" size={15} />
+              <Glyph name="swap" size={15} />
               <span>Відновити {reward.recoverableStreak}</span>
               <small>{reward.restoresRemaining}×</small>
             </motion.button>
