@@ -32,6 +32,14 @@
     #191815 !important;
 }
 
+.owned-final-list__main > .notification-real-preview {
+  display: none !important;
+}
+
+.owned-final-list__main:has(.notification-real-preview) {
+  gap: 0 !important;
+}
+
 @media (max-width: 374px) {
   .account-polished-hero {
     margin-right: 44px;
