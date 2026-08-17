@@ -15,7 +15,7 @@ import type {
 export const eventLabels: Record<EventKind, string> = {
   ITEM_DROP: "Дроп",
   BOOSTER: "Бустер",
-  GLOBAL: "Глобал",
+  GLOBAL: "Глобальна",
   RAID: "Рейд",
 }
 
@@ -46,32 +46,32 @@ export const betStatusLabels: Record<EventBetRoundStatus, string> = {
 }
 
 export const boosterLabels: Record<BoosterType, string> = {
-  LUCK: "Luck",
-  MONEY: "Money",
-  DAMAGE: "Damage",
-  POWER: "Power",
+  LUCK: "Удача",
+  MONEY: "Монети",
+  DAMAGE: "Шкода",
+  POWER: "Сила",
 }
 
 export const dungeonLabels: Record<DungeonType, string> = {
-  EASY: "Easy",
-  MEDIUM: "Medium",
-  HARD: "Hard",
-  EXPERT: "Expert",
+  EASY: "Легкий",
+  MEDIUM: "Середній",
+  HARD: "Складний",
+  EXPERT: "Експертний",
 }
 
 export const globalEventLabels: Record<GlobalEventType, string> = {
-  DARKNESS: "Darkness",
-  MOON: "Moon",
-  ECLIPSE: "Eclipse",
-  EXPLOSION: "Explosion",
+  DARKNESS: "Темрява",
+  MOON: "Місяць",
+  ECLIPSE: "Затемнення",
+  EXPLOSION: "Вибух",
 }
 
 export const itemTypeLabels: Record<BetItemType, string> = {
-  SWORD: "Sword",
-  AURA: "Aura",
-  PET: "Pet",
-  BOOK: "Book",
-  JEWELRY: "Jewelry",
+  SWORD: "Меч",
+  AURA: "Аура",
+  PET: "Пет",
+  BOOK: "Книга",
+  JEWELRY: "Прикраса",
 }
 
 export const sanctionLabels: Record<SanctionType, string> = {
@@ -87,20 +87,20 @@ export const transactionSourceLabels: Record<TransactionSource, string> = {
   BET_REFUND: "Повернення ставки",
   PERSONALIZATION_PURCHASE: "Персоналізація",
   CREATOR_REVENUE: "Дохід автора",
-  SPOTLIGHT_PURCHASE: "Spotlight",
-  PRIME_PURCHASE: "Prime",
+  SPOTLIGHT_PURCHASE: "Алерт дропа",
+  PRIME_PURCHASE: "PRIME",
   ADMIN_ADJUSTMENT: "Коригування",
 }
 
 export const permissionLabels: Record<RolePermission, string> = {
   VIEW_ACCOUNT_SETTINGS: "Перегляд",
   EDIT_ACCOUNT_SETTINGS: "Редагування",
-  MANAGE_ACCOUNT_INVITES: "Керування запрошеннями",
+  MANAGE_ACCOUNT_INVITES: "Керування інвайтами",
   VIEW_MEMBERS: "Перегляд",
   INVITE_MEMBERS: "Запрошувати",
   REMOVE_MEMBERS: "Видаляти",
   ASSIGN_MEMBER_ROLES: "Призначати ролі",
-  KICK_MEMBERS: "Виключати",
+  KICK_MEMBERS: "Кікати",
   VIEW_ROLES: "Перегляд",
   CREATE_ROLES: "Створення",
   EDIT_ROLE_DETAILS: "Назва й колір",
