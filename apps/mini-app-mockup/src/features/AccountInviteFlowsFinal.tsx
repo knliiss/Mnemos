@@ -88,7 +88,6 @@ export function AccountInvitesFinal({ back }: Pick<CommonProps, "back">) {
             labels={{ NONE: "Без строку", "1H": "1 година", "1D": "24 години", "7D": "7 днів" }}
           />
         </Field>
-        <small>Backend: expiresInMinutes · 1–10080 або null</small>
         <button className="primary-action" onClick={createInvite}><Glyph name="plus" size={16} />Створити інвайт</button>
       </section>
 
