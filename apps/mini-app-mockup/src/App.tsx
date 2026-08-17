@@ -28,8 +28,8 @@ export default function App() {
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
   const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
-  const [userHubOpen, setUserHubOpen] = useState(false)
-  const [accountPickerOpen, setAccountPickerOpen] = useState(false)
+  const [userHubOpen, setUserHubOpen] = useState(() => new URLSearchParams(window.location.search).get("hub") === "1")
+  const [accountPickerOpen, setAccountPickerOpen] = useState(() => new URLSearchParams(window.location.search).get("accounts") === "1")
   const routeStageRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
 
@@ -92,7 +92,7 @@ export default function App() {
   }
 
   const content = area === "events"
-    ? <EventsArea routeId={current.id} params={current.params} navigate={navigate} back={back} />
+    ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
     : area === "account"
       ? <AccountFeature routeId={current.id} params={current.params} activeAccount={activeAccount} setActiveAccount={setActiveAccount} accounts={accounts} setAccounts={setAccounts} navigate={navigate} back={back} />
       : area === "people"
