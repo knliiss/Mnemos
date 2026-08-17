@@ -35,11 +35,12 @@ export function AccountFeature(props: AccountFeatureProps) {
   if (props.routeId === "account-invites") return <InvitesPage {...props} invites={invites} setInvites={setInvites} />
   if (props.routeId === "account-settings") return <AccountSettingsPage {...props} roles={roles} members={members} setMembers={setMembers} />
   if (props.routeId === "account-create") return <AccountCreatePage {...props} />
+  if (props.routeId === "account-join") return <AccountJoinPage {...props} />
 
-  return <AccountHome {...props} members={members} roles={roles} />
+  return <AccountHome {...props} members={members} roles={roles} inviteCount={invites.filter(invite => invite.active).length} />
 }
 
-function AccountHome({ activeAccount, setActiveAccount, accounts, navigate, members, roles }: AccountFeatureProps & { members: Member[]; roles: AccountRole[] }) {
+function AccountHome({ activeAccount, setActiveAccount, accounts, navigate, members, roles, inviteCount }: AccountFeatureProps & { members: Member[]; roles: AccountRole[]; inviteCount: number }) {
   const [switcher, setSwitcher] = useState(false)
   const [rewardClaimed, setRewardClaimed] = useState(false)
   const [streak, setStreak] = useState(18)
@@ -54,18 +55,14 @@ function AccountHome({ activeAccount, setActiveAccount, accounts, navigate, memb
     <section className={`daily-line ${rewardClaimed ? "is-claimed" : ""}`}><div className="daily-line__streak"><span>{streak}</span><small>днів</small></div><div className="daily-line__reward"><strong>{rewardClaimed ? "Отримано" : "320–520"}</strong><small>{rewardClaimed ? "сьогодні" : <><CurrencyMark currency="COIN" size={11} /> <CurrencyMark currency="PRIME" size={11} /> 4%</>}</small></div>{!rewardClaimed ? <button onClick={() => { setRewardClaimed(true); setStreak(streak + 1) }}>Забрати</button> : <Glyph name="check" size={19} />}</section>
     {recoverable ? <button className="recover-line" onClick={() => { if (restores > 0) { setRecoverable(false); setRestores(restores - 1); setStreak(17) } }}><span>Відновити 17</span><small>{restores}</small></button> : null}
 
-    <Section title={`Мембери · ${members.length}`} action={<button className="text-action" onClick={() => navigate({ id: "account-invites" })}>+</button>}>
+    <Section title={`Мембери · ${members.length}`} action={<button className="text-action" aria-label="Створити запрошення" onClick={() => navigate({ id: "account-invites" })}>+</button>}>
       <div className="member-list">{members.map((member) => { const role = roles.find((item) => item.id === member.highestRoleId); return <button className="member-row" key={member.id} onClick={() => navigate({ id: "member", params: { memberId: member.id } })}><span className="member-avatar">{member.name.slice(0, 1).toUpperCase()}</span><span className="member-row__copy"><strong>{member.name}</strong><small>{member.owner ? "Owner" : role?.name ?? "Member"}</small></span>{role ? <span className="role-dot" style={{ background: role.color }} /> : null}<span className="row__chevron">›</span></button> })}</div>
     </Section>
 
-    <div className="account-tools"><button onClick={() => navigate({ id: "roles" })}><Glyph name="roles" size={21} /><span>Ролі</span><small>{roles.length}</small></button><button onClick={() => navigate({ id: "account-invites" })}><Glyph name="members" size={21} /><span>Запрошення</span><small>{invitesCount(accounts)}</small></button></div>
+    <div className="account-tools"><button onClick={() => navigate({ id: "roles" })}><Glyph name="roles" size={21} /><span>Ролі</span><small>{roles.length}</small></button><button onClick={() => navigate({ id: "account-invites" })}><Glyph name="members" size={21} /><span>Запрошення</span><small>{inviteCount}</small></button></div>
 
-    <AnimatePresence>{switcher ? <BottomSheet title="Аккаунти" onClose={() => setSwitcher(false)}><div className="account-switcher">{accounts.map((account) => <button key={account.id} className={account.id === activeAccount.id ? "is-active" : ""} onClick={() => { if (account.active !== false) { setActiveAccount(account); setSwitcher(false) } }}><CristalixHead skinUrl={account.skinUrl} size={42} /><span><strong>{account.nickname}</strong><small>{account.active === false ? "неактивний" : account.role}</small></span>{account.id === activeAccount.id ? <Glyph name="check" size={17} /> : null}</button>)}</div><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-create" }) }}><Glyph name="plus" size={17} /> Додати аккаунт</button></BottomSheet> : null}</AnimatePresence>
+    <AnimatePresence>{switcher ? <BottomSheet title="Аккаунти" onClose={() => setSwitcher(false)}><div className="account-switcher">{accounts.map((account) => <button key={account.id} className={account.id === activeAccount.id ? "is-active" : ""} onClick={() => { if (account.active !== false) { setActiveAccount(account); setSwitcher(false) } }}><CristalixHead skinUrl={account.skinUrl} size={42} /><span><strong>{account.nickname}</strong><small>{account.active === false ? "неактивний" : account.role}</small></span>{account.id === activeAccount.id ? <Glyph name="check" size={17} /> : null}</button>)}</div><div className="account-switcher-actions"><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-create" }) }}><Glyph name="plus" size={17} /> Створити</button><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-join" }) }}><Glyph name="members" size={17} /> За кодом</button></div></BottomSheet> : null}</AnimatePresence>
   </div>
-}
-
-function invitesCount(accounts: Account[]) {
-  return accounts.length > 0 ? "" : ""
 }
 
 function MemberPage({ back, params, members, setMembers, roles }: AccountFeatureProps & { members: Member[]; setMembers: (members: Member[]) => void; roles: AccountRole[] }) {
@@ -168,6 +165,37 @@ function AccountCreatePage({ back, activeAccount, accounts, setAccounts, setActi
   return <div className="screen"><PageHeader title="Новий аккаунт" back={back} /><div className="form-stack account-create"><Field label="Cristalix nickname" hint="4–20 символів"><input autoFocus value={nickname} minLength={4} maxLength={20} onChange={(event) => setNickname(event.target.value)} /></Field><button className="primary-action" disabled={nickname.trim().length < 4} onClick={create}>Прив'язати</button></div></div>
 }
 
+function AccountJoinPage({ back, activeAccount, accounts, setAccounts, setActiveAccount }: AccountFeatureProps) {
+  const [inviteCode, setInviteCode] = useState("")
+  const normalized = inviteCode.trim().toUpperCase()
+  const valid = /^MN-[A-Z0-9]{4}-[A-Z0-9]{3}$/.test(normalized)
+
+  const join = () => {
+    if (!valid) return
+
+    const id = crypto.randomUUID()
+    const account: Account = {
+      id,
+      cristalixUuid: id,
+      nickname: "north",
+      role: "Member",
+      skinUrl: activeAccount.skinUrl,
+      memberCount: 5,
+      maxMembers: 8,
+      owner: false,
+      active: true,
+      coin: 0,
+      prime: 0,
+    }
+
+    setAccounts([...accounts, account])
+    setActiveAccount(account)
+    back()
+  }
+
+  return <div className="screen"><PageHeader title="Приєднатись" back={back} /><div className="form-stack account-create"><Field label="Код запрошення" hint="MN-XXXX-XXX"><input autoFocus autoCapitalize="characters" spellCheck={false} value={inviteCode} maxLength={11} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} /></Field><button className="primary-action" disabled={!valid} onClick={join}>Приєднатись</button></div></div>
+}
+
 function AccountWalletPage({ activeAccount, back }: AccountFeatureProps) {
-  return <div className="screen"><PageHeader title="Wallet" eyebrow={activeAccount.nickname} back={back} /><div className="balance-grid"><div><CurrencyValue currency="COIN" value={activeAccount.coin} /></div><div><CurrencyValue currency="PRIME" value={activeAccount.prime} /></div></div><Section title="Історія"><div className="transaction-list">{accountTransactions.map((transaction) => <div className="transaction-row" key={transaction.id}><span className={`transaction-sign ${transaction.type === "CREDIT" ? "is-credit" : ""}`}>{transaction.type === "CREDIT" ? "+" : "−"}</span><span><strong>{transactionSourceLabels[transaction.source]}</strong><small>{transaction.createdAt}</small></span><CurrencyValue currency={transaction.currency} value={transaction.amount} compact /></div>)}</div></Section></div>
+  return <div className="screen"><PageHeader title="Гаманець" eyebrow={activeAccount.nickname} back={back} /><div className="balance-grid"><div><CurrencyValue currency="COIN" value={activeAccount.coin} /></div><div><CurrencyValue currency="PRIME" value={activeAccount.prime} /></div></div><Section title="Історія"><div className="transaction-list">{accountTransactions.map((transaction) => <div className="transaction-row" key={transaction.id}><span className={`transaction-sign ${transaction.type === "CREDIT" ? "is-credit" : ""}`}>{transaction.type === "CREDIT" ? "+" : "−"}</span><span><strong>{transactionSourceLabels[transaction.source]}</strong><small>{transaction.createdAt}</small></span><CurrencyValue currency={transaction.currency} value={transaction.amount} compact /></div>)}</div></Section></div>
 }
