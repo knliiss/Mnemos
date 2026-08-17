@@ -17,7 +17,7 @@ export default function App() {
   const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
   const current = stack[stack.length - 1]
   const area = featureArea(current.id)
-  const root = isRootRoute(current.id)
+  const rootRoute = isRootRoute(current.id) ? current.id : null
 
   const navigate = (route: Route) => {
     if (isRootRoute(route.id)) {
@@ -47,10 +47,10 @@ export default function App() {
     <MotionConfig transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <main className="preview-stage">
         <section className="app-shell">
-          <motion.div className={`route-stage ${root ? "has-tabbar" : ""}`} initial={false} animate={{ opacity: 1 }}>
+          <motion.div className={`route-stage ${rootRoute ? "has-tabbar" : ""}`} initial={false} animate={{ opacity: 1 }}>
             {content}
           </motion.div>
-          {root ? <RootNavigation current={current.id} onChange={switchRoot} /> : null}
+          {rootRoute ? <RootNavigation current={rootRoute} onChange={switchRoot} /> : null}
         </section>
       </main>
     </MotionConfig>
