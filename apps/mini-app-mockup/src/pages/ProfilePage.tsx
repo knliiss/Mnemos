@@ -1,26 +1,26 @@
 import { motion } from "framer-motion"
 import {
-  BellRing,
   ChevronRight,
-  CircleUserRound,
-  Languages,
-  Link2,
-  Settings2,
-  SlidersHorizontal,
-  UserRoundCog,
-  WalletCards,
+  MessageCircle,
+  Settings,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  Wallet,
 } from "lucide-react"
-import { AccountMark } from "../components/AccountMark"
 import { CristalixHead } from "../components/CristalixHead"
 import { CurrencyMark } from "../components/CurrencyMark"
 import { PageFrame } from "../components/PageFrame"
-import type { MockAccount } from "../types"
+import { ScopeBadge } from "../components/ScopeBadge"
+import type { MockAccount, Page } from "../types"
 
-type ProfilePageProps = {
+export function ProfilePage({
+  activeAccount,
+  onNavigate,
+}: {
   activeAccount: MockAccount
-}
-
-export function ProfilePage({ activeAccount }: ProfilePageProps) {
+  onNavigate: (page: Page) => void
+}) {
   return (
     <PageFrame page="profile">
       <section className="profile-topline">
@@ -34,125 +34,107 @@ export function ProfilePage({ activeAccount }: ProfilePageProps) {
 
         <motion.button
           className="icon-button"
+          onClick={() => onNavigate("settings")}
           whileTap={{ scale: 0.92 }}
           aria-label="Налаштування"
         >
-          <Settings2 size={19} strokeWidth={1.8} />
+          <Settings size={19} strokeWidth={1.8} />
         </motion.button>
       </section>
 
       <motion.section
         className="profile-hero"
-        initial={{ opacity: 0, scale: 0.985, y: 7 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ delay: 0.04, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, scale: 0.985 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="head-stage">
           <div className="head-shadow" />
-          <CristalixHead skinUrl={activeAccount.skinUrl} size={116} />
+          <CristalixHead skinUrl={activeAccount.skinUrl} size={112} />
         </div>
 
         <div className="profile-account-copy">
-          <span className="linked-account-label">
-            <Link2 size={13} strokeWidth={1.8} />
-            Cristalix
-          </span>
+          <ScopeBadge scope="account" />
           <h1>{activeAccount.nickname}</h1>
-          <span className="account-id">{activeAccount.shortId}</span>
+          <span className="account-id">{activeAccount.shortId} · {activeAccount.role}</span>
         </div>
       </motion.section>
 
-      <section className="scope-section">
-        <div className="scope-heading scope-heading--user">
-          <CircleUserRound size={16} strokeWidth={1.7} />
-          <span>Юзер</span>
+      <section className="profile-stats" aria-label="Статистика профілю">
+        <button onClick={() => onNavigate("social")}>
+          <ThumbsUp size={15} strokeWidth={1.7} />
+          <strong>128</strong>
+        </button>
+        <span />
+        <button onClick={() => onNavigate("social")}>
+          <ThumbsDown size={15} strokeWidth={1.7} />
+          <strong>9</strong>
+        </button>
+        <span />
+        <button onClick={() => onNavigate("social")}>
+          <MessageCircle size={15} strokeWidth={1.7} />
+          <strong>24</strong>
+        </button>
+      </section>
+
+      <section className="profile-section">
+        <div className="profile-section-heading">
+          <ScopeBadge scope="user" />
         </div>
 
-        <div className="settings-list">
-          <motion.button className="settings-row" whileTap={{ scale: 0.99 }}>
-            <span className="settings-icon">
-              <BellRing size={17} strokeWidth={1.65} />
-            </span>
+        <div className="profile-grid">
+          <motion.button
+            className="profile-tile"
+            onClick={() => onNavigate("personalization")}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Sparkles size={18} strokeWidth={1.7} />
             <div>
-              <strong>Notification pack</strong>
-              <span>Default</span>
+              <span>Notification pack</span>
+              <strong>Default</strong>
             </div>
-            <ChevronRight size={17} strokeWidth={1.7} />
+            <ChevronRight size={16} strokeWidth={1.7} />
           </motion.button>
 
-          <motion.button className="settings-row" whileTap={{ scale: 0.99 }}>
-            <span className="settings-icon">
-              <SlidersHorizontal size={17} strokeWidth={1.65} />
-            </span>
+          <motion.button
+            className="profile-tile"
+            onClick={() => onNavigate("subscriptions")}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="profile-tile-number">8</span>
             <div>
-              <strong>Персоналізація</strong>
-              <span>2 активні</span>
+              <span>Підписки</span>
+              <strong>Активні</strong>
             </div>
-            <ChevronRight size={17} strokeWidth={1.7} />
-          </motion.button>
-
-          <motion.button className="settings-row" whileTap={{ scale: 0.99 }}>
-            <span className="settings-icon">
-              <Languages size={17} strokeWidth={1.65} />
-            </span>
-            <div>
-              <strong>Мова</strong>
-              <span>Українська</span>
-            </div>
-            <ChevronRight size={17} strokeWidth={1.7} />
+            <ChevronRight size={16} strokeWidth={1.7} />
           </motion.button>
         </div>
       </section>
 
-      <section className="scope-section scope-section--account">
-        <div className="scope-heading scope-heading--account">
-          <AccountMark compact />
-          <span>Аккаунт</span>
+      <section className="profile-section">
+        <div className="profile-section-heading">
+          <ScopeBadge scope="account" />
         </div>
 
-        <div className="account-summary">
-          <div className="account-summary-main">
-            <AccountMark />
-            <div>
-              <strong>{activeAccount.nickname}</strong>
-              <span>active</span>
-            </div>
-          </div>
-
-          <div className="account-summary-wallet" aria-label="Баланс аккаунта">
-            <span>
+        <div className="profile-account-summary">
+          <button onClick={() => onNavigate("wallet")}>
+            <Wallet size={17} strokeWidth={1.7} />
+            <span className="inline-balance inline-balance--large">
               <CurrencyMark currency="coin" />
-              12 480
+              {activeAccount.coinBalance.toLocaleString("uk-UA")}
             </span>
-            <span>
+            <span className="inline-balance inline-balance--large">
               <CurrencyMark currency="prime" />
-              340
+              {activeAccount.primeBalance.toLocaleString("uk-UA")}
             </span>
-          </div>
-        </div>
+            <ChevronRight size={16} strokeWidth={1.7} />
+          </button>
 
-        <div className="settings-list settings-list--separate">
-          <motion.button className="settings-row" whileTap={{ scale: 0.99 }}>
-            <span className="settings-icon">
-              <WalletCards size={17} strokeWidth={1.65} />
-            </span>
-            <div>
-              <strong>Транзакції</strong>
-              <span>Історія аккаунта</span>
-            </div>
-            <ChevronRight size={17} strokeWidth={1.7} />
-          </motion.button>
-
-          <motion.button className="settings-row" whileTap={{ scale: 0.99 }}>
-            <span className="settings-icon">
-              <UserRoundCog size={17} strokeWidth={1.65} />
-            </span>
-            <div>
-              <strong>Доступ</strong>
-              <span>Ролі та права</span>
-            </div>
-            <ChevronRight size={17} strokeWidth={1.7} />
-          </motion.button>
+          <button onClick={() => onNavigate("social")}>
+            <MessageCircle size={17} strokeWidth={1.7} />
+            <span>Публічний профіль</span>
+            <ChevronRight size={16} strokeWidth={1.7} />
+          </button>
         </div>
       </section>
     </PageFrame>
