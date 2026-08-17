@@ -22,10 +22,24 @@ export type NotificationTemplateKey = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAI
 export type RolePermission = "VIEW_ACCOUNT_SETTINGS" | "EDIT_ACCOUNT_SETTINGS" | "MANAGE_ACCOUNT_INVITES" | "VIEW_MEMBERS" | "INVITE_MEMBERS" | "REMOVE_MEMBERS" | "ASSIGN_MEMBER_ROLES" | "KICK_MEMBERS" | "VIEW_ROLES" | "CREATE_ROLES" | "EDIT_ROLE_DETAILS" | "EDIT_ROLE_PERMISSIONS" | "DELETE_ROLES" | "MANAGE_ROLE_HIERARCHY" | "MANAGE_ROLES" | "VIEW_WALLET" | "VIEW_TRANSACTION_HISTORY" | "SPEND_WALLET_FUNDS" | "CLAIM_DAILY_REWARD" | "PUBLISH_COMMENTS" | "PUBLISH_REACTIONS" | "MODERATE_COMMENTS" | "VIEW_BETS" | "PLACE_BETS" | "MANAGE_BETS" | "VIEW_BET_HISTORY" | "VIEW_PERSONALIZATIONS" | "APPLY_PERSONALIZATIONS" | "BUY_PERSONALIZATIONS" | "MANAGE_PERSONALIZATIONS"
 export type SystemRole = "USER" | "MODERATOR" | "ADMIN" | "SUPER_ADMIN" | "PERSONALIZATION_CREATOR" | "PERSONALIZATION_MODERATOR"
 export type SanctionType = "BAN" | "NOTIFICATION_SUSPENSION"
-export type RootRoute = "events" | "account" | "me"
-export type RouteId = RootRoute | "event-detail" | "bets" | "subscriptions" | "member" | "roles" | "role-editor" | "account-wallet" | "account-invites" | "account-settings" | "account-create" | "account-join" | "search" | "public-profile" | "personalization-store" | "personalization-owned" | "personalization-detail" | "creator-studio" | "creator-revenue" | "personalization-editor" | "moderation" | "moderation-user" | "personalization-review" | "bet-admin" | "badge-admin" | "user-wallet" | "settings"
+
+export type RootRoute = "bets" | "events" | "account" | "search" | "personalization-store"
+export type RouteId = RootRoute | "event-detail" | "subscriptions" | "member" | "roles" | "role-editor" | "account-wallet" | "account-invites" | "account-settings" | "account-create" | "account-join" | "public-profile" | "personalization-owned" | "personalization-detail" | "creator-studio" | "creator-revenue" | "personalization-editor" | "moderation" | "administration" | "moderation-user" | "personalization-review" | "bet-admin" | "badge-admin" | "user-wallet"
 export type Route = { id: RouteId; params?: Record<string, string> }
-export type Account = { id: string; cristalixUuid: string; nickname: string; role: string; skinUrl: string; memberCount: number; maxMembers: number; owner: boolean; active?: boolean; coin: number; prime: number }
+
+export type Account = {
+  id: string
+  cristalixUuid: string
+  nickname: string
+  role: string
+  skinUrl: string
+  memberCount: number
+  maxMembers: number
+  owner: boolean
+  active?: boolean
+  coin: number
+}
+
 export type Member = { id: string; name: string; owner: boolean; joinedAt: string; highestRoleId: string | null; roleIds: string[] }
 export type AccountRole = { id: string; name: string; color: string; hierarchyRank: number; permissions: Record<RolePermission, boolean>; locked?: boolean }
 export type FeedEvent = { id: string; kind: EventKind; title: string; detail: string; occurredAt: string; relative: string; meta?: string; rarity?: string }
