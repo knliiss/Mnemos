@@ -1,10 +1,11 @@
+import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { EVENT_KINDS } from "../contracts"
 import { feed, initialSubscriptions } from "../mockData"
-import type { Account, EventKind, FeedEvent, Route } from "../model"
-import { boosterLabels, eventLabels, globalEventLabels } from "../presentation"
-import { Glyph } from "../shared/MnemosIcon"
-import { CurrencyValue, PageHeader } from "../shared/Primitives"
+import type { Account, BetItemType, EventKind, FeedEvent, Route } from "../model"
+import { boosterLabels, eventLabels, globalEventLabels, itemTypeLabels } from "../presentation"
+import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { PageHeader } from "../shared/Primitives"
 
 type Nav = (route: Route) => void
 
@@ -51,6 +52,26 @@ function eventTime(occurredAt: string) {
   }).format(date)
 }
 
+function rarityLabel(value?: string) {
+  if (value === "MYTHICAL") return "Міфічний"
+  if (value === "SECRET") return "Секретний"
+  return value
+}
+
+function eventMetaLabel(event: FeedEvent) {
+  if (!event.meta) return null
+
+  if (event.kind === "ITEM_DROP" && event.meta in itemTypeLabels) {
+    return itemTypeLabels[event.meta as BetItemType]
+  }
+
+  if (event.kind === "BOOSTER" && event.title in boosterLabels) {
+    return boosterLabels[event.title as keyof typeof boosterLabels]
+  }
+
+  return event.meta
+}
+
 export function EventsHome({ navigate }: { navigate: Nav }) {
   const [filter, setFilter] = useState<"ALL" | EventKind>("ALL")
   const visible = useMemo(() => filter === "ALL" ? feed : feed.filter((event) => event.kind === filter), [filter])
@@ -79,15 +100,20 @@ export function EventsHome({ navigate }: { navigate: Nav }) {
 
       <div className="event-stream-redesign">
         {visible.map((event, index) => (
-          <button className={`event-feed-card event-feed-card--${eventTone[event.kind]} ${index === 0 ? "is-latest" : ""}`} key={event.id} onClick={() => open(event)}>
+          <motion.button
+            whileTap={{ scale: 0.992 }}
+            className={`event-feed-card event-feed-card--${eventTone[event.kind]} ${index === 0 ? "is-latest" : ""}`}
+            key={event.id}
+            onClick={() => open(event)}
+          >
             <span className="event-feed-card__icon"><Glyph name={icons[event.kind]} size={20} /></span>
             <span className="event-feed-card__copy">
               <span className="event-feed-card__meta"><b>{eventLabels[event.kind]}</b><time>{eventTime(event.occurredAt)}</time></span>
               <strong>{eventTitle(event)}</strong>
-              <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${event.rarity}` : ""}` : event.detail}</small>
+              <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}` : event.detail}</small>
             </span>
             <span className="event-feed-card__chevron">›</span>
-          </button>
+          </motion.button>
         ))}
       </div>
     </div>
@@ -107,26 +133,40 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
   }
 
   return (
-    <div className="screen event-detail-screen event-detail-redesign">
+    <div className="screen event-detail-screen event-detail-redesign event-detail-polished">
       <PageHeader title={eventTitle(event)} eyebrow={eventLabels[event.kind]} back={back} />
+
       <section className={`event-detail-hero event-detail-hero--${eventTone[event.kind]}`}>
-        <span><Glyph name={icons[event.kind]} size={30} /></span>
-        <div><strong>{event.detail}</strong><small>{event.rarity ?? event.meta ?? eventLabels[event.kind]}</small></div>
+        <span><Glyph name={icons[event.kind]} size={28} /></span>
+        <div>
+          <strong>{event.detail}</strong>
+          <small>{rarityLabel(event.rarity) ?? eventMetaLabel(event) ?? eventLabels[event.kind]}</small>
+        </div>
         <time>{eventTime(event.occurredAt)}</time>
       </section>
-      <dl className="event-facts">
-        <div><dt>Сталося</dt><dd>{new Intl.DateTimeFormat("uk-UA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.occurredAt))}</dd></div>
-        {event.meta ? <div><dt>Тип</dt><dd>{event.meta}</dd></div> : null}
-        {event.rarity ? <div><dt>Рідкість</dt><dd>{event.rarity}</dd></div> : null}
+
+      <dl className="event-facts event-facts--polished">
+        <div className="event-fact-wide"><dt>Сталося</dt><dd>{new Intl.DateTimeFormat("uk-UA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.occurredAt))}</dd></div>
+        {event.meta ? <div><dt>Тип</dt><dd>{eventMetaLabel(event)}</dd></div> : null}
+        {event.rarity ? <div><dt>Рідкість</dt><dd>{rarityLabel(event.rarity)}</dd></div> : null}
       </dl>
+
       {ownDrop ? (
-        <section className="spotlight-action spotlight-action--redesign">
-          <div className="spotlight-action__mark"><Glyph name="spark" size={21} /></div>
-          <div><strong>Алерт дропа</strong><small>Глобальний Spotlight для цього дропа</small></div>
+        <section className="spotlight-action spotlight-action--redesign spotlight-action--polished">
+          <span className="spotlight-action__mark"><Glyph name="spark" size={20} /></span>
+          <span className="spotlight-action__copy">
+            <strong>Алерт дропа</strong>
+            <small>Spotlight цього дропа для користувачів Mini App</small>
+          </span>
           {spotlight === "READY" ? (
-            <button onClick={publish} aria-label="Купити алерт"><CurrencyValue currency="PRIME" value={25} compact /></button>
+            <motion.button whileTap={{ scale: 0.96 }} className="spotlight-buy" onClick={publish} aria-label="Купити алерт за 25 PRIME">
+              <CurrencyMark currency="PRIME" size={14} />
+              <strong>25</strong>
+            </motion.button>
           ) : (
-            <span className={`spotlight-state spotlight-state--${spotlight.toLowerCase()}`}>{spotlight === "PENDING" ? "обробка" : "у черзі"}</span>
+            <span className={`spotlight-state spotlight-state--${spotlight.toLowerCase()}`}>
+              {spotlight === "PENDING" ? "Обробка" : "У черзі"}
+            </span>
           )}
         </section>
       ) : null}
