@@ -5,18 +5,18 @@ export type GlyphName = "events" | "account" | "person" | "search" | "bell" | "b
 export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: number; className?: string }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.55, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, className: `glyph ${className ?? ""}`, "aria-hidden": true }
   const paths: Record<GlyphName, ReactElement> = {
-    events: <><path d="M4 7.4h5.2l2.1-3.1 3.2 15.4 2.1-8.4H20"/><path d="M4 18.2h3.5"/></>,
-    account: <><rect x="4.2" y="5" width="15.6" height="14" rx="3"/><path d="M8 5V3.5M16 5V3.5M8 10h8M8 14h5"/></>,
+    events: <><path d="M4 7.5h4.2l2-3.4 3.4 15.8 2.2-8.5H20"/><circle cx="4" cy="17.8" r=".8" fill="currentColor" stroke="none"/></>,
+    account: <><path d="M5 6.5h10.8a2 2 0 0 1 2 2v9H7a2 2 0 0 1-2-2z"/><path d="M8 4.2h11v10.3M8.5 10.2h5.8M8.5 13.8h3.8"/></>,
     person: <><circle cx="12" cy="8" r="3"/><path d="M5.5 19c.8-4 3-6 6.5-6s5.7 2 6.5 6"/></>,
     search: <><circle cx="10.5" cy="10.5" r="5.7"/><path d="m15 15 4.3 4.3"/></>,
     bell: <><path d="M6.5 10.5c0-3.8 2.1-6 5.5-6s5.5 2.2 5.5 6v4.2l1.5 2H5l1.5-2z"/><path d="M10 19.1c.6.9 1.2 1.3 2 1.3s1.4-.4 2-1.3"/></>,
-    bet: <><path d="M5 17.5 9.2 6.2h5.6L19 17.5"/><path d="M7 13h10M9.8 9.2h4.4"/></>,
+    bet: <><path d="M4.5 6.2 10.7 12 4.5 17.8M19.5 6.2 13.3 12l6.2 5.8"/><path d="M9.2 6.2h5.6M9.2 17.8h5.6"/></>,
     members: <><circle cx="9" cy="8" r="2.6"/><circle cx="16.4" cy="9.2" r="2"/><path d="M3.8 19c.6-4 2.3-6 5.2-6s4.6 2 5.2 6M14 14.2c2.7-.2 4.5 1.4 5.2 4.1"/></>,
-    roles: <><path d="M12 3.2 19 6v5.2c0 4.3-2.7 7.5-7 9.6-4.3-2.1-7-5.3-7-9.6V6z"/><path d="m9 12 2 2 4-4"/></>,
+    roles: <><circle cx="6" cy="6" r="1.8"/><circle cx="18" cy="8.5" r="1.8"/><circle cx="9.5" cy="18" r="1.8"/><path d="m7.7 6.6 8.5 1.3M7 7.5l1.7 8.7M17 10l-6 6.6"/></>,
     wallet: <><path d="M4 7.5h15.2v11H5.5A1.5 1.5 0 0 1 4 17z"/><path d="M4 8V6.5A1.5 1.5 0 0 1 5.5 5H17"/><path d="M15.5 12h4v3h-4a1.5 1.5 0 0 1 0-3Z"/></>,
-    store: <><path d="M5 9.5h14l-1 10H6z"/><path d="M8 9.5V7a4 4 0 0 1 8 0v2.5"/><path d="M9 14h6"/></>,
-    creator: <><path d="m4.5 18.7 3.1-7.8 5.5-5.5 5.5 5.5-5.5 5.5z"/><path d="m13.1 5.4 2-2 5.5 5.5-2 2M7.6 10.9l5.5 5.5"/></>,
-    moderation: <><path d="M12 3.2 19 6v5.2c0 4.3-2.7 7.5-7 9.6-4.3-2.1-7-5.3-7-9.6V6z"/><path d="M8.4 12h7.2M12 8.4v7.2"/></>,
+    store: <><path d="m5 5 5.8 1.5-1.5 5.8-5.8-1.5zM13.2 6.8l5.8-1.5 1.5 5.8-5.8 1.5zM6.5 14.1l5.8-1.5 1.5 5.8L8 19.9zM14.8 14.5h4.7v4.7h-4.7z"/></>,
+    creator: <><path d="M4.8 17.8 8 6.2l8-2 3.2 8-8 7.6z"/><path d="m8 6.2 5.2 5.2 3-7.2M13.2 11.4l6 1"/><circle cx="13.2" cy="11.4" r="1.4"/></>,
+    moderation: <><path d="M7 4.5H4.5V9M17 4.5h2.5V9M7 19.5H4.5V15M17 19.5h2.5V15"/><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="5.2"/></>,
     settings: <><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18"/></>,
     back: <path d="m14.5 5-7 7 7 7"/>,
     more: <><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></>,
@@ -33,7 +33,7 @@ export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: 
     raid: <><path d="M5 17.5 9.5 6l2.5 5 2.5-5L19 17.5z"/><path d="M7 14h10"/></>,
     dungeon: <><path d="M5 20V8l7-4 7 4v12M8 20v-7h8v7"/><path d="M9 9h.1M15 9h.1"/></>,
     external: <><path d="M13 5h6v6M19 5l-8 8"/><path d="M18 14v5H5V6h5"/></>,
-    spark: <><path d="M12 3.2 13.7 9 19 12l-5.3 3L12 20.8 10.3 15 5 12l5.3-3z"/></>,
+    spark: <path d="M12 3.2 13.7 9 19 12l-5.3 3L12 20.8 10.3 15 5 12l5.3-3z"/>,
   }
   return <svg {...common}>{paths[name]}</svg>
 }
