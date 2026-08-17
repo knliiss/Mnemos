@@ -21,6 +21,7 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
   "account-invites": { area: "account" },
   "account-settings": { area: "account" },
   "account-create": { area: "account" },
+  "account-join": { area: "account" },
 
   me: { area: "people", root: true },
   search: { area: "people" },
