@@ -1,22 +1,208 @@
-import type { MockAccount } from "./types"
+import type {
+  MockAccount,
+  MockBet,
+  MockEvent,
+  MockNotification,
+  MockPack,
+  MockTransaction,
+} from "./types"
+
+const skin = "https://webdata.c7x.dev/textures/skin/46d7a80e-74f5-11eb-acca-1cb72caa35fd"
 
 export const mockAccounts: MockAccount[] = [
   {
     id: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
     nickname: "knalis",
     shortId: "46d7a80e",
-    skinUrl: "https://webdata.c7x.dev/textures/skin/46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    skinUrl: skin,
+    coinBalance: 12480,
+    primeBalance: 340,
+    streak: 17,
+    role: "Owner",
   },
   {
     id: "0f4e8d3c-2a9a-4e9d-9d18-7cb58ec00f18",
     nickname: "Knaliss",
     shortId: "0f4e8d3c",
-    skinUrl: "https://webdata.c7x.dev/textures/skin/46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    skinUrl: skin,
+    coinBalance: 4860,
+    primeBalance: 96,
+    streak: 5,
+    role: "Member",
   },
   {
     id: "7d2c2c49-1be8-47c3-8a6e-94050703ad53",
     nickname: "SAO",
     shortId: "7d2c2c49",
-    skinUrl: "https://webdata.c7x.dev/textures/skin/46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    skinUrl: skin,
+    coinBalance: 18320,
+    primeBalance: 615,
+    streak: 31,
+    role: "Admin",
+  },
+]
+
+export const mockEvents: MockEvent[] = [
+  {
+    id: "expert-dungeon",
+    type: "Dungeon",
+    title: "Expert dungeon",
+    subtitle: "За розкладом",
+    time: "19:20",
+    relative: "через 15 хв",
+    status: "upcoming",
+    meta: "Expert",
+  },
+  {
+    id: "moon",
+    type: "Global",
+    title: "Moon",
+    subtitle: "Шанс 50%",
+    time: "20:00",
+    relative: "через 55 хв",
+    status: "upcoming",
+    meta: "2h",
+  },
+  {
+    id: "raid",
+    type: "Raid",
+    title: "Raid",
+    subtitle: "Очікується сигнал",
+    time: "—",
+    relative: "live feed",
+    status: "quiet",
+  },
+  {
+    id: "booster",
+    type: "Booster",
+    title: "Booster x2",
+    subtitle: "Активував vex",
+    time: "18:58",
+    relative: "7 хв тому",
+    status: "live",
+    meta: "18 хв",
+  },
+]
+
+export const mockTransactions: MockTransaction[] = [
+  { id: "t1", currency: "coin", amount: 420, source: "Daily reward", time: "сьогодні · 10:14" },
+  { id: "t2", currency: "coin", amount: -750, source: "Bet · Moon", time: "вчора · 23:51" },
+  { id: "t3", currency: "prime", amount: -30, source: "Notification pack", time: "вчора · 19:40" },
+  { id: "t4", currency: "coin", amount: 1850, source: "Bet win · Eclipse", time: "16 серп. · 09:06" },
+  { id: "t5", currency: "coin", amount: 180, source: "Item drop reward", time: "15 серп. · 21:31" },
+  { id: "t6", currency: "prime", amount: 10, source: "Daily reward", time: "14 серп. · 08:12" },
+]
+
+export const mockBets: MockBet[] = [
+  {
+    id: "moon-bet",
+    kind: "event",
+    title: "Moon · 20:00",
+    subtitle: "Чи відбудеться подія?",
+    closesAt: "19:55",
+    yesPercent: 58,
+    noPercent: 42,
+    pot: 18420,
+    status: "open",
+  },
+  {
+    id: "explosion-bet",
+    kind: "event",
+    title: "Explosion · 01:00",
+    subtitle: "Наступне вікно",
+    closesAt: "00:55",
+    yesPercent: 94,
+    noPercent: 6,
+    pot: 9120,
+    status: "open",
+  },
+  {
+    id: "race-secret",
+    kind: "race",
+    title: "Secret drop race",
+    subtitle: "Перший дроп виграє банк",
+    closesAt: "22:30",
+    yesPercent: 0,
+    noPercent: 0,
+    pot: 26750,
+    status: "open",
+  },
+]
+
+export const mockPacks: MockPack[] = [
+  {
+    id: "default",
+    name: "Default",
+    author: "Mnemos",
+    scope: "user",
+    price: 0,
+    owned: true,
+    active: true,
+    preview: "sage",
+  },
+  {
+    id: "signal",
+    name: "Signal",
+    author: "Mnemos",
+    scope: "user",
+    price: 30,
+    owned: true,
+    active: false,
+    preview: "signal",
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    author: "north",
+    scope: "user",
+    price: 45,
+    owned: false,
+    active: false,
+    preview: "graphite",
+  },
+  {
+    id: "paper",
+    name: "Paper",
+    author: "vex",
+    scope: "account",
+    price: 25,
+    owned: false,
+    active: false,
+    preview: "paper",
+  },
+]
+
+export const mockNotifications: MockNotification[] = [
+  {
+    id: "n1",
+    title: "Expert dungeon",
+    body: "Почнеться через 15 хвилин.",
+    time: "18:59",
+    unread: true,
+    kind: "event",
+  },
+  {
+    id: "n2",
+    title: "Daily reward",
+    body: "+420 до балансу аккаунта.",
+    time: "10:14",
+    unread: false,
+    kind: "reward",
+  },
+  {
+    id: "n3",
+    title: "Новий коментар",
+    body: "north залишив коментар у профілі knalis.",
+    time: "09:42",
+    unread: true,
+    kind: "social",
+  },
+  {
+    id: "n4",
+    title: "Bet settled",
+    body: "Eclipse завершено. +1 850.",
+    time: "вчора",
+    unread: false,
+    kind: "wallet",
   },
 ]
