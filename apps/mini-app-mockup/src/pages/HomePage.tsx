@@ -1,25 +1,37 @@
 import { motion } from "framer-motion"
 import {
   Bell,
-  CalendarDays,
   ChevronRight,
-  Layers3,
+  Gift,
+  Layers,
   Sparkles,
+  Target,
 } from "lucide-react"
 import { CurrencyMark } from "../components/CurrencyMark"
 import { PageFrame } from "../components/PageFrame"
+import { mockEvents } from "../mockData"
+import type { MockAccount, Page } from "../types"
 
-export function HomePage() {
+export function HomePage({
+  activeAccount,
+  onNavigate,
+}: {
+  activeAccount: MockAccount
+  onNavigate: (page: Page) => void
+}) {
+  const nextEvent = mockEvents[0]
+
   return (
     <PageFrame page="home">
       <section className="welcome-row">
         <div>
           <span className="eyebrow">MNEMOS</span>
-          <h1>Огляд</h1>
+          <h1>Сьогодні</h1>
         </div>
 
         <motion.button
           className="icon-button"
+          onClick={() => onNavigate("notifications")}
           whileTap={{ scale: 0.92 }}
           aria-label="Сповіщення"
         >
@@ -28,29 +40,35 @@ export function HomePage() {
         </motion.button>
       </section>
 
-      <motion.section
-        className="balance-panel"
-        aria-label="Баланс активного аккаунта"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      <section className="account-scope-line">
+        <Layers size={13} strokeWidth={1.8} />
+        <span>{activeAccount.nickname}</span>
+      </section>
+
+      <motion.button
+        className="balance-panel balance-panel--button"
+        onClick={() => onNavigate("wallet")}
+        whileTap={{ scale: 0.992 }}
+        aria-label="Відкрити гаманець"
       >
         <div className="balance-item">
           <CurrencyMark currency="coin" />
-          <strong>12 480</strong>
+          <strong>{activeAccount.coinBalance.toLocaleString("uk-UA")}</strong>
         </div>
 
         <div className="balance-separator" />
 
         <div className="balance-item">
           <CurrencyMark currency="prime" />
-          <strong>340</strong>
+          <strong>{activeAccount.primeBalance.toLocaleString("uk-UA")}</strong>
         </div>
-      </motion.section>
+
+        <ChevronRight className="balance-chevron" size={16} strokeWidth={1.7} />
+      </motion.button>
 
       <section className="section-block">
         <div className="section-heading">
-          <h2>Зараз</h2>
+          <h2>Наступне</h2>
           <span className="live-indicator">
             <span />
             live
@@ -59,63 +77,80 @@ export function HomePage() {
 
         <motion.button
           className="event-focus"
+          onClick={() => onNavigate("event-detail")}
           whileTap={{ scale: 0.985 }}
-          transition={{ type: "spring", stiffness: 500, damping: 34 }}
         >
           <div className="event-time">
-            <span>19:20</span>
-            <small>+4 хв</small>
+            <span>{nextEvent.time}</span>
+            <small>{nextEvent.relative}</small>
           </div>
 
           <div className="event-copy">
-            <strong>Expert dungeon</strong>
-            <span>Наступна подія</span>
+            <strong>{nextEvent.title}</strong>
+            <span>{nextEvent.meta}</span>
           </div>
 
           <ChevronRight size={18} strokeWidth={1.7} />
         </motion.button>
+      </section>
 
-        <div className="event-list">
-          <motion.button className="event-row" whileTap={{ backgroundColor: "rgba(255,255,255,0.025)" }}>
-            <span className="event-type-dot" />
-            <div>
-              <strong>Moon</strong>
-              <span>20:00</span>
-            </div>
-            <span className="event-meta">2h</span>
-          </motion.button>
+      <section className="home-focus-grid">
+        <motion.button
+          className="home-focus-card"
+          onClick={() => onNavigate("rewards")}
+          whileTap={{ scale: 0.975 }}
+        >
+          <span className="home-focus-icon">
+            <Gift size={18} strokeWidth={1.75} />
+          </span>
+          <div>
+            <small>Streak</small>
+            <strong>{activeAccount.streak} днів</strong>
+          </div>
+          <span className="home-focus-meta">+420</span>
+        </motion.button>
 
-          <motion.button className="event-row" whileTap={{ backgroundColor: "rgba(255,255,255,0.025)" }}>
-            <span className="event-type-dot event-type-dot--muted" />
-            <div>
-              <strong>Raid</strong>
-              <span>Очікується</span>
-            </div>
-            <span className="event-meta">—</span>
-          </motion.button>
-        </div>
+        <motion.button
+          className="home-focus-card"
+          onClick={() => onNavigate("bets")}
+          whileTap={{ scale: 0.975 }}
+        >
+          <span className="home-focus-icon">
+            <Target size={18} strokeWidth={1.75} />
+          </span>
+          <div>
+            <small>Bet</small>
+            <strong>Moon</strong>
+          </div>
+          <span className="home-focus-meta">19:55</span>
+        </motion.button>
       </section>
 
       <section className="section-block section-block--compact">
         <div className="section-heading">
-          <h2>Швидко</h2>
+          <h2>Активність</h2>
         </div>
 
-        <div className="quick-grid">
-          <motion.button className="quick-action" whileTap={{ scale: 0.97 }}>
-            <CalendarDays size={19} strokeWidth={1.7} />
-            <span>Розклад</span>
-          </motion.button>
+        <div className="activity-list">
+          <button className="activity-row" onClick={() => onNavigate("events")}>
+            <span className="activity-mark activity-mark--live" />
+            <div>
+              <strong>Booster x2</strong>
+              <span>активний · ще 18 хв</span>
+            </div>
+            <span className="activity-time">18:58</span>
+          </button>
 
-          <motion.button className="quick-action" whileTap={{ scale: 0.97 }}>
-            <Layers3 size={19} strokeWidth={1.7} />
-            <span>Підписки</span>
-          </motion.button>
-
-          <motion.button className="quick-action" whileTap={{ scale: 0.97 }}>
-            <Sparkles size={19} strokeWidth={1.7} />
-            <span>Нагорода</span>
-          </motion.button>
+          <button className="activity-row" onClick={() => onNavigate("personalization")}>
+            <span className="activity-icon">
+              <Sparkles size={15} strokeWidth={1.7} />
+            </span>
+            <div>
+              <strong>Default</strong>
+              <span>активний notification pack</span>
+            </div>
+            <ChevronRight size={16} strokeWidth={1.7} />
+          </button>
         </div>
       </section>
     </PageFrame>
