@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { CURRENCIES, PERSONALIZATION_TYPES } from "../contracts"
 import { currentUser, personalizations as seed } from "../mockData"
-import type { Currency, Personalization, PersonalizationType, Route } from "../model"
+import type { Currency, Personalization, PersonalizationTarget, PersonalizationType, Route } from "../model"
 import { personalizationLabels, personalizationStatusLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented, Toggle } from "../shared/Primitives"
@@ -15,7 +15,7 @@ type Props = {
 type PurchaseState = "READY" | "PENDING" | "CONFIRMED"
 type StoreType = "ALL" | PersonalizationType
 
-const targets: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
+const targets: Record<PersonalizationType, PersonalizationTarget> = {
   NOTIFICATION_PACK: "USER",
   NICK_STYLE: "ACCOUNT",
   PROFILE_THEME: "ACCOUNT",
@@ -108,16 +108,20 @@ function Store({ navigate, items, type, setType, currency, setCurrency }: Props 
   )
 }
 
-function Owned({ navigate, back, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
+function Owned({ navigate, back, params, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
+  const target = params?.target === "ACCOUNT" || params?.target === "USER" ? params.target : null
+  const compatibleTypes = target
+    ? PERSONALIZATION_TYPES.filter((value) => targets[value] === target)
+    : PERSONALIZATION_TYPES
   const [type, setType] = useState<StoreType>("ALL")
-  const visible = items.filter((item) => item.owned && (type === "ALL" || item.type === type))
+  const visible = items.filter((item) => item.owned && (!target || item.target === target) && (type === "ALL" || item.type === type))
   const toggle = (id: string, active: boolean) => setItems(items.map((item) => item.id === id ? { ...item, active } : item))
 
   return (
     <div className="screen owned-personalization-screen">
-      <PageHeader title="Мої персоналізації" back={back} />
+      <PageHeader title={target === "ACCOUNT" ? "Персоналізації аккаунта" : target === "USER" ? "Персоналізації User" : "Мої персоналізації"} back={back} />
       <div className="compact-filter compact-filter--redesign">
-        {(["ALL", ...PERSONALIZATION_TYPES] as const).map((value) => (
+        {(["ALL", ...compatibleTypes] as const).map((value) => (
           <button key={value} className={type === value ? "is-active" : ""} onClick={() => setType(value)}>{value === "ALL" ? "Усі" : personalizationLabels[value]}</button>
         ))}
       </div>
@@ -174,7 +178,7 @@ function Detail({ params, back, items, setItems }: Props & { items: Personalizat
   )
 }
 
-function ScopeMark({ target, compact = false }: { target: "USER" | "ACCOUNT"; compact?: boolean }) {
+function ScopeMark({ target, compact = false }: { target: PersonalizationTarget; compact?: boolean }) {
   return (
     <span className={`scope-symbol ${compact ? "scope-symbol--compact" : ""}`} title={target === "USER" ? "Для користувача" : "Для аккаунта"}>
       <Glyph name={target === "USER" ? "person" : "account"} size={compact ? 13 : 15} />
