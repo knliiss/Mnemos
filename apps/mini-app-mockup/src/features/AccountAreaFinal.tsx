@@ -1,5 +1,6 @@
 import type { Account, Route } from "../model"
 import { AccountFeatureFinal } from "./AccountFeatureFinal"
+import { AccountHomePolished } from "./AccountHomePolished"
 import { AccountInvitesFinal, AccountJoinFinal } from "./AccountInviteFlowsFinal"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 
@@ -15,6 +16,10 @@ type Props = {
 }
 
 export function AccountAreaFinal(props: Props) {
+  if (props.routeId === "account") {
+    return <AccountHomePolished activeAccount={props.activeAccount} navigate={props.navigate} />
+  }
+
   if (props.routeId === "account-settings") {
     return (
       <AccountSettingsFinal
