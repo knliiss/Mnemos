@@ -25,7 +25,6 @@ export function CristalixHead({
     setFailed(false)
 
     const image = new Image()
-    image.crossOrigin = "anonymous"
 
     image.onload = () => {
       const canvas = canvasRef.current
