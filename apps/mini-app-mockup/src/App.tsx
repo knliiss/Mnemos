@@ -4,15 +4,17 @@ import { accounts as initialAccounts } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
 import { AccountFeature } from "./features/AccountFeature"
 import { CreatorFeature } from "./features/CreatorFeature"
-import { BetsPage, EventsHome, SubscriptionsPage } from "./features/EventsFeature"
+import { BetsPage, SubscriptionsPage } from "./features/EventsFeature"
+import { EventDetail, EventsHome } from "./features/EventsHomeFeature"
 import { PeopleFeature } from "./features/PeopleFeature"
 import { PersonalizationFeature } from "./features/PersonalizationFeature"
+import { SettingsFeature } from "./features/SettingsFeature"
 import { StaffFeature } from "./features/StaffFeature"
 import { Glyph } from "./shared/MnemosIcon"
 
 const roots: RootRoute[] = ["events", "account", "me"]
 const accountRoutes = new Set<Route["id"]>(["account", "member", "roles", "role-editor", "account-wallet", "account-invites", "account-settings", "account-create"])
-const peopleRoutes = new Set<Route["id"]>(["me", "search", "public-profile", "user-wallet", "settings"])
+const peopleRoutes = new Set<Route["id"]>(["me", "search", "public-profile", "user-wallet"])
 const personalizationRoutes = new Set<Route["id"]>(["personalization-store", "personalization-owned", "personalization-detail"])
 const creatorRoutes = new Set<Route["id"]>(["creator-studio", "personalization-editor"])
 const staffRoutes = new Set<Route["id"]>(["moderation", "moderation-user", "personalization-review", "bet-admin", "badge-admin"])
@@ -23,21 +25,16 @@ export default function App() {
   const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
   const current = stack[stack.length - 1]
   const isRoot = roots.includes(current.id as RootRoute)
-
-  const navigate = (route: Route) => {
-    if (roots.includes(route.id as RootRoute)) {
-      setStack([route])
-      return
-    }
-    setStack((value) => [...value, route])
-  }
-  const back = () => setStack((value) => (value.length > 1 ? value.slice(0, -1) : value))
+  const navigate = (route: Route) => roots.includes(route.id as RootRoute) ? setStack([route]) : setStack(value => [...value, route])
+  const back = () => setStack(value => value.length > 1 ? value.slice(0, -1) : value)
   const switchRoot = (route: RootRoute) => setStack([{ id: route }])
 
   let content
   if (current.id === "events") content = <EventsHome navigate={navigate} />
+  else if (current.id === "event-detail") content = <EventDetail eventId={current.params?.eventId} back={back} />
   else if (current.id === "subscriptions") content = <SubscriptionsPage back={back} />
   else if (current.id === "bets") content = <BetsPage back={back} />
+  else if (current.id === "settings") content = <SettingsFeature back={back} />
   else if (accountRoutes.has(current.id)) content = <AccountFeature routeId={current.id} params={current.params} activeAccount={activeAccount} setActiveAccount={setActiveAccount} accounts={accounts} setAccounts={setAccounts} navigate={navigate} back={back} />
   else if (peopleRoutes.has(current.id)) content = <PeopleFeature routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
   else if (personalizationRoutes.has(current.id)) content = <PersonalizationFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />

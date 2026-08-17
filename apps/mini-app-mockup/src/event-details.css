@@ -1,0 +1,18 @@
+.event-line--button { width: 100%; text-align: left; }
+.event-detail-hero { min-height: 118px; display: grid; grid-template-columns: 54px 1fr auto; gap: 13px; align-items: center; padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
+.event-detail-hero > span:first-child { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 15px 15px 15px 5px; color: #d3d6d4; background: rgba(255,255,255,.055); }
+.event-detail-hero > div { min-width: 0; display: grid; gap: 3px; }
+.event-detail-hero strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 21px; letter-spacing: -.035em; }
+.event-detail-hero small, .event-detail-hero time { color: var(--text-muted); font-size: 10px; }
+.event-facts { margin: 0; }
+.event-facts > div { min-height: 49px; display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); }
+.event-facts dt { color: var(--text-muted); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+.event-facts dd { margin: 0; color: var(--text-secondary); font-size: 11px; text-align: right; overflow-wrap: anywhere; }
+.spotlight-action { min-height: 70px; display: grid; grid-template-columns: 38px 1fr auto; gap: 10px; align-items: center; margin-top: 28px; padding: 10px 0; border-block: 1px solid var(--line); }
+.spotlight-action__mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: #c7cac8; background: rgba(255,255,255,.03); }
+.spotlight-action > div:nth-child(2) { display: grid; gap: 2px; }
+.spotlight-action strong { font-size: 12px; }
+.spotlight-action small { color: var(--text-muted); font-size: 9px; }
+.spotlight-action > button { min-height: 34px; padding: 0 10px; border-radius: 8px; color: #171818; background: #d7dad8; }
+.spotlight-state { min-height: 28px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: 7px; color: var(--text-muted); background: rgba(255,255,255,.045); font-size: 9px; }
+.spotlight-state--active { color: var(--positive); }
