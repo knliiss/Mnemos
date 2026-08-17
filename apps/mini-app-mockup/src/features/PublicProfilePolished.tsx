@@ -5,6 +5,7 @@ import { currentUser, feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { formatOccurredAt } from "../timePresentation"
 
 type Props = {
   activeAccount: Account
@@ -208,7 +209,7 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
               <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
                 <span className={`profile-drop-mark is-${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={17} /></span>
                 <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
-                <time>{drop.relative}</time>
+                <time>{formatOccurredAt(drop.occurredAt)}</time>
                 <b>›</b>
               </button>
             ))}
