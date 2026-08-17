@@ -8,9 +8,9 @@ type RouteDefinition = {
 }
 
 export const routeRegistry: Record<RouteId, RouteDefinition> = {
+  bets: { area: "events", root: true },
   events: { area: "events", root: true },
   "event-detail": { area: "events" },
-  bets: { area: "events" },
   subscriptions: { area: "events" },
 
   account: { area: "account", root: true },
@@ -23,13 +23,11 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
   "account-create": { area: "account" },
   "account-join": { area: "account" },
 
-  me: { area: "people", root: true },
-  search: { area: "people" },
+  search: { area: "people", root: true },
   "public-profile": { area: "people" },
   "user-wallet": { area: "people" },
-  settings: { area: "people" },
 
-  "personalization-store": { area: "personalization" },
+  "personalization-store": { area: "personalization", root: true },
   "personalization-owned": { area: "personalization" },
   "personalization-detail": { area: "personalization" },
 
@@ -38,6 +36,7 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
   "personalization-editor": { area: "creator" },
 
   moderation: { area: "staff" },
+  administration: { area: "staff" },
   "moderation-user": { area: "staff" },
   "personalization-review": { area: "staff" },
   "bet-admin": { area: "staff" },
@@ -47,15 +46,11 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
 const areaRoots: Record<FeatureArea, RootRoute> = {
   events: "events",
   account: "account",
-  people: "me",
-  personalization: "me",
-  creator: "me",
-  staff: "me",
+  people: "search",
+  personalization: "personalization-store",
+  creator: "account",
+  staff: "account",
 }
-
-export const rootRoutes = Object.entries(routeRegistry)
-  .filter(([, definition]) => definition.root)
-  .map(([id]) => id as RootRoute)
 
 export function isRootRoute(id: RouteId): id is RootRoute {
   return routeRegistry[id].root === true
@@ -70,7 +65,7 @@ export function initialStack(): Route[] {
   const requested = params.get("screen") as RouteId | null
 
   if (!requested || !(requested in routeRegistry)) {
-    return [{ id: "events" }]
+    return [{ id: "account" }]
   }
 
   const routeParams = Object.fromEntries(
