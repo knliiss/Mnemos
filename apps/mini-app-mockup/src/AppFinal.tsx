@@ -7,7 +7,7 @@ import { AccountFeatureFinal } from "./features/AccountFeatureFinal"
 import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeature"
 import { EventsArea } from "./features/EventsArea"
-import { PeopleFeature } from "./features/PeopleFeature"
+import { PeopleFeatureFinal } from "./features/PeopleFeatureFinal"
 import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFinal"
 import { StaffFeatureFinal } from "./features/StaffFeatureFinal"
 import { CurrencyMark, Glyph } from "./shared/MnemosIcon"
@@ -107,7 +107,7 @@ export default function AppFinal() {
           />
         )
       : area === "people"
-        ? <PeopleFeature routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
+        ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
         : area === "personalization"
           ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
           : area === "creator"
@@ -184,8 +184,10 @@ type UserHubProps = {
 
 function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, onClose, onToggleAccounts, onSelectAccount, navigate }: UserHubProps) {
   const creator = currentUser.systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
-  const moderation = currentUser.systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN", "PERSONALIZATION_MODERATOR"].includes(role))
+  const moderation = currentUser.systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const administration = currentUser.systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
+  const personalizationReviewer = currentUser.systemRoles.includes("PERSONALIZATION_MODERATOR")
+  const reviewerOnly = personalizationReviewer && !administration
 
   return (
     <>
@@ -277,6 +279,14 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
                     <span><Glyph name="moderation" size={20} /></span>
                     <strong>Модерація</strong>
                     <small>Користувачі та санкції</small>
+                    <b>›</b>
+                  </button>
+                ) : null}
+                {reviewerOnly ? (
+                  <button className="is-creator" onClick={() => navigate({ id: "personalization-review" })}>
+                    <span><Glyph name="creator" size={20} /></span>
+                    <strong>Перевірка</strong>
+                    <small>Черга персоналізацій</small>
                     <b>›</b>
                   </button>
                 ) : null}
