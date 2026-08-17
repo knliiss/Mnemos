@@ -6,11 +6,14 @@ import { AccountSwitcherSheet } from "./components/AccountSwitcherSheet"
 import { BottomNavigation } from "./components/BottomNavigation"
 import { Toast } from "./components/Toast"
 import { mockAccounts } from "./mockData"
+import { AccountPage } from "./pages/AccountPage"
 import { BetDetailPage } from "./pages/BetDetailPage"
 import { BetsPage } from "./pages/BetsPage"
 import { EventDetailPage } from "./pages/EventDetailPage"
 import { EventsPage } from "./pages/EventsPage"
+import { FeedbackPage } from "./pages/FeedbackPage"
 import { HomePage } from "./pages/HomePage"
+import { NewsPage } from "./pages/NewsPage"
 import { NotificationsPage } from "./pages/NotificationsPage"
 import { PersonalizationPage } from "./pages/PersonalizationPage"
 import { ProfilePage } from "./pages/ProfilePage"
@@ -122,6 +125,9 @@ export default function App() {
               {page === "notifications" && <NotificationsPage key="notifications" onBack={goBack} />}
               {page === "social" && <SocialPage key="social" activeAccount={activeAccount} onBack={goBack} onNotify={notify} />}
               {page === "settings" && <SettingsPage key="settings" onBack={goBack} onNotify={notify} />}
+              {page === "account" && <AccountPage key="account" activeAccount={activeAccount} onBack={goBack} onNotify={notify} />}
+              {page === "news" && <NewsPage key="news" onBack={goBack} />}
+              {page === "feedback" && <FeedbackPage key="feedback" onBack={goBack} onNotify={notify} />}
             </AnimatePresence>
           </div>
 
