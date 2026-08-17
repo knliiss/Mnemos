@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
-import { UserRound } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { Glyph } from "../shared/MnemosIcon"
 
 type CristalixHeadProps = {
   skinUrl: string
@@ -86,7 +86,7 @@ export function CristalixHead({
         style={{ width: size, height: size }}
         aria-label="Cristalix skin unavailable"
       >
-        <UserRound size={size * 0.36} strokeWidth={1.5} />
+        <Glyph name="person" size={size * 0.36} />
       </div>
     )
   }
