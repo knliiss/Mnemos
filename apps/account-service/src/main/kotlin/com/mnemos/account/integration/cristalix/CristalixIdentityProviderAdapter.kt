@@ -4,16 +4,14 @@ import com.mnemos.account.domain.exception.account.cristalix.CristalixAuthorizat
 import com.mnemos.account.domain.exception.account.cristalix.CristalixRateLimitExceededException
 import com.mnemos.account.domain.exception.account.cristalix.CristalixUnavailableException
 import com.mnemos.account.domain.model.account.CristalixNickname
-import com.mnemos.account.domain.model.account.CristalixUuid
+import com.mnemos.account.integration.cristalix.CristalixPlayerMapper.toModel
 import com.mnemos.account.integration.cristalix.client.CristalixClient
 import com.mnemos.account.integration.cristalix.config.CristalixApiProperties
-import com.mnemos.account.integration.cristalix.dto.CristalixPlayerResponse
 import com.mnemos.account.integration.cristalix.model.CristalixPlayer
 import feign.FeignException
 import io.github.resilience4j.ratelimiter.RateLimiter
 import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Component
 import java.util.logging.Logger
 
@@ -53,12 +51,4 @@ class CristalixIdentityProviderAdapter(
         } finally {
             logger.info { "CristalixIdentityProvider findByNickname: $nickname" }
         }
-
-    private fun CristalixPlayerResponse.toModel(): CristalixPlayer {
-        logger.info { "CristalixIdentityProvider toModel: $id" }
-        return CristalixPlayer(
-            uuid = CristalixUuid(playerId),
-            nickname = CristalixNickname(name),
-        )
-    }
 }

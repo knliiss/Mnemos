@@ -1,4 +1,10 @@
-.PHONY: kafka-topics kafka-groups
+.PHONY: kafka-init-build kafka-topics kafka-groups
+
+
+kafka-init-build: require-compose
+	$(call title,kafka-init,BUILD)
+	$(call run_step,Image,$(DC) build --quiet kafka-init)
+	$(call success,kafka-init,build complete)
 
 kafka-topics: require-compose
 	@$(DC) exec kafka /opt/kafka/bin/kafka-topics.sh \

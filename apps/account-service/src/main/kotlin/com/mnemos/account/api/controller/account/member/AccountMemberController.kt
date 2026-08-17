@@ -1,7 +1,7 @@
 package com.mnemos.account.api.controller.account.member
 
+import com.mnemos.account.api.dto.account.member.AccountMemberApiMapper.toResponse
 import com.mnemos.account.api.dto.account.member.AccountMemberListItemResponse
-import com.mnemos.account.api.dto.account.member.toResponse
 import com.mnemos.account.application.service.member.AccountMemberQueryService
 import com.mnemos.account.application.service.member.KickAccountMemberService
 import com.mnemos.account.domain.model.account.AccountMemberId

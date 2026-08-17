@@ -1,0 +1,42 @@
+services:
+  profile-service:
+    container_name: mnemos-profile-service
+    build:
+      context: ../..
+      dockerfile: apps/profile-service/Dockerfile
+    image: mnemos/profile-service:${PROFILE_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8091
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=profile,public
+      APP_POSTGRES_USER: ${APP_POSTGRES_USER}
+      APP_POSTGRES_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${APP_DATASOURCE_MAX_POOL_SIZE:-5}
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${APP_DATASOURCE_MIN_IDLE:-1}
+      MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
+      MNEMOS_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
+      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"profile_service\" password=\"${KAFKA_PROFILE_SERVICE_PASSWORD}\";"
+      MNEMOS_KAFKA_MANAGE_TOPICS: "false"
+      MNEMOS_KAFKA_MESSAGEAUTH_ENABLED: "true"
+      MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${PROFILE_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
+      MNEMOS_KAFKA_MESSAGEAUTH_TRUSTEDPUBLICKEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      PROFILE_SERVICE_ACCOUNT_API_KEY: ${PROFILE_SERVICE_ACCOUNT_API_KEY}
+      PROFILE_BOOTSTRAP_BATCH_SIZE: ${PROFILE_BOOTSTRAP_BATCH_SIZE:-200}
+      PROFILE_BOOTSTRAP_DELAY_MS: ${PROFILE_BOOTSTRAP_DELAY_MS:-2000}
+      PROFILE_SOCIAL_RECONCILIATION_DELAY_MS: ${PROFILE_SOCIAL_RECONCILIATION_DELAY_MS:-5000}
+    depends_on:
+      app-postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      account-service:
+        condition: service_started
+    networks:
+      - mnemos-network

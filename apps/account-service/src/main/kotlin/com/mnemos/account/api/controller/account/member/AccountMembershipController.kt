@@ -1,8 +1,8 @@
 package com.mnemos.account.api.controller.account.member
 
+import com.mnemos.account.api.dto.account.member.AccountMemberApiMapper.toResponse
 import com.mnemos.account.api.dto.account.member.JoinAccountRequest
 import com.mnemos.account.api.dto.account.member.JoinAccountResponse
-import com.mnemos.account.api.dto.account.member.toResponse
 import com.mnemos.account.application.service.member.JoinAccountService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus

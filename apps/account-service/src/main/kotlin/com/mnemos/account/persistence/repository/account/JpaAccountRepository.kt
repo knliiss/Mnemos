@@ -2,6 +2,7 @@ package com.mnemos.account.persistence.repository.account
 
 import com.mnemos.account.persistence.entity.account.AccountEntity
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
@@ -10,6 +11,13 @@ import java.util.UUID
 
 interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
     fun existsByCristalixUuid(cristalixUuid: UUID): Boolean
+
+    fun findAllByOrderByIdAsc(pageable: Pageable): List<AccountEntity>
+
+    fun findByIdGreaterThanOrderByIdAsc(
+        id: UUID,
+        pageable: Pageable,
+    ): List<AccountEntity>
 
     @Query(
         """
@@ -44,12 +52,12 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
 
     @Query(
         """
-    SELECT account
-    FROM AccountEntity account
-    WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
-      AND LOWER(account.cristalixNickname) LIKE LOWER(CONCAT('%', :query, '%'))
-    ORDER BY account.cristalixNickname ASC
-    """,
+            SELECT account
+            FROM AccountEntity account
+            WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+              AND LOWER(account.cristalixNickname) LIKE LOWER(CONCAT('%', :query, '%'))
+            ORDER BY account.cristalixNickname ASC
+        """,
     )
     fun searchActiveAccounts(
         @Param("query") query: String,
@@ -60,17 +68,18 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
             SELECT account
             FROM AccountEntity account
             WHERE account.id = :accountId
-            AND account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+              AND account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
         """,
     )
     fun findActiveById(accountId: UUID): AccountEntity?
 
     @Query(
         """
-        SELECT account FROM AccountEntity account
-        WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
-          AND LOWER(account.cristalixNickname) = LOWER(:nickname)
-    """,
+            SELECT account
+            FROM AccountEntity account
+            WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+              AND LOWER(account.cristalixNickname) = LOWER(:nickname)
+        """,
     )
     fun findActiveByCristalixNickname(
         @Param("nickname") nickname: String,
@@ -78,13 +87,16 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
 
     @Query(
         """
-        SELECT account FROM AccountEntity account
-        WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
-          AND EXISTS (
-              SELECT user.id FROM UserEntity user
-              WHERE user.id = :userId AND user.activeAccountId = account.id
-          )
-    """,
+            SELECT account
+            FROM AccountEntity account
+            WHERE account.status = com.mnemos.account.domain.model.account.AccountStatus.ACTIVE
+              AND EXISTS (
+                  SELECT user.id
+                  FROM UserEntity user
+                  WHERE user.id = :userId
+                    AND user.activeAccountId = account.id
+              )
+        """,
     )
     fun findActiveByUserId(
         @Param("userId") userId: UUID,

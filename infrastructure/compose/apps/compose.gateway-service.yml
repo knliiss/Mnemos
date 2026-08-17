@@ -22,6 +22,8 @@ services:
       REALTIME_SERVICE_URL: http://realtime-service:8088
       REALTIME_SERVICE_HOST: realtime-service
       PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
+      SOCIAL_SERVICE_URL: http://social-service:8090
+      PROFILE_SERVICE_URL: http://profile-service:8091
       GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
       MNEMOS_REALTIME_FORWARDING_TOKEN: ${MNEMOS_REALTIME_FORWARDING_TOKEN}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
@@ -29,9 +31,9 @@ services:
       SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
       SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"gateway_service\" password=\"${KAFKA_GATEWAY_SERVICE_PASSWORD}\";"
       MNEMOS_KAFKA_MANAGE_TOPICS: "false"
-      MNEMOS_KAFKA_MESSAGE_AUTH_ENABLED: "true"
-      MNEMOS_KAFKA_MESSAGE_AUTH_PRIVATE_KEY: ${GATEWAY_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
-      MNEMOS_KAFKA_MESSAGE_AUTH_TRUSTED_PUBLIC_KEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      MNEMOS_KAFKA_MESSAGEAUTH_ENABLED: "true"
+      MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${GATEWAY_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
+      MNEMOS_KAFKA_MESSAGEAUTH_TRUSTEDPUBLICKEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -61,6 +63,10 @@ services:
       realtime-service:
         condition: service_started
       personalization-service:
+        condition: service_started
+      social-service:
+        condition: service_started
+      profile-service:
         condition: service_started
     networks:
       - mnemos-network

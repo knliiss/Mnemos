@@ -3,8 +3,10 @@ package com.mnemos.personalization.adapter.inbound.http.admin.badge
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.inbound.http.badge.BadgeApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.badge.BadgeResponse
-import com.mnemos.personalization.application.badge.BadgeAdministrationService
-import com.mnemos.personalization.application.badge.CreateBadgeCommand
+import com.mnemos.personalization.application.badge.model.CreateBadgeCommand
+import com.mnemos.personalization.application.badge.usecase.create.CreateBadgeUseCase
+import com.mnemos.personalization.application.badge.usecase.grant.GrantBadgeUseCase
+import com.mnemos.personalization.application.badge.usecase.revoke.RevokeBadgeUseCase
 import com.mnemos.personalization.domain.badge.model.BadgeId
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import jakarta.validation.Valid
@@ -23,7 +25,9 @@ import java.util.UUID
 @RequestMapping("/api/v1/personalizations/admin/badges")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class AdminBadgeController(
-    private val badgeAdministrationService: BadgeAdministrationService,
+    private val createBadgeUseCase: CreateBadgeUseCase,
+    private val grantBadgeUseCase: GrantBadgeUseCase,
+    private val revokeBadgeUseCase: RevokeBadgeUseCase,
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -32,8 +36,8 @@ class AdminBadgeController(
         @Valid
         request: CreateBadgeRequest,
     ): BadgeResponse =
-        badgeAdministrationService
-            .create(
+        createBadgeUseCase
+            .execute(
                 CreateBadgeCommand(
                     code = request.code,
                     name = request.name,
@@ -48,7 +52,7 @@ class AdminBadgeController(
         @PathVariable badgeId: UUID,
         @PathVariable userId: UUID,
     ) {
-        badgeAdministrationService.grant(
+        grantBadgeUseCase.execute(
             userId = UserId(userId),
             badgeId = BadgeId(badgeId),
         )
@@ -60,7 +64,7 @@ class AdminBadgeController(
         @PathVariable badgeId: UUID,
         @PathVariable userId: UUID,
     ) {
-        badgeAdministrationService.revoke(
+        revokeBadgeUseCase.execute(
             userId = UserId(userId),
             badgeId = BadgeId(badgeId),
         )

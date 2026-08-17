@@ -29,6 +29,7 @@ _mnemos_make() {
         'build:Build the project and Docker images'
         'test:Run all tests'
         'check:Run all checks'
+        'ktlintFormat:Format Kotlin sources with ktlint'
         'clean:Clean Gradle outputs'
         'deps:Show dependencies'
         'up:Start stopped services only'
@@ -36,8 +37,13 @@ _mnemos_make() {
         'restart:Build images and recreate services'
         'down:Remove the stack'
         'logs:Follow stack logs'
-        'status:Show service status'
+        'status:Show and validate service status'
+        'pull:Pull stack images'
         'compose-config:Show merged Docker Compose configuration'
+        'kafka-init-build:Build Kafka bootstrap image'
+        'kafka-init-restart:Rebuild and recreate Kafka bootstrap'
+        'kafka-init-status:Show and validate Kafka bootstrap status'
+        'kafka-init-logs:Follow Kafka bootstrap logs'
         'kafka-topics:List Kafka topics'
         'kafka-groups:List Kafka consumer groups'
         'app-postgres-shell:Open application PostgreSQL shell'
@@ -58,6 +64,7 @@ _mnemos_make() {
             "$service-up:Start service only"
             "$service-stop:Stop service"
             "$service-restart:Build image and recreate service"
+            "$service-status:Show and validate service status"
             "$service-remove:Remove service container"
             "$service-logs:Follow service logs"
             "$service-shell:Open service shell"

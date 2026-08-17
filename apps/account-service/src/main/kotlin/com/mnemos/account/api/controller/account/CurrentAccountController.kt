@@ -1,8 +1,8 @@
 package com.mnemos.account.api.controller.account
 
+import com.mnemos.account.api.dto.account.AccountApiMapper.toResponse
 import com.mnemos.account.api.dto.account.AccountDetailsResponse
 import com.mnemos.account.api.dto.account.AccountSummaryResponse
-import com.mnemos.account.api.dto.account.toResponse
 import com.mnemos.account.application.service.account.AccountQueryService
 import com.mnemos.account.application.service.account.ChangeActiveAccountService
 import com.mnemos.account.application.service.account.LeaveActiveAccountService

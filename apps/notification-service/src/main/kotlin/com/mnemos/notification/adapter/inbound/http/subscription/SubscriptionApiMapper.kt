@@ -2,7 +2,7 @@ package com.mnemos.notification.adapter.inbound.http.subscription
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.adapter.inbound.http.common.pagination.PageResponse
-import com.mnemos.notification.adapter.inbound.http.common.pagination.toPageResponse
+import com.mnemos.notification.adapter.inbound.http.common.pagination.PageResponseMapper.toPageResponse
 import com.mnemos.notification.application.common.pagination.PageQuery
 import com.mnemos.notification.application.common.pagination.PageResult
 import com.mnemos.notification.application.subscription.model.SubscriptionView

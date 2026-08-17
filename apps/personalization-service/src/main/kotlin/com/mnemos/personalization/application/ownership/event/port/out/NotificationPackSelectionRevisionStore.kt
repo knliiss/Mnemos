@@ -4,4 +4,6 @@ import com.mnemos.common.core.model.id.UserId
 
 interface NotificationPackSelectionRevisionStore {
     fun next(userId: UserId): Long
+
+    fun current(userId: UserId): Long
 }

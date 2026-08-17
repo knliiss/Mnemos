@@ -1,5 +1,7 @@
 package com.mnemos.bet.adapter.out.persistence.eventbet
 
+import com.mnemos.bet.application.eventbet.model.EventBetRoundView
+import com.mnemos.bet.application.eventbet.model.EventBetView
 import com.mnemos.bet.domain.eventbet.model.EventBet
 import com.mnemos.bet.domain.eventbet.model.EventBetId
 import com.mnemos.bet.domain.eventbet.model.EventBetResolution
@@ -78,5 +80,29 @@ object EventBetPersistenceMapper {
             resolvedByUserId = resolvedByUserId?.let(::UserId),
             reason = reason,
             resolvedAt = resolvedAt,
+        )
+
+    fun EventBetRoundEntity.toView(): EventBetRoundView =
+        EventBetRoundView(
+            id = EventBetRoundId(id),
+            eventType = eventType,
+            scheduledAt = scheduledAt,
+            closesAt = closesAt,
+            resolvesAt = resolvesAt,
+            yesOdds = yesOdds,
+            noOdds = noOdds,
+            status = status,
+            effectiveOutcome = effectiveOutcome,
+        )
+
+    fun EventBetEntity.toView(): EventBetView =
+        EventBetView(
+            id = EventBetId(id),
+            roundId = EventBetRoundId(roundId),
+            accountId = AccountId(accountId),
+            side = side,
+            confirmedAmount = confirmedAmount,
+            pendingAmount = pendingAmount,
+            status = status,
         )
 }

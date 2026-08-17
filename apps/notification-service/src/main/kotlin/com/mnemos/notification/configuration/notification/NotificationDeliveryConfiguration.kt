@@ -5,7 +5,7 @@ import com.mnemos.notification.application.notification.policy.DeliverySchedulin
 import com.mnemos.notification.application.notification.policy.EventPriority
 import com.mnemos.notification.application.notification.policy.NotificationExpirationPolicy
 import com.mnemos.notification.application.notification.policy.NotificationPolicyRegistry
-import com.mnemos.notification.application.notification.policy.NotificationTypePolicy
+import com.mnemos.notification.configuration.notification.NotificationPolicyMapper.toPolicy
 import com.mnemos.notification.domain.recipient.model.RecipientPriority
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -56,12 +56,5 @@ class NotificationDeliveryConfiguration {
                     RecipientPriority.ELEVATED to properties.elevatedRecipientWeight,
                     RecipientPriority.STANDARD to properties.standardRecipientWeight,
                 ),
-        )
-
-    private fun NotificationPolicyProperties.TypePolicy.toPolicy() =
-        NotificationTypePolicy(
-            aggregationEnabled = aggregationEnabled,
-            aggregationWindow = aggregationWindow,
-            priority = priority,
         )
 }

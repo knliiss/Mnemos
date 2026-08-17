@@ -1,7 +1,7 @@
 package com.mnemos.event.adapter.inbound.http.itemdrop
 
 import com.mnemos.event.adapter.inbound.http.common.pagination.PageResponse
-import com.mnemos.event.adapter.inbound.http.common.pagination.toPageResponse
+import com.mnemos.event.adapter.inbound.http.common.pagination.PageResponseMapper.toPageResponse
 import com.mnemos.event.application.common.pagination.PageQuery
 import com.mnemos.event.application.common.pagination.PageResult
 import com.mnemos.event.application.itemdrop.model.ItemDropView

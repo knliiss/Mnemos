@@ -3,6 +3,7 @@ package com.mnemos.personalization.application.revenue
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
+import com.mnemos.personalization.application.revenue.usecase.schedule.ScheduleCreatorRevenueService
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.personalization.model.GlowStyle

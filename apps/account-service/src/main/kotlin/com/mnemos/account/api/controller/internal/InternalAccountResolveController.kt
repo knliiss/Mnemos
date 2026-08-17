@@ -1,5 +1,6 @@
 package com.mnemos.account.api.controller.internal
 
+import com.mnemos.account.api.controller.internal.InternalAccountApiMapper.toInternalResponse
 import com.mnemos.account.application.service.account.InternalAccountQueryService
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
 import org.springframework.http.ResponseEntity
@@ -16,18 +17,23 @@ class InternalAccountResolveController(
 ) {
     @GetMapping("/resolve")
     fun resolve(
+        @RequestParam(required = false) accountId: UUID?,
         @RequestParam(required = false) userId: UUID?,
         @RequestParam(required = false) cristalixNickname: String?,
     ): ResponseEntity<InternalAccountResponse> {
-        require((userId == null) != (cristalixNickname == null)) { "Exactly one account lookup key must be provided" }
+        val providedLookupKeys = listOf(accountId, userId, cristalixNickname).count { it != null }
+
+        require(providedLookupKeys == 1) {
+            "Exactly one account lookup key must be provided"
+        }
+
         val account =
-            (
-                if (userId != null) {
-                    queryService.findActiveByUserId(userId)
-                } else {
-                    queryService.findActiveByCristalixNickname(requireNotNull(cristalixNickname))
-                }
-            ) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(InternalAccountResponse(account.id.id, account.cristalixUuid.id, account.cristalixNickname.value))
+            when {
+                accountId != null -> queryService.findActiveByAccountId(accountId)
+                userId != null -> queryService.findActiveByUserId(userId)
+                else -> queryService.findActiveByCristalixNickname(requireNotNull(cristalixNickname))
+            } ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(account.toInternalResponse())
     }
 }

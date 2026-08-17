@@ -3,7 +3,7 @@ package com.mnemos.account.application.service.role
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
-import com.mnemos.account.application.query.account.role.toView
+import com.mnemos.account.application.query.account.role.RoleViewMapper.toView
 import com.mnemos.account.domain.model.account.role.AccountRoleName
 import com.mnemos.account.domain.model.account.role.HexColor
 import com.mnemos.account.domain.model.account.role.Role
@@ -23,6 +23,8 @@ class CreateRoleService(
     private val basePermissions =
         setOf(
             RolePermission.CLAIM_DAILY_REWARD,
+            RolePermission.PUBLISH_COMMENTS,
+            RolePermission.PUBLISH_REACTIONS,
             RolePermission.VIEW_BETS,
             RolePermission.VIEW_BET_HISTORY,
             RolePermission.VIEW_PERSONALIZATIONS,
