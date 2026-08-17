@@ -18,6 +18,7 @@ import "./visual-final-pass.css"
 import "./workspace-final-polish.css"
 import "./interaction-final.css"
 import "./visual-audit-fixes.css"
+import "./event-fact-final-fix.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
