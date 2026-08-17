@@ -14,6 +14,7 @@ import "./final-fixes.css"
 import "./backend-alignment.css"
 import "./polish-pass.css"
 import "./polish-layout-overrides.css"
+import "./visual-final-pass.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
