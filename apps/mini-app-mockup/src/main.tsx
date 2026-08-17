@@ -11,6 +11,7 @@ import "./visual-system.css"
 import "./redesign-2026.css"
 import "./final-revision.css"
 import "./final-fixes.css"
+import "./backend-alignment.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
