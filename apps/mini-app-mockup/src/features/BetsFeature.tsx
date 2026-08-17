@@ -1,8 +1,8 @@
 import { AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { BET_SIDES } from "../contracts"
-import { accounts, betRounds, itemRaces as initialItemRaces } from "../mockData"
-import type { BetRound, BetSide, ItemRace } from "../model"
+import { betRounds, itemRaces as initialItemRaces } from "../mockData"
+import type { Account, BetRound, BetSide, ItemRace } from "../model"
 import { betStatusLabels, globalEventLabels, itemTypeLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { BottomSheet, CurrencyValue, Field, Segmented } from "../shared/Primitives"
@@ -10,7 +10,7 @@ import { BottomSheet, CurrencyValue, Field, Segmented } from "../shared/Primitiv
 type BetMode = "ROUNDS" | "MY" | "RACES"
 type OperationState = "IDLE" | "PENDING"
 
-export function BetsPage() {
+export function BetsPage({ activeAccount }: { activeAccount: Account }) {
   const [mode, setMode] = useState<BetMode>("ROUNDS")
   const [rounds, setRounds] = useState(betRounds)
   const [races, setRaces] = useState<ItemRace[]>(initialItemRaces)
@@ -107,10 +107,10 @@ export function BetsPage() {
       <header className="root-title-block bets-title-block">
         <span>
           <h1>Ставки</h1>
-          <p>Активний аккаунт</p>
+          <p>{activeAccount.nickname}</p>
         </span>
         <button className="root-wallet-chip">
-          <CurrencyValue currency="COIN" value={accounts[0].coin} compact />
+          <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
         </button>
       </header>
 
