@@ -16,8 +16,14 @@ type Props = {
 }
 
 export function AccountAreaFinal(props: Props) {
-  if (props.routeId === "account") {
-    return <AccountHomePolished activeAccount={props.activeAccount} navigate={props.navigate} />
+  if (props.routeId === "account" || props.routeId === "member") {
+    return (
+      <AccountHomePolished
+        activeAccount={props.activeAccount}
+        navigate={props.navigate}
+        initialMemberId={props.routeId === "member" ? props.params?.memberId ?? null : null}
+      />
+    )
   }
 
   if (props.routeId === "account-settings") {
