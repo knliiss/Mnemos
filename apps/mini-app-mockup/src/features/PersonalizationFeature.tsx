@@ -59,7 +59,7 @@ function Store({ navigate, items, type, setType, currency, setCurrency }: Props 
     <div className="screen store-root-screen root-screen">
       <header className="root-title-block store-title-block">
         <span><h1>Магазин</h1><p>Персоналізації Mnemos</p></span>
-        <button className="store-owned-button" onClick={() => navigate({ id: "personalization-owned" })}>
+        <button className="store-owned-button" onClick={() => navigate({ id: "personalization-owned", params: { target: "ALL" } })}>
           <Glyph name="spark" size={17} />
           Мої
         </button>
@@ -109,7 +109,11 @@ function Store({ navigate, items, type, setType, currency, setCurrency }: Props 
 }
 
 function Owned({ navigate, back, params, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
-  const target = params?.target === "ACCOUNT" || params?.target === "USER" ? params.target : null
+  const target: PersonalizationTarget | null = params?.target === "USER"
+    ? "USER"
+    : params?.target === "ALL"
+      ? null
+      : "ACCOUNT"
   const compatibleTypes = target
     ? PERSONALIZATION_TYPES.filter((value) => targets[value] === target)
     : PERSONALIZATION_TYPES
