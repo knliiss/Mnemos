@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { BET_ITEM_TYPES, CURRENCIES, EVENT_BET_OUTCOMES, SANCTION_TYPES, TRANSACTION_TYPES, WALLET_OWNER_TYPES } from "../contracts"
-import { betRounds, profiles, reviewQueue } from "../mockData"
+import { betRounds, currentUser, profiles, reviewQueue } from "../mockData"
 import type { BetItemType, Currency, EventBetOutcome, Personalization, Route, SanctionType, TransactionType, WalletOwnerType } from "../model"
 import { itemTypeLabels, personalizationLabels, personalizationStatusLabels, sanctionLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
@@ -9,6 +9,8 @@ import { ChoiceGrid, CurrencyValue, Field, PageHeader, Row, Section, Segmented }
 type Props = { routeId: Route["id"]; params?: Record<string, string>; navigate: (route: Route) => void; back: () => void }
 type Sanction = { id: string; type: SanctionType; reason: string; duration?: number; active: boolean }
 type Badge = { id: string; code: string; name: string; icon: string; color: string; granted: string[] }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function StaffFeature(props: Props) {
   if (props.routeId === "moderation-user") return <UserModeration {...props} />
@@ -103,7 +105,7 @@ function BetAdmin({ back }: Props) {
 }
 
 function Badges({ back }: Props) {
-  const [badges, setBadges] = useState<Badge[]>([{ id: "badge-1", code: "CREATOR", name: "Creator", icon: "◇", color: "#A9AFAB", granted: ["knalis"] }])
+  const [badges, setBadges] = useState<Badge[]>([{ id: "badge-1", code: "CREATOR", name: "Creator", icon: "◇", color: "#A9AFAB", granted: [currentUser.id] }])
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [icon, setIcon] = useState("")
@@ -111,6 +113,8 @@ function Badges({ back }: Props) {
   const [user, setUser] = useState("")
   const [selected, setSelected] = useState("badge-1")
   const validCode = /^[A-Z][A-Z0-9_]{1,31}$/.test(code)
+  const cleanUserId = user.trim()
+  const validUserId = UUID_PATTERN.test(cleanUserId)
 
   const create = () => {
     if (!validCode || !name.trim() || !icon.trim()) return
@@ -125,12 +129,11 @@ function Badges({ back }: Props) {
 
   const badge = badges.find(item => item.id === selected) ?? badges[0]
   const grant = () => {
-    const clean = user.trim()
-    if (!clean || !badge || badge.granted.includes(clean)) return
+    if (!validUserId || !badge || badge.granted.includes(cleanUserId)) return
 
-    setBadges(badges.map(item => item.id === badge.id ? { ...item, granted: [...item.granted, clean] } : item))
+    setBadges(badges.map(item => item.id === badge.id ? { ...item, granted: [...item.granted, cleanUserId] } : item))
     setUser("")
   }
 
-  return <div className="screen"><PageHeader title="Бейджі" back={back} /><div className="moderation-form"><h2>Створити</h2><Field label="Код" hint="A-Z, 0-9, _"><input value={code} maxLength={32} onChange={event => setCode(event.target.value.toUpperCase())} /></Field><Field label="Назва"><input value={name} maxLength={64} onChange={event => setName(event.target.value)} /></Field><Field label="Іконка"><input value={icon} maxLength={64} onChange={event => setIcon(event.target.value)} /></Field><Field label="Колір"><div className="color-field"><input type="color" value={color} onChange={event => setColor(event.target.value.toUpperCase())} /><code>{color}</code></div></Field><button className="primary-action" disabled={!validCode || !name.trim() || !icon.trim()} onClick={create}>Створити</button></div><Section title="Видача"><Field label="Бейдж"><ChoiceGrid value={selected} options={badges.map(item => item.id)} onChange={setSelected} labels={Object.fromEntries(badges.map(item => [item.id, item.name]))} /></Field><div className="badge-sample" style={{ borderColor: badge?.color }}><span>{badge?.icon}</span><strong>{badge?.name}</strong><small>{badge?.code}</small></div><Field label="User ID"><input value={user} onChange={event => setUser(event.target.value)} /></Field><button className="secondary-action full-action" onClick={grant}>Видати</button><div className="granted-list">{badge?.granted.map(value => <div key={value}><span>{value}</span><button onClick={() => setBadges(badges.map(item => item.id === badge.id ? { ...item, granted: item.granted.filter(granted => granted !== value) } : item))}>Зняти</button></div>)}</div></Section></div>
+  return <div className="screen"><PageHeader title="Бейджі" back={back} /><div className="moderation-form"><h2>Створити</h2><Field label="Код" hint="A-Z, 0-9, _"><input value={code} maxLength={32} onChange={event => setCode(event.target.value.toUpperCase())} /></Field><Field label="Назва"><input value={name} maxLength={64} onChange={event => setName(event.target.value)} /></Field><Field label="Іконка"><input value={icon} maxLength={64} onChange={event => setIcon(event.target.value)} /></Field><Field label="Колір"><div className="color-field"><input type="color" value={color} onChange={event => setColor(event.target.value.toUpperCase())} /><code>{color}</code></div></Field><button className="primary-action" disabled={!validCode || !name.trim() || !icon.trim()} onClick={create}>Створити</button></div><Section title="Видача"><Field label="Бейдж"><ChoiceGrid value={selected} options={badges.map(item => item.id)} onChange={setSelected} labels={Object.fromEntries(badges.map(item => [item.id, item.name]))} /></Field><div className="badge-sample" style={{ borderColor: badge?.color }}><span>{badge?.icon}</span><strong>{badge?.name}</strong><small>{badge?.code}</small></div><Field label="User ID" hint={cleanUserId && !validUserId ? "UUID" : undefined}><input value={user} spellCheck={false} onChange={event => setUser(event.target.value)} /></Field><button className="secondary-action full-action" disabled={!validUserId} onClick={grant}>Видати</button><div className="granted-list">{badge?.granted.map(value => <div key={value}><span>{value}</span><button onClick={() => setBadges(badges.map(item => item.id === badge.id ? { ...item, granted: item.granted.filter(granted => granted !== value) } : item))}>Зняти</button></div>)}</div></Section></div>
 }
