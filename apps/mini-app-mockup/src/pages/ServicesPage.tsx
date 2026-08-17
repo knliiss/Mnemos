@@ -3,10 +3,12 @@ import {
   Gift,
   Layers,
   MessageCircle,
+  Newspaper,
   Settings,
   Sparkles,
   Target,
   UserRound,
+  Users,
   Wallet,
 } from "lucide-react"
 import { CurrencyMark } from "../components/CurrencyMark"
@@ -38,6 +40,12 @@ export function ServicesPage({
         </div>
 
         <div className="nav-list">
+          <NavRow
+            icon={<Users size={18} strokeWidth={1.75} />}
+            title="Аккаунт"
+            value={activeAccount.role}
+            onClick={() => onNavigate("account")}
+          />
           <NavRow
             icon={<Wallet size={18} strokeWidth={1.75} />}
             title="Гаманець"
@@ -99,6 +107,25 @@ export function ServicesPage({
             icon={<Settings size={18} strokeWidth={1.75} />}
             title="Налаштування"
             onClick={() => onNavigate("settings")}
+          />
+        </div>
+      </section>
+
+      <section className="service-group">
+        <div className="service-group-heading service-group-heading--global">
+          <span>MNEMOS</span>
+        </div>
+
+        <div className="nav-list">
+          <NavRow
+            icon={<Newspaper size={18} strokeWidth={1.75} />}
+            title="Новини"
+            onClick={() => onNavigate("news")}
+          />
+          <NavRow
+            icon={<MessageCircle size={18} strokeWidth={1.75} />}
+            title="Зворотний зв'язок"
+            onClick={() => onNavigate("feedback")}
           />
         </div>
       </section>
