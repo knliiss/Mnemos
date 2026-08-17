@@ -16,14 +16,22 @@ import type {
 } from "../model"
 import { boosterLabels, dungeonLabels, globalEventLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
-import { BottomSheet, ChoiceGrid, Field, IconButton, PageHeader } from "../shared/Primitives"
+import { BottomSheet, ChoiceGrid, Field, PageHeader } from "../shared/Primitives"
 
 const subscriptionLabels: Record<SubscriptionType, string> = {
   ITEM_DROP: "Дроп",
   BOOSTER: "Бустер",
   DUNGEON: "Данж",
   RAID: "Рейд",
-  GLOBAL: "Глобал",
+  GLOBAL: "Глобальна",
+}
+
+const subscriptionIcons: Record<SubscriptionType, "item-drop" | "booster" | "dungeon" | "raid" | "global"> = {
+  ITEM_DROP: "item-drop",
+  BOOSTER: "booster",
+  DUNGEON: "dungeon",
+  RAID: "raid",
+  GLOBAL: "global",
 }
 
 const itemCatalog = [
@@ -36,14 +44,16 @@ const itemCatalog = [
 
 function description(subscription: Subscription) {
   if (subscription.type === "ITEM_DROP") {
-    return [subscription.droppedFor, subscription.itemName].filter(Boolean).join(" · ")
+    if (subscription.droppedFor && subscription.itemName) return `${subscription.droppedFor} · ${subscription.itemName}`
+    if (subscription.droppedFor) return `Гравець: ${subscription.droppedFor}`
+    return `Предмет: ${subscription.itemName}`
   }
 
   if (subscription.type === "BOOSTER") return boosterLabels[subscription.boosterType]
   if (subscription.type === "DUNGEON") return dungeonLabels[subscription.dungeonType]
   if (subscription.type === "GLOBAL") return globalEventLabels[subscription.eventType]
 
-  return subscription.locations.length ? subscription.locations.join(" · ") : "Усі"
+  return subscription.locations.length ? `Локації ${subscription.locations.join(", ")}` : "Усі локації"
 }
 
 export function SubscriptionsPage({ back }: { back: () => void }) {
@@ -76,6 +86,13 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
       .filter((item) => item.name.toLowerCase().includes(query))
       .slice(0, 4)
   }, [itemName])
+
+  const counts = useMemo(() => {
+    return SUBSCRIPTION_TYPES.map((subscriptionType) => ({
+      type: subscriptionType,
+      count: subscriptions.filter((subscription) => subscription.type === subscriptionType).length,
+    })).filter((entry) => entry.count > 0)
+  }, [subscriptions])
 
   const addRaidLocation = () => {
     const value = Number(raidInput)
@@ -117,64 +134,63 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
   const createDisabled = type === "ITEM_DROP" && !itemDropValid
 
   return (
-    <div className="screen">
-      <PageHeader
-        title="Підписки"
-        back={back}
-        actions={<IconButton icon="plus" label="Додати підписку" onClick={() => setCreating(true)} />}
-      />
+    <div className="screen subscriptions-redesign-screen">
+      <PageHeader title="Підписки" back={back} />
 
-      <div className="plain-list">
-        {subscriptions.map((subscription) => (
-          <div className="subscription-row" key={subscription.id}>
-            <span className="subscription-row__type">{subscriptionLabels[subscription.type]}</span>
-            <span className="subscription-row__copy">{description(subscription)}</span>
-            <button
-              className="micro-action micro-action--danger"
-              aria-label="Видалити"
-              onClick={() => setSubscriptions(subscriptions.filter((item) => item.id !== subscription.id))}
-            >
-              <Glyph name="trash" size={16} />
-            </button>
-          </div>
+      <section className="subscription-summary">
+        <span className="subscription-summary__icon"><Glyph name="bell" size={22} /></span>
+        <span><strong>{subscriptions.length}</strong><small>активних правил</small></span>
+        <button onClick={() => setCreating(true)}><Glyph name="plus" size={17} />Нове</button>
+      </section>
+
+      <div className="subscription-counts">
+        {counts.map((entry) => (
+          <span key={entry.type}>
+            <Glyph name={subscriptionIcons[entry.type]} size={14} />
+            {subscriptionLabels[entry.type]}
+            <b>{entry.count}</b>
+          </span>
         ))}
       </div>
 
+      <section className="subscription-rules">
+        <header><h2>Правила</h2><small>Сповіщення приходять, коли умова збігається</small></header>
+        <div>
+          {subscriptions.map((subscription) => (
+            <article className={`subscription-rule subscription-rule--${subscription.type.toLowerCase()}`} key={subscription.id}>
+              <span className="subscription-rule__icon"><Glyph name={subscriptionIcons[subscription.type]} size={18} /></span>
+              <span className="subscription-rule__copy">
+                <strong>{subscriptionLabels[subscription.type]}</strong>
+                <small>{description(subscription)}</small>
+              </span>
+              <button aria-label="Видалити" onClick={() => setSubscriptions(subscriptions.filter((item) => item.id !== subscription.id))}>
+                <Glyph name="close" size={15} />
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <button className="subscription-create-main" onClick={() => setCreating(true)}>
+        <Glyph name="plus" size={18} />
+        Створити правило
+      </button>
+
       <AnimatePresence>
         {creating ? (
-          <BottomSheet title="Підписка" onClose={() => setCreating(false)}>
-            <div className="form-stack">
-              <Field label="Тип">
-                <ChoiceGrid
-                  value={type}
-                  options={SUBSCRIPTION_TYPES}
-                  onChange={setType}
-                  labels={subscriptionLabels}
-                />
+          <BottomSheet title="Нова підписка" onClose={() => setCreating(false)}>
+            <div className="form-stack subscription-form-redesign">
+              <Field label="Що відстежувати">
+                <ChoiceGrid value={type} options={SUBSCRIPTION_TYPES} onChange={setType} labels={subscriptionLabels} />
               </Field>
 
               {type === "ITEM_DROP" ? (
                 <>
-                  <Field
-                    label="Гравець"
-                    hint={cleanDroppedFor && !droppedForValid ? "4–20 символів: літери, цифри, _" : undefined}
-                  >
-                    <input
-                      value={droppedFor}
-                      onChange={(event) => setDroppedFor(event.target.value)}
-                      placeholder="нікнейм"
-                      minLength={4}
-                      maxLength={20}
-                    />
+                  <Field label="Гравець" hint={cleanDroppedFor && !droppedForValid ? "4–20 символів: літери, цифри, _" : "Можна залишити порожнім, якщо вибраний предмет"}>
+                    <input value={droppedFor} onChange={(event) => setDroppedFor(event.target.value)} placeholder="nickname" minLength={4} maxLength={20} />
                   </Field>
-
                   <Field label="Предмет" hint="Гравець або предмет — достатньо одного">
-                    <input
-                      value={itemName}
-                      onChange={(event) => setItemName(event.target.value)}
-                      placeholder="пошук"
-                      maxLength={24}
-                    />
+                    <input value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="назва предмета" maxLength={24} />
                     {itemSuggestions.length ? (
                       <div className="field-suggestions">
                         {itemSuggestions.map((item) => (
@@ -189,54 +205,27 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
                 </>
               ) : null}
 
-              {type === "BOOSTER" ? (
-                <Field label="Бустер">
-                  <ChoiceGrid value={boosterType} options={BOOSTER_TYPES} onChange={setBoosterType} labels={boosterLabels} />
-                </Field>
-              ) : null}
-
-              {type === "DUNGEON" ? (
-                <Field label="Данж">
-                  <ChoiceGrid value={dungeonType} options={DUNGEON_TYPES} onChange={setDungeonType} labels={dungeonLabels} />
-                </Field>
-              ) : null}
-
-              {type === "GLOBAL" ? (
-                <Field label="Подія">
-                  <ChoiceGrid value={globalType} options={GLOBAL_EVENT_TYPES} onChange={setGlobalType} labels={globalEventLabels} />
-                </Field>
-              ) : null}
+              {type === "BOOSTER" ? <Field label="Тип бустера"><ChoiceGrid value={boosterType} options={BOOSTER_TYPES} onChange={setBoosterType} labels={boosterLabels} /></Field> : null}
+              {type === "DUNGEON" ? <Field label="Складність"><ChoiceGrid value={dungeonType} options={DUNGEON_TYPES} onChange={setDungeonType} labels={dungeonLabels} /></Field> : null}
+              {type === "GLOBAL" ? <Field label="Подія"><ChoiceGrid value={globalType} options={GLOBAL_EVENT_TYPES} onChange={setGlobalType} labels={globalEventLabels} /></Field> : null}
 
               {type === "RAID" ? (
-                <Field label="Локації" hint="Порожньо — усі">
+                <Field label="Локації" hint="Порожньо — всі локації">
                   <div className="inline-input">
-                    <input
-                      type="number"
-                      min="1"
-                      value={raidInput}
-                      onChange={(event) => setRaidInput(event.target.value)}
-                      placeholder="№"
-                    />
-                    <button type="button" aria-label="Додати локацію" onClick={addRaidLocation}>
-                      <Glyph name="plus" size={17} />
-                    </button>
+                    <input type="number" min="1" step="1" value={raidInput} onChange={(event) => setRaidInput(event.target.value)} placeholder="№" />
+                    <button type="button" aria-label="Додати локацію" onClick={addRaidLocation}><Glyph name="plus" size={17} /></button>
                   </div>
                   <div className="token-list">
                     {raidLocations.map((location) => (
-                      <button
-                        key={location}
-                        type="button"
-                        onClick={() => setRaidLocations(raidLocations.filter((value) => value !== location))}
-                      >
-                        {location}
-                        <Glyph name="close" size={12} />
+                      <button key={location} type="button" onClick={() => setRaidLocations(raidLocations.filter((value) => value !== location))}>
+                        {location}<Glyph name="close" size={12} />
                       </button>
                     ))}
                   </div>
                 </Field>
               ) : null}
 
-              <button className="primary-action" disabled={createDisabled} onClick={create}>Додати</button>
+              <button className="primary-action" disabled={createDisabled} onClick={create}>Зберегти правило</button>
             </div>
           </BottomSheet>
         ) : null}
