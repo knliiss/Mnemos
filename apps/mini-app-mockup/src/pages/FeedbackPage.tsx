@@ -26,25 +26,50 @@ export function FeedbackPage({
     onNotify(kind === "suggestion" ? "Пропозицію надіслано" : "Скаргу надіслано")
   }
 
+  const selectKind = (nextKind: "suggestion" | "complaint") => {
+    setKind(nextKind)
+    setSent(false)
+  }
+
   return (
     <PageFrame page="feedback">
       <PageHeader title="Зворотний зв'язок" eyebrow="FEEDBACK" onBack={onBack} />
 
-      <section className="detail-context-row"><ScopeBadge scope="user" /><span>knalis</span></section>
+      <section className="detail-context-row">
+        <ScopeBadge scope="user" />
+        <span>knalis</span>
+      </section>
 
       <div className="segmented-control segmented-control--detail">
-        <button className={kind === "suggestion" ? "segmented-control__active" : ""} onClick={() => { setKind("suggestion"); setSent(false) }}>Пропозиція</button>
-        <button className={kind === "complaint" ? "segmented-control__active" : ""} onClick={() => { setKind("complaint"); setSent(false) }}>Скарга</button>
+        <button
+          className={kind === "suggestion" ? "segmented-control__active" : ""}
+          onClick={() => selectKind("suggestion")}
+        >
+          Пропозиція
+        </button>
+        <button
+          className={kind === "complaint" ? "segmented-control__active" : ""}
+          onClick={() => selectKind("complaint")}
+        >
+          Скарга
+        </button>
       </div>
 
       <section className="feedback-composer">
         <textarea
           value={text}
-          onChange={(event) => { setText(event.target.value); setSent(false) }}
+          maxLength={500}
+          onChange={(event) => {
+            setText(event.target.value)
+            setSent(false)
+          }}
           placeholder={kind === "suggestion" ? "Що варто покращити?" : "Опиши проблему"}
           rows={6}
         />
-        <div className="feedback-composer-meta"><span>{text.length} / 500</span><span>{kind === "suggestion" ? "IDEA" : "REPORT"}</span></div>
+        <div className="feedback-composer-meta">
+          <span>{text.length} / 500</span>
+          <span>{kind === "suggestion" ? "IDEA" : "REPORT"}</span>
+        </div>
       </section>
 
       <button className={`primary-action ${sent ? "primary-action--done" : ""}`} onClick={submit}>
@@ -53,10 +78,27 @@ export function FeedbackPage({
       </button>
 
       <section className="detail-section">
-        <div className="detail-section-heading"><h2>Мої звернення</h2><span className="detail-counter">2</span></div>
+        <div className="detail-section-heading">
+          <h2>Мої звернення</h2>
+          <span className="detail-counter">2</span>
+        </div>
         <div className="feedback-history">
-          <article><span className="feedback-status feedback-status--done" /><div><strong>Пошук предметів</strong><span>Пропозиція · розглянуто</span></div><small>12 серп.</small></article>
-          <article><span className="feedback-status" /><div><strong>Notification delay</strong><span>Скарга · в роботі</span></div><small>16 серп.</small></article>
+          <article>
+            <span className="feedback-status feedback-status--done" />
+            <div>
+              <strong>Пошук предметів</strong>
+              <span>Пропозиція · розглянуто</span>
+            </div>
+            <small>12 серп.</small>
+          </article>
+          <article>
+            <span className="feedback-status" />
+            <div>
+              <strong>Notification delay</strong>
+              <span>Скарга · в роботі</span>
+            </div>
+            <small>16 серп.</small>
+          </article>
         </div>
       </section>
     </PageFrame>
