@@ -4,6 +4,7 @@ import { CristalixHead } from "../components/CristalixHead"
 import { feed, initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { formatOccurredAt } from "../timePresentation"
 
 type Props = {
   activeAccount: Account
@@ -239,7 +240,6 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
       <section className="account-polished-panel account-polished-drops">
         <header>
           <span><Glyph name="item-drop" size={18} /><strong>Останні дропи</strong></span>
-          <button className="account-polished-drops__all" onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}>Усі <b>›</b></button>
         </header>
 
         <div className="account-polished-drop-list">
@@ -247,7 +247,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
             <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
               <span className={`drop-mark drop-mark--${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={16} /></span>
               <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
-              <time>{drop.relative}</time>
+              <time>{formatOccurredAt(drop.occurredAt)}</time>
               <b>›</b>
             </button>
           )) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
