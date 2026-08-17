@@ -13,4 +13,5 @@ data class PublicProfile(
     val socialRevision: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val appearance: ProfileAppearance = ProfileAppearance.empty(accountId),
 )

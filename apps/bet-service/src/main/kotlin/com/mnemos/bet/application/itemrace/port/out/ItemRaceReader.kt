@@ -12,5 +12,10 @@ interface ItemRaceReader {
 
     fun findParticipants(raceId: ItemRaceId): List<ItemRaceParticipantView>
 
+    fun findParticipant(
+        raceId: ItemRaceId,
+        accountId: AccountId,
+    ): ItemRaceParticipantView?
+
     fun findHistory(accountId: AccountId): List<ItemRaceParticipantView>
 }

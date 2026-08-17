@@ -10,6 +10,8 @@ import java.time.Instant
 import java.util.UUID
 
 interface DropSpotlightJpaRepository : JpaRepository<DropSpotlightEntity, UUID> {
+    fun findByIdempotencyKey(idempotencyKey: UUID): DropSpotlightEntity?
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select spotlight from DropSpotlightEntity spotlight where spotlight.id = :spotlightId")
     fun findByIdForUpdate(

@@ -54,21 +54,22 @@ class PurchaseWalletUseCasesTest {
         val personalization = paidCustomNotificationPack(UserId.generate())
         val operation = purchaseOperation(personalization)
         val fixture = fixture(personalization, operation)
-        val result = walletResult(operation)
         val transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000011")
 
         fixture.completeService.execute(
-            result = result,
+            result = walletResult(operation),
             transactionId = transactionId,
         )
         fixture.completeService.execute(
-            result = result,
+            result = walletResult(operation),
             transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000012"),
         )
 
         val ownership = fixture.ownershipRepository.saved.single()
-        val event = fixture.publisher.events.single()
-        val payload = event.payload as PersonalizationPurchaseCompletedV1
+        val payload =
+            fixture.publisher.events
+                .single()
+                .payload as PersonalizationPurchaseCompletedV1
 
         assertEquals(PurchaseOperationStatus.CONFIRMED, operation.status)
         assertEquals(transactionId, operation.walletTransactionId)
@@ -91,19 +92,20 @@ class PurchaseWalletUseCasesTest {
         val personalization = paidCustomNotificationPack(UserId.generate())
         val operation = purchaseOperation(personalization)
         val fixture = fixture(personalization, operation)
-        val result = walletResult(operation)
 
         fixture.failService.execute(
-            result = result,
+            result = walletResult(operation),
             reason = "INSUFFICIENT_BALANCE",
         )
         fixture.failService.execute(
-            result = result,
+            result = walletResult(operation),
             reason = "SHOULD_BE_IGNORED",
         )
 
-        val event = fixture.publisher.events.single()
-        val payload = event.payload as PersonalizationPurchaseCompletedV1
+        val payload =
+            fixture.publisher.events
+                .single()
+                .payload as PersonalizationPurchaseCompletedV1
 
         assertEquals(PurchaseOperationStatus.FAILED, operation.status)
         assertNull(operation.walletTransactionId)
@@ -120,11 +122,11 @@ class PurchaseWalletUseCasesTest {
         val personalization = paidCustomNotificationPack(UserId.generate())
         val operation = purchaseOperation(personalization)
         val fixture = fixture(personalization, operation)
-        val mismatchedResult = walletResult(operation).copy(amount = operation.amount + 1)
+        val result = walletResult(operation).copy(amount = operation.amount + 1)
 
         assertThrows(IllegalStateException::class.java) {
             fixture.completeService.execute(
-                result = mismatchedResult,
+                result = result,
                 transactionId = UUID.fromString("019c1152-63c0-7000-8000-000000000014"),
             )
         }
@@ -213,44 +215,6 @@ class PurchaseWalletUseCasesTest {
         )
     }
 
-    private fun paidCustomNotificationPack(userId: UserId): Personalization =
-        Personalization.createCustomNotificationPack(
-            creatorUserId = userId,
-            name = "Private Custom Pack",
-            content = notificationPack(),
-            price =
-                PersonalizationPrice(
-                    currency = Currency.PRIME,
-                    amount = 50,
-                ),
-            now = now.minusSeconds(60),
-        )
-
-    private fun accountPersonalization(userId: UserId): Personalization =
-        Personalization.createCreatorDraft(
-            creatorUserId = userId,
-            type = PersonalizationType.NICK_STYLE,
-            name = "Prime Account Style",
-            content =
-                PersonalizationContent.NickStyle(
-                    colors =
-                        listOf(
-                            GradientStop(
-                                color = HexColor("#F5FBFF"),
-                                position = 0,
-                            ),
-                            GradientStop(
-                                color = HexColor("#8ACBFF"),
-                                position = 100,
-                            ),
-                        ),
-                    angleDegrees = 90,
-                    glow = null,
-                ),
-            price = PersonalizationPrice(Currency.PRIME, 25),
-            now = now.minusSeconds(60),
-        )
-
     private fun purchaseOperation(personalization: Personalization): PurchaseOperation {
         val buyerUserId = personalization.creatorUserId
 
@@ -279,6 +243,44 @@ class PurchaseWalletUseCasesTest {
             amount = operation.amount,
         )
     }
+
+    private fun paidCustomNotificationPack(userId: UserId): Personalization =
+        Personalization.createCustomNotificationPack(
+            creatorUserId = userId,
+            name = "Private Custom Pack",
+            content = notificationPack(),
+            price =
+                PersonalizationPrice(
+                    currency = Currency.PRIME,
+                    amount = 50,
+                ),
+            now = now.minusSeconds(60),
+        )
+
+    private fun accountPersonalization(userId: UserId): Personalization =
+        Personalization.createCreatorDraft(
+            creatorUserId = userId,
+            type = PersonalizationType.NICK_STYLE,
+            name = "Prime Account Style",
+            content =
+                PersonalizationContent.NickStyle(
+                    colors =
+                        listOf(
+                            GradientStop(
+                                color = HexColor("#F5FBFF"),
+                                position = 0,
+                            ),
+                        ),
+                    angleDegrees = 90,
+                    glow = null,
+                ),
+            price =
+                PersonalizationPrice(
+                    currency = Currency.PRIME,
+                    amount = 25,
+                ),
+            now = now.minusSeconds(60),
+        )
 
     private fun notificationPack(): PersonalizationContent.NotificationPack =
         PersonalizationContent.NotificationPack(
@@ -315,6 +317,9 @@ class PurchaseWalletUseCasesTest {
         }
 
         override fun findById(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
+
+        override fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation? =
+            operation.takeIf { it.idempotencyKey == idempotencyKey }
 
         override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
@@ -376,6 +381,13 @@ class PurchaseWalletUseCasesTest {
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> =
             saved.filter { ownership -> ownership.owner == owner }
+
+        override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> =
+            saved
+                .filter { ownership -> ownership.active && ownership.type in types }
+                .mapNotNull { ownership ->
+                    (ownership.owner as? PersonalizationOwner.Account)?.accountId
+                }.distinct()
 
         override fun deactivateActive(
             owner: PersonalizationOwner,

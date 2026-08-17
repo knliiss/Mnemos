@@ -61,6 +61,15 @@ class ItemRaceParticipant private constructor(
             )
     }
 
+    fun increasePending(amount: Long) {
+        require(amount > 0)
+        check(status == ItemRaceParticipantStatus.PENDING || status == ItemRaceParticipantStatus.ACTIVE) {
+            "Item race bet can be increased only while participation is pending or active"
+        }
+
+        pendingAmount += amount
+    }
+
     fun confirmEntry(amount: Long) {
         require(amount > 0)
         check(pendingAmount >= amount)

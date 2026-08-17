@@ -3,7 +3,7 @@
 resolve_compose_service = $(if $(filter $(1),$(APP_NAMES)),$(1)-service,$(1))
 
 define verify_containers
-	@sleep 2; \
+	@sleep $(STARTUP_CHECK_DELAY); \
 	failed=""; \
 	for service in $(1); do \
 		is_one_shot=0; \
@@ -35,7 +35,7 @@ define verify_containers
 		printf "\n$(DIM)Recent logs for failed services:$(RESET)\n" >&2; \
 		for service in $$failed; do \
 			printf "\n$(DIM)----- %s -----$(RESET)\n" "$$service" >&2; \
-			$(DC) logs --tail=$(LOG_TAIL) "$$service" >&2 || true; \
+			$(DC) logs --tail=$(FAILURE_LOG_TAIL) "$$service" >&2 || true; \
 		done; \
 		exit 1; \
 	fi
@@ -44,6 +44,20 @@ endef
 define require_known_compose_service
 	@if ! printf '%s\n' "$(COMPOSE_SERVICE_NAMES)" | tr ' ' '\n' | grep -qx "$(call resolve_compose_service,$(1))"; then \
 		printf "$(RED)✗$(RESET) Unknown compose service: %s\n" "$(1)" >&2; \
+		exit 2; \
+	fi
+endef
+
+define require_shellable_compose_service
+	@if ! printf '%s\n' "$(SHELLABLE_SERVICE_NAMES)" | tr ' ' '\n' | grep -qx "$(call resolve_compose_service,$(1))"; then \
+		printf "$(RED)✗$(RESET) Shell is not supported for compose service: %s\n" "$(1)" >&2; \
+		exit 2; \
+	fi
+endef
+
+define require_pullable_compose_service
+	@if ! printf '%s\n' "$(PULLABLE_SERVICE_NAMES)" | tr ' ' '\n' | grep -qx "$(call resolve_compose_service,$(1))"; then \
+		printf "$(RED)✗$(RESET) Pull is not supported for locally built compose service: %s\n" "$(1)" >&2; \
 		exit 2; \
 	fi
 endef
@@ -77,8 +91,8 @@ logs: require-compose
 
 pull: require-compose
 	$(call title,stack,PULL)
-	@$(DC) pull
-	$(call success,stack,pulled)
+	@$(DC) pull $(PULLABLE_SERVICE_NAMES)
+	$(call success,stack,pullable infrastructure images updated)
 
 status: require-compose
 	@$(DC) ps -a
@@ -150,10 +164,12 @@ compose-config: require-compose
 
 %-shell: require-compose
 	$(call require_known_compose_service,$*)
+	$(call require_shellable_compose_service,$*)
 	@$(DC) exec "$(call resolve_compose_service,$*)" sh
 
 %-pull: require-compose
 	$(call require_known_compose_service,$*)
+	$(call require_pullable_compose_service,$*)
 	@target="$(call resolve_compose_service,$*)"; \
 	printf "$(BOLD)$(MAGENTA)◆$(RESET) $(BOLD)%-18s$(RESET) $(CYAN)%s$(RESET)\n" "$*" "PULL"; \
 	$(DC) pull "$$target" >/dev/null

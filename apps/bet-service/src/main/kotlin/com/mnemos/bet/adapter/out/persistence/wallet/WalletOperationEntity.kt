@@ -1,6 +1,7 @@
 package com.mnemos.bet.adapter.out.persistence.wallet
 
 import com.mnemos.bet.domain.wallet.model.WalletOperationKind
+import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
 import com.mnemos.bet.domain.wallet.model.WalletOperationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -27,6 +28,9 @@ class WalletOperationEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "kind", nullable = false)
     var kind: WalletOperationKind,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_type")
+    var requestType: WalletOperationRequestType?,
     @Column(name = "event_bet_id")
     var eventBetId: UUID?,
     @Column(name = "event_bet_resolution_id")
@@ -42,4 +46,6 @@ class WalletOperationEntity(
     var status: WalletOperationStatus,
     @Column(name = "wallet_transaction_id")
     var walletTransactionId: UUID?,
+    @Column(name = "idempotency_key", unique = true)
+    var idempotencyKey: UUID? = null,
 )

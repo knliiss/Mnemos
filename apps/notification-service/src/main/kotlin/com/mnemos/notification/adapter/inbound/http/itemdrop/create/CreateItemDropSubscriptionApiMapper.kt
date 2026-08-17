@@ -15,5 +15,7 @@ object CreateItemDropSubscriptionApiMapper {
     fun CreateItemDropSubscriptionResult.toResponse(): CreateItemDropSubscriptionResponse =
         CreateItemDropSubscriptionResponse(
             subscriptionId = subscriptionId.id,
+            droppedFor = droppedFor,
+            itemName = itemName,
         )
 }

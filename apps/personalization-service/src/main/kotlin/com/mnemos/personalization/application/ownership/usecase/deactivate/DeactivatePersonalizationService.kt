@@ -1,6 +1,7 @@
 package com.mnemos.personalization.application.ownership.usecase.deactivate
 
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -18,6 +19,7 @@ class DeactivatePersonalizationService(
     private val ownershipRepository: OwnedPersonalizationRepository,
     private val support: PersonalizationOwnershipSupport,
     private val selectionEventPublisher: NotificationPackSelectionEventPublisher,
+    private val profileAppearanceEventPublisher: ProfileAppearanceEventPublisher,
 ) : DeactivatePersonalizationUseCase {
     @Transactional
     override fun execute(personalizationId: PersonalizationId): OwnedPersonalization {
@@ -33,12 +35,17 @@ class DeactivatePersonalizationService(
 
         val saved = support.saveOwnership(ownership)
 
-        if (
-            wasActive &&
-            owner is PersonalizationOwner.User &&
-            personalization.type == PersonalizationType.NOTIFICATION_PACK
-        ) {
-            selectionEventPublisher.publishCleared(actor.userId)
+        when {
+            wasActive && owner is PersonalizationOwner.User && personalization.type == PersonalizationType.NOTIFICATION_PACK -> {
+                selectionEventPublisher.publishCleared(actor.userId)
+            }
+
+            wasActive && owner is PersonalizationOwner.Account -> {
+                profileAppearanceEventPublisher.publish(
+                    accountId = owner.accountId,
+                    actorUserId = actor.userId,
+                )
+            }
         }
 
         return saved

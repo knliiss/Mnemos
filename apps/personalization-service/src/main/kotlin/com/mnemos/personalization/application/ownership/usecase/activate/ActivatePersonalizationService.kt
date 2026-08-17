@@ -1,6 +1,7 @@
 package com.mnemos.personalization.application.ownership.usecase.activate
 
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
 import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
@@ -20,6 +21,7 @@ class ActivatePersonalizationService(
     private val ownershipRepository: OwnedPersonalizationRepository,
     private val support: PersonalizationOwnershipSupport,
     private val selectionEventPublisher: NotificationPackSelectionEventPublisher,
+    private val profileAppearanceEventPublisher: ProfileAppearanceEventPublisher,
     private val clock: Clock,
 ) : ActivatePersonalizationUseCase {
     @Transactional
@@ -58,11 +60,20 @@ class ActivatePersonalizationService(
 
         val saved = support.saveOwnership(ownership)
 
-        if (owner is PersonalizationOwner.User && personalization.type == PersonalizationType.NOTIFICATION_PACK) {
-            selectionEventPublisher.publishSelected(
-                userId = actor.userId,
-                personalization = personalization,
-            )
+        when {
+            owner is PersonalizationOwner.User && personalization.type == PersonalizationType.NOTIFICATION_PACK -> {
+                selectionEventPublisher.publishSelected(
+                    userId = actor.userId,
+                    personalization = personalization,
+                )
+            }
+
+            owner is PersonalizationOwner.Account -> {
+                profileAppearanceEventPublisher.publish(
+                    accountId = owner.accountId,
+                    actorUserId = actor.userId,
+                )
+            }
         }
 
         return saved

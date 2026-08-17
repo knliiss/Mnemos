@@ -1,9 +1,11 @@
 package com.mnemos.realtime.adapter.sse.connection
 
 import com.mnemos.realtime.adapter.inbound.http.sse.RealtimeBroadcastResponse
+import com.mnemos.realtime.adapter.inbound.http.sse.RealtimeGameEventResponse
 import com.mnemos.realtime.adapter.sse.protocol.RealtimeEventMapper.toResponse
 import com.mnemos.realtime.application.broadcast.model.DropSpotlightPresentationMode
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
+import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcastType
 import com.mnemos.realtime.application.broadcast.port.out.ConnectedRealtimeBroadcastSink
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.port.out.ConnectedRealtimeEventSink
@@ -370,6 +372,15 @@ class SseConnectionRegistry(
 
             remember(broadcast.id)
 
+            when (broadcast.type) {
+                RealtimeBroadcastType.DROP_SPOTLIGHT -> sendDropSpotlight(broadcast)
+                RealtimeBroadcastType.GAME_EVENT -> sendGameEvent(broadcast)
+            }
+        }
+
+        private fun sendDropSpotlight(broadcast: RealtimeBroadcast) {
+            val payload = requireNotNull(broadcast.payload)
+
             emitter.send(
                 SseEmitter
                     .event()
@@ -382,7 +393,26 @@ class SseConnectionRegistry(
                             occurredAt = broadcast.occurredAt,
                             expiresAt = broadcast.expiresAt,
                             presentationMode = dropSpotlightPresentationMode,
-                            payload = broadcast.payload,
+                            payload = payload,
+                        ),
+                    ),
+            )
+        }
+
+        private fun sendGameEvent(broadcast: RealtimeBroadcast) {
+            val payload = requireNotNull(broadcast.gameEventPayload)
+
+            emitter.send(
+                SseEmitter
+                    .event()
+                    .id(broadcast.id.toString())
+                    .name("game-event")
+                    .data(
+                        RealtimeGameEventResponse(
+                            id = broadcast.id,
+                            type = "game-event",
+                            occurredAt = broadcast.occurredAt,
+                            payload = payload,
                         ),
                     ),
             )

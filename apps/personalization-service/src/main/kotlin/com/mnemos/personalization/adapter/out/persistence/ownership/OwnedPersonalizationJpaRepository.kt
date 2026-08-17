@@ -135,6 +135,18 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
         ownerId: UUID,
     ): List<OwnedPersonalizationEntity>
 
+    @Query(
+        """
+        SELECT DISTINCT ownership.ownerId
+        FROM OwnedPersonalizationEntity ownership
+        WHERE ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.ACCOUNT
+          AND ownership.active = true
+          AND ownership.personalizationType IN :types
+        ORDER BY ownership.ownerId
+        """,
+    )
+    fun findActiveAccountIds(types: Set<PersonalizationType>): List<UUID>
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(
         """

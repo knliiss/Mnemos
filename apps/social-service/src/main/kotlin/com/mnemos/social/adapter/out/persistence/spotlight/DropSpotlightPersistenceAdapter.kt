@@ -18,6 +18,8 @@ class DropSpotlightPersistenceAdapter(
 
     override fun findById(id: DropSpotlightId): DropSpotlight? = repository.findById(id.id).orElse(null)?.toDomain()
 
+    override fun findByIdempotencyKey(idempotencyKey: UUID): DropSpotlight? = repository.findByIdempotencyKey(idempotencyKey)?.toDomain()
+
     override fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight? = repository.findByIdForUpdate(id.id)?.toDomain()
 
     override fun existsNonFailedByItemDropEventId(itemDropEventId: UUID): Boolean =

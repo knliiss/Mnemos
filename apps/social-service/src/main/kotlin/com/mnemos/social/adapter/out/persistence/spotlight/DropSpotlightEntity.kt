@@ -61,4 +61,6 @@ class DropSpotlightEntity(
     var createdAt: Instant,
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant,
+    @Column(name = "idempotency_key", unique = true)
+    var idempotencyKey: UUID? = null,
 )

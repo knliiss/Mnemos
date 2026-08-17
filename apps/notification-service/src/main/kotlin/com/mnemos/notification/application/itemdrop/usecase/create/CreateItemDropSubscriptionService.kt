@@ -17,9 +17,12 @@ class CreateItemDropSubscriptionService(
                 droppedFor = command.droppedFor,
                 itemName = command.itemName,
             )
+        val subscriptionId = repository.createOrGetId(subscription)
 
         return CreateItemDropSubscriptionResult(
-            subscriptionId = repository.createOrGetId(subscription),
+            subscriptionId = subscriptionId,
+            droppedFor = subscription.droppedFor,
+            itemName = subscription.itemName,
         )
     }
 }

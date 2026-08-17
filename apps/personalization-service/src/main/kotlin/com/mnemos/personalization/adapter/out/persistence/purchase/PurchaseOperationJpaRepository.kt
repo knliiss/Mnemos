@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
 interface PurchaseOperationJpaRepository : JpaRepository<PurchaseOperationEntity, UUID> {
+    fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperationEntity?
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT operation FROM PurchaseOperationEntity operation WHERE operation.id = :id")
     fun findByIdForUpdate(id: UUID): PurchaseOperationEntity?

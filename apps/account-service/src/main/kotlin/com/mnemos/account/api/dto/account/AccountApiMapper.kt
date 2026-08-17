@@ -1,5 +1,6 @@
 package com.mnemos.account.api.dto.account
 
+import com.mnemos.account.application.query.account.AccountContext
 import com.mnemos.account.application.query.account.AccountDetails
 import com.mnemos.account.application.query.account.AccountSummary
 import com.mnemos.account.application.result.account.CreateAccountResult
@@ -34,5 +35,12 @@ object AccountApiMapper {
             active = active,
             createdAt = createdAt,
             updatedAt = updatedAt,
+        )
+
+    fun AccountContext.toResponse(): AccountContextResponse =
+        AccountContextResponse(
+            availableAccounts = availableAccounts.map { account -> account.toResponse() },
+            activeAccount = activeAccount?.toResponse(),
+            effectivePermissions = effectivePermissions,
         )
 }

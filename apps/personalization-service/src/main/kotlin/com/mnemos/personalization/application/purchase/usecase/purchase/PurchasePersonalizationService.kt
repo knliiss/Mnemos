@@ -7,6 +7,7 @@ import com.mnemos.personalization.application.personalization.exception.Personal
 import com.mnemos.personalization.application.purchase.exception.PersonalizationAlreadyOwnedException
 import com.mnemos.personalization.application.purchase.exception.PersonalizationNotPurchasableException
 import com.mnemos.personalization.application.purchase.exception.PersonalizationPurchaseInProgressException
+import com.mnemos.personalization.application.purchase.exception.PurchaseIdempotencyConflictException
 import com.mnemos.personalization.application.purchase.port.out.PersonalizationWallet
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
@@ -21,6 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.util.UUID
 
 @Service
 class PurchasePersonalizationService(
@@ -33,8 +35,24 @@ class PurchasePersonalizationService(
     private val clock: Clock,
 ) : PurchasePersonalizationUseCase {
     @Transactional
-    override fun execute(personalizationId: PersonalizationId): PurchasePersonalizationResult {
+    override fun execute(
+        personalizationId: PersonalizationId,
+        idempotencyKey: UUID?,
+    ): PurchasePersonalizationResult {
         val actor = actorProvider.requireActor()
+        val replay = idempotencyKey?.let(purchaseOperationRepository::findByIdempotencyKey)
+
+        if (replay != null) {
+            if (replay.buyerUserId != actor.userId || replay.personalizationId != personalizationId) {
+                throw PurchaseIdempotencyConflictException()
+            }
+
+            return PurchasePersonalizationResult(
+                personalizationId = replay.personalizationId,
+                operationId = replay.id,
+            )
+        }
+
         val personalization =
             personalizationRepository.findByIdForUpdate(personalizationId)
                 ?: throw PersonalizationNotFoundException()
@@ -90,6 +108,7 @@ class PurchasePersonalizationService(
                 currency = price.currency,
                 amount = price.amount,
                 now = clock.instant(),
+                idempotencyKey = idempotencyKey,
             )
         val saved = savePending(operation)
 

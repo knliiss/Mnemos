@@ -10,6 +10,8 @@ interface DropSpotlightRepository {
 
     fun findById(id: DropSpotlightId): DropSpotlight?
 
+    fun findByIdempotencyKey(idempotencyKey: UUID): DropSpotlight?
+
     fun findByIdForUpdate(id: DropSpotlightId): DropSpotlight?
 
     fun existsNonFailedByItemDropEventId(itemDropEventId: UUID): Boolean

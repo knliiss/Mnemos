@@ -22,7 +22,9 @@ class WalletCommandProducerPolicy {
                 "personalization-service" -> command.isPersonalizationOperation()
                 "social-service" -> command.isSocialOperation()
                 "payment-service" -> command.isPrimePurchase()
-                "administration-service" -> command.isAdminAdjustment(actorUserId)
+                "moderation-service",
+                "administration-service",
+                -> command.isAdminAdjustment(actorUserId)
                 else -> false
             }
 
@@ -94,5 +96,10 @@ class WalletCommandProducerPolicy {
             owner.type == WalletOwnerType.USER
 
     private fun WalletCreateTransactionCommand.isAdminAdjustment(actorUserId: UUID?): Boolean =
-        source == TransactionSource.ADMIN_ADJUSTMENT && actorUserId != null
+        source == TransactionSource.ADMIN_ADJUSTMENT &&
+            actorUserId != null &&
+            (
+                (currency == Currency.COIN && owner.type == WalletOwnerType.ACCOUNT) ||
+                    (currency == Currency.PRIME && owner.type == WalletOwnerType.USER)
+            )
 }

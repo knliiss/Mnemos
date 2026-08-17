@@ -43,4 +43,6 @@ class PurchaseOperationEntity(
     var failureReason: String?,
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
+    @Column(name = "idempotency_key", unique = true)
+    var idempotencyKey: UUID? = null,
 )

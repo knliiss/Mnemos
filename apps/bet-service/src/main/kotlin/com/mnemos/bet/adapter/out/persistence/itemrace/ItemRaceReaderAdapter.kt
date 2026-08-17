@@ -30,6 +30,16 @@ class ItemRaceReaderAdapter(
     override fun findParticipants(raceId: ItemRaceId): List<ItemRaceParticipantView> =
         participantJpaRepository.findAllByRaceIdOrderById(raceId.id).map { it.toView() }
 
+    override fun findParticipant(
+        raceId: ItemRaceId,
+        accountId: AccountId,
+    ): ItemRaceParticipantView? =
+        participantJpaRepository
+            .findByRaceIdAndAccountId(
+                raceId = raceId.id,
+                accountId = accountId.id,
+            )?.toView()
+
     override fun findHistory(accountId: AccountId): List<ItemRaceParticipantView> =
         participantJpaRepository.findAllByAccountIdOrderByIdDesc(accountId.id).map { it.toView() }
 }

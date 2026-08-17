@@ -38,15 +38,16 @@ class DropSpotlightPublishedMessageMapperTest {
             )
 
         val broadcast = event.toRealtimeBroadcast()
+        val payload = requireNotNull(broadcast.payload)
 
         assertEquals(event.spotlightId, broadcast.id)
         assertEquals(event.sequence, broadcast.sequence)
-        assertEquals(event.itemName, broadcast.payload.itemName)
-        assertEquals(event.minimumPresentationGapSeconds, broadcast.payload.minimumPresentationGapSeconds)
-        assertEquals(pack.mixedAggregateTitle, broadcast.payload.notificationPack?.mixedAggregateTitle)
+        assertEquals(event.itemName, payload.itemName)
+        assertEquals(event.minimumPresentationGapSeconds, payload.minimumPresentationGapSeconds)
+        assertEquals(pack.mixedAggregateTitle, payload.notificationPack?.mixedAggregateTitle)
         assertEquals(
             NotificationPackTemplateType.entries.map { it.name },
-            broadcast.payload.notificationPack
+            payload.notificationPack
                 ?.templates
                 ?.map { it.type },
         )

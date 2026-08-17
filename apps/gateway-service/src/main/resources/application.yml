@@ -33,12 +33,12 @@ spring:
             - id: account-api
               uri: ${ACCOUNT_SERVICE_URL:http://localhost:8081}
               predicates:
-                - Path=/api/v1/accounts/**,/api/v1/account/**,/api/v1/account-memberships/**,/api/v1/me/accounts/**,/api/v1/users/**,/api/v1/admin/accounts/**
+                - Path=/api/v1/accounts/**,/api/v1/account/**,/api/v1/account-memberships/**,/api/v1/me/**,/api/v1/users/**,/api/v1/admin/accounts/**,/api/v1/admin/identities/**
 
             - id: event-api
               uri: ${EVENT_SERVICE_URL:http://localhost:8083}
               predicates:
-                - Path=/api/v1/item-drop-events/**,/api/v1/global-events/**,/api/v1/booster-events/**,/api/v1/raid-events/**
+                - Path=/api/v1/events/**,/api/v1/item-drop-events/**,/api/v1/global-events/**,/api/v1/booster-events/**,/api/v1/raid-events/**
 
             - id: notification-api
               uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}

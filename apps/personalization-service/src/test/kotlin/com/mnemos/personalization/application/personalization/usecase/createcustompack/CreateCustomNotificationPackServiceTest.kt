@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.personalization.usecase.createcustompack
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
@@ -218,6 +219,12 @@ class CreateCustomNotificationPackServiceTest {
         ): OwnedPersonalization? = null
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
+
+        override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> =
+            saved
+                .filter { ownership -> ownership.active && ownership.type in types }
+                .mapNotNull { ownership -> (ownership.owner as? PersonalizationOwner.Account)?.accountId }
+                .distinct()
 
         override fun deactivateActive(
             owner: PersonalizationOwner,

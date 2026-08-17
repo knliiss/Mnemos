@@ -20,6 +20,7 @@ class PurchaseOperation(
     status: PurchaseOperationStatus,
     walletTransactionId: UUID?,
     failureReason: String?,
+    val idempotencyKey: UUID? = null,
 ) {
     var status: PurchaseOperationStatus = status
         private set
@@ -100,6 +101,7 @@ class PurchaseOperation(
             currency: Currency,
             amount: Long,
             now: Instant,
+            idempotencyKey: UUID? = null,
         ): PurchaseOperation =
             PurchaseOperation(
                 id = PurchaseOperationId.generate(),
@@ -113,6 +115,7 @@ class PurchaseOperation(
                 status = PurchaseOperationStatus.PENDING,
                 walletTransactionId = null,
                 failureReason = null,
+                idempotencyKey = idempotencyKey,
             )
     }
 }

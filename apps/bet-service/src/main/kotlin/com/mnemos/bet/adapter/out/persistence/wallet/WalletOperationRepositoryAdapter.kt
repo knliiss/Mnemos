@@ -10,7 +10,9 @@ import com.mnemos.bet.domain.wallet.model.WalletOperationKind
 import com.mnemos.bet.domain.wallet.model.WalletOperationStatus
 import com.mnemos.bet.domain.wallet.model.WalletRequestId
 import com.mnemos.bet.domain.wallet.repository.WalletOperationRepository
+import com.mnemos.common.core.model.id.AccountId
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
 class WalletOperationRepositoryAdapter(
@@ -20,11 +22,24 @@ class WalletOperationRepositoryAdapter(
 
     override fun save(operation: WalletOperation): WalletOperation = jpaRepository.save(operation.toEntity()).toDomain()
 
+    override fun findById(operationId: WalletOperationId): WalletOperation? =
+        jpaRepository.findById(operationId.id).orElse(null)?.toDomain()
+
+    override fun findByIdempotencyKey(idempotencyKey: UUID): WalletOperation? =
+        jpaRepository.findByIdempotencyKey(idempotencyKey)?.toDomain()
+
     override fun findByIdForUpdate(operationId: WalletOperationId): WalletOperation? =
         jpaRepository.findByIdForUpdate(operationId.id)?.toDomain()
 
     override fun findByRequestIdForUpdate(requestId: WalletRequestId): WalletOperation? =
         jpaRepository.findByRequestIdForUpdate(requestId.id)?.toDomain()
+
+    override fun findPendingByAccountId(accountId: AccountId): List<WalletOperation> =
+        jpaRepository
+            .findAllByAccountIdAndStatusOrderByCreatedAtAsc(
+                accountId = accountId.id,
+                status = WalletOperationStatus.PENDING,
+            ).map { entity -> entity.toDomain() }
 
     override fun findFailedCredits(): List<WalletOperation> =
         jpaRepository

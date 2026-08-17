@@ -1,6 +1,7 @@
 package com.mnemos.personalization.adapter.out.persistence.ownership
 
 import com.github.f4b6a3.uuid.UuidCreator
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.personalization.adapter.out.persistence.ownership.OwnedPersonalizationPersistenceMapper.toDomain
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
@@ -95,6 +96,11 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
             ).map { it.toDomain() }
+
+    override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> =
+        repository
+            .findActiveAccountIds(types)
+            .map(::AccountId)
 
     override fun deactivateActive(
         owner: PersonalizationOwner,

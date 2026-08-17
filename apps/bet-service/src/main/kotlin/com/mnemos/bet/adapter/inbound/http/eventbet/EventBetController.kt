@@ -9,15 +9,18 @@ import com.mnemos.bet.application.eventbet.usecase.place.PlaceEventBetCommand
 import com.mnemos.bet.application.eventbet.usecase.place.PlaceEventBetUseCase
 import com.mnemos.bet.domain.eventbet.model.DomainBetSide
 import com.mnemos.bet.domain.eventbet.model.EventBetRoundId
+import com.mnemos.common.web.logging.MnemosHeaders.IDEMPOTENCY_KEY
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/bets/event-bets")
@@ -29,6 +32,7 @@ class EventBetController(
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun place(
+        @RequestHeader(IDEMPOTENCY_KEY) idempotencyKey: UUID,
         @RequestBody
         @Valid
         request: PlaceEventBetRequest,
@@ -36,6 +40,7 @@ class EventBetController(
         val result =
             placeEventBetUseCase.execute(
                 PlaceEventBetCommand(
+                    idempotencyKey = idempotencyKey,
                     roundId = EventBetRoundId(request.roundId),
                     side = DomainBetSide.valueOf(request.side.name),
                     amount = request.amount,
@@ -51,6 +56,7 @@ class EventBetController(
     @PatchMapping("/increase")
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun increase(
+        @RequestHeader(IDEMPOTENCY_KEY) idempotencyKey: UUID,
         @RequestBody
         @Valid
         request: IncreaseEventBetRequest,
@@ -58,6 +64,7 @@ class EventBetController(
         val result =
             increaseEventBetUseCase.execute(
                 IncreaseEventBetCommand(
+                    idempotencyKey = idempotencyKey,
                     roundId = EventBetRoundId(request.roundId),
                     amount = request.amount,
                 ),

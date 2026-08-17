@@ -167,6 +167,9 @@ class ScheduleCreatorRevenueServiceTest {
 
         override fun findById(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
+        override fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation? =
+            operation.takeIf { it.idempotencyKey == idempotencyKey }
+
         override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
         override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = null
@@ -203,6 +206,9 @@ class ScheduleCreatorRevenueServiceTest {
         }
 
         override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = null
+
+        override fun findByCreatorUserId(creatorUserId: UserId): List<CreatorRevenueOperation> =
+            operations.filter { it.creatorUserId == creatorUserId }
 
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean =
             purchaseOperationId in purchaseOperationIds

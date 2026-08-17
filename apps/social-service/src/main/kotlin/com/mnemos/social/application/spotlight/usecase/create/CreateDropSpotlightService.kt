@@ -27,8 +27,25 @@ class CreateDropSpotlightService(
     private val clock: Clock,
 ) : CreateDropSpotlightUseCase {
     @Transactional
-    override fun execute(itemDropEventId: UUID): DropSpotlight {
+    override fun execute(
+        itemDropEventId: UUID,
+        idempotencyKey: UUID?,
+    ): DropSpotlight {
         val actor = actorProvider.requireActor()
+        val replay = idempotencyKey?.let(repository::findByIdempotencyKey)
+
+        if (replay != null) {
+            if (
+                replay.buyerUserId != actor.userId ||
+                replay.sourceAccountId != actor.accountId ||
+                replay.itemDrop.id != itemDropEventId
+            ) {
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Idempotency key is already used by another spotlight")
+            }
+
+            return replay
+        }
+
         val now = clock.instant()
         val itemDrop =
             itemDropLookup.findById(itemDropEventId)
@@ -73,6 +90,7 @@ class CreateDropSpotlightService(
                 pricePrime = properties.pricePrime,
                 scheduledAt = reservation.scheduledAt,
                 now = now,
+                idempotencyKey = idempotencyKey,
             )
         val saved = repository.save(spotlight)
 

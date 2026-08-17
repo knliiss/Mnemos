@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":libraries:kafka-starter"))
 
     implementation(project(":contracts:account-contracts"))
+    implementation(project(":contracts:personalization-contracts"))
     implementation(project(":contracts:social-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")

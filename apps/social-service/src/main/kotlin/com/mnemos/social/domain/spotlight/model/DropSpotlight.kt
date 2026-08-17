@@ -20,6 +20,7 @@ data class DropSpotlight(
     var expiresAt: Instant?,
     val createdAt: Instant,
     var updatedAt: Instant,
+    val idempotencyKey: UUID? = null,
 ) {
     fun paymentCompleted(
         transactionId: UUID,
@@ -72,6 +73,7 @@ data class DropSpotlight(
             pricePrime: Long,
             scheduledAt: Instant,
             now: Instant,
+            idempotencyKey: UUID? = null,
         ): DropSpotlight =
             DropSpotlight(
                 id = DropSpotlightId.generate(),
@@ -89,6 +91,7 @@ data class DropSpotlight(
                 expiresAt = null,
                 createdAt = now,
                 updatedAt = now,
+                idempotencyKey = idempotencyKey,
             )
     }
 }

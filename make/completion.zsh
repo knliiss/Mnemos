@@ -32,29 +32,32 @@ _mnemos_make() {
         'ktlintFormat:Format Kotlin sources with ktlint'
         'clean:Clean Gradle outputs'
         'deps:Show dependencies'
+        'make-verify:Validate Make target wiring'
         'up:Start stopped services only'
         'stop:Stop running services'
         'restart:Build images and recreate services'
         'down:Remove the stack'
         'logs:Follow stack logs'
         'status:Show and validate service status'
-        'pull:Pull stack images'
+        'pull:Pull external infrastructure images'
         'compose-config:Show merged Docker Compose configuration'
         'kafka-init-build:Build Kafka bootstrap image'
-        'kafka-init-restart:Rebuild and recreate Kafka bootstrap'
-        'kafka-init-status:Show and validate Kafka bootstrap status'
-        'kafka-init-logs:Follow Kafka bootstrap logs'
         'kafka-topics:List Kafka topics'
         'kafka-groups:List Kafka consumer groups'
+        'kafka-create-<topic>:Create Kafka topic'
+        'kafka-delete-<topic>:Delete Kafka topic'
+        'kafka-describe-<topic>:Describe Kafka topic'
         'app-postgres-shell:Open application PostgreSQL shell'
         'keycloak-postgres-shell:Open Keycloak PostgreSQL shell'
+        'keycloak-restart:Rebuild authenticator and recreate Keycloak'
         'keycloak-import:Import Keycloak configuration'
         'completion-install:Install zsh completion'
         'completion-uninstall:Remove zsh completion'
     )
 
     for service in "$root"/apps/*-service(N/); do
-        service="${service:t}"; service="${service%-service}"
+        service="${service:t}"
+        service="${service%-service}"
         targets+=(
             "$service-build:Build service and Docker image"
             "$service-test:Run service tests"
@@ -68,8 +71,29 @@ _mnemos_make() {
             "$service-remove:Remove service container"
             "$service-logs:Follow service logs"
             "$service-shell:Open service shell"
-            "$service-pull:Pull service image"
         )
+    done
+
+    for service in kafka kafka-init keycloak keycloak-config app-postgres keycloak-postgres redis; do
+        targets+=(
+            "$service-up:Start compose service"
+            "$service-stop:Stop compose service"
+            "$service-status:Show and validate compose service status"
+            "$service-remove:Remove compose service container"
+            "$service-logs:Follow compose service logs"
+        )
+
+        if [[ "$service" != "keycloak" ]]; then
+            targets+=("$service-restart:Recreate compose service")
+        fi
+    done
+
+    for service in kafka keycloak app-postgres keycloak-postgres redis; do
+        targets+=("$service-shell:Open compose service shell")
+    done
+
+    for service in kafka keycloak keycloak-config app-postgres keycloak-postgres redis; do
+        targets+=("$service-pull:Pull external infrastructure image")
     done
 
     _describe 'Mnemos command' targets

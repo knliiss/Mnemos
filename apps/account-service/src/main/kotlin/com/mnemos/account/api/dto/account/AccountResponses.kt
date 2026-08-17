@@ -1,5 +1,6 @@
 package com.mnemos.account.api.dto.account
 
+import com.mnemos.common.core.model.permission.RolePermission
 import java.time.Instant
 import java.util.UUID
 
@@ -29,4 +30,10 @@ data class AccountDetailsResponse(
     val active: Boolean,
     val createdAt: Instant,
     val updatedAt: Instant,
+)
+
+data class AccountContextResponse(
+    val availableAccounts: List<AccountSummaryResponse>,
+    val activeAccount: AccountDetailsResponse?,
+    val effectivePermissions: Set<RolePermission>,
 )

@@ -13,6 +13,7 @@ object PurchaseOperationPersistenceMapper {
         PurchaseOperationEntity(
             id = id.id,
             requestId = requestId,
+            idempotencyKey = idempotencyKey,
             personalizationId = personalizationId.id,
             buyerUserId = buyerUserId.id,
             ownerType = owner.target,
@@ -42,5 +43,6 @@ object PurchaseOperationPersistenceMapper {
             status = status,
             walletTransactionId = walletTransactionId,
             failureReason = failureReason,
+            idempotencyKey = idempotencyKey,
         )
 }

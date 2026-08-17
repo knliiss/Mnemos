@@ -30,6 +30,13 @@ class PersonalizationIntegrationEventConfiguration {
                         aggregateType = PersonalizationAggregateType.USER_NOTIFICATION_PACK_SELECTION,
                     )
 
+                PersonalizationEventType.PROFILE_APPEARANCE_CHANGED ->
+                    IntegrationEventRoute(
+                        topic = PersonalizationEventContract.TOPIC,
+                        version = PersonalizationEventContract.VERSION,
+                        aggregateType = PersonalizationAggregateType.ACCOUNT_PROFILE_APPEARANCE,
+                    )
+
                 WalletCommandType.CREATE_TRANSACTION ->
                     IntegrationEventRoute(
                         topic = WalletCommandContract.TOPIC,

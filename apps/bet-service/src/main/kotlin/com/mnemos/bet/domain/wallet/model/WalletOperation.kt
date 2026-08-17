@@ -6,6 +6,7 @@ import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipantId
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import java.time.Instant
+import java.util.UUID
 
 class WalletOperation private constructor(
     val id: WalletOperationId,
@@ -14,6 +15,8 @@ class WalletOperation private constructor(
     val initiatedByUserId: UserId?,
     val amount: Long,
     val kind: WalletOperationKind,
+    val requestType: WalletOperationRequestType?,
+    val idempotencyKey: UUID?,
     val eventBetId: EventBetId?,
     val eventBetResolutionId: EventBetResolutionId?,
     val raceParticipantId: ItemRaceParticipantId?,
@@ -34,6 +37,8 @@ class WalletOperation private constructor(
             initiatedByUserId: UserId? = null,
             amount: Long,
             kind: WalletOperationKind,
+            requestType: WalletOperationRequestType? = null,
+            idempotencyKey: UUID? = null,
             eventBetId: EventBetId?,
             eventBetResolutionId: EventBetResolutionId?,
             raceParticipantId: ItemRaceParticipantId?,
@@ -42,6 +47,8 @@ class WalletOperation private constructor(
         ): WalletOperation {
             require(amount > 0)
             require((eventBetId != null) xor (raceParticipantId != null))
+            require((requestType == null) == (idempotencyKey == null))
+            require(requestType == null || kind == WalletOperationKind.STAKE)
 
             return WalletOperation(
                 id = WalletOperationId.generate(),
@@ -50,6 +57,8 @@ class WalletOperation private constructor(
                 initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
+                requestType = requestType,
+                idempotencyKey = idempotencyKey,
                 eventBetId = eventBetId,
                 eventBetResolutionId = eventBetResolutionId,
                 raceParticipantId = raceParticipantId,
@@ -67,6 +76,8 @@ class WalletOperation private constructor(
             initiatedByUserId: UserId?,
             amount: Long,
             kind: WalletOperationKind,
+            requestType: WalletOperationRequestType? = null,
+            idempotencyKey: UUID? = null,
             eventBetId: EventBetId?,
             eventBetResolutionId: EventBetResolutionId?,
             raceParticipantId: ItemRaceParticipantId?,
@@ -82,6 +93,8 @@ class WalletOperation private constructor(
                 initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
+                requestType = requestType,
+                idempotencyKey = idempotencyKey,
                 eventBetId = eventBetId,
                 eventBetResolutionId = eventBetResolutionId,
                 raceParticipantId = raceParticipantId,
@@ -103,6 +116,8 @@ class WalletOperation private constructor(
             initiatedByUserId = initiatedByUserId,
             amount = amount,
             kind = kind,
+            requestType = null,
+            idempotencyKey = null,
             eventBetId = eventBetId,
             eventBetResolutionId = eventBetResolutionId,
             raceParticipantId = raceParticipantId,

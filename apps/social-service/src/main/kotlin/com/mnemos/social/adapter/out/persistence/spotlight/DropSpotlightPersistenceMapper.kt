@@ -9,6 +9,7 @@ object DropSpotlightPersistenceMapper {
     fun DropSpotlight.toEntity(): DropSpotlightEntity =
         DropSpotlightEntity(
             id = id.id,
+            idempotencyKey = idempotencyKey,
             sequence = sequence,
             buyerUserId = buyerUserId,
             sourceAccountId = sourceAccountId,
@@ -59,6 +60,7 @@ object DropSpotlightPersistenceMapper {
             expiresAt = expiresAt,
             createdAt = createdAt,
             updatedAt = updatedAt,
+            idempotencyKey = idempotencyKey,
         )
 
     private fun DropSpotlightEntity.notificationPackSelection(): NotificationPackSelectionSnapshot? {

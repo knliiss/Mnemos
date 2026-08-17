@@ -74,6 +74,9 @@ class RetryCreatorRevenueServiceTest {
 
         override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = null
 
+        override fun findByCreatorUserId(creatorUserId: UserId): List<CreatorRevenueOperation> =
+            listOf(operation).filter { it.creatorUserId == creatorUserId }
+
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean = false
 
         override fun findDueForRetryForUpdate(

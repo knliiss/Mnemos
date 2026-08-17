@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.personalization.lifecycle
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.messaging.core.event.EventMetadata
@@ -397,6 +398,16 @@ class PersonalizationLifecycleUseCasesTest {
             }
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = listOf(ownership).filter { it.owner == owner }
+
+        override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> {
+            val accountOwner = ownership.owner as? PersonalizationOwner.Account ?: return emptyList()
+
+            if (!ownership.active || ownership.type !in types) {
+                return emptyList()
+            }
+
+            return listOf(accountOwner.accountId)
+        }
 
         override fun deactivateActive(
             owner: PersonalizationOwner,

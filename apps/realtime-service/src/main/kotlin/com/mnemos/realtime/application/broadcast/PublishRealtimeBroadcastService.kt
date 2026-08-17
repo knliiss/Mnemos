@@ -1,6 +1,7 @@
 package com.mnemos.realtime.application.broadcast
 
 import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
+import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcastType
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastFanout
 import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastReplayStore
 import org.springframework.stereotype.Service
@@ -17,7 +18,10 @@ class PublishRealtimeBroadcastService(
             return
         }
 
-        replayStore.append(broadcast)
+        if (broadcast.type == RealtimeBroadcastType.DROP_SPOTLIGHT) {
+            replayStore.append(broadcast)
+        }
+
         fanout.publish(broadcast)
     }
 }

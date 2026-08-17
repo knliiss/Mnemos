@@ -1,5 +1,6 @@
 package com.mnemos.personalization.domain.ownership.repository
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
@@ -34,6 +35,8 @@ interface OwnedPersonalizationRepository {
     ): OwnedPersonalization? = findActive(owner, type)
 
     fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization>
+
+    fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId>
 
     fun deactivateActive(
         owner: PersonalizationOwner,

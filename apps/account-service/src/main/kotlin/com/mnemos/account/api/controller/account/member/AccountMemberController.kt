@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/api/v1/account/{accountId}/members")
+@RequestMapping("/api/v1/accounts/{accountId}/members")
 class AccountMemberController(
     private val memberQueryService: AccountMemberQueryService,
     private val kickAccountMemberService: KickAccountMemberService,

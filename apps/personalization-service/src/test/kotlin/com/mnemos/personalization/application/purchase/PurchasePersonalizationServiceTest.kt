@@ -343,6 +343,8 @@ class PurchasePersonalizationServiceTest {
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
 
+        override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> = emptyList()
+
         override fun deactivateActive(
             owner: PersonalizationOwner,
             type: PersonalizationType,
@@ -361,6 +363,9 @@ class PurchasePersonalizationServiceTest {
         }
 
         override fun findById(id: PurchaseOperationId): PurchaseOperation? = null
+
+        override fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation? =
+            saved.find { operation -> operation.idempotencyKey == idempotencyKey }
 
         override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = null
 

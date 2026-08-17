@@ -1,6 +1,7 @@
 package com.mnemos.account.api.controller.account
 
 import com.mnemos.account.api.dto.account.AccountApiMapper.toResponse
+import com.mnemos.account.api.dto.account.AccountContextResponse
 import com.mnemos.account.api.dto.account.AccountDetailsResponse
 import com.mnemos.account.api.dto.account.AccountSummaryResponse
 import com.mnemos.account.application.service.account.AccountQueryService
@@ -27,6 +28,9 @@ class CurrentAccountController(
 ) {
     @GetMapping
     fun getAvailableAccounts(): List<AccountSummaryResponse> = accountQueryService.getAvailableAccounts().map { it.toResponse() }
+
+    @GetMapping("/context")
+    fun getCurrentContext(): AccountContextResponse = accountQueryService.getCurrentContext().toResponse()
 
     @GetMapping("/active")
     fun getActiveAccount(): ResponseEntity<AccountDetailsResponse> {

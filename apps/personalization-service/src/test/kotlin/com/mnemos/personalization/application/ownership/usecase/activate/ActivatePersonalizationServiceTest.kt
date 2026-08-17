@@ -5,6 +5,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
+import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
 import com.mnemos.personalization.application.ownership.exception.PersonalizationOwnershipConflictException
 import com.mnemos.personalization.application.ownership.support.PersonalizationOwnershipSupport
@@ -147,6 +148,7 @@ class ActivatePersonalizationServiceTest {
                 ownershipRepository = ownershipRepository,
                 support = support,
                 selectionEventPublisher = mock<NotificationPackSelectionEventPublisher>(),
+                profileAppearanceEventPublisher = mock<ProfileAppearanceEventPublisher>(),
                 clock = clock,
             )
 
