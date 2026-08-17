@@ -74,21 +74,49 @@ jobs:
               "http://127.0.0.1:4173/${path}"
           }
 
+          # Root shells at the Telegram-Mini-App widths we care about.
           capture events-360 360 "?screen=events"
           capture events-390 390 "?screen=events"
           capture events-430 430 "?screen=events"
           capture account 390 "?screen=account"
           capture me 390 "?screen=me"
+
+          # Events area.
+          capture event-detail 390 "?screen=event-detail&p.eventId=ev-1"
           capture bets 390 "?screen=bets"
           capture subscriptions 390 "?screen=subscriptions"
+
+          # Account area.
+          capture member 390 "?screen=member&p.memberId=member-2"
           capture roles 390 "?screen=roles"
           capture role-editor 390 "?screen=role-editor&p.roleId=role-admin"
+          capture account-wallet 390 "?screen=account-wallet"
+          capture account-invites 390 "?screen=account-invites"
+          capture account-settings 390 "?screen=account-settings"
+          capture account-create 390 "?screen=account-create"
+
+          # People / user area.
+          capture search 390 "?screen=search"
+          capture public-profile 390 "?screen=public-profile&p.accountId=profile-north"
+          capture user-wallet 390 "?screen=user-wallet"
+          capture settings 390 "?screen=settings"
+
+          # Personalization marketplace.
           capture store 390 "?screen=personalization-store"
+          capture personalization-owned 390 "?screen=personalization-owned"
+          capture personalization-detail 390 "?screen=personalization-detail&p.personalizationId=p-1"
+
+          # Creator workspace.
           capture creator 390 "?screen=creator-studio"
+          capture creator-revenue 390 "?screen=creator-revenue"
           capture creator-editor 390 "?screen=personalization-editor&p.personalizationId=new"
+
+          # Staff workspace.
           capture moderation 390 "?screen=moderation"
+          capture moderation-user 390 "?screen=moderation-user&p.accountId=profile-north"
           capture personalization-review 390 "?screen=personalization-review"
           capture bet-admin 390 "?screen=bet-admin"
+          capture badge-admin 390 "?screen=badge-admin"
 
       - name: Upload visual audit
         if: github.event_name == 'push' && success()
