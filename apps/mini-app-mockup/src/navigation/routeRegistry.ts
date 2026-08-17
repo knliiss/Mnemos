@@ -1,0 +1,76 @@
+import type { RootRoute, Route, RouteId } from "../model"
+
+export type FeatureArea = "events" | "account" | "people" | "personalization" | "creator" | "staff"
+
+type RouteDefinition = {
+  area: FeatureArea
+  root?: true
+}
+
+export const routeRegistry: Record<RouteId, RouteDefinition> = {
+  events: { area: "events", root: true },
+  "event-detail": { area: "events" },
+  bets: { area: "events" },
+  subscriptions: { area: "events" },
+
+  account: { area: "account", root: true },
+  member: { area: "account" },
+  roles: { area: "account" },
+  "role-editor": { area: "account" },
+  "account-wallet": { area: "account" },
+  "account-invites": { area: "account" },
+  "account-settings": { area: "account" },
+  "account-create": { area: "account" },
+
+  me: { area: "people", root: true },
+  search: { area: "people" },
+  "public-profile": { area: "people" },
+  "user-wallet": { area: "people" },
+  settings: { area: "people" },
+
+  "personalization-store": { area: "personalization" },
+  "personalization-owned": { area: "personalization" },
+  "personalization-detail": { area: "personalization" },
+
+  "creator-studio": { area: "creator" },
+  "creator-revenue": { area: "creator" },
+  "personalization-editor": { area: "creator" },
+
+  moderation: { area: "staff" },
+  "moderation-user": { area: "staff" },
+  "personalization-review": { area: "staff" },
+  "bet-admin": { area: "staff" },
+  "badge-admin": { area: "staff" },
+}
+
+export const rootRoutes = Object.entries(routeRegistry)
+  .filter(([, definition]) => definition.root)
+  .map(([id]) => id as RootRoute)
+
+export function isRootRoute(id: RouteId): id is RootRoute {
+  return routeRegistry[id].root === true
+}
+
+export function featureArea(id: RouteId): FeatureArea {
+  return routeRegistry[id].area
+}
+
+export function initialRoute(): Route {
+  const params = new URLSearchParams(window.location.search)
+  const requested = params.get("screen") as RouteId | null
+
+  if (!requested || !(requested in routeRegistry)) {
+    return { id: "events" }
+  }
+
+  const routeParams = Object.fromEntries(
+    [...params.entries()]
+      .filter(([key]) => key.startsWith("p."))
+      .map(([key, value]) => [key.slice(2), value]),
+  )
+
+  return {
+    id: requested,
+    params: Object.keys(routeParams).length ? routeParams : undefined,
+  }
+}
