@@ -2,7 +2,7 @@ import { MotionConfig, motion } from "framer-motion"
 import { useState } from "react"
 import { accounts as initialAccounts } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
-import { featureArea, initialRoute, isRootRoute } from "./navigation/routeRegistry"
+import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
 import { AccountFeature } from "./features/AccountFeature"
 import { CreatorFeature } from "./features/CreatorFeature"
 import { EventsArea } from "./features/EventsArea"
@@ -12,7 +12,7 @@ import { StaffFeature } from "./features/StaffFeature"
 import { Glyph } from "./shared/MnemosIcon"
 
 export default function App() {
-  const [stack, setStack] = useState<Route[]>(() => [initialRoute()])
+  const [stack, setStack] = useState<Route[]>(initialStack)
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
   const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
   const current = stack[stack.length - 1]
