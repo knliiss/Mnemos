@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactElement } from "react"
 
-export type GlyphName = "events" | "account" | "person" | "search" | "bell" | "bet" | "members" | "roles" | "wallet" | "store" | "creator" | "moderation" | "settings" | "back" | "more" | "plus" | "check" | "close" | "send" | "edit" | "trash" | "swap" | "item-drop" | "booster" | "global" | "raid" | "dungeon" | "external" | "spark"
+export type GlyphName = "events" | "account" | "person" | "search" | "bell" | "bet" | "members" | "roles" | "wallet" | "store" | "creator" | "moderation" | "settings" | "back" | "more" | "plus" | "check" | "close" | "send" | "edit" | "trash" | "swap" | "clock" | "item-drop" | "booster" | "global" | "raid" | "dungeon" | "external" | "spark"
 
 export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: number; className?: string }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.55, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, className: `glyph ${className ?? ""}`, "aria-hidden": true }
@@ -27,6 +27,7 @@ export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: 
     edit: <><path d="M5 18.5 6 14l9.8-9.8 4 4L10 18zM14.8 5.2l4 4"/></>,
     trash: <><path d="M6.5 8h11l-.8 12h-9.4zM5 5.5h14M9 5.5V4h6v1.5M10 11v5M14 11v5"/></>,
     swap: <><path d="M5 8h13l-3-3M19 16H6l3 3"/></>,
+    clock: <><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3.2 2"/></>,
     "item-drop": <><path d="M12 3.5 18.5 7v7L12 20.5 5.5 14V7z"/><path d="M5.5 7 12 11l6.5-4M12 11v9.5"/></>,
     booster: <path d="m13 3-7 10h5l-1 8 8-12h-5z"/>,
     global: <><circle cx="12" cy="12" r="8"/><path d="M4.5 9h15M4.5 15h15M12 4c2.4 2.2 3.4 4.8 3.4 8s-1 5.8-3.4 8c-2.4-2.2-3.4-4.8-3.4-8S9.6 6.2 12 4Z"/></>,
@@ -35,10 +36,12 @@ export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: 
     external: <><path d="M13 5h6v6M19 5l-8 8"/><path d="M18 14v5H5V6h5"/></>,
     spark: <path d="M12 3.2 13.7 9 19 12l-5.3 3L12 20.8 10.3 15 5 12l5.3-3z"/>,
   }
+
   return <svg {...common}>{paths[name]}</svg>
 }
 
 export function CurrencyMark({ currency, size = 18, style }: { currency: "COIN" | "PRIME"; size?: number; style?: CSSProperties }) {
   if (currency === "COIN") return <svg className="currency-glyph" style={style} width={size} height={size} viewBox="0 0 24 24" aria-label="Coin"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M12 7.5 15.8 12 12 16.5 8.2 12z" fill="none" stroke="currentColor" strokeWidth="1.35"/></svg>
+
   return <svg className="currency-glyph currency-glyph--prime" style={style} width={size} height={size} viewBox="0 0 24 24" aria-label="Prime"><path d="M12 3.3 19.2 12 12 20.7 4.8 12z" fill="none" stroke="currentColor" strokeWidth="1.55"/><path d="M12 3.3 14.1 12 12 20.7 9.9 12z" fill="none" stroke="currentColor" strokeWidth="1.15"/></svg>
 }
