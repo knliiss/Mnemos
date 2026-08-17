@@ -1,0 +1,43 @@
+.notification-real-preview.is-detail {
+  min-height: 86px;
+  padding: 14px;
+  grid-template-columns: 32px 1fr;
+  align-content: center;
+}
+
+.notification-real-preview.is-detail .notification-real-preview__emoji {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.notification-real-preview.is-detail strong {
+  font-size: 12px;
+}
+
+.notification-real-preview.is-detail small {
+  font-size: 10px;
+  -webkit-line-clamp: 3;
+}
+
+.account-lifecycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-lifecycle-actions > button {
+  min-height: 42px;
+}
+
+.administration-home-screen--final .workspace-grid--final > button:first-child {
+  border-color: rgba(228, 123, 128, 0.2);
+  background: linear-gradient(145deg, rgba(228, 123, 128, 0.08), rgba(255, 248, 224, 0.03));
+}
+
+@media (max-width: 374px) {
+  .notification-real-preview.is-detail {
+    min-height: 80px;
+  }
+}
