@@ -82,6 +82,8 @@ jobs:
           capture account-360 360 "?screen=account"
           capture account-390 390 "?screen=account"
           capture account-430 430 "?screen=account"
+          capture account-user-hub 390 "?screen=account&hub=1"
+          capture account-picker 390 "?screen=account&hub=1&accounts=1"
           capture search 390 "?screen=search"
           capture store 390 "?screen=personalization-store"
 
@@ -104,7 +106,7 @@ jobs:
           capture user-wallet 390 "?screen=user-wallet"
 
           # Personalization marketplace.
-          capture personalization-owned 390 "?screen=personalization-owned"
+          capture personalization-owned 390 "?screen=personalization-owned&p.target=ALL"
           capture personalization-detail 390 "?screen=personalization-detail&p.personalizationId=p-1"
 
           # Creator workspace.
