@@ -11,6 +11,10 @@ on:
     paths:
       - "apps/mini-app-mockup/**"
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -117,7 +121,7 @@ jobs:
           # Staff workspaces.
           capture moderation 390 "?screen=moderation"
           capture administration 390 "?screen=administration"
-          capture moderation-user 390 "?screen=moderation-user&p.accountId=profile-north"
+          capture moderation-user 390 "?screen=moderation-user&p.userId=0198f6ce-e934-7000-8000-000000000021"
           capture personalization-review 390 "?screen=personalization-review"
           capture bet-admin 390 "?screen=bet-admin"
           capture badge-admin 390 "?screen=badge-admin"
@@ -130,3 +134,34 @@ jobs:
           path: apps/mini-app-mockup/visual-audit
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish visual audit status
+        if: always() && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE="success"
+          else
+            STATE="failure"
+          fi
+
+          PAYLOAD="$(jq -n \
+            --arg state "$STATE" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Mini App Mockup visual audit: $JOB_STATUS" \
+            --arg context "mini-app-mockup/visual-audit" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$PAYLOAD" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
