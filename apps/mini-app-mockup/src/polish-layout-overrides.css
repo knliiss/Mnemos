@@ -1,0 +1,40 @@
+.account-polished-hero {
+  margin-right: 48px;
+  grid-template-columns: minmax(0, 1fr) 116px;
+}
+
+.final-navigation {
+  border-color: rgba(255, 246, 219, 0.17) !important;
+  background: rgba(22, 21, 18, 0.94) !important;
+  box-shadow:
+    0 -14px 38px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.045) !important;
+}
+
+.final-navigation button.is-active .root-navigation__icon {
+  background: linear-gradient(180deg, #e3ff63, #cff23d) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(217, 255, 66, 0.2) !important;
+}
+
+.global-user-button--final {
+  border-color: rgba(230, 255, 125, 0.42) !important;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(230, 255, 125, 0.22), transparent 44%),
+    #2c2a22 !important;
+}
+
+.user-hub--final {
+  border-color: rgba(255, 246, 219, 0.22) !important;
+  background:
+    linear-gradient(145deg, rgba(52, 49, 40, 0.97), rgba(25, 24, 20, 0.985) 48%),
+    #191815 !important;
+}
+
+@media (max-width: 374px) {
+  .account-polished-hero {
+    margin-right: 44px;
+    grid-template-columns: minmax(0, 1fr) 108px;
+  }
+}
