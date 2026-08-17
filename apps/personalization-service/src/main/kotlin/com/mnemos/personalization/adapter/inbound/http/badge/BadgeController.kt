@@ -1,7 +1,9 @@
 package com.mnemos.personalization.adapter.inbound.http.badge
 
 import com.mnemos.personalization.adapter.inbound.http.badge.BadgeApiMapper.toResponse
-import com.mnemos.personalization.application.badge.BadgeSelectionService
+import com.mnemos.personalization.application.badge.usecase.activate.ActivateBadgeUseCase
+import com.mnemos.personalization.application.badge.usecase.deactivate.DeactivateBadgeUseCase
+import com.mnemos.personalization.application.badge.usecase.listmine.ListMyBadgesUseCase
 import com.mnemos.personalization.domain.badge.model.BadgeId
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -16,22 +18,24 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/personalizations/badges")
 class BadgeController(
-    private val badgeSelectionService: BadgeSelectionService,
+    private val listMyBadgesUseCase: ListMyBadgesUseCase,
+    private val activateBadgeUseCase: ActivateBadgeUseCase,
+    private val deactivateBadgeUseCase: DeactivateBadgeUseCase,
 ) {
     @GetMapping("/me")
-    fun listMine(): List<UserBadgeResponse> = badgeSelectionService.listMine().map { userBadge -> userBadge.toResponse() }
+    fun listMine(): List<UserBadgeResponse> = listMyBadgesUseCase.execute().map { userBadge -> userBadge.toResponse() }
 
     @PutMapping("/{badgeId}/active")
     fun activate(
         @PathVariable badgeId: UUID,
     ): UserBadgeResponse =
-        badgeSelectionService
-            .activate(BadgeId(badgeId))
+        activateBadgeUseCase
+            .execute(BadgeId(badgeId))
             .toResponse()
 
     @DeleteMapping("/active")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deactivateActive() {
-        badgeSelectionService.deactivateActive()
+        deactivateBadgeUseCase.execute()
     }
 }

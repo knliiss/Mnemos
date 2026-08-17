@@ -5,7 +5,7 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
-import com.mnemos.personalization.application.revenue.ScheduleCreatorRevenueService
+import com.mnemos.personalization.application.revenue.usecase.schedule.ScheduleCreatorRevenueUseCase
 import com.mnemos.personalization.contracts.PersonalizationAggregateType
 import com.mnemos.personalization.contracts.PersonalizationEventContract
 import com.mnemos.personalization.contracts.PersonalizationEventType
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class CreatorRevenuePurchaseCompletedHandler(
-    private val service: ScheduleCreatorRevenueService,
+    private val scheduleCreatorRevenueUseCase: ScheduleCreatorRevenueUseCase,
 ) : KafkaMessageHandler<PersonalizationPurchaseCompletedV1> {
     override val definition: KafkaMessageDefinition<PersonalizationPurchaseCompletedV1> =
         kafkaMessageDefinition(
@@ -59,7 +59,7 @@ class CreatorRevenuePurchaseCompletedHandler(
             return
         }
 
-        service.execute(PurchaseOperationId(message.payload.operationId))
+        scheduleCreatorRevenueUseCase.execute(PurchaseOperationId(message.payload.operationId))
     }
 
     private fun validateResultState(payload: PersonalizationPurchaseCompletedV1) {

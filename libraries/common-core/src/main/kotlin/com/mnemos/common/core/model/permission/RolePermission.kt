@@ -1,7 +1,6 @@
 package com.mnemos.common.core.model.permission
 
 enum class RolePermission {
-
     // ACCOUNT
     VIEW_ACCOUNT_SETTINGS,
     EDIT_ACCOUNT_SETTINGS,
@@ -31,7 +30,9 @@ enum class RolePermission {
     // REWARDS
     CLAIM_DAILY_REWARD,
 
-    // COMMENTS
+    // SOCIAL
+    PUBLISH_COMMENTS,
+    PUBLISH_REACTIONS,
     MODERATE_COMMENTS,
 
     // BETS
@@ -44,5 +45,5 @@ enum class RolePermission {
     VIEW_PERSONALIZATIONS,
     APPLY_PERSONALIZATIONS,
     BUY_PERSONALIZATIONS,
-    MANAGE_PERSONALIZATIONS
+    MANAGE_PERSONALIZATIONS,
 }

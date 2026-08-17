@@ -9,8 +9,11 @@ import com.mnemos.personalization.adapter.inbound.http.creator.request.CreatePro
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileThemeRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
-import com.mnemos.personalization.application.personalization.create.CreateCreatorPersonalizationService
-import com.mnemos.personalization.application.personalization.lifecycle.PersonalizationLifecycleService
+import com.mnemos.personalization.application.personalization.usecase.createcreator.CreateCreatorPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.listcreator.ListCreatorPersonalizationsUseCase
+import com.mnemos.personalization.application.personalization.usecase.publish.PublishPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.submit.SubmitPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.updatecreator.UpdateCreatorPersonalizationUseCase
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -29,11 +32,15 @@ import java.util.UUID
 @RequestMapping("/api/v1/personalizations/creator")
 @PreAuthorize("hasAnyRole('PERSONALIZATION_CREATOR', 'ADMIN', 'SUPER_ADMIN')")
 class CreatorPersonalizationController(
-    private val createService: CreateCreatorPersonalizationService,
-    private val lifecycleService: PersonalizationLifecycleService,
+    private val createCreatorPersonalizationUseCase: CreateCreatorPersonalizationUseCase,
+    private val updateCreatorPersonalizationUseCase: UpdateCreatorPersonalizationUseCase,
+    private val listCreatorPersonalizationsUseCase: ListCreatorPersonalizationsUseCase,
+    private val submitPersonalizationUseCase: SubmitPersonalizationUseCase,
+    private val publishPersonalizationUseCase: PublishPersonalizationUseCase,
 ) {
     @GetMapping("/me")
-    fun listMine(): List<PersonalizationResponse> = lifecycleService.listMine().map { personalization -> personalization.toResponse() }
+    fun listMine(): List<PersonalizationResponse> =
+        listCreatorPersonalizationsUseCase.execute().map { personalization -> personalization.toResponse() }
 
     @PostMapping("/nick-styles")
     @ResponseStatus(HttpStatus.CREATED)
@@ -41,7 +48,7 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateNickStyleRequest,
-    ): PersonalizationResponse = createService.execute(request.toCreateCommand()).toResponse()
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
     @PostMapping("/profile-themes")
     @ResponseStatus(HttpStatus.CREATED)
@@ -49,7 +56,7 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateProfileThemeRequest,
-    ): PersonalizationResponse = createService.execute(request.toCreateCommand()).toResponse()
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
     @PostMapping("/avatar-frames")
     @ResponseStatus(HttpStatus.CREATED)
@@ -57,7 +64,7 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateAvatarFrameRequest,
-    ): PersonalizationResponse = createService.execute(request.toCreateCommand()).toResponse()
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
     @PostMapping("/profile-effects")
     @ResponseStatus(HttpStatus.CREATED)
@@ -65,7 +72,7 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateProfileEffectRequest,
-    ): PersonalizationResponse = createService.execute(request.toCreateCommand()).toResponse()
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
     @PostMapping("/notification-packs")
     @ResponseStatus(HttpStatus.CREATED)
@@ -73,7 +80,7 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateNotificationPackRequest,
-    ): PersonalizationResponse = createService.execute(request.toCreateCommand()).toResponse()
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
     @PutMapping("/{personalizationId}/nick-style")
     fun updateNickStyle(
@@ -82,8 +89,8 @@ class CreatorPersonalizationController(
         @Valid
         request: CreateNickStyleRequest,
     ): PersonalizationResponse =
-        lifecycleService
-            .update(request.toUpdateCommand(PersonalizationId(personalizationId)))
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
             .toResponse()
 
     @PutMapping("/{personalizationId}/profile-theme")
@@ -93,8 +100,8 @@ class CreatorPersonalizationController(
         @Valid
         request: CreateProfileThemeRequest,
     ): PersonalizationResponse =
-        lifecycleService
-            .update(request.toUpdateCommand(PersonalizationId(personalizationId)))
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
             .toResponse()
 
     @PutMapping("/{personalizationId}/avatar-frame")
@@ -104,8 +111,8 @@ class CreatorPersonalizationController(
         @Valid
         request: CreateAvatarFrameRequest,
     ): PersonalizationResponse =
-        lifecycleService
-            .update(request.toUpdateCommand(PersonalizationId(personalizationId)))
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
             .toResponse()
 
     @PutMapping("/{personalizationId}/profile-effect")
@@ -115,8 +122,8 @@ class CreatorPersonalizationController(
         @Valid
         request: CreateProfileEffectRequest,
     ): PersonalizationResponse =
-        lifecycleService
-            .update(request.toUpdateCommand(PersonalizationId(personalizationId)))
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
             .toResponse()
 
     @PutMapping("/{personalizationId}/notification-pack")
@@ -126,23 +133,23 @@ class CreatorPersonalizationController(
         @Valid
         request: CreateNotificationPackRequest,
     ): PersonalizationResponse =
-        lifecycleService
-            .update(request.toUpdateCommand(PersonalizationId(personalizationId)))
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
             .toResponse()
 
     @PostMapping("/{personalizationId}/submit")
     fun submit(
         @PathVariable personalizationId: UUID,
     ): PersonalizationResponse =
-        lifecycleService
-            .submit(PersonalizationId(personalizationId))
+        submitPersonalizationUseCase
+            .execute(PersonalizationId(personalizationId))
             .toResponse()
 
     @PostMapping("/{personalizationId}/publish")
     fun publish(
         @PathVariable personalizationId: UUID,
     ): PersonalizationResponse =
-        lifecycleService
-            .publish(PersonalizationId(personalizationId))
+        publishPersonalizationUseCase
+            .execute(PersonalizationId(personalizationId))
             .toResponse()
 }

@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.adapter.out.persistence.moderation.NotificationSuspensionRepository
 import com.mnemos.notification.adapter.out.persistence.recipient.RecipientJpaRepository
+import com.mnemos.notification.adapter.out.persistence.recipient.query.RecipientQueryMapper.toView
 import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
 import org.springframework.stereotype.Repository
@@ -27,11 +28,4 @@ class RecipientQueryJpaAdapter(
 
     override fun findByTelegramId(telegramId: TelegramId): RecipientView? =
         recipientJpaRepository.findActiveViewByTelegramId(telegramId.id)?.toView()
-
-    private fun RecipientViewProjection.toView(): RecipientView =
-        RecipientView(
-            userId = UserId(userId),
-            telegramId = TelegramId(telegramId),
-            priority = priority,
-        )
 }

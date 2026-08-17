@@ -7,11 +7,8 @@ import com.mnemos.wallet.domain.wallet.model.WalletOwner
 import java.util.UUID
 
 object WalletOwnerPersistenceMapper {
-    fun toDomain(
-        ownerType: WalletOwnerType,
-        ownerId: UUID,
-    ): WalletOwner =
-        when (ownerType) {
+    fun WalletOwnerType.toDomain(ownerId: UUID): WalletOwner =
+        when (this) {
             WalletOwnerType.ACCOUNT -> WalletOwner.Account(AccountId(ownerId))
             WalletOwnerType.USER -> WalletOwner.User(UserId(ownerId))
         }

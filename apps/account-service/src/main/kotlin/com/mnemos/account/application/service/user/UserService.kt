@@ -2,7 +2,7 @@ package com.mnemos.account.application.service.user
 
 import com.mnemos.account.application.context.CurrentUserProvider
 import com.mnemos.account.application.query.user.CurrentUserView
-import com.mnemos.account.application.query.user.toCurrentUserView
+import com.mnemos.account.application.query.user.UserViewMapper.toCurrentUserView
 import com.mnemos.account.application.service.user.UserIntegrationEvents.created
 import com.mnemos.account.domain.exception.user.UserIdentityConflictException
 import com.mnemos.account.domain.model.user.User

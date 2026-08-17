@@ -3,6 +3,8 @@ package com.mnemos.wallet.application.transaction.usecase.create
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.wallet.application.transaction.event.WalletTransactionIntegrationEvents
+import com.mnemos.wallet.application.transaction.mapper.CreateTransactionResponseMapper.toCompletedResponse
+import com.mnemos.wallet.application.transaction.mapper.CreateTransactionResponseMapper.toResponse
 import com.mnemos.wallet.contracts.wallet.shared.WalletTransactionFailureReason
 import com.mnemos.wallet.domain.balance.model.Balance
 import com.mnemos.wallet.domain.balance.repository.BalanceRepository
@@ -244,28 +246,4 @@ class CreateTransactionService(
             reason = reason,
         )
     }
-
-    private fun Transaction.toResponse(): CreateTransactionResponse =
-        CreateTransactionResponse(
-            transactionId = id,
-            requestId = requestId,
-            owner = owner,
-            currency = currency,
-            type = type,
-            source = source,
-            sourceReferenceId = sourceReferenceId,
-            amount = amount.value,
-        )
-
-    private fun TransactionRequest.toCompletedResponse(): CreateTransactionResponse =
-        CreateTransactionResponse(
-            transactionId = requireNotNull(transactionId),
-            requestId = requestId,
-            owner = owner,
-            currency = currency,
-            type = type,
-            source = source,
-            sourceReferenceId = sourceReferenceId,
-            amount = amount,
-        )
 }

@@ -2,7 +2,7 @@ package com.mnemos.account.application.service.role
 
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.query.account.role.RoleView
-import com.mnemos.account.application.query.account.role.toView
+import com.mnemos.account.application.query.account.role.RoleViewMapper.toView
 import com.mnemos.account.domain.exception.role.RoleNotFoundException
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.role.RoleId

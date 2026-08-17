@@ -1,7 +1,7 @@
 package com.mnemos.event.adapter.inbound.http.booster
 
 import com.mnemos.event.adapter.inbound.http.common.pagination.PageResponse
-import com.mnemos.event.adapter.inbound.http.common.pagination.toPageResponse
+import com.mnemos.event.adapter.inbound.http.common.pagination.PageResponseMapper.toPageResponse
 import com.mnemos.event.application.booster.model.BoosterEventView
 import com.mnemos.event.application.booster.usecase.list.ListBoosterEventQuery
 import com.mnemos.event.application.common.pagination.PageQuery

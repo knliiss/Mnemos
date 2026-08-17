@@ -2,6 +2,7 @@ package com.mnemos.personalization.application.revenue
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
+import com.mnemos.personalization.application.revenue.usecase.retry.RetryCreatorRevenueService
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperation

@@ -1,18 +1,25 @@
 package com.mnemos.event.adapter.inbound.http.internal
 
+import com.mnemos.event.adapter.inbound.http.internal.InternalItemDropApiMapper.toInternalResponse
 import com.mnemos.event.application.itemdrop.usecase.first.FindFirstItemDropQuery
 import com.mnemos.event.application.itemdrop.usecase.first.FindFirstItemDropUseCase
+import com.mnemos.event.application.itemdrop.usecase.get.GetItemDropUseCase
+import com.mnemos.event.domain.EventId
 import com.mnemos.event.domain.item.model.DomainItemType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
+import java.util.UUID
 
 @RestController
 @RequestMapping("/internal/v1/item-drops")
 class InternalItemDropController(
     private val findFirstItemDropUseCase: FindFirstItemDropUseCase,
+    private val getItemDropUseCase: GetItemDropUseCase,
 ) {
     @GetMapping("/first")
     fun first(
@@ -39,4 +46,15 @@ class InternalItemDropController(
                     occurredAt = itemDrop.occurredAt,
                 )
             }
+
+    @GetMapping("/{itemDropId}")
+    fun getById(
+        @PathVariable itemDropId: UUID,
+    ): ResponseEntity<InternalItemDropResponse> {
+        val itemDrop =
+            getItemDropUseCase.execute(EventId(itemDropId))
+                ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(itemDrop.toInternalResponse())
+    }
 }

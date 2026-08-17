@@ -1,12 +1,12 @@
 package com.mnemos.event.adapter.out.persistence.raid.query
 
-import com.mnemos.event.adapter.out.persistence.common.pagination.toPageResult
+import com.mnemos.event.adapter.out.persistence.common.pagination.PagePersistenceMapper.toPageResult
 import com.mnemos.event.adapter.out.persistence.raid.RaidEventJpaRepository
+import com.mnemos.event.adapter.out.persistence.raid.query.RaidEventQueryMapper.toView
 import com.mnemos.event.application.common.pagination.PageResult
 import com.mnemos.event.application.raid.model.RaidEventView
 import com.mnemos.event.application.raid.port.out.RaidEventReader
 import com.mnemos.event.application.raid.usecase.list.ListRaidEventQuery
-import com.mnemos.event.domain.EventId
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 
@@ -28,11 +28,4 @@ class RaidEventQueryJpaRepository(
 
         return page.toPageResult { it.toView() }
     }
-
-    private fun RaidEventViewProjection.toView(): RaidEventView =
-        RaidEventView(
-            id = EventId(id),
-            locations = locations,
-            startedAt = startedAt,
-        )
 }

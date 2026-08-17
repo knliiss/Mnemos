@@ -1,4 +1,4 @@
-.PHONY: help build test check clean deps status
+.PHONY: help build test check ktlintFormat clean deps
 
 help:
 	@printf "\033[1mMnemos\033[0m development commands\n\n"
@@ -6,6 +6,7 @@ help:
 	@printf "  \033[36m%-28s\033[0m %s\n" "make build" "Build project and Docker images"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make test" "Run all tests"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make check" "Run all checks"
+	@printf "  \033[36m%-28s\033[0m %s\n" "make ktlintFormat" "Format Kotlin sources with ktlint"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make clean" "Clean Gradle outputs"
 	@printf "\n\033[1mStack\033[0m\n"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make up" "Start stopped services only"
@@ -13,17 +14,20 @@ help:
 	@printf "  \033[36m%-28s\033[0m %s\n" "make restart" "Build images and recreate services"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make down" "Remove the stack"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make logs" "Follow stack logs"
-	@printf "  \033[36m%-28s\033[0m %s\n" "make status" "Show service status"
+	@printf "  \033[36m%-28s\033[0m %s\n" "make status" "Show service status and validate container state"
+	@printf "  \033[36m%-28s\033[0m %s\n" "make pull" "Pull stack images"
 	@printf "\n\033[1mApplication commands\033[0m\n"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-build" "Build service and image"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-test" "Run service tests"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-check" "Run service checks"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-up" "Start service only"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-restart" "Build image and recreate service"
+	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-status" "Show and validate service status"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-stop" "Stop service"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-logs" "Follow service logs"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make <service>-shell" "Open service shell"
 	@printf "\n\033[1mInfrastructure\033[0m\n"
+	@printf "  \033[36m%-28s\033[0m %s\n" "make kafka-init-build" "Build Kafka bootstrap image"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make kafka-topics" "List Kafka topics"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make kafka-groups" "List Kafka consumer groups"
 	@printf "  \033[36m%-28s\033[0m %s\n" "make kafka-create-<topic>" "Create Kafka topic"
@@ -35,7 +39,7 @@ help:
 build: require-gradle require-compose
 	$(call title,project,BUILD)
 	$(call run_step,Gradle,$(GRADLEW) build --console=plain)
-	$(call run_step,Images,$(DC) build --quiet $(APP_SERVICE_NAMES))
+	$(call run_step,Images,$(DC) build --quiet $(BUILDABLE_SERVICE_NAMES))
 	$(call success,project,build complete)
 
 test: require-gradle
@@ -46,6 +50,10 @@ check: require-gradle
 	$(call title,project,CHECK)
 	@$(GRADLEW) check --console=plain
 
+ktlintFormat: require-gradle
+	$(call title,project,KTLINT FORMAT)
+	@$(GRADLEW) ktlintFormat --console=plain
+
 clean: require-gradle
 	$(call title,project,CLEAN)
 	@$(GRADLEW) clean --console=plain
@@ -53,9 +61,6 @@ clean: require-gradle
 
 deps: require-gradle
 	@$(GRADLEW) dependencies --console=plain
-
-status: require-compose
-	@$(DC) ps -a
 
 %-build: require-gradle require-compose
 	@if [ ! -d "apps/$*-service" ]; then printf "\033[31m✗\033[0m Unknown application: %s\n" "$*" >&2; exit 2; fi

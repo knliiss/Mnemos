@@ -18,4 +18,10 @@ class NotificationPackSelectionRevisionStoreAdapter(
 
         return state.increment()
     }
+
+    override fun current(userId: UserId): Long =
+        repository
+            .findById(userId.id)
+            .map(NotificationPackSelectionRevisionEntity::revision)
+            .orElse(0L)
 }

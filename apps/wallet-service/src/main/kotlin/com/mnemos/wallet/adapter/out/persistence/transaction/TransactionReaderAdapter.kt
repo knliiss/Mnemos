@@ -1,5 +1,6 @@
 package com.mnemos.wallet.adapter.out.persistence.transaction
 
+import com.mnemos.wallet.adapter.out.persistence.transaction.TransactionViewPersistenceMapper.toView
 import com.mnemos.wallet.application.common.pagination.PageQuery
 import com.mnemos.wallet.application.common.pagination.PageResult
 import com.mnemos.wallet.application.transaction.model.TransactionView
@@ -40,16 +41,4 @@ class TransactionReaderAdapter(
             hasNextPage = result.hasNext(),
         )
     }
-
-    private fun TransactionEntity.toView(): TransactionView =
-        TransactionView(
-            id = id,
-            requestId = requestId,
-            currency = currency,
-            type = type,
-            source = source,
-            sourceReferenceId = sourceReferenceId,
-            amount = amount,
-            createdAt = createdAt,
-        )
 }
