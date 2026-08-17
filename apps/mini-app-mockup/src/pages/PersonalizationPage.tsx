@@ -1,5 +1,5 @@
-import { motion } from "framer-motion"
-import { Check, Lock, Plus, Sparkles } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Check, Lock, Plus, Sparkles, X } from "lucide-react"
 import { useState } from "react"
 import { CurrencyMark } from "../components/CurrencyMark"
 import { PageFrame } from "../components/PageFrame"
@@ -17,6 +17,8 @@ export function PersonalizationPage({
 }) {
   const [scope, setScope] = useState<Scope>("user")
   const [packs, setPacks] = useState<MockPack[]>(mockPacks)
+  const [creatorOpen, setCreatorOpen] = useState(false)
+  const [customPackName, setCustomPackName] = useState("Quiet")
 
   const usePack = (pack: MockPack) => {
     if (!pack.owned) {
@@ -29,7 +31,40 @@ export function PersonalizationPage({
     onNotify(`${pack.name} активовано`)
   }
 
+  const saveCreatorPack = () => {
+    const name = customPackName.trim()
+
+    if (!name) {
+      onNotify("Вкажи назву пака")
+      return
+    }
+
+    const existing = packs.some((pack) => pack.id === "creator-private")
+
+    if (existing) {
+      setPacks((current) => current.map((pack) => pack.id === "creator-private" ? { ...pack, name } : pack))
+    } else {
+      setPacks((current) => [
+        ...current,
+        {
+          id: "creator-private",
+          name,
+          author: "knalis",
+          scope: "user",
+          price: 0,
+          owned: true,
+          active: false,
+          preview: "paper",
+        },
+      ])
+    }
+
+    setCreatorOpen(false)
+    onNotify("Private pack збережено")
+  }
+
   const visiblePacks = packs.filter((pack) => pack.scope === scope)
+  const creatorPack = packs.find((pack) => pack.id === "creator-private")
 
   return (
     <PageFrame page="personalization">
@@ -84,10 +119,24 @@ export function PersonalizationPage({
       {scope === "user" && (
         <section className="creator-card">
           <span className="creator-card-icon"><Lock size={17} strokeWidth={1.7} /></span>
-          <div><strong>Private pack</strong><span>1 безкоштовний для creator</span></div>
-          <button onClick={() => onNotify("Редактор пака буде окремим flow")}><Plus size={17} strokeWidth={1.8} /></button>
+          <div><strong>{creatorPack?.name ?? "Private pack"}</strong><span>{creatorPack ? "Приватний · knalis" : "1 безкоштовний для creator"}</span></div>
+          <button onClick={() => setCreatorOpen(true)} aria-label="Редагувати private pack"><Plus size={17} strokeWidth={1.8} /></button>
         </section>
       )}
+
+      <AnimatePresence>
+        {creatorOpen && (
+          <motion.div className="inline-editor" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+            <div className="inline-editor-title">
+              <div><span className="eyebrow">CREATOR</span><h2>Private pack</h2></div>
+              <button onClick={() => setCreatorOpen(false)} aria-label="Закрити"><X size={17} strokeWidth={1.7} /></button>
+            </div>
+            <label><span>Назва</span><input value={customPackName} onChange={(event) => setCustomPackName(event.target.value)} maxLength={20} /></label>
+            <div className="mini-preview"><span /><span /><span /></div>
+            <button className="primary-action primary-action--embedded" onClick={saveCreatorPack}><Check size={16} strokeWidth={2} /><span>Зберегти</span></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageFrame>
   )
 }
