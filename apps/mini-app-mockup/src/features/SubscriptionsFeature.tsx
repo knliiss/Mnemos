@@ -58,6 +58,16 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
   const [raidLocations, setRaidLocations] = useState<number[]>([])
   const [raidInput, setRaidInput] = useState("")
 
+  const cleanDroppedFor = droppedFor.trim()
+  const cleanItemName = itemName.trim()
+  const droppedForValid = !cleanDroppedFor || (
+    cleanDroppedFor.length >= 4
+    && cleanDroppedFor.length <= 20
+    && /^[\p{L}0-9_]+$/u.test(cleanDroppedFor)
+  )
+  const itemNameValid = !cleanItemName || cleanItemName.length <= 24
+  const itemDropValid = droppedForValid && itemNameValid && Boolean(cleanDroppedFor || cleanItemName)
+
   const itemSuggestions = useMemo(() => {
     const query = itemName.trim().toLowerCase()
     if (query.length < 2) return []
@@ -82,13 +92,13 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
     let next: Subscription
 
     if (type === "ITEM_DROP") {
-      if (!droppedFor.trim() && !itemName.trim()) return
+      if (!itemDropValid) return
 
       next = {
         id,
         type,
-        droppedFor: droppedFor.trim() || undefined,
-        itemName: itemName.trim() || undefined,
+        droppedFor: cleanDroppedFor || undefined,
+        itemName: cleanItemName || undefined,
       }
     } else if (type === "BOOSTER") {
       next = { id, type, boosterType }
@@ -103,6 +113,8 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
     setSubscriptions([next, ...subscriptions])
     setCreating(false)
   }
+
+  const createDisabled = type === "ITEM_DROP" && !itemDropValid
 
   return (
     <div className="screen">
@@ -143,11 +155,15 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
 
               {type === "ITEM_DROP" ? (
                 <>
-                  <Field label="Гравець">
+                  <Field
+                    label="Гравець"
+                    hint={cleanDroppedFor && !droppedForValid ? "4–20 символів: літери, цифри, _" : undefined}
+                  >
                     <input
                       value={droppedFor}
                       onChange={(event) => setDroppedFor(event.target.value)}
-                      placeholder="nickname"
+                      placeholder="нікнейм"
+                      minLength={4}
                       maxLength={20}
                     />
                   </Field>
@@ -220,7 +236,7 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
                 </Field>
               ) : null}
 
-              <button className="primary-action" onClick={create}>Додати</button>
+              <button className="primary-action" disabled={createDisabled} onClick={create}>Додати</button>
             </div>
           </BottomSheet>
         ) : null}
