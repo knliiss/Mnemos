@@ -1,6 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AccountMark } from "./components/AccountMark"
 import { AccountSwitcherSheet } from "./components/AccountSwitcherSheet"
 import { BottomNavigation } from "./components/BottomNavigation"
@@ -22,58 +22,54 @@ import { SubscriptionsPage } from "./pages/SubscriptionsPage"
 import { WalletPage } from "./pages/WalletPage"
 import type { Page, RootPage } from "./types"
 
-const rootPages = new Set<Page>(["home", "events", "services", "profile"])
+const rootPages: RootPage[] = ["home", "events", "services", "profile"]
+
+function isRootPage(page: Page): page is RootPage {
+  return rootPages.includes(page as RootPage)
+}
 
 export default function App() {
-  const [navigation, setNavigation] = useState<Page[]>(["home"])
+  const [navigationStack, setNavigationStack] = useState<Page[]>(["home"])
   const [activeAccountId, setActiveAccountId] = useState(mockAccounts[0].id)
   const [accountSheetOpen, setAccountSheetOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const toastTimerRef = useRef<number | null>(null)
 
-  const page = navigation[navigation.length - 1]
+  const page = navigationStack[navigationStack.length - 1]
+  const rootPage = navigationStack.find(isRootPage) ?? "home"
 
   const activeAccount = useMemo(
     () => mockAccounts.find((account) => account.id === activeAccountId) ?? mockAccounts[0],
     [activeAccountId],
   )
 
-  const activeRoot = useMemo<RootPage>(() => {
-    for (let index = navigation.length - 1; index >= 0; index -= 1) {
-      const candidate = navigation[index]
-      if (rootPages.has(candidate)) {
-        return candidate as RootPage
-      }
-    }
-
-    return "home"
-  }, [navigation])
-
-  const notify = (message: string) => {
-    setToast(message)
-
-    if (toastTimerRef.current !== null) {
-      window.clearTimeout(toastTimerRef.current)
-    }
-
-    toastTimerRef.current = window.setTimeout(() => setToast(null), 2200)
-  }
-
-  const navigate = (nextPage: Page) => {
-    if (rootPages.has(nextPage)) {
-      setNavigation([nextPage])
+  useEffect(() => {
+    if (!toast) {
       return
     }
 
-    setNavigation((current) => [...current, nextPage])
+    const timeout = window.setTimeout(() => setToast(null), 2200)
+    return () => window.clearTimeout(timeout)
+  }, [toast])
+
+  const notify = (message: string) => {
+    setToast(message)
   }
 
-  const navigateRoot = (nextPage: RootPage) => {
-    setNavigation([nextPage])
+  const setRootPage = (nextPage: RootPage) => {
+    setNavigationStack([nextPage])
+  }
+
+  const navigate = (nextPage: Page) => {
+    if (isRootPage(nextPage)) {
+      setRootPage(nextPage)
+      return
+    }
+
+    setNavigationStack((current) => [...current, nextPage])
   }
 
   const goBack = () => {
-    setNavigation((current) => current.length > 1 ? current.slice(0, -1) : ["home"])
+    setNavigationStack((current) => current.length > 1 ? current.slice(0, -1) : current)
   }
 
   const selectAccount = (accountId: string) => {
@@ -81,8 +77,6 @@ export default function App() {
     setAccountSheetOpen(false)
     notify("Активний аккаунт змінено")
   }
-
-  const rootPageVisible = rootPages.has(page)
 
   return (
     <MotionConfig reducedMotion="user">
@@ -103,8 +97,8 @@ export default function App() {
             <span className="scope-divider" aria-hidden="true" />
 
             <motion.button
-              className={`global-user-button ${activeRoot === "profile" ? "global-user-button--active" : ""}`}
-              onClick={() => navigateRoot("profile")}
+              className={`global-user-button ${rootPage === "profile" ? "global-user-button--active" : ""}`}
+              onClick={() => setRootPage("profile")}
               whileTap={{ scale: 0.92 }}
               aria-label="Профіль юзера"
             >
@@ -114,104 +108,24 @@ export default function App() {
 
           <div className="screen-content">
             <AnimatePresence mode="wait" initial={false}>
-              {page === "home" && (
-                <HomePage
-                  key="home"
-                  activeAccount={activeAccount}
-                  onNavigate={navigate}
-                />
-              )}
-              {page === "events" && (
-                <EventsPage key="events" onNavigate={navigate} />
-              )}
-              {page === "services" && (
-                <ServicesPage
-                  key="services"
-                  activeAccount={activeAccount}
-                  onNavigate={navigate}
-                />
-              )}
-              {page === "profile" && (
-                <ProfilePage
-                  key="profile"
-                  activeAccount={activeAccount}
-                  onNavigate={navigate}
-                />
-              )}
-              {page === "event-detail" && (
-                <EventDetailPage key="event-detail" onBack={goBack} onNotify={notify} />
-              )}
-              {page === "rewards" && (
-                <RewardsPage
-                  key="rewards"
-                  activeAccount={activeAccount}
-                  onBack={goBack}
-                  onNotify={notify}
-                />
-              )}
-              {page === "bets" && (
-                <BetsPage
-                  key="bets"
-                  activeAccount={activeAccount}
-                  onBack={goBack}
-                  onNavigate={navigate}
-                />
-              )}
-              {page === "bet-detail" && (
-                <BetDetailPage
-                  key="bet-detail"
-                  activeAccount={activeAccount}
-                  onBack={goBack}
-                  onNotify={notify}
-                />
-              )}
-              {page === "wallet" && (
-                <WalletPage key="wallet" activeAccount={activeAccount} onBack={goBack} />
-              )}
-              {page === "personalization" && (
-                <PersonalizationPage
-                  key="personalization"
-                  onBack={goBack}
-                  onNotify={notify}
-                />
-              )}
-              {page === "subscriptions" && (
-                <SubscriptionsPage
-                  key="subscriptions"
-                  onBack={goBack}
-                  onNotify={notify}
-                />
-              )}
-              {page === "notifications" && (
-                <NotificationsPage key="notifications" onBack={goBack} />
-              )}
-              {page === "social" && (
-                <SocialPage
-                  key="social"
-                  activeAccount={activeAccount}
-                  onBack={goBack}
-                  onNotify={notify}
-                />
-              )}
-              {page === "settings" && (
-                <SettingsPage key="settings" onBack={goBack} />
-              )}
+              {page === "home" && <HomePage key="home" activeAccount={activeAccount} onNavigate={navigate} />}
+              {page === "events" && <EventsPage key="events" onNavigate={navigate} />}
+              {page === "services" && <ServicesPage key="services" activeAccount={activeAccount} onNavigate={navigate} />}
+              {page === "profile" && <ProfilePage key="profile" activeAccount={activeAccount} onNavigate={navigate} />}
+              {page === "event-detail" && <EventDetailPage key="event-detail" onBack={goBack} onNotify={notify} />}
+              {page === "rewards" && <RewardsPage key="rewards" activeAccount={activeAccount} onBack={goBack} onNotify={notify} />}
+              {page === "bets" && <BetsPage key="bets" activeAccount={activeAccount} onBack={goBack} onNavigate={navigate} />}
+              {page === "bet-detail" && <BetDetailPage key="bet-detail" activeAccount={activeAccount} onBack={goBack} onNotify={notify} />}
+              {page === "wallet" && <WalletPage key="wallet" activeAccount={activeAccount} onBack={goBack} />}
+              {page === "personalization" && <PersonalizationPage key="personalization" onBack={goBack} onNotify={notify} />}
+              {page === "subscriptions" && <SubscriptionsPage key="subscriptions" onBack={goBack} onNotify={notify} />}
+              {page === "notifications" && <NotificationsPage key="notifications" onBack={goBack} />}
+              {page === "social" && <SocialPage key="social" activeAccount={activeAccount} onBack={goBack} onNotify={notify} />}
+              {page === "settings" && <SettingsPage key="settings" onBack={goBack} onNotify={notify} />}
             </AnimatePresence>
           </div>
 
-          <AnimatePresence initial={false}>
-            {rootPageVisible && (
-              <motion.div
-                className="bottom-navigation-slot"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.18 }}
-              >
-                <BottomNavigation page={activeRoot} onChange={navigateRoot} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {isRootPage(page) && <BottomNavigation page={page} onChange={setRootPage} />}
 
           <AccountSwitcherSheet
             accounts={mockAccounts}
