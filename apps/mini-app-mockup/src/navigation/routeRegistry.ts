@@ -43,6 +43,15 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
   "badge-admin": { area: "staff" },
 }
 
+const areaRoots: Record<FeatureArea, RootRoute> = {
+  events: "events",
+  account: "account",
+  people: "me",
+  personalization: "me",
+  creator: "me",
+  staff: "me",
+}
+
 export const rootRoutes = Object.entries(routeRegistry)
   .filter(([, definition]) => definition.root)
   .map(([id]) => id as RootRoute)
@@ -55,12 +64,12 @@ export function featureArea(id: RouteId): FeatureArea {
   return routeRegistry[id].area
 }
 
-export function initialRoute(): Route {
+export function initialStack(): Route[] {
   const params = new URLSearchParams(window.location.search)
   const requested = params.get("screen") as RouteId | null
 
   if (!requested || !(requested in routeRegistry)) {
-    return { id: "events" }
+    return [{ id: "events" }]
   }
 
   const routeParams = Object.fromEntries(
@@ -69,8 +78,17 @@ export function initialRoute(): Route {
       .map(([key, value]) => [key.slice(2), value]),
   )
 
-  return {
+  const route: Route = {
     id: requested,
     params: Object.keys(routeParams).length ? routeParams : undefined,
   }
+
+  if (isRootRoute(requested)) {
+    return [route]
+  }
+
+  return [
+    { id: areaRoots[routeRegistry[requested].area] },
+    route,
+  ]
 }
