@@ -1,11 +1,11 @@
-import { AnimatePresence } from "framer-motion"
-import { useState } from "react"
-import { accountTransactions, initialMembers, initialRoles, permissionGroups } from "../mockData"
+import { AnimatePresence, motion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import { accountTransactions, feed, initialMembers, initialRoles, permissionGroups } from "../mockData"
 import type { Account, AccountRole, Member, RolePermission, Route } from "../model"
 import { permissionLabels, transactionSourceLabels } from "../presentation"
 import { CristalixHead } from "../components/CristalixHead"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { BottomSheet, ChoiceGrid, CurrencyValue, Field, IconButton, PageHeader, Section, Toggle } from "../shared/Primitives"
+import { ChoiceGrid, CurrencyValue, Field, IconButton, PageHeader, Section, Toggle } from "../shared/Primitives"
 
 type Nav = (route: Route) => void
 type Invite = { id: string; code: string; expires: string; active: boolean }
@@ -37,57 +37,112 @@ export function AccountFeature(props: AccountFeatureProps) {
   if (props.routeId === "account-create") return <AccountCreatePage {...props} />
   if (props.routeId === "account-join") return <AccountJoinPage {...props} />
 
-  return <AccountHome {...props} members={members} roles={roles} inviteCount={invites.filter(invite => invite.active).length} />
+  return (
+    <AccountHome
+      {...props}
+      members={members}
+      setMembers={setMembers}
+      roles={roles}
+      inviteCount={invites.filter((invite) => invite.active).length}
+    />
+  )
 }
 
-function AccountHome({ activeAccount, setActiveAccount, accounts, setAccounts, navigate, members, roles, inviteCount }: AccountFeatureProps & { members: Member[]; roles: AccountRole[]; inviteCount: number }) {
-  const [switcher, setSwitcher] = useState(false)
+function AccountHome({ activeAccount, navigate, members, setMembers, roles, inviteCount }: AccountFeatureProps & { members: Member[]; setMembers: (members: Member[]) => void; roles: AccountRole[]; inviteCount: number }) {
   const [rewardClaimed, setRewardClaimed] = useState(false)
-  const [streak, setStreak] = useState(18)
-  const [restores, setRestores] = useState(2)
-  const [recoverable, setRecoverable] = useState(true)
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
+  const [rolesOpen, setRolesOpen] = useState(false)
+  const [railProgress, setRailProgress] = useState(0.5)
+  const railRef = useRef<HTMLDivElement>(null)
 
-  const selectAccount = (account: Account) => {
-    if (account.active === false) {
-      if (!account.owner) return
+  const drops = feed
+    .filter((event) => event.kind === "ITEM_DROP" && event.detail.toLowerCase() === activeAccount.nickname.toLowerCase())
+    .slice(0, 3)
 
-      const reactivated = { ...account, active: true }
-      setAccounts(accounts.map(item => item.id === account.id ? reactivated : item))
-      setActiveAccount(reactivated)
-      setSwitcher(false)
+  const modules = [
+    {
+      id: "daily",
+      icon: "daily" as const,
+      title: "Щоденна нагорода",
+      meta: rewardClaimed ? "Отримано" : "Готова",
+      tone: "lime",
+      action: () => setRewardClaimed(true),
+    },
+    {
+      id: "roles",
+      icon: "roles" as const,
+      title: "Ролі",
+      meta: `${roles.length}`,
+      tone: "plum",
+      action: () => navigate({ id: "roles" }),
+    },
+    {
+      id: "invites",
+      icon: "invite" as const,
+      title: "Інвайти",
+      meta: `${inviteCount}`,
+      tone: "amber",
+      action: () => navigate({ id: "account-invites" }),
+    },
+    {
+      id: "personalization",
+      icon: "spark" as const,
+      title: "Персоналізації",
+      meta: "Account",
+      tone: "plum",
+      action: () => navigate({ id: "personalization-owned" }),
+    },
+    {
+      id: "settings",
+      icon: "settings" as const,
+      title: "Налаштування",
+      meta: "Account",
+      tone: "neutral",
+      action: () => navigate({ id: "account-settings" }),
+    },
+  ]
+
+  useEffect(() => {
+    const rail = railRef.current
+    if (!rail) return
+
+    const frame = window.requestAnimationFrame(() => {
+      const segment = rail.scrollWidth / 3
+      rail.scrollLeft = segment
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  const handleRailScroll = () => {
+    const rail = railRef.current
+    if (!rail || !rail.scrollWidth) return
+
+    const segment = rail.scrollWidth / 3
+    if (!segment) return
+
+    if (rail.scrollLeft < segment * 0.45) {
+      rail.scrollLeft += segment
       return
     }
 
-    setActiveAccount(account)
-    setSwitcher(false)
+    if (rail.scrollLeft > segment * 1.55) {
+      rail.scrollLeft -= segment
+      return
+    }
+
+    setRailProgress((rail.scrollLeft % segment) / segment)
   }
 
-  return <div className="screen account-screen">
-    <PageHeader title="Аккаунт" actions={<><IconButton icon="settings" label="Налаштування аккаунта" onClick={() => navigate({ id: "account-settings" })} /><IconButton icon="swap" label="Змінити аккаунт" onClick={() => setSwitcher(true)} /></>} />
-    <section className="account-identity"><CristalixHead skinUrl={activeAccount.skinUrl} size={72} /><div className="account-identity__copy"><strong>{activeAccount.nickname}</strong><small>{activeAccount.role} · {activeAccount.memberCount}/{activeAccount.maxMembers}</small></div><button className="profile-link" aria-label="Відкрити профіль" onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}><Glyph name="external" size={17} /></button></section>
-    <button className="wallet-strip" onClick={() => navigate({ id: "account-wallet" })}><CurrencyValue currency="COIN" value={activeAccount.coin} /><span className="wallet-strip__divider" /><CurrencyValue currency="PRIME" value={activeAccount.prime} /><span className="wallet-strip__arrow">›</span></button>
+  const selectedMember = members.find((member) => member.id === selectedMemberId) ?? null
 
-    <section className={`daily-line ${rewardClaimed ? "is-claimed" : ""}`}><div className="daily-line__streak"><span>{streak}</span><small>днів</small></div><div className="daily-line__reward"><strong>{rewardClaimed ? "Отримано" : <><CurrencyMark currency="COIN" size={13} /> 320–520</>}</strong><small>{rewardClaimed ? "сьогодні" : <><CurrencyMark currency="PRIME" size={11} /> 4%</>}</small></div>{!rewardClaimed ? <button onClick={() => { setRewardClaimed(true); setStreak(streak + 1) }}>Забрати</button> : <Glyph name="check" size={19} />}</section>
-    {recoverable ? <button className="recover-line" onClick={() => { if (restores > 0) { setRecoverable(false); setRestores(restores - 1); setStreak(17) } }}><span>Відновити 17</span><small>{restores}</small></button> : null}
-
-    <Section title={`Мембери · ${members.length}`} action={<button className="text-action" aria-label="Створити запрошення" onClick={() => navigate({ id: "account-invites" })}>+</button>}>
-      <div className="member-list">{members.map((member) => { const role = roles.find((item) => item.id === member.highestRoleId); return <button className="member-row" key={member.id} onClick={() => navigate({ id: "member", params: { memberId: member.id } })}><span className="member-avatar">{member.name.slice(0, 1).toUpperCase()}</span><span className="member-row__copy"><strong>{member.name}</strong><small>{member.owner ? "Owner" : role?.name ?? "Member"}</small></span>{role ? <span className="role-dot" style={{ background: role.color }} /> : null}<span className="row__chevron">›</span></button> })}</div>
-    </Section>
-
-    <div className="account-tools"><button onClick={() => navigate({ id: "roles" })}><Glyph name="roles" size={21} /><span>Ролі</span><small>{roles.length}</small></button><button onClick={() => navigate({ id: "account-invites" })}><Glyph name="members" size={21} /><span>Запрошення</span><small>{inviteCount}</small></button></div>
-
-    <AnimatePresence>{switcher ? <BottomSheet title="Аккаунти" onClose={() => setSwitcher(false)}><div className="account-switcher">{accounts.map((account) => <button key={account.id} className={account.id === activeAccount.id ? "is-active" : ""} aria-disabled={account.active === false && !account.owner} onClick={() => selectAccount(account)}><CristalixHead skinUrl={account.skinUrl} size={42} /><span><strong>{account.nickname}</strong><small>{account.active === false ? account.owner ? "неактивний · активувати" : "неактивний" : account.role}</small></span>{account.id === activeAccount.id ? <Glyph name="check" size={17} /> : null}</button>)}</div><div className="account-switcher-actions"><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-create" }) }}><Glyph name="plus" size={17} /> Створити</button><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-join" }) }}><Glyph name="members" size={17} /> За кодом</button></div></BottomSheet> : null}</AnimatePresence>
-  </div>
-}
-
-function MemberPage({ back, params, members, setMembers, roles }: AccountFeatureProps & { members: Member[]; setMembers: (members: Member[]) => void; roles: AccountRole[] }) {
-  const member = members.find((item) => item.id === params?.memberId) ?? members[0]
-  const toggleRole = (roleId: string) => {
+  const toggleMemberRole = (member: Member, roleId: string) => {
     if (member.owner) return
 
     const roleIds = member.roleIds.includes(roleId)
       ? member.roleIds.filter((id) => id !== roleId)
       : [...member.roleIds, roleId]
+
     const highestRoleId = roles
       .filter((role) => roleIds.includes(role.id))
       .sort((a, b) => b.hierarchyRank - a.hierarchyRank)[0]?.id ?? null
@@ -95,10 +150,236 @@ function MemberPage({ back, params, members, setMembers, roles }: AccountFeature
     setMembers(members.map((item) => item.id === member.id ? { ...item, roleIds, highestRoleId } : item))
   }
 
-  return <div className="screen"><PageHeader title={member.name} back={back} /><section className="member-hero"><span className="member-hero__avatar">{member.name.slice(0, 1).toUpperCase()}</span><div><strong>{member.name}</strong><small>{member.joinedAt}</small></div></section><Section title="Ролі"><div className="permission-list">{roles.map((role) => <div className="permission-row" key={role.id}><span className="role-dot" style={{ background: role.color }} /><span><strong>{role.name}</strong><small>#{role.hierarchyRank}</small></span><Toggle checked={member.roleIds.includes(role.id)} onChange={() => toggleRole(role.id)} label={role.name} /></div>)}</div></Section>{!member.owner ? <div className="danger-zone"><button onClick={() => { setMembers(members.filter((item) => item.id !== member.id)); back() }}><Glyph name="trash" size={17} />Видалити</button></div> : null}</div>
+  const kickMember = (member: Member) => {
+    if (member.owner) return
+
+    setMembers(members.filter((item) => item.id !== member.id))
+    setSelectedMemberId(null)
+    setRolesOpen(false)
+  }
+
+  return (
+    <div className="screen account-home-screen root-screen">
+      <header className="account-home-header">
+        <button className="account-home-identity" onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}>
+          <CristalixHead skinUrl={activeAccount.skinUrl} size={54} />
+          <span>
+            <strong>{activeAccount.nickname}</strong>
+            <small><i />{activeAccount.role}</small>
+          </span>
+          <Glyph name="external" size={14} />
+        </button>
+      </header>
+
+      <button className="account-coin-card" onClick={() => navigate({ id: "account-wallet" })}>
+        <span className="account-coin-card__label">Баланс аккаунта</span>
+        <span className="account-coin-card__value">
+          <CurrencyMark currency="COIN" size={30} />
+          <b>{activeAccount.coin.toLocaleString("uk-UA")}</b>
+        </span>
+        <span className="account-coin-card__footer">
+          <Glyph name="clock" size={16} />
+          Історія транзакцій
+          <b>›</b>
+        </span>
+      </button>
+
+      <section className="home-block home-block--rail">
+        <div className="home-block__head">
+          <h2>Швидкий доступ</h2>
+          <span>гортай</span>
+        </div>
+        <div className="quick-rail-shell" style={{ "--rail-progress": railProgress } as React.CSSProperties}>
+          <div ref={railRef} className="quick-rail" onScroll={handleRailScroll}>
+            {[...modules, ...modules, ...modules].map((module, index) => (
+              <button key={`${module.id}-${index}`} className={`quick-module quick-module--${module.tone}`} onClick={module.action}>
+                <span className="quick-module__icon"><Glyph name={module.icon} size={22} /></span>
+                <span className="quick-module__copy">
+                  <strong>{module.title}</strong>
+                  <small>{module.meta}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-panel members-panel">
+        <div className="home-panel__head">
+          <span>
+            <Glyph name="members" size={19} />
+            <strong>Учасники</strong>
+            <small>{members.length}/{activeAccount.maxMembers}</small>
+          </span>
+          <button onClick={() => navigate({ id: "account-invites" })} aria-label="Запрошення">
+            <Glyph name="invite" size={18} />
+          </button>
+        </div>
+
+        <div className="member-home-list">
+          {members.map((member, index) => {
+            const role = roles.find((item) => item.id === member.highestRoleId)
+            const selected = selectedMemberId === member.id
+            const status = index === 0 ? "онлайн" : index === 1 ? "7 хв тому" : index === 2 ? "34 хв тому" : "15 серп."
+
+            return (
+              <div className="member-home-wrap" key={member.id}>
+                <button
+                  className={`member-home-row ${selected ? "is-selected" : ""}`}
+                  onClick={() => {
+                    setSelectedMemberId(selected ? null : member.id)
+                    setRolesOpen(false)
+                  }}
+                >
+                  <span className="member-home-avatar">{member.name.slice(0, 1).toUpperCase()}</span>
+                  <span className="member-home-copy">
+                    <strong>{member.name}</strong>
+                    <small style={{ "--role-color": role?.color } as React.CSSProperties}>{role?.name ?? "Учасник"}</small>
+                  </span>
+                  <span className={`member-home-status ${index === 0 ? "is-online" : ""}`}>{status}</span>
+                </button>
+
+                <AnimatePresence>
+                  {selected && selectedMember ? (
+                    <motion.div
+                      className="member-context"
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.985 }}
+                    >
+                      <button onClick={() => navigate({ id: "member", params: { memberId: member.id } })}>
+                        <Glyph name="person" size={17} />
+                        <span>Профіль</span>
+                        <b>›</b>
+                      </button>
+
+                      <button onClick={() => setRolesOpen((value) => !value)}>
+                        <Glyph name="roles" size={17} />
+                        <span>Ролі</span>
+                        <b>{rolesOpen ? "⌃" : "›"}</b>
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {rolesOpen ? (
+                          <motion.div
+                            className="member-context__roles"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            {roles.filter((role) => !role.locked || member.owner).map((role) => (
+                              <button
+                                key={role.id}
+                                className={member.roleIds.includes(role.id) ? "is-active" : ""}
+                                disabled={member.owner}
+                                onClick={() => toggleMemberRole(member, role.id)}
+                              >
+                                <i style={{ background: role.color }} />
+                                <span>{role.name}</span>
+                                {member.roleIds.includes(role.id) ? <Glyph name="check" size={14} /> : null}
+                              </button>
+                            ))}
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+
+                      {!member.owner ? (
+                        <button className="member-context__danger" onClick={() => kickMember(member)}>
+                          <Glyph name="close" size={17} />
+                          <span>Кікнути</span>
+                        </button>
+                      ) : null}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            )
+          })}
+        </div>
+
+        <button className="home-panel__footer" onClick={() => navigate({ id: "roles" })}>
+          Керування ролями
+          <span>›</span>
+        </button>
+      </section>
+
+      <section className="home-panel drops-panel">
+        <div className="home-panel__head">
+          <span>
+            <Glyph name="item-drop" size={19} />
+            <strong>Останні дропи</strong>
+          </span>
+          <button onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}>Усі <span>›</span></button>
+        </div>
+
+        <div className="account-drop-list">
+          {drops.map((drop) => (
+            <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
+              <span className={`drop-mark drop-mark--${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={17} /></span>
+              <span>
+                <strong>{drop.title}</strong>
+                <small>{drop.rarity ?? drop.meta}</small>
+              </span>
+              <time>{drop.relative}</time>
+              <b>›</b>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function MemberPage({ back, params, members, setMembers, roles }: AccountFeatureProps & { members: Member[]; setMembers: (members: Member[]) => void; roles: AccountRole[] }) {
+  const member = members.find((item) => item.id === params?.memberId) ?? members[0]
+
+  const toggleRole = (roleId: string) => {
+    if (member.owner) return
+
+    const roleIds = member.roleIds.includes(roleId)
+      ? member.roleIds.filter((id) => id !== roleId)
+      : [...member.roleIds, roleId]
+
+    const highestRoleId = roles
+      .filter((role) => roleIds.includes(role.id))
+      .sort((a, b) => b.hierarchyRank - a.hierarchyRank)[0]?.id ?? null
+
+    setMembers(members.map((item) => item.id === member.id ? { ...item, roleIds, highestRoleId } : item))
+  }
+
+  return (
+    <div className="screen member-detail-screen">
+      <PageHeader title={member.name} back={back} />
+      <section className="member-hero member-hero--redesign">
+        <span className="member-hero__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
+        <div><strong>{member.name}</strong><small>Приєднався {member.joinedAt}</small></div>
+      </section>
+      <Section title="Ролі">
+        <div className="member-role-grid">
+          {roles.map((role) => (
+            <button
+              key={role.id}
+              className={member.roleIds.includes(role.id) ? "is-active" : ""}
+              disabled={member.owner}
+              onClick={() => toggleRole(role.id)}
+            >
+              <i style={{ background: role.color }} />
+              <span>{role.name}</span>
+              {member.roleIds.includes(role.id) ? <Glyph name="check" size={14} /> : null}
+            </button>
+          ))}
+        </div>
+      </Section>
+      {!member.owner ? (
+        <div className="danger-zone"><button onClick={() => { setMembers(members.filter((item) => item.id !== member.id)); back() }}><Glyph name="close" size={17} />Кікнути</button></div>
+      ) : null}
+    </div>
+  )
 }
 
 function RolesPage({ back, navigate, roles, setRoles }: AccountFeatureProps & { roles: AccountRole[]; setRoles: (roles: AccountRole[]) => void }) {
+  const [reordering, setReordering] = useState(false)
+
   const move = (index: number, direction: -1 | 1) => {
     const next = [...roles]
     const target = index + direction
@@ -110,15 +391,42 @@ function RolesPage({ back, navigate, roles, setRoles }: AccountFeatureProps & { 
     setRoles(next.map((role, roleIndex) => ({ ...role, hierarchyRank: (next.length - roleIndex) * 10 })))
   }
 
-  return <div className="screen"><PageHeader title="Ролі" back={back} actions={<IconButton icon="plus" label="Створити роль" onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })} />} /><div className="role-list">{roles.map((role, index) => <article className="role-row" key={role.id}><button className="role-row__main" onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}><span className="role-swatch" style={{ borderColor: role.color }} /><span><strong>{role.name}</strong><small>{Object.values(role.permissions).filter(Boolean).length} дозволів</small></span><b>{role.hierarchyRank}</b></button>{!role.locked ? <span className="role-order"><button onClick={() => move(index, -1)} aria-label="Вище">↑</button><button onClick={() => move(index, 1)} aria-label="Нижче">↓</button></span> : null}</article>)}</div></div>
+  return (
+    <div className="screen roles-screen-redesign">
+      <PageHeader
+        title="Ролі"
+        back={back}
+        actions={<IconButton icon="plus" label="Створити роль" onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })} />}
+      />
+      <div className="roles-toolbar">
+        <span>Вище в списку = вищий пріоритет</span>
+        <button className={reordering ? "is-active" : ""} onClick={() => setReordering((value) => !value)}>{reordering ? "Готово" : "Порядок"}</button>
+      </div>
+      <div className="role-stack">
+        {roles.map((role, index) => (
+          <article key={role.id}>
+            <button className="role-stack__main" onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}>
+              <i style={{ background: role.color }} />
+              <span><strong>{role.name}</strong><small>{Object.values(role.permissions).filter(Boolean).length} дозволів</small></span>
+              {role.locked ? <small>системна</small> : <b>›</b>}
+            </button>
+            {reordering && !role.locked ? (
+              <span className="role-stack__order"><button onClick={() => move(index, -1)} aria-label="Вище">↑</button><button onClick={() => move(index, 1)} aria-label="Нижче">↓</button></span>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function RoleEditorPage({ back, params, roles, setRoles }: AccountFeatureProps & { roles: AccountRole[]; setRoles: (roles: AccountRole[]) => void }) {
   const existing = roles.find((role) => role.id === params?.roleId)
   const [name, setName] = useState(existing?.name ?? "")
-  const [color, setColor] = useState(existing?.color ?? "#8D9098")
+  const [color, setColor] = useState(existing?.color ?? "#9B927F")
   const emptyPermissions = Object.fromEntries(permissionGroups.flatMap((group) => group.permissions).map((permission) => [permission, false])) as Record<RolePermission, boolean>
   const [permissions, setPermissions] = useState<Record<RolePermission, boolean>>(existing?.permissions ?? emptyPermissions)
+
   const save = () => {
     if (!name.trim()) return
 
@@ -131,22 +439,68 @@ function RoleEditorPage({ back, params, roles, setRoles }: AccountFeatureProps &
     back()
   }
 
-  return <div className="screen"><PageHeader title={existing ? existing.name : "Нова роль"} back={back} /><div className="form-stack role-editor"><Field label="Назва"><input value={name} maxLength={32} onChange={(event) => setName(event.target.value)} /></Field><Field label="Колір"><div className="color-field"><input type="color" value={color.slice(0, 7)} onChange={(event) => setColor(event.target.value.toUpperCase())} /><code>{color}</code></div></Field></div><div className="permission-groups">{permissionGroups.map((group) => <section key={group.label}><h2>{group.label}</h2>{group.permissions.map((permission) => <div className="permission-row" key={permission}><span className="permission-name">{permissionLabels[permission]}</span><Toggle checked={permissions[permission]} onChange={(checked) => setPermissions({ ...permissions, [permission]: checked })} label={permissionLabels[permission]} /></div>)}</section>)}</div><div className="sticky-actions"><button className="primary-action" onClick={save}>Зберегти</button>{existing && !existing.locked ? <button className="destructive-action" onClick={() => { setRoles(roles.filter((role) => role.id !== existing.id)); back() }}>Видалити</button> : null}</div></div>
+  return (
+    <div className="screen role-editor-redesign">
+      <PageHeader title={existing ? existing.name : "Нова роль"} back={back} />
+      <div className="role-preview-line"><i style={{ background: color }} /><strong>{name || "Назва ролі"}</strong></div>
+      <div className="form-stack role-editor">
+        <Field label="Назва"><input value={name} maxLength={32} onChange={(event) => setName(event.target.value)} /></Field>
+        <Field label="Колір"><div className="color-field"><input type="color" value={color.slice(0, 7)} onChange={(event) => setColor(event.target.value.toUpperCase())} /><code>{color}</code></div></Field>
+      </div>
+      <div className="permission-groups permission-groups--redesign">
+        {permissionGroups.map((group) => (
+          <section key={group.label}>
+            <h2>{group.label}</h2>
+            {group.permissions.map((permission) => (
+              <div className="permission-row" key={permission}>
+                <span className="permission-name">{permissionLabels[permission]}</span>
+                <Toggle checked={permissions[permission]} onChange={(checked) => setPermissions({ ...permissions, [permission]: checked })} label={permissionLabels[permission]} />
+              </div>
+            ))}
+          </section>
+        ))}
+      </div>
+      <div className="sticky-actions">
+        <button className="primary-action" onClick={save}>Зберегти</button>
+        {existing && !existing.locked ? <button className="destructive-action" onClick={() => { setRoles(roles.filter((role) => role.id !== existing.id)); back() }}>Видалити</button> : null}
+      </div>
+    </div>
+  )
 }
 
 function InvitesPage({ back, invites, setInvites }: AccountFeatureProps & { invites: Invite[]; setInvites: (invites: Invite[]) => void }) {
   const [expires, setExpires] = useState<"NONE" | "1H" | "1D" | "7D">("1D")
+
   const create = () => {
     const code = `MN-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`
     const label = { NONE: "без строку", "1H": "через 1 год", "1D": "через 24 год", "7D": "через 7 днів" }[expires]
     setInvites([{ id: `invite-${Date.now()}`, code, expires: label, active: true }, ...invites])
   }
 
-  return <div className="screen"><PageHeader title="Запрошення" back={back} /><div className="form-stack invite-create"><Field label="Строк"><ChoiceGrid value={expires} options={["NONE", "1H", "1D", "7D"] as const} onChange={setExpires} labels={{ NONE: "∞", "1H": "1h", "1D": "24h", "7D": "7d" }} /></Field><button className="primary-action" onClick={create}>Створити</button></div><Section title="Активні"><div className="invite-list">{invites.filter((invite) => invite.active).map((invite) => <article key={invite.id}><span><strong>{invite.code}</strong><small>{invite.expires}</small></span><button aria-label="Копіювати" onClick={() => navigator.clipboard?.writeText(invite.code)}>Copy</button><button aria-label="Відкликати" className="micro-action micro-action--danger" onClick={() => setInvites(invites.map((item) => item.id === invite.id ? { ...item, active: false } : item))}><Glyph name="trash" size={15} /></button></article>)}</div></Section></div>
+  return (
+    <div className="screen invites-screen-redesign">
+      <PageHeader title="Інвайти" back={back} />
+      <div className="form-stack invite-create">
+        <Field label="Строк дії"><ChoiceGrid value={expires} options={["NONE", "1H", "1D", "7D"] as const} onChange={setExpires} labels={{ NONE: "Без строку", "1H": "1 година", "1D": "24 години", "7D": "7 днів" }} /></Field>
+        <button className="primary-action" onClick={create}>Створити інвайт</button>
+      </div>
+      <Section title="Активні">
+        <div className="invite-list">
+          {invites.filter((invite) => invite.active).map((invite) => (
+            <article key={invite.id}>
+              <span><strong>{invite.code}</strong><small>{invite.expires}</small></span>
+              <button aria-label="Копіювати" onClick={() => navigator.clipboard?.writeText(invite.code)}>Копіювати</button>
+              <button aria-label="Відкликати" className="micro-action micro-action--danger" onClick={() => setInvites(invites.map((item) => item.id === invite.id ? { ...item, active: false } : item))}><Glyph name="trash" size={15} /></button>
+            </article>
+          ))}
+        </div>
+      </Section>
+    </div>
+  )
 }
 
-function AccountSettingsPage({ activeAccount, setActiveAccount, accounts, setAccounts, back, navigate, roles, members, setMembers }: AccountFeatureProps & { roles: AccountRole[]; members: Member[]; setMembers: (members: Member[]) => void }) {
-  const [baseRoleId, setBaseRoleId] = useState(roles.find((role) => role.name === "Member")?.id ?? roles[roles.length - 1].id)
+function AccountSettingsPage({ activeAccount, setActiveAccount, accounts, setAccounts, back, roles, members, setMembers }: AccountFeatureProps & { roles: AccountRole[]; members: Member[]; setMembers: (members: Member[]) => void }) {
+  const [baseRoleId, setBaseRoleId] = useState(roles.find((role) => !role.locked)?.id ?? roles[roles.length - 1].id)
   const [transferTo, setTransferTo] = useState(members.find((member) => !member.owner)?.id ?? "")
   const active = activeAccount.active !== false
 
@@ -160,43 +514,63 @@ function AccountSettingsPage({ activeAccount, setActiveAccount, accounts, setAcc
     if (!transferTo) return
 
     setMembers(members.map((member) => ({ ...member, owner: member.id === transferTo })))
-    patchAccount({ owner: false, role: "Member" })
+    patchAccount({ owner: false, role: "Учасник" })
   }
 
   const deactivate = () => {
     if (!activeAccount.owner) return
 
     const deactivated = { ...activeAccount, active: false }
-    const updatedAccounts = accounts.map(account => account.id === activeAccount.id ? deactivated : account)
-    const next = updatedAccounts.find(account => account.id !== activeAccount.id && account.active !== false)
+    const updatedAccounts = accounts.map((account) => account.id === activeAccount.id ? deactivated : account)
+    const next = updatedAccounts.find((account) => account.id !== activeAccount.id && account.active !== false)
 
     setAccounts(updatedAccounts)
     setActiveAccount(next ?? deactivated)
-    navigate({ id: next ? "account" : "me" })
+    back()
   }
 
   const leave = () => {
     if (activeAccount.owner) return
 
-    const remaining = accounts.filter(account => account.id !== activeAccount.id)
-    const next = remaining.find(account => account.active !== false)
+    const remaining = accounts.filter((account) => account.id !== activeAccount.id)
+    const next = remaining.find((account) => account.active !== false)
 
     setAccounts(remaining)
     if (next) setActiveAccount(next)
-    navigate({ id: next ? "account" : "me" })
+    back()
   }
 
-  return <div className="screen"><PageHeader title="Налаштування" eyebrow={activeAccount.nickname} back={back} /><Section title="Базова роль"><ChoiceGrid value={baseRoleId} options={roles.filter((role) => !role.locked).map((role) => role.id)} onChange={setBaseRoleId} labels={Object.fromEntries(roles.map((role) => [role.id, role.name]))} /></Section>{activeAccount.owner ? <Section title="Власник"><Field label="Передати"><ChoiceGrid value={transferTo} options={members.filter((member) => !member.owner).map((member) => member.id)} onChange={setTransferTo} labels={Object.fromEntries(members.map((member) => [member.id, member.name]))} /></Field><button className="secondary-action full-action" onClick={transfer}>Передати</button></Section> : null}<Section title="Стан"><div className="settings-actions">{activeAccount.owner ? active ? <button className="destructive-action" onClick={deactivate}>Деактивувати</button> : <button className="primary-action" onClick={() => patchAccount({ active: true })}>Активувати</button> : <button className="destructive-action" onClick={leave}>Вийти з аккаунта</button>}</div></Section></div>
+  return (
+    <div className="screen">
+      <PageHeader title="Налаштування аккаунта" eyebrow={activeAccount.nickname} back={back} />
+      <Section title="Базова роль"><ChoiceGrid value={baseRoleId} options={roles.filter((role) => !role.locked).map((role) => role.id)} onChange={setBaseRoleId} labels={Object.fromEntries(roles.map((role) => [role.id, role.name]))} /></Section>
+      {activeAccount.owner ? <Section title="Власник"><Field label="Передати аккаунт"><ChoiceGrid value={transferTo} options={members.filter((member) => !member.owner).map((member) => member.id)} onChange={setTransferTo} labels={Object.fromEntries(members.map((member) => [member.id, member.name]))} /></Field><button className="secondary-action full-action" onClick={transfer}>Передати</button></Section> : null}
+      <Section title="Стан"><div className="settings-actions">{activeAccount.owner ? active ? <button className="destructive-action" onClick={deactivate}>Деактивувати</button> : <button className="primary-action" onClick={() => patchAccount({ active: true })}>Активувати</button> : <button className="destructive-action" onClick={leave}>Вийти з аккаунта</button>}</div></Section>
+    </div>
+  )
 }
 
 function AccountCreatePage({ back, activeAccount, accounts, setAccounts, setActiveAccount }: AccountFeatureProps) {
   const [nickname, setNickname] = useState("")
+
   const create = () => {
     const clean = nickname.trim()
     if (clean.length < 4 || clean.length > 20) return
 
     const id = crypto.randomUUID()
-    const account: Account = { id, cristalixUuid: id, nickname: clean, role: "Owner", skinUrl: activeAccount.skinUrl, memberCount: 1, maxMembers: 6, owner: true, active: true, coin: 0, prime: 0 }
+    const account: Account = {
+      id,
+      cristalixUuid: id,
+      nickname: clean,
+      role: "Власник",
+      skinUrl: activeAccount.skinUrl,
+      memberCount: 1,
+      maxMembers: 6,
+      owner: true,
+      active: true,
+      coin: 0,
+    }
+
     setAccounts([...accounts, account])
     setActiveAccount(account)
     back()
@@ -218,14 +592,13 @@ function AccountJoinPage({ back, activeAccount, accounts, setAccounts, setActive
       id,
       cristalixUuid: id,
       nickname: "north",
-      role: "Member",
+      role: "Учасник",
       skinUrl: activeAccount.skinUrl,
       memberCount: 5,
       maxMembers: 8,
       owner: false,
       active: true,
       coin: 0,
-      prime: 0,
     }
 
     setAccounts([...accounts, account])
@@ -233,9 +606,25 @@ function AccountJoinPage({ back, activeAccount, accounts, setAccounts, setActive
     back()
   }
 
-  return <div className="screen"><PageHeader title="Приєднатись" back={back} /><div className="form-stack account-create"><Field label="Код запрошення" hint="MN-XXXX-XXX"><input autoFocus autoCapitalize="characters" spellCheck={false} value={inviteCode} maxLength={11} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} /></Field><button className="primary-action" disabled={!valid} onClick={join}>Приєднатись</button></div></div>
+  return <div className="screen"><PageHeader title="Приєднатись" back={back} /><div className="form-stack account-create"><Field label="Код інвайту" hint="MN-XXXX-XXX"><input autoFocus autoCapitalize="characters" spellCheck={false} value={inviteCode} maxLength={11} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} /></Field><button className="primary-action" disabled={!valid} onClick={join}>Приєднатись</button></div></div>
 }
 
 function AccountWalletPage({ activeAccount, back }: AccountFeatureProps) {
-  return <div className="screen"><PageHeader title="Гаманець" eyebrow={activeAccount.nickname} back={back} /><div className="balance-grid"><div><CurrencyValue currency="COIN" value={activeAccount.coin} /></div><div><CurrencyValue currency="PRIME" value={activeAccount.prime} /></div></div><Section title="Історія"><div className="transaction-list">{accountTransactions.map((transaction) => <div className="transaction-row" key={transaction.id}><span className={`transaction-sign ${transaction.type === "CREDIT" ? "is-credit" : ""}`}>{transaction.type === "CREDIT" ? "+" : "−"}</span><span><strong>{transactionSourceLabels[transaction.source]}</strong><small>{transaction.createdAt}</small></span><CurrencyValue currency={transaction.currency} value={transaction.amount} compact /></div>)}</div></Section></div>
+  return (
+    <div className="screen wallet-detail-screen">
+      <PageHeader title="COIN" eyebrow={activeAccount.nickname} back={back} />
+      <div className="single-balance-card"><CurrencyValue currency="COIN" value={activeAccount.coin} /></div>
+      <Section title="Історія">
+        <div className="transaction-list">
+          {accountTransactions.map((transaction) => (
+            <div className="transaction-row" key={transaction.id}>
+              <span className={`transaction-sign ${transaction.type === "CREDIT" ? "is-credit" : ""}`}>{transaction.type === "CREDIT" ? "+" : "−"}</span>
+              <span><strong>{transactionSourceLabels[transaction.source]}</strong><small>{transaction.createdAt}</small></span>
+              <CurrencyValue currency="COIN" value={transaction.amount} compact />
+            </div>
+          ))}
+        </div>
+      </Section>
+    </div>
+  )
 }
