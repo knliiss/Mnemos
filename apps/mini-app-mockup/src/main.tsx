@@ -8,6 +8,7 @@ import "./account-details.css"
 import "./bets-details.css"
 import "./skin-details.css"
 import "./visual-system.css"
+import "./redesign-2026.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
