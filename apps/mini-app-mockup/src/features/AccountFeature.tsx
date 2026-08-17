@@ -40,12 +40,27 @@ export function AccountFeature(props: AccountFeatureProps) {
   return <AccountHome {...props} members={members} roles={roles} inviteCount={invites.filter(invite => invite.active).length} />
 }
 
-function AccountHome({ activeAccount, setActiveAccount, accounts, navigate, members, roles, inviteCount }: AccountFeatureProps & { members: Member[]; roles: AccountRole[]; inviteCount: number }) {
+function AccountHome({ activeAccount, setActiveAccount, accounts, setAccounts, navigate, members, roles, inviteCount }: AccountFeatureProps & { members: Member[]; roles: AccountRole[]; inviteCount: number }) {
   const [switcher, setSwitcher] = useState(false)
   const [rewardClaimed, setRewardClaimed] = useState(false)
   const [streak, setStreak] = useState(18)
   const [restores, setRestores] = useState(2)
   const [recoverable, setRecoverable] = useState(true)
+
+  const selectAccount = (account: Account) => {
+    if (account.active === false) {
+      if (!account.owner) return
+
+      const reactivated = { ...account, active: true }
+      setAccounts(accounts.map(item => item.id === account.id ? reactivated : item))
+      setActiveAccount(reactivated)
+      setSwitcher(false)
+      return
+    }
+
+    setActiveAccount(account)
+    setSwitcher(false)
+  }
 
   return <div className="screen account-screen">
     <PageHeader title="Аккаунт" actions={<><IconButton icon="settings" label="Налаштування аккаунта" onClick={() => navigate({ id: "account-settings" })} /><IconButton icon="swap" label="Змінити аккаунт" onClick={() => setSwitcher(true)} /></>} />
@@ -61,7 +76,7 @@ function AccountHome({ activeAccount, setActiveAccount, accounts, navigate, memb
 
     <div className="account-tools"><button onClick={() => navigate({ id: "roles" })}><Glyph name="roles" size={21} /><span>Ролі</span><small>{roles.length}</small></button><button onClick={() => navigate({ id: "account-invites" })}><Glyph name="members" size={21} /><span>Запрошення</span><small>{inviteCount}</small></button></div>
 
-    <AnimatePresence>{switcher ? <BottomSheet title="Аккаунти" onClose={() => setSwitcher(false)}><div className="account-switcher">{accounts.map((account) => <button key={account.id} className={account.id === activeAccount.id ? "is-active" : ""} onClick={() => { if (account.active !== false) { setActiveAccount(account); setSwitcher(false) } }}><CristalixHead skinUrl={account.skinUrl} size={42} /><span><strong>{account.nickname}</strong><small>{account.active === false ? "неактивний" : account.role}</small></span>{account.id === activeAccount.id ? <Glyph name="check" size={17} /> : null}</button>)}</div><div className="account-switcher-actions"><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-create" }) }}><Glyph name="plus" size={17} /> Створити</button><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-join" }) }}><Glyph name="members" size={17} /> За кодом</button></div></BottomSheet> : null}</AnimatePresence>
+    <AnimatePresence>{switcher ? <BottomSheet title="Аккаунти" onClose={() => setSwitcher(false)}><div className="account-switcher">{accounts.map((account) => <button key={account.id} className={account.id === activeAccount.id ? "is-active" : ""} aria-disabled={account.active === false && !account.owner} onClick={() => selectAccount(account)}><CristalixHead skinUrl={account.skinUrl} size={42} /><span><strong>{account.nickname}</strong><small>{account.active === false ? account.owner ? "неактивний · активувати" : "неактивний" : account.role}</small></span>{account.id === activeAccount.id ? <Glyph name="check" size={17} /> : null}</button>)}</div><div className="account-switcher-actions"><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-create" }) }}><Glyph name="plus" size={17} /> Створити</button><button className="secondary-action" onClick={() => { setSwitcher(false); navigate({ id: "account-join" }) }}><Glyph name="members" size={17} /> За кодом</button></div></BottomSheet> : null}</AnimatePresence>
   </div>
 }
 
@@ -134,11 +149,13 @@ function AccountSettingsPage({ activeAccount, setActiveAccount, accounts, setAcc
   const [baseRoleId, setBaseRoleId] = useState(roles.find((role) => role.name === "Member")?.id ?? roles[roles.length - 1].id)
   const [transferTo, setTransferTo] = useState(members.find((member) => !member.owner)?.id ?? "")
   const active = activeAccount.active !== false
+
   const patchAccount = (patch: Partial<Account>) => {
     const updated = { ...activeAccount, ...patch }
     setAccounts(accounts.map((account) => account.id === activeAccount.id ? updated : account))
     setActiveAccount(updated)
   }
+
   const transfer = () => {
     if (!transferTo) return
 
@@ -146,7 +163,30 @@ function AccountSettingsPage({ activeAccount, setActiveAccount, accounts, setAcc
     patchAccount({ owner: false, role: "Member" })
   }
 
-  return <div className="screen"><PageHeader title="Налаштування" eyebrow={activeAccount.nickname} back={back} /><Section title="Базова роль"><ChoiceGrid value={baseRoleId} options={roles.filter((role) => !role.locked).map((role) => role.id)} onChange={setBaseRoleId} labels={Object.fromEntries(roles.map((role) => [role.id, role.name]))} /></Section>{activeAccount.owner ? <Section title="Власник"><Field label="Передати"><ChoiceGrid value={transferTo} options={members.filter((member) => !member.owner).map((member) => member.id)} onChange={setTransferTo} labels={Object.fromEntries(members.map((member) => [member.id, member.name]))} /></Field><button className="secondary-action full-action" onClick={transfer}>Передати</button></Section> : null}<Section title="Стан"><div className="settings-actions">{active ? <button className="destructive-action" onClick={() => patchAccount({ active: false })}>Деактивувати</button> : <button className="primary-action" onClick={() => patchAccount({ active: true })}>Активувати</button>}{!activeAccount.owner ? <button className="secondary-action" onClick={back}>Вийти</button> : null}<button className="destructive-action" onClick={() => { const remaining = accounts.filter((account) => account.id !== activeAccount.id); setAccounts(remaining); if (remaining[0]) setActiveAccount(remaining[0]); navigate({ id: "account" }) }}>Видалити</button></div></Section></div>
+  const deactivate = () => {
+    if (!activeAccount.owner) return
+
+    const deactivated = { ...activeAccount, active: false }
+    const updatedAccounts = accounts.map(account => account.id === activeAccount.id ? deactivated : account)
+    const next = updatedAccounts.find(account => account.id !== activeAccount.id && account.active !== false)
+
+    setAccounts(updatedAccounts)
+    setActiveAccount(next ?? deactivated)
+    navigate({ id: next ? "account" : "me" })
+  }
+
+  const leave = () => {
+    if (activeAccount.owner) return
+
+    const remaining = accounts.filter(account => account.id !== activeAccount.id)
+    const next = remaining.find(account => account.active !== false)
+
+    setAccounts(remaining)
+    if (next) setActiveAccount(next)
+    navigate({ id: next ? "account" : "me" })
+  }
+
+  return <div className="screen"><PageHeader title="Налаштування" eyebrow={activeAccount.nickname} back={back} /><Section title="Базова роль"><ChoiceGrid value={baseRoleId} options={roles.filter((role) => !role.locked).map((role) => role.id)} onChange={setBaseRoleId} labels={Object.fromEntries(roles.map((role) => [role.id, role.name]))} /></Section>{activeAccount.owner ? <Section title="Власник"><Field label="Передати"><ChoiceGrid value={transferTo} options={members.filter((member) => !member.owner).map((member) => member.id)} onChange={setTransferTo} labels={Object.fromEntries(members.map((member) => [member.id, member.name]))} /></Field><button className="secondary-action full-action" onClick={transfer}>Передати</button></Section> : null}<Section title="Стан"><div className="settings-actions">{activeAccount.owner ? active ? <button className="destructive-action" onClick={deactivate}>Деактивувати</button> : <button className="primary-action" onClick={() => patchAccount({ active: true })}>Активувати</button> : <button className="destructive-action" onClick={leave}>Вийти з аккаунта</button>}</div></Section></div>
 }
 
 function AccountCreatePage({ back, activeAccount, accounts, setAccounts, setActiveAccount }: AccountFeatureProps) {
