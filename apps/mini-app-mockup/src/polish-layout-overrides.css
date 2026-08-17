@@ -86,6 +86,15 @@
   gap: 0 !important;
 }
 
+.notification-samples__head h2 {
+  font-size: 0 !important;
+}
+
+.notification-samples__head h2::after {
+  content: "Приклади текстів";
+  font-size: 12px;
+}
+
 @media (max-width: 374px) {
   .account-polished-hero {
     margin-right: 44px;
