@@ -7,6 +7,7 @@ import { AccountAreaFinal } from "./features/AccountAreaFinal"
 import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeature"
 import { EventsArea } from "./features/EventsArea"
+import { ModerationHomePolished } from "./features/ModerationHomePolished"
 import { PeopleFeatureFinal } from "./features/PeopleFeatureFinal"
 import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFinal"
 import { StaffFeatureFinal } from "./features/StaffFeatureFinal"
@@ -112,12 +113,14 @@ export default function AppFinal() {
           ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
           : area === "creator"
             ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
-            : current.id === "administration"
-              ? <AdministrationHome navigate={navigate} back={back} />
-              : <StaffFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
+            : current.id === "moderation"
+              ? <ModerationHomePolished navigate={navigate} back={back} />
+              : current.id === "administration"
+                ? <AdministrationHome navigate={navigate} back={back} />
+                : <StaffFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
 
   return (
-    <MotionConfig transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}>
+    <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
       <main className="preview-stage redesign-stage final-stage">
         <section className="app-shell redesign-shell final-shell">
           <motion.div
@@ -191,10 +194,15 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
 
   return (
     <>
-      <button className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`} onClick={onToggle} aria-label="Меню користувача">
+      <motion.button
+        className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
+        whileTap={{ scale: 0.95 }}
+        onClick={onToggle}
+        aria-label="Меню користувача"
+      >
         <span>K</span>
         <i />
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {open ? (
@@ -209,9 +217,9 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
             />
             <motion.aside
               className="user-hub user-hub--final"
-              initial={{ opacity: 0, y: -12, scale: 0.975 }}
+              initial={{ opacity: 0, y: -10, scale: 0.975 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.985 }}
+              exit={{ opacity: 0, y: -7, scale: 0.985 }}
             >
               <header className="final-user-card">
                 <span className="final-user-card__avatar">K</span>
@@ -269,7 +277,7 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
                 {creator ? (
                   <button className="is-creator" onClick={() => navigate({ id: "creator-studio" })}>
                     <span><Glyph name="creator" size={20} /></span>
-                    <strong>Creator</strong>
+                    <strong>Creator Studio</strong>
                     <small>Створення персоналізацій</small>
                     <b>›</b>
                   </button>
@@ -293,7 +301,7 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
                 {administration ? (
                   <button className="is-admin" onClick={() => navigate({ id: "administration" })}>
                     <span><Glyph name="admin" size={20} /></span>
-                    <strong>Адмін</strong>
+                    <strong>Адміністрування</strong>
                     <small>Системні інструменти</small>
                     <b>›</b>
                   </button>
