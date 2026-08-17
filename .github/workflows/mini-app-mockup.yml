@@ -32,3 +32,69 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Capture mobile visual audit
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/mnemos-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome/Chromium is unavailable on this runner"
+            exit 1
+          fi
+
+          mkdir -p visual-audit
+
+          capture() {
+            local name="$1"
+            local width="$2"
+            local path="$3"
+
+            "$CHROME" \
+              --headless=new \
+              --no-sandbox \
+              --disable-gpu \
+              --hide-scrollbars \
+              --force-device-scale-factor=1 \
+              --window-size="${width},844" \
+              --screenshot="$PWD/visual-audit/${name}.png" \
+              "http://127.0.0.1:4173/${path}"
+          }
+
+          capture events-360 360 "?screen=events"
+          capture events-390 390 "?screen=events"
+          capture events-430 430 "?screen=events"
+          capture account 390 "?screen=account"
+          capture me 390 "?screen=me"
+          capture bets 390 "?screen=bets"
+          capture subscriptions 390 "?screen=subscriptions"
+          capture roles 390 "?screen=roles"
+          capture role-editor 390 "?screen=role-editor&p.roleId=role-admin"
+          capture store 390 "?screen=personalization-store"
+          capture creator 390 "?screen=creator-studio"
+          capture creator-editor 390 "?screen=personalization-editor&p.personalizationId=new"
+          capture moderation 390 "?screen=moderation"
+          capture personalization-review 390 "?screen=personalization-review"
+          capture bet-admin 390 "?screen=bet-admin"
+
+      - name: Upload visual audit
+        if: github.event_name == 'push' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mini-app-visual-audit
+          path: apps/mini-app-mockup/visual-audit
+          if-no-files-found: error
+          retention-days: 7
