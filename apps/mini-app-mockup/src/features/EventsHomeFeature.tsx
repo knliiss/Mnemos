@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { EVENT_KINDS } from "../contracts"
 import { feed, initialSubscriptions } from "../mockData"
-import type { EventKind, FeedEvent, Route } from "../model"
+import type { Account, EventKind, FeedEvent, Route } from "../model"
 import { boosterLabels, eventLabels, globalEventLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
@@ -94,16 +94,16 @@ export function EventsHome({ navigate }: { navigate: Nav }) {
   )
 }
 
-export function EventDetail({ eventId, back }: { eventId?: string; back: () => void }) {
+export function EventDetail({ eventId, activeAccount, back }: { eventId?: string; activeAccount: Account; back: () => void }) {
   const event = feed.find((item) => item.id === eventId) ?? feed[0]
-  const ownDrop = event.kind === "ITEM_DROP" && event.detail.toLowerCase() === "knalis"
-  const [spotlight, setSpotlight] = useState<"READY" | "PENDING" | "ACTIVE">("READY")
+  const ownDrop = event.kind === "ITEM_DROP" && event.detail.toLowerCase() === activeAccount.nickname.toLowerCase()
+  const [spotlight, setSpotlight] = useState<"READY" | "PENDING" | "SCHEDULED">("READY")
 
   const publish = () => {
     if (spotlight !== "READY") return
 
     setSpotlight("PENDING")
-    window.setTimeout(() => setSpotlight("ACTIVE"), 900)
+    window.setTimeout(() => setSpotlight("SCHEDULED"), 900)
   }
 
   return (
@@ -122,8 +122,12 @@ export function EventDetail({ eventId, back }: { eventId?: string; back: () => v
       {ownDrop ? (
         <section className="spotlight-action spotlight-action--redesign">
           <div className="spotlight-action__mark"><Glyph name="spark" size={21} /></div>
-          <div><strong>Алерт дропа</strong><small>Показати дроп користувачам Mini App</small></div>
-          {spotlight === "READY" ? <button onClick={publish} aria-label="Купити алерт"><CurrencyValue currency="PRIME" value={25} compact /></button> : <span className={`spotlight-state spotlight-state--${spotlight.toLowerCase()}`}>{spotlight === "PENDING" ? "обробка" : "активний"}</span>}
+          <div><strong>Алерт дропа</strong><small>Глобальний Spotlight для цього дропа</small></div>
+          {spotlight === "READY" ? (
+            <button onClick={publish} aria-label="Купити алерт"><CurrencyValue currency="PRIME" value={25} compact /></button>
+          ) : (
+            <span className={`spotlight-state spotlight-state--${spotlight.toLowerCase()}`}>{spotlight === "PENDING" ? "обробка" : "у черзі"}</span>
+          )}
         </section>
       ) : null}
     </div>
