@@ -16,6 +16,7 @@ import "./polish-pass.css"
 import "./polish-layout-overrides.css"
 import "./visual-final-pass.css"
 import "./workspace-final-polish.css"
+import "./interaction-final.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
