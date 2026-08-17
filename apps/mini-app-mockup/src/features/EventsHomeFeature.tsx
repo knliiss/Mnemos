@@ -6,6 +6,7 @@ import type { Account, BetItemType, EventKind, FeedEvent, Route } from "../model
 import { boosterLabels, eventLabels, globalEventLabels, itemTypeLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { formatOccurredAt } from "../timePresentation"
 
 type Nav = (route: Route) => void
 
@@ -35,21 +36,6 @@ function eventTitle(event: FeedEvent) {
   if (event.kind === "RAID") return "Рейд"
 
   return event.title
-}
-
-function eventTime(occurredAt: string) {
-  const date = new Date(occurredAt)
-  const diff = Date.now() - date.getTime()
-  const minutes = Math.max(1, Math.floor(diff / 60_000))
-
-  if (minutes < 60) return `${minutes} хв тому`
-  if (minutes < 24 * 60) return `${Math.floor(minutes / 60)} год тому`
-
-  return new Intl.DateTimeFormat("uk-UA", {
-    day: "numeric",
-    month: "short",
-    year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
-  }).format(date)
 }
 
 function rarityLabel(value?: string) {
@@ -108,7 +94,7 @@ export function EventsHome({ navigate }: { navigate: Nav }) {
           >
             <span className="event-feed-card__icon"><Glyph name={icons[event.kind]} size={20} /></span>
             <span className="event-feed-card__copy">
-              <span className="event-feed-card__meta"><b>{eventLabels[event.kind]}</b><time>{eventTime(event.occurredAt)}</time></span>
+              <span className="event-feed-card__meta"><b>{eventLabels[event.kind]}</b><time>{formatOccurredAt(event.occurredAt)}</time></span>
               <strong>{eventTitle(event)}</strong>
               <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}` : event.detail}</small>
             </span>
@@ -142,7 +128,7 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
           <strong>{event.detail}</strong>
           <small>{rarityLabel(event.rarity) ?? eventMetaLabel(event) ?? eventLabels[event.kind]}</small>
         </div>
-        <time>{eventTime(event.occurredAt)}</time>
+        <time>{formatOccurredAt(event.occurredAt)}</time>
       </section>
 
       <dl className="event-facts event-facts--polished">
