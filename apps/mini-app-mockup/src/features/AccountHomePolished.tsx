@@ -8,6 +8,7 @@ import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 type Props = {
   activeAccount: Account
   navigate: (route: Route) => void
+  initialMemberId?: string | null
 }
 
 type DailyRewardState = {
@@ -32,10 +33,10 @@ const initialReward: DailyRewardState = {
   primeChance: 0.04,
 }
 
-export function AccountHomePolished({ activeAccount, navigate }: Props) {
+export function AccountHomePolished({ activeAccount, navigate, initialMemberId = null }: Props) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [reward, setReward] = useState<DailyRewardState>(initialReward)
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(initialMemberId)
 
   const roles = initialRoles
   const selectedMember = members.find((member) => member.id === selectedMemberId) ?? null
@@ -103,7 +104,7 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
           className="account-polished-identity"
           onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
         >
-          <CristalixHead skinUrl={activeAccount.skinUrl} size={56} />
+          <CristalixHead skinUrl={activeAccount.skinUrl} size={58} />
           <span className="account-polished-identity__copy">
             <small>Активний аккаунт</small>
             <strong>{activeAccount.nickname}</strong>
@@ -115,12 +116,15 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
         <div className={`daily-compact ${reward.claimedToday ? "is-claimed" : ""} ${restoreAvailable ? "is-restore" : ""}`}>
           <span className="daily-compact__streak">
             <i><FlameMark /></i>
-            <span><strong>{reward.currentStreak || reward.recoverableStreak}</strong><small>днів</small></span>
+            <span>
+              <strong>{reward.currentStreak || reward.recoverableStreak}</strong>
+              <small>днів поспіль</small>
+            </span>
           </span>
 
-          <span className="daily-compact__reward">
-            <span><CurrencyMark currency="COIN" size={12} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
-            <span><CurrencyMark currency="PRIME" size={11} />{Math.round(reward.primeChance * 100)}%</span>
+          <span className="daily-compact__reward" aria-label="Наступна нагорода">
+            <span><CurrencyMark currency="COIN" size={13} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
+            <span><CurrencyMark currency="PRIME" size={12} />{Math.round(reward.primeChance * 100)}%</span>
           </span>
 
           {claimAvailable ? (
@@ -131,7 +135,7 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
           ) : restoreAvailable ? (
             <motion.button className="is-restore" whileTap={{ scale: 0.97 }} onClick={restoreDaily}>
               <Glyph name="swap" size={15} />
-              <span>Відновити {reward.recoverableStreak}</span>
+              <span>Відновити</span>
               <small>{reward.restoresRemaining}×</small>
             </motion.button>
           ) : (
@@ -191,7 +195,7 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
                   {selected && selectedMember ? (
                     <motion.div
                       className="account-member-popover"
-                      initial={{ opacity: 0, y: -5, scale: 0.985 }}
+                      initial={{ opacity: 0, y: -6, scale: 0.985 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -4, scale: 0.99 }}
                       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
@@ -235,14 +239,14 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
       <section className="account-polished-panel account-polished-drops">
         <header>
           <span><Glyph name="item-drop" size={18} /><strong>Останні дропи</strong></span>
-          <button onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}>Усі <b>›</b></button>
+          <button className="account-polished-drops__all" onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}>Усі <b>›</b></button>
         </header>
 
         <div className="account-polished-drop-list">
           {drops.length ? drops.map((drop) => (
             <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
               <span className={`drop-mark drop-mark--${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={16} /></span>
-              <span><strong>{drop.title}</strong><small>{drop.rarity ?? drop.meta}</small></span>
+              <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
               <time>{drop.relative}</time>
               <b>›</b>
             </button>
@@ -274,4 +278,10 @@ function FlameMark() {
       <path d="M13.9 2.8c.5 3-1.1 4.3-2.5 5.7-1.2 1.2-2.4 2.4-2.4 4.3 0 1.5 1 2.6 2.4 2.6 1.8 0 2.8-1.5 2.5-3.4 2.2 1.2 3.6 3.2 3.6 5.4 0 3-2.4 5-5.6 5-3.8 0-6.4-2.7-6.4-6.3 0-4.6 3.2-7.1 5.5-9.3 1.3-1.2 2.2-2.3 2.9-4Z" />
     </svg>
   )
+}
+
+function localizeRarity(value?: string) {
+  if (value === "MYTHICAL") return "Міфічний"
+  if (value === "SECRET") return "Секретний"
+  return value
 }
