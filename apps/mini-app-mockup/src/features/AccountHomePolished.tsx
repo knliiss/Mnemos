@@ -49,10 +49,7 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
     [activeAccount.nickname],
   )
 
-  const memberRoles = (member: Member) =>
-    roles
-      .filter((role) => member.roleIds.includes(role.id))
-      .sort((left, right) => right.hierarchyRank - left.hierarchyRank)
+  const roleFor = (roleId: string | null) => roles.find((role) => role.id === roleId) ?? null
 
   const toggleMemberRole = (member: Member, role: AccountRole) => {
     if (member.owner || role.locked) return
@@ -163,29 +160,31 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
         </header>
 
         <div className="account-polished-member-list">
-          {members.map((member, index) => {
-            const assignedRoles = memberRoles(member)
+          {members.map((member) => {
+            const highestRole = roleFor(member.highestRoleId)
             const selected = member.id === selectedMemberId
-            const status = index === 0 ? "онлайн" : index === 1 ? "7 хв тому" : index === 2 ? "34 хв тому" : "15 серп."
 
             return (
               <div className="account-polished-member-wrap" key={member.id}>
                 <motion.button
-                  className={`account-polished-member ${selected ? "is-selected" : ""}`}
+                  className={`account-polished-member ${selected ? "is-selected" : ""} ${member.owner ? "is-owner" : ""}`}
                   layout
-                  whileTap={{ scale: 0.992 }}
-                  onClick={() => setSelectedMemberId(selected ? null : member.id)}
+                  whileTap={member.owner ? undefined : { scale: 0.992 }}
+                  onClick={() => {
+                    if (member.owner) return
+                    setSelectedMemberId(selected ? null : member.id)
+                  }}
                 >
                   <span className="account-polished-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
                   <span className="account-polished-member__copy">
                     <strong>{member.name}</strong>
-                    <span className="account-polished-role-chips">
-                      {assignedRoles.map((role) => (
-                        <i key={role.id} style={{ "--member-role": role.color } as React.CSSProperties}>{role.name}</i>
-                      ))}
-                    </span>
+                    {highestRole ? (
+                      <span className="account-polished-role-chips">
+                        <i style={{ "--member-role": highestRole.color } as React.CSSProperties}>{highestRole.name}</i>
+                      </span>
+                    ) : <small className="account-polished-member__no-role">Без ролі</small>}
                   </span>
-                  <span className={`account-polished-member__status ${index === 0 ? "is-online" : ""}`}>{status}</span>
+                  {!member.owner ? <span className="account-polished-member__chevron">›</span> : null}
                 </motion.button>
 
                 <AnimatePresence initial={false}>
@@ -197,16 +196,19 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
                       exit={{ opacity: 0, y: -4, scale: 0.99 }}
                       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
                     >
+                      <div className="account-member-popover__header">
+                        <span>{selectedMember.name}</span>
+                        <small>Ролі</small>
+                      </div>
+
                       <div className="account-member-popover__roles">
-                        {roles.map((role) => {
+                        {roles.filter((role) => !role.locked).map((role) => {
                           const active = selectedMember.roleIds.includes(role.id)
-                          const locked = selectedMember.owner || role.locked
 
                           return (
                             <button
                               key={role.id}
                               className={active ? "is-active" : ""}
-                              disabled={locked}
                               onClick={() => toggleMemberRole(selectedMember, role)}
                             >
                               <i style={{ background: role.color }} />
@@ -217,12 +219,10 @@ export function AccountHomePolished({ activeAccount, navigate }: Props) {
                         })}
                       </div>
 
-                      {!selectedMember.owner ? (
-                        <button className="account-member-popover__danger" onClick={() => kickMember(selectedMember)}>
-                          <Glyph name="close" size={16} />
-                          <span>Кікнути</span>
-                        </button>
-                      ) : null}
+                      <button className="account-member-popover__danger" onClick={() => kickMember(selectedMember)}>
+                        <Glyph name="close" size={16} />
+                        <span>Кікнути</span>
+                      </button>
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
