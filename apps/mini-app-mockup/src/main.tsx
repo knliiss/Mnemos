@@ -10,6 +10,7 @@ import "./skin-details.css"
 import "./visual-system.css"
 import "./redesign-2026.css"
 import "./final-revision.css"
+import "./final-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
