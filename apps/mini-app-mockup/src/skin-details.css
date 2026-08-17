@@ -1,0 +1,38 @@
+.cristalix-head {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.cristalix-head__placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+
+.cristalix-head__placeholder.is-visible {
+  opacity: .72;
+}
+
+.cristalix-head canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.cristalix-head canvas.is-loaded {
+  opacity: 1;
+}
+
+.cristalix-head--fallback .cristalix-head__placeholder {
+  opacity: .84;
+}
