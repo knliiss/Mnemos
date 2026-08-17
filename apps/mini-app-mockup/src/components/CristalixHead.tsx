@@ -79,34 +79,26 @@ export function CristalixHead({
     }
   }, [skinUrl])
 
-  if (failed) {
-    return (
-      <div
-        className={`cristalix-head cristalix-head--fallback ${className ?? ""}`}
-        style={{ width: size, height: size }}
-        aria-label="Cristalix skin unavailable"
-      >
-        <Glyph name="person" size={size * 0.36} />
-      </div>
-    )
-  }
+  const showPlaceholder = !loaded || failed
 
   return (
     <motion.div
-      className={`cristalix-head ${className ?? ""}`}
+      className={`cristalix-head ${failed ? "cristalix-head--fallback" : ""} ${className ?? ""}`}
       style={{ width: size, height: size }}
       initial={false}
-      animate={{
-        opacity: loaded ? 1 : 0.38,
-        scale: loaded ? 1 : 0.965,
-      }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      animate={{ scale: loaded ? 1 : 0.985 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      aria-label={failed ? "Cristalix skin unavailable" : "Cristalix skin head"}
     >
+      <span className={`cristalix-head__placeholder ${showPlaceholder ? "is-visible" : ""}`} aria-hidden="true">
+        <Glyph name="person" size={size * 0.34} />
+      </span>
       <canvas
         ref={canvasRef}
+        className={loaded ? "is-loaded" : ""}
         width={HEAD_TEXTURE_SIZE}
         height={HEAD_TEXTURE_SIZE}
-        aria-label="Cristalix skin head"
+        aria-hidden="true"
       />
     </motion.div>
   )
