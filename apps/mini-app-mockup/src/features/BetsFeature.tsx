@@ -8,6 +8,7 @@ import { Glyph } from "../shared/MnemosIcon"
 import { BottomSheet, CurrencyValue, Field, PageHeader, Segmented } from "../shared/Primitives"
 
 type BetMode = "ROUNDS" | "MY" | "RACES"
+type OperationState = "IDLE" | "PENDING"
 
 export function BetsPage({ back }: { back: () => void }) {
   const [mode, setMode] = useState<BetMode>("ROUNDS")
@@ -17,56 +18,88 @@ export function BetsPage({ back }: { back: () => void }) {
   const [selectedRace, setSelectedRace] = useState<ItemRace | null>(null)
   const [side, setSide] = useState<BetSide>("YES")
   const [amount, setAmount] = useState("500")
+  const [operationState, setOperationState] = useState<OperationState>("IDLE")
 
   const myRounds = rounds.filter((round) => round.myAmount)
   const myRaces = races.filter((race) => race.joined)
+  const numericAmount = Number(amount)
+  const integerAmount = Number.isInteger(numericAmount)
+  const increasingRound = Boolean(selectedRound?.myAmount)
+  const roundAmountValid = integerAmount && (increasingRound
+    ? numericAmount > 0
+    : numericAmount >= 100 && numericAmount <= 5000)
+  const raceIncreaseValid = integerAmount && numericAmount > 0
+  const pending = operationState === "PENDING"
 
   const openRound = (round: BetRound) => {
     setSelectedRound(round)
     setSide(round.mySide ?? "YES")
     setAmount(round.myAmount ? "100" : "500")
+    setOperationState("IDLE")
   }
 
   const saveRound = () => {
-    if (!selectedRound || Number(amount) <= 0 || selectedRound.status !== "OPEN") return
+    if (!selectedRound || !roundAmountValid || selectedRound.status !== "OPEN" || pending) return
 
-    const nextAmount = selectedRound.myAmount
-      ? selectedRound.myAmount + Number(amount)
-      : Number(amount)
+    const roundId = selectedRound.id
+    const nextSide = side
+    const delta = numericAmount
+    const wasIncrease = Boolean(selectedRound.myAmount)
 
-    setRounds(rounds.map((round) => round.id === selectedRound.id
-      ? { ...round, mySide: side, myAmount: nextAmount }
-      : round))
-    setSelectedRound(null)
+    setOperationState("PENDING")
+    window.setTimeout(() => {
+      setRounds((current) => current.map((round) => {
+        if (round.id !== roundId) return round
+
+        return {
+          ...round,
+          mySide: wasIncrease ? round.mySide : nextSide,
+          myAmount: (round.myAmount ?? 0) + delta,
+        }
+      }))
+      setOperationState("IDLE")
+      setSelectedRound(null)
+    }, 900)
   }
 
   const openRace = (race: ItemRace) => {
     setSelectedRace(race)
     setAmount("500")
+    setOperationState("IDLE")
   }
 
   const joinRace = (race: ItemRace) => {
-    const updated = {
-      ...race,
-      joined: true,
-      myAmount: race.entryAmount,
-      participants: race.participants + 1,
-    }
+    if (pending) return
 
-    setRaces(races.map((item) => item.id === race.id ? updated : item))
-    setSelectedRace(null)
+    const raceId = race.id
+    setOperationState("PENDING")
+    window.setTimeout(() => {
+      setRaces((current) => current.map((item) => item.id === raceId
+        ? {
+            ...item,
+            joined: true,
+            myAmount: item.entryAmount,
+            participants: item.participants + 1,
+          }
+        : item))
+      setOperationState("IDLE")
+      setSelectedRace(null)
+    }, 900)
   }
 
   const increaseRace = () => {
-    if (!selectedRace || Number(amount) <= 0) return
+    if (!selectedRace || !raceIncreaseValid || pending) return
 
-    const updated = {
-      ...selectedRace,
-      myAmount: (selectedRace.myAmount ?? selectedRace.entryAmount) + Number(amount),
-    }
-
-    setRaces(races.map((item) => item.id === selectedRace.id ? updated : item))
-    setSelectedRace(null)
+    const raceId = selectedRace.id
+    const delta = numericAmount
+    setOperationState("PENDING")
+    window.setTimeout(() => {
+      setRaces((current) => current.map((item) => item.id === raceId
+        ? { ...item, myAmount: (item.myAmount ?? item.entryAmount) + delta }
+        : item))
+      setOperationState("IDLE")
+      setSelectedRace(null)
+    }, 900)
   }
 
   return (
@@ -106,7 +139,7 @@ export function BetsPage({ back }: { back: () => void }) {
 
       <AnimatePresence>
         {selectedRound ? (
-          <BottomSheet title={selectedRound.eventType} onClose={() => setSelectedRound(null)}>
+          <BottomSheet title={selectedRound.eventType} onClose={() => !pending && setSelectedRound(null)}>
             <div className="bet-sheet">
               <div className="timing-grid">
                 <span><small>Подія</small>{selectedRound.scheduledAt}</span>
@@ -114,35 +147,47 @@ export function BetsPage({ back }: { back: () => void }) {
                 <span><small>Результат</small>{selectedRound.resolvesAt}</span>
               </div>
 
-              <Field label="Варіант">
-                <Segmented value={side} options={BET_SIDES} onChange={setSide} />
-              </Field>
+              {selectedRound.myAmount ? (
+                <div className="bet-side-lock">
+                  <small>Варіант</small>
+                  <strong>{selectedRound.mySide === "YES" ? "Так" : "Ні"}</strong>
+                </div>
+              ) : (
+                <Field label="Варіант">
+                  <Segmented value={side} options={BET_SIDES} onChange={setSide} label={value => value === "YES" ? "Так" : "Ні"} />
+                </Field>
+              )}
 
-              <Field label={selectedRound.myAmount ? "Додати" : "Сума"}>
+              <Field
+                label={selectedRound.myAmount ? "Додати" : "Сума"}
+                hint={!roundAmountValid && amount.length
+                  ? selectedRound.myAmount ? "Додатне ціле" : "100–5000"
+                  : undefined}
+              >
                 <div className="amount-input">
                   <span><CurrencyValue currency="COIN" value={0} compact /></span>
-                  <input type="number" min="1" value={amount} onChange={(event) => setAmount(event.target.value)} />
+                  <input type="number" min={selectedRound.myAmount ? 1 : 100} max={selectedRound.myAmount ? undefined : 5000} step={1} value={amount} onChange={(event) => setAmount(event.target.value)} />
                 </div>
               </Field>
 
               <div className="odds-summary">
-                <span>{side}</span>
-                <b>× {side === "YES" ? selectedRound.yesOdds : selectedRound.noOdds}</b>
+                <span>{(selectedRound.mySide ?? side) === "YES" ? "Так" : "Ні"}</span>
+                <b>× {(selectedRound.mySide ?? side) === "YES" ? selectedRound.yesOdds : selectedRound.noOdds}</b>
               </div>
 
               <button
                 className="primary-action"
-                disabled={selectedRound.status !== "OPEN" || Number(amount) <= 0}
+                disabled={selectedRound.status !== "OPEN" || !roundAmountValid || pending}
                 onClick={saveRound}
               >
-                {selectedRound.myAmount ? "Збільшити" : "Поставити"}
+                {pending ? <><Glyph name="clock" size={15} /> Обробка</> : selectedRound.myAmount ? "Збільшити" : "Поставити"}
               </button>
             </div>
           </BottomSheet>
         ) : null}
 
         {selectedRace ? (
-          <BottomSheet title={selectedRace.itemName} onClose={() => setSelectedRace(null)}>
+          <BottomSheet title={selectedRace.itemName} onClose={() => !pending && setSelectedRace(null)}>
             <div className="bet-sheet">
               <div className="race-summary">
                 <span><small>Вхід</small><CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact /></span>
@@ -152,17 +197,17 @@ export function BetsPage({ back }: { back: () => void }) {
 
               {selectedRace.joined ? (
                 <>
-                  <Field label="Додати">
+                  <Field label="Додати" hint={!raceIncreaseValid && amount.length ? "Додатне ціле" : undefined}>
                     <div className="amount-input">
                       <span><CurrencyValue currency="COIN" value={0} compact /></span>
-                      <input type="number" min="1" value={amount} onChange={(event) => setAmount(event.target.value)} />
+                      <input type="number" min="1" step="1" value={amount} onChange={(event) => setAmount(event.target.value)} />
                     </div>
                   </Field>
-                  <button className="primary-action" onClick={increaseRace}>Збільшити</button>
+                  <button className="primary-action" disabled={!raceIncreaseValid || pending} onClick={increaseRace}>{pending ? <><Glyph name="clock" size={15} /> Обробка</> : "Збільшити"}</button>
                 </>
               ) : (
-                <button className="primary-action" onClick={() => joinRace(selectedRace)}>
-                  Увійти · {selectedRace.entryAmount.toLocaleString("uk-UA")}
+                <button className="primary-action" disabled={pending} onClick={() => joinRace(selectedRace)}>
+                  {pending ? <><Glyph name="clock" size={15} /> Обробка</> : <>Увійти · <CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact /></>}
                 </button>
               )}
             </div>
@@ -182,13 +227,13 @@ function RoundRow({ round, onClick }: { round: BetRound; onClick: () => void }) 
         <small>{betStatusLabels[round.status]}</small>
       </span>
       <span className="bet-odds">
-        <span>YES <b>{round.yesOdds}</b></span>
-        <span>NO <b>{round.noOdds}</b></span>
+        <span>Так <b>{round.yesOdds}</b></span>
+        <span>Ні <b>{round.noOdds}</b></span>
       </span>
       <time>{round.closesAt}</time>
       {round.myAmount ? (
         <span className="my-position">
-          <CurrencyValue currency="COIN" value={round.myAmount} compact /> · {round.mySide}
+          <CurrencyValue currency="COIN" value={round.myAmount} compact /> · {round.mySide === "YES" ? "Так" : "Ні"}
         </span>
       ) : null}
     </button>
