@@ -4,6 +4,7 @@ import { accounts as initialAccounts, currentUser } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
 import { AccountFeature } from "./features/AccountFeature"
+import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeature"
 import { EventsArea } from "./features/EventsArea"
 import { PeopleFeature } from "./features/PeopleFeature"
@@ -100,7 +101,9 @@ export default function App() {
           ? <PersonalizationFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
           : area === "creator"
             ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
-            : <StaffFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
+            : current.id === "administration"
+              ? <AdministrationHome navigate={navigate} back={back} />
+              : <StaffFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
 
   return (
     <MotionConfig transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}>
