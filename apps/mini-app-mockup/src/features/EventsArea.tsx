@@ -13,7 +13,7 @@ type Props = {
 
 export function EventsArea({ routeId, params, activeAccount, navigate, back }: Props) {
   if (routeId === "bets") return <BetsPage activeAccount={activeAccount} />
-  if (routeId === "event-detail") return <EventDetail eventId={params?.eventId} back={back} />
+  if (routeId === "event-detail") return <EventDetail eventId={params?.eventId} activeAccount={activeAccount} back={back} />
   if (routeId === "subscriptions") return <SubscriptionsPage back={back} />
 
   return <EventsHome navigate={navigate} />
