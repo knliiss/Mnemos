@@ -32,6 +32,52 @@
     #191815 !important;
 }
 
+.account-polished-member__chevron {
+  align-self: center;
+  color: #777066;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.account-polished-member__no-role {
+  color: #716a61;
+  font-size: 7px;
+}
+
+.account-polished-member.is-owner {
+  cursor: default;
+}
+
+.account-member-popover__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 29px;
+  padding: 2px 3px 7px;
+  color: #e8e1d7;
+}
+
+.account-member-popover__header span {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-member-popover__header small {
+  color: #7f786e;
+  font-size: 7px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.catalog-final-card--notification_pack .preview-caption {
+  display: none !important;
+}
+
 .owned-final-list__main > .notification-real-preview {
   display: none !important;
 }
