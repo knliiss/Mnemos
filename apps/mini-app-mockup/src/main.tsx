@@ -12,6 +12,7 @@ import "./redesign-2026.css"
 import "./final-revision.css"
 import "./final-fixes.css"
 import "./backend-alignment.css"
+import "./polish-pass.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
