@@ -1,16 +1,16 @@
 import { AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { BET_SIDES } from "../contracts"
-import { betRounds, itemRaces as initialItemRaces } from "../mockData"
+import { accounts, betRounds, itemRaces as initialItemRaces } from "../mockData"
 import type { BetRound, BetSide, ItemRace } from "../model"
-import { betStatusLabels, itemTypeLabels } from "../presentation"
+import { betStatusLabels, globalEventLabels, itemTypeLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
-import { BottomSheet, CurrencyValue, Field, PageHeader, Segmented } from "../shared/Primitives"
+import { BottomSheet, CurrencyValue, Field, Segmented } from "../shared/Primitives"
 
 type BetMode = "ROUNDS" | "MY" | "RACES"
 type OperationState = "IDLE" | "PENDING"
 
-export function BetsPage({ back }: { back: () => void }) {
+export function BetsPage() {
   const [mode, setMode] = useState<BetMode>("ROUNDS")
   const [rounds, setRounds] = useState(betRounds)
   const [races, setRaces] = useState<ItemRace[]>(initialItemRaces)
@@ -103,84 +103,99 @@ export function BetsPage({ back }: { back: () => void }) {
   }
 
   return (
-    <div className="screen bets-screen">
-      <PageHeader title="Ставки" back={back} />
+    <div className="screen bets-root-screen root-screen">
+      <header className="root-title-block bets-title-block">
+        <span>
+          <h1>Ставки</h1>
+          <p>Активний аккаунт</p>
+        </span>
+        <button className="root-wallet-chip">
+          <CurrencyValue currency="COIN" value={accounts[0].coin} compact />
+        </button>
+      </header>
 
       <Segmented
         value={mode}
         options={["ROUNDS", "MY", "RACES"] as const}
         onChange={setMode}
-        label={(value) => ({ ROUNDS: "Події", MY: "Мої", RACES: "Дропи" }[value])}
+        label={(value) => ({ ROUNDS: "Події", MY: "Мої", RACES: "Перегони" }[value])}
       />
 
       {mode === "ROUNDS" ? (
-        <div className="bet-list">
+        <section className="bet-redesign-list">
           {rounds.map((round) => <RoundRow key={round.id} round={round} onClick={() => openRound(round)} />)}
-        </div>
+        </section>
       ) : null}
 
       {mode === "RACES" ? (
-        <div className="bet-list">
+        <section className="bet-redesign-list">
           {races.map((race) => <RaceRow key={race.id} race={race} onClick={() => openRace(race)} />)}
-        </div>
+        </section>
       ) : null}
 
       {mode === "MY" ? (
-        <div className="my-bets">
-          <div className="bet-list">
-            {myRounds.map((round) => <RoundRow key={round.id} round={round} onClick={() => openRound(round)} />)}
-          </div>
-          <div className="bet-list">
-            {myRaces.map((race) => <RaceRow key={race.id} race={race} onClick={() => openRace(race)} />)}
-          </div>
-          {!myRounds.length && !myRaces.length ? <p className="inline-hint">Порожньо</p> : null}
-        </div>
+        <section className="my-bets-redesign">
+          {myRounds.length ? <div className="bet-redesign-list">{myRounds.map((round) => <RoundRow key={round.id} round={round} onClick={() => openRound(round)} />)}</div> : null}
+          {myRaces.length ? <div className="bet-redesign-list">{myRaces.map((race) => <RaceRow key={race.id} race={race} onClick={() => openRace(race)} />)}</div> : null}
+          {!myRounds.length && !myRaces.length ? <p className="inline-hint">Поки ставок немає</p> : null}
+        </section>
       ) : null}
 
       <AnimatePresence>
         {selectedRound ? (
-          <BottomSheet title={selectedRound.eventType} onClose={() => !pending && setSelectedRound(null)}>
-            <div className="bet-sheet">
-              <div className="timing-grid">
-                <span><small>Подія</small>{selectedRound.scheduledAt}</span>
-                <span><small>Закриття</small>{selectedRound.closesAt}</span>
-                <span><small>Результат</small>{selectedRound.resolvesAt}</span>
+          <BottomSheet title={globalEventLabels[selectedRound.eventType]} onClose={() => !pending && setSelectedRound(null)}>
+            <div className="bet-sheet bet-sheet--redesign">
+              <div className="bet-sheet__timing">
+                <span><small>Подія</small><strong>{selectedRound.scheduledAt}</strong></span>
+                <span><small>Закриття</small><strong>{selectedRound.closesAt}</strong></span>
               </div>
 
               {selectedRound.myAmount ? (
-                <div className="bet-side-lock">
-                  <small>Варіант</small>
-                  <strong>{selectedRound.mySide === "YES" ? "Так" : "Ні"}</strong>
+                <div className="bet-existing-position">
+                  <span><small>Твоя сторона</small><strong>{selectedRound.mySide === "YES" ? "Так" : "Ні"}</strong></span>
+                  <CurrencyValue currency="COIN" value={selectedRound.myAmount} compact />
                 </div>
               ) : (
-                <Field label="Варіант">
-                  <Segmented value={side} options={BET_SIDES} onChange={setSide} label={value => value === "YES" ? "Так" : "Ні"} />
+                <Field label="Результат">
+                  <div className="bet-side-choice">
+                    {BET_SIDES.map((value) => (
+                      <button key={value} className={side === value ? "is-active" : ""} onClick={() => setSide(value)}>
+                        <span>{value === "YES" ? "Так" : "Ні"}</span>
+                        <b>× {value === "YES" ? selectedRound.yesOdds : selectedRound.noOdds}</b>
+                      </button>
+                    ))}
+                  </div>
                 </Field>
               )}
 
               <Field
-                label={selectedRound.myAmount ? "Додати" : "Сума"}
+                label={selectedRound.myAmount ? "Збільшити на" : "Сума ставки"}
                 hint={!roundAmountValid && amount.length
-                  ? selectedRound.myAmount ? "Додатне ціле" : "100–5000"
+                  ? selectedRound.myAmount ? "Потрібне додатне ціле число" : "Від 100 до 5000 COIN"
                   : undefined}
               >
-                <div className="amount-input">
-                  <span><CurrencyValue currency="COIN" value={0} compact /></span>
-                  <input type="number" min={selectedRound.myAmount ? 1 : 100} max={selectedRound.myAmount ? undefined : 5000} step={1} value={amount} onChange={(event) => setAmount(event.target.value)} />
+                <div className="amount-input amount-input--redesign">
+                  <CurrencyValue currency="COIN" value={0} compact />
+                  <input
+                    type="number"
+                    min={selectedRound.myAmount ? 1 : 100}
+                    max={selectedRound.myAmount ? undefined : 5000}
+                    step={1}
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                  />
                 </div>
               </Field>
 
-              <div className="odds-summary">
-                <span>{(selectedRound.mySide ?? side) === "YES" ? "Так" : "Ні"}</span>
-                <b>× {(selectedRound.mySide ?? side) === "YES" ? selectedRound.yesOdds : selectedRound.noOdds}</b>
-              </div>
+              {!selectedRound.myAmount ? (
+                <div className="bet-odds-note">
+                  <span>Коефіцієнт</span>
+                  <b>× {side === "YES" ? selectedRound.yesOdds : selectedRound.noOdds}</b>
+                </div>
+              ) : null}
 
-              <button
-                className="primary-action"
-                disabled={selectedRound.status !== "OPEN" || !roundAmountValid || pending}
-                onClick={saveRound}
-              >
-                {pending ? <><Glyph name="clock" size={15} /> Обробка</> : selectedRound.myAmount ? "Збільшити" : "Поставити"}
+              <button className="primary-action" disabled={selectedRound.status !== "OPEN" || !roundAmountValid || pending} onClick={saveRound}>
+                {pending ? <><Glyph name="clock" size={15} /> Обробка</> : selectedRound.myAmount ? "Збільшити ставку" : "Поставити"}
               </button>
             </div>
           </BottomSheet>
@@ -188,18 +203,27 @@ export function BetsPage({ back }: { back: () => void }) {
 
         {selectedRace ? (
           <BottomSheet title={selectedRace.itemName} onClose={() => !pending && setSelectedRace(null)}>
-            <div className="bet-sheet">
-              <div className="race-summary">
-                <span><small>Вхід</small><CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact /></span>
-                <span><small>Учасники</small>{selectedRace.participants}</span>
-                <span><small>До</small>{selectedRace.closesAt}</span>
+            <div className="bet-sheet bet-sheet--redesign">
+              <div className="race-sheet-summary">
+                <span><small>Тип</small><strong>{itemTypeLabels[selectedRace.itemType]}</strong></span>
+                <span><small>Учасники</small><strong>{selectedRace.participants}</strong></span>
+                <span><small>Закриття</small><strong>{selectedRace.closesAt}</strong></span>
+              </div>
+
+              <div className="race-entry-line">
+                <span>Вхід</span>
+                <CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact />
               </div>
 
               {selectedRace.joined ? (
                 <>
-                  <Field label="Додати" hint={!raceIncreaseValid && amount.length ? "Додатне ціле" : undefined}>
-                    <div className="amount-input">
-                      <span><CurrencyValue currency="COIN" value={0} compact /></span>
+                  <div className="bet-existing-position">
+                    <span><small>Твоя участь</small><strong>Активна</strong></span>
+                    <CurrencyValue currency="COIN" value={selectedRace.myAmount ?? selectedRace.entryAmount} compact />
+                  </div>
+                  <Field label="Збільшити на" hint={!raceIncreaseValid && amount.length ? "Потрібне додатне ціле число" : undefined}>
+                    <div className="amount-input amount-input--redesign">
+                      <CurrencyValue currency="COIN" value={0} compact />
                       <input type="number" min="1" step="1" value={amount} onChange={(event) => setAmount(event.target.value)} />
                     </div>
                   </Field>
@@ -207,7 +231,7 @@ export function BetsPage({ back }: { back: () => void }) {
                 </>
               ) : (
                 <button className="primary-action" disabled={pending} onClick={() => joinRace(selectedRace)}>
-                  {pending ? <><Glyph name="clock" size={15} /> Обробка</> : <>Увійти · <CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact /></>}
+                  {pending ? <><Glyph name="clock" size={15} /> Обробка</> : <>Приєднатись · <CurrencyValue currency="COIN" value={selectedRace.entryAmount} compact /></>}
                 </button>
               )}
             </div>
@@ -220,37 +244,30 @@ export function BetsPage({ back }: { back: () => void }) {
 
 function RoundRow({ round, onClick }: { round: BetRound; onClick: () => void }) {
   return (
-    <button className="bet-row" onClick={onClick}>
-      <span className="bet-row__event">
-        <Glyph name="global" size={20} />
-        <strong>{round.eventType}</strong>
-        <small>{betStatusLabels[round.status]}</small>
+    <button className={`bet-redesign-card ${round.status !== "OPEN" ? "is-locked" : ""}`} onClick={onClick}>
+      <span className="bet-redesign-card__icon"><Glyph name="global" size={20} /></span>
+      <span className="bet-redesign-card__copy">
+        <small>{globalEventLabels[round.eventType]}</small>
+        <strong>{betStatusLabels[round.status]}</strong>
+        <time>до {round.closesAt}</time>
       </span>
-      <span className="bet-odds">
-        <span>Так <b>{round.yesOdds}</b></span>
-        <span>Ні <b>{round.noOdds}</b></span>
-      </span>
-      <time>{round.closesAt}</time>
-      {round.myAmount ? (
-        <span className="my-position">
-          <CurrencyValue currency="COIN" value={round.myAmount} compact /> · {round.mySide === "YES" ? "Так" : "Ні"}
-        </span>
-      ) : null}
+      <span className="bet-redesign-card__odds"><span>Так <b>{round.yesOdds}</b></span><span>Ні <b>{round.noOdds}</b></span></span>
+      {round.myAmount ? <span className="bet-redesign-card__mine"><CurrencyValue currency="COIN" value={round.myAmount} compact /><b>{round.mySide === "YES" ? "Так" : "Ні"}</b></span> : <span className="bet-redesign-card__open">Відкрити ›</span>}
     </button>
   )
 }
 
 function RaceRow({ race, onClick }: { race: ItemRace; onClick: () => void }) {
   return (
-    <button className="race-row race-row--button" onClick={onClick}>
-      <div>
+    <button className="bet-redesign-card race-redesign-card" onClick={onClick}>
+      <span className="bet-redesign-card__icon bet-redesign-card__icon--amber"><Glyph name="item-drop" size={20} /></span>
+      <span className="bet-redesign-card__copy">
+        <small>{itemTypeLabels[race.itemType]}</small>
         <strong>{race.itemName}</strong>
-        <small>{itemTypeLabels[race.itemType]} · {race.participants}</small>
-      </div>
-      <div className="race-row__entry">
-        <CurrencyValue currency="COIN" value={race.joined ? (race.myAmount ?? race.entryAmount) : race.entryAmount} compact />
-        {race.joined ? <span className="state-label">Моя</span> : null}
-      </div>
+        <time>{race.participants} учасників · до {race.closesAt}</time>
+      </span>
+      <span className="race-redesign-card__entry"><small>{race.joined ? "Твоя сума" : "Вхід"}</small><CurrencyValue currency="COIN" value={race.joined ? (race.myAmount ?? race.entryAmount) : race.entryAmount} compact /></span>
+      <span className="bet-redesign-card__open">›</span>
     </button>
   )
 }
