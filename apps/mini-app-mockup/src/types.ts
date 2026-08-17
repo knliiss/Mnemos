@@ -12,6 +12,9 @@ export type Page =
   | "notifications"
   | "social"
   | "settings"
+  | "account"
+  | "news"
+  | "feedback"
 
 export type Currency = "coin" | "prime"
 export type Scope = "account" | "user"
