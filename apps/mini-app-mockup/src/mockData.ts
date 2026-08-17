@@ -18,6 +18,7 @@ export const currentUser = {
   id: "0198f6ce-e934-7000-8000-000000000001",
   username: "knalis",
   language: "UK" as const,
+  prime: 132,
   systemRoles: [
     "SUPER_ADMIN",
     "PERSONALIZATION_CREATOR",
@@ -33,25 +34,23 @@ export const accounts: Account[] = [
     id: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
     cristalixUuid: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
     nickname: "knalis",
-    role: "Owner",
+    role: "Власник",
     skinUrl,
     memberCount: 4,
     maxMembers: 8,
     owner: true,
     coin: 12_480,
-    prime: 340,
   },
   {
     id: "0f4e8d3c-2a9a-4e9d-9d18-7cb58ec00f18",
     cristalixUuid: "0f4e8d3c-2a9a-4e9d-9d18-7cb58ec00f18",
     nickname: "Knaliss",
-    role: "Member",
+    role: "Учасник",
     skinUrl,
     memberCount: 3,
     maxMembers: 6,
     owner: false,
     coin: 4_860,
-    prime: 96,
   },
 ]
 
@@ -97,23 +96,23 @@ const permissionMap = (enabled: RolePermission[]): Record<RolePermission, boolea
 export const initialRoles: AccountRole[] = [
   {
     id: "role-owner",
-    name: "Owner",
-    color: "#D6D8D7",
+    name: "Власник",
+    color: "#D8D4C9",
     hierarchyRank: 100,
     permissions: permissionMap(allPermissions),
     locked: true,
   },
   {
     id: "role-admin",
-    name: "Admin",
-    color: "#A6ADB5",
+    name: "Адміністратор",
+    color: "#C08B67",
     hierarchyRank: 80,
     permissions: permissionMap(allPermissions.filter((permission) => permission !== "MANAGE_ROLE_HIERARCHY")),
   },
   {
     id: "role-moderator",
-    name: "Moderator",
-    color: "#9AA29D",
+    name: "Модератор",
+    color: "#A985A8",
     hierarchyRank: 50,
     permissions: permissionMap([
       "VIEW_MEMBERS",
@@ -126,8 +125,8 @@ export const initialRoles: AccountRole[] = [
   },
   {
     id: "role-member",
-    name: "Member",
-    color: "#737A76",
+    name: "Учасник",
+    color: "#8A877F",
     hierarchyRank: 10,
     permissions: permissionMap([
       "VIEW_MEMBERS",
@@ -160,6 +159,8 @@ export const feed: FeedEvent[] = [
   { id: "ev-4", kind: "RAID", title: "RAID", detail: "2 · 4 · 7", occurredAt: "2026-08-17T16:12:20Z", relative: "38 хв", meta: "3 locations" },
   { id: "ev-5", kind: "ITEM_DROP", title: "Moon Necklace", detail: "north", occurredAt: "2026-08-17T15:58:51Z", relative: "52 хв", meta: "JEWELRY", rarity: "SECRET" },
   { id: "ev-6", kind: "GLOBAL", title: "MOON", detail: "GLOBAL", occurredAt: "2026-08-17T15:31:03Z", relative: "1 год 19 хв" },
+  { id: "ev-7", kind: "ITEM_DROP", title: "Black Flame", detail: "knalis", occurredAt: "2026-08-16T19:18:00Z", relative: "16 серп.", meta: "AURA", rarity: "SECRET" },
+  { id: "ev-8", kind: "ITEM_DROP", title: "Observer", detail: "knalis", occurredAt: "2026-08-14T14:06:00Z", relative: "14 серп.", meta: "PET", rarity: "MYTHICAL" },
 ]
 
 export const initialSubscriptions: Subscription[] = [
@@ -203,7 +204,7 @@ export const reviewQueue: Personalization[] = [
 export const accountTransactions: WalletTransaction[] = [
   { id: "t1", currency: "COIN", type: "CREDIT", source: "DAILY_REWARD", amount: 420, createdAt: "сьогодні · 10:14" },
   { id: "t2", currency: "COIN", type: "DEBIT", source: "BET_PLACE", amount: 750, createdAt: "вчора · 23:51" },
-  { id: "t3", currency: "PRIME", type: "DEBIT", source: "PERSONALIZATION_PURCHASE", amount: 30, createdAt: "вчора · 19:40" },
+  { id: "t3", currency: "COIN", type: "CREDIT", source: "ITEM_DROP_REWARD", amount: 280, createdAt: "16 серп. · 19:18" },
 ]
 
 export const userTransactions: WalletTransaction[] = [
@@ -224,9 +225,9 @@ export const initialComments: ProfileComment[] = [
 
 export const permissionGroups: { label: string; permissions: RolePermission[] }[] = [
   { label: "Аккаунт", permissions: ["VIEW_ACCOUNT_SETTINGS", "EDIT_ACCOUNT_SETTINGS", "MANAGE_ACCOUNT_INVITES"] },
-  { label: "Мембери", permissions: ["VIEW_MEMBERS", "INVITE_MEMBERS", "REMOVE_MEMBERS", "ASSIGN_MEMBER_ROLES", "KICK_MEMBERS"] },
+  { label: "Учасники", permissions: ["VIEW_MEMBERS", "INVITE_MEMBERS", "REMOVE_MEMBERS", "ASSIGN_MEMBER_ROLES", "KICK_MEMBERS"] },
   { label: "Ролі", permissions: ["VIEW_ROLES", "CREATE_ROLES", "EDIT_ROLE_DETAILS", "EDIT_ROLE_PERMISSIONS", "DELETE_ROLES", "MANAGE_ROLE_HIERARCHY", "MANAGE_ROLES"] },
-  { label: "Wallet", permissions: ["VIEW_WALLET", "VIEW_TRANSACTION_HISTORY", "SPEND_WALLET_FUNDS"] },
+  { label: "Гаманець", permissions: ["VIEW_WALLET", "VIEW_TRANSACTION_HISTORY", "SPEND_WALLET_FUNDS"] },
   { label: "Активність", permissions: ["CLAIM_DAILY_REWARD", "PUBLISH_COMMENTS", "PUBLISH_REACTIONS", "MODERATE_COMMENTS"] },
   { label: "Ставки", permissions: ["VIEW_BETS", "PLACE_BETS", "MANAGE_BETS", "VIEW_BET_HISTORY"] },
   { label: "Персоналізація", permissions: ["VIEW_PERSONALIZATIONS", "APPLY_PERSONALIZATIONS", "BUY_PERSONALIZATIONS", "MANAGE_PERSONALIZATIONS"] },
