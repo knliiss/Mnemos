@@ -94,6 +94,7 @@ jobs:
           capture account-invites 390 "?screen=account-invites"
           capture account-settings 390 "?screen=account-settings"
           capture account-create 390 "?screen=account-create"
+          capture account-join 390 "?screen=account-join"
 
           # People / user area.
           capture search 390 "?screen=search"
