@@ -87,9 +87,11 @@ input::placeholder, textarea::placeholder { color: #5e6069; }
 .account-tools, .feature-rail { gap: 0; border-block: 1px solid var(--line); }
 .account-tools button, .feature-rail button { border: 0; border-radius: 0; background: transparent; }
 .account-tools button + button, .feature-rail button + button { border-left: 1px solid var(--line); }
+.account-tools button small:empty { display: none; }
+.daily-line__reward small { display: inline-flex; align-items: center; gap: 4px; }
 .member-avatar, .user-monogram, .comment__avatar { border-radius: 7px; background: rgba(255,255,255,.045); }
 .role-swatch { border-radius: 3px; }
-.role-order button { min-width: 34px; min-height: 34px; border-radius: 6px; }
+.role-order button { min-width: 42px; min-height: 42px; border-radius: 7px; }
 
 /* Store is one of the few places where cards are semantically justified. */
 .type-scroller button { border-radius: 7px; }
@@ -98,17 +100,20 @@ input::placeholder, textarea::placeholder { color: #5e6069; }
 .personalization-preview { background: linear-gradient(145deg, #24252a, #17181c 62%, #121317); }
 .personalization-preview::after { display: none; }
 .personalization-preview.is-detail { border-radius: 10px; }
+.editor-preview .personalization-preview.is-detail { min-height: 190px; height: 190px; }
 .preview-orbit { border-radius: 42%; transform: rotate(-20deg); }
 .scope-symbol { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; color: var(--text-muted); font-size: 9px; }
 .scope-symbol--compact span { display: none; }
 .scope-symbol--compact { min-width: 24px; justify-content: center; }
 .owned-list article { gap: 8px; }
 
-/* Creator/staff are workspaces: denser, flatter, less dashboard-like. */
-.creator-revenue { border-radius: 8px; }
+/* Creator/staff are workspaces: flatter rails, not stacked dashboard cards. */
+.creator-revenue { min-height: 68px; margin-bottom: 0; border: 0; border-block: 1px solid var(--line); border-radius: 0; background: var(--line); }
+.creator-revenue > div, .creator-revenue > span { background: var(--bg); }
 .creator-revenue--button { width: 100%; grid-template-columns: 1.5fr .75fr 32px; text-align: left; }
 .creator-revenue__arrow { display: grid !important; place-items: center; color: var(--text-muted); font-size: 20px; }
-.creator-status-strip { border-radius: 7px; }
+.creator-status-strip { margin: 0 0 16px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; }
+.creator-status-strip > span { background: transparent; }
 .revenue-summary { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 1px; margin-bottom: 18px; border-block: 1px solid var(--line); background: var(--line); }
 .revenue-summary > div { min-height: 66px; display: grid; align-content: center; gap: 3px; padding: 9px; background: var(--bg); }
 .revenue-summary small { color: var(--text-muted); font-size: 8px; }
