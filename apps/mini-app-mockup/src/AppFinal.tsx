@@ -4,6 +4,7 @@ import { accounts as initialAccounts, currentUser } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
 import { AccountFeatureFinal } from "./features/AccountFeatureFinal"
+import { AccountSettingsFinal } from "./features/AccountSettingsFinal"
 import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeature"
 import { EventsArea } from "./features/EventsArea"
@@ -94,18 +95,29 @@ export default function AppFinal() {
   const content = area === "events"
     ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
     : area === "account"
-      ? (
-          <AccountFeatureFinal
-            routeId={current.id}
-            params={current.params}
-            activeAccount={activeAccount}
-            setActiveAccount={setActiveAccount}
-            accounts={accounts}
-            setAccounts={setAccounts}
-            navigate={navigate}
-            back={back}
-          />
-        )
+      ? current.id === "account-settings"
+        ? (
+            <AccountSettingsFinal
+              activeAccount={activeAccount}
+              setActiveAccount={setActiveAccount}
+              accounts={accounts}
+              setAccounts={setAccounts}
+              navigate={navigate}
+              back={back}
+            />
+          )
+        : (
+            <AccountFeatureFinal
+              routeId={current.id}
+              params={current.params}
+              activeAccount={activeAccount}
+              setActiveAccount={setActiveAccount}
+              accounts={accounts}
+              setAccounts={setAccounts}
+              navigate={navigate}
+              back={back}
+            />
+          )
       : area === "people"
         ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
         : area === "personalization"
