@@ -5,6 +5,7 @@ import "./styles.css"
 import "./feature-details.css"
 import "./event-details.css"
 import "./account-details.css"
+import "./bets-details.css"
 import "./visual-system.css"
 
 createRoot(document.getElementById("root")!).render(
