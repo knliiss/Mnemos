@@ -16,7 +16,13 @@ export function StaffAreaOverhaul(props: Props) {
   }
 
   if (props.routeId === "bet-admin") {
-    return <BetAdminOverhaul back={props.back} />
+    return (
+      <BetAdminOverhaul
+        params={props.params}
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
   }
 
   return <StaffFeatureFinal {...props} />

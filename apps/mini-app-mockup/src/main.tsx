@@ -32,6 +32,7 @@ import "./notification-pack-overhaul.css"
 import "./review-overhaul.css"
 import "./bet-admin-overhaul.css"
 import "./staff-layout-overhaul.css"
+import "./ux-round-two.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
