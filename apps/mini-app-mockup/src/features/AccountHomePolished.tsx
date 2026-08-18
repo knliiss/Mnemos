@@ -14,6 +14,7 @@ type Props = {
   activeAccount: Account
   navigate: (route: Route) => void
   back: () => void
+  onRewardClaimed: (coin: number, prime: number) => void
   initialMemberId?: string | null
 }
 
@@ -48,6 +49,7 @@ export function AccountHomePolished({
   activeAccount,
   navigate,
   back,
+  onRewardClaimed,
   initialMemberId = null,
 }: Props) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
@@ -58,7 +60,6 @@ export function AccountHomePolished({
   const selectedMember = members.find((member) => member.id === initialMemberId) ?? null
   const restoreAvailable = reward.currentStreak === 0 && reward.recoverable && reward.restoresRemaining > 0
   const claimAvailable = !reward.claimedToday && !restoreAvailable
-  const displayedCoinBalance = activeAccount.coin + (rewardResult?.coin ?? 0)
 
   const drops = useMemo(
     () => feed
@@ -106,6 +107,7 @@ export function AccountHomePolished({
     const prime = Math.random() < reward.primeChance ? 1 : 0
 
     setRewardResult({ coin, prime })
+    onRewardClaimed(coin, prime)
     setReward((current) => ({
       ...current,
       currentStreak: current.currentStreak <= 0 ? 1 : current.currentStreak + 1,
@@ -256,7 +258,7 @@ export function AccountHomePolished({
         >
           <span className="account-v4-feature-copy">
             <small>ГАМАНЕЦЬ</small>
-            <strong><CurrencyMark currency="COIN" size={19} />{displayedCoinBalance.toLocaleString("uk-UA")}</strong>
+            <strong><CurrencyMark currency="COIN" size={19} />{activeAccount.coin.toLocaleString("uk-UA")}</strong>
             <span>COIN</span>
           </span>
           <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
