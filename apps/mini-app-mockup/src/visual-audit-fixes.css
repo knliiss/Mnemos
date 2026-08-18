@@ -9,10 +9,11 @@
 
 .event-facts--polished dd {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible !important;
   overflow-wrap: normal !important;
-  text-overflow: ellipsis;
+  text-overflow: clip !important;
   white-space: nowrap;
+  font-size: 10.5px !important;
 }
 
 .spotlight-action--polished > .spotlight-buy {
