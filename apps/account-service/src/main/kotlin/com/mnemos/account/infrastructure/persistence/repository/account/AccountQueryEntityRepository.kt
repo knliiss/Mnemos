@@ -26,7 +26,7 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
             ON current_member.account_id = account.id
             AND current_member.user_id = :userId
             AND account.status = 'ACTIVE'
-        ORDER BY account.created_at ASC
+        ORDER BY account.created_at ASC, account.id ASC
         """,
         nativeQuery = true,
     )
