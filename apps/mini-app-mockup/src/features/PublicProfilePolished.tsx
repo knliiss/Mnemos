@@ -22,7 +22,6 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
   const profile = profiles.find((item) => item.accountId === params?.accountId) ?? profiles[0]
   const [reaction, setReaction] = useState<"LIKE" | "DISLIKE" | null>(null)
   const [comments, setComments] = useState<ProfileComment[]>([
-    ...initialComments,
     {
       id: "comment-me",
       authorAccountId: activeAccount.id,
@@ -33,6 +32,7 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
       createdAt: "4 хв",
       liked: false,
     },
+    ...initialComments,
   ])
   const [draft, setDraft] = useState("")
   const [editing, setEditing] = useState<string | null>(null)
@@ -68,6 +68,13 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
 
   const drops = feed
     .filter((event) => event.kind === "ITEM_DROP" && event.detail.toLowerCase() === profile.nickname.toLowerCase())
+    .sort((left, right) => {
+      const timeDifference = Date.parse(right.occurredAt) - Date.parse(left.occurredAt)
+
+      if (timeDifference !== 0) return timeDifference
+
+      return right.id.localeCompare(left.id)
+    })
     .slice(0, 3)
 
   const settleOptimistic = (id: string, content: string) => window.setTimeout(() => {
