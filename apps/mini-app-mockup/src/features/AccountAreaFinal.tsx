@@ -24,6 +24,7 @@ export function AccountAreaFinal(props: Props) {
       <AccountHomePolished
         activeAccount={props.activeAccount}
         navigate={props.navigate}
+        back={props.back}
         initialMemberId={props.routeId === "member" ? props.params?.memberId ?? null : null}
       />
     )
