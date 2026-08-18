@@ -17,7 +17,8 @@ export function CristalixHead({
   size = 112,
   className,
 }: CristalixHeadProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const baseRef = useRef<HTMLCanvasElement>(null)
+  const overlayRef = useRef<HTMLCanvasElement>(null)
   const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -35,19 +36,18 @@ export function CristalixHead({
         return
       }
 
-      const canvas = canvasRef.current
-      const context = canvas?.getContext("2d")
+      const baseCanvas = baseRef.current
+      const overlayCanvas = overlayRef.current
+      const baseContext = baseCanvas?.getContext("2d")
+      const overlayContext = overlayCanvas?.getContext("2d")
 
-      if (!canvas || !context) {
+      if (!baseCanvas || !overlayCanvas || !baseContext || !overlayContext) {
         setFailed(true)
         return
       }
 
-      context.clearRect(0, 0, HEAD_TEXTURE_SIZE, HEAD_TEXTURE_SIZE)
-      context.imageSmoothingEnabled = false
-
-      drawLayer(context, image, textureScale, 8, 8)
-      drawLayer(context, image, textureScale, 40, 8)
+      drawLayer(baseContext, image, textureScale, 8, 8)
+      drawLayer(overlayContext, image, textureScale, 40, 8)
 
       setLoaded(true)
     }
@@ -72,10 +72,10 @@ export function CristalixHead({
 
   return (
     <motion.span
-      className={`cristalix-head cristalix-head--face ${failed ? "cristalix-head--fallback" : ""} ${loaded ? "is-loaded" : ""} ${className ?? ""}`.trim()}
+      className={`cristalix-head cristalix-head--layered ${failed ? "cristalix-head--fallback" : ""} ${loaded ? "is-loaded" : ""} ${className ?? ""}`.trim()}
       style={style}
       initial={false}
-      animate={{ opacity: loaded || failed ? 1 : 0.7, scale: loaded ? 1 : 0.985 }}
+      animate={{ opacity: loaded || failed ? 1 : 0.72, scale: loaded ? 1 : 0.985 }}
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       aria-label={failed ? "Cristalix skin unavailable" : "Cristalix skin head"}
     >
@@ -83,13 +83,20 @@ export function CristalixHead({
         <Glyph name="person" size={Math.max(12, Math.round(size * 0.34))} />
       </span>
 
-      <canvas
-        ref={canvasRef}
-        className="cristalix-head__canvas"
-        width={HEAD_TEXTURE_SIZE}
-        height={HEAD_TEXTURE_SIZE}
-        aria-hidden="true"
-      />
+      <span className="cristalix-head__layers" aria-hidden="true">
+        <canvas
+          ref={baseRef}
+          className="cristalix-head__canvas cristalix-head__canvas--base"
+          width={HEAD_TEXTURE_SIZE}
+          height={HEAD_TEXTURE_SIZE}
+        />
+        <canvas
+          ref={overlayRef}
+          className="cristalix-head__canvas cristalix-head__canvas--overlay"
+          width={HEAD_TEXTURE_SIZE}
+          height={HEAD_TEXTURE_SIZE}
+        />
+      </span>
     </motion.span>
   )
 }
@@ -101,6 +108,9 @@ function drawLayer(
   sourceX: number,
   sourceY: number,
 ) {
+  context.clearRect(0, 0, HEAD_TEXTURE_SIZE, HEAD_TEXTURE_SIZE)
+  context.imageSmoothingEnabled = false
+
   context.drawImage(
     image,
     sourceX * textureScale,
