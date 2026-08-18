@@ -34,6 +34,7 @@ class ListAccountTransactionsService(
         return transactionReader.findByOwner(
             owner = WalletOwner.Account(query.accountId),
             page = query.page,
+            sort = query.sort,
         )
     }
 }
