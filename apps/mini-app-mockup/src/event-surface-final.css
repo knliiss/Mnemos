@@ -1,0 +1,131 @@
+/* Final event semantics: color identifies the event, but never becomes the card background. */
+.event-surface--dungeon {
+  --event-accent: #8f9b7c;
+}
+
+.event-surface,
+.event-row-surface {
+  isolation: isolate;
+}
+
+.event-surface::after,
+.event-row-surface::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--event-accent);
+  opacity: .055;
+  filter: blur(18px);
+}
+
+.event-surface::after {
+  left: -8px;
+  top: 22%;
+  width: 44px;
+  height: 56%;
+}
+
+.event-row-surface::after {
+  left: -6px;
+  top: 24%;
+  width: 30px;
+  height: 52%;
+}
+
+.event-row-surface {
+  border-color: color-mix(in srgb, var(--event-accent) 14%, rgba(235, 241, 213, .075)) !important;
+}
+
+/* Raster event symbols stay crisp and visually dominant inside an otherwise quiet card. */
+.event-art--booster-luck .event-art__image,
+.event-art--booster-money .event-art__image,
+.event-art--booster-damage .event-art__image,
+.event-art--booster-power .event-art__image,
+.event-art--raid .event-art__image {
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Subscription rules reuse the exact same event language as the feed. */
+.subscription-rule.event-row-surface {
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-rule.event-row-surface > .event-art {
+  width: 36px !important;
+  height: 36px !important;
+  align-self: center;
+}
+
+.subscription-rule.event-row-surface > .event-art .event-art__image {
+  width: 82%;
+  height: 82%;
+}
+
+/* Explicit bet semantic classes now replace visual inference from :has(). */
+.bet-redesign-card.event-surface {
+  border-color: color-mix(in srgb, var(--event-accent) 20%, rgba(235, 241, 213, .09)) !important;
+}
+
+.bet-redesign-card.event-surface.is-locked {
+  filter: saturate(.68);
+}
+
+/* Rarity is intentionally the only color source for real drop rows. */
+.event-surface--drop-secret {
+  --event-accent: #79bfdc;
+}
+
+.event-surface--drop-mythical {
+  --event-accent: #dc5a60;
+}
+
+/* Booster colors follow the source potion artwork. */
+.event-surface--booster-luck {
+  --event-accent: #69d276;
+}
+
+.event-surface--booster-money {
+  --event-accent: #e2b343;
+}
+
+.event-surface--booster-damage {
+  --event-accent: #df5960;
+}
+
+.event-surface--booster-power {
+  --event-accent: #a36bd2;
+}
+
+/* Global events inherit the visual temperature of their icon. */
+.event-surface--global-darkness {
+  --event-accent: #747b82;
+}
+
+.event-surface--global-eclipse {
+  --event-accent: #c9cdd1;
+}
+
+.event-surface--global-moon {
+  --event-accent: #d34d55;
+}
+
+.event-surface--global-explosion {
+  --event-accent: #eca12e;
+}
+
+/* Raid stays neutral enough to coexist with every other event. */
+.event-surface--raid {
+  --event-accent: #aa9c86;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-surface::after,
+  .event-row-surface::after {
+    filter: none;
+  }
+}
