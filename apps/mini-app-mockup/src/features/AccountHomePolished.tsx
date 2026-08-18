@@ -7,6 +7,7 @@ import { eventVisualTone } from "../eventVisualTone"
 import { feed, initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { RoleSigil } from "../shared/RoleSigil"
 import { formatOccurredAt } from "../timePresentation"
 
 type Props = {
@@ -273,7 +274,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
                               style={{ "--member-role": role.color } as CSSProperties}
                               onClick={() => toggleMemberRole(selectedMember, role)}
                             >
-                              <span><i /></span>
+                              <RoleSigil color={role.color} size={30} compact />
                               <strong>{role.name}</strong>
                               <small>{active ? "Призначена" : `${enabledPermissions(role)} дозволів`}</small>
                             </button>
