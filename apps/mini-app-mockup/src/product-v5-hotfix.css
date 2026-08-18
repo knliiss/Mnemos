@@ -2,13 +2,13 @@
 
 /* ---------- External Cristalix head ---------- */
 .cristalix-head--layered .cristalix-head__canvas--overlay {
-  left: -6%;
-  top: -6%;
-  width: 112%;
-  height: 112%;
+  left: -6% !important;
+  top: -6% !important;
+  width: 112% !important;
+  height: 112% !important;
   filter:
     drop-shadow(0 2px 2px rgba(0, 0, 0, .2))
-    drop-shadow(0 8px 12px rgba(0, 0, 0, .15));
+    drop-shadow(0 8px 12px rgba(0, 0, 0, .15)) !important;
 }
 
 .cristalix-head--layered.is-loaded .cristalix-head__placeholder {
@@ -54,6 +54,7 @@
 .account-v5-reward-particles {
   position: absolute;
   z-index: 4;
+  left: auto;
   right: 99px;
   bottom: 36px;
   width: 1px;
@@ -62,31 +63,33 @@
   pointer-events: none;
 }
 
-.reward-particle {
+.account-v5-reward-particles .reward-particle {
   position: absolute;
   left: 0;
   top: 0;
   display: block;
   transform-origin: center;
+  background: none;
+  box-shadow: none;
   will-change: transform, opacity;
 }
 
-.reward-particle.is-lime {
+.account-v5-reward-particles .reward-particle.is-lime {
   --reward-particle-color: #cfff35;
   --reward-particle-glow: rgba(203, 255, 45, .46);
 }
 
-.reward-particle.is-gold {
+.account-v5-reward-particles .reward-particle.is-gold {
   --reward-particle-color: #e5a83b;
   --reward-particle-glow: rgba(229, 168, 59, .42);
 }
 
-.reward-particle.is-plum {
+.account-v5-reward-particles .reward-particle.is-plum {
   --reward-particle-color: #bd8ac4;
   --reward-particle-glow: rgba(189, 138, 196, .38);
 }
 
-.reward-particle--spark {
+.account-v5-reward-particles .reward-particle--spark {
   width: 9px;
   height: 9px;
   background: var(--reward-particle-color);
@@ -94,7 +97,7 @@
   filter: drop-shadow(0 0 5px var(--reward-particle-glow));
 }
 
-.reward-particle--orb {
+.account-v5-reward-particles .reward-particle--orb {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -102,7 +105,7 @@
   box-shadow: 0 0 9px var(--reward-particle-glow);
 }
 
-.reward-particle--shard {
+.account-v5-reward-particles .reward-particle--shard {
   width: 7px;
   height: 12px;
   border-radius: 70% 20% 70% 20%;
@@ -110,7 +113,7 @@
   box-shadow: 0 0 8px var(--reward-particle-glow);
 }
 
-.reward-particle--coin {
+.account-v5-reward-particles .reward-particle--coin {
   width: 10px;
   height: 10px;
   border: 2px solid var(--reward-particle-color);
