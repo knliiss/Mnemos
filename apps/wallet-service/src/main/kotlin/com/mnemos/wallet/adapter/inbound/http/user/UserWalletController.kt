@@ -2,11 +2,13 @@ package com.mnemos.wallet.adapter.inbound.http.user
 
 import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toQuery
 import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toResponse
+import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toSort
 import com.mnemos.wallet.adapter.inbound.http.balance.BalanceResponse
 import com.mnemos.wallet.adapter.inbound.http.common.PageRequest
 import com.mnemos.wallet.adapter.inbound.http.common.PageResponse
 import com.mnemos.wallet.adapter.inbound.http.transaction.TransactionResponse
 import com.mnemos.wallet.application.balance.usecase.get.GetCurrentUserBalancesUseCase
+import com.mnemos.wallet.application.transaction.usecase.list.ListCurrentUserTransactionsQuery
 import com.mnemos.wallet.application.transaction.usecase.list.ListCurrentUserTransactionsUseCase
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
@@ -26,8 +28,13 @@ class UserWalletController(
     @GetMapping("/transactions")
     fun transactions(
         @Valid @ModelAttribute request: PageRequest,
-    ): PageResponse<TransactionResponse> =
-        listCurrentUserTransactionsUseCase
-            .execute(request.toQuery())
-            .toResponse()
+    ): PageResponse<TransactionResponse> {
+        val query =
+            ListCurrentUserTransactionsQuery(
+                page = request.toQuery(),
+                sort = request.toSort(),
+            )
+
+        return listCurrentUserTransactionsUseCase.execute(query).toResponse()
+    }
 }
