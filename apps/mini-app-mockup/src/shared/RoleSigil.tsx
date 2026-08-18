@@ -8,41 +8,34 @@ type RoleSigilProps = {
   className?: string
 }
 
-const roleAssets: Record<string, string> = {
-  "role-owner": "/role-icons/owner.svg",
-  "role-admin": "/role-icons/admin.svg",
-  "role-moderator": "/role-icons/moderator.svg",
-  "role-member": "/role-icons/member.svg",
-}
-
-const roleAssetsByColor: Record<string, string> = {
-  "#D8D4C9": "/role-icons/owner.svg",
-  "#C08B67": "/role-icons/admin.svg",
-  "#A985A8": "/role-icons/moderator.svg",
-  "#8A877F": "/role-icons/member.svg",
-}
-
 export function RoleSigil({
   color,
-  roleId,
   size = 38,
   compact = false,
   className,
 }: RoleSigilProps) {
-  const asset = (roleId ? roleAssets[roleId] : undefined) ?? roleAssetsByColor[color.toUpperCase()]
-  const style: CSSProperties = {
+  const style = {
     width: size,
     height: size,
+    color,
     "--role-sigil-color": color,
   } as CSSProperties
 
   return (
     <span
-      className={`role-sigil role-sigil--asset ${compact ? "role-sigil--compact" : ""} ${className ?? ""}`.trim()}
+      className={`role-sigil role-sigil--shared ${compact ? "role-sigil--compact" : ""} ${className ?? ""}`.trim()}
       style={style}
       aria-hidden="true"
     >
-      <img src={asset ?? "/role-icons/custom.svg"} alt="" draggable={false} />
+      <svg viewBox="0 0 32 32" shapeRendering="crispEdges">
+        <rect x="11" y="5" width="10" height="3" fill="currentColor" opacity=".42" />
+        <rect x="8" y="8" width="16" height="4" fill="currentColor" opacity=".72" />
+        <rect x="6" y="12" width="20" height="10" fill="currentColor" opacity=".28" />
+        <rect x="9" y="13" width="14" height="8" fill="currentColor" opacity=".82" />
+        <rect x="13" y="15" width="6" height="4" fill="currentColor" />
+        <rect x="10" y="22" width="12" height="3" fill="currentColor" opacity=".56" />
+        <rect x="13" y="25" width="6" height="3" fill="currentColor" opacity=".32" />
+      </svg>
     </span>
   )
 }
