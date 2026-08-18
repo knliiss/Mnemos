@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactElement } from "react"
 
-export type GlyphName = "events" | "home" | "account" | "person" | "search" | "bell" | "bet" | "members" | "roles" | "wallet" | "store" | "creator" | "moderation" | "admin" | "settings" | "invite" | "daily" | "back" | "more" | "plus" | "check" | "close" | "send" | "edit" | "trash" | "swap" | "clock" | "item-drop" | "booster" | "global" | "raid" | "dungeon" | "external" | "spark" | "like" | "dislike" | "chat" | "crown"
+export type GlyphName = "events" | "home" | "account" | "person" | "profile-mark" | "search" | "bell" | "bet" | "members" | "roles" | "wallet" | "store" | "creator" | "moderation" | "admin" | "settings" | "invite" | "daily" | "back" | "more" | "plus" | "check" | "close" | "send" | "edit" | "trash" | "swap" | "clock" | "item-drop" | "booster" | "global" | "raid" | "dungeon" | "external" | "spark" | "like" | "dislike" | "chat" | "crown"
 
 export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: number; className?: string }) {
   const common = {
@@ -21,6 +21,7 @@ export function Glyph({ name, size = 20, className }: { name: GlyphName; size?: 
     home: <><path d="m4.5 11.2 7.5-6 7.5 6v8.1H4.5z"/><path d="M9.3 19.3v-5.5h5.4v5.5"/></>,
     account: <><rect x="4.5" y="5.5" width="12.5" height="13" rx="2"/><path d="M8 9h5.5M8 12.5h3.5M17 8.5h2.5v8H17"/></>,
     person: <><circle cx="12" cy="8" r="3"/><path d="M5.5 19c.8-4 3-6 6.5-6s5.7 2 6.5 6"/></>,
+    "profile-mark": <><path d="m12 3.6 6.2 3.6v7.2L12 20l-6.2-5.6V7.2Z"/><circle cx="12" cy="9" r="2.15"/><path d="M8.5 15.5c.6-2.1 1.8-3.2 3.5-3.2s2.9 1.1 3.5 3.2"/><path d="M18.2 7.2 20 6.2"/></>,
     search: <><circle cx="10.2" cy="10.2" r="5.8"/><path d="m14.7 14.7 4.8 4.8"/></>,
     bell: <><path d="M6.5 10.5c0-3.8 2.1-6 5.5-6s5.5 2.2 5.5 6v4.2l1.5 2H5l1.5-2z"/><path d="M10 19.1c.6.9 1.2 1.3 2 1.3s1.4-.4 2-1.3"/></>,
     bet: <><rect x="4.5" y="5" width="15" height="14" rx="3"/><path d="m8 12 2.4 2.4L16.5 8.5"/></>,
