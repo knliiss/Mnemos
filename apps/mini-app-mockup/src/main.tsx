@@ -35,6 +35,7 @@ import "./staff-layout-overhaul.css"
 import "./ux-round-two.css"
 import "./wallet-overhaul.css"
 import "./role-overhaul.css"
+import "./role-final-fixes.css"
 import "./account-next-overhaul.css"
 import "./account-next-final.css"
 
