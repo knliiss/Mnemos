@@ -143,7 +143,6 @@ export default function AppFinal() {
             {rootRoute ? (
               <UserHubTrigger
                 open={userHubOpen}
-                activeAccount={activeAccount}
                 onToggle={toggleUserHub}
               />
             ) : null}
@@ -184,15 +183,7 @@ function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (
   )
 }
 
-function UserHubTrigger({
-  open,
-  activeAccount,
-  onToggle,
-}: {
-  open: boolean
-  activeAccount: Account
-  onToggle: () => void
-}) {
+function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
     <motion.button
       className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
@@ -200,13 +191,24 @@ function UserHubTrigger({
       onClick={onToggle}
       aria-label="Меню користувача"
     >
-      <CristalixHead
-        className="global-user-button__head"
-        skinUrl={activeAccount.skinUrl}
+      <UserAvatarPlaceholder
+        className="global-user-button__avatar"
         size={40}
       />
       <i />
     </motion.button>
+  )
+}
+
+function UserAvatarPlaceholder({ className, size }: { className?: string; size: number }) {
+  return (
+    <span
+      className={`user-avatar-placeholder ${className ?? ""}`.trim()}
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      <Glyph name="person" size={Math.round(size * 0.44)} />
+    </span>
   )
 }
 
@@ -247,9 +249,8 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
             <header className="final-user-card">
-              <CristalixHead
-                className="final-user-card__avatar final-user-card__avatar--skin"
-                skinUrl={activeAccount.skinUrl}
+              <UserAvatarPlaceholder
+                className="final-user-card__avatar final-user-card__avatar--placeholder"
                 size={46}
               />
               <span className="final-user-card__copy">
