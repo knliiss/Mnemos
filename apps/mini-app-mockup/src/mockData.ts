@@ -98,7 +98,7 @@ export const initialRoles: AccountRole[] = [
     id: "role-owner",
     name: "Власник",
     color: "#D8D4C9",
-    hierarchyRank: 100,
+    hierarchyRank: 10,
     permissions: permissionMap(allPermissions),
     locked: true,
   },
@@ -106,14 +106,14 @@ export const initialRoles: AccountRole[] = [
     id: "role-admin",
     name: "Адміністратор",
     color: "#C08B67",
-    hierarchyRank: 80,
+    hierarchyRank: 20,
     permissions: permissionMap(allPermissions.filter((permission) => permission !== "MANAGE_ROLE_HIERARCHY")),
   },
   {
     id: "role-moderator",
     name: "Модератор",
     color: "#A985A8",
-    hierarchyRank: 50,
+    hierarchyRank: 30,
     permissions: permissionMap([
       "VIEW_MEMBERS",
       "VIEW_ROLES",
@@ -127,7 +127,7 @@ export const initialRoles: AccountRole[] = [
     id: "role-member",
     name: "Учасник",
     color: "#8A877F",
-    hierarchyRank: 10,
+    hierarchyRank: 40,
     permissions: permissionMap([
       "VIEW_MEMBERS",
       "VIEW_WALLET",
@@ -148,87 +148,297 @@ export const initialRoles: AccountRole[] = [
 export const initialMembers: Member[] = [
   { id: "member-1", name: "knalis", owner: true, joinedAt: "12 лип. 2026", highestRoleId: "role-owner", roleIds: ["role-owner"] },
   { id: "member-2", name: "north", owner: false, joinedAt: "18 лип. 2026", highestRoleId: "role-admin", roleIds: ["role-admin", "role-member"] },
-  { id: "member-3", name: "vex", owner: false, joinedAt: "2 серп. 2026", highestRoleId: "role-moderator", roleIds: ["role-moderator", "role-member"] },
-  { id: "member-4", name: "mare", owner: false, joinedAt: "9 серп. 2026", highestRoleId: "role-member", roleIds: ["role-member"] },
+  { id: "member-3", name: "Asteria", owner: false, joinedAt: "22 лип. 2026", highestRoleId: "role-moderator", roleIds: ["role-moderator", "role-member"] },
+  { id: "member-4", name: "Solaire", owner: false, joinedAt: "3 серп. 2026", highestRoleId: "role-member", roleIds: ["role-member"] },
 ]
 
 export const feed: FeedEvent[] = [
-  { id: "ev-1", kind: "ITEM_DROP", title: "Eternal Blade", detail: "knalis", occurredAt: "2026-08-17T16:48:12Z", relative: "2 хв", meta: "SWORD", rarity: "MYTHICAL" },
-  { id: "ev-2", kind: "BOOSTER", title: "LUCK", detail: "vex", occurredAt: "2026-08-17T16:42:41Z", relative: "8 хв", meta: "BOOSTER" },
-  { id: "ev-3", kind: "GLOBAL", title: "ECLIPSE", detail: "GLOBAL", occurredAt: "2026-08-17T16:31:03Z", relative: "19 хв" },
-  { id: "ev-4", kind: "RAID", title: "RAID", detail: "2 · 4 · 7", occurredAt: "2026-08-17T16:12:20Z", relative: "38 хв", meta: "3 locations" },
-  { id: "ev-5", kind: "ITEM_DROP", title: "Moon Necklace", detail: "north", occurredAt: "2026-08-17T15:58:51Z", relative: "52 хв", meta: "JEWELRY", rarity: "SECRET" },
-  { id: "ev-6", kind: "GLOBAL", title: "MOON", detail: "GLOBAL", occurredAt: "2026-08-17T15:31:03Z", relative: "1 год 19 хв" },
-  { id: "ev-7", kind: "ITEM_DROP", title: "Black Flame", detail: "knalis", occurredAt: "2026-08-16T19:18:00Z", relative: "16 серп.", meta: "AURA", rarity: "SECRET" },
-  { id: "ev-8", kind: "ITEM_DROP", title: "Observer", detail: "knalis", occurredAt: "2026-08-14T14:06:00Z", relative: "14 серп.", meta: "PET", rarity: "MYTHICAL" },
-]
-
-export const initialSubscriptions: Subscription[] = [
-  { id: "sub-1", type: "ITEM_DROP", droppedFor: "knalis" },
-  { id: "sub-2", type: "ITEM_DROP", itemName: "Eternal Blade" },
-  { id: "sub-3", type: "BOOSTER", boosterType: "LUCK" },
-  { id: "sub-4", type: "GLOBAL", eventType: "ECLIPSE" },
-  { id: "sub-5", type: "RAID", locations: [2, 4, 7] },
-  { id: "sub-6", type: "DUNGEON", dungeonType: "EXPERT" },
-]
-
-export const betRounds: BetRound[] = [
-  { id: "round-moon", eventType: "MOON", scheduledAt: "18 серп. · 00:00", closesAt: "17 серп. · 23:55", resolvesAt: "18 серп. · 00:05", yesOdds: 1.84, noOdds: 1.94, status: "OPEN" },
-  { id: "round-explosion", eventType: "EXPLOSION", scheduledAt: "18 серп. · 01:00", closesAt: "18 серп. · 00:55", resolvesAt: "18 серп. · 01:05", yesOdds: 1.05, noOdds: 16.2, status: "OPEN", mySide: "YES", myAmount: 750 },
-  { id: "round-eclipse", eventType: "ECLIPSE", scheduledAt: "18 серп. · 03:00", closesAt: "18 серп. · 02:55", resolvesAt: "18 серп. · 03:05", yesOdds: 1.91, noOdds: 1.91, status: "LOCKED" },
-]
-
-export const itemRaces: ItemRace[] = [
-  { id: "race-1", itemName: "Eternal Blade", itemType: "SWORD", entryAmount: 1200, closesAt: "18 серп. · 20:00", participants: 17, joined: true, myAmount: 2200 },
-  { id: "race-2", itemName: "Moon Necklace", itemType: "JEWELRY", entryAmount: 1000, closesAt: "19 серп. · 21:00", participants: 11, joined: false },
-]
-
-export const personalizations: Personalization[] = [
-  { id: "p-1", type: "NOTIFICATION_PACK", target: "USER", name: "Quiet Signal", creator: "north", currency: "PRIME", price: 45, status: "PUBLISHED", owned: true, active: true, preview: "signal" },
-  { id: "p-2", type: "NICK_STYLE", target: "ACCOUNT", name: "Monochrome", creator: "mnemos", currency: "COIN", price: 1800, status: "PUBLISHED", owned: false, active: false, preview: "mono" },
-  { id: "p-3", type: "PROFILE_THEME", target: "ACCOUNT", name: "Graphite", creator: "mare", currency: "PRIME", price: 30, status: "PUBLISHED", owned: true, active: true, preview: "graphite" },
-  { id: "p-4", type: "AVATAR_FRAME", target: "ACCOUNT", name: "Contour", creator: "vex", currency: "COIN", price: 950, status: "PUBLISHED", owned: false, active: false, preview: "contour" },
-  { id: "p-5", type: "PROFILE_EFFECT", target: "ACCOUNT", name: "Noise", creator: "north", currency: "PRIME", price: 20, status: "PUBLISHED", owned: false, active: false, preview: "noise" },
-]
-
-export const creatorItems: Personalization[] = [
-  { id: "creator-1", type: "PROFILE_THEME", target: "ACCOUNT", name: "Slate", creator: "knalis", currency: "PRIME", price: 25, status: "DRAFT", owned: true, active: false, preview: "slate" },
-  { id: "creator-2", type: "NOTIFICATION_PACK", target: "USER", name: "Dense", creator: "knalis", currency: "PRIME", price: 35, status: "IN_REVIEW", owned: true, active: false, preview: "dense" },
-]
-
-export const reviewQueue: Personalization[] = [
-  { id: "review-1", type: "NICK_STYLE", target: "ACCOUNT", name: "Cold Wire", creator: "north", currency: "PRIME", price: 28, status: "IN_REVIEW", owned: false, active: false, preview: "wire" },
-  { id: "review-2", type: "PROFILE_EFFECT", target: "ACCOUNT", name: "Pulse", creator: "mare", currency: "PRIME", price: 18, status: "IN_REVIEW", owned: false, active: false, preview: "pulse" },
+  {
+    id: "ev-1",
+    kind: "ITEM_DROP",
+    title: "Elucidator",
+    detail: "knalis",
+    occurredAt: "2026-08-17T19:16:00+03:00",
+    rarity: "MYTHICAL",
+    meta: "Міфічний предмет",
+    itemType: "SWORD",
+  },
+  {
+    id: "ev-2",
+    kind: "BOOSTER",
+    title: "Бустер урону",
+    detail: "Активував north",
+    occurredAt: "2026-08-17T19:12:00+03:00",
+    meta: "25 хвилин",
+    boosterType: "DAMAGE",
+  },
+  {
+    id: "ev-3",
+    kind: "GLOBAL",
+    title: "Затемнення",
+    detail: "Глобальна подія",
+    occurredAt: "2026-08-17T19:00:00+03:00",
+    meta: "Активна",
+    globalType: "ECLIPSE",
+  },
+  {
+    id: "ev-4",
+    kind: "RAID",
+    title: "Рейд",
+    detail: "Floor 74",
+    occurredAt: "2026-08-17T18:55:00+03:00",
+    meta: "2 локації",
+  },
+  {
+    id: "ev-5",
+    kind: "ITEM_DROP",
+    title: "Ring of Angel",
+    detail: "knalis",
+    occurredAt: "2026-08-17T18:42:00+03:00",
+    rarity: "SECRET",
+    meta: "Секретний предмет",
+    itemType: "JEWELRY",
+  },
+  {
+    id: "ev-6",
+    kind: "GLOBAL",
+    title: "Місяць",
+    detail: "Глобальна подія",
+    occurredAt: "2026-08-17T18:30:00+03:00",
+    meta: "Завершена",
+    globalType: "MOON",
+  },
+  {
+    id: "ev-7",
+    kind: "ITEM_DROP",
+    title: "Crimson Aura",
+    detail: "knalis",
+    occurredAt: "2026-08-17T18:14:00+03:00",
+    rarity: "MYTHICAL",
+    meta: "Міфічний предмет",
+    itemType: "AURA",
+  },
+  {
+    id: "ev-8",
+    kind: "ITEM_DROP",
+    title: "Moon Rabbit",
+    detail: "north",
+    occurredAt: "2026-08-17T18:05:00+03:00",
+    rarity: "SECRET",
+    meta: "Секретний предмет",
+    itemType: "PET",
+  },
 ]
 
 export const accountTransactions: WalletTransaction[] = [
-  { id: "t1", currency: "COIN", type: "CREDIT", source: "DAILY_REWARD", amount: 420, createdAt: "сьогодні · 10:14" },
-  { id: "t2", currency: "COIN", type: "DEBIT", source: "BET_PLACE", amount: 750, createdAt: "вчора · 23:51" },
-  { id: "t3", currency: "COIN", type: "CREDIT", source: "ITEM_DROP_REWARD", amount: 280, createdAt: "16 серп. · 19:18" },
+  { id: "tx-a-1", type: "CREDIT", source: "DAILY_REWARD", amount: 420, createdAt: "сьогодні, 18:32" },
+  { id: "tx-a-2", type: "DEBIT", source: "BET_PLACE", amount: 900, createdAt: "сьогодні, 17:10" },
+  { id: "tx-a-3", type: "CREDIT", source: "ITEM_DROP_REWARD", amount: 1_800, createdAt: "сьогодні, 15:48" },
+  { id: "tx-a-4", type: "DEBIT", source: "PERSONALIZATION_PURCHASE", amount: 1_200, createdAt: "вчора, 22:04" },
+  { id: "tx-a-5", type: "CREDIT", source: "BET_WIN", amount: 2_350, createdAt: "вчора, 19:20" },
 ]
 
 export const userTransactions: WalletTransaction[] = [
-  { id: "ut1", currency: "PRIME", type: "DEBIT", source: "PERSONALIZATION_PURCHASE", amount: 45, createdAt: "16 серп. · 18:32" },
-  { id: "ut2", currency: "PRIME", type: "CREDIT", source: "CREATOR_REVENUE", amount: 12, createdAt: "15 серп. · 14:20" },
+  { id: "tx-u-1", type: "CREDIT", source: "PRIME_PURCHASE", amount: 100, createdAt: "14 серп., 21:15" },
+  { id: "tx-u-2", type: "DEBIT", source: "PERSONALIZATION_PURCHASE", amount: 24, createdAt: "13 серп., 18:07" },
+  { id: "tx-u-3", type: "CREDIT", source: "DAILY_REWARD", amount: 3, createdAt: "12 серп., 00:03" },
+  { id: "tx-u-4", type: "DEBIT", source: "PERSONALIZATION_PURCHASE", amount: 12, createdAt: "10 серп., 16:44" },
 ]
 
-export const profiles: PublicProfile[] = [
-  { accountId: accounts[0].id, cristalixUuid: accounts[0].cristalixUuid, nickname: "knalis", likes: 128, dislikes: 7, comments: 31, skinUrl },
-  { accountId: "profile-north", cristalixUuid: "9bcb0018-baa2-4dde-b360-10dc98c60418", nickname: "north", likes: 91, dislikes: 11, comments: 24, skinUrl },
-  { accountId: "profile-vex", cristalixUuid: "ad0c9864-7190-4e96-bc12-6a28f9ef0e7d", nickname: "vex", likes: 61, dislikes: 5, comments: 18, skinUrl },
+export const subscriptions: Subscription[] = [
+  { id: "sub-1", type: "ITEM_DROP", label: "Elucidator", detail: "будь-який гравець", enabled: true },
+  { id: "sub-2", type: "ITEM_DROP", label: "Дропи knalis", detail: "усі предмети", enabled: true },
+  { id: "sub-3", type: "DUNGEON", label: "Expert Dungeon", detail: "за 5 хвилин", enabled: true },
+  { id: "sub-4", type: "GLOBAL", label: "Затемнення", detail: "при появі", enabled: false },
 ]
 
-export const initialComments: ProfileComment[] = [
-  { id: "comment-1", authorAccountId: "profile-north", author: "north", content: "Останній дроп виглядає сильно.", likes: 14, replies: 2, createdAt: "18 хв", liked: false },
-  { id: "comment-2", authorAccountId: "profile-vex", author: "vex", content: "Міфік за один вечір — це вже статистика.", likes: 8, replies: 0, createdAt: "1 год", liked: true },
+export const personalizationCatalog: Personalization[] = [
+  {
+    id: "p-1",
+    target: "ACCOUNT",
+    type: "PROFILE_FRAME",
+    name: "Verdant Circuit",
+    creator: "north",
+    price: 180,
+    currency: "COIN",
+    owned: true,
+    equipped: true,
+    visibility: "PUBLIC",
+  },
+  {
+    id: "p-2",
+    target: "USER",
+    type: "NOTIFICATION_PACK",
+    name: "Obsidian Pulse",
+    creator: "Asteria",
+    price: 18,
+    currency: "PRIME",
+    owned: true,
+    equipped: true,
+    visibility: "PUBLIC",
+  },
+  {
+    id: "p-3",
+    target: "ACCOUNT",
+    type: "PROFILE_BADGE",
+    name: "Raid Vanguard",
+    creator: "Mnemos",
+    price: 240,
+    currency: "COIN",
+    owned: false,
+    equipped: false,
+    visibility: "PUBLIC",
+  },
+  {
+    id: "p-4",
+    target: "USER",
+    type: "NOTIFICATION_PACK",
+    name: "Celestial Whisper",
+    creator: "north",
+    price: 28,
+    currency: "PRIME",
+    owned: false,
+    equipped: false,
+    visibility: "PUBLIC",
+  },
 ]
 
-export const permissionGroups: { label: string; permissions: RolePermission[] }[] = [
-  { label: "Аккаунт", permissions: ["VIEW_ACCOUNT_SETTINGS", "EDIT_ACCOUNT_SETTINGS", "MANAGE_ACCOUNT_INVITES"] },
-  { label: "Учасники", permissions: ["VIEW_MEMBERS", "INVITE_MEMBERS", "REMOVE_MEMBERS", "ASSIGN_MEMBER_ROLES", "KICK_MEMBERS"] },
-  { label: "Ролі", permissions: ["VIEW_ROLES", "CREATE_ROLES", "EDIT_ROLE_DETAILS", "EDIT_ROLE_PERMISSIONS", "DELETE_ROLES", "MANAGE_ROLE_HIERARCHY", "MANAGE_ROLES"] },
-  { label: "Гаманець", permissions: ["VIEW_WALLET", "VIEW_TRANSACTION_HISTORY", "SPEND_WALLET_FUNDS"] },
-  { label: "Активність", permissions: ["CLAIM_DAILY_REWARD", "PUBLISH_COMMENTS", "PUBLISH_REACTIONS", "MODERATE_COMMENTS"] },
-  { label: "Ставки", permissions: ["VIEW_BETS", "PLACE_BETS", "MANAGE_BETS", "VIEW_BET_HISTORY"] },
-  { label: "Персоналізація", permissions: ["VIEW_PERSONALIZATIONS", "APPLY_PERSONALIZATIONS", "BUY_PERSONALIZATIONS", "MANAGE_PERSONALIZATIONS"] },
+export const publicProfiles: PublicProfile[] = [
+  {
+    accountId: "profile-north",
+    cristalixUuid: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    nickname: "north",
+    skinUrl,
+    likes: 184,
+    dislikes: 9,
+    comments: 24,
+    appearance: {
+      frame: "Verdant Circuit",
+      badge: "Raid Vanguard",
+    },
+  },
+  {
+    accountId: "profile-Asteria",
+    cristalixUuid: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    nickname: "Asteria",
+    skinUrl,
+    likes: 92,
+    dislikes: 4,
+    comments: 11,
+    appearance: {
+      frame: "Verdant Circuit",
+      badge: "Raid Vanguard",
+    },
+  },
+]
+
+export const profileComments: ProfileComment[] = [
+  {
+    id: "comment-1",
+    accountId: "profile-north",
+    authorAccountId: "profile-Asteria",
+    authorName: "Asteria",
+    content: "Стабільний гравець, без проблем у рейдах.",
+    likes: 14,
+    replies: 2,
+    createdAt: "сьогодні, 16:41",
+  },
+  {
+    id: "comment-2",
+    accountId: "profile-north",
+    authorAccountId: "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
+    authorName: "knalis",
+    content: "Підтверджую, по дропам усе чисто.",
+    likes: 8,
+    replies: 0,
+    createdAt: "сьогодні, 17:02",
+  },
+]
+
+export const betRounds: BetRound[] = [
+  {
+    id: "bet-moon-next",
+    eventType: "MOON",
+    startsAt: "2026-08-18T00:00:00+03:00",
+    closesAt: "2026-08-17T23:55:00+03:00",
+    settlesAt: "2026-08-18T02:05:00+03:00",
+    yesPool: 6_840,
+    noPool: 5_160,
+    status: "OPEN",
+  },
+  {
+    id: "bet-eclipse-next",
+    eventType: "ECLIPSE",
+    startsAt: "2026-08-18T03:00:00+03:00",
+    closesAt: "2026-08-18T02:55:00+03:00",
+    settlesAt: "2026-08-18T09:05:00+03:00",
+    yesPool: 4_210,
+    noPool: 4_050,
+    status: "OPEN",
+  },
+]
+
+export const itemRaces: ItemRace[] = [
+  {
+    id: "race-1",
+    title: "Перший дроп Elucidator",
+    itemName: "Elucidator",
+    closesAt: "2026-08-18T22:00:00+03:00",
+    pool: 18_450,
+    status: "OPEN",
+  },
+]
+
+export const permissionGroups = [
+  {
+    title: "Аккаунт",
+    permissions: [
+      "VIEW_ACCOUNT_SETTINGS",
+      "EDIT_ACCOUNT_SETTINGS",
+      "MANAGE_ACCOUNT_INVITES",
+      "VIEW_MEMBERS",
+      "INVITE_MEMBERS",
+      "REMOVE_MEMBERS",
+      "ASSIGN_MEMBER_ROLES",
+      "KICK_MEMBERS",
+    ] as RolePermission[],
+  },
+  {
+    title: "Ролі",
+    permissions: [
+      "VIEW_ROLES",
+      "CREATE_ROLES",
+      "EDIT_ROLE_DETAILS",
+      "EDIT_ROLE_PERMISSIONS",
+      "DELETE_ROLES",
+      "MANAGE_ROLE_HIERARCHY",
+      "MANAGE_ROLES",
+    ] as RolePermission[],
+  },
+  {
+    title: "Гаманець",
+    permissions: [
+      "VIEW_WALLET",
+      "VIEW_TRANSACTION_HISTORY",
+      "SPEND_WALLET_FUNDS",
+      "CLAIM_DAILY_REWARD",
+    ] as RolePermission[],
+  },
+  {
+    title: "Соціальне",
+    permissions: ["PUBLISH_COMMENTS", "PUBLISH_REACTIONS", "MODERATE_COMMENTS"] as RolePermission[],
+  },
+  {
+    title: "Ставки",
+    permissions: ["VIEW_BETS", "PLACE_BETS", "MANAGE_BETS", "VIEW_BET_HISTORY"] as RolePermission[],
+  },
+  {
+    title: "Персоналізація",
+    permissions: [
+      "VIEW_PERSONALIZATIONS",
+      "APPLY_PERSONALIZATIONS",
+      "BUY_PERSONALIZATIONS",
+      "MANAGE_PERSONALIZATIONS",
+    ] as RolePermission[],
+  },
 ]
