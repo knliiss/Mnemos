@@ -16,8 +16,24 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
     @Query("SELECT personalization FROM PersonalizationEntity personalization WHERE personalization.id = :id")
     fun findByIdForUpdate(id: UUID): PersonalizationEntity?
 
+    @Query(
+        """
+        SELECT personalization
+        FROM PersonalizationEntity personalization
+        WHERE personalization.creatorUserId = :creatorUserId
+        ORDER BY personalization.createdAt DESC, personalization.id DESC
+        """,
+    )
     fun findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId: UUID): List<PersonalizationEntity>
 
+    @Query(
+        """
+        SELECT personalization
+        FROM PersonalizationEntity personalization
+        WHERE personalization.status = :status
+        ORDER BY personalization.createdAt ASC, personalization.id ASC
+        """,
+    )
     fun findAllByStatusOrderByCreatedAtAsc(status: PersonalizationStatus): List<PersonalizationEntity>
 
     @Query(
