@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
+import { EventArt } from "../components/EventArt"
 import { feed, initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
@@ -182,7 +183,10 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
                 >
                   <span className="account-polished-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
                   <span className="account-polished-member__copy">
-                    <strong>{member.name}</strong>
+                    <span className="account-polished-member__name">
+                      <strong>{member.name}</strong>
+                      {member.owner ? <span className="account-owner-crown"><Glyph name="crown" size={13} /></span> : null}
+                    </span>
                     {highestRole ? (
                       <span className="account-polished-role-chips">
                         <i style={{ "--member-role": highestRole.color } as React.CSSProperties}>{highestRole.name}</i>
@@ -245,7 +249,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
         <div className="account-polished-drop-list">
           {drops.length ? drops.map((drop) => (
             <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
-              <span className={`drop-mark drop-mark--${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={16} /></span>
+              <EventArt event={drop} size={38} />
               <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
               <time>{formatOccurredAt(drop.occurredAt)}</time>
               <b>›</b>
