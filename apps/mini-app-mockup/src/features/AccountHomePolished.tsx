@@ -45,6 +45,17 @@ const initialReward: DailyRewardState = {
   primeChance: 0.04,
 }
 
+const rewardParticles = [
+  { x: -124, y: -42, delay: 0, duration: 2.8, tone: "lime" },
+  { x: -82, y: -72, delay: 0.24, duration: 3.2, tone: "gold" },
+  { x: -38, y: -54, delay: 0.46, duration: 2.7, tone: "plum" },
+  { x: 18, y: -78, delay: 0.12, duration: 3.35, tone: "lime" },
+  { x: 64, y: -62, delay: 0.38, duration: 2.95, tone: "gold" },
+  { x: 112, y: -44, delay: 0.62, duration: 3.15, tone: "plum" },
+  { x: -96, y: 20, delay: 0.7, duration: 3.4, tone: "gold" },
+  { x: 94, y: 18, delay: 0.84, duration: 2.75, tone: "lime" },
+] as const
+
 export function AccountHomePolished({
   activeAccount,
   navigate,
@@ -164,7 +175,7 @@ export function AccountHomePolished({
 
         <img
           className="account-v4-profile__art"
-          src="/ui-illustrations/account-core.svg"
+          src="/ui-illustrations/account-pass.svg"
           alt=""
           aria-hidden="true"
         />
@@ -174,11 +185,10 @@ export function AccountHomePolished({
         <motion.span
           className="account-v4-reward__flame"
           animate={{
-            y: [0, -2, 0, -1, 0],
-            rotate: [-1, 1.2, -0.6, 1, -1],
-            scale: [1, 1.045, 0.985, 1.025, 1],
+            y: [0, -0.6, 0],
+            scale: [1, 1.012, 1],
           }}
-          transition={{ duration: 1.45, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
           aria-hidden="true"
         >
           <i />
@@ -215,37 +225,49 @@ export function AccountHomePolished({
 
         <AnimatePresence>
           {rewardResult ? (
-            <motion.div
-              className="account-v4-reward-result"
-              initial={{ opacity: 0, scale: 0.88, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 270, damping: 20 }}
-            >
-              <motion.span
-                className="account-v4-reward-result__burst"
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: [0, 1.25, 1], rotate: [-20, 7, 0] }}
-                transition={{ duration: 0.55 }}
-                aria-hidden="true"
-              >
-                <i />
-                <i />
-                <i />
-                <i />
-              </motion.span>
+            <>
+              <span className="account-v5-reward-particles" aria-hidden="true">
+                {rewardParticles.map((particle, index) => (
+                  <motion.i
+                    className={`is-${particle.tone}`}
+                    key={`${particle.tone}-${index}`}
+                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.45 }}
+                    animate={{
+                      opacity: [0, 1, 0.82, 0],
+                      x: [0, particle.x * 0.35, particle.x],
+                      y: [0, particle.y * 0.38, particle.y],
+                      scale: [0.45, 1, 0.86, 0.35],
+                    }}
+                    transition={{
+                      duration: particle.duration,
+                      delay: particle.delay,
+                      repeat: Infinity,
+                      repeatDelay: 0.45,
+                      ease: "easeOut",
+                    }}
+                  />
+                ))}
+              </span>
 
-              <span>
-                <small>ОТРИМАНО</small>
-                <strong><CurrencyMark currency="COIN" size={17} />+{rewardResult.coin}</strong>
-              </span>
-              <span className={rewardResult.prime ? "is-prime" : "is-empty"}>
-                <small>PRIME</small>
-                <strong>
-                  <CurrencyMark currency="PRIME" size={15} />
-                  {rewardResult.prime ? `+${rewardResult.prime}` : "не випали"}
-                </strong>
-              </span>
-            </motion.div>
+              <motion.div
+                className="account-v4-reward-result"
+                initial={{ opacity: 0, scale: 0.88, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 270, damping: 20 }}
+              >
+                <span>
+                  <small>ОТРИМАНО</small>
+                  <strong><CurrencyMark currency="COIN" size={17} />+{rewardResult.coin}</strong>
+                </span>
+                <span className={rewardResult.prime ? "is-prime" : "is-empty"}>
+                  <small>PRIME</small>
+                  <strong>
+                    <CurrencyMark currency="PRIME" size={15} />
+                    {rewardResult.prime ? `+${rewardResult.prime}` : "не випали"}
+                  </strong>
+                </span>
+              </motion.div>
+            </>
           ) : null}
         </AnimatePresence>
       </section>
@@ -272,9 +294,9 @@ export function AccountHomePolished({
           <span className="account-v4-feature-copy">
             <small>ОБРАЗ</small>
             <strong>Персоналізація</strong>
-            <span>Тема · нік · рамка</span>
+            <span>Нік · тема · рамка · ефект</span>
           </span>
-          <img src="/ui-illustrations/personalization-forge.svg" alt="" aria-hidden="true" />
+          <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
         </motion.button>
       </section>
 
@@ -300,7 +322,7 @@ export function AccountHomePolished({
             <strong>Учасники</strong>
             <em>{members.length} з {activeAccount.maxMembers}</em>
           </span>
-          <img src="/ui-illustrations/team-totem.svg" alt="" aria-hidden="true" />
+          <img src="/ui-illustrations/team-roster.svg" alt="" aria-hidden="true" />
         </header>
 
         <div className="account-v4-member-list">
