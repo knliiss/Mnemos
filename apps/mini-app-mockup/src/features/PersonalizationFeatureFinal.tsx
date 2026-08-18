@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import {
   PersonalizationDetails,
@@ -40,6 +41,10 @@ const targets: Record<PersonalizationType, PersonalizationTarget> = {
   AVATAR_FRAME: "ACCOUNT",
   PROFILE_EFFECT: "ACCOUNT",
 }
+
+const accountPersonalizationTypes = PERSONALIZATION_TYPES.filter(
+  (type) => targets[type] === "ACCOUNT",
+)
 
 export function PersonalizationFeatureFinal(props: Props) {
   const [items, setItems] = useState<Personalization[]>(() => seed.map(hydratePersonalization))
@@ -256,14 +261,21 @@ function OwnedPage({
       : item))
   }
 
+  if (target === "ACCOUNT") {
+    return (
+      <AccountPersonalizationPage
+        navigate={navigate}
+        back={back}
+        items={items}
+        setItems={setItems}
+      />
+    )
+  }
+
   return (
     <div className="screen owned-final-screen">
       <PageHeader
-        title={target === "ACCOUNT"
-          ? "Персоналізації аккаунта"
-          : target === "USER"
-            ? "Персоналізації User"
-            : "Мої персоналізації"}
+        title={target === "USER" ? "Персоналізації User" : "Мої персоналізації"}
         back={back}
       />
 
@@ -304,6 +316,169 @@ function OwnedPage({
           </article>
         ))}
       </div>
+    </div>
+  )
+}
+
+function AccountPersonalizationPage({
+  navigate,
+  back,
+  items,
+  setItems,
+}: {
+  navigate: (route: Route) => void
+  back: () => void
+  items: Personalization[]
+  setItems: (items: Personalization[]) => void
+}) {
+  const ownedAccountItems = items.filter((item) => item.owned && item.target === "ACCOUNT")
+  const activeItems = ownedAccountItems.filter((item) => item.active)
+  const heroItem = activeItems.find((item) => item.type === "PROFILE_THEME")
+    ?? activeItems[0]
+    ?? ownedAccountItems[0]
+    ?? null
+
+  const setActive = (item: Personalization, active: boolean) => {
+    setItems(items.map((candidate) => {
+      if (candidate.target !== "ACCOUNT" || candidate.type !== item.type) return candidate
+      if (candidate.id === item.id) return { ...candidate, active }
+
+      return active ? { ...candidate, active: false } : candidate
+    }))
+  }
+
+  return (
+    <div className="screen account-personalization-v4">
+      <PageHeader title="Персоналізація аккаунта" back={back} />
+
+      <section className="account-personalization-v4__hero">
+        <span className="account-personalization-v4__hero-copy">
+          <small>ОБРАЗ АККАУНТА</small>
+          <strong>Збери свій стиль</strong>
+          <em>{activeItems.length} активні · {ownedAccountItems.length} придбані</em>
+        </span>
+
+        <img
+          className="account-personalization-v4__hero-art"
+          src="/ui-illustrations/personalization-forge.svg"
+          alt=""
+          aria-hidden="true"
+        />
+
+        <span className="account-personalization-v4__hero-preview">
+          {heroItem ? <PersonalizationVisual item={heroItem} small /> : <Glyph name="spark" size={24} />}
+        </span>
+      </section>
+
+      <section className="account-personalization-v4__slots">
+        <header>
+          <span>
+            <small>СЛОТИ</small>
+            <strong>Активний набір</strong>
+          </span>
+        </header>
+
+        <div>
+          {accountPersonalizationTypes.map((personalizationType) => {
+            const typeItems = ownedAccountItems.filter((item) => item.type === personalizationType)
+            const selected = typeItems.find((item) => item.active) ?? typeItems[0] ?? null
+
+            return (
+              <article
+                className={`account-personalization-v4__slot ${selected?.active ? "is-active" : ""}`}
+                key={personalizationType}
+              >
+                <header>
+                  <span className="account-personalization-v4__slot-icon">
+                    <TypeGlyph type={personalizationType} />
+                  </span>
+                  <span>
+                    <small>{personalizationLabels[personalizationType]}</small>
+                    <strong>{selected?.name ?? "Не вибрано"}</strong>
+                  </span>
+                </header>
+
+                <div className="account-personalization-v4__slot-preview">
+                  {selected ? (
+                    <PersonalizationVisual item={selected} small />
+                  ) : (
+                    <span className="account-personalization-v4__slot-empty">
+                      <Glyph name="spark" size={20} />
+                    </span>
+                  )}
+                </div>
+
+                <footer>
+                  {selected ? (
+                    <>
+                      <motion.button
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => navigate({
+                          id: "personalization-detail",
+                          params: { personalizationId: selected.id },
+                        })}
+                      >
+                        Деталі
+                      </motion.button>
+                      <Toggle
+                        checked={selected.active}
+                        onChange={(active) => setActive(selected, active)}
+                        label={selected.name}
+                      />
+                    </>
+                  ) : (
+                    <motion.button
+                      className="is-store"
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate({ id: "personalization-store" })}
+                    >
+                      <Glyph name="store" size={14} />
+                      Магазин
+                    </motion.button>
+                  )}
+                </footer>
+              </article>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="account-personalization-v4__library">
+        <header>
+          <span>
+            <small>КОЛЕКЦІЯ</small>
+            <strong>Придбані для аккаунта</strong>
+          </span>
+          <button onClick={() => navigate({ id: "personalization-store" })}>
+            <Glyph name="store" size={15} />
+          </button>
+        </header>
+
+        <div>
+          {ownedAccountItems.map((item) => (
+            <motion.button
+              key={item.id}
+              className={item.active ? "is-active" : ""}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => navigate({
+                id: "personalization-detail",
+                params: { personalizationId: item.id },
+              })}
+            >
+              <PersonalizationVisual item={item} small />
+              <span>
+                <small>{personalizationLabels[item.type]}</small>
+                <strong>{item.name}</strong>
+              </span>
+              {item.active ? <span className="account-personalization-v4__active-dot" /> : null}
+            </motion.button>
+          ))}
+
+          {!ownedAccountItems.length ? (
+            <p className="inline-hint">Ще немає придбаних персоналізацій аккаунта</p>
+          ) : null}
+        </div>
+      </section>
     </div>
   )
 }
