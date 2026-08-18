@@ -4,6 +4,8 @@ import { AccountHomePolished } from "./AccountHomePolished"
 import { AccountInvitesFinal, AccountJoinFinal } from "./AccountInviteFlowsFinal"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 import { AccountWalletPolished } from "./AccountWalletPolished"
+import { RoleEditorOverhaul } from "./RoleEditorOverhaul"
+import { RolesOverviewOverhaul } from "./RolesOverviewOverhaul"
 
 type Props = {
   activeAccount: Account
@@ -28,7 +30,34 @@ export function AccountAreaFinal(props: Props) {
   }
 
   if (props.routeId === "account-wallet") {
-    return <AccountWalletPolished activeAccount={props.activeAccount} back={props.back} />
+    return (
+      <AccountWalletPolished
+        activeAccount={props.activeAccount}
+        setActiveAccount={props.setActiveAccount}
+        accounts={props.accounts}
+        setAccounts={props.setAccounts}
+        back={props.back}
+      />
+    )
+  }
+
+  if (props.routeId === "roles") {
+    return (
+      <RolesOverviewOverhaul
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
+  }
+
+  if (props.routeId === "role-editor") {
+    return (
+      <RoleEditorOverhaul
+        params={props.params}
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
   }
 
   if (props.routeId === "account-settings") {

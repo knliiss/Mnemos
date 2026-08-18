@@ -1,6 +1,7 @@
 import type { Account, Route } from "../model"
 import { PeopleFeature } from "./PeopleFeature"
 import { PublicProfilePolished } from "./PublicProfilePolished"
+import { UserPrimeWalletOverhaul } from "./UserPrimeWalletOverhaul"
 
 type Props = {
   routeId: Route["id"]
@@ -17,6 +18,15 @@ const memberProfileIds: Record<string, string> = {
 }
 
 export function PeopleFeatureFinal(props: Props) {
+  if (props.routeId === "user-wallet") {
+    return (
+      <UserPrimeWalletOverhaul
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
+  }
+
   if (props.routeId === "public-profile" && props.params?.accountId) {
     const accountId = memberProfileIds[props.params.accountId] ?? props.params.accountId
 
