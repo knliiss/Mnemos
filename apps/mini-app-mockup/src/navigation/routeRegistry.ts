@@ -28,6 +28,7 @@ export const routeRegistry: Record<RouteId, RouteDefinition> = {
   "user-wallet": { area: "people" },
 
   "personalization-store": { area: "personalization", root: true },
+  "personalization-store-category": { area: "personalization" },
   "personalization-owned": { area: "personalization" },
   "personalization-detail": { area: "personalization" },
 
