@@ -5,6 +5,7 @@ import { initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
 import { Glyph } from "../shared/MnemosIcon"
+import { RoleSigil } from "../shared/RoleSigil"
 
 type Props = {
   activeAccount: Account
@@ -145,7 +146,7 @@ export function AccountSettingsFinal({
         </div>
 
         <div className="account-role-summary">
-          <span style={{ "--role-color": baseRole?.color ?? "#8A877F" } as CSSProperties}><i /></span>
+          <RoleSigil color={baseRole?.color ?? "#8A877F"} size={42} />
           <span>
             <small>Нові учасники отримають</small>
             <strong>{baseRole?.name ?? "Роль не вибрана"}</strong>
@@ -251,7 +252,7 @@ export function AccountSettingsFinal({
 function RoleOption({ role, selected, onClick }: { role: AccountRole; selected: boolean; onClick: () => void }) {
   return (
     <button className={selected ? "is-selected" : ""} onClick={onClick}>
-      <span style={{ "--role-color": role.color } as CSSProperties}><i /></span>
+      <RoleSigil color={role.color} size={40} />
       <strong>{role.name}</strong>
       <small>{countEnabledPermissions(role)} дозволів</small>
     </button>
