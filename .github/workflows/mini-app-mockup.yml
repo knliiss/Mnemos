@@ -96,6 +96,7 @@ jobs:
           capture account-picker 390 "?screen=account&hub=1&accounts=1"
           capture search 390 "?screen=search"
           capture store 390 "?screen=personalization-store"
+          capture store-theme-category 390 "?screen=personalization-store-category&p.type=PROFILE_THEME"
 
           # Events and subscriptions. Capture multiple families so contextual art is actually reviewed.
           capture event-detail-sword 390 "?screen=event-detail&p.eventId=ev-1"
@@ -118,6 +119,7 @@ jobs:
           capture account-create 390 "?screen=account-create"
           capture account-join 390 "?screen=account-join"
           capture account-personalization 390 "?screen=personalization-owned&p.target=ACCOUNT"
+          capture account-personalization-theme 390 "?screen=personalization-owned&p.target=ACCOUNT&p.type=PROFILE_THEME"
 
           # Public profile and user wallet.
           capture public-profile 390 "?screen=public-profile&p.accountId=profile-north"
@@ -125,7 +127,9 @@ jobs:
 
           # Personalization marketplace.
           capture personalization-owned 390 "?screen=personalization-owned&p.target=ALL"
-          capture personalization-detail 390 "?screen=personalization-detail&p.personalizationId=p-1"
+          capture personalization-detail-notification 390 "?screen=personalization-detail&p.personalizationId=p-1"
+          capture personalization-detail-theme 390 "?screen=personalization-detail&p.personalizationId=p-3"
+          capture personalization-detail-nick 390 "?screen=personalization-detail&p.personalizationId=p-2"
 
           # Creator workspace.
           capture creator 390 "?screen=creator-studio"
