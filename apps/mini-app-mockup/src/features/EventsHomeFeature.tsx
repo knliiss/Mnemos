@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
+import { EventArt, OwnerCrown } from "../components/EventArt"
 import { EVENT_KINDS } from "../contracts"
 import { feed, initialSubscriptions } from "../mockData"
 import type { Account, BetItemType, EventKind, FeedEvent, Route } from "../model"
@@ -58,7 +59,12 @@ function eventMetaLabel(event: FeedEvent) {
   return event.meta
 }
 
-export function EventsHome({ navigate }: { navigate: Nav }) {
+function belongsToAccount(event: FeedEvent, account: Account) {
+  return (event.kind === "ITEM_DROP" || event.kind === "BOOSTER") &&
+    event.detail.toLowerCase() === account.nickname.toLowerCase()
+}
+
+export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeAccount: Account }) {
   const [filter, setFilter] = useState<"ALL" | EventKind>("ALL")
   const visible = useMemo(() => filter === "ALL" ? feed : feed.filter((event) => event.kind === filter), [filter])
   const open = (event: FeedEvent) => navigate({ id: "event-detail", params: { eventId: event.id } })
@@ -85,22 +91,32 @@ export function EventsHome({ navigate }: { navigate: Nav }) {
       </div>
 
       <div className="event-stream-redesign">
-        {visible.map((event, index) => (
-          <motion.button
-            whileTap={{ scale: 0.992 }}
-            className={`event-feed-card event-feed-card--${eventTone[event.kind]} ${index === 0 ? "is-latest" : ""}`}
-            key={event.id}
-            onClick={() => open(event)}
-          >
-            <span className="event-feed-card__icon"><Glyph name={icons[event.kind]} size={20} /></span>
-            <span className="event-feed-card__copy">
-              <span className="event-feed-card__meta"><b>{eventLabels[event.kind]}</b><time>{formatOccurredAt(event.occurredAt)}</time></span>
-              <strong>{eventTitle(event)}</strong>
-              <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}` : event.detail}</small>
-            </span>
-            <span className="event-feed-card__chevron">›</span>
-          </motion.button>
-        ))}
+        {visible.map((event, index) => {
+          const owned = belongsToAccount(event, activeAccount)
+
+          return (
+            <motion.button
+              whileTap={{ scale: 0.992 }}
+              className={`event-feed-card event-feed-card--${eventTone[event.kind]} ${index === 0 ? "is-latest" : ""}`}
+              key={event.id}
+              onClick={() => open(event)}
+            >
+              <EventArt event={event} size={48} />
+              <span className="event-feed-card__copy">
+                <span className="event-feed-card__meta">
+                  <span className="event-feed-card__kind">
+                    <b>{eventLabels[event.kind]}</b>
+                    {owned ? <OwnerCrown compact /> : null}
+                  </span>
+                  <time>{formatOccurredAt(event.occurredAt)}</time>
+                </span>
+                <strong>{eventTitle(event)}</strong>
+                <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}` : event.detail}</small>
+              </span>
+              <span className="event-feed-card__chevron">›</span>
+            </motion.button>
+          )
+        })}
       </div>
     </div>
   )
@@ -108,7 +124,8 @@ export function EventsHome({ navigate }: { navigate: Nav }) {
 
 export function EventDetail({ eventId, activeAccount, back }: { eventId?: string; activeAccount: Account; back: () => void }) {
   const event = feed.find((item) => item.id === eventId) ?? feed[0]
-  const ownDrop = event.kind === "ITEM_DROP" && event.detail.toLowerCase() === activeAccount.nickname.toLowerCase()
+  const ownEvent = belongsToAccount(event, activeAccount)
+  const ownDrop = event.kind === "ITEM_DROP" && ownEvent
   const [spotlight, setSpotlight] = useState<"READY" | "PENDING" | "SCHEDULED">("READY")
 
   const publish = () => {
@@ -123,9 +140,12 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
       <PageHeader title={eventTitle(event)} eyebrow={eventLabels[event.kind]} back={back} />
 
       <section className={`event-detail-hero event-detail-hero--${eventTone[event.kind]}`}>
-        <span><Glyph name={icons[event.kind]} size={28} /></span>
+        <EventArt event={event} size={62} />
         <div>
-          <strong>{event.detail}</strong>
+          <span className="event-detail-hero__identity">
+            <strong>{event.detail}</strong>
+            {ownEvent ? <OwnerCrown /> : null}
+          </span>
           <small>{rarityLabel(event.rarity) ?? eventMetaLabel(event) ?? eventLabels[event.kind]}</small>
         </div>
         <time>{formatOccurredAt(event.occurredAt)}</time>
