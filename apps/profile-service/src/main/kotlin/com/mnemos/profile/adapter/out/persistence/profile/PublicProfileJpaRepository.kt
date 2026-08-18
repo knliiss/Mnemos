@@ -60,7 +60,8 @@ interface PublicProfileJpaRepository : JpaRepository<PublicProfileEntity, UUID> 
             FROM public_profiles p
             WHERE :query % p.cristalix_nickname
             ORDER BY similarity(:query, p.cristalix_nickname) DESC,
-                     p.cristalix_nickname ASC
+                     p.cristalix_nickname ASC,
+                     p.account_id ASC
         """,
         countQuery = """
             SELECT count(*)
