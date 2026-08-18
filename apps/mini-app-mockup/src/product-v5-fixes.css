@@ -1,0 +1,99 @@
+/* Small fixes discovered by the V5 screenshot audit. */
+
+.personalization-detail-v5 .impact-preview--generic .notification-real-preview {
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) 24px !important;
+  align-items: center !important;
+  gap: 11px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 150px !important;
+  padding: 14px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  color: #e9ece3 !important;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(203, 255, 45, .07), transparent 38%),
+    rgba(12, 14, 10, .96) !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__event {
+  display: grid !important;
+  place-items: center !important;
+  width: 52px !important;
+  height: 52px !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__copy {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__copy > small {
+  color: #7e8478 !important;
+  font-size: 6.5px !important;
+  font-weight: 750 !important;
+  letter-spacing: .11em !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__copy > strong {
+  color: #eff1e9 !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__copy > p {
+  margin: 0 !important;
+  color: #a2a89b !important;
+  font-size: 8.5px !important;
+  line-height: 1.4 !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__copy > em {
+  margin-top: 4px !important;
+  color: #7f8579 !important;
+  font-size: 7.5px !important;
+  font-style: normal !important;
+}
+
+.personalization-detail-v5 .notification-real-preview__emoji {
+  display: grid !important;
+  place-items: center !important;
+  align-self: start !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 8px !important;
+  color: #d6ff43 !important;
+  background: rgba(203, 255, 45, .055) !important;
+  font-size: 12px !important;
+}
+
+.personalization-detail-v5 .impact-preview--generic .effect-real-preview {
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 9px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 150px !important;
+  padding: 16px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+}
+
+.personalization-detail-v5 .impact-preview--generic .effect-real-preview > span {
+  display: grid !important;
+  place-items: center !important;
+  width: 70px !important;
+  height: 70px !important;
+  border: 1px solid color-mix(in srgb, var(--effect-primary) 45%, transparent) !important;
+  border-radius: 20px !important;
+  color: #eff1e9 !important;
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--effect-primary) 18%, transparent), transparent 68%),
+    rgba(255, 255, 255, .02) !important;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--effect-primary) 15%, transparent) !important;
+  font-size: 24px !important;
+}
