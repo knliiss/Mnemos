@@ -36,6 +36,7 @@ import "./ux-round-two.css"
 import "./wallet-overhaul.css"
 import "./role-overhaul.css"
 import "./account-next-overhaul.css"
+import "./account-next-final.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
