@@ -45,6 +45,19 @@
     rgba(255,255,255,.028) !important;
 }
 
+.event-art--booster-luck,
+.event-art--booster-power {
+  --event-art-color: #cfff32;
+}
+
+.event-art--booster-money {
+  --event-art-color: #ffc15d;
+}
+
+.event-art--booster-damage {
+  --event-art-color: #ff7a6d;
+}
+
 .notification-real-preview::before {
   display: none !important;
 }
