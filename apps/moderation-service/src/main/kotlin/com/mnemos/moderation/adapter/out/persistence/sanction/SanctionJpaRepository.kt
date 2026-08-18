@@ -26,7 +26,7 @@ interface SanctionJpaRepository : JpaRepository<SanctionEntity, UUID> {
         WHERE sanction.userId = :userId
           AND sanction.type = :type
           AND sanction.status = :status
-        ORDER BY sanction.createdAt DESC
+        ORDER BY sanction.createdAt DESC, sanction.id DESC
         """,
     )
     fun findActiveByUserIdAndTypeForUpdate(
@@ -45,7 +45,7 @@ interface SanctionJpaRepository : JpaRepository<SanctionEntity, UUID> {
         WHERE sanction.status = :status
           AND sanction.expiresAt IS NOT NULL
           AND sanction.expiresAt <= :now
-        ORDER BY sanction.expiresAt ASC
+        ORDER BY sanction.expiresAt ASC, sanction.id ASC
         """,
     )
     fun findExpired(
@@ -61,7 +61,7 @@ interface SanctionJpaRepository : JpaRepository<SanctionEntity, UUID> {
         WHERE sanction.type = :type
           AND sanction.status = :status
           AND (sanction.expiresAt IS NULL OR sanction.expiresAt > :now)
-        ORDER BY sanction.createdAt ASC
+        ORDER BY sanction.createdAt ASC, sanction.id ASC
         """,
     )
     fun findActiveBans(
@@ -70,5 +70,13 @@ interface SanctionJpaRepository : JpaRepository<SanctionEntity, UUID> {
         @Param("now") now: Instant,
     ): List<SanctionEntity>
 
+    @Query(
+        """
+        SELECT sanction
+        FROM SanctionEntity sanction
+        WHERE sanction.userId = :userId
+        ORDER BY sanction.createdAt DESC, sanction.id DESC
+        """,
+    )
     fun findAllByUserIdOrderByCreatedAtDesc(userId: UUID): List<SanctionEntity>
 }
