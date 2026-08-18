@@ -4,6 +4,7 @@ import { permissionGroups } from "../mockData"
 import type { AccountRole, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { RoleSigil } from "../shared/RoleSigil"
 import {
   enabledPermissions,
   loadMockRoles,
@@ -69,7 +70,7 @@ export function RolesOverviewOverhaul({ navigate, back }: Props) {
               className="role-v2-row__main"
               onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}
             >
-              <span className="role-v2-row__swatch" style={{ background: role.color }} />
+              <RoleSigil color={role.color} size={40} />
               <span className="role-v2-row__copy">
                 <span>
                   <strong>{role.name}</strong>
@@ -135,7 +136,7 @@ function SortableRoleRow({ role, navigate }: {
         className="role-v2-row__main"
         onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}
       >
-        <span className="role-v2-row__swatch" style={{ background: role.color }} />
+        <RoleSigil color={role.color} size={40} />
         <span className="role-v2-row__copy">
           <span>
             <strong>{role.name}</strong>
