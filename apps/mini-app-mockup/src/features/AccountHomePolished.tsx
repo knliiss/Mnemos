@@ -126,7 +126,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
               className="account-next-role-pill"
               style={{ "--account-role-color": activeRole.color } as CSSProperties}
             >
-              <i />
+              <RoleSigil color={activeRole.color} size={18} compact />
               {activeAccount.role}
             </span>
           </span>
@@ -233,7 +233,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
                         className="account-next-member__role"
                         style={{ "--member-role": highestRole.color } as CSSProperties}
                       >
-                        <i />
+                        <RoleSigil color={highestRole.color} size={19} compact />
                         <span>{highestRole.name}</span>
                         {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                       </span>
