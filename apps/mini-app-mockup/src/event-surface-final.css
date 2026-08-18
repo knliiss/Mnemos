@@ -1,4 +1,4 @@
-/* Event semantics: dark neutral cards with a compact asymmetric color signature. */
+/* Event semantics: dark neutral cards with a compact color signature around the artwork. */
 .event-surface--dungeon {
   --event-accent: #98a77c;
 }
@@ -10,60 +10,28 @@
   overflow: hidden;
 }
 
-/* The card border stays neutral. Event color appears only around the leading edge. */
+/* Cards stay neutral. Event color never outlines the full surface. */
 .event-surface {
   border-color: rgba(235, 241, 213, .115) !important;
   background:
-    radial-gradient(ellipse at 4% 48%, color-mix(in srgb, var(--event-accent) 9%, transparent), transparent 38%),
+    radial-gradient(ellipse at 8% 48%, color-mix(in srgb, var(--event-accent) 7%, transparent), transparent 34%),
     linear-gradient(145deg, rgba(24, 25, 21, .98), rgba(9, 10, 8, .99)) !important;
   box-shadow:
     inset 0 1px rgba(255, 255, 255, .032),
     0 10px 28px rgba(0, 0, 0, .15) !important;
 }
 
-/* Two compact corner brackets instead of a full colored outline. */
+.event-surface:hover {
+  border-color: rgba(235, 241, 213, .16) !important;
+}
+
+/* No decorative lines on the card edge. */
 .event-surface::before,
 .event-row-surface::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  background-repeat: no-repeat;
+  content: none !important;
 }
 
-.event-surface::before {
-  width: 30px;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--event-accent) 58%, transparent), color-mix(in srgb, var(--event-accent) 58%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 58%, transparent), color-mix(in srgb, var(--event-accent) 58%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 94%, transparent), color-mix(in srgb, var(--event-accent) 94%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 94%, transparent), color-mix(in srgb, var(--event-accent) 94%, transparent));
-  background-size:
-    2px 27px,
-    20px 2px,
-    2px 31px,
-    24px 2px;
-  background-position:
-    left 12px top,
-    left top 12px,
-    left 12px bottom,
-    left bottom 12px;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--event-accent) 28%, transparent));
-}
-
-.event-surface.is-latest::before {
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--event-accent) 72%, transparent), color-mix(in srgb, var(--event-accent) 72%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 72%, transparent), color-mix(in srgb, var(--event-accent) 72%, transparent)),
-    linear-gradient(var(--event-accent), var(--event-accent)),
-    linear-gradient(var(--event-accent), var(--event-accent));
-  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--event-accent) 36%, transparent));
-}
-
-/* Very local atmospheric glow; it does not tint the whole card. */
+/* Very local atmospheric glow behind the icon area only. */
 .event-surface::after,
 .event-row-surface::after {
   content: "";
@@ -72,15 +40,23 @@
   pointer-events: none;
   border-radius: 999px;
   background: var(--event-accent);
-  filter: blur(18px);
+  filter: blur(21px);
 }
 
 .event-surface::after {
-  left: -20px;
-  top: 27%;
-  width: 72px;
-  height: 46%;
-  opacity: .085;
+  left: 10px;
+  top: 24%;
+  width: 76px;
+  height: 52%;
+  opacity: .075;
+}
+
+.event-row-surface::after {
+  left: 10px;
+  top: 24%;
+  width: 58px;
+  height: 50%;
+  opacity: .06;
 }
 
 .event-surface > *,
@@ -89,58 +65,78 @@
   z-index: 1;
 }
 
-.event-surface:hover {
-  border-color: rgba(235, 241, 213, .16) !important;
-}
-
-/* Compact rule/list variant uses shorter brackets. */
 .event-row-surface {
   border-color: rgba(235, 241, 213, .085) !important;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 5%, transparent), transparent 33%) !important;
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 4%, transparent), transparent 30%) !important;
   box-shadow: inset 0 1px rgba(255, 255, 255, .018);
 }
 
-.event-row-surface::before {
-  width: 24px;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--event-accent) 56%, transparent), color-mix(in srgb, var(--event-accent) 56%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 56%, transparent), color-mix(in srgb, var(--event-accent) 56%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 86%, transparent), color-mix(in srgb, var(--event-accent) 86%, transparent)),
-    linear-gradient(color-mix(in srgb, var(--event-accent) 86%, transparent), color-mix(in srgb, var(--event-accent) 86%, transparent));
-  background-size:
-    2px 18px,
-    15px 2px,
-    2px 20px,
-    18px 2px;
-  background-position:
-    left 8px top,
-    left top 8px,
-    left 8px bottom,
-    left bottom 8px;
-}
-
-.event-row-surface::after {
-  left: -18px;
-  top: 28%;
-  width: 54px;
-  height: 44%;
-  opacity: .07;
-}
-
-.event-surface > .event-art,
-.event-row-surface > .event-art {
+/*
+ * Event signature.
+ * Two asymmetric corner marks live on the icon itself, not on the card.
+ * Top-left is shorter and quieter; bottom-right is slightly brighter.
+ */
+.event-surface .event-art,
+.event-row-surface .event-art {
   --event-art-color: var(--event-accent);
-  border-color: color-mix(in srgb, var(--event-accent) 46%, transparent) !important;
+  position: relative;
+  overflow: visible;
+  border-color: rgba(235, 241, 213, .115) !important;
   background:
-    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--event-accent) 17%, transparent), transparent 66%),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--event-accent) 13%, transparent), transparent 68%),
     rgba(255, 255, 255, .018) !important;
   box-shadow:
-    0 0 18px color-mix(in srgb, var(--event-accent) 11%, transparent),
+    0 0 18px color-mix(in srgb, var(--event-accent) 8%, transparent),
     inset 0 1px rgba(255, 255, 255, .035) !important;
 }
 
-/* Raster event symbols stay crisp and visually dominant inside an otherwise quiet card. */
+.event-surface .event-art::before,
+.event-row-surface .event-art::before,
+.event-surface .event-art::after,
+.event-row-surface .event-art::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.event-surface .event-art::before,
+.event-row-surface .event-art::before {
+  left: -3px;
+  top: -3px;
+  width: 15px;
+  height: 15px;
+  border-left: 2px solid color-mix(in srgb, var(--event-accent) 78%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--event-accent) 78%, transparent);
+  border-radius: 7px 0 0 0;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--event-accent) 22%, transparent));
+}
+
+.event-surface .event-art::after,
+.event-row-surface .event-art::after {
+  right: -3px;
+  bottom: -3px;
+  width: 19px;
+  height: 13px;
+  border-right: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
+  border-radius: 0 0 7px 0;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--event-accent) 30%, transparent));
+}
+
+.event-surface.is-latest .event-art::before {
+  border-left-color: color-mix(in srgb, var(--event-accent) 90%, transparent);
+  border-top-color: color-mix(in srgb, var(--event-accent) 90%, transparent);
+}
+
+.event-surface.is-latest .event-art::after {
+  border-right-color: var(--event-accent);
+  border-bottom-color: var(--event-accent);
+}
+
+/* Raster event symbols stay crisp and visually dominant. */
 .event-art--booster-luck .event-art__image,
 .event-art--booster-money .event-art__image,
 .event-art--booster-damage .event-art__image,
@@ -151,7 +147,7 @@
   image-rendering: crisp-edges;
 }
 
-/* Subscription rules reuse the exact same event language as the feed. */
+/* Subscription rules reuse the same compact artwork signature. */
 .subscription-rule.event-row-surface > .event-art {
   width: 36px !important;
   height: 36px !important;
@@ -172,7 +168,7 @@
   filter: saturate(.82) brightness(.92);
 }
 
-/* SECRET: sampled from the user's original Cristalix reference. */
+/* SECRET: sampled from the supplied Cristalix reference. */
 .event-surface--drop-secret {
   --event-accent: #4ce8e7;
 }
@@ -181,7 +177,7 @@
   --event-art-color: #4ce8e7 !important;
 }
 
-/* MYTHICAL: strong crimson sampled from the supplied label reference. */
+/* MYTHICAL: saturated crimson from the supplied label reference. */
 .event-surface--drop-mythical {
   --event-accent: #b7213c;
 }
@@ -194,7 +190,7 @@
   --event-accent: #a9a59a;
 }
 
-/* Booster colors follow the source potion artwork and stay deliberately saturated. */
+/* Booster colors follow the source potion artwork. */
 .event-surface--booster-luck,
 .event-art--booster-luck {
   --event-accent: #45dd6b;
@@ -226,7 +222,6 @@
   --event-art-color: #68717b;
 }
 
-/* Eclipse intentionally sits near the previous cool Secret presentation. */
 .event-surface--global-eclipse,
 .event-art--global-eclipse {
   --event-accent: #82b8cc;
@@ -245,7 +240,7 @@
   --event-art-color: #ff9d24;
 }
 
-/* Raid stays neutral, but no longer disappears into the graphite surface. */
+/* Raid stays neutral, but remains distinguishable from graphite. */
 .event-surface--raid,
 .event-art--raid {
   --event-accent: #c2a77e;
@@ -253,10 +248,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .event-surface::before,
   .event-surface::after,
-  .event-row-surface::before,
-  .event-row-surface::after {
+  .event-row-surface::after,
+  .event-surface .event-art::before,
+  .event-surface .event-art::after,
+  .event-row-surface .event-art::before,
+  .event-row-surface .event-art::after {
     filter: none;
   }
 }
