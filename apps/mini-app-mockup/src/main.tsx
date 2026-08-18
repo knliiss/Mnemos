@@ -38,6 +38,7 @@ import "./role-overhaul.css"
 import "./role-final-fixes.css"
 import "./account-next-overhaul.css"
 import "./account-next-final.css"
+import "./ui-regression-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
