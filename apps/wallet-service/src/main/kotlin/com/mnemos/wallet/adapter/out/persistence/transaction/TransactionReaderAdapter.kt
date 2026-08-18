@@ -46,23 +46,23 @@ class TransactionReaderAdapter(
     }
 
     private fun TransactionSort.toSpringSort(): Sort {
-        val direction =
-            when (direction) {
+        val springDirection =
+            when (this.direction) {
                 TransactionSortDirection.ASC -> Sort.Direction.ASC
                 TransactionSortDirection.DESC -> Sort.Direction.DESC
             }
 
         val primary =
             when (field) {
-                TransactionSortField.CREATED_AT -> Sort.Order(direction, "createdAt")
-                TransactionSortField.AMOUNT -> Sort.Order(direction, "amount")
+                TransactionSortField.CREATED_AT -> Sort.Order(springDirection, "createdAt")
+                TransactionSortField.AMOUNT -> Sort.Order(springDirection, "amount")
             }
 
         return when (field) {
             TransactionSortField.CREATED_AT ->
                 Sort.by(
                     primary,
-                    Sort.Order(direction, "id"),
+                    Sort.Order(springDirection, "id"),
                 )
 
             TransactionSortField.AMOUNT ->
