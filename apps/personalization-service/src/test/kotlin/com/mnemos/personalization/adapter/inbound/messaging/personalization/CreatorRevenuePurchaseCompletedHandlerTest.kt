@@ -3,7 +3,7 @@ package com.mnemos.personalization.adapter.inbound.messaging.personalization
 import com.mnemos.messaging.core.event.EventEnvelope
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
-import com.mnemos.personalization.application.revenue.ScheduleCreatorRevenueService
+import com.mnemos.personalization.application.revenue.usecase.schedule.ScheduleCreatorRevenueUseCase
 import com.mnemos.personalization.contracts.PersonalizationAggregateType
 import com.mnemos.personalization.contracts.PersonalizationEventContract
 import com.mnemos.personalization.contracts.PersonalizationEventType
@@ -17,8 +17,8 @@ import java.time.Instant
 import java.util.UUID
 
 class CreatorRevenuePurchaseCompletedHandlerTest {
-    private val service = mock<ScheduleCreatorRevenueService>()
-    private val handler = CreatorRevenuePurchaseCompletedHandler(service)
+    private val useCase = mock<ScheduleCreatorRevenueUseCase>()
+    private val handler = CreatorRevenuePurchaseCompletedHandler(useCase)
     private val operationId = UUID.fromString("019c1181-0000-7000-8000-000000000001")
     private val personalizationId = UUID.fromString("019c1181-0000-7000-8000-000000000002")
     private val userId = UUID.fromString("019c1181-0000-7000-8000-000000000003")

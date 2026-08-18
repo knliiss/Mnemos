@@ -8,6 +8,7 @@ import com.mnemos.personalization.application.personalization.exception.Personal
 import com.mnemos.personalization.application.purchase.exception.PersonalizationNotPurchasableException
 import com.mnemos.personalization.application.purchase.exception.PersonalizationPurchaseInProgressException
 import com.mnemos.personalization.application.purchase.port.out.PersonalizationWallet
+import com.mnemos.personalization.application.purchase.usecase.purchase.PurchasePersonalizationService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
@@ -61,7 +62,6 @@ class PurchasePersonalizationServiceTest {
             )
 
         val result = fixture.service.execute(personalization.id)
-
         val operation = fixture.purchaseRepository.saved.single()
 
         assertEquals(personalization.id, result.personalizationId)
@@ -343,6 +343,8 @@ class PurchasePersonalizationServiceTest {
 
         override fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization> = emptyList()
 
+        override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> = emptyList()
+
         override fun deactivateActive(
             owner: PersonalizationOwner,
             type: PersonalizationType,
@@ -361,6 +363,9 @@ class PurchasePersonalizationServiceTest {
         }
 
         override fun findById(id: PurchaseOperationId): PurchaseOperation? = null
+
+        override fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation? =
+            saved.find { operation -> operation.idempotencyKey == idempotencyKey }
 
         override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = null
 

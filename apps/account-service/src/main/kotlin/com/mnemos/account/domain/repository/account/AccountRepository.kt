@@ -20,6 +20,11 @@ interface AccountRepository {
 
     fun findAllAvailableForUser(userId: UserId): List<Account>
 
+    fun findBootstrapBatch(
+        afterAccountId: AccountId?,
+        limit: Int,
+    ): List<Account>
+
     fun lockById(id: AccountId): Boolean
 
     fun findByIdForUpdate(accountId: AccountId): Account?

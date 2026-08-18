@@ -1,6 +1,12 @@
 package com.mnemos.realtime.adapter.sse.connection
 
-import com.mnemos.realtime.adapter.sse.protocol.RealtimeEventResponse
+import com.mnemos.realtime.adapter.inbound.http.sse.RealtimeBroadcastResponse
+import com.mnemos.realtime.adapter.inbound.http.sse.RealtimeGameEventResponse
+import com.mnemos.realtime.adapter.sse.protocol.RealtimeEventMapper.toResponse
+import com.mnemos.realtime.application.broadcast.model.DropSpotlightPresentationMode
+import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcast
+import com.mnemos.realtime.application.broadcast.model.RealtimeBroadcastType
+import com.mnemos.realtime.application.broadcast.port.out.ConnectedRealtimeBroadcastSink
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.port.out.ConnectedRealtimeEventSink
 import com.mnemos.realtime.application.delivery.port.out.RealtimeDeliveryTelemetry
@@ -16,7 +22,8 @@ class SseConnectionRegistry(
     private val properties: RealtimeDeliveryProperties,
     private val telemetry: RealtimeDeliveryTelemetry,
     private val leaseStore: SseConnectionLeaseStore,
-) : ConnectedRealtimeEventSink {
+) : ConnectedRealtimeEventSink,
+    ConnectedRealtimeBroadcastSink {
     private val connectionsByUser = ConcurrentHashMap<UUID, ConcurrentHashMap<UUID, Connection>>()
     private var totalConnections = 0
 
@@ -25,6 +32,7 @@ class SseConnectionRegistry(
         userId: UUID,
         clientIp: String,
         emitter: SseEmitter,
+        dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ): UUID {
         val existingUserConnections = connectionsByUser[userId]
 
@@ -71,8 +79,7 @@ class SseConnectionRegistry(
                 )
         }
 
-        val userConnections =
-            connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
+        val userConnections = connectionsByUser.computeIfAbsent(userId) { ConcurrentHashMap() }
 
         try {
             userConnections[connectionId] =
@@ -80,6 +87,7 @@ class SseConnectionRegistry(
                     emitter = emitter,
                     clientIp = clientIp,
                     deduplicationLimit = properties.deduplicationLimit,
+                    dropSpotlightPresentationMode = dropSpotlightPresentationMode,
                 )
             totalConnections += 1
             telemetry.connectionOpened()
@@ -114,50 +122,48 @@ class SseConnectionRegistry(
     override fun send(event: RealtimeEvent) {
         connectionsByUser[event.userId]
             ?.forEach { (connectionId, connection) ->
-                try {
+                sendSafely(event.userId, connectionId, connection) {
                     connection.sendOrQueue(event)
-                } catch (exception: Exception) {
-                    telemetry.recordSseSendFailure()
-                    log.debug(
-                        "Removing failed SSE connection, userId={}, connectionId={}",
-                        event.userId,
-                        connectionId,
-                        exception,
-                    )
-
-                    connection.completeWithError(exception)
-                    remove(
-                        userId = event.userId,
-                        connectionId = connectionId,
-                    )
                 }
             }
+    }
+
+    override fun send(broadcast: RealtimeBroadcast) {
+        connectionsByUser.forEach { (userId, connections) ->
+            connections.forEach { (connectionId, connection) ->
+                sendSafely(userId, connectionId, connection) {
+                    connection.sendOrQueue(broadcast)
+                }
+            }
+        }
     }
 
     fun completeReplay(
         userId: UUID,
         connectionId: UUID,
         replayEvents: List<RealtimeEvent>,
+        replayBroadcasts: List<RealtimeBroadcast>,
     ) {
         val connection = connectionsByUser[userId]?.get(connectionId) ?: return
 
         try {
-            connection.completeReplay(replayEvents)
+            connection.completeReplay(
+                replayEvents = replayEvents,
+                replayBroadcasts = replayBroadcasts,
+            )
         } catch (exception: Exception) {
             telemetry.recordSseSendFailure()
-            log.debug(
-                "Removing failed SSE connection during replay, userId={}, connectionId={}",
-                userId,
-                connectionId,
-                exception,
-            )
-
-            remove(
-                userId = userId,
-                connectionId = connectionId,
-            )
-
+            remove(userId, connectionId)
             throw exception
+        }
+    }
+
+    fun updateDropSpotlightPresentationMode(
+        userId: UUID,
+        mode: DropSpotlightPresentationMode,
+    ) {
+        connectionsByUser[userId]?.values?.forEach { connection ->
+            connection.updateDropSpotlightPresentationMode(mode)
         }
     }
 
@@ -180,10 +186,7 @@ class SseConnectionRegistry(
                 } catch (exception: Exception) {
                     telemetry.recordSseSendFailure()
                     connection.completeWithError(exception)
-                    remove(
-                        userId = userId,
-                        connectionId = connectionId,
-                    )
+                    remove(userId, connectionId)
                 }
             }
         }
@@ -193,10 +196,28 @@ class SseConnectionRegistry(
         userId: UUID,
         connectionId: UUID,
     ) {
-        remove(
-            userId = userId,
-            connectionId = connectionId,
-        )
+        remove(userId, connectionId)
+    }
+
+    private fun sendSafely(
+        userId: UUID,
+        connectionId: UUID,
+        connection: Connection,
+        send: () -> Unit,
+    ) {
+        try {
+            send()
+        } catch (exception: Exception) {
+            telemetry.recordSseSendFailure()
+            log.debug(
+                "Removing failed SSE connection, userId={}, connectionId={}",
+                userId,
+                connectionId,
+                exception,
+            )
+            connection.completeWithError(exception)
+            remove(userId, connectionId)
+        }
     }
 
     @Synchronized
@@ -254,8 +275,10 @@ class SseConnectionRegistry(
         val emitter: SseEmitter,
         val clientIp: String,
         private val deduplicationLimit: Int,
+        private var dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ) {
         private val pendingEvents = mutableListOf<RealtimeEvent>()
+        private val pendingBroadcasts = mutableListOf<RealtimeBroadcast>()
         private val sentEventIds = mutableSetOf<UUID>()
         private val sentEventOrder = ArrayDeque<UUID>()
         private var replayInProgress = true
@@ -271,15 +294,42 @@ class SseConnectionRegistry(
         }
 
         @Synchronized
-        fun completeReplay(replayEvents: List<RealtimeEvent>) {
+        fun sendOrQueue(broadcast: RealtimeBroadcast) {
+            if (replayInProgress) {
+                pendingBroadcasts += broadcast
+                return
+            }
+
+            send(broadcast)
+        }
+
+        @Synchronized
+        fun completeReplay(
+            replayEvents: List<RealtimeEvent>,
+            replayBroadcasts: List<RealtimeBroadcast>,
+        ) {
             val events =
                 (replayEvents + pendingEvents)
                     .distinctBy(RealtimeEvent::id)
+            val broadcasts =
+                (replayBroadcasts + pendingBroadcasts)
+                    .distinctBy(RealtimeBroadcast::id)
+                    .sortedWith(
+                        compareBy<RealtimeBroadcast> { broadcast -> broadcast.occurredAt }
+                            .thenBy { broadcast -> broadcast.sequence },
+                    )
 
             pendingEvents.clear()
+            pendingBroadcasts.clear()
             replayInProgress = false
 
             events.forEach(::send)
+            broadcasts.forEach(::send)
+        }
+
+        @Synchronized
+        fun updateDropSpotlightPresentationMode(mode: DropSpotlightPresentationMode) {
+            dropSpotlightPresentationMode = mode
         }
 
         @Synchronized
@@ -315,14 +365,58 @@ class SseConnectionRegistry(
             )
         }
 
-        private fun RealtimeEvent.toResponse(): RealtimeEventResponse =
-            RealtimeEventResponse(
-                id = id,
-                type = type.eventName,
-                occurredAt = occurredAt,
-                operationId = operationId,
-                payload = payload,
+        private fun send(broadcast: RealtimeBroadcast) {
+            if (broadcast.id in sentEventIds) {
+                return
+            }
+
+            remember(broadcast.id)
+
+            when (broadcast.type) {
+                RealtimeBroadcastType.DROP_SPOTLIGHT -> sendDropSpotlight(broadcast)
+                RealtimeBroadcastType.GAME_EVENT -> sendGameEvent(broadcast)
+            }
+        }
+
+        private fun sendDropSpotlight(broadcast: RealtimeBroadcast) {
+            val payload = requireNotNull(broadcast.payload)
+
+            emitter.send(
+                SseEmitter
+                    .event()
+                    .name("drop-spotlight")
+                    .data(
+                        RealtimeBroadcastResponse(
+                            id = broadcast.id,
+                            type = "drop-spotlight",
+                            sequence = broadcast.sequence,
+                            occurredAt = broadcast.occurredAt,
+                            expiresAt = broadcast.expiresAt,
+                            presentationMode = dropSpotlightPresentationMode,
+                            payload = payload,
+                        ),
+                    ),
             )
+        }
+
+        private fun sendGameEvent(broadcast: RealtimeBroadcast) {
+            val payload = requireNotNull(broadcast.gameEventPayload)
+
+            emitter.send(
+                SseEmitter
+                    .event()
+                    .id(broadcast.id.toString())
+                    .name("game-event")
+                    .data(
+                        RealtimeGameEventResponse(
+                            id = broadcast.id,
+                            type = "game-event",
+                            occurredAt = broadcast.occurredAt,
+                            payload = payload,
+                        ),
+                    ),
+            )
+        }
 
         private fun remember(eventId: UUID) {
             sentEventIds += eventId

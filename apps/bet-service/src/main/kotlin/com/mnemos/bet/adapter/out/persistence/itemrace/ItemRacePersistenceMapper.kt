@@ -1,5 +1,7 @@
 package com.mnemos.bet.adapter.out.persistence.itemrace
 
+import com.mnemos.bet.application.itemrace.model.ItemRaceParticipantView
+import com.mnemos.bet.application.itemrace.model.ItemRaceView
 import com.mnemos.bet.domain.itemrace.model.ItemRace
 import com.mnemos.bet.domain.itemrace.model.ItemRaceId
 import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipant
@@ -48,6 +50,31 @@ object ItemRacePersistenceMapper {
 
     fun ItemRaceParticipantEntity.toDomain(): ItemRaceParticipant =
         ItemRaceParticipant.restore(
+            id = ItemRaceParticipantId(id),
+            raceId = ItemRaceId(raceId),
+            accountId = AccountId(accountId),
+            accountNickname = accountNickname,
+            confirmedAmount = confirmedAmount,
+            pendingAmount = pendingAmount,
+            status = status,
+        )
+
+    fun ItemRaceEntity.toView(): ItemRaceView =
+        ItemRaceView(
+            id = ItemRaceId(id),
+            itemName = itemName,
+            itemType = itemType,
+            registrationClosesAt = registrationClosesAt,
+            startsAt = startsAt,
+            expiresAt = expiresAt,
+            entryAmount = entryAmount,
+            feePercent = feePercent,
+            status = status,
+            winnerAccountId = winnerAccountId?.let(::AccountId),
+        )
+
+    fun ItemRaceParticipantEntity.toView(): ItemRaceParticipantView =
+        ItemRaceParticipantView(
             id = ItemRaceParticipantId(id),
             raceId = ItemRaceId(raceId),
             accountId = AccountId(accountId),

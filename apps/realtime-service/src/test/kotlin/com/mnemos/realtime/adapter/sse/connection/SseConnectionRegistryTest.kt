@@ -1,5 +1,6 @@
 package com.mnemos.realtime.adapter.sse.connection
 
+import com.mnemos.realtime.application.broadcast.model.DropSpotlightPresentationMode
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.model.RealtimeEventType
 import com.mnemos.realtime.application.delivery.model.WalletTransactionCompletedPayload
@@ -28,18 +29,14 @@ class SseConnectionRegistryTest {
         val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000020")
         val replayedEvent = createEvent(userId, "019c1129-ef54-7000-8000-000000000021")
         val liveEvent = createEvent(userId, "019c1129-ef54-7000-8000-000000000022")
-        val connectionId =
-            registry.register(
-                userId = userId,
-                clientIp = CLIENT_IP,
-                emitter = emitter,
-            )
+        val connectionId = register(registry, userId, emitter)
 
         registry.send(replayedEvent)
         registry.completeReplay(
             userId = userId,
             connectionId = connectionId,
             replayEvents = listOf(replayedEvent),
+            replayBroadcasts = emptyList(),
         )
         registry.send(replayedEvent)
 
@@ -56,12 +53,7 @@ class SseConnectionRegistryTest {
         val emitter = mock<SseEmitter>()
         val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000023")
         val replayedEvent = createEvent(userId, "019c1129-ef54-7000-8000-000000000024")
-        val connectionId =
-            registry.register(
-                userId = userId,
-                clientIp = CLIENT_IP,
-                emitter = emitter,
-            )
+        val connectionId = register(registry, userId, emitter)
         val failure = IllegalStateException("send failed")
 
         doThrow(failure)
@@ -73,6 +65,7 @@ class SseConnectionRegistryTest {
                 userId = userId,
                 connectionId = connectionId,
                 replayEvents = listOf(replayedEvent),
+                replayBroadcasts = emptyList(),
             )
         }
     }
@@ -90,18 +83,10 @@ class SseConnectionRegistryTest {
             )
         val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000025")
 
-        registry.register(
-            userId = userId,
-            clientIp = CLIENT_IP,
-            emitter = mock(),
-        )
+        register(registry, userId)
 
         assertThrows(RealtimeConnectionLimitExceededException::class.java) {
-            registry.register(
-                userId = userId,
-                clientIp = CLIENT_IP,
-                emitter = mock(),
-            )
+            register(registry, userId)
         }
     }
 
@@ -117,17 +102,15 @@ class SseConnectionRegistryTest {
                     ),
             )
 
-        registry.register(
+        register(
+            registry = registry,
             userId = UUID.fromString("019c1129-ef54-7000-8000-000000000026"),
-            clientIp = CLIENT_IP,
-            emitter = mock(),
         )
 
         assertThrows(RealtimeConnectionLimitExceededException::class.java) {
-            registry.register(
+            register(
+                registry = registry,
                 userId = UUID.fromString("019c1129-ef54-7000-8000-000000000027"),
-                clientIp = CLIENT_IP,
-                emitter = mock(),
             )
         }
     }
@@ -141,10 +124,9 @@ class SseConnectionRegistryTest {
         val registry = registry(leaseStore = leaseStore)
 
         assertThrows(RealtimeConnectionLimitExceededException::class.java) {
-            registry.register(
+            register(
+                registry = registry,
                 userId = UUID.fromString("019c1129-ef54-7000-8000-000000000028"),
-                clientIp = CLIENT_IP,
-                emitter = mock(),
             )
         }
 
@@ -166,12 +148,7 @@ class SseConnectionRegistryTest {
             )
         val firstUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000029")
         val secondUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000030")
-        val connectionId =
-            registry.register(
-                userId = firstUserId,
-                clientIp = CLIENT_IP,
-                emitter = mock(),
-            )
+        val connectionId = register(registry, firstUserId)
 
         registry.unregister(
             userId = firstUserId,
@@ -180,13 +157,21 @@ class SseConnectionRegistryTest {
 
         assertEquals(setOf(connectionId), leaseStore.releasedConnectionIds)
         assertDoesNotThrow {
-            registry.register(
-                userId = secondUserId,
-                clientIp = CLIENT_IP,
-                emitter = mock(),
-            )
+            register(registry, secondUserId)
         }
     }
+
+    private fun register(
+        registry: SseConnectionRegistry,
+        userId: UUID,
+        emitter: SseEmitter = mock(),
+    ): UUID =
+        registry.register(
+            userId = userId,
+            clientIp = CLIENT_IP,
+            emitter = emitter,
+            dropSpotlightPresentationMode = DropSpotlightPresentationMode.FULL,
+        )
 
     private fun registry(
         properties: RealtimeDeliveryProperties = RealtimeDeliveryProperties(),

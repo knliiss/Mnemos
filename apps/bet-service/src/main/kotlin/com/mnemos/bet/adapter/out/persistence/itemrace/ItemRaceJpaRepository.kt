@@ -20,7 +20,7 @@ interface ItemRaceJpaRepository : JpaRepository<ItemRaceEntity, UUID> {
         "SELECT r FROM ItemRaceEntity r " +
             "WHERE r.status IN :synchronizingStatuses " +
             "AND (r.startsAt <= :now OR r.expiresAt <= :now OR r.status = :refundingStatus) " +
-            "ORDER BY r.startsAt ASC, r.id ASC",
+            "ORDER BY r.startsAt ASC",
     )
     fun findRequiringSynchronization(
         @Param("now") now: Instant,
@@ -31,7 +31,7 @@ interface ItemRaceJpaRepository : JpaRepository<ItemRaceEntity, UUID> {
     @Query(
         "SELECT r FROM ItemRaceEntity r " +
             "WHERE r.status IN :currentStatuses " +
-            "ORDER BY r.startsAt ASC, r.id ASC",
+            "ORDER BY r.startsAt ASC",
     )
     fun findCurrent(
         @Param("currentStatuses") currentStatuses: Collection<ItemRaceStatus>,

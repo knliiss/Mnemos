@@ -6,12 +6,14 @@ import com.mnemos.bet.domain.eventbet.model.EventBetResolutionId
 import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipantId
 import com.mnemos.bet.domain.wallet.model.WalletOperation
 import com.mnemos.bet.domain.wallet.model.WalletOperationKind
+import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
 import com.mnemos.bet.domain.wallet.repository.WalletOperationRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Instant
+import java.util.UUID
 
 @Service
 class RequestWalletOperationService(
@@ -23,6 +25,8 @@ class RequestWalletOperationService(
         require((command.eventBetId != null) xor (command.raceParticipantId != null))
 
         return createAndPublish(
+            idempotencyKey = command.idempotencyKey,
+            requestType = command.requestType,
             accountId = command.accountId,
             initiatedByUserId = command.initiatedByUserId,
             amount = command.amount,
@@ -39,6 +43,8 @@ class RequestWalletOperationService(
         require((command.eventBetId != null) xor (command.raceParticipantId != null))
 
         return createAndPublish(
+            idempotencyKey = null,
+            requestType = null,
             accountId = command.accountId,
             initiatedByUserId = null,
             amount = command.amount,
@@ -51,6 +57,8 @@ class RequestWalletOperationService(
     }
 
     private fun createAndPublish(
+        idempotencyKey: UUID?,
+        requestType: WalletOperationRequestType?,
         accountId: AccountId,
         initiatedByUserId: UserId?,
         amount: Long,
@@ -66,6 +74,8 @@ class RequestWalletOperationService(
                 initiatedByUserId = initiatedByUserId,
                 amount = amount,
                 kind = kind,
+                requestType = requestType,
+                idempotencyKey = idempotencyKey,
                 eventBetId = eventBetId,
                 eventBetResolutionId = eventBetResolutionId,
                 raceParticipantId = raceParticipantId,

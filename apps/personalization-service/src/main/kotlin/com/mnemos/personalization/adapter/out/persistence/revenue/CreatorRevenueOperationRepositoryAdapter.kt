@@ -1,5 +1,6 @@
 package com.mnemos.personalization.adapter.out.persistence.revenue
 
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.out.persistence.revenue.CreatorRevenueOperationPersistenceMapper.toDomain
 import com.mnemos.personalization.adapter.out.persistence.revenue.CreatorRevenueOperationPersistenceMapper.toEntity
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
@@ -21,6 +22,11 @@ class CreatorRevenueOperationRepositoryAdapter(
         repository.saveAndFlush(operation.toEntity()).toDomain()
 
     override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = repository.findByRequestId(requestId)?.toDomain()
+
+    override fun findByCreatorUserId(creatorUserId: UserId): List<CreatorRevenueOperation> =
+        repository
+            .findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId.id)
+            .map { entity -> entity.toDomain() }
 
     override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean =
         repository.existsByPurchaseOperationId(purchaseOperationId.id)

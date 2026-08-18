@@ -1,6 +1,6 @@
 package com.mnemos.wallet.adapter.out.persistence.balance
 
-import com.mnemos.wallet.adapter.out.persistence.common.WalletOwnerPersistenceMapper
+import com.mnemos.wallet.adapter.out.persistence.common.WalletOwnerPersistenceMapper.toDomain
 import com.mnemos.wallet.domain.balance.model.Balance
 import com.mnemos.wallet.domain.balance.model.BalanceAmount
 import com.mnemos.wallet.domain.transaction.model.TransactionId
@@ -8,7 +8,7 @@ import com.mnemos.wallet.domain.transaction.model.TransactionId
 object BalancePersistenceMapper {
     fun BalanceEntity.toDomain(): Balance =
         Balance.restore(
-            owner = WalletOwnerPersistenceMapper.toDomain(id.ownerType, id.ownerId),
+            owner = id.ownerType.toDomain(id.ownerId),
             currency = id.currency,
             amount = BalanceAmount(amount),
             lastTransactionId = lastTransactionId?.let(::TransactionId),

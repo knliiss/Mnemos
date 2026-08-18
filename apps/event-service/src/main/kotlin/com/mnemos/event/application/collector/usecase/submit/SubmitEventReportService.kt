@@ -2,10 +2,11 @@ package com.mnemos.event.application.collector.usecase.submit
 
 import com.mnemos.event.application.collector.port.out.EventCandidateLock
 import com.mnemos.event.application.collector.service.ConfirmedEventRecorder
+import com.mnemos.event.application.collector.usecase.submit.SubmitEventReportMapper.toSubmitResult
+import com.mnemos.event.application.collector.usecase.submit.SubmitEventReportMapper.toSubmitStatus
 import com.mnemos.event.application.collector.verification.EventConfirmationPolicy
 import com.mnemos.event.configuration.collector.EventVerificationProperties
 import com.mnemos.event.domain.verification.model.EventCandidate
-import com.mnemos.event.domain.verification.model.EventCandidateAcceptResult
 import com.mnemos.event.domain.verification.model.EventCandidateStatus
 import com.mnemos.event.domain.verification.model.EventFingerprint
 import com.mnemos.event.domain.verification.model.EventObservation
@@ -33,7 +34,7 @@ class SubmitEventReportService(
             }
 
         if (!processingResult.shouldRecord) {
-            return processingResult.toResult()
+            return processingResult.candidate.toSubmitResult(processingResult.status)
         }
 
         return record(
@@ -178,32 +179,9 @@ class SubmitEventReportService(
         )
     }
 
-    private fun EventCandidateAcceptResult.toSubmitStatus(): SubmitEventReportStatus =
-        when (this) {
-            EventCandidateAcceptResult.ACCEPTED,
-            EventCandidateAcceptResult.CONFIRMED,
-            EventCandidateAcceptResult.ALREADY_CONFIRMED,
-            ->
-                SubmitEventReportStatus.ACCEPTED
-
-            EventCandidateAcceptResult.DUPLICATE ->
-                SubmitEventReportStatus.DUPLICATE
-
-            EventCandidateAcceptResult.ALREADY_RECORDED ->
-                SubmitEventReportStatus.ALREADY_RECORDED
-        }
-
     private data class ProcessingResult(
         val candidate: EventCandidate,
         val status: SubmitEventReportStatus,
         val shouldRecord: Boolean,
-    ) {
-        fun toResult(): SubmitEventReportResult =
-            SubmitEventReportResult(
-                candidateId = candidate.id,
-                status = status,
-                confirmations = candidate.confirmationCount,
-                requiredConfirmations = candidate.requiredConfirmations,
-            )
-    }
+    )
 }

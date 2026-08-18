@@ -2,6 +2,7 @@ package com.mnemos.personalization.application.revenue
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
+import com.mnemos.personalization.application.revenue.usecase.retry.RetryCreatorRevenueService
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperationId
 import com.mnemos.personalization.domain.revenue.model.CreatorRevenueOperation
@@ -72,6 +73,9 @@ class RetryCreatorRevenueServiceTest {
         override fun save(operation: CreatorRevenueOperation): CreatorRevenueOperation = operation
 
         override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = null
+
+        override fun findByCreatorUserId(creatorUserId: UserId): List<CreatorRevenueOperation> =
+            listOf(operation).filter { it.creatorUserId == creatorUserId }
 
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean = false
 

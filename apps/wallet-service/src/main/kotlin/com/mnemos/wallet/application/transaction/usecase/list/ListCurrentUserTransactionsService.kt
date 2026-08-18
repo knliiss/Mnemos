@@ -1,5 +1,6 @@
 package com.mnemos.wallet.application.transaction.usecase.list
 
+import com.mnemos.wallet.application.common.pagination.PageQuery
 import com.mnemos.wallet.application.common.pagination.PageResult
 import com.mnemos.wallet.application.security.port.out.CurrentUserProvider
 import com.mnemos.wallet.application.transaction.model.TransactionView
@@ -14,13 +15,11 @@ class ListCurrentUserTransactionsService(
     private val transactionReader: TransactionReader,
     private val currentUserProvider: CurrentUserProvider,
 ) : ListCurrentUserTransactionsUseCase {
-    override fun execute(query: ListCurrentUserTransactionsQuery): PageResult<TransactionView> {
+    override fun execute(page: PageQuery): PageResult<TransactionView> {
         val userId = currentUserProvider.requireUserId()
-
         return transactionReader.findByOwner(
             owner = WalletOwner.User(userId),
-            page = query.page,
-            sort = query.sort,
+            page = page,
         )
     }
 }

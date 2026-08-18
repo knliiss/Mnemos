@@ -1,5 +1,6 @@
 package com.mnemos.realtime.configuration.messaging
 
+import com.mnemos.event.contracts.EventEventContract
 import com.mnemos.messaging.kafka.config.KafkaTopicDefinition
 import com.mnemos.messaging.kafka.consumer.KafkaDeadLetterTopic
 import com.mnemos.realtime.contracts.collector.CollectorIngressContract
@@ -39,5 +40,21 @@ class RealtimeKafkaTopicConfiguration {
                     TopicConfig.RETENTION_MS_CONFIG to CollectorIngressTopicPolicy.DEAD_LETTER_RETENTION_MS,
                     TopicConfig.RETENTION_BYTES_CONFIG to CollectorIngressTopicPolicy.DEAD_LETTER_RETENTION_BYTES,
                 ),
+        )
+
+    @Bean
+    fun eventEventsTopic(): KafkaTopicDefinition =
+        KafkaTopicDefinition(
+            name = EventEventContract.TOPIC,
+            partitions = 3,
+            replicationFactor = 1,
+        )
+
+    @Bean
+    fun eventEventsDeadLetterTopic(): KafkaTopicDefinition =
+        KafkaTopicDefinition(
+            name = KafkaDeadLetterTopic.name(EventEventContract.TOPIC),
+            partitions = 3,
+            replicationFactor = 1,
         )
 }

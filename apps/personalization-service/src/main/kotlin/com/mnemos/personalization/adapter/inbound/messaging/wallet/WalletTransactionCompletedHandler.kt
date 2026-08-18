@@ -4,9 +4,9 @@ import com.mnemos.messaging.core.message.ConsumedMessage
 import com.mnemos.messaging.kafka.consumer.KafkaMessageHandler
 import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
-import com.mnemos.personalization.application.purchase.ProcessPurchaseWalletResultService
-import com.mnemos.personalization.application.revenue.ProcessCreatorRevenueWalletResultService
-import com.mnemos.personalization.application.wallet.model.WalletResultContext
+import com.mnemos.personalization.adapter.inbound.messaging.wallet.WalletResultContextMapper.toResultContext
+import com.mnemos.personalization.application.purchase.usecase.completewallet.CompletePurchaseWalletUseCase
+import com.mnemos.personalization.application.revenue.usecase.completewallet.CompleteCreatorRevenueWalletUseCase
 import com.mnemos.wallet.contracts.wallet.WalletEventContract
 import com.mnemos.wallet.contracts.wallet.WalletEventType
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionCompletedEvent
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class WalletTransactionCompletedHandler(
-    private val purchaseService: ProcessPurchaseWalletResultService,
-    private val creatorRevenueService: ProcessCreatorRevenueWalletResultService,
+    private val completePurchaseWalletUseCase: CompletePurchaseWalletUseCase,
+    private val completeCreatorRevenueWalletUseCase: CompleteCreatorRevenueWalletUseCase,
 ) : KafkaMessageHandler<WalletTransactionCompletedEvent> {
     override val definition =
         kafkaMessageDefinition<WalletTransactionCompletedEvent>(
@@ -46,13 +46,13 @@ class WalletTransactionCompletedHandler(
 
         when (payload.source) {
             TransactionSource.PERSONALIZATION_PURCHASE ->
-                purchaseService.complete(
+                completePurchaseWalletUseCase.execute(
                     result = result,
                     transactionId = payload.transactionId,
                 )
 
             TransactionSource.CREATOR_REVENUE ->
-                creatorRevenueService.complete(
+                completeCreatorRevenueWalletUseCase.execute(
                     result = result,
                     transactionId = payload.transactionId,
                 )
@@ -60,21 +60,6 @@ class WalletTransactionCompletedHandler(
             else -> Unit
         }
     }
-
-    private fun WalletTransactionCompletedEvent.toResultContext(
-        message: ConsumedMessage<WalletTransactionCompletedEvent>,
-    ): WalletResultContext =
-        WalletResultContext(
-            requestId = requestId,
-            actorUserId = message.metadata.actorUserId,
-            ownerType = owner.type,
-            ownerId = owner.id,
-            currency = currency,
-            transactionType = type,
-            source = source,
-            sourceReferenceId = sourceReferenceId,
-            amount = amount,
-        )
 
     private companion object {
         const val WALLET_SERVICE = "wallet-service"

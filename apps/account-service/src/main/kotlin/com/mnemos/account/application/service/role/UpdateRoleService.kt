@@ -4,7 +4,7 @@ import com.mnemos.account.application.context.account.ActiveAccountContextProvid
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.policy.role.RolePermissionMutationGuard
 import com.mnemos.account.application.query.account.role.RoleView
-import com.mnemos.account.application.query.account.role.toView
+import com.mnemos.account.application.query.account.role.RoleViewMapper.toView
 import com.mnemos.account.domain.model.account.role.AccountRoleName
 import com.mnemos.account.domain.model.account.role.HexColor
 import com.mnemos.account.domain.model.account.role.RoleId

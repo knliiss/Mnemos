@@ -9,10 +9,13 @@ import com.mnemos.notification.application.notification.immediate.port.out.Immed
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.policy.EventPriority
 import com.mnemos.notification.application.notification.policy.NotificationPolicyRegistry
+import com.mnemos.notification.application.notification.service.NotificationBatchMapper.toItem
+import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
 import com.mnemos.notification.configuration.notification.NotificationProcessingProperties
 import org.springframework.stereotype.Service
 import java.time.Clock
+import java.time.Instant
 
 @Service
 class NotificationQueueDispatchService(
@@ -121,9 +124,9 @@ class NotificationQueueDispatchService(
 
     private fun createCandidate(
         userId: UserId,
-        recipient: com.mnemos.notification.application.recipient.model.RecipientView,
+        recipient: RecipientView,
         items: List<NotificationItem>,
-        readyAt: java.time.Instant,
+        readyAt: Instant,
     ): DeliveryCandidate =
         DeliveryCandidate(
             id = DeliveryCandidateId.generate(userId, items.map { it.sourceId }),
@@ -138,12 +141,4 @@ class NotificationQueueDispatchService(
         )
 
     private fun highestPriority(items: List<NotificationItem>): EventPriority = items.maxOf { policyRegistry.get(it.payload.type).priority }
-
-    private fun com.mnemos.notification.application.notification.model.NotificationBatch.toItem(): NotificationItem =
-        NotificationItem(
-            sourceId = sourceId,
-            payload = payload,
-            occurredAt = occurredAt,
-            expiresAt = expiresAt,
-        )
 }

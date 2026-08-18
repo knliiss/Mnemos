@@ -3,6 +3,7 @@ package com.mnemos.personalization.application.revenue
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
+import com.mnemos.personalization.application.revenue.usecase.schedule.ScheduleCreatorRevenueService
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
@@ -166,6 +167,9 @@ class ScheduleCreatorRevenueServiceTest {
 
         override fun findById(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
+        override fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation? =
+            operation.takeIf { it.idempotencyKey == idempotencyKey }
+
         override fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation? = operation.takeIf { it.id == id }
 
         override fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation? = null
@@ -202,6 +206,9 @@ class ScheduleCreatorRevenueServiceTest {
         }
 
         override fun findByRequestIdForUpdate(requestId: UUID): CreatorRevenueOperation? = null
+
+        override fun findByCreatorUserId(creatorUserId: UserId): List<CreatorRevenueOperation> =
+            operations.filter { it.creatorUserId == creatorUserId }
 
         override fun existsByPurchaseOperationId(purchaseOperationId: PurchaseOperationId): Boolean =
             purchaseOperationId in purchaseOperationIds

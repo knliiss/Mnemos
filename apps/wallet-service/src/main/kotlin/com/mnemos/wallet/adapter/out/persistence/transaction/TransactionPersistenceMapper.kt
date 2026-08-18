@@ -1,6 +1,6 @@
 package com.mnemos.wallet.adapter.out.persistence.transaction
 
-import com.mnemos.wallet.adapter.out.persistence.common.WalletOwnerPersistenceMapper
+import com.mnemos.wallet.adapter.out.persistence.common.WalletOwnerPersistenceMapper.toDomain
 import com.mnemos.wallet.domain.transaction.model.RequestId
 import com.mnemos.wallet.domain.transaction.model.Transaction
 import com.mnemos.wallet.domain.transaction.model.TransactionAmount
@@ -11,7 +11,7 @@ object TransactionPersistenceMapper {
     fun TransactionEntity.toDomain(): Transaction =
         Transaction.restore(
             id = TransactionId(id),
-            owner = WalletOwnerPersistenceMapper.toDomain(ownerType, ownerId),
+            owner = ownerType.toDomain(ownerId),
             currency = currency,
             type = type,
             source = source,

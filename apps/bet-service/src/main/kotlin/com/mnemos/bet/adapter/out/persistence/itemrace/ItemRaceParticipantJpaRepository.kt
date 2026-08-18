@@ -27,6 +27,11 @@ interface ItemRaceParticipantJpaRepository : JpaRepository<ItemRaceParticipantEn
         @Param("raceId") raceId: UUID,
     ): List<ItemRaceParticipantEntity>
 
+    fun findByRaceIdAndAccountId(
+        raceId: UUID,
+        accountId: UUID,
+    ): ItemRaceParticipantEntity?
+
     fun findAllByRaceIdOrderById(raceId: UUID): List<ItemRaceParticipantEntity>
 
     fun findAllByAccountIdOrderByIdDesc(accountId: UUID): List<ItemRaceParticipantEntity>

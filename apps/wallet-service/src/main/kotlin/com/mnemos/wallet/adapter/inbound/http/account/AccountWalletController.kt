@@ -3,7 +3,6 @@ package com.mnemos.wallet.adapter.inbound.http.account
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toQuery
 import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toResponse
-import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toSort
 import com.mnemos.wallet.adapter.inbound.http.balance.BalanceResponse
 import com.mnemos.wallet.adapter.inbound.http.common.PageRequest
 import com.mnemos.wallet.adapter.inbound.http.common.PageResponse
@@ -42,7 +41,6 @@ class AccountWalletController(
             ListAccountTransactionsQuery(
                 accountId = AccountId(accountId),
                 page = request.toQuery(),
-                sort = request.toSort(),
             )
 
         return listAccountTransactionsUseCase.execute(query).toResponse()

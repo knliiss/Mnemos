@@ -1,0 +1,20 @@
+ARG KAFKA_VERSION
+
+FROM apache/kafka:${KAFKA_VERSION} AS kafka
+
+FROM amazoncorretto:21-alpine AS builder
+
+COPY --from=kafka /opt/kafka/libs /opt/kafka/libs
+COPY KafkaBootstrap.java /src/KafkaBootstrap.java
+
+RUN mkdir -p /out \
+    && javac \
+        -cp '/opt/kafka/libs/*' \
+        -d /out \
+        /src/KafkaBootstrap.java
+
+FROM apache/kafka:${KAFKA_VERSION}
+
+COPY --from=builder /out /opt/mnemos/classes
+
+ENTRYPOINT ["java", "-cp", "/opt/mnemos/classes:/opt/kafka/libs/*", "KafkaBootstrap"]

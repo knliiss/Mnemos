@@ -29,14 +29,6 @@ interface UserBadgeJpaRepository : JpaRepository<UserBadgeEntity, UUID> {
 
     fun findByUserIdAndActiveTrue(userId: UUID): UserBadgeEntity?
 
-    @Query(
-        """
-        SELECT userBadge
-        FROM UserBadgeEntity userBadge
-        WHERE userBadge.userId = :userId
-        ORDER BY userBadge.grantedAt DESC, userBadge.id DESC
-        """,
-    )
     fun findAllByUserIdOrderByGrantedAtDesc(userId: UUID): List<UserBadgeEntity>
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -45,7 +37,7 @@ interface UserBadgeJpaRepository : JpaRepository<UserBadgeEntity, UUID> {
         SELECT userBadge
         FROM UserBadgeEntity userBadge
         WHERE userBadge.userId = :userId
-        ORDER BY userBadge.grantedAt DESC, userBadge.id DESC
+        ORDER BY userBadge.grantedAt DESC, userBadge.id ASC
         """,
     )
     fun findAllByUserIdForUpdate(userId: UUID): List<UserBadgeEntity>

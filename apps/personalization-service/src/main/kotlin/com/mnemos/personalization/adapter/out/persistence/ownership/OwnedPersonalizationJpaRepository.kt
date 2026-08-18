@@ -130,19 +130,22 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
         pageable: Pageable,
     ): Page<OwnedPersonalizationEntity>
 
-    @Query(
-        """
-        SELECT ownership
-        FROM OwnedPersonalizationEntity ownership
-        WHERE ownership.ownerType = :ownerType
-          AND ownership.ownerId = :ownerId
-        ORDER BY ownership.acquiredAt DESC, ownership.id DESC
-        """,
-    )
     fun findAllByOwnerTypeAndOwnerIdOrderByAcquiredAtDesc(
         ownerType: PersonalizationTarget,
         ownerId: UUID,
     ): List<OwnedPersonalizationEntity>
+
+    @Query(
+        """
+        SELECT DISTINCT ownership.ownerId
+        FROM OwnedPersonalizationEntity ownership
+        WHERE ownership.ownerType = com.mnemos.personalization.domain.personalization.model.PersonalizationTarget.ACCOUNT
+          AND ownership.active = true
+          AND ownership.personalizationType IN :types
+        ORDER BY ownership.ownerId
+        """,
+    )
+    fun findActiveAccountIds(types: Set<PersonalizationType>): List<UUID>
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query(

@@ -11,6 +11,8 @@ interface PurchaseOperationRepository {
 
     fun findById(id: PurchaseOperationId): PurchaseOperation?
 
+    fun findByIdempotencyKey(idempotencyKey: UUID): PurchaseOperation?
+
     fun findByIdForUpdate(id: PurchaseOperationId): PurchaseOperation?
 
     fun findByRequestIdForUpdate(requestId: UUID): PurchaseOperation?

@@ -8,19 +8,12 @@ import com.mnemos.wallet.application.balance.model.BalanceView
 import com.mnemos.wallet.application.common.pagination.PageQuery
 import com.mnemos.wallet.application.common.pagination.PageResult
 import com.mnemos.wallet.application.transaction.model.TransactionView
-import com.mnemos.wallet.application.transaction.usecase.list.TransactionSort
 
 object WalletApiMapper {
     fun PageRequest.toQuery(): PageQuery =
         PageQuery(
             page = page,
             size = size,
-        )
-
-    fun PageRequest.toSort(): TransactionSort =
-        TransactionSort(
-            field = sortBy,
-            direction = sortDirection,
         )
 
     fun BalanceView.toResponse(): BalanceResponse =

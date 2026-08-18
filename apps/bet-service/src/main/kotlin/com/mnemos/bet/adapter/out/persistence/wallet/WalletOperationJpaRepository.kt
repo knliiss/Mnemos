@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface WalletOperationJpaRepository : JpaRepository<WalletOperationEntity, UUID> {
+    fun findByIdempotencyKey(idempotencyKey: UUID): WalletOperationEntity?
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM WalletOperationEntity o WHERE o.id = :id")
     fun findByIdForUpdate(
@@ -21,6 +23,11 @@ interface WalletOperationJpaRepository : JpaRepository<WalletOperationEntity, UU
     fun findByRequestIdForUpdate(
         @Param("requestId") requestId: UUID,
     ): WalletOperationEntity?
+
+    fun findAllByAccountIdAndStatusOrderByCreatedAtAsc(
+        accountId: UUID,
+        status: WalletOperationStatus,
+    ): List<WalletOperationEntity>
 
     fun findAllByStatusAndKindInOrderByCreatedAtAsc(
         status: WalletOperationStatus,

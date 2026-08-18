@@ -8,15 +8,17 @@ import com.mnemos.notification.domain.subscription.model.SubscriptionType
 class ItemDropSubscription(
     override val id: SubscriptionId = SubscriptionId.generate(),
     override val userId: UserId,
-    val droppedFor: String?,
-    val itemName: String?,
+    droppedFor: String?,
+    itemName: String?,
 ) : Subscription {
-    override val type: SubscriptionType =
-        SubscriptionType.ITEM_DROP
+    val droppedFor: String? = droppedFor?.trim()
+    val itemName: String? = itemName?.trim()
+
+    override val type: SubscriptionType = SubscriptionType.ITEM_DROP
 
     init {
-        require(droppedFor == null || droppedFor.isNotBlank())
-        require(itemName == null || itemName.isNotBlank())
-        require(droppedFor != null || itemName != null)
+        require(this.droppedFor == null || this.droppedFor.isNotBlank())
+        require(this.itemName == null || this.itemName.isNotBlank())
+        require(this.droppedFor != null || this.itemName != null)
     }
 }
