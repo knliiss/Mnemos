@@ -16,7 +16,7 @@
 }
 
 /* ---------- Store header / user button collision ---------- */
-.route-stage--personalization-store .global-user-button--final {
+.route-stage.has-user-access.route-stage--personalization-store > .global-user-button--final {
   top: 84px !important;
   right: 24px !important;
 }
@@ -179,7 +179,7 @@
 }
 
 @media (max-width: 374px) {
-  .route-stage--personalization-store .global-user-button--final {
+  .route-stage.has-user-access.route-stage--personalization-store > .global-user-button--final {
     top: 88px !important;
     right: 18px !important;
   }
