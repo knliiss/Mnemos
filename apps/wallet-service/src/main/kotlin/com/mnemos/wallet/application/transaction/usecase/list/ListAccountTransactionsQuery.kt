@@ -6,4 +6,5 @@ import com.mnemos.wallet.application.common.pagination.PageQuery
 data class ListAccountTransactionsQuery(
     val accountId: AccountId,
     val page: PageQuery,
+    val sort: TransactionSort,
 )
