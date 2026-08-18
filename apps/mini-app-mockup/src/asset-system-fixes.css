@@ -2,6 +2,39 @@
   margin-right: 0 !important;
 }
 
+/* The user control belongs to fixed shell chrome, but should read as part of the page header rather than a floating badge. */
+.global-user-button--final {
+  top: max(18px, env(safe-area-inset-top)) !important;
+  right: 18px !important;
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 13px !important;
+  border-color: rgba(226, 239, 190, .23) !important;
+  background:
+    linear-gradient(145deg, rgba(43, 45, 36, .96), rgba(26, 27, 22, .98)) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .055),
+    0 5px 15px rgba(0, 0, 0, .22) !important;
+}
+
+.global-user-button--final.is-open {
+  border-color: rgba(213, 255, 70, .45) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .07),
+    0 7px 18px rgba(0, 0, 0, .28) !important;
+}
+
+.bets-title-block,
+.events-title-block,
+.store-final-header,
+.search-root-screen > .root-title-block {
+  padding-right: 58px !important;
+}
+
+.search-root-screen > .root-title-block p {
+  display: none;
+}
+
 .account-polished-member__name {
   display: inline-flex;
   align-items: center;
@@ -58,6 +91,17 @@
   --event-art-color: #ff7a6d;
 }
 
+.bet-redesign-card__icon--art {
+  overflow: visible !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+  background: transparent !important;
+}
+
+.bet-redesign-card__icon--art > .event-art {
+  border-radius: 11px !important;
+}
+
 .catalog-final-card--notification_pack::before,
 .catalog-final-card--notification_pack::after {
   display: none !important;
@@ -96,4 +140,20 @@
     0 10px 0 -5px var(--accent-strong),
     0 0 12px rgba(203,255,45,.12) !important;
   transform: translateY(-2px);
+}
+
+@media (max-width: 374px) {
+  .global-user-button--final {
+    top: max(16px, env(safe-area-inset-top)) !important;
+    right: 14px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .bets-title-block,
+  .events-title-block,
+  .store-final-header,
+  .search-root-screen > .root-title-block {
+    padding-right: 54px !important;
+  }
 }
