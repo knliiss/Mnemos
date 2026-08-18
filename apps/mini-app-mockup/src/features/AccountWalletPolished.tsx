@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { accountTransactions, currentUser } from "../mockData"
 import type { Account, WalletTransaction } from "../model"
@@ -71,6 +72,7 @@ export function AccountWalletPolished({
   const [purchaseLog, setPurchaseLog] = useState<PurchaseLog[]>([])
   const [purchaseState, setPurchaseState] = useState<"IDLE" | "SUCCESS">("IDLE")
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
+  const [sortOpen, setSortOpen] = useState(false)
 
   const selectedPack = coinPacks.find((pack) => pack.id === selectedPackId) ?? coinPacks[0]
   const canBuy = primeBalance >= selectedPack.prime
@@ -142,6 +144,11 @@ export function AccountWalletPolished({
     window.setTimeout(() => setPurchaseState("IDLE"), 2200)
   }
 
+  const selectSort = (sort: HistorySort) => {
+    setHistorySort(sort)
+    setSortOpen(false)
+  }
+
   return (
     <div className="screen account-wallet-v2">
       <PageHeader title="Гаманець" eyebrow={activeAccount.nickname} back={back} />
@@ -206,7 +213,6 @@ export function AccountWalletPolished({
                 <strong>{pack.coin.toLocaleString("uk-UA")} COIN</strong>
                 <em>{pack.prime} PRIME</em>
               </span>
-              <b>{selectedPackId === pack.id ? <Glyph name="check" size={13} /> : null}</b>
             </button>
           ))}
         </div>
@@ -246,14 +252,41 @@ export function AccountWalletPolished({
             <strong>Історія</strong>
           </span>
 
-          <label className="wallet-history-sort">
-            <Glyph name="swap" size={14} />
-            <select value={historySort} onChange={(event) => setHistorySort(event.target.value as HistorySort)}>
-              {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
-                <option key={sort} value={sort}>{sortLabels[sort]}</option>
-              ))}
-            </select>
-          </label>
+          <div className={`wallet-history-sort wallet-history-sort--custom ${sortOpen ? "is-open" : ""}`}>
+            <button
+              type="button"
+              className="wallet-history-sort__trigger"
+              aria-expanded={sortOpen}
+              onClick={() => setSortOpen((value) => !value)}
+            >
+              <Glyph name="swap" size={14} />
+              <span>{sortLabels[historySort]}</span>
+              <b>⌄</b>
+            </button>
+
+            <AnimatePresence>
+              {sortOpen ? (
+                <motion.div
+                  className="wallet-history-sort__menu"
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.985 }}
+                >
+                  {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
+                    <button
+                      key={sort}
+                      type="button"
+                      className={historySort === sort ? "is-active" : ""}
+                      onClick={() => selectSort(sort)}
+                    >
+                      <span>{sortLabels[sort]}</span>
+                      {historySort === sort ? <Glyph name="check" size={13} /> : null}
+                    </button>
+                  ))}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
         </header>
 
         <div className="coin-history-list">
