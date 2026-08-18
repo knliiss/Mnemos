@@ -28,11 +28,13 @@
   background: rgba(255,178,60,.07);
 }
 
-.account-polished-drop-list > button {
+.account-polished-drop-list > button,
+.profile-polished-drop-list > button {
   grid-template-columns: 38px minmax(0,1fr) auto auto !important;
 }
 
-.account-polished-drop-list .event-art {
+.account-polished-drop-list .event-art,
+.profile-polished-drop-list .event-art {
   border-radius: 11px !important;
 }
 
