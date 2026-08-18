@@ -1,0 +1,211 @@
+/* Hotfix pass: external skin rendering, reward celebration and root navigation. */
+
+/* ---------- External Cristalix head ---------- */
+.cristalix-head--layered .cristalix-head__canvas--overlay {
+  left: -6%;
+  top: -6%;
+  width: 112%;
+  height: 112%;
+  filter:
+    drop-shadow(0 2px 2px rgba(0, 0, 0, .2))
+    drop-shadow(0 8px 12px rgba(0, 0, 0, .15));
+}
+
+.cristalix-head--layered.is-loaded .cristalix-head__placeholder {
+  opacity: 0 !important;
+}
+
+/* ---------- Store header / user button collision ---------- */
+.route-stage--personalization-store .global-user-button--final {
+  top: 84px !important;
+  right: 24px !important;
+}
+
+.route-stage--personalization-store .store-v5-header {
+  min-height: 156px;
+}
+
+.route-stage--personalization-store .store-v5-header > span {
+  max-width: calc(100% - 86px);
+}
+
+.route-stage--personalization-store .store-prime-pill {
+  position: relative;
+  z-index: 8;
+}
+
+/* ---------- Daily reward celebration ---------- */
+.account-v4-reward__flame > i {
+  animation-duration: 3.8s !important;
+}
+
+@keyframes account-v4-flame-glow {
+  from {
+    opacity: .62;
+    transform: scale(.96);
+  }
+
+  to {
+    opacity: .82;
+    transform: scale(1.035);
+  }
+}
+
+.account-v5-reward-particles {
+  position: absolute;
+  z-index: 4;
+  right: 99px;
+  bottom: 36px;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.reward-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.reward-particle.is-lime {
+  --reward-particle-color: #cfff35;
+  --reward-particle-glow: rgba(203, 255, 45, .46);
+}
+
+.reward-particle.is-gold {
+  --reward-particle-color: #e5a83b;
+  --reward-particle-glow: rgba(229, 168, 59, .42);
+}
+
+.reward-particle.is-plum {
+  --reward-particle-color: #bd8ac4;
+  --reward-particle-glow: rgba(189, 138, 196, .38);
+}
+
+.reward-particle--spark {
+  width: 9px;
+  height: 9px;
+  background: var(--reward-particle-color);
+  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
+  filter: drop-shadow(0 0 5px var(--reward-particle-glow));
+}
+
+.reward-particle--orb {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f4f7e9 0 12%, var(--reward-particle-color) 36% 100%);
+  box-shadow: 0 0 9px var(--reward-particle-glow);
+}
+
+.reward-particle--shard {
+  width: 7px;
+  height: 12px;
+  border-radius: 70% 20% 70% 20%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .78), var(--reward-particle-color) 42% 100%);
+  box-shadow: 0 0 8px var(--reward-particle-glow);
+}
+
+.reward-particle--coin {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--reward-particle-color);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--reward-particle-color) 18%, transparent);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .2),
+    0 0 8px var(--reward-particle-glow);
+}
+
+/* ---------- Illustrated root navigation ---------- */
+.root-navigation--illustrated button {
+  isolation: isolate;
+}
+
+.root-navigation--illustrated .root-navigation__icon--illustrated {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 31px;
+  margin-bottom: 1px;
+  color: #878d82;
+  transition:
+    color .18s ease,
+    transform .18s ease,
+    filter .18s ease;
+}
+
+.root-navigation--illustrated .root-navigation__icon--illustrated::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 3px;
+  border-radius: 10px;
+  background: radial-gradient(circle, rgba(203, 255, 45, .13), transparent 72%);
+  opacity: 0;
+  transform: scale(.8);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.root-navigation--illustrated .root-navigation__icon--illustrated svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+  overflow: visible;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .22));
+}
+
+.root-navigation--illustrated button.is-active .root-navigation__icon--illustrated {
+  color: #cfff35;
+  transform: translateY(-1px);
+  filter: drop-shadow(0 0 7px rgba(203, 255, 45, .17));
+}
+
+.root-navigation--illustrated button.is-active .root-navigation__icon--illustrated::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.root-navigation--illustrated button > span:last-child {
+  margin-top: 1px;
+}
+
+@media (max-width: 374px) {
+  .route-stage--personalization-store .global-user-button--final {
+    top: 88px !important;
+    right: 18px !important;
+  }
+
+  .route-stage--personalization-store .store-v5-header > span {
+    max-width: calc(100% - 78px);
+  }
+
+  .root-navigation--illustrated .root-navigation__icon--illustrated {
+    width: 30px;
+    height: 29px;
+  }
+
+  .root-navigation--illustrated .root-navigation__icon--illustrated svg {
+    width: 27px;
+    height: 27px;
+  }
+
+  .account-v5-reward-particles {
+    right: 88px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-particle {
+    display: none;
+  }
+
+  .account-v4-reward__flame {
+    transform: none !important;
+  }
+}
