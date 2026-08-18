@@ -2,12 +2,16 @@
   margin-right: 0 !important;
 }
 
-/* The user control belongs to fixed shell chrome, but should read as part of the page header rather than a floating badge. */
+/* The user control is viewport chrome: it never follows the scrollable route stage. */
 .global-user-button--final {
+  position: fixed !important;
   top: max(18px, env(safe-area-inset-top)) !important;
-  right: 18px !important;
+  right: max(18px, calc((100vw - 430px) / 2 + 18px)) !important;
+  bottom: auto !important;
+  left: auto !important;
   width: 42px !important;
   height: 42px !important;
+  z-index: 76 !important;
   border-radius: 13px !important;
   border-color: rgba(226, 239, 190, .23) !important;
   background:
@@ -91,6 +95,25 @@
   --event-art-color: #ff7a6d;
 }
 
+.event-art--asset {
+  border-color: rgba(235, 241, 213, .11) !important;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--event-art-color) 10%, transparent), transparent 62%),
+    rgba(255,255,255,.018) !important;
+}
+
+.event-art__image {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 7px rgba(0, 0, 0, .28));
+}
+
 .bet-redesign-card__icon--art {
   overflow: visible !important;
   border-radius: 0 !important;
@@ -140,6 +163,12 @@
     0 10px 0 -5px var(--accent-strong),
     0 0 12px rgba(203,255,45,.12) !important;
   transform: translateY(-2px);
+}
+
+@media (max-width: 430px) {
+  .global-user-button--final {
+    right: 18px !important;
+  }
 }
 
 @media (max-width: 374px) {
