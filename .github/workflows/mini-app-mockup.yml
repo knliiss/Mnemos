@@ -11,6 +11,10 @@ on:
     paths:
       - "apps/mini-app-mockup/**"
 
+concurrency:
+  group: mini-app-mockup-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   statuses: write
