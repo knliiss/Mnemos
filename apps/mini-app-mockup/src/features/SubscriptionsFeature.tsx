@@ -1,11 +1,13 @@
 import { AnimatePresence } from "framer-motion"
 import { useMemo, useState } from "react"
+import { BoosterArt, GlobalEventArt, RaidArt } from "../components/EventArt"
 import {
   BOOSTER_TYPES,
   DUNGEON_TYPES,
   GLOBAL_EVENT_TYPES,
   SUBSCRIPTION_TYPES,
 } from "../contracts"
+import { subscriptionVisualTone } from "../eventVisualTone"
 import { initialSubscriptions } from "../mockData"
 import type {
   BoosterType,
@@ -54,6 +56,26 @@ function description(subscription: Subscription) {
   if (subscription.type === "GLOBAL") return globalEventLabels[subscription.eventType]
 
   return subscription.locations.length ? `Локації ${subscription.locations.join(", ")}` : "Усі локації"
+}
+
+function SubscriptionRuleIcon({ subscription }: { subscription: Subscription }) {
+  if (subscription.type === "BOOSTER") {
+    return <BoosterArt boosterType={subscription.boosterType} size={36} />
+  }
+
+  if (subscription.type === "GLOBAL") {
+    return <GlobalEventArt eventType={subscription.eventType} size={36} />
+  }
+
+  if (subscription.type === "RAID") {
+    return <RaidArt size={36} />
+  }
+
+  return (
+    <span className="subscription-rule__icon">
+      <Glyph name={subscriptionIcons[subscription.type]} size={18} />
+    </span>
+  )
 }
 
 export function SubscriptionsPage({ back }: { back: () => void }) {
@@ -156,18 +178,25 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
       <section className="subscription-rules">
         <header><h2>Правила</h2><small>Сповіщення приходять, коли умова збігається</small></header>
         <div>
-          {subscriptions.map((subscription) => (
-            <article className={`subscription-rule subscription-rule--${subscription.type.toLowerCase()}`} key={subscription.id}>
-              <span className="subscription-rule__icon"><Glyph name={subscriptionIcons[subscription.type]} size={18} /></span>
-              <span className="subscription-rule__copy">
-                <strong>{subscriptionLabels[subscription.type]}</strong>
-                <small>{description(subscription)}</small>
-              </span>
-              <button aria-label="Видалити" onClick={() => setSubscriptions(subscriptions.filter((item) => item.id !== subscription.id))}>
-                <Glyph name="close" size={15} />
-              </button>
-            </article>
-          ))}
+          {subscriptions.map((subscription) => {
+            const tone = subscriptionVisualTone(subscription)
+
+            return (
+              <article
+                className={`subscription-rule event-row-surface event-surface--${tone}`}
+                key={subscription.id}
+              >
+                <SubscriptionRuleIcon subscription={subscription} />
+                <span className="subscription-rule__copy">
+                  <strong>{subscriptionLabels[subscription.type]}</strong>
+                  <small>{description(subscription)}</small>
+                </span>
+                <button aria-label="Видалити" onClick={() => setSubscriptions(subscriptions.filter((item) => item.id !== subscription.id))}>
+                  <Glyph name="close" size={15} />
+                </button>
+              </article>
+            )
+          })}
         </div>
       </section>
 
