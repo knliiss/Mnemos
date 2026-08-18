@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { FormEvent, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
+import { EventArt } from "../components/EventArt"
 import { currentUser, feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
@@ -207,7 +208,7 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
           <div className="profile-polished-drop-list">
             {drops.map((drop) => (
               <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
-                <span className={`profile-drop-mark is-${(drop.rarity ?? "default").toLowerCase()}`}><Glyph name="item-drop" size={17} /></span>
+                <EventArt event={drop} size={38} />
                 <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
                 <time>{formatOccurredAt(drop.occurredAt)}</time>
                 <b>›</b>
