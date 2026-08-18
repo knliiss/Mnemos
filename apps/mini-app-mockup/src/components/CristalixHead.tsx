@@ -28,6 +28,8 @@ export function CristalixHead({
     setFailed(false)
 
     const image = new Image()
+    image.decoding = "async"
+    image.referrerPolicy = "no-referrer"
 
     image.onload = () => {
       const textureScale = image.naturalWidth / SKIN_REFERENCE_SIZE
@@ -130,15 +132,13 @@ function drawOverlayLayer(
   image: HTMLImageElement,
   textureScale: number,
 ) {
-  const textureCanvas = document.createElement("canvas")
-  textureCanvas.width = HEAD_TEXTURE_SIZE
-  textureCanvas.height = HEAD_TEXTURE_SIZE
+  context.clearRect(0, 0, OVERLAY_CANVAS_SIZE, OVERLAY_CANVAS_SIZE)
+  context.imageSmoothingEnabled = false
 
-  const textureContext = textureCanvas.getContext("2d")
-  if (!textureContext) return
-
-  textureContext.imageSmoothingEnabled = false
-  textureContext.drawImage(
+  // The skin is intentionally loaded from Cristalix directly. Do not read pixels
+  // back from this canvas: a cross-origin texture makes the canvas tainted and
+  // getImageData/toDataURL would throw a SecurityError in browsers.
+  context.drawImage(
     image,
     40 * textureScale,
     8 * textureScale,
@@ -146,37 +146,7 @@ function drawOverlayLayer(
     HEAD_TEXTURE_SIZE * textureScale,
     0,
     0,
-    HEAD_TEXTURE_SIZE,
-    HEAD_TEXTURE_SIZE,
+    OVERLAY_CANVAS_SIZE,
+    OVERLAY_CANVAS_SIZE,
   )
-
-  const textureData = textureContext.getImageData(0, 0, HEAD_TEXTURE_SIZE, HEAD_TEXTURE_SIZE)
-
-  context.clearRect(0, 0, OVERLAY_CANVAS_SIZE, OVERLAY_CANVAS_SIZE)
-  context.imageSmoothingEnabled = false
-
-  for (let y = 0; y < HEAD_TEXTURE_SIZE; y += 1) {
-    for (let x = 0; x < HEAD_TEXTURE_SIZE; x += 1) {
-      const alpha = textureData.data[(y * HEAD_TEXTURE_SIZE + x) * 4 + 3]
-      if (alpha === 0) continue
-
-      for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-        for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-          if (offsetX === 0 && offsetY === 0) continue
-
-          const targetX = x + 1 + offsetX
-          const targetY = y + 1 + offsetY
-
-          if (targetX < 0 || targetY < 0 || targetX >= OVERLAY_CANVAS_SIZE || targetY >= OVERLAY_CANVAS_SIZE) {
-            continue
-          }
-
-          context.fillStyle = "rgba(0, 0, 0, 0.24)"
-          context.fillRect(targetX, targetY, 1, 1)
-        }
-      }
-    }
-  }
-
-  context.drawImage(textureCanvas, 1, 1)
 }
