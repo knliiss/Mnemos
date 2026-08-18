@@ -4,6 +4,9 @@ import com.mnemos.wallet.application.common.pagination.PageQuery
 import com.mnemos.wallet.application.common.pagination.PageResult
 import com.mnemos.wallet.application.transaction.model.TransactionView
 import com.mnemos.wallet.application.transaction.port.out.TransactionReader
+import com.mnemos.wallet.application.transaction.usecase.list.TransactionSort
+import com.mnemos.wallet.application.transaction.usecase.list.TransactionSortDirection
+import com.mnemos.wallet.application.transaction.usecase.list.TransactionSortField
 import com.mnemos.wallet.domain.wallet.model.WalletOwner
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -16,12 +19,13 @@ class TransactionReaderAdapter(
     override fun findByOwner(
         owner: WalletOwner,
         page: PageQuery,
+        sort: TransactionSort,
     ): PageResult<TransactionView> {
         val pageable =
             PageRequest.of(
                 page.page,
                 page.size,
-                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")),
+                sort.toSpringSort(),
             )
 
         val result =
@@ -39,6 +43,35 @@ class TransactionReaderAdapter(
             totalPages = result.totalPages,
             hasNextPage = result.hasNext(),
         )
+    }
+
+    private fun TransactionSort.toSpringSort(): Sort {
+        val direction =
+            when (direction) {
+                TransactionSortDirection.ASC -> Sort.Direction.ASC
+                TransactionSortDirection.DESC -> Sort.Direction.DESC
+            }
+
+        val primary =
+            when (field) {
+                TransactionSortField.CREATED_AT -> Sort.Order(direction, "createdAt")
+                TransactionSortField.AMOUNT -> Sort.Order(direction, "amount")
+            }
+
+        return when (field) {
+            TransactionSortField.CREATED_AT ->
+                Sort.by(
+                    primary,
+                    Sort.Order(direction, "id"),
+                )
+
+            TransactionSortField.AMOUNT ->
+                Sort.by(
+                    primary,
+                    Sort.Order.desc("createdAt"),
+                    Sort.Order.desc("id"),
+                )
+        }
     }
 
     private fun TransactionEntity.toView(): TransactionView =
