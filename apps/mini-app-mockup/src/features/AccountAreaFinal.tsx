@@ -3,6 +3,7 @@ import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomePolished } from "./AccountHomePolished"
 import { AccountInvitesFinal, AccountJoinFinal } from "./AccountInviteFlowsFinal"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
+import { AccountWalletPolished } from "./AccountWalletPolished"
 
 type Props = {
   activeAccount: Account
@@ -24,6 +25,10 @@ export function AccountAreaFinal(props: Props) {
         initialMemberId={props.routeId === "member" ? props.params?.memberId ?? null : null}
       />
     )
+  }
+
+  if (props.routeId === "account-wallet") {
+    return <AccountWalletPolished activeAccount={props.activeAccount} back={props.back} />
   }
 
   if (props.routeId === "account-settings") {
