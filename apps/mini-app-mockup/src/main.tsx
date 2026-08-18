@@ -21,6 +21,7 @@ import "./visual-audit-fixes.css"
 import "./event-fact-final-fix.css"
 import "./asset-system-polish.css"
 import "./asset-system-fixes.css"
+import "./global-event-raster-polish.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
