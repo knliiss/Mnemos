@@ -38,7 +38,10 @@ type Variant =
   | "drop-pet"
   | "drop-book"
   | "drop-jewelry"
-  | "booster"
+  | "booster-luck"
+  | "booster-money"
+  | "booster-damage"
+  | "booster-power"
   | "raid"
   | "global-moon"
   | "global-eclipse"
@@ -54,7 +57,13 @@ function getVariant(event: FeedEvent): Variant {
     return "drop-sword"
   }
 
-  if (event.kind === "BOOSTER") return "booster"
+  if (event.kind === "BOOSTER") {
+    if (event.title === "MONEY") return "booster-money"
+    if (event.title === "DAMAGE") return "booster-damage"
+    if (event.title === "POWER") return "booster-power"
+    return "booster-luck"
+  }
+
   if (event.kind === "RAID") return "raid"
 
   if (event.title === "MOON") return "global-moon"
@@ -102,11 +111,33 @@ function renderVariant(variant: Variant) {
           <path className="event-art__line" d="m18 15 6-6 6 6-6 6-6-6ZM18 15h12" />
         </>
       )
-    case "booster":
+    case "booster-money":
       return (
         <>
           <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
-          <path className="event-art__line" d="M20 7h8M20 41h8m1-23-7 9h5l-7 8" />
+          <circle className="event-art__line" cx="24" cy="24" r="5" />
+          <path className="event-art__line" d="M20 7h8M20 41h8M26 20.5c-.7-.6-1.4-.9-2.2-.9-1.7 0-3 1.7-3 4.4s1.3 4.4 3 4.4c.8 0 1.5-.3 2.2-.9" />
+        </>
+      )
+    case "booster-damage":
+      return (
+        <>
+          <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
+          <path className="event-art__line" d="M20 7h8M20 41h8M20 20l8 8M28 20l-8 8" />
+        </>
+      )
+    case "booster-power":
+      return (
+        <>
+          <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
+          <path className="event-art__line" d="M20 7h8M20 41h8m9-23-7 9h5l-7 8" />
+        </>
+      )
+    case "booster-luck":
+      return (
+        <>
+          <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
+          <path className="event-art__line" d="M20 7h8M20 41h8M24 19c-4-4-8 2-3.3 4.5C16 26 20 32 24 28c4 4 8-2 3.3-4.5C32 21 28 15 24 19Z" />
         </>
       )
     case "raid":
