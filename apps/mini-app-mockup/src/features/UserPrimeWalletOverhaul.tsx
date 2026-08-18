@@ -11,6 +11,7 @@ type Props = {
 }
 
 type HistoryFilter = "ALL" | "CREDIT" | "DEBIT"
+type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
 
 type PrimePack = {
   id: string
@@ -31,15 +32,33 @@ const historyLabels: Record<HistoryFilter, string> = {
   DEBIT: "Витрати",
 }
 
+const sortLabels: Record<HistorySort, string> = {
+  NEWEST: "Спочатку нові",
+  OLDEST: "Спочатку старі",
+  AMOUNT_DESC: "Сума ↓",
+  AMOUNT_ASC: "Сума ↑",
+}
+
 export function UserPrimeWalletOverhaul({ navigate, back }: Props) {
   const [selectedPackId, setSelectedPackId] = useState(primePacks[1].id)
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("ALL")
+  const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const selectedPack = primePacks.find((pack) => pack.id === selectedPackId) ?? primePacks[0]
 
-  const filteredTransactions = useMemo(
-    () => userTransactions.filter((transaction) => historyFilter === "ALL" || transaction.type === historyFilter),
-    [historyFilter],
-  )
+  const visibleTransactions = useMemo(() => {
+    const filtered = userTransactions
+      .map((transaction, index) => ({ transaction, order: userTransactions.length - index }))
+      .filter(({ transaction }) => historyFilter === "ALL" || transaction.type === historyFilter)
+
+    return filtered
+      .sort((left, right) => {
+        if (historySort === "OLDEST") return left.order - right.order
+        if (historySort === "AMOUNT_DESC") return right.transaction.amount - left.transaction.amount || right.order - left.order
+        if (historySort === "AMOUNT_ASC") return left.transaction.amount - right.transaction.amount || right.order - left.order
+        return right.order - left.order
+      })
+      .map(({ transaction }) => transaction)
+  }, [historyFilter, historySort])
 
   const spent = userTransactions
     .filter((transaction) => transaction.type === "DEBIT")
@@ -146,26 +165,36 @@ export function UserPrimeWalletOverhaul({ navigate, back }: Props) {
       </section>
 
       <section className="prime-history-panel">
-        <header>
+        <header className="wallet-history-head wallet-history-head--stacked">
           <span>
             <small>РУХ PRIME</small>
             <strong>Історія</strong>
           </span>
-          <div className="prime-history-filter">
-            {(["ALL", "CREDIT", "DEBIT"] as const).map((filter) => (
-              <button
-                key={filter}
-                className={historyFilter === filter ? "is-active" : ""}
-                onClick={() => setHistoryFilter(filter)}
-              >
-                {historyLabels[filter]}
-              </button>
-            ))}
-          </div>
+
+          <label className="wallet-history-sort">
+            <Glyph name="swap" size={14} />
+            <select value={historySort} onChange={(event) => setHistorySort(event.target.value as HistorySort)}>
+              {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
+                <option key={sort} value={sort}>{sortLabels[sort]}</option>
+              ))}
+            </select>
+          </label>
         </header>
 
+        <div className="prime-history-filter">
+          {(["ALL", "CREDIT", "DEBIT"] as const).map((filter) => (
+            <button
+              key={filter}
+              className={historyFilter === filter ? "is-active" : ""}
+              onClick={() => setHistoryFilter(filter)}
+            >
+              {historyLabels[filter]}
+            </button>
+          ))}
+        </div>
+
         <div className="prime-history-list">
-          {filteredTransactions.map((transaction) => (
+          {visibleTransactions.map((transaction) => (
             <PrimeHistoryRow key={transaction.id} transaction={transaction} />
           ))}
         </div>
