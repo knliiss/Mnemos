@@ -26,7 +26,7 @@ export type SanctionStatus = "ACTIVE" | "REVOKED" | "EXPIRED"
 export type WalletAdjustmentStatus = "PENDING" | "COMPLETED" | "FAILED"
 
 export type RootRoute = "bets" | "events" | "account" | "search" | "personalization-store"
-export type RouteId = RootRoute | "event-detail" | "subscriptions" | "member" | "roles" | "role-editor" | "account-wallet" | "account-invites" | "account-settings" | "account-create" | "account-join" | "public-profile" | "personalization-owned" | "personalization-detail" | "creator-studio" | "creator-revenue" | "personalization-editor" | "moderation" | "administration" | "moderation-user" | "personalization-review" | "bet-admin" | "badge-admin" | "user-wallet"
+export type RouteId = RootRoute | "event-detail" | "subscriptions" | "member" | "roles" | "role-editor" | "account-wallet" | "account-invites" | "account-settings" | "account-create" | "account-join" | "public-profile" | "personalization-owned" | "personalization-store-category" | "personalization-detail" | "creator-studio" | "creator-revenue" | "personalization-editor" | "moderation" | "administration" | "moderation-user" | "personalization-review" | "bet-admin" | "badge-admin" | "user-wallet"
 export type Route = { id: RouteId; params?: Record<string, string> }
 
 export type Account = {
