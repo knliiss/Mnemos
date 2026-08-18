@@ -9,11 +9,17 @@ type RoleSigilProps = {
 
 export function RoleSigil({ color, size = 38, compact = false, className }: RoleSigilProps) {
   const style: CSSProperties = {
+    display: "grid",
+    placeItems: "center",
+    flex: "0 0 auto",
     width: size,
     height: size,
-    color,
+    border: "1px solid",
     borderColor: `color-mix(in srgb, ${color} 26%, transparent)`,
+    borderRadius: compact ? size * 0.31 : size * 0.34,
+    color,
     background: `radial-gradient(circle at 34% 24%, color-mix(in srgb, ${color} 17%, transparent), transparent 58%), rgba(255,255,255,.018)`,
+    boxShadow: `inset 0 1px rgba(255,255,255,.035), 0 7px 18px color-mix(in srgb, ${color} 5%, transparent)`,
   }
 
   return (
