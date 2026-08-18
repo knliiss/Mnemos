@@ -1,4 +1,9 @@
-import type { BetItemType, FeedEvent, GlobalEventType } from "../model"
+import type {
+  BetItemType,
+  BoosterType,
+  FeedEvent,
+  GlobalEventType,
+} from "../model"
 
 type Props = {
   event: FeedEvent
@@ -15,6 +20,14 @@ export function EventArt({ event, size = 46 }: Props) {
 
 export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
   return <ArtFrame variant={dropVariant(itemType)} size={size} />
+}
+
+export function BoosterArt({ boosterType, size = 46 }: { boosterType: BoosterType; size?: number }) {
+  return <ArtFrame variant={boosterVariant(boosterType)} size={size} />
+}
+
+export function RaidArt({ size = 46 }: { size?: number }) {
+  return <ArtFrame variant="raid" size={size} />
 }
 
 export function GlobalEventArt({ eventType, size = 46 }: { eventType: GlobalEventType; size?: number }) {
@@ -89,13 +102,23 @@ function dropVariant(itemType: BetItemType): Variant {
   if (itemType === "PET") return "drop-pet"
   if (itemType === "BOOK") return "drop-book"
   if (itemType === "JEWELRY") return "drop-jewelry"
+
   return "drop-sword"
+}
+
+function boosterVariant(boosterType: BoosterType): Variant {
+  if (boosterType === "MONEY") return "booster-money"
+  if (boosterType === "DAMAGE") return "booster-damage"
+  if (boosterType === "POWER") return "booster-power"
+
+  return "booster-luck"
 }
 
 function globalVariant(eventType: GlobalEventType): Variant {
   if (eventType === "MOON") return "global-moon"
   if (eventType === "DARKNESS") return "global-darkness"
   if (eventType === "EXPLOSION") return "global-explosion"
+
   return "global-eclipse"
 }
 
@@ -105,10 +128,7 @@ function getVariant(event: FeedEvent): Variant {
   }
 
   if (event.kind === "BOOSTER") {
-    if (event.title === "MONEY") return "booster-money"
-    if (event.title === "DAMAGE") return "booster-damage"
-    if (event.title === "POWER") return "booster-power"
-    return "booster-luck"
+    return boosterVariant(event.title as BoosterType)
   }
 
   if (event.kind === "RAID") return "raid"
