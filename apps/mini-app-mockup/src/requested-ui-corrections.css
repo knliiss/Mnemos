@@ -61,21 +61,21 @@
   padding: 0;
 }
 
-.event-browser-actions .event-browser-action:first-child > span {
-  display: none;
-}
-
+.event-browser-actions .event-browser-action:first-child > span,
 .event-browser-actions .event-browser-action:first-child .glyph {
-  transform: rotate(90deg);
-  transform-origin: center;
-}
-
-.event-browser-actions .event-browser-action[aria-label="Спочатку новіші"] .glyph path:nth-child(2) {
   display: none;
 }
 
-.event-browser-actions .event-browser-action[aria-label="Спочатку старіші"] .glyph path:nth-child(1) {
-  display: none;
+.event-browser-actions .event-browser-action:first-child::before {
+  content: "↓";
+  color: currentColor;
+  font-size: 18px;
+  font-weight: 520;
+  line-height: 1;
+}
+
+.event-browser-actions .event-browser-action[aria-label="Спочатку старіші"]::before {
+  content: "↑";
 }
 
 /* Filter fields must use the same surface treatment as the rest of the Mini App. */
