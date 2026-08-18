@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { CristalixHead } from "./components/CristalixHead"
+import { RootNavIllustration } from "./components/RootNavIllustration"
 import { accounts as initialAccounts, currentUser } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
@@ -14,12 +15,12 @@ import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFi
 import { StaffAreaOverhaul } from "./features/StaffAreaOverhaul"
 import { CurrencyMark, Glyph } from "./shared/MnemosIcon"
 
-const rootItems: { id: RootRoute; icon: "bet" | "events" | "home" | "search" | "store"; label: string }[] = [
-  { id: "bets", icon: "bet", label: "Ставки" },
-  { id: "events", icon: "events", label: "Події" },
-  { id: "account", icon: "home", label: "Головна" },
-  { id: "search", icon: "search", label: "Пошук" },
-  { id: "personalization-store", icon: "store", label: "Магазин" },
+const rootItems: { id: RootRoute; label: string }[] = [
+  { id: "bets", label: "Ставки" },
+  { id: "events", label: "Події" },
+  { id: "account", label: "Головна" },
+  { id: "search", label: "Пошук" },
+  { id: "personalization-store", label: "Магазин" },
 ]
 
 function routeKey(route: Route) {
@@ -172,10 +173,12 @@ export default function AppFinal() {
 
 function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (route: RootRoute) => void }) {
   return (
-    <nav className="root-navigation root-navigation--five final-navigation" aria-label="Основна навігація">
+    <nav className="root-navigation root-navigation--five final-navigation root-navigation--illustrated" aria-label="Основна навігація">
       {rootItems.map((item) => (
         <button key={item.id} className={current === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
-          <span className="root-navigation__icon"><Glyph name={item.icon} size={20} /></span>
+          <span className="root-navigation__icon root-navigation__icon--illustrated">
+            <RootNavIllustration route={item.id} />
+          </span>
           <span>{item.label}</span>
         </button>
       ))}
