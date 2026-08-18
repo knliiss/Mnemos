@@ -1,18 +1,19 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useMemo, useState } from "react"
-import type { CSSProperties } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
 import { feed, initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
 import { formatOccurredAt } from "../timePresentation"
 
 type Props = {
   activeAccount: Account
   navigate: (route: Route) => void
+  back: () => void
   initialMemberId?: string | null
 }
 
@@ -27,6 +28,11 @@ type DailyRewardState = {
   primeChance: number
 }
 
+type RewardClaimResult = {
+  coin: number
+  prime: number
+}
+
 const initialReward: DailyRewardState = {
   currentStreak: 18,
   claimedToday: false,
@@ -38,17 +44,21 @@ const initialReward: DailyRewardState = {
   primeChance: 0.04,
 }
 
-export function AccountHomePolished({ activeAccount, navigate, initialMemberId = null }: Props) {
+export function AccountHomePolished({
+  activeAccount,
+  navigate,
+  back,
+  initialMemberId = null,
+}: Props) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [reward, setReward] = useState<DailyRewardState>(initialReward)
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(initialMemberId)
-  const [rolesOpen, setRolesOpen] = useState(false)
+  const [rewardResult, setRewardResult] = useState<RewardClaimResult | null>(null)
 
   const roles = initialRoles
-  const selectedMember = members.find((member) => member.id === selectedMemberId) ?? null
+  const selectedMember = members.find((member) => member.id === initialMemberId) ?? null
   const restoreAvailable = reward.currentStreak === 0 && reward.recoverable && reward.restoresRemaining > 0
   const claimAvailable = !reward.claimedToday && !restoreAvailable
-  const activeRole = roles.find((role) => role.name === activeAccount.role) ?? roles[0]
+  const displayedCoinBalance = activeAccount.coin + (rewardResult?.coin ?? 0)
 
   const drops = useMemo(
     () => feed
@@ -84,13 +94,18 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
     if (member.owner) return
 
     setMembers((current) => current.filter((item) => item.id !== member.id))
-    setSelectedMemberId(null)
-    setRolesOpen(false)
+    back()
   }
 
   const claimDaily = () => {
     if (!claimAvailable) return
 
+    const coin = Math.floor(
+      reward.nextCoinMin + Math.random() * (reward.nextCoinMax - reward.nextCoinMin + 1),
+    )
+    const prime = Math.random() < reward.primeChance ? 1 : 0
+
+    setRewardResult({ coin, prime })
     setReward((current) => ({
       ...current,
       currentStreak: current.currentStreak <= 0 ? 1 : current.currentStreak + 1,
@@ -112,268 +127,326 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
     }))
   }
 
-  const openMemberProfile = (member: Member) => {
-    const accountId = member.owner ? activeAccount.id : `profile-${member.name}`
-
-    navigate({ id: "public-profile", params: { accountId } })
+  if (initialMemberId && selectedMember) {
+    return (
+      <AccountMemberManagement
+        member={selectedMember}
+        roles={roles}
+        onToggleRole={toggleMemberRole}
+        onKick={kickMember}
+        back={back}
+      />
+    )
   }
 
   return (
-    <div className="screen account-dashboard-screen root-screen">
-      <section className="account-dashboard-hero">
-        <div className="account-dashboard-hero__ambient" aria-hidden="true" />
+    <div className="screen account-v4-screen root-screen">
+      <motion.button
+        className="account-v4-profile"
+        whileTap={{ scale: 0.992 }}
+        onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
+      >
+        <span className="account-v4-profile__head">
+          <CristalixHead skinUrl={activeAccount.skinUrl} size={82} />
+        </span>
 
-        <button
-          className="account-dashboard-identity"
-          onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
+        <span className="account-v4-profile__copy">
+          <small>АКТИВНИЙ АККАУНТ</small>
+          <strong>{activeAccount.nickname}</strong>
+          <span className="account-v4-profile__pulse" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </span>
+
+        <img
+          className="account-v4-profile__art"
+          src="/ui-illustrations/account-core.svg"
+          alt=""
+          aria-hidden="true"
+        />
+      </motion.button>
+
+      <section className={`account-v4-reward ${reward.claimedToday ? "is-claimed" : ""}`}>
+        <motion.span
+          className="account-v4-reward__flame"
+          animate={{
+            y: [0, -2, 0, -1, 0],
+            rotate: [-1, 1.2, -0.6, 1, -1],
+            scale: [1, 1.045, 0.985, 1.025, 1],
+          }}
+          transition={{ duration: 1.45, repeat: Infinity, ease: "easeInOut" }}
+          aria-hidden="true"
         >
-          <span className="account-dashboard-head">
-            <CristalixHead skinUrl={activeAccount.skinUrl} size={76} />
+          <i />
+          <img src="/ui-icons/flame.png" alt="" />
+        </motion.span>
+
+        <span className="account-v4-reward__copy">
+          <small>ЩОДЕННА НАГОРОДА</small>
+          <span className="account-v4-reward__streak">
+            <strong>{reward.currentStreak || reward.recoverableStreak}</strong>
+            <span>днів поспіль</span>
           </span>
 
-          <span className="account-dashboard-identity__copy">
-            <small>АКТИВНИЙ АККАУНТ</small>
-            <span className="account-dashboard-identity__name">
-              <strong>{activeAccount.nickname}</strong>
-              <Glyph name="external" size={13} />
+          {!rewardResult ? (
+            <span className="account-v4-reward__range">
+              <span><CurrencyMark currency="COIN" size={14} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
+              <span><CurrencyMark currency="PRIME" size={13} />{Math.round(reward.primeChance * 100)}% шанс</span>
             </span>
-            <span
-              className="account-dashboard-role"
-              style={{ "--account-role-color": activeRole.color } as CSSProperties}
+          ) : null}
+        </span>
+
+        {claimAvailable ? (
+          <motion.button whileTap={{ scale: 0.96 }} onClick={claimDaily}>
+            <Glyph name="daily" size={15} />
+            Забрати
+          </motion.button>
+        ) : restoreAvailable ? (
+          <motion.button className="is-restore" whileTap={{ scale: 0.96 }} onClick={restoreDaily}>
+            <Glyph name="swap" size={14} />
+            Відновити
+            <small>{reward.restoresRemaining}×</small>
+          </motion.button>
+        ) : null}
+
+        <AnimatePresence>
+          {rewardResult ? (
+            <motion.div
+              className="account-v4-reward-result"
+              initial={{ opacity: 0, scale: 0.88, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 270, damping: 20 }}
             >
-              <RoleSigil roleId={activeRole.id} color={activeRole.color} size={24} compact />
-              <span>{activeAccount.role}</span>
-            </span>
-          </span>
-        </button>
+              <motion.span
+                className="account-v4-reward-result__burst"
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: [0, 1.25, 1], rotate: [-20, 7, 0] }}
+                transition={{ duration: 0.55 }}
+                aria-hidden="true"
+              >
+                <i />
+                <i />
+                <i />
+                <i />
+              </motion.span>
 
-        <div className="account-dashboard-hero__facts">
-          <span>
-            <small>Учасники</small>
-            <strong>{members.length}/{activeAccount.maxMembers}</strong>
-          </span>
-          <span>
-            <small>Баланс</small>
-            <strong>{activeAccount.coin.toLocaleString("uk-UA")} <em>COIN</em></strong>
-          </span>
-        </div>
+              <span>
+                <small>ОТРИМАНО</small>
+                <strong><CurrencyMark currency="COIN" size={17} />+{rewardResult.coin}</strong>
+              </span>
+              <span className={rewardResult.prime ? "is-prime" : "is-empty"}>
+                <small>PRIME</small>
+                <strong>
+                  <CurrencyMark currency="PRIME" size={15} />
+                  {rewardResult.prime ? `+${rewardResult.prime}` : "не випали"}
+                </strong>
+              </span>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </section>
 
-      <section className="account-dashboard-highlights">
-        <article className={`account-dashboard-daily ${reward.claimedToday ? "is-claimed" : ""} ${restoreAvailable ? "is-restore" : ""}`}>
-          <img className="account-dashboard-daily__art" src="/ui-icons/flame.png" alt="" aria-hidden="true" />
-
-          <span className="account-dashboard-daily__copy">
-            <small>ЩОДЕННА НАГОРОДА</small>
-            <span className="account-dashboard-daily__streak">
-              <strong>{reward.currentStreak || reward.recoverableStreak}</strong>
-              <span>днів поспіль</span>
-            </span>
-            <span className="account-dashboard-daily__reward">
-              <span><CurrencyMark currency="COIN" size={14} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
-              <span><CurrencyMark currency="PRIME" size={13} />{Math.round(reward.primeChance * 100)}%</span>
-            </span>
-          </span>
-
-          {claimAvailable ? (
-            <motion.button whileTap={{ scale: 0.97 }} onClick={claimDaily}>
-              <Glyph name="daily" size={15} />
-              Забрати
-            </motion.button>
-          ) : restoreAvailable ? (
-            <motion.button className="is-restore" whileTap={{ scale: 0.97 }} onClick={restoreDaily}>
-              <Glyph name="swap" size={14} />
-              Відновити
-              <small>{reward.restoresRemaining}×</small>
-            </motion.button>
-          ) : (
-            <span className="account-dashboard-daily__done"><Glyph name="check" size={13} />Отримано</span>
-          )}
-        </article>
-
-        <button className="account-dashboard-wallet" onClick={() => navigate({ id: "account-wallet" })}>
-          <span className="account-dashboard-wallet__copy">
-            <small>ГАМАНЕЦЬ АККАУНТА</small>
-            <strong>{activeAccount.coin.toLocaleString("uk-UA")}</strong>
-            <span><CurrencyMark currency="COIN" size={15} />COIN <b>·</b> історія та обмін</span>
+      <section className="account-v4-feature-grid">
+        <motion.button
+          className="account-v4-wallet"
+          whileTap={{ scale: 0.985 }}
+          onClick={() => navigate({ id: "account-wallet" })}
+        >
+          <span className="account-v4-feature-copy">
+            <small>ГАМАНЕЦЬ</small>
+            <strong><CurrencyMark currency="COIN" size={19} />{displayedCoinBalance.toLocaleString("uk-UA")}</strong>
+            <span>COIN</span>
           </span>
           <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
-          <Glyph name="external" size={14} />
-        </button>
+        </motion.button>
+
+        <motion.button
+          className="account-v4-personalization"
+          whileTap={{ scale: 0.985 }}
+          onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
+        >
+          <span className="account-v4-feature-copy">
+            <small>ОБРАЗ</small>
+            <strong>Персоналізація</strong>
+            <span>Тема · нік · рамка</span>
+          </span>
+          <img src="/ui-illustrations/personalization-forge.svg" alt="" aria-hidden="true" />
+        </motion.button>
       </section>
 
-      <nav className="account-dashboard-tools" aria-label="Інструменти аккаунта">
-        <button onClick={() => navigate({ id: "roles" })}>
-          <span className="is-role"><RoleSigil roleId="role-moderator" color="#A985A8" size={29} compact /></span>
-          <strong>Ролі</strong>
-          <small>Права</small>
-        </button>
-        <button onClick={() => navigate({ id: "account-invites" })}>
-          <span className="is-amber"><Glyph name="invite" size={18} /></span>
-          <strong>Інвайти</strong>
-          <small>Запрошення</small>
-        </button>
-        <button onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}>
-          <span className="is-lime"><Glyph name="spark" size={18} /></span>
-          <strong>Вигляд</strong>
-          <small>Персоналізація</small>
-        </button>
-        <button onClick={() => navigate({ id: "account-settings" })}>
-          <span className="is-neutral"><Glyph name="settings" size={18} /></span>
-          <strong>Налаштування</strong>
-          <small>Аккаунт</small>
-        </button>
+      <nav className="account-v4-actions" aria-label="Керування аккаунтом">
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "roles" })}>
+          <RoleSigil color="#A985A8" size={27} compact />
+          <span><strong>Ролі</strong><small>Права доступу</small></span>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "account-invites" })}>
+          <span className="account-v4-actions__icon is-amber"><Glyph name="invite" size={17} /></span>
+          <span><strong>Інвайти</strong><small>Запрошення</small></span>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "account-settings" })}>
+          <span className="account-v4-actions__icon"><Glyph name="settings" size={17} /></span>
+          <span><strong>Налаштування</strong><small>Аккаунт</small></span>
+        </motion.button>
       </nav>
 
-      <section className="account-dashboard-panel account-dashboard-members">
-        <header className="account-dashboard-panel__head">
+      <section className="account-v4-panel account-v4-members">
+        <header className="account-v4-panel__head account-v4-members__head">
           <span>
-            <small>КОМАНДА АККАУНТА</small>
+            <small>КОМАНДА</small>
             <strong>Учасники</strong>
+            <em>{members.length} з {activeAccount.maxMembers}</em>
           </span>
-          <span className="account-dashboard-panel__count">{members.length} з {activeAccount.maxMembers}</span>
+          <img src="/ui-illustrations/team-totem.svg" alt="" aria-hidden="true" />
         </header>
 
-        <div className="account-dashboard-member-list">
+        <div className="account-v4-member-list">
           {members.map((member) => {
             const highestRole = roleFor(member.highestRoleId)
-            const selected = member.id === selectedMemberId
             const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
             return (
-              <div className="account-dashboard-member-wrap" key={member.id}>
-                <motion.button
-                  className={`account-dashboard-member ${selected ? "is-selected" : ""}`}
-                  layout
-                  whileTap={{ scale: 0.993 }}
-                  onClick={() => {
-                    setSelectedMemberId(selected ? null : member.id)
-                    setRolesOpen(false)
-                  }}
-                >
-                  <span className="account-dashboard-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
+              <motion.button
+                className="account-v4-member"
+                key={member.id}
+                whileTap={{ scale: 0.992 }}
+                onClick={() => navigate({ id: "member", params: { memberId: member.id } })}
+              >
+                <span className="account-v4-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
 
-                  <span className="account-dashboard-member__copy">
-                    <span className="account-dashboard-member__name">
-                      <strong>{member.name}</strong>
-                      {member.owner ? <span className="account-dashboard-owner"><Glyph name="crown" size={11} /></span> : null}
+                <span className="account-v4-member__copy">
+                  <span className="account-v4-member__name">
+                    <strong>{member.name}</strong>
+                    {member.owner ? <span className="account-v4-owner"><Glyph name="crown" size={11} /></span> : null}
+                  </span>
+
+                  {highestRole ? (
+                    <span className="account-v4-member__role">
+                      <RoleSigil color={highestRole.color} size={21} compact />
+                      <span style={{ color: highestRole.color }}>{highestRole.name}</span>
+                      {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                     </span>
+                  ) : <small className="account-v4-member__no-role">Без ролі</small>}
+                </span>
 
-                    {highestRole ? (
-                      <span className="account-dashboard-member__role">
-                        <RoleSigil roleId={highestRole.id} color={highestRole.color} size={22} compact />
-                        <span style={{ color: highestRole.color }}>{highestRole.name}</span>
-                        {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
-                      </span>
-                    ) : <small className="account-dashboard-member__no-role">Без ролі</small>}
-                  </span>
-
-                  <span className="account-dashboard-member__meta">
-                    <small>{member.joinedAt.replace(" 2026", "")}</small>
-                    <b>›</b>
-                  </span>
-                </motion.button>
-
-                <AnimatePresence initial={false}>
-                  {selected && selectedMember ? (
-                    <motion.div
-                      className="account-dashboard-member-menu"
-                      initial={{ opacity: 0, y: -6, height: 0 }}
-                      animate={{ opacity: 1, y: 0, height: "auto" }}
-                      exit={{ opacity: 0, y: -4, height: 0 }}
-                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      <button onClick={() => openMemberProfile(selectedMember)}>
-                        <Glyph name="person" size={16} />
-                        <span>Профіль</span>
-                        <b>›</b>
-                      </button>
-
-                      <button onClick={() => setRolesOpen((value) => !value)}>
-                        <Glyph name="roles" size={16} />
-                        <span>Ролі</span>
-                        <b>{rolesOpen ? "⌃" : "›"}</b>
-                      </button>
-
-                      <AnimatePresence initial={false}>
-                        {rolesOpen ? (
-                          <motion.div
-                            className="account-dashboard-member-menu__roles"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                          >
-                            {roles.map((role) => {
-                              const assigned = selectedMember.roleIds.includes(role.id)
-                              const lockedForMember = selectedMember.owner || role.locked
-
-                              return (
-                                <button
-                                  key={role.id}
-                                  className={assigned ? "is-active" : ""}
-                                  disabled={lockedForMember}
-                                  onClick={() => toggleMemberRole(selectedMember, role)}
-                                >
-                                  <RoleSigil roleId={role.id} color={role.color} size={25} compact />
-                                  <span>
-                                    <strong>{role.name}</strong>
-                                    <small>{enabledPermissions(role)} дозволів</small>
-                                  </span>
-                                  {assigned ? <Glyph name="check" size={13} /> : null}
-                                </button>
-                              )
-                            })}
-                          </motion.div>
-                        ) : null}
-                      </AnimatePresence>
-
-                      {!selectedMember.owner ? (
-                        <button className="is-danger" onClick={() => kickMember(selectedMember)}>
-                          <Glyph name="close" size={16} />
-                          <span>Кікнути</span>
-                        </button>
-                      ) : null}
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-              </div>
+                <time>{member.joinedAt.replace(" 2026", "")}</time>
+              </motion.button>
             )
           })}
         </div>
       </section>
 
-      <section className="account-dashboard-panel account-dashboard-drops">
-        <header className="account-dashboard-panel__head">
+      <section className="account-v4-panel account-v4-drops">
+        <header className="account-v4-panel__head account-v4-drops__head">
+          <span className="account-v4-drops__title-icon">
+            <img src="/ui-icons/drop-stack.svg" alt="" aria-hidden="true" />
+          </span>
           <span>
             <small>АКТИВНІСТЬ</small>
             <strong>Останні дропи</strong>
           </span>
-          <span className="account-dashboard-panel__count">для {activeAccount.nickname}</span>
         </header>
 
-        <div className="account-dashboard-drop-list">
+        <div className="account-v4-drop-list">
           {drops.length ? drops.map((drop) => {
             const tone = eventVisualTone(drop)
 
             return (
               <motion.button
-                className={`account-dashboard-drop event-surface--${tone}`}
+                className={`account-v4-drop event-surface--${tone}`}
                 key={drop.id}
-                whileTap={{ scale: 0.993 }}
+                whileTap={{ scale: 0.992 }}
                 onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
               >
                 <EventArt event={drop} size={42} />
-                <span className="account-dashboard-drop__copy">
+                <span className="account-v4-drop__copy">
                   <strong>{drop.title}</strong>
                   <small>{localizeRarity(drop.rarity) ?? drop.meta}</small>
                 </span>
                 <time>{formatOccurredAt(drop.occurredAt)}</time>
-                <b>›</b>
               </motion.button>
             )
           }) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
         </div>
       </section>
+    </div>
+  )
+}
+
+function AccountMemberManagement({
+  member,
+  roles,
+  onToggleRole,
+  onKick,
+  back,
+}: {
+  member: Member
+  roles: AccountRole[]
+  onToggleRole: (member: Member, role: AccountRole) => void
+  onKick: (member: Member) => void
+  back: () => void
+}) {
+  const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
+
+  return (
+    <div className="screen account-member-v4">
+      <PageHeader title="Учасник" back={back} />
+
+      <section className="account-member-v4__hero">
+        <span className="account-member-v4__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
+        <span className="account-member-v4__identity">
+          <small>ACCOUNT MEMBER</small>
+          <strong>{member.name}</strong>
+          <em>У команді з {member.joinedAt}</em>
+        </span>
+        {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
+      </section>
+
+      <section className="account-member-v4__roles">
+        <header>
+          <span>
+            <small>ДОСТУП</small>
+            <strong>Ролі учасника</strong>
+          </span>
+          <em>{member.roleIds.length} активні</em>
+        </header>
+
+        <div>
+          {roles.map((role) => {
+            const assigned = member.roleIds.includes(role.id)
+            const locked = member.owner || role.locked
+
+            return (
+              <motion.button
+                key={role.id}
+                className={assigned ? "is-active" : ""}
+                disabled={locked}
+                whileTap={locked ? undefined : { scale: 0.985 }}
+                onClick={() => onToggleRole(member, role)}
+              >
+                <RoleSigil color={role.color} size={34} compact />
+                <span>
+                  <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
+                  <small>{enabledPermissions(role)} дозволів</small>
+                </span>
+                <i aria-hidden="true"><b /></i>
+              </motion.button>
+            )
+          })}
+        </div>
+      </section>
+
+      {!member.owner ? (
+        <section className="account-member-v4__danger">
+          <span><Glyph name="close" size={18} /></span>
+          <span>
+            <strong>Видалити з аккаунта</strong>
+            <small>Учасник втратить доступ до цього аккаунта.</small>
+          </span>
+          <button onClick={() => onKick(member)}>Кікнути</button>
+        </section>
+      ) : null}
     </div>
   )
 }
