@@ -41,6 +41,7 @@ import "./account-next-final.css"
 import "./ui-regression-fixes.css"
 import "./product-v4.css"
 import "./product-v5.css"
+import "./product-v5-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
