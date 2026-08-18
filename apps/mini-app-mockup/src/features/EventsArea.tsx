@@ -16,5 +16,5 @@ export function EventsArea({ routeId, params, activeAccount, navigate, back }: P
   if (routeId === "event-detail") return <EventDetail eventId={params?.eventId} activeAccount={activeAccount} back={back} />
   if (routeId === "subscriptions") return <SubscriptionsPage back={back} />
 
-  return <EventsHome navigate={navigate} />
+  return <EventsHome activeAccount={activeAccount} navigate={navigate} />
 }
