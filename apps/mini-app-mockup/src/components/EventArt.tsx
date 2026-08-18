@@ -1,4 +1,4 @@
-import type { FeedEvent } from "../model"
+import type { BetItemType, FeedEvent, GlobalEventType } from "../model"
 
 type Props = {
   event: FeedEvent
@@ -6,19 +6,15 @@ type Props = {
 }
 
 export function EventArt({ event, size = 46 }: Props) {
-  const variant = getVariant(event)
+  return <ArtFrame variant={getVariant(event)} size={size} />
+}
 
-  return (
-    <span
-      className={`event-art event-art--${variant}`}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      <svg viewBox="0 0 48 48" fill="none">
-        {renderVariant(variant)}
-      </svg>
-    </span>
-  )
+export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
+  return <ArtFrame variant={dropVariant(itemType)} size={size} />
+}
+
+export function GlobalEventArt({ eventType, size = 46 }: { eventType: GlobalEventType; size?: number }) {
+  return <ArtFrame variant={globalVariant(eventType)} size={size} />
 }
 
 export function OwnerCrown({ compact = false }: { compact?: boolean }) {
@@ -48,13 +44,38 @@ type Variant =
   | "global-darkness"
   | "global-explosion"
 
+function ArtFrame({ variant, size }: { variant: Variant; size: number }) {
+  return (
+    <span
+      className={`event-art event-art--${variant}`}
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 48 48" fill="none">
+        {renderVariant(variant)}
+      </svg>
+    </span>
+  )
+}
+
+function dropVariant(itemType: BetItemType): Variant {
+  if (itemType === "AURA") return "drop-aura"
+  if (itemType === "PET") return "drop-pet"
+  if (itemType === "BOOK") return "drop-book"
+  if (itemType === "JEWELRY") return "drop-jewelry"
+  return "drop-sword"
+}
+
+function globalVariant(eventType: GlobalEventType): Variant {
+  if (eventType === "MOON") return "global-moon"
+  if (eventType === "DARKNESS") return "global-darkness"
+  if (eventType === "EXPLOSION") return "global-explosion"
+  return "global-eclipse"
+}
+
 function getVariant(event: FeedEvent): Variant {
   if (event.kind === "ITEM_DROP") {
-    if (event.meta === "AURA") return "drop-aura"
-    if (event.meta === "PET") return "drop-pet"
-    if (event.meta === "BOOK") return "drop-book"
-    if (event.meta === "JEWELRY") return "drop-jewelry"
-    return "drop-sword"
+    return dropVariant((event.meta as BetItemType | undefined) ?? "SWORD")
   }
 
   if (event.kind === "BOOSTER") {
@@ -66,10 +87,7 @@ function getVariant(event: FeedEvent): Variant {
 
   if (event.kind === "RAID") return "raid"
 
-  if (event.title === "MOON") return "global-moon"
-  if (event.title === "DARKNESS") return "global-darkness"
-  if (event.title === "EXPLOSION") return "global-explosion"
-  return "global-eclipse"
+  return globalVariant(event.title as GlobalEventType)
 }
 
 function renderVariant(variant: Variant) {
