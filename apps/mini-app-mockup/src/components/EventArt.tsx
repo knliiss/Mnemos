@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import type {
   BetItemType,
   BoosterType,
@@ -97,11 +98,17 @@ function ArtFrame({
   extraClass?: string
 }) {
   const asset = eventAssets[variant]
+  const contentSize = Math.min(30, Math.max(18, Math.round(size * 0.66)))
+  const style = {
+    width: size,
+    height: size,
+    "--event-art-content-size": `${contentSize}px`,
+  } as CSSProperties
 
   return (
     <span
       className={`event-art event-art--${variant} ${asset ? "event-art--asset" : ""} ${extraClass}`.trim()}
-      style={{ width: size, height: size }}
+      style={style}
       aria-hidden="true"
     >
       {asset ? (
@@ -112,7 +119,7 @@ function ArtFrame({
           draggable={false}
         />
       ) : (
-        <svg viewBox="0 0 48 48" fill="none">
+        <svg className="event-art__vector" viewBox="0 0 48 48" fill="none">
           {renderVariant(variant)}
         </svg>
       )}
