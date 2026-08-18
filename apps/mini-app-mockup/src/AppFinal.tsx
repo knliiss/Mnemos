@@ -143,6 +143,7 @@ export default function AppFinal() {
             {rootRoute ? (
               <UserHubTrigger
                 open={userHubOpen}
+                activeAccount={activeAccount}
                 onToggle={toggleUserHub}
               />
             ) : null}
@@ -183,7 +184,11 @@ function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (
   )
 }
 
-function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+function UserHubTrigger({ open, activeAccount, onToggle }: {
+  open: boolean
+  activeAccount: Account
+  onToggle: () => void
+}) {
   return (
     <motion.button
       className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
@@ -191,24 +196,13 @@ function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => voi
       onClick={onToggle}
       aria-label="Меню користувача"
     >
-      <UserAvatarPlaceholder
-        className="global-user-button__avatar"
-        size={40}
+      <CristalixHead
+        className="global-user-button__skin"
+        skinUrl={activeAccount.skinUrl}
+        size={32}
       />
       <i />
     </motion.button>
-  )
-}
-
-function UserAvatarPlaceholder({ className, size }: { className?: string; size: number }) {
-  return (
-    <span
-      className={`user-avatar-placeholder ${className ?? ""}`.trim()}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      <Glyph name="profile-mark" size={Math.round(size * 0.48)} />
-    </span>
   )
 }
 
@@ -249,9 +243,10 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
             <header className="final-user-card">
-              <UserAvatarPlaceholder
-                className="final-user-card__avatar final-user-card__avatar--placeholder"
-                size={46}
+              <CristalixHead
+                className="final-user-card__avatar final-user-card__avatar--skin"
+                skinUrl={activeAccount.skinUrl}
+                size={40}
               />
               <span className="final-user-card__copy">
                 <small>MNEMOS USER</small>
