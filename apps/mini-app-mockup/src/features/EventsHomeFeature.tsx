@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { EventArt, OwnerCrown } from "../components/EventArt"
 import { EVENT_KINDS } from "../contracts"
+import { eventVisualTone } from "../eventVisualTone"
 import { feed, initialSubscriptions } from "../mockData"
 import type { Account, BetItemType, EventKind, FeedEvent, Route } from "../model"
 import { boosterLabels, eventLabels, globalEventLabels, itemTypeLabels } from "../presentation"
@@ -16,13 +17,6 @@ const icons: Record<EventKind, "item-drop" | "booster" | "global" | "raid"> = {
   BOOSTER: "booster",
   GLOBAL: "global",
   RAID: "raid",
-}
-
-const eventTone: Record<EventKind, string> = {
-  ITEM_DROP: "amber",
-  BOOSTER: "lime",
-  GLOBAL: "plum",
-  RAID: "neutral",
 }
 
 function eventTitle(event: FeedEvent) {
@@ -117,11 +111,12 @@ export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeA
       <div className="event-stream-redesign">
         {visible.map((event, index) => {
           const owned = belongsToAccount(event, activeAccount)
+          const tone = eventVisualTone(event)
 
           return (
             <motion.button
               whileTap={{ scale: 0.992 }}
-              className={`event-feed-card event-feed-card--${eventTone[event.kind]} ${index === 0 ? "is-latest" : ""}`}
+              className={`event-feed-card event-surface event-surface--${tone} ${index === 0 ? "is-latest" : ""}`}
               key={event.id}
               onClick={() => open(event)}
             >
@@ -150,6 +145,7 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
   const event = feed.find((item) => item.id === eventId) ?? feed[0]
   const ownEvent = belongsToAccount(event, activeAccount)
   const ownDrop = event.kind === "ITEM_DROP" && ownEvent
+  const tone = eventVisualTone(event)
   const [spotlight, setSpotlight] = useState<"READY" | "PENDING" | "SCHEDULED">("READY")
 
   const publish = () => {
@@ -163,7 +159,7 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
     <div className="screen event-detail-screen event-detail-redesign event-detail-polished">
       <PageHeader title={eventTitle(event)} eyebrow={eventLabels[event.kind]} back={back} />
 
-      <section className={`event-detail-hero event-detail-hero--${eventTone[event.kind]}`}>
+      <section className={`event-detail-hero event-surface event-surface--${tone}`}>
         <EventArt event={event} size={62} />
         <div>
           <span className="event-detail-hero__identity">
