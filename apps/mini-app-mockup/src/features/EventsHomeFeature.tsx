@@ -59,6 +59,30 @@ function eventMetaLabel(event: FeedEvent) {
   return event.meta
 }
 
+function eventSubject(event: FeedEvent) {
+  if (event.kind === "GLOBAL") return "Cristalix"
+  if (event.kind === "RAID") return `Локації ${event.detail}`
+  return event.detail
+}
+
+function eventFeedDescription(event: FeedEvent) {
+  if (event.kind === "ITEM_DROP") {
+    return `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}`
+  }
+
+  if (event.kind === "GLOBAL") return "Глобальна подія"
+  if (event.kind === "RAID") return `Локації ${event.detail}`
+
+  return event.detail
+}
+
+function eventDetailDescription(event: FeedEvent) {
+  if (event.kind === "GLOBAL") return "Глобальна подія"
+  if (event.kind === "RAID") return "Рейд Cristalix"
+
+  return rarityLabel(event.rarity) ?? eventMetaLabel(event) ?? eventLabels[event.kind]
+}
+
 function belongsToAccount(event: FeedEvent, account: Account) {
   return (event.kind === "ITEM_DROP" || event.kind === "BOOSTER") &&
     event.detail.toLowerCase() === account.nickname.toLowerCase()
@@ -111,7 +135,7 @@ export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeA
                   <time>{formatOccurredAt(event.occurredAt)}</time>
                 </span>
                 <strong>{eventTitle(event)}</strong>
-                <small>{event.kind === "ITEM_DROP" ? `${event.detail}${event.rarity ? ` · ${rarityLabel(event.rarity)}` : ""}` : event.detail}</small>
+                <small>{eventFeedDescription(event)}</small>
               </span>
               <span className="event-feed-card__chevron">›</span>
             </motion.button>
@@ -143,10 +167,10 @@ export function EventDetail({ eventId, activeAccount, back }: { eventId?: string
         <EventArt event={event} size={62} />
         <div>
           <span className="event-detail-hero__identity">
-            <strong>{event.detail}</strong>
+            <strong>{eventSubject(event)}</strong>
             {ownEvent ? <OwnerCrown /> : null}
           </span>
-          <small>{rarityLabel(event.rarity) ?? eventMetaLabel(event) ?? eventLabels[event.kind]}</small>
+          <small>{eventDetailDescription(event)}</small>
         </div>
         <time>{formatOccurredAt(event.occurredAt)}</time>
       </section>
