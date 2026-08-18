@@ -20,6 +20,14 @@
     0 10px 28px rgba(0, 0, 0, .15) !important;
 }
 
+/* Latest is only a data state. It must never restore the old full semantic outline. */
+.event-surface.is-latest {
+  border-color: rgba(235, 241, 213, .125) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .035),
+    0 12px 30px rgba(0, 0, 0, .16) !important;
+}
+
 .event-surface:hover {
   border-color: rgba(235, 241, 213, .155) !important;
 }
@@ -68,13 +76,13 @@
   border-color: rgba(235, 241, 213, .078) !important;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 3.5%, transparent), transparent 27%) !important;
-  box-shadow: inset 0 1px rgba(255, 255, 255, .016);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .016) !important;
 }
 
 /*
  * Event signature.
- * The old rounded icon tile is intentionally removed here. The raster artwork floats
- * directly on the card and the semantic color appears only as two small corner marks.
+ * The old rounded icon tile is removed. Raster artwork floats directly on the card;
+ * semantic color exists only as two small corner marks and a local glow.
  */
 .event-surface .event-art,
 .event-row-surface .event-art {
@@ -86,28 +94,35 @@
   box-shadow: none !important;
 }
 
+/* Reset legacy pseudo-element paint before drawing the two real corner marks. */
 .event-surface .event-art::before,
 .event-row-surface .event-art::before,
 .event-surface .event-art::after,
 .event-row-surface .event-art::after {
   content: "";
   position: absolute;
+  inset: auto !important;
   z-index: 3;
   pointer-events: none;
   box-sizing: border-box;
+  background: transparent !important;
+  opacity: 1 !important;
+  border-radius: 0;
 }
 
 /* Short quiet top-left signature. */
 .event-surface .event-art::before,
 .event-row-surface .event-art::before {
-  left: -2px;
-  top: -2px;
+  left: -2px !important;
+  top: -2px !important;
   width: 34%;
   height: 34%;
   min-width: 12px;
   min-height: 12px;
   border-left: 2px solid color-mix(in srgb, var(--event-accent) 82%, transparent);
   border-top: 2px solid color-mix(in srgb, var(--event-accent) 82%, transparent);
+  border-right: 0;
+  border-bottom: 0;
   border-radius: 6px 0 0 0;
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--event-accent) 24%, transparent));
 }
@@ -115,12 +130,14 @@
 /* Slightly stronger bottom-right signature. */
 .event-surface .event-art::after,
 .event-row-surface .event-art::after {
-  right: -2px;
-  bottom: -2px;
+  right: -2px !important;
+  bottom: -2px !important;
   width: 43%;
   height: 29%;
   min-width: 15px;
   min-height: 10px;
+  border-left: 0;
+  border-top: 0;
   border-right: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
   border-bottom: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
   border-radius: 0 0 6px 0;
@@ -137,7 +154,6 @@
   border-bottom-color: var(--event-accent);
 }
 
-/* Give the artwork itself a soft focal plate without restoring the old visible tile. */
 .event-surface .event-art__image,
 .event-row-surface .event-art__image {
   position: relative;
@@ -179,8 +195,12 @@
 }
 
 /* Bets stay dark; semantic color remains local around the artwork. */
-.bet-redesign-card.event-surface {
+.bet-redesign-card.event-surface,
+.bet-redesign-card.event-surface.is-latest {
   border-color: rgba(235, 241, 213, .095) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .028),
+    0 10px 26px rgba(0, 0, 0, .14) !important;
 }
 
 .bet-redesign-card.event-surface.is-locked {
