@@ -39,6 +39,15 @@ function rarityLabel(value?: string) {
   return value
 }
 
+function raidLocationCountLabel(event: FeedEvent) {
+  const count = event.detail.split("·").map((value) => value.trim()).filter(Boolean).length
+
+  if (count === 1) return "1 локація"
+  if (count >= 2 && count <= 4) return `${count} локації`
+
+  return `${count} локацій`
+}
+
 function eventMetaLabel(event: FeedEvent) {
   if (!event.meta) return null
 
@@ -49,6 +58,8 @@ function eventMetaLabel(event: FeedEvent) {
   if (event.kind === "BOOSTER" && event.title in boosterLabels) {
     return boosterLabels[event.title as keyof typeof boosterLabels]
   }
+
+  if (event.kind === "RAID") return raidLocationCountLabel(event)
 
   return event.meta
 }
