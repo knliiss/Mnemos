@@ -42,6 +42,7 @@ import "./ui-regression-fixes.css"
 import "./product-v4.css"
 import "./product-v5.css"
 import "./product-v5-fixes.css"
+import "./product-v5-hotfix.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
