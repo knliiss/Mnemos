@@ -42,6 +42,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [reward, setReward] = useState<DailyRewardState>(initialReward)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(initialMemberId)
+  const [rolesOpen, setRolesOpen] = useState(false)
 
   const roles = initialRoles
   const selectedMember = members.find((member) => member.id === selectedMemberId) ?? null
@@ -84,6 +85,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
 
     setMembers((current) => current.filter((item) => item.id !== member.id))
     setSelectedMemberId(null)
+    setRolesOpen(false)
   }
 
   const claimDaily = () => {
@@ -110,144 +112,163 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
     }))
   }
 
+  const openMemberProfile = (member: Member) => {
+    const accountId = member.owner ? activeAccount.id : `profile-${member.name}`
+
+    navigate({ id: "public-profile", params: { accountId } })
+  }
+
   return (
-    <div className="screen account-next-screen root-screen">
-      <section className="account-next-hero">
-        <div className="account-next-hero__glow" aria-hidden="true" />
+    <div className="screen account-dashboard-screen root-screen">
+      <section className="account-dashboard-hero">
+        <div className="account-dashboard-hero__ambient" aria-hidden="true" />
 
         <button
-          className="account-next-identity"
+          className="account-dashboard-identity"
           onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
         >
-          <span className="account-next-head-stage">
-            <CristalixHead skinUrl={activeAccount.skinUrl} size={88} />
+          <span className="account-dashboard-head">
+            <CristalixHead skinUrl={activeAccount.skinUrl} size={76} />
           </span>
 
-          <span className="account-next-identity__copy">
-            <small>Активний аккаунт</small>
-            <span className="account-next-identity__name">
+          <span className="account-dashboard-identity__copy">
+            <small>АКТИВНИЙ АККАУНТ</small>
+            <span className="account-dashboard-identity__name">
               <strong>{activeAccount.nickname}</strong>
               <Glyph name="external" size={13} />
             </span>
             <span
-              className="account-next-role-pill"
+              className="account-dashboard-role"
               style={{ "--account-role-color": activeRole.color } as CSSProperties}
             >
-              <RoleSigil color={activeRole.color} size={18} compact />
-              {activeAccount.role}
+              <RoleSigil roleId={activeRole.id} color={activeRole.color} size={24} compact />
+              <span>{activeAccount.role}</span>
             </span>
           </span>
         </button>
 
-        <button
-          className="account-next-settings-link"
-          onClick={() => navigate({ id: "account-settings" })}
-          aria-label="Налаштування аккаунта"
-        >
-          <Glyph name="settings" size={18} />
-        </button>
-
-        <div className={`account-next-daily ${reward.claimedToday ? "is-claimed" : ""} ${restoreAvailable ? "is-restore" : ""}`}>
-          <span className="account-next-daily__flame"><FlameMark /></span>
-
-          <span className="account-next-daily__streak">
-            <strong>{reward.currentStreak || reward.recoverableStreak}</strong>
-            <small>днів</small>
+        <div className="account-dashboard-hero__facts">
+          <span>
+            <small>Учасники</small>
+            <strong>{members.length}/{activeAccount.maxMembers}</strong>
           </span>
+          <span>
+            <small>Баланс</small>
+            <strong>{activeAccount.coin.toLocaleString("uk-UA")} <em>COIN</em></strong>
+          </span>
+        </div>
+      </section>
 
-          <span className="account-next-daily__reward">
-            <span><CurrencyMark currency="COIN" size={14} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
-            <span><CurrencyMark currency="PRIME" size={13} />{Math.round(reward.primeChance * 100)}%</span>
+      <section className="account-dashboard-highlights">
+        <article className={`account-dashboard-daily ${reward.claimedToday ? "is-claimed" : ""} ${restoreAvailable ? "is-restore" : ""}`}>
+          <img className="account-dashboard-daily__art" src="/ui-icons/flame.png" alt="" aria-hidden="true" />
+
+          <span className="account-dashboard-daily__copy">
+            <small>ЩОДЕННА НАГОРОДА</small>
+            <span className="account-dashboard-daily__streak">
+              <strong>{reward.currentStreak || reward.recoverableStreak}</strong>
+              <span>днів поспіль</span>
+            </span>
+            <span className="account-dashboard-daily__reward">
+              <span><CurrencyMark currency="COIN" size={14} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
+              <span><CurrencyMark currency="PRIME" size={13} />{Math.round(reward.primeChance * 100)}%</span>
+            </span>
           </span>
 
           {claimAvailable ? (
             <motion.button whileTap={{ scale: 0.97 }} onClick={claimDaily}>
-              <Glyph name="daily" size={16} />
-              <span>Забрати</span>
+              <Glyph name="daily" size={15} />
+              Забрати
             </motion.button>
           ) : restoreAvailable ? (
             <motion.button className="is-restore" whileTap={{ scale: 0.97 }} onClick={restoreDaily}>
-              <Glyph name="swap" size={15} />
-              <span>Відновити</span>
+              <Glyph name="swap" size={14} />
+              Відновити
               <small>{reward.restoresRemaining}×</small>
             </motion.button>
           ) : (
-            <span className="account-next-daily__done"><Glyph name="check" size={14} />Отримано</span>
+            <span className="account-dashboard-daily__done"><Glyph name="check" size={13} />Отримано</span>
           )}
-        </div>
+        </article>
+
+        <button className="account-dashboard-wallet" onClick={() => navigate({ id: "account-wallet" })}>
+          <span className="account-dashboard-wallet__copy">
+            <small>ГАМАНЕЦЬ АККАУНТА</small>
+            <strong>{activeAccount.coin.toLocaleString("uk-UA")}</strong>
+            <span><CurrencyMark currency="COIN" size={15} />COIN <b>·</b> історія та обмін</span>
+          </span>
+          <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
+          <Glyph name="external" size={14} />
+        </button>
       </section>
 
-      <button className="account-next-wallet" onClick={() => navigate({ id: "account-wallet" })}>
-        <span className="account-next-wallet__mark"><CurrencyMark currency="COIN" size={24} /></span>
-        <span className="account-next-wallet__copy">
-          <small>Баланс аккаунта</small>
-          <strong>{activeAccount.coin.toLocaleString("uk-UA")} <em>COIN</em></strong>
-        </span>
-        <span className="account-next-wallet__action">
-          <Glyph name="clock" size={15} />
-          <span>Історія</span>
-          <b>›</b>
-        </span>
-      </button>
+      <nav className="account-dashboard-tools" aria-label="Інструменти аккаунта">
+        <button onClick={() => navigate({ id: "roles" })}>
+          <span className="is-role"><RoleSigil roleId="role-moderator" color="#A985A8" size={29} compact /></span>
+          <strong>Ролі</strong>
+          <small>Права</small>
+        </button>
+        <button onClick={() => navigate({ id: "account-invites" })}>
+          <span className="is-amber"><Glyph name="invite" size={18} /></span>
+          <strong>Інвайти</strong>
+          <small>Запрошення</small>
+        </button>
+        <button onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}>
+          <span className="is-lime"><Glyph name="spark" size={18} /></span>
+          <strong>Вигляд</strong>
+          <small>Персоналізація</small>
+        </button>
+        <button onClick={() => navigate({ id: "account-settings" })}>
+          <span className="is-neutral"><Glyph name="settings" size={18} /></span>
+          <strong>Налаштування</strong>
+          <small>Аккаунт</small>
+        </button>
+      </nav>
 
-      <section className="account-next-panel account-next-members">
-        <header className="account-next-panel__head">
-          <span className="account-next-panel__title">
-            <span className="account-next-panel__icon"><Glyph name="members" size={18} /></span>
-            <span>
-              <strong>Учасники</strong>
-              <small>{members.length} з {activeAccount.maxMembers}</small>
-            </span>
+      <section className="account-dashboard-panel account-dashboard-members">
+        <header className="account-dashboard-panel__head">
+          <span>
+            <small>КОМАНДА АККАУНТА</small>
+            <strong>Учасники</strong>
           </span>
-
-          <div className="account-next-panel__actions">
-            <button aria-label="Ролі" onClick={() => navigate({ id: "roles" })}><Glyph name="roles" size={17} /></button>
-            <button aria-label="Інвайти" onClick={() => navigate({ id: "account-invites" })}><Glyph name="invite" size={17} /></button>
-          </div>
+          <span className="account-dashboard-panel__count">{members.length} з {activeAccount.maxMembers}</span>
         </header>
 
-        <div className="account-next-member-list">
+        <div className="account-dashboard-member-list">
           {members.map((member) => {
             const highestRole = roleFor(member.highestRoleId)
             const selected = member.id === selectedMemberId
             const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
             return (
-              <div className="account-next-member-wrap" key={member.id}>
+              <div className="account-dashboard-member-wrap" key={member.id}>
                 <motion.button
-                  className={`account-next-member ${selected ? "is-selected" : ""} ${member.owner ? "is-owner" : ""}`}
+                  className={`account-dashboard-member ${selected ? "is-selected" : ""}`}
                   layout
-                  whileTap={member.owner ? undefined : { scale: 0.992 }}
+                  whileTap={{ scale: 0.993 }}
                   onClick={() => {
-                    if (member.owner) {
-                      navigate({ id: "public-profile", params: { accountId: activeAccount.id } })
-                      return
-                    }
-
                     setSelectedMemberId(selected ? null : member.id)
+                    setRolesOpen(false)
                   }}
                 >
-                  <span className="account-next-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
+                  <span className="account-dashboard-member__avatar">{member.name.slice(0, 1).toUpperCase()}</span>
 
-                  <span className="account-next-member__copy">
-                    <span className="account-next-member__name">
+                  <span className="account-dashboard-member__copy">
+                    <span className="account-dashboard-member__name">
                       <strong>{member.name}</strong>
-                      {member.owner ? <span className="account-next-owner-mark"><Glyph name="crown" size={12} /></span> : null}
+                      {member.owner ? <span className="account-dashboard-owner"><Glyph name="crown" size={11} /></span> : null}
                     </span>
 
                     {highestRole ? (
-                      <span
-                        className="account-next-member__role"
-                        style={{ "--member-role": highestRole.color } as CSSProperties}
-                      >
-                        <RoleSigil color={highestRole.color} size={19} compact />
-                        <span>{highestRole.name}</span>
+                      <span className="account-dashboard-member__role">
+                        <RoleSigil roleId={highestRole.id} color={highestRole.color} size={22} compact />
+                        <span style={{ color: highestRole.color }}>{highestRole.name}</span>
                         {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                       </span>
-                    ) : <small className="account-next-member__no-role">Без ролі</small>}
+                    ) : <small className="account-dashboard-member__no-role">Без ролі</small>}
                   </span>
 
-                  <span className="account-next-member__meta">
+                  <span className="account-dashboard-member__meta">
                     <small>{member.joinedAt.replace(" 2026", "")}</small>
                     <b>›</b>
                   </span>
@@ -256,52 +277,62 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
                 <AnimatePresence initial={false}>
                   {selected && selectedMember ? (
                     <motion.div
-                      className="account-next-member-editor"
-                      initial={{ opacity: 0, y: -7, height: 0 }}
+                      className="account-dashboard-member-menu"
+                      initial={{ opacity: 0, y: -6, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: "auto" }}
-                      exit={{ opacity: 0, y: -5, height: 0 }}
+                      exit={{ opacity: 0, y: -4, height: 0 }}
                       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <header>
-                        <span>
-                          <small>КЕРУВАННЯ УЧАСНИКОМ</small>
-                          <strong>{selectedMember.name}</strong>
-                        </span>
-                        <em>з {selectedMember.joinedAt}</em>
-                      </header>
+                      <button onClick={() => openMemberProfile(selectedMember)}>
+                        <Glyph name="person" size={16} />
+                        <span>Профіль</span>
+                        <b>›</b>
+                      </button>
 
-                      <div className="account-next-role-grid">
-                        {roles.filter((role) => !role.locked).map((role) => {
-                          const active = selectedMember.roleIds.includes(role.id)
+                      <button onClick={() => setRolesOpen((value) => !value)}>
+                        <Glyph name="roles" size={16} />
+                        <span>Ролі</span>
+                        <b>{rolesOpen ? "⌃" : "›"}</b>
+                      </button>
 
-                          return (
-                            <button
-                              key={role.id}
-                              className={active ? "is-active" : ""}
-                              style={{ "--member-role": role.color } as CSSProperties}
-                              onClick={() => toggleMemberRole(selectedMember, role)}
-                            >
-                              <RoleSigil color={role.color} size={30} compact />
-                              <strong>{role.name}</strong>
-                              <small>{active ? "Призначена" : `${enabledPermissions(role)} дозволів`}</small>
-                            </button>
-                          )
-                        })}
-                      </div>
+                      <AnimatePresence initial={false}>
+                        {rolesOpen ? (
+                          <motion.div
+                            className="account-dashboard-member-menu__roles"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            {roles.map((role) => {
+                              const assigned = selectedMember.roleIds.includes(role.id)
+                              const lockedForMember = selectedMember.owner || role.locked
 
-                      <footer>
-                        <button
-                          className="account-next-member-editor__profile"
-                          onClick={() => navigate({ id: "public-profile", params: { accountId: `profile-${selectedMember.name}` } })}
-                        >
-                          <Glyph name="person" size={15} />
-                          Профіль
+                              return (
+                                <button
+                                  key={role.id}
+                                  className={assigned ? "is-active" : ""}
+                                  disabled={lockedForMember}
+                                  onClick={() => toggleMemberRole(selectedMember, role)}
+                                >
+                                  <RoleSigil roleId={role.id} color={role.color} size={25} compact />
+                                  <span>
+                                    <strong>{role.name}</strong>
+                                    <small>{enabledPermissions(role)} дозволів</small>
+                                  </span>
+                                  {assigned ? <Glyph name="check" size={13} /> : null}
+                                </button>
+                              )
+                            })}
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+
+                      {!selectedMember.owner ? (
+                        <button className="is-danger" onClick={() => kickMember(selectedMember)}>
+                          <Glyph name="close" size={16} />
+                          <span>Кікнути</span>
                         </button>
-                        <button className="account-next-member-editor__danger" onClick={() => kickMember(selectedMember)}>
-                          <Glyph name="close" size={15} />
-                          Кікнути
-                        </button>
-                      </footer>
+                      ) : null}
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
@@ -311,45 +342,39 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
         </div>
       </section>
 
-      <section className="account-next-panel account-next-drops">
-        <header className="account-next-panel__head">
-          <span className="account-next-panel__title">
-            <span className="account-next-panel__icon is-drop"><Glyph name="item-drop" size={18} /></span>
-            <span>
-              <strong>Останні дропи</strong>
-              <small>Для {activeAccount.nickname}</small>
-            </span>
+      <section className="account-dashboard-panel account-dashboard-drops">
+        <header className="account-dashboard-panel__head">
+          <span>
+            <small>АКТИВНІСТЬ</small>
+            <strong>Останні дропи</strong>
           </span>
+          <span className="account-dashboard-panel__count">для {activeAccount.nickname}</span>
         </header>
 
-        <div className="account-next-drop-list">
+        <div className="account-dashboard-drop-list">
           {drops.length ? drops.map((drop) => {
             const tone = eventVisualTone(drop)
 
             return (
-              <button
-                className={`event-row-surface event-surface--${tone}`}
+              <motion.button
+                className={`account-dashboard-drop event-surface--${tone}`}
                 key={drop.id}
+                whileTap={{ scale: 0.993 }}
                 onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
               >
-                <EventArt event={drop} size={38} />
-                <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
+                <EventArt event={drop} size={42} />
+                <span className="account-dashboard-drop__copy">
+                  <strong>{drop.title}</strong>
+                  <small>{localizeRarity(drop.rarity) ?? drop.meta}</small>
+                </span>
                 <time>{formatOccurredAt(drop.occurredAt)}</time>
                 <b>›</b>
-              </button>
+              </motion.button>
             )
           }) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
         </div>
       </section>
     </div>
-  )
-}
-
-function FlameMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M13.9 2.8c.5 3-1.1 4.3-2.5 5.7-1.2 1.2-2.4 2.4-2.4 4.3 0 1.5 1 2.6 2.4 2.6 1.8 0 2.8-1.5 2.5-3.4 2.2 1.2 3.6 3.2 3.6 5.4 0 3-2.4 5-5.6 5-3.8 0-6.4-2.7-6.4-6.3 0-4.6 3.2-7.1 5.5-9.3 1.3-1.2 2.2-2.3 2.9-4Z" />
-    </svg>
   )
 }
 
