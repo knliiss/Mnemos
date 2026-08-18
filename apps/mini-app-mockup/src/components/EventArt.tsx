@@ -44,16 +44,19 @@ type Variant =
   | "global-darkness"
   | "global-explosion"
 
-const dropAssets: Partial<Record<Variant, string>> = {
+const eventAssets: Partial<Record<Variant, string>> = {
   "drop-sword": "/event-icons/sword.png",
   "drop-aura": "/event-icons/aura.png",
   "drop-pet": "/event-icons/pet.png",
   "drop-book": "/event-icons/book.png",
   "drop-jewelry": "/event-icons/jewelry.png",
+  "global-moon": "/event-icons/moon.png",
+  "global-darkness": "/event-icons/dark.png",
+  "global-explosion": "/event-icons/explosion.png",
 }
 
 function ArtFrame({ variant, size }: { variant: Variant; size: number }) {
-  const asset = dropAssets[variant]
+  const asset = eventAssets[variant]
 
   return (
     <span
