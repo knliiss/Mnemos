@@ -42,3 +42,12 @@
     radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--event-art-color) 17%, transparent), transparent 52%),
     rgba(255,255,255,.028) !important;
 }
+
+.notification-real-preview::before {
+  width: 21px !important;
+  height: 21px !important;
+  background: var(--accent-strong) !important;
+  filter: none !important;
+  -webkit-mask: url("/notification-pack-mark.svg") center / contain no-repeat;
+  mask: url("/notification-pack-mark.svg") center / contain no-repeat;
+}
