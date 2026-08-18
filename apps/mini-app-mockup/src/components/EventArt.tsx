@@ -6,7 +6,11 @@ type Props = {
 }
 
 export function EventArt({ event, size = 46 }: Props) {
-  return <ArtFrame variant={getVariant(event)} size={size} />
+  const rarityClass = event.kind === "ITEM_DROP" && event.rarity
+    ? `event-art--rarity-${event.rarity.toLowerCase()}`
+    : ""
+
+  return <ArtFrame variant={getVariant(event)} size={size} extraClass={rarityClass} />
 }
 
 export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
@@ -60,12 +64,12 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "global-explosion": "/event-icons/explosion.png",
 }
 
-function ArtFrame({ variant, size }: { variant: Variant; size: number }) {
+function ArtFrame({ variant, size, extraClass = "" }: { variant: Variant; size: number; extraClass?: string }) {
   const asset = eventAssets[variant]
 
   return (
     <span
-      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : ""}`}
+      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : ""} ${extraClass}`.trim()}
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
