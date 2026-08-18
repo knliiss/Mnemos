@@ -123,7 +123,7 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
       pending: true,
     }
 
-    setReplies((current) => ({ ...current, [parentId]: [optimistic, ...(current[parentId] ?? [])] }))
+    setReplies((current) => ({ ...current, [parentId]: [...(current[parentId] ?? []), optimistic] }))
     setComments((current) => current.map((comment) => comment.id === parentId ? { ...comment, replies: comment.replies + 1 } : comment))
     setReplyDraft("")
     setReplyingTo(null)
