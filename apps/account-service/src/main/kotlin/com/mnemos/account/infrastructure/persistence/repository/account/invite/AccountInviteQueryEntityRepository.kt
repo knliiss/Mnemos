@@ -19,7 +19,7 @@ interface AccountInviteQueryEntityRepository : Repository<AccountInviteEntity, U
             invite.revoked_at AS "revokedAt"
         FROM account_invites invite
         WHERE invite.account_id = :accountId
-        ORDER BY invite.created_at DESC
+        ORDER BY invite.created_at DESC, invite.id DESC
         """,
         nativeQuery = true,
     )
