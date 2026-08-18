@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { accountTransactions, currentUser } from "../mockData"
-import type { Account } from "../model"
+import type { Account, WalletTransaction } from "../model"
 import { transactionSourceLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
@@ -27,11 +27,36 @@ type PurchaseLog = {
   createdAt: string
 }
 
+type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
+
+type HistoryEntry =
+  | {
+      kind: "PURCHASE"
+      id: string
+      amount: number
+      order: number
+      purchase: PurchaseLog
+    }
+  | {
+      kind: "TRANSACTION"
+      id: string
+      amount: number
+      order: number
+      transaction: WalletTransaction
+    }
+
 const coinPacks: CoinPack[] = [
   { id: "coin-2k", prime: 8, coin: 2_000, badge: "Старт" },
   { id: "coin-55k", prime: 20, coin: 5_500, badge: "+10%" },
   { id: "coin-12k", prime: 40, coin: 12_000, badge: "+20%" },
 ]
+
+const sortLabels: Record<HistorySort, string> = {
+  NEWEST: "Спочатку нові",
+  OLDEST: "Спочатку старі",
+  AMOUNT_DESC: "Сума ↓",
+  AMOUNT_ASC: "Сума ↑",
+}
 
 export function AccountWalletPolished({
   activeAccount,
@@ -45,6 +70,7 @@ export function AccountWalletPolished({
   const [selectedPackId, setSelectedPackId] = useState(coinPacks[1].id)
   const [purchaseLog, setPurchaseLog] = useState<PurchaseLog[]>([])
   const [purchaseState, setPurchaseState] = useState<"IDLE" | "SUCCESS">("IDLE")
+  const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
 
   const selectedPack = coinPacks.find((pack) => pack.id === selectedPackId) ?? coinPacks[0]
   const canBuy = primeBalance >= selectedPack.prime
@@ -61,6 +87,31 @@ export function AccountWalletPolished({
   const totalSpent = accountTransactions
     .filter((transaction) => transaction.type === "DEBIT")
     .reduce((sum, transaction) => sum + transaction.amount, 0)
+
+  const historyEntries = useMemo<HistoryEntry[]>(() => {
+    const purchaseEntries: HistoryEntry[] = purchaseLog.map((purchase, index) => ({
+      kind: "PURCHASE",
+      id: purchase.id,
+      amount: purchase.coin,
+      order: 10_000 + purchaseLog.length - index,
+      purchase,
+    }))
+
+    const transactionEntries: HistoryEntry[] = accountTransactions.map((transaction, index) => ({
+      kind: "TRANSACTION",
+      id: transaction.id,
+      amount: transaction.amount,
+      order: accountTransactions.length - index,
+      transaction,
+    }))
+
+    return [...purchaseEntries, ...transactionEntries].sort((left, right) => {
+      if (historySort === "OLDEST") return left.order - right.order
+      if (historySort === "AMOUNT_DESC") return right.amount - left.amount || right.order - left.order
+      if (historySort === "AMOUNT_ASC") return left.amount - right.amount || right.order - left.order
+      return right.order - left.order
+    })
+  }, [historySort, purchaseLog])
 
   const buyCoins = () => {
     if (!canBuy) return
@@ -189,33 +240,46 @@ export function AccountWalletPolished({
       </section>
 
       <section className="coin-history-panel">
-        <header>
+        <header className="wallet-history-head">
           <span>
             <small>РУХ COIN</small>
             <strong>Історія</strong>
           </span>
-          <b>{purchaseLog.length + accountTransactions.length}</b>
+
+          <label className="wallet-history-sort">
+            <Glyph name="swap" size={14} />
+            <select value={historySort} onChange={(event) => setHistorySort(event.target.value as HistorySort)}>
+              {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
+                <option key={sort} value={sort}>{sortLabels[sort]}</option>
+              ))}
+            </select>
+          </label>
         </header>
 
         <div className="coin-history-list">
-          {purchaseLog.map((purchase) => (
-            <article key={purchase.id} className="is-purchase">
-              <span className="coin-history-list__sign is-credit">+</span>
-              <span className="coin-history-list__copy">
-                <strong>Купівля за PRIME</strong>
-                <small>{purchase.createdAt} · −{purchase.prime} PRIME</small>
-              </span>
-              <span className="coin-history-list__amount is-credit">
-                +<CurrencyValue currency="COIN" value={purchase.coin} compact />
-              </span>
-            </article>
-          ))}
+          {historyEntries.map((entry) => {
+            if (entry.kind === "PURCHASE") {
+              const purchase = entry.purchase
 
-          {accountTransactions.map((transaction) => {
+              return (
+                <article key={entry.id} className="is-purchase">
+                  <span className="coin-history-list__sign is-credit">+</span>
+                  <span className="coin-history-list__copy">
+                    <strong>Купівля за PRIME</strong>
+                    <small>{purchase.createdAt} · −{purchase.prime} PRIME</small>
+                  </span>
+                  <span className="coin-history-list__amount is-credit">
+                    +<CurrencyValue currency="COIN" value={purchase.coin} compact />
+                  </span>
+                </article>
+              )
+            }
+
+            const transaction = entry.transaction
             const credit = transaction.type === "CREDIT"
 
             return (
-              <article key={transaction.id}>
+              <article key={entry.id}>
                 <span className={`coin-history-list__sign ${credit ? "is-credit" : "is-debit"}`}>
                   {credit ? "+" : "−"}
                 </span>
