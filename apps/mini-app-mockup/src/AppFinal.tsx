@@ -92,6 +92,16 @@ export default function AppFinal() {
     setAccountPickerOpen(false)
   }
 
+  const toggleUserHub = () => {
+    setUserHubOpen((value) => !value)
+    setAccountPickerOpen(false)
+  }
+
+  const closeUserHub = () => {
+    setUserHubOpen(false)
+    setAccountPickerOpen(false)
+  }
+
   const content = area === "events"
     ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
     : area === "account"
@@ -129,24 +139,18 @@ export default function AppFinal() {
             initial={false}
             animate={{ opacity: 1 }}
           >
+            {rootRoute ? <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} /> : null}
             {content}
           </motion.div>
 
           {rootRoute ? (
             <>
-              <UserHub
+              <UserHubOverlay
                 open={userHubOpen}
                 accountPickerOpen={accountPickerOpen}
                 activeAccount={activeAccount}
                 accounts={accounts}
-                onToggle={() => {
-                  setUserHubOpen((value) => !value)
-                  setAccountPickerOpen(false)
-                }}
-                onClose={() => {
-                  setUserHubOpen(false)
-                  setAccountPickerOpen(false)
-                }}
+                onClose={closeUserHub}
                 onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
                 onSelectAccount={selectAccount}
                 navigate={navigate}
@@ -173,19 +177,32 @@ function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (
   )
 }
 
-type UserHubProps = {
+function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <motion.button
+      className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
+      whileTap={{ scale: 0.95 }}
+      onClick={onToggle}
+      aria-label="Меню користувача"
+    >
+      <span>K</span>
+      <i />
+    </motion.button>
+  )
+}
+
+type UserHubOverlayProps = {
   open: boolean
   accountPickerOpen: boolean
   activeAccount: Account
   accounts: Account[]
-  onToggle: () => void
   onClose: () => void
   onToggleAccounts: () => void
   onSelectAccount: (account: Account) => void
   navigate: (route: Route) => void
 }
 
-function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, onClose, onToggleAccounts, onSelectAccount, navigate }: UserHubProps) {
+function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onClose, onToggleAccounts, onSelectAccount, navigate }: UserHubOverlayProps) {
   const creator = currentUser.systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const moderation = currentUser.systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const administration = currentUser.systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
@@ -193,124 +210,112 @@ function UserHub({ open, accountPickerOpen, activeAccount, accounts, onToggle, o
   const reviewerOnly = personalizationReviewer && !administration
 
   return (
-    <>
-      <motion.button
-        className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
-        whileTap={{ scale: 0.95 }}
-        onClick={onToggle}
-        aria-label="Меню користувача"
-      >
-        <span>K</span>
-        <i />
-      </motion.button>
+    <AnimatePresence>
+      {open ? (
+        <>
+          <motion.button
+            className="user-hub-backdrop"
+            aria-label="Закрити меню"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+          <motion.aside
+            className="user-hub user-hub--final"
+            initial={{ opacity: 0, y: -10, scale: 0.975 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -7, scale: 0.985 }}
+          >
+            <header className="final-user-card">
+              <span className="final-user-card__avatar">K</span>
+              <span className="final-user-card__copy">
+                <small>MNEMOS USER</small>
+                <strong>@{currentUser.username}</strong>
+              </span>
+              <button className="final-user-prime" onClick={() => navigate({ id: "user-wallet" })}>
+                <CurrencyMark currency="PRIME" size={16} />
+                <strong>{currentUser.prime}</strong>
+                <b>›</b>
+              </button>
+            </header>
 
-      <AnimatePresence>
-        {open ? (
-          <>
-            <motion.button
-              className="user-hub-backdrop"
-              aria-label="Закрити меню"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-            />
-            <motion.aside
-              className="user-hub user-hub--final"
-              initial={{ opacity: 0, y: -10, scale: 0.975 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -7, scale: 0.985 }}
-            >
-              <header className="final-user-card">
-                <span className="final-user-card__avatar">K</span>
-                <span className="final-user-card__copy">
-                  <small>MNEMOS USER</small>
-                  <strong>@{currentUser.username}</strong>
-                </span>
-                <button className="final-user-prime" onClick={() => navigate({ id: "user-wallet" })}>
-                  <CurrencyMark currency="PRIME" size={16} />
-                  <strong>{currentUser.prime}</strong>
+            <button className={`final-account-switch ${accountPickerOpen ? "is-open" : ""}`} onClick={onToggleAccounts}>
+              <span className="final-account-switch__mark">{activeAccount.nickname.slice(0, 1).toUpperCase()}</span>
+              <span>
+                <small>Активний аккаунт</small>
+                <strong>{activeAccount.nickname}</strong>
+              </span>
+              <span className="final-account-switch__action"><Glyph name="swap" size={16} />Змінити</span>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {accountPickerOpen ? (
+                <motion.div
+                  className="final-account-picker"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  {accounts.map((account) => (
+                    <button
+                      key={account.id}
+                      className={account.id === activeAccount.id ? "is-active" : ""}
+                      aria-disabled={account.active === false && !account.owner}
+                      onClick={() => onSelectAccount(account)}
+                    >
+                      <span>{account.nickname.slice(0, 1).toUpperCase()}</span>
+                      <strong>{account.nickname}</strong>
+                      <small>{account.active === false ? account.owner ? "активувати" : "неактивний" : account.role}</small>
+                      {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
+                    </button>
+                  ))}
+                  <footer>
+                    <button onClick={() => navigate({ id: "account-create" })}><Glyph name="plus" size={15} />Створити</button>
+                    <button onClick={() => navigate({ id: "account-join" })}><Glyph name="invite" size={15} />За кодом</button>
+                  </footer>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+
+            <div className="final-workspace-label">Робочі області</div>
+            <nav className="final-workspace-grid">
+              {creator ? (
+                <button className="is-creator" onClick={() => navigate({ id: "creator-studio" })}>
+                  <span><Glyph name="creator" size={20} /></span>
+                  <strong>Creator Studio</strong>
+                  <small>Створення персоналізацій</small>
                   <b>›</b>
                 </button>
-              </header>
-
-              <button className={`final-account-switch ${accountPickerOpen ? "is-open" : ""}`} onClick={onToggleAccounts}>
-                <span className="final-account-switch__mark">{activeAccount.nickname.slice(0, 1).toUpperCase()}</span>
-                <span>
-                  <small>Активний аккаунт</small>
-                  <strong>{activeAccount.nickname}</strong>
-                </span>
-                <span className="final-account-switch__action"><Glyph name="swap" size={16} />Змінити</span>
-              </button>
-
-              <AnimatePresence initial={false}>
-                {accountPickerOpen ? (
-                  <motion.div
-                    className="final-account-picker"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    {accounts.map((account) => (
-                      <button
-                        key={account.id}
-                        className={account.id === activeAccount.id ? "is-active" : ""}
-                        aria-disabled={account.active === false && !account.owner}
-                        onClick={() => onSelectAccount(account)}
-                      >
-                        <span>{account.nickname.slice(0, 1).toUpperCase()}</span>
-                        <strong>{account.nickname}</strong>
-                        <small>{account.active === false ? account.owner ? "активувати" : "неактивний" : account.role}</small>
-                        {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
-                      </button>
-                    ))}
-                    <footer>
-                      <button onClick={() => navigate({ id: "account-create" })}><Glyph name="plus" size={15} />Створити</button>
-                      <button onClick={() => navigate({ id: "account-join" })}><Glyph name="invite" size={15} />За кодом</button>
-                    </footer>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
-
-              <div className="final-workspace-label">Робочі області</div>
-              <nav className="final-workspace-grid">
-                {creator ? (
-                  <button className="is-creator" onClick={() => navigate({ id: "creator-studio" })}>
-                    <span><Glyph name="creator" size={20} /></span>
-                    <strong>Creator Studio</strong>
-                    <small>Створення персоналізацій</small>
-                    <b>›</b>
-                  </button>
-                ) : null}
-                {moderation ? (
-                  <button className="is-moderation" onClick={() => navigate({ id: "moderation" })}>
-                    <span><Glyph name="moderation" size={20} /></span>
-                    <strong>Модерація</strong>
-                    <small>Користувачі та санкції</small>
-                    <b>›</b>
-                  </button>
-                ) : null}
-                {reviewerOnly ? (
-                  <button className="is-creator" onClick={() => navigate({ id: "personalization-review" })}>
-                    <span><Glyph name="creator" size={20} /></span>
-                    <strong>Перевірка</strong>
-                    <small>Черга персоналізацій</small>
-                    <b>›</b>
-                  </button>
-                ) : null}
-                {administration ? (
-                  <button className="is-admin" onClick={() => navigate({ id: "administration" })}>
-                    <span><Glyph name="admin" size={20} /></span>
-                    <strong>Адміністрування</strong>
-                    <small>Системні інструменти</small>
-                    <b>›</b>
-                  </button>
-                ) : null}
-              </nav>
-            </motion.aside>
-          </>
-        ) : null}
-      </AnimatePresence>
-    </>
+              ) : null}
+              {moderation ? (
+                <button className="is-moderation" onClick={() => navigate({ id: "moderation" })}>
+                  <span><Glyph name="moderation" size={20} /></span>
+                  <strong>Модерація</strong>
+                  <small>Користувачі та санкції</small>
+                  <b>›</b>
+                </button>
+              ) : null}
+              {reviewerOnly ? (
+                <button className="is-creator" onClick={() => navigate({ id: "personalization-review" })}>
+                  <span><Glyph name="creator" size={20} /></span>
+                  <strong>Перевірка</strong>
+                  <small>Черга персоналізацій</small>
+                  <b>›</b>
+                </button>
+              ) : null}
+              {administration ? (
+                <button className="is-admin" onClick={() => navigate({ id: "administration" })}>
+                  <span><Glyph name="admin" size={20} /></span>
+                  <strong>Адміністрування</strong>
+                  <small>Системні інструменти</small>
+                  <b>›</b>
+                </button>
+              ) : null}
+            </nav>
+          </motion.aside>
+        </>
+      ) : null}
+    </AnimatePresence>
   )
 }
