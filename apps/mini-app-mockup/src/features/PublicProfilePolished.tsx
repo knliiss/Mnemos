@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { FormEvent, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
+import { eventVisualTone } from "../eventVisualTone"
 import { currentUser, feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
@@ -206,14 +207,22 @@ export function PublicProfilePolished({ activeAccount, params, navigate, back }:
 
         {drops.length ? (
           <div className="profile-polished-drop-list">
-            {drops.map((drop) => (
-              <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
-                <EventArt event={drop} size={38} />
-                <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
-                <time>{formatOccurredAt(drop.occurredAt)}</time>
-                <b>›</b>
-              </button>
-            ))}
+            {drops.map((drop) => {
+              const tone = eventVisualTone(drop)
+
+              return (
+                <button
+                  className={`event-row-surface event-surface--${tone}`}
+                  key={drop.id}
+                  onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
+                >
+                  <EventArt event={drop} size={38} />
+                  <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
+                  <time>{formatOccurredAt(drop.occurredAt)}</time>
+                  <b>›</b>
+                </button>
+              )
+            })}
           </div>
         ) : <p className="inline-hint inline-hint--left">Поки без дропів</p>}
       </section>
