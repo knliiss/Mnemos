@@ -24,14 +24,32 @@ interface WalletOperationJpaRepository : JpaRepository<WalletOperationEntity, UU
         @Param("requestId") requestId: UUID,
     ): WalletOperationEntity?
 
+    @Query(
+        """
+        SELECT operation
+        FROM WalletOperationEntity operation
+        WHERE operation.accountId = :accountId
+          AND operation.status = :status
+        ORDER BY operation.createdAt ASC, operation.id ASC
+        """,
+    )
     fun findAllByAccountIdAndStatusOrderByCreatedAtAsc(
-        accountId: UUID,
-        status: WalletOperationStatus,
+        @Param("accountId") accountId: UUID,
+        @Param("status") status: WalletOperationStatus,
     ): List<WalletOperationEntity>
 
+    @Query(
+        """
+        SELECT operation
+        FROM WalletOperationEntity operation
+        WHERE operation.status = :status
+          AND operation.kind IN :kinds
+        ORDER BY operation.createdAt ASC, operation.id ASC
+        """,
+    )
     fun findAllByStatusAndKindInOrderByCreatedAtAsc(
-        status: WalletOperationStatus,
-        kinds: Collection<WalletOperationKind>,
+        @Param("status") status: WalletOperationStatus,
+        @Param("kinds") kinds: Collection<WalletOperationKind>,
     ): List<WalletOperationEntity>
 
     fun existsByEventBetIdAndKindAndStatusIn(
