@@ -52,6 +52,13 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
   const drops = useMemo(
     () => feed
       .filter((event) => event.kind === "ITEM_DROP" && event.detail.toLowerCase() === activeAccount.nickname.toLowerCase())
+      .sort((left, right) => {
+        const timeDifference = Date.parse(right.occurredAt) - Date.parse(left.occurredAt)
+
+        if (timeDifference !== 0) return timeDifference
+
+        return right.id.localeCompare(left.id)
+      })
       .slice(0, 3),
     [activeAccount.nickname],
   )
