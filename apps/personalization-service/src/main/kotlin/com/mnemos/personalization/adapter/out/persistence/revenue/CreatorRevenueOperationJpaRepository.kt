@@ -13,6 +13,14 @@ interface CreatorRevenueOperationJpaRepository : JpaRepository<CreatorRevenueOpe
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     fun findByRequestId(requestId: UUID): CreatorRevenueOperationEntity?
 
+    @Query(
+        """
+        SELECT operation
+        FROM CreatorRevenueOperationEntity operation
+        WHERE operation.creatorUserId = :creatorUserId
+        ORDER BY operation.createdAt DESC, operation.id DESC
+        """,
+    )
     fun findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId: UUID): List<CreatorRevenueOperationEntity>
 
     fun existsByPurchaseOperationId(purchaseOperationId: UUID): Boolean
