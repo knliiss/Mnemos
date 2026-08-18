@@ -101,7 +101,13 @@ export function AccountSettingsFinal({
         </div>
       </section>
 
-      <nav className="account-settings-shortcuts">
+      <nav className="account-settings-shortcuts account-settings-shortcuts--four">
+        <button onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}>
+          <span className="is-lime"><Glyph name="spark" size={18} /></span>
+          <strong>Персоналізація</strong>
+          <small>Вигляд аккаунта</small>
+          <b>›</b>
+        </button>
         <button onClick={() => navigate({ id: "roles" })}>
           <span className="is-plum"><Glyph name="roles" size={18} /></span>
           <strong>Ролі</strong>
@@ -248,7 +254,6 @@ function RoleOption({ role, selected, onClick }: { role: AccountRole; selected: 
       <span style={{ "--role-color": role.color } as CSSProperties}><i /></span>
       <strong>{role.name}</strong>
       <small>{countEnabledPermissions(role)} дозволів</small>
-      <b>{selected ? <Glyph name="check" size={13} /> : null}</b>
     </button>
   )
 }
