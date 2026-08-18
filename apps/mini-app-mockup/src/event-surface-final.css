@@ -1,11 +1,34 @@
-/* Final event semantics: color identifies the event, but never becomes the card background. */
+/* Final event semantics: event color is unmistakable, while the card itself stays dark. */
 .event-surface--dungeon {
-  --event-accent: #8f9b7c;
+  --event-accent: #98a77c;
 }
 
 .event-surface,
 .event-row-surface {
   isolation: isolate;
+}
+
+.event-surface {
+  border-color: color-mix(in srgb, var(--event-accent) 36%, rgba(235, 241, 213, .09)) !important;
+  background:
+    radial-gradient(ellipse at 0 48%, color-mix(in srgb, var(--event-accent) 11%, transparent), transparent 42%),
+    linear-gradient(145deg, rgba(24, 25, 21, .98), rgba(9, 10, 8, .99)) !important;
+  box-shadow:
+    inset 3px 0 color-mix(in srgb, var(--event-accent) 72%, transparent),
+    inset 0 1px rgba(255, 255, 255, .03),
+    0 10px 28px rgba(0, 0, 0, .15) !important;
+}
+
+.event-surface:hover {
+  border-color: color-mix(in srgb, var(--event-accent) 46%, rgba(235, 241, 213, .09)) !important;
+}
+
+.event-surface.is-latest {
+  border-color: color-mix(in srgb, var(--event-accent) 48%, rgba(235, 241, 213, .09)) !important;
+  box-shadow:
+    inset 3px 0 color-mix(in srgb, var(--event-accent) 88%, transparent),
+    inset 0 1px rgba(255, 255, 255, .035),
+    0 12px 30px rgba(0, 0, 0, .16) !important;
 }
 
 .event-surface::after,
@@ -16,26 +39,43 @@
   pointer-events: none;
   border-radius: inherit;
   background: var(--event-accent);
-  opacity: .055;
-  filter: blur(18px);
+  opacity: .10;
+  filter: blur(15px);
 }
 
 .event-surface::after {
-  left: -8px;
-  top: 22%;
-  width: 44px;
-  height: 56%;
+  left: -7px;
+  top: 17%;
+  width: 52px;
+  height: 66%;
 }
 
 .event-row-surface::after {
   left: -6px;
-  top: 24%;
-  width: 30px;
-  height: 52%;
+  top: 20%;
+  width: 36px;
+  height: 60%;
+  opacity: .085;
 }
 
 .event-row-surface {
-  border-color: color-mix(in srgb, var(--event-accent) 14%, rgba(235, 241, 213, .075)) !important;
+  position: relative;
+  border-color: color-mix(in srgb, var(--event-accent) 25%, rgba(235, 241, 213, .075)) !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 8%, transparent), transparent 42%) !important;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent) 58%, transparent);
+}
+
+.event-surface > .event-art,
+.event-row-surface > .event-art {
+  --event-art-color: var(--event-accent);
+  border-color: color-mix(in srgb, var(--event-accent) 43%, transparent) !important;
+  background:
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--event-accent) 15%, transparent), transparent 66%),
+    rgba(255, 255, 255, .018) !important;
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--event-accent) 10%, transparent),
+    inset 0 1px rgba(255, 255, 255, .035) !important;
 }
 
 /* Raster event symbols stay crisp and visually dominant inside an otherwise quiet card. */
@@ -51,7 +91,6 @@
 
 /* Subscription rules reuse the exact same event language as the feed. */
 .subscription-rule.event-row-surface {
-  position: relative;
   overflow: hidden;
 }
 
@@ -68,59 +107,91 @@
 
 /* Explicit bet semantic classes now replace visual inference from :has(). */
 .bet-redesign-card.event-surface {
-  border-color: color-mix(in srgb, var(--event-accent) 20%, rgba(235, 241, 213, .09)) !important;
+  border-color: color-mix(in srgb, var(--event-accent) 34%, rgba(235, 241, 213, .09)) !important;
 }
 
 .bet-redesign-card.event-surface.is-locked {
-  filter: saturate(.68);
+  filter: saturate(.82) brightness(.92);
 }
 
-/* Rarity is intentionally the only color source for real drop rows. */
+/* SECRET: sampled from the user's original Cristalix reference. */
 .event-surface--drop-secret {
-  --event-accent: #79bfdc;
+  --event-accent: #4ce8e7;
 }
 
+.event-art--rarity-secret {
+  --event-art-color: #4ce8e7 !important;
+}
+
+/* MYTHICAL: strong crimson sampled from the supplied label reference. */
 .event-surface--drop-mythical {
-  --event-accent: #dc5a60;
+  --event-accent: #b7213c;
 }
 
-/* Booster colors follow the source potion artwork. */
-.event-surface--booster-luck {
-  --event-accent: #69d276;
+.event-art--rarity-mythical {
+  --event-art-color: #b7213c !important;
 }
 
-.event-surface--booster-money {
-  --event-accent: #e2b343;
+.event-surface--drop-default {
+  --event-accent: #a9a59a;
 }
 
-.event-surface--booster-damage {
-  --event-accent: #df5960;
+/* Booster colors follow the source potion artwork and stay deliberately saturated. */
+.event-surface--booster-luck,
+.event-art--booster-luck {
+  --event-accent: #45dd6b;
+  --event-art-color: #45dd6b;
 }
 
-.event-surface--booster-power {
-  --event-accent: #a36bd2;
+.event-surface--booster-money,
+.event-art--booster-money {
+  --event-accent: #ffc02f;
+  --event-art-color: #ffc02f;
+}
+
+.event-surface--booster-damage,
+.event-art--booster-damage {
+  --event-accent: #f04750;
+  --event-art-color: #f04750;
+}
+
+.event-surface--booster-power,
+.event-art--booster-power {
+  --event-accent: #ad5ce8;
+  --event-art-color: #ad5ce8;
 }
 
 /* Global events inherit the visual temperature of their icon. */
-.event-surface--global-darkness {
-  --event-accent: #747b82;
+.event-surface--global-darkness,
+.event-art--global-darkness {
+  --event-accent: #68717b;
+  --event-art-color: #68717b;
 }
 
-.event-surface--global-eclipse {
-  --event-accent: #c9cdd1;
+/* Eclipse intentionally sits near the previous cool Secret presentation. */
+.event-surface--global-eclipse,
+.event-art--global-eclipse {
+  --event-accent: #82b8cc;
+  --event-art-color: #82b8cc;
 }
 
-.event-surface--global-moon {
-  --event-accent: #d34d55;
+.event-surface--global-moon,
+.event-art--global-moon {
+  --event-accent: #d13249;
+  --event-art-color: #d13249;
 }
 
-.event-surface--global-explosion {
-  --event-accent: #eca12e;
+.event-surface--global-explosion,
+.event-art--global-explosion {
+  --event-accent: #ff9d24;
+  --event-art-color: #ff9d24;
 }
 
-/* Raid stays neutral enough to coexist with every other event. */
-.event-surface--raid {
-  --event-accent: #aa9c86;
+/* Raid stays neutral, but no longer disappears into the graphite surface. */
+.event-surface--raid,
+.event-art--raid {
+  --event-accent: #c2a77e;
+  --event-art-color: #c2a77e;
 }
 
 @media (prefers-reduced-motion: reduce) {
