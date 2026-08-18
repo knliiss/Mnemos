@@ -44,16 +44,30 @@ type Variant =
   | "global-darkness"
   | "global-explosion"
 
+const dropAssets: Partial<Record<Variant, string>> = {
+  "drop-sword": "/event-icons/sword.png",
+  "drop-aura": "/event-icons/aura.png",
+  "drop-pet": "/event-icons/pet.png",
+  "drop-book": "/event-icons/book.png",
+  "drop-jewelry": "/event-icons/jewelry.png",
+}
+
 function ArtFrame({ variant, size }: { variant: Variant; size: number }) {
+  const asset = dropAssets[variant]
+
   return (
     <span
-      className={`event-art event-art--${variant}`}
+      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : ""}`}
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      <svg viewBox="0 0 48 48" fill="none">
-        {renderVariant(variant)}
-      </svg>
+      {asset ? (
+        <img className="event-art__image" src={asset} alt="" draggable={false} />
+      ) : (
+        <svg viewBox="0 0 48 48" fill="none">
+          {renderVariant(variant)}
+        </svg>
+      )}
     </span>
   )
 }
@@ -92,43 +106,6 @@ function getVariant(event: FeedEvent): Variant {
 
 function renderVariant(variant: Variant) {
   switch (variant) {
-    case "drop-sword":
-      return (
-        <>
-          <path className="event-art__soft" d="M24 8 31 15 20 32l-5 1 1-5 17-17Z" />
-          <path className="event-art__line" d="m27.8 11.8 5.2 5.2M17 28l3 3M14 35l6-6" />
-        </>
-      )
-    case "drop-aura":
-      return (
-        <>
-          <circle className="event-art__soft" cx="24" cy="24" r="6" />
-          <path className="event-art__line" d="M13 24c2.1-6.2 5.8-9.3 11-9.3S32.9 17.8 35 24M10 24c2.8 9.3 7.5 14 14 14s11.2-4.7 14-14" />
-        </>
-      )
-    case "drop-pet":
-      return (
-        <>
-          <path className="event-art__soft" d="M17 20c0-5 3.1-8 7-8s7 3 7 8v6c0 5-3 8-7 8s-7-3-7-8v-6Z" />
-          <circle className="event-art__fill" cx="21" cy="23" r="1.4" />
-          <circle className="event-art__fill" cx="27" cy="23" r="1.4" />
-          <path className="event-art__line" d="M19 14 15 10v8M29 14l4-4v8M21 29c2 1.5 4 1.5 6 0" />
-        </>
-      )
-    case "drop-book":
-      return (
-        <>
-          <path className="event-art__soft" d="M13 12h10c3 0 5 1.3 5 4v20c0-2.2-1.7-3.2-5-3.2H13V12Z" />
-          <path className="event-art__line" d="M35 12H25c-3 0-5 1.3-5 4v20c0-2.2 1.7-3.2 5-3.2h10V12ZM24 16v17" />
-        </>
-      )
-    case "drop-jewelry":
-      return (
-        <>
-          <circle className="event-art__soft" cx="24" cy="27" r="8" />
-          <path className="event-art__line" d="m18 15 6-6 6 6-6 6-6-6ZM18 15h12" />
-        </>
-      )
     case "booster-money":
       return (
         <>
