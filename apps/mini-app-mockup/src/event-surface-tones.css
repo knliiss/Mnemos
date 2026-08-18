@@ -133,6 +133,14 @@
   --event-art-color: #c7cbd0;
 }
 
+.event-art--rarity-secret {
+  --event-art-color: #73afc7 !important;
+}
+
+.event-art--rarity-mythical {
+  --event-art-color: #c9585e !important;
+}
+
 .event-art--booster-luck .event-art__image,
 .event-art--booster-money .event-art__image,
 .event-art--booster-damage .event-art__image,
@@ -148,6 +156,57 @@
 .event-art--raid .event-art__image {
   width: 86%;
   height: 86%;
+}
+
+/* Existing compact drop rows inherit rarity without adding color-heavy card fills. */
+.account-polished-drop-list > button:has(.event-art--rarity-secret),
+.profile-polished-drop-list > button:has(.event-art--rarity-secret) {
+  --event-accent: #73afc7;
+}
+
+.account-polished-drop-list > button:has(.event-art--rarity-mythical),
+.profile-polished-drop-list > button:has(.event-art--rarity-mythical) {
+  --event-accent: #c9585e;
+}
+
+.account-polished-drop-list > button:has(.event-art--rarity-secret),
+.account-polished-drop-list > button:has(.event-art--rarity-mythical),
+.profile-polished-drop-list > button:has(.event-art--rarity-secret),
+.profile-polished-drop-list > button:has(.event-art--rarity-mythical) {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 5.5%, transparent), transparent 42%) !important;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent) 38%, transparent);
+}
+
+/* Bet rounds are event cards too: their color follows the concrete global event. */
+.bet-redesign-card:has(.event-art--global-moon) {
+  --event-accent: #c64b53;
+}
+
+.bet-redesign-card:has(.event-art--global-eclipse) {
+  --event-accent: #c7cbd0;
+}
+
+.bet-redesign-card:has(.event-art--global-darkness) {
+  --event-accent: #747b83;
+}
+
+.bet-redesign-card:has(.event-art--global-explosion) {
+  --event-accent: #e79a2d;
+}
+
+.bet-redesign-card:has(.event-art--global-moon),
+.bet-redesign-card:has(.event-art--global-eclipse),
+.bet-redesign-card:has(.event-art--global-darkness),
+.bet-redesign-card:has(.event-art--global-explosion) {
+  border-color: color-mix(in srgb, var(--event-accent) 20%, rgba(235, 241, 213, .10)) !important;
+  background:
+    radial-gradient(ellipse at 0 48%, color-mix(in srgb, var(--event-accent) 7%, transparent), transparent 40%),
+    linear-gradient(145deg, rgba(24, 25, 21, .97), rgba(10, 11, 9, .98)) !important;
+  box-shadow:
+    inset 2px 0 color-mix(in srgb, var(--event-accent) 40%, transparent),
+    inset 0 1px rgba(255, 255, 255, .022),
+    0 10px 26px rgba(0, 0, 0, .13) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
