@@ -97,8 +97,15 @@ jobs:
           capture search 390 "?screen=search"
           capture store 390 "?screen=personalization-store"
 
-          # Events and subscriptions.
-          capture event-detail 390 "?screen=event-detail&p.eventId=ev-1"
+          # Events and subscriptions. Capture multiple families so contextual art is actually reviewed.
+          capture event-detail-sword 390 "?screen=event-detail&p.eventId=ev-1"
+          capture event-detail-booster 390 "?screen=event-detail&p.eventId=ev-2"
+          capture event-detail-eclipse 390 "?screen=event-detail&p.eventId=ev-3"
+          capture event-detail-raid 390 "?screen=event-detail&p.eventId=ev-4"
+          capture event-detail-jewelry 390 "?screen=event-detail&p.eventId=ev-5"
+          capture event-detail-moon 390 "?screen=event-detail&p.eventId=ev-6"
+          capture event-detail-aura 390 "?screen=event-detail&p.eventId=ev-7"
+          capture event-detail-pet 390 "?screen=event-detail&p.eventId=ev-8"
           capture subscriptions 390 "?screen=subscriptions"
 
           # Account management.
