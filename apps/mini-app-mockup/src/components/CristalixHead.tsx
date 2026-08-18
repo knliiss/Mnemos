@@ -29,7 +29,6 @@ export function CristalixHead({
 
     const image = new Image()
     image.decoding = "async"
-    image.referrerPolicy = "no-referrer"
 
     image.onload = () => {
       const textureScale = image.naturalWidth / SKIN_REFERENCE_SIZE
@@ -135,9 +134,9 @@ function drawOverlayLayer(
   context.clearRect(0, 0, OVERLAY_CANVAS_SIZE, OVERLAY_CANVAS_SIZE)
   context.imageSmoothingEnabled = false
 
-  // The skin is intentionally loaded from Cristalix directly. Do not read pixels
-  // back from this canvas: a cross-origin texture makes the canvas tainted and
-  // getImageData/toDataURL would throw a SecurityError in browsers.
+  // The texture is intentionally loaded directly from Cristalix. A cross-origin
+  // image may be drawn to canvas, but reading the canvas back would taint it and
+  // throw a SecurityError in browsers. Keep this path draw-only.
   context.drawImage(
     image,
     40 * textureScale,
