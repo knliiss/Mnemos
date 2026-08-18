@@ -8,7 +8,7 @@ export type RolePreset = {
   sourceRoleId: string
 }
 
-const storageKey = "mnemos.mock.roles.v3"
+const storageKey = "mnemos.mock.roles.v4"
 
 export const rolePresets: RolePreset[] = [
   {
@@ -58,19 +58,13 @@ export function loadMockRoles(): AccountRole[] {
 }
 
 export function normalizeRoles(roles: AccountRole[]): AccountRole[] {
-  const locked = roles
-    .filter((role) => role.locked)
-    .sort((left, right) => right.hierarchyRank - left.hierarchyRank)
-
-  const editable = roles
-    .filter((role) => !role.locked)
-    .sort((left, right) => right.hierarchyRank - left.hierarchyRank)
-
+  const locked = roles.filter((role) => role.locked)
+  const editable = roles.filter((role) => !role.locked)
   const ordered = [...locked, ...editable]
 
   return ordered.map((role, index) => ({
     ...role,
-    hierarchyRank: (ordered.length - index) * 10,
+    hierarchyRank: (index + 1) * 10,
   }))
 }
 
