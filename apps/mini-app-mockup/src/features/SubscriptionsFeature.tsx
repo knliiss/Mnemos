@@ -171,11 +171,6 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
         </div>
       </section>
 
-      <button className="subscription-create-main" onClick={() => setCreating(true)}>
-        <Glyph name="plus" size={18} />
-        Створити правило
-      </button>
-
       <AnimatePresence>
         {creating ? (
           <BottomSheet title="Нова підписка" onClose={() => setCreating(false)}>
