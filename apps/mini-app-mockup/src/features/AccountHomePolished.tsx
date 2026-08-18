@@ -67,7 +67,7 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
 
     const highestRoleId = roles
       .filter((candidate) => roleIds.includes(candidate.id))
-      .sort((left, right) => right.hierarchyRank - left.hierarchyRank)[0]?.id ?? null
+      .sort((left, right) => left.hierarchyRank - right.hierarchyRank)[0]?.id ?? null
 
     setMembers((current) => current.map((item) => item.id === member.id ? { ...item, roleIds, highestRoleId } : item))
   }
