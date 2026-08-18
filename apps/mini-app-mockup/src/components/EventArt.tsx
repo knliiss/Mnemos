@@ -26,6 +26,10 @@ export function BoosterArt({ boosterType, size = 46 }: { boosterType: BoosterTyp
   return <ArtFrame variant={boosterVariant(boosterType)} size={size} />
 }
 
+export function DungeonArt({ size = 46 }: { size?: number }) {
+  return <ArtFrame variant="dungeon" size={size} />
+}
+
 export function RaidArt({ size = 46 }: { size?: number }) {
   return <ArtFrame variant="raid" size={size} />
 }
@@ -55,6 +59,7 @@ type Variant =
   | "booster-money"
   | "booster-damage"
   | "booster-power"
+  | "dungeon"
   | "raid"
   | "global-moon"
   | "global-eclipse"
@@ -71,8 +76,10 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-money": "/event-icons/booster-money.png",
   "booster-damage": "/event-icons/booster-damage.png",
   "booster-power": "/event-icons/booster-power.png",
+  "dungeon": "/event-icons/dungeon.svg",
   "raid": "/event-icons/raid.png",
-  "global-moon": "/event-icons/moon.png",
+  "global-moon": "/event-icons/moon-refined.svg",
+  "global-eclipse": "/event-icons/eclipse.svg",
   "global-darkness": "/event-icons/dark.png",
   "global-explosion": "/event-icons/explosion.png",
 }
@@ -165,6 +172,13 @@ function renderVariant(variant: Variant) {
         <>
           <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
           <path className="event-art__line" d="M20 7h8M20 41h8M24 19c-4-4-8 2-3.3 4.5C16 26 20 32 24 28c4 4 8-2 3.3-4.5C32 21 28 15 24 19Z" />
+        </>
+      )
+    case "dungeon":
+      return (
+        <>
+          <path className="event-art__soft" d="M11 39V19l5-8h16l5 8v20H11Z" />
+          <path className="event-art__line" d="M16 39V21l4-5h8l4 5v18M20 39V27h8v12" />
         </>
       )
     case "raid":

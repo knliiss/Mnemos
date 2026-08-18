@@ -1,16 +1,40 @@
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { EventArt, OwnerCrown } from "../components/EventArt"
-import { EVENT_KINDS } from "../contracts"
+import { BOOSTER_TYPES, EVENT_KINDS, GLOBAL_EVENT_TYPES } from "../contracts"
 import { eventVisualTone } from "../eventVisualTone"
 import { feed, initialSubscriptions } from "../mockData"
-import type { Account, BetItemType, EventKind, FeedEvent, Route } from "../model"
-import { boosterLabels, eventLabels, globalEventLabels, itemTypeLabels } from "../presentation"
+import type {
+  Account,
+  BetItemType,
+  BoosterType,
+  EventKind,
+  FeedEvent,
+  GlobalEventType,
+  Route,
+} from "../model"
+import {
+  boosterLabels,
+  eventLabels,
+  globalEventLabels,
+  itemTypeLabels,
+} from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { PageHeader } from "../shared/Primitives"
+import {
+  BottomSheet,
+  ChoiceGrid,
+  EmptyState,
+  Field,
+  PageHeader,
+} from "../shared/Primitives"
 import { formatOccurredAt } from "../timePresentation"
 
 type Nav = (route: Route) => void
+
+type EventSortOrder = "NEWEST" | "OLDEST"
+type ItemRarityFilter = "ALL" | "MYTHICAL" | "SECRET"
+type BoosterTypeFilter = "ALL" | BoosterType
+type GlobalTypeFilter = "ALL" | GlobalEventType
 
 const icons: Record<EventKind, "item-drop" | "booster" | "global" | "raid"> = {
   ITEM_DROP: "item-drop",
@@ -18,6 +42,26 @@ const icons: Record<EventKind, "item-drop" | "booster" | "global" | "raid"> = {
   GLOBAL: "global",
   RAID: "raid",
 }
+
+const rarityFilterLabels: Record<ItemRarityFilter, string> = {
+  ALL: "Усі",
+  MYTHICAL: "Міфічні",
+  SECRET: "Секретні",
+}
+
+const boosterTypeFilterLabels: Record<BoosterTypeFilter, string> = {
+  ALL: "Усі",
+  ...boosterLabels,
+}
+
+const globalTypeFilterLabels: Record<GlobalTypeFilter, string> = {
+  ALL: "Усі",
+  ...globalEventLabels,
+}
+
+const boosterTypeFilterOptions = ["ALL", ...BOOSTER_TYPES] as const satisfies readonly BoosterTypeFilter[]
+const globalTypeFilterOptions = ["ALL", ...GLOBAL_EVENT_TYPES] as const satisfies readonly GlobalTypeFilter[]
+const rarityFilterOptions = ["ALL", "MYTHICAL", "SECRET"] as const satisfies readonly ItemRarityFilter[]
 
 function eventTitle(event: FeedEvent) {
   if (event.kind === "GLOBAL" && event.title in globalEventLabels) {
@@ -39,8 +83,15 @@ function rarityLabel(value?: string) {
   return value
 }
 
+function raidLocations(event: FeedEvent) {
+  return event.detail
+    .split("·")
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isInteger(value) && value > 0)
+}
+
 function raidLocationCountLabel(event: FeedEvent) {
-  const count = event.detail.split("·").map((value) => value.trim()).filter(Boolean).length
+  const count = raidLocations(event).length
 
   if (count === 1) return "1 локація"
   if (count >= 2 && count <= 4) return `${count} локації`
@@ -89,13 +140,158 @@ function eventDetailDescription(event: FeedEvent) {
 }
 
 function belongsToAccount(event: FeedEvent, account: Account) {
-  return (event.kind === "ITEM_DROP" || event.kind === "BOOSTER") &&
-    event.detail.toLowerCase() === account.nickname.toLowerCase()
+  return (event.kind === "ITEM_DROP" || event.kind === "BOOSTER")
+    && event.detail.toLowerCase() === account.nickname.toLowerCase()
+}
+
+function eventSearchText(event: FeedEvent) {
+  return [
+    eventTitle(event),
+    event.title,
+    event.detail,
+    event.meta,
+    event.rarity,
+    eventMetaLabel(event),
+    eventFeedDescription(event),
+    eventLabels[event.kind],
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+}
+
+function searchPlaceholder(filter: "ALL" | EventKind) {
+  if (filter === "ITEM_DROP") return "Предмет або нік"
+  if (filter === "BOOSTER") return "Бустер або нік активатора"
+  if (filter === "GLOBAL") return "Назва глобальної події"
+  if (filter === "RAID") return "Номер локації"
+
+  return "Предмет, нік або подія"
 }
 
 export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeAccount: Account }) {
   const [filter, setFilter] = useState<"ALL" | EventKind>("ALL")
-  const visible = useMemo(() => filter === "ALL" ? feed : feed.filter((event) => event.kind === filter), [filter])
+  const [query, setQuery] = useState("")
+  const [sortOrder, setSortOrder] = useState<EventSortOrder>("NEWEST")
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const [dropPlayer, setDropPlayer] = useState("")
+  const [dropItem, setDropItem] = useState("")
+  const [dropRarity, setDropRarity] = useState<ItemRarityFilter>("ALL")
+
+  const [boosterType, setBoosterType] = useState<BoosterTypeFilter>("ALL")
+  const [boosterActivator, setBoosterActivator] = useState("")
+
+  const [globalType, setGlobalType] = useState<GlobalTypeFilter>("ALL")
+
+  const [raidMinLocation, setRaidMinLocation] = useState("")
+  const [raidMaxLocation, setRaidMaxLocation] = useState("")
+
+  const visible = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    const normalizedDropPlayer = dropPlayer.trim().toLowerCase()
+    const normalizedDropItem = dropItem.trim().toLowerCase()
+    const normalizedBoosterActivator = boosterActivator.trim().toLowerCase()
+    const minLocation = raidMinLocation ? Number(raidMinLocation) : null
+    const maxLocation = raidMaxLocation ? Number(raidMaxLocation) : null
+
+    return feed
+      .filter((event) => filter === "ALL" || event.kind === filter)
+      .filter((event) => !normalizedQuery || eventSearchText(event).includes(normalizedQuery))
+      .filter((event) => {
+        if (filter !== "ITEM_DROP" || event.kind !== "ITEM_DROP") return true
+
+        const playerMatches = !normalizedDropPlayer || event.detail.toLowerCase().includes(normalizedDropPlayer)
+        const itemMatches = !normalizedDropItem || event.title.toLowerCase().includes(normalizedDropItem)
+        const rarityMatches = dropRarity === "ALL" || event.rarity === dropRarity
+
+        return playerMatches && itemMatches && rarityMatches
+      })
+      .filter((event) => {
+        if (filter !== "BOOSTER" || event.kind !== "BOOSTER") return true
+
+        const typeMatches = boosterType === "ALL" || event.title === boosterType
+        const activatorMatches = !normalizedBoosterActivator
+          || event.detail.toLowerCase().includes(normalizedBoosterActivator)
+
+        return typeMatches && activatorMatches
+      })
+      .filter((event) => {
+        if (filter !== "GLOBAL" || event.kind !== "GLOBAL") return true
+
+        return globalType === "ALL" || event.title === globalType
+      })
+      .filter((event) => {
+        if (filter !== "RAID" || event.kind !== "RAID") return true
+        if (minLocation === null && maxLocation === null) return true
+
+        return raidLocations(event).some((location) => (
+          (minLocation === null || location >= minLocation)
+          && (maxLocation === null || location <= maxLocation)
+        ))
+      })
+      .sort((left, right) => {
+        const delta = new Date(left.occurredAt).getTime() - new Date(right.occurredAt).getTime()
+
+        return sortOrder === "NEWEST" ? -delta : delta
+      })
+  }, [
+    boosterActivator,
+    boosterType,
+    dropItem,
+    dropPlayer,
+    dropRarity,
+    filter,
+    globalType,
+    query,
+    raidMaxLocation,
+    raidMinLocation,
+    sortOrder,
+  ])
+
+  const activeAdvancedFilters = useMemo(() => {
+    if (filter === "ITEM_DROP") {
+      return Number(Boolean(dropPlayer.trim()))
+        + Number(Boolean(dropItem.trim()))
+        + Number(dropRarity !== "ALL")
+    }
+
+    if (filter === "BOOSTER") {
+      return Number(boosterType !== "ALL") + Number(Boolean(boosterActivator.trim()))
+    }
+
+    if (filter === "GLOBAL") {
+      return Number(globalType !== "ALL")
+    }
+
+    if (filter === "RAID") {
+      return Number(Boolean(raidMinLocation)) + Number(Boolean(raidMaxLocation))
+    }
+
+    return 0
+  }, [
+    boosterActivator,
+    boosterType,
+    dropItem,
+    dropPlayer,
+    dropRarity,
+    filter,
+    globalType,
+    raidMaxLocation,
+    raidMinLocation,
+  ])
+
+  const resetAdvancedFilters = () => {
+    setDropPlayer("")
+    setDropItem("")
+    setDropRarity("ALL")
+    setBoosterType("ALL")
+    setBoosterActivator("")
+    setGlobalType("ALL")
+    setRaidMinLocation("")
+    setRaidMaxLocation("")
+  }
+
   const open = (event: FeedEvent) => navigate({ id: "event-detail", params: { eventId: event.id } })
 
   return (
@@ -119,15 +315,59 @@ export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeA
         ))}
       </div>
 
+      <div className="event-browser-tools">
+        <label className="event-browser-search">
+          <Glyph name="search" size={17} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={searchPlaceholder(filter)}
+            aria-label="Пошук подій"
+          />
+          {query ? (
+            <button type="button" onClick={() => setQuery("")} aria-label="Очистити пошук">
+              <Glyph name="close" size={14} />
+            </button>
+          ) : null}
+        </label>
+
+        <div className="event-browser-actions">
+          <button
+            className="event-browser-action"
+            type="button"
+            onClick={() => setSortOrder((value) => value === "NEWEST" ? "OLDEST" : "NEWEST")}
+            aria-label={sortOrder === "NEWEST" ? "Спочатку новіші" : "Спочатку старіші"}
+          >
+            <Glyph name="swap" size={16} />
+            <span>{sortOrder === "NEWEST" ? "Нові" : "Старі"}</span>
+          </button>
+
+          <button
+            className={`event-browser-action event-browser-action--filters ${activeAdvancedFilters ? "is-active" : ""}`}
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            aria-label="Фільтри подій"
+          >
+            <Glyph name="settings" size={16} />
+            {activeAdvancedFilters ? <b>{activeAdvancedFilters}</b> : null}
+          </button>
+        </div>
+      </div>
+
+      <div className="event-browser-summary">
+        <span>{visible.length} {visible.length === 1 ? "подія" : "подій"}</span>
+        {query ? <small>за запитом «{query.trim()}»</small> : null}
+      </div>
+
       <div className="event-stream-redesign">
-        {visible.map((event, index) => {
+        {visible.length ? visible.map((event, index) => {
           const owned = belongsToAccount(event, activeAccount)
           const tone = eventVisualTone(event)
 
           return (
             <motion.button
               whileTap={{ scale: 0.992 }}
-              className={`event-feed-card event-surface event-surface--${tone} ${index === 0 ? "is-latest" : ""}`}
+              className={`event-feed-card event-surface event-surface--${tone} ${index === 0 && sortOrder === "NEWEST" ? "is-latest" : ""}`}
               key={event.id}
               onClick={() => open(event)}
             >
@@ -146,8 +386,122 @@ export function EventsHome({ navigate, activeAccount }: { navigate: Nav; activeA
               <span className="event-feed-card__chevron">›</span>
             </motion.button>
           )
-        })}
+        }) : (
+          <EmptyState
+            title="Подій не знайдено"
+            note="Змініть пошук або фільтри"
+          />
+        )}
       </div>
+
+      <AnimatePresence>
+        {filtersOpen ? (
+          <BottomSheet title="Фільтри подій" onClose={() => setFiltersOpen(false)}>
+            <div className="form-stack event-filter-sheet">
+              {filter === "ALL" ? (
+                <div className="event-filter-sheet__hint">
+                  <Glyph name="settings" size={18} />
+                  <span>
+                    <strong>Специфічні фільтри</strong>
+                    <small>Оберіть тип події зверху. Пошук уже працює по предметах, ніках і назвах подій.</small>
+                  </span>
+                </div>
+              ) : null}
+
+              {filter === "ITEM_DROP" ? (
+                <>
+                  <Field label="Гравець">
+                    <input
+                      value={dropPlayer}
+                      onChange={(event) => setDropPlayer(event.target.value)}
+                      placeholder="nickname"
+                    />
+                  </Field>
+                  <Field label="Предмет">
+                    <input
+                      value={dropItem}
+                      onChange={(event) => setDropItem(event.target.value)}
+                      placeholder="Eternal Blade"
+                    />
+                  </Field>
+                  <Field label="Рідкість">
+                    <ChoiceGrid
+                      value={dropRarity}
+                      options={rarityFilterOptions}
+                      onChange={setDropRarity}
+                      labels={rarityFilterLabels}
+                    />
+                  </Field>
+                </>
+              ) : null}
+
+              {filter === "BOOSTER" ? (
+                <>
+                  <Field label="Тип бустера">
+                    <ChoiceGrid
+                      value={boosterType}
+                      options={boosterTypeFilterOptions}
+                      onChange={setBoosterType}
+                      labels={boosterTypeFilterLabels}
+                    />
+                  </Field>
+                  <Field label="Активатор">
+                    <input
+                      value={boosterActivator}
+                      onChange={(event) => setBoosterActivator(event.target.value)}
+                      placeholder="nickname"
+                    />
+                  </Field>
+                </>
+              ) : null}
+
+              {filter === "GLOBAL" ? (
+                <Field label="Тип глобальної події">
+                  <ChoiceGrid
+                    value={globalType}
+                    options={globalTypeFilterOptions}
+                    onChange={setGlobalType}
+                    labels={globalTypeFilterLabels}
+                  />
+                </Field>
+              ) : null}
+
+              {filter === "RAID" ? (
+                <Field label="Діапазон локацій" hint="Так само, як minLocation / maxLocation на event-service">
+                  <div className="event-filter-sheet__range">
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={raidMinLocation}
+                      onChange={(event) => setRaidMinLocation(event.target.value)}
+                      placeholder="Від"
+                    />
+                    <span>—</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={raidMaxLocation}
+                      onChange={(event) => setRaidMaxLocation(event.target.value)}
+                      placeholder="До"
+                    />
+                  </div>
+                </Field>
+              ) : null}
+
+              <div className="event-filter-sheet__actions">
+                <button type="button" className="secondary-action" onClick={resetAdvancedFilters}>
+                  Скинути
+                </button>
+                <button type="button" className="primary-action" onClick={() => setFiltersOpen(false)}>
+                  Показати {visible.length}
+                </button>
+              </div>
+            </div>
+          </BottomSheet>
+        ) : null}
+      </AnimatePresence>
     </div>
   )
 }

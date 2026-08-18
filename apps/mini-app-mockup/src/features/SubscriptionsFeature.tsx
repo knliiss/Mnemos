@@ -1,6 +1,12 @@
 import { AnimatePresence } from "framer-motion"
 import { useMemo, useState } from "react"
-import { BoosterArt, GlobalEventArt, RaidArt } from "../components/EventArt"
+import {
+  BoosterArt,
+  DungeonArt,
+  GlobalEventArt,
+  ItemTypeArt,
+  RaidArt,
+} from "../components/EventArt"
 import {
   BOOSTER_TYPES,
   DUNGEON_TYPES,
@@ -10,13 +16,19 @@ import {
 import { subscriptionVisualTone } from "../eventVisualTone"
 import { initialSubscriptions } from "../mockData"
 import type {
+  BetItemType,
   BoosterType,
   DungeonType,
   GlobalEventType,
   Subscription,
   SubscriptionType,
 } from "../model"
-import { boosterLabels, dungeonLabels, globalEventLabels } from "../presentation"
+import {
+  boosterLabels,
+  dungeonLabels,
+  globalEventLabels,
+  itemTypeLabels,
+} from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { BottomSheet, ChoiceGrid, Field, PageHeader } from "../shared/Primitives"
 
@@ -36,13 +48,26 @@ const subscriptionIcons: Record<SubscriptionType, "item-drop" | "booster" | "dun
   GLOBAL: "global",
 }
 
-const itemCatalog = [
-  { name: "Eternal Blade", type: "Sword" },
-  { name: "Moon Necklace", type: "Jewelry" },
-  { name: "Black Flame", type: "Aura" },
-  { name: "Observer", type: "Pet" },
-  { name: "Aincrad Notes", type: "Book" },
+type ItemCatalogEntry = {
+  name: string
+  type: BetItemType
+}
+
+const itemCatalog: ItemCatalogEntry[] = [
+  { name: "Eternal Blade", type: "SWORD" },
+  { name: "Moon Necklace", type: "JEWELRY" },
+  { name: "Black Flame", type: "AURA" },
+  { name: "Observer", type: "PET" },
+  { name: "Aincrad Notes", type: "BOOK" },
 ]
+
+function findItem(itemName?: string) {
+  if (!itemName) return null
+
+  const normalized = itemName.trim().toLowerCase()
+
+  return itemCatalog.find((item) => item.name.toLowerCase() === normalized) ?? null
+}
 
 function description(subscription: Subscription) {
   if (subscription.type === "ITEM_DROP") {
@@ -59,8 +84,20 @@ function description(subscription: Subscription) {
 }
 
 function SubscriptionRuleIcon({ subscription }: { subscription: Subscription }) {
+  if (subscription.type === "ITEM_DROP") {
+    const item = findItem(subscription.itemName)
+
+    if (item) {
+      return <ItemTypeArt itemType={item.type} size={36} />
+    }
+  }
+
   if (subscription.type === "BOOSTER") {
     return <BoosterArt boosterType={subscription.boosterType} size={36} />
+  }
+
+  if (subscription.type === "DUNGEON") {
+    return <DungeonArt size={36} />
   }
 
   if (subscription.type === "GLOBAL") {
@@ -219,8 +256,11 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
                       <div className="field-suggestions">
                         {itemSuggestions.map((item) => (
                           <button key={item.name} type="button" onClick={() => setItemName(item.name)}>
-                            <strong>{item.name}</strong>
-                            <small>{item.type}</small>
+                            <ItemTypeArt itemType={item.type} size={28} />
+                            <span>
+                              <strong>{item.name}</strong>
+                              <small>{itemTypeLabels[item.type]}</small>
+                            </span>
                           </button>
                         ))}
                       </div>

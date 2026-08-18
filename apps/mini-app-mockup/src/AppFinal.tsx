@@ -1,5 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
+import { CristalixHead } from "./components/CristalixHead"
 import { accounts as initialAccounts, currentUser } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
@@ -135,11 +136,17 @@ export default function AppFinal() {
         <section className="app-shell redesign-shell final-shell">
           <motion.div
             ref={routeStageRef}
-            className={`route-stage ${rootRoute ? "has-tabbar has-user-access" : ""}`}
+            className={`route-stage ${rootRoute ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
             initial={false}
             animate={{ opacity: 1 }}
           >
-            {rootRoute ? <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} /> : null}
+            {rootRoute ? (
+              <UserHubTrigger
+                open={userHubOpen}
+                activeAccount={activeAccount}
+                onToggle={toggleUserHub}
+              />
+            ) : null}
             {content}
           </motion.div>
 
@@ -177,7 +184,15 @@ function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (
   )
 }
 
-function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+function UserHubTrigger({
+  open,
+  activeAccount,
+  onToggle,
+}: {
+  open: boolean
+  activeAccount: Account
+  onToggle: () => void
+}) {
   return (
     <motion.button
       className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
@@ -185,7 +200,11 @@ function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => voi
       onClick={onToggle}
       aria-label="Меню користувача"
     >
-      <span>K</span>
+      <CristalixHead
+        className="global-user-button__head"
+        skinUrl={activeAccount.skinUrl}
+        size={40}
+      />
       <i />
     </motion.button>
   )
@@ -228,7 +247,11 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
             <header className="final-user-card">
-              <span className="final-user-card__avatar">K</span>
+              <CristalixHead
+                className="final-user-card__avatar final-user-card__avatar--skin"
+                skinUrl={activeAccount.skinUrl}
+                size={46}
+              />
               <span className="final-user-card__copy">
                 <small>MNEMOS USER</small>
                 <strong>@{currentUser.username}</strong>
@@ -241,7 +264,11 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
             </header>
 
             <button className={`final-account-switch ${accountPickerOpen ? "is-open" : ""}`} onClick={onToggleAccounts}>
-              <span className="final-account-switch__mark">{activeAccount.nickname.slice(0, 1).toUpperCase()}</span>
+              <CristalixHead
+                className="final-account-switch__mark final-account-switch__mark--skin"
+                skinUrl={activeAccount.skinUrl}
+                size={34}
+              />
               <span>
                 <small>Активний аккаунт</small>
                 <strong>{activeAccount.nickname}</strong>
@@ -264,7 +291,11 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
                       aria-disabled={account.active === false && !account.owner}
                       onClick={() => onSelectAccount(account)}
                     >
-                      <span>{account.nickname.slice(0, 1).toUpperCase()}</span>
+                      <CristalixHead
+                        className="final-account-picker__head"
+                        skinUrl={account.skinUrl}
+                        size={30}
+                      />
                       <strong>{account.nickname}</strong>
                       <small>{account.active === false ? account.owner ? "активувати" : "неактивний" : account.role}</small>
                       {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
