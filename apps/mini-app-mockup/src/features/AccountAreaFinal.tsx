@@ -1,3 +1,4 @@
+import { currentUser } from "../mockData"
 import type { Account, Route } from "../model"
 import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomePolished } from "./AccountHomePolished"
@@ -26,6 +27,18 @@ export function AccountAreaFinal(props: Props) {
         navigate={props.navigate}
         back={props.back}
         initialMemberId={props.routeId === "member" ? props.params?.memberId ?? null : null}
+        onRewardClaimed={(coin, prime) => {
+          const updatedAccount = {
+            ...props.activeAccount,
+            coin: props.activeAccount.coin + coin,
+          }
+
+          props.setActiveAccount(updatedAccount)
+          props.setAccounts(props.accounts.map((account) => (
+            account.id === updatedAccount.id ? updatedAccount : account
+          )))
+          currentUser.prime += prime
+        }}
       />
     )
   }
