@@ -29,5 +29,12 @@
 }
 
 .account-polished-drop-list .event-art {
-  border-radius: 11px;
+  border-radius: 11px !important;
+}
+
+.event-detail-hero > .event-art {
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--event-art-color) 17%, transparent), transparent 52%),
+    rgba(255,255,255,.028) !important;
 }
