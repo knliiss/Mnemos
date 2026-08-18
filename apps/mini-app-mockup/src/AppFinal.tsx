@@ -207,7 +207,7 @@ function UserAvatarPlaceholder({ className, size }: { className?: string; size: 
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      <Glyph name="person" size={Math.round(size * 0.44)} />
+      <Glyph name="profile-mark" size={Math.round(size * 0.48)} />
     </span>
   )
 }
