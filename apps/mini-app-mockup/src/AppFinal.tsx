@@ -11,7 +11,7 @@ import { EventsArea } from "./features/EventsArea"
 import { ModerationHomePolished } from "./features/ModerationHomePolished"
 import { PeopleFeatureFinal } from "./features/PeopleFeatureFinal"
 import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFinal"
-import { StaffFeatureFinal } from "./features/StaffFeatureFinal"
+import { StaffAreaOverhaul } from "./features/StaffAreaOverhaul"
 import { CurrencyMark, Glyph } from "./shared/MnemosIcon"
 
 const rootItems: { id: RootRoute; icon: "bet" | "events" | "home" | "search" | "store"; label: string }[] = [
@@ -128,7 +128,7 @@ export default function AppFinal() {
               ? <ModerationHomePolished navigate={navigate} back={back} />
               : current.id === "administration"
                 ? <AdministrationHome navigate={navigate} back={back} />
-                : <StaffFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
+                : <StaffAreaOverhaul routeId={current.id} params={current.params} navigate={navigate} back={back} />
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>

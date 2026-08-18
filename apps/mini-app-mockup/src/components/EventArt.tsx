@@ -40,7 +40,10 @@ export function GlobalEventArt({ eventType, size = 46 }: { eventType: GlobalEven
 
 export function OwnerCrown({ compact = false }: { compact?: boolean }) {
   return (
-    <span className={`owner-event-crown ${compact ? "is-compact" : ""}`} title="Подія активного аккаунта">
+    <span
+      className={`owner-event-crown ${compact ? "is-compact" : ""}`}
+      title="Подія активного аккаунта"
+    >
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 8.5 8.7 12l3.3-6 3.3 6L19 8.5l-1.4 8H6.4L5 8.5Z" />
         <path d="M7 19h10" />
@@ -78,13 +81,21 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-power": "/event-icons/booster-power.png",
   "dungeon": "/event-icons/dungeon.svg",
   "raid": "/event-icons/raid.png",
-  "global-moon": "/event-icons/moon-refined.svg",
-  "global-eclipse": "/event-icons/eclipse.svg",
+  "global-moon": "/event-icons/moon.png",
+  "global-eclipse": "/event-icons/eclipse.png",
   "global-darkness": "/event-icons/dark.png",
   "global-explosion": "/event-icons/explosion.png",
 }
 
-function ArtFrame({ variant, size, extraClass = "" }: { variant: Variant; size: number; extraClass?: string }) {
+function ArtFrame({
+  variant,
+  size,
+  extraClass = "",
+}: {
+  variant: Variant
+  size: number
+  extraClass?: string
+}) {
   const asset = eventAssets[variant]
 
   return (
@@ -94,7 +105,12 @@ function ArtFrame({ variant, size, extraClass = "" }: { variant: Variant; size: 
       aria-hidden="true"
     >
       {asset ? (
-        <img className="event-art__image" src={asset} alt="" draggable={false} />
+        <img
+          className="event-art__image"
+          src={asset}
+          alt=""
+          draggable={false}
+        />
       ) : (
         <svg viewBox="0 0 48 48" fill="none">
           {renderVariant(variant)}

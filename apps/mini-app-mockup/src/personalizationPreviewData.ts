@@ -83,4 +83,24 @@ export const personalizationContentById: Record<string, PersonalizationContent> 
     primaryColor: "#D6FF43",
     secondaryColor: "#C88BC5",
   },
+  "review-1": {
+    kind: "NICK_STYLE",
+    colors: [
+      { color: "#DDE8F2", position: 0 },
+      { color: "#8BB4D5", position: 48 },
+      { color: "#F0F5F8", position: 100 },
+    ],
+    angleDegrees: 118,
+    glow: {
+      color: "#79A9D0",
+      strength: 18,
+    },
+  },
+  "review-2": {
+    kind: "PROFILE_EFFECT",
+    effect: "PULSE",
+    intensity: 56,
+    primaryColor: "#C27FC7",
+    secondaryColor: "#D6FF43",
+  },
 }
