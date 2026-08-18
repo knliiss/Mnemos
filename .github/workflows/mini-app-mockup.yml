@@ -117,6 +117,7 @@ jobs:
           capture account-settings 390 "?screen=account-settings"
           capture account-create 390 "?screen=account-create"
           capture account-join 390 "?screen=account-join"
+          capture account-personalization 390 "?screen=personalization-owned&p.target=ACCOUNT"
 
           # Public profile and user wallet.
           capture public-profile 390 "?screen=public-profile&p.accountId=profile-north"
