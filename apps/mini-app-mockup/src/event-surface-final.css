@@ -1,4 +1,4 @@
-/* Event semantics: dark neutral cards with a compact color signature around the artwork. */
+/* Event semantics: neutral cards, saturated identity concentrated around the event artwork. */
 .event-surface--dungeon {
   --event-accent: #98a77c;
 }
@@ -10,28 +10,27 @@
   overflow: hidden;
 }
 
-/* Cards stay neutral. Event color never outlines the full surface. */
 .event-surface {
-  border-color: rgba(235, 241, 213, .115) !important;
+  border-color: rgba(235, 241, 213, .105) !important;
   background:
-    radial-gradient(ellipse at 8% 48%, color-mix(in srgb, var(--event-accent) 7%, transparent), transparent 34%),
+    radial-gradient(ellipse at 9% 48%, color-mix(in srgb, var(--event-accent) 5.5%, transparent), transparent 31%),
     linear-gradient(145deg, rgba(24, 25, 21, .98), rgba(9, 10, 8, .99)) !important;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, .032),
+    inset 0 1px rgba(255, 255, 255, .03),
     0 10px 28px rgba(0, 0, 0, .15) !important;
 }
 
 .event-surface:hover {
-  border-color: rgba(235, 241, 213, .16) !important;
+  border-color: rgba(235, 241, 213, .155) !important;
 }
 
-/* No decorative lines on the card edge. */
+/* Never draw semantic color around the whole card. */
 .event-surface::before,
 .event-row-surface::before {
   content: none !important;
 }
 
-/* Very local atmospheric glow behind the icon area only. */
+/* Local glow only, directly behind the artwork. */
 .event-surface::after,
 .event-row-surface::after {
   content: "";
@@ -40,23 +39,23 @@
   pointer-events: none;
   border-radius: 999px;
   background: var(--event-accent);
-  filter: blur(21px);
+  filter: blur(22px);
 }
 
 .event-surface::after {
-  left: 10px;
-  top: 24%;
-  width: 76px;
-  height: 52%;
-  opacity: .075;
+  left: 23px;
+  top: 31%;
+  width: 54px;
+  height: 38%;
+  opacity: .065;
 }
 
 .event-row-surface::after {
-  left: 10px;
-  top: 24%;
-  width: 58px;
-  height: 50%;
-  opacity: .06;
+  left: 14px;
+  top: 30%;
+  width: 44px;
+  height: 40%;
+  opacity: .052;
 }
 
 .event-surface > *,
@@ -66,29 +65,25 @@
 }
 
 .event-row-surface {
-  border-color: rgba(235, 241, 213, .085) !important;
+  border-color: rgba(235, 241, 213, .078) !important;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 4%, transparent), transparent 30%) !important;
-  box-shadow: inset 0 1px rgba(255, 255, 255, .018);
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 3.5%, transparent), transparent 27%) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .016);
 }
 
 /*
  * Event signature.
- * Two asymmetric corner marks live on the icon itself, not on the card.
- * Top-left is shorter and quieter; bottom-right is slightly brighter.
+ * The old rounded icon tile is intentionally removed here. The raster artwork floats
+ * directly on the card and the semantic color appears only as two small corner marks.
  */
 .event-surface .event-art,
 .event-row-surface .event-art {
   --event-art-color: var(--event-accent);
   position: relative;
-  overflow: visible;
-  border-color: rgba(235, 241, 213, .115) !important;
-  background:
-    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--event-accent) 13%, transparent), transparent 68%),
-    rgba(255, 255, 255, .018) !important;
-  box-shadow:
-    0 0 18px color-mix(in srgb, var(--event-accent) 8%, transparent),
-    inset 0 1px rgba(255, 255, 255, .035) !important;
+  overflow: visible !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .event-surface .event-art::before,
@@ -102,33 +97,39 @@
   box-sizing: border-box;
 }
 
+/* Short quiet top-left signature. */
 .event-surface .event-art::before,
 .event-row-surface .event-art::before {
-  left: -3px;
-  top: -3px;
-  width: 15px;
-  height: 15px;
-  border-left: 2px solid color-mix(in srgb, var(--event-accent) 78%, transparent);
-  border-top: 2px solid color-mix(in srgb, var(--event-accent) 78%, transparent);
-  border-radius: 7px 0 0 0;
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--event-accent) 22%, transparent));
+  left: -2px;
+  top: -2px;
+  width: 34%;
+  height: 34%;
+  min-width: 12px;
+  min-height: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--event-accent) 82%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--event-accent) 82%, transparent);
+  border-radius: 6px 0 0 0;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--event-accent) 24%, transparent));
 }
 
+/* Slightly stronger bottom-right signature. */
 .event-surface .event-art::after,
 .event-row-surface .event-art::after {
-  right: -3px;
-  bottom: -3px;
-  width: 19px;
-  height: 13px;
+  right: -2px;
+  bottom: -2px;
+  width: 43%;
+  height: 29%;
+  min-width: 15px;
+  min-height: 10px;
   border-right: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
   border-bottom: 2px solid color-mix(in srgb, var(--event-accent) 96%, transparent);
-  border-radius: 0 0 7px 0;
+  border-radius: 0 0 6px 0;
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--event-accent) 30%, transparent));
 }
 
 .event-surface.is-latest .event-art::before {
-  border-left-color: color-mix(in srgb, var(--event-accent) 90%, transparent);
-  border-top-color: color-mix(in srgb, var(--event-accent) 90%, transparent);
+  border-left-color: color-mix(in srgb, var(--event-accent) 92%, transparent);
+  border-top-color: color-mix(in srgb, var(--event-accent) 92%, transparent);
 }
 
 .event-surface.is-latest .event-art::after {
@@ -136,18 +137,36 @@
   border-bottom-color: var(--event-accent);
 }
 
-/* Raster event symbols stay crisp and visually dominant. */
+/* Give the artwork itself a soft focal plate without restoring the old visible tile. */
+.event-surface .event-art__image,
+.event-row-surface .event-art__image {
+  position: relative;
+  z-index: 1;
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .34));
+}
+
+/* Raster event symbols stay crisp. */
 .event-art--booster-luck .event-art__image,
 .event-art--booster-money .event-art__image,
 .event-art--booster-damage .event-art__image,
 .event-art--booster-power .event-art__image,
-.event-art--raid .event-art__image {
-  object-fit: contain;
+.event-art--raid .event-art__image,
+.event-art--drop-sword .event-art__image,
+.event-art--drop-aura .event-art__image,
+.event-art--drop-pet .event-art__image,
+.event-art--drop-book .event-art__image,
+.event-art--drop-jewelry .event-art__image,
+.event-art--global-moon .event-art__image,
+.event-art--global-darkness .event-art__image,
+.event-art--global-explosion .event-art__image {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-/* Subscription rules reuse the same compact artwork signature. */
+/* Compact subscription rows use the same language at a smaller scale. */
 .subscription-rule.event-row-surface > .event-art {
   width: 36px !important;
   height: 36px !important;
@@ -155,13 +174,13 @@
 }
 
 .subscription-rule.event-row-surface > .event-art .event-art__image {
-  width: 82%;
-  height: 82%;
+  width: 84%;
+  height: 84%;
 }
 
-/* Bets stay dark as well; status dimming never changes the event palette itself. */
+/* Bets stay dark; semantic color remains local around the artwork. */
 .bet-redesign-card.event-surface {
-  border-color: rgba(235, 241, 213, .105) !important;
+  border-color: rgba(235, 241, 213, .095) !important;
 }
 
 .bet-redesign-card.event-surface.is-locked {
@@ -177,7 +196,7 @@
   --event-art-color: #4ce8e7 !important;
 }
 
-/* MYTHICAL: saturated crimson from the supplied label reference. */
+/* MYTHICAL: strong crimson sampled from the supplied reference. */
 .event-surface--drop-mythical {
   --event-accent: #b7213c;
 }
@@ -190,7 +209,6 @@
   --event-accent: #a9a59a;
 }
 
-/* Booster colors follow the source potion artwork. */
 .event-surface--booster-luck,
 .event-art--booster-luck {
   --event-accent: #45dd6b;
@@ -215,7 +233,6 @@
   --event-art-color: #ad5ce8;
 }
 
-/* Global events inherit the visual temperature of their icon. */
 .event-surface--global-darkness,
 .event-art--global-darkness {
   --event-accent: #68717b;
@@ -240,7 +257,6 @@
   --event-art-color: #ff9d24;
 }
 
-/* Raid stays neutral, but remains distinguishable from graphite. */
 .event-surface--raid,
 .event-art--raid {
   --event-accent: #c2a77e;
@@ -251,8 +267,8 @@
   .event-surface::after,
   .event-row-surface::after,
   .event-surface .event-art::before,
-  .event-surface .event-art::after,
   .event-row-surface .event-art::before,
+  .event-surface .event-art::after,
   .event-row-surface .event-art::after {
     filter: none;
   }
