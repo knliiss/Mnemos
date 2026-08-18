@@ -137,6 +137,11 @@ jobs:
           capture moderation-user 390 "?screen=moderation-user&p.userId=0198f6ce-e934-7000-8000-000000000021"
           capture personalization-review 390 "?screen=personalization-review"
           capture bet-admin 390 "?screen=bet-admin"
+          capture bet-admin-rounds 390 "?screen=bet-admin&p.section=rounds"
+          capture bet-admin-history 390 "?screen=bet-admin&p.section=history"
+          capture bet-admin-round-detail 390 "?screen=bet-admin&p.section=round&p.roundId=history-moon-1"
+          capture bet-admin-create-round 390 "?screen=bet-admin&p.section=create-round"
+          capture bet-admin-races 390 "?screen=bet-admin&p.section=races"
           capture badge-admin 390 "?screen=badge-admin"
 
       - name: Upload visual audit

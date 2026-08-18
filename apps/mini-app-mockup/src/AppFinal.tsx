@@ -320,7 +320,7 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
                   <b>›</b>
                 </button>
               ) : null}
-              {moderation ? (
+              {moderation && !administration ? (
                 <button className="is-moderation" onClick={() => navigate({ id: "moderation" })}>
                   <span><Glyph name="moderation" size={20} /></span>
                   <strong>Модерація</strong>
