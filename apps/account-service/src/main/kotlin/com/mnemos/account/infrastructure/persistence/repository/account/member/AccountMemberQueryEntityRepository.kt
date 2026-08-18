@@ -44,7 +44,8 @@ interface AccountMemberQueryEntityRepository : Repository<AccountMemberEntity, U
                 ELSE 1
             END,
             highest_role.hierarchy_rank ASC NULLS LAST,
-            user_account.username ASC
+            user_account.username ASC,
+            member.id ASC
         """,
         nativeQuery = true,
     )
