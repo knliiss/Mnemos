@@ -1,5 +1,6 @@
 import { AnimatePresence } from "framer-motion"
 import { useState } from "react"
+import { GlobalEventArt, ItemTypeArt } from "../components/EventArt"
 import { BET_SIDES } from "../contracts"
 import { betRounds, itemRaces as initialItemRaces } from "../mockData"
 import type { Account, BetRound, BetSide, ItemRace } from "../model"
@@ -245,7 +246,9 @@ export function BetsPage({ activeAccount }: { activeAccount: Account }) {
 function RoundRow({ round, onClick }: { round: BetRound; onClick: () => void }) {
   return (
     <button className={`bet-redesign-card ${round.status !== "OPEN" ? "is-locked" : ""}`} onClick={onClick}>
-      <span className="bet-redesign-card__icon"><Glyph name="global" size={20} /></span>
+      <span className="bet-redesign-card__icon bet-redesign-card__icon--art">
+        <GlobalEventArt eventType={round.eventType} size={40} />
+      </span>
       <span className="bet-redesign-card__copy">
         <small>{globalEventLabels[round.eventType]}</small>
         <strong>{betStatusLabels[round.status]}</strong>
@@ -260,7 +263,9 @@ function RoundRow({ round, onClick }: { round: BetRound; onClick: () => void }) 
 function RaceRow({ race, onClick }: { race: ItemRace; onClick: () => void }) {
   return (
     <button className="bet-redesign-card race-redesign-card" onClick={onClick}>
-      <span className="bet-redesign-card__icon bet-redesign-card__icon--amber"><Glyph name="item-drop" size={20} /></span>
+      <span className="bet-redesign-card__icon bet-redesign-card__icon--art">
+        <ItemTypeArt itemType={race.itemType} size={40} />
+      </span>
       <span className="bet-redesign-card__copy">
         <small>{itemTypeLabels[race.itemType]}</small>
         <strong>{race.itemName}</strong>
