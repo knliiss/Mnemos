@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { GlobalEventArt, ItemTypeArt } from "../components/EventArt"
 import { BET_SIDES } from "../contracts"
+import { globalEventVisualTone } from "../eventVisualTone"
 import { betRounds, itemRaces as initialItemRaces } from "../mockData"
 import type { Account, BetRound, BetSide, ItemRace } from "../model"
 import { betStatusLabels, globalEventLabels, itemTypeLabels } from "../presentation"
@@ -244,8 +245,13 @@ export function BetsPage({ activeAccount }: { activeAccount: Account }) {
 }
 
 function RoundRow({ round, onClick }: { round: BetRound; onClick: () => void }) {
+  const tone = globalEventVisualTone(round.eventType)
+
   return (
-    <button className={`bet-redesign-card ${round.status !== "OPEN" ? "is-locked" : ""}`} onClick={onClick}>
+    <button
+      className={`bet-redesign-card event-surface event-surface--${tone} ${round.status !== "OPEN" ? "is-locked" : ""}`}
+      onClick={onClick}
+    >
       <span className="bet-redesign-card__icon bet-redesign-card__icon--art">
         <GlobalEventArt eventType={round.eventType} size={40} />
       </span>
