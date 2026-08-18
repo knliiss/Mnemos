@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useMemo, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
+import { eventVisualTone } from "../eventVisualTone"
 import { feed, initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
@@ -247,14 +248,22 @@ export function AccountHomePolished({ activeAccount, navigate, initialMemberId =
         </header>
 
         <div className="account-polished-drop-list">
-          {drops.length ? drops.map((drop) => (
-            <button key={drop.id} onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}>
-              <EventArt event={drop} size={38} />
-              <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
-              <time>{formatOccurredAt(drop.occurredAt)}</time>
-              <b>›</b>
-            </button>
-          )) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
+          {drops.length ? drops.map((drop) => {
+            const tone = eventVisualTone(drop)
+
+            return (
+              <button
+                className={`event-row-surface event-surface--${tone}`}
+                key={drop.id}
+                onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
+              >
+                <EventArt event={drop} size={38} />
+                <span><strong>{drop.title}</strong><small>{localizeRarity(drop.rarity) ?? drop.meta}</small></span>
+                <time>{formatOccurredAt(drop.occurredAt)}</time>
+                <b>›</b>
+              </button>
+            )
+          }) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
         </div>
       </section>
     </div>
