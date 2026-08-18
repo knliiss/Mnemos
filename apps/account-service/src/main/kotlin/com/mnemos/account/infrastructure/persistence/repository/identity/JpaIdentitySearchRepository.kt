@@ -30,7 +30,7 @@ interface JpaIdentitySearchRepository : JpaRepository<UserEntity, UUID> {
                    OR CAST(u.telegram_id AS text) = :query
                    OR CAST(a.cristalix_uuid AS text) = lower(:query)
                 GROUP BY u.id, u.username
-                ORDER BY match_rank, lower(u.username)
+                ORDER BY match_rank, lower(u.username), u.id
                 LIMIT :limit
             )
             SELECT
@@ -45,7 +45,12 @@ interface JpaIdentitySearchRepository : JpaRepository<UserEntity, UUID> {
             JOIN users u ON u.id = matched.id
             LEFT JOIN account_members am ON am.user_id = u.id
             LEFT JOIN accounts a ON a.id = am.account_id
-            ORDER BY matched.match_rank, lower(u.username), lower(a.cristalix_nickname)
+            ORDER BY
+                matched.match_rank,
+                lower(u.username),
+                u.id,
+                lower(a.cristalix_nickname) NULLS LAST,
+                a.id NULLS LAST
         """,
         nativeQuery = true,
     )
