@@ -34,6 +34,8 @@ type RewardClaimResult = {
   prime: number
 }
 
+type RewardParticleKind = "spark" | "orb" | "shard" | "coin"
+
 const initialReward: DailyRewardState = {
   currentStreak: 18,
   claimedToday: false,
@@ -45,15 +47,25 @@ const initialReward: DailyRewardState = {
   primeChance: 0.04,
 }
 
-const rewardParticles = [
-  { x: -124, y: -42, delay: 0, duration: 2.8, tone: "lime" },
-  { x: -82, y: -72, delay: 0.24, duration: 3.2, tone: "gold" },
-  { x: -38, y: -54, delay: 0.46, duration: 2.7, tone: "plum" },
-  { x: 18, y: -78, delay: 0.12, duration: 3.35, tone: "lime" },
-  { x: 64, y: -62, delay: 0.38, duration: 2.95, tone: "gold" },
-  { x: 112, y: -44, delay: 0.62, duration: 3.15, tone: "plum" },
-  { x: -96, y: 20, delay: 0.7, duration: 3.4, tone: "gold" },
-  { x: 94, y: 18, delay: 0.84, duration: 2.75, tone: "lime" },
+const rewardParticles: {
+  x: number
+  y: number
+  delay: number
+  duration: number
+  rotate: number
+  tone: "lime" | "gold" | "plum"
+  kind: RewardParticleKind
+}[] = [
+  { x: -122, y: -52, delay: 0.02, duration: 1.78, rotate: -95, tone: "lime", kind: "spark" },
+  { x: -88, y: -82, delay: 0.08, duration: 1.96, rotate: 72, tone: "gold", kind: "coin" },
+  { x: -48, y: -64, delay: 0.16, duration: 1.68, rotate: -130, tone: "plum", kind: "shard" },
+  { x: -12, y: -94, delay: 0.04, duration: 2.08, rotate: 48, tone: "lime", kind: "orb" },
+  { x: 34, y: -88, delay: 0.12, duration: 1.88, rotate: 110, tone: "gold", kind: "spark" },
+  { x: 76, y: -68, delay: 0.2, duration: 1.72, rotate: -82, tone: "plum", kind: "shard" },
+  { x: 118, y: -46, delay: 0.06, duration: 1.92, rotate: 130, tone: "lime", kind: "orb" },
+  { x: -106, y: 8, delay: 0.18, duration: 1.82, rotate: -60, tone: "gold", kind: "spark" },
+  { x: 98, y: 12, delay: 0.22, duration: 1.74, rotate: 84, tone: "gold", kind: "coin" },
+  { x: 58, y: 28, delay: 0.28, duration: 1.62, rotate: -120, tone: "plum", kind: "spark" },
 ] as const
 
 export function AccountHomePolished({
@@ -185,10 +197,10 @@ export function AccountHomePolished({
         <motion.span
           className="account-v4-reward__flame"
           animate={{
-            y: [0, -0.6, 0],
-            scale: [1, 1.012, 1],
+            y: [0, -0.45, 0],
+            scale: [1, 1.008, 1],
           }}
-          transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
           aria-hidden="true"
         >
           <i />
@@ -228,22 +240,22 @@ export function AccountHomePolished({
             <>
               <span className="account-v5-reward-particles" aria-hidden="true">
                 {rewardParticles.map((particle, index) => (
-                  <motion.i
-                    className={`is-${particle.tone}`}
-                    key={`${particle.tone}-${index}`}
-                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.45 }}
+                  <motion.span
+                    className={`reward-particle reward-particle--${particle.kind} is-${particle.tone}`}
+                    key={`${particle.kind}-${particle.tone}-${index}`}
+                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.35, rotate: 0 }}
                     animate={{
-                      opacity: [0, 1, 0.82, 0],
-                      x: [0, particle.x * 0.35, particle.x],
-                      y: [0, particle.y * 0.38, particle.y],
-                      scale: [0.45, 1, 0.86, 0.35],
+                      opacity: [0, 0.96, 0.72, 0],
+                      x: [0, particle.x * 0.24, particle.x * 0.68, particle.x],
+                      y: [0, particle.y * 0.2, particle.y * 0.62, particle.y],
+                      scale: [0.35, 1, 0.82, 0.18],
+                      rotate: [0, particle.rotate * 0.28, particle.rotate * 0.7, particle.rotate],
                     }}
                     transition={{
                       duration: particle.duration,
                       delay: particle.delay,
-                      repeat: Infinity,
-                      repeatDelay: 0.45,
-                      ease: "easeOut",
+                      ease: [0.2, 0.72, 0.22, 1],
+                      times: [0, 0.2, 0.7, 1],
                     }}
                   />
                 ))}
@@ -251,9 +263,9 @@ export function AccountHomePolished({
 
               <motion.div
                 className="account-v4-reward-result"
-                initial={{ opacity: 0, scale: 0.88, y: 12 }}
+                initial={{ opacity: 0, scale: 0.94, y: 7 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ type: "spring", stiffness: 270, damping: 20 }}
+                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
               >
                 <span>
                   <small>ОТРИМАНО</small>
