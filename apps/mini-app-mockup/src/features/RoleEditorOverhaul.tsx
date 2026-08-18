@@ -4,6 +4,7 @@ import type { AccountRole, RolePermission, Route } from "../model"
 import { permissionLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { RoleSigil } from "../shared/RoleSigil"
 import {
   createEmptyPermissions,
   loadMockRoles,
@@ -151,7 +152,7 @@ export function RoleEditorOverhaul({ params, navigate, back }: Props) {
       />
 
       <section className="role-editor-v2-hero">
-        <span className="role-editor-v2-hero__swatch" style={{ background: color }} />
+        <RoleSigil color={color} size={48} />
         <span className="role-editor-v2-hero__copy">
           <small>{readOnly ? "СИСТЕМНА РОЛЬ" : isNew ? "НОВА РОЛЬ" : "НАЛАШТУВАННЯ РОЛІ"}</small>
           <strong style={{ color }}>{name.trim() || "Назва ролі"}</strong>
@@ -181,14 +182,18 @@ export function RoleEditorOverhaul({ params, navigate, back }: Props) {
             </span>
           </header>
           <div className="role-preset-grid">
-            {rolePresets.map((preset) => (
-              <button key={preset.id} onClick={() => applyPreset(preset)}>
-                <span><Glyph name="roles" size={17} /></span>
-                <strong>{preset.title}</strong>
-                <small>{preset.note}</small>
-                <b>›</b>
-              </button>
-            ))}
+            {rolePresets.map((preset) => {
+              const source = initialRoles.find((role) => role.id === preset.sourceRoleId)
+
+              return (
+                <button key={preset.id} onClick={() => applyPreset(preset)}>
+                  <RoleSigil color={source?.color ?? "#8A877F"} size={34} compact />
+                  <strong>{preset.title}</strong>
+                  <small>{preset.note}</small>
+                  <b>›</b>
+                </button>
+              )
+            })}
           </div>
         </section>
       ) : null}
