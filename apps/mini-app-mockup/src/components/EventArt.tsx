@@ -45,11 +45,11 @@ type Variant =
   | "global-explosion"
 
 const dropAssets: Partial<Record<Variant, string>> = {
-  "drop-sword": "/event-icons/sword.png",
-  "drop-aura": "/event-icons/aura.png",
-  "drop-pet": "/event-icons/pet.png",
-  "drop-book": "/event-icons/book.png",
-  "drop-jewelry": "/event-icons/jewelry.png",
+  "drop-sword": "/event-icons/sword.svg",
+  "drop-aura": "/event-icons/aura.svg",
+  "drop-pet": "/event-icons/pet.svg",
+  "drop-book": "/event-icons/book.svg",
+  "drop-jewelry": "/event-icons/jewelry.svg",
 }
 
 function ArtFrame({ variant, size }: { variant: Variant; size: number }) {
