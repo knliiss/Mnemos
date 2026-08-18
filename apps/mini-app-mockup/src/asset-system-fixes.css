@@ -1,0 +1,33 @@
+.account-polished-member__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.account-polished-member__name > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-owner-crown {
+  display: inline-grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,190,82,.25);
+  border-radius: 8px;
+  color: #ffc25c;
+  background: rgba(255,178,60,.07);
+}
+
+.account-polished-drop-list > button {
+  grid-template-columns: 38px minmax(0,1fr) auto auto !important;
+}
+
+.account-polished-drop-list .event-art {
+  border-radius: 11px;
+}
