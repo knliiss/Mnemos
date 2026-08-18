@@ -31,7 +31,7 @@ interface EventBetRoundJpaRepository : JpaRepository<EventBetRoundEntity, UUID> 
         "SELECT r FROM EventBetRoundEntity r " +
             "WHERE r.status <> :settledStatus " +
             "AND (r.closesAt <= :now OR r.resolvesAt <= :now) " +
-            "ORDER BY r.scheduledAt ASC",
+            "ORDER BY r.scheduledAt ASC, r.id ASC",
     )
     fun findRequiringSynchronization(
         @Param("now") now: Instant,
@@ -41,7 +41,7 @@ interface EventBetRoundJpaRepository : JpaRepository<EventBetRoundEntity, UUID> 
     @Query(
         "SELECT r FROM EventBetRoundEntity r " +
             "WHERE r.status <> :settledStatus " +
-            "ORDER BY r.scheduledAt ASC",
+            "ORDER BY r.scheduledAt ASC, r.id ASC",
     )
     fun findCurrent(
         @Param("settledStatus") settledStatus: EventBetRoundStatus,
