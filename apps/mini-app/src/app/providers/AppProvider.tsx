@@ -13,10 +13,16 @@ import {
 } from "@/shared/api/productApi"
 import type { LocalizationLanguage } from "@/product-ui/model"
 import { handleError } from "@/shared/errors/errorHandler"
+import type { Account as LegacyAccount, AvailableAccount, ThemeMode, User } from "@/shared/types/domain"
 
 type AppState = {
   context: CurrentContextResponse | null
   loading: boolean
+  user: User | null
+  account: LegacyAccount | null
+  availableAccounts: AvailableAccount[]
+  theme: ThemeMode
+  setTheme(theme: ThemeMode): void
   refresh(): Promise<CurrentContextResponse>
   selectAccount(accountId: string): Promise<void>
   registerAccount(nickname: string): Promise<void>
@@ -27,15 +33,25 @@ type AppState = {
 }
 
 const AppContext = createContext<AppState | null>(null)
+const THEME_STORAGE_KEY = "mnemos-theme"
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
   const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+    return stored === "light" || stored === "system" ? stored : "dark"
+  })
 
   useEffect(() => {
     void bootstrap().catch(handleError)
   }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   async function bootstrap() {
     setLoading(true)
@@ -94,10 +110,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refresh()
   }
 
+  const user = useMemo<User | null>(() => context?.user ?? null, [context?.user])
+
+  const availableAccounts = useMemo<AvailableAccount[]>(
+    () => context?.availableAccounts.map((account) => ({
+      id: account.id,
+      ownerUserId: account.owner ? context.user.id : "",
+      cristalixUuid: account.cristalixUuid,
+      cristalixNickname: account.cristalixNickname,
+    })) ?? [],
+    [context],
+  )
+
+  const account = useMemo<LegacyAccount | null>(() => {
+    const active = context?.activeAccount
+
+    if (!active || !context) return null
+
+    return {
+      id: active.id,
+      ownerUserId: active.owner ? context.user.id : "",
+      cristalixUuid: active.cristalixUuid,
+      cristalixNickname: active.cristalixNickname,
+      createdAt: active.createdAt,
+      updatedAt: active.updatedAt,
+      role: {
+        id: active.owner ? "owner" : "member",
+        name: active.owner ? "Власник" : "Учасник",
+        color: active.owner ? "#D9B85B" : "#8A9283",
+        permissions: context.effectivePermissions,
+      },
+      online: true,
+      streak: 0,
+      coins: 0,
+      primes: 0,
+      likes: 0,
+      comments: 0,
+      members: active.memberCount,
+      about: "",
+      personalization: {
+        prefix: "",
+        suffix: "",
+        nicknameColor: "#F0F2EB",
+        badge: "",
+      },
+    }
+  }, [context])
+
   const value = useMemo<AppState>(
     () => ({
       context,
       loading,
+      user,
+      account,
+      availableAccounts,
+      theme,
+      setTheme: setThemeState,
       refresh,
       selectAccount,
       registerAccount,
@@ -106,7 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       reactivate,
       setLanguage,
     }),
-    [context, loading],
+    [context, loading, user, account, availableAccounts, theme],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
