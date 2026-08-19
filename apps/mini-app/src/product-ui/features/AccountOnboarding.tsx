@@ -20,7 +20,9 @@ export function AccountCreate({ back }: Props) {
   const touched = nickname.length > 0
 
   const submit = async () => {
-    if (!valid || busy) return
+    if (!valid || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -119,7 +121,9 @@ export function AccountJoin({ back }: Props) {
   const touched = rawCode.length > 0
 
   const submit = async () => {
-    if (!valid || busy) return
+    if (!valid || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -136,7 +140,9 @@ export function AccountJoin({ back }: Props) {
   const paste = async () => {
     try {
       const value = await navigator.clipboard?.readText()
-      if (value) setRawCode(value)
+      if (value) {
+        setRawCode(value)
+      }
     } catch {
       // Clipboard permission is optional. Manual input remains available.
     }

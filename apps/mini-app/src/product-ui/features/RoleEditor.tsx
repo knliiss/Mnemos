@@ -74,7 +74,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
   )
 
   const togglePermission = (permission: RolePermission) => {
-    if (busy) return
+    if (busy) {
+      return
+    }
 
     setPermissions((current) => ({
       ...current,
@@ -83,7 +85,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const toggleGroup = (groupPermissions: RolePermission[]) => {
-    if (busy) return
+    if (busy) {
+      return
+    }
 
     const allEnabled = groupPermissions.every((permission) => permissions[permission])
 
@@ -99,7 +103,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const setAllPermissions = (checked: boolean) => {
-    if (busy) return
+    if (busy) {
+      return
+    }
 
     setPermissions(
       Object.fromEntries(allRolePermissions.map((permission) => [permission, checked])) as Record<
@@ -111,7 +117,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
   const save = async () => {
     const cleanName = name.trim()
-    if (!accountId || !cleanName || busy) return
+    if (!accountId || !cleanName || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -138,7 +146,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const remove = async () => {
-    if (!accountId || !existing || busy) return
+    if (!accountId || !existing || busy) {
+      return
+    }
 
     setBusy(true)
 

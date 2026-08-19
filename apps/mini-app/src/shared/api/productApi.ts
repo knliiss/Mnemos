@@ -155,11 +155,19 @@ export type EventFeedQuery = {
 export async function getEventFeed(query: EventFeedQuery = {}): Promise<EventFeedResponse> {
   const params = new URLSearchParams()
 
-  if (query.after) params.set("after", query.after)
+  if (query.after) {
+    params.set("after", query.after)
+  }
   query.types?.forEach((type) => params.append("type", type))
-  if (query.search?.trim()) params.set("search", query.search.trim())
-  if (query.droppedFor?.trim()) params.set("droppedFor", query.droppedFor.trim())
-  if (query.itemRarity) params.set("itemRarity", query.itemRarity)
+  if (query.search?.trim()) {
+    params.set("search", query.search.trim())
+  }
+  if (query.droppedFor?.trim()) {
+    params.set("droppedFor", query.droppedFor.trim())
+  }
+  if (query.itemRarity) {
+    params.set("itemRarity", query.itemRarity)
+  }
   params.set("sort", query.sort ?? "NEWEST")
   params.set("limit", String(query.limit ?? 50))
 

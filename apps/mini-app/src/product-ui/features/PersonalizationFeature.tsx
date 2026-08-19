@@ -133,7 +133,9 @@ export function PersonalizationFeature(props: Props) {
   useEffect(
     () =>
       realtimeEvents.subscribe((event) => {
-        if (event.type !== "personalization.purchase.completed") return
+        if (event.type !== "personalization.purchase.completed") {
+          return
+        }
 
         void finishPurchase(
           event.payload.personalizationId,
@@ -151,7 +153,9 @@ export function PersonalizationFeature(props: Props) {
 
         try {
           const operation = await getPurchaseOperation(operationId)
-          if (operation.status === "PENDING") continue
+          if (operation.status === "PENDING") {
+            continue
+          }
 
           await finishPurchase(personalizationId, operation.status, operation.failureReason)
           return
@@ -165,7 +169,9 @@ export function PersonalizationFeature(props: Props) {
 
   const purchase = useCallback(
     async (item: Personalization) => {
-      if (item.owned || pendingPurchases[item.id] || busyId) return
+      if (item.owned || pendingPurchases[item.id] || busyId) {
+        return
+      }
 
       setBusyId(item.id)
 
@@ -187,7 +193,9 @@ export function PersonalizationFeature(props: Props) {
 
   const toggleActive = useCallback(
     async (item: Personalization) => {
-      if (!item.owned || busyId) return
+      if (!item.owned || busyId) {
+        return
+      }
 
       setBusyId(item.id)
 
@@ -771,8 +779,12 @@ function typeImpact(t: (key: string) => string, type: PersonalizationType) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }
 

@@ -83,7 +83,9 @@ export function Bets({ activeAccount, navigate }: Props) {
   useEffect(
     () =>
       realtimeEvents.subscribe((event) => {
-        if (event.type !== "bet.operation.completed") return
+        if (event.type !== "bet.operation.completed") {
+          return
+        }
 
         void refresh()
         void refreshAccount()
@@ -119,7 +121,9 @@ export function Bets({ activeAccount, navigate }: Props) {
   }
 
   const submitRound = async () => {
-    if (!selectedRound || !amountValid || selectedRound.status !== "OPEN" || busy) return
+    if (!selectedRound || !amountValid || selectedRound.status !== "OPEN" || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -140,13 +144,19 @@ export function Bets({ activeAccount, navigate }: Props) {
   }
 
   const submitRace = async () => {
-    if (!selectedRace || busy) return
+    if (!selectedRace || busy) {
+      return
+    }
 
     const { race, position } = selectedRace
     const canWrite = race.status === "REGISTRATION"
-    if (!canWrite) return
+    if (!canWrite) {
+      return
+    }
 
-    if (position && (!Number.isInteger(numericAmount) || numericAmount <= 0)) return
+    if (position && (!Number.isInteger(numericAmount) || numericAmount <= 0)) {
+      return
+    }
 
     setBusy(true)
 
@@ -605,7 +615,9 @@ function formatOdds(value: number, locale: string) {
 
 function formatMoment(value: string, locale: string) {
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
 
   return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
@@ -624,7 +636,11 @@ function raceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

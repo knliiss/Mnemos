@@ -205,7 +205,9 @@ function RoundList({
   const [query, setQuery] = useState("")
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
-    if (!normalized) return rounds
+    if (!normalized) {
+      return rounds
+    }
 
     return rounds.filter(
       (round) =>
@@ -286,7 +288,9 @@ function RoundDetail({
     round.status === "AWAITING_RESULT" || round.status === "AWAITING_ADMIN_CONFIRMATION"
 
   const resolve = async () => {
-    if (!canResolve || !reason.trim() || busy) return
+    if (!canResolve || !reason.trim() || busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -398,7 +402,9 @@ function RaceManagement({
     entry <= 5000
 
   const create = async () => {
-    if (!valid || busy) return
+    if (!valid || busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -421,7 +427,9 @@ function RaceManagement({
   }
 
   const cancel = async (raceId: string) => {
-    if (busy) return
+    if (busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -628,7 +636,8 @@ function formatDate(value: string, language: string) {
 }
 
 function normalizeSection(value?: string): Section {
-  if (value === "rounds" || value === "history" || value === "round" || value === "races")
+  if (value === "rounds" || value === "history" || value === "round" || value === "races") {
     return value
+  }
   return "home"
 }

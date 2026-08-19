@@ -49,7 +49,9 @@ export function BadgeAdmin({ back }: { back: () => void }) {
   }, [refreshBadges])
 
   useEffect(() => {
-    if (normalized.length < 2) return
+    if (normalized.length < 2) {
+      return
+    }
 
     const timer = window.setTimeout(() => {
       void searchIdentities(normalized).then(setSearchResults).catch(handleError)
@@ -63,7 +65,9 @@ export function BadgeAdmin({ back }: { back: () => void }) {
   }, [])
 
   useEffect(() => {
-    if (!selectedUser) return
+    if (!selectedUser) {
+      return
+    }
 
     const frame = window.requestAnimationFrame(() => {
       void refreshUserBadges(selectedUser.userId).catch(handleError)
@@ -82,7 +86,9 @@ export function BadgeAdmin({ back }: { back: () => void }) {
     icon.trim().length <= 64
 
   const create = async () => {
-    if (!createValid || busy) return
+    if (!createValid || busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -106,7 +112,9 @@ export function BadgeAdmin({ back }: { back: () => void }) {
   }
 
   const toggleAssignment = async (badge: BadgeResponse) => {
-    if (!selectedUser || busy) return
+    if (!selectedUser || busy) {
+      return
+    }
     setBusy(true)
 
     try {

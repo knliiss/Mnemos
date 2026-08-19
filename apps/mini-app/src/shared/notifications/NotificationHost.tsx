@@ -17,15 +17,21 @@ export function NotificationHost() {
   )
 
   useEffect(() => {
-    if (!notification || notification.persistent) return
+    if (!notification || notification.persistent) {
+      return
+    }
     const timeout = window.setTimeout(() => notifications.clear(), 3500)
     return () => window.clearTimeout(timeout)
   }, [notification])
 
-  if (!notification) return null
+  if (!notification) {
+    return null
+  }
 
   async function copy() {
-    if (!notification) return
+    if (!notification) {
+      return
+    }
     await navigator.clipboard.writeText(notification.message)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1500)

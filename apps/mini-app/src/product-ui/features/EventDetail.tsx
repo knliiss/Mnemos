@@ -50,7 +50,9 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
-    if (!eventId || cachedEvent) return
+    if (!eventId || cachedEvent) {
+      return
+    }
 
     let cancelled = false
 
@@ -64,7 +66,9 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         }
       })
       .catch((error) => {
-        if (cancelled) return
+        if (cancelled) {
+          return
+        }
 
         if (!(error instanceof ApiError && error.status === 404)) {
           handleError(error)
@@ -109,7 +113,9 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const ownEvent = belongsToAccount(event, activeAccount)
 
   const toggleFollow = async () => {
-    if (followBusy) return
+    if (followBusy) {
+      return
+    }
 
     setFollowBusy(true)
 
@@ -268,7 +274,9 @@ function matchesEvent(subscription: Subscription, event: FeedEvent) {
   }
 
   if (event.kind === "RAID" && subscription.type === "RAID") {
-    if (!subscription.locations.length) return true
+    if (!subscription.locations.length) {
+      return true
+    }
 
     const locations = parseLocations(event.detail)
     return subscription.locations.some((location) => locations.includes(location))
@@ -286,7 +294,9 @@ function eventTitle(t: TFunction, event: FeedEvent) {
     return t(`events.boosters.${event.title}`, { defaultValue: event.title })
   }
 
-  if (event.kind === "RAID") return t("events.kinds.RAID")
+  if (event.kind === "RAID") {
+    return t("events.kinds.RAID")
+  }
   return event.title
 }
 
@@ -299,8 +309,12 @@ function eventKindCaption(t: TFunction, event: FeedEvent) {
 }
 
 function eventSubject(t: TFunction, event: FeedEvent) {
-  if (event.kind === "GLOBAL") return "Cristalix"
-  if (event.kind === "RAID") return t("events.feed.locations", { locations: event.detail })
+  if (event.kind === "GLOBAL") {
+    return "Cristalix"
+  }
+  if (event.kind === "RAID") {
+    return t("events.feed.locations", { locations: event.detail })
+  }
   return event.detail
 }
 
@@ -309,8 +323,12 @@ function eventDescription(t: TFunction, event: FeedEvent) {
     return `${eventTitle(t, event)} · ${rarityLabel(t, event.rarity) ?? eventTypeLabel(t, event)}`
   }
 
-  if (event.kind === "BOOSTER") return eventTitle(t, event)
-  if (event.kind === "GLOBAL") return eventTitle(t, event)
+  if (event.kind === "BOOSTER") {
+    return eventTitle(t, event)
+  }
+  if (event.kind === "GLOBAL") {
+    return eventTitle(t, event)
+  }
   return t("events.detail.raidActivity")
 }
 
@@ -319,14 +337,22 @@ function eventTypeLabel(t: TFunction, event: FeedEvent) {
     return t(`events.itemTypes.${event.meta}`, { defaultValue: event.meta })
   }
 
-  if (event.kind === "BOOSTER") return eventTitle(t, event)
-  if (event.kind === "GLOBAL") return t("events.kinds.GLOBAL")
-  if (event.kind === "RAID") return t("events.kinds.RAID")
+  if (event.kind === "BOOSTER") {
+    return eventTitle(t, event)
+  }
+  if (event.kind === "GLOBAL") {
+    return t("events.kinds.GLOBAL")
+  }
+  if (event.kind === "RAID") {
+    return t("events.kinds.RAID")
+  }
   return eventKindLabel(t, event)
 }
 
 function rarityLabel(t: TFunction, value?: string) {
-  if (!value) return undefined
+  if (!value) {
+    return undefined
+  }
   return t(`events.rarities.${value}`, { defaultValue: value })
 }
 
@@ -338,10 +364,15 @@ function belongsToAccount(event: FeedEvent, account: Account) {
 }
 
 function notificationRuleDescription(t: TFunction, event: FeedEvent) {
-  if (event.kind === "ITEM_DROP") return t("events.detail.itemRule", { item: event.title })
-  if (event.kind === "BOOSTER")
+  if (event.kind === "ITEM_DROP") {
+    return t("events.detail.itemRule", { item: event.title })
+  }
+  if (event.kind === "BOOSTER") {
     return t("events.detail.boosterRule", { booster: eventTitle(t, event) })
-  if (event.kind === "GLOBAL") return t("events.detail.globalRule", { event: eventTitle(t, event) })
+  }
+  if (event.kind === "GLOBAL") {
+    return t("events.detail.globalRule", { event: eventTitle(t, event) })
+  }
   return t("events.detail.raidRule", { locations: event.detail })
 }
 
@@ -353,7 +384,11 @@ function parseLocations(value: string) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

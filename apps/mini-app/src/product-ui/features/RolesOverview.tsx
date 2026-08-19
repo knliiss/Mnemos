@@ -129,7 +129,9 @@ function RoleReorderList({
   const [savingOrder, setSavingOrder] = useState(false)
 
   const persist = async () => {
-    if (savingOrder) return
+    if (savingOrder) {
+      return
+    }
 
     setSavingOrder(true)
 
@@ -217,7 +219,9 @@ function SortableRoleRow({
         aria-label={t("rolesOverview.dragAria", { name: role.name })}
         title={t("rolesOverview.dragAction")}
         onPointerDown={(event) => {
-          if (!disabled) dragControls.start(event)
+          if (!disabled) {
+            dragControls.start(event)
+          }
         }}
       >
         ⠿

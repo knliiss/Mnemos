@@ -175,7 +175,9 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
 
   const loadMoreEvents = useCallback(
     async (query: EventFeedQuery = {}) => {
-      if (loadingEvents || !eventsHasMore || !eventCursor) return
+      if (loadingEvents || !eventsHasMore || !eventCursor) {
+        return
+      }
 
       setLoadingEvents(true)
 

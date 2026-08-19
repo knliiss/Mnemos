@@ -84,7 +84,9 @@ export function Subscriptions({ back }: { back: () => void }) {
 
   const itemSuggestions = useMemo(() => {
     const query = cleanItemName.toLowerCase()
-    if (query.length < 2) return []
+    if (query.length < 2) {
+      return []
+    }
 
     return itemCatalog.filter((item) => item.name.toLowerCase().includes(query)).slice(0, 4)
   }, [cleanItemName])
@@ -133,7 +135,9 @@ export function Subscriptions({ back }: { back: () => void }) {
   }
 
   const create = async () => {
-    if (busy || (type === "ITEM_DROP" && !itemDropValid)) return
+    if (busy || (type === "ITEM_DROP" && !itemDropValid)) {
+      return
+    }
 
     setBusy(true)
 
@@ -161,7 +165,9 @@ export function Subscriptions({ back }: { back: () => void }) {
   }
 
   const remove = async (subscriptionId: string) => {
-    if (deletingId) return
+    if (deletingId) {
+      return
+    }
 
     setDeletingId(subscriptionId)
 
@@ -393,7 +399,9 @@ export function Subscriptions({ back }: { back: () => void }) {
 }
 
 function findItem(itemName?: string) {
-  if (!itemName) return null
+  if (!itemName) {
+    return null
+  }
 
   const normalized = itemName.trim().toLowerCase()
   return itemCatalog.find((item) => item.name.toLowerCase() === normalized) ?? null
@@ -401,16 +409,24 @@ function findItem(itemName?: string) {
 
 function description(t: TFunction, subscription: Subscription) {
   if (subscription.type === "ITEM_DROP") {
-    if (subscription.droppedFor && subscription.itemName)
+    if (subscription.droppedFor && subscription.itemName) {
       return `${subscription.droppedFor} · ${subscription.itemName}`
-    if (subscription.droppedFor)
+    }
+    if (subscription.droppedFor) {
       return t("events.subscriptions.playerRule", { player: subscription.droppedFor })
+    }
     return t("events.subscriptions.itemRule", { item: subscription.itemName })
   }
 
-  if (subscription.type === "BOOSTER") return t(`events.boosters.${subscription.boosterType}`)
-  if (subscription.type === "DUNGEON") return t(`events.dungeons.${subscription.dungeonType}`)
-  if (subscription.type === "GLOBAL") return t(`events.globals.${subscription.eventType}`)
+  if (subscription.type === "BOOSTER") {
+    return t(`events.boosters.${subscription.boosterType}`)
+  }
+  if (subscription.type === "DUNGEON") {
+    return t(`events.dungeons.${subscription.dungeonType}`)
+  }
+  if (subscription.type === "GLOBAL") {
+    return t(`events.globals.${subscription.eventType}`)
+  }
 
   return subscription.locations.length
     ? t("events.subscriptions.locationRule", { locations: subscription.locations.join(", ") })
@@ -421,15 +437,23 @@ function SubscriptionRuleIcon({ subscription }: { subscription: Subscription }) 
   if (subscription.type === "ITEM_DROP") {
     const item = findItem(subscription.itemName)
 
-    if (item) return <ItemTypeArt itemType={item.type} size={36} />
+    if (item) {
+      return <ItemTypeArt itemType={item.type} size={36} />
+    }
   }
 
-  if (subscription.type === "BOOSTER")
+  if (subscription.type === "BOOSTER") {
     return <BoosterArt boosterType={subscription.boosterType} size={36} />
-  if (subscription.type === "DUNGEON") return <DungeonArt size={36} />
-  if (subscription.type === "GLOBAL")
+  }
+  if (subscription.type === "DUNGEON") {
+    return <DungeonArt size={36} />
+  }
+  if (subscription.type === "GLOBAL") {
     return <GlobalEventArt eventType={subscription.eventType} size={36} />
-  if (subscription.type === "RAID") return <RaidArt size={36} />
+  }
+  if (subscription.type === "RAID") {
+    return <RaidArt size={36} />
+  }
 
   return (
     <span className="subscription-rule__icon">

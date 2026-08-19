@@ -510,18 +510,22 @@ function inferTone(payload: BackendErrorPayload): NoticeTone {
       code.includes("UNAUTHORIZED") ||
       code === "AUTHENTICATION_REQUIRED" ||
       code === "ACCOUNT_NOT_ACTIVE"
-    )
+    ) {
       return "access"
+    }
 
-    if (code.includes("NOT_FOUND")) return "not-found"
+    if (code.includes("NOT_FOUND")) {
+      return "not-found"
+    }
 
     if (
       code.includes("RATE_LIMIT") ||
       code.includes("IN_PROGRESS") ||
       code.includes("UNAVAILABLE") ||
       code.includes("CAPACITY")
-    )
+    ) {
       return "waiting"
+    }
 
     if (
       code.includes("CONFLICT") ||
@@ -531,24 +535,35 @@ function inferTone(payload: BackendErrorPayload): NoticeTone {
       code.includes("NOT_PURCHASABLE") ||
       code.includes("NOT_RECOVERABLE") ||
       code.includes("CANNOT_LEAVE")
-    )
+    ) {
       return "conflict"
+    }
 
     if (
       code.includes("INVALID") ||
       code.includes("MISSING") ||
       code.includes("VIOLATION") ||
       code.includes("EXCEEDED")
-    )
+    ) {
       return "validation"
+    }
   }
 
-  if (status === 401 || status === 403) return "access"
-  if (status === 404) return "not-found"
-  if (status === 409) return "conflict"
-  if (status === 429 || status === 502 || status === 503 || status === 504) return "waiting"
-  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422)
+  if (status === 401 || status === 403) {
+    return "access"
+  }
+  if (status === 404) {
+    return "not-found"
+  }
+  if (status === 409) {
+    return "conflict"
+  }
+  if (status === 429 || status === 502 || status === 503 || status === 504) {
+    return "waiting"
+  }
+  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) {
     return "validation"
+  }
 
   return "internal"
 }
@@ -648,12 +663,16 @@ export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps
   )
 
   useEffect(() => {
-    if (previewInitialized.current) return
+    if (previewInitialized.current) {
+      return
+    }
     previewInitialized.current = true
 
     const params = new URLSearchParams(window.location.search)
     const preview = params.get("error")
-    if (!preview) return
+    if (!preview) {
+      return
+    }
 
     const numericStatus = Number(params.get("status"))
     const statusCode =
@@ -688,7 +707,9 @@ export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps
 
 export function useErrorNotifications() {
   const value = useContext(ErrorNotificationContext)
-  if (!value) throw new Error("useErrorNotifications must be used inside ErrorNotificationProvider")
+  if (!value) {
+    throw new Error("useErrorNotifications must be used inside ErrorNotificationProvider")
+  }
 
   return value
 }
@@ -719,7 +740,9 @@ function ErrorNoticeViewport({
 
 function ErrorNoticeCard({ notice, onDismiss }: { notice: ErrorNotice; onDismiss: () => void }) {
   useEffect(() => {
-    if (notice.persistent) return
+    if (notice.persistent) {
+      return
+    }
 
     const duration = notice.presentation.tone === "internal" ? 9000 : 6200
     const timeout = window.setTimeout(onDismiss, duration)

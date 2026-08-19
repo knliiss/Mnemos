@@ -138,9 +138,15 @@ function CreatorStudioProduction({ navigate, back }: Props) {
   )
 
   const visible = items.filter((item) => {
-    if (filter === "ALL") return true
-    if (filter === "DRAFT") return item.status === "DRAFT" || item.status === "REJECTED"
-    if (filter === "REVIEW") return item.status === "IN_REVIEW" || item.status === "APPROVED"
+    if (filter === "ALL") {
+      return true
+    }
+    if (filter === "DRAFT") {
+      return item.status === "DRAFT" || item.status === "REJECTED"
+    }
+    if (filter === "REVIEW") {
+      return item.status === "IN_REVIEW" || item.status === "APPROVED"
+    }
     return item.status === "PUBLISHED" || item.status === "UNLISTED"
   })
 
@@ -356,7 +362,9 @@ function CreatorEditorProduction({ params, back }: Props) {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    if (isNew) return
+    if (isNew) {
+      return
+    }
 
     const frame = window.requestAnimationFrame(() => {
       void getPersonalization(personalizationId)
@@ -383,7 +391,9 @@ function CreatorEditorProduction({ params, back }: Props) {
   )
 
   const save = async (): Promise<PersonalizationResponse | null> => {
-    if (!valid || !editable || busy) return null
+    if (!valid || !editable || busy) {
+      return null
+    }
 
     setBusy(true)
 
@@ -402,12 +412,16 @@ function CreatorEditorProduction({ params, back }: Props) {
 
   const saveAndBack = async () => {
     const saved = await save()
-    if (saved) back()
+    if (saved) {
+      back()
+    }
   }
 
   const submit = async () => {
     const saved = await save()
-    if (!saved) return
+    if (!saved) {
+      return
+    }
 
     setBusy(true)
 
@@ -422,7 +436,9 @@ function CreatorEditorProduction({ params, back }: Props) {
   }
 
   const publish = async () => {
-    if (!source || source.status !== "APPROVED" || busy) return
+    if (!source || source.status !== "APPROVED" || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -910,7 +926,11 @@ function formatDate(value: string, locale: string) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

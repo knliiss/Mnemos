@@ -62,7 +62,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const drops = useMemo(() => {
-    if (!activeAccount) return []
+    if (!activeAccount) {
+      return []
+    }
 
     return product.feed
       .filter(
@@ -73,7 +75,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
       .slice(0, 3)
   }, [activeAccount, product.feed])
 
-  if (!activeAccount) return null
+  if (!activeAccount) {
+    return null
+  }
 
   if (initialMemberId && selectedMember) {
     return (
@@ -94,7 +98,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   )
 
   const claimDaily = async () => {
-    if (!claimAvailable || rewardBusy) return
+    if (!claimAvailable || rewardBusy) {
+      return
+    }
 
     setRewardBusy(true)
 
@@ -109,7 +115,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   }
 
   const restoreDaily = async () => {
-    if (!restoreAvailable || rewardBusy) return
+    if (!restoreAvailable || rewardBusy) {
+      return
+    }
 
     setRewardBusy(true)
 
@@ -461,7 +469,9 @@ function AccountMemberManagementProduction({
   }, [accountId, member.id])
 
   const toggleRole = async (role: AccountRole) => {
-    if (member.owner || busyRoleId) return
+    if (member.owner || busyRoleId) {
+      return
+    }
 
     const assigned = roleIds.includes(role.id)
     setBusyRoleId(role.id)
@@ -484,7 +494,9 @@ function AccountMemberManagementProduction({
   }
 
   const kick = async () => {
-    if (member.owner || kickBusy) return
+    if (member.owner || kickBusy) {
+      return
+    }
 
     setKickBusy(true)
 
@@ -574,13 +586,19 @@ function enabledPermissions(role: AccountRole) {
 
 function formatMemberDate(value: string, locale: string) {
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value.replace(" 2026", "")
+  if (Number.isNaN(date.getTime())) {
+    return value.replace(" 2026", "")
+  }
 
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(date)
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

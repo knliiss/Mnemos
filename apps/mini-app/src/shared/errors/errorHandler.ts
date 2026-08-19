@@ -4,14 +4,24 @@ import { errorEvents, type ErrorEventPayload } from "./errorEventBus"
 
 function formatApiError(error: ApiError): string {
   const body = error.body
-  if (typeof body === "string") return body
+  if (typeof body === "string") {
+    return body
+  }
 
   const lines = [`HTTP ${error.status}`]
 
-  if (body.code) lines.push(`Code: ${body.code}`)
-  if (body.message) lines.push(`Message: ${body.message}`)
-  if (body.path) lines.push(`Path: ${body.path}`)
-  if (body.requestId) lines.push(`Request ID: ${body.requestId}`)
+  if (body.code) {
+    lines.push(`Code: ${body.code}`)
+  }
+  if (body.message) {
+    lines.push(`Message: ${body.message}`)
+  }
+  if (body.path) {
+    lines.push(`Path: ${body.path}`)
+  }
+  if (body.requestId) {
+    lines.push(`Request ID: ${body.requestId}`)
+  }
   if (body.details && Object.keys(body.details).length) {
     lines.push(`Details: ${JSON.stringify(body.details)}`)
   }
@@ -72,11 +82,18 @@ function toErrorEventPayload(error: unknown, normalized: AppError): ErrorEventPa
 }
 
 export function normalizeError(error: unknown): AppError {
-  if (error instanceof AppError) return error
-  if (error instanceof ApiError) return new AppError("api", formatApiError(error), error)
-  if (error instanceof NetworkError) return new AppError("network", error.message, error)
-  if (error instanceof Error)
+  if (error instanceof AppError) {
+    return error
+  }
+  if (error instanceof ApiError) {
+    return new AppError("api", formatApiError(error), error)
+  }
+  if (error instanceof NetworkError) {
+    return new AppError("network", error.message, error)
+  }
+  if (error instanceof Error) {
     return new AppError("unexpected", error.message || "Unknown error", error)
+  }
 
   return new AppError("unexpected", String(error), error)
 }

@@ -59,7 +59,9 @@ export function AccountInvites({ back }: { back: () => void }) {
   }, [refresh])
 
   const create = async () => {
-    if (!accountId || creating) return
+    if (!accountId || creating) {
+      return
+    }
 
     setCreating(true)
 
@@ -74,7 +76,9 @@ export function AccountInvites({ back }: { back: () => void }) {
   }
 
   const revoke = async (inviteId: string) => {
-    if (!accountId || revokingId) return
+    if (!accountId || revokingId) {
+      return
+    }
 
     setRevokingId(inviteId)
 
@@ -97,7 +101,9 @@ export function AccountInvites({ back }: { back: () => void }) {
 
   const formatDate = (value: string) => {
     const date = new Date(value)
-    if (Number.isNaN(date.getTime())) return value
+    if (Number.isNaN(date.getTime())) {
+      return value
+    }
 
     return new Intl.DateTimeFormat(locale, {
       day: "numeric",
@@ -108,7 +114,9 @@ export function AccountInvites({ back }: { back: () => void }) {
   }
 
   const inviteExpiryLabel = (invite: AccountInvite) => {
-    if (!invite.expiresAt) return t("accountInvites.noExpiry")
+    if (!invite.expiresAt) {
+      return t("accountInvites.noExpiry")
+    }
 
     if (invite.status === "CONSUMED" && invite.consumedAt) {
       return t("accountInvites.consumedAt", { date: formatDate(invite.consumedAt) })
@@ -201,7 +209,11 @@ export function AccountInvites({ back }: { back: () => void }) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

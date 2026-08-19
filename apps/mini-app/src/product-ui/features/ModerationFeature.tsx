@@ -39,7 +39,9 @@ export function ModerationHome({ navigate, back }: HomeProps) {
   const visibleResults = normalized.length >= 2 ? results : []
 
   useEffect(() => {
-    if (normalized.length < 2) return
+    if (normalized.length < 2) {
+      return
+    }
 
     const timer = window.setTimeout(() => {
       setLoading(true)
@@ -169,7 +171,9 @@ export function ModerationUser({ params, back }: UserProps) {
   }
 
   const refreshIdentity = useCallback(async () => {
-    if (!userId) return
+    if (!userId) {
+      return
+    }
 
     const matches = await searchIdentities(userId, 5)
     const found = matches.find((item) => item.userId === userId) ?? matches[0] ?? null
@@ -185,7 +189,9 @@ export function ModerationUser({ params, back }: UserProps) {
   }, [userId])
 
   const refreshSanctions = useCallback(async () => {
-    if (!userId) return
+    if (!userId) {
+      return
+    }
     setSanctions(await listSanctions(userId))
   }, [userId])
 
@@ -203,7 +209,9 @@ export function ModerationUser({ params, back }: UserProps) {
   const currency = walletTarget === "USER" ? ("PRIME" as const) : ("COIN" as const)
 
   useEffect(() => {
-    if (!canAdjustWallet || !targetId) return
+    if (!canAdjustWallet || !targetId) {
+      return
+    }
 
     const frame = window.requestAnimationFrame(() => {
       void listWalletAdjustments(walletTarget, targetId).then(setAdjustments).catch(handleError)
@@ -221,7 +229,9 @@ export function ModerationUser({ params, back }: UserProps) {
   )
 
   const submitSanction = async () => {
-    if (!userId || !reason.trim() || !durationValid || busy) return
+    if (!userId || !reason.trim() || !durationValid || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -246,7 +256,9 @@ export function ModerationUser({ params, back }: UserProps) {
   }
 
   const revoke = async (sanctionId: string) => {
-    if (busy) return
+    if (busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -264,7 +276,9 @@ export function ModerationUser({ params, back }: UserProps) {
       await new Promise((resolve) => window.setTimeout(resolve, 800))
       const current = await getWalletAdjustment(operationId)
 
-      if (current.status === "PENDING") continue
+      if (current.status === "PENDING") {
+        continue
+      }
 
       setAdjustments(await listWalletAdjustments(walletTarget, targetId))
       return
@@ -272,7 +286,9 @@ export function ModerationUser({ params, back }: UserProps) {
   }
 
   const submitAdjustment = async () => {
-    if (!canAdjustWallet || !targetId || !amountValid || !walletReason.trim() || busy) return
+    if (!canAdjustWallet || !targetId || !amountValid || !walletReason.trim() || busy) {
+      return
+    }
 
     setBusy(true)
 

@@ -58,7 +58,9 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   const selected = items.find((item) => item.id === selectedId) ?? null
 
   useEffect(() => {
-    if (!selected) return
+    if (!selected) {
+      return
+    }
 
     const frame = window.requestAnimationFrame(() => {
       setPrice(String(selected.price))
@@ -87,9 +89,15 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   }, [items, query, scope, t])
 
   const decide = async (decision: "APPROVE" | "REJECT") => {
-    if (!selected || busy) return
-    if (decision === "APPROVE" && !priceValid) return
-    if (decision === "REJECT" && !reason.trim()) return
+    if (!selected || busy) {
+      return
+    }
+    if (decision === "APPROVE" && !priceValid) {
+      return
+    }
+    if (decision === "REJECT" && !reason.trim()) {
+      return
+    }
 
     setBusy(true)
 

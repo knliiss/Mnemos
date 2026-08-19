@@ -94,7 +94,9 @@ export default function ProductApp() {
 
   useEffect(() => {
     const element = routeStageRef.current
-    if (!element) return
+    if (!element) {
+      return
+    }
 
     const frame = window.requestAnimationFrame(() => {
       element.scrollTo({ top: scrollPositions.current[routeKey(current)] ?? 0, behavior: "auto" })
@@ -109,7 +111,9 @@ export default function ProductApp() {
   }, [product.user.language])
 
   const selectAccount = async (account: Account) => {
-    if (account.active === false && !account.owner) return
+    if (account.active === false && !account.owner) {
+      return
+    }
 
     await product.selectAccount(account)
     setAccountPickerOpen(false)

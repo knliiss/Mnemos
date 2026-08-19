@@ -139,26 +139,46 @@ function ArtFrame({
 }
 
 function dropVariant(itemType: BetItemType): Variant {
-  if (itemType === "AURA") return "drop-aura"
-  if (itemType === "PET") return "drop-pet"
-  if (itemType === "BOOK") return "drop-book"
-  if (itemType === "JEWELRY") return "drop-jewelry"
+  if (itemType === "AURA") {
+    return "drop-aura"
+  }
+  if (itemType === "PET") {
+    return "drop-pet"
+  }
+  if (itemType === "BOOK") {
+    return "drop-book"
+  }
+  if (itemType === "JEWELRY") {
+    return "drop-jewelry"
+  }
 
   return "drop-sword"
 }
 
 function boosterVariant(boosterType: BoosterType): Variant {
-  if (boosterType === "MONEY") return "booster-money"
-  if (boosterType === "DAMAGE") return "booster-damage"
-  if (boosterType === "POWER") return "booster-power"
+  if (boosterType === "MONEY") {
+    return "booster-money"
+  }
+  if (boosterType === "DAMAGE") {
+    return "booster-damage"
+  }
+  if (boosterType === "POWER") {
+    return "booster-power"
+  }
 
   return "booster-luck"
 }
 
 function globalVariant(eventType: GlobalEventType): Variant {
-  if (eventType === "MOON") return "global-moon"
-  if (eventType === "DARKNESS") return "global-darkness"
-  if (eventType === "EXPLOSION") return "global-explosion"
+  if (eventType === "MOON") {
+    return "global-moon"
+  }
+  if (eventType === "DARKNESS") {
+    return "global-darkness"
+  }
+  if (eventType === "EXPLOSION") {
+    return "global-explosion"
+  }
 
   return "global-eclipse"
 }
@@ -172,7 +192,9 @@ function getVariant(event: FeedEvent): Variant {
     return boosterVariant(event.title as BoosterType)
   }
 
-  if (event.kind === "RAID") return "raid"
+  if (event.kind === "RAID") {
+    return "raid"
+  }
 
   return globalVariant(event.title as GlobalEventType)
 }

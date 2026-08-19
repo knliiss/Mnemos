@@ -125,7 +125,9 @@ export async function listPersonalizations(
     size: String(size),
   })
 
-  if (currency) params.set("currency", currency)
+  if (currency) {
+    params.set("currency", currency)
+  }
 
   return api<PageResponse<PersonalizationResponse>>(`/api/v1/personalizations?${params}`)
 }
@@ -143,7 +145,9 @@ export async function listOwnedPersonalizations(
 ): Promise<PageResponse<OwnedPersonalizationResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
 
-  if (type) params.set("type", type)
+  if (type) {
+    params.set("type", type)
+  }
 
   return api<PageResponse<OwnedPersonalizationResponse>>(
     `/api/v1/personalizations/ownership/me?${params}`,

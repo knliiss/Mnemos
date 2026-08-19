@@ -196,9 +196,15 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
 }
 
 function eventGlyph(kind: EventKind): "item-drop" | "booster" | "global" | "raid" {
-  if (kind === "ITEM_DROP") return "item-drop"
-  if (kind === "BOOSTER") return "booster"
-  if (kind === "GLOBAL") return "global"
+  if (kind === "ITEM_DROP") {
+    return "item-drop"
+  }
+  if (kind === "BOOSTER") {
+    return "booster"
+  }
+  if (kind === "GLOBAL") {
+    return "global"
+  }
   return "raid"
 }
 
@@ -215,7 +221,9 @@ function eventDisplayTitle(t: TFunction, event: FeedEvent) {
     return t(`events.boosters.${event.title}`, { defaultValue: event.title })
   }
 
-  if (event.kind === "RAID") return t("events.kinds.RAID")
+  if (event.kind === "RAID") {
+    return t("events.kinds.RAID")
+  }
   return event.title
 }
 
@@ -224,8 +232,12 @@ function eventDisplayDescription(t: TFunction, event: FeedEvent) {
     return [event.detail, event.rarity].filter(Boolean).join(" · ")
   }
 
-  if (event.kind === "BOOSTER") return event.detail
-  if (event.kind === "GLOBAL") return t("events.feed.globalDescription")
+  if (event.kind === "BOOSTER") {
+    return event.detail
+  }
+  if (event.kind === "GLOBAL") {
+    return t("events.feed.globalDescription")
+  }
   return event.detail
     ? t("events.feed.locations", { locations: event.detail })
     : t("events.feed.raidDescription")
@@ -239,7 +251,11 @@ function belongsToAccount(event: FeedEvent, activeAccount: Account) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

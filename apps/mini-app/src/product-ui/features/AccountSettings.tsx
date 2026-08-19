@@ -45,14 +45,18 @@ export function AccountSettings({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [busy, setBusy] = useState(false)
 
-  if (!activeAccount) return null
+  if (!activeAccount) {
+    return null
+  }
 
   const baseRole = availableRoles.find((role) => role.id === baseRoleId) ?? null
   const transferTarget = transferableMembers.find((member) => member.id === transferTo) ?? null
   const roleChanged = baseRoleId !== savedRoleId
 
   const saveBaseRole = async () => {
-    if (busy || !roleChanged) return
+    if (busy || !roleChanged) {
+      return
+    }
 
     setBusy(true)
 
@@ -68,7 +72,9 @@ export function AccountSettings({
   }
 
   const transfer = async () => {
-    if (!activeAccount.owner || !transferTarget || busy) return
+    if (!activeAccount.owner || !transferTarget || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -85,7 +91,9 @@ export function AccountSettings({
   }
 
   const deactivate = async () => {
-    if (!activeAccount.owner || busy) return
+    if (!activeAccount.owner || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -101,7 +109,9 @@ export function AccountSettings({
   }
 
   const leave = async () => {
-    if (activeAccount.owner || busy) return
+    if (activeAccount.owner || busy) {
+      return
+    }
 
     setBusy(true)
 
@@ -453,13 +463,17 @@ function ConfirmPanel({
 }
 
 function countEnabledPermissions(role: AccountRole | null) {
-  if (!role) return 0
+  if (!role) {
+    return 0
+  }
   return Object.values(role.permissions).filter(Boolean).length
 }
 
 function formatJoinedAt(value: string, locale: string) {
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
 
   return new Intl.DateTimeFormat(locale, {
     day: "numeric",
@@ -469,7 +483,11 @@ function formatJoinedAt(value: string, locale: string) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

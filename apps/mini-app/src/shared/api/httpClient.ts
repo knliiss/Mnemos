@@ -58,11 +58,15 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     throw new ApiError(response.status, await readResponseBody(response))
   }
 
-  if (response.status === 204) return null as T
+  if (response.status === 204) {
+    return null as T
+  }
 
   const text = await response.text()
 
-  if (!text) return null as T
+  if (!text) {
+    return null as T
+  }
 
   try {
     return JSON.parse(text) as T
@@ -74,7 +78,9 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 async function readResponseBody(response: Response): Promise<ApiErrorBody | string> {
   const text = await response.text()
 
-  if (!text) return response.statusText || `HTTP ${response.status}`
+  if (!text) {
+    return response.statusText || `HTTP ${response.status}`
+  }
 
   try {
     return JSON.parse(text) as ApiErrorBody

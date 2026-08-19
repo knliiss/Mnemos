@@ -72,9 +72,15 @@ export function UserPrimeWallet({ navigate, back }: Props) {
     )
 
     return [...filtered].sort((left, right) => {
-      if (historySort === "OLDEST") return Date.parse(left.createdAt) - Date.parse(right.createdAt)
-      if (historySort === "AMOUNT_DESC") return right.amount - left.amount
-      if (historySort === "AMOUNT_ASC") return left.amount - right.amount
+      if (historySort === "OLDEST") {
+        return Date.parse(left.createdAt) - Date.parse(right.createdAt)
+      }
+      if (historySort === "AMOUNT_DESC") {
+        return right.amount - left.amount
+      }
+      if (historySort === "AMOUNT_ASC") {
+        return left.amount - right.amount
+      }
       return Date.parse(right.createdAt) - Date.parse(left.createdAt)
     })
   }, [historyFilter, historySort, transactions])
@@ -286,7 +292,9 @@ function PrimeHistoryRow({
 
 function transactionLabel(source: string, t: TFunction) {
   const translated = t(`userWallet.history.sources.${source}`, { defaultValue: "" })
-  if (translated) return translated
+  if (translated) {
+    return translated
+  }
 
   return source
     .toLowerCase()
@@ -297,7 +305,9 @@ function transactionLabel(source: string, t: TFunction) {
 
 function formatTransactionDate(value: string, locale: string) {
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
 
   return new Intl.DateTimeFormat(locale, {
     day: "numeric",
@@ -308,7 +318,11 @@ function formatTransactionDate(value: string, locale: string) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

@@ -86,7 +86,9 @@ function SearchProduction({ navigate }: Props) {
   }, [])
 
   useEffect(() => {
-    if (normalizedQuery.length < 2) return
+    if (normalizedQuery.length < 2) {
+      return
+    }
 
     const timeout = window.setTimeout(() => {
       void runSearch(normalizedQuery)
@@ -194,7 +196,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const refreshProfileSummary = useCallback(async () => {
-    if (!accountId) return
+    if (!accountId) {
+      return
+    }
 
     try {
       setProfile(await getPublicProfile(accountId))
@@ -255,7 +259,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   }, [load])
 
   const toggleReaction = async (nextReaction: AccountReactionType) => {
-    if (!profile || reactionBusy) return
+    if (!profile || reactionBusy) {
+      return
+    }
 
     setReactionBusy(true)
 
@@ -279,10 +285,14 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!profile || commentBusyId) return
+    if (!profile || commentBusyId) {
+      return
+    }
 
     const content = draft.trim()
-    if (!content) return
+    if (!content) {
+      return
+    }
 
     setCommentBusyId("new")
 
@@ -307,7 +317,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
 
   const saveEdit = async (commentId: string) => {
     const content = editDraft.trim()
-    if (!content || commentBusyId) return
+    if (!content || commentBusyId) {
+      return
+    }
 
     setCommentBusyId(commentId)
 
@@ -328,7 +340,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   }
 
   const removeComment = async (commentId: string) => {
-    if (commentBusyId) return
+    if (commentBusyId) {
+      return
+    }
 
     setCommentBusyId(commentId)
 
@@ -349,7 +363,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   }
 
   const toggleCommentLike = async (commentId: string) => {
-    if (commentBusyId) return
+    if (commentBusyId) {
+      return
+    }
 
     setCommentBusyId(commentId)
 
@@ -382,7 +398,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
     }
 
     setOpenReplies(comment.id)
-    if (replies[comment.id]) return
+    if (replies[comment.id]) {
+      return
+    }
 
     try {
       const page = await getCommentReplies(comment.id)
@@ -398,10 +416,14 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   }
 
   const submitReply = async (parent: CommentView) => {
-    if (!profile || commentBusyId) return
+    if (!profile || commentBusyId) {
+      return
+    }
 
     const content = replyDraft.trim()
-    if (!content) return
+    if (!content) {
+      return
+    }
 
     setCommentBusyId(parent.id)
 
@@ -775,7 +797,9 @@ function toCommentView(comment: CommentResponse, authorNames: Map<string, string
 
 function nicknameStyle(profile: PublicProfileResponse): CSSProperties | undefined {
   const style = profile.appearance.nickStyle
-  if (!style || !style.colors.length) return undefined
+  if (!style || !style.colors.length) {
+    return undefined
+  }
 
   const stops = style.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
 
@@ -799,12 +823,18 @@ function shortAccountId(accountId: string) {
 }
 
 function rarityLabel(value: string | undefined, t: ReturnType<typeof useTranslation>["t"]) {
-  if (!value) return t("events.kinds.ITEM_DROP")
+  if (!value) {
+    return t("events.kinds.ITEM_DROP")
+  }
   return t(`people.profile.rarities.${value}`, { defaultValue: value })
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }

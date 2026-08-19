@@ -24,7 +24,9 @@ export function AccountWallet({ back }: { back: () => void }) {
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
-    if (!activeAccountId) return
+    if (!activeAccountId) {
+      return
+    }
 
     let cancelled = false
     const timeout = window.setTimeout(() => {
@@ -32,13 +34,19 @@ export function AccountWallet({ back }: { back: () => void }) {
 
       void getAccountTransactions(activeAccountId, 0, 100)
         .then((response) => {
-          if (!cancelled) setTransactions(response.items)
+          if (!cancelled) {
+            setTransactions(response.items)
+          }
         })
         .catch((error) => {
-          if (!cancelled) handleError(error)
+          if (!cancelled) {
+            handleError(error)
+          }
         })
         .finally(() => {
-          if (!cancelled) setLoading(false)
+          if (!cancelled) {
+            setLoading(false)
+          }
         })
     }, 0)
 
@@ -71,15 +79,21 @@ export function AccountWallet({ back }: { back: () => void }) {
           return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
         }
 
-        if (historySort === "AMOUNT_DESC") return right.amount - left.amount
-        if (historySort === "AMOUNT_ASC") return left.amount - right.amount
+        if (historySort === "AMOUNT_DESC") {
+          return right.amount - left.amount
+        }
+        if (historySort === "AMOUNT_ASC") {
+          return left.amount - right.amount
+        }
 
         return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
       }),
     [historySort, transactions],
   )
 
-  if (!activeAccount) return null
+  if (!activeAccount) {
+    return null
+  }
 
   const selectSort = (sort: HistorySort) => {
     setHistorySort(sort)
@@ -89,7 +103,9 @@ export function AccountWallet({ back }: { back: () => void }) {
   const sortLabel = (sort: HistorySort) => t(`accountWallet.sort.${sort}`)
   const formatTransactionDate = (value: string) => {
     const date = new Date(value)
-    if (Number.isNaN(date.getTime())) return value
+    if (Number.isNaN(date.getTime())) {
+      return value
+    }
 
     return new Intl.DateTimeFormat(locale, {
       day: "numeric",
@@ -227,7 +243,11 @@ export function AccountWallet({ back }: { back: () => void }) {
 }
 
 function localeForLanguage(language?: string) {
-  if (language === "en") return "en-US"
-  if (language === "ru") return "ru-RU"
+  if (language === "en") {
+    return "en-US"
+  }
+  if (language === "ru") {
+    return "ru-RU"
+  }
   return "uk-UA"
 }
