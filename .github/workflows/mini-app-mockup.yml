@@ -78,7 +78,7 @@ jobs:
               --hide-scrollbars \
               --force-device-scale-factor=1 \
               --run-all-compositor-stages-before-draw \
-              --virtual-time-budget=1200 \
+              --virtual-time-budget=2400 \
               --window-size="${width},844" \
               --screenshot="$PWD/visual-audit/${name}.png" \
               "http://127.0.0.1:4173/${path}"
