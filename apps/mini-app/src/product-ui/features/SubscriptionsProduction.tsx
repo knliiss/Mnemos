@@ -1,5 +1,7 @@
+import type { TFunction } from "i18next"
 import { AnimatePresence } from "framer-motion"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createBoosterSubscription,
   createDungeonSubscription,
@@ -31,22 +33,8 @@ import type {
   Subscription,
   SubscriptionType,
 } from "../model"
-import {
-  boosterLabels,
-  dungeonLabels,
-  globalEventLabels,
-  itemTypeLabels,
-} from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { BottomSheet, ChoiceGrid, Field, PageHeader } from "../shared/Primitives"
-
-const subscriptionLabels: Record<SubscriptionType, string> = {
-  ITEM_DROP: "Дроп",
-  BOOSTER: "Бустер",
-  DUNGEON: "Данж",
-  RAID: "Рейд",
-  GLOBAL: "Глобальна",
-}
 
 const subscriptionIcons: Record<SubscriptionType, "item-drop" | "booster" | "dungeon" | "raid" | "global"> = {
   ITEM_DROP: "item-drop",
@@ -70,6 +58,7 @@ const itemCatalog: ItemCatalogEntry[] = [
 ]
 
 export function SubscriptionsProduction({ back }: { back: () => void }) {
+  const { t } = useTranslation()
   const product = useProductData()
   const [creating, setCreating] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -109,6 +98,19 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
       count: subscriptions.filter((subscription) => subscription.type === subscriptionType).length,
     }))
     .filter((entry) => entry.count > 0), [subscriptions])
+
+  const subscriptionLabels = Object.fromEntries(
+    SUBSCRIPTION_TYPES.map((value) => [value, t(`events.kinds.${value}`)]),
+  ) as Record<SubscriptionType, string>
+  const boosterLabels = Object.fromEntries(
+    BOOSTER_TYPES.map((value) => [value, t(`events.boosters.${value}`)]),
+  ) as Record<BoosterType, string>
+  const dungeonLabels = Object.fromEntries(
+    DUNGEON_TYPES.map((value) => [value, t(`events.dungeons.${value}`)]),
+  ) as Record<DungeonType, string>
+  const globalLabels = Object.fromEntries(
+    GLOBAL_EVENT_TYPES.map((value) => [value, t(`events.globals.${value}`)]),
+  ) as Record<GlobalEventType, string>
 
   const addRaidLocation = () => {
     const value = Number(raidInput)
@@ -174,12 +176,12 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
 
   return (
     <div className="screen subscriptions-redesign-screen">
-      <PageHeader title="Підписки" back={back} />
+      <PageHeader title={t("events.subscriptions.title")} back={back} />
 
       <section className="subscription-summary">
         <span className="subscription-summary__icon"><Glyph name="bell" size={22} /></span>
-        <span><strong>{subscriptions.length}</strong><small>активних правил</small></span>
-        <button disabled={busy} onClick={() => setCreating(true)}><Glyph name="plus" size={17} />Нове</button>
+        <span><strong>{subscriptions.length}</strong><small>{t("events.subscriptions.activeRules")}</small></span>
+        <button disabled={busy} onClick={() => setCreating(true)}><Glyph name="plus" size={17} />{t("events.subscriptions.new")}</button>
       </section>
 
       <div className="subscription-counts">
@@ -193,7 +195,7 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
       </div>
 
       <section className="subscription-rules">
-        <header><h2>Правила</h2><small>Сповіщення приходять, коли умова збігається</small></header>
+        <header><h2>{t("events.subscriptions.rules")}</h2><small>{t("events.subscriptions.rulesCopy")}</small></header>
         <div>
           {subscriptions.map((subscription) => (
             <article
@@ -203,10 +205,10 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
               <SubscriptionRuleIcon subscription={subscription} />
               <span className="subscription-rule__copy">
                 <strong>{subscriptionLabels[subscription.type]}</strong>
-                <small>{description(subscription)}</small>
+                <small>{description(t, subscription)}</small>
               </span>
               <button
-                aria-label="Видалити"
+                aria-label={t("events.subscriptions.delete")}
                 disabled={deletingId !== null}
                 onClick={() => void remove(subscription.id)}
               >
@@ -218,8 +220,8 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
           {!subscriptions.length ? (
             <div className="events-r2-empty">
               <Glyph name="bell" size={24} />
-              <strong>Підписок ще немає</strong>
-              <small>Створи правило для потрібної події.</small>
+              <strong>{t("events.subscriptions.emptyTitle")}</strong>
+              <small>{t("events.subscriptions.emptyCopy")}</small>
             </div>
           ) : null}
         </div>
@@ -227,19 +229,19 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
 
       <AnimatePresence>
         {creating ? (
-          <BottomSheet title="Нова підписка" onClose={() => !busy && setCreating(false)}>
+          <BottomSheet title={t("events.subscriptions.newTitle")} onClose={() => !busy && setCreating(false)}>
             <div className="form-stack subscription-form-redesign">
-              <Field label="Що відстежувати">
+              <Field label={t("events.subscriptions.track")}>
                 <ChoiceGrid value={type} options={SUBSCRIPTION_TYPES} onChange={setType} labels={subscriptionLabels} />
               </Field>
 
               {type === "ITEM_DROP" ? (
                 <>
                   <Field
-                    label="Гравець"
+                    label={t("events.subscriptions.player")}
                     hint={cleanDroppedFor && !droppedForValid
-                      ? "4–20 символів: літери, цифри, _"
-                      : "Можна залишити порожнім, якщо вибраний предмет"}
+                      ? t("events.subscriptions.playerInvalid")
+                      : t("events.subscriptions.playerHint")}
                   >
                     <input
                       value={droppedFor}
@@ -249,11 +251,11 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
                       maxLength={20}
                     />
                   </Field>
-                  <Field label="Предмет" hint="Гравець або предмет — достатньо одного">
+                  <Field label={t("events.subscriptions.item")} hint={t("events.subscriptions.itemHint")}>
                     <input
                       value={itemName}
                       onChange={(event) => setItemName(event.target.value)}
-                      placeholder="назва предмета"
+                      placeholder={t("events.subscriptions.itemPlaceholder")}
                       maxLength={24}
                     />
                     {itemSuggestions.length ? (
@@ -263,7 +265,7 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
                             <ItemTypeArt itemType={item.type} size={28} />
                             <span>
                               <strong>{item.name}</strong>
-                              <small>{itemTypeLabels[item.type]}</small>
+                              <small>{t(`events.itemTypes.${item.type}`)}</small>
                             </span>
                           </button>
                         ))}
@@ -274,25 +276,25 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
               ) : null}
 
               {type === "BOOSTER" ? (
-                <Field label="Тип бустера">
+                <Field label={t("events.subscriptions.boosterType")}>
                   <ChoiceGrid value={boosterType} options={BOOSTER_TYPES} onChange={setBoosterType} labels={boosterLabels} />
                 </Field>
               ) : null}
 
               {type === "DUNGEON" ? (
-                <Field label="Складність">
+                <Field label={t("events.subscriptions.difficulty")}>
                   <ChoiceGrid value={dungeonType} options={DUNGEON_TYPES} onChange={setDungeonType} labels={dungeonLabels} />
                 </Field>
               ) : null}
 
               {type === "GLOBAL" ? (
-                <Field label="Подія">
-                  <ChoiceGrid value={globalType} options={GLOBAL_EVENT_TYPES} onChange={setGlobalType} labels={globalEventLabels} />
+                <Field label={t("events.subscriptions.event")}>
+                  <ChoiceGrid value={globalType} options={GLOBAL_EVENT_TYPES} onChange={setGlobalType} labels={globalLabels} />
                 </Field>
               ) : null}
 
               {type === "RAID" ? (
-                <Field label="Локації" hint="Порожньо — всі локації">
+                <Field label={t("events.subscriptions.locations")} hint={t("events.subscriptions.allLocationsHint")}>
                   <div className="inline-input">
                     <input
                       type="number"
@@ -302,7 +304,7 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
                       onChange={(event) => setRaidInput(event.target.value)}
                       placeholder="№"
                     />
-                    <button type="button" aria-label="Додати локацію" onClick={addRaidLocation}>
+                    <button type="button" aria-label={t("events.subscriptions.addLocation")} onClick={addRaidLocation}>
                       <Glyph name="plus" size={17} />
                     </button>
                   </div>
@@ -325,7 +327,7 @@ export function SubscriptionsProduction({ back }: { back: () => void }) {
                 disabled={busy || (type === "ITEM_DROP" && !itemDropValid)}
                 onClick={() => void create()}
               >
-                {busy ? "Зберігаємо…" : "Зберегти правило"}
+                {busy ? t("events.subscriptions.saving") : t("events.subscriptions.save")}
               </button>
             </div>
           </BottomSheet>
@@ -342,18 +344,20 @@ function findItem(itemName?: string) {
   return itemCatalog.find((item) => item.name.toLowerCase() === normalized) ?? null
 }
 
-function description(subscription: Subscription) {
+function description(t: TFunction, subscription: Subscription) {
   if (subscription.type === "ITEM_DROP") {
     if (subscription.droppedFor && subscription.itemName) return `${subscription.droppedFor} · ${subscription.itemName}`
-    if (subscription.droppedFor) return `Гравець: ${subscription.droppedFor}`
-    return `Предмет: ${subscription.itemName}`
+    if (subscription.droppedFor) return t("events.subscriptions.playerRule", { player: subscription.droppedFor })
+    return t("events.subscriptions.itemRule", { item: subscription.itemName })
   }
 
-  if (subscription.type === "BOOSTER") return boosterLabels[subscription.boosterType]
-  if (subscription.type === "DUNGEON") return dungeonLabels[subscription.dungeonType]
-  if (subscription.type === "GLOBAL") return globalEventLabels[subscription.eventType]
+  if (subscription.type === "BOOSTER") return t(`events.boosters.${subscription.boosterType}`)
+  if (subscription.type === "DUNGEON") return t(`events.dungeons.${subscription.dungeonType}`)
+  if (subscription.type === "GLOBAL") return t(`events.globals.${subscription.eventType}`)
 
-  return subscription.locations.length ? `Локації ${subscription.locations.join(", ")}` : "Усі локації"
+  return subscription.locations.length
+    ? t("events.subscriptions.locationRule", { locations: subscription.locations.join(", ") })
+    : t("events.subscriptions.allLocations")
 }
 
 function SubscriptionRuleIcon({ subscription }: { subscription: Subscription }) {
