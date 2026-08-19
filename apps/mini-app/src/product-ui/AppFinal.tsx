@@ -2,6 +2,7 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { CristalixHead } from "./components/CristalixHead"
+import { ErrorNotificationBridge } from "./components/ErrorNotificationBridge"
 import { ErrorNotificationProvider } from "./components/ErrorNotifications"
 import { RootNavIllustration } from "./components/RootNavIllustration"
 import { useProductData } from "./data/ProductDataProvider"
@@ -171,6 +172,7 @@ export default function AppFinal() {
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
       <ErrorNotificationProvider hasTabbar={Boolean(rootRoute && activeAccount)}>
+        <ErrorNotificationBridge />
         <main className="preview-stage redesign-stage final-stage">
           <section className="app-shell redesign-shell final-shell">
             <motion.div
