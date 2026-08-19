@@ -82,10 +82,6 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-power": "/event-icons/booster-power.png",
   "dungeon": "/event-icons/dungeon.svg",
   "raid": "/event-icons/raid.png",
-  "global-moon": "/event-icons/moon.png",
-  "global-eclipse": "/event-icons/eclipse.png",
-  "global-darkness": "/event-icons/dark.png",
-  "global-explosion": "/event-icons/explosion.png",
 }
 
 function ArtFrame({
@@ -98,7 +94,10 @@ function ArtFrame({
   extraClass?: string
 }) {
   const asset = eventAssets[variant]
-  const contentSize = Math.min(30, Math.max(18, Math.round(size * 0.66)))
+  const global = variant.startsWith("global-")
+  const contentSize = global
+    ? Math.min(24, Math.max(16, Math.round(size * 0.52)))
+    : Math.min(30, Math.max(18, Math.round(size * 0.66)))
   const style = {
     width: size,
     height: size,
@@ -107,7 +106,7 @@ function ArtFrame({
 
   return (
     <span
-      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : ""} ${extraClass}`.trim()}
+      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : "event-art--vectorized"} ${extraClass}`.trim()}
       style={style}
       aria-hidden="true"
     >
@@ -117,9 +116,10 @@ function ArtFrame({
           src={asset}
           alt=""
           draggable={false}
+          decoding="async"
         />
       ) : (
-        <svg className="event-art__vector" viewBox="0 0 48 48" fill="none">
+        <svg className="event-art__vector" viewBox="0 0 48 48" fill="none" shapeRendering="crispEdges">
           {renderVariant(variant)}
         </svg>
       )}
@@ -213,33 +213,52 @@ function renderVariant(variant: Variant) {
       )
     case "global-moon":
       return (
-        <>
-          <circle className="event-art__soft" cx="24" cy="24" r="13" />
-          <path className="event-art__line" d="M30 11c-6 1.5-9.3 6-9.3 12.2S24 34 30 36c-8.8 1.3-16-4-16-12.5S21.2 9.8 30 11Z" />
-        </>
+        <g className="event-art__pixel-symbol">
+          <rect x="14" y="12" width="20" height="24" fill="currentColor" opacity=".78" />
+          <rect x="12" y="16" width="24" height="16" fill="currentColor" />
+          <rect x="16" y="10" width="16" height="28" fill="currentColor" />
+          <rect x="16" y="14" width="4" height="4" fill="#FF6B73" opacity=".78" />
+          <rect x="28" y="30" width="4" height="4" fill="#8B1326" opacity=".72" />
+          <rect x="12" y="12" width="4" height="4" fill="#1B1214" opacity=".9" />
+          <rect x="32" y="32" width="4" height="4" fill="#1B1214" opacity=".9" />
+        </g>
       )
     case "global-darkness":
       return (
-        <>
-          <circle className="event-art__soft" cx="24" cy="24" r="12" />
-          <path className="event-art__line" d="M12 24h4M32 24h4M24 12v4M24 32v4M15.5 15.5l2.8 2.8M29.7 29.7l2.8 2.8" />
-        </>
+        <g className="event-art__pixel-symbol">
+          <rect x="13" y="13" width="22" height="22" fill="#25292E" />
+          <rect x="16" y="11" width="16" height="26" fill="#343A42" />
+          <rect x="11" y="16" width="26" height="16" fill="#343A42" />
+          <rect x="16" y="16" width="16" height="16" fill="currentColor" opacity=".72" />
+          <rect x="18" y="16" width="10" height="3" fill="#C1C8D0" opacity=".42" />
+          <rect x="30" y="29" width="3" height="3" fill="#111416" opacity=".9" />
+        </g>
       )
     case "global-explosion":
       return (
-        <>
-          <path className="event-art__soft" d="m24 8 3 10 10-3-7 9 9 5-11 1-2 10-5-9-10 4 6-9-8-7 11 1 4-12Z" />
-          <circle className="event-art__fill" cx="24" cy="24" r="4" />
-        </>
+        <g className="event-art__pixel-symbol">
+          <rect x="18" y="10" width="12" height="28" fill="#FF8F13" />
+          <rect x="12" y="16" width="24" height="16" fill="#FF8F13" />
+          <rect x="15" y="13" width="18" height="22" fill="currentColor" />
+          <rect x="10" y="20" width="28" height="8" fill="currentColor" />
+          <rect x="18" y="16" width="12" height="12" fill="#FFD22E" />
+          <rect x="20" y="14" width="5" height="5" fill="#FFF083" />
+          <rect x="30" y="28" width="4" height="4" fill="#C75B0A" />
+        </g>
       )
     case "global-eclipse":
-    default:
       return (
-        <>
-          <circle className="event-art__soft" cx="24" cy="24" r="13" />
-          <circle className="event-art__line" cx="24" cy="24" r="8" />
-          <path className="event-art__line" d="M8 24h4M36 24h4" />
-        </>
+        <g className="event-art__pixel-symbol">
+          <rect x="14" y="12" width="20" height="24" fill="#535A66" />
+          <rect x="12" y="16" width="24" height="16" fill="#535A66" />
+          <rect x="16" y="10" width="16" height="28" fill="#737C89" />
+          <rect x="11" y="20" width="26" height="8" fill="#737C89" />
+          <rect x="18" y="14" width="12" height="20" fill="#9AA4B1" />
+          <rect x="18" y="14" width="8" height="4" fill="#D3D8DE" opacity=".65" />
+          <rect x="28" y="30" width="4" height="4" fill="#424852" />
+        </g>
       )
+    default:
+      return null
   }
 }
