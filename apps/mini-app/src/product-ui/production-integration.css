@@ -1,5 +1,60 @@
 /* Production integration states. Loaded after the visual mockup stack. */
 
+.account-root-user-entry {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 48px;
+  margin: 0 2px 2px;
+  padding: 0 2px;
+}
+
+.account-root-user-entry__identity {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.account-root-user-entry__identity small {
+  color: #747b6f;
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .14em;
+}
+
+.account-root-user-entry__identity strong {
+  overflow: hidden;
+  color: #aeb5a7;
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-root-user-entry > .global-user-button--final {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  flex: 0 0 44px;
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.global-user-button--final .user-avatar-head,
+.final-user-card .user-avatar-head {
+  overflow: visible;
+}
+
+.global-user-button--final .user-avatar-head .cristalix-head__layers,
+.final-user-card .user-avatar-head .cristalix-head__layers {
+  width: 76%;
+  height: 76%;
+}
+
 .events-r2-query-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 58px;
@@ -147,6 +202,17 @@
 }
 
 @media (max-width: 374px) {
+  .account-root-user-entry {
+    min-height: 44px;
+    margin-bottom: 0;
+  }
+
+  .account-root-user-entry > .global-user-button--final {
+    flex-basis: 42px;
+    width: 42px !important;
+    height: 42px !important;
+  }
+
   .events-r2-query-row {
     grid-template-columns: minmax(0, 1fr) 52px;
     gap: 8px;
