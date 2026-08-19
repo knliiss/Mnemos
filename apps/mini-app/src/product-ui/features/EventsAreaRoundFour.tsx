@@ -1,7 +1,8 @@
 import type { Account, Route } from "../model"
-import { EventDetailRoundFour } from "./EventDetailRoundFour"
+import { EventDetailProduction } from "./EventDetailProduction"
 import { EventsArea as EventsAreaRethink } from "./EventsAreaRethink"
 import { EventsFeedProduction } from "./EventsFeedProduction"
+import { SubscriptionsProduction } from "./SubscriptionsProduction"
 
 type Props = {
   routeId: Route["id"]
@@ -23,13 +24,17 @@ export function EventsArea(props: Props) {
 
   if (props.routeId === "event-detail") {
     return (
-      <EventDetailRoundFour
+      <EventDetailProduction
         eventId={props.params?.eventId}
         activeAccount={props.activeAccount}
         navigate={props.navigate}
         back={props.back}
       />
     )
+  }
+
+  if (props.routeId === "subscriptions") {
+    return <SubscriptionsProduction back={props.back} />
   }
 
   return <EventsAreaRethink {...props} />
