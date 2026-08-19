@@ -1,5 +1,5 @@
 export const betsProductUk = {
-  bets: {
+  productBets: {
     title: "Ставки",
     modes: {
       EVENTS: "Події",
