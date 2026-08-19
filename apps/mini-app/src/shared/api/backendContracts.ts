@@ -20,6 +20,7 @@ export type UserResponse = {
 
 export type AccountSummaryResponse = {
   id: string
+  cristalixUuid: string
   cristalixNickname: string
   currentMemberId: string
   memberCount: number
@@ -29,7 +30,6 @@ export type AccountSummaryResponse = {
 }
 
 export type AccountDetailsResponse = AccountSummaryResponse & {
-  cristalixUuid: string
   createdAt: string
   updatedAt: string
 }
