@@ -10,6 +10,7 @@ import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeatureRethink"
 import { EventsArea } from "./features/EventsAreaRoundFour"
 import { ModerationHomePolished } from "./features/ModerationHomePolished"
+import { NotFoundFeature } from "./features/NotFoundFeature"
 import { PeopleFeatureFinal } from "./features/PeopleFeatureFinal"
 import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFinal"
 import { StaffAreaOverhaul } from "./features/StaffAreaOverhaul"
@@ -38,7 +39,8 @@ export default function AppFinal() {
 
   const current = stack[stack.length - 1]
   const area = featureArea(current.id)
-  const rootRoute = isRootRoute(current.id) ? current.id : null
+  const notFound = current.id === "account" && current.params?.notFound === "true"
+  const rootRoute = !notFound && isRootRoute(current.id) ? current.id : null
 
   const rememberScroll = () => {
     scrollPositions.current[routeKey(current)] = routeStageRef.current?.scrollTop ?? 0
@@ -104,32 +106,39 @@ export default function AppFinal() {
     setAccountPickerOpen(false)
   }
 
-  const content = area === "events"
-    ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
-    : area === "account"
-      ? (
-          <AccountAreaFinal
-            routeId={current.id}
-            params={current.params}
-            activeAccount={activeAccount}
-            setActiveAccount={setActiveAccount}
-            accounts={accounts}
-            setAccounts={setAccounts}
-            navigate={navigate}
-            back={back}
-          />
-        )
-      : area === "people"
-        ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
-        : area === "personalization"
-          ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
-          : area === "creator"
-            ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
-            : current.id === "moderation"
-              ? <ModerationHomePolished navigate={navigate} back={back} />
-              : current.id === "administration"
-                ? <AdministrationHome navigate={navigate} back={back} />
-                : <StaffAreaOverhaul routeId={current.id} params={current.params} navigate={navigate} back={back} />
+  const content = notFound
+    ? (
+        <NotFoundFeature
+          requested={current.params?.requested}
+          onHome={() => switchRoot("account")}
+        />
+      )
+    : area === "events"
+      ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
+      : area === "account"
+        ? (
+            <AccountAreaFinal
+              routeId={current.id}
+              params={current.params}
+              activeAccount={activeAccount}
+              setActiveAccount={setActiveAccount}
+              accounts={accounts}
+              setAccounts={setAccounts}
+              navigate={navigate}
+              back={back}
+            />
+          )
+        : area === "people"
+          ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
+          : area === "personalization"
+            ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
+            : area === "creator"
+              ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
+              : current.id === "moderation"
+                ? <ModerationHomePolished navigate={navigate} back={back} />
+                : current.id === "administration"
+                  ? <AdministrationHome navigate={navigate} back={back} />
+                  : <StaffAreaOverhaul routeId={current.id} params={current.params} navigate={navigate} back={back} />
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
