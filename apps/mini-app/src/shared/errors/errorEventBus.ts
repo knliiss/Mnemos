@@ -19,6 +19,8 @@ export const errorEvents = {
   subscribe(listener: ErrorEventListener) {
     listeners.add(listener)
 
-    return () => listeners.delete(listener)
+    return () => {
+      listeners.delete(listener)
+    }
   },
 }
