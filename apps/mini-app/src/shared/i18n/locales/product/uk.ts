@@ -1,6 +1,7 @@
 import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 import { creatorProductUk } from "./creator/uk"
+import { eventsProductUk } from "./events/uk"
 import { personalizationProductUk } from "./personalization/uk"
 
 export const productUk = {
@@ -143,6 +144,7 @@ export const productUk = {
   },
   ...accountProductUk,
   ...creatorProductUk,
+  ...eventsProductUk,
   ...personalizationProductUk,
   ...betAdminUk,
 } as const
