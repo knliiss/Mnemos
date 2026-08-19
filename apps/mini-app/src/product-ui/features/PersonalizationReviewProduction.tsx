@@ -172,10 +172,10 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
               <span className="review-queue-card__copy">
                 <span className="review-queue-card__meta">
                   <small>{t(`personalization.types.${item.type}.title`)}</small>
-                  <i className={`is-${item.target.toLowerCase()}`}>{item.target}</i>
+                  <i className={`is-${item.target.toLowerCase()}`}>{t(`personalization.target.${item.target}`)}</i>
                 </span>
                 <strong>{item.name}</strong>
-                <em>by {item.creator}</em>
+                <em>{t("personalization.review.by", { creator: item.creator })}</em>
               </span>
               <span className="review-queue-card__side">
                 <CurrencyValue currency={item.currency} value={item.price} compact />
@@ -195,7 +195,7 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
             <span>
               <small>{t("personalization.review.selected")}</small>
               <strong>{selected.name}</strong>
-              <em>{t(`personalization.types.${selected.type}.title`)} · {selected.target}</em>
+              <em>{t(`personalization.types.${selected.type}.title`)} · {t(`personalization.target.${selected.target}`)}</em>
             </span>
             <button aria-label={t("personalization.review.close")} onClick={() => setSelectedId(null)}>
               <Glyph name="close" size={16} />
@@ -207,7 +207,7 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
 
           <div className="review-metadata">
             <article><small>{t("personalization.review.author")}</small><strong>{selected.creator}</strong></article>
-            <article><small>{t("personalization.review.scope")}</small><strong>{selected.target}</strong></article>
+            <article><small>{t("personalization.review.scope")}</small><strong>{t(`personalization.target.${selected.target}`)}</strong></article>
             <article><small>{t("personalization.review.status")}</small><strong>{t(`creator.status.${selected.status}`)}</strong></article>
           </div>
 
