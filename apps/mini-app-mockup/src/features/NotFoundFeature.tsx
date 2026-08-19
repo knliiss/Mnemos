@@ -16,17 +16,10 @@ export function NotFoundFeature({ requested, onHome }: Props) {
           <i>4</i>
         </span>
 
-        <motion.img
+        <img
           className="not-found-r5-mascot"
           src="/ui-illustrations/mnemos-mascot-404.svg"
           alt="Збентежений маскот Mnemos з картою"
-          initial={{ opacity: 0, y: 8, scale: 0.97 }}
-          animate={{ opacity: 1, y: [0, -2, 0], scale: 1 }}
-          transition={{
-            opacity: { duration: 0.3 },
-            scale: { duration: 0.35 },
-            y: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
-          }}
         />
 
         <div className="not-found-r5-copy">
