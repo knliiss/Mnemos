@@ -20,6 +20,7 @@ data class EventFeedQuery(
     val limit: Int,
     val kinds: Set<EventFeedKind> = EventFeedKind.entries.toSet(),
     val search: String? = null,
+    val droppedFor: String? = null,
     val itemRarity: DomainItemRarity? = null,
     val sort: EventFeedSort = EventFeedSort.NEWEST,
 )
