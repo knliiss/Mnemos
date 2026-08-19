@@ -182,10 +182,23 @@ export default function AppFinal() {
               animate={{ opacity: 1 }}
             >
               {rootRoute && activeAccount ? (
-                <UserHubTrigger
-                  open={userHubOpen}
-                  onToggle={toggleUserHub}
-                />
+                rootRoute === "account" ? (
+                  <div className="account-root-user-entry">
+                    <span className="account-root-user-entry__identity">
+                      <small>MNEMOS USER</small>
+                      <strong>@{product.user.username}</strong>
+                    </span>
+                    <UserHubTrigger
+                      open={userHubOpen}
+                      onToggle={toggleUserHub}
+                    />
+                  </div>
+                ) : (
+                  <UserHubTrigger
+                    open={userHubOpen}
+                    onToggle={toggleUserHub}
+                  />
+                )
               ) : null}
               {content}
             </motion.div>
@@ -329,6 +342,19 @@ function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => voi
 }
 
 function UserAvatarPlaceholder({ className, size }: { className?: string; size: number }) {
+  const product = useProductData()
+  const skinUrl = product.activeAccount?.skinUrl
+
+  if (skinUrl) {
+    return (
+      <CristalixHead
+        className={`${className ?? ""} user-avatar-head`.trim()}
+        skinUrl={skinUrl}
+        size={size}
+      />
+    )
+  }
+
   return (
     <span
       className={`user-avatar-placeholder ${className ?? ""}`.trim()}
