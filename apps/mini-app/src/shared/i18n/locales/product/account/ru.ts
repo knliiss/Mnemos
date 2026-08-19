@@ -1,3 +1,4 @@
+import { accountHomeRu } from "./home/ru"
 import { accountRolesRu } from "./roles/ru"
 import { accountSettingsRu } from "./settings/ru"
 
@@ -98,6 +99,7 @@ export const accountProductRu = {
       ADMIN_ADJUSTMENT: "Корректировка администратором",
     },
   },
+  ...accountHomeRu,
   ...accountRolesRu,
   ...accountSettingsRu,
 } as const
