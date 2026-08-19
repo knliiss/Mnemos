@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createComment,
   deleteComment,
@@ -70,6 +71,7 @@ export function PeopleFeatureProduction(props: Props) {
 }
 
 function SearchProduction({ navigate }: Props) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PublicProfileResponse[]>([])
   const [searching, setSearching] = useState(false)
@@ -111,8 +113,8 @@ function SearchProduction({ navigate }: Props) {
   return (
     <div className="screen search-root-screen root-screen">
       <header className="root-title-block">
-        <h1>Пошук</h1>
-        <p>Аккаунти Mnemos</p>
+        <h1>{t("people.search.title")}</h1>
+        <p>{t("people.search.description")}</p>
       </header>
 
       <label className="search-root-input">
@@ -125,7 +127,7 @@ function SearchProduction({ navigate }: Props) {
           autoCorrect="off"
         />
         {query ? (
-          <button onClick={() => changeQuery("")} aria-label="Очистити">
+          <button onClick={() => changeQuery("")} aria-label={t("people.search.clear")}>
             <Glyph name="close" size={15} />
           </button>
         ) : null}
@@ -134,21 +136,21 @@ function SearchProduction({ navigate }: Props) {
       {!normalizedQuery ? (
         <section className="search-root-empty">
           <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
-          <strong>Знайди Cristalix аккаунт</strong>
-          <small>Пошук працює по nickname і відкриває публічний профіль Mnemos.</small>
+          <strong>{t("people.search.emptyTitle")}</strong>
+          <small>{t("people.search.emptyCopy")}</small>
         </section>
       ) : null}
 
-      {normalizedQuery.length === 1 ? <p className="search-root-hint">Введи ще один символ</p> : null}
-      {searching ? <p className="search-root-hint">Шукаємо…</p> : null}
+      {normalizedQuery.length === 1 ? <p className="search-root-hint">{t("people.search.oneMore")}</p> : null}
+      {searching ? <p className="search-root-hint">{t("people.search.searching")}</p> : null}
       {normalizedQuery.length >= 2 && !searching && !results.length ? (
-        <p className="search-root-hint">Нічого не знайдено</p>
+        <p className="search-root-hint">{t("people.search.nothingFound")}</p>
       ) : null}
 
       {results.length ? (
         <section className="search-result-panel">
           <div className="search-result-panel__head">
-            <span>Результати</span>
+            <span>{t("people.search.results")}</span>
             <b>{results.length}</b>
           </div>
 
@@ -160,7 +162,7 @@ function SearchProduction({ navigate }: Props) {
               <CristalixHead skinUrl={skinUrl(profile.cristalixUuid)} size={46} />
               <span>
                 <strong style={nicknameStyle(profile)}>{profile.cristalixNickname}</strong>
-                <small>{profile.comments} коментарів</small>
+                <small>{t("people.search.commentsCount", { count: profile.comments })}</small>
               </span>
               <span className="search-result-stats">
                 <b>↑ {profile.likes}</b>
@@ -175,6 +177,7 @@ function SearchProduction({ navigate }: Props) {
 }
 
 function PublicProfileProduction({ activeAccount, params, navigate, back }: Props) {
+  const { t, i18n } = useTranslation()
   const accountId = params?.accountId ?? ""
   const [profile, setProfile] = useState<PublicProfileResponse | null>(null)
   const [reaction, setReaction] = useState<AccountReactionType | null>(null)
@@ -190,6 +193,7 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   const [replyDraft, setReplyDraft] = useState("")
   const [openReplies, setOpenReplies] = useState<string | null>(null)
   const [replies, setReplies] = useState<ReplyMap>({})
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const refreshProfileSummary = useCallback(async () => {
     if (!accountId) return
@@ -333,7 +337,7 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
       await deleteComment(commentId)
 
       setComments((current) => current.map((comment) => comment.id === commentId
-        ? { ...comment, content: "Коментар видалено", deleted: true }
+        ? { ...comment, content: "", deleted: true }
         : comment))
       await refreshProfileSummary()
     } catch (error) {
@@ -429,8 +433,8 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   if (loading && !profile) {
     return (
       <div className="screen profile-r2-screen">
-        <PageHeader title="Профіль" back={back} />
-        <div className="events-r2-loading" aria-label="Завантаження профілю"><i /><i /><i /></div>
+        <PageHeader title={t("people.profile.title")} back={back} />
+        <div className="events-r2-loading" aria-label={t("people.profile.loading")}><i /><i /><i /></div>
       </div>
     )
   }
@@ -438,11 +442,11 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
   if (!profile) {
     return (
       <div className="screen profile-r2-screen">
-        <PageHeader title="Профіль" back={back} />
+        <PageHeader title={t("people.profile.title")} back={back} />
         <section className="events-r2-empty">
           <Glyph name="profile-mark" size={24} />
-          <strong>Профіль не знайдено</strong>
-          <small>Аккаунт міг бути деактивований або видалений.</small>
+          <strong>{t("people.profile.notFoundTitle")}</strong>
+          <small>{t("people.profile.notFoundCopy")}</small>
         </section>
       </div>
     )
@@ -450,7 +454,7 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
 
   return (
     <div className="screen profile-r2-screen">
-      <PageHeader title="Профіль" back={back} />
+      <PageHeader title={t("people.profile.title")} back={back} />
 
       <motion.section className="profile-r2-hero" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
         <div className="profile-r2-hero__mesh" aria-hidden="true"><i /><i /><i /><i /></div>
@@ -460,7 +464,7 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
         </div>
 
         <div className="profile-r2-identity">
-          <small>{ownProfile ? "ТВІЙ ACCOUNT" : "ACCOUNT CARD"}</small>
+          <small>{ownProfile ? t("people.profile.ownAccount") : t("people.profile.accountCard")}</small>
           <strong style={nicknameStyle(profile)}>{profile.cristalixNickname}</strong>
           <span>{profile.cristalixUuid.slice(0, 8)}</span>
         </div>
@@ -488,13 +492,13 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
       </motion.section>
 
       <section className="profile-r2-snapshot">
-        <article><small>ДРОПИ</small><strong>{drops.length}</strong><em>останні</em></article>
-        <article><small>КОМЕНТАРІ</small><strong>{profile.comments}</strong><em>на профілі</em></article>
-        <article><small>РЕПУТАЦІЯ</small><strong>{profile.likes - profile.dislikes}</strong><em>баланс</em></article>
+        <article><small>{t("people.profile.drops")}</small><strong>{drops.length}</strong><em>{t("people.profile.latest")}</em></article>
+        <article><small>{t("people.profile.comments")}</small><strong>{profile.comments}</strong><em>{t("people.profile.onProfile")}</em></article>
+        <article><small>{t("people.profile.reputation")}</small><strong>{profile.likes - profile.dislikes}</strong><em>{t("people.profile.balance")}</em></article>
       </section>
 
       <header className="profile-r2-section-head">
-        <span><small>АКТИВНІСТЬ</small><strong>Останні дропи</strong></span>
+        <span><small>{t("people.profile.activity")}</small><strong>{t("people.profile.latestDrops")}</strong></span>
         <b>{drops.length}</b>
       </header>
 
@@ -511,9 +515,9 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
           >
             <span className="profile-r2-drop__art"><EventArt event={drop} size={54} /></span>
             <span className="profile-r2-drop__copy">
-              <small>{localizeRarity(drop.rarity) ?? "Дроп"}</small>
+              <small>{rarityLabel(drop.rarity, t)}</small>
               <strong>{drop.title}</strong>
-              <em>{formatOccurredAt(drop.occurredAt)}</em>
+              <em>{formatOccurredAt(drop.occurredAt, locale)}</em>
             </span>
             <span className="profile-r2-drop__index">0{index + 1}</span>
           </motion.button>
@@ -522,13 +526,13 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
         {!drops.length ? (
           <div className="events-r2-empty">
             <Glyph name="item-drop" size={22} />
-            <strong>Останніх дропів немає</strong>
+            <strong>{t("people.profile.noDrops")}</strong>
           </div>
         ) : null}
       </section>
 
       <header className="profile-r2-section-head profile-r2-comments-head">
-        <span><small>СОЦІАЛЬНЕ</small><strong>Коментарі</strong></span>
+        <span><small>{t("people.profile.social")}</small><strong>{t("people.profile.comments")}</strong></span>
         <b>{profile.comments}</b>
       </header>
 
@@ -539,12 +543,12 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
           maxLength={500}
           disabled={commentBusyId === "new"}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Написати щось про цей аккаунт"
+          placeholder={t("people.profile.writePlaceholder")}
         />
         <motion.button
           whileTap={{ scale: 0.94 }}
           disabled={!draft.trim() || commentBusyId === "new"}
-          aria-label="Надіслати"
+          aria-label={t("people.profile.send")}
         >
           <Glyph name="send" size={16} />
         </motion.button>
@@ -566,14 +570,14 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
               <div className="profile-r2-comment__body">
                 <header>
                   <strong>{comment.author}</strong>
-                  <time>{formatOccurredAt(comment.createdAt)}</time>
+                  <time>{formatOccurredAt(comment.createdAt, locale)}</time>
                   {!comment.deleted && comment.authorAccountId === activeAccount.id ? (
                     <span className="comment__owner-actions">
-                      <button aria-label="Редагувати" onClick={() => startEdit(comment)}>
+                      <button aria-label={t("people.profile.edit")} onClick={() => startEdit(comment)}>
                         <Glyph name="edit" size={13} />
                       </button>
                       <button
-                        aria-label="Видалити"
+                        aria-label={t("people.profile.delete")}
                         disabled={commentBusyId !== null}
                         onClick={() => void removeComment(comment.id)}
                       >
@@ -591,14 +595,14 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
                       onChange={(event) => setEditDraft(event.target.value)}
                     />
                     <button
-                      aria-label="Зберегти"
+                      aria-label={t("people.profile.save")}
                       disabled={!editDraft.trim() || commentBusyId !== null}
                       onClick={() => void saveEdit(comment.id)}
                     >
                       <Glyph name="check" size={14} />
                     </button>
                   </div>
-                ) : <p>{comment.content}</p>}
+                ) : <p>{comment.deleted ? t("people.profile.deletedComment") : comment.content}</p>}
 
                 {!comment.deleted ? (
                   <footer>
@@ -611,11 +615,11 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
                       {comment.likes || ""}
                     </button>
                     <button onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}>
-                      Відповісти
+                      {t("people.profile.reply")}
                     </button>
                     {comment.replies ? (
                       <button onClick={() => void toggleReplies(comment)}>
-                        {comment.replies} відповідей
+                        {t("people.profile.replies", { count: comment.replies })}
                       </button>
                     ) : null}
                   </footer>
@@ -631,6 +635,7 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
                       placeholder={`@${comment.author}`}
                     />
                     <button
+                      aria-label={t("people.profile.send")}
                       disabled={!replyDraft.trim() || commentBusyId !== null}
                       onClick={() => void submitReply(comment)}
                     >
@@ -644,8 +649,8 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
                     {(replies[comment.id] ?? []).map((reply) => (
                       <div key={reply.id}>
                         <strong>{reply.author}</strong>
-                        <span>{reply.content}</span>
-                        <small>{formatOccurredAt(reply.createdAt)}</small>
+                        <span>{reply.deleted ? t("people.profile.deletedComment") : reply.content}</span>
+                        <small>{formatOccurredAt(reply.createdAt, locale)}</small>
                       </div>
                     ))}
                   </div>
@@ -659,8 +664,8 @@ function PublicProfileProduction({ activeAccount, params, navigate, back }: Prop
         {!comments.length ? (
           <div className="events-r2-empty">
             <Glyph name="profile-mark" size={22} />
-            <strong>Коментарів ще немає</strong>
-            <small>Можеш залишити перший.</small>
+            <strong>{t("people.profile.noComments")}</strong>
+            <small>{t("people.profile.firstComment")}</small>
           </div>
         ) : null}
       </section>
@@ -703,7 +708,7 @@ function toCommentView(comment: CommentResponse, authorNames: Map<string, string
     id: comment.id,
     authorAccountId: comment.authorAccountId,
     author: authorNames.get(comment.authorAccountId) ?? shortAccountId(comment.authorAccountId),
-    content: comment.deleted ? "Коментар видалено" : comment.content ?? "",
+    content: comment.deleted ? "" : comment.content ?? "",
     deleted: comment.deleted,
     likes: comment.likes,
     replies: comment.replies,
@@ -739,8 +744,13 @@ function shortAccountId(accountId: string) {
   return `#${accountId.slice(0, 8)}`
 }
 
-function localizeRarity(value?: string) {
-  if (value === "MYTHICAL") return "Міфічний"
-  if (value === "SECRET") return "Секретний"
-  return value
+function rarityLabel(value: string | undefined, t: ReturnType<typeof useTranslation>["t"]) {
+  if (!value) return t("events.kinds.ITEM_DROP")
+  return t(`people.profile.rarities.${value}`, { defaultValue: value })
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
