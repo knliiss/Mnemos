@@ -1,5 +1,6 @@
 import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
+import { creatorProductUk } from "./creator/uk"
 import { personalizationProductUk } from "./personalization/uk"
 
 export const productUk = {
@@ -141,6 +142,7 @@ export const productUk = {
     noBadges: "Бейджів ще немає",
   },
   ...accountProductUk,
+  ...creatorProductUk,
   ...personalizationProductUk,
   ...betAdminUk,
 } as const
