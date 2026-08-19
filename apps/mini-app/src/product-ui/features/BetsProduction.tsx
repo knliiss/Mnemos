@@ -1,5 +1,7 @@
+import type { TFunction } from "i18next"
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   increaseEventBet,
   increaseItemRaceBet,
@@ -19,7 +21,6 @@ import { BET_SIDES } from "../contracts"
 import { useProductData } from "../data/ProductDataProvider"
 import { globalEventVisualTone } from "../eventVisualTone"
 import type { Account, BetSide, Route } from "../model"
-import { globalEventLabels, itemTypeLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { BottomSheet, CurrencyValue, Field } from "../shared/Primitives"
 
@@ -35,7 +36,10 @@ type SelectedRace = {
   position: ItemRaceParticipantResponse | null
 }
 
+const betModes: BetMode[] = ["EVENTS", "MY", "RACES"]
+
 export function BetsProduction({ activeAccount, navigate }: Props) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const refreshAccount = product.refreshAccount
   const [mode, setMode] = useState<BetMode>("EVENTS")
@@ -48,6 +52,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
   const [amount, setAmount] = useState("500")
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const refresh = useCallback(async () => {
     try {
@@ -161,7 +166,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
       <header className="root-title-block bets-r2-title">
         <span>
           <small>MNEMOS BETS</small>
-          <h1>Ставки</h1>
+          <h1>{t("bets.title")}</h1>
           <p>{activeAccount.nickname}</p>
         </span>
         <button className="bets-r2-wallet" onClick={() => navigate({ id: "account-wallet" })}>
@@ -170,15 +175,15 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
       </header>
 
       <nav className="bets-r2-mode">
-        {(["EVENTS", "MY", "RACES"] as const).map((value) => (
+        {betModes.map((value) => (
           <button key={value} className={mode === value ? "is-active" : ""} onClick={() => setMode(value)}>
-            <span>{value === "EVENTS" ? "Події" : value === "MY" ? "Мої" : "Перегони"}</span>
+            <span>{t(`bets.modes.${value}`)}</span>
             {value === "MY" && myRounds.length + myRaces.length ? <b>{myRounds.length + myRaces.length}</b> : null}
           </button>
         ))}
       </nav>
 
-      {loading ? <div className="events-r2-loading" aria-label="Завантаження ставок"><i /><i /><i /></div> : null}
+      {loading ? <div className="events-r2-loading" aria-label={t("bets.loading")}><i /><i /><i /></div> : null}
 
       {!loading && mode === "EVENTS" ? (
         <>
@@ -190,14 +195,14 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
             >
               <span className="bets-r2-feature__art"><GlobalEventArt eventType={featured.eventType} size={82} /></span>
               <span className="bets-r2-feature__copy">
-                <small>{featured.status === "OPEN" ? "НАСТУПНИЙ РАУНД" : roundStatusLabel(featured.status)}</small>
-                <strong>{globalEventLabels[featured.eventType]}</strong>
-                <em>Закриття {formatMoment(featured.closesAt)}</em>
+                <small>{featured.status === "OPEN" ? t("bets.nextRound") : roundStatusLabel(t, featured.status)}</small>
+                <strong>{globalEventLabel(t, featured.eventType)}</strong>
+                <em>{t("bets.closes", { time: formatMoment(featured.closesAt, locale) })}</em>
               </span>
               <span className="bets-r2-feature__odds">
-                <span><small>ТАК</small><strong>{formatOdds(featured.yesOdds)}</strong></span>
+                <span><small>{t("bets.yesUpper")}</small><strong>{formatOdds(featured.yesOdds, locale)}</strong></span>
                 <i />
-                <span><small>НІ</small><strong>{formatOdds(featured.noOdds)}</strong></span>
+                <span><small>{t("bets.noUpper")}</small><strong>{formatOdds(featured.noOdds, locale)}</strong></span>
               </span>
               {featured.myBet ? (
                 <span className="bets-r2-feature__mine">
@@ -206,14 +211,22 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               ) : null}
             </motion.button>
           ) : (
-            <EmptyBets title="Раундів зараз немає" note="Нові раунди зʼявляться за розкладом." />
+            <EmptyBets title={t("bets.empty.roundsTitle")} note={t("bets.empty.roundsCopy")} />
           )}
 
           {eventRounds.length ? (
             <>
-              <header className="bets-r2-section-head"><span><small>ЩЕ РАУНДИ</small><strong>{eventRounds.length}</strong></span></header>
+              <header className="bets-r2-section-head"><span><small>{t("bets.moreRounds")}</small><strong>{eventRounds.length}</strong></span></header>
               <section className="bets-r2-rounds">
-                {eventRounds.map((round) => <BetRoundCard key={round.id} round={round} onClick={() => openRound(round)} />)}
+                {eventRounds.map((round) => (
+                  <BetRoundCard
+                    key={round.id}
+                    round={round}
+                    locale={locale}
+                    t={t}
+                    onClick={() => openRound(round)}
+                  />
+                ))}
               </section>
             </>
           ) : null}
@@ -222,17 +235,27 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
 
       {!loading && mode === "MY" ? (
         <section className="bets-r2-rounds">
-          {myRounds.map((round) => <BetRoundCard key={round.id} round={round} onClick={() => openRound(round)} />)}
+          {myRounds.map((round) => (
+            <BetRoundCard
+              key={round.id}
+              round={round}
+              locale={locale}
+              t={t}
+              onClick={() => openRound(round)}
+            />
+          ))}
           {myRaces.map((race) => (
             <BetRaceCard
               key={race.id}
               race={race}
               position={positionsByRace.get(race.id) ?? null}
+              locale={locale}
+              t={t}
               onClick={() => openRace(race)}
             />
           ))}
           {!myRounds.length && !myRaces.length ? (
-            <EmptyBets title="Позицій ще немає" note="Відкрий раунд і зроби першу ставку." />
+            <EmptyBets title={t("bets.empty.myTitle")} note={t("bets.empty.myCopy")} />
           ) : null}
         </section>
       ) : null}
@@ -244,23 +267,25 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               key={race.id}
               race={race}
               position={positionsByRace.get(race.id) ?? null}
+              locale={locale}
+              t={t}
               onClick={() => openRace(race)}
             />
           ))}
-          {!races.length ? <EmptyBets title="Перегонів зараз немає" note="Активні перегони зʼявляться тут." /> : null}
+          {!races.length ? <EmptyBets title={t("bets.empty.racesTitle")} note={t("bets.empty.racesCopy")} /> : null}
         </section>
       ) : null}
 
       <AnimatePresence>
         {selectedRound ? (
-          <BottomSheet title={globalEventLabels[selectedRound.eventType]} onClose={() => !busy && setSelectedRound(null)}>
+          <BottomSheet title={globalEventLabel(t, selectedRound.eventType)} onClose={() => !busy && setSelectedRound(null)}>
             <div className="bets-r2-sheet">
               <div className="bets-r2-sheet__event">
                 <GlobalEventArt eventType={selectedRound.eventType} size={56} />
                 <span>
-                  <small>{roundStatusLabel(selectedRound.status)}</small>
-                  <strong>{formatMoment(selectedRound.scheduledAt)}</strong>
-                  <em>до {formatMoment(selectedRound.closesAt)}</em>
+                  <small>{roundStatusLabel(t, selectedRound.status)}</small>
+                  <strong>{formatMoment(selectedRound.scheduledAt, locale)}</strong>
+                  <em>{t("bets.sheet.until", { time: formatMoment(selectedRound.closesAt, locale) })}</em>
                 </span>
               </div>
 
@@ -268,22 +293,22 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 <div className="bets-r2-side-choice">
                   {BET_SIDES.map((value) => (
                     <button key={value} disabled={busy} className={side === value ? "is-active" : ""} onClick={() => setSide(value)}>
-                      <span>{value === "YES" ? "Так" : "Ні"}</span>
-                      <strong>× {formatOdds(value === "YES" ? selectedRound.yesOdds : selectedRound.noOdds)}</strong>
+                      <span>{value === "YES" ? t("bets.yes") : t("bets.no")}</span>
+                      <strong>× {formatOdds(value === "YES" ? selectedRound.yesOdds : selectedRound.noOdds, locale)}</strong>
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="bets-r2-current-position">
                   <span>
-                    <small>Твоя позиція</small>
-                    <strong>{selectedRound.myBet.side === "YES" ? "Так" : "Ні"}</strong>
+                    <small>{t("bets.sheet.yourPosition")}</small>
+                    <strong>{selectedRound.myBet.side === "YES" ? t("bets.yes") : t("bets.no")}</strong>
                   </span>
                   <CurrencyValue currency="COIN" value={betAmount(selectedRound.myBet)} compact />
                 </div>
               )}
 
-              <Field label={selectedRound.myBet ? "Збільшити на" : "Сума"}>
+              <Field label={selectedRound.myBet ? t("bets.sheet.increaseBy") : t("bets.sheet.amount")}>
                 <div className="bets-r2-amount">
                   <CurrencyMark currency="COIN" size={16} />
                   <input
@@ -302,7 +327,11 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 disabled={!amountValid || selectedRound.status !== "OPEN" || busy}
                 onClick={() => void submitRound()}
               >
-                {busy ? "Надсилаємо…" : selectedRound.myBet ? "Збільшити" : "Поставити"}
+                {busy
+                  ? t("bets.sheet.sending")
+                  : selectedRound.myBet
+                    ? t("bets.sheet.increase")
+                    : t("bets.sheet.place")}
               </button>
             </div>
           </BottomSheet>
@@ -314,16 +343,20 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               <div className="bets-r2-sheet__event">
                 <ItemTypeArt itemType={selectedRace.race.itemType} size={56} />
                 <span>
-                  <small>{itemTypeLabels[selectedRace.race.itemType]}</small>
-                  <strong>{raceStatusLabel(selectedRace.race.status)}</strong>
-                  <em>реєстрація до {formatMoment(selectedRace.race.registrationClosesAt)}</em>
+                  <small>{itemTypeLabel(t, selectedRace.race.itemType)}</small>
+                  <strong>{raceStatusLabel(t, selectedRace.race.status)}</strong>
+                  <em>{t("bets.race.registrationUntil", { time: formatMoment(selectedRace.race.registrationClosesAt, locale) })}</em>
                 </span>
               </div>
 
               <div className="bets-r2-current-position">
                 <span>
-                  <small>{selectedRace.position ? "Твоя сума" : "Вхід"}</small>
-                  <strong>{selectedRace.position ? "Участь активна" : `Комісія ${selectedRace.race.feePercent}%`}</strong>
+                  <small>{selectedRace.position ? t("bets.race.yourAmount") : t("bets.race.entry")}</small>
+                  <strong>
+                    {selectedRace.position
+                      ? t("bets.race.activeParticipation")
+                      : t("bets.race.fee", { percent: selectedRace.race.feePercent })}
+                  </strong>
                 </span>
                 <CurrencyValue
                   currency="COIN"
@@ -333,7 +366,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               </div>
 
               {selectedRace.position ? (
-                <Field label="Збільшити на">
+                <Field label={t("bets.sheet.increaseBy")}>
                   <div className="bets-r2-amount">
                     <CurrencyMark currency="COIN" size={16} />
                     <input
@@ -356,7 +389,11 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 }
                 onClick={() => void submitRace()}
               >
-                {busy ? "Надсилаємо…" : selectedRace.position ? "Збільшити" : "Приєднатись"}
+                {busy
+                  ? t("bets.sheet.sending")
+                  : selectedRace.position
+                    ? t("bets.sheet.increase")
+                    : t("bets.race.join")}
               </button>
             </div>
           </BottomSheet>
@@ -366,7 +403,17 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
   )
 }
 
-function BetRoundCard({ round, onClick }: { round: EventBetRoundResponse; onClick: () => void }) {
+function BetRoundCard({
+  round,
+  locale,
+  t,
+  onClick,
+}: {
+  round: EventBetRoundResponse
+  locale: string
+  t: TFunction
+  onClick: () => void
+}) {
   return (
     <motion.button
       className={`bets-r2-card event-surface--${globalEventVisualTone(round.eventType)} ${round.status !== "OPEN" ? "is-locked" : ""}`}
@@ -375,11 +422,13 @@ function BetRoundCard({ round, onClick }: { round: EventBetRoundResponse; onClic
     >
       <span className="bets-r2-card__art"><GlobalEventArt eventType={round.eventType} size={52} /></span>
       <span className="bets-r2-card__copy">
-        <small>{globalEventLabels[round.eventType]}</small>
-        <strong>{roundStatusLabel(round.status)}</strong>
-        <em>{formatMoment(round.closesAt)}</em>
+        <small>{globalEventLabel(t, round.eventType)}</small>
+        <strong>{roundStatusLabel(t, round.status)}</strong>
+        <em>{formatMoment(round.closesAt, locale)}</em>
       </span>
-      <span className="bets-r2-card__odds"><b>{formatOdds(round.yesOdds)}</b><i /><b>{formatOdds(round.noOdds)}</b></span>
+      <span className="bets-r2-card__odds">
+        <b>{formatOdds(round.yesOdds, locale)}</b><i /><b>{formatOdds(round.noOdds, locale)}</b>
+      </span>
       {round.myBet ? (
         <span className="bets-r2-card__mine"><CurrencyMark currency="COIN" size={12} />{betAmount(round.myBet)}</span>
       ) : null}
@@ -390,22 +439,26 @@ function BetRoundCard({ round, onClick }: { round: EventBetRoundResponse; onClic
 function BetRaceCard({
   race,
   position,
+  locale,
+  t,
   onClick,
 }: {
   race: ItemRaceResponse
   position: ItemRaceParticipantResponse | null
+  locale: string
+  t: TFunction
   onClick: () => void
 }) {
   return (
     <motion.button className="bets-r2-race" whileTap={{ scale: 0.992 }} onClick={onClick}>
       <span className="bets-r2-race__art"><ItemTypeArt itemType={race.itemType} size={54} /></span>
       <span className="bets-r2-race__copy">
-        <small>{itemTypeLabels[race.itemType]}</small>
+        <small>{itemTypeLabel(t, race.itemType)}</small>
         <strong>{race.itemName}</strong>
-        <em>{raceStatusLabel(race.status)} · до {formatMoment(race.registrationClosesAt)}</em>
+        <em>{raceStatusLabel(t, race.status)} · {t("bets.sheet.until", { time: formatMoment(race.registrationClosesAt, locale) })}</em>
       </span>
       <span className="bets-r2-race__entry">
-        <small>{position ? "ТВОЯ" : "ВХІД"}</small>
+        <small>{position ? t("bets.race.yours") : t("bets.race.entryUpper")}</small>
         <CurrencyValue currency="COIN" value={position ? racePositionAmount(position) : race.entryAmount} compact />
       </span>
     </motion.button>
@@ -430,15 +483,23 @@ function racePositionAmount(position: ItemRaceParticipantResponse) {
   return position.confirmedAmount + position.pendingAmount
 }
 
-function formatOdds(value: number) {
-  return Number(value).toLocaleString("uk-UA", { maximumFractionDigits: 2 })
+function globalEventLabel(t: TFunction, eventType: EventBetRoundResponse["eventType"]) {
+  return t(`events.globals.${eventType}`, { defaultValue: eventType })
 }
 
-function formatMoment(value: string) {
+function itemTypeLabel(t: TFunction, itemType: ItemRaceResponse["itemType"]) {
+  return t(`bets.itemTypes.${itemType}`, { defaultValue: itemType })
+}
+
+function formatOdds(value: number, locale: string) {
+  return Number(value).toLocaleString(locale, { maximumFractionDigits: 2 })
+}
+
+function formatMoment(value: string, locale: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  return new Intl.DateTimeFormat("uk-UA", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -446,20 +507,16 @@ function formatMoment(value: string) {
   }).format(date)
 }
 
-function roundStatusLabel(status: EventBetRoundResponse["status"]) {
-  if (status === "OPEN") return "Відкрито"
-  if (status === "LOCKED") return "Закрито"
-  if (status === "AWAITING_RESULT") return "Очікуємо результат"
-  if (status === "AWAITING_ADMIN_CONFIRMATION") return "Очікуємо підтвердження"
-  return "Завершено"
+function roundStatusLabel(t: TFunction, status: EventBetRoundResponse["status"]) {
+  return t(`bets.roundStatus.${status}`, { defaultValue: status })
 }
 
-function raceStatusLabel(status: ItemRaceResponse["status"]) {
-  if (status === "REGISTRATION") return "Реєстрація"
-  if (status === "ACTIVE") return "Триває"
-  if (status === "SETTLING") return "Підрахунок"
-  if (status === "SETTLED") return "Завершено"
-  if (status === "REFUNDING") return "Повернення"
-  if (status === "REFUNDED") return "Повернено"
-  return "Скасовано"
+function raceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]) {
+  return t(`bets.raceStatus.${status}`, { defaultValue: status })
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
