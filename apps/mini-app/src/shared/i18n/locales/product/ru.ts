@@ -1,3 +1,5 @@
+import { betAdminRu } from "./bet-admin/ru"
+
 export const productRu = {
   productShell: {
     navigation: {
@@ -136,4 +138,5 @@ export const productRu = {
     selectUserFirst: "Сначала выберите User",
     noBadges: "Бейджей пока нет",
   },
+  ...betAdminRu,
 } as const
