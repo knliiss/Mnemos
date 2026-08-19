@@ -37,6 +37,7 @@ type SelectedRace = {
 
 export function BetsProduction({ activeAccount, navigate }: Props) {
   const product = useProductData()
+  const refreshAccount = product.refreshAccount
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
@@ -67,15 +68,19 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
   }, [])
 
   useEffect(() => {
-    void refresh()
+    const frame = window.requestAnimationFrame(() => {
+      void refresh()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [refresh])
 
   useEffect(() => realtimeEvents.subscribe((event) => {
     if (event.type !== "bet.operation.completed") return
 
     void refresh()
-    void product.refreshAccount()
-  }), [product.refreshAccount, refresh])
+    void refreshAccount()
+  }), [refreshAccount, refresh])
 
   const positionsByRace = useMemo(
     () => new Map(positions.map((position) => [position.raceId, position])),
