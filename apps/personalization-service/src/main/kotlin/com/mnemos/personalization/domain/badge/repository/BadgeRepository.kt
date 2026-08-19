@@ -14,6 +14,8 @@ interface BadgeRepository {
 
     fun findByCode(code: String): Badge?
 
+    fun findAll(): List<Badge>
+
     fun saveUserBadge(userBadge: UserBadge): UserBadge
 
     fun findUserBadge(
