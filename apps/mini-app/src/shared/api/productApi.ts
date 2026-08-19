@@ -18,6 +18,7 @@ import type {
   DungeonType,
   GlobalEventType,
   LocalizationLanguage,
+  RolePermission,
 } from "@/product-ui/model"
 
 export async function initializeCurrentUser(): Promise<UserResponse> {
@@ -74,6 +75,59 @@ export async function kickAccountMember(accountId: string, memberId: string): Pr
 
 export async function getAccountRoles(accountId: string): Promise<AccountRoleResponse[]> {
   return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/roles`)
+}
+
+export async function createAccountRole(
+  accountId: string,
+  name: string,
+  color: string,
+  permissions: RolePermission[],
+): Promise<AccountRoleResponse> {
+  return api<AccountRoleResponse>(`/api/v1/accounts/${accountId}/roles`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, color, permissions }),
+  })
+}
+
+export async function updateAccountRoleDetails(
+  accountId: string,
+  roleId: string,
+  name: string,
+  color: string,
+): Promise<AccountRoleResponse> {
+  return api<AccountRoleResponse>(`/api/v1/accounts/${accountId}/roles/${roleId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, color }),
+  })
+}
+
+export async function updateAccountRolePermissions(
+  accountId: string,
+  roleId: string,
+  permissions: Partial<Record<RolePermission, boolean>>,
+): Promise<AccountRoleResponse> {
+  return api<AccountRoleResponse>(`/api/v1/accounts/${accountId}/roles/${roleId}/permissions`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ permissions }),
+  })
+}
+
+export async function updateAccountRoleHierarchy(
+  accountId: string,
+  orderedRoleIds: string[],
+): Promise<AccountRoleResponse[]> {
+  return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/roles/hierarchy`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderedRoleIds }),
+  })
+}
+
+export async function deleteAccountRole(accountId: string, roleId: string): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/roles/${roleId}`, { method: "DELETE" })
 }
 
 export async function getMemberRoles(accountId: string, memberId: string): Promise<AccountRoleResponse[]> {
