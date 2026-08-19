@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus
 class PurchaseOperationNotFoundException(
     operationId: PurchaseOperationId,
 ) : AppException(
-    message = "Purchase operation was not found",
-    code = "PURCHASE_OPERATION_NOT_FOUND",
-    httpStatus = HttpStatus.NOT_FOUND,
-    details = mapOf("operationId" to operationId.id),
-)
+        message = "Purchase operation was not found",
+        code = "PURCHASE_OPERATION_NOT_FOUND",
+        httpStatus = HttpStatus.NOT_FOUND,
+        details = mapOf("operationId" to operationId.id),
+    )
