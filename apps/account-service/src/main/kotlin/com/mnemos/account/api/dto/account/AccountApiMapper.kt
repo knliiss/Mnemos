@@ -34,6 +34,7 @@ object AccountApiMapper {
             maxMembers = maxMembers,
             owner = owner,
             active = active,
+            baseRoleId = baseRoleId?.id,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
