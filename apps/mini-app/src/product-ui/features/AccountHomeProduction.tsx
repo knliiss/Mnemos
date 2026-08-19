@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   assignMemberRole,
   getMemberRoles,
@@ -52,11 +53,13 @@ const rewardParticles: RewardParticle[] = [
 ]
 
 export function AccountHomeProduction({ navigate, back, initialMemberId }: Props) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const activeAccount = product.activeAccount
   const [rewardResult, setRewardResult] = useState<RewardResult | null>(null)
   const [rewardBusy, setRewardBusy] = useState(false)
   const selectedMember = product.members.find((member) => member.id === initialMemberId) ?? null
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const drops = useMemo(() => {
     if (!activeAccount) return []
@@ -127,7 +130,7 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
         </span>
 
         <span className="account-v4-profile__copy">
-          <small>АКТИВНИЙ АККАУНТ</small>
+          <small>{t("accountHome.activeAccount")}</small>
           <strong>{activeAccount.nickname}</strong>
           <span className="account-v4-profile__pulse" aria-hidden="true"><i /><i /><i /></span>
         </span>
@@ -142,16 +145,16 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
         </span>
 
         <span className="account-v4-reward__copy">
-          <small>ЩОДЕННА НАГОРОДА</small>
+          <small>{t("accountHome.dailyReward")}</small>
           <span className="account-v4-reward__streak">
             <strong>{reward?.currentStreak || reward?.recoverableStreak || 0}</strong>
-            <span>днів поспіль</span>
+            <span>{t("accountHome.streakDays")}</span>
           </span>
 
           {reward && !rewardResult ? (
             <span className="account-v4-reward__range">
               <span><CurrencyMark currency="COIN" size={14} />{reward.nextCoinMin}–{reward.nextCoinMax}</span>
-              <span><CurrencyMark currency="PRIME" size={13} />{Math.round(reward.primeChance * 100)}% шанс</span>
+              <span><CurrencyMark currency="PRIME" size={13} />{t("accountHome.primeChance", { chance: Math.round(reward.primeChance * 100) })}</span>
             </span>
           ) : null}
         </span>
@@ -161,10 +164,10 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
             whileTap={{ scale: 0.96 }}
             disabled={rewardBusy}
             onClick={() => void claimDaily()}
-            aria-label="Забрати щоденну нагороду"
+            aria-label={t("accountHome.claimAria")}
           >
             <Glyph name="daily" size={15} />
-            Забрати
+            {t("accountHome.claim")}
           </motion.button>
         ) : restoreAvailable ? (
           <motion.button
@@ -174,7 +177,7 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
             onClick={() => void restoreDaily()}
           >
             <Glyph name="swap" size={14} />
-            Відновити
+            {t("accountHome.restore")}
             <small>{reward?.restoresRemaining}×</small>
           </motion.button>
         ) : null}
@@ -212,14 +215,14 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
                 transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
               >
                 <span>
-                  <small>ОТРИМАНО</small>
+                  <small>{t("accountHome.received")}</small>
                   <strong><CurrencyMark currency="COIN" size={17} />+{rewardResult.coin}</strong>
                 </span>
                 <span className={rewardResult.prime ? "is-prime" : "is-empty"}>
                   <small>PRIME</small>
                   <strong>
                     <CurrencyMark currency="PRIME" size={15} />
-                    {rewardResult.prime ? `+${rewardResult.prime}` : "не випали"}
+                    {rewardResult.prime ? `+${rewardResult.prime}` : t("accountHome.primeNotDropped")}
                   </strong>
                 </span>
               </motion.div>
@@ -231,8 +234,8 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
       <section className="account-v4-feature-grid">
         <motion.button className="account-v4-wallet" whileTap={{ scale: 0.985 }} onClick={() => navigate({ id: "account-wallet" })}>
           <span className="account-v4-feature-copy">
-            <small>ГАМАНЕЦЬ</small>
-            <strong><CurrencyMark currency="COIN" size={19} />{activeAccount.coin.toLocaleString("uk-UA")}</strong>
+            <small>{t("accountHome.wallet")}</small>
+            <strong><CurrencyMark currency="COIN" size={19} />{activeAccount.coin.toLocaleString(locale)}</strong>
             <span>COIN</span>
           </span>
           <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
@@ -244,35 +247,35 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
           onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
         >
           <span className="account-v4-feature-copy">
-            <small>ОБРАЗ</small>
-            <strong>Персоналізація</strong>
-            <span>Нік · тема · рамка · ефект</span>
+            <small>{t("accountHome.appearance")}</small>
+            <strong>{t("accountHome.personalization")}</strong>
+            <span>{t("accountHome.personalizationSummary")}</span>
           </span>
           <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
         </motion.button>
       </section>
 
-      <nav className="account-v4-actions" aria-label="Керування аккаунтом">
+      <nav className="account-v4-actions" aria-label={t("accountHome.managementAria")}>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "roles" })}>
           <RoleSigil color="#A985A8" size={27} compact />
-          <span><strong>Ролі</strong><small>Права доступу</small></span>
+          <span><strong>{t("accountHome.roles")}</strong><small>{t("accountHome.accessRights")}</small></span>
         </motion.button>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "account-invites" })}>
           <span className="account-v4-actions__icon is-amber"><Glyph name="invite" size={17} /></span>
-          <span><strong>Інвайти</strong><small>Запрошення</small></span>
+          <span><strong>{t("accountHome.invites")}</strong><small>{t("accountHome.invitations")}</small></span>
         </motion.button>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "account-settings" })}>
           <span className="account-v4-actions__icon"><Glyph name="settings" size={17} /></span>
-          <span><strong>Налаштування</strong><small>Аккаунт</small></span>
+          <span><strong>{t("accountHome.settings")}</strong><small>{t("accountHome.account")}</small></span>
         </motion.button>
       </nav>
 
       <section className="account-v4-panel account-v4-members">
         <header className="account-v4-panel__head account-v4-members__head">
           <span>
-            <small>КОМАНДА</small>
-            <strong>Учасники</strong>
-            <em>{product.members.length} з {activeAccount.maxMembers}</em>
+            <small>{t("accountHome.team")}</small>
+            <strong>{t("accountHome.members")}</strong>
+            <em>{t("accountHome.membersCount", { count: product.members.length, max: activeAccount.maxMembers })}</em>
           </span>
           <img src="/ui-illustrations/team-roster.svg" alt="" aria-hidden="true" />
         </header>
@@ -294,7 +297,7 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
                 <span className="account-v4-member__copy">
                   <span className="account-v4-member__name">
                     <strong>{member.name}</strong>
-                    {member.owner ? <img className="account-v4-owner-crown" src="/ui-illustrations/account-owner-crown.svg" alt="Власник" /> : null}
+                    {member.owner ? <img className="account-v4-owner-crown" src="/ui-illustrations/account-owner-crown.svg" alt={t("accountHome.owner")} /> : null}
                   </span>
 
                   {highestRole ? (
@@ -303,10 +306,10 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
                       <span style={{ color: highestRole.color }}>{highestRole.name}</span>
                       {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                     </span>
-                  ) : <small className="account-v4-member__no-role">Без ролі</small>}
+                  ) : <small className="account-v4-member__no-role">{t("accountHome.noRole")}</small>}
                 </span>
 
-                <time>{formatMemberDate(member.joinedAt)}</time>
+                <time>{formatMemberDate(member.joinedAt, locale)}</time>
               </motion.button>
             )
           })}
@@ -319,8 +322,8 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
             <img src="/ui-icons/drop-stack.svg" alt="" aria-hidden="true" />
           </span>
           <span>
-            <small>АКТИВНІСТЬ</small>
-            <strong>Останні дропи</strong>
+            <small>{t("accountHome.activity")}</small>
+            <strong>{t("accountHome.latestDrops")}</strong>
           </span>
           <img className="account-v4-drops__activity-art" src="/ui-illustrations/account-activity.svg" alt="" aria-hidden="true" />
         </header>
@@ -339,12 +342,12 @@ export function AccountHomeProduction({ navigate, back, initialMemberId }: Props
                 <EventArt event={drop} size={42} />
                 <span className="account-v4-drop__copy">
                   <strong>{drop.title}</strong>
-                  <small>{localizeRarity(drop.rarity) ?? drop.meta}</small>
+                  <small>{drop.rarity ? t(`events.rarities.${drop.rarity}`, { defaultValue: drop.rarity }) : drop.meta}</small>
                 </span>
-                <time>{formatOccurredAt(drop.occurredAt)}</time>
+                <time>{formatOccurredAt(drop.occurredAt, locale)}</time>
               </motion.button>
             )
-          }) : <p className="inline-hint inline-hint--left">Дропів ще немає</p>}
+          }) : <p className="inline-hint inline-hint--left">{t("accountHome.noDrops")}</p>}
         </div>
       </section>
     </div>
@@ -364,10 +367,12 @@ function AccountMemberManagementProduction({
   refresh: () => Promise<void>
   back: () => void
 }) {
+  const { t, i18n } = useTranslation()
   const [roleIds, setRoleIds] = useState<string[]>(member.roleIds)
   const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
   const [kickBusy, setKickBusy] = useState(false)
   const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
     void getMemberRoles(accountId, member.id)
@@ -415,22 +420,22 @@ function AccountMemberManagementProduction({
 
   return (
     <div className="screen account-member-v4">
-      <PageHeader title="Учасник" back={back} />
+      <PageHeader title={t("accountMember.title")} back={back} />
 
       <section className="account-member-v4__hero">
         <span className="account-member-v4__avatar" aria-hidden="true" />
         <span className="account-member-v4__identity">
           <small>ACCOUNT MEMBER</small>
           <strong>{member.name}</strong>
-          <em>У команді з {formatMemberDate(member.joinedAt)}</em>
+          <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
         </span>
         {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
       </section>
 
       <section className="account-member-v4__roles">
         <header>
-          <span><small>ДОСТУП</small><strong>Ролі учасника</strong></span>
-          <em>{roleIds.length} активні</em>
+          <span><small>{t("accountMember.access")}</small><strong>{t("accountMember.roles")}</strong></span>
+          <em>{t("accountMember.activeRoles", { count: roleIds.length })}</em>
         </header>
 
         <div>
@@ -449,7 +454,7 @@ function AccountMemberManagementProduction({
                 <RoleSigil color={role.color} size={34} compact />
                 <span>
                   <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
-                  <small>{enabledPermissions(role)} дозволів</small>
+                  <small>{t("accountMember.permissionCount", { count: enabledPermissions(role) })}</small>
                 </span>
                 <i aria-hidden="true"><b /></i>
               </motion.button>
@@ -461,8 +466,8 @@ function AccountMemberManagementProduction({
       {!member.owner ? (
         <section className="account-member-v4__danger">
           <span><Glyph name="close" size={18} /></span>
-          <span><strong>Видалити з аккаунта</strong><small>Учасник втратить доступ до цього аккаунта.</small></span>
-          <button disabled={kickBusy} onClick={() => void kick()}>{kickBusy ? "…" : "Кікнути"}</button>
+          <span><strong>{t("accountMember.removeTitle")}</strong><small>{t("accountMember.removeCopy")}</small></span>
+          <button disabled={kickBusy} onClick={() => void kick()}>{kickBusy ? "…" : t("accountMember.kick")}</button>
         </section>
       ) : null}
     </div>
@@ -473,15 +478,15 @@ function enabledPermissions(role: AccountRole) {
   return Object.values(role.permissions).filter(Boolean).length
 }
 
-function localizeRarity(value?: string) {
-  if (value === "MYTHICAL") return "Міфічний"
-  if (value === "SECRET") return "Секретний"
-  return value
-}
-
-function formatMemberDate(value: string) {
+function formatMemberDate(value: string, locale: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value.replace(" 2026", "")
 
-  return new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short" }).format(date)
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(date)
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
