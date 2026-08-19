@@ -1,5 +1,7 @@
+import type { TFunction } from "i18next"
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createCreatorPersonalization,
   getCreatorRevenueOperations,
@@ -24,7 +26,6 @@ import type {
   PersonalizationType,
   Route,
 } from "../model"
-import { personalizationLabels, personalizationStatusLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../shared/Primitives"
 
@@ -72,17 +73,6 @@ const typeGlyph: Record<PersonalizationType, "spark" | "creator" | "profile-mark
   NOTIFICATION_PACK: "bell",
 }
 
-const defaultForm: EditorForm = {
-  type: "NICK_STYLE",
-  name: "",
-  currency: "PRIME",
-  price: "25",
-  accent: "#C7F24A",
-  secondary: "#B98DC2",
-  intensity: 48,
-  message: "Новий сигнал від Mnemos",
-}
-
 export function CreatorFeatureProduction(props: Props) {
   if (props.routeId === "creator-revenue") {
     return <CreatorRevenueProduction back={props.back} />
@@ -96,6 +86,7 @@ export function CreatorFeatureProduction(props: Props) {
 }
 
 function CreatorStudioProduction({ navigate, back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const [items, setItems] = useState<Personalization[]>([])
   const [filter, setFilter] = useState<StudioFilter>("ALL")
@@ -148,24 +139,24 @@ function CreatorStudioProduction({ navigate, back }: Props) {
 
   return (
     <div className="screen creator-r2-screen">
-      <PageHeader title="Creator Studio" back={back} />
+      <PageHeader title={t("creator.title")} back={back} />
 
       <section className="creator-r2-hero">
         <div className="creator-r2-hero__copy">
           <small>MNEMOS CREATOR</small>
-          <strong>Твоя майстерня</strong>
-          <p>Роботи, модерація та дохід синхронізовані з personalization-service.</p>
+          <strong>{t("creator.workshopTitle")}</strong>
+          <p>{t("creator.workshopCopy")}</p>
         </div>
         <div className="creator-r2-hero__art" aria-hidden="true" />
         <div className="creator-r2-hero__actions">
           <button onClick={() => navigate({ id: "personalization-editor", params: { personalizationId: "new" } })}>
             <Glyph name="plus" size={16} />
-            <span>Нова робота</span>
+            <span>{t("creator.newWork")}</span>
           </button>
           <button className="is-revenue" onClick={() => navigate({ id: "creator-revenue" })}>
             <CurrencyMark currency="PRIME" size={15} />
             <span>{revenue?.confirmedPrime ?? 0}</span>
-            <small>дохід</small>
+            <small>{t("creator.revenue")}</small>
           </button>
         </div>
       </section>
@@ -174,22 +165,25 @@ function CreatorStudioProduction({ navigate, back }: Props) {
         <button className={filter === "DRAFT" ? "is-active" : ""} onClick={() => setFilter(filter === "DRAFT" ? "ALL" : "DRAFT")}>
           <i className="is-draft" />
           <strong>{counts.draft}</strong>
-          <span>Чернетки</span>
+          <span>{t("creator.drafts")}</span>
         </button>
         <button className={filter === "REVIEW" ? "is-active" : ""} onClick={() => setFilter(filter === "REVIEW" ? "ALL" : "REVIEW")}>
           <i className="is-review" />
           <strong>{counts.review}</strong>
-          <span>Перевірка</span>
+          <span>{t("creator.review")}</span>
         </button>
         <button className={filter === "PUBLISHED" ? "is-active" : ""} onClick={() => setFilter(filter === "PUBLISHED" ? "ALL" : "PUBLISHED")}>
           <i className="is-published" />
           <strong>{counts.published}</strong>
-          <span>Опубліковано</span>
+          <span>{t("creator.published")}</span>
         </button>
       </section>
 
       <header className="creator-r2-section-title">
-        <span><small>{filter === "ALL" ? "ВСІ РОБОТИ" : "ВІДФІЛЬТРОВАНО"}</small><strong>Персоналізації</strong></span>
+        <span>
+          <small>{filter === "ALL" ? t("creator.allWorks") : t("creator.filtered")}</small>
+          <strong>{t("creator.personalizations")}</strong>
+        </span>
         <b>{visible.length}</b>
       </header>
 
@@ -209,17 +203,17 @@ function CreatorStudioProduction({ navigate, back }: Props) {
               >
                 <span className="creator-r2-card__visual"><PersonalizationVisual item={item} small /></span>
                 <span className="creator-r2-card__copy">
-                  <small>{personalizationLabels[item.type]}</small>
+                  <small>{typeLabel(t, item.type)}</small>
                   <strong>{item.name}</strong>
-                  <em>{item.target === "USER" ? "Для User" : "Для Account"}</em>
+                  <em>{item.target === "USER" ? t("creator.forUser") : t("creator.forAccount")}</em>
                 </span>
                 <span className={`creator-r2-status is-${item.status.toLowerCase()}`}>
-                  {personalizationStatusLabels[item.status]}
+                  {statusLabel(t, item.status)}
                 </span>
               </motion.button>
             ))}
           </AnimatePresence>
-          {!visible.length ? <p className="inline-hint">Робіт у цьому розділі немає</p> : null}
+          {!visible.length ? <p className="inline-hint">{t("creator.emptySection")}</p> : null}
         </section>
       )}
     </div>
@@ -227,9 +221,11 @@ function CreatorStudioProduction({ navigate, back }: Props) {
 }
 
 function CreatorRevenueProduction({ back }: { back: () => void }) {
+  const { t, i18n } = useTranslation()
   const [summary, setSummary] = useState<CreatorRevenueSummaryResponse | null>(null)
   const [operations, setOperations] = useState<CreatorRevenueOperationResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -247,33 +243,35 @@ function CreatorRevenueProduction({ back }: { back: () => void }) {
 
   return (
     <div className="screen creator-r2-screen creator-r2-revenue">
-      <PageHeader title="Дохід" back={back} />
+      <PageHeader title={t("creator.revenuePage.title")} back={back} />
 
       <section className="creator-r2-revenue-hero">
         <span className="creator-r2-revenue-hero__mark"><CurrencyMark currency="PRIME" size={22} /></span>
         <span className="creator-r2-revenue-hero__copy">
-          <small>ПІДТВЕРДЖЕНО</small>
+          <small>{t("creator.revenuePage.confirmed")}</small>
           <CurrencyValue currency="PRIME" value={summary?.confirmedPrime ?? 0} />
-          <em>{summary?.confirmedOperations ?? 0} успішних операцій</em>
+          <em>{t("creator.revenuePage.successfulOperations", { count: summary?.confirmedOperations ?? 0 })}</em>
         </span>
         <div className="creator-r2-sparkline" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /></div>
       </section>
 
       <section className="creator-r2-revenue-stats">
-        <article><small>Очікує</small><strong>{summary?.pendingPrime ?? 0}</strong><em>PRIME</em></article>
-        <article><small>Підтверджено</small><strong>{summary?.confirmedOperations ?? 0}</strong><em>операцій</em></article>
-        <article><small>Помилки</small><strong>{summary?.failedOperations ?? 0}</strong><em>{summary?.failedPrime ?? 0} PRIME</em></article>
+        <article><small>{t("creator.revenuePage.pending")}</small><strong>{summary?.pendingPrime ?? 0}</strong><em>PRIME</em></article>
+        <article><small>{t("creator.revenuePage.confirmedOperations")}</small><strong>{summary?.confirmedOperations ?? 0}</strong><em>{t("creator.revenuePage.operations")}</em></article>
+        <article><small>{t("creator.revenuePage.errors")}</small><strong>{summary?.failedOperations ?? 0}</strong><em>{summary?.failedPrime ?? 0} PRIME</em></article>
       </section>
 
-      <header className="creator-r2-section-title"><span><small>ОПЕРАЦІЇ</small><strong>Остання активність</strong></span></header>
+      <header className="creator-r2-section-title">
+        <span><small>{t("creator.revenuePage.operationsEyebrow")}</small><strong>{t("creator.revenuePage.recentActivity")}</strong></span>
+      </header>
       {loading ? <LoadingState /> : (
         <section className="creator-r2-revenue-log">
           {operations.map((operation) => (
             <article key={operation.id}>
               <i className={`is-${operation.status.toLowerCase()}`} />
               <span>
-                <strong>Продаж</strong>
-                <small>{formatDate(operation.createdAt)}</small>
+                <strong>{t("creator.revenuePage.sale")}</strong>
+                <small>{formatDate(operation.createdAt, locale)}</small>
               </span>
               <span>
                 <CurrencyValue currency="PRIME" value={operation.amountPrime} compact />
@@ -281,7 +279,7 @@ function CreatorRevenueProduction({ back }: { back: () => void }) {
               </span>
             </article>
           ))}
-          {!operations.length ? <p className="inline-hint">Операцій ще немає</p> : null}
+          {!operations.length ? <p className="inline-hint">{t("creator.revenuePage.empty")}</p> : null}
         </section>
       )}
     </div>
@@ -289,11 +287,12 @@ function CreatorRevenueProduction({ back }: { back: () => void }) {
 }
 
 function CreatorEditorProduction({ params, back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const personalizationId = params?.personalizationId ?? "new"
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
-  const [form, setForm] = useState<EditorForm>(defaultForm)
+  const [form, setForm] = useState<EditorForm>(() => createDefaultForm(t))
   const [loading, setLoading] = useState(!isNew)
   const [busy, setBusy] = useState(false)
 
@@ -304,21 +303,27 @@ function CreatorEditorProduction({ params, back }: Props) {
       void getPersonalization(personalizationId)
         .then((response) => {
           setSource(response)
-          setForm(toEditorForm(response))
+          setForm(toEditorForm(response, t))
         })
         .catch(handleError)
         .finally(() => setLoading(false))
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [isNew, personalizationId])
+  }, [isNew, personalizationId, t])
 
   const numericPrice = Number(form.price)
   const valid = form.name.trim().length >= 3
     && Number.isInteger(numericPrice)
     && numericPrice > 0
   const editable = !source || ["DRAFT", "REJECTED", "PRIVATE"].includes(source.status)
-  const preview = buildPreview(form, source?.id ?? "preview", source?.status ?? "DRAFT", product.user.username)
+  const preview = buildPreview(
+    form,
+    source?.id ?? "preview",
+    source?.status ?? "DRAFT",
+    product.user.username,
+    t("creator.editor.fallbackName"),
+  )
 
   const save = async (): Promise<PersonalizationResponse | null> => {
     if (!valid || !editable || busy) return null
@@ -328,7 +333,7 @@ function CreatorEditorProduction({ params, back }: Props) {
     try {
       const saved = await saveForm(source?.id ?? null, form)
       setSource(saved)
-      setForm(toEditorForm(saved))
+      setForm(toEditorForm(saved, t))
       return saved
     } catch (error) {
       handleError(error)
@@ -375,21 +380,26 @@ function CreatorEditorProduction({ params, back }: Props) {
   }
 
   if (loading) {
-    return <div className="screen creator-r2-screen"><PageHeader title="Редагування" back={back} /><LoadingState /></div>
+    return (
+      <div className="screen creator-r2-screen">
+        <PageHeader title={t("creator.editor.editing")} back={back} />
+        <LoadingState />
+      </div>
+    )
   }
 
   return (
     <div className="screen creator-r2-screen creator-r2-editor">
-      <PageHeader title={isNew ? "Нова робота" : "Редагування"} back={back} />
+      <PageHeader title={isNew ? t("creator.editor.newWork") : t("creator.editor.editing")} back={back} />
 
       <section className="creator-r2-editor-stage">
-        <header><span><i />LIVE</span><small>{personalizationLabels[form.type]}</small></header>
+        <header><span><i />{t("creator.editor.live")}</span><small>{typeLabel(t, form.type)}</small></header>
         <PersonalizationVisual item={preview} detail />
       </section>
 
       {source?.rejectionReason ? (
         <section className="creator-r2-form-block">
-          <header><small>МОДЕРАЦІЯ</small><strong>Потрібні зміни</strong></header>
+          <header><small>{t("creator.editor.moderationEyebrow")}</small><strong>{t("creator.editor.changesRequired")}</strong></header>
           <p>{source.rejectionReason}</p>
         </section>
       ) : null}
@@ -407,25 +417,25 @@ function CreatorEditorProduction({ params, back }: Props) {
             }))}
           >
             <Glyph name={typeGlyph[value]} size={18} />
-            <span>{personalizationLabels[value]}</span>
+            <span>{typeLabel(t, value)}</span>
           </button>
         ))}
       </section>
 
       <section className="creator-r2-form-block">
-        <header><small>ОСНОВНЕ</small><strong>Ідентичність</strong></header>
-        <Field label="Назва">
+        <header><small>{t("creator.editor.basicEyebrow")}</small><strong>{t("creator.editor.identity")}</strong></header>
+        <Field label={t("creator.editor.name")}>
           <input
             value={form.name}
             maxLength={64}
             disabled={!editable}
             onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-            placeholder="Назва персоналізації"
+            placeholder={t("creator.editor.namePlaceholder")}
           />
         </Field>
 
         <div className="creator-r2-color-row">
-          <Field label="Основний">
+          <Field label={t("creator.editor.primary")}>
             <input
               type="color"
               value={form.accent}
@@ -433,7 +443,7 @@ function CreatorEditorProduction({ params, back }: Props) {
               onChange={(event) => setForm((current) => ({ ...current, accent: event.target.value.toUpperCase() }))}
             />
           </Field>
-          <Field label="Другий">
+          <Field label={t("creator.editor.secondary")}>
             <input
               type="color"
               value={form.secondary}
@@ -443,7 +453,7 @@ function CreatorEditorProduction({ params, back }: Props) {
           </Field>
         </div>
 
-        <Field label="Інтенсивність">
+        <Field label={t("creator.editor.intensity")}>
           <div className="creator-r2-range">
             <input
               type="range"
@@ -458,7 +468,7 @@ function CreatorEditorProduction({ params, back }: Props) {
         </Field>
 
         {form.type === "NOTIFICATION_PACK" ? (
-          <Field label="Текст повідомлення">
+          <Field label={t("creator.editor.messageText")}>
             <textarea
               maxLength={512}
               value={form.message}
@@ -470,7 +480,7 @@ function CreatorEditorProduction({ params, back }: Props) {
       </section>
 
       <section className="creator-r2-form-block">
-        <header><small>ПУБЛІКАЦІЯ</small><strong>Ціна та статус</strong></header>
+        <header><small>{t("creator.editor.publicationEyebrow")}</small><strong>{t("creator.editor.priceAndStatus")}</strong></header>
         <div className="creator-r2-price-row">
           {form.type === "NOTIFICATION_PACK" ? (
             <span className="creator-r2-fixed-currency"><CurrencyMark currency="PRIME" size={15} /> PRIME</span>
@@ -497,23 +507,29 @@ function CreatorEditorProduction({ params, back }: Props) {
             onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
           />
         </div>
-        {source ? <p className="inline-hint inline-hint--left">Статус: {personalizationStatusLabels[source.status]}</p> : null}
+        {source ? (
+          <p className="inline-hint inline-hint--left">
+            {t("creator.editor.status", { status: statusLabel(t, source.status) })}
+          </p>
+        ) : null}
       </section>
 
       <div className="creator-r2-editor-actions">
         {editable ? (
           <>
-            <button disabled={!valid || busy} onClick={() => void saveAndBack()}>{busy ? "Зберігаємо…" : "Зберегти"}</button>
+            <button disabled={!valid || busy} onClick={() => void saveAndBack()}>
+              {busy ? t("creator.editor.saving") : t("creator.editor.save")}
+            </button>
             <button className="is-primary" disabled={!valid || busy} onClick={() => void submit()}>
-              {busy ? "Надсилаємо…" : "На перевірку"}
+              {busy ? t("creator.editor.submitting") : t("creator.editor.submit")}
             </button>
           </>
         ) : source?.status === "APPROVED" ? (
           <button className="is-primary" disabled={busy} onClick={() => void publish()}>
-            {busy ? "Публікуємо…" : "Опублікувати"}
+            {busy ? t("creator.editor.publishing") : t("creator.editor.publish")}
           </button>
         ) : (
-          <button disabled>Редагування недоступне</button>
+          <button disabled>{t("creator.editor.editingUnavailable")}</button>
         )}
       </div>
     </div>
@@ -615,10 +631,24 @@ async function saveForm(id: string | null, form: EditorForm): Promise<Personaliz
     : createCreatorPersonalization("NOTIFICATION_PACK", request)
 }
 
-function toEditorForm(response: PersonalizationResponse): EditorForm {
+function createDefaultForm(t: TFunction): EditorForm {
+  return {
+    type: "NICK_STYLE",
+    name: "",
+    currency: "PRIME",
+    price: "25",
+    accent: "#C7F24A",
+    secondary: "#B98DC2",
+    intensity: 48,
+    message: t("creator.editor.defaultMessage"),
+  }
+}
+
+function toEditorForm(response: PersonalizationResponse, t: TFunction): EditorForm {
   const content = response.content
+  const defaults = createDefaultForm(t)
   const base: EditorForm = {
-    ...defaultForm,
+    ...defaults,
     type: response.type,
     name: response.name,
     currency: response.price?.currency ?? "PRIME",
@@ -663,6 +693,7 @@ function buildPreview(
   id: string,
   status: PersonalizationStatus,
   username: string,
+  fallbackName: string,
 ): Personalization {
   let content: PersonalizationContent
 
@@ -727,7 +758,7 @@ function buildPreview(
     id,
     type: form.type,
     target: targetByType[form.type],
-    name: form.name.trim() || "Нова персоналізація",
+    name: form.name.trim() || fallbackName,
     creator: `@${username}`,
     currency: form.type === "NOTIFICATION_PACK" ? "PRIME" : form.currency,
     price: Number(form.price) || 0,
@@ -740,14 +771,29 @@ function buildPreview(
 }
 
 function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+  const { t } = useTranslation()
+  return <div className="events-r2-loading" aria-label={t("creator.loading")}><i /><i /><i /></div>
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("uk-UA", {
+function typeLabel(t: TFunction, type: PersonalizationType) {
+  return t(`personalization.types.${type}.title`)
+}
+
+function statusLabel(t: TFunction, status: PersonalizationStatus) {
+  return t(`creator.status.${status}`)
+}
+
+function formatDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value))
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
