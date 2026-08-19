@@ -1,9 +1,11 @@
 import { accountProductRu } from "./account/ru"
 import { betAdminRu } from "./bet-admin/ru"
+import { betsProductRu } from "./bets/ru"
 import { creatorProductRu } from "./creator/ru"
 import { eventsProductRu } from "./events/ru"
 import { peopleProductRu } from "./people/ru"
 import { personalizationProductRu } from "./personalization/ru"
+import { walletProductRu } from "./wallet/ru"
 
 export const productRu = {
   productShell: {
@@ -144,9 +146,11 @@ export const productRu = {
     noBadges: "Бейджей пока нет",
   },
   ...accountProductRu,
+  ...betsProductRu,
   ...creatorProductRu,
   ...eventsProductRu,
   ...peopleProductRu,
   ...personalizationProductRu,
+  ...walletProductRu,
   ...betAdminRu,
 } as const
