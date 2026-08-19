@@ -2,8 +2,8 @@ import type { Route } from "../model"
 import { BadgeAdminProduction } from "./BadgeAdminProduction"
 import { BetAdminOverhaul } from "./BetAdminOverhaul"
 import { ModerationUserProduction } from "./ModerationFeatureProduction"
+import { NotFoundFeature } from "./NotFoundFeature"
 import { PersonalizationReviewOverhaul } from "./PersonalizationReviewOverhaul"
-import { StaffFeatureFinal } from "./StaffFeatureFinal"
 
 type Props = {
   routeId: Route["id"]
@@ -40,5 +40,10 @@ export function StaffAreaOverhaul(props: Props) {
     return <BadgeAdminProduction back={props.back} />
   }
 
-  return <StaffFeatureFinal {...props} />
+  return (
+    <NotFoundFeature
+      requested={props.routeId}
+      onHome={() => props.navigate({ id: "account" })}
+    />
+  )
 }
