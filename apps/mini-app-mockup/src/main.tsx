@@ -48,6 +48,7 @@ import "./typography-pass.css"
 import "./mascot-pass.css"
 import "./cohesive-ui-overhaul.css"
 import "./cohesive-ui-overhaul-fixes.css"
+import "./cohesive-ui-visual-audit-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
