@@ -110,7 +110,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [i18n, refresh])
 
   useEffect(() => {
-    void bootstrap().catch(handleError)
+    const frame = window.requestAnimationFrame(() => {
+      void bootstrap().catch(handleError)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [bootstrap])
 
   useEffect(() => {
