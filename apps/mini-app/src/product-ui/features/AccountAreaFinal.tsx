@@ -3,7 +3,7 @@ import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomeProduction } from "./AccountHomeProduction"
 import { AccountInvitesProduction } from "./AccountInvitesProduction"
 import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
-import { AccountSettingsFinal } from "./AccountSettingsFinal"
+import { AccountSettingsProduction } from "./AccountSettingsProduction"
 import { AccountWalletProduction } from "./AccountWalletProduction"
 import { RoleEditorProduction } from "./RoleEditorProduction"
 import { RolesOverviewProduction } from "./RolesOverviewProduction"
@@ -55,11 +55,7 @@ export function AccountAreaFinal(props: Props) {
 
   if (props.routeId === "account-settings") {
     return (
-      <AccountSettingsFinal
-        activeAccount={props.activeAccount}
-        setActiveAccount={props.setActiveAccount}
-        accounts={props.accounts}
-        setAccounts={props.setAccounts}
+      <AccountSettingsProduction
         navigate={props.navigate}
         back={props.back}
       />
