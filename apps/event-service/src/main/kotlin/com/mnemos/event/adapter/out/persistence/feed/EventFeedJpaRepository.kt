@@ -93,16 +93,50 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                 global_type AS "globalType",
                 raid_locations AS "raidLocations"
             FROM feed
-            WHERE (:after IS NULL OR event_id > :after)
+            WHERE
+                (
+                    (event_type = 'ITEM_DROP' AND :includeItemDrop = true)
+                    OR (event_type = 'BOOSTER' AND :includeBooster = true)
+                    OR (event_type = 'GLOBAL' AND :includeGlobal = true)
+                    OR (event_type = 'RAID' AND :includeRaid = true)
+                )
+                AND (
+                    :searchTerm IS NULL
+                    OR position(:searchTerm in lower(coalesce(item_name, ''))) > 0
+                    OR lower(item_name) % :searchTerm
+                    OR position(:searchTerm in lower(coalesce(dropped_for, ''))) > 0
+                    OR lower(dropped_for) % :searchTerm
+                    OR position(:searchTerm in lower(coalesce(activated_by, ''))) > 0
+                    OR lower(activated_by) % :searchTerm
+                    OR position(:searchTerm in lower(coalesce(booster_type, ''))) > 0
+                    OR position(:searchTerm in lower(coalesce(global_type, ''))) > 0
+                    OR position(:searchTerm in lower(coalesce(raid_locations, ''))) > 0
+                )
+                AND (
+                    :itemRarity IS NULL
+                    OR (event_type = 'ITEM_DROP' AND item_rarity = :itemRarity)
+                )
+                AND (
+                    :after IS NULL
+                    OR (:newest = true AND event_id < :after)
+                    OR (:newest = false AND event_id > :after)
+                )
             ORDER BY
-                CASE WHEN :after IS NULL THEN event_id END DESC,
-                CASE WHEN :after IS NOT NULL THEN event_id END ASC
+                CASE WHEN :newest = true THEN event_id END DESC,
+                CASE WHEN :newest = false THEN event_id END ASC
             LIMIT :limit
         """,
         nativeQuery = true,
     )
     fun read(
         @Param("after") after: UUID?,
+        @Param("includeItemDrop") includeItemDrop: Boolean,
+        @Param("includeBooster") includeBooster: Boolean,
+        @Param("includeGlobal") includeGlobal: Boolean,
+        @Param("includeRaid") includeRaid: Boolean,
+        @Param("searchTerm") searchTerm: String?,
+        @Param("itemRarity") itemRarity: String?,
+        @Param("newest") newest: Boolean,
         @Param("limit") limit: Int,
     ): List<EventFeedProjection>
 }
