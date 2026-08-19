@@ -97,6 +97,7 @@ jobs:
           capture search 390 "?screen=search"
           capture store 390 "?screen=personalization-store"
           capture store-theme-category 390 "?screen=personalization-store-category&p.type=PROFILE_THEME"
+          capture not-found 390 "?screen=route-that-does-not-exist"
 
           # Events and subscriptions. Capture multiple families so contextual art is actually reviewed.
           capture event-detail-sword 390 "?screen=event-detail&p.eventId=ev-1"
