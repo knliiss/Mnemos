@@ -101,6 +101,10 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     OR (event_type = 'RAID' AND :includeRaid = true)
                 )
                 AND (
+                    :eventId IS NULL
+                    OR event_id = :eventId
+                )
+                AND (
                     :searchTerm IS NULL
                     OR position(:searchTerm in lower(coalesce(item_name, ''))) > 0
                     OR lower(item_name) % :searchTerm
@@ -134,6 +138,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
     )
     fun read(
         @Param("after") after: UUID?,
+        @Param("eventId") eventId: UUID?,
         @Param("includeItemDrop") includeItemDrop: Boolean,
         @Param("includeBooster") includeBooster: Boolean,
         @Param("includeGlobal") includeGlobal: Boolean,
