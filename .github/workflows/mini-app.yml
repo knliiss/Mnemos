@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   verify:
@@ -46,3 +47,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Publish verification status
+        if: always() && github.event_name == 'push'
+        working-directory: .
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE="success"
+          else
+            STATE="failure"
+          fi
+
+          PAYLOAD="$(jq -n \
+            --arg state "$STATE" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Production Mini App verify: $JOB_STATUS" \
+            --arg context "mini-app/verify" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$PAYLOAD" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
