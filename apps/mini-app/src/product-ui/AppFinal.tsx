@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { CristalixHead } from "./components/CristalixHead"
 import { ErrorNotificationProvider } from "./components/ErrorNotifications"
 import { RootNavIllustration } from "./components/RootNavIllustration"
-import { accounts as initialAccounts, currentUser } from "./mockData"
+import { useProductData } from "./data/ProductDataProvider"
 import type { Account, LocalizationLanguage, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
 import { AccountAreaFinal } from "./features/AccountAreaFinal"
@@ -31,37 +31,13 @@ const localizationOptions: { value: LocalizationLanguage; short: string; label: 
   { value: "EN", short: "EN", label: "English", htmlLang: "en" },
 ]
 
-const LOCALIZATION_STORAGE_KEY = "mnemos-mockup-localization"
-
 function routeKey(route: Route) {
   return `${route.id}:${JSON.stringify(route.params ?? {})}`
 }
 
-function resolveInitialLocalization(): LocalizationLanguage {
-  const queryValue = new URLSearchParams(window.location.search).get("lang")?.toUpperCase()
-
-  if (queryValue === "UK" || queryValue === "UA") return "UK"
-  if (queryValue === "RU") return "RU"
-  if (queryValue === "EN") return "EN"
-
-  try {
-    const stored = window.localStorage.getItem(LOCALIZATION_STORAGE_KEY)
-
-    if (stored === "UK" || stored === "RU" || stored === "EN") {
-      return stored
-    }
-  } catch {
-    // Local storage is optional in the mockup environment.
-  }
-
-  return currentUser.language
-}
-
 export default function AppFinal() {
+  const product = useProductData()
   const [stack, setStack] = useState<Route[]>(initialStack)
-  const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
-  const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
-  const [localization, setLocalization] = useState<LocalizationLanguage>(resolveInitialLocalization)
   const [userHubOpen, setUserHubOpen] = useState(() => new URLSearchParams(window.location.search).get("hub") === "1")
   const [accountPickerOpen, setAccountPickerOpen] = useState(() => new URLSearchParams(window.location.search).get("accounts") === "1")
   const routeStageRef = useRef<HTMLDivElement>(null)
@@ -71,6 +47,7 @@ export default function AppFinal() {
   const area = featureArea(current.id)
   const notFound = current.id === "account" && current.params?.notFound === "true"
   const rootRoute = !notFound && isRootRoute(current.id) ? current.id : null
+  const activeAccount = product.activeAccount
 
   const rememberScroll = () => {
     scrollPositions.current[routeKey(current)] = routeStageRef.current?.scrollTop ?? 0
@@ -91,7 +68,7 @@ export default function AppFinal() {
 
   const back = () => {
     rememberScroll()
-    setStack((value) => value.length > 1 ? value.slice(0, -1) : value)
+    setStack((value) => value.length > 1 ? value.slice(0, -1) : [{ id: "account" }])
   }
 
   const switchRoot = (route: RootRoute) => {
@@ -113,28 +90,14 @@ export default function AppFinal() {
   }, [current])
 
   useEffect(() => {
-    const option = localizationOptions.find((item) => item.value === localization)
-
+    const option = localizationOptions.find((item) => item.value === product.user.language)
     document.documentElement.lang = option?.htmlLang ?? "uk"
+  }, [product.user.language])
 
-    try {
-      window.localStorage.setItem(LOCALIZATION_STORAGE_KEY, localization)
-    } catch {
-      // Persistence is a convenience for the mockup and must not block interaction.
-    }
-  }, [localization])
+  const selectAccount = async (account: Account) => {
+    if (account.active === false && !account.owner) return
 
-  const selectAccount = (account: Account) => {
-    if (account.active === false) {
-      if (!account.owner) return
-
-      const reactivated = { ...account, active: true }
-      setAccounts(accounts.map((item) => item.id === account.id ? reactivated : item))
-      setActiveAccount(reactivated)
-    } else {
-      setActiveAccount(account)
-    }
-
+    await product.selectAccount(account)
     setAccountPickerOpen(false)
   }
 
@@ -155,45 +118,53 @@ export default function AppFinal() {
           onHome={() => switchRoot("account")}
         />
       )
-    : area === "events"
-      ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
-      : area === "account"
-        ? (
-            <AccountAreaFinal
-              routeId={current.id}
-              params={current.params}
-              activeAccount={activeAccount}
-              setActiveAccount={setActiveAccount}
-              accounts={accounts}
-              setAccounts={setAccounts}
-              navigate={navigate}
-              back={back}
-            />
-          )
-        : area === "people"
-          ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
-          : area === "personalization"
-            ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
-            : area === "creator"
-              ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
-              : current.id === "moderation"
-                ? <ModerationHomePolished navigate={navigate} back={back} />
-                : current.id === "administration"
-                  ? <AdministrationHome navigate={navigate} back={back} />
-                  : <StaffAreaOverhaul routeId={current.id} params={current.params} navigate={navigate} back={back} />
+    : !activeAccount
+      ? (
+          <AccountAccessLanding
+            route={current}
+            navigate={navigate}
+            back={back}
+          />
+        )
+      : area === "events"
+        ? <EventsArea routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
+        : area === "account"
+          ? (
+              <AccountAreaFinal
+                routeId={current.id}
+                params={current.params}
+                activeAccount={activeAccount}
+                setActiveAccount={(account) => void product.selectAccount(account)}
+                accounts={product.accounts}
+                setAccounts={() => undefined}
+                navigate={navigate}
+                back={back}
+              />
+            )
+          : area === "people"
+            ? <PeopleFeatureFinal routeId={current.id} params={current.params} activeAccount={activeAccount} navigate={navigate} back={back} />
+            : area === "personalization"
+              ? <PersonalizationFeatureFinal routeId={current.id} params={current.params} navigate={navigate} back={back} />
+              : area === "creator"
+                ? <CreatorFeature routeId={current.id} params={current.params} navigate={navigate} back={back} />
+                : current.id === "moderation"
+                  ? <ModerationHomePolished navigate={navigate} back={back} />
+                  : current.id === "administration"
+                    ? <AdministrationHome navigate={navigate} back={back} />
+                    : <StaffAreaOverhaul routeId={current.id} params={current.params} navigate={navigate} back={back} />
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
-      <ErrorNotificationProvider hasTabbar={Boolean(rootRoute)}>
+      <ErrorNotificationProvider hasTabbar={Boolean(rootRoute && activeAccount)}>
         <main className="preview-stage redesign-stage final-stage">
           <section className="app-shell redesign-shell final-shell">
             <motion.div
               ref={routeStageRef}
-              className={`route-stage ${rootRoute ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
+              className={`route-stage ${rootRoute && activeAccount ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
               initial={false}
               animate={{ opacity: 1 }}
             >
-              {rootRoute ? (
+              {rootRoute && activeAccount ? (
                 <UserHubTrigger
                   open={userHubOpen}
                   onToggle={toggleUserHub}
@@ -202,18 +173,21 @@ export default function AppFinal() {
               {content}
             </motion.div>
 
-            {rootRoute ? (
+            {rootRoute && activeAccount ? (
               <>
                 <UserHubOverlay
                   open={userHubOpen}
                   accountPickerOpen={accountPickerOpen}
                   activeAccount={activeAccount}
-                  accounts={accounts}
-                  localization={localization}
-                  onLocalizationChange={setLocalization}
+                  accounts={product.accounts}
+                  localization={product.user.language}
+                  username={product.user.username}
+                  prime={product.user.prime}
+                  systemRoles={product.user.systemRoles}
+                  onLocalizationChange={(language) => void product.setLanguage(language)}
                   onClose={closeUserHub}
                   onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
-                  onSelectAccount={selectAccount}
+                  onSelectAccount={(account) => void selectAccount(account)}
                   navigate={navigate}
                 />
                 <RootNavigation current={rootRoute} onChange={switchRoot} />
@@ -224,6 +198,70 @@ export default function AppFinal() {
       </ErrorNotificationProvider>
     </MotionConfig>
   )
+}
+
+function AccountAccessLanding({ route, navigate, back }: { route: Route; navigate: (route: Route) => void; back: () => void }) {
+  if (route.id === "account-create" || route.id === "account-join") {
+    return (
+      <AccountAreaFinal
+        routeId={route.id}
+        params={route.params}
+        activeAccount={emptyAccount}
+        setActiveAccount={() => undefined}
+        accounts={[]}
+        setAccounts={() => undefined}
+        navigate={navigate}
+        back={back}
+      />
+    )
+  }
+
+  return (
+    <div className="screen account-onboarding account-onboarding--create">
+      <header className="account-onboarding-header account-access-landing__header">
+        <div className="account-onboarding-heading">
+          <small>MNEMOS × CRISTALIX</small>
+          <h1>Обери аккаунт</h1>
+          <p>Створи новий Mnemos аккаунт для Cristalix профілю або приєднайся за кодом.</p>
+        </div>
+      </header>
+
+      <section className="account-onboarding-hero account-access-landing__hero">
+        <div className="account-onboarding-hero__art">
+          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+        </div>
+        <div className="account-onboarding-hero__copy">
+          <small>ПОЧАТОК</small>
+          <strong>Кіт уже чекає на аккаунт</strong>
+          <p>Після привʼязки відкриються події, нагороди, команда та персоналізації.</p>
+        </div>
+      </section>
+
+      <div className="account-onboarding-facts account-access-landing__actions">
+        <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate({ id: "account-create" })}>
+          <span>+</span>
+          <div><strong>Новий аккаунт</strong><small>Знайти Cristalix nickname</small></div>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate({ id: "account-join" })}>
+          <span>→</span>
+          <div><strong>Вхід за кодом</strong><small>Приєднатися до команди</small></div>
+        </motion.button>
+      </div>
+    </div>
+  )
+}
+
+const emptyAccount: Account = {
+  id: "onboarding",
+  cristalixUuid: "00000000-0000-0000-0000-000000000000",
+  nickname: "",
+  role: "",
+  skinUrl: "",
+  memberCount: 0,
+  maxMembers: 0,
+  owner: false,
+  active: false,
+  coin: 0,
 }
 
 function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (route: RootRoute) => void }) {
@@ -276,6 +314,9 @@ type UserHubOverlayProps = {
   activeAccount: Account
   accounts: Account[]
   localization: LocalizationLanguage
+  username: string
+  prime: number
+  systemRoles: string[]
   onLocalizationChange: (localization: LocalizationLanguage) => void
   onClose: () => void
   onToggleAccounts: () => void
@@ -289,16 +330,19 @@ function UserHubOverlay({
   activeAccount,
   accounts,
   localization,
+  username,
+  prime,
+  systemRoles,
   onLocalizationChange,
   onClose,
   onToggleAccounts,
   onSelectAccount,
   navigate,
 }: UserHubOverlayProps) {
-  const creator = currentUser.systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
-  const moderation = currentUser.systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
-  const administration = currentUser.systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
-  const personalizationReviewer = currentUser.systemRoles.includes("PERSONALIZATION_MODERATOR")
+  const creator = systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
+  const moderation = systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
+  const administration = systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
+  const personalizationReviewer = systemRoles.includes("PERSONALIZATION_MODERATOR")
   const reviewerOnly = personalizationReviewer && !administration
   const localizationLabel = localizationOptions.find((option) => option.value === localization)?.label ?? "Українська"
 
@@ -327,11 +371,11 @@ function UserHubOverlay({
               />
               <span className="final-user-card__copy">
                 <small>MNEMOS USER</small>
-                <strong>@{currentUser.username}</strong>
+                <strong>@{username}</strong>
               </span>
               <button className="final-user-prime" onClick={() => navigate({ id: "user-wallet" })}>
                 <CurrencyMark currency="PRIME" size={16} />
-                <strong>{currentUser.prime}</strong>
+                <strong>{prime.toLocaleString("uk-UA")}</strong>
                 <b>›</b>
               </button>
             </header>
