@@ -1,5 +1,7 @@
+import type { TFunction } from "i18next"
 import { motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createBoosterSubscription,
   createGlobalSubscription,
@@ -17,7 +19,6 @@ import type {
   Route,
   Subscription,
 } from "../model"
-import { boosterLabels, eventLabels, globalEventLabels, itemTypeLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { formatOccurredAt } from "../timePresentation"
@@ -30,10 +31,12 @@ type Props = {
 }
 
 export function EventDetailProduction({ eventId, activeAccount, navigate, back }: Props) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const refreshEvents = product.refreshEvents
   const [followBusy, setFollowBusy] = useState(false)
   const event = product.feed.find((item) => item.id === eventId) ?? null
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
     if (!eventId || event) return
@@ -49,11 +52,11 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
   if (!event) {
     return (
       <div className="screen event-r4-screen">
-        <PageHeader title="Подія" back={back} />
+        <PageHeader title={t("events.detail.title")} back={back} />
         <section className="events-r2-empty">
           <Glyph name="events" size={24} />
-          <strong>{product.loadingEvents ? "Завантажуємо подію" : "Подію не знайдено"}</strong>
-          <small>{product.loadingEvents ? "Оновлюємо стрічку…" : "Вона могла вийти за межі доступної історії."}</small>
+          <strong>{product.loadingEvents ? t("events.detail.loadingTitle") : t("events.detail.notFoundTitle")}</strong>
+          <small>{product.loadingEvents ? t("events.detail.loadingCopy") : t("events.detail.notFoundCopy")}</small>
         </section>
       </div>
     )
@@ -84,7 +87,7 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
 
   return (
     <div className={`screen event-r4-screen event-r4-screen--${event.kind.toLowerCase()}`}>
-      <PageHeader title={eventTitle(event)} eyebrow={eventLabels[event.kind]} back={back} />
+      <PageHeader title={eventTitle(t, event)} eyebrow={eventKindLabel(t, event)} back={back} />
 
       <motion.section
         className="event-r4-hero"
@@ -95,13 +98,13 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
         <span className="event-r4-hero__art"><EventArt event={event} size={66} /></span>
 
         <span className="event-r4-hero__copy">
-          <small>{eventKindCaption(event)}</small>
-          <strong>{eventSubject(event)}</strong>
-          <em>{eventDescription(event)}</em>
-          {ownEvent ? <span className="event-r4-owner"><OwnerCrown compact />Твій аккаунт</span> : null}
+          <small>{eventKindCaption(t, event)}</small>
+          <strong>{eventSubject(t, event)}</strong>
+          <em>{eventDescription(t, event)}</em>
+          {ownEvent ? <span className="event-r4-owner"><OwnerCrown compact />{t("events.detail.ownAccount")}</span> : null}
         </span>
 
-        <time>{formatOccurredAt(event.occurredAt)}</time>
+        <time>{formatOccurredAt(event.occurredAt, locale)}</time>
         <img
           className="event-r4-hero__mascot"
           src="/ui-illustrations/mnemos-mascot-event.svg"
@@ -117,9 +120,9 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
         </span>
 
         <span className="event-r4-follow__copy">
-          <small>СПОВІЩЕННЯ</small>
-          <strong>{matchingSubscription ? "Стеження увімкнено" : "Стежити за такими"}</strong>
-          <em>{notificationRuleDescription(event)}</em>
+          <small>{t("events.detail.notifications")}</small>
+          <strong>{matchingSubscription ? t("events.detail.followEnabled") : t("events.detail.followSimilar")}</strong>
+          <em>{notificationRuleDescription(t, event)}</em>
         </span>
 
         <motion.button
@@ -128,29 +131,29 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
           disabled={followBusy}
           onClick={() => void toggleFollow()}
         >
-          {followBusy ? "…" : matchingSubscription ? "Не стежити" : "Стежити"}
+          {followBusy ? "…" : matchingSubscription ? t("events.detail.unfollow") : t("events.detail.follow")}
         </motion.button>
 
         <button className="event-r4-follow__manage" onClick={() => navigate({ id: "subscriptions" })}>
-          Усі правила
+          {t("events.detail.allRules")}
         </button>
       </section>
 
-      <section className="event-r4-facts" aria-label="Дані події">
+      <section className="event-r4-facts" aria-label={t("events.detail.dataAria")}>
         <article className="is-wide">
-          <small>СТАЛОСЯ</small>
-          <strong>{new Intl.DateTimeFormat("uk-UA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.occurredAt))}</strong>
+          <small>{t("events.detail.happened")}</small>
+          <strong>{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.occurredAt))}</strong>
           <i aria-hidden="true" />
         </article>
 
         <article>
-          <small>КАТЕГОРІЯ</small>
-          <strong>{eventTypeLabel(event)}</strong>
+          <small>{t("events.detail.category")}</small>
+          <strong>{eventTypeLabel(t, event)}</strong>
         </article>
 
         <article>
-          <small>{event.rarity ? "РІДКІСТЬ" : "ДЖЕРЕЛО"}</small>
-          <strong>{event.rarity ? rarityLabel(event.rarity) : "Cristalix"}</strong>
+          <small>{event.rarity ? t("events.detail.rarity") : t("events.detail.source")}</small>
+          <strong>{event.rarity ? rarityLabel(t, event.rarity) : "Cristalix"}</strong>
         </article>
       </section>
     </div>
@@ -201,57 +204,57 @@ function matchesEvent(subscription: Subscription, event: FeedEvent) {
   return false
 }
 
-function eventTitle(event: FeedEvent) {
+function eventTitle(t: TFunction, event: FeedEvent) {
   if (event.kind === "GLOBAL") {
-    return globalEventLabels[event.title as keyof typeof globalEventLabels] ?? event.title
+    return t(`events.globals.${event.title}`, { defaultValue: event.title })
   }
 
   if (event.kind === "BOOSTER") {
-    return boosterLabels[event.title as keyof typeof boosterLabels] ?? event.title
+    return t(`events.boosters.${event.title}`, { defaultValue: event.title })
   }
 
-  if (event.kind === "RAID") return "Рейд"
+  if (event.kind === "RAID") return t("events.kinds.RAID")
   return event.title
 }
 
-function eventKindCaption(event: FeedEvent) {
-  if (event.kind === "ITEM_DROP") return "ЗАФІКСОВАНО ДРОП"
-  if (event.kind === "BOOSTER") return "АКТИВОВАНО БУСТЕР"
-  if (event.kind === "GLOBAL") return "ГЛОБАЛЬНА ПОДІЯ"
-  return "ЗАФІКСОВАНО РЕЙД"
+function eventKindLabel(t: TFunction, event: FeedEvent) {
+  return t(`events.kinds.${event.kind}`)
 }
 
-function eventSubject(event: FeedEvent) {
+function eventKindCaption(t: TFunction, event: FeedEvent) {
+  return t(`events.detail.captions.${event.kind}`)
+}
+
+function eventSubject(t: TFunction, event: FeedEvent) {
   if (event.kind === "GLOBAL") return "Cristalix"
-  if (event.kind === "RAID") return `Локації ${event.detail}`
+  if (event.kind === "RAID") return t("events.feed.locations", { locations: event.detail })
   return event.detail
 }
 
-function eventDescription(event: FeedEvent) {
+function eventDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return `${eventTitle(event)} · ${rarityLabel(event.rarity) ?? eventTypeLabel(event)}`
+    return `${eventTitle(t, event)} · ${rarityLabel(t, event.rarity) ?? eventTypeLabel(t, event)}`
   }
 
-  if (event.kind === "BOOSTER") return eventTitle(event)
-  if (event.kind === "GLOBAL") return eventTitle(event)
-  return "Рейдова активність"
+  if (event.kind === "BOOSTER") return eventTitle(t, event)
+  if (event.kind === "GLOBAL") return eventTitle(t, event)
+  return t("events.detail.raidActivity")
 }
 
-function eventTypeLabel(event: FeedEvent) {
-  if (event.kind === "ITEM_DROP" && event.meta && event.meta in itemTypeLabels) {
-    return itemTypeLabels[event.meta as keyof typeof itemTypeLabels]
+function eventTypeLabel(t: TFunction, event: FeedEvent) {
+  if (event.kind === "ITEM_DROP" && event.meta) {
+    return t(`events.itemTypes.${event.meta}`, { defaultValue: event.meta })
   }
 
-  if (event.kind === "BOOSTER") return eventTitle(event)
-  if (event.kind === "GLOBAL") return "Глобальна"
-  if (event.kind === "RAID") return "Рейд"
-  return eventLabels[event.kind]
+  if (event.kind === "BOOSTER") return eventTitle(t, event)
+  if (event.kind === "GLOBAL") return t("events.kinds.GLOBAL")
+  if (event.kind === "RAID") return t("events.kinds.RAID")
+  return eventKindLabel(t, event)
 }
 
-function rarityLabel(value?: string) {
-  if (value === "MYTHICAL") return "Міфічний"
-  if (value === "SECRET") return "Секретний"
-  return value
+function rarityLabel(t: TFunction, value?: string) {
+  if (!value) return undefined
+  return t(`events.rarities.${value}`, { defaultValue: value })
 }
 
 function belongsToAccount(event: FeedEvent, account: Account) {
@@ -259,11 +262,11 @@ function belongsToAccount(event: FeedEvent, account: Account) {
     && event.detail.toLowerCase() === account.nickname.toLowerCase()
 }
 
-function notificationRuleDescription(event: FeedEvent) {
-  if (event.kind === "ITEM_DROP") return `Предмет: ${event.title}`
-  if (event.kind === "BOOSTER") return `Бустер: ${eventTitle(event)}`
-  if (event.kind === "GLOBAL") return `Глобальна: ${eventTitle(event)}`
-  return `Рейд: локації ${event.detail}`
+function notificationRuleDescription(t: TFunction, event: FeedEvent) {
+  if (event.kind === "ITEM_DROP") return t("events.detail.itemRule", { item: event.title })
+  if (event.kind === "BOOSTER") return t("events.detail.boosterRule", { booster: eventTitle(t, event) })
+  if (event.kind === "GLOBAL") return t("events.detail.globalRule", { event: eventTitle(t, event) })
+  return t("events.detail.raidRule", { locations: event.detail })
 }
 
 function parseLocations(value: string) {
@@ -271,4 +274,10 @@ function parseLocations(value: string) {
     .split(/[·,\s]+/)
     .map((entry) => Number(entry.trim()))
     .filter((entry) => Number.isInteger(entry) && entry > 0)
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
