@@ -30,7 +30,6 @@ export function RoleSigil({
       <svg viewBox="0 0 32 32" shapeRendering="crispEdges">
         <rect x="10" y="4" width="12" height="3" fill="currentColor" opacity=".42" />
         <rect x="7" y="7" width="18" height="4" fill="currentColor" opacity=".78" />
-        <rect x="6" y="11" width="20" height="9" fill="currentColor" opacity=".28" />
         <rect x="8" y="12" width="16" height="7" fill="currentColor" opacity=".82" />
         <rect x="14" y="10" width="4" height="3" fill="currentColor" />
         <rect x="11" y="13" width="10" height="4" fill="currentColor" />
