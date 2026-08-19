@@ -22,6 +22,7 @@ object AccountApiMapper {
             maxMembers = maxMembers,
             owner = owner,
             active = active,
+            status = status,
         )
 
     fun AccountDetails.toResponse(): AccountDetailsResponse =
@@ -34,6 +35,7 @@ object AccountApiMapper {
             maxMembers = maxMembers,
             owner = owner,
             active = active,
+            status = status,
             baseRoleId = baseRoleId?.id,
             createdAt = createdAt,
             updatedAt = updatedAt,
