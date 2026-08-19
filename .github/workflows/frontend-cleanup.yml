@@ -65,6 +65,21 @@ jobs:
       - name: Clean production frontend
         run: node scripts/frontend-cleanup.mjs
 
+      - name: Normalize CSS imports
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs")
+          const file = "apps/mini-app/src/product-ui/product.css"
+          const css = fs.readFileSync(file, "utf8")
+          const imports = [...css.matchAll(/@import\s+[^;]+;/g)].map((match) => match[0].trim())
+          const body = css.replace(/@import\s+[^;]+;/g, "").trim()
+          const uniqueImports = [...new Set(imports)]
+          const prefix = uniqueImports.length > 0 ? `${uniqueImports.join("\n")}\n\n` : ""
+
+          fs.writeFileSync(file, `${prefix}${body}\n`)
+          NODE
+
       - name: Format production frontend
         working-directory: apps/mini-app
         run: npm run format
@@ -90,6 +105,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          git checkout -- .github/workflows/mini-app.yml .github/workflows/mini-app-mockup.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
