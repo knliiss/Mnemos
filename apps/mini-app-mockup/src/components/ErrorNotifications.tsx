@@ -86,6 +86,26 @@ const directCopy: Record<string, Omit<NoticePresentation, "tone" | "mascot">> = 
     title: "Аккаунт неактивний",
     message: "Активуй його або переключись на інший аккаунт.",
   },
+  ACCOUNT_NOT_FOUND: {
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт не знайдено",
+    message: "Він міг бути видалений або більше не доступний тобі.",
+  },
+  ACCOUNT_UNAVAILABLE: {
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт тимчасово недоступний",
+    message: "Онови дані або спробуй ще раз трохи пізніше.",
+  },
+  ACCOUNT_IDENTITY_CONFLICT: {
+    eyebrow: "АККАУНТ",
+    title: "Цей Cristalix аккаунт уже привʼязаний",
+    message: "Перевір активний аккаунт або використай інший профіль.",
+  },
+  ACCOUNT_DELETION_UNAVAILABLE: {
+    eyebrow: "АККАУНТ",
+    title: "Зараз його не можна видалити",
+    message: "Спочатку заверши залежні дії або зміни стан аккаунта.",
+  },
   ACCOUNT_MEMBER_LIMIT_REACHED: {
     eyebrow: "КОМАНДА",
     title: "У команді немає місця",
@@ -96,20 +116,45 @@ const directCopy: Record<string, Omit<NoticePresentation, "tone" | "mascot">> = 
     title: "Користувач уже в команді",
     message: "Повторно додавати цього учасника не потрібно.",
   },
+  ACCOUNT_MEMBER_KICK_FORBIDDEN: {
+    eyebrow: "КОМАНДА",
+    title: "Цього учасника не можна виключити",
+    message: "Перевір його роль та свої права в аккаунті.",
+  },
   ACCOUNT_OWNER_CANNOT_LEAVE: {
     eyebrow: "ВЛАСНИК",
     title: "Власник не може вийти",
     message: "Спочатку передай контроль або зміни структуру аккаунта.",
+  },
+  ACCOUNT_OWNER_REQUIRED: {
+    eyebrow: "ВЛАСНИК",
+    title: "Потрібні права власника",
+    message: "Ця дія доступна тільки власнику аккаунта.",
   },
   ACCOUNT_INVITE_UNAVAILABLE: {
     eyebrow: "ІНВАЙТ",
     title: "Запрошення вже недоступне",
     message: "Воно могло бути використане, відкликане або прострочене.",
   },
+  ACCOUNT_INVITE_NOT_FOUND: {
+    eyebrow: "ІНВАЙТ",
+    title: "Запрошення не знайдено",
+    message: "Перевір код або попроси створити новий інвайт.",
+  },
   INVALID_ACCOUNT_INVITE_EXPIRATION: {
     eyebrow: "ІНВАЙТ",
     title: "Некоректний строк запрошення",
     message: "Зміни термін дії інвайту і спробуй ще раз.",
+  },
+  ROLE_ALREADY_ASSIGNED: {
+    eyebrow: "РОЛІ",
+    title: "Роль уже призначена",
+    message: "Для цього учасника нічого змінювати не потрібно.",
+  },
+  ROLE_HIERARCHY_VIOLATION: {
+    eyebrow: "ІЄРАРХІЯ РОЛЕЙ",
+    title: "Таке розташування ролей неможливе",
+    message: "Зміни порядок або рівень ролі й повтори дію.",
   },
   DAILY_REWARD_ALREADY_CLAIMED: {
     eyebrow: "ЩОДЕННА НАГОРОДА",
@@ -161,15 +206,35 @@ const directCopy: Record<string, Omit<NoticePresentation, "tone" | "mascot">> = 
     title: "Цього немає у твоїй колекції",
     message: "Придбай або отримай персоналізацію перед активацією.",
   },
+  PERSONALIZATION_OWNERSHIP_CONFLICT: {
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Стан колекції вже змінився",
+    message: "Онови список персоналізацій і повтори дію.",
+  },
   PERSONALIZATION_ACCESS_DENIED: {
     eyebrow: "CREATOR STUDIO",
     title: "Немає доступу до цієї роботи",
     message: "Редагувати або модерувати її може лише дозволена роль.",
   },
+  PERSONALIZATION_NOT_FOUND: {
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Роботу не знайдено",
+    message: "Вона могла бути видалена або змінити свій статус.",
+  },
+  BADGE_ALREADY_EXISTS: {
+    eyebrow: "БЕЙДЖ",
+    title: "Такий бейдж уже існує",
+    message: "Зміни його дані або відкрий існуючий бейдж.",
+  },
   BADGE_NOT_OWNED: {
     eyebrow: "БЕЙДЖ",
     title: "Бейдж ще не отримано",
     message: "Його не можна активувати, поки він не належить користувачу.",
+  },
+  SANCTION_CONFLICT: {
+    eyebrow: "МОДЕРАЦІЯ",
+    title: "Стан санкції вже змінився",
+    message: "Онови дані користувача перед наступною дією.",
   },
   SANCTION_TARGET_ACCESS_DENIED: {
     eyebrow: "МОДЕРАЦІЯ",
@@ -244,34 +309,43 @@ function toneFor(payload: BackendErrorPayload): NoticeTone {
   const status = payload.statusCode ?? null
 
   if (code && validationCodes.has(code)) return "validation"
+
+  if (code) {
+    if (
+      code.includes("ACCESS_DENIED") ||
+      code.includes("PERMISSION_DENIED") ||
+      code.includes("OWNER_REQUIRED") ||
+      code.includes("KICK_FORBIDDEN") ||
+      code === "ACCOUNT_NOT_ACTIVE" ||
+      code === "AUTHENTICATION_REQUIRED"
+    ) return "access"
+
+    if (code.includes("NOT_FOUND")) return "not-found"
+
+    if (
+      code.includes("RATE_LIMIT") ||
+      code.includes("IN_PROGRESS") ||
+      code.includes("UNAVAILABLE")
+    ) return "waiting"
+
+    if (
+      code.includes("CONFLICT") ||
+      code.includes("ALREADY") ||
+      code.includes("LIMIT_REACHED") ||
+      code.includes("NOT_PURCHASABLE") ||
+      code.includes("NOT_RECOVERABLE") ||
+      code.includes("CANNOT_LEAVE")
+    ) return "conflict"
+
+    if (code === "INTERNAL_SERVER_ERROR") return "internal"
+  }
+
   if (status === 401 || status === 403) return "access"
-  if (status === 429) return "waiting"
   if (status === 404) return "not-found"
   if (status === 409) return "conflict"
+  if (status === 429 || status === 502 || status === 503 || status === 504) return "waiting"
+  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) return "validation"
   if (status && status >= 500) return "internal"
-
-  if (!code) return status ? "internal" : "waiting"
-
-  if (
-    code.includes("ACCESS_DENIED") ||
-    code.includes("PERMISSION_DENIED") ||
-    code.includes("OWNER_REQUIRED") ||
-    code === "ACCOUNT_NOT_ACTIVE" ||
-    code === "AUTHENTICATION_REQUIRED"
-  ) return "access"
-
-  if (code.includes("NOT_FOUND")) return "not-found"
-  if (code.includes("RATE_LIMIT") || code.includes("IN_PROGRESS") || code.includes("UNAVAILABLE")) return "waiting"
-  if (
-    code.includes("CONFLICT") ||
-    code.includes("ALREADY") ||
-    code.includes("LIMIT_REACHED") ||
-    code.includes("NOT_PURCHASABLE") ||
-    code.includes("NOT_RECOVERABLE") ||
-    code.includes("CANNOT_LEAVE")
-  ) return "conflict"
-
-  if (code === "INTERNAL_SERVER_ERROR") return "internal"
 
   return "internal"
 }
