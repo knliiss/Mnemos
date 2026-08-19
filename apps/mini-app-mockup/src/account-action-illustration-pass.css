@@ -1,25 +1,23 @@
 /* Account action illustration pass. Keep after the V5 hotfix sheet. */
 
-/* ---------- Daily claim: illustration-only CTA ---------- */
+/* ---------- Daily claim: simple gift action ---------- */
 .account-v4-reward > button:not(.is-restore) {
   position: relative;
   flex: 0 0 auto;
-  width: 68px;
-  min-width: 68px;
-  height: 58px;
-  min-height: 58px;
+  width: 58px;
+  min-width: 58px;
+  height: 52px;
+  min-height: 52px;
   overflow: hidden;
   padding: 0;
-  border-radius: 17px;
+  border: 1px solid rgba(222, 255, 107, .32);
+  border-radius: 16px;
   color: transparent;
-  font-size: 0;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, .42), transparent 40%),
-    linear-gradient(180deg, #d9ff58, #bff127);
+  background: #cfff35;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, .38),
-    inset 0 -1px rgba(67, 91, 6, .14),
-    0 10px 22px rgba(152, 210, 18, .11);
+    inset 0 1px rgba(255, 255, 255, .32),
+    0 8px 18px rgba(145, 196, 20, .08);
+  font-size: 0;
 }
 
 .account-v4-reward > button:not(.is-restore) > .glyph {
@@ -29,33 +27,29 @@
 .account-v4-reward > button:not(.is-restore)::before {
   content: "";
   position: absolute;
-  inset: 2px 5px 1px;
+  inset: 6px;
   background: url("/ui-illustrations/daily-claim.svg") center / contain no-repeat;
-  filter: drop-shadow(0 5px 7px rgba(35, 48, 4, .18));
+  filter: none;
   pointer-events: none;
 }
 
 .account-v4-reward > button:not(.is-restore)::after {
-  content: "";
-  position: absolute;
-  right: 9px;
-  top: 8px;
-  width: 4px;
-  height: 4px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, .88);
-  box-shadow:
-    -42px 27px 0 -1px rgba(79, 105, 9, .48),
-    0 0 8px rgba(255, 255, 255, .28);
-  pointer-events: none;
+  content: none;
 }
 
-/* ---------- Account actions: real mini-illustrations for invites/settings ---------- */
+.account-v4-reward > button:not(.is-restore):hover {
+  background: #d5ff4b;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .38),
+    0 9px 20px rgba(145, 196, 20, .11);
+}
+
+/* ---------- Account actions: compact semantic illustrations ---------- */
 .account-v4-actions > button:nth-child(2),
 .account-v4-actions > button:nth-child(3) {
-  min-height: 101px;
+  min-height: 88px;
   gap: 4px;
-  padding-top: 8px;
+  padding: 9px 10px;
 }
 
 .account-v4-actions > button:nth-child(2) > .account-v4-actions__icon,
@@ -67,16 +61,18 @@
 .account-v4-actions > button:nth-child(3)::before {
   content: "";
   display: block;
-  width: 70px;
+  width: 56px;
   max-width: 100%;
-  height: 45px;
-  flex: 0 0 45px;
-  margin: -2px 0 1px;
+  height: 34px;
+  flex: 0 0 34px;
+  margin: 0 0 2px;
   background-position: left center;
   background-repeat: no-repeat;
   background-size: contain;
   image-rendering: pixelated;
-  filter: drop-shadow(0 7px 9px rgba(0, 0, 0, .22));
+  filter: none !important;
+  mix-blend-mode: normal;
+  opacity: .92;
   pointer-events: none;
 }
 
@@ -89,15 +85,11 @@
 }
 
 .account-v4-actions > button:nth-child(2) {
-  background:
-    radial-gradient(circle at 25% 19%, rgba(220, 164, 70, .045), transparent 42%),
-    transparent;
+  background: radial-gradient(circle at 22% 18%, rgba(215, 163, 79, .035), transparent 40%);
 }
 
 .account-v4-actions > button:nth-child(3) {
-  background:
-    radial-gradient(circle at 25% 19%, rgba(203, 255, 45, .025), transparent 42%),
-    transparent;
+  background: radial-gradient(circle at 22% 18%, rgba(203, 255, 45, .02), transparent 40%);
 }
 
 .account-v4-actions > button:nth-child(2):hover,
@@ -107,17 +99,17 @@
 
 @media (max-width: 374px) {
   .account-v4-reward > button:not(.is-restore) {
-    width: 61px;
-    min-width: 61px;
-    height: 54px;
-    min-height: 54px;
+    width: 54px;
+    min-width: 54px;
+    height: 49px;
+    min-height: 49px;
     border-radius: 15px;
   }
 
   .account-v4-actions > button:nth-child(2)::before,
   .account-v4-actions > button:nth-child(3)::before {
-    width: 62px;
-    height: 41px;
-    flex-basis: 41px;
+    width: 50px;
+    height: 31px;
+    flex-basis: 31px;
   }
 }
