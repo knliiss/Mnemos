@@ -20,8 +20,9 @@ class InternalAccountResolveController(
     fun resolve(
         @Valid @ModelAttribute request: ResolveInternalAccountRequest,
     ): ResponseEntity<InternalAccountResponse> {
-        val account = queryService.resolve(request.toQuery())
-            ?: return ResponseEntity.notFound().build()
+        val account =
+            queryService.resolve(request.toQuery())
+                ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity.ok(account.toInternalResponse())
     }
