@@ -1,3 +1,5 @@
+import { accountRolesEn } from "./roles/en"
+
 export const accountProductEn = {
   accountOnboarding: {
     back: "Back",
@@ -95,4 +97,5 @@ export const accountProductEn = {
       ADMIN_ADJUSTMENT: "Admin adjustment",
     },
   },
+  ...accountRolesEn,
 } as const
