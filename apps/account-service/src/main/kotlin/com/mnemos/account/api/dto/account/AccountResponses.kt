@@ -11,6 +11,7 @@ data class CreateAccountResponse(
 
 data class AccountSummaryResponse(
     val id: UUID,
+    val cristalixUuid: UUID,
     val cristalixNickname: String,
     val currentMemberId: UUID,
     val memberCount: Int,
