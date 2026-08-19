@@ -1,9 +1,11 @@
 import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
+import { betsProductUk } from "./bets/uk"
 import { creatorProductUk } from "./creator/uk"
 import { eventsProductUk } from "./events/uk"
 import { peopleProductUk } from "./people/uk"
 import { personalizationProductUk } from "./personalization/uk"
+import { walletProductUk } from "./wallet/uk"
 
 export const productUk = {
   productShell: {
@@ -144,9 +146,11 @@ export const productUk = {
     noBadges: "Бейджів ще немає",
   },
   ...accountProductUk,
+  ...betsProductUk,
   ...creatorProductUk,
   ...eventsProductUk,
   ...peopleProductUk,
   ...personalizationProductUk,
+  ...walletProductUk,
   ...betAdminUk,
 } as const
