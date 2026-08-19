@@ -1,0 +1,42 @@
+export const eventsProductRu = {
+  events: {
+    kinds: {
+      ITEM_DROP: "Дроп",
+      BOOSTER: "Бустер",
+      GLOBAL: "Глобальное",
+      RAID: "Рейд",
+    },
+    boosters: {
+      LUCK: "Удача",
+      MONEY: "Монеты",
+      DAMAGE: "Урон",
+      POWER: "Сила",
+    },
+    globals: {
+      DARKNESS: "Тьма",
+      MOON: "Луна",
+      ECLIPSE: "Затмение",
+      EXPLOSION: "Взрыв",
+    },
+    feed: {
+      title: "События",
+      description: "Что происходит на Cristalix прямо сейчас",
+      filterAria: "Тип событий",
+      all: "Все",
+      searchPlaceholder: "Предмет, ник или событие",
+      clear: "Очистить",
+      newest: "Сначала новые",
+      oldest: "Сначала старые",
+      loading: "Загрузка событий",
+      latest: "ПОСЛЕДНЕЕ",
+      oldestFeatured: "САМОЕ СТАРОЕ",
+      stream: "ЛЕНТА",
+      eventCount: "Событий: {{count}}",
+      emptyTitle: "События не найдены",
+      emptyCopy: "Измени тип, порядок или поисковый запрос",
+      globalDescription: "Глобальное событие Cristalix",
+      raidDescription: "Рейд Cristalix",
+      locations: "Локации {{locations}}",
+    },
+  },
+} as const
