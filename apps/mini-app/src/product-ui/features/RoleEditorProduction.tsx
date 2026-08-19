@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createRole,
   deleteRole,
@@ -7,9 +8,8 @@ import {
 } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
-import { permissionGroups } from "../mockData"
 import type { RolePermission, Route } from "../model"
-import { permissionLabels } from "../presentation"
+import { allRolePermissions, rolePermissionGroups } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
@@ -30,15 +30,12 @@ const roleColors = [
   "#A9B1A4",
 ] as const
 
-const allPermissions = Array.from(
-  new Set(permissionGroups.flatMap((group) => group.permissions)),
-)
-
 function emptyPermissions(): Record<RolePermission, boolean> {
-  return Object.fromEntries(allPermissions.map((permission) => [permission, false])) as Record<RolePermission, boolean>
+  return Object.fromEntries(allRolePermissions.map((permission) => [permission, false])) as Record<RolePermission, boolean>
 }
 
 export function RoleEditorProduction({ params, navigate, back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const accountId = product.activeAccount?.id ?? null
   const existing = product.roles.find((role) => role.id === params?.roleId) ?? null
@@ -55,19 +52,20 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
 
   const selectedCount = Object.values(permissions).filter(Boolean).length
   const normalizedQuery = query.trim().toLowerCase()
+  const permissionLabel = (permission: RolePermission) => t(`roleEditor.permissions.${permission}`)
 
   const visibleGroups = useMemo(
-    () => permissionGroups
+    () => rolePermissionGroups
       .map((group) => ({
         ...group,
         permissions: group.permissions.filter((permission) =>
           !normalizedQuery
-          || permissionLabels[permission].toLowerCase().includes(normalizedQuery)
+          || permissionLabel(permission).toLowerCase().includes(normalizedQuery)
           || permission.toLowerCase().includes(normalizedQuery),
         ),
       }))
       .filter((group) => group.permissions.length),
-    [normalizedQuery],
+    [normalizedQuery, t],
   )
 
   const togglePermission = (permission: RolePermission) => {
@@ -99,7 +97,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
     if (busy) return
 
     setPermissions(Object.fromEntries(
-      allPermissions.map((permission) => [permission, checked]),
+      allRolePermissions.map((permission) => [permission, checked]),
     ) as Record<RolePermission, boolean>)
   }
 
@@ -118,7 +116,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
           accountId,
           cleanName,
           color,
-          allPermissions.filter((permission) => permissions[permission]),
+          allRolePermissions.filter((permission) => permissions[permission]),
         )
       }
 
@@ -149,11 +147,11 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
   if (!isNew && !existing && !product.loadingAccount) {
     return (
       <div className="screen role-editor-v2">
-        <PageHeader title="Роль" back={back} />
+        <PageHeader title={t("roleEditor.role")} back={back} />
         <section className="events-r2-empty">
           <Glyph name="roles" size={24} />
-          <strong>Роль не знайдено</strong>
-          <small>Список ролей міг змінитися.</small>
+          <strong>{t("roleEditor.notFoundTitle")}</strong>
+          <small>{t("roleEditor.notFoundCopy")}</small>
         </section>
       </div>
     )
@@ -162,11 +160,11 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
   return (
     <div className="screen role-editor-v2">
       <PageHeader
-        title={isNew ? "Нова роль" : existing?.name ?? "Роль"}
+        title={isNew ? t("roleEditor.newRole") : existing?.name ?? t("roleEditor.role")}
         back={back}
         actions={!isNew ? (
           <button className="role-editor-v2-back-to-list" onClick={() => navigate({ id: "roles" })}>
-            Усі ролі
+            {t("roleEditor.allRoles")}
           </button>
         ) : undefined}
       />
@@ -174,35 +172,35 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
       <section className="role-editor-v2-hero">
         <RoleSigil color={color} size={48} />
         <span className="role-editor-v2-hero__copy">
-          <small>{isNew ? "НОВА РОЛЬ" : "НАЛАШТУВАННЯ РОЛІ"}</small>
-          <strong style={{ color }}>{name.trim() || "Назва ролі"}</strong>
-          <em>{selectedCount} із {allPermissions.length} дозволів увімкнено</em>
+          <small>{isNew ? t("roleEditor.newEyebrow") : t("roleEditor.editEyebrow")}</small>
+          <strong style={{ color }}>{name.trim() || t("roleEditor.roleNameFallback")}</strong>
+          <em>{t("roleEditor.enabledSummary", { selected: selectedCount, total: allRolePermissions.length })}</em>
         </span>
         <div className="role-editor-v2-progress" aria-hidden="true">
-          <i style={{ width: `${(selectedCount / Math.max(1, allPermissions.length)) * 100}%`, background: color }} />
+          <i style={{ width: `${(selectedCount / Math.max(1, allRolePermissions.length)) * 100}%`, background: color }} />
         </div>
       </section>
 
       <section className="role-identity-panel">
         <header>
-          <span><small>ВИГЛЯД</small><strong>Назва та колір</strong></span>
+          <span><small>{t("roleEditor.appearance")}</small><strong>{t("roleEditor.nameAndColor")}</strong></span>
         </header>
 
         <label className="role-editor-field">
-          <span>Назва</span>
+          <span>{t("roleEditor.name")}</span>
           <input
             value={name}
             maxLength={32}
             disabled={busy}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Наприклад, Рейд-менеджер"
+            placeholder={t("roleEditor.namePlaceholder")}
           />
           <small>{name.length}/32</small>
         </label>
 
         <div className="role-color-editor">
           <label>
-            <span>Колір</span>
+            <span>{t("roleEditor.color")}</span>
             <span className="role-color-input">
               <input
                 type="color"
@@ -214,7 +212,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
             </span>
           </label>
 
-          <div className="role-color-presets" aria-label="Швидкі кольори">
+          <div className="role-color-presets" aria-label={t("roleEditor.quickColors")}>
             {roleColors.map((presetColor) => (
               <button
                 key={presetColor}
@@ -222,7 +220,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
                 disabled={busy}
                 className={color.toUpperCase() === presetColor ? "is-active" : ""}
                 style={{ background: presetColor }}
-                aria-label={`Колір ${presetColor}`}
+                aria-label={t("roleEditor.colorAria", { color: presetColor })}
                 onClick={() => setColor(presetColor)}
               />
             ))}
@@ -232,10 +230,10 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
 
       <section className="role-permissions-panel">
         <header className="role-permissions-panel__head">
-          <span><small>ДОЗВОЛИ</small><strong>{selectedCount} увімкнено</strong></span>
+          <span><small>{t("roleEditor.permissionsEyebrow")}</small><strong>{t("roleEditor.enabledCount", { count: selectedCount })}</strong></span>
           <div>
-            <button disabled={busy} onClick={() => setAllPermissions(true)}>Усі</button>
-            <button disabled={busy} onClick={() => setAllPermissions(false)}>Очистити</button>
+            <button disabled={busy} onClick={() => setAllPermissions(true)}>{t("roleEditor.all")}</button>
+            <button disabled={busy} onClick={() => setAllPermissions(false)}>{t("roleEditor.clear")}</button>
           </div>
         </header>
 
@@ -244,10 +242,10 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Знайти дозвіл"
+            placeholder={t("roleEditor.searchPlaceholder")}
           />
           {query ? (
-            <button onClick={() => setQuery("")} aria-label="Очистити пошук">
+            <button onClick={() => setQuery("")} aria-label={t("roleEditor.clearSearch")}>
               <Glyph name="close" size={14} />
             </button>
           ) : null}
@@ -259,15 +257,15 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
             const allEnabled = enabledInGroup === group.permissions.length
 
             return (
-              <section key={group.label}>
+              <section key={group.key}>
                 <header>
-                  <span><strong>{group.label}</strong><small>{enabledInGroup}/{group.permissions.length}</small></span>
+                  <span><strong>{t(`roleEditor.groups.${group.key}`)}</strong><small>{enabledInGroup}/{group.permissions.length}</small></span>
                   <button
                     disabled={busy}
                     className={allEnabled ? "is-active" : ""}
                     onClick={() => toggleGroup(group.permissions)}
                   >
-                    {allEnabled ? "Вимкнути" : "Увімкнути групу"}
+                    {allEnabled ? t("roleEditor.disableGroup") : t("roleEditor.enableGroup")}
                   </button>
                 </header>
 
@@ -281,7 +279,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
                       onClick={() => togglePermission(permission)}
                     >
                       <span>
-                        <strong>{permissionLabels[permission]}</strong>
+                        <strong>{permissionLabel(permission)}</strong>
                         <small>{permission}</small>
                       </span>
                       <i aria-hidden="true"><b /></i>
@@ -297,22 +295,22 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
       <div className="role-editor-actions-v2">
         <button className="role-editor-save-v2" disabled={!name.trim() || busy} onClick={() => void save()}>
           <Glyph name="check" size={16} />
-          {busy ? "Зберігаємо…" : isNew ? "Створити роль" : "Зберегти зміни"}
+          {busy ? t("roleEditor.saving") : isNew ? t("roleEditor.create") : t("roleEditor.save")}
         </button>
 
         {existing ? (
           <section className="role-editor-danger-v2">
             <span>
-              <strong>Видалити роль</strong>
-              <small>Учасники втратять цю роль після підтвердження backend.</small>
+              <strong>{t("roleEditor.deleteTitle")}</strong>
+              <small>{t("roleEditor.deleteCopy")}</small>
             </span>
             {confirmDelete ? (
               <div>
-                <button disabled={busy} onClick={() => setConfirmDelete(false)}>Скасувати</button>
-                <button disabled={busy} className="is-danger" onClick={() => void remove()}>Так, видалити</button>
+                <button disabled={busy} onClick={() => setConfirmDelete(false)}>{t("roleEditor.cancel")}</button>
+                <button disabled={busy} className="is-danger" onClick={() => void remove()}>{t("roleEditor.confirmDelete")}</button>
               </div>
             ) : (
-              <button disabled={busy} className="is-danger" onClick={() => setConfirmDelete(true)}>Видалити</button>
+              <button disabled={busy} className="is-danger" onClick={() => setConfirmDelete(true)}>{t("roleEditor.delete")}</button>
             )}
           </section>
         ) : null}
