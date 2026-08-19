@@ -2,6 +2,7 @@ import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 import { creatorProductUk } from "./creator/uk"
 import { eventsProductUk } from "./events/uk"
+import { peopleProductUk } from "./people/uk"
 import { personalizationProductUk } from "./personalization/uk"
 
 export const productUk = {
@@ -145,6 +146,7 @@ export const productUk = {
   ...accountProductUk,
   ...creatorProductUk,
   ...eventsProductUk,
+  ...peopleProductUk,
   ...personalizationProductUk,
   ...betAdminUk,
 } as const
