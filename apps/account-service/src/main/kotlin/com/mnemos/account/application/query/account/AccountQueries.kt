@@ -1,6 +1,7 @@
 package com.mnemos.account.application.query.account
 
 import com.mnemos.account.domain.model.account.AccountMemberId
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
@@ -16,6 +17,7 @@ data class AccountSummary(
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val status: AccountStatus,
 )
 
 data class AccountDetails(
@@ -27,6 +29,7 @@ data class AccountDetails(
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val status: AccountStatus,
     val baseRoleId: RoleId?,
     val createdAt: Instant,
     val updatedAt: Instant,
