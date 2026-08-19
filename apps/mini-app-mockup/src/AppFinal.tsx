@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { CristalixHead } from "./components/CristalixHead"
+import { ErrorNotificationProvider } from "./components/ErrorNotifications"
 import { RootNavIllustration } from "./components/RootNavIllustration"
 import { accounts as initialAccounts, currentUser } from "./mockData"
 import type { Account, RootRoute, Route } from "./model"
@@ -142,40 +143,42 @@ export default function AppFinal() {
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
-      <main className="preview-stage redesign-stage final-stage">
-        <section className="app-shell redesign-shell final-shell">
-          <motion.div
-            ref={routeStageRef}
-            className={`route-stage ${rootRoute ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
-            initial={false}
-            animate={{ opacity: 1 }}
-          >
-            {rootRoute ? (
-              <UserHubTrigger
-                open={userHubOpen}
-                onToggle={toggleUserHub}
-              />
-            ) : null}
-            {content}
-          </motion.div>
+      <ErrorNotificationProvider hasTabbar={Boolean(rootRoute)}>
+        <main className="preview-stage redesign-stage final-stage">
+          <section className="app-shell redesign-shell final-shell">
+            <motion.div
+              ref={routeStageRef}
+              className={`route-stage ${rootRoute ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
+              initial={false}
+              animate={{ opacity: 1 }}
+            >
+              {rootRoute ? (
+                <UserHubTrigger
+                  open={userHubOpen}
+                  onToggle={toggleUserHub}
+                />
+              ) : null}
+              {content}
+            </motion.div>
 
-          {rootRoute ? (
-            <>
-              <UserHubOverlay
-                open={userHubOpen}
-                accountPickerOpen={accountPickerOpen}
-                activeAccount={activeAccount}
-                accounts={accounts}
-                onClose={closeUserHub}
-                onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
-                onSelectAccount={selectAccount}
-                navigate={navigate}
-              />
-              <RootNavigation current={rootRoute} onChange={switchRoot} />
-            </>
-          ) : null}
-        </section>
-      </main>
+            {rootRoute ? (
+              <>
+                <UserHubOverlay
+                  open={userHubOpen}
+                  accountPickerOpen={accountPickerOpen}
+                  activeAccount={activeAccount}
+                  accounts={accounts}
+                  onClose={closeUserHub}
+                  onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
+                  onSelectAccount={selectAccount}
+                  navigate={navigate}
+                />
+                <RootNavigation current={rootRoute} onChange={switchRoot} />
+              </>
+            ) : null}
+          </section>
+        </main>
+      </ErrorNotificationProvider>
     </MotionConfig>
   )
 }
