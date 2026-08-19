@@ -82,6 +82,10 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-power": "/event-icons/booster-power.png",
   "dungeon": "/event-icons/dungeon.svg",
   "raid": "/event-icons/raid.png",
+  "global-moon": "/event-icons/moon.png",
+  "global-eclipse": "/event-icons/eclipse.png",
+  "global-darkness": "/event-icons/dark.png",
+  "global-explosion": "/event-icons/explosion.png",
 }
 
 function ArtFrame({
