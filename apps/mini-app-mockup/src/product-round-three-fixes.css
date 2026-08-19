@@ -20,7 +20,7 @@
 .event-art--global-eclipse .event-art__vector,
 .event-art--global-darkness .event-art__vector,
 .event-art--global-explosion .event-art__vector {
-  transform: scale(1.34);
+  transform: scale(1.72);
   transform-origin: center;
 }
 
@@ -36,5 +36,5 @@
 .event-detail-polished .event-art--global-eclipse .event-art__vector,
 .event-detail-polished .event-art--global-darkness .event-art__vector,
 .event-detail-polished .event-art--global-explosion .event-art__vector {
-  transform: scale(1.42);
+  transform: scale(1.96);
 }
