@@ -99,6 +99,15 @@ jobs:
           capture store-theme-category 390 "?screen=personalization-store-category&p.type=PROFILE_THEME"
           capture not-found 390 "?screen=route-that-does-not-exist"
 
+          # Backend error presentation. One screenshot per mascot/semantic family plus unknown fallback.
+          capture error-validation 390 "?screen=account&error=VALIDATION_FAILED&status=400"
+          capture error-access 390 "?screen=account&error=ROLE_ACCESS_DENIED&status=403"
+          capture error-conflict 390 "?screen=account&error=DAILY_REWARD_ALREADY_CLAIMED&status=409"
+          capture error-waiting 390 "?screen=events&error=CRISTALIX_UNAVAILABLE&status=503"
+          capture error-not-found 390 "?screen=search&error=CRISTALIX_PLAYER_NOT_FOUND&status=404"
+          capture error-internal 390 "?screen=account&error=INTERNAL_SERVER_ERROR&status=500&requestId=0198F6CE-DEADBEEF"
+          capture error-unknown 390 "?screen=account&error=SOMETHING_UNKNOWN&status=500&requestId=0198F6CE-C0FFEE00"
+
           # Events and subscriptions. Capture multiple families so contextual art is actually reviewed.
           capture event-detail-sword 390 "?screen=event-detail&p.eventId=ev-1"
           capture event-detail-booster 390 "?screen=event-detail&p.eventId=ev-2"
@@ -165,7 +174,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
