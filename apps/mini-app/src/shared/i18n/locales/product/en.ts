@@ -1,9 +1,11 @@
 import { accountProductEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
+import { betsProductEn } from "./bets/en"
 import { creatorProductEn } from "./creator/en"
 import { eventsProductEn } from "./events/en"
 import { peopleProductEn } from "./people/en"
 import { personalizationProductEn } from "./personalization/en"
+import { walletProductEn } from "./wallet/en"
 
 export const productEn = {
   productShell: {
@@ -144,9 +146,11 @@ export const productEn = {
     noBadges: "No badges yet",
   },
   ...accountProductEn,
+  ...betsProductEn,
   ...creatorProductEn,
   ...eventsProductEn,
   ...peopleProductEn,
   ...personalizationProductEn,
+  ...walletProductEn,
   ...betAdminEn,
 } as const
