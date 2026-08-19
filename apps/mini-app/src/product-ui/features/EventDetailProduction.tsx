@@ -33,43 +33,47 @@ type Props = {
   back: () => void
 }
 
+type EventLookupResult = {
+  eventId: string
+  event: FeedEvent | null
+}
+
 export function EventDetailProduction({ eventId, activeAccount, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
   const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
-  const [resolvedEvent, setResolvedEvent] = useState<FeedEvent | null>(null)
-  const [lookupLoading, setLookupLoading] = useState(false)
+  const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
   const [followBusy, setFollowBusy] = useState(false)
+  const resolvedEvent = lookupResult?.eventId === eventId ? lookupResult.event : null
   const event = cachedEvent ?? resolvedEvent
+  const lookupLoading = Boolean(eventId && !cachedEvent && lookupResult?.eventId !== eventId)
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
-    setResolvedEvent(null)
-
-    if (!eventId || cachedEvent) {
-      setLookupLoading(false)
-      return
-    }
+    if (!eventId || cachedEvent) return
 
     let cancelled = false
-
-    setLookupLoading(true)
 
     void getEventFeedItem(eventId)
       .then((response) => {
         if (!cancelled) {
-          setResolvedEvent(toProductFeedEvent(response))
+          setLookupResult({
+            eventId,
+            event: toProductFeedEvent(response),
+          })
         }
       })
       .catch((error) => {
-        if (!cancelled && !(error instanceof ApiError && error.status === 404)) {
+        if (cancelled) return
+
+        if (!(error instanceof ApiError && error.status === 404)) {
           handleError(error)
         }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLookupLoading(false)
-        }
+
+        setLookupResult({
+          eventId,
+          event: null,
+        })
       })
 
     return () => {
