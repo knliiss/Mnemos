@@ -1,6 +1,6 @@
 import type { Account, Route } from "../model"
 import { PeopleFeature } from "./PeopleFeature"
-import { PublicProfilePolished } from "./PublicProfilePolished"
+import { PublicProfileRethink } from "./PublicProfileRethink"
 import { UserPrimeWalletOverhaul } from "./UserPrimeWalletOverhaul"
 
 type Props = {
@@ -31,7 +31,7 @@ export function PeopleFeatureFinal(props: Props) {
     const accountId = memberProfileIds[props.params.accountId] ?? props.params.accountId
 
     return (
-      <PublicProfilePolished
+      <PublicProfileRethink
         activeAccount={props.activeAccount}
         navigate={props.navigate}
         back={props.back}
