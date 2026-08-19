@@ -21,6 +21,7 @@ interface AccountDetailsProjection {
     val ownerMemberId: UUID
     val memberCount: Long
     val maxMembers: Int
+    val baseRoleId: UUID?
     val createdAt: Instant
     val updatedAt: Instant
 }
