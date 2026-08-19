@@ -39,6 +39,10 @@ export const peopleProductUk = {
       noComments: "Коментарів ще немає",
       firstComment: "Можеш залишити перший.",
       deletedComment: "Коментар видалено",
+      rarities: {
+        MYTHICAL: "Міфічний",
+        SECRET: "Секретний",
+      },
     },
   },
 } as const
