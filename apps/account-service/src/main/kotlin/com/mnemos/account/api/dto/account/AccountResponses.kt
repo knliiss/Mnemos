@@ -29,6 +29,7 @@ data class AccountDetailsResponse(
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val baseRoleId: UUID?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
