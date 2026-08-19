@@ -26,7 +26,7 @@ export function toProductAccount(account: AccountSummaryResponse, coin = 0): Acc
     memberCount: account.memberCount,
     maxMembers: account.maxMembers,
     owner: account.owner,
-    active: account.active,
+    active: account.status === "ACTIVE",
     coin,
   }
 }
