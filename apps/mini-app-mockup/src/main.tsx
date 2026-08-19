@@ -54,6 +54,7 @@ import "./product-rethink-audit-fixes.css"
 import "./product-round-three.css"
 import "./product-round-three-fixes.css"
 import "./product-round-four.css"
+import "./product-round-four-fixes.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
