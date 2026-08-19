@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   listEventBetRounds,
   listItemRaces,
@@ -15,10 +16,10 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { GlobalEventArt, ItemTypeArt } from "../components/EventArt"
 import { BET_ITEM_TYPES, EVENT_BET_OUTCOMES } from "../contracts"
 import type {
+  BetGlobalEventType,
   BetItemType,
   Route,
 } from "../model"
-import { globalEventLabels, itemTypeLabels } from "../presentation"
 import { Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../shared/Primitives"
 
@@ -30,13 +31,8 @@ type Props = {
 
 type Section = "home" | "rounds" | "history" | "round" | "races"
 
-const outcomeLabels: Record<EventBetOutcome, string> = {
-  YES: "Так",
-  NO: "Ні",
-  REFUND: "Повернення",
-}
-
 export function BetAdminProduction({ params, navigate, back }: Props) {
+  const { t } = useTranslation()
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -80,7 +76,7 @@ export function BetAdminProduction({ params, navigate, back }: Props) {
   if (section === "rounds") {
     return (
       <RoundList
-        title="Поточні раунди"
+        title={t("betAdmin.currentRounds")}
         rounds={rounds.filter((round) => round.status !== "SETTLED")}
         loading={loading}
         navigate={navigate}
@@ -92,7 +88,7 @@ export function BetAdminProduction({ params, navigate, back }: Props) {
   if (section === "history") {
     return (
       <RoundList
-        title="Історія ставок"
+        title={t("betAdmin.historyTitle")}
         rounds={rounds.filter((round) => round.status === "SETTLED")}
         loading={loading}
         navigate={navigate}
@@ -119,49 +115,49 @@ export function BetAdminProduction({ params, navigate, back }: Props) {
 
   return (
     <div className="screen bet-admin-v2 bet-admin-dashboard">
-      <PageHeader title="Ставки" back={back} />
+      <PageHeader title={t("betAdmin.title")} back={back} />
 
       <section className="bet-admin-v2-hero">
         <span className="bet-admin-v2-hero__icon"><Glyph name="bet" size={22} /></span>
         <span>
           <small>ADMIN WORKSPACE</small>
-          <strong>Керування ставками</strong>
-          <em>Стан раундів і перегонів завантажується напряму з bet-service.</em>
+          <strong>{t("betAdmin.workspaceTitle")}</strong>
+          <em>{t("betAdmin.workspaceDescription")}</em>
         </span>
       </section>
 
       {loading ? <LoadingState /> : (
         <>
           <section className="bet-admin-kpis">
-            <article><small>Активні</small><strong>{active.length}</strong><em>раунди</em></article>
-            <article><small>Історія</small><strong>{history.length}</strong><em>завершено</em></article>
-            <article><small>Перегони</small><strong>{activeRaces.length}</strong><em>активні</em></article>
-            <article><small>Гравці</small><strong>{participants}</strong><em>у race</em></article>
+            <article><small>{t("betAdmin.active")}</small><strong>{active.length}</strong><em>{t("betAdmin.rounds")}</em></article>
+            <article><small>{t("betAdmin.history")}</small><strong>{history.length}</strong><em>{t("betAdmin.completed")}</em></article>
+            <article><small>{t("betAdmin.races")}</small><strong>{activeRaces.length}</strong><em>{t("betAdmin.activeLabel")}</em></article>
+            <article><small>{t("betAdmin.players")}</small><strong>{participants}</strong><em>{t("betAdmin.inRace")}</em></article>
           </section>
 
           <nav className="bet-admin-nav-grid">
             <button onClick={() => navigate({ id: "bet-admin", params: { section: "rounds" } })}>
               <span className="is-lime"><Glyph name="events" size={20} /></span>
-              <strong>Поточні раунди</strong>
-              <small>Статус і ручне підтвердження результату</small>
+              <strong>{t("betAdmin.currentRounds")}</strong>
+              <small>{t("betAdmin.currentRoundsDescription")}</small>
               <b>{active.length} ›</b>
             </button>
             <button onClick={() => navigate({ id: "bet-admin", params: { section: "history" } })}>
               <span className="is-plum"><Glyph name="clock" size={20} /></span>
-              <strong>Історія ставок</strong>
-              <small>Завершені раунди та їх результат</small>
+              <strong>{t("betAdmin.historyTitle")}</strong>
+              <small>{t("betAdmin.historyDescription")}</small>
               <b>{history.length} ›</b>
             </button>
             <button onClick={() => navigate({ id: "bet-admin", params: { section: "races" } })}>
               <span className="is-blue"><Glyph name="item-drop" size={20} /></span>
-              <strong>Item race</strong>
-              <small>Створення, учасники та скасування</small>
+              <strong>{t("betAdmin.itemRace")}</strong>
+              <small>{t("betAdmin.itemRaceDescription")}</small>
               <b>{activeRaces.length} ›</b>
             </button>
           </nav>
 
           <section className="bet-admin-recent">
-            <header><span><small>ПОТРЕБУЮТЬ УВАГИ</small><strong>Раунди</strong></span></header>
+            <header><span><small>{t("betAdmin.needsAttention")}</small><strong>{t("betAdmin.rounds")}</strong></span></header>
             {active.slice(0, 4).map((round) => (
               <RoundRow
                 key={round.id}
@@ -169,7 +165,7 @@ export function BetAdminProduction({ params, navigate, back }: Props) {
                 onClick={() => navigate({ id: "bet-admin", params: { section: "round", roundId: round.id } })}
               />
             ))}
-            {!active.length ? <p className="inline-hint inline-hint--left">Активних раундів немає</p> : null}
+            {!active.length ? <p className="inline-hint inline-hint--left">{t("betAdmin.noActiveRounds")}</p> : null}
           </section>
         </>
       )}
@@ -190,23 +186,25 @@ function RoundList({
   navigate: (route: Route) => void
   back: () => void
 }) {
+  const { t } = useTranslation()
+  const eventLabels = useEventLabels()
   const [query, setQuery] = useState("")
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     if (!normalized) return rounds
 
     return rounds.filter((round) =>
-      globalEventLabels[round.eventType].toLowerCase().includes(normalized)
+      eventLabels[round.eventType].toLowerCase().includes(normalized)
       || round.status.toLowerCase().includes(normalized),
     )
-  }, [query, rounds])
+  }, [eventLabels, query, rounds])
 
   return (
     <div className="screen bet-admin-v2">
       <PageHeader title={title} back={back} />
       <label className="moderation-polished-search">
         <Glyph name="search" size={17} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Подія або статус" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("betAdmin.searchPlaceholder")} />
       </label>
 
       {loading ? <LoadingState /> : (
@@ -218,7 +216,7 @@ function RoundList({
               onClick={() => navigate({ id: "bet-admin", params: { section: "round", roundId: round.id } })}
             />
           ))}
-          {!visible.length ? <p className="inline-hint">Раундів немає</p> : null}
+          {!visible.length ? <p className="inline-hint">{t("betAdmin.noRounds")}</p> : null}
         </section>
       )}
     </div>
@@ -236,16 +234,24 @@ function RoundDetail({
   back: () => void
   onResolved: () => Promise<void>
 }) {
+  const { t, i18n } = useTranslation()
+  const eventLabels = useEventLabels()
+  const outcomeLabels = useOutcomeLabels()
   const [outcome, setOutcome] = useState<EventBetOutcome>("YES")
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
 
   if (loading) {
-    return <div className="screen bet-admin-v2"><PageHeader title="Раунд" back={back} /><LoadingState /></div>
+    return <div className="screen bet-admin-v2"><PageHeader title={t("betAdmin.round")} back={back} /><LoadingState /></div>
   }
 
   if (!round) {
-    return <div className="screen bet-admin-v2"><PageHeader title="Раунд" back={back} /><p className="inline-hint">Раунд не знайдено</p></div>
+    return (
+      <div className="screen bet-admin-v2">
+        <PageHeader title={t("betAdmin.round")} back={back} />
+        <p className="inline-hint">{t("betAdmin.roundNotFound")}</p>
+      </div>
+    )
   }
 
   const canResolve = round.status === "AWAITING_RESULT" || round.status === "AWAITING_ADMIN_CONFIRMATION"
@@ -266,26 +272,26 @@ function RoundDetail({
 
   return (
     <div className="screen bet-admin-v2">
-      <PageHeader title={globalEventLabels[round.eventType]} back={back} />
+      <PageHeader title={eventLabels[round.eventType]} back={back} />
 
       <section className="bet-admin-round-detail-hero">
         <GlobalEventArt eventType={round.eventType} size={72} />
         <span>
           <small>{round.status}</small>
-          <strong>{formatDate(round.scheduledAt)}</strong>
-          <em>закриття {formatDate(round.closesAt)}</em>
+          <strong>{formatDate(round.scheduledAt, i18n.language)}</strong>
+          <em>{t("betAdmin.closing", { date: formatDate(round.closesAt, i18n.language) })}</em>
         </span>
       </section>
 
       <section className="bet-admin-kpis">
-        <article><small>Так</small><strong>× {round.yesOdds.toFixed(2)}</strong></article>
-        <article><small>Ні</small><strong>× {round.noOdds.toFixed(2)}</strong></article>
-        <article><small>Результат</small><strong>{round.outcome ? outcomeLabels[round.outcome] : "—"}</strong></article>
+        <article><small>{t("betAdmin.yes")}</small><strong>× {round.yesOdds.toFixed(2)}</strong></article>
+        <article><small>{t("betAdmin.no")}</small><strong>× {round.noOdds.toFixed(2)}</strong></article>
+        <article><small>{t("betAdmin.result")}</small><strong>{round.outcome ? outcomeLabels[round.outcome] : "—"}</strong></article>
       </section>
 
       {canResolve ? (
         <section className="creator-r2-form-block">
-          <header><small>MANUAL RESOLUTION</small><strong>Підтвердження результату</strong></header>
+          <header><small>MANUAL RESOLUTION</small><strong>{t("betAdmin.manualResolution")}</strong></header>
           <div className="bets-r2-side-choice">
             {EVENT_BET_OUTCOMES.map((value) => (
               <button key={value} className={outcome === value ? "is-active" : ""} onClick={() => setOutcome(value)}>
@@ -293,11 +299,16 @@ function RoundDetail({
               </button>
             ))}
           </div>
-          <Field label="Причина">
-            <textarea value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="Чому результат підтверджується вручну" />
+          <Field label={t("betAdmin.reason")}>
+            <textarea
+              value={reason}
+              maxLength={500}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder={t("betAdmin.reasonPlaceholder")}
+            />
           </Field>
           <button className="primary-action" disabled={!reason.trim() || busy} onClick={() => void resolve()}>
-            {busy ? "Зберігаємо…" : "Підтвердити результат"}
+            {busy ? t("betAdmin.saving") : t("betAdmin.confirmResult")}
           </button>
         </section>
       ) : null}
@@ -316,6 +327,8 @@ function RaceManagement({
   back: () => void
   onChanged: () => Promise<void>
 }) {
+  const { t } = useTranslation()
+  const itemLabels = useItemLabels()
   const [formOpen, setFormOpen] = useState(false)
   const [itemName, setItemName] = useState("")
   const [itemType, setItemType] = useState<BetItemType>("SWORD")
@@ -374,32 +387,32 @@ function RaceManagement({
   return (
     <div className="screen bet-admin-v2">
       <PageHeader
-        title="Item race"
+        title={t("betAdmin.itemRace")}
         back={back}
         actions={(
           <button className="bet-admin-header-action" onClick={() => setFormOpen((value) => !value)}>
             <Glyph name={formOpen ? "close" : "plus"} size={15} />
-            {formOpen ? "Закрити" : "Новий"}
+            {formOpen ? t("betAdmin.close") : t("betAdmin.new")}
           </button>
         )}
       />
 
       {formOpen ? (
         <section className="creator-r2-form-block">
-          <header><small>NEW RACE</small><strong>Новий Item race</strong></header>
-          <Field label="Предмет"><input value={itemName} maxLength={24} onChange={(event) => setItemName(event.target.value)} /></Field>
-          <Field label="Тип">
+          <header><small>NEW RACE</small><strong>{t("betAdmin.newRace")}</strong></header>
+          <Field label={t("betAdmin.item")}><input value={itemName} maxLength={24} onChange={(event) => setItemName(event.target.value)} /></Field>
+          <Field label={t("betAdmin.type")}>
             <div className="bets-r2-side-choice">
               {BET_ITEM_TYPES.map((value) => (
                 <button key={value} className={itemType === value ? "is-active" : ""} onClick={() => setItemType(value)}>
-                  {itemTypeLabels[value]}
+                  {itemLabels[value]}
                 </button>
               ))}
             </div>
           </Field>
-          <Field label="Тривалість, год"><input type="number" min={1} max={168} value={durationHours} onChange={(event) => setDurationHours(event.target.value)} /></Field>
-          <Field label="Вхід"><input type="number" min={1000} max={5000} value={entryAmount} onChange={(event) => setEntryAmount(event.target.value)} /></Field>
-          <button className="primary-action" disabled={!valid || busy} onClick={() => void create()}>{busy ? "Створюємо…" : "Створити"}</button>
+          <Field label={t("betAdmin.durationHours")}><input type="number" min={1} max={168} value={durationHours} onChange={(event) => setDurationHours(event.target.value)} /></Field>
+          <Field label={t("betAdmin.entry")}><input type="number" min={1000} max={5000} value={entryAmount} onChange={(event) => setEntryAmount(event.target.value)} /></Field>
+          <button className="primary-action" disabled={!valid || busy} onClick={() => void create()}>{busy ? t("betAdmin.creating") : t("betAdmin.create")}</button>
         </section>
       ) : null}
 
@@ -413,19 +426,19 @@ function RaceManagement({
               <article key={race.id} className="bet-admin-race-card">
                 <span className="bet-admin-race-card__art"><ItemTypeArt itemType={race.itemType} size={52} /></span>
                 <span className="bet-admin-race-card__copy">
-                  <small>{itemTypeLabels[race.itemType]}</small>
+                  <small>{itemLabels[race.itemType]}</small>
                   <strong>{race.itemName}</strong>
-                  <em>{race.status} · {race.participants.length} учасн.</em>
+                  <em>{race.status} · {t("betAdmin.participantsShort", { count: race.participants.length })}</em>
                 </span>
                 <span className="bet-admin-race-card__money">
                   <CurrencyValue currency="COIN" value={pool} compact />
-                  <small>банк</small>
+                  <small>{t("betAdmin.bank")}</small>
                 </span>
-                {cancellable ? <button disabled={busy} onClick={() => void cancel(race.id)}>Скасувати</button> : null}
+                {cancellable ? <button disabled={busy} onClick={() => void cancel(race.id)}>{t("betAdmin.cancel")}</button> : null}
               </article>
             )
           })}
-          {!races.length ? <p className="inline-hint">Перегонів немає</p> : null}
+          {!races.length ? <p className="inline-hint">{t("betAdmin.noRaces")}</p> : null}
         </section>
       )}
     </div>
@@ -433,16 +446,19 @@ function RaceManagement({
 }
 
 function RoundRow({ round, onClick }: { round: EventBetRoundResponse; onClick: () => void }) {
+  const { t, i18n } = useTranslation()
+  const eventLabels = useEventLabels()
+
   return (
     <button className="bet-admin-round-row" onClick={onClick}>
       <span><GlobalEventArt eventType={round.eventType} size={48} /></span>
       <span>
-        <small>{globalEventLabels[round.eventType]}</small>
+        <small>{eventLabels[round.eventType]}</small>
         <strong>{round.status}</strong>
-        <em>{formatDate(round.scheduledAt)}</em>
+        <em>{formatDate(round.scheduledAt, i18n.language)}</em>
       </span>
       <span>
-        <small>ТАК / НІ</small>
+        <small>{t("betAdmin.yesNo")}</small>
         <strong>{round.yesOdds.toFixed(2)} / {round.noOdds.toFixed(2)}</strong>
       </span>
       <b>›</b>
@@ -451,11 +467,51 @@ function RoundRow({ round, onClick }: { round: EventBetRoundResponse; onClick: (
 }
 
 function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+  const { t } = useTranslation()
+
+  return <div className="events-r2-loading" aria-label={t("betAdmin.loading")}><i /><i /><i /></div>
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("uk-UA", {
+function useEventLabels(): Record<BetGlobalEventType, string> {
+  const { t } = useTranslation()
+
+  return {
+    MOON: t("betAdmin.eventMoon"),
+    ECLIPSE: t("betAdmin.eventEclipse"),
+    EXPLOSION: t("betAdmin.eventExplosion"),
+  }
+}
+
+function useItemLabels(): Record<BetItemType, string> {
+  const { t } = useTranslation()
+
+  return {
+    SWORD: t("betAdmin.itemSword"),
+    AURA: t("betAdmin.itemAura"),
+    PET: t("betAdmin.itemPet"),
+    BOOK: t("betAdmin.itemBook"),
+    JEWELRY: t("betAdmin.itemJewelry"),
+  }
+}
+
+function useOutcomeLabels(): Record<EventBetOutcome, string> {
+  const { t } = useTranslation()
+
+  return {
+    YES: t("betAdmin.yes"),
+    NO: t("betAdmin.no"),
+    REFUND: t("betAdmin.refund"),
+  }
+}
+
+function formatDate(value: string, language: string) {
+  const locale = language.startsWith("ru")
+    ? "ru-RU"
+    : language.startsWith("en")
+      ? "en-US"
+      : "uk-UA"
+
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
