@@ -1,9 +1,8 @@
 package com.mnemos.realtime.adapter.inbound.http.sse
 
 import com.mnemos.realtime.adapter.sse.connection.SseConnectionRegistry
-import com.mnemos.realtime.application.broadcast.port.out.DropSpotlightPresentationPreferenceStore
-import com.mnemos.realtime.application.broadcast.port.out.RealtimeBroadcastReplayStore
-import com.mnemos.realtime.application.delivery.port.out.RealtimeEventReplayStore
+import com.mnemos.realtime.application.delivery.usecase.replay.GetRealtimeReplayQuery
+import com.mnemos.realtime.application.delivery.usecase.replay.GetRealtimeReplayService
 import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import com.mnemos.security.CurrentMnemosUser
 import jakarta.servlet.http.HttpServletRequest
@@ -21,9 +20,7 @@ import java.util.UUID
 @RequestMapping("/api/v1/realtime")
 class SseController(
     private val currentUser: CurrentMnemosUser,
-    private val replayStore: RealtimeEventReplayStore,
-    private val broadcastReplayStore: RealtimeBroadcastReplayStore,
-    private val presentationPreferenceStore: DropSpotlightPresentationPreferenceStore,
+    private val getRealtimeReplayService: GetRealtimeReplayService,
     private val connectionRegistry: SseConnectionRegistry,
     private val clientIpResolver: SseClientIpResolver,
     private val properties: RealtimeDeliveryProperties,
@@ -42,15 +39,21 @@ class SseController(
         response.setHeader("X-Accel-Buffering", "no")
 
         val userId = currentUser.requireUserId()
+        val replay =
+            getRealtimeReplayService.execute(
+                GetRealtimeReplayQuery(
+                    userId = userId,
+                    lastEventId = parseEventId(lastEventId),
+                ),
+            )
         val clientIp = clientIpResolver.resolve(request)
         val emitter = SseEmitter(properties.timeout.toMillis())
-        val presentationMode = presentationPreferenceStore.find(userId)
         val connectionId =
             connectionRegistry.register(
                 userId = userId,
                 clientIp = clientIp,
                 emitter = emitter,
-                dropSpotlightPresentationMode = presentationMode,
+                dropSpotlightPresentationMode = replay.dropSpotlightPresentationMode,
             )
 
         try {
@@ -61,21 +64,11 @@ class SseController(
                     .data(mapOf("userId" to userId)),
             )
 
-            val replayEvents =
-                parseEventId(lastEventId)
-                    ?.let { eventId ->
-                        replayStore.findAfter(
-                            userId = userId,
-                            lastEventId = eventId,
-                        )
-                    }.orEmpty()
-            val replayBroadcasts = broadcastReplayStore.findPending(userId)
-
             connectionRegistry.completeReplay(
                 userId = userId,
                 connectionId = connectionId,
-                replayEvents = replayEvents,
-                replayBroadcasts = replayBroadcasts,
+                replayEvents = replay.events,
+                replayBroadcasts = replay.broadcasts,
             )
         } catch (exception: Exception) {
             connectionRegistry.unregister(
