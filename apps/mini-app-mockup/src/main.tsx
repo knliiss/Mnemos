@@ -50,6 +50,7 @@ import "./cohesive-ui-overhaul.css"
 import "./cohesive-ui-overhaul-fixes.css"
 import "./cohesive-ui-visual-audit-fixes.css"
 import "./product-rethink.css"
+import "./product-rethink-audit-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
