@@ -36,16 +36,16 @@ export async function selectActiveAccount(accountId: string): Promise<void> {
   await api<void>(`/api/v1/me/accounts/active/${accountId}`, { method: "PUT" })
 }
 
-export async function createAccount(cristalixNickname: string): Promise<void> {
-  await api("/api/v1/accounts", {
+export async function createAccount(cristalixNickname: string): Promise<{ accountId: string; memberId: string }> {
+  return api<{ accountId: string; memberId: string }>("/api/v1/accounts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ cristalixNickname }),
   })
 }
 
-export async function joinAccount(inviteCode: string): Promise<void> {
-  await api("/api/v1/account-memberships", {
+export async function joinAccount(inviteCode: string): Promise<{ accountId: string; memberId: string }> {
+  return api<{ accountId: string; memberId: string }>("/api/v1/account-memberships", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ inviteCode }),
