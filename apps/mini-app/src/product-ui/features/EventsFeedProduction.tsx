@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { EventArt, OwnerCrown } from "../components/EventArt"
 import { useProductData } from "../data/ProductDataProvider"
 import { eventVisualTone } from "../eventVisualTone"
@@ -20,14 +20,19 @@ type FeedSort = "NEWEST" | "OLDEST"
 const filters: EventKind[] = ["ITEM_DROP", "BOOSTER", "GLOBAL", "RAID"]
 
 export function EventsFeedProduction({ activeAccount, navigate }: Props) {
-  const product = useProductData()
+  const {
+    feed,
+    loadingEvents,
+    refreshEvents,
+    subscriptions,
+  } = useProductData()
   const [filter, setFilter] = useState<EventFilter>("ALL")
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<FeedSort>("NEWEST")
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      void product.refreshEvents({
+      void refreshEvents({
         types: filter === "ALL" ? undefined : [filter],
         search: query,
         sort,
@@ -36,11 +41,10 @@ export function EventsFeedProduction({ activeAccount, navigate }: Props) {
     }, query.trim() ? 240 : 0)
 
     return () => window.clearTimeout(timeout)
-  }, [filter, query, sort, product.refreshEvents])
+  }, [filter, query, refreshEvents, sort])
 
-  const visible = useMemo(() => product.feed, [product.feed])
-  const featured = visible[0]
-  const rest = visible.slice(1)
+  const featured = feed[0]
+  const rest = feed.slice(1)
 
   return (
     <div className="screen events-r2-screen root-screen">
@@ -52,7 +56,7 @@ export function EventsFeedProduction({ activeAccount, navigate }: Props) {
         </span>
         <button className="events-r2-subscriptions" onClick={() => navigate({ id: "subscriptions" })}>
           <Glyph name="bell" size={17} />
-          <b>{product.subscriptions.length}</b>
+          <b>{subscriptions.length}</b>
         </button>
       </header>
 
@@ -87,7 +91,7 @@ export function EventsFeedProduction({ activeAccount, navigate }: Props) {
         </motion.button>
       </div>
 
-      {product.loadingEvents && !visible.length ? (
+      {loadingEvents && !feed.length ? (
         <section className="events-r2-loading" aria-label="Завантаження подій">
           <i /><i /><i />
         </section>
@@ -112,8 +116,8 @@ export function EventsFeedProduction({ activeAccount, navigate }: Props) {
       ) : null}
 
       <header className="events-r2-section-head">
-        <span><small>СТРІЧКА</small><strong>{visible.length} подій</strong></span>
-        <i className={product.loadingEvents ? "is-loading" : ""} />
+        <span><small>СТРІЧКА</small><strong>{feed.length} подій</strong></span>
+        <i className={loadingEvents ? "is-loading" : ""} />
       </header>
 
       <section className="events-r2-stream">
@@ -142,7 +146,7 @@ export function EventsFeedProduction({ activeAccount, navigate }: Props) {
         </AnimatePresence>
       </section>
 
-      {!product.loadingEvents && !visible.length ? (
+      {!loadingEvents && !feed.length ? (
         <section className="events-r2-empty">
           <Glyph name="events" size={24} />
           <strong>Подій не знайдено</strong>
