@@ -1,6 +1,6 @@
+import { lazy, Suspense } from "react"
 import type { Account, Route } from "../model"
-import { PeopleFeatureProduction } from "./PeopleFeatureProduction"
-import { UserPrimeWalletProduction } from "./UserPrimeWalletProduction"
+import { FeatureLoading } from "./FeatureLoading"
 
 type Props = {
   routeId: Route["id"]
@@ -10,15 +10,29 @@ type Props = {
   back: () => void
 }
 
-export function PeopleFeatureFinal(props: Props) {
-  if (props.routeId === "user-wallet") {
-    return (
-      <UserPrimeWalletProduction
-        navigate={props.navigate}
-        back={props.back}
-      />
-    )
-  }
+const PeopleFeatureProduction = lazy(() =>
+  import("./PeopleFeatureProduction").then((module) => ({
+    default: module.PeopleFeatureProduction,
+  })),
+)
 
-  return <PeopleFeatureProduction {...props} />
+const UserPrimeWalletProduction = lazy(() =>
+  import("./UserPrimeWalletProduction").then((module) => ({
+    default: module.UserPrimeWalletProduction,
+  })),
+)
+
+export function PeopleFeatureFinal(props: Props) {
+  return (
+    <Suspense fallback={<FeatureLoading />}>
+      {props.routeId === "user-wallet" ? (
+        <UserPrimeWalletProduction
+          navigate={props.navigate}
+          back={props.back}
+        />
+      ) : (
+        <PeopleFeatureProduction {...props} />
+      )}
+    </Suspense>
+  )
 }
