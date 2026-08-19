@@ -71,6 +71,18 @@ export async function getAccountRoles(accountId: string): Promise<AccountRoleRes
   return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/roles`)
 }
 
+export async function getMemberRoles(accountId: string, memberId: string): Promise<AccountRoleResponse[]> {
+  return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/members/${memberId}/roles`)
+}
+
+export async function assignMemberRole(accountId: string, memberId: string, roleId: string): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, { method: "PUT" })
+}
+
+export async function revokeMemberRole(accountId: string, memberId: string, roleId: string): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, { method: "DELETE" })
+}
+
 export async function getAccountBalances(accountId: string): Promise<BalanceResponse[]> {
   return api<BalanceResponse[]>(`/api/v1/accounts/${accountId}/balances`)
 }
