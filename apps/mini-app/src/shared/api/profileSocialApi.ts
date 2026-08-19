@@ -1,0 +1,191 @@
+import { api } from "@/shared/api/httpClient"
+
+export type AccountReactionType = "LIKE" | "DISLIKE"
+
+export type ProfileGlowResponse = {
+  color: string
+  strength: number
+}
+
+export type ProfileAppearanceResponse = {
+  nickStyle: {
+    personalizationId: string
+    colors: Array<{
+      color: string
+      position: number
+    }>
+    angleDegrees: number
+    glow: ProfileGlowResponse | null
+  } | null
+  profileTheme: {
+    personalizationId: string
+    background: string
+    surface: string
+    accent: string
+    text: string
+    border: string
+    glow: ProfileGlowResponse | null
+  } | null
+  avatarFrame: {
+    personalizationId: string
+    borderColor: string
+    borderWidthPx: number
+    radiusPx: number
+    glow: ProfileGlowResponse | null
+  } | null
+  profileEffect: {
+    personalizationId: string
+    effect: string
+    intensity: number
+    primaryColor: string
+    secondaryColor: string | null
+  } | null
+}
+
+export type PublicProfileResponse = {
+  accountId: string
+  cristalixUuid: string
+  cristalixNickname: string
+  likes: number
+  dislikes: number
+  comments: number
+  appearance: ProfileAppearanceResponse
+  createdAt: string
+}
+
+export type CommentResponse = {
+  id: string
+  targetAccountId: string
+  authorAccountId: string
+  parentCommentId: string | null
+  content: string | null
+  deleted: boolean
+  likes: number
+  replies: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type SpringPageResponse<T> = {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+  numberOfElements: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
+
+export async function searchPublicProfiles(
+  query: string,
+  page = 0,
+  size = 20,
+): Promise<SpringPageResponse<PublicProfileResponse>> {
+  const params = new URLSearchParams({
+    q: query.trim(),
+    page: String(page),
+    size: String(size),
+  })
+
+  return api<SpringPageResponse<PublicProfileResponse>>(`/api/v1/profiles?${params}`)
+}
+
+export async function getPublicProfile(accountId: string): Promise<PublicProfileResponse> {
+  return api<PublicProfileResponse>(`/api/v1/profiles/${accountId}`)
+}
+
+export async function getAccountReaction(accountId: string): Promise<AccountReactionType | null> {
+  const response = await api<{ type: AccountReactionType | null }>(`/api/v1/accounts/${accountId}/reaction`)
+  return response.type
+}
+
+export async function getAccountReactionSummary(accountId: string): Promise<{ likes: number; dislikes: number }> {
+  return api<{ likes: number; dislikes: number }>(`/api/v1/accounts/${accountId}/reaction/summary`)
+}
+
+export async function setAccountReaction(accountId: string, type: AccountReactionType): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/reaction`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type }),
+  })
+}
+
+export async function removeAccountReaction(accountId: string): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/reaction`, { method: "DELETE" })
+}
+
+export async function getAccountComments(
+  accountId: string,
+  page = 0,
+  size = 20,
+): Promise<SpringPageResponse<CommentResponse>> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sort: "createdAt,desc",
+  })
+
+  return api<SpringPageResponse<CommentResponse>>(`/api/v1/accounts/${accountId}/comments?${params}`)
+}
+
+export async function getCommentReplies(
+  commentId: string,
+  page = 0,
+  size = 50,
+): Promise<SpringPageResponse<CommentResponse>> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sort: "createdAt,asc",
+  })
+
+  return api<SpringPageResponse<CommentResponse>>(`/api/v1/comments/${commentId}/replies?${params}`)
+}
+
+export async function createComment(
+  accountId: string,
+  content: string,
+  parentCommentId: string | null = null,
+): Promise<CommentResponse> {
+  return api<CommentResponse>(`/api/v1/accounts/${accountId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      parentCommentId,
+      content: content.trim(),
+    }),
+  })
+}
+
+export async function editComment(commentId: string, content: string): Promise<CommentResponse> {
+  return api<CommentResponse>(`/api/v1/comments/${commentId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: content.trim() }),
+  })
+}
+
+export async function deleteComment(commentId: string): Promise<void> {
+  await api<void>(`/api/v1/comments/${commentId}`, { method: "DELETE" })
+}
+
+export async function getCommentLikeState(commentId: string): Promise<boolean> {
+  const response = await api<{ liked: boolean }>(`/api/v1/comments/${commentId}/like`)
+  return response.liked
+}
+
+export async function getCommentLikeCount(commentId: string): Promise<number> {
+  const response = await api<{ likes: number }>(`/api/v1/comments/${commentId}/like/count`)
+  return response.likes
+}
+
+export async function likeComment(commentId: string): Promise<void> {
+  await api<void>(`/api/v1/comments/${commentId}/like`, { method: "PUT" })
+}
+
+export async function unlikeComment(commentId: string): Promise<void> {
+  await api<void>(`/api/v1/comments/${commentId}/like`, { method: "DELETE" })
+}
