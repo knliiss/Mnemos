@@ -44,7 +44,7 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
   const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
   const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
   const [followBusy, setFollowBusy] = useState(false)
-  const resolvedEvent = lookupResult?.eventId === eventId ? lookupResult.event : null
+  const resolvedEvent = lookupResult?.eventId === eventId ? lookupResult?.event ?? null : null
   const event = cachedEvent ?? resolvedEvent
   const lookupLoading = Boolean(eventId && !cachedEvent && lookupResult?.eventId !== eventId)
   const locale = localeForLanguage(i18n.resolvedLanguage)
