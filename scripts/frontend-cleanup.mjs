@@ -1,12 +1,14 @@
 import fs from "node:fs"
+import { createRequire } from "node:module"
 import path from "node:path"
-import { PurgeCSS } from "purgecss"
 
 const repositoryRoot = process.cwd()
 const miniAppRoot = path.join(repositoryRoot, "apps/mini-app")
 const sourceRoot = path.join(miniAppRoot, "src")
 const productCssPath = path.join(sourceRoot, "product-ui/product.css")
 const globalCssPath = path.join(sourceRoot, "shared/styles/global.css")
+const require = createRequire(path.join(miniAppRoot, "package.json"))
+const { PurgeCSS } = require("purgecss")
 
 function walk(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -77,10 +79,7 @@ async function purgeStylesheet(cssPath, contentPaths, dynamicPrefixes) {
 
 const files = sourceFiles()
 const dynamicPrefixes = collectDynamicClassPrefixes(files)
-const contentPaths = [
-  path.join(miniAppRoot, "index.html"),
-  ...files,
-]
+const contentPaths = [path.join(miniAppRoot, "index.html"), ...files]
 
 console.log(`Safelisting ${dynamicPrefixes.length} dynamic class prefixes`)
 
