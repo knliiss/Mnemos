@@ -1,5 +1,5 @@
 import { Reorder, useDragControls } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { updateRoleHierarchy } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
@@ -17,34 +17,14 @@ type Props = {
 export function RolesOverviewProduction({ navigate, back }: Props) {
   const product = useProductData()
   const accountId = product.activeAccount?.id ?? null
-  const [roles, setRoles] = useState<AccountRole[]>([])
-  const [savingOrder, setSavingOrder] = useState(false)
-
-  useEffect(() => {
-    setRoles([...product.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank))
-  }, [product.roles])
-
+  const roles = useMemo(
+    () => [...product.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
+    [product.roles],
+  )
   const totalPermissions = useMemo(
     () => new Set(permissionGroups.flatMap((group) => group.permissions)).size,
     [],
   )
-
-  const reorder = async (nextRoles: AccountRole[]) => {
-    if (!accountId || savingOrder) return
-
-    setRoles(nextRoles)
-    setSavingOrder(true)
-
-    try {
-      await updateRoleHierarchy(accountId, nextRoles.map((role) => role.id))
-      await product.refreshAccount()
-    } catch (error) {
-      handleError(error)
-      await product.refreshAccount()
-    } finally {
-      setSavingOrder(false)
-    }
-  }
 
   return (
     <div className="screen roles-v2">
@@ -75,29 +55,24 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
       <section className="roles-v2-guide">
         <span className="roles-v2-guide__handle" aria-hidden="true">⠿</span>
         <span>
-          <strong>{savingOrder ? "Зберігаємо порядок…" : "Порядок змінюється перетягуванням"}</strong>
-          <small>Затисни ручку ⠿ праворуч і перетягни роль вище або нижче.</small>
+          <strong>Порядок змінюється перетягуванням</strong>
+          <small>Затисни ручку ⠿ праворуч. Порядок відправиться на backend після завершення перетягування.</small>
         </span>
       </section>
 
-      <section className="roles-v2-stack">
-        <Reorder.Group
-          axis="y"
-          values={roles}
-          onReorder={(nextRoles) => void reorder(nextRoles)}
-          className="role-v2-reorder"
-        >
-          {roles.map((role) => (
-            <SortableRoleRow
-              key={role.id}
-              role={role}
-              memberCount={product.members.filter((member) => member.highestRoleId === role.id).length}
-              disabled={savingOrder}
-              navigate={navigate}
-            />
-          ))}
-        </Reorder.Group>
-      </section>
+      {accountId && roles.length ? (
+        <RoleReorderList
+          key={roles.map((role) => `${role.id}:${role.hierarchyRank}`).join("|")}
+          accountId={accountId}
+          initialRoles={roles}
+          memberCounts={new Map(roles.map((role) => [
+            role.id,
+            product.members.filter((member) => member.highestRoleId === role.id).length,
+          ]))}
+          navigate={navigate}
+          refresh={product.refreshAccount}
+        />
+      ) : null}
 
       {!roles.length && !product.loadingAccount ? (
         <section className="events-r2-empty">
@@ -123,16 +98,75 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
   )
 }
 
+function RoleReorderList({
+  accountId,
+  initialRoles,
+  memberCounts,
+  navigate,
+  refresh,
+}: {
+  accountId: string
+  initialRoles: AccountRole[]
+  memberCounts: Map<string, number>
+  navigate: (route: Route) => void
+  refresh: () => Promise<void>
+}) {
+  const [roles, setRoles] = useState(initialRoles)
+  const [savingOrder, setSavingOrder] = useState(false)
+  const rolesRef = useRef(roles)
+  rolesRef.current = roles
+
+  const persist = async () => {
+    if (savingOrder) return
+
+    setSavingOrder(true)
+
+    try {
+      await updateRoleHierarchy(accountId, rolesRef.current.map((role) => role.id))
+      await refresh()
+    } catch (error) {
+      handleError(error)
+      await refresh()
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
+  return (
+    <section className="roles-v2-stack">
+      <Reorder.Group
+        axis="y"
+        values={roles}
+        onReorder={setRoles}
+        className="role-v2-reorder"
+      >
+        {roles.map((role) => (
+          <SortableRoleRow
+            key={role.id}
+            role={role}
+            memberCount={memberCounts.get(role.id) ?? 0}
+            disabled={savingOrder}
+            navigate={navigate}
+            onDragEnd={() => void persist()}
+          />
+        ))}
+      </Reorder.Group>
+    </section>
+  )
+}
+
 function SortableRoleRow({
   role,
   memberCount,
   disabled,
   navigate,
+  onDragEnd,
 }: {
   role: AccountRole
   memberCount: number
   disabled: boolean
   navigate: (route: Route) => void
+  onDragEnd: () => void
 }) {
   const dragControls = useDragControls()
 
@@ -143,6 +177,7 @@ function SortableRoleRow({
       dragControls={dragControls}
       className="role-v2-row"
       whileDrag={{ scale: 1.02, zIndex: 5 }}
+      onDragEnd={onDragEnd}
     >
       <button
         className="role-v2-row__main"
