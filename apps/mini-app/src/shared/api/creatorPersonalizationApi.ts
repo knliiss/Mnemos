@@ -137,16 +137,26 @@ export async function updateCreatorPersonalization<TType extends Personalization
   )
 }
 
-export async function submitCreatorPersonalization(personalizationId: string): Promise<PersonalizationResponse> {
-  return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${personalizationId}/submit`, {
-    method: "POST",
-  })
+export async function submitCreatorPersonalization(
+  personalizationId: string,
+): Promise<PersonalizationResponse> {
+  return api<PersonalizationResponse>(
+    `/api/v1/personalizations/creator/${personalizationId}/submit`,
+    {
+      method: "POST",
+    },
+  )
 }
 
-export async function publishCreatorPersonalization(personalizationId: string): Promise<PersonalizationResponse> {
-  return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${personalizationId}/publish`, {
-    method: "POST",
-  })
+export async function publishCreatorPersonalization(
+  personalizationId: string,
+): Promise<PersonalizationResponse> {
+  return api<PersonalizationResponse>(
+    `/api/v1/personalizations/creator/${personalizationId}/publish`,
+    {
+      method: "POST",
+    },
+  )
 }
 
 export async function getCreatorRevenueSummary(): Promise<CreatorRevenueSummaryResponse> {
@@ -154,5 +164,7 @@ export async function getCreatorRevenueSummary(): Promise<CreatorRevenueSummaryR
 }
 
 export async function getCreatorRevenueOperations(): Promise<CreatorRevenueOperationResponse[]> {
-  return api<CreatorRevenueOperationResponse[]>("/api/v1/personalizations/creator/revenue/operations")
+  return api<CreatorRevenueOperationResponse[]>(
+    "/api/v1/personalizations/creator/revenue/operations",
+  )
 }

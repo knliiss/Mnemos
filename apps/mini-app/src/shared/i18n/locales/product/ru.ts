@@ -76,7 +76,8 @@ export const productRu = {
   moderation: {
     title: "Модерация",
     heroTitle: "Пользователи и аккаунты",
-    heroDescription: "Поиск и действия модерации работают напрямую с account-service и moderation-service.",
+    heroDescription:
+      "Поиск и действия модерации работают напрямую с account-service и moderation-service.",
     searchPlaceholder: "Username, Telegram ID, User ID или Cristalix",
     clear: "Очистить",
     searchableBy: "Можно искать по",

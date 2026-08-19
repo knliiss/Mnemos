@@ -32,16 +32,17 @@ export function NotFoundFeature({ requested, onHome }: Props) {
           {requested ? <code>{requested}</code> : null}
         </div>
 
-        <motion.button
-          className="not-found-r5-home"
-          whileTap={{ scale: 0.97 }}
-          onClick={onHome}
-        >
+        <motion.button className="not-found-r5-home" whileTap={{ scale: 0.97 }} onClick={onHome}>
           <Glyph name="home" size={18} />
           {t("notFound.home")}
         </motion.button>
 
-        <span className="not-found-r5-signal" aria-hidden="true"><i /><i /><i /><i /></span>
+        <span className="not-found-r5-signal" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
       </section>
     </div>
   )

@@ -158,7 +158,11 @@ export type RaidFeedResponse = {
   locations: number[]
 }
 
-export type EventFeedItemResponse = ItemDropFeedResponse | BoosterFeedResponse | GlobalFeedResponse | RaidFeedResponse
+export type EventFeedItemResponse =
+  | ItemDropFeedResponse
+  | BoosterFeedResponse
+  | GlobalFeedResponse
+  | RaidFeedResponse
 
 export type EventFeedResponse = {
   items: EventFeedItemResponse[]

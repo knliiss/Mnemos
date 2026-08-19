@@ -93,10 +93,10 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const context = app.context
 
   const accounts = useMemo(
-    () => context?.availableAccounts.map((account) => toProductAccount(
-      account,
-      account.id === context.activeAccount?.id ? accountCoin : 0,
-    )) ?? [],
+    () =>
+      context?.availableAccounts.map((account) =>
+        toProductAccount(account, account.id === context.activeAccount?.id ? accountCoin : 0),
+      ) ?? [],
     [accountCoin, context],
   )
 
@@ -105,13 +105,16 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     [accounts, context?.activeAccount?.id],
   )
 
-  const user = useMemo<ProductUser>(() => ({
-    id: context?.user.id ?? "",
-    username: context?.user.username ?? "",
-    language: context?.user.localizationLanguage ?? "UK",
-    prime,
-    systemRoles: context?.systemRoles ?? [],
-  }), [context, prime])
+  const user = useMemo<ProductUser>(
+    () => ({
+      id: context?.user.id ?? "",
+      username: context?.user.username ?? "",
+      language: context?.user.localizationLanguage ?? "UK",
+      prime,
+      systemRoles: context?.systemRoles ?? [],
+    }),
+    [context, prime],
+  )
 
   const refreshAccount = useCallback(async () => {
     const accountId = context?.activeAccount?.id
@@ -132,13 +135,14 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const [memberResponses, roleResponses, balances, rewardState, userBalances] = await Promise.all([
-        getAccountMembers(accountId),
-        getAccountRoles(accountId),
-        getAccountBalances(accountId),
-        getDailyRewardState(),
-        userBalancesPromise,
-      ])
+      const [memberResponses, roleResponses, balances, rewardState, userBalances] =
+        await Promise.all([
+          getAccountMembers(accountId),
+          getAccountRoles(accountId),
+          getAccountBalances(accountId),
+          getDailyRewardState(),
+          userBalancesPromise,
+        ])
 
       setMembers(memberResponses.map((member) => toProductMember(member)))
       setRoles(roleResponses.map(toProductRole))
@@ -169,31 +173,34 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const loadMoreEvents = useCallback(async (query: EventFeedQuery = {}) => {
-    if (loadingEvents || !eventsHasMore || !eventCursor) return
+  const loadMoreEvents = useCallback(
+    async (query: EventFeedQuery = {}) => {
+      if (loadingEvents || !eventsHasMore || !eventCursor) return
 
-    setLoadingEvents(true)
+      setLoadingEvents(true)
 
-    try {
-      const limit = query.limit ?? 50
-      const response = await getEventFeed({
-        ...query,
-        after: eventCursor,
-      })
-      const nextItems = response.items.map(toProductFeedEvent)
+      try {
+        const limit = query.limit ?? 50
+        const response = await getEventFeed({
+          ...query,
+          after: eventCursor,
+        })
+        const nextItems = response.items.map(toProductFeedEvent)
 
-      setFeed((current) => {
-        const knownIds = new Set(current.map((item) => item.id))
-        return [...current, ...nextItems.filter((item) => !knownIds.has(item.id))]
-      })
-      setEventCursor(response.cursor)
-      setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setLoadingEvents(false)
-    }
-  }, [eventCursor, eventsHasMore, loadingEvents])
+        setFeed((current) => {
+          const knownIds = new Set(current.map((item) => item.id))
+          return [...current, ...nextItems.filter((item) => !knownIds.has(item.id))]
+        })
+        setEventCursor(response.cursor)
+        setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
+      } catch (error) {
+        handleError(error)
+      } finally {
+        setLoadingEvents(false)
+      }
+    },
+    [eventCursor, eventsHasMore, loadingEvents],
+  )
 
   const refreshSubscriptions = useCallback(async () => {
     try {
@@ -225,54 +232,70 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     return () => window.cancelAnimationFrame(frame)
   }, [refreshEvents, refreshSubscriptions])
 
-  const selectAccount = useCallback(async (account: Account) => {
-    try {
-      if (account.active === false && account.owner) {
-        await app.reactivate(account.id)
-      } else {
-        await app.selectAccount(account.id)
+  const selectAccount = useCallback(
+    async (account: Account) => {
+      try {
+        if (account.active === false && account.owner) {
+          await app.reactivate(account.id)
+        } else {
+          await app.selectAccount(account.id)
+        }
+      } catch (error) {
+        handleError(error)
       }
-    } catch (error) {
-      handleError(error)
-    }
-  }, [app])
+    },
+    [app],
+  )
 
-  const createAccount = useCallback(async (nickname: string) => {
-    try {
-      await app.registerAccount(nickname)
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [app])
+  const createAccount = useCallback(
+    async (nickname: string) => {
+      try {
+        await app.registerAccount(nickname)
+      } catch (error) {
+        handleError(error)
+        throw error
+      }
+    },
+    [app],
+  )
 
-  const joinAccount = useCallback(async (inviteCode: string) => {
-    try {
-      await app.joinByCode(inviteCode)
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [app])
+  const joinAccount = useCallback(
+    async (inviteCode: string) => {
+      try {
+        await app.joinByCode(inviteCode)
+      } catch (error) {
+        handleError(error)
+        throw error
+      }
+    },
+    [app],
+  )
 
-  const setLanguage = useCallback(async (language: LocalizationLanguage) => {
-    try {
-      await app.setLanguage(language)
-    } catch (error) {
-      handleError(error)
-    }
-  }, [app])
+  const setLanguage = useCallback(
+    async (language: LocalizationLanguage) => {
+      try {
+        await app.setLanguage(language)
+      } catch (error) {
+        handleError(error)
+      }
+    },
+    [app],
+  )
 
   const claimReward = useCallback(async () => {
     try {
       const result = await claimDailyReward()
 
-      setDailyReward((current) => current ? {
-        ...current,
-        currentStreak: result.streak,
-        claimedToday: true,
-        recoverable: false,
-      } : current)
+      setDailyReward((current) =>
+        current
+          ? {
+              ...current,
+              currentStreak: result.streak,
+              claimedToday: true,
+              recoverable: false,
+            }
+          : current,
+      )
       setAccountCoin((current) => current + result.coins)
       setPrime((current) => current + result.primes)
 
@@ -289,11 +312,15 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const restoreReward = useCallback(async () => {
     try {
       const result = await restoreDailyReward()
-      setDailyReward((current) => current ? {
-        ...current,
-        currentStreak: result.currentStreak,
-        recoverable: false,
-      } : current)
+      setDailyReward((current) =>
+        current
+          ? {
+              ...current,
+              currentStreak: result.currentStreak,
+              recoverable: false,
+            }
+          : current,
+      )
     } catch (error) {
       handleError(error)
       throw error
@@ -303,62 +330,67 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const removeSubscription = useCallback(async (subscriptionId: string) => {
     try {
       await deleteSubscriptionRequest(subscriptionId)
-      setSubscriptions((current) => current.filter((subscription) => subscription.id !== subscriptionId))
+      setSubscriptions((current) =>
+        current.filter((subscription) => subscription.id !== subscriptionId),
+      )
     } catch (error) {
       handleError(error)
       throw error
     }
   }, [])
 
-  const value = useMemo<ProductDataState>(() => ({
-    user,
-    accounts,
-    activeAccount,
-    members,
-    roles,
-    feed,
-    eventCursor,
-    eventsHasMore,
-    subscriptions,
-    dailyReward,
-    loadingAccount,
-    loadingEvents,
-    refreshAccount,
-    refreshEvents,
-    loadMoreEvents,
-    refreshSubscriptions,
-    selectAccount,
-    createAccount,
-    joinAccount,
-    setLanguage,
-    claimReward,
-    restoreReward,
-    removeSubscription,
-  }), [
-    user,
-    accounts,
-    activeAccount,
-    members,
-    roles,
-    feed,
-    eventCursor,
-    eventsHasMore,
-    subscriptions,
-    dailyReward,
-    loadingAccount,
-    loadingEvents,
-    refreshAccount,
-    refreshEvents,
-    loadMoreEvents,
-    refreshSubscriptions,
-    selectAccount,
-    createAccount,
-    joinAccount,
-    setLanguage,
-    claimReward,
-    restoreReward,
-    removeSubscription,
-  ])
+  const value = useMemo<ProductDataState>(
+    () => ({
+      user,
+      accounts,
+      activeAccount,
+      members,
+      roles,
+      feed,
+      eventCursor,
+      eventsHasMore,
+      subscriptions,
+      dailyReward,
+      loadingAccount,
+      loadingEvents,
+      refreshAccount,
+      refreshEvents,
+      loadMoreEvents,
+      refreshSubscriptions,
+      selectAccount,
+      createAccount,
+      joinAccount,
+      setLanguage,
+      claimReward,
+      restoreReward,
+      removeSubscription,
+    }),
+    [
+      user,
+      accounts,
+      activeAccount,
+      members,
+      roles,
+      feed,
+      eventCursor,
+      eventsHasMore,
+      subscriptions,
+      dailyReward,
+      loadingAccount,
+      loadingEvents,
+      refreshAccount,
+      refreshEvents,
+      loadMoreEvents,
+      refreshSubscriptions,
+      selectAccount,
+      createAccount,
+      joinAccount,
+      setLanguage,
+      claimReward,
+      restoreReward,
+      removeSubscription,
+    ],
+  )
 
   return <ProductDataContext.Provider value={value}>{children}</ProductDataContext.Provider>
 }

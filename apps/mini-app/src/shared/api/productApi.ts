@@ -30,7 +30,9 @@ export async function getCurrentContext(): Promise<CurrentContextResponse> {
   return api<CurrentContextResponse>("/api/v1/me/context")
 }
 
-export async function updateCurrentLanguage(localizationLanguage: LocalizationLanguage): Promise<UserResponse> {
+export async function updateCurrentLanguage(
+  localizationLanguage: LocalizationLanguage,
+): Promise<UserResponse> {
   return api<UserResponse>("/api/v1/users/me/localization", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -42,7 +44,9 @@ export async function selectActiveAccount(accountId: string): Promise<void> {
   await api<void>(`/api/v1/me/accounts/active/${accountId}`, { method: "PUT" })
 }
 
-export async function createAccount(cristalixNickname: string): Promise<{ accountId: string; memberId: string }> {
+export async function createAccount(
+  cristalixNickname: string,
+): Promise<{ accountId: string; memberId: string }> {
   return api<{ accountId: string; memberId: string }>("/api/v1/accounts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -50,7 +54,9 @@ export async function createAccount(cristalixNickname: string): Promise<{ accoun
   })
 }
 
-export async function joinAccount(inviteCode: string): Promise<{ accountId: string; memberId: string }> {
+export async function joinAccount(
+  inviteCode: string,
+): Promise<{ accountId: string; memberId: string }> {
   return api<{ accountId: string; memberId: string }>("/api/v1/account-memberships", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -78,16 +84,31 @@ export async function getAccountRoles(accountId: string): Promise<AccountRoleRes
   return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/roles`)
 }
 
-export async function getMemberRoles(accountId: string, memberId: string): Promise<AccountRoleResponse[]> {
+export async function getMemberRoles(
+  accountId: string,
+  memberId: string,
+): Promise<AccountRoleResponse[]> {
   return api<AccountRoleResponse[]>(`/api/v1/accounts/${accountId}/members/${memberId}/roles`)
 }
 
-export async function assignMemberRole(accountId: string, memberId: string, roleId: string): Promise<void> {
-  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, { method: "PUT" })
+export async function assignMemberRole(
+  accountId: string,
+  memberId: string,
+  roleId: string,
+): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, {
+    method: "PUT",
+  })
 }
 
-export async function revokeMemberRole(accountId: string, memberId: string, roleId: string): Promise<void> {
-  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, { method: "DELETE" })
+export async function revokeMemberRole(
+  accountId: string,
+  memberId: string,
+  roleId: string,
+): Promise<void> {
+  await api<void>(`/api/v1/accounts/${accountId}/members/${memberId}/roles/${roleId}`, {
+    method: "DELETE",
+  })
 }
 
 export async function getAccountBalances(accountId: string): Promise<BalanceResponse[]> {
@@ -98,9 +119,15 @@ export async function getCurrentUserBalances(): Promise<BalanceResponse[]> {
   return api<BalanceResponse[]>("/api/v1/users/me/balances")
 }
 
-export async function getAccountTransactions(accountId: string, page = 0, size = 30): Promise<PageResponse<WalletTransactionResponse>> {
+export async function getAccountTransactions(
+  accountId: string,
+  page = 0,
+  size = 30,
+): Promise<PageResponse<WalletTransactionResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
-  return api<PageResponse<WalletTransactionResponse>>(`/api/v1/accounts/${accountId}/transactions?${params}`)
+  return api<PageResponse<WalletTransactionResponse>>(
+    `/api/v1/accounts/${accountId}/transactions?${params}`,
+  )
 }
 
 export async function getDailyRewardState(): Promise<DailyRewardStateResponse> {
@@ -152,12 +179,18 @@ export async function searchItemCatalog(search: string, limit = 8): Promise<Item
   return api<ItemCatalogResponse[]>(`/api/v1/events/items?${params}`)
 }
 
-export async function getSubscriptions(page = 0, size = 100): Promise<PageResponse<SubscriptionResponse>> {
+export async function getSubscriptions(
+  page = 0,
+  size = 100,
+): Promise<PageResponse<SubscriptionResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
   return api<PageResponse<SubscriptionResponse>>(`/api/v1/subscriptions?${params}`)
 }
 
-export async function createItemDropSubscription(droppedFor?: string, itemName?: string): Promise<void> {
+export async function createItemDropSubscription(
+  droppedFor?: string,
+  itemName?: string,
+): Promise<void> {
   await postJson("/api/v1/subscriptions/item-drops", {
     droppedFor: droppedFor?.trim() || null,
     itemName: itemName?.trim() || null,

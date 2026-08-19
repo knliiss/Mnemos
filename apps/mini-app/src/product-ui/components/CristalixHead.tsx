@@ -13,11 +13,7 @@ const HEAD_TEXTURE_SIZE = 8
 const OVERLAY_CANVAS_SIZE = 10
 const SKIN_REFERENCE_SIZE = 64
 
-export function CristalixHead({
-  skinUrl,
-  size = 112,
-  className,
-}: CristalixHeadProps) {
+export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadProps) {
   const baseRef = useRef<HTMLCanvasElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
   const [loadedSkinUrl, setLoadedSkinUrl] = useState<string | null>(null)
@@ -33,7 +29,11 @@ export function CristalixHead({
     image.onload = () => {
       const textureScale = image.naturalWidth / SKIN_REFERENCE_SIZE
 
-      if (!Number.isInteger(textureScale) || textureScale < 1 || image.naturalHeight < SKIN_REFERENCE_SIZE * textureScale) {
+      if (
+        !Number.isInteger(textureScale) ||
+        textureScale < 1 ||
+        image.naturalHeight < SKIN_REFERENCE_SIZE * textureScale
+      ) {
         setFailedSkinUrl(skinUrl)
         return
       }
@@ -51,12 +51,12 @@ export function CristalixHead({
       drawLayer(baseContext, image, textureScale, 8, 8)
       drawOverlayLayer(overlayContext, image, textureScale)
 
-      setFailedSkinUrl((current) => current === skinUrl ? null : current)
+      setFailedSkinUrl((current) => (current === skinUrl ? null : current))
       setLoadedSkinUrl(skinUrl)
     }
 
     image.onerror = () => {
-      setLoadedSkinUrl((current) => current === skinUrl ? null : current)
+      setLoadedSkinUrl((current) => (current === skinUrl ? null : current))
       setFailedSkinUrl(skinUrl)
     }
 
@@ -83,7 +83,10 @@ export function CristalixHead({
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       aria-label={failed ? "Cristalix skin unavailable" : "Cristalix skin head"}
     >
-      <span className={`cristalix-head__placeholder ${!loaded ? "is-visible" : ""}`} aria-hidden="true">
+      <span
+        className={`cristalix-head__placeholder ${!loaded ? "is-visible" : ""}`}
+        aria-hidden="true"
+      >
         <Glyph name="person" size={Math.max(12, Math.round(size * 0.34))} />
       </span>
 

@@ -76,7 +76,8 @@ export const productUk = {
   moderation: {
     title: "Модерація",
     heroTitle: "Користувачі та аккаунти",
-    heroDescription: "Пошук і дії модерації працюють напряму з account-service та moderation-service.",
+    heroDescription:
+      "Пошук і дії модерації працюють напряму з account-service та moderation-service.",
     searchPlaceholder: "Username, Telegram ID, User ID або Cristalix",
     clear: "Очистити",
     searchableBy: "Можна шукати за",

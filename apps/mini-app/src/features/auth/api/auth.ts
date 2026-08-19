@@ -3,7 +3,7 @@ import Keycloak from "keycloak-js"
 const keycloak = new Keycloak({
   url: import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest",
   realm: import.meta.env.VITE_KEYCLOAK_REALM ?? "mnemos",
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? "mnemos-mini-app"
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? "mnemos-mini-app",
 })
 
 let initializationPromise: Promise<void> | null = null
@@ -31,7 +31,7 @@ async function initialize(): Promise<void> {
   const authenticated = await keycloak.init({
     checkLoginIframe: false,
     pkceMethod: "S256",
-    flow: "standard"
+    flow: "standard",
   })
 
   if (authenticated) {
@@ -43,14 +43,11 @@ async function initialize(): Promise<void> {
   }
 
   const loginUrl = await keycloak.createLoginUrl({
-    redirectUri: window.location.origin
+    redirectUri: window.location.origin,
   })
 
   const url = new URL(loginUrl)
-  url.searchParams.set(
-      "telegram_init_data",
-      telegram.initData
-  )
+  url.searchParams.set("telegram_init_data", telegram.initData)
 
   window.location.replace(url)
 }

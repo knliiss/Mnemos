@@ -33,9 +33,10 @@ export function toProductPersonalization(
   currentUsername?: string,
 ): Personalization {
   const target = owned?.ownerType ?? targets[response.type]
-  const creator = response.creatorUserId === currentUserId && currentUsername
-    ? `@${currentUsername}`
-    : `Creator ${response.creatorUserId.slice(0, 8)}`
+  const creator =
+    response.creatorUserId === currentUserId && currentUsername
+      ? `@${currentUsername}`
+      : `Creator ${response.creatorUserId.slice(0, 8)}`
 
   return {
     id: response.id,

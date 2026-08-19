@@ -90,7 +90,8 @@ export const personalizationProductEn = {
       title: "Review",
       queue: "Personalization queue",
       pendingCount: "{{count}} awaiting a decision",
-      description: "Queue, previews and moderation decisions are loaded from personalization-service.",
+      description:
+        "Queue, previews and moderation decisions are loaded from personalization-service.",
       searchPlaceholder: "Name, creator or type",
       scopes: {
         ALL: "All",

@@ -16,7 +16,7 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly body: ApiErrorBody | string,
   ) {
-    super(typeof body === "string" ? body : body.message ?? `HTTP ${status}`)
+    super(typeof body === "string" ? body : (body.message ?? `HTTP ${status}`))
     this.name = "ApiError"
   }
 }

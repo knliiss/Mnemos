@@ -130,7 +130,9 @@ export async function listPersonalizations(
   return api<PageResponse<PersonalizationResponse>>(`/api/v1/personalizations?${params}`)
 }
 
-export async function getPersonalization(personalizationId: string): Promise<PersonalizationResponse> {
+export async function getPersonalization(
+  personalizationId: string,
+): Promise<PersonalizationResponse> {
   return api<PersonalizationResponse>(`/api/v1/personalizations/${personalizationId}`)
 }
 
@@ -143,28 +145,47 @@ export async function listOwnedPersonalizations(
 
   if (type) params.set("type", type)
 
-  return api<PageResponse<OwnedPersonalizationResponse>>(`/api/v1/personalizations/ownership/me?${params}`)
+  return api<PageResponse<OwnedPersonalizationResponse>>(
+    `/api/v1/personalizations/ownership/me?${params}`,
+  )
 }
 
-export async function activatePersonalization(personalizationId: string): Promise<OwnedPersonalizationResponse> {
-  return api<OwnedPersonalizationResponse>(`/api/v1/personalizations/ownership/${personalizationId}/active`, {
-    method: "PUT",
-  })
+export async function activatePersonalization(
+  personalizationId: string,
+): Promise<OwnedPersonalizationResponse> {
+  return api<OwnedPersonalizationResponse>(
+    `/api/v1/personalizations/ownership/${personalizationId}/active`,
+    {
+      method: "PUT",
+    },
+  )
 }
 
-export async function deactivatePersonalization(personalizationId: string): Promise<OwnedPersonalizationResponse> {
-  return api<OwnedPersonalizationResponse>(`/api/v1/personalizations/ownership/${personalizationId}/active`, {
-    method: "DELETE",
-  })
+export async function deactivatePersonalization(
+  personalizationId: string,
+): Promise<OwnedPersonalizationResponse> {
+  return api<OwnedPersonalizationResponse>(
+    `/api/v1/personalizations/ownership/${personalizationId}/active`,
+    {
+      method: "DELETE",
+    },
+  )
 }
 
-export async function purchasePersonalization(personalizationId: string): Promise<PurchasePersonalizationResponse> {
-  return api<PurchasePersonalizationResponse>(`/api/v1/personalizations/${personalizationId}/purchase`, {
-    method: "POST",
-    headers: { "Idempotency-Key": crypto.randomUUID() },
-  })
+export async function purchasePersonalization(
+  personalizationId: string,
+): Promise<PurchasePersonalizationResponse> {
+  return api<PurchasePersonalizationResponse>(
+    `/api/v1/personalizations/${personalizationId}/purchase`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": crypto.randomUUID() },
+    },
+  )
 }
 
-export async function getPurchaseOperation(operationId: string): Promise<PurchaseOperationResponse> {
+export async function getPurchaseOperation(
+  operationId: string,
+): Promise<PurchaseOperationResponse> {
   return api<PurchaseOperationResponse>(`/api/v1/personalizations/purchases/${operationId}`)
 }

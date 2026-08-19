@@ -15,11 +15,7 @@ export const rolePermissionGroups: {
 }[] = [
   {
     key: "account",
-    permissions: [
-      "VIEW_ACCOUNT_SETTINGS",
-      "EDIT_ACCOUNT_SETTINGS",
-      "MANAGE_ACCOUNT_INVITES",
-    ],
+    permissions: ["VIEW_ACCOUNT_SETTINGS", "EDIT_ACCOUNT_SETTINGS", "MANAGE_ACCOUNT_INVITES"],
   },
   {
     key: "members",
@@ -45,11 +41,7 @@ export const rolePermissionGroups: {
   },
   {
     key: "wallet",
-    permissions: [
-      "VIEW_WALLET",
-      "VIEW_TRANSACTION_HISTORY",
-      "SPEND_WALLET_FUNDS",
-    ],
+    permissions: ["VIEW_WALLET", "VIEW_TRANSACTION_HISTORY", "SPEND_WALLET_FUNDS"],
   },
   {
     key: "activity",
@@ -62,12 +54,7 @@ export const rolePermissionGroups: {
   },
   {
     key: "bets",
-    permissions: [
-      "VIEW_BETS",
-      "PLACE_BETS",
-      "MANAGE_BETS",
-      "VIEW_BET_HISTORY",
-    ],
+    permissions: ["VIEW_BETS", "PLACE_BETS", "MANAGE_BETS", "VIEW_BET_HISTORY"],
   },
   {
     key: "personalization",

@@ -1,10 +1,5 @@
 import type { CSSProperties } from "react"
-import type {
-  BetItemType,
-  BoosterType,
-  FeedEvent,
-  GlobalEventType,
-} from "../model"
+import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../model"
 
 type Props = {
   event: FeedEvent
@@ -12,9 +7,10 @@ type Props = {
 }
 
 export function EventArt({ event, size = 46 }: Props) {
-  const rarityClass = event.kind === "ITEM_DROP" && event.rarity
-    ? `event-art--rarity-${event.rarity.toLowerCase()}`
-    : ""
+  const rarityClass =
+    event.kind === "ITEM_DROP" && event.rarity
+      ? `event-art--rarity-${event.rarity.toLowerCase()}`
+      : ""
 
   return <ArtFrame variant={getVariant(event)} size={size} extraClass={rarityClass} />
 }
@@ -23,7 +19,13 @@ export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; si
   return <ArtFrame variant={dropVariant(itemType)} size={size} />
 }
 
-export function BoosterArt({ boosterType, size = 46 }: { boosterType: BoosterType; size?: number }) {
+export function BoosterArt({
+  boosterType,
+  size = 46,
+}: {
+  boosterType: BoosterType
+  size?: number
+}) {
   return <ArtFrame variant={boosterVariant(boosterType)} size={size} />
 }
 
@@ -35,7 +37,13 @@ export function RaidArt({ size = 46 }: { size?: number }) {
   return <ArtFrame variant="raid" size={size} />
 }
 
-export function GlobalEventArt({ eventType, size = 46 }: { eventType: GlobalEventType; size?: number }) {
+export function GlobalEventArt({
+  eventType,
+  size = 46,
+}: {
+  eventType: GlobalEventType
+  size?: number
+}) {
   return <ArtFrame variant={globalVariant(eventType)} size={size} />
 }
 
@@ -80,8 +88,8 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-money": "/event-icons/booster-money.png",
   "booster-damage": "/event-icons/booster-damage.png",
   "booster-power": "/event-icons/booster-power.png",
-  "dungeon": "/event-icons/dungeon.svg",
-  "raid": "/event-icons/raid.png",
+  dungeon: "/event-icons/dungeon.svg",
+  raid: "/event-icons/raid.png",
   "global-moon": "/event-icons/moon.png",
   "global-eclipse": "/event-icons/eclipse.png",
   "global-darkness": "/event-icons/dark.png",
@@ -115,15 +123,14 @@ function ArtFrame({
       aria-hidden="true"
     >
       {asset ? (
-        <img
-          className="event-art__image"
-          src={asset}
-          alt=""
-          draggable={false}
-          decoding="async"
-        />
+        <img className="event-art__image" src={asset} alt="" draggable={false} decoding="async" />
       ) : (
-        <svg className="event-art__vector" viewBox="0 0 48 48" fill="none" shapeRendering="crispEdges">
+        <svg
+          className="event-art__vector"
+          viewBox="0 0 48 48"
+          fill="none"
+          shapeRendering="crispEdges"
+        >
           {renderVariant(variant)}
         </svg>
       )}
@@ -177,7 +184,10 @@ function renderVariant(variant: Variant) {
         <>
           <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
           <circle className="event-art__line" cx="24" cy="24" r="5" />
-          <path className="event-art__line" d="M20 7h8M20 41h8M26 20.5c-.7-.6-1.4-.9-2.2-.9-1.7 0-3 1.7-3 4.4s1.3 4.4 3 4.4c.8 0 1.5-.3 2.2-.9" />
+          <path
+            className="event-art__line"
+            d="M20 7h8M20 41h8M26 20.5c-.7-.6-1.4-.9-2.2-.9-1.7 0-3 1.7-3 4.4s1.3 4.4 3 4.4c.8 0 1.5-.3 2.2-.9"
+          />
         </>
       )
     case "booster-damage":
@@ -198,7 +208,10 @@ function renderVariant(variant: Variant) {
       return (
         <>
           <rect className="event-art__soft" x="16" y="9" width="16" height="30" rx="7" />
-          <path className="event-art__line" d="M20 7h8M20 41h8M24 19c-4-4-8 2-3.3 4.5C16 26 20 32 24 28c4 4 8-2 3.3-4.5C32 21 28 15 24 19Z" />
+          <path
+            className="event-art__line"
+            d="M20 7h8M20 41h8M24 19c-4-4-8 2-3.3 4.5C16 26 20 32 24 28c4 4 8-2 3.3-4.5C32 21 28 15 24 19Z"
+          />
         </>
       )
     case "dungeon":

@@ -1,27 +1,33 @@
-import { useMemo, useState } from "react"
-import { CURRENCIES, EFFECT_TYPES, NOTIFICATION_TEMPLATE_KEYS, PERSONALIZATION_TYPES } from "../contracts"
-import { creatorItems as seed } from "../mockData"
+import type { TFunction } from "i18next"
+import { AnimatePresence, motion } from "framer-motion"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import {
+  createCreatorPersonalization,
+  getCreatorRevenueOperations,
+  getCreatorRevenueSummary,
+  listCreatorPersonalizations,
+  publishCreatorPersonalization,
+  submitCreatorPersonalization,
+  updateCreatorPersonalization,
+  type CreatorRevenueOperationResponse,
+  type CreatorRevenueSummaryResponse,
+} from "@/shared/api/creatorPersonalizationApi"
+import { getPersonalization, type PersonalizationResponse } from "@/shared/api/personalizationApi"
+import { handleError } from "@/shared/errors/errorHandler"
+import { PersonalizationVisual } from "../components/PersonalizationPreview"
+import { useProductData } from "../data/ProductDataProvider"
+import { toProductPersonalization } from "../data/personalizationMappers"
 import type {
-  AvatarFrameContent,
   Currency,
-  EffectType,
-  GlowStyle,
-  GradientStop,
-  NickStyleContent,
-  NotificationPackContent,
-  NotificationTemplate,
-  NotificationTemplateKey,
   Personalization,
   PersonalizationContent,
   PersonalizationStatus,
   PersonalizationType,
-  ProfileEffectContent,
-  ProfileThemeContent,
   Route,
 } from "../model"
-import { personalizationLabels, personalizationStatusLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { ChoiceGrid, CurrencyValue, Field, IconButton, PageHeader, Segmented, Toggle } from "../shared/Primitives"
+import { CurrencyValue, Field, PageHeader } from "../shared/Primitives"
 
 type Props = {
   routeId: Route["id"]
@@ -30,20 +36,28 @@ type Props = {
   back: () => void
 }
 
-type TemplateDraft = {
-  emoji: string
-  soloTitle: string
-  soloBody: string
-  compact: string
-  aggregateTitle: string
+type StudioFilter = "ALL" | "DRAFT" | "REVIEW" | "PUBLISHED"
+
+type EditorForm = {
+  type: PersonalizationType
+  name: string
+  currency: Currency
+  price: string
+  accent: string
+  secondary: string
+  intensity: number
+  message: string
 }
 
-type GradientStopDraft = {
-  color: string
-  position: number
-}
+const typeOrder: PersonalizationType[] = [
+  "NICK_STYLE",
+  "PROFILE_THEME",
+  "AVATAR_FRAME",
+  "PROFILE_EFFECT",
+  "NOTIFICATION_PACK",
+]
 
-const targets: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
+const targetByType: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   NOTIFICATION_PACK: "USER",
   NICK_STYLE: "ACCOUNT",
   PROFILE_THEME: "ACCOUNT",
@@ -51,541 +65,852 @@ const targets: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   PROFILE_EFFECT: "ACCOUNT",
 }
 
-const placeholders: Record<NotificationTemplateKey, string> = {
-  ITEM_DROP: "{player} {item} {rarity} {itemType}",
-  BOOSTER: "{player} {booster}",
-  DUNGEON: "{dungeon}",
-  RAID: "{locations}",
-  GLOBAL: "{event}",
+const typeGlyph: Record<
+  PersonalizationType,
+  "spark" | "creator" | "profile-mark" | "events" | "bell"
+> = {
+  NICK_STYLE: "spark",
+  PROFILE_THEME: "creator",
+  AVATAR_FRAME: "profile-mark",
+  PROFILE_EFFECT: "events",
+  NOTIFICATION_PACK: "bell",
 }
 
-const blankTemplate = (): TemplateDraft => ({
-  emoji: "",
-  soloTitle: "",
-  soloBody: "",
-  compact: "",
-  aggregateTitle: "",
-})
-
 export function CreatorFeature(props: Props) {
-  const [items, setItems] = useState<Personalization[]>(seed)
-
   if (props.routeId === "creator-revenue") {
-    return <RevenuePage back={props.back} />
+    return <CreatorRevenueProduction back={props.back} />
   }
 
   if (props.routeId === "personalization-editor") {
-    return <Editor {...props} items={items} setItems={setItems} />
+    return <CreatorEditorProduction {...props} />
   }
 
-  return <Studio {...props} items={items} />
+  return <CreatorStudioProduction {...props} />
 }
 
-function Studio({ navigate, back, items }: Props & { items: Personalization[] }) {
-  const counts = useMemo(() => ({
-    draft: items.filter((item) => item.status === "DRAFT" || item.status === "REJECTED").length,
-    review: items.filter((item) => item.status === "IN_REVIEW").length,
-    published: items.filter((item) => item.status === "PUBLISHED").length,
-  }), [items])
+function CreatorStudioProduction({ navigate, back }: Props) {
+  const { t } = useTranslation()
+  const product = useProductData()
+  const [items, setItems] = useState<Personalization[]>([])
+  const [filter, setFilter] = useState<StudioFilter>("ALL")
+  const [loading, setLoading] = useState(true)
+  const [revenue, setRevenue] = useState<CreatorRevenueSummaryResponse | null>(null)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+
+    try {
+      const [responses, summary] = await Promise.all([
+        listCreatorPersonalizations(),
+        getCreatorRevenueSummary(),
+      ])
+
+      setItems(
+        responses.map((response) =>
+          toProductPersonalization(response, null, product.user.id, product.user.username),
+        ),
+      )
+      setRevenue(summary)
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setLoading(false)
+    }
+  }, [product.user.id, product.user.username])
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void refresh()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [refresh])
+
+  const counts = useMemo(
+    () => ({
+      draft: items.filter((item) => item.status === "DRAFT" || item.status === "REJECTED").length,
+      review: items.filter((item) => item.status === "IN_REVIEW" || item.status === "APPROVED")
+        .length,
+      published: items.filter((item) => item.status === "PUBLISHED" || item.status === "UNLISTED")
+        .length,
+    }),
+    [items],
+  )
+
+  const visible = items.filter((item) => {
+    if (filter === "ALL") return true
+    if (filter === "DRAFT") return item.status === "DRAFT" || item.status === "REJECTED"
+    if (filter === "REVIEW") return item.status === "IN_REVIEW" || item.status === "APPROVED"
+    return item.status === "PUBLISHED" || item.status === "UNLISTED"
+  })
 
   return (
-    <div className="screen creator-screen">
+    <div className="screen creator-r2-screen">
+      <PageHeader title={t("creator.title")} back={back} />
+
+      <section className="creator-r2-hero">
+        <div className="creator-r2-hero__copy">
+          <small>MNEMOS CREATOR</small>
+          <strong>{t("creator.workshopTitle")}</strong>
+          <p>{t("creator.workshopCopy")}</p>
+        </div>
+        <div className="creator-r2-hero__art" aria-hidden="true" />
+        <div className="creator-r2-hero__actions">
+          <button
+            onClick={() =>
+              navigate({ id: "personalization-editor", params: { personalizationId: "new" } })
+            }
+          >
+            <Glyph name="plus" size={16} />
+            <span>{t("creator.newWork")}</span>
+          </button>
+          <button className="is-revenue" onClick={() => navigate({ id: "creator-revenue" })}>
+            <CurrencyMark currency="PRIME" size={15} />
+            <span>{revenue?.confirmedPrime ?? 0}</span>
+            <small>{t("creator.revenue")}</small>
+          </button>
+        </div>
+      </section>
+
+      <section className="creator-r2-dashboard">
+        <button
+          className={filter === "DRAFT" ? "is-active" : ""}
+          onClick={() => setFilter(filter === "DRAFT" ? "ALL" : "DRAFT")}
+        >
+          <i className="is-draft" />
+          <strong>{counts.draft}</strong>
+          <span>{t("creator.drafts")}</span>
+        </button>
+        <button
+          className={filter === "REVIEW" ? "is-active" : ""}
+          onClick={() => setFilter(filter === "REVIEW" ? "ALL" : "REVIEW")}
+        >
+          <i className="is-review" />
+          <strong>{counts.review}</strong>
+          <span>{t("creator.review")}</span>
+        </button>
+        <button
+          className={filter === "PUBLISHED" ? "is-active" : ""}
+          onClick={() => setFilter(filter === "PUBLISHED" ? "ALL" : "PUBLISHED")}
+        >
+          <i className="is-published" />
+          <strong>{counts.published}</strong>
+          <span>{t("creator.published")}</span>
+        </button>
+      </section>
+
+      <header className="creator-r2-section-title">
+        <span>
+          <small>{filter === "ALL" ? t("creator.allWorks") : t("creator.filtered")}</small>
+          <strong>{t("creator.personalizations")}</strong>
+        </span>
+        <b>{visible.length}</b>
+      </header>
+
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <section className="creator-r2-gallery">
+          <AnimatePresence initial={false}>
+            {visible.map((item, index) => (
+              <motion.button
+                layout
+                key={item.id}
+                className={`creator-r2-card creator-r2-card--${item.type.toLowerCase()}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ delay: Math.min(index * 0.035, 0.12) }}
+                onClick={() =>
+                  navigate({ id: "personalization-editor", params: { personalizationId: item.id } })
+                }
+              >
+                <span className="creator-r2-card__visual">
+                  <PersonalizationVisual item={item} small />
+                </span>
+                <span className="creator-r2-card__copy">
+                  <small>{typeLabel(t, item.type)}</small>
+                  <strong>{item.name}</strong>
+                  <em>{item.target === "USER" ? t("creator.forUser") : t("creator.forAccount")}</em>
+                </span>
+                <span className={`creator-r2-status is-${item.status.toLowerCase()}`}>
+                  {statusLabel(t, item.status)}
+                </span>
+              </motion.button>
+            ))}
+          </AnimatePresence>
+          {!visible.length ? <p className="inline-hint">{t("creator.emptySection")}</p> : null}
+        </section>
+      )}
+    </div>
+  )
+}
+
+function CreatorRevenueProduction({ back }: { back: () => void }) {
+  const { t, i18n } = useTranslation()
+  const [summary, setSummary] = useState<CreatorRevenueSummaryResponse | null>(null)
+  const [operations, setOperations] = useState<CreatorRevenueOperationResponse[]>([])
+  const [loading, setLoading] = useState(true)
+  const locale = localeForLanguage(i18n.resolvedLanguage)
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void Promise.all([getCreatorRevenueSummary(), getCreatorRevenueOperations()])
+        .then(([nextSummary, nextOperations]) => {
+          setSummary(nextSummary)
+          setOperations(nextOperations)
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false))
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  return (
+    <div className="screen creator-r2-screen creator-r2-revenue">
+      <PageHeader title={t("creator.revenuePage.title")} back={back} />
+
+      <section className="creator-r2-revenue-hero">
+        <span className="creator-r2-revenue-hero__mark">
+          <CurrencyMark currency="PRIME" size={22} />
+        </span>
+        <span className="creator-r2-revenue-hero__copy">
+          <small>{t("creator.revenuePage.confirmed")}</small>
+          <CurrencyValue currency="PRIME" value={summary?.confirmedPrime ?? 0} />
+          <em>
+            {t("creator.revenuePage.successfulOperations", {
+              count: summary?.confirmedOperations ?? 0,
+            })}
+          </em>
+        </span>
+        <div className="creator-r2-sparkline" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      </section>
+
+      <section className="creator-r2-revenue-stats">
+        <article>
+          <small>{t("creator.revenuePage.pending")}</small>
+          <strong>{summary?.pendingPrime ?? 0}</strong>
+          <em>PRIME</em>
+        </article>
+        <article>
+          <small>{t("creator.revenuePage.confirmedOperations")}</small>
+          <strong>{summary?.confirmedOperations ?? 0}</strong>
+          <em>{t("creator.revenuePage.operations")}</em>
+        </article>
+        <article>
+          <small>{t("creator.revenuePage.errors")}</small>
+          <strong>{summary?.failedOperations ?? 0}</strong>
+          <em>{summary?.failedPrime ?? 0} PRIME</em>
+        </article>
+      </section>
+
+      <header className="creator-r2-section-title">
+        <span>
+          <small>{t("creator.revenuePage.operationsEyebrow")}</small>
+          <strong>{t("creator.revenuePage.recentActivity")}</strong>
+        </span>
+      </header>
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <section className="creator-r2-revenue-log">
+          {operations.map((operation) => (
+            <article key={operation.id}>
+              <i className={`is-${operation.status.toLowerCase()}`} />
+              <span>
+                <strong>{t("creator.revenuePage.sale")}</strong>
+                <small>{formatDate(operation.createdAt, locale)}</small>
+              </span>
+              <span>
+                <CurrencyValue currency="PRIME" value={operation.amountPrime} compact />
+                <small>{operation.status}</small>
+              </span>
+            </article>
+          ))}
+          {!operations.length ? (
+            <p className="inline-hint">{t("creator.revenuePage.empty")}</p>
+          ) : null}
+        </section>
+      )}
+    </div>
+  )
+}
+
+function CreatorEditorProduction({ params, back }: Props) {
+  const { t } = useTranslation()
+  const product = useProductData()
+  const personalizationId = params?.personalizationId ?? "new"
+  const isNew = personalizationId === "new"
+  const [source, setSource] = useState<PersonalizationResponse | null>(null)
+  const [form, setForm] = useState<EditorForm>(() => createDefaultForm(t))
+  const [loading, setLoading] = useState(!isNew)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (isNew) return
+
+    const frame = window.requestAnimationFrame(() => {
+      void getPersonalization(personalizationId)
+        .then((response) => {
+          setSource(response)
+          setForm(toEditorForm(response, t))
+        })
+        .catch(handleError)
+        .finally(() => setLoading(false))
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [isNew, personalizationId, t])
+
+  const numericPrice = Number(form.price)
+  const valid = form.name.trim().length >= 3 && Number.isInteger(numericPrice) && numericPrice > 0
+  const editable = !source || ["DRAFT", "REJECTED", "PRIVATE"].includes(source.status)
+  const preview = buildPreview(
+    form,
+    source?.id ?? "preview",
+    source?.status ?? "DRAFT",
+    product.user.username,
+    t("creator.editor.fallbackName"),
+  )
+
+  const save = async (): Promise<PersonalizationResponse | null> => {
+    if (!valid || !editable || busy) return null
+
+    setBusy(true)
+
+    try {
+      const saved = await saveForm(source?.id ?? null, form)
+      setSource(saved)
+      setForm(toEditorForm(saved, t))
+      return saved
+    } catch (error) {
+      handleError(error)
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const saveAndBack = async () => {
+    const saved = await save()
+    if (saved) back()
+  }
+
+  const submit = async () => {
+    const saved = await save()
+    if (!saved) return
+
+    setBusy(true)
+
+    try {
+      await submitCreatorPersonalization(saved.id)
+      back()
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const publish = async () => {
+    if (!source || source.status !== "APPROVED" || busy) return
+
+    setBusy(true)
+
+    try {
+      await publishCreatorPersonalization(source.id)
+      back()
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="screen creator-r2-screen">
+        <PageHeader title={t("creator.editor.editing")} back={back} />
+        <LoadingState />
+      </div>
+    )
+  }
+
+  return (
+    <div className="screen creator-r2-screen creator-r2-editor">
       <PageHeader
-        title="Creator"
+        title={isNew ? t("creator.editor.newWork") : t("creator.editor.editing")}
         back={back}
-        actions={<IconButton icon="plus" label="Створити" onClick={() => navigate({ id: "personalization-editor", params: { personalizationId: "new" } })} />}
       />
 
-      <button className="creator-revenue creator-revenue--button" onClick={() => navigate({ id: "creator-revenue" })}>
-        <div><CurrencyValue currency="PRIME" value={128} /><small>підтверджено</small></div>
-        <span><b>18</b><small>очікує</small></span>
-        <span className="creator-revenue__arrow">›</span>
-      </button>
+      <section className="creator-r2-editor-stage">
+        <header>
+          <span>
+            <i />
+            {t("creator.editor.live")}
+          </span>
+          <small>{typeLabel(t, form.type)}</small>
+        </header>
+        <PersonalizationVisual item={preview} detail />
+      </section>
 
-      <div className="creator-status-strip">
-        <span>{counts.draft}<small>чернетки</small></span>
-        <span>{counts.review}<small>перевірка</small></span>
-        <span>{counts.published}<small>опубліковано</small></span>
-      </div>
+      {source?.rejectionReason ? (
+        <section className="creator-r2-form-block">
+          <header>
+            <small>{t("creator.editor.moderationEyebrow")}</small>
+            <strong>{t("creator.editor.changesRequired")}</strong>
+          </header>
+          <p>{source.rejectionReason}</p>
+        </section>
+      ) : null}
 
-      <div className="creator-list">
-        {items.map((item) => (
-          <button key={item.id} onClick={() => navigate({ id: "personalization-editor", params: { personalizationId: item.id } })}>
-            <CreatorListPreview item={item} />
-            <span><strong>{item.name}</strong><small>{personalizationLabels[item.type]}</small></span>
-            <span className={`status-tag status-tag--${item.status.toLowerCase()}`}>{personalizationStatusLabels[item.status]}</span>
+      <section className="creator-r2-type-picker">
+        {typeOrder.map((value) => (
+          <button
+            key={value}
+            disabled={!editable || Boolean(source)}
+            className={form.type === value ? "is-active" : ""}
+            onClick={() =>
+              setForm((current) => ({
+                ...current,
+                type: value,
+                currency: value === "NOTIFICATION_PACK" ? "PRIME" : current.currency,
+              }))
+            }
+          >
+            <Glyph name={typeGlyph[value]} size={18} />
+            <span>{typeLabel(t, value)}</span>
           </button>
         ))}
-      </div>
-    </div>
-  )
-}
-
-function RevenuePage({ back }: { back: () => void }) {
-  const operations = [
-    { id: "rev-1", status: "CONFIRMED", amount: 12, time: "сьогодні · 14:20" },
-    { id: "rev-2", status: "PENDING", amount: 8, time: "сьогодні · 13:04" },
-    { id: "rev-3", status: "FAILED", amount: 5, time: "вчора · 22:41" },
-  ] as const
-
-  return (
-    <div className="screen creator-revenue-screen">
-      <PageHeader title="Дохід" back={back} />
-      <section className="revenue-summary">
-        <div><CurrencyValue currency="PRIME" value={128} /><small>підтверджено</small></div>
-        <div><CurrencyValue currency="PRIME" value={18} compact /><small>очікує</small></div>
-        <div><CurrencyValue currency="PRIME" value={5} compact /><small>помилка</small></div>
-      </section>
-      <div className="revenue-log">
-        {operations.map((operation) => (
-          <div key={operation.id}>
-            <i className={`revenue-state revenue-state--${operation.status.toLowerCase()}`} />
-            <span>
-              <strong>{operation.status === "CONFIRMED" ? "Зараховано" : operation.status === "PENDING" ? "Очікує" : "Не зараховано"}</strong>
-              <small>{operation.time}</small>
-            </span>
-            <CurrencyValue currency="PRIME" value={operation.amount} compact />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function Editor({ params, back, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
-  const existing = items.find((item) => item.id === params?.personalizationId)
-  const existingContent = existing?.content
-
-  const [type, setType] = useState<PersonalizationType>(existing?.type ?? "NICK_STYLE")
-  const [name, setName] = useState(existing?.name ?? "")
-  const [currency, setCurrency] = useState<Currency>(existing?.currency ?? "PRIME")
-  const [price, setPrice] = useState(String(existing?.price ?? 25))
-
-  const existingGlow = existingContent && "glow" in existingContent ? existingContent.glow : null
-  const [glow, setGlow] = useState(Boolean(existingGlow))
-  const [glowColor, setGlowColor] = useState(existingGlow?.color ?? "#D7FF32")
-  const [glowStrength, setGlowStrength] = useState(existingGlow?.strength ?? 24)
-
-  const existingNick = existingContent?.kind === "NICK_STYLE" ? existingContent : null
-  const [stops, setStops] = useState<GradientStopDraft[]>(existingNick?.colors ?? [
-    { color: "#F3EFE6", position: 0 },
-    { color: "#D7FF32", position: 100 },
-  ])
-  const [angle, setAngle] = useState(existingNick?.angleDegrees ?? 90)
-
-  const existingTheme = existingContent?.kind === "PROFILE_THEME" ? existingContent : null
-  const [background, setBackground] = useState(existingTheme?.background ?? "#090907")
-  const [surface, setSurface] = useState(existingTheme?.surface ?? "#211F1B")
-  const [accent, setAccent] = useState(existingTheme?.accent ?? "#D7FF32")
-  const [text, setText] = useState(existingTheme?.text ?? "#F4F0E8")
-  const [border, setBorder] = useState(existingTheme?.border ?? "#4C493E")
-
-  const existingFrame = existingContent?.kind === "AVATAR_FRAME" ? existingContent : null
-  const [borderWidth, setBorderWidth] = useState(existingFrame?.borderWidthPx ?? 2)
-  const [radius, setRadius] = useState(existingFrame?.radiusPx ?? 12)
-
-  const existingEffect = existingContent?.kind === "PROFILE_EFFECT" ? existingContent : null
-  const [effect, setEffect] = useState<EffectType>(existingEffect?.effect ?? "AURORA")
-  const [intensity, setIntensity] = useState(existingEffect?.intensity ?? 42)
-  const [primary, setPrimary] = useState(existingEffect?.primaryColor ?? "#D7FF32")
-  const [secondary, setSecondary] = useState(existingEffect?.secondaryColor ?? "#C68FBD")
-
-  const existingPack = existingContent?.kind === "NOTIFICATION_PACK" ? existingContent : null
-  const [mixed, setMixed] = useState(existingPack?.mixedAggregateTitle ?? "")
-  const [openTemplate, setOpenTemplate] = useState<NotificationTemplateKey>("ITEM_DROP")
-  const [templates, setTemplates] = useState<Record<NotificationTemplateKey, TemplateDraft>>(() => {
-    if (!existingPack) {
-      return {
-        ITEM_DROP: blankTemplate(),
-        BOOSTER: blankTemplate(),
-        DUNGEON: blankTemplate(),
-        RAID: blankTemplate(),
-        GLOBAL: blankTemplate(),
-      }
-    }
-
-    return Object.fromEntries(NOTIFICATION_TEMPLATE_KEYS.map((key) => {
-      const template = existingPack.templates[key]
-      return [key, { ...template, emoji: template.emoji ?? "" }]
-    })) as Record<NotificationTemplateKey, TemplateDraft>
-  })
-
-  const numericPrice = Number(price)
-  const priceValid = Number.isInteger(numericPrice) && numericPrice > 0
-  const gradientValid = stops.length >= 1 && stops.length <= 4 && stops.every((stop) => stop.position >= 0 && stop.position <= 100) && new Set(stops.map((stop) => stop.position)).size === stops.length
-  const notificationValid = mixed.trim().length > 0 && NOTIFICATION_TEMPLATE_KEYS.every((key) => {
-    const template = templates[key]
-    return Boolean(template.soloTitle.trim() && template.soloBody.trim() && template.compact.trim() && template.aggregateTitle.trim())
-  })
-  const valid = name.trim().length >= 3 && name.trim().length <= 64 && priceValid && (type === "NICK_STYLE" ? gradientValid : type === "NOTIFICATION_PACK" ? notificationValid : true)
-
-  const glowStyle: GlowStyle | null = glow ? { color: glowColor, strength: glowStrength } : null
-  const content = buildContent({
-    type,
-    glow: glowStyle,
-    stops,
-    angle,
-    background,
-    surface,
-    accent,
-    text,
-    border,
-    borderWidth,
-    radius,
-    effect,
-    intensity,
-    primary,
-    secondary,
-    mixed,
-    templates,
-  })
-
-  const preview: Personalization = {
-    id: existing?.id ?? "preview",
-    type,
-    target: targets[type],
-    name: name.trim() || "Нова персоналізація",
-    creator: "knalis",
-    currency,
-    price: priceValid ? numericPrice : 0,
-    status: existing?.status ?? "DRAFT",
-    owned: true,
-    active: false,
-    preview: "editor",
-    content,
-  }
-
-  const persist = (status?: PersonalizationStatus) => {
-    if (!valid) return false
-
-    const next: Personalization = {
-      ...preview,
-      id: existing?.id ?? `creator-${Date.now()}`,
-      name: name.trim(),
-      price: numericPrice,
-      status: status ?? existing?.status ?? "DRAFT",
-    }
-
-    setItems(existing ? items.map((item) => item.id === existing.id ? next : item) : [...items, next])
-    return true
-  }
-
-  const finish = (status?: PersonalizationStatus) => {
-    if (persist(status)) back()
-  }
-
-  const updateTemplate = (patch: Partial<TemplateDraft>) => {
-    setTemplates({
-      ...templates,
-      [openTemplate]: {
-        ...templates[openTemplate],
-        ...patch,
-      },
-    })
-  }
-
-  const changeType = (value: PersonalizationType) => {
-    setType(value)
-    if (value === "NOTIFICATION_PACK" && currency === "COIN") {
-      setCurrency("PRIME")
-    }
-  }
-
-  return (
-    <div className="screen editor-screen creator-editor-final">
-      <PageHeader title={existing ? "Редагування" : "Створення"} eyebrow={existing ? personalizationStatusLabels[existing.status] : undefined} back={back} />
-
-      <section className="creator-live-preview">
-        <header><span><i />LIVE PREVIEW</span><small>{personalizationLabels[type]}</small></header>
-        <LivePreview item={preview} openTemplate={openTemplate} />
       </section>
 
-      <div className="form-stack editor-form">
-        {!existing ? (
-          <Field label="Тип">
-            <ChoiceGrid value={type} options={PERSONALIZATION_TYPES} onChange={changeType} labels={personalizationLabels} />
+      <section className="creator-r2-form-block">
+        <header>
+          <small>{t("creator.editor.basicEyebrow")}</small>
+          <strong>{t("creator.editor.identity")}</strong>
+        </header>
+        <Field label={t("creator.editor.name")}>
+          <input
+            value={form.name}
+            maxLength={64}
+            disabled={!editable}
+            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            placeholder={t("creator.editor.namePlaceholder")}
+          />
+        </Field>
+
+        <div className="creator-r2-color-row">
+          <Field label={t("creator.editor.primary")}>
+            <input
+              type="color"
+              value={form.accent}
+              disabled={!editable}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, accent: event.target.value.toUpperCase() }))
+              }
+            />
           </Field>
-        ) : null}
+          <Field label={t("creator.editor.secondary")}>
+            <input
+              type="color"
+              value={form.secondary}
+              disabled={!editable}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, secondary: event.target.value.toUpperCase() }))
+              }
+            />
+          </Field>
+        </div>
 
-        <Field label="Назва"><input value={name} minLength={3} maxLength={64} onChange={(event) => setName(event.target.value)} /></Field>
-
-        {type === "NICK_STYLE" ? (
-          <>
-            <Field label="Градієнт" hint="1–4 точки, позиції не повторюються">
-              <div className="gradient-editor">
-                {stops.map((stop, index) => (
-                  <div key={`${index}-${stop.position}`}>
-                    <Color value={stop.color} set={(value) => setStops(stops.map((item, itemIndex) => itemIndex === index ? { ...item, color: value } : item))} />
-                    <input type="number" min={0} max={100} step={1} value={stop.position} onChange={(event) => setStops(stops.map((item, itemIndex) => itemIndex === index ? { ...item, position: Number(event.target.value) } : item))} />
-                    {stops.length > 1 ? <button type="button" aria-label="Видалити точку" onClick={() => setStops(stops.filter((_, itemIndex) => itemIndex !== index))}><Glyph name="close" size={14} /></button> : <span />}
-                  </div>
-                ))}
-                {stops.length < 4 ? <button type="button" className="add-inline" onClick={() => setStops([...stops, { color: "#A0A3AA", position: Math.min(100, stops.length * 30 + 20) }])}><Glyph name="plus" size={15} />Точка</button> : null}
-              </div>
-            </Field>
-            <Range label="Кут" min={0} max={360} value={angle} set={setAngle} suffix="°" />
-          </>
-        ) : null}
-
-        {type === "PROFILE_THEME" ? (
-          <div className="color-matrix">
-            <ColorField label="Фон" value={background} set={setBackground} />
-            <ColorField label="Поверхня" value={surface} set={setSurface} />
-            <ColorField label="Акцент" value={accent} set={setAccent} />
-            <ColorField label="Текст" value={text} set={setText} />
-            <ColorField label="Контур" value={border} set={setBorder} />
-          </div>
-        ) : null}
-
-        {type === "AVATAR_FRAME" ? (
-          <>
-            <ColorField label="Контур" value={border} set={setBorder} />
-            <Range label="Товщина" min={1} max={8} value={borderWidth} set={setBorderWidth} suffix="px" />
-            <Range label="Радіус" min={0} max={32} value={radius} set={setRadius} suffix="px" />
-          </>
-        ) : null}
-
-        {type === "PROFILE_EFFECT" ? (
-          <>
-            <Field label="Ефект"><ChoiceGrid value={effect} options={EFFECT_TYPES} onChange={setEffect} /></Field>
-            <Range label="Інтенсивність" min={1} max={100} value={intensity} set={setIntensity} />
-            <ColorField label="Основний" value={primary} set={setPrimary} />
-            <ColorField label="Другий" value={secondary} set={setSecondary} />
-          </>
-        ) : null}
-
-        {type === "NOTIFICATION_PACK" ? (
-          <>
-            <Field label="Заголовок групи"><input value={mixed} maxLength={512} onChange={(event) => setMixed(event.target.value)} /></Field>
-            <div className="template-editor template-editor--final">
-              <div className="template-tabs">
-                {NOTIFICATION_TEMPLATE_KEYS.map((key) => (
-                  <button key={key} type="button" className={openTemplate === key ? "is-active" : ""} onClick={() => setOpenTemplate(key)}>{templateLabel(key)}</button>
-                ))}
-              </div>
-              <small className="placeholder-hint">Доступні: {placeholders[openTemplate]}</small>
-              <Field label="Emoji"><input maxLength={16} value={templates[openTemplate].emoji} onChange={(event) => updateTemplate({ emoji: event.target.value })} /></Field>
-              <Field label="Заголовок"><input maxLength={512} value={templates[openTemplate].soloTitle} onChange={(event) => updateTemplate({ soloTitle: event.target.value })} /></Field>
-              <Field label="Текст"><textarea maxLength={512} value={templates[openTemplate].soloBody} onChange={(event) => updateTemplate({ soloBody: event.target.value })} /></Field>
-              <Field label="Компактно"><input maxLength={512} value={templates[openTemplate].compact} onChange={(event) => updateTemplate({ compact: event.target.value })} /></Field>
-              <Field label="Група"><input maxLength={512} value={templates[openTemplate].aggregateTitle} onChange={(event) => updateTemplate({ aggregateTitle: event.target.value })} /></Field>
-            </div>
-          </>
-        ) : null}
-
-        {type !== "PROFILE_EFFECT" && type !== "NOTIFICATION_PACK" ? (
-          <>
-            <div className="inline-toggle"><strong>Glow</strong><Toggle checked={glow} onChange={setGlow} label="Glow" /></div>
-            {glow ? (
-              <>
-                <ColorField label="Glow" value={glowColor} set={setGlowColor} />
-                <Range label="Сила" min={1} max={100} value={glowStrength} set={setGlowStrength} />
-              </>
-            ) : null}
-          </>
-        ) : null}
-
-        <Field label="Ціна" hint={!priceValid && price.length ? "Додатне ціле число" : undefined}>
-          <div className="price-editor">
-            {type === "NOTIFICATION_PACK" ? (
-              <span className="creator-fixed-currency"><CurrencyMark currency="PRIME" size={16} /> PRIME</span>
-            ) : (
-              <Segmented value={currency} options={CURRENCIES} onChange={setCurrency} />
-            )}
-            <input type="number" min={1} step={1} value={price} onChange={(event) => setPrice(event.target.value)} />
+        <Field label={t("creator.editor.intensity")}>
+          <div className="creator-r2-range">
+            <input
+              type="range"
+              min={1}
+              max={100}
+              value={form.intensity}
+              disabled={!editable}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, intensity: Number(event.target.value) }))
+              }
+            />
+            <output>{form.intensity}%</output>
           </div>
         </Field>
-      </div>
 
-      <div className="sticky-actions creator-actions">
-        <button className="secondary-action" disabled={!valid} onClick={() => finish()}>Зберегти</button>
-        {!existing || existing.status === "DRAFT" || existing.status === "REJECTED" ? <button className="primary-action" disabled={!valid} onClick={() => finish("IN_REVIEW")}>На перевірку</button> : null}
-        {existing?.status === "APPROVED" ? <button className="primary-action" onClick={() => finish("PUBLISHED")}>Опублікувати</button> : null}
+        {form.type === "NOTIFICATION_PACK" ? (
+          <Field label={t("creator.editor.messageText")}>
+            <textarea
+              maxLength={512}
+              value={form.message}
+              disabled={!editable}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, message: event.target.value }))
+              }
+            />
+          </Field>
+        ) : null}
+      </section>
+
+      <section className="creator-r2-form-block">
+        <header>
+          <small>{t("creator.editor.publicationEyebrow")}</small>
+          <strong>{t("creator.editor.priceAndStatus")}</strong>
+        </header>
+        <div className="creator-r2-price-row">
+          {form.type === "NOTIFICATION_PACK" ? (
+            <span className="creator-r2-fixed-currency">
+              <CurrencyMark currency="PRIME" size={15} /> PRIME
+            </span>
+          ) : (
+            <div className="creator-r2-currency-switch">
+              {(["COIN", "PRIME"] as Currency[]).map((value) => (
+                <button
+                  key={value}
+                  disabled={!editable}
+                  className={form.currency === value ? "is-active" : ""}
+                  onClick={() => setForm((current) => ({ ...current, currency: value }))}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          )}
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={form.price}
+            disabled={!editable}
+            onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
+          />
+        </div>
+        {source ? (
+          <p className="inline-hint inline-hint--left">
+            {t("creator.editor.status", { status: statusLabel(t, source.status) })}
+          </p>
+        ) : null}
+      </section>
+
+      <div className="creator-r2-editor-actions">
+        {editable ? (
+          <>
+            <button disabled={!valid || busy} onClick={() => void saveAndBack()}>
+              {busy ? t("creator.editor.saving") : t("creator.editor.save")}
+            </button>
+            <button className="is-primary" disabled={!valid || busy} onClick={() => void submit()}>
+              {busy ? t("creator.editor.submitting") : t("creator.editor.submit")}
+            </button>
+          </>
+        ) : source?.status === "APPROVED" ? (
+          <button className="is-primary" disabled={busy} onClick={() => void publish()}>
+            {busy ? t("creator.editor.publishing") : t("creator.editor.publish")}
+          </button>
+        ) : (
+          <button disabled>{t("creator.editor.editingUnavailable")}</button>
+        )}
       </div>
     </div>
   )
 }
 
-type BuildContentArgs = {
-  type: PersonalizationType
-  glow: GlowStyle | null
-  stops: GradientStopDraft[]
-  angle: number
-  background: string
-  surface: string
-  accent: string
-  text: string
-  border: string
-  borderWidth: number
-  radius: number
-  effect: EffectType
-  intensity: number
-  primary: string
-  secondary: string
-  mixed: string
-  templates: Record<NotificationTemplateKey, TemplateDraft>
+async function saveForm(id: string | null, form: EditorForm): Promise<PersonalizationResponse> {
+  const price = {
+    currency: form.type === "NOTIFICATION_PACK" ? ("PRIME" as const) : form.currency,
+    amount: Number(form.price),
+  }
+
+  if (form.type === "NICK_STYLE") {
+    const request = {
+      name: form.name.trim(),
+      colors: [
+        { color: form.accent, position: 0 },
+        { color: form.secondary, position: 100 },
+      ],
+      angleDegrees: 45,
+      glow: { color: form.accent, strength: form.intensity },
+      price,
+    }
+
+    return id
+      ? updateCreatorPersonalization(id, "NICK_STYLE", request)
+      : createCreatorPersonalization("NICK_STYLE", request)
+  }
+
+  if (form.type === "PROFILE_THEME") {
+    const request = {
+      name: form.name.trim(),
+      background: "#11140F",
+      surface: "#1C2119",
+      accent: form.accent,
+      text: "#F1F4E9",
+      border: form.secondary,
+      glow: { color: form.accent, strength: form.intensity },
+      price,
+    }
+
+    return id
+      ? updateCreatorPersonalization(id, "PROFILE_THEME", request)
+      : createCreatorPersonalization("PROFILE_THEME", request)
+  }
+
+  if (form.type === "AVATAR_FRAME") {
+    const request = {
+      name: form.name.trim(),
+      borderColor: form.accent,
+      borderWidthPx: Math.max(1, Math.min(8, Math.round(form.intensity / 20) + 1)),
+      radiusPx: 8,
+      glow: { color: form.secondary, strength: form.intensity },
+      price,
+    }
+
+    return id
+      ? updateCreatorPersonalization(id, "AVATAR_FRAME", request)
+      : createCreatorPersonalization("AVATAR_FRAME", request)
+  }
+
+  if (form.type === "PROFILE_EFFECT") {
+    const request = {
+      name: form.name.trim(),
+      effect: "AURORA" as const,
+      intensity: form.intensity,
+      primaryColor: form.accent,
+      secondaryColor: form.secondary,
+      price,
+    }
+
+    return id
+      ? updateCreatorPersonalization(id, "PROFILE_EFFECT", request)
+      : createCreatorPersonalization("PROFILE_EFFECT", request)
+  }
+
+  const template = {
+    emoji: null,
+    soloTitle: form.name.trim(),
+    soloBody: form.message.trim(),
+    compact: form.message.trim(),
+    aggregateTitle: form.name.trim(),
+  }
+  const request = {
+    name: form.name.trim(),
+    mixedAggregateTitle: form.name.trim(),
+    templates: {
+      ITEM_DROP: template,
+      BOOSTER: template,
+      DUNGEON: template,
+      RAID: template,
+      GLOBAL: template,
+    },
+    price,
+  }
+
+  return id
+    ? updateCreatorPersonalization(id, "NOTIFICATION_PACK", request)
+    : createCreatorPersonalization("NOTIFICATION_PACK", request)
 }
 
-function buildContent(args: BuildContentArgs): PersonalizationContent {
-  if (args.type === "NOTIFICATION_PACK") {
-    const templates = Object.fromEntries(NOTIFICATION_TEMPLATE_KEYS.map((key) => [key, toNotificationTemplate(args.templates[key])])) as Record<NotificationTemplateKey, NotificationTemplate>
-    const content: NotificationPackContent = {
-      kind: "NOTIFICATION_PACK",
-      mixedAggregateTitle: args.mixed,
-      templates,
-    }
-    return content
-  }
-
-  if (args.type === "NICK_STYLE") {
-    const content: NickStyleContent = {
-      kind: "NICK_STYLE",
-      colors: args.stops.map((stop): GradientStop => ({ color: stop.color, position: stop.position })),
-      angleDegrees: args.angle,
-      glow: args.glow,
-    }
-    return content
-  }
-
-  if (args.type === "PROFILE_THEME") {
-    const content: ProfileThemeContent = {
-      kind: "PROFILE_THEME",
-      background: args.background,
-      surface: args.surface,
-      accent: args.accent,
-      text: args.text,
-      border: args.border,
-      glow: args.glow,
-    }
-    return content
-  }
-
-  if (args.type === "AVATAR_FRAME") {
-    const content: AvatarFrameContent = {
-      kind: "AVATAR_FRAME",
-      borderColor: args.border,
-      borderWidthPx: args.borderWidth,
-      radiusPx: args.radius,
-      glow: args.glow,
-    }
-    return content
-  }
-
-  const content: ProfileEffectContent = {
-    kind: "PROFILE_EFFECT",
-    effect: args.effect,
-    intensity: args.intensity,
-    primaryColor: args.primary,
-    secondaryColor: args.secondary || null,
-  }
-  return content
-}
-
-function toNotificationTemplate(template: TemplateDraft): NotificationTemplate {
+function createDefaultForm(t: TFunction): EditorForm {
   return {
-    emoji: template.emoji.trim() || null,
-    soloTitle: template.soloTitle,
-    soloBody: template.soloBody,
-    compact: template.compact,
-    aggregateTitle: template.aggregateTitle,
+    type: "NICK_STYLE",
+    name: "",
+    currency: "PRIME",
+    price: "25",
+    accent: "#C7F24A",
+    secondary: "#B98DC2",
+    intensity: 48,
+    message: t("creator.editor.defaultMessage"),
   }
 }
 
-function LivePreview({ item, openTemplate }: { item: Personalization; openTemplate: NotificationTemplateKey }) {
-  const content = item.content
-
-  if (!content) return null
-
-  if (content.kind === "NOTIFICATION_PACK") {
-    const template = content.templates[openTemplate]
-    return (
-      <div className="creator-preview-notification">
-        <span>{template.emoji || "•"}</span>
-        <div>
-          <strong>{template.soloTitle || "Заголовок сповіщення"}</strong>
-          <p>{renderTemplate(template.soloBody || "Текст із {player} та іншими placeholders", sampleValues(openTemplate))}</p>
-          <small>{renderTemplate(template.compact || "Компактний текст", sampleValues(openTemplate))}</small>
-        </div>
-      </div>
-    )
+function toEditorForm(response: PersonalizationResponse, t: TFunction): EditorForm {
+  const content = response.content
+  const defaults = createDefaultForm(t)
+  const base: EditorForm = {
+    ...defaults,
+    type: response.type,
+    name: response.name,
+    currency: response.price?.currency ?? "PRIME",
+    price: String(response.price?.amount ?? 25),
   }
 
-  if (content.kind === "NICK_STYLE") {
-    const stops = content.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
-    return (
-      <div className="creator-preview-nick">
-        <strong style={{ backgroundImage: `linear-gradient(${content.angleDegrees}deg, ${stops})`, textShadow: content.glow ? `0 0 ${Math.max(5, content.glow.strength / 3)}px ${content.glow.color}` : "none" }}>knalis</strong>
-        <small>Так виглядатиме нік</small>
-      </div>
-    )
+  if (response.type === "NICK_STYLE") {
+    const value = content as
+      | Extract<PersonalizationContent, { kind: "NICK_STYLE" }>
+      | {
+          colors: { color: string; position: number }[]
+          glow: { color: string; strength: number } | null
+        }
+
+    return {
+      ...base,
+      accent: value.colors[0]?.color ?? base.accent,
+      secondary: value.colors[1]?.color ?? value.colors[0]?.color ?? base.secondary,
+      intensity: value.glow?.strength ?? base.intensity,
+    }
   }
 
-  if (content.kind === "PROFILE_THEME") {
-    return (
-      <div className="creator-preview-theme" style={{ background: content.background, borderColor: content.border, color: content.text }}>
-        <span style={{ background: content.surface, borderColor: content.accent }}>K</span>
-        <div style={{ background: content.surface, borderColor: content.border }}>
-          <strong style={{ color: content.text }}>knalis</strong>
-          <small style={{ color: content.accent }}>Профіль</small>
-          <i style={{ background: content.accent }} />
-        </div>
-      </div>
-    )
+  if (response.type === "PROFILE_THEME") {
+    const value = content as { accent: string; border: string; glow: { strength: number } | null }
+    return {
+      ...base,
+      accent: value.accent,
+      secondary: value.border,
+      intensity: value.glow?.strength ?? base.intensity,
+    }
   }
 
-  if (content.kind === "AVATAR_FRAME") {
-    return (
-      <div className="creator-preview-frame">
-        <span style={{ borderColor: content.borderColor, borderWidth: content.borderWidthPx, borderRadius: content.radiusPx, boxShadow: content.glow ? `0 0 ${Math.max(7, content.glow.strength / 2)}px ${content.glow.color}66` : "none" }}>K</span>
-        <small>{content.borderWidthPx}px · radius {content.radiusPx}</small>
-      </div>
-    )
+  if (response.type === "AVATAR_FRAME") {
+    const value = content as {
+      borderColor: string
+      glow: { color: string; strength: number } | null
+    }
+    return {
+      ...base,
+      accent: value.borderColor,
+      secondary: value.glow?.color ?? base.secondary,
+      intensity: value.glow?.strength ?? base.intensity,
+    }
   }
 
+  if (response.type === "PROFILE_EFFECT") {
+    const value = content as {
+      primaryColor: string
+      secondaryColor: string | null
+      intensity: number
+    }
+    return {
+      ...base,
+      accent: value.primaryColor,
+      secondary: value.secondaryColor ?? base.secondary,
+      intensity: value.intensity,
+    }
+  }
+
+  const value = content as { mixedAggregateTitle: string }
+  return { ...base, currency: "PRIME", message: value.mixedAggregateTitle || base.message }
+}
+
+function buildPreview(
+  form: EditorForm,
+  id: string,
+  status: PersonalizationStatus,
+  username: string,
+  fallbackName: string,
+): Personalization {
+  let content: PersonalizationContent
+
+  if (form.type === "NICK_STYLE") {
+    content = {
+      kind: "NICK_STYLE",
+      colors: [
+        { color: form.accent, position: 0 },
+        { color: form.secondary, position: 100 },
+      ],
+      angleDegrees: 45,
+      glow: { color: form.accent, strength: form.intensity },
+    }
+  } else if (form.type === "PROFILE_THEME") {
+    content = {
+      kind: "PROFILE_THEME",
+      background: "#11140F",
+      surface: "#1C2119",
+      accent: form.accent,
+      text: "#F1F4E9",
+      border: form.secondary,
+      glow: { color: form.accent, strength: form.intensity },
+    }
+  } else if (form.type === "AVATAR_FRAME") {
+    content = {
+      kind: "AVATAR_FRAME",
+      borderColor: form.accent,
+      borderWidthPx: Math.max(1, Math.min(8, Math.round(form.intensity / 20) + 1)),
+      radiusPx: 8,
+      glow: { color: form.secondary, strength: form.intensity },
+    }
+  } else if (form.type === "PROFILE_EFFECT") {
+    content = {
+      kind: "PROFILE_EFFECT",
+      effect: "AURORA",
+      intensity: form.intensity,
+      primaryColor: form.accent,
+      secondaryColor: form.secondary,
+    }
+  } else {
+    const template = {
+      emoji: null,
+      soloTitle: form.name || "Mnemos",
+      soloBody: form.message,
+      compact: form.message,
+      aggregateTitle: form.name || "Mnemos",
+    }
+    content = {
+      kind: "NOTIFICATION_PACK",
+      mixedAggregateTitle: form.name || "Mnemos",
+      templates: {
+        ITEM_DROP: template,
+        BOOSTER: template,
+        DUNGEON: template,
+        RAID: template,
+        GLOBAL: template,
+      },
+    }
+  }
+
+  return {
+    id,
+    type: form.type,
+    target: targetByType[form.type],
+    name: form.name.trim() || fallbackName,
+    creator: `@${username}`,
+    currency: form.type === "NOTIFICATION_PACK" ? "PRIME" : form.currency,
+    price: Number(form.price) || 0,
+    status,
+    owned: false,
+    active: false,
+    preview: "creator",
+    content,
+  }
+}
+
+function LoadingState() {
+  const { t } = useTranslation()
   return (
-    <div className={`creator-preview-effect creator-preview-effect--${content.effect.toLowerCase()}`} style={{ "--creator-effect-primary": content.primaryColor, "--creator-effect-secondary": content.secondaryColor ?? content.primaryColor, "--creator-effect-alpha": Math.max(.08, content.intensity / 250) } as React.CSSProperties}>
-      <span>K</span>
-      <small>{content.effect} · {content.intensity}%</small>
+    <div className="events-r2-loading" aria-label={t("creator.loading")}>
+      <i />
+      <i />
+      <i />
     </div>
   )
 }
 
-function CreatorListPreview({ item }: { item: Personalization }) {
-  if (!item.content) {
-    return <div className="personalization-preview personalization-preview--creator is-small"><span className="preview-core"><Glyph name={item.type === "NOTIFICATION_PACK" ? "bell" : "spark"} size={16} /></span></div>
-  }
-
-  return <div className="creator-list-real-preview"><LivePreview item={item} openTemplate="ITEM_DROP" /></div>
+function typeLabel(t: TFunction, type: PersonalizationType) {
+  return t(`personalization.types.${type}.title`)
 }
 
-function sampleValues(key: NotificationTemplateKey): Record<string, string> {
-  if (key === "ITEM_DROP") return { player: "north", item: "Eternal Blade", rarity: "Mythical", itemType: "Sword" }
-  if (key === "BOOSTER") return { player: "vex", booster: "Luck" }
-  if (key === "DUNGEON") return { dungeon: "Експерт" }
-  if (key === "RAID") return { locations: "2, 4, 7" }
-  return { event: "Затемнення" }
+function statusLabel(t: TFunction, status: PersonalizationStatus) {
+  return t(`creator.status.${status}`)
 }
 
-function renderTemplate(template: string, values: Record<string, string>) {
-  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)}/g, (_, key: string) => values[key] ?? `{${key}}`)
+function formatDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value))
 }
 
-function templateLabel(key: NotificationTemplateKey) {
-  if (key === "ITEM_DROP") return "Дроп"
-  if (key === "BOOSTER") return "Бустер"
-  if (key === "DUNGEON") return "Данж"
-  if (key === "RAID") return "Рейд"
-  return "Глобал"
-}
-
-function Color({ value, set }: { value: string; set: (value: string) => void }) {
-  return <input className="bare-color" type="color" value={value} onChange={(event) => set(event.target.value.toUpperCase())} />
-}
-
-function ColorField({ label, value, set }: { label: string; value: string; set: (value: string) => void }) {
-  return <Field label={label}><div className="color-field"><Color value={value} set={set} /><code>{value}</code></div></Field>
-}
-
-function Range({ label, min, max, value, set, suffix = "" }: { label: string; min: number; max: number; value: number; set: (value: number) => void; suffix?: string }) {
-  return <Field label={label}><input type="range" min={min} max={max} value={value} onChange={(event) => set(Number(event.target.value))} /><output>{value}{suffix}</output></Field>
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }

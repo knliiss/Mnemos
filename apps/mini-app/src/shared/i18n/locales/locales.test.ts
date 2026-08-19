@@ -8,8 +8,9 @@ function leafKeys(value: unknown, prefix = ""): string[] {
     return prefix ? [prefix] : []
   }
 
-  return Object.entries(value as Record<string, unknown>)
-    .flatMap(([key, child]) => leafKeys(child, prefix ? `${prefix}.${key}` : key))
+  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
+    leafKeys(child, prefix ? `${prefix}.${key}` : key),
+  )
 }
 
 describe("locales", () => {

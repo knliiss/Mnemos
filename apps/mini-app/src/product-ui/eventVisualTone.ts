@@ -1,9 +1,4 @@
-import type {
-  BoosterType,
-  FeedEvent,
-  GlobalEventType,
-  Subscription,
-} from "./model"
+import type { BoosterType, FeedEvent, GlobalEventType, Subscription } from "./model"
 
 export type EventVisualTone =
   | "drop-secret"

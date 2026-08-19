@@ -1,6 +1,9 @@
 import { api } from "@/shared/api/httpClient"
 
-export async function updateAccountBaseRole(accountId: string, roleId: string | null): Promise<void> {
+export async function updateAccountBaseRole(
+  accountId: string,
+  roleId: string | null,
+): Promise<void> {
   await api<void>(`/api/v1/accounts/${accountId}/base-role`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

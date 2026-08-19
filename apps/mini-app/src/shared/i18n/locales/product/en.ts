@@ -43,7 +43,8 @@ export const productEn = {
       description: "Create a new Mnemos account for a Cristalix profile or join one by code.",
       start: "GET STARTED",
       mascotTitle: "The cat is already waiting",
-      mascotDescription: "Link an account to unlock events, rewards, your team and personalizations.",
+      mascotDescription:
+        "Link an account to unlock events, rewards, your team and personalizations.",
       newAccount: "New account",
       findNickname: "Find Cristalix nickname",
       joinByCode: "Join by code",
@@ -76,7 +77,8 @@ export const productEn = {
   moderation: {
     title: "Moderation",
     heroTitle: "Users and accounts",
-    heroDescription: "Search and moderation actions operate directly against account-service and moderation-service.",
+    heroDescription:
+      "Search and moderation actions operate directly against account-service and moderation-service.",
     searchPlaceholder: "Username, Telegram ID, User ID or Cristalix",
     clear: "Clear",
     searchableBy: "Search by",

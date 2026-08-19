@@ -1,17 +1,17 @@
-import type {RealtimeEvent, RealtimeEventListener} from "./realtime.types"
+import type { RealtimeEvent, RealtimeEventListener } from "./realtime.types"
 
 const listeners = new Set<RealtimeEventListener>()
 
 export const realtimeEvents = {
-    publish(event: RealtimeEvent) {
-        listeners.forEach(listener => listener(event))
-    },
+  publish(event: RealtimeEvent) {
+    listeners.forEach((listener) => listener(event))
+  },
 
-    subscribe(listener: RealtimeEventListener) {
-        listeners.add(listener)
+  subscribe(listener: RealtimeEventListener) {
+    listeners.add(listener)
 
-        return () => {
-            listeners.delete(listener)
-        }
+    return () => {
+      listeners.delete(listener)
     }
+  },
 }

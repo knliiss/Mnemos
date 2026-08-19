@@ -70,13 +70,15 @@ export function initialStack(): Route[] {
   }
 
   if (!(requestedRaw in routeRegistry)) {
-    return [{
-      id: "account",
-      params: {
-        notFound: "true",
-        requested: requestedRaw,
+    return [
+      {
+        id: "account",
+        params: {
+          notFound: "true",
+          requested: requestedRaw,
+        },
       },
-    }]
+    ]
   }
 
   const requested = requestedRaw as RouteId
@@ -95,8 +97,5 @@ export function initialStack(): Route[] {
     return [route]
   }
 
-  return [
-    { id: areaRoots[routeRegistry[requested].area] },
-    route,
-  ]
+  return [{ id: areaRoots[routeRegistry[requested].area] }, route]
 }

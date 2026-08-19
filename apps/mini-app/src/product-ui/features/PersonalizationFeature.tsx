@@ -1,10 +1,32 @@
-import { useMemo, useState } from "react"
+import { motion } from "framer-motion"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import {
+  activatePersonalization,
+  deactivatePersonalization,
+  getPersonalization,
+  getPurchaseOperation,
+  listOwnedPersonalizations,
+  listPersonalizations,
+  purchasePersonalization,
+  type PersonalizationResponse,
+} from "@/shared/api/personalizationApi"
+import { handleError } from "@/shared/errors/errorHandler"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { useErrorNotifications } from "../components/ErrorNotifications"
+import { PersonalizationDetails, PersonalizationVisual } from "../components/PersonalizationPreview"
 import { CURRENCIES, PERSONALIZATION_TYPES } from "../contracts"
-import { currentUser, personalizations as seed } from "../mockData"
-import type { Currency, Personalization, PersonalizationTarget, PersonalizationType, Route } from "../model"
-import { personalizationLabels, personalizationStatusLabels } from "../presentation"
+import { useProductData } from "../data/ProductDataProvider"
+import { toProductPersonalization } from "../data/personalizationMappers"
+import type {
+  Currency,
+  Personalization,
+  PersonalizationTarget,
+  PersonalizationType,
+  Route,
+} from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { CurrencyValue, PageHeader, Segmented, Toggle } from "../shared/Primitives"
+import { CurrencyValue, PageHeader, Segmented } from "../shared/Primitives"
 
 type Props = {
   routeId: Route["id"]
@@ -12,8 +34,6 @@ type Props = {
   navigate: (route: Route) => void
   back: () => void
 }
-type PurchaseState = "READY" | "PENDING" | "CONFIRMED"
-type StoreType = "ALL" | PersonalizationType
 
 const targets: Record<PersonalizationType, PersonalizationTarget> = {
   NOTIFICATION_PACK: "USER",
@@ -23,198 +43,739 @@ const targets: Record<PersonalizationType, PersonalizationTarget> = {
   PROFILE_EFFECT: "ACCOUNT",
 }
 
+const accountTypes = PERSONALIZATION_TYPES.filter((type) => targets[type] === "ACCOUNT")
+
 export function PersonalizationFeature(props: Props) {
-  const [items, setItems] = useState<Personalization[]>(seed)
-  const [storeType, setStoreType] = useState<StoreType>("ALL")
-  const [storeCurrency, setStoreCurrency] = useState<"ALL" | Currency>("ALL")
+  const { t } = useTranslation()
+  const product = useProductData()
+  const refreshAccount = product.refreshAccount
+  const errors = useErrorNotifications()
+  const [items, setItems] = useState<Personalization[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [pendingPurchases, setPendingPurchases] = useState<Record<string, string>>({})
 
-  if (props.routeId === "personalization-owned") return <Owned {...props} items={items} setItems={setItems} />
-  if (props.routeId === "personalization-detail") return <Detail {...props} items={items} setItems={setItems} />
+  const refresh = useCallback(async () => {
+    setLoading(true)
 
-  return (
-    <Store
-      {...props}
-      items={items}
-      type={storeType}
-      setType={setStoreType}
-      currency={storeCurrency}
-      setCurrency={setStoreCurrency}
-    />
+    try {
+      const [ownedPage, ...catalogPages] = await Promise.all([
+        listOwnedPersonalizations(undefined, 0, 100),
+        ...PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
+      ])
+      const ownedById = new Map(ownedPage.items.map((owned) => [owned.personalizationId, owned]))
+      const responsesById = new Map<string, PersonalizationResponse>()
+
+      catalogPages.forEach((page) => {
+        page.items.forEach((item) => responsesById.set(item.id, item))
+      })
+
+      const missingOwnedIds = ownedPage.items
+        .map((owned) => owned.personalizationId)
+        .filter((id) => !responsesById.has(id))
+
+      if (missingOwnedIds.length) {
+        const missing = await Promise.all(missingOwnedIds.map((id) => getPersonalization(id)))
+        missing.forEach((item) => responsesById.set(item.id, item))
+      }
+
+      setItems(
+        [...responsesById.values()].map((response) =>
+          toProductPersonalization(
+            response,
+            ownedById.get(response.id) ?? null,
+            product.user.id,
+            product.user.username,
+          ),
+        ),
+      )
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setLoading(false)
+    }
+  }, [product.user.id, product.user.username])
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void refresh()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [refresh])
+
+  const finishPurchase = useCallback(
+    async (
+      personalizationId: string,
+      status: "CONFIRMED" | "FAILED",
+      failureReason?: string | null,
+    ) => {
+      setPendingPurchases((current) => {
+        const next = { ...current }
+        delete next[personalizationId]
+        return next
+      })
+
+      if (status === "CONFIRMED") {
+        await Promise.all([refresh(), refreshAccount()])
+        return
+      }
+
+      errors.showBackendError({
+        code: "PERSONALIZATION_PURCHASE_FAILED",
+        statusCode: 409,
+        message: failureReason ?? t("personalization.purchaseFailed"),
+      })
+    },
+    [errors, refresh, refreshAccount, t],
   )
+
+  useEffect(
+    () =>
+      realtimeEvents.subscribe((event) => {
+        if (event.type !== "personalization.purchase.completed") return
+
+        void finishPurchase(
+          event.payload.personalizationId,
+          event.payload.status,
+          event.payload.failureReason,
+        )
+      }),
+    [finishPurchase],
+  )
+
+  const pollPurchase = useCallback(
+    async (personalizationId: string, operationId: string) => {
+      for (let attempt = 0; attempt < 15; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 900))
+
+        try {
+          const operation = await getPurchaseOperation(operationId)
+          if (operation.status === "PENDING") continue
+
+          await finishPurchase(personalizationId, operation.status, operation.failureReason)
+          return
+        } catch {
+          // SSE is primary; polling only covers reconnect races.
+        }
+      }
+    },
+    [finishPurchase],
+  )
+
+  const purchase = useCallback(
+    async (item: Personalization) => {
+      if (item.owned || pendingPurchases[item.id] || busyId) return
+
+      setBusyId(item.id)
+
+      try {
+        const operation = await purchasePersonalization(item.id)
+        setPendingPurchases((current) => ({
+          ...current,
+          [item.id]: operation.operationId,
+        }))
+        void pollPurchase(item.id, operation.operationId)
+      } catch (error) {
+        handleError(error)
+      } finally {
+        setBusyId(null)
+      }
+    },
+    [busyId, pendingPurchases, pollPurchase],
+  )
+
+  const toggleActive = useCallback(
+    async (item: Personalization) => {
+      if (!item.owned || busyId) return
+
+      setBusyId(item.id)
+
+      try {
+        if (item.active) {
+          await deactivatePersonalization(item.id)
+        } else {
+          await activatePersonalization(item.id)
+        }
+
+        await refresh()
+      } catch (error) {
+        handleError(error)
+      } finally {
+        setBusyId(null)
+      }
+    },
+    [busyId, refresh],
+  )
+
+  if (props.routeId === "personalization-owned") {
+    return (
+      <OwnedPage
+        {...props}
+        items={items}
+        loading={loading}
+        busyId={busyId}
+        onToggleActive={toggleActive}
+      />
+    )
+  }
+
+  if (props.routeId === "personalization-store-category") {
+    return <StoreCategoryPage {...props} items={items} loading={loading} />
+  }
+
+  if (props.routeId === "personalization-detail") {
+    return (
+      <DetailPage
+        {...props}
+        items={items}
+        loading={loading}
+        busyId={busyId}
+        pendingPurchases={pendingPurchases}
+        onPurchase={purchase}
+        onToggleActive={toggleActive}
+      />
+    )
+  }
+
+  return <StoreRoot {...props} items={items} loading={loading} prime={product.user.prime} />
 }
 
-function Store({ navigate, items, type, setType, currency, setCurrency }: Props & {
-  items: Personalization[]
-  type: StoreType
-  setType: (type: StoreType) => void
-  currency: "ALL" | Currency
-  setCurrency: (currency: "ALL" | Currency) => void
-}) {
-  const visible = useMemo(
-    () => items.filter((item) => item.status === "PUBLISHED" && (type === "ALL" || item.type === type) && (currency === "ALL" || item.currency === currency)),
-    [items, type, currency],
-  )
+function StoreRoot({
+  navigate,
+  items,
+  loading,
+  prime,
+}: Props & { items: Personalization[]; loading: boolean; prime: number }) {
+  const { t, i18n } = useTranslation()
+  const published = items.filter((item) => item.status === "PUBLISHED")
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   return (
-    <div className="screen store-root-screen root-screen">
-      <header className="root-title-block store-title-block">
-        <span><h1>Магазин</h1><p>Персоналізації Mnemos</p></span>
-        <button className="store-owned-button" onClick={() => navigate({ id: "personalization-owned", params: { target: "ALL" } })}>
-          <Glyph name="spark" size={17} />
-          Мої
+    <div className="screen store-v5-screen root-screen">
+      <header className="store-v5-header">
+        <span>
+          <small>{t("personalization.store.eyebrow")}</small>
+          <h1>{t("personalization.store.title")}</h1>
+          <p>{t("personalization.store.description")}</p>
+        </span>
+        <button className="store-prime-pill" onClick={() => navigate({ id: "user-wallet" })}>
+          <CurrencyMark currency="PRIME" size={17} />
+          <strong>{prime.toLocaleString(locale)}</strong>
         </button>
       </header>
 
-      <button className="store-prime-card" onClick={() => navigate({ id: "user-wallet" })}>
-        <span className="store-prime-card__mark"><CurrencyMark currency="PRIME" size={24} /></span>
-        <span><small>PRIME · User</small><strong>{currentUser.prime.toLocaleString("uk-UA")}</strong></span>
-        <b>Історія ›</b>
-      </button>
+      <section className="store-v5-hero">
+        <span>
+          <small>{t("personalization.store.catalogEyebrow")}</small>
+          <strong>{t("personalization.store.heroTitle")}</strong>
+          <em>{t("personalization.store.heroCopy")}</em>
+        </span>
+        <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
+      </section>
 
-      <div className="store-type-rail">
-        <button className={type === "ALL" ? "is-active" : ""} onClick={() => setType("ALL")}>
-          <Glyph name="store" size={16} />
-          Усі
-        </button>
-        {PERSONALIZATION_TYPES.map((value) => (
-          <button key={value} className={type === value ? "is-active" : ""} onClick={() => setType(value)}>
-            <TypeGlyph type={value} />
-            {personalizationLabels[value]}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <section className="store-v5-categories">
+          {PERSONALIZATION_TYPES.map((type) => {
+            const typeItems = published.filter((item) => item.type === type)
+            const owned = items.filter((item) => item.type === type && item.owned).length
+            const sample = typeItems[0] ?? items.find((item) => item.type === type && item.owned)
 
-      <div className="store-toolbar store-toolbar--redesign">
-        <span>{type === "ALL" ? "Усі персоналізації" : personalizationLabels[type]}</span>
-        <Segmented value={currency} options={["ALL", ...CURRENCIES] as const} onChange={setCurrency} label={(value) => value === "ALL" ? "Усі" : value} />
-      </div>
-
-      <div className="catalog-grid catalog-grid--redesign">
-        {visible.map((item) => (
-          <button className={`catalog-card catalog-card--${item.type.toLowerCase()}`} key={item.id} onClick={() => navigate({ id: "personalization-detail", params: { personalizationId: item.id } })}>
-            <Preview item={item} />
-            <span className="catalog-card__scope"><ScopeMark target={item.target} compact /></span>
-            <span className="catalog-card__copy"><strong>{item.name}</strong><small>{personalizationLabels[item.type]} · {item.creator}</small></span>
-            <span className="catalog-card__footer">
-              {item.owned ? <span className="catalog-state"><Glyph name="check" size={13} />{item.active ? "Активна" : "Придбано"}</span> : <CurrencyValue currency={item.currency} value={item.price} compact />}
-              <b>›</b>
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {!visible.length ? <p className="inline-hint">У цій категорії поки порожньо</p> : null}
+            return (
+              <motion.button
+                key={type}
+                className={`store-v5-category store-v5-category--${type.toLowerCase()}`}
+                whileTap={{ scale: 0.988 }}
+                onClick={() => navigate({ id: "personalization-store-category", params: { type } })}
+              >
+                <span className="store-v5-category__icon">
+                  <TypeGlyph type={type} />
+                </span>
+                <span className="store-v5-category__copy">
+                  <small>{t(`personalization.target.${targets[type]}`)}</small>
+                  <strong>{typeTitle(t, type)}</strong>
+                  <em>{typeNote(t, type)}</em>
+                  <span>
+                    {t("personalization.store.catalogCount", { count: typeItems.length })}
+                    {owned ? ` · ${t("personalization.store.ownedCount", { count: owned })}` : ""}
+                  </span>
+                </span>
+                <span className="store-v5-category__preview">
+                  {sample ? (
+                    <PersonalizationVisual item={sample} small />
+                  ) : (
+                    <Glyph name="spark" size={20} />
+                  )}
+                </span>
+              </motion.button>
+            )
+          })}
+        </section>
+      )}
     </div>
   )
 }
 
-function Owned({ navigate, back, params, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
-  const target: PersonalizationTarget | null = params?.target === "USER"
-    ? "USER"
-    : params?.target === "ALL"
-      ? null
-      : "ACCOUNT"
-  const compatibleTypes = target
-    ? PERSONALIZATION_TYPES.filter((value) => targets[value] === target)
-    : PERSONALIZATION_TYPES
-  const [type, setType] = useState<StoreType>("ALL")
-  const visible = items.filter((item) => item.owned && (!target || item.target === target) && (type === "ALL" || item.type === type))
-  const toggle = (id: string, active: boolean) => setItems(items.map((item) => item.id === id ? { ...item, active } : item))
+function StoreCategoryPage({
+  params,
+  navigate,
+  back,
+  items,
+  loading,
+}: Props & { items: Personalization[]; loading: boolean }) {
+  const { t } = useTranslation()
+  const type = readType(params?.type) ?? "PROFILE_THEME"
+  const [currency, setCurrency] = useState<"ALL" | Currency>("ALL")
+  const [page, setPage] = useState(0)
+  const pageSize = 6
+  const visible = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          item.status === "PUBLISHED" &&
+          item.type === type &&
+          (currency === "ALL" || item.currency === currency),
+      ),
+    [currency, items, type],
+  )
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
+  const safePage = Math.min(page, pageCount - 1)
+  const pageItems = visible.slice(safePage * pageSize, safePage * pageSize + pageSize)
 
   return (
-    <div className="screen owned-personalization-screen">
-      <PageHeader title={target === "ACCOUNT" ? "Персоналізації аккаунта" : target === "USER" ? "Персоналізації User" : "Мої персоналізації"} back={back} />
-      <div className="compact-filter compact-filter--redesign">
-        {(["ALL", ...compatibleTypes] as const).map((value) => (
-          <button key={value} className={type === value ? "is-active" : ""} onClick={() => setType(value)}>{value === "ALL" ? "Усі" : personalizationLabels[value]}</button>
-        ))}
+    <div className="screen store-category-v5">
+      <PageHeader title={typeTitle(t, type)} back={back} />
+
+      <section className="store-category-v5__intro">
+        <span className="store-category-v5__icon">
+          <TypeGlyph type={type} />
+        </span>
+        <span>
+          <small>
+            {targets[type] === "ACCOUNT"
+              ? t("personalization.target.accountEyebrow")
+              : t("personalization.target.userEyebrow")}
+          </small>
+          <strong>{typeNote(t, type)}</strong>
+          <em>{typeImpact(t, type)}</em>
+        </span>
+      </section>
+
+      <div className="store-category-v5__toolbar">
+        <span>{t("personalization.category.positions", { count: visible.length })}</span>
+        <Segmented
+          value={currency}
+          options={["ALL", ...CURRENCIES] as const}
+          onChange={(value) => {
+            setCurrency(value)
+            setPage(0)
+          }}
+          label={(value) => (value === "ALL" ? t("personalization.category.all") : value)}
+        />
       </div>
-      <div className="owned-list owned-list--redesign">
-        {visible.map((item) => (
-          <article key={item.id}>
-            <button className="owned-list__main" onClick={() => navigate({ id: "personalization-detail", params: { personalizationId: item.id } })}>
-              <Preview item={item} small />
-              <span><strong>{item.name}</strong><small>{personalizationLabels[item.type]}</small></span>
-            </button>
-            <ScopeMark target={item.target} compact />
-            <Toggle checked={item.active} onChange={(active) => toggle(item.id, active)} label={item.name} />
-          </article>
-        ))}
-      </div>
+
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <div className="store-category-v5__list">
+          {pageItems.map((item) => (
+            <motion.button
+              key={item.id}
+              className="store-category-v5__card"
+              whileTap={{ scale: 0.992 }}
+              onClick={() =>
+                navigate({ id: "personalization-detail", params: { personalizationId: item.id } })
+              }
+            >
+              <span className="store-category-v5__visual">
+                <PersonalizationVisual item={item} />
+              </span>
+              <span className="store-category-v5__copy">
+                <small>{typeTitle(t, item.type)}</small>
+                <strong>{item.name}</strong>
+                <em>{item.creator}</em>
+              </span>
+              <span className="store-category-v5__price">
+                {item.owned ? (
+                  <span className="catalog-state">
+                    <Glyph name="check" size={13} />
+                    {item.active
+                      ? t("personalization.category.active")
+                      : t("personalization.category.owned")}
+                  </span>
+                ) : (
+                  <CurrencyValue currency={item.currency} value={item.price} compact />
+                )}
+              </span>
+            </motion.button>
+          ))}
+          {!pageItems.length ? (
+            <p className="inline-hint">{t("personalization.category.empty")}</p>
+          ) : null}
+        </div>
+      )}
+
+      {pageCount > 1 ? <Pager page={safePage} pageCount={pageCount} onChange={setPage} /> : null}
     </div>
   )
 }
 
-function Detail({ params, back, items, setItems }: Props & { items: Personalization[]; setItems: (items: Personalization[]) => void }) {
-  const item = items.find((value) => value.id === params?.personalizationId) ?? items[0]
-  const [purchaseState, setPurchaseState] = useState<PurchaseState>(item.owned ? "CONFIRMED" : "READY")
-  const patch = (values: Partial<Personalization>) => setItems(items.map((value) => value.id === item.id ? { ...value, ...values } : value))
+function OwnedPage({
+  params,
+  navigate,
+  back,
+  items,
+  loading,
+  busyId,
+  onToggleActive,
+}: Props & {
+  items: Personalization[]
+  loading: boolean
+  busyId: string | null
+  onToggleActive: (item: Personalization) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const target = params?.target === "ACCOUNT" || params?.target === "USER" ? params.target : null
+  const type = readType(params?.type)
 
-  const purchase = () => {
-    if (purchaseState !== "READY") return
+  if (target === "ACCOUNT" && type && targets[type] === "ACCOUNT") {
+    const typeItems = items.filter(
+      (item) => item.owned && item.target === "ACCOUNT" && item.type === type,
+    )
 
-    setPurchaseState("PENDING")
-    window.setTimeout(() => {
-      patch({ owned: true })
-      setPurchaseState("CONFIRMED")
-    }, 900)
-  }
-
-  return (
-    <div className="screen personalization-detail personalization-detail--redesign">
-      <PageHeader title={item.name} back={back} actions={<ScopeMark target={item.target} compact />} />
-      <Preview item={item} detail />
-      <div className="detail-meta detail-meta--redesign">
-        <span><small>Тип</small>{personalizationLabels[item.type]}</span>
-        <span><small>Автор</small>{item.creator}</span>
-        <span><small>Стан</small>{personalizationStatusLabels[item.status]}</span>
-      </div>
-      <div className="detail-action">
-        {!item.owned ? (
-          <button className="primary-action" disabled={purchaseState === "PENDING"} onClick={purchase}>
-            {purchaseState === "PENDING" ? <><Glyph name="clock" size={15} /><span>Обробка</span></> : <><span>Купити</span><CurrencyValue currency={item.currency} value={item.price} compact /></>}
-          </button>
+    return (
+      <div className="screen account-personalization-category-v5">
+        <PageHeader title={typeTitle(t, type)} back={back} />
+        <section className="account-personalization-category-v5__intro">
+          <span className="account-personalization-category-v5__icon">
+            <TypeGlyph type={type} />
+          </span>
+          <span>
+            <small>{t("personalization.owned.accountEyebrow")}</small>
+            <strong>{typeNote(t, type)}</strong>
+            <em>{typeImpact(t, type)}</em>
+          </span>
+        </section>
+        {loading ? (
+          <LoadingState />
         ) : (
-          <button className={item.active ? "secondary-action is-active" : "primary-action"} onClick={() => patch({ active: !item.active })}>{item.active ? "Вимкнути" : "Активувати"}</button>
+          <section className="account-personalization-category-v5__list">
+            {typeItems.map((item) => (
+              <motion.button
+                key={item.id}
+                className={item.active ? "is-selected" : ""}
+                whileTap={{ scale: 0.992 }}
+                disabled={busyId === item.id}
+                onClick={() => void onToggleActive(item)}
+              >
+                <PersonalizationVisual item={item} />
+                <span>
+                  <small>
+                    {item.active
+                      ? t("personalization.owned.activeEyebrow")
+                      : t("personalization.owned.purchasedEyebrow")}
+                  </small>
+                  <strong>{item.name}</strong>
+                  <em>{item.creator}</em>
+                </span>
+                <span className="catalog-state">
+                  {busyId === item.id
+                    ? "…"
+                    : item.active
+                      ? t("personalization.owned.deselect")
+                      : t("personalization.owned.select")}
+                </span>
+              </motion.button>
+            ))}
+            {!typeItems.length ? (
+              <p className="inline-hint">{t("personalization.owned.typeEmpty")}</p>
+            ) : null}
+          </section>
         )}
       </div>
+    )
+  }
+
+  if (target === "ACCOUNT") {
+    const owned = items.filter((item) => item.owned && item.target === "ACCOUNT")
+
+    return (
+      <div className="screen account-personalization-v5">
+        <PageHeader title={t("personalization.owned.accountTitle")} back={back} />
+        <section className="account-personalization-v5__hero">
+          <span>
+            <small>{t("personalization.owned.accountImageEyebrow")}</small>
+            <strong>{t("personalization.owned.accountImageTitle")}</strong>
+            <em>
+              {t("personalization.owned.accountImageStats", {
+                active: owned.filter((item) => item.active).length,
+                owned: owned.length,
+              })}
+            </em>
+          </span>
+          <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
+        </section>
+        {loading ? (
+          <LoadingState />
+        ) : (
+          <section className="account-personalization-v5__categories">
+            {accountTypes.map((itemType) => {
+              const typeItems = owned.filter((item) => item.type === itemType)
+              const selected = typeItems.find((item) => item.active) ?? null
+
+              return (
+                <motion.button
+                  key={itemType}
+                  className={selected ? "is-selected" : ""}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() =>
+                    navigate({
+                      id: "personalization-owned",
+                      params: { target: "ACCOUNT", type: itemType },
+                    })
+                  }
+                >
+                  <span className="account-personalization-v5__category-icon">
+                    <TypeGlyph type={itemType} />
+                  </span>
+                  <span className="account-personalization-v5__category-copy">
+                    <small>{typeTitle(t, itemType)}</small>
+                    <strong>{selected?.name ?? t("personalization.owned.notSelected")}</strong>
+                    <em>{typeNote(t, itemType)}</em>
+                    <span>
+                      {t("personalization.owned.purchasedCount", { count: typeItems.length })}
+                    </span>
+                  </span>
+                  <span className="account-personalization-v5__category-preview">
+                    {selected ? (
+                      <PersonalizationVisual item={selected} small />
+                    ) : (
+                      <Glyph name="spark" size={18} />
+                    )}
+                  </span>
+                </motion.button>
+              )
+            })}
+          </section>
+        )}
+      </div>
+    )
+  }
+
+  const visible = items.filter((item) => item.owned && (!target || item.target === target))
+
+  return (
+    <div className="screen owned-v5-screen">
+      <PageHeader
+        title={
+          target === "USER"
+            ? t("personalization.owned.userTitle")
+            : t("personalization.owned.myTitle")
+        }
+        back={back}
+      />
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <section className="owned-v5-list">
+          {visible.map((item) => (
+            <motion.button
+              key={item.id}
+              whileTap={{ scale: 0.992 }}
+              onClick={() =>
+                navigate({ id: "personalization-detail", params: { personalizationId: item.id } })
+              }
+            >
+              <PersonalizationVisual item={item} small />
+              <span>
+                <small>{typeTitle(t, item.type)}</small>
+                <strong>{item.name}</strong>
+                <em>
+                  {item.active
+                    ? t("personalization.owned.active")
+                    : t("personalization.owned.purchased")}
+                </em>
+              </span>
+            </motion.button>
+          ))}
+          {!visible.length ? (
+            <p className="inline-hint">{t("personalization.owned.empty")}</p>
+          ) : null}
+        </section>
+      )}
     </div>
   )
 }
 
-function ScopeMark({ target, compact = false }: { target: PersonalizationTarget; compact?: boolean }) {
+function DetailPage({
+  params,
+  back,
+  items,
+  loading,
+  busyId,
+  pendingPurchases,
+  onPurchase,
+  onToggleActive,
+}: Props & {
+  items: Personalization[]
+  loading: boolean
+  busyId: string | null
+  pendingPurchases: Record<string, string>
+  onPurchase: (item: Personalization) => Promise<void>
+  onToggleActive: (item: Personalization) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const item = items.find((candidate) => candidate.id === params?.personalizationId) ?? null
+
+  if (loading) {
+    return (
+      <div className="screen">
+        <PageHeader title={t("personalization.detail.title")} back={back} />
+        <LoadingState />
+      </div>
+    )
+  }
+
+  if (!item) {
+    return (
+      <div className="screen">
+        <PageHeader title={t("personalization.detail.title")} back={back} />
+        <p className="inline-hint">{t("personalization.detail.notFound")}</p>
+      </div>
+    )
+  }
+
+  const pending = Boolean(pendingPurchases[item.id])
+  const busy = busyId === item.id
+
   return (
-    <span className={`scope-symbol ${compact ? "scope-symbol--compact" : ""}`} title={target === "USER" ? "Для користувача" : "Для аккаунта"}>
-      <Glyph name={target === "USER" ? "person" : "account"} size={compact ? 13 : 15} />
-      <span>{target === "USER" ? "User" : "Account"}</span>
-    </span>
+    <div className="screen personalization-detail-v5">
+      <PageHeader title={item.name} back={back} />
+      <section className="personalization-detail-v5__hero">
+        <PersonalizationVisual item={item} detail />
+        <span>
+          <small>
+            {typeTitle(t, item.type)} · {t(`personalization.target.${item.target}`)}
+          </small>
+          <strong>{item.name}</strong>
+          <em>{item.creator}</em>
+        </span>
+      </section>
+
+      <PersonalizationDetails item={item} />
+
+      <section className="personalization-detail-v5__purchase">
+        <span>
+          <small>
+            {item.owned
+              ? t("personalization.detail.inCollection")
+              : t("personalization.detail.price")}
+          </small>
+          {item.owned ? (
+            <strong>
+              {item.active
+                ? t("personalization.detail.active")
+                : t("personalization.detail.purchased")}
+            </strong>
+          ) : (
+            <CurrencyValue currency={item.currency} value={item.price} />
+          )}
+        </span>
+
+        {item.owned ? (
+          <button disabled={busy} onClick={() => void onToggleActive(item)}>
+            {busy
+              ? t("personalization.detail.saving")
+              : item.active
+                ? t("personalization.detail.disable")
+                : t("personalization.detail.enable")}
+          </button>
+        ) : (
+          <button disabled={busy || pending} onClick={() => void onPurchase(item)}>
+            {pending
+              ? t("personalization.detail.processing")
+              : busy
+                ? t("personalization.detail.sending")
+                : t("personalization.detail.buy")}
+          </button>
+        )}
+      </section>
+    </div>
   )
 }
 
 function TypeGlyph({ type }: { type: PersonalizationType }) {
-  if (type === "NOTIFICATION_PACK") return <Glyph name="bell" size={16} />
-  if (type === "NICK_STYLE") return <span className="type-aa">Aa</span>
-  if (type === "PROFILE_THEME") return <Glyph name="account" size={16} />
-  if (type === "AVATAR_FRAME") return <span className="type-frame" />
+  const glyph =
+    type === "NOTIFICATION_PACK"
+      ? "bell"
+      : type === "NICK_STYLE"
+        ? "spark"
+        : type === "PROFILE_THEME"
+          ? "creator"
+          : type === "AVATAR_FRAME"
+            ? "profile-mark"
+            : "events"
 
-  return <Glyph name="spark" size={16} />
+  return <Glyph name={glyph} size={20} />
 }
 
-function Preview({ item, small, detail }: { item: Personalization; small?: boolean; detail?: boolean }) {
+function LoadingState() {
+  const { t } = useTranslation()
   return (
-    <div className={`personalization-preview personalization-preview--${item.type.toLowerCase()} ${small ? "is-small" : ""} ${detail ? "is-detail" : ""}`}>
-      <span className="preview-orbit" />
-      <span className="preview-core">
-        {item.type === "NOTIFICATION_PACK"
-          ? <Glyph name="bell" size={small ? 17 : 26} />
-          : item.type === "NICK_STYLE"
-            ? <b>Aa</b>
-            : item.type === "PROFILE_THEME"
-              ? <span className="theme-window" />
-              : item.type === "AVATAR_FRAME"
-                ? <span className="frame-sample" />
-                : <Glyph name="spark" size={small ? 17 : 27} />}
-      </span>
+    <div className="events-r2-loading" aria-label={t("personalization.loading")}>
+      <i />
+      <i />
+      <i />
     </div>
   )
+}
+
+function Pager({
+  page,
+  pageCount,
+  onChange,
+}: {
+  page: number
+  pageCount: number
+  onChange: (page: number) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <nav className="catalog-pager" aria-label={t("personalization.pages")}>
+      <button disabled={page <= 0} onClick={() => onChange(page - 1)}>
+        ‹
+      </button>
+      <span>
+        {page + 1} / {pageCount}
+      </span>
+      <button disabled={page >= pageCount - 1} onClick={() => onChange(page + 1)}>
+        ›
+      </button>
+    </nav>
+  )
+}
+
+function typeTitle(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.title`)
+}
+
+function typeNote(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.note`)
+}
+
+function typeImpact(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.impact`)
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
+}
+
+function readType(value?: string): PersonalizationType | null {
+  return PERSONALIZATION_TYPES.find((type) => type === value) ?? null
 }

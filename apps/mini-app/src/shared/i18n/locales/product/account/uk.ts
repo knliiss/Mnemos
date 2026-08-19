@@ -27,7 +27,8 @@ export const accountProductUk = {
     join: {
       title: "Вхід за кодом",
       eyebrow: "INVITE ACCESS",
-      description: "Встав код запрошення — Mnemos перевірить його і додасть тебе до потрібного аккаунта.",
+      description:
+        "Встав код запрошення — Mnemos перевірить його і додасть тебе до потрібного аккаунта.",
       codeLabel: "КОД ІНВАЙТА",
       paste: "Вставити",
       readyHint: "Формат правильний — код готовий до перевірки",

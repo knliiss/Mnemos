@@ -67,7 +67,10 @@ export type CreateWalletAdjustmentRequest = {
   reason: string
 }
 
-export async function searchIdentities(query: string, limit = 20): Promise<IdentitySearchResponse[]> {
+export async function searchIdentities(
+  query: string,
+  limit = 20,
+): Promise<IdentitySearchResponse[]> {
   const params = new URLSearchParams({
     query,
     limit: String(limit),

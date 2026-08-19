@@ -15,7 +15,13 @@ type AdminStats = {
   badges: number
 }
 
-export function AdministrationHome({ navigate, back }: { navigate: (route: Route) => void; back: () => void }) {
+export function AdministrationHome({
+  navigate,
+  back,
+}: {
+  navigate: (route: Route) => void
+  back: () => void
+}) {
   const { t } = useTranslation()
   const [stats, setStats] = useState<AdminStats | null>(null)
 
@@ -26,14 +32,18 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
         listEventBetRounds(),
         listItemRaces(),
         listAdminBadges(),
-      ]).then(([review, rounds, races, badges]) => {
-        setStats({
-          review: review.length,
-          activeRounds: rounds.filter((round) => round.status !== "SETTLED").length,
-          activeRaces: races.filter((race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status)).length,
-          badges: badges.length,
+      ])
+        .then(([review, rounds, races, badges]) => {
+          setStats({
+            review: review.length,
+            activeRounds: rounds.filter((round) => round.status !== "SETTLED").length,
+            activeRaces: races.filter(
+              (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
+            ).length,
+            badges: badges.length,
+          })
         })
-      }).catch(handleError)
+        .catch(handleError)
     })
 
     return () => window.cancelAnimationFrame(frame)
@@ -44,7 +54,9 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
       <PageHeader title={t("administration.title")} back={back} />
 
       <section className="workspace-intro workspace-intro--admin">
-        <span className="workspace-intro__icon"><Glyph name="admin" size={23} /></span>
+        <span className="workspace-intro__icon">
+          <Glyph name="admin" size={23} />
+        </span>
         <div>
           <strong>{t("administration.introTitle")}</strong>
           <small>{t("administration.introDescription")}</small>
@@ -53,7 +65,9 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
 
       <div className="workspace-grid workspace-grid--final">
         <button onClick={() => navigate({ id: "moderation" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--danger"><Glyph name="members" size={20} /></span>
+          <span className="workspace-grid__icon workspace-grid__icon--danger">
+            <Glyph name="members" size={20} />
+          </span>
           <span>
             <strong>{t("administration.users")}</strong>
             <small>{t("administration.usersDescription")}</small>
@@ -62,7 +76,9 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
         </button>
 
         <button onClick={() => navigate({ id: "personalization-review" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--plum"><Glyph name="creator" size={20} /></span>
+          <span className="workspace-grid__icon workspace-grid__icon--plum">
+            <Glyph name="creator" size={20} />
+          </span>
           <span>
             <strong>{t("administration.personalizations")}</strong>
             <small>
@@ -75,7 +91,9 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
         </button>
 
         <button onClick={() => navigate({ id: "bet-admin" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--amber"><Glyph name="bet" size={20} /></span>
+          <span className="workspace-grid__icon workspace-grid__icon--amber">
+            <Glyph name="bet" size={20} />
+          </span>
           <span>
             <strong>{t("administration.bets")}</strong>
             <small>
@@ -91,7 +109,9 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
         </button>
 
         <button onClick={() => navigate({ id: "badge-admin" })}>
-          <span className="workspace-grid__icon"><Glyph name="spark" size={20} /></span>
+          <span className="workspace-grid__icon">
+            <Glyph name="spark" size={20} />
+          </span>
           <span>
             <strong>{t("administration.badges")}</strong>
             <small>

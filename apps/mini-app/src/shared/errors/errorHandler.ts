@@ -75,7 +75,8 @@ export function normalizeError(error: unknown): AppError {
   if (error instanceof AppError) return error
   if (error instanceof ApiError) return new AppError("api", formatApiError(error), error)
   if (error instanceof NetworkError) return new AppError("network", error.message, error)
-  if (error instanceof Error) return new AppError("unexpected", error.message || "Unknown error", error)
+  if (error instanceof Error)
+    return new AppError("unexpected", error.message || "Unknown error", error)
 
   return new AppError("unexpected", String(error), error)
 }

@@ -100,15 +100,22 @@ export async function getPublicProfile(accountId: string): Promise<PublicProfile
 }
 
 export async function getAccountReaction(accountId: string): Promise<AccountReactionType | null> {
-  const response = await api<{ type: AccountReactionType | null }>(`/api/v1/accounts/${accountId}/reaction`)
+  const response = await api<{ type: AccountReactionType | null }>(
+    `/api/v1/accounts/${accountId}/reaction`,
+  )
   return response.type
 }
 
-export async function getAccountReactionSummary(accountId: string): Promise<{ likes: number; dislikes: number }> {
+export async function getAccountReactionSummary(
+  accountId: string,
+): Promise<{ likes: number; dislikes: number }> {
   return api<{ likes: number; dislikes: number }>(`/api/v1/accounts/${accountId}/reaction/summary`)
 }
 
-export async function setAccountReaction(accountId: string, type: AccountReactionType): Promise<void> {
+export async function setAccountReaction(
+  accountId: string,
+  type: AccountReactionType,
+): Promise<void> {
   await api<void>(`/api/v1/accounts/${accountId}/reaction`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -130,7 +137,9 @@ export async function getAccountComments(
     size: String(size),
   })
 
-  const response = await api<PageResponse<CommentResponse>>(`/api/v1/accounts/${accountId}/comments?${params}`)
+  const response = await api<PageResponse<CommentResponse>>(
+    `/api/v1/accounts/${accountId}/comments?${params}`,
+  )
 
   return toSpringPageResponse(response)
 }
@@ -145,7 +154,9 @@ export async function getCommentReplies(
     size: String(size),
   })
 
-  const response = await api<PageResponse<CommentResponse>>(`/api/v1/comments/${commentId}/replies?${params}`)
+  const response = await api<PageResponse<CommentResponse>>(
+    `/api/v1/comments/${commentId}/replies?${params}`,
+  )
 
   return toSpringPageResponse(response)
 }

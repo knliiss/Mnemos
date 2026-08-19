@@ -8,7 +8,8 @@ export const accountProductEn = {
     create: {
       title: "New account",
       eyebrow: "CRISTALIX → MNEMOS",
-      description: "We will find your Cristalix profile and create a separate Mnemos account for it.",
+      description:
+        "We will find your Cristalix profile and create a separate Mnemos account for it.",
       nicknameLabel: "CRISTALIX NICKNAME",
       nicknamePlaceholder: "For example, knalis",
       readyHint: "We will check {{nickname}} on Cristalix",
@@ -27,7 +28,8 @@ export const accountProductEn = {
     join: {
       title: "Join by code",
       eyebrow: "INVITE ACCESS",
-      description: "Paste the invite code — Mnemos will verify it and add you to the right account.",
+      description:
+        "Paste the invite code — Mnemos will verify it and add you to the right account.",
       codeLabel: "INVITE CODE",
       paste: "Paste",
       readyHint: "The format is valid — the code is ready to verify",

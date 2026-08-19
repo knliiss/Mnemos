@@ -1,5 +1,0 @@
-import {useState} from "react"
-import {useTranslation} from "react-i18next"
-import {Segmented} from "@/shared/ui/primitives"
-const data={prefix:["{-A-}","{ ϟ }","<ICE>","{DRAGON}"],emoji:["✨","🐺","🔥","🦊"],color:["#f3f5f8","#8bc7ff","#f2c8a2","#e7bd66"],plaque:["ICE","VOID","NOVA","MNEMOS"]}
-export function PersonalizationPage(){const {t}=useTranslation();const [tab,setTab]=useState<keyof typeof data>("prefix");return <div className="page"><h1>{t("account.personalization")}</h1><Segmented<keyof typeof data> value={tab} onChange={setTab} options={[{value:"prefix",label:"Префиксы"},{value:"emoji",label:"Эмодзи"},{value:"color",label:"Цвета ника"},{value:"plaque",label:"Плашки"}]} /><h2>Популярные</h2><div className="shop-list">{data[tab].map((v,i)=><button className="shop-row card" key={v} onClick={()=>console.log("buy",tab,v)}><strong style={tab==="color"?{color:v}:{}}>{v}</strong><span>{500+i*250} ♛</span></button>)}</div><div className="custom-prefix card"><strong>Кастомный префикс</strong><span>Создай свой уникальный префикс</span><b>2 500 ♛</b></div></div>}

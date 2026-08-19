@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  toProductAccount,
-  toProductFeedEvent,
-  toProductSubscription,
-} from "./productMappers"
+import { toProductAccount, toProductFeedEvent, toProductSubscription } from "./productMappers"
 
 describe("product mappers", () => {
   it("maps account identity, activation and Cristalix skin source", () => {

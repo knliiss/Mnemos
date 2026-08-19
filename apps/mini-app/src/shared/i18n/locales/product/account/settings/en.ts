@@ -25,7 +25,8 @@ export const accountSettingsEn = {
     save: "Save",
     ownershipEyebrow: "OWNERSHIP",
     transferTitle: "Transfer account",
-    transferCopy: "The new owner gets full control. The backend validates whether the transfer is allowed.",
+    transferCopy:
+      "The new owner gets full control. The backend validates whether the transfer is allowed.",
     newOwner: "New owner",
     afterTransferCopy: "Your access after transfer will be defined by the account roles.",
     transfer: "Transfer",
@@ -38,7 +39,8 @@ export const accountSettingsEn = {
     accountActiveCopy: "Members can use account features.",
     working: "Working",
     deactivateTitle: "Deactivate account",
-    deactivateCopy: "Data, roles and history stay intact. The account can be reactivated later from the account switcher.",
+    deactivateCopy:
+      "Data, roles and history stay intact. The account can be reactivated later from the account switcher.",
     deactivate: "Deactivate",
     leaveTitle: "Leave account",
     leaveCopy: "You can return only through a new invite.",

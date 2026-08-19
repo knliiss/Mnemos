@@ -8,12 +8,7 @@ type RoleSigilProps = {
   className?: string
 }
 
-export function RoleSigil({
-  color,
-  size = 38,
-  compact = false,
-  className,
-}: RoleSigilProps) {
+export function RoleSigil({ color, size = 38, compact = false, className }: RoleSigilProps) {
   const style = {
     width: size,
     height: size,

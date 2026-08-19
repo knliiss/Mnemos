@@ -1,13 +1,7 @@
 import type { TFunction } from "i18next"
 import type { CSSProperties, ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  BoosterArt,
-  DungeonArt,
-  GlobalEventArt,
-  ItemTypeArt,
-  RaidArt,
-} from "./EventArt"
+import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "./EventArt"
 import { personalizationContentById } from "../personalizationPreviewData"
 import type {
   AvatarFrameContent,
@@ -42,7 +36,8 @@ export function hydratePersonalization(item: Personalization): Personalization {
 
 export function PersonalizationVisual({ item, small = false, detail = false }: PreviewProps) {
   const content = item.content ?? personalizationContentById[item.id]
-  const className = `real-preview real-preview--${item.type.toLowerCase()} ${small ? "is-small" : ""} ${detail ? "is-detail" : ""}`.trim()
+  const className =
+    `real-preview real-preview--${item.type.toLowerCase()} ${small ? "is-small" : ""} ${detail ? "is-detail" : ""}`.trim()
 
   if (!content) {
     return (
@@ -53,7 +48,14 @@ export function PersonalizationVisual({ item, small = false, detail = false }: P
   }
 
   if (content.kind === "NOTIFICATION_PACK") {
-    return <NotificationPackPreview content={content} className={className} small={small} detail={detail} />
+    return (
+      <NotificationPackPreview
+        content={content}
+        className={className}
+        small={small}
+        detail={detail}
+      />
+    )
   }
 
   if (content.kind === "NICK_STYLE") {
@@ -218,7 +220,9 @@ function NotificationPackPreview({
   const body = renderTemplate(template.soloBody, values)
 
   return (
-    <div className={`${className} notification-real-preview ${detail ? "notification-real-preview--detail" : ""}`.trim()}>
+    <div
+      className={`${className} notification-real-preview ${detail ? "notification-real-preview--detail" : ""}`.trim()}
+    >
       <span className="notification-real-preview__event">
         <ItemTypeArt itemType="SWORD" size={small ? 26 : detail ? 46 : 34} />
       </span>
@@ -228,7 +232,9 @@ function NotificationPackPreview({
         {!small ? <p>{body}</p> : null}
         {detail ? <em>{renderTemplate(template.compact, values)}</em> : null}
       </span>
-      {!small ? <span className="notification-real-preview__emoji">{template.emoji ?? "•"}</span> : null}
+      {!small ? (
+        <span className="notification-real-preview__emoji">{template.emoji ?? "•"}</span>
+      ) : null}
     </div>
   )
 }
@@ -236,7 +242,9 @@ function NotificationPackPreview({
 function NickPreview({ content, className }: { content: NickStyleContent; className: string }) {
   const { t } = useTranslation()
   const stops = content.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
-  const glow = content.glow ? `0 0 ${Math.max(5, content.glow.strength / 3)}px ${content.glow.color}` : "none"
+  const glow = content.glow
+    ? `0 0 ${Math.max(5, content.glow.strength / 3)}px ${content.glow.color}`
+    : "none"
 
   return (
     <div className={`${className} nick-real-preview`}>
@@ -303,18 +311,28 @@ function FramePreview({ content, className }: { content: AvatarFrameContent; cla
   )
 }
 
-function EffectPreview({ content, className }: { content: ProfileEffectContent; className: string }) {
+function EffectPreview({
+  content,
+  className,
+}: {
+  content: ProfileEffectContent
+  className: string
+}) {
   return (
     <div
       className={`${className} effect-real-preview effect-real-preview--${content.effect.toLowerCase()}`}
-      style={{
-        "--effect-primary": content.primaryColor,
-        "--effect-secondary": content.secondaryColor ?? content.primaryColor,
-        "--effect-intensity": `${content.intensity}%`,
-      } as CSSProperties}
+      style={
+        {
+          "--effect-primary": content.primaryColor,
+          "--effect-secondary": content.secondaryColor ?? content.primaryColor,
+          "--effect-intensity": `${content.intensity}%`,
+        } as CSSProperties
+      }
     >
       <span>K</span>
-      <small>{content.effect} · {content.intensity}%</small>
+      <small>
+        {content.effect} · {content.intensity}%
+      </small>
     </div>
   )
 }
@@ -378,5 +396,8 @@ function createTemplateSamples(t: TFunction): TemplateSample[] {
 }
 
 export function renderTemplate(template: string, values: Record<string, string>) {
-  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)}/g, (_, key: string) => values[key] ?? `{${key}}`)
+  return template.replace(
+    /\{([a-zA-Z][a-zA-Z0-9_]*)}/g,
+    (_, key: string) => values[key] ?? `{${key}}`,
+  )
 }

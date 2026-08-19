@@ -510,7 +510,8 @@ function inferTone(payload: BackendErrorPayload): NoticeTone {
       code.includes("UNAUTHORIZED") ||
       code === "AUTHENTICATION_REQUIRED" ||
       code === "ACCOUNT_NOT_ACTIVE"
-    ) return "access"
+    )
+      return "access"
 
     if (code.includes("NOT_FOUND")) return "not-found"
 
@@ -519,7 +520,8 @@ function inferTone(payload: BackendErrorPayload): NoticeTone {
       code.includes("IN_PROGRESS") ||
       code.includes("UNAVAILABLE") ||
       code.includes("CAPACITY")
-    ) return "waiting"
+    )
+      return "waiting"
 
     if (
       code.includes("CONFLICT") ||
@@ -529,21 +531,24 @@ function inferTone(payload: BackendErrorPayload): NoticeTone {
       code.includes("NOT_PURCHASABLE") ||
       code.includes("NOT_RECOVERABLE") ||
       code.includes("CANNOT_LEAVE")
-    ) return "conflict"
+    )
+      return "conflict"
 
     if (
       code.includes("INVALID") ||
       code.includes("MISSING") ||
       code.includes("VIOLATION") ||
       code.includes("EXCEEDED")
-    ) return "validation"
+    )
+      return "validation"
   }
 
   if (status === 401 || status === 403) return "access"
   if (status === 404) return "not-found"
   if (status === 409) return "conflict"
   if (status === 429 || status === 502 || status === 503 || status === 504) return "waiting"
-  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) return "validation"
+  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422)
+    return "validation"
 
   return "internal"
 }
@@ -626,18 +631,21 @@ export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps
 
   const clearErrors = useCallback(() => setNotices([]), [])
 
-  const showBackendError = useCallback((payload: BackendErrorPayload, options?: { persistent?: boolean }) => {
-    const id = nextId.current++
-    const notice: ErrorNotice = {
-      id,
-      payload,
-      presentation: resolveErrorPresentation(payload),
-      persistent: options?.persistent,
-    }
+  const showBackendError = useCallback(
+    (payload: BackendErrorPayload, options?: { persistent?: boolean }) => {
+      const id = nextId.current++
+      const notice: ErrorNotice = {
+        id,
+        payload,
+        presentation: resolveErrorPresentation(payload),
+        persistent: options?.persistent,
+      }
 
-    setNotices((current) => [...current.slice(-1), notice])
-    return id
-  }, [])
+      setNotices((current) => [...current.slice(-1), notice])
+      return id
+    },
+    [],
+  )
 
   useEffect(() => {
     if (previewInitialized.current) return
@@ -648,7 +656,8 @@ export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps
     if (!preview) return
 
     const numericStatus = Number(params.get("status"))
-    const statusCode = Number.isFinite(numericStatus) && numericStatus > 0 ? numericStatus : undefined
+    const statusCode =
+      Number.isFinite(numericStatus) && numericStatus > 0 ? numericStatus : undefined
 
     showBackendError(
       {
@@ -660,20 +669,19 @@ export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps
     )
   }, [showBackendError])
 
-  const api = useMemo<ErrorNotificationApi>(() => ({
-    showBackendError,
-    dismissError,
-    clearErrors,
-  }), [clearErrors, dismissError, showBackendError])
+  const api = useMemo<ErrorNotificationApi>(
+    () => ({
+      showBackendError,
+      dismissError,
+      clearErrors,
+    }),
+    [clearErrors, dismissError, showBackendError],
+  )
 
   return (
     <ErrorNotificationContext.Provider value={api}>
       {children}
-      <ErrorNoticeViewport
-        notices={notices}
-        hasTabbar={hasTabbar}
-        onDismiss={dismissError}
-      />
+      <ErrorNoticeViewport notices={notices} hasTabbar={hasTabbar} onDismiss={dismissError} />
     </ErrorNotificationContext.Provider>
   )
 }
@@ -702,11 +710,7 @@ function ErrorNoticeViewport({
     >
       <AnimatePresence initial={false}>
         {notices.map((notice) => (
-          <ErrorNoticeCard
-            key={notice.id}
-            notice={notice}
-            onDismiss={() => onDismiss(notice.id)}
-          />
+          <ErrorNoticeCard key={notice.id} notice={notice} onDismiss={() => onDismiss(notice.id)} />
         ))}
       </AnimatePresence>
     </section>
@@ -752,7 +756,11 @@ function ErrorNoticeCard({ notice, onDismiss }: { notice: ErrorNotice; onDismiss
         <i />
       </button>
 
-      <span className="error-notice__signal" aria-hidden="true"><i /><i /><i /></span>
+      <span className="error-notice__signal" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
     </motion.article>
   )
 }

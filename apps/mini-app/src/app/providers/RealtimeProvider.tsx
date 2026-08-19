@@ -24,10 +24,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   return children
 }
 
-function notifyAboutOperation(
-  event: RealtimeEvent,
-  translate: (key: string) => string,
-) {
+function notifyAboutOperation(event: RealtimeEvent, translate: (key: string) => string) {
   if (event.type === "wallet.transaction.failed") {
     if (event.payload.source !== "BET_PLACE") {
       errorEvents.publish({

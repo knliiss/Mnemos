@@ -8,8 +8,21 @@ export function RootNavIllustration({ route }: Props) {
   if (route === "bets") {
     return (
       <svg viewBox="0 0 32 32" shapeRendering="crispEdges" aria-hidden="true">
-        <path d="M5 8h22v5a3 3 0 0 0 0 6v5H5v-5a3 3 0 0 0 0-6V8Z" fill="currentColor" opacity=".28" />
-        <rect x="7" y="10" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M5 8h22v5a3 3 0 0 0 0 6v5H5v-5a3 3 0 0 0 0-6V8Z"
+          fill="currentColor"
+          opacity=".28"
+        />
+        <rect
+          x="7"
+          y="10"
+          width="18"
+          height="12"
+          rx="2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
         <rect x="11" y="14" width="3" height="3" fill="currentColor" />
         <rect x="16" y="14" width="6" height="2" fill="currentColor" opacity=".74" />
         <rect x="16" y="18" width="4" height="2" fill="currentColor" opacity=".5" />
@@ -34,7 +47,12 @@ export function RootNavIllustration({ route }: Props) {
     return (
       <svg viewBox="0 0 32 32" shapeRendering="crispEdges" aria-hidden="true">
         <path d="M4 15 16 6l12 9v11H4V15Z" fill="currentColor" opacity=".24" />
-        <path d="M7 15 16 8l9 7v9h-6v-7h-6v7H7v-9Z" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M7 15 16 8l9 7v9h-6v-7h-6v7H7v-9Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
         <rect x="14" y="18" width="4" height="6" fill="currentColor" opacity=".72" />
         <rect x="5" y="14" width="3" height="3" fill="currentColor" />
         <rect x="24" y="14" width="3" height="3" fill="currentColor" />

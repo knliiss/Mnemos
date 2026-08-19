@@ -4,9 +4,11 @@ export const accountRolesEn = {
     new: "New",
     hierarchyEyebrow: "ACCESS HIERARCHY",
     hierarchySummary: "{{roles}} roles · {{permissions}} available permissions",
-    hierarchyNote: "Higher positions have greater priority. The account owner remains above all roles.",
+    hierarchyNote:
+      "Higher positions have greater priority. The account owner remains above all roles.",
     dragTitle: "Reorder by dragging",
-    dragNote: "Hold the ⠿ handle on the right. The new order is sent to the backend when dragging ends.",
+    dragNote:
+      "Hold the ⠿ handle on the right. The new order is sent to the backend when dragging ends.",
     emptyTitle: "No roles yet",
     emptyCopy: "Create the first role and configure its permissions.",
     createTitle: "Create a new role",
