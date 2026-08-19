@@ -1,4 +1,5 @@
 import { api } from "@/shared/api/httpClient"
+import type { PageResponse } from "@/shared/api/backendContracts"
 
 export type AccountReactionType = "LIKE" | "DISLIKE"
 
@@ -89,7 +90,9 @@ export async function searchPublicProfiles(
     size: String(size),
   })
 
-  return api<SpringPageResponse<PublicProfileResponse>>(`/api/v1/profiles?${params}`)
+  const response = await api<PageResponse<PublicProfileResponse>>(`/api/v1/profiles?${params}`)
+
+  return toSpringPageResponse(response)
 }
 
 export async function getPublicProfile(accountId: string): Promise<PublicProfileResponse> {
@@ -188,4 +191,18 @@ export async function likeComment(commentId: string): Promise<void> {
 
 export async function unlikeComment(commentId: string): Promise<void> {
   await api<void>(`/api/v1/comments/${commentId}/like`, { method: "DELETE" })
+}
+
+function toSpringPageResponse<T>(response: PageResponse<T>): SpringPageResponse<T> {
+  return {
+    content: response.items,
+    totalElements: response.totalItems,
+    totalPages: response.totalPages,
+    number: response.page,
+    size: response.size,
+    numberOfElements: response.items.length,
+    first: response.page === 0,
+    last: !response.hasNextPage,
+    empty: response.items.length === 0,
+  }
 }

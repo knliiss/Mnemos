@@ -1,9 +1,27 @@
 package com.mnemos.profile.adapter.inbound.http.profile
 
+import com.mnemos.profile.adapter.inbound.http.common.pagination.PageResponse
+import com.mnemos.profile.adapter.inbound.http.common.pagination.PageResponseMapper.toPageResponse
+import com.mnemos.profile.application.common.pagination.PageQuery
+import com.mnemos.profile.application.common.pagination.PageResult
+import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import com.mnemos.profile.domain.profile.model.PublicProfile
 
 object PublicProfileApiMapper {
+    fun SearchPublicProfilesRequest.toQuery(): SearchPublicProfilesQuery =
+        SearchPublicProfilesQuery(
+            query = q,
+            page =
+                PageQuery(
+                    page = page,
+                    size = size,
+                ),
+        )
+
+    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> =
+        toPageResponse { profile -> profile.toResponse() }
+
     fun PublicProfile.toResponse(): PublicProfileResponse =
         PublicProfileResponse(
             accountId = accountId,

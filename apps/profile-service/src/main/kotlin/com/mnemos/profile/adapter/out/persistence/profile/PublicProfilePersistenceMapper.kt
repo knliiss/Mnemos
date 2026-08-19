@@ -1,5 +1,6 @@
 package com.mnemos.profile.adapter.out.persistence.profile
 
+import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import com.mnemos.profile.domain.profile.model.PublicProfile
 
 object PublicProfilePersistenceMapper {
@@ -27,5 +28,10 @@ object PublicProfilePersistenceMapper {
             socialRevision = socialRevision,
             createdAt = createdAt,
             updatedAt = updatedAt,
+        )
+
+    fun PublicProfile.withAppearance(appearance: ProfileAppearance?): PublicProfile =
+        copy(
+            appearance = appearance ?: ProfileAppearance.empty(accountId),
         )
 }

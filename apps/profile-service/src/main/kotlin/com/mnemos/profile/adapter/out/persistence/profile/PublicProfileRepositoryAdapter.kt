@@ -1,13 +1,15 @@
 package com.mnemos.profile.adapter.out.persistence.profile
 
+import com.mnemos.profile.adapter.out.persistence.common.pagination.PagePersistenceMapper.toPageResult
 import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.toDomain
 import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.toEntity
+import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.withAppearance
+import com.mnemos.profile.application.common.pagination.PageResult
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceRepository
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
-import com.mnemos.profile.domain.profile.model.ProfileAppearance
+import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.PublicProfile
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.util.UUID
@@ -49,25 +51,21 @@ class PublicProfileRepositoryAdapter(
         return profile.withAppearance(appearanceRepository.findByAccountId(accountId))
     }
 
-    override fun search(
-        query: String,
-        pageable: Pageable,
-    ): Page<PublicProfile> {
-        val profiles = repository.searchByNickname(query, pageable)
+    override fun search(query: SearchPublicProfilesQuery): PageResult<PublicProfile> {
+        val profiles =
+            repository.searchByNickname(
+                query = query.query,
+                pageable = PageRequest.of(query.page.page, query.page.size),
+            )
         val appearances =
             appearanceRepository.findByAccountIds(
                 profiles.content.map(PublicProfileEntity::accountId),
             )
 
-        return profiles.map { entity ->
+        return profiles.toPageResult { entity ->
             entity
                 .toDomain()
                 .withAppearance(appearances[entity.accountId])
         }
     }
-
-    private fun PublicProfile.withAppearance(appearance: ProfileAppearance?): PublicProfile =
-        copy(
-            appearance = appearance ?: ProfileAppearance.empty(accountId),
-        )
 }
