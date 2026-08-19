@@ -1,22 +1,27 @@
-import {BrowserRouter} from "react-router-dom"
-import {AppProvider} from "@/app/providers/AppProvider"
-import {RealtimeProvider} from "@/app/providers/RealtimeProvider"
-import {AppRouter} from "@/app/router/AppRouter"
-import {AuthGate} from "@/features/auth/ui/AuthGate"
-import {NotificationHost} from "@/shared/notifications/NotificationHost"
-import {RootErrorBoundary} from "@/shared/errors/RootErrorBoundary"
+import { AppProvider } from "@/app/providers/AppProvider"
+import { RealtimeProvider } from "@/app/providers/RealtimeProvider"
+import { AuthGate } from "@/features/auth/ui/AuthGate"
+import AppFinal from "@/product-ui/AppFinal"
+import { ProductDataProvider } from "@/product-ui/data/ProductDataProvider"
+import "@/product-ui/productStyles"
+import { RootErrorBoundary } from "@/shared/errors/RootErrorBoundary"
+import { NotificationHost } from "@/shared/notifications/NotificationHost"
 
 export function App() {
-    return <>
-        <NotificationHost/>
-        <RootErrorBoundary>
-            <AuthGate>
-                <AppProvider>
-                    <RealtimeProvider>
-                        <BrowserRouter><AppRouter/></BrowserRouter>
-                    </RealtimeProvider>
-                </AppProvider>
-            </AuthGate>
-        </RootErrorBoundary>
+  return (
+    <>
+      <NotificationHost />
+      <RootErrorBoundary>
+        <AuthGate>
+          <AppProvider>
+            <RealtimeProvider>
+              <ProductDataProvider>
+                <AppFinal />
+              </ProductDataProvider>
+            </RealtimeProvider>
+          </AppProvider>
+        </AuthGate>
+      </RootErrorBoundary>
     </>
+  )
 }
