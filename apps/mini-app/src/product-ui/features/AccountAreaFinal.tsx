@@ -1,9 +1,8 @@
-import { currentUser } from "../mockData"
 import type { Account, Route } from "../model"
 import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomePolished } from "./AccountHomePolished"
 import { AccountInvitesFinal } from "./AccountInviteFlowsFinal"
-import { AccountCreateOnboarding, AccountJoinOnboarding } from "./AccountOnboardingFinal"
+import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 import { AccountWalletPolished } from "./AccountWalletPolished"
 import { RoleEditorOverhaul } from "./RoleEditorOverhaul"
@@ -28,18 +27,7 @@ export function AccountAreaFinal(props: Props) {
         navigate={props.navigate}
         back={props.back}
         initialMemberId={props.routeId === "member" ? props.params?.memberId ?? null : null}
-        onRewardClaimed={(coin, prime) => {
-          const updatedAccount = {
-            ...props.activeAccount,
-            coin: props.activeAccount.coin + coin,
-          }
-
-          props.setActiveAccount(updatedAccount)
-          props.setAccounts(props.accounts.map((account) => (
-            account.id === updatedAccount.id ? updatedAccount : account
-          )))
-          currentUser.prime += prime
-        }}
+        onRewardClaimed={() => undefined}
       />
     )
   }
@@ -93,27 +81,11 @@ export function AccountAreaFinal(props: Props) {
   }
 
   if (props.routeId === "account-create") {
-    return (
-      <AccountCreateOnboarding
-        activeAccount={props.activeAccount}
-        setActiveAccount={props.setActiveAccount}
-        accounts={props.accounts}
-        setAccounts={props.setAccounts}
-        back={props.back}
-      />
-    )
+    return <AccountCreateProduction back={props.back} />
   }
 
   if (props.routeId === "account-join") {
-    return (
-      <AccountJoinOnboarding
-        activeAccount={props.activeAccount}
-        setActiveAccount={props.setActiveAccount}
-        accounts={props.accounts}
-        setAccounts={props.setAccounts}
-        back={props.back}
-      />
-    )
+    return <AccountJoinProduction back={props.back} />
   }
 
   return <AccountFeatureFinal {...props} />
