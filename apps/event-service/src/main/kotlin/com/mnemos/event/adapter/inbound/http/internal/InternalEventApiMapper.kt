@@ -2,7 +2,7 @@ package com.mnemos.event.adapter.inbound.http.internal
 
 import com.mnemos.event.application.collector.model.CollectorCoverage
 import com.mnemos.event.application.collector.usecase.coverage.GetCollectorCoverageQuery
-import com.mnemos.event.application.itemdrop.model.ItemDropView
+import com.mnemos.event.application.itemdrop.model.FirstItemDropView
 import com.mnemos.event.application.itemdrop.usecase.first.FindFirstItemDropQuery
 
 object InternalEventApiMapper {
@@ -20,7 +20,7 @@ object InternalEventApiMapper {
             to = to,
         )
 
-    fun ItemDropView.toFirstResponse(): FirstItemDropResponse =
+    fun FirstItemDropView.toFirstResponse(): FirstItemDropResponse =
         FirstItemDropResponse(
             droppedFor = droppedFor,
             occurredAt = occurredAt,
