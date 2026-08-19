@@ -101,6 +101,7 @@ export const personalizationProductRu = {
       selected: "ВЫБРАНО",
       close: "Закрыть",
       author: "Автор",
+      by: "от {{creator}}",
       scope: "Scope",
       status: "Статус",
       approvedPrice: "Цена после проверки",
