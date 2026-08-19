@@ -60,41 +60,12 @@ jobs:
         working-directory: apps/mini-app
         run: |
           npm ci
-          npm install --save-dev --save-exact prettier@3.6.2
+          npm install --no-save purgecss
 
-      - name: Clean production frontend
+      - name: Prune unused styles
         run: node scripts/frontend-cleanup.mjs
 
-      - name: Normalize CSS imports
-        shell: bash
-        run: |
-          node <<'NODE'
-          const fs = require("node:fs")
-
-          const file = "apps/mini-app/src/product-ui/product.css"
-          const css = fs.readFileSync(file, "utf8")
-          const imports = []
-          let body = css
-
-          const patterns = [
-            /@import\s+url\(\s*(["'])([\s\S]*?)\1\s*\)\s*;/g,
-            /@import\s+(["'])([\s\S]*?)\1\s*;/g,
-          ]
-
-          for (const pattern of patterns) {
-            body = body.replace(pattern, (match) => {
-              imports.push(match.trim())
-              return ""
-            })
-          }
-
-          const uniqueImports = [...new Set(imports)]
-          const prefix = uniqueImports.length > 0 ? `${uniqueImports.join("\n")}\n\n` : ""
-
-          fs.writeFileSync(file, `${prefix}${body.trim()}\n`)
-          NODE
-
-      - name: Format production frontend
+      - name: Format
         working-directory: apps/mini-app
         run: npm run format
 
@@ -114,12 +85,14 @@ jobs:
         working-directory: apps/mini-app
         run: npm run build
 
+      - name: Remove generated build output
+        run: rm -rf apps/mini-app/dist
+
       - name: Commit cleanup
         shell: bash
         run: |
           set -euo pipefail
 
-          git checkout -- .github/workflows/mini-app.yml .github/workflows/mini-app-mockup.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
@@ -129,7 +102,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "clean production frontend architecture"
+          git commit -m "prune unused frontend styles"
           git push origin HEAD:feat/frontend-integration
 
       - name: Publish cleanup status
