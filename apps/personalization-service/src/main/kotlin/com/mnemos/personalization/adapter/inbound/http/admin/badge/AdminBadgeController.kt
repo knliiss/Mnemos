@@ -3,10 +3,12 @@ package com.mnemos.personalization.adapter.inbound.http.admin.badge
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.inbound.http.badge.BadgeApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.badge.BadgeResponse
+import com.mnemos.personalization.adapter.inbound.http.badge.UserBadgeResponse
 import com.mnemos.personalization.application.badge.model.CreateBadgeCommand
 import com.mnemos.personalization.application.badge.usecase.create.CreateBadgeUseCase
 import com.mnemos.personalization.application.badge.usecase.grant.GrantBadgeUseCase
 import com.mnemos.personalization.application.badge.usecase.listall.ListBadgesUseCase
+import com.mnemos.personalization.application.badge.usecase.listforuser.ListUserBadgesUseCase
 import com.mnemos.personalization.application.badge.usecase.revoke.RevokeBadgeUseCase
 import com.mnemos.personalization.domain.badge.model.BadgeId
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -31,9 +33,18 @@ class AdminBadgeController(
     private val grantBadgeUseCase: GrantBadgeUseCase,
     private val revokeBadgeUseCase: RevokeBadgeUseCase,
     private val listBadgesUseCase: ListBadgesUseCase,
+    private val listUserBadgesUseCase: ListUserBadgesUseCase,
 ) {
     @GetMapping
     fun list(): List<BadgeResponse> = listBadgesUseCase.execute().map { badge -> badge.toResponse() }
+
+    @GetMapping("/users/{userId}")
+    fun listForUser(
+        @PathVariable userId: UUID,
+    ): List<UserBadgeResponse> =
+        listUserBadgesUseCase
+            .execute(UserId(userId))
+            .map { userBadge -> userBadge.toResponse() }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
