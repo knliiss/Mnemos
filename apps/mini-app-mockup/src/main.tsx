@@ -57,6 +57,7 @@ import "./product-round-four.css"
 import "./product-round-four-fixes.css"
 import "./product-round-five.css"
 import "./product-round-five-affordance-fix.css"
+import "./product-round-six-event-art.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
