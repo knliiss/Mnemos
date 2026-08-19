@@ -1,0 +1,48 @@
+name: Mini App Verify
+
+on:
+  push:
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/mini-app.yml"
+  pull_request:
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/mini-app.yml"
+
+concurrency:
+  group: mini-app-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mini-app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build
