@@ -1,7 +1,6 @@
 import type { Account, Route } from "../model"
-import { PeopleFeature } from "./PeopleFeature"
-import { PublicProfileRethink } from "./PublicProfileRethink"
-import { UserPrimeWalletOverhaul } from "./UserPrimeWalletOverhaul"
+import { PeopleFeatureProduction } from "./PeopleFeatureProduction"
+import { UserPrimeWalletProduction } from "./UserPrimeWalletProduction"
 
 type Props = {
   routeId: Route["id"]
@@ -11,37 +10,15 @@ type Props = {
   back: () => void
 }
 
-const memberProfileIds: Record<string, string> = {
-  "member-1": "46d7a80e-74f5-11eb-acca-1cb72caa35fd",
-  "member-2": "profile-north",
-  "member-3": "profile-vex",
-}
-
 export function PeopleFeatureFinal(props: Props) {
   if (props.routeId === "user-wallet") {
     return (
-      <UserPrimeWalletOverhaul
+      <UserPrimeWalletProduction
         navigate={props.navigate}
         back={props.back}
       />
     )
   }
 
-  if (props.routeId === "public-profile" && props.params?.accountId) {
-    const accountId = memberProfileIds[props.params.accountId] ?? props.params.accountId
-
-    return (
-      <PublicProfileRethink
-        activeAccount={props.activeAccount}
-        navigate={props.navigate}
-        back={props.back}
-        params={{
-          ...props.params,
-          accountId,
-        }}
-      />
-    )
-  }
-
-  return <PeopleFeature {...props} />
+  return <PeopleFeatureProduction {...props} />
 }
