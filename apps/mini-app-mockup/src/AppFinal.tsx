@@ -4,7 +4,7 @@ import { CristalixHead } from "./components/CristalixHead"
 import { ErrorNotificationProvider } from "./components/ErrorNotifications"
 import { RootNavIllustration } from "./components/RootNavIllustration"
 import { accounts as initialAccounts, currentUser } from "./mockData"
-import type { Account, RootRoute, Route } from "./model"
+import type { Account, LocalizationLanguage, RootRoute, Route } from "./model"
 import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegistry"
 import { AccountAreaFinal } from "./features/AccountAreaFinal"
 import { AdministrationHome } from "./features/AdministrationHome"
@@ -25,14 +25,43 @@ const rootItems: { id: RootRoute; label: string }[] = [
   { id: "personalization-store", label: "Магазин" },
 ]
 
+const localizationOptions: { value: LocalizationLanguage; short: string; label: string; htmlLang: string }[] = [
+  { value: "UK", short: "UA", label: "Українська", htmlLang: "uk" },
+  { value: "RU", short: "RU", label: "Русский", htmlLang: "ru" },
+  { value: "EN", short: "EN", label: "English", htmlLang: "en" },
+]
+
+const LOCALIZATION_STORAGE_KEY = "mnemos-mockup-localization"
+
 function routeKey(route: Route) {
   return `${route.id}:${JSON.stringify(route.params ?? {})}`
+}
+
+function resolveInitialLocalization(): LocalizationLanguage {
+  const queryValue = new URLSearchParams(window.location.search).get("lang")?.toUpperCase()
+
+  if (queryValue === "UK" || queryValue === "UA") return "UK"
+  if (queryValue === "RU") return "RU"
+  if (queryValue === "EN") return "EN"
+
+  try {
+    const stored = window.localStorage.getItem(LOCALIZATION_STORAGE_KEY)
+
+    if (stored === "UK" || stored === "RU" || stored === "EN") {
+      return stored
+    }
+  } catch {
+    // Local storage is optional in the mockup environment.
+  }
+
+  return currentUser.language
 }
 
 export default function AppFinal() {
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
   const [activeAccount, setActiveAccount] = useState<Account>(initialAccounts[0])
+  const [localization, setLocalization] = useState<LocalizationLanguage>(resolveInitialLocalization)
   const [userHubOpen, setUserHubOpen] = useState(() => new URLSearchParams(window.location.search).get("hub") === "1")
   const [accountPickerOpen, setAccountPickerOpen] = useState(() => new URLSearchParams(window.location.search).get("accounts") === "1")
   const routeStageRef = useRef<HTMLDivElement>(null)
@@ -82,6 +111,18 @@ export default function AppFinal() {
 
     return () => window.cancelAnimationFrame(frame)
   }, [current])
+
+  useEffect(() => {
+    const option = localizationOptions.find((item) => item.value === localization)
+
+    document.documentElement.lang = option?.htmlLang ?? "uk"
+
+    try {
+      window.localStorage.setItem(LOCALIZATION_STORAGE_KEY, localization)
+    } catch {
+      // Persistence is a convenience for the mockup and must not block interaction.
+    }
+  }, [localization])
 
   const selectAccount = (account: Account) => {
     if (account.active === false) {
@@ -168,6 +209,8 @@ export default function AppFinal() {
                   accountPickerOpen={accountPickerOpen}
                   activeAccount={activeAccount}
                   accounts={accounts}
+                  localization={localization}
+                  onLocalizationChange={setLocalization}
                   onClose={closeUserHub}
                   onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
                   onSelectAccount={selectAccount}
@@ -232,18 +275,32 @@ type UserHubOverlayProps = {
   accountPickerOpen: boolean
   activeAccount: Account
   accounts: Account[]
+  localization: LocalizationLanguage
+  onLocalizationChange: (localization: LocalizationLanguage) => void
   onClose: () => void
   onToggleAccounts: () => void
   onSelectAccount: (account: Account) => void
   navigate: (route: Route) => void
 }
 
-function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onClose, onToggleAccounts, onSelectAccount, navigate }: UserHubOverlayProps) {
+function UserHubOverlay({
+  open,
+  accountPickerOpen,
+  activeAccount,
+  accounts,
+  localization,
+  onLocalizationChange,
+  onClose,
+  onToggleAccounts,
+  onSelectAccount,
+  navigate,
+}: UserHubOverlayProps) {
   const creator = currentUser.systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const moderation = currentUser.systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const administration = currentUser.systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
   const personalizationReviewer = currentUser.systemRoles.includes("PERSONALIZATION_MODERATOR")
   const reviewerOnly = personalizationReviewer && !administration
+  const localizationLabel = localizationOptions.find((option) => option.value === localization)?.label ?? "Українська"
 
   return (
     <AnimatePresence>
@@ -324,6 +381,31 @@ function UserHubOverlay({ open, accountPickerOpen, activeAccount, accounts, onCl
                 </motion.div>
               ) : null}
             </AnimatePresence>
+
+            <section className="user-hub-localization" aria-label="Мова інтерфейсу">
+              <span className="user-hub-localization__identity">
+                <span className="user-hub-localization__mark" aria-hidden="true" />
+                <span className="user-hub-localization__copy">
+                  <small>Мова</small>
+                  <strong>{localizationLabel}</strong>
+                </span>
+              </span>
+              <span className="user-hub-localization__choices" role="group" aria-label="Оберіть мову">
+                {localizationOptions.map((option) => (
+                  <motion.button
+                    key={option.value}
+                    type="button"
+                    className={option.value === localization ? "is-active" : ""}
+                    aria-pressed={option.value === localization}
+                    aria-label={option.label}
+                    whileTap={{ scale: 0.93 }}
+                    onClick={() => onLocalizationChange(option.value)}
+                  >
+                    {option.short}
+                  </motion.button>
+                ))}
+              </span>
+            </section>
 
             <div className="final-workspace-label">Робочі області</div>
             <nav className="final-workspace-grid">
