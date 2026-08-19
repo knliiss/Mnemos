@@ -8,8 +8,18 @@ export type BadgeResponse = {
   color: string
 }
 
+export type UserBadgeResponse = {
+  badge: BadgeResponse
+  grantedAt: string
+  active: boolean
+}
+
 export async function listAdminBadges(): Promise<BadgeResponse[]> {
   return api<BadgeResponse[]>("/api/v1/personalizations/admin/badges")
+}
+
+export async function listAdminUserBadges(userId: string): Promise<UserBadgeResponse[]> {
+  return api<UserBadgeResponse[]>(`/api/v1/personalizations/admin/badges/users/${userId}`)
 }
 
 export async function createAdminBadge(request: {
