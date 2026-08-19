@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createAdminBadge,
   grantAdminBadge,
@@ -17,6 +18,7 @@ import { Glyph } from "../shared/MnemosIcon"
 import { Field, PageHeader } from "../shared/Primitives"
 
 export function BadgeAdminProduction({ back }: { back: () => void }) {
+  const { t } = useTranslation()
   const [badges, setBadges] = useState<BadgeResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
@@ -134,12 +136,12 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
   return (
     <div className="screen review-overhaul-screen">
       <PageHeader
-        title="Бейджі"
+        title={t("badgeAdmin.title")}
         back={back}
         actions={(
           <button className="bet-admin-header-action" onClick={() => setCreateOpen((value) => !value)}>
             <Glyph name={createOpen ? "close" : "plus"} size={15} />
-            {createOpen ? "Закрити" : "Новий"}
+            {createOpen ? t("badgeAdmin.close") : t("badgeAdmin.new")}
           </button>
         )}
       />
@@ -148,15 +150,15 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
         <span className="review-overview__mark"><Glyph name="spark" size={20} /></span>
         <span>
           <small>BADGE ADMIN</small>
-          <strong>{badges.length} бейджів у системі</strong>
-          <em>Створення та ручна видача працюють через personalization-service.</em>
+          <strong>{t("badgeAdmin.overviewCount", { count: badges.length })}</strong>
+          <em>{t("badgeAdmin.overviewDescription")}</em>
         </span>
       </section>
 
       {createOpen ? (
         <section className="creator-r2-form-block">
-          <header><small>NEW BADGE</small><strong>Новий бейдж</strong></header>
-          <Field label="Code" hint={code && !codeValid ? "A-Z, 0-9, _, 2–32 символи" : undefined}>
+          <header><small>NEW BADGE</small><strong>{t("badgeAdmin.newBadge")}</strong></header>
+          <Field label="Code" hint={code && !codeValid ? t("badgeAdmin.codeHint") : undefined}>
             <input
               value={code}
               maxLength={32}
@@ -164,23 +166,23 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
               placeholder="EVENT_MASTER"
             />
           </Field>
-          <Field label="Назва">
+          <Field label={t("badgeAdmin.name")}>
             <input value={name} maxLength={64} onChange={(event) => setName(event.target.value)} placeholder="Event Master" />
           </Field>
-          <Field label="Іконка">
+          <Field label={t("badgeAdmin.icon")}>
             <input value={icon} maxLength={64} onChange={(event) => setIcon(event.target.value)} placeholder="✦" />
           </Field>
-          <Field label="Колір">
+          <Field label={t("badgeAdmin.color")}>
             <input type="color" value={color} onChange={(event) => setColor(event.target.value.toUpperCase())} />
           </Field>
           <button className="primary-action" disabled={!createValid || busy} onClick={() => void create()}>
-            {busy ? "Створюємо…" : "Створити бейдж"}
+            {busy ? t("badgeAdmin.creating") : t("badgeAdmin.createBadge")}
           </button>
         </section>
       ) : null}
 
       <section className="creator-r2-form-block">
-        <header><small>ASSIGNMENT</small><strong>Видача користувачу</strong></header>
+        <header><small>ASSIGNMENT</small><strong>{t("badgeAdmin.assignment")}</strong></header>
         <label className="moderation-polished-search">
           <Glyph name="search" size={18} />
           <input
@@ -188,7 +190,7 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
             minLength={2}
             maxLength={64}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Username, Telegram ID, User ID або Cristalix"
+            placeholder={t("moderation.searchPlaceholder")}
           />
         </label>
 
@@ -203,12 +205,14 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
                 >
                   <span className="moderation-polished-results__avatar">{identity.username.slice(0, 1).toUpperCase()}</span>
                   <span><strong>@{identity.username}</strong><small>{identity.telegramId}</small></span>
-                  <span className="moderation-polished-results__accounts">{identity.accounts.length} акаунт.</span>
+                  <span className="moderation-polished-results__accounts">
+                    {t("moderation.accountCount", { count: identity.accounts.length })}
+                  </span>
                 </button>
               ))}
             </div>
           </section>
-        ) : normalized.length >= 2 ? <p className="inline-hint">Нічого не знайдено</p> : null}
+        ) : normalized.length >= 2 ? <p className="inline-hint">{t("moderation.nothingFound")}</p> : null}
       </section>
 
       {loading ? <LoadingState /> : (
@@ -234,7 +238,13 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
                 <span className="review-queue-card__copy">
                   <span className="review-queue-card__meta"><small>{badge.code}</small></span>
                   <strong>{badge.name}</strong>
-                  <em>{selectedUser ? assigned ? "Виданий" : "Натисни, щоб видати" : "Спочатку обери User"}</em>
+                  <em>
+                    {selectedUser
+                      ? assigned
+                        ? t("badgeAdmin.assigned")
+                        : t("badgeAdmin.clickToAssign")
+                      : t("badgeAdmin.selectUserFirst")}
+                  </em>
                 </span>
                 <span className="review-queue-card__side">
                   {userBadge?.active ? <b className="status-published">ACTIVE</b> : assigned ? <b className="status-approved">OWNED</b> : null}
@@ -242,7 +252,7 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
               </button>
             )
           })}
-          {!badges.length ? <p className="inline-hint">Бейджів ще немає</p> : null}
+          {!badges.length ? <p className="inline-hint">{t("badgeAdmin.noBadges")}</p> : null}
         </section>
       )}
     </div>
@@ -250,5 +260,7 @@ export function BadgeAdminProduction({ back }: { back: () => void }) {
 }
 
 function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+  const { t } = useTranslation()
+
+  return <div className="events-r2-loading" aria-label={t("moderation.loading")}><i /><i /><i /></div>
 }
