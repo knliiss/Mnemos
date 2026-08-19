@@ -31,14 +31,14 @@ export function toProductAccount(account: AccountSummaryResponse, coin = 0): Acc
   }
 }
 
-export function toProductMember(member: AccountMemberResponse): Member {
+export function toProductMember(member: AccountMemberResponse, roleIds?: string[]): Member {
   return {
     id: member.id,
     name: member.name,
     owner: member.owner,
     joinedAt: member.joinedAt,
     highestRoleId: member.highestRole?.id ?? null,
-    roleIds: member.highestRole ? [member.highestRole.id] : [],
+    roleIds: roleIds ?? (member.highestRole ? [member.highestRole.id] : []),
   }
 }
 
