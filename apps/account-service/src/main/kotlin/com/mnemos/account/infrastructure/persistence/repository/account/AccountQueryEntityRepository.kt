@@ -17,6 +17,7 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
             current_member.id AS "currentMemberId",
             account.owner_member_id AS "ownerMemberId",
             account.max_members AS "maxMembers",
+            account.status AS "status",
             (
                 SELECT COUNT(*)
                 FROM account_members member_count
@@ -26,7 +27,8 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
         JOIN account_members current_member
             ON current_member.account_id = account.id
             AND current_member.user_id = :userId
-            AND account.status = 'ACTIVE'
+        WHERE account.status = 'ACTIVE'
+            OR current_member.id = account.owner_member_id
         ORDER BY account.created_at ASC, account.id ASC
         """,
         nativeQuery = true,
@@ -43,6 +45,7 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
             current_member.id AS "currentMemberId",
             account.owner_member_id AS "ownerMemberId",
             account.max_members AS "maxMembers",
+            account.status AS "status",
             account.base_role_id AS "baseRoleId",
             account.created_at AS "createdAt",
             account.updated_at AS "updatedAt",
