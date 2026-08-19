@@ -28,6 +28,7 @@ class EventFeedJpaAdapter(
         return repository
             .read(
                 after = query.after?.id,
+                eventId = query.eventId?.id,
                 includeItemDrop = EventFeedKind.ITEM_DROP in query.kinds,
                 includeBooster = EventFeedKind.BOOSTER in query.kinds,
                 includeGlobal = EventFeedKind.GLOBAL in query.kinds,
