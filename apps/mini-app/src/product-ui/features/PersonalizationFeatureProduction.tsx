@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   activatePersonalization,
   deactivatePersonalization,
@@ -27,7 +28,6 @@ import type {
   PersonalizationType,
   Route,
 } from "../model"
-import { personalizationLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import {
   CurrencyValue,
@@ -42,12 +42,6 @@ type Props = {
   back: () => void
 }
 
-type TypePresentation = {
-  title: string
-  note: string
-  impact: string
-}
-
 const targets: Record<PersonalizationType, PersonalizationTarget> = {
   NOTIFICATION_PACK: "USER",
   NICK_STYLE: "ACCOUNT",
@@ -56,37 +50,10 @@ const targets: Record<PersonalizationType, PersonalizationTarget> = {
   PROFILE_EFFECT: "ACCOUNT",
 }
 
-const typePresentation: Record<PersonalizationType, TypePresentation> = {
-  NOTIFICATION_PACK: {
-    title: "Сповіщення",
-    note: "Оформлення повідомлень Mnemos",
-    impact: "Змінює тексти, emoji та подачу сповіщень про події.",
-  },
-  NICK_STYLE: {
-    title: "Нік",
-    note: "Колір, градієнт і glow",
-    impact: "Змінює відображення ніка аккаунта у публічних account-поверхнях.",
-  },
-  PROFILE_THEME: {
-    title: "Тема",
-    note: "Фон, поверхні, рамки й акцент",
-    impact: "Змінює фон публічного профілю, поверхні, текст і акцентний колір.",
-  },
-  AVATAR_FRAME: {
-    title: "Рамка",
-    note: "Обрамлення голови аккаунта",
-    impact: "Змінює рамку голови аккаунта: колір, товщину, форму та glow.",
-  },
-  PROFILE_EFFECT: {
-    title: "Ефект",
-    note: "Декоративний ефект профілю",
-    impact: "Додає анімований декоративний ефект до публічного профілю аккаунта.",
-  },
-}
-
 const accountTypes = PERSONALIZATION_TYPES.filter((type) => targets[type] === "ACCOUNT")
 
 export function PersonalizationFeatureProduction(props: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const refreshAccount = product.refreshAccount
   const errors = useErrorNotifications()
@@ -161,9 +128,9 @@ export function PersonalizationFeatureProduction(props: Props) {
     errors.showBackendError({
       code: "PERSONALIZATION_PURCHASE_FAILED",
       statusCode: 409,
-      message: failureReason ?? "Покупку не завершено.",
+      message: failureReason ?? t("personalization.purchaseFailed"),
     })
-  }, [errors, refresh, refreshAccount])
+  }, [errors, refresh, refreshAccount, t])
 
   useEffect(() => realtimeEvents.subscribe((event) => {
     if (event.type !== "personalization.purchase.completed") return
@@ -269,27 +236,29 @@ function StoreRoot({
   loading,
   prime,
 }: Props & { items: Personalization[]; loading: boolean; prime: number }) {
+  const { t, i18n } = useTranslation()
   const published = items.filter((item) => item.status === "PUBLISHED")
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   return (
     <div className="screen store-v5-screen root-screen">
       <header className="store-v5-header">
         <span>
-          <small>ПЕРСОНАЛІЗАЦІЯ</small>
-          <h1>Магазин</h1>
-          <p>Обери розділ. Каталог кожного типу відкривається окремо.</p>
+          <small>{t("personalization.store.eyebrow")}</small>
+          <h1>{t("personalization.store.title")}</h1>
+          <p>{t("personalization.store.description")}</p>
         </span>
         <button className="store-prime-pill" onClick={() => navigate({ id: "user-wallet" })}>
           <CurrencyMark currency="PRIME" size={17} />
-          <strong>{prime.toLocaleString("uk-UA")}</strong>
+          <strong>{prime.toLocaleString(locale)}</strong>
         </button>
       </header>
 
       <section className="store-v5-hero">
         <span>
-          <small>КАТАЛОГ</small>
-          <strong>Налаштуй Mnemos під себе</strong>
-          <em>Кожен тип має власний каталог і preview.</em>
+          <small>{t("personalization.store.catalogEyebrow")}</small>
+          <strong>{t("personalization.store.heroTitle")}</strong>
+          <em>{t("personalization.store.heroCopy")}</em>
         </span>
         <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
       </section>
@@ -310,10 +279,13 @@ function StoreRoot({
               >
                 <span className="store-v5-category__icon"><TypeGlyph type={type} /></span>
                 <span className="store-v5-category__copy">
-                  <small>{targets[type]}</small>
-                  <strong>{typePresentation[type].title}</strong>
-                  <em>{typePresentation[type].note}</em>
-                  <span>{typeItems.length} у каталозі{owned ? ` · ${owned} придбано` : ""}</span>
+                  <small>{t(`personalization.target.${targets[type]}`)}</small>
+                  <strong>{typeTitle(t, type)}</strong>
+                  <em>{typeNote(t, type)}</em>
+                  <span>
+                    {t("personalization.store.catalogCount", { count: typeItems.length })}
+                    {owned ? ` · ${t("personalization.store.ownedCount", { count: owned })}` : ""}
+                  </span>
                 </span>
                 <span className="store-v5-category__preview">
                   {sample ? <PersonalizationVisual item={sample} small /> : <Glyph name="spark" size={20} />}
@@ -334,6 +306,7 @@ function StoreCategoryPage({
   items,
   loading,
 }: Props & { items: Personalization[]; loading: boolean }) {
+  const { t } = useTranslation()
   const type = readType(params?.type) ?? "PROFILE_THEME"
   const [currency, setCurrency] = useState<"ALL" | Currency>("ALL")
   const [page, setPage] = useState(0)
@@ -349,19 +322,19 @@ function StoreCategoryPage({
 
   return (
     <div className="screen store-category-v5">
-      <PageHeader title={typePresentation[type].title} back={back} />
+      <PageHeader title={typeTitle(t, type)} back={back} />
 
       <section className="store-category-v5__intro">
         <span className="store-category-v5__icon"><TypeGlyph type={type} /></span>
         <span>
-          <small>{targets[type] === "ACCOUNT" ? "ДЛЯ АККАУНТА" : "ДЛЯ USER"}</small>
-          <strong>{typePresentation[type].note}</strong>
-          <em>{typePresentation[type].impact}</em>
+          <small>{targets[type] === "ACCOUNT" ? t("personalization.target.accountEyebrow") : t("personalization.target.userEyebrow")}</small>
+          <strong>{typeNote(t, type)}</strong>
+          <em>{typeImpact(t, type)}</em>
         </span>
       </section>
 
       <div className="store-category-v5__toolbar">
-        <span>{visible.length} позицій</span>
+        <span>{t("personalization.category.positions", { count: visible.length })}</span>
         <Segmented
           value={currency}
           options={["ALL", ...CURRENCIES] as const}
@@ -369,7 +342,7 @@ function StoreCategoryPage({
             setCurrency(value)
             setPage(0)
           }}
-          label={(value) => value === "ALL" ? "Усі" : value}
+          label={(value) => value === "ALL" ? t("personalization.category.all") : value}
         />
       </div>
 
@@ -384,18 +357,23 @@ function StoreCategoryPage({
             >
               <span className="store-category-v5__visual"><PersonalizationVisual item={item} /></span>
               <span className="store-category-v5__copy">
-                <small>{personalizationLabels[item.type]}</small>
+                <small>{typeTitle(t, item.type)}</small>
                 <strong>{item.name}</strong>
                 <em>{item.creator}</em>
               </span>
               <span className="store-category-v5__price">
                 {item.owned
-                  ? <span className="catalog-state"><Glyph name="check" size={13} />{item.active ? "Активна" : "Придбано"}</span>
+                  ? (
+                      <span className="catalog-state">
+                        <Glyph name="check" size={13} />
+                        {item.active ? t("personalization.category.active") : t("personalization.category.owned")}
+                      </span>
+                    )
                   : <CurrencyValue currency={item.currency} value={item.price} compact />}
               </span>
             </motion.button>
           ))}
-          {!pageItems.length ? <p className="inline-hint">У цьому розділі поки порожньо</p> : null}
+          {!pageItems.length ? <p className="inline-hint">{t("personalization.category.empty")}</p> : null}
         </div>
       )}
 
@@ -418,6 +396,7 @@ function OwnedPage({
   busyId: string | null
   onToggleActive: (item: Personalization) => Promise<void>
 }) {
+  const { t } = useTranslation()
   const target = params?.target === "ACCOUNT" || params?.target === "USER" ? params.target : null
   const type = readType(params?.type)
 
@@ -426,10 +405,14 @@ function OwnedPage({
 
     return (
       <div className="screen account-personalization-category-v5">
-        <PageHeader title={typePresentation[type].title} back={back} />
+        <PageHeader title={typeTitle(t, type)} back={back} />
         <section className="account-personalization-category-v5__intro">
           <span className="account-personalization-category-v5__icon"><TypeGlyph type={type} /></span>
-          <span><small>АККАУНТ</small><strong>{typePresentation[type].note}</strong><em>{typePresentation[type].impact}</em></span>
+          <span>
+            <small>{t("personalization.owned.accountEyebrow")}</small>
+            <strong>{typeNote(t, type)}</strong>
+            <em>{typeImpact(t, type)}</em>
+          </span>
         </section>
         {loading ? <LoadingState /> : (
           <section className="account-personalization-category-v5__list">
@@ -442,11 +425,17 @@ function OwnedPage({
                 onClick={() => void onToggleActive(item)}
               >
                 <PersonalizationVisual item={item} />
-                <span><small>{item.active ? "АКТИВНА" : "ПРИДБАНО"}</small><strong>{item.name}</strong><em>{item.creator}</em></span>
-                <span className="catalog-state">{busyId === item.id ? "…" : item.active ? "Зняти" : "Обрати"}</span>
+                <span>
+                  <small>{item.active ? t("personalization.owned.activeEyebrow") : t("personalization.owned.purchasedEyebrow")}</small>
+                  <strong>{item.name}</strong>
+                  <em>{item.creator}</em>
+                </span>
+                <span className="catalog-state">
+                  {busyId === item.id ? "…" : item.active ? t("personalization.owned.deselect") : t("personalization.owned.select")}
+                </span>
               </motion.button>
             ))}
-            {!typeItems.length ? <p className="inline-hint">Придбаних персоналізацій цього типу ще немає</p> : null}
+            {!typeItems.length ? <p className="inline-hint">{t("personalization.owned.typeEmpty")}</p> : null}
           </section>
         )}
       </div>
@@ -458,9 +447,16 @@ function OwnedPage({
 
     return (
       <div className="screen account-personalization-v5">
-        <PageHeader title="Персоналізація аккаунта" back={back} />
+        <PageHeader title={t("personalization.owned.accountTitle")} back={back} />
         <section className="account-personalization-v5__hero">
-          <span><small>ОБРАЗ АККАУНТА</small><strong>Кожен тип — окремо</strong><em>{owned.filter((item) => item.active).length} активні · {owned.length} придбані</em></span>
+          <span>
+            <small>{t("personalization.owned.accountImageEyebrow")}</small>
+            <strong>{t("personalization.owned.accountImageTitle")}</strong>
+            <em>{t("personalization.owned.accountImageStats", {
+              active: owned.filter((item) => item.active).length,
+              owned: owned.length,
+            })}</em>
+          </span>
           <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
         </section>
         {loading ? <LoadingState /> : (
@@ -478,10 +474,10 @@ function OwnedPage({
                 >
                   <span className="account-personalization-v5__category-icon"><TypeGlyph type={itemType} /></span>
                   <span className="account-personalization-v5__category-copy">
-                    <small>{typePresentation[itemType].title}</small>
-                    <strong>{selected?.name ?? "Не вибрано"}</strong>
-                    <em>{typePresentation[itemType].note}</em>
-                    <span>{typeItems.length} придбані</span>
+                    <small>{typeTitle(t, itemType)}</small>
+                    <strong>{selected?.name ?? t("personalization.owned.notSelected")}</strong>
+                    <em>{typeNote(t, itemType)}</em>
+                    <span>{t("personalization.owned.purchasedCount", { count: typeItems.length })}</span>
                   </span>
                   <span className="account-personalization-v5__category-preview">
                     {selected ? <PersonalizationVisual item={selected} small /> : <Glyph name="spark" size={18} />}
@@ -499,7 +495,7 @@ function OwnedPage({
 
   return (
     <div className="screen owned-v5-screen">
-      <PageHeader title={target === "USER" ? "Персоналізації User" : "Мої персоналізації"} back={back} />
+      <PageHeader title={target === "USER" ? t("personalization.owned.userTitle") : t("personalization.owned.myTitle")} back={back} />
       {loading ? <LoadingState /> : (
         <section className="owned-v5-list">
           {visible.map((item) => (
@@ -509,10 +505,14 @@ function OwnedPage({
               onClick={() => navigate({ id: "personalization-detail", params: { personalizationId: item.id } })}
             >
               <PersonalizationVisual item={item} small />
-              <span><small>{personalizationLabels[item.type]}</small><strong>{item.name}</strong><em>{item.active ? "Активна" : "Придбано"}</em></span>
+              <span>
+                <small>{typeTitle(t, item.type)}</small>
+                <strong>{item.name}</strong>
+                <em>{item.active ? t("personalization.owned.active") : t("personalization.owned.purchased")}</em>
+              </span>
             </motion.button>
           ))}
-          {!visible.length ? <p className="inline-hint">Колекція поки порожня</p> : null}
+          {!visible.length ? <p className="inline-hint">{t("personalization.owned.empty")}</p> : null}
         </section>
       )}
     </div>
@@ -536,14 +536,20 @@ function DetailPage({
   onPurchase: (item: Personalization) => Promise<void>
   onToggleActive: (item: Personalization) => Promise<void>
 }) {
+  const { t } = useTranslation()
   const item = items.find((candidate) => candidate.id === params?.personalizationId) ?? null
 
   if (loading) {
-    return <div className="screen"><PageHeader title="Персоналізація" back={back} /><LoadingState /></div>
+    return <div className="screen"><PageHeader title={t("personalization.detail.title")} back={back} /><LoadingState /></div>
   }
 
   if (!item) {
-    return <div className="screen"><PageHeader title="Персоналізація" back={back} /><p className="inline-hint">Персоналізацію не знайдено</p></div>
+    return (
+      <div className="screen">
+        <PageHeader title={t("personalization.detail.title")} back={back} />
+        <p className="inline-hint">{t("personalization.detail.notFound")}</p>
+      </div>
+    )
   }
 
   const pending = Boolean(pendingPurchases[item.id])
@@ -554,26 +560,38 @@ function DetailPage({
       <PageHeader title={item.name} back={back} />
       <section className="personalization-detail-v5__hero">
         <PersonalizationVisual item={item} detail />
-        <span><small>{personalizationLabels[item.type]} · {item.target}</small><strong>{item.name}</strong><em>{item.creator}</em></span>
+        <span>
+          <small>{typeTitle(t, item.type)} · {t(`personalization.target.${item.target}`)}</small>
+          <strong>{item.name}</strong>
+          <em>{item.creator}</em>
+        </span>
       </section>
 
       <PersonalizationDetails item={item} />
 
       <section className="personalization-detail-v5__purchase">
         <span>
-          <small>{item.owned ? "У КОЛЕКЦІЇ" : "ЦІНА"}</small>
+          <small>{item.owned ? t("personalization.detail.inCollection") : t("personalization.detail.price")}</small>
           {item.owned
-            ? <strong>{item.active ? "Активна" : "Придбано"}</strong>
+            ? <strong>{item.active ? t("personalization.detail.active") : t("personalization.detail.purchased")}</strong>
             : <CurrencyValue currency={item.currency} value={item.price} />}
         </span>
 
         {item.owned ? (
           <button disabled={busy} onClick={() => void onToggleActive(item)}>
-            {busy ? "Зберігаємо…" : item.active ? "Не використовувати" : "Використовувати"}
+            {busy
+              ? t("personalization.detail.saving")
+              : item.active
+                ? t("personalization.detail.disable")
+                : t("personalization.detail.enable")}
           </button>
         ) : (
           <button disabled={busy || pending} onClick={() => void onPurchase(item)}>
-            {pending ? "Покупка обробляється…" : busy ? "Надсилаємо…" : "Придбати"}
+            {pending
+              ? t("personalization.detail.processing")
+              : busy
+                ? t("personalization.detail.sending")
+                : t("personalization.detail.buy")}
           </button>
         )}
       </section>
@@ -596,17 +614,38 @@ function TypeGlyph({ type }: { type: PersonalizationType }) {
 }
 
 function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+  const { t } = useTranslation()
+  return <div className="events-r2-loading" aria-label={t("personalization.loading")}><i /><i /><i /></div>
 }
 
 function Pager({ page, pageCount, onChange }: { page: number; pageCount: number; onChange: (page: number) => void }) {
+  const { t } = useTranslation()
+
   return (
-    <nav className="catalog-pager" aria-label="Сторінки каталогу">
+    <nav className="catalog-pager" aria-label={t("personalization.pages")}>
       <button disabled={page <= 0} onClick={() => onChange(page - 1)}>‹</button>
       <span>{page + 1} / {pageCount}</span>
       <button disabled={page >= pageCount - 1} onClick={() => onChange(page + 1)}>›</button>
     </nav>
   )
+}
+
+function typeTitle(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.title`)
+}
+
+function typeNote(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.note`)
+}
+
+function typeImpact(t: (key: string) => string, type: PersonalizationType) {
+  return t(`personalization.types.${type}.impact`)
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
 
 function readType(value?: string): PersonalizationType | null {
