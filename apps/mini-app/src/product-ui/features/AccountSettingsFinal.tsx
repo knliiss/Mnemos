@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react"
-import type { CSSProperties } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { initialMembers, initialRoles } from "../mockData"
 import type { Account, AccountRole, Member, Route } from "../model"
