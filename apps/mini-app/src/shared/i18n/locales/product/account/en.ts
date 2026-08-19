@@ -1,3 +1,4 @@
+import { accountHomeEn } from "./home/en"
 import { accountRolesEn } from "./roles/en"
 import { accountSettingsEn } from "./settings/en"
 
@@ -98,6 +99,7 @@ export const accountProductEn = {
       ADMIN_ADJUSTMENT: "Admin adjustment",
     },
   },
+  ...accountHomeEn,
   ...accountRolesEn,
   ...accountSettingsEn,
 } as const
