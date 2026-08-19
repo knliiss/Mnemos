@@ -8,11 +8,11 @@ import {
   listOwnedPersonalizations,
   listPersonalizations,
   purchasePersonalization,
-  type OwnedPersonalizationResponse,
   type PersonalizationResponse,
 } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { useErrorNotifications } from "../components/ErrorNotifications"
 import {
   PersonalizationDetails,
   PersonalizationVisual,
@@ -34,7 +34,6 @@ import {
   PageHeader,
   Segmented,
 } from "../shared/Primitives"
-import { useErrorNotifications } from "../components/ErrorNotifications"
 
 type Props = {
   routeId: Route["id"]
@@ -89,6 +88,7 @@ const accountTypes = PERSONALIZATION_TYPES.filter((type) => targets[type] === "A
 
 export function PersonalizationFeatureProduction(props: Props) {
   const product = useProductData()
+  const refreshAccount = product.refreshAccount
   const errors = useErrorNotifications()
   const [items, setItems] = useState<Personalization[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,7 +103,6 @@ export function PersonalizationFeatureProduction(props: Props) {
         listOwnedPersonalizations(undefined, 0, 100),
         ...PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
       ])
-
       const ownedById = new Map(
         ownedPage.items.map((owned) => [owned.personalizationId, owned]),
       )
@@ -122,14 +121,12 @@ export function PersonalizationFeatureProduction(props: Props) {
         missing.forEach((item) => responsesById.set(item.id, item))
       }
 
-      setItems(
-        [...responsesById.values()].map((response) => toProductPersonalization(
-          response,
-          ownedById.get(response.id) ?? null,
-          product.user.id,
-          product.user.username,
-        )),
-      )
+      setItems([...responsesById.values()].map((response) => toProductPersonalization(
+        response,
+        ownedById.get(response.id) ?? null,
+        product.user.id,
+        product.user.username,
+      )))
     } catch (error) {
       handleError(error)
     } finally {
@@ -157,7 +154,7 @@ export function PersonalizationFeatureProduction(props: Props) {
     })
 
     if (status === "CONFIRMED") {
-      await Promise.all([refresh(), product.refreshAccount()])
+      await Promise.all([refresh(), refreshAccount()])
       return
     }
 
@@ -166,7 +163,7 @@ export function PersonalizationFeatureProduction(props: Props) {
       statusCode: 409,
       message: failureReason ?? "Покупку не завершено.",
     })
-  }, [errors, product.refreshAccount, refresh])
+  }, [errors, refresh, refreshAccount])
 
   useEffect(() => realtimeEvents.subscribe((event) => {
     if (event.type !== "personalization.purchase.completed") return
@@ -178,10 +175,7 @@ export function PersonalizationFeatureProduction(props: Props) {
     )
   }), [finishPurchase])
 
-  const pollPurchase = useCallback(async (
-    personalizationId: string,
-    operationId: string,
-  ) => {
+  const pollPurchase = useCallback(async (personalizationId: string, operationId: string) => {
     for (let attempt = 0; attempt < 15; attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 900))
 
@@ -189,14 +183,10 @@ export function PersonalizationFeatureProduction(props: Props) {
         const operation = await getPurchaseOperation(operationId)
         if (operation.status === "PENDING") continue
 
-        await finishPurchase(
-          personalizationId,
-          operation.status,
-          operation.failureReason,
-        )
+        await finishPurchase(personalizationId, operation.status, operation.failureReason)
         return
       } catch {
-        // SSE remains the primary completion path; polling is only a fallback.
+        // SSE is primary; polling only covers reconnect races.
       }
     }
   }, [finishPurchase])
@@ -348,7 +338,6 @@ function StoreCategoryPage({
   const [currency, setCurrency] = useState<"ALL" | Currency>("ALL")
   const [page, setPage] = useState(0)
   const pageSize = 6
-
   const visible = useMemo(() => items.filter((item) =>
     item.status === "PUBLISHED"
     && item.type === type
@@ -549,8 +538,13 @@ function DetailPage({
 }) {
   const item = items.find((candidate) => candidate.id === params?.personalizationId) ?? null
 
-  if (loading) return <div className="screen"><PageHeader title="Персоналізація" back={back} /><LoadingState /></div>
-  if (!item) return <div className="screen"><PageHeader title="Персоналізація" back={back} /><p className="inline-hint">Персоналізацію не знайдено</p></div>
+  if (loading) {
+    return <div className="screen"><PageHeader title="Персоналізація" back={back} /><LoadingState /></div>
+  }
+
+  if (!item) {
+    return <div className="screen"><PageHeader title="Персоналізація" back={back} /><p className="inline-hint">Персоналізацію не знайдено</p></div>
+  }
 
   const pending = Boolean(pendingPurchases[item.id])
   const busy = busyId === item.id
@@ -560,11 +554,7 @@ function DetailPage({
       <PageHeader title={item.name} back={back} />
       <section className="personalization-detail-v5__hero">
         <PersonalizationVisual item={item} detail />
-        <span>
-          <small>{personalizationLabels[item.type]} · {item.target}</small>
-          <strong>{item.name}</strong>
-          <em>{item.creator}</em>
-        </span>
+        <span><small>{personalizationLabels[item.type]} · {item.target}</small><strong>{item.name}</strong><em>{item.creator}</em></span>
       </section>
 
       <PersonalizationDetails item={item} />
