@@ -59,6 +59,7 @@ import "./product-round-five.css"
 import "./product-round-five-affordance-fix.css"
 import "./product-round-six-event-art.css"
 import "./product-round-six-event-art-fix.css"
+import "./product-round-seven-living-art.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
@@ -71,7 +72,6 @@ const criticalArtwork = [
   "/ui-illustrations/admin-users.svg",
   "/ui-illustrations/admin-review.svg",
   "/ui-illustrations/admin-bets.svg",
-  "/ui-illustrations/admin-badges.svg",
   "/ui-illustrations/mnemos-user-mark.svg",
   "/ui-illustrations/mnemos-mascot-cat.svg",
   "/ui-illustrations/mnemos-mascot-search.svg",
