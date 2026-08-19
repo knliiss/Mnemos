@@ -1,9 +1,7 @@
+import { lazy, Suspense } from "react"
 import type { Route } from "../model"
-import { BadgeAdminProduction } from "./BadgeAdminProduction"
-import { BetAdminOverhaul } from "./BetAdminOverhaul"
-import { ModerationUserProduction } from "./ModerationFeatureProduction"
+import { FeatureLoading } from "./FeatureLoading"
 import { NotFoundFeature } from "./NotFoundFeature"
-import { PersonalizationReviewOverhaul } from "./PersonalizationReviewOverhaul"
 
 type Props = {
   routeId: Route["id"]
@@ -12,38 +10,64 @@ type Props = {
   back: () => void
 }
 
+const BadgeAdminProduction = lazy(() =>
+  import("./BadgeAdminProduction").then((module) => ({
+    default: module.BadgeAdminProduction,
+  })),
+)
+
+const BetAdminProduction = lazy(() =>
+  import("./BetAdminProduction").then((module) => ({
+    default: module.BetAdminProduction,
+  })),
+)
+
+const ModerationUserProduction = lazy(() =>
+  import("./ModerationFeatureProduction").then((module) => ({
+    default: module.ModerationUserProduction,
+  })),
+)
+
+const PersonalizationReviewProduction = lazy(() =>
+  import("./PersonalizationReviewProduction").then((module) => ({
+    default: module.PersonalizationReviewProduction,
+  })),
+)
+
 export function StaffAreaOverhaul(props: Props) {
+  let content
+
   if (props.routeId === "moderation-user") {
-    return (
+    content = (
       <ModerationUserProduction
         params={props.params}
         back={props.back}
       />
     )
-  }
-
-  if (props.routeId === "personalization-review") {
-    return <PersonalizationReviewOverhaul back={props.back} />
-  }
-
-  if (props.routeId === "bet-admin") {
-    return (
-      <BetAdminOverhaul
+  } else if (props.routeId === "personalization-review") {
+    content = <PersonalizationReviewProduction back={props.back} />
+  } else if (props.routeId === "bet-admin") {
+    content = (
+      <BetAdminProduction
         params={props.params}
         navigate={props.navigate}
         back={props.back}
       />
     )
-  }
-
-  if (props.routeId === "badge-admin") {
-    return <BadgeAdminProduction back={props.back} />
+  } else if (props.routeId === "badge-admin") {
+    content = <BadgeAdminProduction back={props.back} />
+  } else {
+    return (
+      <NotFoundFeature
+        requested={props.routeId}
+        onHome={() => props.navigate({ id: "account" })}
+      />
+    )
   }
 
   return (
-    <NotFoundFeature
-      requested={props.routeId}
-      onHome={() => props.navigate({ id: "account" })}
-    />
+    <Suspense fallback={<FeatureLoading />}>
+      {content}
+    </Suspense>
   )
 }
