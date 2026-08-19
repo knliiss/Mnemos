@@ -4,7 +4,7 @@ import { AccountHomeProduction } from "./AccountHomeProduction"
 import { AccountInvitesFinal } from "./AccountInviteFlowsFinal"
 import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
-import { AccountWalletPolished } from "./AccountWalletPolished"
+import { AccountWalletProduction } from "./AccountWalletProduction"
 import { RoleEditorOverhaul } from "./RoleEditorOverhaul"
 import { RolesOverviewOverhaul } from "./RolesOverviewOverhaul"
 
@@ -31,15 +31,7 @@ export function AccountAreaFinal(props: Props) {
   }
 
   if (props.routeId === "account-wallet") {
-    return (
-      <AccountWalletPolished
-        activeAccount={props.activeAccount}
-        setActiveAccount={props.setActiveAccount}
-        accounts={props.accounts}
-        setAccounts={props.setAccounts}
-        back={props.back}
-      />
-    )
+    return <AccountWalletProduction back={props.back} />
   }
 
   if (props.routeId === "roles") {
