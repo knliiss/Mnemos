@@ -23,6 +23,8 @@ class BadgeRepositoryAdapter(
 
     override fun findByCode(code: String): Badge? = badgeRepository.findByCode(code)?.toDomain()
 
+    override fun findAll(): List<Badge> = badgeRepository.findAll().map { badge -> badge.toDomain() }
+
     override fun saveUserBadge(userBadge: UserBadge): UserBadge {
         val existing = userBadgeRepository.findByUserIdAndBadgeId(userBadge.userId.id, userBadge.badgeId.id)
         val entity =
