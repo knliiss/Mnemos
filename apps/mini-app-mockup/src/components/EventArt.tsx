@@ -249,13 +249,24 @@ function renderVariant(variant: Variant) {
     case "global-eclipse":
       return (
         <g className="event-art__pixel-symbol">
-          <rect x="14" y="12" width="20" height="24" fill="#535A66" />
-          <rect x="12" y="16" width="24" height="16" fill="#535A66" />
-          <rect x="16" y="10" width="16" height="28" fill="#737C89" />
-          <rect x="11" y="20" width="26" height="8" fill="#737C89" />
-          <rect x="18" y="14" width="12" height="20" fill="#9AA4B1" />
-          <rect x="18" y="14" width="8" height="4" fill="#D3D8DE" opacity=".65" />
-          <rect x="28" y="30" width="4" height="4" fill="#424852" />
+          <rect x="18" y="8" width="12" height="4" fill="#B7D9E7" />
+          <rect x="12" y="12" width="24" height="4" fill="#8FC3D5" />
+          <rect x="8" y="18" width="4" height="12" fill="#8FC3D5" />
+          <rect x="36" y="18" width="4" height="12" fill="#8FC3D5" />
+          <rect x="12" y="32" width="24" height="4" fill="#6F9EAF" />
+          <rect x="18" y="36" width="12" height="4" fill="#6F9EAF" />
+
+          <rect x="14" y="16" width="20" height="16" fill="#D3E8EF" />
+          <rect x="18" y="12" width="12" height="24" fill="#D3E8EF" />
+
+          <rect x="18" y="16" width="16" height="16" fill="#15191D" />
+          <rect x="16" y="20" width="4" height="8" fill="#15191D" />
+          <rect x="20" y="14" width="8" height="4" fill="#15191D" />
+          <rect x="20" y="30" width="8" height="4" fill="#15191D" />
+
+          <rect x="30" y="18" width="4" height="10" fill="#F1FAFC" />
+          <rect x="28" y="14" width="4" height="4" fill="#F1FAFC" />
+          <rect x="28" y="28" width="4" height="4" fill="#A7CEDD" />
         </g>
       )
     default:
