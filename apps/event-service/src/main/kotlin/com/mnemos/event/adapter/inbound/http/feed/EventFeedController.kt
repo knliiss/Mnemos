@@ -10,11 +10,14 @@ import com.mnemos.event.domain.item.model.DomainItemRarity
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Size
+import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
@@ -52,4 +55,20 @@ class EventFeedController(
                     sort = sort,
                 ),
             ).toResponse()
+
+    @GetMapping("/{eventId}")
+    fun get(
+        @PathVariable eventId: UUID,
+    ): EventFeedItemResponse =
+        listEventFeedService
+            .execute(
+                EventFeedQuery(
+                    after = null,
+                    limit = 1,
+                    eventId = EventId(eventId),
+                ),
+            ).items
+            .firstOrNull()
+            ?.toResponse()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found")
 }
