@@ -1,10 +1,11 @@
+import type { TFunction } from "i18next"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getCurrentUserTransactions } from "@/shared/api/userWalletApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
-import type { Route, TransactionSource } from "../model"
-import { transactionSourceLabels } from "../presentation"
+import type { Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
 
@@ -15,34 +16,26 @@ type Props = {
 
 type HistoryFilter = "ALL" | "CREDIT" | "DEBIT"
 type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
+type PrimePackLabel = "start" | "popular" | "reserve"
 
 type PrimePack = {
   id: string
   amount: number
   bonus: number
-  label: string
+  label: PrimePackLabel
 }
 
 const primePacks: PrimePack[] = [
-  { id: "prime-50", amount: 50, bonus: 0, label: "Старт" },
-  { id: "prime-120", amount: 120, bonus: 8, label: "Популярний" },
-  { id: "prime-300", amount: 300, bonus: 30, label: "Запас" },
+  { id: "prime-50", amount: 50, bonus: 0, label: "start" },
+  { id: "prime-120", amount: 120, bonus: 8, label: "popular" },
+  { id: "prime-300", amount: 300, bonus: 30, label: "reserve" },
 ]
 
-const historyLabels: Record<HistoryFilter, string> = {
-  ALL: "Усі",
-  CREDIT: "Надходження",
-  DEBIT: "Витрати",
-}
-
-const sortLabels: Record<HistorySort, string> = {
-  NEWEST: "Спочатку нові",
-  OLDEST: "Спочатку старі",
-  AMOUNT_DESC: "Сума ↓",
-  AMOUNT_ASC: "Сума ↑",
-}
+const historyFilters: HistoryFilter[] = ["ALL", "CREDIT", "DEBIT"]
+const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_ASC"]
 
 export function UserPrimeWalletProduction({ navigate, back }: Props) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,6 +43,7 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("ALL")
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const selectedPack = primePacks.find((pack) => pack.id === selectedPackId) ?? primePacks[0]
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const loadTransactions = useCallback(async () => {
     setLoading(true)
@@ -106,8 +100,8 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
             <CurrencyMark currency="PRIME" size={19} />
             <strong>PRIME</strong>
           </span>
-          <strong className="prime-wallet-hero__value">{prime.toLocaleString("uk-UA")}</strong>
-          <small>Персональна преміум-валюта Mnemos</small>
+          <strong className="prime-wallet-hero__value">{prime.toLocaleString(locale)}</strong>
+          <small>{t("userWallet.description")}</small>
         </div>
 
         <img
@@ -119,27 +113,27 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
 
         <div className="prime-wallet-hero__stats">
           <span>
-            <small>Надійшло</small>
-            <strong>+{earned.toLocaleString("uk-UA")}</strong>
+            <small>{t("userWallet.earned")}</small>
+            <strong>+{earned.toLocaleString(locale)}</strong>
           </span>
           <span>
-            <small>Витрачено</small>
-            <strong>−{spent.toLocaleString("uk-UA")}</strong>
+            <small>{t("userWallet.spent")}</small>
+            <strong>−{spent.toLocaleString(locale)}</strong>
           </span>
         </div>
       </section>
 
-      <nav className="prime-wallet-shortcuts" aria-label="Швидкі дії PRIME">
+      <nav className="prime-wallet-shortcuts" aria-label={t("userWallet.shortcutsAria")}>
         <button onClick={() => navigate({ id: "personalization-store" })}>
           <span className="is-plum"><Glyph name="spark" size={19} /></span>
-          <strong>Магазин</strong>
-          <small>Персоналізації</small>
+          <strong>{t("userWallet.store")}</strong>
+          <small>{t("userWallet.personalizations")}</small>
           <b>›</b>
         </button>
         <button onClick={() => navigate({ id: "account-wallet" })}>
           <span className="is-lime"><Glyph name="wallet" size={19} /></span>
           <strong>COIN</strong>
-          <small>Гаманець аккаунта</small>
+          <small>{t("userWallet.accountWallet")}</small>
           <b>›</b>
         </button>
       </nav>
@@ -147,9 +141,9 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
       <section className="prime-topup-panel">
         <header>
           <span>
-            <small>ПОПОВНЕННЯ</small>
-            <strong>Додати PRIME</strong>
-            <em>Пакети показують майбутній purchase flow. Списання та зарахування тут поки вимкнені.</em>
+            <small>{t("userWallet.topup.eyebrow")}</small>
+            <strong>{t("userWallet.topup.title")}</strong>
+            <em>{t("userWallet.topup.copy")}</em>
           </span>
           <span className="prime-topup-status">SOON</span>
         </header>
@@ -164,9 +158,13 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
             >
               <img src="/ui-illustrations/prime-package.png" alt="" aria-hidden="true" />
               <span>
-                <small>{pack.label}</small>
+                <small>{t(`userWallet.topup.packs.${pack.label}`)}</small>
                 <strong>{pack.amount} PRIME</strong>
-                <em>{pack.bonus ? `+${pack.bonus} бонус` : "без бонусу"}</em>
+                <em>
+                  {pack.bonus
+                    ? t("userWallet.topup.bonus", { count: pack.bonus })
+                    : t("userWallet.topup.noBonus")}
+                </em>
               </span>
             </button>
           ))}
@@ -174,9 +172,13 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
 
         <div className="prime-topup-summary">
           <span>
-            <small>Після поповнення</small>
-            <strong>{prime} → {prime + packTotal} PRIME</strong>
-            <em>{selectedPack.bonus ? `Пакет містить ${selectedPack.bonus} бонусних PRIME.` : "Базовий пакет без бонусу."}</em>
+            <small>{t("userWallet.topup.after")}</small>
+            <strong>{prime.toLocaleString(locale)} → {(prime + packTotal).toLocaleString(locale)} PRIME</strong>
+            <em>
+              {selectedPack.bonus
+                ? t("userWallet.topup.bonusSummary", { count: selectedPack.bonus })
+                : t("userWallet.topup.baseSummary")}
+            </em>
           </span>
           <span className="prime-topup-summary__amount">
             <CurrencyValue currency="PRIME" value={packTotal} compact />
@@ -185,52 +187,52 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
 
         <button className="prime-topup-disabled" disabled>
           <Glyph name="clock" size={16} />
-          Тимчасово недоступно
+          {t("userWallet.topup.unavailable")}
         </button>
       </section>
 
       <section className="prime-history-panel">
         <header className="wallet-history-head wallet-history-head--stacked">
           <span>
-            <small>РУХ PRIME</small>
-            <strong>Історія</strong>
+            <small>{t("userWallet.history.movement")}</small>
+            <strong>{t("userWallet.history.title")}</strong>
           </span>
 
           <label className="wallet-history-sort">
             <Glyph name="swap" size={14} />
             <select value={historySort} onChange={(event) => setHistorySort(event.target.value as HistorySort)}>
-              {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
-                <option key={sort} value={sort}>{sortLabels[sort]}</option>
+              {historySorts.map((sort) => (
+                <option key={sort} value={sort}>{t(`userWallet.history.sort.${sort}`)}</option>
               ))}
             </select>
           </label>
         </header>
 
         <div className="prime-history-filter">
-          {(["ALL", "CREDIT", "DEBIT"] as const).map((filter) => (
+          {historyFilters.map((filter) => (
             <button
               key={filter}
               className={historyFilter === filter ? "is-active" : ""}
               onClick={() => setHistoryFilter(filter)}
             >
-              {historyLabels[filter]}
+              {t(`userWallet.history.filters.${filter}`)}
             </button>
           ))}
         </div>
 
         <div className="prime-history-list">
           {visibleTransactions.map((transaction) => (
-            <PrimeHistoryRow key={transaction.id} transaction={transaction} />
+            <PrimeHistoryRow key={transaction.id} transaction={transaction} locale={locale} t={t} />
           ))}
 
           {loading ? (
-            <div className="events-r2-loading" aria-label="Завантаження історії"><i /><i /><i /></div>
+            <div className="events-r2-loading" aria-label={t("userWallet.history.loading")}><i /><i /><i /></div>
           ) : null}
 
           {!loading && !visibleTransactions.length ? (
             <div className="events-r2-empty">
               <Glyph name="wallet" size={22} />
-              <strong>Операцій PRIME ще немає</strong>
+              <strong>{t("userWallet.history.empty")}</strong>
             </div>
           ) : null}
         </div>
@@ -239,7 +241,15 @@ export function UserPrimeWalletProduction({ navigate, back }: Props) {
   )
 }
 
-function PrimeHistoryRow({ transaction }: { transaction: WalletTransactionResponse }) {
+function PrimeHistoryRow({
+  transaction,
+  locale,
+  t,
+}: {
+  transaction: WalletTransactionResponse
+  locale: string
+  t: TFunction
+}) {
   const credit = transaction.type === "CREDIT"
 
   return (
@@ -248,8 +258,8 @@ function PrimeHistoryRow({ transaction }: { transaction: WalletTransactionRespon
         {credit ? "+" : "−"}
       </span>
       <span className="prime-history-list__copy">
-        <strong>{transactionLabel(transaction.source)}</strong>
-        <small>{formatTransactionDate(transaction.createdAt)}</small>
+        <strong>{transactionLabel(transaction.source, t)}</strong>
+        <small>{formatTransactionDate(transaction.createdAt, locale)}</small>
       </span>
       <span className={`prime-history-list__amount ${credit ? "is-credit" : ""}`}>
         {credit ? "+" : "−"}
@@ -259,9 +269,9 @@ function PrimeHistoryRow({ transaction }: { transaction: WalletTransactionRespon
   )
 }
 
-function transactionLabel(source: string) {
-  const known = transactionSourceLabels[source as TransactionSource]
-  if (known) return known
+function transactionLabel(source: string, t: TFunction) {
+  const translated = t(`userWallet.history.sources.${source}`, { defaultValue: "" })
+  if (translated) return translated
 
   return source
     .toLowerCase()
@@ -270,14 +280,20 @@ function transactionLabel(source: string) {
     .join(" ")
 }
 
-function formatTransactionDate(value: string) {
+function formatTransactionDate(value: string, locale: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  return new Intl.DateTimeFormat("uk-UA", {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date)
+}
+
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
