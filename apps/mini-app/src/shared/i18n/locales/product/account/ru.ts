@@ -1,4 +1,5 @@
 import { accountRolesRu } from "./roles/ru"
+import { accountSettingsRu } from "./settings/ru"
 
 export const accountProductRu = {
   accountOnboarding: {
@@ -98,4 +99,5 @@ export const accountProductRu = {
     },
   },
   ...accountRolesRu,
+  ...accountSettingsRu,
 } as const
