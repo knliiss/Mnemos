@@ -1,6 +1,7 @@
 import type { Account, Route } from "../model"
 import { EventDetailRoundFour } from "./EventDetailRoundFour"
 import { EventsArea as EventsAreaRethink } from "./EventsAreaRethink"
+import { EventsFeedProduction } from "./EventsFeedProduction"
 
 type Props = {
   routeId: Route["id"]
@@ -11,6 +12,15 @@ type Props = {
 }
 
 export function EventsArea(props: Props) {
+  if (props.routeId === "events") {
+    return (
+      <EventsFeedProduction
+        activeAccount={props.activeAccount}
+        navigate={props.navigate}
+      />
+    )
+  }
+
   if (props.routeId === "event-detail") {
     return (
       <EventDetailRoundFour
