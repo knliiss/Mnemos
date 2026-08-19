@@ -10,15 +10,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
+    "framer-motion": "latest",
     "i18next": "latest",
     "keycloak-js": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "react-i18next": "latest",
-    "react-router-dom": "latest",
-    "framer-motion": "latest"
+    "react-i18next": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",
@@ -26,11 +24,13 @@
     "@testing-library/react": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
     "jsdom": "latest",
+    "react-router-dom": "latest",
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vite": "latest",
