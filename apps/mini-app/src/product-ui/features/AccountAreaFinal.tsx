@@ -1,7 +1,7 @@
 import type { Account, Route } from "../model"
 import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomeProduction } from "./AccountHomeProduction"
-import { AccountInvitesFinal } from "./AccountInviteFlowsFinal"
+import { AccountInvitesProduction } from "./AccountInvitesProduction"
 import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 import { AccountWalletProduction } from "./AccountWalletProduction"
@@ -67,7 +67,7 @@ export function AccountAreaFinal(props: Props) {
   }
 
   if (props.routeId === "account-invites") {
-    return <AccountInvitesFinal back={props.back} />
+    return <AccountInvitesProduction back={props.back} />
   }
 
   if (props.routeId === "account-create") {
