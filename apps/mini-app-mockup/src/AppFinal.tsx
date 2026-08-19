@@ -8,7 +8,7 @@ import { featureArea, initialStack, isRootRoute } from "./navigation/routeRegist
 import { AccountAreaFinal } from "./features/AccountAreaFinal"
 import { AdministrationHome } from "./features/AdministrationHome"
 import { CreatorFeature } from "./features/CreatorFeatureRethink"
-import { EventsArea } from "./features/EventsAreaRethink"
+import { EventsArea } from "./features/EventsAreaRoundFour"
 import { ModerationHomePolished } from "./features/ModerationHomePolished"
 import { PeopleFeatureFinal } from "./features/PeopleFeatureFinal"
 import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFinal"
