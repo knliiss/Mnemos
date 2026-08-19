@@ -12,6 +12,7 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
     @Query(
         """
         SELECT account.id AS "id",
+            account.cristalix_uuid AS "cristalixUuid",
             account.cristalix_nickname AS "cristalixNickname",
             current_member.id AS "currentMemberId",
             account.owner_member_id AS "ownerMemberId",
