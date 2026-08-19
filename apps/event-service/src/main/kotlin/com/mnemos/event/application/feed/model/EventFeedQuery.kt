@@ -18,6 +18,7 @@ enum class EventFeedSort {
 data class EventFeedQuery(
     val after: EventId?,
     val limit: Int,
+    val eventId: EventId? = null,
     val kinds: Set<EventFeedKind> = EventFeedKind.entries.toSet(),
     val search: String? = null,
     val droppedFor: String? = null,
