@@ -1,10 +1,10 @@
 import type { Account, Route } from "../model"
-import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomeProduction } from "./AccountHomeProduction"
 import { AccountInvitesProduction } from "./AccountInvitesProduction"
 import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
 import { AccountSettingsProduction } from "./AccountSettingsProduction"
 import { AccountWalletProduction } from "./AccountWalletProduction"
+import { NotFoundFeature } from "./NotFoundFeature"
 import { RoleEditorProduction } from "./RoleEditorProduction"
 import { RolesOverviewProduction } from "./RolesOverviewProduction"
 
@@ -74,5 +74,10 @@ export function AccountAreaFinal(props: Props) {
     return <AccountJoinProduction back={props.back} />
   }
 
-  return <AccountFeatureFinal {...props} />
+  return (
+    <NotFoundFeature
+      requested={props.routeId}
+      onHome={() => props.navigate({ id: "account" })}
+    />
+  )
 }
