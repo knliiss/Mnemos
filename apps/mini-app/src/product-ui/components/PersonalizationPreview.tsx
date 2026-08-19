@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next"
 import type { CSSProperties, ReactElement } from "react"
+import { useTranslation } from "react-i18next"
 import {
   BoosterArt,
   DungeonArt,
@@ -30,53 +32,6 @@ type TemplateSample = {
   values: Record<string, string>
   art: ReactElement
 }
-
-const templateSamples: TemplateSample[] = [
-  {
-    key: "ITEM_DROP",
-    label: "Дроп",
-    values: {
-      player: "north",
-      item: "Eternal Blade",
-      rarity: "Mythical",
-      itemType: "Sword",
-    },
-    art: <ItemTypeArt itemType="SWORD" size={38} />,
-  },
-  {
-    key: "BOOSTER",
-    label: "Бустер",
-    values: {
-      player: "vex",
-      booster: "Luck",
-    },
-    art: <BoosterArt boosterType="LUCK" size={38} />,
-  },
-  {
-    key: "DUNGEON",
-    label: "Данж",
-    values: {
-      dungeon: "Експертний",
-    },
-    art: <DungeonArt size={38} />,
-  },
-  {
-    key: "RAID",
-    label: "Рейд",
-    values: {
-      locations: "2 · 4 · 7",
-    },
-    art: <RaidArt size={38} />,
-  },
-  {
-    key: "GLOBAL",
-    label: "Глобальна",
-    values: {
-      event: "Затемнення",
-    },
-    art: <GlobalEventArt eventType="ECLIPSE" size={38} />,
-  },
-]
 
 export function hydratePersonalization(item: Personalization): Personalization {
   return {
@@ -117,6 +72,7 @@ export function PersonalizationVisual({ item, small = false, detail = false }: P
 }
 
 export function PersonalizationDetails({ item }: { item: Personalization }) {
+  const { t } = useTranslation()
   const content = item.content ?? personalizationContentById[item.id]
 
   if (!content) {
@@ -124,8 +80,8 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
       <section className="visual-preview-note">
         <Glyph name="spark" size={17} />
         <span>
-          <strong>Прев'ю ще не зібране</strong>
-          <small>Контент персоналізації відсутній у мокових даних.</small>
+          <strong>{t("personalization.preview.missingTitle")}</strong>
+          <small>{t("personalization.preview.missingCopy")}</small>
         </span>
       </section>
     )
@@ -138,9 +94,12 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
   if (content.kind === "NICK_STYLE") {
     return (
       <section className="personalization-spec-grid">
-        <Spec label="Кут" value={`${content.angleDegrees}°`} />
-        <Spec label="Кольори" value={`${content.colors.length}`} />
-        <Spec label="Glow" value={content.glow ? `${content.glow.strength}%` : "Немає"} />
+        <Spec label={t("personalization.preview.angle")} value={`${content.angleDegrees}°`} />
+        <Spec label={t("personalization.preview.colors")} value={`${content.colors.length}`} />
+        <Spec
+          label={t("personalization.preview.glow")}
+          value={content.glow ? `${content.glow.strength}%` : t("personalization.preview.none")}
+        />
       </section>
     )
   }
@@ -148,9 +107,9 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
   if (content.kind === "PROFILE_THEME") {
     return (
       <section className="personalization-spec-grid">
-        <Spec label="Accent" value={content.accent} />
-        <Spec label="Surface" value={content.surface} />
-        <Spec label="Border" value={content.border} />
+        <Spec label={t("personalization.preview.accent")} value={content.accent} />
+        <Spec label={t("personalization.preview.surface")} value={content.surface} />
+        <Spec label={t("personalization.preview.border")} value={content.border} />
       </section>
     )
   }
@@ -158,23 +117,26 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
   if (content.kind === "AVATAR_FRAME") {
     return (
       <section className="personalization-spec-grid">
-        <Spec label="Товщина" value={`${content.borderWidthPx}px`} />
-        <Spec label="Radius" value={`${content.radiusPx}px`} />
-        <Spec label="Колір" value={content.borderColor} />
+        <Spec label={t("personalization.preview.thickness")} value={`${content.borderWidthPx}px`} />
+        <Spec label={t("personalization.preview.radius")} value={`${content.radiusPx}px`} />
+        <Spec label={t("personalization.preview.color")} value={content.borderColor} />
       </section>
     )
   }
 
   return (
     <section className="personalization-spec-grid">
-      <Spec label="Ефект" value={content.effect} />
-      <Spec label="Інтенсивність" value={`${content.intensity}%`} />
-      <Spec label="Основний" value={content.primaryColor} />
+      <Spec label={t("personalization.preview.effect")} value={content.effect} />
+      <Spec label={t("personalization.preview.intensity")} value={`${content.intensity}%`} />
+      <Spec label={t("personalization.preview.primary")} value={content.primaryColor} />
     </section>
   )
 }
 
 export function NotificationPackShowcase({ content }: { content: NotificationPackContent }) {
+  const { t } = useTranslation()
+  const templateSamples = createTemplateSamples(t)
+
   return (
     <section className="notification-pack-showcase">
       <header className="notification-pack-showcase__header">
@@ -182,10 +144,10 @@ export function NotificationPackShowcase({ content }: { content: NotificationPac
           <Glyph name="bell" size={18} />
         </span>
         <span>
-          <small>Повний preview pack</small>
+          <small>{t("personalization.preview.fullPack")}</small>
           <strong>{content.mixedAggregateTitle}</strong>
         </span>
-        <em>{templateSamples.length} шаблонів</em>
+        <em>{t("personalization.preview.templateCount", { count: templateSamples.length })}</em>
       </header>
 
       <div className="notification-pack-aggregate">
@@ -195,9 +157,9 @@ export function NotificationPackShowcase({ content }: { content: NotificationPac
           <i />
         </span>
         <span>
-          <small>Змішана агрегація</small>
+          <small>{t("personalization.preview.mixedAggregation")}</small>
           <strong>{content.mixedAggregateTitle}</strong>
-          <em>Коли одночасно приходять різні типи подій</em>
+          <em>{t("personalization.preview.mixedAggregationCopy")}</em>
         </span>
       </div>
 
@@ -211,7 +173,7 @@ export function NotificationPackShowcase({ content }: { content: NotificationPac
               <span className="notification-pack-template__copy">
                 <span className="notification-pack-template__eyebrow">
                   <b>{sample.label}</b>
-                  <i>{template.emoji ?? "без emoji"}</i>
+                  <i>{template.emoji ?? t("personalization.preview.noEmoji")}</i>
                 </span>
                 <strong>{renderTemplate(template.soloTitle, sample.values)}</strong>
                 <p>{renderTemplate(template.soloBody, sample.values)}</p>
@@ -245,13 +207,15 @@ function NotificationPackPreview({
   small: boolean
   detail: boolean
 }) {
+  const { t } = useTranslation()
   const template = content.templates.ITEM_DROP
-  const body = renderTemplate(template.soloBody, {
+  const values = {
     player: "north",
     item: "Eternal Blade",
-    rarity: "Mythical",
-    itemType: "Sword",
-  })
+    rarity: t("personalization.preview.samples.mythical"),
+    itemType: t("personalization.preview.samples.sword"),
+  }
+  const body = renderTemplate(template.soloBody, values)
 
   return (
     <div className={`${className} notification-real-preview ${detail ? "notification-real-preview--detail" : ""}`.trim()}>
@@ -260,9 +224,9 @@ function NotificationPackPreview({
       </span>
       <span className="notification-real-preview__copy">
         <small>ITEM DROP</small>
-        <strong>{template.soloTitle}</strong>
+        <strong>{renderTemplate(template.soloTitle, values)}</strong>
         {!small ? <p>{body}</p> : null}
-        {detail ? <em>{renderTemplate(template.compact, { player: "north", item: "Eternal Blade" })}</em> : null}
+        {detail ? <em>{renderTemplate(template.compact, values)}</em> : null}
       </span>
       {!small ? <span className="notification-real-preview__emoji">{template.emoji ?? "•"}</span> : null}
     </div>
@@ -270,6 +234,7 @@ function NotificationPackPreview({
 }
 
 function NickPreview({ content, className }: { content: NickStyleContent; className: string }) {
+  const { t } = useTranslation()
   const stops = content.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
   const glow = content.glow ? `0 0 ${Math.max(5, content.glow.strength / 3)}px ${content.glow.color}` : "none"
 
@@ -284,7 +249,7 @@ function NickPreview({ content, className }: { content: NickStyleContent; classN
       >
         knalis
       </strong>
-      <em>Приклад ніка</em>
+      <em>{t("personalization.preview.nickExample")}</em>
     </div>
   )
 }
@@ -317,6 +282,8 @@ function ThemePreview({ content, className }: { content: ProfileThemeContent; cl
 }
 
 function FramePreview({ content, className }: { content: AvatarFrameContent; className: string }) {
+  const { t } = useTranslation()
+
   return (
     <div className={`${className} frame-real-preview`}>
       <span
@@ -331,7 +298,7 @@ function FramePreview({ content, className }: { content: AvatarFrameContent; cla
       >
         K
       </span>
-      <small>Рамка аватара</small>
+      <small>{t("personalization.preview.avatarFrame")}</small>
     </div>
   )
 }
@@ -359,6 +326,55 @@ function Spec({ label, value }: { label: string; value: string }) {
       <strong>{value}</strong>
     </article>
   )
+}
+
+function createTemplateSamples(t: TFunction): TemplateSample[] {
+  return [
+    {
+      key: "ITEM_DROP",
+      label: t("personalization.preview.samples.ITEM_DROP"),
+      values: {
+        player: "north",
+        item: "Eternal Blade",
+        rarity: t("personalization.preview.samples.mythical"),
+        itemType: t("personalization.preview.samples.sword"),
+      },
+      art: <ItemTypeArt itemType="SWORD" size={38} />,
+    },
+    {
+      key: "BOOSTER",
+      label: t("personalization.preview.samples.BOOSTER"),
+      values: {
+        player: "vex",
+        booster: t("personalization.preview.samples.luck"),
+      },
+      art: <BoosterArt boosterType="LUCK" size={38} />,
+    },
+    {
+      key: "DUNGEON",
+      label: t("personalization.preview.samples.DUNGEON"),
+      values: {
+        dungeon: t("personalization.preview.samples.expert"),
+      },
+      art: <DungeonArt size={38} />,
+    },
+    {
+      key: "RAID",
+      label: t("personalization.preview.samples.RAID"),
+      values: {
+        locations: "2 · 4 · 7",
+      },
+      art: <RaidArt size={38} />,
+    },
+    {
+      key: "GLOBAL",
+      label: t("personalization.preview.samples.GLOBAL"),
+      values: {
+        event: t("personalization.preview.samples.eclipse"),
+      },
+      art: <GlobalEventArt eventType="ECLIPSE" size={38} />,
+    },
+  ]
 }
 
 export function renderTemplate(template: string, values: Record<string, string>) {
