@@ -6,6 +6,7 @@ import type {
   ClaimDailyRewardResponse,
   CurrentContextResponse,
   DailyRewardStateResponse,
+  EventFeedItemResponse,
   EventFeedResponse,
   EventFeedType,
   ItemCatalogResponse,
@@ -136,6 +137,10 @@ export async function getEventFeed(query: EventFeedQuery = {}): Promise<EventFee
   params.set("limit", String(query.limit ?? 50))
 
   return api<EventFeedResponse>(`/api/v1/events/feed?${params}`)
+}
+
+export async function getEventFeedItem(eventId: string): Promise<EventFeedItemResponse> {
+  return api<EventFeedItemResponse>(`/api/v1/events/feed/${eventId}`)
 }
 
 export async function searchItemCatalog(search: string, limit = 8): Promise<ItemCatalogResponse[]> {
