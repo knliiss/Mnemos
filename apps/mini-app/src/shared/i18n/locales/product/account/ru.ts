@@ -1,3 +1,5 @@
+import { accountRolesRu } from "./roles/ru"
+
 export const accountProductRu = {
   accountOnboarding: {
     back: "Назад",
@@ -95,4 +97,5 @@ export const accountProductRu = {
       ADMIN_ADJUSTMENT: "Корректировка администратором",
     },
   },
+  ...accountRolesRu,
 } as const
