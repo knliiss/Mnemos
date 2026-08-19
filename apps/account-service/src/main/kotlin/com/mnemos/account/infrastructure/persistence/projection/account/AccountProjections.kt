@@ -5,6 +5,7 @@ import java.util.UUID
 
 interface AccountSummaryProjection {
     val id: UUID
+    val cristalixUuid: UUID
     val cristalixNickname: String
     val currentMemberId: UUID
     val ownerMemberId: UUID
