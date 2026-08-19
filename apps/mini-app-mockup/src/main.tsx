@@ -60,6 +60,7 @@ import "./product-round-five-affordance-fix.css"
 import "./product-round-six-event-art.css"
 import "./product-round-six-event-art-fix.css"
 import "./product-round-seven-living-art.css"
+import "./error-notifications.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
