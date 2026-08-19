@@ -1,4 +1,5 @@
 import { accountRolesEn } from "./roles/en"
+import { accountSettingsEn } from "./settings/en"
 
 export const accountProductEn = {
   accountOnboarding: {
@@ -98,4 +99,5 @@ export const accountProductEn = {
     },
   },
   ...accountRolesEn,
+  ...accountSettingsEn,
 } as const
