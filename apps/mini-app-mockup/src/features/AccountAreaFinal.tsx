@@ -2,7 +2,8 @@ import { currentUser } from "../mockData"
 import type { Account, Route } from "../model"
 import { AccountFeatureFinal } from "./AccountFeatureFinal"
 import { AccountHomePolished } from "./AccountHomePolished"
-import { AccountInvitesFinal, AccountJoinFinal } from "./AccountInviteFlowsFinal"
+import { AccountInvitesFinal } from "./AccountInviteFlowsFinal"
+import { AccountCreateOnboarding, AccountJoinOnboarding } from "./AccountOnboardingFinal"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 import { AccountWalletPolished } from "./AccountWalletPolished"
 import { RoleEditorOverhaul } from "./RoleEditorOverhaul"
@@ -91,9 +92,21 @@ export function AccountAreaFinal(props: Props) {
     return <AccountInvitesFinal back={props.back} />
   }
 
+  if (props.routeId === "account-create") {
+    return (
+      <AccountCreateOnboarding
+        activeAccount={props.activeAccount}
+        setActiveAccount={props.setActiveAccount}
+        accounts={props.accounts}
+        setAccounts={props.setAccounts}
+        back={props.back}
+      />
+    )
+  }
+
   if (props.routeId === "account-join") {
     return (
-      <AccountJoinFinal
+      <AccountJoinOnboarding
         activeAccount={props.activeAccount}
         setActiveAccount={props.setActiveAccount}
         accounts={props.accounts}
