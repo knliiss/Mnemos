@@ -1,0 +1,75 @@
+name: Frontend Cleanup
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - "scripts/frontend-cleanup.mjs"
+      - ".github/workflows/frontend-cleanup.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: |
+          npm ci
+          npm install --save-dev --save-exact prettier@3.6.2
+
+      - name: Clean production frontend
+        run: node scripts/frontend-cleanup.mjs
+
+      - name: Format production frontend
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Lint
+        working-directory: apps/mini-app
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: apps/mini-app
+        run: npm run format:check
+
+      - name: Test
+        working-directory: apps/mini-app
+        run: npm test -- --run
+
+      - name: Build
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No cleanup changes to commit"
+            exit 0
+          fi
+
+          git commit -m "clean production frontend architecture"
+          git push origin HEAD:feat/frontend-integration
