@@ -1,10 +1,11 @@
 import { Reorder, useDragControls } from "framer-motion"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { updateRoleHierarchy } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
-import { permissionGroups } from "../mockData"
 import type { AccountRole, Route } from "../model"
+import { allRolePermissions } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
@@ -15,21 +16,19 @@ type Props = {
 }
 
 export function RolesOverviewProduction({ navigate, back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const accountId = product.activeAccount?.id ?? null
   const roles = useMemo(
     () => [...product.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [product.roles],
   )
-  const totalPermissions = useMemo(
-    () => new Set(permissionGroups.flatMap((group) => group.permissions)).size,
-    [],
-  )
+  const totalPermissions = allRolePermissions.length
 
   return (
     <div className="screen roles-v2">
       <PageHeader
-        title="Ролі"
+        title={t("rolesOverview.title")}
         back={back}
         actions={(
           <button
@@ -38,7 +37,7 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
           >
             <Glyph name="plus" size={16} />
-            Нова
+            {t("rolesOverview.new")}
           </button>
         )}
       />
@@ -46,17 +45,17 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
       <section className="roles-v2-hero">
         <span className="roles-v2-hero__icon"><Glyph name="roles" size={23} /></span>
         <span className="roles-v2-hero__copy">
-          <small>ІЄРАРХІЯ ДОСТУПУ</small>
-          <strong>{roles.length} ролі · {totalPermissions} можливих дозволів</strong>
-          <em>Вища позиція має більший пріоритет. Власник аккаунта залишається над ролями.</em>
+          <small>{t("rolesOverview.hierarchyEyebrow")}</small>
+          <strong>{t("rolesOverview.hierarchySummary", { roles: roles.length, permissions: totalPermissions })}</strong>
+          <em>{t("rolesOverview.hierarchyNote")}</em>
         </span>
       </section>
 
       <section className="roles-v2-guide">
         <span className="roles-v2-guide__handle" aria-hidden="true">⠿</span>
         <span>
-          <strong>Порядок змінюється перетягуванням</strong>
-          <small>Затисни ручку ⠿ праворуч. Порядок відправиться на backend після завершення перетягування.</small>
+          <strong>{t("rolesOverview.dragTitle")}</strong>
+          <small>{t("rolesOverview.dragNote")}</small>
         </span>
       </section>
 
@@ -77,8 +76,8 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
       {!roles.length && !product.loadingAccount ? (
         <section className="events-r2-empty">
           <Glyph name="roles" size={24} />
-          <strong>Ролей ще немає</strong>
-          <small>Створи першу роль і налаштуй її дозволи.</small>
+          <strong>{t("rolesOverview.emptyTitle")}</strong>
+          <small>{t("rolesOverview.emptyCopy")}</small>
         </section>
       ) : null}
 
@@ -89,8 +88,8 @@ export function RolesOverviewProduction({ navigate, back }: Props) {
       >
         <span><Glyph name="plus" size={20} /></span>
         <span>
-          <strong>Створити нову роль</strong>
-          <small>Назва, колір і набір дозволів зберігаються на backend.</small>
+          <strong>{t("rolesOverview.createTitle")}</strong>
+          <small>{t("rolesOverview.createCopy")}</small>
         </span>
         <b>›</b>
       </button>
@@ -166,6 +165,7 @@ function SortableRoleRow({
   navigate: (route: Route) => void
   onDragEnd: () => void
 }) {
+  const { t } = useTranslation()
   const dragControls = useDragControls()
 
   return (
@@ -185,9 +185,9 @@ function SortableRoleRow({
         <span className="role-v2-row__copy">
           <span>
             <strong>{role.name}</strong>
-            <i>{memberCount} осн. уч.</i>
+            <i>{t("rolesOverview.primaryMembers", { count: memberCount })}</i>
           </span>
-          <small>{enabledPermissions(role)} дозволів · пріоритет {role.hierarchyRank}</small>
+          <small>{t("rolesOverview.permissionSummary", { count: enabledPermissions(role), rank: role.hierarchyRank })}</small>
         </span>
         <b>›</b>
       </button>
@@ -196,8 +196,8 @@ function SortableRoleRow({
         type="button"
         className="role-v2-drag-handle"
         disabled={disabled}
-        aria-label={`Перетягнути роль ${role.name}`}
-        title="Перетягнути"
+        aria-label={t("rolesOverview.dragAria", { name: role.name })}
+        title={t("rolesOverview.dragAction")}
         onPointerDown={(event) => {
           if (!disabled) dragControls.start(event)
         }}
