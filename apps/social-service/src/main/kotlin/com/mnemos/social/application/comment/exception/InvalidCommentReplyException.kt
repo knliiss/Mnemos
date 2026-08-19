@@ -13,8 +13,9 @@ class InvalidCommentReplyException(
         message = reason,
         code = "INVALID_COMMENT_REPLY",
         httpStatus = HttpStatus.BAD_REQUEST,
-        details = mapOf(
-            "parentCommentId" to parentCommentId.id,
-            "targetAccountId" to targetAccountId,
-        ),
+        details =
+            mapOf(
+                "parentCommentId" to parentCommentId.id,
+                "targetAccountId" to targetAccountId,
+            ),
     )

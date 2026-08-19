@@ -11,8 +11,9 @@ class DeletedCommentOperationException(
         message = "Deleted comment cannot be $operation",
         code = "DELETED_COMMENT_OPERATION_NOT_ALLOWED",
         httpStatus = HttpStatus.CONFLICT,
-        details = mapOf(
-            "commentId" to commentId.id,
-            "operation" to operation,
-        ),
+        details =
+            mapOf(
+                "commentId" to commentId.id,
+                "operation" to operation,
+            ),
     )

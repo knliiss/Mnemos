@@ -38,8 +38,7 @@ object CommentApiMapper {
             page = toPageQuery(),
         )
 
-    fun PageResult<CommentView>.toResponse(): PageResponse<CommentResponse> =
-        toPageResponse { view -> view.toResponse() }
+    fun PageResult<CommentView>.toResponse(): PageResponse<CommentResponse> = toPageResponse { view -> view.toResponse() }
 
     fun CommentView.toResponse(): CommentResponse =
         CommentResponse(
