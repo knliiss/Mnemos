@@ -2,6 +2,9 @@ package com.mnemos.event.adapter.out.persistence.feed
 
 import com.mnemos.event.application.feed.model.BoosterFeedItem
 import com.mnemos.event.application.feed.model.EventFeedItem
+import com.mnemos.event.application.feed.model.EventFeedKind
+import com.mnemos.event.application.feed.model.EventFeedQuery
+import com.mnemos.event.application.feed.model.EventFeedSort
 import com.mnemos.event.application.feed.model.GlobalFeedItem
 import com.mnemos.event.application.feed.model.ItemDropFeedItem
 import com.mnemos.event.application.feed.model.RaidFeedItem
@@ -12,20 +15,28 @@ import com.mnemos.event.domain.global.model.DomainGlobalEventType
 import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.ItemId
 import org.springframework.stereotype.Repository
+import java.util.Locale
 
 @Repository
 class EventFeedJpaAdapter(
     private val repository: EventFeedJpaRepository,
 ) : EventFeedReader {
-    override fun read(
-        after: EventId?,
-        limit: Int,
-    ): List<EventFeedItem> =
-        repository
+    override fun read(query: EventFeedQuery): List<EventFeedItem> {
+        val searchTerm = query.search?.lowercase(Locale.ROOT)
+
+        return repository
             .read(
-                after = after?.id,
-                limit = limit,
+                after = query.after?.id,
+                includeItemDrop = EventFeedKind.ITEM_DROP in query.kinds,
+                includeBooster = EventFeedKind.BOOSTER in query.kinds,
+                includeGlobal = EventFeedKind.GLOBAL in query.kinds,
+                includeRaid = EventFeedKind.RAID in query.kinds,
+                searchTerm = searchTerm,
+                itemRarity = query.itemRarity?.name,
+                newest = query.sort == EventFeedSort.NEWEST,
+                limit = query.limit,
             ).map { projection -> projection.toModel() }
+    }
 
     private fun EventFeedProjection.toModel(): EventFeedItem =
         when (getEventType()) {
