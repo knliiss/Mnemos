@@ -1,4 +1,5 @@
 import type { Route } from "../model"
+import { BadgeAdminProduction } from "./BadgeAdminProduction"
 import { BetAdminOverhaul } from "./BetAdminOverhaul"
 import { ModerationUserProduction } from "./ModerationFeatureProduction"
 import { PersonalizationReviewOverhaul } from "./PersonalizationReviewOverhaul"
@@ -33,6 +34,10 @@ export function StaffAreaOverhaul(props: Props) {
         back={props.back}
       />
     )
+  }
+
+  if (props.routeId === "badge-admin") {
+    return <BadgeAdminProduction back={props.back} />
   }
 
   return <StaffFeatureFinal {...props} />
