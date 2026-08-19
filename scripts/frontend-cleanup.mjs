@@ -1,14 +1,9 @@
 import fs from "node:fs"
-import { createRequire } from "node:module"
 import path from "node:path"
 
 const repositoryRoot = process.cwd()
-const miniAppRoot = path.join(repositoryRoot, "apps/mini-app")
-const sourceRoot = path.join(miniAppRoot, "src")
-const productCssPath = path.join(sourceRoot, "product-ui/product.css")
-const globalCssPath = path.join(sourceRoot, "shared/styles/global.css")
-const require = createRequire(path.join(miniAppRoot, "package.json"))
-const { PurgeCSS } = require("purgecss")
+const sourceRoot = path.join(repositoryRoot, "apps/mini-app/src")
+const historicalPattern = /(?:final|polished|redesign|(?:^|-)v[2-9](?:-|$))/i
 
 function walk(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -18,70 +13,30 @@ function walk(directory) {
   })
 }
 
-function sourceFiles() {
-  return walk(sourceRoot).filter((filePath) => /\.(?:ts|tsx)$/.test(filePath))
-}
+const files = walk(sourceRoot).filter((filePath) => /\.(?:ts|tsx|css)$/.test(filePath))
+const usages = new Map()
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
+for (const filePath of files) {
+  const content = fs.readFileSync(filePath, "utf8")
+  const tokens = content.match(/[A-Za-z_][A-Za-z0-9_-]*/g) ?? []
 
-function collectDynamicClassPrefixes(files) {
-  const prefixes = new Set()
-
-  for (const filePath of files) {
-    const content = fs.readFileSync(filePath, "utf8")
-
-    for (const templateMatch of content.matchAll(/`([\s\S]*?\$\{[\s\S]*?)`/g)) {
-      const template = templateMatch[1]
-      const staticParts = template.split(/\$\{[\s\S]*?\}/g)
-
-      for (const part of staticParts) {
-        const tokens = part.match(/[A-Za-z_][A-Za-z0-9_-]*-+/g) ?? []
-
-        for (const token of tokens) {
-          if (token.endsWith("-") && token.length >= 3) {
-            prefixes.add(token)
-          }
-        }
-      }
+  for (const token of tokens) {
+    if (!historicalPattern.test(token)) {
+      continue
     }
+
+    const relativePath = path.relative(repositoryRoot, filePath)
+    const paths = usages.get(token) ?? new Set()
+
+    paths.add(relativePath)
+    usages.set(token, paths)
   }
-
-  return [...prefixes]
 }
 
-async function purgeStylesheet(cssPath, contentPaths, dynamicPrefixes) {
-  const beforeBytes = fs.statSync(cssPath).size
-  const safelist = dynamicPrefixes.map((prefix) => new RegExp(`^${escapeRegExp(prefix)}`))
-  const [result] = await new PurgeCSS().purge({
-    content: contentPaths,
-    css: [cssPath],
-    defaultExtractor: (content) => content.match(/[A-Za-z0-9_:/-]+/g) ?? [],
-    safelist: {
-      greedy: safelist,
-    },
-    fontFace: true,
-    keyframes: true,
-    rejected: true,
-  })
+const sorted = [...usages.entries()].sort(([left], [right]) => left.localeCompare(right))
 
-  fs.writeFileSync(cssPath, result.css.endsWith("\n") ? result.css : `${result.css}\n`)
+console.log(`Historical frontend tokens: ${sorted.length}`)
 
-  const afterBytes = fs.statSync(cssPath).size
-  const removedSelectors = result.rejected?.length ?? 0
-  const reduction = beforeBytes === 0 ? 0 : Math.round((1 - afterBytes / beforeBytes) * 100)
-
-  console.log(
-    `${path.relative(repositoryRoot, cssPath)}: ${beforeBytes} -> ${afterBytes} bytes (${reduction}% smaller), ${removedSelectors} selectors removed`,
-  )
+for (const [token, paths] of sorted) {
+  console.log(`${token}\t${[...paths].sort().join(", ")}`)
 }
-
-const files = sourceFiles()
-const dynamicPrefixes = collectDynamicClassPrefixes(files)
-const contentPaths = [path.join(miniAppRoot, "index.html"), ...files]
-
-console.log(`Safelisting ${dynamicPrefixes.length} dynamic class prefixes`)
-
-await purgeStylesheet(productCssPath, contentPaths, dynamicPrefixes)
-await purgeStylesheet(globalCssPath, contentPaths, dynamicPrefixes)
