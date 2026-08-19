@@ -1,5 +1,5 @@
 import { Reorder, useDragControls } from "framer-motion"
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useState } from "react"
 import { updateRoleHierarchy } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
@@ -113,8 +113,6 @@ function RoleReorderList({
 }) {
   const [roles, setRoles] = useState(initialRoles)
   const [savingOrder, setSavingOrder] = useState(false)
-  const rolesRef = useRef(roles)
-  rolesRef.current = roles
 
   const persist = async () => {
     if (savingOrder) return
@@ -122,7 +120,7 @@ function RoleReorderList({
     setSavingOrder(true)
 
     try {
-      await updateRoleHierarchy(accountId, rolesRef.current.map((role) => role.id))
+      await updateRoleHierarchy(accountId, roles.map((role) => role.id))
       await refresh()
     } catch (error) {
       handleError(error)
