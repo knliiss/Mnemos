@@ -1,6 +1,5 @@
 import { api } from "@/shared/api/httpClient"
 import type {
-  AccountDetailsResponse,
   AccountMemberResponse,
   AccountRoleResponse,
   BalanceResponse,
@@ -76,6 +75,10 @@ export async function getAccountBalances(accountId: string): Promise<BalanceResp
   return api<BalanceResponse[]>(`/api/v1/accounts/${accountId}/balances`)
 }
 
+export async function getCurrentUserBalances(): Promise<BalanceResponse[]> {
+  return api<BalanceResponse[]>("/api/v1/users/me/balances")
+}
+
 export async function getAccountTransactions(accountId: string, page = 0, size = 30): Promise<PageResponse<WalletTransactionResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
   return api<PageResponse<WalletTransactionResponse>>(`/api/v1/accounts/${accountId}/transactions?${params}`)
@@ -122,8 +125,4 @@ export async function getSubscriptions(page = 0, size = 100): Promise<PageRespon
 
 export async function deleteSubscription(subscriptionId: string): Promise<void> {
   await api<void>(`/api/v1/subscriptions/${subscriptionId}`, { method: "DELETE" })
-}
-
-export async function getAccountDetails(accountId: string): Promise<AccountDetailsResponse> {
-  return api<AccountDetailsResponse>(`/api/v1/internal/accounts/${accountId}`)
 }
