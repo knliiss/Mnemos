@@ -65,6 +65,10 @@ jobs:
       - name: Prune unused styles
         run: node scripts/frontend-cleanup.mjs
 
+      - name: Normalize control flow
+        working-directory: apps/mini-app
+        run: npm run lint -- --fix
+
       - name: Format
         working-directory: apps/mini-app
         run: npm run format
@@ -102,7 +106,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "prune unused frontend styles"
+          git commit -m "normalize frontend style"
           git push origin HEAD:feat/frontend-integration
 
       - name: Publish cleanup status
