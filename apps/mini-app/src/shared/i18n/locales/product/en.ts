@@ -1,3 +1,5 @@
+import { betAdminEn } from "./bet-admin/en"
+
 export const productEn = {
   productShell: {
     navigation: {
@@ -136,4 +138,5 @@ export const productEn = {
     selectUserFirst: "Select a User first",
     noBadges: "No badges yet",
   },
+  ...betAdminEn,
 } as const
