@@ -8,6 +8,7 @@ import java.util.UUID
 
 data class AccountSummary(
     val id: AccountId,
+    val cristalixUuid: UUID,
     val cristalixNickname: String,
     val currentMemberId: AccountMemberId,
     val memberCount: Int,
