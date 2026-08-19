@@ -1,6 +1,7 @@
 package com.mnemos.account.application.query.account
 
 import com.mnemos.account.domain.model.account.AccountMemberId
+import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
 import java.time.Instant
@@ -26,6 +27,7 @@ data class AccountDetails(
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val baseRoleId: RoleId?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
