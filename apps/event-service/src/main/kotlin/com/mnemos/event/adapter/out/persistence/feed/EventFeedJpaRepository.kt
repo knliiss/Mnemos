@@ -113,6 +113,10 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     OR position(:searchTerm in lower(coalesce(raid_locations, ''))) > 0
                 )
                 AND (
+                    :droppedFor IS NULL
+                    OR (event_type = 'ITEM_DROP' AND lower(dropped_for) = :droppedFor)
+                )
+                AND (
                     :itemRarity IS NULL
                     OR (event_type = 'ITEM_DROP' AND item_rarity = :itemRarity)
                 )
@@ -135,6 +139,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
         @Param("includeGlobal") includeGlobal: Boolean,
         @Param("includeRaid") includeRaid: Boolean,
         @Param("searchTerm") searchTerm: String?,
+        @Param("droppedFor") droppedFor: String?,
         @Param("itemRarity") itemRarity: String?,
         @Param("newest") newest: Boolean,
         @Param("limit") limit: Int,
