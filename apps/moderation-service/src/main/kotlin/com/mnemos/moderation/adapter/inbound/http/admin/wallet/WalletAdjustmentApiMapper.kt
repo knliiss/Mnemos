@@ -1,6 +1,7 @@
 package com.mnemos.moderation.adapter.inbound.http.admin.wallet
 
 import com.mnemos.moderation.application.wallet.usecase.create.CreateWalletAdjustmentCommand
+import com.mnemos.moderation.application.wallet.usecase.query.ListWalletAdjustmentsQuery
 import com.mnemos.moderation.domain.wallet.model.WalletAdjustmentOperation
 import java.util.UUID
 
@@ -14,6 +15,12 @@ object WalletAdjustmentApiMapper {
             type = type,
             amount = amount,
             reason = reason,
+        )
+
+    fun ListWalletAdjustmentsRequest.toQuery(): ListWalletAdjustmentsQuery =
+        ListWalletAdjustmentsQuery(
+            targetType = targetType,
+            targetId = targetId,
         )
 
     fun WalletAdjustmentOperation.toResponse(): WalletAdjustmentResponse =
