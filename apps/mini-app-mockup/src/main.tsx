@@ -47,6 +47,7 @@ import "./account-action-illustration-pass.css"
 import "./typography-pass.css"
 import "./mascot-pass.css"
 import "./cohesive-ui-overhaul.css"
+import "./cohesive-ui-overhaul-fixes.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
