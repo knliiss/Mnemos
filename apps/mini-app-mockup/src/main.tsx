@@ -45,6 +45,7 @@ import "./product-v5-fixes.css"
 import "./product-v5-hotfix.css"
 import "./account-action-illustration-pass.css"
 import "./typography-pass.css"
+import "./mascot-pass.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
