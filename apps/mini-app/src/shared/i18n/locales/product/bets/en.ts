@@ -1,5 +1,5 @@
 export const betsProductEn = {
-  bets: {
+  productBets: {
     title: "Bets",
     modes: {
       EVENTS: "Events",
