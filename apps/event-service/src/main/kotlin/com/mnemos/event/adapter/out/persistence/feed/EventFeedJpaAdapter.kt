@@ -23,6 +23,7 @@ class EventFeedJpaAdapter(
 ) : EventFeedReader {
     override fun read(query: EventFeedQuery): List<EventFeedItem> {
         val searchTerm = query.search?.lowercase(Locale.ROOT)
+        val droppedFor = query.droppedFor?.lowercase(Locale.ROOT)
 
         return repository
             .read(
@@ -32,6 +33,7 @@ class EventFeedJpaAdapter(
                 includeGlobal = EventFeedKind.GLOBAL in query.kinds,
                 includeRaid = EventFeedKind.RAID in query.kinds,
                 searchTerm = searchTerm,
+                droppedFor = droppedFor,
                 itemRarity = query.itemRarity?.name,
                 newest = query.sort == EventFeedSort.NEWEST,
                 limit = query.limit,
