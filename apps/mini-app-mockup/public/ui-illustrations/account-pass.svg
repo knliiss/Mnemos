@@ -1,4 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 128" shape-rendering="crispEdges">
+  <style>
+    .mnemos-cat-eyelids {
+      opacity: 0;
+      animation: mnemos-cat-blink 17.6s steps(1, end) infinite;
+    }
+
+    @keyframes mnemos-cat-blink {
+      0%, 27%, 29%, 73%, 75%, 100% { opacity: 0; }
+      28%, 74% { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mnemos-cat-eyelids { animation: none; opacity: 0; }
+    }
+  </style>
+
   <rect x="48" y="112" width="64" height="4" fill="#080A08" opacity=".48"/>
   <rect x="60" y="116" width="40" height="4" fill="#080A08" opacity=".24"/>
 
@@ -109,4 +125,11 @@
   <rect x="28" y="36" width="4" height="4" fill="#BA914D"/>
   <rect x="132" y="48" width="4" height="4" fill="#9D7DA3"/>
   <rect x="132" y="88" width="4" height="4" fill="#BFD95F"/>
+
+  <g class="mnemos-cat-eyelids">
+    <rect x="52" y="44" width="24" height="16" fill="#363B36"/>
+    <rect x="84" y="44" width="24" height="16" fill="#363B36"/>
+    <rect x="56" y="53" width="16" height="3" fill="#181B18"/>
+    <rect x="88" y="53" width="16" height="3" fill="#181B18"/>
+  </g>
 </svg>
