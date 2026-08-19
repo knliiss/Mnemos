@@ -1,5 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { CristalixHead } from "./components/CristalixHead"
 import { ErrorNotificationProvider } from "./components/ErrorNotifications"
 import { RootNavIllustration } from "./components/RootNavIllustration"
@@ -17,18 +18,32 @@ import { PersonalizationFeatureFinal } from "./features/PersonalizationFeatureFi
 import { StaffAreaOverhaul } from "./features/StaffAreaOverhaul"
 import { CurrencyMark, Glyph } from "./shared/MnemosIcon"
 
-const rootItems: { id: RootRoute; label: string }[] = [
-  { id: "bets", label: "Ставки" },
-  { id: "events", label: "Події" },
-  { id: "account", label: "Головна" },
-  { id: "search", label: "Пошук" },
-  { id: "personalization-store", label: "Магазин" },
+const rootItems: RootRoute[] = [
+  "bets",
+  "events",
+  "account",
+  "search",
+  "personalization-store",
 ]
 
-const localizationOptions: { value: LocalizationLanguage; short: string; label: string; htmlLang: string }[] = [
-  { value: "UK", short: "UA", label: "Українська", htmlLang: "uk" },
-  { value: "RU", short: "RU", label: "Русский", htmlLang: "ru" },
-  { value: "EN", short: "EN", label: "English", htmlLang: "en" },
+const rootNavigationKeys: Record<RootRoute, string> = {
+  bets: "productShell.navigation.bets",
+  events: "productShell.navigation.events",
+  account: "productShell.navigation.home",
+  search: "productShell.navigation.search",
+  "personalization-store": "productShell.navigation.store",
+}
+
+const localizationOptions: {
+  value: LocalizationLanguage
+  short: string
+  label: string
+  htmlLang: string
+  numberLocale: string
+}[] = [
+  { value: "UK", short: "UA", label: "Українська", htmlLang: "uk", numberLocale: "uk-UA" },
+  { value: "RU", short: "RU", label: "Русский", htmlLang: "ru", numberLocale: "ru-RU" },
+  { value: "EN", short: "EN", label: "English", htmlLang: "en", numberLocale: "en-US" },
 ]
 
 function routeKey(route: Route) {
@@ -201,6 +216,8 @@ export default function AppFinal() {
 }
 
 function AccountAccessLanding({ route, navigate, back }: { route: Route; navigate: (route: Route) => void; back: () => void }) {
+  const { t } = useTranslation()
+
   if (route.id === "account-create" || route.id === "account-join") {
     return (
       <AccountAreaFinal
@@ -221,8 +238,8 @@ function AccountAccessLanding({ route, navigate, back }: { route: Route; navigat
       <header className="account-onboarding-header account-access-landing__header">
         <div className="account-onboarding-heading">
           <small>MNEMOS × CRISTALIX</small>
-          <h1>Обери аккаунт</h1>
-          <p>Створи новий Mnemos аккаунт для Cristalix профілю або приєднайся за кодом.</p>
+          <h1>{t("productShell.onboarding.title")}</h1>
+          <p>{t("productShell.onboarding.description")}</p>
         </div>
       </header>
 
@@ -231,20 +248,26 @@ function AccountAccessLanding({ route, navigate, back }: { route: Route; navigat
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
         </div>
         <div className="account-onboarding-hero__copy">
-          <small>ПОЧАТОК</small>
-          <strong>Кіт уже чекає на аккаунт</strong>
-          <p>Після привʼязки відкриються події, нагороди, команда та персоналізації.</p>
+          <small>{t("productShell.onboarding.start")}</small>
+          <strong>{t("productShell.onboarding.mascotTitle")}</strong>
+          <p>{t("productShell.onboarding.mascotDescription")}</p>
         </div>
       </section>
 
       <div className="account-onboarding-facts account-access-landing__actions">
         <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate({ id: "account-create" })}>
           <span>+</span>
-          <div><strong>Новий аккаунт</strong><small>Знайти Cristalix nickname</small></div>
+          <div>
+            <strong>{t("productShell.onboarding.newAccount")}</strong>
+            <small>{t("productShell.onboarding.findNickname")}</small>
+          </div>
         </motion.button>
         <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate({ id: "account-join" })}>
           <span>→</span>
-          <div><strong>Вхід за кодом</strong><small>Приєднатися до команди</small></div>
+          <div>
+            <strong>{t("productShell.onboarding.joinByCode")}</strong>
+            <small>{t("productShell.onboarding.joinTeam")}</small>
+          </div>
         </motion.button>
       </div>
     </div>
@@ -265,14 +288,19 @@ const emptyAccount: Account = {
 }
 
 function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (route: RootRoute) => void }) {
+  const { t } = useTranslation()
+
   return (
-    <nav className="root-navigation root-navigation--five final-navigation root-navigation--illustrated" aria-label="Основна навігація">
+    <nav
+      className="root-navigation root-navigation--five final-navigation root-navigation--illustrated"
+      aria-label={t("productShell.navigation.aria")}
+    >
       {rootItems.map((item) => (
-        <button key={item.id} className={current === item.id ? "is-active" : ""} onClick={() => onChange(item.id)}>
+        <button key={item} className={current === item ? "is-active" : ""} onClick={() => onChange(item)}>
           <span className="root-navigation__icon root-navigation__icon--illustrated">
-            <RootNavIllustration route={item.id} />
+            <RootNavIllustration route={item} />
           </span>
-          <span>{item.label}</span>
+          <span>{t(rootNavigationKeys[item])}</span>
         </button>
       ))}
     </nav>
@@ -280,12 +308,14 @@ function RootNavigation({ current, onChange }: { current: RootRoute; onChange: (
 }
 
 function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  const { t } = useTranslation()
+
   return (
     <motion.button
       className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
       whileTap={{ scale: 0.95 }}
       onClick={onToggle}
-      aria-label="Меню користувача"
+      aria-label={t("productShell.userMenu.open")}
     >
       <UserAvatarPlaceholder
         className="global-user-button__avatar"
@@ -339,12 +369,13 @@ function UserHubOverlay({
   onSelectAccount,
   navigate,
 }: UserHubOverlayProps) {
+  const { t } = useTranslation()
   const creator = systemRoles.some((role) => ["PERSONALIZATION_CREATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const moderation = systemRoles.some((role) => ["MODERATOR", "ADMIN", "SUPER_ADMIN"].includes(role))
   const administration = systemRoles.some((role) => ["ADMIN", "SUPER_ADMIN"].includes(role))
   const personalizationReviewer = systemRoles.includes("PERSONALIZATION_MODERATOR")
   const reviewerOnly = personalizationReviewer && !administration
-  const localizationLabel = localizationOptions.find((option) => option.value === localization)?.label ?? "Українська"
+  const localizationOption = localizationOptions.find((option) => option.value === localization) ?? localizationOptions[0]
 
   return (
     <AnimatePresence>
@@ -352,7 +383,7 @@ function UserHubOverlay({
         <>
           <motion.button
             className="user-hub-backdrop"
-            aria-label="Закрити меню"
+            aria-label={t("productShell.userMenu.close")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -375,7 +406,7 @@ function UserHubOverlay({
               </span>
               <button className="final-user-prime" onClick={() => navigate({ id: "user-wallet" })}>
                 <CurrencyMark currency="PRIME" size={16} />
-                <strong>{prime.toLocaleString("uk-UA")}</strong>
+                <strong>{prime.toLocaleString(localizationOption.numberLocale)}</strong>
                 <b>›</b>
               </button>
             </header>
@@ -387,10 +418,13 @@ function UserHubOverlay({
                 size={34}
               />
               <span>
-                <small>Активний аккаунт</small>
+                <small>{t("productShell.userMenu.activeAccount")}</small>
                 <strong>{activeAccount.nickname}</strong>
               </span>
-              <span className="final-account-switch__action"><Glyph name="swap" size={16} />Змінити</span>
+              <span className="final-account-switch__action">
+                <Glyph name="swap" size={16} />
+                {t("productShell.userMenu.change")}
+              </span>
             </button>
 
             <AnimatePresence initial={false}>
@@ -414,27 +448,39 @@ function UserHubOverlay({
                         size={30}
                       />
                       <strong>{account.nickname}</strong>
-                      <small>{account.active === false ? account.owner ? "активувати" : "неактивний" : account.role}</small>
+                      <small>
+                        {account.active === false
+                          ? account.owner
+                            ? t("productShell.userMenu.reactivate")
+                            : t("productShell.userMenu.inactive")
+                          : account.role}
+                      </small>
                       {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
                     </button>
                   ))}
                   <footer>
-                    <button onClick={() => navigate({ id: "account-create" })}><Glyph name="plus" size={15} />Створити</button>
-                    <button onClick={() => navigate({ id: "account-join" })}><Glyph name="invite" size={15} />За кодом</button>
+                    <button onClick={() => navigate({ id: "account-create" })}>
+                      <Glyph name="plus" size={15} />
+                      {t("productShell.userMenu.create")}
+                    </button>
+                    <button onClick={() => navigate({ id: "account-join" })}>
+                      <Glyph name="invite" size={15} />
+                      {t("productShell.userMenu.joinCode")}
+                    </button>
                   </footer>
                 </motion.div>
               ) : null}
             </AnimatePresence>
 
-            <section className="user-hub-localization" aria-label="Мова інтерфейсу">
+            <section className="user-hub-localization" aria-label={t("productShell.userMenu.languageAria")}>
               <span className="user-hub-localization__identity">
                 <span className="user-hub-localization__mark" aria-hidden="true" />
                 <span className="user-hub-localization__copy">
-                  <small>Мова</small>
-                  <strong>{localizationLabel}</strong>
+                  <small>{t("productShell.userMenu.language")}</small>
+                  <strong>{localizationOption.label}</strong>
                 </span>
               </span>
-              <span className="user-hub-localization__choices" role="group" aria-label="Оберіть мову">
+              <span className="user-hub-localization__choices" role="group" aria-label={t("productShell.userMenu.chooseLanguage")}>
                 {localizationOptions.map((option) => (
                   <motion.button
                     key={option.value}
@@ -451,37 +497,37 @@ function UserHubOverlay({
               </span>
             </section>
 
-            <div className="final-workspace-label">Робочі області</div>
+            <div className="final-workspace-label">{t("productShell.userMenu.workspaces")}</div>
             <nav className="final-workspace-grid">
               {creator ? (
                 <button className="is-creator" onClick={() => navigate({ id: "creator-studio" })}>
                   <span><Glyph name="creator" size={20} /></span>
                   <strong>Creator Studio</strong>
-                  <small>Створення персоналізацій</small>
+                  <small>{t("productShell.userMenu.creatorDescription")}</small>
                   <b>›</b>
                 </button>
               ) : null}
               {moderation && !administration ? (
                 <button className="is-moderation" onClick={() => navigate({ id: "moderation" })}>
                   <span><Glyph name="moderation" size={20} /></span>
-                  <strong>Модерація</strong>
-                  <small>Користувачі та санкції</small>
+                  <strong>{t("productShell.userMenu.moderation")}</strong>
+                  <small>{t("productShell.userMenu.moderationDescription")}</small>
                   <b>›</b>
                 </button>
               ) : null}
               {reviewerOnly ? (
                 <button className="is-creator" onClick={() => navigate({ id: "personalization-review" })}>
                   <span><Glyph name="creator" size={20} /></span>
-                  <strong>Перевірка</strong>
-                  <small>Черга персоналізацій</small>
+                  <strong>{t("productShell.userMenu.review")}</strong>
+                  <small>{t("productShell.userMenu.reviewDescription")}</small>
                   <b>›</b>
                 </button>
               ) : null}
               {administration ? (
                 <button className="is-admin" onClick={() => navigate({ id: "administration" })}>
                   <span><Glyph name="admin" size={20} /></span>
-                  <strong>Адміністрування</strong>
-                  <small>Системні інструменти</small>
+                  <strong>{t("productShell.userMenu.administration")}</strong>
+                  <small>{t("productShell.userMenu.administrationDescription")}</small>
                   <b>›</b>
                 </button>
               ) : null}
