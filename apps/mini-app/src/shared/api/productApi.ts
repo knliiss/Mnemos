@@ -13,7 +13,12 @@ import type {
   UserResponse,
   WalletTransactionResponse,
 } from "@/shared/api/backendContracts"
-import type { LocalizationLanguage } from "@/product-ui/model"
+import type {
+  BoosterType,
+  DungeonType,
+  GlobalEventType,
+  LocalizationLanguage,
+} from "@/product-ui/model"
 
 export async function initializeCurrentUser(): Promise<UserResponse> {
   return api<UserResponse>("/api/v1/users/me", { method: "PUT" })
@@ -135,6 +140,37 @@ export async function getSubscriptions(page = 0, size = 100): Promise<PageRespon
   return api<PageResponse<SubscriptionResponse>>(`/api/v1/subscriptions?${params}`)
 }
 
+export async function createItemDropSubscription(droppedFor?: string, itemName?: string): Promise<void> {
+  await postJson("/api/v1/subscriptions/item-drops", {
+    droppedFor: droppedFor?.trim() || null,
+    itemName: itemName?.trim() || null,
+  })
+}
+
+export async function createBoosterSubscription(boosterType: BoosterType): Promise<void> {
+  await postJson("/api/v1/subscriptions/boosters", { boosterType })
+}
+
+export async function createDungeonSubscription(dungeonType: DungeonType): Promise<void> {
+  await postJson("/api/v1/subscriptions/dungeons", { dungeonType })
+}
+
+export async function createGlobalSubscription(eventType: GlobalEventType): Promise<void> {
+  await postJson("/api/v1/subscriptions/globals", { eventType })
+}
+
+export async function createRaidSubscription(locations: number[]): Promise<void> {
+  await postJson("/api/v1/subscriptions/raids", { locations })
+}
+
 export async function deleteSubscription(subscriptionId: string): Promise<void> {
   await api<void>(`/api/v1/subscriptions/${subscriptionId}`, { method: "DELETE" })
+}
+
+async function postJson(path: string, body: unknown): Promise<void> {
+  await api<unknown>(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
 }
