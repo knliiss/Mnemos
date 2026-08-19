@@ -1,8 +1,8 @@
 import type { Account, Route } from "../model"
 import { BetsProduction } from "./BetsProduction"
 import { EventDetailProduction } from "./EventDetailProduction"
-import { EventsArea as EventsAreaRethink } from "./EventsAreaRethink"
 import { EventsFeedProduction } from "./EventsFeedProduction"
+import { NotFoundFeature } from "./NotFoundFeature"
 import { SubscriptionsProduction } from "./SubscriptionsProduction"
 
 type Props = {
@@ -47,5 +47,10 @@ export function EventsArea(props: Props) {
     return <SubscriptionsProduction back={props.back} />
   }
 
-  return <EventsAreaRethink {...props} />
+  return (
+    <NotFoundFeature
+      requested={props.routeId}
+      onHome={() => props.navigate({ id: "events" })}
+    />
+  )
 }
