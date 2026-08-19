@@ -111,6 +111,10 @@ export async function listItemRaces(): Promise<ItemRaceResponse[]> {
   return api<ItemRaceResponse[]>("/api/v1/bets/item-races")
 }
 
+export async function listMyItemRacePositions(): Promise<ItemRaceParticipantResponse[]> {
+  return api<ItemRaceParticipantResponse[]>("/api/v1/bets/item-race-participants/me")
+}
+
 export async function joinItemRace(raceId: string): Promise<AcceptedBetOperationResponse> {
   return betWrite("/api/v1/bets/item-race-participants", "POST", { raceId })
 }
