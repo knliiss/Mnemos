@@ -9,6 +9,7 @@ const productCssPath = path.join(sourceRoot, "product-ui/product.css")
 const globalCssPath = path.join(sourceRoot, "shared/styles/global.css")
 const require = createRequire(path.join(miniAppRoot, "package.json"))
 const { PurgeCSS } = require("purgecss")
+const postcss = require("postcss")
 
 const exactRenames = new Map([
   ["redesign-stage", "preview-stage"],
@@ -47,6 +48,9 @@ const exactRenames = new Map([
   ["store-v5-hero", "personalization-store-hero"],
   ["store-v5-screen", "personalization-store-screen"],
 ])
+
+const historicalClassPattern = /\.[A-Za-z_][A-Za-z0-9_-]*(?:final|polished|redesign|(?:^|-)v[2-9](?:-|$))[A-Za-z0-9_-]*/i
+const historicalTokenPattern = /(?:final|polished|redesign|(?:^|-)v[2-9](?:-|$))/i
 
 function walk(directory) {
   if (!fs.existsSync(directory)) {
@@ -247,8 +251,36 @@ async function purgeStylesheet(cssPath, contentPaths, dynamicPatterns) {
   )
 }
 
+function removeHistoricalCssOnlySelectors(cssPath) {
+  const original = fs.readFileSync(cssPath, "utf8")
+  const root = postcss.parse(original, { from: cssPath })
+  let removed = 0
+
+  root.walkRules((rule) => {
+    const selectors = rule.selectors
+
+    if (!selectors) {
+      return
+    }
+
+    const retained = selectors.filter((selector) => !historicalClassPattern.test(selector))
+    removed += selectors.length - retained.length
+
+    if (retained.length === 0) {
+      rule.remove()
+      return
+    }
+
+    if (retained.length !== selectors.length) {
+      rule.selectors = retained
+    }
+  })
+
+  fs.writeFileSync(cssPath, root.toString())
+  console.log(`${path.relative(repositoryRoot, cssPath)}: removed ${removed} CSS-only historical selectors`)
+}
+
 function historicalTokens(files) {
-  const historicalPattern = /(?:final|polished|redesign|(?:^|-)v[2-9](?:-|$))/i
   const usages = new Map()
 
   for (const filePath of files) {
@@ -256,7 +288,7 @@ function historicalTokens(files) {
     const tokens = content.match(/[A-Za-z_][A-Za-z0-9_-]*/g) ?? []
 
     for (const token of tokens) {
-      if (!token.includes("-") || !historicalPattern.test(token)) {
+      if (!token.includes("-") || !historicalTokenPattern.test(token)) {
         continue
       }
 
@@ -288,6 +320,9 @@ console.log(`Safelisting ${dynamicPatterns.length} concrete dynamic class patter
 
 await purgeStylesheet(productCssPath, contentPaths, dynamicPatterns)
 await purgeStylesheet(globalCssPath, contentPaths, dynamicPatterns)
+
+removeHistoricalCssOnlySelectors(productCssPath)
+removeHistoricalCssOnlySelectors(globalCssPath)
 
 const remaining = historicalTokens(sourceFiles())
 
