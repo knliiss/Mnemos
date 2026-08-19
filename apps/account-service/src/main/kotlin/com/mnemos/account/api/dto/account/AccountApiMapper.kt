@@ -15,6 +15,7 @@ object AccountApiMapper {
     fun AccountSummary.toResponse(): AccountSummaryResponse =
         AccountSummaryResponse(
             id = id.id,
+            cristalixUuid = cristalixUuid,
             cristalixNickname = cristalixNickname,
             currentMemberId = currentMemberId.id,
             memberCount = memberCount,
