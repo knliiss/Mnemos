@@ -1,5 +1,6 @@
 import type {
   BetGlobalEventType,
+  BetItemType,
   BoosterType,
   Currency,
   DungeonType,
@@ -116,6 +117,13 @@ export type ClaimDailyRewardResponse = {
 }
 
 export type EventFeedType = "ITEM_DROP" | "BOOSTER" | "GLOBAL" | "RAID"
+
+export type ItemCatalogResponse = {
+  id: string
+  name: string
+  type: BetItemType
+  rarity: string
+}
 
 export type ItemDropFeedResponse = {
   type: "ITEM_DROP"
