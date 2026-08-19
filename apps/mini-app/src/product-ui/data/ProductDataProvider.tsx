@@ -55,12 +55,15 @@ type ProductDataState = {
   members: Member[]
   roles: AccountRole[]
   feed: FeedEvent[]
+  eventCursor: string | null
+  eventsHasMore: boolean
   subscriptions: Subscription[]
   dailyReward: DailyRewardStateResponse | null
   loadingAccount: boolean
   loadingEvents: boolean
   refreshAccount(): Promise<void>
   refreshEvents(query?: EventFeedQuery): Promise<void>
+  loadMoreEvents(query?: EventFeedQuery): Promise<void>
   refreshSubscriptions(): Promise<void>
   selectAccount(account: Account): Promise<void>
   createAccount(nickname: string): Promise<void>
@@ -78,6 +81,8 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const [members, setMembers] = useState<Member[]>([])
   const [roles, setRoles] = useState<AccountRole[]>([])
   const [feed, setFeed] = useState<FeedEvent[]>([])
+  const [eventCursor, setEventCursor] = useState<string | null>(null)
+  const [eventsHasMore, setEventsHasMore] = useState(true)
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [dailyReward, setDailyReward] = useState<DailyRewardStateResponse | null>(null)
   const [accountCoin, setAccountCoin] = useState(0)
@@ -111,23 +116,28 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const refreshAccount = useCallback(async () => {
     const accountId = context?.activeAccount?.id
 
-    if (!accountId) {
-      setMembers([])
-      setRoles([])
-      setDailyReward(null)
-      setAccountCoin(0)
-      return
-    }
-
     setLoadingAccount(true)
 
     try {
+      const userBalancesPromise = getCurrentUserBalances()
+
+      if (!accountId) {
+        const userBalances = await userBalancesPromise
+
+        setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
+        setMembers([])
+        setRoles([])
+        setDailyReward(null)
+        setAccountCoin(0)
+        return
+      }
+
       const [memberResponses, roleResponses, balances, rewardState, userBalances] = await Promise.all([
         getAccountMembers(accountId),
         getAccountRoles(accountId),
         getAccountBalances(accountId),
         getDailyRewardState(),
-        getCurrentUserBalances(),
+        userBalancesPromise,
       ])
 
       setMembers(memberResponses.map((member) => toProductMember(member)))
@@ -146,14 +156,44 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     setLoadingEvents(true)
 
     try {
-      const response = await getEventFeed(query)
+      const limit = query.limit ?? 50
+      const response = await getEventFeed({ ...query, after: null })
+
       setFeed(response.items.map(toProductFeedEvent))
+      setEventCursor(response.cursor)
+      setEventsHasMore(response.items.length >= limit && response.cursor !== null)
     } catch (error) {
       handleError(error)
     } finally {
       setLoadingEvents(false)
     }
   }, [])
+
+  const loadMoreEvents = useCallback(async (query: EventFeedQuery = {}) => {
+    if (loadingEvents || !eventsHasMore || !eventCursor) return
+
+    setLoadingEvents(true)
+
+    try {
+      const limit = query.limit ?? 50
+      const response = await getEventFeed({
+        ...query,
+        after: eventCursor,
+      })
+      const nextItems = response.items.map(toProductFeedEvent)
+
+      setFeed((current) => {
+        const knownIds = new Set(current.map((item) => item.id))
+        return [...current, ...nextItems.filter((item) => !knownIds.has(item.id))]
+      })
+      setEventCursor(response.cursor)
+      setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setLoadingEvents(false)
+    }
+  }, [eventCursor, eventsHasMore, loadingEvents])
 
   const refreshSubscriptions = useCallback(async () => {
     try {
@@ -277,12 +317,15 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     members,
     roles,
     feed,
+    eventCursor,
+    eventsHasMore,
     subscriptions,
     dailyReward,
     loadingAccount,
     loadingEvents,
     refreshAccount,
     refreshEvents,
+    loadMoreEvents,
     refreshSubscriptions,
     selectAccount,
     createAccount,
@@ -298,12 +341,15 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     members,
     roles,
     feed,
+    eventCursor,
+    eventsHasMore,
     subscriptions,
     dailyReward,
     loadingAccount,
     loadingEvents,
     refreshAccount,
     refreshEvents,
+    loadMoreEvents,
     refreshSubscriptions,
     selectAccount,
     createAccount,
