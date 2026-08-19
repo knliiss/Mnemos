@@ -1,6 +1,14 @@
 import { AnimatePresence } from "framer-motion"
 import { useMemo, useState } from "react"
 import {
+  createBoosterSubscription,
+  createDungeonSubscription,
+  createGlobalSubscription,
+  createItemDropSubscription,
+  createRaidSubscription,
+} from "@/shared/api/productApi"
+import { handleError } from "@/shared/errors/errorHandler"
+import {
   BoosterArt,
   DungeonArt,
   GlobalEventArt,
@@ -13,8 +21,8 @@ import {
   GLOBAL_EVENT_TYPES,
   SUBSCRIPTION_TYPES,
 } from "../contracts"
+import { useProductData } from "../data/ProductDataProvider"
 import { subscriptionVisualTone } from "../eventVisualTone"
-import { initialSubscriptions } from "../mockData"
 import type {
   BetItemType,
   BoosterType,
@@ -116,8 +124,10 @@ function SubscriptionRuleIcon({ subscription }: { subscription: Subscription }) 
 }
 
 export function SubscriptionsPage({ back }: { back: () => void }) {
-  const [subscriptions, setSubscriptions] = useState(initialSubscriptions)
+  const product = useProductData()
+  const subscriptions = product.subscriptions
   const [creating, setCreating] = useState(false)
+  const [creatingBusy, setCreatingBusy] = useState(false)
   const [type, setType] = useState<SubscriptionType>("ITEM_DROP")
   const [droppedFor, setDroppedFor] = useState("")
   const [itemName, setItemName] = useState("")
@@ -163,34 +173,43 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
     setRaidInput("")
   }
 
-  const create = () => {
-    const id = `sub-${Date.now()}`
-    let next: Subscription
+  const create = async () => {
+    if (creatingBusy) return
+    if (type === "ITEM_DROP" && !itemDropValid) return
 
-    if (type === "ITEM_DROP") {
-      if (!itemDropValid) return
+    setCreatingBusy(true)
 
-      next = {
-        id,
-        type,
-        droppedFor: cleanDroppedFor || undefined,
-        itemName: cleanItemName || undefined,
+    try {
+      if (type === "ITEM_DROP") {
+        await createItemDropSubscription(cleanDroppedFor || undefined, cleanItemName || undefined)
+      } else if (type === "BOOSTER") {
+        await createBoosterSubscription(boosterType)
+      } else if (type === "DUNGEON") {
+        await createDungeonSubscription(dungeonType)
+      } else if (type === "GLOBAL") {
+        await createGlobalSubscription(globalType)
+      } else {
+        await createRaidSubscription(raidLocations)
       }
-    } else if (type === "BOOSTER") {
-      next = { id, type, boosterType }
-    } else if (type === "DUNGEON") {
-      next = { id, type, dungeonType }
-    } else if (type === "GLOBAL") {
-      next = { id, type, eventType: globalType }
-    } else {
-      next = { id, type, locations: raidLocations }
-    }
 
-    setSubscriptions([next, ...subscriptions])
-    setCreating(false)
+      await product.refreshSubscriptions()
+      setCreating(false)
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setCreatingBusy(false)
+    }
   }
 
-  const createDisabled = type === "ITEM_DROP" && !itemDropValid
+  const remove = async (subscriptionId: string) => {
+    try {
+      await product.removeSubscription(subscriptionId)
+    } catch {
+      // Product data provider already routed the backend error to the global handler.
+    }
+  }
+
+  const createDisabled = creatingBusy || (type === "ITEM_DROP" && !itemDropValid)
 
   return (
     <div className="screen subscriptions-redesign-screen">
@@ -228,7 +247,7 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
                   <strong>{subscriptionLabels[subscription.type]}</strong>
                   <small>{description(subscription)}</small>
                 </span>
-                <button aria-label="Видалити" onClick={() => setSubscriptions(subscriptions.filter((item) => item.id !== subscription.id))}>
+                <button aria-label="Видалити" onClick={() => void remove(subscription.id)}>
                   <Glyph name="close" size={15} />
                 </button>
               </article>
@@ -289,7 +308,9 @@ export function SubscriptionsPage({ back }: { back: () => void }) {
                 </Field>
               ) : null}
 
-              <button className="primary-action" disabled={createDisabled} onClick={create}>Зберегти правило</button>
+              <button className="primary-action" disabled={createDisabled} onClick={() => void create()}>
+                {creatingBusy ? "Збереження…" : "Зберегти правило"}
+              </button>
             </div>
           </BottomSheet>
         ) : null}
