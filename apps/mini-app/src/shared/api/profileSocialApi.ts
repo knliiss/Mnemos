@@ -128,7 +128,6 @@ export async function getAccountComments(
   const params = new URLSearchParams({
     page: String(page),
     size: String(size),
-    sort: "createdAt,desc",
   })
 
   const response = await api<PageResponse<CommentResponse>>(`/api/v1/accounts/${accountId}/comments?${params}`)
@@ -144,7 +143,6 @@ export async function getCommentReplies(
   const params = new URLSearchParams({
     page: String(page),
     size: String(size),
-    sort: "createdAt,asc",
   })
 
   const response = await api<PageResponse<CommentResponse>>(`/api/v1/comments/${commentId}/replies?${params}`)
