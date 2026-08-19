@@ -55,12 +55,14 @@ import "./product-round-three.css"
 import "./product-round-three-fixes.css"
 import "./product-round-four.css"
 import "./product-round-four-fixes.css"
+import "./product-round-five.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
   "/ui-illustrations/account-settings.svg",
   "/ui-illustrations/daily-claim.svg",
   "/ui-illustrations/account-activity.svg",
+  "/ui-illustrations/account-owner-crown.svg",
   "/ui-illustrations/workspace-creator.svg",
   "/ui-illustrations/workspace-admin.svg",
   "/ui-illustrations/admin-users.svg",
@@ -71,6 +73,7 @@ const criticalArtwork = [
   "/ui-illustrations/mnemos-mascot-cat.svg",
   "/ui-illustrations/mnemos-mascot-search.svg",
   "/ui-illustrations/mnemos-mascot-event.svg",
+  "/ui-illustrations/mnemos-mascot-404.svg",
   "/ui-illustrations/creator-studio-hero.svg",
   "/ui-illustrations/creator-nick.svg",
   "/ui-illustrations/creator-theme.svg",
