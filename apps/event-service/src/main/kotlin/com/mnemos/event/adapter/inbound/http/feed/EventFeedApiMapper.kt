@@ -14,7 +14,7 @@ object EventFeedApiMapper {
             cursor = cursor?.id,
         )
 
-    private fun EventFeedItem.toResponse(): EventFeedItemResponse =
+    fun EventFeedItem.toResponse(): EventFeedItemResponse =
         when (this) {
             is ItemDropFeedItem ->
                 ItemDropFeedItemResponse(
