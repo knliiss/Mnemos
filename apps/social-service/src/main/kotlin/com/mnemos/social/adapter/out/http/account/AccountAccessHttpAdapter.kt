@@ -12,8 +12,9 @@ class AccountAccessHttpAdapter(
     private val client: AccountServiceClient,
 ) : AccountAccessPort {
     override fun resolveActiveActor(userId: UUID): SocialActor {
-        val account = client.resolveActiveAccount(userId)
-            ?: throw ActiveSocialAccountRequiredException()
+        val account =
+            client.resolveActiveAccount(userId)
+                ?: throw ActiveSocialAccountRequiredException()
 
         return SocialActor(
             userId = userId,
