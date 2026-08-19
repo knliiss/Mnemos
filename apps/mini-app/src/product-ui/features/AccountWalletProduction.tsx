@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getAccountTransactions } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -9,14 +10,10 @@ import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 
 type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
 
-const sortLabels: Record<HistorySort, string> = {
-  NEWEST: "Спочатку нові",
-  OLDEST: "Спочатку старі",
-  AMOUNT_DESC: "Сума ↓",
-  AMOUNT_ASC: "Сума ↑",
-}
+const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_ASC"]
 
 export function AccountWalletProduction({ back }: { back: () => void }) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const activeAccount = product.activeAccount
   const activeAccountId = activeAccount?.id
@@ -24,6 +21,7 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const [sortOpen, setSortOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
     if (!activeAccountId) return
@@ -82,9 +80,26 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
     setSortOpen(false)
   }
 
+  const sortLabel = (sort: HistorySort) => t(`accountWallet.sort.${sort}`)
+  const formatTransactionDate = (value: string) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+
+    return new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date)
+  }
+  const transactionSourceLabel = (source: string) => {
+    const translated = t(`accountWallet.sources.${source}`, { defaultValue: "" })
+    return translated || source.replaceAll("_", " ")
+  }
+
   return (
     <div className="screen account-wallet-v2">
-      <PageHeader title="Гаманець" eyebrow={activeAccount.nickname} back={back} />
+      <PageHeader title={t("accountWallet.title")} eyebrow={activeAccount.nickname} back={back} />
 
       <section className="coin-wallet-hero">
         <div className="coin-wallet-hero__copy">
@@ -92,21 +107,21 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
             <CurrencyMark currency="COIN" size={20} />
             <strong>COIN</strong>
           </span>
-          <strong className="coin-wallet-hero__value">{activeAccount.coin.toLocaleString("uk-UA")}</strong>
-          <small>Баланс аккаунта</small>
+          <strong className="coin-wallet-hero__value">{activeAccount.coin.toLocaleString(locale)}</strong>
+          <small>{t("accountWallet.balance")}</small>
         </div>
 
         <img className="coin-wallet-hero__art" src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
 
         <div className="coin-wallet-hero__stats">
-          <span><small>Надійшло</small><strong>+{totalEarned.toLocaleString("uk-UA")}</strong></span>
-          <span><small>Витрачено</small><strong>−{totalSpent.toLocaleString("uk-UA")}</strong></span>
+          <span><small>{t("accountWallet.earned")}</small><strong>+{totalEarned.toLocaleString(locale)}</strong></span>
+          <span><small>{t("accountWallet.spent")}</small><strong>−{totalSpent.toLocaleString(locale)}</strong></span>
         </div>
       </section>
 
       <section className="coin-history-panel coin-history-panel--production">
         <header className="wallet-history-head">
-          <span><small>РУХ COIN</small><strong>Історія</strong></span>
+          <span><small>{t("accountWallet.movement")}</small><strong>{t("accountWallet.history")}</strong></span>
 
           <div className={`wallet-history-sort wallet-history-sort--custom ${sortOpen ? "is-open" : ""}`}>
             <button
@@ -116,7 +131,7 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
               onClick={() => setSortOpen((value) => !value)}
             >
               <Glyph name="swap" size={14} />
-              <span>{sortLabels[historySort]}</span>
+              <span>{sortLabel(historySort)}</span>
               <b>⌄</b>
             </button>
 
@@ -128,9 +143,9 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.985 }}
                 >
-                  {(Object.keys(sortLabels) as HistorySort[]).map((sort) => (
+                  {historySorts.map((sort) => (
                     <button key={sort} type="button" className={historySort === sort ? "is-active" : ""} onClick={() => selectSort(sort)}>
-                      <span>{sortLabels[sort]}</span>
+                      <span>{sortLabel(sort)}</span>
                       {historySort === sort ? <Glyph name="check" size={13} /> : null}
                     </button>
                   ))}
@@ -164,8 +179,8 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
           {!loading && !history.length ? (
             <div className="coin-history-empty">
               <CurrencyMark currency="COIN" size={22} />
-              <strong>Транзакцій ще немає</strong>
-              <small>Нарахування та витрати COIN зʼявляться тут.</small>
+              <strong>{t("accountWallet.emptyTitle")}</strong>
+              <small>{t("accountWallet.emptyCopy")}</small>
             </div>
           ) : null}
 
@@ -176,31 +191,8 @@ export function AccountWalletProduction({ back }: { back: () => void }) {
   )
 }
 
-function transactionSourceLabel(source: string) {
-  const labels: Record<string, string> = {
-    DAILY_REWARD: "Щоденна нагорода",
-    ITEM_DROP_REWARD: "Нагорода за дроп",
-    BET_PLACE: "Ставка",
-    BET_WIN: "Виграш ставки",
-    BET_REFUND: "Повернення ставки",
-    PERSONALIZATION_PURCHASE: "Персоналізація",
-    PERSONALIZATION_REFUND: "Повернення персоналізації",
-    PRIME_PURCHASE: "Покупка PRIME",
-    DONATION: "Поповнення",
-    ADMIN_ADJUSTMENT: "Коригування адміністратором",
-  }
-
-  return labels[source] ?? source.replaceAll("_", " ")
-}
-
-function formatTransactionDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat("uk-UA", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date)
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
