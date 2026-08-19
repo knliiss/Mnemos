@@ -43,6 +43,7 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
             current_member.id AS "currentMemberId",
             account.owner_member_id AS "ownerMemberId",
             account.max_members AS "maxMembers",
+            account.base_role_id AS "baseRoleId",
             account.created_at AS "createdAt",
             account.updated_at AS "updatedAt",
             (
