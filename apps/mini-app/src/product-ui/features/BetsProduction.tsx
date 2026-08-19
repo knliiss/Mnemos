@@ -166,7 +166,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
       <header className="root-title-block bets-r2-title">
         <span>
           <small>MNEMOS BETS</small>
-          <h1>{t("bets.title")}</h1>
+          <h1>{t("productBets.title")}</h1>
           <p>{activeAccount.nickname}</p>
         </span>
         <button className="bets-r2-wallet" onClick={() => navigate({ id: "account-wallet" })}>
@@ -177,13 +177,13 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
       <nav className="bets-r2-mode">
         {betModes.map((value) => (
           <button key={value} className={mode === value ? "is-active" : ""} onClick={() => setMode(value)}>
-            <span>{t(`bets.modes.${value}`)}</span>
+            <span>{t(`productBets.modes.${value}`)}</span>
             {value === "MY" && myRounds.length + myRaces.length ? <b>{myRounds.length + myRaces.length}</b> : null}
           </button>
         ))}
       </nav>
 
-      {loading ? <div className="events-r2-loading" aria-label={t("bets.loading")}><i /><i /><i /></div> : null}
+      {loading ? <div className="events-r2-loading" aria-label={t("productBets.loading")}><i /><i /><i /></div> : null}
 
       {!loading && mode === "EVENTS" ? (
         <>
@@ -195,14 +195,14 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
             >
               <span className="bets-r2-feature__art"><GlobalEventArt eventType={featured.eventType} size={82} /></span>
               <span className="bets-r2-feature__copy">
-                <small>{featured.status === "OPEN" ? t("bets.nextRound") : roundStatusLabel(t, featured.status)}</small>
+                <small>{featured.status === "OPEN" ? t("productBets.nextRound") : roundStatusLabel(t, featured.status)}</small>
                 <strong>{globalEventLabel(t, featured.eventType)}</strong>
-                <em>{t("bets.closes", { time: formatMoment(featured.closesAt, locale) })}</em>
+                <em>{t("productBets.closes", { time: formatMoment(featured.closesAt, locale) })}</em>
               </span>
               <span className="bets-r2-feature__odds">
-                <span><small>{t("bets.yesUpper")}</small><strong>{formatOdds(featured.yesOdds, locale)}</strong></span>
+                <span><small>{t("productBets.yesUpper")}</small><strong>{formatOdds(featured.yesOdds, locale)}</strong></span>
                 <i />
-                <span><small>{t("bets.noUpper")}</small><strong>{formatOdds(featured.noOdds, locale)}</strong></span>
+                <span><small>{t("productBets.noUpper")}</small><strong>{formatOdds(featured.noOdds, locale)}</strong></span>
               </span>
               {featured.myBet ? (
                 <span className="bets-r2-feature__mine">
@@ -211,12 +211,12 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               ) : null}
             </motion.button>
           ) : (
-            <EmptyBets title={t("bets.empty.roundsTitle")} note={t("bets.empty.roundsCopy")} />
+            <EmptyBets title={t("productBets.empty.roundsTitle")} note={t("productBets.empty.roundsCopy")} />
           )}
 
           {eventRounds.length ? (
             <>
-              <header className="bets-r2-section-head"><span><small>{t("bets.moreRounds")}</small><strong>{eventRounds.length}</strong></span></header>
+              <header className="bets-r2-section-head"><span><small>{t("productBets.moreRounds")}</small><strong>{eventRounds.length}</strong></span></header>
               <section className="bets-r2-rounds">
                 {eventRounds.map((round) => (
                   <BetRoundCard
@@ -255,7 +255,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
             />
           ))}
           {!myRounds.length && !myRaces.length ? (
-            <EmptyBets title={t("bets.empty.myTitle")} note={t("bets.empty.myCopy")} />
+            <EmptyBets title={t("productBets.empty.myTitle")} note={t("productBets.empty.myCopy")} />
           ) : null}
         </section>
       ) : null}
@@ -272,7 +272,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               onClick={() => openRace(race)}
             />
           ))}
-          {!races.length ? <EmptyBets title={t("bets.empty.racesTitle")} note={t("bets.empty.racesCopy")} /> : null}
+          {!races.length ? <EmptyBets title={t("productBets.empty.racesTitle")} note={t("productBets.empty.racesCopy")} /> : null}
         </section>
       ) : null}
 
@@ -285,7 +285,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 <span>
                   <small>{roundStatusLabel(t, selectedRound.status)}</small>
                   <strong>{formatMoment(selectedRound.scheduledAt, locale)}</strong>
-                  <em>{t("bets.sheet.until", { time: formatMoment(selectedRound.closesAt, locale) })}</em>
+                  <em>{t("productBets.sheet.until", { time: formatMoment(selectedRound.closesAt, locale) })}</em>
                 </span>
               </div>
 
@@ -293,7 +293,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 <div className="bets-r2-side-choice">
                   {BET_SIDES.map((value) => (
                     <button key={value} disabled={busy} className={side === value ? "is-active" : ""} onClick={() => setSide(value)}>
-                      <span>{value === "YES" ? t("bets.yes") : t("bets.no")}</span>
+                      <span>{value === "YES" ? t("productBets.yes") : t("productBets.no")}</span>
                       <strong>× {formatOdds(value === "YES" ? selectedRound.yesOdds : selectedRound.noOdds, locale)}</strong>
                     </button>
                   ))}
@@ -301,14 +301,14 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               ) : (
                 <div className="bets-r2-current-position">
                   <span>
-                    <small>{t("bets.sheet.yourPosition")}</small>
-                    <strong>{selectedRound.myBet.side === "YES" ? t("bets.yes") : t("bets.no")}</strong>
+                    <small>{t("productBets.sheet.yourPosition")}</small>
+                    <strong>{selectedRound.myBet.side === "YES" ? t("productBets.yes") : t("productBets.no")}</strong>
                   </span>
                   <CurrencyValue currency="COIN" value={betAmount(selectedRound.myBet)} compact />
                 </div>
               )}
 
-              <Field label={selectedRound.myBet ? t("bets.sheet.increaseBy") : t("bets.sheet.amount")}>
+              <Field label={selectedRound.myBet ? t("productBets.sheet.increaseBy") : t("productBets.sheet.amount")}>
                 <div className="bets-r2-amount">
                   <CurrencyMark currency="COIN" size={16} />
                   <input
@@ -328,10 +328,10 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 onClick={() => void submitRound()}
               >
                 {busy
-                  ? t("bets.sheet.sending")
+                  ? t("productBets.sheet.sending")
                   : selectedRound.myBet
-                    ? t("bets.sheet.increase")
-                    : t("bets.sheet.place")}
+                    ? t("productBets.sheet.increase")
+                    : t("productBets.sheet.place")}
               </button>
             </div>
           </BottomSheet>
@@ -345,17 +345,17 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 <span>
                   <small>{itemTypeLabel(t, selectedRace.race.itemType)}</small>
                   <strong>{raceStatusLabel(t, selectedRace.race.status)}</strong>
-                  <em>{t("bets.race.registrationUntil", { time: formatMoment(selectedRace.race.registrationClosesAt, locale) })}</em>
+                  <em>{t("productBets.race.registrationUntil", { time: formatMoment(selectedRace.race.registrationClosesAt, locale) })}</em>
                 </span>
               </div>
 
               <div className="bets-r2-current-position">
                 <span>
-                  <small>{selectedRace.position ? t("bets.race.yourAmount") : t("bets.race.entry")}</small>
+                  <small>{selectedRace.position ? t("productBets.race.yourAmount") : t("productBets.race.entry")}</small>
                   <strong>
                     {selectedRace.position
-                      ? t("bets.race.activeParticipation")
-                      : t("bets.race.fee", { percent: selectedRace.race.feePercent })}
+                      ? t("productBets.race.activeParticipation")
+                      : t("productBets.race.fee", { percent: selectedRace.race.feePercent })}
                   </strong>
                 </span>
                 <CurrencyValue
@@ -366,7 +366,7 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
               </div>
 
               {selectedRace.position ? (
-                <Field label={t("bets.sheet.increaseBy")}>
+                <Field label={t("productBets.sheet.increaseBy")}>
                   <div className="bets-r2-amount">
                     <CurrencyMark currency="COIN" size={16} />
                     <input
@@ -390,10 +390,10 @@ export function BetsProduction({ activeAccount, navigate }: Props) {
                 onClick={() => void submitRace()}
               >
                 {busy
-                  ? t("bets.sheet.sending")
+                  ? t("productBets.sheet.sending")
                   : selectedRace.position
-                    ? t("bets.sheet.increase")
-                    : t("bets.race.join")}
+                    ? t("productBets.sheet.increase")
+                    : t("productBets.race.join")}
               </button>
             </div>
           </BottomSheet>
@@ -455,10 +455,10 @@ function BetRaceCard({
       <span className="bets-r2-race__copy">
         <small>{itemTypeLabel(t, race.itemType)}</small>
         <strong>{race.itemName}</strong>
-        <em>{raceStatusLabel(t, race.status)} · {t("bets.sheet.until", { time: formatMoment(race.registrationClosesAt, locale) })}</em>
+        <em>{raceStatusLabel(t, race.status)} · {t("productBets.sheet.until", { time: formatMoment(race.registrationClosesAt, locale) })}</em>
       </span>
       <span className="bets-r2-race__entry">
-        <small>{position ? t("bets.race.yours") : t("bets.race.entryUpper")}</small>
+        <small>{position ? t("productBets.race.yours") : t("productBets.race.entryUpper")}</small>
         <CurrencyValue currency="COIN" value={position ? racePositionAmount(position) : race.entryAmount} compact />
       </span>
     </motion.button>
@@ -488,7 +488,7 @@ function globalEventLabel(t: TFunction, eventType: EventBetRoundResponse["eventT
 }
 
 function itemTypeLabel(t: TFunction, itemType: ItemRaceResponse["itemType"]) {
-  return t(`bets.itemTypes.${itemType}`, { defaultValue: itemType })
+  return t(`productBets.itemTypes.${itemType}`, { defaultValue: itemType })
 }
 
 function formatOdds(value: number, locale: string) {
@@ -508,11 +508,11 @@ function formatMoment(value: string, locale: string) {
 }
 
 function roundStatusLabel(t: TFunction, status: EventBetRoundResponse["status"]) {
-  return t(`bets.roundStatus.${status}`, { defaultValue: status })
+  return t(`productBets.roundStatus.${status}`, { defaultValue: status })
 }
 
 function raceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]) {
-  return t(`bets.raceStatus.${status}`, { defaultValue: status })
+  return t(`productBets.raceStatus.${status}`, { defaultValue: status })
 }
 
 function localeForLanguage(language?: string) {
