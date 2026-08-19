@@ -1,3 +1,4 @@
+import { accountProductEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
 
 export const productEn = {
@@ -138,5 +139,6 @@ export const productEn = {
     selectUserFirst: "Select a User first",
     noBadges: "No badges yet",
   },
+  ...accountProductEn,
   ...betAdminEn,
 } as const
