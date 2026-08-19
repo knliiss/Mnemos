@@ -52,7 +52,6 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
 
   const selectedCount = Object.values(permissions).filter(Boolean).length
   const normalizedQuery = query.trim().toLowerCase()
-  const permissionLabel = (permission: RolePermission) => t(`roleEditor.permissions.${permission}`)
 
   const visibleGroups = useMemo(
     () => rolePermissionGroups
@@ -60,7 +59,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
         ...group,
         permissions: group.permissions.filter((permission) =>
           !normalizedQuery
-          || permissionLabel(permission).toLowerCase().includes(normalizedQuery)
+          || t(`roleEditor.permissions.${permission}`).toLowerCase().includes(normalizedQuery)
           || permission.toLowerCase().includes(normalizedQuery),
         ),
       }))
@@ -279,7 +278,7 @@ export function RoleEditorProduction({ params, navigate, back }: Props) {
                       onClick={() => togglePermission(permission)}
                     >
                       <span>
-                        <strong>{permissionLabel(permission)}</strong>
+                        <strong>{t(`roleEditor.permissions.${permission}`)}</strong>
                         <small>{permission}</small>
                       </span>
                       <i aria-hidden="true"><b /></i>
