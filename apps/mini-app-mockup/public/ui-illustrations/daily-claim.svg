@@ -1,22 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" shape-rendering="crispEdges">
-  <!-- small ambient accents -->
-  <rect x="8" y="9" width="3" height="3" fill="#CFFF35" opacity=".62"/>
-  <rect x="36" y="8" width="3" height="3" fill="#D9A84D" opacity=".58"/>
+  <!-- restrained ambient pixels -->
+  <rect x="8" y="10" width="2" height="2" fill="#D3A24E" opacity=".72"/>
+  <rect x="38" y="12" width="2" height="2" fill="#C8F13A" opacity=".62"/>
 
-  <!-- bow -->
-  <path d="M23 19h-5c-5 0-7-3-7-6 0-3 2-5 6-5 4 0 7 4 8 8h-2v3Zm-6-7c-2 0-3 1-3 2 0 2 2 2 4 2h2c-1-2-2-4-3-4Z" fill="#D6A34B"/>
-  <path d="M25 19h5c5 0 7-3 7-6 0-3-2-5-6-5-4 0-7 4-8 8h2v3Zm6-7c2 0 3 1 3 2 0 2-2 2-4 2h-2c1-2 2-4 3-4Z" fill="#D6A34B"/>
+  <!-- pixel bow: left loop -->
+  <rect x="14" y="10" width="6" height="2" fill="#D3A24E"/>
+  <rect x="12" y="12" width="8" height="2" fill="#D3A24E"/>
+  <rect x="12" y="14" width="4" height="4" fill="#D3A24E"/>
+  <rect x="14" y="18" width="8" height="2" fill="#D3A24E"/>
+  <rect x="16" y="14" width="4" height="2" fill="#171D13"/>
+  <rect x="18" y="16" width="4" height="2" fill="#171D13"/>
 
-  <!-- lid -->
-  <rect x="8" y="20" width="32" height="8" rx="3" fill="#20271A"/>
-  <rect x="11" y="23" width="26" height="3" rx="1" fill="#39452A"/>
-  <rect x="22" y="20" width="4" height="8" fill="#C9F238"/>
+  <!-- pixel bow: right loop -->
+  <rect x="28" y="10" width="6" height="2" fill="#D3A24E"/>
+  <rect x="28" y="12" width="8" height="2" fill="#D3A24E"/>
+  <rect x="32" y="14" width="4" height="4" fill="#D3A24E"/>
+  <rect x="26" y="18" width="8" height="2" fill="#D3A24E"/>
+  <rect x="28" y="14" width="4" height="2" fill="#171D13"/>
+  <rect x="26" y="16" width="4" height="2" fill="#171D13"/>
 
-  <!-- body -->
-  <rect x="10" y="28" width="28" height="13" rx="3" fill="#171D13"/>
-  <rect x="13" y="30" width="22" height="8" rx="2" fill="#2C3622"/>
-  <rect x="22" y="28" width="4" height="13" fill="#BFE52F"/>
+  <!-- bow knot -->
+  <rect x="22" y="14" width="4" height="6" fill="#E0B45E"/>
+  <rect x="22" y="16" width="4" height="2" fill="#F0C977"/>
 
-  <!-- claim sparkle -->
-  <path d="M36 32h2v2h2v2h-2v2h-2v-2h-2v-2h2v-2Z" fill="#E7EBDD" opacity=".72"/>
+  <!-- lid outline -->
+  <rect x="8" y="20" width="32" height="2" fill="#11160E"/>
+  <rect x="6" y="22" width="36" height="6" fill="#11160E"/>
+  <rect x="8" y="28" width="32" height="2" fill="#11160E"/>
+
+  <!-- lid fill -->
+  <rect x="8" y="22" width="32" height="4" fill="#26301E"/>
+  <rect x="10" y="24" width="28" height="2" fill="#3A472C"/>
+
+  <!-- lid ribbon -->
+  <rect x="22" y="20" width="4" height="8" fill="#C8F13A"/>
+  <rect x="24" y="20" width="2" height="8" fill="#B6DE2E"/>
+
+  <!-- box outline -->
+  <rect x="10" y="30" width="28" height="2" fill="#11160E"/>
+  <rect x="8" y="32" width="32" height="10" fill="#11160E"/>
+  <rect x="10" y="42" width="28" height="2" fill="#11160E"/>
+
+  <!-- box fill -->
+  <rect x="10" y="32" width="28" height="8" fill="#20291A"/>
+  <rect x="12" y="34" width="24" height="6" fill="#303C26"/>
+  <rect x="14" y="34" width="20" height="2" fill="#3A482D"/>
+
+  <!-- box ribbon -->
+  <rect x="22" y="30" width="4" height="14" fill="#BCE531"/>
+  <rect x="24" y="30" width="2" height="14" fill="#A9D225"/>
+
+  <!-- small claim sparkle -->
+  <rect x="38" y="34" width="2" height="6" fill="#DDE2D4" opacity=".82"/>
+  <rect x="36" y="36" width="6" height="2" fill="#DDE2D4" opacity=".82"/>
+  <rect x="38" y="36" width="2" height="2" fill="#F4F7EC"/>
 </svg>
