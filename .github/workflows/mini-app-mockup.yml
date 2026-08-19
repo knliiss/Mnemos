@@ -174,7 +174,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_STATUS: ${{ job.status }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository}/actions/runs/${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
