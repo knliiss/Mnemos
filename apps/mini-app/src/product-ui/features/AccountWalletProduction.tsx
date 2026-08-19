@@ -19,20 +19,36 @@ const sortLabels: Record<HistorySort, string> = {
 export function AccountWalletProduction({ back }: { back: () => void }) {
   const product = useProductData()
   const activeAccount = product.activeAccount
+  const activeAccountId = activeAccount?.id
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const [sortOpen, setSortOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!activeAccount) return
+    if (!activeAccountId) return
 
-    setLoading(true)
-    void getAccountTransactions(activeAccount.id, 0, 100)
-      .then((response) => setTransactions(response.items))
-      .catch(handleError)
-      .finally(() => setLoading(false))
-  }, [activeAccount?.id])
+    let cancelled = false
+    const timeout = window.setTimeout(() => {
+      setLoading(true)
+
+      void getAccountTransactions(activeAccountId, 0, 100)
+        .then((response) => {
+          if (!cancelled) setTransactions(response.items)
+        })
+        .catch((error) => {
+          if (!cancelled) handleError(error)
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+    }, 0)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+    }
+  }, [activeAccountId])
 
   const totalEarned = useMemo(
     () => transactions
