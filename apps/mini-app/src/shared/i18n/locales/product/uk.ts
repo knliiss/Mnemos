@@ -1,3 +1,4 @@
+import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 
 export const productUk = {
@@ -138,5 +139,6 @@ export const productUk = {
     selectUserFirst: "Спочатку обери User",
     noBadges: "Бейджів ще немає",
   },
+  ...accountProductUk,
   ...betAdminUk,
 } as const
