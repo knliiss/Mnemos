@@ -1,0 +1,99 @@
+/* Round six follow-up: remove every legacy wrapper frame and make event color read from the artwork itself. */
+
+/* Old rethink wrappers still draw L-shaped corners around EventArt. The artwork must stand on its own. */
+.events-r2-featured__art::before,
+.events-r2-row__art::before,
+.profile-r2-drop__art::before,
+.bets-r2-feature__art::before,
+.bets-r2-card__art::before,
+.bets-r2-race__art::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.events-r2-featured__art,
+.events-r2-row__art,
+.profile-r2-drop__art,
+.bets-r2-feature__art,
+.bets-r2-card__art,
+.bets-r2-race__art {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Replace the small ground line with a soft local halo. It carries the event hue without enclosing the icon. */
+.event-art::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 58% !important;
+  height: 58% !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--event-art-color) !important;
+  opacity: .24 !important;
+  filter: blur(11px) !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
+}
+
+/* The icon itself gets a readable colored aura, not just a barely visible shadow. */
+.event-art__image,
+.event-art__vector {
+  filter:
+    drop-shadow(0 0 3px color-mix(in srgb, var(--event-art-color) 72%, transparent))
+    drop-shadow(0 0 8px color-mix(in srgb, var(--event-art-color) 44%, transparent))
+    drop-shadow(0 0 15px color-mix(in srgb, var(--event-art-color) 20%, transparent))
+    drop-shadow(0 5px 7px rgba(0, 0, 0, .34)) !important;
+}
+
+/* Keep the semantic pixels close to the object so they read as event identity, not a replacement frame. */
+.event-art::before {
+  top: 13% !important;
+  right: 12% !important;
+  width: 3px !important;
+  height: 3px !important;
+  box-shadow:
+    -8px 6px 0 color-mix(in srgb, var(--event-art-color) 54%, transparent),
+    2px 12px 0 color-mix(in srgb, var(--event-art-color) 78%, transparent) !important;
+  opacity: .88 !important;
+}
+
+.events-r2-featured .event-art::after,
+.event-r4-hero .event-art::after {
+  width: 66% !important;
+  height: 66% !important;
+  opacity: .28 !important;
+  filter: blur(13px) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .events-r2-featured .event-art::after {
+    animation: mnemos-event-halo-pulse 5.6s ease-in-out infinite;
+  }
+}
+
+@keyframes mnemos-event-halo-pulse {
+  0%, 70%, 100% {
+    opacity: .23;
+    transform: translate(-50%, -50%) scale(.96);
+  }
+
+  76% {
+    opacity: .34;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  84% {
+    opacity: .27;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
