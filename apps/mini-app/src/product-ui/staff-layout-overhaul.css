@@ -1,0 +1,17 @@
+/* Existing moderation-user page: clearer hierarchy without changing backend-aligned controls. */
+.internal-user-screen .internal-user-hero{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:13px;border:1px solid rgba(235,241,213,.1);border-radius:16px;background:rgba(255,255,255,.018)}.internal-user-screen .internal-user-hero > span:nth-child(2){min-width:0}.internal-user-screen .internal-user-hero em{overflow:hidden;display:block;max-width:100%;text-overflow:ellipsis;white-space:nowrap}.internal-info-grid{gap:8px}.internal-info-grid article{border:1px solid rgba(235,241,213,.075);border-radius:12px;background:rgba(255,255,255,.016)}
+.moderation-actions-final{display:grid;grid-template-columns:1fr 1fr;gap:8px}.moderation-actions-final > button{min-width:0;padding:11px;border:1px solid rgba(235,241,213,.09);border-radius:13px}.moderation-actions-final > button span{min-width:0}.moderation-actions-final strong,.moderation-actions-final small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sanction-final{grid-template-columns:auto minmax(0,1fr) auto;gap:9px}.sanction-final > span:nth-child(2){min-width:0}.sanction-final small,.sanction-final em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-wallet-panel{border:1px solid rgba(235,241,213,.09)!important;border-radius:16px!important;background:rgba(255,255,255,.016)!important}.wallet-adjustment-history article{grid-template-columns:auto minmax(0,1fr) auto}.wallet-adjustment-history article > span:nth-child(2){min-width:0}
+
+/* Badge admin: keep icon, text and actions in their own columns. */
+.badge-sample{display:grid!important;grid-template-columns:48px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:10px!important;min-width:0!important}.badge-sample > span{grid-row:1/3!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;margin:0!important}.badge-sample > strong,.badge-sample > small{grid-column:2!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.granted-list > div{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important}.granted-list > div > span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+
+@media (max-width: 374px) {
+  .personalization-detail-overview{grid-template-columns:76px minmax(0,1fr);}.personalization-detail-overview > .real-preview{width:76px;min-width:76px}.personalization-detail-overview__price{grid-column:2}
+  .review-toolbar{grid-template-columns:1fr}.review-scope{justify-content:stretch}.review-scope button{flex:1}
+  .review-queue-card{grid-template-columns:60px minmax(0,1fr)}.review-queue-card > .real-preview{width:60px;min-width:60px}.review-queue-card__side{grid-column:2;grid-row:2;display:flex;justify-content:space-between;width:100%}
+  .review-decision-grid,.bet-builder-presets{grid-template-columns:1fr}
+  .bet-admin-round{grid-template-columns:46px minmax(0,1fr)}.bet-admin-round__odds{grid-column:2;justify-self:start}.bet-admin-round__resolved{position:static;grid-column:2;justify-self:start}
+  .bet-outcome-picker{grid-template-columns:1fr}.item-type-art-picker{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .item-race-builder__preview{grid-template-columns:58px minmax(0,1fr)}.item-race-builder__preview > div{grid-column:2;justify-items:start}
+  .moderation-actions-final{grid-template-columns:1fr}
+}

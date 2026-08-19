@@ -1,0 +1,370 @@
+/* User-requested account, event discovery and event-art refinements. */
+
+/* Profile entry: use the active Cristalix head and keep it aligned with each root header. */
+.global-user-button--final {
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+  padding: 2px !important;
+  border-color: rgba(235, 241, 213, .18) !important;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(203, 255, 45, .055), transparent 52%),
+    rgba(23, 25, 20, .94) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .055),
+    0 8px 22px rgba(0, 0, 0, .28) !important;
+}
+
+.global-user-button--final .global-user-button__head {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: rgba(10, 11, 9, .8) !important;
+  box-shadow: none !important;
+}
+
+.global-user-button--final .global-user-button__head canvas,
+.final-user-card__avatar--skin canvas,
+.final-account-switch__mark--skin canvas,
+.final-account-picker__head canvas {
+  width: 100% !important;
+  height: 100% !important;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.route-stage--account.has-user-access > .global-user-button--final {
+  top: 16px !important;
+  right: 16px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+}
+
+.route-stage--account .account-polished-identity {
+  padding-right: 48px !important;
+}
+
+/* User hub: the same skin identity is visible in the user card and account switcher. */
+.final-user-card__avatar--skin {
+  width: 46px !important;
+  height: 46px !important;
+  flex: 0 0 46px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border: 1px solid rgba(203, 255, 45, .28) !important;
+  border-radius: 13px !important;
+  background: rgba(203, 255, 45, .045) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .06),
+    0 0 18px rgba(203, 255, 45, .055) !important;
+}
+
+.final-account-switch__mark--skin {
+  width: 34px !important;
+  height: 34px !important;
+  flex: 0 0 34px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border: 1px solid rgba(235, 241, 213, .12) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, .025) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .035) !important;
+}
+
+.final-account-picker__head {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  border: 1px solid rgba(235, 241, 213, .10) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, .025) !important;
+}
+
+/* Event discovery: search is primary; sort and endpoint-specific filters stay compact. */
+.event-browser-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 11px 0 4px;
+}
+
+.event-browser-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, .12);
+  border-radius: 12px;
+  color: #90958a;
+  background:
+    radial-gradient(circle at 0 50%, rgba(203, 255, 45, .04), transparent 44%),
+    rgba(255, 255, 255, .024);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.event-browser-search:focus-within {
+  border-color: rgba(203, 255, 45, .28);
+  background: rgba(203, 255, 45, .035);
+}
+
+.event-browser-search input {
+  min-width: 0;
+  width: 100%;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: #e5e8de;
+  background: transparent;
+  font: inherit;
+  font-size: 10.5px;
+}
+
+.event-browser-search input::placeholder {
+  color: #787d73;
+}
+
+.event-browser-search > button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: #878c82;
+  background: transparent;
+}
+
+.event-browser-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.event-browser-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, .12);
+  border-radius: 12px;
+  color: #a7aca0;
+  background: rgba(255, 255, 255, .025);
+  font-size: 9.5px;
+  font-weight: 620;
+  white-space: nowrap;
+}
+
+.event-browser-action--filters {
+  width: 40px;
+  padding: 0;
+}
+
+.event-browser-action.is-active {
+  border-color: rgba(203, 255, 45, .26);
+  color: #d9ff65;
+  background: rgba(203, 255, 45, .06);
+}
+
+.event-browser-action > b {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid #11130f;
+  border-radius: 999px;
+  color: #111508;
+  background: #cbff2d;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.event-browser-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 22px;
+  padding: 5px 2px 3px;
+  color: #7f8479;
+  font-size: 8.5px;
+}
+
+.event-browser-summary span {
+  color: #9ba095;
+  font-weight: 650;
+}
+
+.event-browser-summary small {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-stream-redesign > .empty-state {
+  margin-top: 20px;
+  border: 1px solid rgba(235, 241, 213, .09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .018);
+}
+
+.event-filter-sheet {
+  gap: 14px !important;
+}
+
+.event-filter-sheet__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(203, 255, 45, .12);
+  border-radius: 13px;
+  color: #b3b8ac;
+  background: rgba(203, 255, 45, .035);
+}
+
+.event-filter-sheet__hint > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #cbff2d;
+}
+
+.event-filter-sheet__hint > span {
+  display: grid;
+  gap: 3px;
+}
+
+.event-filter-sheet__hint strong {
+  color: #dfe3d7;
+  font-size: 10.5px;
+}
+
+.event-filter-sheet__hint small {
+  color: #8e9388;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.event-filter-sheet__range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.event-filter-sheet__range > span {
+  color: #777c72;
+  font-size: 10px;
+}
+
+.event-filter-sheet__actions {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr);
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.event-filter-sheet__actions .secondary-action,
+.event-filter-sheet__actions .primary-action {
+  min-height: 43px;
+}
+
+/* User-provided global-event references rebuilt as clean crisp event assets. */
+.event-art--global-eclipse {
+  --event-art-color: #a9b5c3;
+}
+
+.event-art--global-eclipse.event-art--asset {
+  background:
+    radial-gradient(circle at 48% 40%, rgba(142, 157, 174, .12), transparent 62%),
+    rgba(255, 255, 255, .018) !important;
+}
+
+.event-art--global-eclipse .event-art__image,
+.event-art--global-moon .event-art__image {
+  width: 80% !important;
+  height: 80% !important;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .28));
+}
+
+.event-art--dungeon {
+  --event-art-color: #aeb5a3;
+}
+
+.event-art--dungeon.event-art--asset {
+  background:
+    radial-gradient(circle at 50% 72%, rgba(203, 255, 45, .075), transparent 48%),
+    rgba(255, 255, 255, .018) !important;
+}
+
+.event-art--dungeon .event-art__image {
+  width: 84% !important;
+  height: 84% !important;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .28));
+}
+
+/* Subscription item suggestions now preview the already available item art. */
+.field-suggestions > button {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+.field-suggestions > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
+@media (max-width: 374px) {
+  .route-stage--account.has-user-access > .global-user-button--final {
+    top: 14px !important;
+    right: 14px !important;
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .route-stage--account .account-polished-identity {
+    padding-right: 44px !important;
+  }
+
+  .event-browser-tools {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .event-browser-action {
+    width: 38px;
+    padding: 0;
+  }
+
+  .event-browser-action > span {
+    display: none;
+  }
+}

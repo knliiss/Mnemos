@@ -1,0 +1,682 @@
+/* Wallet + role-management product pass. */
+
+/* Fix the account-home currency mark: center the raster mark optically inside its tile. */
+.account-final-wallet__mark {
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+}
+
+.account-final-wallet__mark .currency-glyph {
+  display: block !important;
+  margin: 0 !important;
+  transform: translate(0, 0) !important;
+  background-position: 50% 50% !important;
+  background-size: contain !important;
+}
+
+.account-final-wallet__mark > .currency-glyph {
+  width: 27px !important;
+  height: 27px !important;
+}
+
+/* ---------- PRIME wallet ---------- */
+.prime-wallet-v2,
+.account-wallet-v2,
+.roles-v2,
+.role-editor-v2 {
+  padding-bottom: 34px;
+}
+
+.prime-wallet-hero,
+.coin-wallet-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 188px;
+  margin: 8px 0 14px;
+  padding: 20px;
+  border: 1px solid rgba(215, 255, 54, .18);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 84% 18%, rgba(169, 93, 189, .12), transparent 34%),
+    radial-gradient(circle at 26% 115%, rgba(212, 255, 66, .07), transparent 48%),
+    rgba(255, 255, 255, .024);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+}
+
+.prime-wallet-hero::after,
+.coin-wallet-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -16% -48% 34%;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 255, 66, .07), transparent 65%);
+  pointer-events: none;
+}
+
+.prime-wallet-hero__copy,
+.coin-wallet-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 62%;
+  gap: 7px;
+}
+
+.prime-wallet-hero__label,
+.coin-wallet-hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: #d9ff42;
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+.prime-wallet-hero__label {
+  color: #e8b5f2;
+}
+
+.prime-wallet-hero__value,
+.coin-wallet-hero__value {
+  color: #f2f4ed;
+  font-size: clamp(38px, 10vw, 58px);
+  line-height: .94;
+  letter-spacing: -.05em;
+}
+
+.prime-wallet-hero__copy > small,
+.coin-wallet-hero__copy > small {
+  color: #8c9187;
+  font-size: 10px;
+}
+
+.prime-wallet-hero__art,
+.coin-wallet-hero__art {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 14px;
+  width: 126px;
+  height: 96px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .24));
+}
+
+.coin-wallet-hero__art {
+  width: 132px;
+}
+
+.prime-wallet-hero__stats,
+.coin-wallet-hero__stats {
+  position: absolute;
+  z-index: 2;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.prime-wallet-hero__stats > span,
+.coin-wallet-hero__stats > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 241, 213, .075);
+  border-radius: 12px;
+  background: rgba(7, 9, 7, .42);
+}
+
+.prime-wallet-hero__stats small,
+.coin-wallet-hero__stats small {
+  color: #7f857a;
+  font-size: 8px;
+}
+
+.prime-wallet-hero__stats strong,
+.coin-wallet-hero__stats strong {
+  color: #dfe4da;
+  font-size: 10px;
+}
+
+.prime-wallet-shortcuts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.prime-wallet-shortcuts > button {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 9px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, .09);
+  border-radius: 15px;
+  color: #dfe3da;
+  background: rgba(255, 255, 255, .018);
+  text-align: left;
+}
+
+.prime-wallet-shortcuts > button > span {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.prime-wallet-shortcuts > button > span.is-plum {
+  color: #dea2e8;
+  background: rgba(191, 112, 198, .13);
+}
+
+.prime-wallet-shortcuts > button > span.is-lime {
+  color: #d4ff42;
+  background: rgba(179, 224, 42, .11);
+}
+
+.prime-wallet-shortcuts strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-wallet-shortcuts small {
+  overflow: hidden;
+  color: #777d73;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-wallet-shortcuts b {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  color: #6f746c;
+  font-size: 18px;
+}
+
+.prime-topup-panel,
+.coin-buy-panel,
+.prime-history-panel,
+.coin-history-panel,
+.role-preset-panel,
+.role-identity-panel,
+.role-permissions-panel {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, .09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .016);
+}
+
+.prime-topup-panel > header,
+.coin-buy-panel > header,
+.prime-history-panel > header,
+.coin-history-panel > header,
+.role-preset-panel > header,
+.role-identity-panel > header,
+.role-permissions-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prime-topup-panel > header > span:first-child,
+.coin-buy-panel > header > span:first-child,
+.prime-history-panel > header > span:first-child,
+.coin-history-panel > header > span:first-child,
+.role-preset-panel > header > span:first-child,
+.role-identity-panel > header > span:first-child,
+.role-permissions-panel__head > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prime-topup-panel header small,
+.coin-buy-panel header small,
+.prime-history-panel header small,
+.coin-history-panel header small,
+.role-preset-panel header small,
+.role-identity-panel header small,
+.role-permissions-panel__head small {
+  color: #747b70;
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+
+.prime-topup-panel header strong,
+.coin-buy-panel header strong,
+.prime-history-panel header strong,
+.coin-history-panel header strong,
+.role-preset-panel header strong,
+.role-identity-panel header strong,
+.role-permissions-panel__head strong {
+  color: #e7eae1;
+  font-size: 14px;
+}
+
+.prime-topup-panel header em,
+.coin-buy-panel header em {
+  max-width: 280px;
+  color: #80867c;
+  font-size: 8.5px;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.prime-topup-status {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border: 1px solid rgba(221, 159, 236, .19);
+  border-radius: 999px;
+  color: #d9a7e3;
+  background: rgba(183, 104, 196, .08);
+  font-size: 7px;
+  letter-spacing: .12em;
+}
+
+.prime-pack-grid,
+.coin-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.prime-pack-grid > button,
+.coin-pack-grid > button {
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  min-width: 0;
+  min-height: 108px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, .085);
+  border-radius: 14px;
+  color: #d8ddd3;
+  background: rgba(255, 255, 255, .018);
+  text-align: left;
+}
+
+.prime-pack-grid > button.is-selected,
+.coin-pack-grid > button.is-selected {
+  border-color: rgba(212, 255, 66, .34);
+  background: linear-gradient(145deg, rgba(163, 197, 45, .11), rgba(255, 255, 255, .018));
+  box-shadow: inset 0 0 0 1px rgba(212, 255, 66, .03);
+}
+
+.prime-pack-grid img {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 7px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.prime-pack-grid > button > span,
+.coin-pack-grid__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prime-pack-grid small,
+.coin-pack-grid small {
+  color: #7f857a;
+  font-size: 7.5px;
+}
+
+.prime-pack-grid strong,
+.coin-pack-grid strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: #e8ebe4;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-pack-grid em,
+.coin-pack-grid em {
+  color: #a890ad;
+  font-size: 7.5px;
+  font-style: normal;
+}
+
+.prime-pack-grid > button > b,
+.coin-pack-grid > button > b {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  color: #d4ff42;
+  background: rgba(212, 255, 66, .09);
+}
+
+.prime-topup-summary,
+.coin-buy-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, .07);
+  border-radius: 13px;
+  background: rgba(7, 9, 7, .34);
+}
+
+.prime-topup-summary > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prime-topup-summary small,
+.coin-buy-summary small {
+  color: #7b8177;
+  font-size: 8px;
+}
+
+.prime-topup-summary strong,
+.coin-buy-summary strong {
+  color: #e3e7de;
+  font-size: 10px;
+}
+
+.prime-topup-summary em {
+  color: #71776e;
+  font-size: 7.5px;
+  font-style: normal;
+}
+
+.prime-topup-summary__amount {
+  align-self: center;
+}
+
+.prime-topup-disabled,
+.coin-buy-action,
+.role-editor-save-v2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.prime-topup-disabled {
+  color: #8a8f86;
+  background: rgba(255, 255, 255, .045);
+}
+
+.prime-topup-note {
+  margin: 7px 0 0;
+  color: #686f65;
+  font-size: 7.5px;
+  text-align: center;
+}
+
+.prime-history-panel > header,
+.coin-history-panel > header {
+  align-items: center;
+}
+
+.prime-history-filter {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 62%;
+  scrollbar-width: none;
+}
+
+.prime-history-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.prime-history-filter button {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  border: 1px solid rgba(235, 241, 213, .075);
+  border-radius: 999px;
+  color: #767d72;
+  background: rgba(255, 255, 255, .015);
+  font-size: 7.5px;
+}
+
+.prime-history-filter button.is-active {
+  border-color: rgba(212, 255, 66, .21);
+  color: #d8e3bc;
+  background: rgba(177, 218, 54, .08);
+}
+
+.prime-history-list,
+.coin-history-list {
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, .07);
+  border-radius: 14px;
+}
+
+.prime-history-list article,
+.coin-history-list article {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px;
+  border-bottom: 1px solid rgba(235, 241, 213, .055);
+}
+
+.prime-history-list article:last-child,
+.coin-history-list article:last-child {
+  border-bottom: 0;
+}
+
+.prime-history-list__sign,
+.coin-history-list__sign {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: #d8757b;
+  background: rgba(176, 68, 74, .08);
+  font-size: 14px;
+}
+
+.prime-history-list__sign.is-credit,
+.coin-history-list__sign.is-credit {
+  color: #cfff48;
+  background: rgba(160, 207, 42, .08);
+}
+
+.prime-history-list__copy,
+.coin-history-list__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prime-history-list__copy strong,
+.coin-history-list__copy strong {
+  overflow: hidden;
+  color: #dfe3da;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-history-list__copy small,
+.coin-history-list__copy small {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-history-list__amount,
+.coin-history-list__amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #d8ddd4;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.prime-history-list__amount.is-credit,
+.coin-history-list__amount.is-credit {
+  color: #cfff48;
+}
+
+/* ---------- COIN wallet ---------- */
+.coin-wallet-hero {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(246, 178, 56, .1), transparent 34%),
+    radial-gradient(circle at 22% 120%, rgba(212, 255, 66, .08), transparent 46%),
+    rgba(255, 255, 255, .024);
+}
+
+.coin-buy-panel__prime {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.coin-buy-panel__prime small {
+  letter-spacing: 0 !important;
+}
+
+.coin-pack-grid > button {
+  min-height: 112px;
+}
+
+.coin-pack-grid__coin {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 8px;
+  border-radius: 11px;
+  background: rgba(150, 183, 41, .09);
+}
+
+.coin-pack-grid__coin .currency-glyph {
+  display: block !important;
+  margin: 0 !important;
+}
+
+.coin-pack-grid em {
+  color: #d9a8e1;
+}
+
+.coin-buy-summary {
+  grid-template-columns: 1fr 1fr;
+}
+
+.coin-buy-summary > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .018);
+}
+
+.coin-buy-summary strong {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coin-buy-action {
+  color: #0d1007;
+  background: linear-gradient(180deg, #d8ff49, #b8e627);
+  box-shadow: 0 8px 28px rgba(186, 227, 44, .08);
+}
+
+.coin-buy-action:disabled {
+  color: #777d72;
+  background: rgba(255, 255, 255, .045);
+  box-shadow: none;
+}
+
+.coin-history-panel > header > b {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 24px;
+  border-radius: 9px;
+  color: #9ca292;
+  background: rgba(255, 255, 255, .03);
+  font-size: 8px;
+}
+
+.coin-history-list article.is-purchase {
+  background: linear-gradient(90deg, rgba(193, 230, 49, .045), transparent 62%);
+}
+
+@media (max-width: 374px) {
+  .prime-wallet-hero__art,
+  .coin-wallet-hero__art {
+    right: 6px;
+    width: 112px;
+  }
+
+  .prime-pack-grid,
+  .coin-pack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prime-pack-grid > button,
+  .coin-pack-grid > button {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 64px;
+    gap: 8px;
+  }
+
+  .prime-pack-grid img,
+  .coin-pack-grid__coin {
+    margin: 0;
+  }
+
+  .prime-pack-grid > button > span,
+  .coin-pack-grid__copy {
+    align-self: center;
+  }
+}

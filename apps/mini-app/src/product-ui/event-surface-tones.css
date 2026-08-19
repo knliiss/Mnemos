@@ -1,0 +1,216 @@
+/* Event color is a semantic cue, never a full-card fill. */
+.event-surface,
+.event-row-surface {
+  --event-accent: #a5a39a;
+}
+
+.event-surface--drop-secret {
+  --event-accent: #73afc7;
+}
+
+.event-surface--drop-mythical {
+  --event-accent: #c9585e;
+}
+
+.event-surface--drop-default {
+  --event-accent: #a09b8f;
+}
+
+.event-surface--booster-luck {
+  --event-accent: #62c879;
+}
+
+.event-surface--booster-money {
+  --event-accent: #d8ad4d;
+}
+
+.event-surface--booster-damage {
+  --event-accent: #cf5656;
+}
+
+.event-surface--booster-power {
+  --event-accent: #976ac5;
+}
+
+.event-surface--global-moon {
+  --event-accent: #c64b53;
+}
+
+.event-surface--global-eclipse {
+  --event-accent: #c7cbd0;
+}
+
+.event-surface--global-darkness {
+  --event-accent: #747b83;
+}
+
+.event-surface--global-explosion {
+  --event-accent: #e79a2d;
+}
+
+.event-surface--raid {
+  --event-accent: #aa9d8a;
+}
+
+.event-surface {
+  position: relative;
+  border-color: color-mix(in srgb, var(--event-accent) 22%, rgba(235, 241, 213, .10)) !important;
+  background:
+    radial-gradient(ellipse at 0 48%, color-mix(in srgb, var(--event-accent) 8%, transparent), transparent 39%),
+    linear-gradient(145deg, rgba(24, 25, 21, .97), rgba(10, 11, 9, .98)) !important;
+  box-shadow:
+    inset 2px 0 color-mix(in srgb, var(--event-accent) 45%, transparent),
+    inset 0 1px rgba(255, 255, 255, .025),
+    0 10px 28px rgba(0, 0, 0, .14) !important;
+}
+
+.event-surface:hover {
+  border-color: color-mix(in srgb, var(--event-accent) 32%, rgba(235, 241, 213, .10)) !important;
+}
+
+.event-surface.is-latest {
+  border-color: color-mix(in srgb, var(--event-accent) 30%, rgba(235, 241, 213, .10)) !important;
+  box-shadow:
+    inset 2px 0 color-mix(in srgb, var(--event-accent) 62%, transparent),
+    inset 0 1px rgba(255, 255, 255, .03),
+    0 12px 30px rgba(0, 0, 0, .15) !important;
+}
+
+.event-surface > .event-art {
+  --event-art-color: var(--event-accent);
+  border-color: color-mix(in srgb, var(--event-accent) 29%, transparent) !important;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 64%),
+    rgba(255, 255, 255, .018) !important;
+  box-shadow:
+    0 0 17px color-mix(in srgb, var(--event-accent) 7%, transparent),
+    inset 0 1px rgba(255, 255, 255, .035) !important;
+}
+
+.event-detail-hero.event-surface {
+  background:
+    radial-gradient(circle at 10% 48%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 41%),
+    linear-gradient(145deg, rgba(27, 28, 24, .98), rgba(10, 11, 9, .98)) !important;
+}
+
+.event-row-surface {
+  position: relative;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 5.5%, transparent), transparent 38%) !important;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent) 38%, transparent);
+}
+
+.event-row-surface > .event-art {
+  --event-art-color: var(--event-accent);
+  border-color: color-mix(in srgb, var(--event-accent) 25%, transparent) !important;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--event-accent) 10%, transparent), transparent 65%),
+    rgba(255, 255, 255, .015) !important;
+}
+
+/* Raster booster/raid assets keep the same low-resolution character as the source icons. */
+.event-art--booster-luck {
+  --event-art-color: #62c879;
+}
+
+.event-art--booster-money {
+  --event-art-color: #d8ad4d;
+}
+
+.event-art--booster-damage {
+  --event-art-color: #cf5656;
+}
+
+.event-art--booster-power {
+  --event-art-color: #976ac5;
+}
+
+.event-art--raid {
+  --event-art-color: #aa9d8a;
+}
+
+.event-art--global-eclipse {
+  --event-art-color: #c7cbd0;
+}
+
+.event-art--rarity-secret {
+  --event-art-color: #73afc7 !important;
+}
+
+.event-art--rarity-mythical {
+  --event-art-color: #c9585e !important;
+}
+
+.event-art--booster-luck .event-art__image,
+.event-art--booster-money .event-art__image,
+.event-art--booster-damage .event-art__image,
+.event-art--booster-power .event-art__image,
+.event-art--raid .event-art__image {
+  width: 82%;
+  height: 82%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 7px rgba(0, 0, 0, .26));
+}
+
+.event-art--raid .event-art__image {
+  width: 86%;
+  height: 86%;
+}
+
+/* Existing compact drop rows inherit rarity without adding color-heavy card fills. */
+.account-polished-drop-list > button:has(.event-art--rarity-secret),
+.profile-polished-drop-list > button:has(.event-art--rarity-secret) {
+  --event-accent: #73afc7;
+}
+
+.account-polished-drop-list > button:has(.event-art--rarity-mythical),
+.profile-polished-drop-list > button:has(.event-art--rarity-mythical) {
+  --event-accent: #c9585e;
+}
+
+.account-polished-drop-list > button:has(.event-art--rarity-secret),
+.account-polished-drop-list > button:has(.event-art--rarity-mythical),
+.profile-polished-drop-list > button:has(.event-art--rarity-secret),
+.profile-polished-drop-list > button:has(.event-art--rarity-mythical) {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 5.5%, transparent), transparent 42%) !important;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent) 38%, transparent);
+}
+
+/* Bet rounds are event cards too: their color follows the concrete global event. */
+.bet-redesign-card:has(.event-art--global-moon) {
+  --event-accent: #c64b53;
+}
+
+.bet-redesign-card:has(.event-art--global-eclipse) {
+  --event-accent: #c7cbd0;
+}
+
+.bet-redesign-card:has(.event-art--global-darkness) {
+  --event-accent: #747b83;
+}
+
+.bet-redesign-card:has(.event-art--global-explosion) {
+  --event-accent: #e79a2d;
+}
+
+.bet-redesign-card:has(.event-art--global-moon),
+.bet-redesign-card:has(.event-art--global-eclipse),
+.bet-redesign-card:has(.event-art--global-darkness),
+.bet-redesign-card:has(.event-art--global-explosion) {
+  border-color: color-mix(in srgb, var(--event-accent) 20%, rgba(235, 241, 213, .10)) !important;
+  background:
+    radial-gradient(ellipse at 0 48%, color-mix(in srgb, var(--event-accent) 7%, transparent), transparent 40%),
+    linear-gradient(145deg, rgba(24, 25, 21, .97), rgba(10, 11, 9, .98)) !important;
+  box-shadow:
+    inset 2px 0 color-mix(in srgb, var(--event-accent) 40%, transparent),
+    inset 0 1px rgba(255, 255, 255, .022),
+    0 10px 26px rgba(0, 0, 0, .13) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-surface {
+    transition: none !important;
+  }
+}

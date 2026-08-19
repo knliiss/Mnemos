@@ -1,0 +1,101 @@
+/* Daily reward affordance: no outer frame, only motion and local pixel cues. */
+
+.account-v4-reward > button:not(.is-restore) {
+  background: transparent !important;
+  animation: none !important;
+}
+
+.account-v4-reward > button:not(.is-restore)::before {
+  animation: mnemos-gift-invite 4.8s cubic-bezier(.22, 1, .36, 1) infinite !important;
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, .24))
+    drop-shadow(0 0 0 rgba(199, 242, 74, 0)) !important;
+  transform-origin: 50% 82%;
+}
+
+.account-v4-reward > button:not(.is-restore)::after {
+  content: "" !important;
+  position: absolute !important;
+  left: auto !important;
+  right: 5px !important;
+  top: 4px !important;
+  bottom: auto !important;
+  width: 3px !important;
+  height: 3px !important;
+  border-radius: 0 !important;
+  background: #c7f24a !important;
+  box-shadow:
+    -6px 5px 0 #7f9636,
+    3px 9px 0 #d1a04b !important;
+  opacity: 0 !important;
+  transform: translateY(3px) scale(.75);
+  animation: mnemos-gift-spark 4.8s ease-in-out infinite !important;
+  pointer-events: none;
+}
+
+.account-v4-reward > button:not(.is-restore):active::before {
+  transform: translateY(1px) scale(.97) !important;
+  filter: brightness(1.08) drop-shadow(0 3px 5px rgba(0, 0, 0, .2)) !important;
+}
+
+@keyframes mnemos-gift-invite {
+  0%, 66%, 100% {
+    transform: translateY(0) scale(1);
+    filter:
+      drop-shadow(0 6px 8px rgba(0, 0, 0, .24))
+      drop-shadow(0 0 0 rgba(199, 242, 74, 0));
+  }
+
+  72% {
+    transform: translateY(-3px) scale(1.025);
+    filter:
+      drop-shadow(0 9px 10px rgba(0, 0, 0, .2))
+      drop-shadow(0 0 5px rgba(199, 242, 74, .11));
+  }
+
+  77% {
+    transform: translateY(0) scale(1);
+  }
+
+  81% {
+    transform: translateY(-1px) scale(1.008);
+  }
+
+  86% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mnemos-gift-spark {
+  0%, 67%, 89%, 100% {
+    opacity: 0;
+    transform: translateY(3px) scale(.75);
+  }
+
+  72% {
+    opacity: .95;
+    transform: translateY(-1px) scale(1);
+  }
+
+  79% {
+    opacity: .62;
+    transform: translateY(-4px) scale(.9);
+  }
+
+  86% {
+    opacity: 0;
+    transform: translateY(-7px) scale(.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-v4-reward > button:not(.is-restore)::before,
+  .account-v4-reward > button:not(.is-restore)::after {
+    animation: none !important;
+  }
+
+  .account-v4-reward > button:not(.is-restore)::after {
+    opacity: .55 !important;
+    transform: none !important;
+  }
+}
