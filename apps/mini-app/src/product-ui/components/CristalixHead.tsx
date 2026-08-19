@@ -20,13 +20,13 @@ export function CristalixHead({
 }: CristalixHeadProps) {
   const baseRef = useRef<HTMLCanvasElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
-  const [loaded, setLoaded] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [loadedSkinUrl, setLoadedSkinUrl] = useState<string | null>(null)
+  const [failedSkinUrl, setFailedSkinUrl] = useState<string | null>(null)
+
+  const loaded = loadedSkinUrl === skinUrl
+  const failed = failedSkinUrl === skinUrl
 
   useEffect(() => {
-    setLoaded(false)
-    setFailed(false)
-
     const image = new Image()
     image.decoding = "async"
 
@@ -34,7 +34,7 @@ export function CristalixHead({
       const textureScale = image.naturalWidth / SKIN_REFERENCE_SIZE
 
       if (!Number.isInteger(textureScale) || textureScale < 1 || image.naturalHeight < SKIN_REFERENCE_SIZE * textureScale) {
-        setFailed(true)
+        setFailedSkinUrl(skinUrl)
         return
       }
 
@@ -44,18 +44,20 @@ export function CristalixHead({
       const overlayContext = overlayCanvas?.getContext("2d")
 
       if (!baseCanvas || !overlayCanvas || !baseContext || !overlayContext) {
-        setFailed(true)
+        setFailedSkinUrl(skinUrl)
         return
       }
 
       drawLayer(baseContext, image, textureScale, 8, 8)
       drawOverlayLayer(overlayContext, image, textureScale)
 
-      setLoaded(true)
+      setFailedSkinUrl((current) => current === skinUrl ? null : current)
+      setLoadedSkinUrl(skinUrl)
     }
 
     image.onerror = () => {
-      setFailed(true)
+      setLoadedSkinUrl((current) => current === skinUrl ? null : current)
+      setFailedSkinUrl(skinUrl)
     }
 
     image.src = skinUrl
