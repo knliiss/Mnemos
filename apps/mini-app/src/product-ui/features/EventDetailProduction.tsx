@@ -7,10 +7,13 @@ import {
   createGlobalSubscription,
   createItemDropSubscription,
   createRaidSubscription,
+  getEventFeedItem,
 } from "@/shared/api/productApi"
+import { ApiError } from "@/shared/api/httpClient"
 import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt, OwnerCrown } from "../components/EventArt"
 import { useProductData } from "../data/ProductDataProvider"
+import { toProductFeedEvent } from "../data/productMappers"
 import type {
   Account,
   BoosterType,
@@ -33,16 +36,46 @@ type Props = {
 export function EventDetailProduction({ eventId, activeAccount, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
-  const refreshEvents = product.refreshEvents
+  const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
+  const [resolvedEvent, setResolvedEvent] = useState<FeedEvent | null>(null)
+  const [lookupLoading, setLookupLoading] = useState(false)
   const [followBusy, setFollowBusy] = useState(false)
-  const event = product.feed.find((item) => item.id === eventId) ?? null
+  const event = cachedEvent ?? resolvedEvent
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
-    if (!eventId || event) return
+    setResolvedEvent(null)
 
-    void refreshEvents({ limit: 100 })
-  }, [event, eventId, refreshEvents])
+    if (!eventId || cachedEvent) {
+      setLookupLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    setLookupLoading(true)
+
+    void getEventFeedItem(eventId)
+      .then((response) => {
+        if (!cancelled) {
+          setResolvedEvent(toProductFeedEvent(response))
+        }
+      })
+      .catch((error) => {
+        if (!cancelled && !(error instanceof ApiError && error.status === 404)) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLookupLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [cachedEvent, eventId])
 
   const matchingSubscription = useMemo(
     () => event ? product.subscriptions.find((subscription) => matchesEvent(subscription, event)) ?? null : null,
@@ -55,8 +88,8 @@ export function EventDetailProduction({ eventId, activeAccount, navigate, back }
         <PageHeader title={t("events.detail.title")} back={back} />
         <section className="events-r2-empty">
           <Glyph name="events" size={24} />
-          <strong>{product.loadingEvents ? t("events.detail.loadingTitle") : t("events.detail.notFoundTitle")}</strong>
-          <small>{product.loadingEvents ? t("events.detail.loadingCopy") : t("events.detail.notFoundCopy")}</small>
+          <strong>{lookupLoading ? t("events.detail.loadingTitle") : t("events.detail.notFoundTitle")}</strong>
+          <small>{lookupLoading ? t("events.detail.loadingCopy") : t("events.detail.notFoundCopy")}</small>
         </section>
       </div>
     )
