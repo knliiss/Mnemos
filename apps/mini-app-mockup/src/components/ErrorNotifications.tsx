@@ -30,6 +30,10 @@ type NoticePresentation = {
   message: string
 }
 
+type NoticeDefinition = Omit<NoticePresentation, "mascot"> & {
+  mascot?: ErrorMascotVariant
+}
+
 type ErrorNotice = {
   id: number
   payload: BackendErrorPayload
@@ -50,274 +54,462 @@ type ProviderProps = {
 
 const ErrorNotificationContext = createContext<ErrorNotificationApi | null>(null)
 
-const directCopy: Record<string, Omit<NoticePresentation, "tone" | "mascot">> = {
+const errorDefinitions: Record<string, NoticeDefinition> = {
   AUTHENTICATION_REQUIRED: {
+    tone: "access",
     eyebrow: "СЕСІЯ",
-    title: "Потрібно увійти знову",
-    message: "Сесія завершилась або більше не дійсна. Онови авторизацію і повтори дію.",
+    title: "Увійди знову",
+    message: "Сесія завершилась.",
+  },
+  INVALID_AUTHENTICATION_PRINCIPAL: {
+    tone: "access",
+    eyebrow: "СЕСІЯ",
+    title: "Не вдалося підтвердити користувача",
+    message: "Онови авторизацію.",
   },
   ACCESS_DENIED: {
+    tone: "access",
     eyebrow: "ДОСТУП",
-    title: "Ця дія недоступна",
-    message: "Для неї бракує системних прав або ролі.",
+    title: "Дія недоступна",
+    message: "Для неї бракує прав.",
   },
   ACCOUNT_PERMISSION_DENIED: {
-    eyebrow: "ПРАВА АККАУНТА",
+    tone: "access",
+    eyebrow: "АККАУНТ",
     title: "Недостатньо прав",
-    message: "У твоєї ролі немає дозволу на цю дію в аккаунті.",
+    message: "Ця дія не дозволена твоїй ролі.",
   },
   ROLE_ACCESS_DENIED: {
-    eyebrow: "ІЄРАРХІЯ РОЛЕЙ",
-    title: "Роль вище твоєї",
-    message: "Цю зміну блокує ієрархія ролей аккаунта.",
-  },
-  ACTIVE_ACCOUNT_NOT_SET: {
-    eyebrow: "АККАУНТ",
-    title: "Спочатку обери аккаунт",
-    message: "Для цієї дії Mnemos потрібен активний Cristalix аккаунт.",
-  },
-  ACTIVE_ACCOUNT_REQUIRED: {
-    eyebrow: "АККАУНТ",
-    title: "Потрібен активний аккаунт",
-    message: "Обери Cristalix аккаунт і повтори дію.",
-  },
-  ACCOUNT_NOT_ACTIVE: {
-    eyebrow: "АККАУНТ",
-    title: "Аккаунт неактивний",
-    message: "Активуй його або переключись на інший аккаунт.",
-  },
-  ACCOUNT_NOT_FOUND: {
-    eyebrow: "АККАУНТ",
-    title: "Аккаунт не знайдено",
-    message: "Він міг бути видалений або більше не доступний тобі.",
-  },
-  ACCOUNT_UNAVAILABLE: {
-    eyebrow: "АККАУНТ",
-    title: "Аккаунт тимчасово недоступний",
-    message: "Онови дані або спробуй ще раз трохи пізніше.",
-  },
-  ACCOUNT_IDENTITY_CONFLICT: {
-    eyebrow: "АККАУНТ",
-    title: "Цей Cristalix аккаунт уже привʼязаний",
-    message: "Перевір активний аккаунт або використай інший профіль.",
-  },
-  ACCOUNT_DELETION_UNAVAILABLE: {
-    eyebrow: "АККАУНТ",
-    title: "Зараз його не можна видалити",
-    message: "Спочатку заверши залежні дії або зміни стан аккаунта.",
-  },
-  ACCOUNT_MEMBER_LIMIT_REACHED: {
-    eyebrow: "КОМАНДА",
-    title: "У команді немає місця",
-    message: "Ліміт учасників цього аккаунта вже досягнуто.",
-  },
-  ACCOUNT_MEMBER_ALREADY_EXISTS: {
-    eyebrow: "КОМАНДА",
-    title: "Користувач уже в команді",
-    message: "Повторно додавати цього учасника не потрібно.",
-  },
-  ACCOUNT_MEMBER_KICK_FORBIDDEN: {
-    eyebrow: "КОМАНДА",
-    title: "Цього учасника не можна виключити",
-    message: "Перевір його роль та свої права в аккаунті.",
-  },
-  ACCOUNT_OWNER_CANNOT_LEAVE: {
-    eyebrow: "ВЛАСНИК",
-    title: "Власник не може вийти",
-    message: "Спочатку передай контроль або зміни структуру аккаунта.",
+    tone: "access",
+    eyebrow: "РОЛІ",
+    title: "Недостатньо прав",
+    message: "Твоя роль нижче в ієрархії.",
   },
   ACCOUNT_OWNER_REQUIRED: {
-    eyebrow: "ВЛАСНИК",
-    title: "Потрібні права власника",
-    message: "Ця дія доступна тільки власнику аккаунта.",
+    tone: "access",
+    eyebrow: "АККАУНТ",
+    title: "Потрібен власник",
+    message: "Ця дія доступна лише власнику.",
   },
-  ACCOUNT_INVITE_UNAVAILABLE: {
-    eyebrow: "ІНВАЙТ",
-    title: "Запрошення вже недоступне",
-    message: "Воно могло бути використане, відкликане або прострочене.",
-  },
-  ACCOUNT_INVITE_NOT_FOUND: {
-    eyebrow: "ІНВАЙТ",
-    title: "Запрошення не знайдено",
-    message: "Перевір код або попроси створити новий інвайт.",
-  },
-  INVALID_ACCOUNT_INVITE_EXPIRATION: {
-    eyebrow: "ІНВАЙТ",
-    title: "Некоректний строк запрошення",
-    message: "Зміни термін дії інвайту і спробуй ще раз.",
-  },
-  ROLE_ALREADY_ASSIGNED: {
-    eyebrow: "РОЛІ",
-    title: "Роль уже призначена",
-    message: "Для цього учасника нічого змінювати не потрібно.",
-  },
-  ROLE_HIERARCHY_VIOLATION: {
-    eyebrow: "ІЄРАРХІЯ РОЛЕЙ",
-    title: "Таке розташування ролей неможливе",
-    message: "Зміни порядок або рівень ролі й повтори дію.",
-  },
-  DAILY_REWARD_ALREADY_CLAIMED: {
-    eyebrow: "ЩОДЕННА НАГОРОДА",
-    title: "Сьогодні вже забрано",
-    message: "Наступна нагорода стане доступною після нового дня.",
-  },
-  DAILY_STREAK_NOT_RECOVERABLE: {
-    eyebrow: "СЕРІЯ",
-    title: "Цю серію вже не відновити",
-    message: "Поточний streak не відповідає умовам відновлення.",
-  },
-  DAILY_STREAK_RESTORE_LIMIT_REACHED: {
-    eyebrow: "СЕРІЯ",
-    title: "Відновлення закінчились",
-    message: "Місячний ліміт відновлень streak уже використаний.",
-  },
-  BET_CONFLICT: {
-    eyebrow: "СТАВКА",
-    title: "Раунд уже змінився",
-    message: "Онови стан раунду перед тим, як повторювати ставку.",
-  },
-  BET_NOT_FOUND: {
-    eyebrow: "СТАВКА",
-    title: "Раунд не знайдено",
-    message: "Можливо, його вже закрили або він більше недоступний.",
-  },
-  PERSONALIZATION_ALREADY_OWNED: {
-    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
-    title: "Вона вже твоя",
-    message: "Повторна покупка цієї персоналізації не потрібна.",
-  },
-  PERSONALIZATION_NOT_PURCHASABLE: {
-    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
-    title: "Зараз її не можна купити",
-    message: "Статус або доступ цієї персоналізації змінився.",
-  },
-  PERSONALIZATION_PURCHASE_IN_PROGRESS: {
-    eyebrow: "ПОКУПКА",
-    title: "Покупка ще обробляється",
-    message: "Не запускай її повторно — дочекайся результату операції.",
-  },
-  PURCHASE_IDEMPOTENCY_CONFLICT: {
-    eyebrow: "ПОКУПКА",
-    title: "Запит уже оброблявся",
-    message: "Mnemos захистив покупку від повторного списання.",
-  },
-  PERSONALIZATION_NOT_OWNED: {
-    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
-    title: "Цього немає у твоїй колекції",
-    message: "Придбай або отримай персоналізацію перед активацією.",
-  },
-  PERSONALIZATION_OWNERSHIP_CONFLICT: {
-    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
-    title: "Стан колекції вже змінився",
-    message: "Онови список персоналізацій і повтори дію.",
+  ACCOUNT_MEMBER_KICK_FORBIDDEN: {
+    tone: "access",
+    eyebrow: "КОМАНДА",
+    title: "Учасника не можна виключити",
+    message: "Перевір ролі та свої права.",
   },
   PERSONALIZATION_ACCESS_DENIED: {
-    eyebrow: "CREATOR STUDIO",
-    title: "Немає доступу до цієї роботи",
-    message: "Редагувати або модерувати її може лише дозволена роль.",
-  },
-  PERSONALIZATION_NOT_FOUND: {
-    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
-    title: "Роботу не знайдено",
-    message: "Вона могла бути видалена або змінити свій статус.",
-  },
-  BADGE_ALREADY_EXISTS: {
-    eyebrow: "БЕЙДЖ",
-    title: "Такий бейдж уже існує",
-    message: "Зміни його дані або відкрий існуючий бейдж.",
-  },
-  BADGE_NOT_OWNED: {
-    eyebrow: "БЕЙДЖ",
-    title: "Бейдж ще не отримано",
-    message: "Його не можна активувати, поки він не належить користувачу.",
-  },
-  SANCTION_CONFLICT: {
-    eyebrow: "МОДЕРАЦІЯ",
-    title: "Стан санкції вже змінився",
-    message: "Онови дані користувача перед наступною дією.",
+    tone: "access",
+    eyebrow: "CREATOR",
+    title: "Немає доступу",
+    message: "Цю роботу не можна змінювати.",
   },
   SANCTION_TARGET_ACCESS_DENIED: {
+    tone: "access",
     eyebrow: "МОДЕРАЦІЯ",
-    title: "Цього користувача не можна санкціонувати",
-    message: "Його системний рівень захищений від твоєї ролі.",
+    title: "Санкція недоступна",
+    message: "Рівень користувача вищий за твій.",
+  },
+  ACTIVE_ACCOUNT_NOT_SET: {
+    tone: "access",
+    eyebrow: "АККАУНТ",
+    title: "Обери аккаунт",
+    message: "Для цієї дії потрібен активний аккаунт.",
+  },
+  ACTIVE_ACCOUNT_REQUIRED: {
+    tone: "access",
+    eyebrow: "АККАУНТ",
+    title: "Обери аккаунт",
+    message: "Потрібен активний Cristalix аккаунт.",
+  },
+  ACCOUNT_NOT_ACTIVE: {
+    tone: "access",
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт неактивний",
+    message: "Активуй його або обери інший.",
+  },
+
+  USER_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "КОРИСТУВАЧ",
+    title: "Користувача не знайдено",
+    message: "Перевір запит.",
+  },
+  ACCOUNT_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт не знайдено",
+    message: "Він міг бути видалений.",
+  },
+  ACCOUNT_MEMBER_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "КОМАНДА",
+    title: "Учасника не знайдено",
+    message: "Склад команди вже міг змінитися.",
+  },
+  ACTIVE_ACCOUNT_MEMBERSHIP_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "АККАУНТ",
+    title: "Участь не знайдена",
+    message: "Перевір активний аккаунт.",
+  },
+  ACCOUNT_INVITE_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "ІНВАЙТ",
+    title: "Запрошення не знайдено",
+    message: "Перевір код або створи нове.",
+  },
+  ROLE_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "РОЛІ",
+    title: "Роль не знайдено",
+    message: "Список ролей уже міг змінитися.",
+  },
+  ROLE_ASSIGNMENT_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "РОЛІ",
+    title: "Призначення не знайдено",
+    message: "Онови список учасників.",
+  },
+  BET_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "СТАВКА",
+    title: "Раунд не знайдено",
+    message: "Він міг бути закритий.",
+  },
+  PERSONALIZATION_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Роботу не знайдено",
+    message: "Вона могла бути видалена.",
+  },
+  BADGE_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "БЕЙДЖ",
+    title: "Бейдж не знайдено",
+    message: "Онови список бейджів.",
+  },
+  SANCTION_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "МОДЕРАЦІЯ",
+    title: "Санкцію не знайдено",
+    message: "Її стан уже міг змінитися.",
+  },
+  SUBSCRIPTION_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "ПІДПИСКИ",
+    title: "Підписку не знайдено",
+    message: "Онови список підписок.",
+  },
+  CRISTALIX_PLAYER_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "CRISTALIX",
+    title: "Гравця не знайдено",
+    message: "Перевір nickname.",
+  },
+  COLLECTOR_CREDENTIAL_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "COLLECTOR",
+    title: "Ключ не знайдено",
+    message: "Credential міг бути відкликаний.",
+  },
+  ENDPOINT_NOT_FOUND: {
+    tone: "not-found",
+    eyebrow: "MNEMOS",
+    title: "Адресу не знайдено",
+    message: "Онови сторінку.",
+  },
+
+  USER_IDENTITY_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "КОРИСТУВАЧ",
+    title: "Профіль уже повʼязаний",
+    message: "Дані користувача конфліктують.",
+  },
+  ACCOUNT_IDENTITY_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт уже привʼязаний",
+    message: "Використай інший Cristalix профіль.",
+  },
+  ACCOUNT_DELETION_UNAVAILABLE: {
+    tone: "conflict",
+    eyebrow: "АККАУНТ",
+    title: "Зараз не можна видалити",
+    message: "Стан аккаунта блокує видалення.",
+  },
+  ACCOUNT_MEMBER_LIMIT_REACHED: {
+    tone: "conflict",
+    eyebrow: "КОМАНДА",
+    title: "Команда заповнена",
+    message: "Досягнуто ліміт учасників.",
+  },
+  ACCOUNT_MEMBER_ALREADY_EXISTS: {
+    tone: "conflict",
+    eyebrow: "КОМАНДА",
+    title: "Учасник уже доданий",
+    message: "Повторна дія не потрібна.",
+  },
+  ACCOUNT_OWNER_CANNOT_LEAVE: {
+    tone: "conflict",
+    eyebrow: "АККАУНТ",
+    title: "Власник не може вийти",
+    message: "Спочатку передай контроль.",
+  },
+  ACCOUNT_INVITE_UNAVAILABLE: {
+    tone: "conflict",
+    eyebrow: "ІНВАЙТ",
+    title: "Запрошення недоступне",
+    message: "Воно вже використане або прострочене.",
+  },
+  ROLE_ALREADY_ASSIGNED: {
+    tone: "conflict",
+    eyebrow: "РОЛІ",
+    title: "Роль уже призначена",
+    message: "Повторна дія не потрібна.",
+  },
+  ROLE_HIERARCHY_VIOLATION: {
+    tone: "conflict",
+    eyebrow: "РОЛІ",
+    title: "Порядок ролей конфліктує",
+    message: "Зміни позицію ролі.",
+  },
+  ROLE_HIERARCHY_INCONSISTENT: {
+    tone: "conflict",
+    eyebrow: "РОЛІ",
+    title: "Ієрархія вже змінилась",
+    message: "Онови ролі перед редагуванням.",
+  },
+  DAILY_REWARD_ALREADY_CLAIMED: {
+    tone: "conflict",
+    eyebrow: "НАГОРОДА",
+    title: "Сьогодні вже забрано",
+    message: "Повернись завтра.",
+  },
+  DAILY_STREAK_NOT_RECOVERABLE: {
+    tone: "conflict",
+    eyebrow: "СЕРІЯ",
+    title: "Серію не відновити",
+    message: "Вона не відповідає умовам відновлення.",
+  },
+  DAILY_STREAK_RESTORE_LIMIT_REACHED: {
+    tone: "conflict",
+    eyebrow: "СЕРІЯ",
+    title: "Відновлення закінчились",
+    message: "Місячний ліміт уже використаний.",
+  },
+  BET_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "СТАВКА",
+    title: "Раунд уже змінився",
+    message: "Онови дані перед ставкою.",
+  },
+  PERSONALIZATION_ALREADY_OWNED: {
+    tone: "conflict",
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Вона вже твоя",
+    message: "Повторна покупка не потрібна.",
+  },
+  PERSONALIZATION_NOT_PURCHASABLE: {
+    tone: "conflict",
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Зараз не продається",
+    message: "Статус персоналізації змінився.",
+  },
+  PURCHASE_IDEMPOTENCY_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "ПОКУПКА",
+    title: "Запит уже оброблявся",
+    message: "Повторного списання не буде.",
+  },
+  PERSONALIZATION_NOT_OWNED: {
+    tone: "conflict",
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Її немає в колекції",
+    message: "Спочатку отримай персоналізацію.",
+  },
+  PERSONALIZATION_OWNERSHIP_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "ПЕРСОНАЛІЗАЦІЯ",
+    title: "Колекція вже змінилась",
+    message: "Онови список.",
+  },
+  BADGE_ALREADY_EXISTS: {
+    tone: "conflict",
+    eyebrow: "БЕЙДЖ",
+    title: "Такий бейдж уже є",
+    message: "Відкрий існуючий або зміни дані.",
+  },
+  BADGE_NOT_OWNED: {
+    tone: "conflict",
+    eyebrow: "БЕЙДЖ",
+    title: "Бейдж ще не твій",
+    message: "Його не можна активувати.",
+  },
+  SANCTION_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "МОДЕРАЦІЯ",
+    title: "Стан уже змінився",
+    message: "Онови дані користувача.",
   },
   SELF_SANCTION: {
+    tone: "conflict",
     eyebrow: "МОДЕРАЦІЯ",
     title: "Не можна санкціонувати себе",
     message: "Обери іншого користувача.",
   },
-  SANCTION_DURATION_EXCEEDED: {
-    eyebrow: "МОДЕРАЦІЯ",
-    title: "Завеликий строк санкції",
-    message: "Скороти тривалість до дозволеного для твоєї ролі максимуму.",
+  WALLET_ADJUSTMENT_IDEMPOTENCY_CONFLICT: {
+    tone: "conflict",
+    eyebrow: "ГАМАНЕЦЬ",
+    title: "Корекцію вже оброблено",
+    message: "Повторна операція заблокована.",
   },
-  CRISTALIX_PLAYER_NOT_FOUND: {
-    eyebrow: "CRISTALIX",
-    title: "Гравця не знайдено",
-    message: "Перевір nickname або спробуй інший запит.",
-  },
-  CRISTALIX_RATE_LIMIT_EXCEEDED: {
-    eyebrow: "CRISTALIX",
-    title: "Забагато запитів",
-    message: "Cristalix просить трохи зачекати перед наступною спробою.",
-  },
-  CRISTALIX_UNAVAILABLE: {
-    eyebrow: "CRISTALIX",
-    title: "Cristalix тимчасово недоступний",
-    message: "Mnemos не може отримати актуальні дані. Спробуй трохи пізніше.",
-  },
+
   VALIDATION_FAILED: {
-    eyebrow: "ПЕРЕВІРКА ДАНИХ",
-    title: "Дещо треба виправити",
-    message: "Перевір підсвічені поля та повтори дію.",
+    tone: "validation",
+    eyebrow: "ДАНІ",
+    title: "Перевір поля",
+    message: "Деякі значення некоректні.",
   },
   CONSTRAINT_VIOLATION: {
-    eyebrow: "ПЕРЕВІРКА ДАНИХ",
+    tone: "validation",
+    eyebrow: "ДАНІ",
     title: "Некоректні параметри",
-    message: "Одне або кілька значень не відповідають дозволеним умовам.",
+    message: "Перевір введені значення.",
   },
   INVALID_REQUEST_BODY: {
+    tone: "validation",
     eyebrow: "ЗАПИТ",
     title: "Не вдалося прочитати дані",
-    message: "Спробуй ще раз. Якщо помилка повторюється — онови сторінку.",
+    message: "Повтори дію.",
   },
-  INTERNAL_SERVER_ERROR: {
+  INVALID_PARAMETER: {
+    tone: "validation",
+    eyebrow: "ЗАПИТ",
+    title: "Некоректний параметр",
+    message: "Перевір значення.",
+  },
+  MISSING_REQUEST_PARAMETER: {
+    tone: "validation",
+    eyebrow: "ЗАПИТ",
+    title: "Бракує параметра",
+    message: "Онови форму та повтори дію.",
+  },
+  MISSING_REQUEST_HEADER: {
+    tone: "validation",
+    eyebrow: "ЗАПИТ",
+    title: "Запит неповний",
+    message: "Онови сторінку.",
+  },
+  INVALID_ROLE_HIERARCHY: {
+    tone: "validation",
+    eyebrow: "РОЛІ",
+    title: "Некоректний порядок ролей",
+    message: "Перевір позиції в ієрархії.",
+  },
+  INVALID_ACCOUNT_INVITE_EXPIRATION: {
+    tone: "validation",
+    eyebrow: "ІНВАЙТ",
+    title: "Некоректний строк",
+    message: "Зміни термін дії запрошення.",
+  },
+  SANCTION_DURATION_EXCEEDED: {
+    tone: "validation",
+    eyebrow: "МОДЕРАЦІЯ",
+    title: "Завеликий строк",
+    message: "Скороти тривалість санкції.",
+  },
+  METHOD_NOT_ALLOWED: {
+    tone: "validation",
     eyebrow: "MNEMOS",
-    title: "Щось пішло не за планом",
-    message: "Це внутрішня помилка. Можеш повторити дію або спробувати трохи пізніше.",
+    title: "Дія не підтримується",
+    message: "Онови сторінку.",
+  },
+  UNSUPPORTED_MEDIA_TYPE: {
+    tone: "validation",
+    eyebrow: "MNEMOS",
+    title: "Формат не підтримується",
+    message: "Повтори дію після оновлення.",
+  },
+  NOT_ACCEPTABLE: {
+    tone: "validation",
+    eyebrow: "MNEMOS",
+    title: "Відповідь недоступна",
+    message: "Онови сторінку.",
+  },
+
+  PERSONALIZATION_PURCHASE_IN_PROGRESS: {
+    tone: "waiting",
+    eyebrow: "ПОКУПКА",
+    title: "Покупка обробляється",
+    message: "Не запускай її повторно.",
+  },
+  ACCOUNT_UNAVAILABLE: {
+    tone: "waiting",
+    eyebrow: "АККАУНТ",
+    title: "Аккаунт недоступний",
+    message: "Спробуй трохи пізніше.",
+  },
+  CRISTALIX_RATE_LIMIT_EXCEEDED: {
+    tone: "waiting",
+    eyebrow: "CRISTALIX",
+    title: "Забагато запитів",
+    message: "Зачекай перед наступною спробою.",
+  },
+  CRISTALIX_UNAVAILABLE: {
+    tone: "waiting",
+    eyebrow: "CRISTALIX",
+    title: "Сервіс недоступний",
+    message: "Спробуй трохи пізніше.",
+  },
+  CRISTALIX_AUTHORIZATION_FAILED: {
+    tone: "waiting",
+    eyebrow: "CRISTALIX",
+    title: "Звʼязок не авторизовано",
+    message: "Mnemos повторить запит пізніше.",
+  },
+  CRISTALIX_INVALID_RESPONSE: {
+    tone: "waiting",
+    eyebrow: "CRISTALIX",
+    title: "Отримано некоректну відповідь",
+    message: "Спробуй трохи пізніше.",
+  },
+  REALTIME_CONNECTION_LIMIT_EXCEEDED: {
+    tone: "waiting",
+    eyebrow: "REALTIME",
+    title: "Забагато підключень",
+    message: "Закрий зайве підключення або зачекай.",
+  },
+  REALTIME_CONNECTION_CAPACITY_UNAVAILABLE: {
+    tone: "waiting",
+    eyebrow: "REALTIME",
+    title: "Realtime тимчасово зайнятий",
+    message: "Підключення відновиться пізніше.",
+  },
+
+  INTERNAL_SERVER_ERROR: {
+    tone: "internal",
+    eyebrow: "MNEMOS",
+    title: "Щось пішло не так",
+    message: "Повтори дію трохи пізніше.",
   },
 }
-
-const validationCodes = new Set([
-  "VALIDATION_FAILED",
-  "CONSTRAINT_VIOLATION",
-  "INVALID_REQUEST_BODY",
-  "INVALID_PARAMETER",
-  "MISSING_REQUEST_PARAMETER",
-  "MISSING_REQUEST_HEADER",
-  "INVALID_ROLE_HIERARCHY",
-  "INVALID_ACCOUNT_INVITE_EXPIRATION",
-  "SANCTION_DURATION_EXCEEDED",
-])
 
 function normalizeCode(code?: string | null) {
   return code?.trim().toUpperCase() || null
 }
 
-function toneFor(payload: BackendErrorPayload): NoticeTone {
+function inferTone(payload: BackendErrorPayload): NoticeTone {
   const code = normalizeCode(payload.code)
   const status = payload.statusCode ?? null
-
-  if (code && validationCodes.has(code)) return "validation"
 
   if (code) {
     if (
       code.includes("ACCESS_DENIED") ||
       code.includes("PERMISSION_DENIED") ||
       code.includes("OWNER_REQUIRED") ||
-      code.includes("KICK_FORBIDDEN") ||
-      code === "ACCOUNT_NOT_ACTIVE" ||
-      code === "AUTHENTICATION_REQUIRED"
+      code.includes("UNAUTHORIZED") ||
+      code === "AUTHENTICATION_REQUIRED" ||
+      code === "ACCOUNT_NOT_ACTIVE"
     ) return "access"
 
     if (code.includes("NOT_FOUND")) return "not-found"
@@ -325,19 +517,26 @@ function toneFor(payload: BackendErrorPayload): NoticeTone {
     if (
       code.includes("RATE_LIMIT") ||
       code.includes("IN_PROGRESS") ||
-      code.includes("UNAVAILABLE")
+      code.includes("UNAVAILABLE") ||
+      code.includes("CAPACITY")
     ) return "waiting"
 
     if (
       code.includes("CONFLICT") ||
       code.includes("ALREADY") ||
       code.includes("LIMIT_REACHED") ||
+      code.includes("NOT_OWNED") ||
       code.includes("NOT_PURCHASABLE") ||
       code.includes("NOT_RECOVERABLE") ||
       code.includes("CANNOT_LEAVE")
     ) return "conflict"
 
-    if (code === "INTERNAL_SERVER_ERROR") return "internal"
+    if (
+      code.includes("INVALID") ||
+      code.includes("MISSING") ||
+      code.includes("VIOLATION") ||
+      code.includes("EXCEEDED")
+    ) return "validation"
   }
 
   if (status === 401 || status === 403) return "access"
@@ -345,62 +544,75 @@ function toneFor(payload: BackendErrorPayload): NoticeTone {
   if (status === 409) return "conflict"
   if (status === 429 || status === 502 || status === 503 || status === 504) return "waiting"
   if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) return "validation"
-  if (status && status >= 500) return "internal"
 
   return "internal"
 }
 
-function defaultCopy(tone: NoticeTone): Omit<NoticePresentation, "tone" | "mascot"> {
+function fallbackFor(tone: NoticeTone): NoticePresentation {
   switch (tone) {
     case "validation":
       return {
-        eyebrow: "ПЕРЕВІРКА",
-        title: "Перевір введені дані",
-        message: "Mnemos не зміг виконати дію з поточними значеннями.",
+        tone,
+        mascot: tone,
+        eyebrow: "ДАНІ",
+        title: "Перевір значення",
+        message: "Запит містить некоректні дані.",
       }
     case "access":
       return {
+        tone,
+        mascot: tone,
         eyebrow: "ДОСТУП",
         title: "Дія недоступна",
-        message: "Для цього потрібні інші права, роль або активний аккаунт.",
+        message: "Для неї бракує прав.",
       }
     case "conflict":
       return {
-        eyebrow: "СТАН ЗМІНИВСЯ",
-        title: "Цю дію вже не можна виконати так само",
-        message: "Онови дані та спробуй ще раз.",
+        tone,
+        mascot: tone,
+        eyebrow: "СТАН",
+        title: "Дані вже змінились",
+        message: "Онови сторінку та повтори дію.",
       }
     case "not-found":
       return {
+        tone,
+        mascot: tone,
         eyebrow: "НЕ ЗНАЙДЕНО",
-        title: "Тут уже нічого немає",
-        message: "Обʼєкт міг бути видалений, закритий або змінити адресу.",
+        title: "Обʼєкт недоступний",
+        message: "Він міг бути видалений.",
       }
     case "waiting":
       return {
+        tone,
+        mascot: tone,
         eyebrow: "ТИМЧАСОВО",
-        title: "Потрібно трохи зачекати",
-        message: "Сервіс або операція зараз зайняті. Повтори спробу пізніше.",
+        title: "Спробуй трохи пізніше",
+        message: "Сервіс або операція зараз зайняті.",
       }
     case "internal":
       return {
+        tone,
+        mascot: tone,
         eyebrow: "MNEMOS",
         title: "Невідома помилка",
-        message: "Не вдалося визначити причину. Повтори дію або спробуй пізніше.",
+        message: "Повтори дію трохи пізніше.",
       }
   }
 }
 
 export function resolveErrorPresentation(payload: BackendErrorPayload): NoticePresentation {
   const code = normalizeCode(payload.code)
-  const tone = toneFor(payload)
-  const copy = code ? directCopy[code] : undefined
+  const definition = code ? errorDefinitions[code] : undefined
 
-  return {
-    tone,
-    mascot: tone,
-    ...(copy ?? defaultCopy(tone)),
+  if (definition) {
+    return {
+      ...definition,
+      mascot: definition.mascot ?? definition.tone,
+    }
   }
+
+  return fallbackFor(inferTone(payload))
 }
 
 export function ErrorNotificationProvider({ children, hasTabbar }: ProviderProps) {
@@ -518,10 +730,10 @@ function ErrorNoticeCard({ notice, onDismiss }: { notice: ErrorNotice; onDismiss
   return (
     <motion.article
       className={`error-notice error-notice--${presentation.tone}`}
-      initial={{ opacity: 0, y: 18, scale: 0.965 }}
+      initial={{ opacity: 0, y: -14, scale: 0.975 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      exit={{ opacity: 0, y: -9, scale: 0.985 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       role="alert"
     >
       <span className="error-notice__mascot">
