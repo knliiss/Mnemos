@@ -19,8 +19,7 @@ object PublicProfileApiMapper {
                 ),
         )
 
-    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> =
-        toPageResponse { profile -> profile.toResponse() }
+    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> = toPageResponse { profile -> profile.toResponse() }
 
     fun PublicProfile.toResponse(): PublicProfileResponse =
         PublicProfileResponse(
