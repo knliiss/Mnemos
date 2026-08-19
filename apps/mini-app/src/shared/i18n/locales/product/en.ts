@@ -1,5 +1,6 @@
 import { accountProductEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
+import { personalizationProductEn } from "./personalization/en"
 
 export const productEn = {
   productShell: {
@@ -140,5 +141,6 @@ export const productEn = {
     noBadges: "No badges yet",
   },
   ...accountProductEn,
+  ...personalizationProductEn,
   ...betAdminEn,
 } as const
