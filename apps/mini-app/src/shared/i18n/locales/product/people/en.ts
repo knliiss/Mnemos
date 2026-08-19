@@ -39,6 +39,10 @@ export const peopleProductEn = {
       noComments: "No comments yet",
       firstComment: "You can leave the first one.",
       deletedComment: "Comment deleted",
+      rarities: {
+        MYTHICAL: "Mythical",
+        SECRET: "Secret",
+      },
     },
   },
 } as const
