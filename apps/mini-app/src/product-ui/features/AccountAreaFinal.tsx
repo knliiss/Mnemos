@@ -5,8 +5,8 @@ import { AccountInvitesProduction } from "./AccountInvitesProduction"
 import { AccountCreateProduction, AccountJoinProduction } from "./AccountOnboardingProduction"
 import { AccountSettingsFinal } from "./AccountSettingsFinal"
 import { AccountWalletProduction } from "./AccountWalletProduction"
-import { RoleEditorOverhaul } from "./RoleEditorOverhaul"
-import { RolesOverviewOverhaul } from "./RolesOverviewOverhaul"
+import { RoleEditorProduction } from "./RoleEditorProduction"
+import { RolesOverviewProduction } from "./RolesOverviewProduction"
 
 type Props = {
   activeAccount: Account
@@ -36,7 +36,7 @@ export function AccountAreaFinal(props: Props) {
 
   if (props.routeId === "roles") {
     return (
-      <RolesOverviewOverhaul
+      <RolesOverviewProduction
         navigate={props.navigate}
         back={props.back}
       />
@@ -45,7 +45,7 @@ export function AccountAreaFinal(props: Props) {
 
   if (props.routeId === "role-editor") {
     return (
-      <RoleEditorOverhaul
+      <RoleEditorProduction
         params={props.params}
         navigate={props.navigate}
         back={props.back}
