@@ -202,6 +202,13 @@ function collectDynamicClassPatterns(files) {
 
       for (const classMatch of template.matchAll(/[A-Za-z_][A-Za-z0-9_-]*\$\{[^}]+\}[A-Za-z0-9_-]*/g)) {
         const dynamicClass = classMatch[0]
+        const staticPart = dynamicClass.replace(/\$\{[^}]+\}/g, "")
+        const hyphenCount = (staticPart.match(/-/g) ?? []).length
+
+        if (staticPart.length < 10 || hyphenCount < 2) {
+          continue
+        }
+
         const regexSource = dynamicClass
           .split(/\$\{[^}]+\}/g)
           .map(escapeRegExp)
