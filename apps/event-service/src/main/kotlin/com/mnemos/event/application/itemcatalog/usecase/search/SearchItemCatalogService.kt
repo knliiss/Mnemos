@@ -10,20 +10,18 @@ import org.springframework.transaction.annotation.Transactional
 class SearchItemCatalogService(
     private val itemCatalogReader: ItemCatalogReader,
 ) {
-    fun execute(
-        search: String,
-        limit: Int,
-    ): List<ItemCatalogItem> {
-        val normalizedSearch = search.trim()
+    fun execute(query: SearchItemCatalogQuery): List<ItemCatalogItem> {
+        val normalizedQuery =
+            query.copy(
+                search = query.search.trim(),
+                limit = query.limit.coerceIn(MIN_LIMIT, MAX_LIMIT),
+            )
 
-        if (normalizedSearch.length < MIN_SEARCH_LENGTH) {
+        if (normalizedQuery.search.length < MIN_SEARCH_LENGTH) {
             return emptyList()
         }
 
-        return itemCatalogReader.search(
-            search = normalizedSearch,
-            limit = limit.coerceIn(MIN_LIMIT, MAX_LIMIT),
-        )
+        return itemCatalogReader.search(normalizedQuery)
     }
 
     private companion object {
