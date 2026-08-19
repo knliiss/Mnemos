@@ -9,6 +9,8 @@ import type {
   SystemRole,
 } from "@/product-ui/model"
 
+export type AccountStatus = "ACTIVE" | "DEACTIVATED"
+
 export type UserResponse = {
   id: string
   username: string
@@ -27,6 +29,7 @@ export type AccountSummaryResponse = {
   maxMembers: number
   owner: boolean
   active: boolean
+  status: AccountStatus
 }
 
 export type AccountDetailsResponse = AccountSummaryResponse & {
