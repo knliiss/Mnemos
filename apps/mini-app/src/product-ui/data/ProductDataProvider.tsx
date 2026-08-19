@@ -169,12 +169,20 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    void refreshAccount()
+    const frame = window.requestAnimationFrame(() => {
+      void refreshAccount()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [refreshAccount])
 
   useEffect(() => {
-    void refreshEvents()
-    void refreshSubscriptions()
+    const frame = window.requestAnimationFrame(() => {
+      void refreshEvents()
+      void refreshSubscriptions()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [refreshEvents, refreshSubscriptions])
 
   const selectAccount = useCallback(async (account: Account) => {
