@@ -24,8 +24,9 @@ class DeleteCommentService(
     override fun execute(commentId: UUID) {
         val userId = actorProvider.requireUserId()
         val id = CommentId(commentId)
-        val preview = repository.findById(id)
-            ?: throw CommentNotFoundException(id)
+        val preview =
+            repository.findById(id)
+                ?: throw CommentNotFoundException(id)
         val isAuthor = preview.authorUserId == userId
         val isGlobalAdmin =
             actorProvider.hasAnyUserRole(
@@ -45,8 +46,9 @@ class DeleteCommentService(
             throw CommentAccessDeniedException(id)
         }
 
-        val comment = repository.findByIdForUpdate(id)
-            ?: throw CommentNotFoundException(id)
+        val comment =
+            repository.findByIdForUpdate(id)
+                ?: throw CommentNotFoundException(id)
 
         if (comment.deleted) {
             return

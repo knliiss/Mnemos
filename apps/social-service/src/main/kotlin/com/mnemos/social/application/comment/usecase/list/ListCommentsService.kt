@@ -17,8 +17,9 @@ class ListCommentsService(
 
     @Transactional(readOnly = true)
     override fun listReplies(query: ListCommentRepliesQuery): PageResult<CommentView> {
-        val root = reader.findById(query.commentId)
-            ?: throw CommentNotFoundException(query.commentId)
+        val root =
+            reader.findById(query.commentId)
+                ?: throw CommentNotFoundException(query.commentId)
 
         if (root.parentCommentId != null) {
             throw CommentRepliesRequireRootException(query.commentId)

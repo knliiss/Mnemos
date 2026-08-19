@@ -48,8 +48,9 @@ class CreateDropSpotlightService(
         }
 
         val now = clock.instant()
-        val itemDrop = itemDropLookup.findById(command.itemDropEventId)
-            ?: throw SpotlightItemDropNotFoundException(command.itemDropEventId)
+        val itemDrop =
+            itemDropLookup.findById(command.itemDropEventId)
+                ?: throw SpotlightItemDropNotFoundException(command.itemDropEventId)
 
         if (!itemDrop.droppedFor.equals(actor.cristalixNickname, ignoreCase = true)) {
             throw SpotlightItemDropAccessDeniedException(command.itemDropEventId)

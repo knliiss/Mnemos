@@ -22,8 +22,9 @@ class EditCommentService(
     @Transactional
     override fun execute(command: EditCommentCommand): Comment {
         val userId = actorProvider.requireUserId()
-        val comment = repository.findByIdForUpdate(command.commentId)
-            ?: throw CommentNotFoundException(command.commentId)
+        val comment =
+            repository.findByIdForUpdate(command.commentId)
+                ?: throw CommentNotFoundException(command.commentId)
 
         if (comment.authorUserId != userId) {
             throw CommentAccessDeniedException(command.commentId)

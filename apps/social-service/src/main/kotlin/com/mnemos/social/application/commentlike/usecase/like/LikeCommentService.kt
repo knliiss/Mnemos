@@ -23,8 +23,9 @@ class LikeCommentService(
     override fun execute(commentId: UUID) {
         val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
         val id = CommentId(commentId)
-        val comment = commentRepository.findByIdForUpdate(id)
-            ?: throw CommentNotFoundException(id)
+        val comment =
+            commentRepository.findByIdForUpdate(id)
+                ?: throw CommentNotFoundException(id)
 
         if (comment.deleted) {
             throw DeletedCommentOperationException(
