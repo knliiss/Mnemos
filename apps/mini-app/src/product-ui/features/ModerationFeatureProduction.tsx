@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   createSanction,
   createWalletAdjustment,
@@ -46,16 +46,13 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
   const [results, setResults] = useState<IdentitySearchResponse[]>([])
   const [loading, setLoading] = useState(false)
   const normalized = query.trim()
+  const visibleResults = normalized.length >= 2 ? results : []
 
   useEffect(() => {
-    if (normalized.length < 2) {
-      setResults([])
-      setLoading(false)
-      return
-    }
+    if (normalized.length < 2) return
 
-    setLoading(true)
     const timer = window.setTimeout(() => {
+      setLoading(true)
       void searchIdentities(normalized)
         .then(setResults)
         .catch(handleError)
@@ -99,13 +96,13 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
       ) : null}
 
       {normalized.length === 1 ? <p className="moderation-polished-empty">Введи ще 1 символ</p> : null}
-      {loading ? <LoadingState /> : null}
+      {normalized.length >= 2 && loading ? <LoadingState /> : null}
 
-      {!loading && results.length ? (
+      {!loading && visibleResults.length ? (
         <section className="moderation-polished-results">
-          <header><strong>Результати</strong><small>{results.length}</small></header>
+          <header><strong>Результати</strong><small>{visibleResults.length}</small></header>
           <div>
-            {results.map((identity) => (
+            {visibleResults.map((identity) => (
               <motion.button
                 key={identity.userId}
                 whileTap={{ scale: 0.985 }}
@@ -121,7 +118,7 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
         </section>
       ) : null}
 
-      {!loading && normalized.length >= 2 && !results.length ? (
+      {!loading && normalized.length >= 2 && !visibleResults.length ? (
         <p className="moderation-polished-empty">Нічого не знайдено</p>
       ) : null}
     </div>
@@ -155,10 +152,13 @@ export function ModerationUserProduction({ params, back }: UserProps) {
     const found = matches.find((item) => item.userId === userId) ?? matches[0] ?? null
     setIdentity(found)
 
-    if (found && !accountTargetId) {
-      setAccountTargetId(found.accounts.find((account) => account.active)?.accountId ?? found.accounts[0]?.accountId ?? "")
+    if (found) {
+      const preferredAccount = found.accounts.find((account) => account.active)?.accountId
+        ?? found.accounts[0]?.accountId
+        ?? ""
+      setAccountTargetId((current) => current || preferredAccount)
     }
-  }, [accountTargetId, userId])
+  }, [userId])
 
   const refreshSanctions = useCallback(async () => {
     if (!userId) return
@@ -179,10 +179,7 @@ export function ModerationUserProduction({ params, back }: UserProps) {
   const currency = walletTarget === "USER" ? "PRIME" as const : "COIN" as const
 
   useEffect(() => {
-    if (!canAdjustWallet || !targetId) {
-      setAdjustments([])
-      return
-    }
+    if (!canAdjustWallet || !targetId) return
 
     const frame = window.requestAnimationFrame(() => {
       void listWalletAdjustments(walletTarget, targetId)
