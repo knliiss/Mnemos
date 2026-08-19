@@ -1,0 +1,42 @@
+export const eventsProductUk = {
+  events: {
+    kinds: {
+      ITEM_DROP: "Дроп",
+      BOOSTER: "Бустер",
+      GLOBAL: "Глобальна",
+      RAID: "Рейд",
+    },
+    boosters: {
+      LUCK: "Удача",
+      MONEY: "Монети",
+      DAMAGE: "Шкода",
+      POWER: "Сила",
+    },
+    globals: {
+      DARKNESS: "Темрява",
+      MOON: "Місяць",
+      ECLIPSE: "Затемнення",
+      EXPLOSION: "Вибух",
+    },
+    feed: {
+      title: "Події",
+      description: "Що відбувається на Cristalix просто зараз",
+      filterAria: "Тип подій",
+      all: "Усі",
+      searchPlaceholder: "Предмет, нік або подія",
+      clear: "Очистити",
+      newest: "Спочатку нові",
+      oldest: "Спочатку старі",
+      loading: "Завантаження подій",
+      latest: "ОСТАННЄ",
+      oldestFeatured: "НАЙСТАРІШЕ",
+      stream: "СТРІЧКА",
+      eventCount: "{{count}} подій",
+      emptyTitle: "Подій не знайдено",
+      emptyCopy: "Зміни тип, порядок або пошуковий запит",
+      globalDescription: "Глобальна подія Cristalix",
+      raidDescription: "Рейд Cristalix",
+      locations: "Локації {{locations}}",
+    },
+  },
+} as const
