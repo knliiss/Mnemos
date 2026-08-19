@@ -45,21 +45,31 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Test
         run: npm test -- --run
 
       - name: Build
         run: npm run build
 
-      - name: Check JavaScript bundle budget
+      - name: Check bundle budgets
         shell: bash
         run: |
           set -euo pipefail
 
-          oversized="$(find dist/assets -type f -name '*.js' -size +500k -print)"
-          if [ -n "$oversized" ]; then
+          oversized_js="$(find dist/assets -type f -name '*.js' -size +500k -print)"
+          if [ -n "$oversized_js" ]; then
             echo "JavaScript chunks over 500 KiB:"
-            echo "$oversized"
+            echo "$oversized_js"
+            exit 1
+          fi
+
+          oversized_css="$(find dist/assets -type f -name '*.css' -size +450k -print)"
+          if [ -n "$oversized_css" ]; then
+            echo "CSS chunks over 450 KiB:"
+            echo "$oversized_css"
             exit 1
           fi
 
