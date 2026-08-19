@@ -1,4 +1,5 @@
 import { accountRolesUk } from "./roles/uk"
+import { accountSettingsUk } from "./settings/uk"
 
 export const accountProductUk = {
   accountOnboarding: {
@@ -98,4 +99,5 @@ export const accountProductUk = {
     },
   },
   ...accountRolesUk,
+  ...accountSettingsUk,
 } as const
