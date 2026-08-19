@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useProductData } from "../data/ProductDataProvider"
 import { Glyph } from "../shared/MnemosIcon"
 
@@ -10,6 +11,7 @@ type Props = {
 }
 
 export function AccountCreateProduction({ back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const [nickname, setNickname] = useState("")
   const [busy, setBusy] = useState(false)
@@ -35,9 +37,9 @@ export function AccountCreateProduction({ back }: Props) {
   return (
     <OnboardingShell
       mode="create"
-      title="Новий аккаунт"
-      eyebrow="CRISTALIX → MNEMOS"
-      description="Знайдемо твій Cristalix профіль і створимо для нього окремий аккаунт Mnemos."
+      title={t("accountOnboarding.create.title")}
+      eyebrow={t("accountOnboarding.create.eyebrow")}
+      description={t("accountOnboarding.create.description")}
       back={back}
     >
       <form
@@ -49,7 +51,7 @@ export function AccountCreateProduction({ back }: Props) {
       >
         <label className={`account-onboarding-field ${touched && !valid ? "is-invalid" : ""}`}>
           <span className="account-onboarding-field__label">
-            <small>CRISTALIX NICKNAME</small>
+            <small>{t("accountOnboarding.create.nicknameLabel")}</small>
             <b>{clean.length}/20</b>
           </span>
           <span className="account-onboarding-field__control">
@@ -62,17 +64,17 @@ export function AccountCreateProduction({ back }: Props) {
               value={nickname}
               minLength={4}
               maxLength={20}
-              placeholder="Наприклад, knalis"
+              placeholder={t("accountOnboarding.create.nicknamePlaceholder")}
               onChange={(event) => setNickname(event.target.value)}
             />
           </span>
           <span className="account-onboarding-field__hint">
             <i className={valid ? "is-ready" : ""} />
             {valid
-              ? `Перевіримо ${clean} на Cristalix`
+              ? t("accountOnboarding.create.readyHint", { nickname: clean })
               : touched
-                ? "Nickname має містити від 4 до 20 символів"
-                : "Достатньо nickname — UUID підтягнеться автоматично"}
+                ? t("accountOnboarding.create.invalidHint")
+                : t("accountOnboarding.create.emptyHint")}
           </span>
         </label>
 
@@ -82,20 +84,29 @@ export function AccountCreateProduction({ back }: Props) {
           disabled={!valid || busy}
           whileTap={valid && !busy ? { scale: 0.975 } : undefined}
         >
-          <span>{busy ? "Шукаю профіль…" : "Створити аккаунт"}</span>
+          <span>{busy ? t("accountOnboarding.create.busy") : t("accountOnboarding.create.submit")}</span>
           <ButtonSignal busy={busy} />
         </motion.button>
       </form>
 
       <div className="account-onboarding-facts">
-        <Fact mark="01" title="Ти станеш власником" copy="Ролі та доступи можна налаштувати пізніше." />
-        <Fact mark="02" title="Cristalix буде джерелом профілю" copy="Mnemos привʼяже UUID до знайденого nickname." />
+        <Fact
+          mark="01"
+          title={t("accountOnboarding.create.factOwnerTitle")}
+          copy={t("accountOnboarding.create.factOwnerCopy")}
+        />
+        <Fact
+          mark="02"
+          title={t("accountOnboarding.create.factProfileTitle")}
+          copy={t("accountOnboarding.create.factProfileCopy")}
+        />
       </div>
     </OnboardingShell>
   )
 }
 
 export function AccountJoinProduction({ back }: Props) {
+  const { t } = useTranslation()
   const product = useProductData()
   const [rawCode, setRawCode] = useState("")
   const [busy, setBusy] = useState(false)
@@ -131,9 +142,9 @@ export function AccountJoinProduction({ back }: Props) {
   return (
     <OnboardingShell
       mode="join"
-      title="Вхід за кодом"
-      eyebrow="INVITE ACCESS"
-      description="Встав код запрошення — Mnemos перевірить його і додасть тебе до потрібного аккаунта."
+      title={t("accountOnboarding.join.title")}
+      eyebrow={t("accountOnboarding.join.eyebrow")}
+      description={t("accountOnboarding.join.description")}
       back={back}
     >
       <form
@@ -145,9 +156,9 @@ export function AccountJoinProduction({ back }: Props) {
       >
         <label className={`account-onboarding-field account-onboarding-field--code ${touched && !valid ? "is-invalid" : ""}`}>
           <span className="account-onboarding-field__label">
-            <small>КОД ІНВАЙТА</small>
+            <small>{t("accountOnboarding.join.codeLabel")}</small>
             <button type="button" className="account-onboarding-paste" onClick={() => void paste()}>
-              Вставити
+              {t("accountOnboarding.join.paste")}
             </button>
           </span>
           <span className="account-onboarding-field__control account-onboarding-field__control--code">
@@ -167,10 +178,10 @@ export function AccountJoinProduction({ back }: Props) {
           <span className="account-onboarding-field__hint">
             <i className={valid ? "is-ready" : ""} />
             {valid
-              ? "Формат правильний — код готовий до перевірки"
+              ? t("accountOnboarding.join.readyHint")
               : touched
-                ? "16 символів · A–Z без I/O · цифри 2–9"
-                : "Код складається з чотирьох груп по 4 символи"}
+                ? t("accountOnboarding.join.invalidHint")
+                : t("accountOnboarding.join.emptyHint")}
           </span>
         </label>
 
@@ -180,14 +191,22 @@ export function AccountJoinProduction({ back }: Props) {
           disabled={!valid || busy}
           whileTap={valid && !busy ? { scale: 0.975 } : undefined}
         >
-          <span>{busy ? "Перевіряю інвайт…" : "Увійти за кодом"}</span>
+          <span>{busy ? t("accountOnboarding.join.busy") : t("accountOnboarding.join.submit")}</span>
           <ButtonSignal busy={busy} />
         </motion.button>
       </form>
 
       <div className="account-onboarding-facts">
-        <Fact mark="01" title="Код одноразовий" copy="Після успішного входу інвайт буде використано." />
-        <Fact mark="02" title="Доступ визначає аккаунт" copy="Початкова роль та дозволи прийдуть від його налаштувань." />
+        <Fact
+          mark="01"
+          title={t("accountOnboarding.join.factSingleUseTitle")}
+          copy={t("accountOnboarding.join.factSingleUseCopy")}
+        />
+        <Fact
+          mark="02"
+          title={t("accountOnboarding.join.factAccessTitle")}
+          copy={t("accountOnboarding.join.factAccessCopy")}
+        />
       </div>
     </OnboardingShell>
   )
@@ -208,6 +227,9 @@ function OnboardingShell({
   back: () => void
   children: React.ReactNode
 }) {
+  const { t } = useTranslation()
+  const key = mode === "create" ? "accountOnboarding.create" : "accountOnboarding.join"
+
   return (
     <div className={`screen account-onboarding account-onboarding--${mode}`}>
       <header className="account-onboarding-header">
@@ -216,7 +238,7 @@ function OnboardingShell({
           className="account-onboarding-back"
           onClick={back}
           whileTap={{ scale: 0.94 }}
-          aria-label="Назад"
+          aria-label={t("accountOnboarding.back")}
         >
           <Glyph name="back" size={22} />
         </motion.button>
@@ -244,9 +266,9 @@ function OnboardingShell({
           {mode === "join" ? <span className="account-onboarding-production-ticket" aria-hidden="true">CODE</span> : null}
         </div>
         <div className="account-onboarding-hero__copy">
-          <small>{mode === "create" ? "Я ДОПОМОЖУ З ПРИВʼЯЗКОЮ" : "Я ПЕРЕВІРЮ ІНВАЙТ"}</small>
-          <strong>{mode === "create" ? "Один nickname — і можна починати" : "Встав код без зайвих кроків"}</strong>
-          <p>{mode === "create" ? "Спочатку знайдемо профіль, потім створимо Mnemos account." : "Після перевірки одразу перемкнемось на новий аккаунт."}</p>
+          <small>{t(`${key}.mascotEyebrow`)}</small>
+          <strong>{t(`${key}.mascotTitle`)}</strong>
+          <p>{t(`${key}.mascotCopy`)}</p>
           <span className="account-onboarding-route" aria-hidden="true">
             <i />
             <b>{mode === "create" ? "C7X" : "CODE"}</b>
