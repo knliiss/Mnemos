@@ -14,6 +14,7 @@ object AccountQueryProjectionMapper {
 
         return AccountSummary(
             id = accountId,
+            cristalixUuid = cristalixUuid,
             cristalixNickname = cristalixNickname,
             currentMemberId = memberId,
             memberCount = Math.toIntExact(memberCount),
