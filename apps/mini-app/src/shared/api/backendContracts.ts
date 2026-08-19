@@ -30,6 +30,7 @@ export type AccountSummaryResponse = {
 }
 
 export type AccountDetailsResponse = AccountSummaryResponse & {
+  baseRoleId: string | null
   createdAt: string
   updatedAt: string
 }
