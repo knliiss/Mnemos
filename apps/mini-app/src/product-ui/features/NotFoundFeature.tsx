@@ -1,4 +1,5 @@
 import { motion } from "framer-motion"
+import { useTranslation } from "react-i18next"
 import { Glyph } from "../shared/MnemosIcon"
 
 type Props = {
@@ -7,6 +8,8 @@ type Props = {
 }
 
 export function NotFoundFeature({ requested, onHome }: Props) {
+  const { t } = useTranslation()
+
   return (
     <div className="screen not-found-r5-screen">
       <section className="not-found-r5-hero">
@@ -19,15 +22,13 @@ export function NotFoundFeature({ requested, onHome }: Props) {
         <img
           className="not-found-r5-mascot"
           src="/ui-illustrations/mnemos-mascot-404.svg"
-          alt="Збентежений маскот Mnemos з картою"
+          alt={t("notFound.mascotAlt")}
         />
 
         <div className="not-found-r5-copy">
-          <small>МАРШРУТ ЗАГУБИВСЯ</small>
-          <h1>Тут нічого немає</h1>
-          <p>
-            Схоже, навіть кіт Mnemos не розуміє, куди веде ця сторінка.
-          </p>
+          <small>{t("notFound.eyebrow")}</small>
+          <h1>{t("notFound.title")}</h1>
+          <p>{t("notFound.description")}</p>
           {requested ? <code>{requested}</code> : null}
         </div>
 
@@ -37,7 +38,7 @@ export function NotFoundFeature({ requested, onHome }: Props) {
           onClick={onHome}
         >
           <Glyph name="home" size={18} />
-          На головну
+          {t("notFound.home")}
         </motion.button>
 
         <span className="not-found-r5-signal" aria-hidden="true"><i /><i /><i /><i /></span>
