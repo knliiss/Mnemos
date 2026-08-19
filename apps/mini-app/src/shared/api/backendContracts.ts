@@ -59,8 +59,9 @@ export type AccountRoleResponse = {
   name: string
   color: string
   hierarchyRank: number
-  permissions: RolePermission[]
-  system: boolean
+  permissions: Partial<Record<RolePermission, boolean>>
+  createdAt: string
+  updatedAt: string
 }
 
 export type BalanceResponse = {
