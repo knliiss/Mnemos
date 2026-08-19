@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   approvePersonalization,
   listPersonalizationReviewQueue,
@@ -15,10 +16,6 @@ import type {
   Personalization,
   PersonalizationTarget,
 } from "../model"
-import {
-  personalizationLabels,
-  personalizationStatusLabels,
-} from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import {
   CurrencyValue,
@@ -28,13 +25,10 @@ import {
 
 type ReviewScope = "ALL" | PersonalizationTarget
 
-const reviewScopeLabels: Record<ReviewScope, string> = {
-  ALL: "Усі",
-  USER: "User",
-  ACCOUNT: "Account",
-}
+const reviewScopes: ReviewScope[] = ["ALL", "USER", "ACCOUNT"]
 
 export function PersonalizationReviewProduction({ back }: { back: () => void }) {
+  const { t } = useTranslation()
   const product = useProductData()
   const [items, setItems] = useState<Personalization[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -94,14 +88,15 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
 
     return items.filter((item) => {
       const scopeMatches = scope === "ALL" || item.target === scope
+      const typeLabel = t(`personalization.types.${item.type}.title`).toLowerCase()
       const queryMatches = !normalized
         || item.name.toLowerCase().includes(normalized)
         || item.creator.toLowerCase().includes(normalized)
-        || personalizationLabels[item.type].toLowerCase().includes(normalized)
+        || typeLabel.includes(normalized)
 
       return scopeMatches && queryMatches
     })
-  }, [items, query, scope])
+  }, [items, query, scope, t])
 
   const decide = async (decision: "APPROVE" | "REJECT") => {
     if (!selected || busy) return
@@ -131,14 +126,14 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
 
   return (
     <div className="screen review-overhaul-screen">
-      <PageHeader title="Перевірка" back={back} />
+      <PageHeader title={t("personalization.review.title")} back={back} />
 
       <section className="review-overview">
         <span className="review-overview__mark"><Glyph name="creator" size={20} /></span>
         <span>
-          <small>Черга персоналізацій</small>
-          <strong>{items.length} очікують рішення</strong>
-          <em>Черга, preview та рішення завантажуються з personalization-service.</em>
+          <small>{t("personalization.review.queue")}</small>
+          <strong>{t("personalization.review.pendingCount", { count: items.length })}</strong>
+          <em>{t("personalization.review.description")}</em>
         </span>
       </section>
 
@@ -148,24 +143,24 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Назва, автор або тип"
+            placeholder={t("personalization.review.searchPlaceholder")}
           />
         </label>
 
         <div className="review-scope">
-          {(["ALL", "USER", "ACCOUNT"] as const).map((value) => (
+          {reviewScopes.map((value) => (
             <button
               key={value}
               className={scope === value ? "is-active" : ""}
               onClick={() => setScope(value)}
             >
-              {reviewScopeLabels[value]}
+              {t(`personalization.review.scopes.${value}`)}
             </button>
           ))}
         </div>
       </div>
 
-      {loading ? <LoadingState /> : (
+      {loading ? <LoadingState label={t("personalization.loading")} /> : (
         <div className="review-queue-grid">
           {visible.map((item) => (
             <button
@@ -176,7 +171,7 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
               <PersonalizationVisual item={item} small />
               <span className="review-queue-card__copy">
                 <span className="review-queue-card__meta">
-                  <small>{personalizationLabels[item.type]}</small>
+                  <small>{t(`personalization.types.${item.type}.title`)}</small>
                   <i className={`is-${item.target.toLowerCase()}`}>{item.target}</i>
                 </span>
                 <strong>{item.name}</strong>
@@ -185,12 +180,12 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
               <span className="review-queue-card__side">
                 <CurrencyValue currency={item.currency} value={item.price} compact />
                 <b className={`status-${item.status.toLowerCase()}`}>
-                  {personalizationStatusLabels[item.status]}
+                  {t(`creator.status.${item.status}`)}
                 </b>
               </span>
             </button>
           ))}
-          {!visible.length ? <p className="inline-hint">Черга порожня</p> : null}
+          {!visible.length ? <p className="inline-hint">{t("personalization.review.emptyQueue")}</p> : null}
         </div>
       )}
 
@@ -198,11 +193,11 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
         <section className="review-workbench">
           <header>
             <span>
-              <small>SELECTED</small>
+              <small>{t("personalization.review.selected")}</small>
               <strong>{selected.name}</strong>
-              <em>{personalizationLabels[selected.type]} · {selected.target}</em>
+              <em>{t(`personalization.types.${selected.type}.title`)} · {selected.target}</em>
             </span>
-            <button aria-label="Закрити" onClick={() => setSelectedId(null)}>
+            <button aria-label={t("personalization.review.close")} onClick={() => setSelectedId(null)}>
               <Glyph name="close" size={16} />
             </button>
           </header>
@@ -211,14 +206,17 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
           <PersonalizationDetails item={selected} />
 
           <div className="review-metadata">
-            <article><small>Автор</small><strong>{selected.creator}</strong></article>
-            <article><small>Scope</small><strong>{selected.target}</strong></article>
-            <article><small>Статус</small><strong>{personalizationStatusLabels[selected.status]}</strong></article>
+            <article><small>{t("personalization.review.author")}</small><strong>{selected.creator}</strong></article>
+            <article><small>{t("personalization.review.scope")}</small><strong>{selected.target}</strong></article>
+            <article><small>{t("personalization.review.status")}</small><strong>{t(`creator.status.${selected.status}`)}</strong></article>
           </div>
 
           <div className="review-decision-grid">
             <section className="review-approve-panel">
-              <Field label="Ціна після перевірки" hint={!priceValid && price.length ? "Додатне ціле" : undefined}>
+              <Field
+                label={t("personalization.review.approvedPrice")}
+                hint={!priceValid && price.length ? t("personalization.review.positiveInteger") : undefined}
+              >
                 <div className="amount-input">
                   <span><CurrencyMark currency={selected.currency} size={18} /></span>
                   <input
@@ -237,18 +235,18 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
                 onClick={() => void decide("APPROVE")}
               >
                 <Glyph name="check" size={16} />
-                {busy ? "Зберігаємо…" : "Схвалити"}
+                {busy ? t("personalization.review.saving") : t("personalization.review.approve")}
               </button>
             </section>
 
             <section className="review-reject-panel">
-              <Field label="Причина відмови">
+              <Field label={t("personalization.review.rejectionReason")}>
                 <textarea
                   value={reason}
                   maxLength={500}
                   disabled={busy}
                   onChange={(event) => setReason(event.target.value)}
-                  placeholder="Що саме треба виправити"
+                  placeholder={t("personalization.review.rejectionPlaceholder")}
                 />
               </Field>
               <button
@@ -257,7 +255,7 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
                 onClick={() => void decide("REJECT")}
               >
                 <Glyph name="close" size={16} />
-                {busy ? "Зберігаємо…" : "Відхилити"}
+                {busy ? t("personalization.review.saving") : t("personalization.review.reject")}
               </button>
             </section>
           </div>
@@ -265,13 +263,16 @@ export function PersonalizationReviewProduction({ back }: { back: () => void }) 
       ) : (
         <section className="review-empty-workbench">
           <Glyph name="creator" size={22} />
-          <span><strong>Обери заявку</strong><small>Зʼявиться preview та інструменти рішення.</small></span>
+          <span>
+            <strong>{t("personalization.review.selectApplication")}</strong>
+            <small>{t("personalization.review.selectApplicationCopy")}</small>
+          </span>
         </section>
       )}
     </div>
   )
 }
 
-function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+function LoadingState({ label }: { label: string }) {
+  return <div className="events-r2-loading" aria-label={label}><i /><i /><i /></div>
 }
