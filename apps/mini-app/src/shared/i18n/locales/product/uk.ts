@@ -1,3 +1,5 @@
+import { betAdminUk } from "./bet-admin/uk"
+
 export const productUk = {
   productShell: {
     navigation: {
@@ -136,4 +138,5 @@ export const productUk = {
     selectUserFirst: "Спочатку обери User",
     noBadges: "Бейджів ще немає",
   },
+  ...betAdminUk,
 } as const
