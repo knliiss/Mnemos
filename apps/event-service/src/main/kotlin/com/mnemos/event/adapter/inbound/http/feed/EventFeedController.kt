@@ -30,6 +30,9 @@ class EventFeedController(
         @RequestParam(required = false)
         @Size(max = 64)
         search: String?,
+        @RequestParam(required = false)
+        @Size(min = 4, max = 20)
+        droppedFor: String?,
         @RequestParam(required = false) itemRarity: DomainItemRarity?,
         @RequestParam(defaultValue = "NEWEST") sort: EventFeedSort,
         @RequestParam(defaultValue = "50")
@@ -44,6 +47,7 @@ class EventFeedController(
                     limit = limit,
                     kinds = types?.takeIf { values -> values.isNotEmpty() } ?: EventFeedKind.entries.toSet(),
                     search = search,
+                    droppedFor = droppedFor,
                     itemRarity = itemRarity,
                     sort = sort,
                 ),
