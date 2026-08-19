@@ -101,6 +101,7 @@ export const personalizationProductUk = {
       selected: "ОБРАНО",
       close: "Закрити",
       author: "Автор",
+      by: "від {{creator}}",
       scope: "Scope",
       status: "Статус",
       approvedPrice: "Ціна після перевірки",
