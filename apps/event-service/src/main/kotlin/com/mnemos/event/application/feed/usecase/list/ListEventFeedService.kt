@@ -16,6 +16,7 @@ class ListEventFeedService(
             query.copy(
                 limit = query.limit.coerceIn(MIN_LIMIT, MAX_LIMIT),
                 search = query.search?.trim()?.takeIf { value -> value.isNotEmpty() },
+                droppedFor = query.droppedFor?.trim()?.takeIf { value -> value.isNotEmpty() },
             )
 
         val items = eventFeedReader.read(normalizedQuery)
