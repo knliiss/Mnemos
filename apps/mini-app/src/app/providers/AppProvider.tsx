@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
 import { useTranslation } from "react-i18next"
 import type { CurrentContextResponse } from "@/shared/api/backendContracts"
 import {
@@ -44,16 +52,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return stored === "light" || stored === "system" ? stored : "dark"
   })
 
-  useEffect(() => {
-    void bootstrap().catch(handleError)
+  const refresh = useCallback(async () => {
+    const next = await getCurrentContext()
+
+    setContext(next)
+    return next
   }, [])
 
-  useEffect(() => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
-    document.documentElement.dataset.theme = theme
-  }, [theme])
-
-  async function bootstrap() {
+  const bootstrap = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -65,50 +71,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [i18n])
 
-  async function refresh() {
-    const next = await getCurrentContext()
-
-    setContext(next)
-    return next
-  }
-
-  async function selectAccount(accountId: string) {
+  const selectAccount = useCallback(async (accountId: string) => {
     await selectActiveAccount(accountId)
     await refresh()
-  }
+  }, [refresh])
 
-  async function registerAccount(nickname: string) {
+  const registerAccount = useCallback(async (nickname: string) => {
     const created = await createAccount(nickname)
 
     await selectActiveAccount(created.accountId)
     await refresh()
-  }
+  }, [refresh])
 
-  async function joinByCode(inviteCode: string) {
+  const joinByCode = useCallback(async (inviteCode: string) => {
     const joined = await joinAccount(inviteCode)
 
     await selectActiveAccount(joined.accountId)
     await refresh()
-  }
+  }, [refresh])
 
-  async function leaveAccount() {
+  const leaveAccount = useCallback(async () => {
     await leaveActiveAccount()
     await refresh()
-  }
+  }, [refresh])
 
-  async function reactivate(accountId: string) {
+  const reactivate = useCallback(async (accountId: string) => {
     await reactivateAccount(accountId)
     await selectActiveAccount(accountId)
     await refresh()
-  }
+  }, [refresh])
 
-  async function setLanguage(language: LocalizationLanguage) {
+  const setLanguage = useCallback(async (language: LocalizationLanguage) => {
     await updateCurrentLanguage(language)
     await i18n.changeLanguage(language.toLowerCase())
     await refresh()
-  }
+  }, [i18n, refresh])
+
+  useEffect(() => {
+    void bootstrap().catch(handleError)
+  }, [bootstrap])
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   const user = useMemo<User | null>(() => context?.user ?? null, [context?.user])
 
@@ -174,7 +182,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       reactivate,
       setLanguage,
     }),
-    [context, loading, user, account, availableAccounts, theme],
+    [
+      context,
+      loading,
+      user,
+      account,
+      availableAccounts,
+      theme,
+      refresh,
+      selectAccount,
+      registerAccount,
+      joinByCode,
+      leaveAccount,
+      reactivate,
+      setLanguage,
+    ],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
