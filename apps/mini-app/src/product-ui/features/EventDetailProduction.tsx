@@ -31,14 +31,15 @@ type Props = {
 
 export function EventDetailProduction({ eventId, activeAccount, navigate, back }: Props) {
   const product = useProductData()
+  const refreshEvents = product.refreshEvents
   const [followBusy, setFollowBusy] = useState(false)
   const event = product.feed.find((item) => item.id === eventId) ?? null
 
   useEffect(() => {
     if (!eventId || event) return
 
-    void product.refreshEvents({ limit: 100 })
-  }, [event, eventId, product.refreshEvents])
+    void refreshEvents({ limit: 100 })
+  }, [event, eventId, refreshEvents])
 
   const matchingSubscription = useMemo(
     () => event ? product.subscriptions.find((subscription) => matchesEvent(subscription, event)) ?? null : null,
