@@ -1,6 +1,13 @@
 package com.mnemos.social.application.spotlight.usecase.create
 
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.spotlight.exception.DropSpotlightIdempotencyConflictException
+import com.mnemos.social.application.spotlight.exception.ItemDropAlreadySpotlightedException
+import com.mnemos.social.application.spotlight.exception.SpotlightBuyerCooldownException
+import com.mnemos.social.application.spotlight.exception.SpotlightItemDropAccessDeniedException
+import com.mnemos.social.application.spotlight.exception.SpotlightItemDropNotFoundException
+import com.mnemos.social.application.spotlight.exception.SpotlightPurchaseWindowClosedException
+import com.mnemos.social.application.spotlight.exception.SpotlightQueueLimitException
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightQueue
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightWallet
 import com.mnemos.social.application.spotlight.port.out.ItemDropLookup
@@ -8,13 +15,10 @@ import com.mnemos.social.configuration.spotlight.DropSpotlightProperties
 import com.mnemos.social.domain.spotlight.model.DropSpotlight
 import com.mnemos.social.domain.spotlight.model.DropSpotlightStatus
 import com.mnemos.social.domain.spotlight.repository.DropSpotlightRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.time.Clock
 import java.time.Duration
-import java.util.UUID
 
 @Service
 class CreateDropSpotlightService(
@@ -27,44 +31,40 @@ class CreateDropSpotlightService(
     private val clock: Clock,
 ) : CreateDropSpotlightUseCase {
     @Transactional
-    override fun execute(
-        itemDropEventId: UUID,
-        idempotencyKey: UUID?,
-    ): DropSpotlight {
+    override fun execute(command: CreateDropSpotlightCommand): DropSpotlight {
         val actor = actorProvider.requireActor()
-        val replay = idempotencyKey?.let(repository::findByIdempotencyKey)
+        val replay = command.idempotencyKey?.let(repository::findByIdempotencyKey)
 
         if (replay != null) {
             if (
                 replay.buyerUserId != actor.userId ||
                 replay.sourceAccountId != actor.accountId ||
-                replay.itemDrop.id != itemDropEventId
+                replay.itemDrop.id != command.itemDropEventId
             ) {
-                throw ResponseStatusException(HttpStatus.CONFLICT, "Idempotency key is already used by another spotlight")
+                throw DropSpotlightIdempotencyConflictException(requireNotNull(command.idempotencyKey))
             }
 
             return replay
         }
 
         val now = clock.instant()
-        val itemDrop =
-            itemDropLookup.findById(itemDropEventId)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Item drop was not found")
+        val itemDrop = itemDropLookup.findById(command.itemDropEventId)
+            ?: throw SpotlightItemDropNotFoundException(command.itemDropEventId)
 
         if (!itemDrop.droppedFor.equals(actor.cristalixNickname, ignoreCase = true)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Item drop does not belong to the active account")
+            throw SpotlightItemDropAccessDeniedException(command.itemDropEventId)
         }
 
         val age = Duration.between(itemDrop.occurredAt, now)
 
         if (age.isNegative || age > properties.dropMaxAge) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Item drop is outside the spotlight purchase window")
+            throw SpotlightPurchaseWindowClosedException(command.itemDropEventId)
         }
 
         val reservation = queue.reserve(now)
 
-        if (repository.existsNonFailedByItemDropEventId(itemDropEventId)) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Item drop has already been spotlighted")
+        if (repository.existsNonFailedByItemDropEventId(command.itemDropEventId)) {
+            throw ItemDropAlreadySpotlightedException(command.itemDropEventId)
         }
 
         val latest = repository.findLatestByBuyerUserId(actor.userId)
@@ -74,11 +74,11 @@ class CreateDropSpotlightService(
             latest.status != DropSpotlightStatus.PAYMENT_FAILED &&
             latest.createdAt.plus(properties.buyerCooldown).isAfter(now)
         ) {
-            throw ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Spotlight buyer cooldown is active")
+            throw SpotlightBuyerCooldownException()
         }
 
         if (reservation.scheduledAt.isAfter(now.plus(properties.maxQueueDelay))) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Spotlight queue is longer than allowed")
+            throw SpotlightQueueLimitException()
         }
 
         val spotlight =
@@ -90,7 +90,7 @@ class CreateDropSpotlightService(
                 pricePrime = properties.pricePrime,
                 scheduledAt = reservation.scheduledAt,
                 now = now,
-                idempotencyKey = idempotencyKey,
+                idempotencyKey = command.idempotencyKey,
             )
         val saved = repository.save(spotlight)
 

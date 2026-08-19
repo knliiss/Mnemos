@@ -1,13 +1,15 @@
 package com.mnemos.social.adapter.out.persistence.comment
 
 import com.mnemos.social.adapter.out.persistence.comment.CommentViewPersistenceMapper.toView
+import com.mnemos.social.adapter.out.persistence.common.pagination.PagePersistenceMapper.toPageResult
 import com.mnemos.social.application.comment.model.CommentView
 import com.mnemos.social.application.comment.port.out.CommentViewReader
+import com.mnemos.social.application.comment.usecase.list.ListCommentRepliesQuery
+import com.mnemos.social.application.comment.usecase.list.ListRootCommentsQuery
+import com.mnemos.social.application.common.pagination.PageResult
 import com.mnemos.social.domain.comment.model.CommentId
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
-import java.util.UUID
 
 @Component
 class CommentViewReaderAdapter(
@@ -15,19 +17,17 @@ class CommentViewReaderAdapter(
 ) : CommentViewReader {
     override fun findById(id: CommentId): CommentView? = repository.findViewById(id.id)?.toView()
 
-    override fun findRootByAccountId(
-        accountId: UUID,
-        pageable: Pageable,
-    ): Page<CommentView> =
+    override fun findRoot(query: ListRootCommentsQuery): PageResult<CommentView> =
         repository
-            .findRootByAccountId(accountId, pageable)
-            .map { projection -> projection.toView() }
+            .findRootByAccountId(
+                targetAccountId = query.accountId,
+                pageable = PageRequest.of(query.page.page, query.page.size),
+            ).toPageResult { projection -> projection.toView() }
 
-    override fun findReplies(
-        parentCommentId: CommentId,
-        pageable: Pageable,
-    ): Page<CommentView> =
+    override fun findReplies(query: ListCommentRepliesQuery): PageResult<CommentView> =
         repository
-            .findReplies(parentCommentId.id, pageable)
-            .map { projection -> projection.toView() }
+            .findReplies(
+                parentCommentId = query.commentId.id,
+                pageable = PageRequest.of(query.page.page, query.page.size),
+            ).toPageResult { projection -> projection.toView() }
 }

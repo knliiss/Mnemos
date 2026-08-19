@@ -1,5 +1,6 @@
 package com.mnemos.social.adapter.inbound.http.accountreaction
 
+import com.mnemos.social.adapter.inbound.http.accountreaction.AccountReactionApiMapper.toCommand
 import com.mnemos.social.adapter.inbound.http.accountreaction.AccountReactionApiMapper.toResponse
 import com.mnemos.social.application.accountreaction.usecase.get.GetAccountReactionUseCase
 import com.mnemos.social.application.accountreaction.usecase.remove.RemoveAccountReactionUseCase
@@ -28,23 +29,26 @@ class AccountReactionController(
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun set(
-        @PathVariable accountId: UUID,
+        @PathVariable
+        accountId: UUID,
         @Valid @RequestBody request: SetAccountReactionRequest,
     ) {
-        setAccountReactionUseCase.execute(accountId, request.type)
+        setAccountReactionUseCase.execute(request.toCommand(accountId))
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun remove(
-        @PathVariable accountId: UUID,
+        @PathVariable
+        accountId: UUID,
     ) {
         removeAccountReactionUseCase.execute(accountId)
     }
 
     @GetMapping
     fun current(
-        @PathVariable accountId: UUID,
+        @PathVariable
+        accountId: UUID,
     ): AccountReactionStateResponse =
         AccountReactionStateResponse(
             type = getAccountReactionUseCase.execute(accountId),
@@ -52,7 +56,8 @@ class AccountReactionController(
 
     @GetMapping("/summary")
     fun summary(
-        @PathVariable accountId: UUID,
+        @PathVariable
+        accountId: UUID,
     ): AccountReactionSummaryResponse =
         getAccountReactionSummaryUseCase
             .execute(accountId)

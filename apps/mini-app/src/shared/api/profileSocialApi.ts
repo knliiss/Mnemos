@@ -131,7 +131,9 @@ export async function getAccountComments(
     sort: "createdAt,desc",
   })
 
-  return api<SpringPageResponse<CommentResponse>>(`/api/v1/accounts/${accountId}/comments?${params}`)
+  const response = await api<PageResponse<CommentResponse>>(`/api/v1/accounts/${accountId}/comments?${params}`)
+
+  return toSpringPageResponse(response)
 }
 
 export async function getCommentReplies(
@@ -145,7 +147,9 @@ export async function getCommentReplies(
     sort: "createdAt,asc",
   })
 
-  return api<SpringPageResponse<CommentResponse>>(`/api/v1/comments/${commentId}/replies?${params}`)
+  const response = await api<PageResponse<CommentResponse>>(`/api/v1/comments/${commentId}/replies?${params}`)
+
+  return toSpringPageResponse(response)
 }
 
 export async function createComment(

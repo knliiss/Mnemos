@@ -1,18 +1,18 @@
 package com.mnemos.social.application.comment.usecase.create
 
 import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
+import com.mnemos.social.application.comment.exception.CommentNotFoundException
+import com.mnemos.social.application.comment.exception.DeletedCommentOperationException
+import com.mnemos.social.application.comment.exception.InvalidCommentReplyException
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.comment.model.Comment
-import com.mnemos.social.domain.comment.model.CommentId
 import com.mnemos.social.domain.comment.repository.CommentRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.time.Clock
-import java.util.UUID
 
 @Service
 class CreateCommentService(
@@ -23,32 +23,41 @@ class CreateCommentService(
     private val clock: Clock,
 ) : CreateCommentUseCase {
     @Transactional
-    override fun execute(
-        targetAccountId: UUID,
-        parentCommentId: UUID?,
-        content: String,
-    ): Comment {
+    override fun execute(command: CreateCommentCommand): Comment {
         val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
 
-        if (!accountAccessPort.isActiveAccount(targetAccountId)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
+        if (!accountAccessPort.isActiveAccount(command.targetAccountId)) {
+            throw SocialAccountNotFoundException(command.targetAccountId)
         }
 
         val parent =
-            parentCommentId?.let { id ->
-                repository.findByIdForUpdate(CommentId(id))
-                    ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
+            command.parentCommentId?.let { id ->
+                repository.findByIdForUpdate(id)
+                    ?: throw CommentNotFoundException(id)
             }
 
         if (parent != null) {
             if (parent.deleted) {
-                throw ResponseStatusException(HttpStatus.CONFLICT, "Deleted comment cannot receive replies")
+                throw DeletedCommentOperationException(
+                    commentId = parent.id,
+                    operation = "replied to",
+                )
             }
-            if (parent.targetAccountId != targetAccountId) {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Reply must target the same account as its parent")
+
+            if (parent.targetAccountId != command.targetAccountId) {
+                throw InvalidCommentReplyException(
+                    parentCommentId = parent.id,
+                    targetAccountId = command.targetAccountId,
+                    reason = "Reply must target the same account as its parent",
+                )
             }
+
             if (parent.parentCommentId != null) {
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Replies can only target root comments")
+                throw InvalidCommentReplyException(
+                    parentCommentId = parent.id,
+                    targetAccountId = command.targetAccountId,
+                    reason = "Replies can only target root comments",
+                )
             }
         }
 
@@ -56,17 +65,17 @@ class CreateCommentService(
         val saved =
             repository.save(
                 Comment.create(
-                    targetAccountId = targetAccountId,
+                    targetAccountId = command.targetAccountId,
                     authorUserId = actor.userId,
                     authorAccountId = actor.accountId,
                     parentCommentId = parent?.id,
-                    content = content,
+                    content = command.content,
                     now = now,
                 ),
             )
 
         summaryService.commentAdded(
-            accountId = targetAccountId,
+            accountId = command.targetAccountId,
             actorUserId = actor.userId,
             now = now,
         )

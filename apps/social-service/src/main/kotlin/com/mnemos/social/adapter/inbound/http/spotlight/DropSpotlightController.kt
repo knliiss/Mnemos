@@ -1,6 +1,7 @@
 package com.mnemos.social.adapter.inbound.http.spotlight
 
 import com.mnemos.common.web.logging.MnemosHeaders.IDEMPOTENCY_KEY
+import com.mnemos.social.adapter.inbound.http.spotlight.DropSpotlightApiMapper.toCommand
 import com.mnemos.social.adapter.inbound.http.spotlight.DropSpotlightApiMapper.toResponse
 import com.mnemos.social.application.spotlight.usecase.create.CreateDropSpotlightUseCase
 import com.mnemos.social.application.spotlight.usecase.get.GetDropSpotlightService
@@ -25,17 +26,24 @@ class DropSpotlightController(
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun create(
         @RequestHeader(IDEMPOTENCY_KEY) idempotencyKey: UUID,
-        @PathVariable itemDropEventId: UUID,
-    ): DropSpotlightResponse =
-        createDropSpotlightUseCase
-            .execute(
-                idempotencyKey = idempotencyKey,
+        @PathVariable
+        itemDropEventId: UUID,
+    ): DropSpotlightResponse {
+        val request =
+            CreateDropSpotlightRequest(
                 itemDropEventId = itemDropEventId,
-            ).toResponse()
+                idempotencyKey = idempotencyKey,
+            )
+
+        return createDropSpotlightUseCase
+            .execute(request.toCommand())
+            .toResponse()
+    }
 
     @GetMapping("/{spotlightId}")
     fun get(
-        @PathVariable spotlightId: UUID,
+        @PathVariable
+        spotlightId: UUID,
     ): DropSpotlightResponse =
         getDropSpotlightService
             .execute(DropSpotlightId(spotlightId))

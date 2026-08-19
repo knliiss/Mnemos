@@ -1,18 +1,10 @@
 package com.mnemos.social.application.comment.usecase.list
 
 import com.mnemos.social.application.comment.model.CommentView
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import java.util.UUID
+import com.mnemos.social.application.common.pagination.PageResult
 
 interface ListCommentsUseCase {
-    fun listRoot(
-        accountId: UUID,
-        pageable: Pageable,
-    ): Page<CommentView>
+    fun listRoot(query: ListRootCommentsQuery): PageResult<CommentView>
 
-    fun listReplies(
-        commentId: UUID,
-        pageable: Pageable,
-    ): Page<CommentView>
+    fun listReplies(query: ListCommentRepliesQuery): PageResult<CommentView>
 }

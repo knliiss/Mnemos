@@ -1,13 +1,13 @@
 package com.mnemos.social.application.actor
 
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.core.model.user.UserRole
+import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
 import com.mnemos.security.CurrentMnemosUser
 import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @Component
@@ -27,9 +27,9 @@ class SocialActorProvider(
                 permission = permission,
             )
         ) {
-            throw ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "Account permission is required: $permission",
+            throw AccountPermissionDeniedException(
+                accountId = AccountId(actor.accountId),
+                requiredPermissions = setOf(permission.name),
             )
         }
 
