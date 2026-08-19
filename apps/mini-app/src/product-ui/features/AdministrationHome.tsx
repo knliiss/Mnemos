@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { listAdminBadges } from "@/shared/api/badgeAdminApi"
 import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
@@ -15,6 +16,7 @@ type AdminStats = {
 }
 
 export function AdministrationHome({ navigate, back }: { navigate: (route: Route) => void; back: () => void }) {
+  const { t } = useTranslation()
   const [stats, setStats] = useState<AdminStats | null>(null)
 
   useEffect(() => {
@@ -39,38 +41,65 @@ export function AdministrationHome({ navigate, back }: { navigate: (route: Route
 
   return (
     <div className="screen administration-home-screen administration-home-screen--final">
-      <PageHeader title="Адміністрування" back={back} />
+      <PageHeader title={t("administration.title")} back={back} />
 
       <section className="workspace-intro workspace-intro--admin">
         <span className="workspace-intro__icon"><Glyph name="admin" size={23} /></span>
         <div>
-          <strong>Системні інструменти</strong>
-          <small>Функції, доступні ADMIN / SUPER_ADMIN</small>
+          <strong>{t("administration.introTitle")}</strong>
+          <small>{t("administration.introDescription")}</small>
         </div>
       </section>
 
       <div className="workspace-grid workspace-grid--final">
         <button onClick={() => navigate({ id: "moderation" })}>
           <span className="workspace-grid__icon workspace-grid__icon--danger"><Glyph name="members" size={20} /></span>
-          <span><strong>Користувачі</strong><small>Internal info, санкції, wallet adjustments</small></span>
+          <span>
+            <strong>{t("administration.users")}</strong>
+            <small>{t("administration.usersDescription")}</small>
+          </span>
           <b>›</b>
         </button>
 
         <button onClick={() => navigate({ id: "personalization-review" })}>
           <span className="workspace-grid__icon workspace-grid__icon--plum"><Glyph name="creator" size={20} /></span>
-          <span><strong>Персоналізації</strong><small>{stats ? `${stats.review} на перевірці` : "Черга перевірки"}</small></span>
+          <span>
+            <strong>{t("administration.personalizations")}</strong>
+            <small>
+              {stats
+                ? t("administration.reviewCount", { count: stats.review })
+                : t("administration.reviewQueue")}
+            </small>
+          </span>
           <b>›</b>
         </button>
 
         <button onClick={() => navigate({ id: "bet-admin" })}>
           <span className="workspace-grid__icon workspace-grid__icon--amber"><Glyph name="bet" size={20} /></span>
-          <span><strong>Ставки</strong><small>{stats ? `${stats.activeRounds} раунд. · ${stats.activeRaces} race` : "Результати та item races"}</small></span>
+          <span>
+            <strong>{t("administration.bets")}</strong>
+            <small>
+              {stats
+                ? t("administration.betsStats", {
+                    rounds: stats.activeRounds,
+                    races: stats.activeRaces,
+                  })
+                : t("administration.betsFallback")}
+            </small>
+          </span>
           <b>›</b>
         </button>
 
         <button onClick={() => navigate({ id: "badge-admin" })}>
           <span className="workspace-grid__icon"><Glyph name="spark" size={20} /></span>
-          <span><strong>Бейджі</strong><small>{stats ? `${stats.badges} у системі` : "Створення та видача"}</small></span>
+          <span>
+            <strong>{t("administration.badges")}</strong>
+            <small>
+              {stats
+                ? t("administration.badgesCount", { count: stats.badges })
+                : t("administration.badgesFallback")}
+            </small>
+          </span>
           <b>›</b>
         </button>
       </div>
