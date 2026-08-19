@@ -64,13 +64,12 @@ export function featureArea(id: RouteId): FeatureArea {
 export function initialStack(): Route[] {
   const params = new URLSearchParams(window.location.search)
   const requestedRaw = params.get("screen")
-  const requested = requestedRaw as RouteId | null
 
-  if (!requested) {
+  if (!requestedRaw) {
     return [{ id: "account" }]
   }
 
-  if (!(requested in routeRegistry)) {
+  if (!(requestedRaw in routeRegistry)) {
     return [{
       id: "account",
       params: {
@@ -80,6 +79,7 @@ export function initialStack(): Route[] {
     }]
   }
 
+  const requested = requestedRaw as RouteId
   const routeParams = Object.fromEntries(
     [...params.entries()]
       .filter(([key]) => key.startsWith("p."))
