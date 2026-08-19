@@ -70,14 +70,28 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require("node:fs")
+
           const file = "apps/mini-app/src/product-ui/product.css"
           const css = fs.readFileSync(file, "utf8")
-          const imports = [...css.matchAll(/@import\s+[^;]+;/g)].map((match) => match[0].trim())
-          const body = css.replace(/@import\s+[^;]+;/g, "").trim()
+          const imports = []
+          let body = css
+
+          const patterns = [
+            /@import\s+url\(\s*(["'])([\s\S]*?)\1\s*\)\s*;/g,
+            /@import\s+(["'])([\s\S]*?)\1\s*;/g,
+          ]
+
+          for (const pattern of patterns) {
+            body = body.replace(pattern, (match) => {
+              imports.push(match.trim())
+              return ""
+            })
+          }
+
           const uniqueImports = [...new Set(imports)]
           const prefix = uniqueImports.length > 0 ? `${uniqueImports.join("\n")}\n\n` : ""
 
-          fs.writeFileSync(file, `${prefix}${body}\n`)
+          fs.writeFileSync(file, `${prefix}${body.trim()}\n`)
           NODE
 
       - name: Format production frontend
