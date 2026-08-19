@@ -1,0 +1,93 @@
+/* Fixes found in the generated mobile visual audit for the cohesive UI pass. */
+
+/* Existing workspace icon backgrounds used !important; replace them explicitly. */
+.final-workspace-grid > button.is-creator > span:first-child {
+  background: url("/ui-illustrations/workspace-creator.svg") center / contain no-repeat !important;
+}
+
+.final-workspace-grid > button.is-admin > span:first-child {
+  background: url("/ui-illustrations/workspace-admin.svg") center / contain no-repeat !important;
+}
+
+.final-workspace-grid > button.is-moderation > span:first-child {
+  background: url("/ui-illustrations/admin-users.svg") center / contain no-repeat !important;
+}
+
+.final-workspace-grid > button.is-creator > span:first-child svg,
+.final-workspace-grid > button.is-admin > span:first-child svg,
+.final-workspace-grid > button.is-moderation > span:first-child svg {
+  display: none !important;
+}
+
+/* Replace the legacy two rounded L-corners with a four-corner pixel reticle.
+   Semantic color stays local to the artwork instead of outlining the card. */
+.event-surface .event-art::before,
+.event-row-surface .event-art::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(var(--event-accent), var(--event-accent)) left top / 10px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) left top / 2px 10px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) right top / 10px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) right top / 2px 10px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) left bottom / 10px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) left bottom / 2px 10px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) right bottom / 10px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) right bottom / 2px 10px no-repeat !important;
+  opacity: .72 !important;
+  filter: none !important;
+  pointer-events: none !important;
+}
+
+/* Four tiny satellite pixels keep the reticle from reading as a generic frame. */
+.event-surface .event-art::after,
+.event-row-surface .event-art::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(var(--event-accent), var(--event-accent)) 5px 50% / 2px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) calc(100% - 5px) 50% / 2px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) 50% 5px / 2px 2px no-repeat,
+    linear-gradient(var(--event-accent), var(--event-accent)) 50% calc(100% - 5px) / 2px 2px no-repeat !important;
+  opacity: .34 !important;
+  filter: none !important;
+  pointer-events: none !important;
+}
+
+.event-surface.is-latest .event-art::before {
+  animation: mnemos-event-reticle 3.8s ease-in-out infinite;
+}
+
+@keyframes mnemos-event-reticle {
+  0%, 100% { opacity: .58; }
+  50% { opacity: .9; }
+}
+
+/* Rarity is stronger than the underlying item type when both classes exist. */
+.event-art.event-art--rarity-secret {
+  --event-art-tone: #4ed9d4;
+}
+
+.event-art.event-art--rarity-mythical {
+  --event-art-tone: #d53158;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-surface.is-latest .event-art::before {
+    animation: none;
+  }
+}
