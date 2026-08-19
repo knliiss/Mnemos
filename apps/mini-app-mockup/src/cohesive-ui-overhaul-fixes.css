@@ -1,0 +1,299 @@
+/* Follow-up details for the cohesive product pass. Loaded after cohesive-ui-overhaul.css. */
+
+/* Account picker stays compact inside the redesigned hub. */
+.final-account-picker {
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 231, 205, .09);
+  border-radius: 15px;
+  background: rgba(8, 10, 7, .62);
+}
+
+.final-account-picker > button {
+  border-bottom-color: rgba(223, 231, 205, .065) !important;
+  transition: background .16s ease, transform .16s ease;
+}
+
+.final-account-picker > button:hover {
+  background: rgba(199, 242, 74, .025);
+}
+
+.final-account-picker > button:active {
+  transform: scale(.993);
+}
+
+/* Administrative detail pages use the same surface depth as the workspace home. */
+.bet-admin-v2 .bet-history-toolbar,
+.bet-admin-v2 .bet-round-hero,
+.bet-admin-v2 .bet-bettors-panel,
+.bet-admin-v2 .bet-correction-panel,
+.bet-admin-v2 .bet-create-preview,
+.bet-admin-v2 .bet-create-form,
+.bet-admin-v2 [class^="race-admin"],
+.internal-user-screen .section,
+.review-overhaul-screen .review-workbench,
+.screen:has(.badge-sample) .moderation-form,
+.screen:has(.badge-sample) .section {
+  border-color: rgba(223, 232, 204, .105) !important;
+}
+
+.bet-admin-v2 .bet-round-hero,
+.bet-admin-v2 .bet-create-preview {
+  border: 1px solid rgba(223, 232, 204, .105);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 50%, rgba(199, 242, 74, .045), transparent 30%),
+    linear-gradient(140deg, rgba(27, 30, 22, .96), rgba(12, 14, 10, .98));
+  box-shadow: inset 0 1px rgba(255, 255, 255, .03);
+}
+
+.bet-admin-v2 .bet-round-metrics {
+  gap: 7px;
+}
+
+.bet-admin-v2 .bet-round-metrics > article {
+  border: 1px solid rgba(223, 232, 204, .09);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .014);
+}
+
+.bet-admin-v2 .bet-bettors-panel,
+.bet-admin-v2 .bet-correction-panel,
+.bet-admin-v2 .bet-create-form {
+  border: 1px solid rgba(223, 232, 204, .095);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .016), transparent 46%),
+    rgba(16, 19, 14, .88);
+}
+
+.bet-admin-v2 .bet-bettor-list > article {
+  border-top-color: rgba(223, 232, 204, .07) !important;
+  transition: background .16s ease, transform .16s ease;
+}
+
+.bet-admin-v2 .bet-bettor-list > article:hover {
+  background: rgba(255, 255, 255, .014);
+  transform: translateX(1px);
+}
+
+.bet-admin-v2 .bet-history-toolbar > label {
+  border: 1px solid rgba(223, 232, 204, .1) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, .016) !important;
+}
+
+.bet-admin-v2 .bet-history-toolbar > label:focus-within {
+  border-color: rgba(199, 242, 74, .22) !important;
+}
+
+.bet-admin-v2 .bet-history-toolbar > div,
+.bet-admin-v2 .bet-outcome-picker-v2,
+.bet-admin-v2 .bet-event-art-picker {
+  gap: 6px;
+}
+
+.bet-admin-v2 .bet-history-toolbar > div > button,
+.bet-admin-v2 .bet-outcome-picker-v2 > button,
+.bet-admin-v2 .bet-event-art-picker > button {
+  border-color: rgba(223, 232, 204, .09) !important;
+  background: rgba(255, 255, 255, .014) !important;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.bet-admin-v2 .bet-history-toolbar > div > button:hover,
+.bet-admin-v2 .bet-outcome-picker-v2 > button:hover,
+.bet-admin-v2 .bet-event-art-picker > button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(223, 232, 204, .15) !important;
+}
+
+.bet-admin-v2 .bet-history-toolbar > div > button.is-active,
+.bet-admin-v2 .bet-outcome-picker-v2 > button.is-active,
+.bet-admin-v2 .bet-event-art-picker > button.is-active {
+  border-color: rgba(199, 242, 74, .22) !important;
+  background: rgba(199, 242, 74, .055) !important;
+}
+
+.bet-admin-v2 .bet-create-policy,
+.bet-admin-v2 .bet-create-success {
+  border: 1px solid rgba(199, 242, 74, .11);
+  border-radius: 14px;
+  background: rgba(199, 242, 74, .025);
+}
+
+/* Moderation user detail. */
+.internal-user-screen .internal-user-hero {
+  border: 1px solid rgba(223, 232, 204, .105) !important;
+  border-radius: 21px !important;
+  background:
+    radial-gradient(circle at 90% 25%, rgba(199, 242, 74, .04), transparent 31%),
+    linear-gradient(140deg, rgba(27, 30, 22, .96), rgba(12, 14, 10, .98)) !important;
+}
+
+.internal-user-screen .internal-info-grid {
+  gap: 7px;
+}
+
+.internal-user-screen .internal-info-grid > article {
+  border-radius: 15px;
+}
+
+.internal-user-screen .internal-account-list > article,
+.internal-user-screen .sanction-final {
+  border-radius: 15px;
+}
+
+.internal-user-screen .moderation-actions-final {
+  gap: 7px;
+}
+
+/* Badge administration gets an illustration without changing StaffFeatureFinal markup. */
+.screen:has(.badge-sample) .moderation-form {
+  position: relative;
+  overflow: hidden;
+  padding-top: 18px;
+  border: 1px solid rgba(223, 232, 204, .1);
+  border-radius: 20px;
+}
+
+.screen:has(.badge-sample) .moderation-form::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 78px;
+  height: 56px;
+  background: url("/ui-illustrations/admin-badges.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+  opacity: .86;
+  pointer-events: none;
+}
+
+.screen:has(.badge-sample) .moderation-form h2 {
+  max-width: calc(100% - 82px);
+}
+
+.screen:has(.badge-sample) .badge-sample {
+  border-radius: 16px;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+}
+
+.screen:has(.badge-sample) .granted-list > div {
+  border-radius: 13px;
+}
+
+/* Review workbench: selected personalization feels like one coherent inspector. */
+.review-overhaul-screen .review-workbench {
+  overflow: hidden;
+  border: 1px solid rgba(223, 232, 204, .105) !important;
+  border-radius: 21px !important;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, .16);
+}
+
+.review-overhaul-screen .review-workbench > header {
+  border-bottom-color: rgba(223, 232, 204, .07) !important;
+}
+
+.review-overhaul-screen .review-metadata {
+  gap: 6px;
+}
+
+.review-overhaul-screen .review-metadata > article {
+  border-radius: 14px;
+}
+
+/* Bets root: remove the old detached right-side feeling and make each row read as one object. */
+.bets-root-screen .root-wallet-chip {
+  border-color: rgba(199, 242, 74, .14) !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(199, 242, 74, .055), transparent 40%),
+    rgba(21, 25, 17, .84) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+}
+
+.bet-redesign-card__odds,
+.bet-redesign-card__mine,
+.race-redesign-card__entry {
+  position: relative;
+  z-index: 2;
+}
+
+.race-redesign-card {
+  --event-tone: #b8904e;
+}
+
+.race-redesign-card .bet-redesign-card__open {
+  display: none;
+}
+
+/* Event cards get the same quiet material depth as bets while their tone lives near the icon. */
+.events-root-screen .event-feed-card {
+  overflow: hidden;
+  border-color: rgba(222, 230, 203, .1) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 9% 50%, color-mix(in srgb, var(--event-tone, #89927f) 6%, transparent), transparent 30%),
+    linear-gradient(145deg, rgba(22, 25, 18, .94), rgba(10, 12, 9, .975)) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .025),
+    0 12px 26px rgba(0, 0, 0, .12);
+}
+
+.events-root-screen .event-feed-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: var(--event-tone, #89927f);
+  opacity: .42;
+}
+
+.events-root-screen .event-feed-card:hover {
+  border-color: color-mix(in srgb, var(--event-tone, #89927f) 20%, rgba(222, 230, 203, .1)) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .03),
+    0 15px 30px rgba(0, 0, 0, .16);
+}
+
+.events-root-screen .event-filter--redesign button,
+.events-root-screen .event-browser-action,
+.events-root-screen .event-browser-search {
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    color .16s ease;
+}
+
+.events-root-screen .event-filter--redesign button:active,
+.events-root-screen .event-browser-action:active {
+  transform: scale(.97);
+}
+
+/* Keep the search assistant above the bottom nav on shorter screens. */
+@media (max-height: 700px) {
+  .search-root-screen:not(:has(.search-root-hint)):not(:has(.search-result-panel))::after {
+    top: 220px;
+    width: 132px;
+    height: 106px;
+  }
+
+  .search-root-screen:not(:has(.search-root-hint)):not(:has(.search-result-panel))::before {
+    top: 246px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-workspace-grid > button,
+  .workspace-grid--final > button,
+  .bet-redesign-card,
+  .event-feed-card,
+  .creator-list > button,
+  .creator-revenue--button {
+    transition-duration: .01ms;
+  }
+}
