@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useMemo, useState } from "react"
+import type { ReactNode } from "react"
 import type { Account } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 
@@ -234,7 +235,7 @@ function AccountOnboardingShell({
   eyebrow: string
   description: string
   back: () => void
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <div className={`screen account-onboarding account-onboarding--${mode}`}>
@@ -258,9 +259,8 @@ function AccountOnboardingShell({
 
       <motion.section
         className="account-onboarding-hero"
-        initial={{ opacity: 0, y: 8 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="account-onboarding-hero__art">
           <AccountOnboardingMascot mode={mode} />
