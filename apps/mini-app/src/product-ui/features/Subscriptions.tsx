@@ -175,7 +175,7 @@ export function Subscriptions({ back }: { back: () => void }) {
   }
 
   return (
-    <div className="screen subscriptions-redesign-screen">
+    <div className="screen subscriptions-screen">
       <PageHeader title={t("events.subscriptions.title")} back={back} />
 
       <section className="subscription-summary">
@@ -244,7 +244,7 @@ export function Subscriptions({ back }: { back: () => void }) {
             title={t("events.subscriptions.newTitle")}
             onClose={() => !busy && setCreating(false)}
           >
-            <div className="form-stack subscription-form-redesign">
+            <div className="form-stack subscription-form">
               <Field label={t("events.subscriptions.track")}>
                 <ChoiceGrid
                   value={type}

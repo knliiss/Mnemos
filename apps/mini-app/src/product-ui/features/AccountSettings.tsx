@@ -116,10 +116,10 @@ export function AccountSettings({
   }
 
   return (
-    <div className="screen account-settings-v2">
+    <div className="screen account-settings-screen">
       <PageHeader title={t("accountSettings.title")} back={back} />
 
-      <section className="account-settings-hero-v2">
+      <section className="account-settings-hero">
         <CristalixHead skinUrl={activeAccount.skinUrl} size={58} />
         <span className="account-settings-hero-v2__copy">
           <small>CRISTALIX ACCOUNT</small>
@@ -129,7 +129,7 @@ export function AccountSettings({
             {t("accountSettings.active")}
           </em>
         </span>
-        <span className="account-settings-status-v2 is-active">
+        <span className="account-settings-status is-active">
           <i />
           ACTIVE
         </span>
@@ -184,7 +184,7 @@ export function AccountSettings({
         </button>
       </nav>
 
-      <section className="account-settings-panel-v2">
+      <section className="account-settings-panel">
         <header>
           <span>
             <small>{t("accountSettings.accessEyebrow")}</small>
@@ -244,7 +244,7 @@ export function AccountSettings({
       </section>
 
       {activeAccount.owner ? (
-        <section className="account-settings-panel-v2 account-owner-panel-v2">
+        <section className="account-settings-panel account-owner-panel">
           <header>
             <span>
               <small>{t("accountSettings.ownershipEyebrow")}</small>
@@ -253,7 +253,7 @@ export function AccountSettings({
             </span>
           </header>
 
-          <div className="account-transfer-grid-v2">
+          <div className="account-transfer-grid">
             {transferableMembers.map((member) => (
               <MemberOption
                 key={member.id}
@@ -265,7 +265,7 @@ export function AccountSettings({
           </div>
 
           {transferTarget ? (
-            <div className="account-transfer-summary-v2">
+            <div className="account-transfer-summary">
               <span className="account-transfer-summary-v2__avatar" aria-hidden="true">
                 <Glyph name="person" size={18} />
               </span>
@@ -298,7 +298,7 @@ export function AccountSettings({
         </section>
       ) : null}
 
-      <section className="account-settings-panel-v2 account-lifecycle-panel-v2">
+      <section className="account-settings-panel account-lifecycle-panel">
         <header>
           <span>
             <small>{t("accountSettings.lifecycleEyebrow")}</small>
@@ -312,7 +312,7 @@ export function AccountSettings({
         </header>
 
         {activeAccount.owner ? (
-          <div className="account-danger-card-v2">
+          <div className="account-danger-card">
             <span>
               <Glyph name="close" size={18} />
             </span>
@@ -325,7 +325,7 @@ export function AccountSettings({
             </button>
           </div>
         ) : (
-          <div className="account-danger-card-v2">
+          <div className="account-danger-card">
             <span>
               <Glyph name="close" size={18} />
             </span>
@@ -432,7 +432,7 @@ function ConfirmPanel({
   const { t } = useTranslation()
 
   return (
-    <div className={`account-confirm-v2 is-${tone}`}>
+    <div className={`account-confirm is-${tone}`}>
       <span>
         <Glyph name={tone === "danger" ? "close" : "swap"} size={17} />
       </span>

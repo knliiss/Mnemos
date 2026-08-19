@@ -154,7 +154,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
   if (!isNew && !existing && !product.loadingAccount) {
     return (
-      <div className="screen role-editor-v2">
+      <div className="screen role-editor-screen">
         <PageHeader title={t("roleEditor.role")} back={back} />
         <section className="events-r2-empty">
           <Glyph name="roles" size={24} />
@@ -166,25 +166,22 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   return (
-    <div className="screen role-editor-v2">
+    <div className="screen role-editor-screen">
       <PageHeader
         title={isNew ? t("roleEditor.newRole") : (existing?.name ?? t("roleEditor.role"))}
         back={back}
         actions={
           !isNew ? (
-            <button
-              className="role-editor-v2-back-to-list"
-              onClick={() => navigate({ id: "roles" })}
-            >
+            <button className="role-editor-back-to-list" onClick={() => navigate({ id: "roles" })}>
               {t("roleEditor.allRoles")}
             </button>
           ) : undefined
         }
       />
 
-      <section className="role-editor-v2-hero">
+      <section className="role-editor-hero">
         <RoleSigil color={color} size={48} />
-        <span className="role-editor-v2-hero__copy">
+        <span className="role-editor-hero__copy">
           <small>{isNew ? t("roleEditor.newEyebrow") : t("roleEditor.editEyebrow")}</small>
           <strong style={{ color }}>{name.trim() || t("roleEditor.roleNameFallback")}</strong>
           <em>
@@ -194,7 +191,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
             })}
           </em>
         </span>
-        <div className="role-editor-v2-progress" aria-hidden="true">
+        <div className="role-editor-progress" aria-hidden="true">
           <i
             style={{
               width: `${(selectedCount / Math.max(1, allRolePermissions.length)) * 100}%`,
@@ -284,7 +281,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
           ) : null}
         </label>
 
-        <div className="role-permission-groups-v2">
+        <div className="role-permission-groups">
           {visibleGroups.map((group) => {
             const enabledInGroup = group.permissions.filter(
               (permission) => permissions[permission],
@@ -314,7 +311,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
                     <button
                       key={permission}
                       type="button"
-                      className={`role-permission-row-v2 ${permissions[permission] ? "is-on" : ""}`}
+                      className={`role-permission-row ${permissions[permission] ? "is-on" : ""}`}
                       disabled={busy}
                       onClick={() => togglePermission(permission)}
                     >
@@ -334,9 +331,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
         </div>
       </section>
 
-      <div className="role-editor-actions-v2">
+      <div className="role-editor-actions">
         <button
-          className="role-editor-save-v2"
+          className="role-editor-save"
           disabled={!name.trim() || busy}
           onClick={() => void save()}
         >
@@ -345,7 +342,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
         </button>
 
         {existing ? (
-          <section className="role-editor-danger-v2">
+          <section className="role-editor-danger">
             <span>
               <strong>{t("roleEditor.deleteTitle")}</strong>
               <small>{t("roleEditor.deleteCopy")}</small>

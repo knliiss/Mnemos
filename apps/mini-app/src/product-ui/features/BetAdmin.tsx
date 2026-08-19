@@ -93,11 +93,11 @@ export function BetAdmin({ params, navigate, back }: Props) {
   ).size
 
   return (
-    <div className="screen bet-admin-v2 bet-admin-dashboard">
+    <div className="screen bet-admin-screen bet-admin-dashboard">
       <PageHeader title={t("betAdmin.title")} back={back} />
 
-      <section className="bet-admin-v2-hero">
-        <span className="bet-admin-v2-hero__icon">
+      <section className="bet-admin-hero">
+        <span className="bet-admin-hero__icon">
           <Glyph name="bet" size={22} />
         </span>
         <span>
@@ -215,9 +215,9 @@ function RoundList({
   }, [eventLabels, query, rounds])
 
   return (
-    <div className="screen bet-admin-v2">
+    <div className="screen bet-admin-screen">
       <PageHeader title={title} back={back} />
-      <label className="moderation-polished-search">
+      <label className="staff-search">
         <Glyph name="search" size={17} />
         <input
           value={query}
@@ -266,7 +266,7 @@ function RoundDetail({
 
   if (loading) {
     return (
-      <div className="screen bet-admin-v2">
+      <div className="screen bet-admin-screen">
         <PageHeader title={t("betAdmin.round")} back={back} />
         <LoadingState />
       </div>
@@ -275,7 +275,7 @@ function RoundDetail({
 
   if (!round) {
     return (
-      <div className="screen bet-admin-v2">
+      <div className="screen bet-admin-screen">
         <PageHeader title={t("betAdmin.round")} back={back} />
         <p className="inline-hint">{t("betAdmin.roundNotFound")}</p>
       </div>
@@ -300,7 +300,7 @@ function RoundDetail({
   }
 
   return (
-    <div className="screen bet-admin-v2">
+    <div className="screen bet-admin-screen">
       <PageHeader title={eventLabels[round.eventType]} back={back} />
 
       <section className="bet-admin-round-detail-hero">
@@ -435,7 +435,7 @@ function RaceManagement({
   }
 
   return (
-    <div className="screen bet-admin-v2">
+    <div className="screen bet-admin-screen">
       <PageHeader
         title={t("betAdmin.itemRace")}
         back={back}

@@ -124,10 +124,10 @@ export function AccountInvites({ back }: { back: () => void }) {
   const inviteStatusLabel = (status: AccountInviteStatus) => t(`accountInvites.status.${status}`)
 
   return (
-    <div className="screen invites-screen-redesign invite-final-screen">
+    <div className="screen invites-screen invites-screen">
       <PageHeader title={t("accountInvites.title")} back={back} />
 
-      <section className="invite-create-final">
+      <section className="invite-create-panel">
         <Field label={t("accountInvites.expiry")}>
           <ChoiceGrid
             value={expiry}
@@ -147,19 +147,19 @@ export function AccountInvites({ back }: { back: () => void }) {
       </section>
 
       <Section title={t("accountInvites.title")}>
-        <div className="invite-final-list">
+        <div className="invite-list">
           {invites.map((invite) => (
             <article
               key={invite.id}
-              className={`invite-final-item invite-final-item--${invite.status.toLowerCase()}`}
+              className={`invite-item invite-item--${invite.status.toLowerCase()}`}
             >
-              <span className="invite-final-item__code">
+              <span className="invite-item__code">
                 <strong>{invite.code}</strong>
                 <small>{inviteExpiryLabel(invite)}</small>
               </span>
-              <span className="invite-final-item__status">{inviteStatusLabel(invite.status)}</span>
+              <span className="invite-item__status">{inviteStatusLabel(invite.status)}</span>
               {invite.status === "ACTIVE" ? (
-                <span className="invite-final-item__actions">
+                <span className="invite-item__actions">
                   <button
                     aria-label={t("accountInvites.copy")}
                     onClick={() => void navigator.clipboard?.writeText(invite.code)}

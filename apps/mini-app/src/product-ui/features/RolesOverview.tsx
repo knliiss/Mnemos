@@ -26,13 +26,13 @@ export function RolesOverview({ navigate, back }: Props) {
   const totalPermissions = allRolePermissions.length
 
   return (
-    <div className="screen roles-v2">
+    <div className="screen roles-screen">
       <PageHeader
         title={t("rolesOverview.title")}
         back={back}
         actions={
           <button
-            className="roles-v2-create"
+            className="roles-create"
             disabled={!accountId}
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
           >
@@ -42,11 +42,11 @@ export function RolesOverview({ navigate, back }: Props) {
         }
       />
 
-      <section className="roles-v2-hero">
-        <span className="roles-v2-hero__icon">
+      <section className="roles-hero">
+        <span className="roles-hero__icon">
           <Glyph name="roles" size={23} />
         </span>
-        <span className="roles-v2-hero__copy">
+        <span className="roles-hero__copy">
           <small>{t("rolesOverview.hierarchyEyebrow")}</small>
           <strong>
             {t("rolesOverview.hierarchySummary", {
@@ -58,8 +58,8 @@ export function RolesOverview({ navigate, back }: Props) {
         </span>
       </section>
 
-      <section className="roles-v2-guide">
-        <span className="roles-v2-guide__handle" aria-hidden="true">
+      <section className="roles-guide">
+        <span className="roles-guide__handle" aria-hidden="true">
           ⠿
         </span>
         <span>
@@ -95,7 +95,7 @@ export function RolesOverview({ navigate, back }: Props) {
       ) : null}
 
       <button
-        className="roles-v2-create-card"
+        className="roles-create-card"
         disabled={!accountId}
         onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
       >
@@ -148,8 +148,8 @@ function RoleReorderList({
   }
 
   return (
-    <section className="roles-v2-stack">
-      <Reorder.Group axis="y" values={roles} onReorder={setRoles} className="role-v2-reorder">
+    <section className="roles-stack">
+      <Reorder.Group axis="y" values={roles} onReorder={setRoles} className="role-reorder">
         {roles.map((role) => (
           <SortableRoleRow
             key={role.id}
@@ -186,16 +186,16 @@ function SortableRoleRow({
       value={role}
       dragListener={false}
       dragControls={dragControls}
-      className="role-v2-row"
+      className="role-row"
       whileDrag={{ scale: 1.02, zIndex: 5 }}
       onDragEnd={onDragEnd}
     >
       <button
-        className="role-v2-row__main"
+        className="role-row__main"
         onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}
       >
         <RoleSigil color={role.color} size={40} />
-        <span className="role-v2-row__copy">
+        <span className="role-row__copy">
           <span>
             <strong>{role.name}</strong>
             <i>{t("rolesOverview.primaryMembers", { count: memberCount })}</i>
@@ -212,7 +212,7 @@ function SortableRoleRow({
 
       <button
         type="button"
-        className="role-v2-drag-handle"
+        className="role-drag-handle"
         disabled={disabled}
         aria-label={t("rolesOverview.dragAria", { name: role.name })}
         title={t("rolesOverview.dragAction")}

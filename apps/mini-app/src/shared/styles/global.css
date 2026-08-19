@@ -138,34 +138,6 @@ button:disabled {
   box-shadow: 0 0 35px rgba(255, 255, 255, 0.08);
 }
 
-.reward-card {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 13px;
-}
-
-.reward-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 13px;
-  margin: 4px 0 10px;
-}
-
-.reward-card div,
-.reward-card button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.reward-card button {
-  border: 0;
-  background: transparent;
-  color: var(--soft);
-  font-size: 11px;
-}
-
 .sheet-backdrop {
   position: fixed;
   z-index: 49;
@@ -200,48 +172,6 @@ button:disabled {
   box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
-.item-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.item-row {
-  min-height: 54px;
-  display: grid;
-  grid-template-columns: 38px 1fr auto;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--line);
-}
-
-.item-row:first-child {
-  border-top: 0;
-}
-
-.item-row div:nth-child(2) {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.item-row strong {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.item-row small,
-.item-row time {
-  font-size: 9px;
-  color: var(--muted);
-}
-
-.role-badge {
-  font-size: 10px;
-  margin-top: 7px;
-}
-
 .page-header {
   display: flex;
   align-items: center;
@@ -252,58 +182,6 @@ button:disabled {
 .page-header h1 {
   font-size: 15px;
   font-weight: 500;
-}
-
-.account-name {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-size: 22px;
-}
-
-.account-name.compact {
-  justify-content: flex-start;
-  font-size: 16px;
-}
-
-.account-name em {
-  font-style: normal;
-  font-size: 12px;
-}
-
-.account-results {
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  overflow: hidden;
-  background: var(--panel);
-}
-
-.account-results button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 0;
-  border-top: 1px solid var(--line);
-  background: transparent;
-  padding: 10px;
-  text-align: left;
-}
-
-.account-results button:first-child {
-  border-top: 0;
-}
-
-.account-results button span {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.account-results small {
-  font-size: 9px;
-  color: var(--muted);
 }
 
 .notification {

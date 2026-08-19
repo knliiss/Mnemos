@@ -53,11 +53,11 @@ export function ModerationHome({ navigate, back }: HomeProps) {
   }, [normalized])
 
   return (
-    <div className="screen moderation-polished-screen">
+    <div className="screen moderation-screen">
       <PageHeader title={t("moderation.title")} back={back} />
 
-      <section className="moderation-polished-hero">
-        <span className="moderation-polished-hero__icon">
+      <section className="moderation-hero">
+        <span className="moderation-hero__icon">
           <Glyph name="moderation" size={23} />
         </span>
         <span>
@@ -67,7 +67,7 @@ export function ModerationHome({ navigate, back }: HomeProps) {
         </span>
       </section>
 
-      <label className="moderation-polished-search">
+      <label className="staff-search">
         <Glyph name="search" size={19} />
         <input
           autoFocus
@@ -85,7 +85,7 @@ export function ModerationHome({ navigate, back }: HomeProps) {
       </label>
 
       {!normalized ? (
-        <section className="moderation-polished-help">
+        <section className="moderation-help">
           <span>{t("moderation.searchableBy")}</span>
           <div>
             <i>Username</i>
@@ -97,12 +97,12 @@ export function ModerationHome({ navigate, back }: HomeProps) {
       ) : null}
 
       {normalized.length === 1 ? (
-        <p className="moderation-polished-empty">{t("moderation.oneMoreCharacter")}</p>
+        <p className="moderation-empty">{t("moderation.oneMoreCharacter")}</p>
       ) : null}
       {normalized.length >= 2 && loading ? <LoadingState /> : null}
 
       {!loading && visibleResults.length ? (
-        <section className="moderation-polished-results">
+        <section className="staff-search-results">
           <header>
             <strong>{t("moderation.results")}</strong>
             <small>{visibleResults.length}</small>
@@ -116,14 +116,14 @@ export function ModerationHome({ navigate, back }: HomeProps) {
                   navigate({ id: "moderation-user", params: { userId: identity.userId } })
                 }
               >
-                <span className="moderation-polished-results__avatar">
+                <span className="staff-search-results__avatar">
                   {identity.username.slice(0, 1).toUpperCase()}
                 </span>
                 <span>
                   <strong>@{identity.username}</strong>
                   <small>{identity.telegramId}</small>
                 </span>
-                <span className="moderation-polished-results__accounts">
+                <span className="staff-search-results__accounts">
                   {t("moderation.accountCount", { count: identity.accounts.length })}
                 </span>
                 <b>›</b>
@@ -134,7 +134,7 @@ export function ModerationHome({ navigate, back }: HomeProps) {
       ) : null}
 
       {!loading && normalized.length >= 2 && !visibleResults.length ? (
-        <p className="moderation-polished-empty">{t("moderation.nothingFound")}</p>
+        <p className="moderation-empty">{t("moderation.nothingFound")}</p>
       ) : null}
     </div>
   )
@@ -363,7 +363,7 @@ export function ModerationUser({ params, back }: UserProps) {
         </div>
       </Section>
 
-      <section className="moderation-actions-final">
+      <section className="moderation-actions">
         {!activeBan ? (
           <button
             onClick={() => {
@@ -405,11 +405,11 @@ export function ModerationUser({ params, back }: UserProps) {
       </section>
 
       <Section title={t("moderation.sanctions")}>
-        <div className="sanction-list sanction-list--final">
+        <div className="sanction-list sanction-list">
           {sanctions.map((sanction) => (
             <article
               key={sanction.id}
-              className={`sanction-final sanction-final--${sanction.status.toLowerCase()}`}
+              className={`sanction-card sanction-card--${sanction.status.toLowerCase()}`}
             >
               <span className={`sanction-mark sanction-mark--${sanction.type.toLowerCase()}`} />
               <span>
@@ -436,7 +436,7 @@ export function ModerationUser({ params, back }: UserProps) {
       </Section>
 
       {sanctionFormOpen ? (
-        <section className="moderation-form moderation-form--final">
+        <section className="moderation-form moderation-form">
           <div className="section__head">
             <h2>{t("moderation.newSanction")}</h2>
             <button aria-label={t("moderation.close")} onClick={() => setSanctionFormOpen(false)}>

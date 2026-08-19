@@ -104,7 +104,7 @@ export function AccountWallet({ back }: { back: () => void }) {
   }
 
   return (
-    <div className="screen account-wallet-v2">
+    <div className="screen account-wallet-screen">
       <PageHeader title={t("accountWallet.title")} eyebrow={activeAccount.nickname} back={back} />
 
       <section className="coin-wallet-hero">

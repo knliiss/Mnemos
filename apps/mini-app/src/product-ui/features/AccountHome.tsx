@@ -126,20 +126,20 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
     product.roles.find((role) => role.id === roleId) ?? null
 
   return (
-    <div className="screen account-v4-screen root-screen">
+    <div className="screen account-home-screen root-screen">
       <motion.button
-        className="account-v4-profile"
+        className="account-home-profile"
         whileTap={{ scale: 0.992 }}
         onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
       >
-        <span className="account-v4-profile__head">
+        <span className="account-home-profile__head">
           <CristalixHead skinUrl={activeAccount.skinUrl} size={82} />
         </span>
 
-        <span className="account-v4-profile__copy">
+        <span className="account-home-profile__copy">
           <small>{t("accountHome.activeAccount")}</small>
           <strong>{activeAccount.nickname}</strong>
-          <span className="account-v4-profile__pulse" aria-hidden="true">
+          <span className="account-home-profile__pulse" aria-hidden="true">
             <i />
             <i />
             <i />
@@ -147,28 +147,28 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </span>
 
         <img
-          className="account-v4-profile__art"
+          className="account-home-profile__art"
           src="/ui-illustrations/mnemos-mascot-cat.svg"
           alt=""
           aria-hidden="true"
         />
       </motion.button>
 
-      <section className={`account-v4-reward ${reward?.claimedToday ? "is-claimed" : ""}`}>
-        <span className="account-v4-reward__flame" aria-hidden="true">
+      <section className={`account-home-reward ${reward?.claimedToday ? "is-claimed" : ""}`}>
+        <span className="account-home-reward__flame" aria-hidden="true">
           <i />
           <img src="/ui-icons/flame.png" alt="" />
         </span>
 
-        <span className="account-v4-reward__copy">
+        <span className="account-home-reward__copy">
           <small>{t("accountHome.dailyReward")}</small>
-          <span className="account-v4-reward__streak">
+          <span className="account-home-reward__streak">
             <strong>{reward?.currentStreak || reward?.recoverableStreak || 0}</strong>
             <span>{t("accountHome.streakDays")}</span>
           </span>
 
           {reward && !rewardResult ? (
-            <span className="account-v4-reward__range">
+            <span className="account-home-reward__range">
               <span>
                 <CurrencyMark currency="COIN" size={14} />
                 {reward.nextCoinMin}–{reward.nextCoinMax}
@@ -207,7 +207,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         <AnimatePresence>
           {rewardResult ? (
             <>
-              <span className="account-v5-reward-particles" aria-hidden="true">
+              <span className="account-home-reward-particles" aria-hidden="true">
                 {rewardParticles.map((particle, index) => (
                   <motion.span
                     className={`reward-particle reward-particle--${particle.kind} is-${particle.tone}`}
@@ -231,7 +231,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
               </span>
 
               <motion.div
-                className="account-v4-reward-result"
+                className="account-home-reward-result"
                 initial={{ opacity: 0, scale: 0.94, y: 7 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
@@ -257,13 +257,13 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </AnimatePresence>
       </section>
 
-      <section className="account-v4-feature-grid">
+      <section className="account-home-feature-grid">
         <motion.button
-          className="account-v4-wallet"
+          className="account-home-wallet"
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate({ id: "account-wallet" })}
         >
-          <span className="account-v4-feature-copy">
+          <span className="account-home-feature-copy">
             <small>{t("accountHome.wallet")}</small>
             <strong>
               <CurrencyMark currency="COIN" size={19} />
@@ -275,11 +275,11 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </motion.button>
 
         <motion.button
-          className="account-v4-personalization"
+          className="account-home-personalization"
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
         >
-          <span className="account-v4-feature-copy">
+          <span className="account-home-feature-copy">
             <small>{t("accountHome.appearance")}</small>
             <strong>{t("accountHome.personalization")}</strong>
             <span>{t("accountHome.personalizationSummary")}</span>
@@ -288,7 +288,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </motion.button>
       </section>
 
-      <nav className="account-v4-actions" aria-label={t("accountHome.managementAria")}>
+      <nav className="account-home-actions" aria-label={t("accountHome.managementAria")}>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "roles" })}>
           <RoleSigil color="#A985A8" size={27} compact />
           <span>
@@ -300,7 +300,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-invites" })}
         >
-          <span className="account-v4-actions__icon is-amber">
+          <span className="account-home-actions__icon is-amber">
             <Glyph name="invite" size={17} />
           </span>
           <span>
@@ -312,7 +312,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-settings" })}
         >
-          <span className="account-v4-actions__icon">
+          <span className="account-home-actions__icon">
             <Glyph name="settings" size={17} />
           </span>
           <span>
@@ -322,8 +322,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </motion.button>
       </nav>
 
-      <section className="account-v4-panel account-v4-members">
-        <header className="account-v4-panel__head account-v4-members__head">
+      <section className="account-home-panel account-home-members">
+        <header className="account-home-panel__head account-home-members__head">
           <span>
             <small>{t("accountHome.team")}</small>
             <strong>{t("accountHome.members")}</strong>
@@ -337,26 +337,26 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           <img src="/ui-illustrations/team-roster.svg" alt="" aria-hidden="true" />
         </header>
 
-        <div className="account-v4-member-list">
+        <div className="account-home-member-list">
           {product.members.map((member) => {
             const highestRole = roleFor(member.highestRoleId)
             const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
             return (
               <motion.button
-                className="account-v4-member"
+                className="account-home-member"
                 key={member.id}
                 whileTap={{ scale: 0.992 }}
                 onClick={() => navigate({ id: "member", params: { memberId: member.id } })}
               >
-                <span className="account-v4-member__avatar" aria-hidden="true" />
+                <span className="account-home-member__avatar" aria-hidden="true" />
 
-                <span className="account-v4-member__copy">
-                  <span className="account-v4-member__name">
+                <span className="account-home-member__copy">
+                  <span className="account-home-member__name">
                     <strong>{member.name}</strong>
                     {member.owner ? (
                       <img
-                        className="account-v4-owner-crown"
+                        className="account-home-owner-crown"
                         src="/ui-illustrations/account-owner-crown.svg"
                         alt={t("accountHome.owner")}
                       />
@@ -364,13 +364,15 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
                   </span>
 
                   {highestRole ? (
-                    <span className="account-v4-member__role">
+                    <span className="account-home-member__role">
                       <RoleSigil color={highestRole.color} size={21} compact />
                       <span style={{ color: highestRole.color }}>{highestRole.name}</span>
                       {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                     </span>
                   ) : (
-                    <small className="account-v4-member__no-role">{t("accountHome.noRole")}</small>
+                    <small className="account-home-member__no-role">
+                      {t("accountHome.noRole")}
+                    </small>
                   )}
                 </span>
 
@@ -381,9 +383,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </div>
       </section>
 
-      <section className="account-v4-panel account-v4-drops">
-        <header className="account-v4-panel__head account-v4-drops__head">
-          <span className="account-v4-drops__title-icon">
+      <section className="account-home-panel account-home-drops">
+        <header className="account-home-panel__head account-home-drops__head">
+          <span className="account-home-drops__title-icon">
             <img src="/ui-icons/drop-stack.svg" alt="" aria-hidden="true" />
           </span>
           <span>
@@ -391,27 +393,27 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             <strong>{t("accountHome.latestDrops")}</strong>
           </span>
           <img
-            className="account-v4-drops__activity-art"
+            className="account-home-drops__activity-art"
             src="/ui-illustrations/account-activity.svg"
             alt=""
             aria-hidden="true"
           />
         </header>
 
-        <div className="account-v4-drop-list">
+        <div className="account-home-drop-list">
           {drops.length ? (
             drops.map((drop) => {
               const tone = eventVisualTone(drop)
 
               return (
                 <motion.button
-                  className={`account-v4-drop event-surface--${tone}`}
+                  className={`account-home-drop event-surface--${tone}`}
                   key={drop.id}
                   whileTap={{ scale: 0.992 }}
                   onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
                 >
                   <EventArt event={drop} size={42} />
-                  <span className="account-v4-drop__copy">
+                  <span className="account-home-drop__copy">
                     <strong>{drop.title}</strong>
                     <small>
                       {drop.rarity
@@ -497,7 +499,7 @@ function AccountMemberManagementProduction({
   }
 
   return (
-    <div className="screen account-member-v4">
+    <div className="screen account-home-member-detail">
       <PageHeader title={t("accountMember.title")} back={back} />
 
       <section className="account-member-v4__hero">

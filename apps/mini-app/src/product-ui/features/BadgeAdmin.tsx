@@ -207,7 +207,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
           <small>ASSIGNMENT</small>
           <strong>{t("badgeAdmin.assignment")}</strong>
         </header>
-        <label className="moderation-polished-search">
+        <label className="staff-search">
           <Glyph name="search" size={18} />
           <input
             value={query}
@@ -219,7 +219,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
         </label>
 
         {visibleResults.length ? (
-          <section className="moderation-polished-results">
+          <section className="staff-search-results">
             <div>
               {visibleResults.map((identity) => (
                 <button
@@ -227,14 +227,14 @@ export function BadgeAdmin({ back }: { back: () => void }) {
                   className={selectedUser?.userId === identity.userId ? "is-selected" : ""}
                   onClick={() => setSelectedUser(identity)}
                 >
-                  <span className="moderation-polished-results__avatar">
+                  <span className="staff-search-results__avatar">
                     {identity.username.slice(0, 1).toUpperCase()}
                   </span>
                   <span>
                     <strong>@{identity.username}</strong>
                     <small>{identity.telegramId}</small>
                   </span>
-                  <span className="moderation-polished-results__accounts">
+                  <span className="staff-search-results__accounts">
                     {t("moderation.accountCount", { count: identity.accounts.length })}
                   </span>
                 </button>

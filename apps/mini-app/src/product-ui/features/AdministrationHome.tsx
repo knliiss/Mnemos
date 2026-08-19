@@ -50,7 +50,7 @@ export function AdministrationHome({
   }, [])
 
   return (
-    <div className="screen administration-home-screen administration-home-screen--final">
+    <div className="screen administration-home-screen administration-home-screen">
       <PageHeader title={t("administration.title")} back={back} />
 
       <section className="workspace-intro workspace-intro--admin">
@@ -63,7 +63,7 @@ export function AdministrationHome({
         </div>
       </section>
 
-      <div className="workspace-grid workspace-grid--final">
+      <div className="workspace-grid">
         <button onClick={() => navigate({ id: "moderation" })}>
           <span className="workspace-grid__icon workspace-grid__icon--danger">
             <Glyph name="members" size={20} />

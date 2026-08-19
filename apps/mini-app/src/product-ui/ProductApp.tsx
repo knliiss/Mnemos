@@ -168,8 +168,8 @@ export default function ProductApp() {
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
       <ErrorNotificationProvider hasTabbar={Boolean(rootRoute && activeAccount)}>
         <ErrorNotificationBridge />
-        <main className="preview-stage redesign-stage final-stage">
-          <section className="app-shell redesign-shell final-shell">
+        <main className="preview-stage">
+          <section className="app-shell">
             <motion.div
               ref={routeStageRef}
               className={`route-stage ${rootRoute && activeAccount ? `has-tabbar has-user-access route-stage--${rootRoute}` : ""}`}
@@ -289,7 +289,7 @@ function RootNavigation({
 
   return (
     <nav
-      className="root-navigation root-navigation--five final-navigation root-navigation--illustrated"
+      className="root-navigation root-navigation--five root-navigation--illustrated"
       aria-label={t("productShell.navigation.aria")}
     >
       {rootItems.map((item) => (
@@ -313,7 +313,7 @@ function UserHubTrigger({ open, onToggle }: { open: boolean; onToggle: () => voi
 
   return (
     <motion.button
-      className={`global-user-button global-user-button--final ${open ? "is-open" : ""}`}
+      className={`global-user-button global-user-button ${open ? "is-open" : ""}`}
       whileTap={{ scale: 0.95 }}
       onClick={onToggle}
       aria-label={t("productShell.userMenu.open")}
@@ -406,21 +406,21 @@ function UserHubOverlay({
             onClick={onClose}
           />
           <motion.aside
-            className="user-hub user-hub--final"
+            className="user-hub"
             initial={{ opacity: 0, y: -10, scale: 0.975 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
-            <header className="final-user-card">
+            <header className="user-hub-card">
               <UserAvatarPlaceholder
-                className="final-user-card__avatar final-user-card__avatar--placeholder"
+                className="user-hub-card__avatar user-hub-card__avatar--placeholder"
                 size={40}
               />
-              <span className="final-user-card__copy">
+              <span className="user-hub-card__copy">
                 <small>MNEMOS USER</small>
                 <strong>@{username}</strong>
               </span>
-              <button className="final-user-prime" onClick={() => navigate({ id: "user-wallet" })}>
+              <button className="user-hub-prime" onClick={() => navigate({ id: "user-wallet" })}>
                 <CurrencyMark currency="PRIME" size={16} />
                 <strong>{prime.toLocaleString(localizationOption.numberLocale)}</strong>
                 <b>›</b>
@@ -428,11 +428,11 @@ function UserHubOverlay({
             </header>
 
             <button
-              className={`final-account-switch ${accountPickerOpen ? "is-open" : ""}`}
+              className={`user-hub-account-switch ${accountPickerOpen ? "is-open" : ""}`}
               onClick={onToggleAccounts}
             >
               <CristalixHead
-                className="final-account-switch__mark final-account-switch__mark--skin"
+                className="user-hub-account-switch__mark user-hub-account-switch__mark--skin"
                 skinUrl={activeAccount.skinUrl}
                 size={34}
               />
@@ -440,7 +440,7 @@ function UserHubOverlay({
                 <small>{t("productShell.userMenu.activeAccount")}</small>
                 <strong>{activeAccount.nickname}</strong>
               </span>
-              <span className="final-account-switch__action">
+              <span className="user-hub-account-switch__action">
                 <Glyph name="swap" size={16} />
                 {t("productShell.userMenu.change")}
               </span>
@@ -449,7 +449,7 @@ function UserHubOverlay({
             <AnimatePresence initial={false}>
               {accountPickerOpen ? (
                 <motion.div
-                  className="final-account-picker"
+                  className="user-hub-account-picker"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -462,7 +462,7 @@ function UserHubOverlay({
                       onClick={() => onSelectAccount(account)}
                     >
                       <CristalixHead
-                        className="final-account-picker__head"
+                        className="user-hub-account-picker__head"
                         skinUrl={account.skinUrl}
                         size={30}
                       />
@@ -523,8 +523,8 @@ function UserHubOverlay({
               </span>
             </section>
 
-            <div className="final-workspace-label">{t("productShell.userMenu.workspaces")}</div>
-            <nav className="final-workspace-grid">
+            <div className="user-hub-workspace-label">{t("productShell.userMenu.workspaces")}</div>
+            <nav className="user-hub-workspace-grid">
               {creator ? (
                 <button className="is-creator" onClick={() => navigate({ id: "creator-studio" })}>
                   <span>

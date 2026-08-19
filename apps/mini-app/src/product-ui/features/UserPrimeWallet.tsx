@@ -91,7 +91,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
   const prime = product.user.prime
 
   return (
-    <div className="screen prime-wallet-v2">
+    <div className="screen prime-wallet-screen">
       <PageHeader title="PRIME" eyebrow="USER" back={back} />
 
       <section className="prime-wallet-hero">

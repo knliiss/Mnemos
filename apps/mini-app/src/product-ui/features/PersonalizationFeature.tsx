@@ -252,8 +252,8 @@ function StoreRoot({
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   return (
-    <div className="screen store-v5-screen root-screen">
-      <header className="store-v5-header">
+    <div className="screen personalization-store-screen root-screen">
+      <header className="personalization-store-header">
         <span>
           <small>{t("personalization.store.eyebrow")}</small>
           <h1>{t("personalization.store.title")}</h1>
@@ -265,7 +265,7 @@ function StoreRoot({
         </button>
       </header>
 
-      <section className="store-v5-hero">
+      <section className="personalization-store-hero">
         <span>
           <small>{t("personalization.store.catalogEyebrow")}</small>
           <strong>{t("personalization.store.heroTitle")}</strong>
@@ -277,7 +277,7 @@ function StoreRoot({
       {loading ? (
         <LoadingState />
       ) : (
-        <section className="store-v5-categories">
+        <section className="personalization-store-categories">
           {PERSONALIZATION_TYPES.map((type) => {
             const typeItems = published.filter((item) => item.type === type)
             const owned = items.filter((item) => item.type === type && item.owned).length
@@ -286,14 +286,14 @@ function StoreRoot({
             return (
               <motion.button
                 key={type}
-                className={`store-v5-category store-v5-category--${type.toLowerCase()}`}
+                className={`personalization-store-category-card personalization-store-category-card--${type.toLowerCase()}`}
                 whileTap={{ scale: 0.988 }}
                 onClick={() => navigate({ id: "personalization-store-category", params: { type } })}
               >
-                <span className="store-v5-category__icon">
+                <span className="personalization-store-category-card__icon">
                   <TypeGlyph type={type} />
                 </span>
-                <span className="store-v5-category__copy">
+                <span className="personalization-store-category-card__copy">
                   <small>{t(`personalization.target.${targets[type]}`)}</small>
                   <strong>{typeTitle(t, type)}</strong>
                   <em>{typeNote(t, type)}</em>
@@ -302,7 +302,7 @@ function StoreRoot({
                     {owned ? ` · ${t("personalization.store.ownedCount", { count: owned })}` : ""}
                   </span>
                 </span>
-                <span className="store-v5-category__preview">
+                <span className="personalization-store-category-card__preview">
                   {sample ? (
                     <PersonalizationVisual item={sample} small />
                   ) : (
@@ -345,7 +345,7 @@ function StoreCategoryPage({
   const pageItems = visible.slice(safePage * pageSize, safePage * pageSize + pageSize)
 
   return (
-    <div className="screen store-category-v5">
+    <div className="screen personalization-store-category">
       <PageHeader title={typeTitle(t, type)} back={back} />
 
       <section className="store-category-v5__intro">
@@ -446,7 +446,7 @@ function OwnedPage({
     )
 
     return (
-      <div className="screen account-personalization-category-v5">
+      <div className="screen account-personalization-category">
         <PageHeader title={typeTitle(t, type)} back={back} />
         <section className="account-personalization-category-v5__intro">
           <span className="account-personalization-category-v5__icon">
@@ -502,7 +502,7 @@ function OwnedPage({
     const owned = items.filter((item) => item.owned && item.target === "ACCOUNT")
 
     return (
-      <div className="screen account-personalization-v5">
+      <div className="screen account-personalization-overview">
         <PageHeader title={t("personalization.owned.accountTitle")} back={back} />
         <section className="account-personalization-v5__hero">
           <span>
@@ -567,7 +567,7 @@ function OwnedPage({
   const visible = items.filter((item) => item.owned && (!target || item.target === target))
 
   return (
-    <div className="screen owned-v5-screen">
+    <div className="screen personalization-owned-screen">
       <PageHeader
         title={
           target === "USER"
@@ -579,7 +579,7 @@ function OwnedPage({
       {loading ? (
         <LoadingState />
       ) : (
-        <section className="owned-v5-list">
+        <section className="personalization-owned-list">
           {visible.map((item) => (
             <motion.button
               key={item.id}
@@ -651,7 +651,7 @@ function DetailPage({
   const busy = busyId === item.id
 
   return (
-    <div className="screen personalization-detail-v5">
+    <div className="screen personalization-detail-screen">
       <PageHeader title={item.name} back={back} />
       <section className="personalization-detail-v5__hero">
         <PersonalizationVisual item={item} detail />
