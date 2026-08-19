@@ -1,0 +1,42 @@
+export const eventsProductEn = {
+  events: {
+    kinds: {
+      ITEM_DROP: "Drop",
+      BOOSTER: "Booster",
+      GLOBAL: "Global",
+      RAID: "Raid",
+    },
+    boosters: {
+      LUCK: "Luck",
+      MONEY: "Coins",
+      DAMAGE: "Damage",
+      POWER: "Power",
+    },
+    globals: {
+      DARKNESS: "Darkness",
+      MOON: "Moon",
+      ECLIPSE: "Eclipse",
+      EXPLOSION: "Explosion",
+    },
+    feed: {
+      title: "Events",
+      description: "What is happening on Cristalix right now",
+      filterAria: "Event type",
+      all: "All",
+      searchPlaceholder: "Item, nickname or event",
+      clear: "Clear",
+      newest: "Newest first",
+      oldest: "Oldest first",
+      loading: "Loading events",
+      latest: "LATEST",
+      oldestFeatured: "OLDEST",
+      stream: "FEED",
+      eventCount: "{{count}} events",
+      emptyTitle: "No events found",
+      emptyCopy: "Change the type, order or search query",
+      globalDescription: "Cristalix global event",
+      raidDescription: "Cristalix raid",
+      locations: "Locations {{locations}}",
+    },
+  },
+} as const
