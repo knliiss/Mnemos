@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createAccountInvite,
   getAccountInvites,
@@ -21,6 +22,7 @@ const expiryMinutes: Record<Expiry, number | null> = {
 }
 
 export function AccountInvitesProduction({ back }: { back: () => void }) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const accountId = product.activeAccount?.id ?? null
   const [expiry, setExpiry] = useState<Expiry>("1D")
@@ -28,6 +30,7 @@ export function AccountInvitesProduction({ back }: { back: () => void }) {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
+  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const refresh = useCallback(async () => {
     if (!accountId) {
@@ -85,44 +88,79 @@ export function AccountInvitesProduction({ back }: { back: () => void }) {
     }
   }
 
+  const expiryLabels: Record<Expiry, string> = {
+    NONE: t("accountInvites.expiryOptions.none"),
+    "1H": t("accountInvites.expiryOptions.oneHour"),
+    "1D": t("accountInvites.expiryOptions.oneDay"),
+    "7D": t("accountInvites.expiryOptions.sevenDays"),
+  }
+
+  const formatDate = (value: string) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+
+    return new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date)
+  }
+
+  const inviteExpiryLabel = (invite: AccountInvite) => {
+    if (!invite.expiresAt) return t("accountInvites.noExpiry")
+
+    if (invite.status === "CONSUMED" && invite.consumedAt) {
+      return t("accountInvites.consumedAt", { date: formatDate(invite.consumedAt) })
+    }
+
+    if (invite.status === "REVOKED" && invite.revokedAt) {
+      return t("accountInvites.revokedAt", { date: formatDate(invite.revokedAt) })
+    }
+
+    return t("accountInvites.expiresAt", { date: formatDate(invite.expiresAt) })
+  }
+
+  const inviteStatusLabel = (status: AccountInviteStatus) => t(`accountInvites.status.${status}`)
+
   return (
     <div className="screen invites-screen-redesign invite-final-screen">
-      <PageHeader title="Інвайти" back={back} />
+      <PageHeader title={t("accountInvites.title")} back={back} />
 
       <section className="invite-create-final">
-        <Field label="Строк дії">
+        <Field label={t("accountInvites.expiry")}>
           <ChoiceGrid
             value={expiry}
             options={["NONE", "1H", "1D", "7D"] as const}
             onChange={setExpiry}
-            labels={{ NONE: "Без строку", "1H": "1 година", "1D": "24 години", "7D": "7 днів" }}
+            labels={expiryLabels}
           />
         </Field>
         <button className="primary-action" disabled={creating || !accountId} onClick={() => void create()}>
           <Glyph name="plus" size={16} />
-          {creating ? "Створюємо…" : "Створити інвайт"}
+          {creating ? t("accountInvites.creating") : t("accountInvites.create")}
         </button>
       </section>
 
-      <Section title="Інвайти">
+      <Section title={t("accountInvites.title")}>
         <div className="invite-final-list">
           {invites.map((invite) => (
             <article key={invite.id} className={`invite-final-item invite-final-item--${invite.status.toLowerCase()}`}>
               <span className="invite-final-item__code">
                 <strong>{invite.code}</strong>
-                <small>{expiryLabel(invite)}</small>
+                <small>{inviteExpiryLabel(invite)}</small>
               </span>
               <span className="invite-final-item__status">{inviteStatusLabel(invite.status)}</span>
               {invite.status === "ACTIVE" ? (
                 <span className="invite-final-item__actions">
                   <button
-                    aria-label="Копіювати"
+                    aria-label={t("accountInvites.copy")}
                     onClick={() => void navigator.clipboard?.writeText(invite.code)}
                   >
                     <Glyph name="external" size={14} />
                   </button>
                   <button
-                    aria-label="Відкликати"
+                    aria-label={t("accountInvites.revoke")}
                     className="is-danger"
                     disabled={revokingId !== null}
                     onClick={() => void revoke(invite.id)}
@@ -137,13 +175,13 @@ export function AccountInvitesProduction({ back }: { back: () => void }) {
           {!loading && !invites.length ? (
             <div className="events-r2-empty">
               <Glyph name="invite" size={24} />
-              <strong>Інвайтів ще немає</strong>
-              <small>Створи код і передай його учаснику.</small>
+              <strong>{t("accountInvites.emptyTitle")}</strong>
+              <small>{t("accountInvites.emptyCopy")}</small>
             </div>
           ) : null}
 
           {loading && !invites.length ? (
-            <div className="events-r2-loading" aria-label="Завантаження інвайтів"><i /><i /><i /></div>
+            <div className="events-r2-loading" aria-label={t("accountInvites.loading")}><i /><i /><i /></div>
           ) : null}
         </div>
       </Section>
@@ -151,35 +189,8 @@ export function AccountInvitesProduction({ back }: { back: () => void }) {
   )
 }
 
-function expiryLabel(invite: AccountInvite) {
-  if (!invite.expiresAt) return "без строку"
-
-  if (invite.status === "CONSUMED" && invite.consumedAt) {
-    return `використано ${formatDate(invite.consumedAt)}`
-  }
-
-  if (invite.status === "REVOKED" && invite.revokedAt) {
-    return `відкликано ${formatDate(invite.revokedAt)}`
-  }
-
-  return `до ${formatDate(invite.expiresAt)}`
-}
-
-function formatDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat("uk-UA", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date)
-}
-
-function inviteStatusLabel(status: AccountInviteStatus) {
-  if (status === "ACTIVE") return "Активний"
-  if (status === "CONSUMED") return "Використано"
-  if (status === "REVOKED") return "Відкликано"
-  return "Прострочено"
+function localeForLanguage(language?: string) {
+  if (language === "en") return "en-US"
+  if (language === "ru") return "ru-RU"
+  return "uk-UA"
 }
