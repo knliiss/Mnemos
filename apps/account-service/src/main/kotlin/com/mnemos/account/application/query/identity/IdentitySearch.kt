@@ -4,6 +4,11 @@ import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import java.util.UUID
 
+data class IdentitySearchQuery(
+    val query: String,
+    val limit: Int,
+)
+
 data class IdentitySearchResult(
     val userId: UserId,
     val username: String,
@@ -19,8 +24,5 @@ data class IdentityAccount(
 )
 
 interface IdentitySearchRepository {
-    fun search(
-        query: String,
-        limit: Int,
-    ): List<IdentitySearchResult>
+    fun search(query: IdentitySearchQuery): List<IdentitySearchResult>
 }
