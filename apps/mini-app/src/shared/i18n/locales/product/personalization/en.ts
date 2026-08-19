@@ -101,6 +101,7 @@ export const personalizationProductEn = {
       selected: "SELECTED",
       close: "Close",
       author: "Creator",
+      by: "by {{creator}}",
       scope: "Scope",
       status: "Status",
       approvedPrice: "Price after review",
