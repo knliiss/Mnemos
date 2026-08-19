@@ -156,7 +156,7 @@ export async function createDungeonSubscription(dungeonType: DungeonType): Promi
 }
 
 export async function createGlobalSubscription(eventType: GlobalEventType): Promise<void> {
-  await postJson("/api/v1/subscriptions/globals", { eventType })
+  await postJson("/api/v1/subscriptions/global-events", { eventType })
 }
 
 export async function createRaidSubscription(locations: number[]): Promise<void> {
