@@ -3,6 +3,7 @@ package com.mnemos.account.infrastructure.persistence.adapter.account
 import com.mnemos.account.application.query.account.AccountDetails
 import com.mnemos.account.application.query.account.AccountSummary
 import com.mnemos.account.domain.model.account.AccountMemberId
+import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.infrastructure.persistence.projection.account.AccountDetailsProjection
 import com.mnemos.account.infrastructure.persistence.projection.account.AccountSummaryProjection
 import com.mnemos.common.core.model.id.AccountId
@@ -37,6 +38,7 @@ object AccountQueryProjectionMapper {
             maxMembers = maxMembers,
             owner = memberId == AccountMemberId(ownerMemberId),
             active = accountId == activeAccountId,
+            baseRoleId = baseRoleId?.let(::RoleId),
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
