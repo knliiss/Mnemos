@@ -19,8 +19,9 @@ class GetCommentLikeStateService(
     override fun execute(commentId: UUID): Boolean {
         val actor = actorProvider.requireActor()
         val id = CommentId(commentId)
-        val comment = commentRepository.findById(id)
-            ?: throw CommentNotFoundException(id)
+        val comment =
+            commentRepository.findById(id)
+                ?: throw CommentNotFoundException(id)
 
         if (comment.deleted) {
             return false
