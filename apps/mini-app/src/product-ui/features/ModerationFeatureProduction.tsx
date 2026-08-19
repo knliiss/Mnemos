@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createSanction,
   createWalletAdjustment,
@@ -21,7 +22,6 @@ import type {
   TransactionType,
   WalletOwnerType,
 } from "../model"
-import { sanctionLabels } from "../presentation"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import {
   ChoiceGrid,
@@ -42,6 +42,7 @@ type UserProps = {
 }
 
 export function ModerationHomeProduction({ navigate, back }: HomeProps) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<IdentitySearchResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -64,14 +65,14 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
 
   return (
     <div className="screen moderation-polished-screen">
-      <PageHeader title="Модерація" back={back} />
+      <PageHeader title={t("moderation.title")} back={back} />
 
       <section className="moderation-polished-hero">
         <span className="moderation-polished-hero__icon"><Glyph name="moderation" size={23} /></span>
         <span>
           <small>INTERNAL</small>
-          <strong>Користувачі та аккаунти</strong>
-          <p>Пошук і дії модерації працюють напряму з account-service та moderation-service.</p>
+          <strong>{t("moderation.heroTitle")}</strong>
+          <p>{t("moderation.heroDescription")}</p>
         </span>
       </section>
 
@@ -83,24 +84,28 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
           minLength={2}
           maxLength={64}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Username, Telegram ID, User ID або Cristalix"
+          placeholder={t("moderation.searchPlaceholder")}
         />
-        {query ? <button aria-label="Очистити" onClick={() => setQuery("")}><Glyph name="close" size={14} /></button> : null}
+        {query ? (
+          <button aria-label={t("moderation.clear")} onClick={() => setQuery("")}>
+            <Glyph name="close" size={14} />
+          </button>
+        ) : null}
       </label>
 
       {!normalized ? (
         <section className="moderation-polished-help">
-          <span>Можна шукати за</span>
+          <span>{t("moderation.searchableBy")}</span>
           <div><i>Username</i><i>Telegram ID</i><i>User ID</i><i>Cristalix</i></div>
         </section>
       ) : null}
 
-      {normalized.length === 1 ? <p className="moderation-polished-empty">Введи ще 1 символ</p> : null}
+      {normalized.length === 1 ? <p className="moderation-polished-empty">{t("moderation.oneMoreCharacter")}</p> : null}
       {normalized.length >= 2 && loading ? <LoadingState /> : null}
 
       {!loading && visibleResults.length ? (
         <section className="moderation-polished-results">
-          <header><strong>Результати</strong><small>{visibleResults.length}</small></header>
+          <header><strong>{t("moderation.results")}</strong><small>{visibleResults.length}</small></header>
           <div>
             {visibleResults.map((identity) => (
               <motion.button
@@ -110,7 +115,9 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
               >
                 <span className="moderation-polished-results__avatar">{identity.username.slice(0, 1).toUpperCase()}</span>
                 <span><strong>@{identity.username}</strong><small>{identity.telegramId}</small></span>
-                <span className="moderation-polished-results__accounts">{identity.accounts.length} акаунт.</span>
+                <span className="moderation-polished-results__accounts">
+                  {t("moderation.accountCount", { count: identity.accounts.length })}
+                </span>
                 <b>›</b>
               </motion.button>
             ))}
@@ -119,13 +126,14 @@ export function ModerationHomeProduction({ navigate, back }: HomeProps) {
       ) : null}
 
       {!loading && normalized.length >= 2 && !visibleResults.length ? (
-        <p className="moderation-polished-empty">Нічого не знайдено</p>
+        <p className="moderation-polished-empty">{t("moderation.nothingFound")}</p>
       ) : null}
     </div>
   )
 }
 
 export function ModerationUserProduction({ params, back }: UserProps) {
+  const { t, i18n } = useTranslation()
   const product = useProductData()
   const userId = params?.userId ?? ""
   const canAdjustWallet = product.user.systemRoles.some((role) => role === "ADMIN" || role === "SUPER_ADMIN")
@@ -144,6 +152,11 @@ export function ModerationUserProduction({ params, back }: UserProps) {
   const [amount, setAmount] = useState("100")
   const [walletReason, setWalletReason] = useState("")
   const [adjustments, setAdjustments] = useState<WalletAdjustmentResponse[]>([])
+
+  const sanctionLabels: Record<SanctionType, string> = {
+    BAN: t("moderation.sanctionBan"),
+    NOTIFICATION_SUSPENSION: t("moderation.sanctionNotification"),
+  }
 
   const refreshIdentity = useCallback(async () => {
     if (!userId) return
@@ -272,11 +285,16 @@ export function ModerationUserProduction({ params, back }: UserProps) {
   }
 
   if (loading) {
-    return <div className="screen internal-user-screen"><PageHeader title="Модерація" back={back} /><LoadingState /></div>
+    return <div className="screen internal-user-screen"><PageHeader title={t("moderation.title")} back={back} /><LoadingState /></div>
   }
 
   if (!identity) {
-    return <div className="screen internal-user-screen"><PageHeader title="Модерація" back={back} /><p className="inline-hint">Користувача не знайдено</p></div>
+    return (
+      <div className="screen internal-user-screen">
+        <PageHeader title={t("moderation.title")} back={back} />
+        <p className="inline-hint">{t("moderation.userNotFound")}</p>
+      </div>
+    )
   }
 
   return (
@@ -291,16 +309,16 @@ export function ModerationUserProduction({ params, back }: UserProps) {
 
       <section className="internal-info-grid">
         <article><small>Telegram ID</small><strong>{identity.telegramId}</strong></article>
-        <article><small>Аккаунтів</small><strong>{identity.accounts.length}</strong></article>
+        <article><small>{t("moderation.accounts")}</small><strong>{identity.accounts.length}</strong></article>
       </section>
 
-      <Section title="Cristalix аккаунти">
+      <Section title={t("moderation.cristalixAccounts")}>
         <div className="internal-account-list">
           {identity.accounts.map((account) => (
             <article key={account.accountId}>
               <span className={account.active ? "is-active" : ""}><i /></span>
               <div><strong>{account.cristalixNickname}</strong><small>{account.cristalixUuid}</small><em>{account.accountId}</em></div>
-              <b>{account.active ? "активний" : "неактивний"}</b>
+              <b>{account.active ? t("moderation.active") : t("moderation.inactive")}</b>
             </article>
           ))}
         </div>
@@ -310,21 +328,21 @@ export function ModerationUserProduction({ params, back }: UserProps) {
         {!activeBan ? (
           <button onClick={() => { setSanctionType("BAN"); setSanctionFormOpen(true) }}>
             <Glyph name="moderation" size={19} />
-            <span><strong>Забанити</strong><small>Створити санкцію BAN</small></span>
+            <span><strong>{t("moderation.ban")}</strong><small>{t("moderation.createBan")}</small></span>
           </button>
         ) : (
           <button className="moderation-action-revoke" disabled={busy} onClick={() => void revoke(activeBan.id)}>
             <Glyph name="check" size={18} />
-            <span><strong>Зняти бан</strong><small>{activeBan.reason}</small></span>
+            <span><strong>{t("moderation.unban")}</strong><small>{activeBan.reason}</small></span>
           </button>
         )}
         <button onClick={() => { setSanctionType("NOTIFICATION_SUSPENSION"); setSanctionFormOpen(true) }}>
           <Glyph name="bell" size={19} />
-          <span><strong>Сповіщення</strong><small>Призупинити доставку</small></span>
+          <span><strong>{t("moderation.notifications")}</strong><small>{t("moderation.suspendDelivery")}</small></span>
         </button>
       </section>
 
-      <Section title="Санкції">
+      <Section title={t("moderation.sanctions")}>
         <div className="sanction-list sanction-list--final">
           {sanctions.map((sanction) => (
             <article key={sanction.id} className={`sanction-final sanction-final--${sanction.status.toLowerCase()}`}>
@@ -332,26 +350,40 @@ export function ModerationUserProduction({ params, back }: UserProps) {
               <span>
                 <strong>{sanctionLabels[sanction.type]}</strong>
                 <small>{sanction.reason}</small>
-                <em>{sanction.status} · {sanction.expiresAt ? formatDate(sanction.expiresAt) : "без строку"}</em>
+                <em>
+                  {sanction.status} · {sanction.expiresAt
+                    ? formatDate(sanction.expiresAt, i18n.language)
+                    : t("moderation.indefinite")}
+                </em>
               </span>
-              {sanction.status === "ACTIVE" ? <button disabled={busy} onClick={() => void revoke(sanction.id)}>Зняти</button> : null}
+              {sanction.status === "ACTIVE" ? (
+                <button disabled={busy} onClick={() => void revoke(sanction.id)}>{t("moderation.revoke")}</button>
+              ) : null}
             </article>
           ))}
-          {!sanctions.length ? <p className="inline-hint inline-hint--left">Санкцій немає</p> : null}
+          {!sanctions.length ? <p className="inline-hint inline-hint--left">{t("moderation.noSanctions")}</p> : null}
         </div>
       </Section>
 
       {sanctionFormOpen ? (
         <section className="moderation-form moderation-form--final">
-          <div className="section__head"><h2>Нова санкція</h2><button aria-label="Закрити" onClick={() => setSanctionFormOpen(false)}><Glyph name="close" size={15} /></button></div>
-          <Field label="Тип"><ChoiceGrid value={sanctionType} options={SANCTION_TYPES} onChange={setSanctionType} labels={sanctionLabels} /></Field>
-          <Field label="Причина"><input value={reason} onChange={(event) => setReason(event.target.value)} /></Field>
-          <Field label="Внутрішня нотатка"><input value={internalNote} onChange={(event) => setInternalNote(event.target.value)} /></Field>
-          <Field label="Тривалість, год" hint={duration && !durationValid ? "Додатне ціле або порожньо" : "Порожньо — без строку"}>
+          <div className="section__head">
+            <h2>{t("moderation.newSanction")}</h2>
+            <button aria-label={t("moderation.close")} onClick={() => setSanctionFormOpen(false)}><Glyph name="close" size={15} /></button>
+          </div>
+          <Field label={t("moderation.type")}>
+            <ChoiceGrid value={sanctionType} options={SANCTION_TYPES} onChange={setSanctionType} labels={sanctionLabels} />
+          </Field>
+          <Field label={t("moderation.reason")}><input value={reason} onChange={(event) => setReason(event.target.value)} /></Field>
+          <Field label={t("moderation.internalNote")}><input value={internalNote} onChange={(event) => setInternalNote(event.target.value)} /></Field>
+          <Field
+            label={t("moderation.durationHours")}
+            hint={duration && !durationValid ? t("moderation.durationInvalid") : t("moderation.durationHint")}
+          >
             <input type="number" min={1} step={1} value={duration} onChange={(event) => setDuration(event.target.value)} />
           </Field>
           <button className="destructive-action" disabled={!reason.trim() || !durationValid || busy} onClick={() => void submitSanction()}>
-            {busy ? "Зберігаємо…" : "Створити санкцію"}
+            {busy ? t("moderation.saving") : t("moderation.createSanction")}
           </button>
         </section>
       ) : null}
@@ -360,20 +392,20 @@ export function ModerationUserProduction({ params, back }: UserProps) {
         <section className="admin-wallet-panel">
           <div className="admin-wallet-panel__head">
             <span className="admin-wallet-panel__mark"><Glyph name="wallet" size={20} /></span>
-            <span><strong>Коригування гаманця</strong><small>ADMIN / SUPER_ADMIN</small></span>
+            <span><strong>{t("moderation.walletAdjustment")}</strong><small>ADMIN / SUPER_ADMIN</small></span>
           </div>
 
-          <Field label="Ціль">
+          <Field label={t("moderation.target")}>
             <Segmented
               value={walletTarget}
               options={["USER", "ACCOUNT"] as const}
               onChange={setWalletTarget}
-              label={(value) => value === "USER" ? "User · PRIME" : "Account · COIN"}
+              label={(value) => value === "USER" ? t("moderation.userTarget") : t("moderation.accountTarget")}
             />
           </Field>
 
           {walletTarget === "ACCOUNT" ? (
-            <Field label="Аккаунт">
+            <Field label={t("moderation.account")}>
               <ChoiceGrid
                 value={accountTargetId}
                 options={identity.accounts.map((account) => account.accountId)}
@@ -388,33 +420,38 @@ export function ModerationUserProduction({ params, back }: UserProps) {
             <span><strong>{currency}</strong><small>{targetId}</small></span>
           </div>
 
-          <Field label="Операція">
+          <Field label={t("moderation.operation")}>
             <Segmented
               value={operation}
               options={TRANSACTION_TYPES}
               onChange={setOperation}
-              label={(value) => value === "CREDIT" ? "Нарахувати" : "Списати"}
+              label={(value) => value === "CREDIT" ? t("moderation.credit") : t("moderation.debit")}
             />
           </Field>
 
-          <Field label="Сума" hint={!amountValid && amount.length ? "Додатне ціле" : undefined}>
-            <div className="amount-input"><span><CurrencyMark currency={currency} size={17} /></span><input type="number" min={1} step={1} value={amount} onChange={(event) => setAmount(event.target.value)} /></div>
+          <Field label={t("moderation.amount")} hint={!amountValid && amount.length ? t("moderation.positiveInteger") : undefined}>
+            <div className="amount-input">
+              <span><CurrencyMark currency={currency} size={17} /></span>
+              <input type="number" min={1} step={1} value={amount} onChange={(event) => setAmount(event.target.value)} />
+            </div>
           </Field>
-          <Field label="Причина"><input value={walletReason} maxLength={256} onChange={(event) => setWalletReason(event.target.value)} /></Field>
+          <Field label={t("moderation.reason")}>
+            <input value={walletReason} maxLength={256} onChange={(event) => setWalletReason(event.target.value)} />
+          </Field>
           <button className="primary-action" disabled={!targetId || !amountValid || !walletReason.trim() || busy} onClick={() => void submitAdjustment()}>
-            {busy ? "Надсилаємо…" : "Застосувати"}
+            {busy ? t("moderation.sending") : t("moderation.apply")}
           </button>
 
           <div className="wallet-adjustment-history">
-            <h3>Операції</h3>
+            <h3>{t("moderation.operations")}</h3>
             {adjustments.map((item) => (
               <article key={item.operationId}>
                 <i className={`is-${item.status.toLowerCase()}`} />
                 <span><strong>{item.type === "CREDIT" ? "+" : "−"}{item.amount} {item.currency}</strong><small>{item.reason}</small></span>
-                <span><strong>{item.status}</strong><small>{formatDate(item.createdAt)}</small></span>
+                <span><strong>{item.status}</strong><small>{formatDate(item.createdAt, i18n.language)}</small></span>
               </article>
             ))}
-            {!adjustments.length ? <p className="inline-hint inline-hint--left">Операцій немає</p> : null}
+            {!adjustments.length ? <p className="inline-hint inline-hint--left">{t("moderation.noOperations")}</p> : null}
           </div>
         </section>
       ) : null}
@@ -423,11 +460,19 @@ export function ModerationUserProduction({ params, back }: UserProps) {
 }
 
 function LoadingState() {
-  return <div className="events-r2-loading" aria-label="Завантаження"><i /><i /><i /></div>
+  const { t } = useTranslation()
+
+  return <div className="events-r2-loading" aria-label={t("moderation.loading")}><i /><i /><i /></div>
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("uk-UA", {
+function formatDate(value: string, language: string) {
+  const locale = language.startsWith("ru")
+    ? "ru-RU"
+    : language.startsWith("en")
+      ? "en-US"
+      : "uk-UA"
+
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
