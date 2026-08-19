@@ -53,17 +53,20 @@ import "./product-rethink.css"
 import "./product-rethink-audit-fixes.css"
 import "./product-round-three.css"
 import "./product-round-three-fixes.css"
+import "./product-round-four.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
   "/ui-illustrations/account-settings.svg",
   "/ui-illustrations/daily-claim.svg",
+  "/ui-illustrations/account-activity.svg",
   "/ui-illustrations/workspace-creator.svg",
   "/ui-illustrations/workspace-admin.svg",
   "/ui-illustrations/admin-users.svg",
   "/ui-illustrations/admin-review.svg",
   "/ui-illustrations/admin-bets.svg",
   "/ui-illustrations/admin-badges.svg",
+  "/ui-illustrations/mnemos-user-mark.svg",
   "/ui-illustrations/mnemos-mascot-cat.svg",
   "/ui-illustrations/mnemos-mascot-search.svg",
   "/ui-illustrations/mnemos-mascot-event.svg",
