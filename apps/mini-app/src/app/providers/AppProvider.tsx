@@ -1,83 +1,123 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import type { Account, AvailableAccount, ThemeMode, User } from "@/shared/types/domain"
-import {handleError} from "@/shared/errors/errorHandler"
-import { activateAccount, createAccount, getActiveAccount, getAvailableAccounts, initializeUser, leaveActiveAccount, updateLanguage } from "@/entities/account/api/accountService"
+import type { CurrentContextResponse } from "@/shared/api/backendContracts"
+import {
+  createAccount,
+  getCurrentContext,
+  initializeCurrentUser,
+  joinAccount,
+  leaveActiveAccount,
+  reactivateAccount,
+  selectActiveAccount,
+  updateCurrentLanguage,
+} from "@/shared/api/productApi"
+import type { LocalizationLanguage } from "@/product-ui/model"
+import { handleError } from "@/shared/errors/errorHandler"
 
-interface AppState {
-  user: User | null
-  account: Account | null
-  availableAccounts: AvailableAccount[]
-  theme: ThemeMode
+type AppState = {
+  context: CurrentContextResponse | null
   loading: boolean
-  refresh(): Promise<void>
-  selectAccount(id: string): Promise<void>
+  refresh(): Promise<CurrentContextResponse>
+  selectAccount(accountId: string): Promise<void>
   registerAccount(nickname: string): Promise<void>
+  joinByCode(inviteCode: string): Promise<void>
   leaveAccount(): Promise<void>
-  setTheme(theme: ThemeMode): void
-  setLanguage(language: User["localizationLanguage"]): Promise<void>
+  reactivate(accountId: string): Promise<void>
+  setLanguage(language: LocalizationLanguage): Promise<void>
 }
 
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
-  const [user, setUser] = useState<User | null>(null)
-  const [account, setAccount] = useState<Account | null>(null)
-  const [availableAccounts, setAvailableAccounts] = useState<AvailableAccount[]>([])
-  const [theme, setThemeState] = useState<ThemeMode>(() => (localStorage.getItem("mnemos-theme") as ThemeMode) || "dark")
+  const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { void refresh().catch(handleError) }, [])
   useEffect(() => {
-    const resolved = theme === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : theme
-    document.documentElement.dataset.theme = resolved
-  }, [theme])
+    void bootstrap().catch(handleError)
+  }, [])
 
-  async function refresh() {
+  async function bootstrap() {
     setLoading(true)
+
     try {
-      const currentUser = await initializeUser()
-      setUser(currentUser)
-      await i18n.changeLanguage(currentUser.localizationLanguage.toLowerCase())
-      const [active, available] = await Promise.all([getActiveAccount(), getAvailableAccounts()])
-      setAccount(active)
-      setAvailableAccounts(available)
-    } finally { setLoading(false) }
+      await initializeCurrentUser()
+      const next = await getCurrentContext()
+
+      setContext(next)
+      await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+    } finally {
+      setLoading(false)
+    }
   }
 
-  async function selectAccount(id: string) {
-    setAccount(await activateAccount(id))
+  async function refresh() {
+    const next = await getCurrentContext()
+
+    setContext(next)
+    return next
+  }
+
+  async function selectAccount(accountId: string) {
+    await selectActiveAccount(accountId)
+    await refresh()
   }
 
   async function registerAccount(nickname: string) {
     const created = await createAccount(nickname)
-    setAccount(created)
-    setAvailableAccounts(await getAvailableAccounts())
+
+    await selectActiveAccount(created.accountId)
+    await refresh()
+  }
+
+  async function joinByCode(inviteCode: string) {
+    const joined = await joinAccount(inviteCode)
+
+    await selectActiveAccount(joined.accountId)
+    await refresh()
   }
 
   async function leaveAccount() {
-    setAvailableAccounts(await leaveActiveAccount())
-    setAccount(null)
+    await leaveActiveAccount()
+    await refresh()
   }
 
-  function setTheme(next: ThemeMode) {
-    localStorage.setItem("mnemos-theme", next)
-    setThemeState(next)
+  async function reactivate(accountId: string) {
+    await reactivateAccount(accountId)
+    await selectActiveAccount(accountId)
+    await refresh()
   }
 
-  async function setLanguage(language: User["localizationLanguage"]) {
-    const updated = await updateLanguage(language)
-    setUser(updated)
+  async function setLanguage(language: LocalizationLanguage) {
+    await updateCurrentLanguage(language)
     await i18n.changeLanguage(language.toLowerCase())
+    await refresh()
   }
 
-  const value = useMemo(() => ({ user, account, availableAccounts, theme, loading, refresh, selectAccount, registerAccount, leaveAccount, setTheme, setLanguage }), [user, account, availableAccounts, theme, loading])
+  const value = useMemo<AppState>(
+    () => ({
+      context,
+      loading,
+      refresh,
+      selectAccount,
+      registerAccount,
+      joinByCode,
+      leaveAccount,
+      reactivate,
+      setLanguage,
+    }),
+    [context, loading],
+  )
+
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
 
 export function useApp() {
   const value = useContext(AppContext)
-  if (!value) throw new Error("AppProvider is missing")
+
+  if (!value) {
+    throw new Error("AppProvider is missing")
+  }
+
   return value
 }
