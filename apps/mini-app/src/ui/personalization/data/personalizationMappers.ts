@@ -26,7 +26,7 @@ const targets: Record<Personalization["type"], PersonalizationTarget> = {
   PROFILE_EFFECT: "ACCOUNT",
 }
 
-export function toProductPersonalization(
+export function toPersonalization(
   response: PersonalizationResponse,
   owned: OwnedPersonalizationResponse | null,
   currentUserId?: string,
@@ -50,11 +50,11 @@ export function toProductPersonalization(
     owned: Boolean(owned),
     active: owned?.active ?? false,
     preview: response.name,
-    content: toProductContent(response),
+    content: toPersonalizationContent(response),
   }
 }
 
-function toProductContent(response: PersonalizationResponse): PersonalizationContent {
+function toPersonalizationContent(response: PersonalizationResponse): PersonalizationContent {
   if (response.type === "NOTIFICATION_PACK") {
     const content = response.content as NotificationPackContentResponse
 
