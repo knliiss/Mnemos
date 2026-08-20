@@ -1,3 +1,4 @@
+import { errorCodesRu } from "./errors/ru"
 import { productRu } from "./product/ru"
 
 export const ru = {
@@ -150,6 +151,7 @@ export const ru = {
         message: "Повторите действие немного позже.",
       },
     },
+    codes: errorCodesRu,
   },
   ...productRu,
 } as const
