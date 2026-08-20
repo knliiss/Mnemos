@@ -155,15 +155,37 @@ export function resolveErrorPresentation(
   payload: BackendErrorPayload,
   language = i18n.resolvedLanguage ?? "uk",
 ): NoticePresentation {
+  const code = normalizeCode(payload.code)
   const tone = inferTone(payload)
   const keys = translationKeys[tone]
   const translate = i18n.getFixedT(language)
+  const fallback = {
+    eyebrow: translate(keys.eyebrow),
+    title: translate(keys.title),
+    message: translate(keys.message),
+  }
+
+  if (!code) {
+    return {
+      tone,
+      mascot: tone,
+      ...fallback,
+    }
+  }
+
+  const codePrefix = `errorNotifications.codes.${code}`
 
   return {
     tone,
     mascot: tone,
-    eyebrow: translate(keys.eyebrow),
-    title: translate(keys.title),
-    message: translate(keys.message),
+    eyebrow: translate(`${codePrefix}.eyebrow`, {
+      defaultValue: fallback.eyebrow,
+    }),
+    title: translate(`${codePrefix}.title`, {
+      defaultValue: fallback.title,
+    }),
+    message: translate(`${codePrefix}.message`, {
+      defaultValue: fallback.message,
+    }),
   }
 }
