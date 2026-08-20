@@ -1,0 +1,67 @@
+.account-settings-hero__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.account-settings-hero__copy small {
+  color: #7f8579;
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+}
+
+.account-settings-hero__copy strong {
+  overflow: hidden;
+  color: #f0f2eb;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-settings-hero__copy em {
+  color: #8d9387;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.account-settings-hero__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(232, 240, 210, 0.075);
+}
+
+.account-settings-hero__stats > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.account-settings-hero__stats small {
+  color: #81877c;
+  font-size: 9px;
+}
+
+.account-settings-hero__stats strong {
+  color: #e9ece4;
+  font-size: 11px;
+}
+
+.account-transfer-summary__avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: #e8ebe5;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 12px;
+  font-weight: 700;
+}
