@@ -1,5 +1,5 @@
 import { errorCodesRu } from "./errors/ru"
-import { productRu } from "./ui/ru"
+import { uiRu } from "./ui/ru"
 
 export const ru = {
   nav: {
@@ -153,5 +153,5 @@ export const ru = {
     },
     codes: errorCodesRu,
   },
-  ...productRu,
+  ...uiRu,
 } as const
