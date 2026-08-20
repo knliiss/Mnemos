@@ -1,3 +1,4 @@
+import { errorCodesUk } from "./errors/uk"
 import { productUk } from "./product/uk"
 
 export const uk = {
@@ -150,6 +151,7 @@ export const uk = {
         message: "Повтори дію трохи пізніше.",
       },
     },
+    codes: errorCodesUk,
   },
   ...productUk,
 } as const
