@@ -2,7 +2,6 @@ import type { TFunction } from "i18next"
 import type { CSSProperties, ReactElement } from "react"
 import { useTranslation } from "react-i18next"
 import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "../events/EventArt"
-import { personalizationContentById } from "../../personalizationPreviewData"
 import type {
   AvatarFrameContent,
   NickStyleContent,
@@ -27,15 +26,8 @@ type TemplateSample = {
   art: ReactElement
 }
 
-export function hydratePersonalization(item: Personalization): Personalization {
-  return {
-    ...item,
-    content: item.content ?? personalizationContentById[item.id],
-  }
-}
-
 export function PersonalizationVisual({ item, small = false, detail = false }: PreviewProps) {
-  const content = item.content ?? personalizationContentById[item.id]
+  const content = item.content
   const className =
     `real-preview real-preview--${item.type.toLowerCase()} ${small ? "is-small" : ""} ${detail ? "is-detail" : ""}`.trim()
 
@@ -75,7 +67,7 @@ export function PersonalizationVisual({ item, small = false, detail = false }: P
 
 export function PersonalizationDetails({ item }: { item: Personalization }) {
   const { t } = useTranslation()
-  const content = item.content ?? personalizationContentById[item.id]
+  const content = item.content
 
   if (!content) {
     return (
