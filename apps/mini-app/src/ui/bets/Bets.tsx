@@ -178,8 +178,8 @@ export function Bets({ activeAccount, navigate }: Props) {
     <div className="screen bets-screen root-screen">
       <header className="root-title-block bets-title">
         <span>
-          <small>{t("productBets.eyebrow")}</small>
-          <h1>{t("productBets.title")}</h1>
+          <small>{t("bets.eyebrow")}</small>
+          <h1>{t("bets.title")}</h1>
           <p>{activeAccount.nickname}</p>
         </span>
 
@@ -188,7 +188,7 @@ export function Bets({ activeAccount, navigate }: Props) {
           className="bets-wallet"
           onClick={() => navigate({ id: "account-wallet" })}
         >
-          <span className="bets-wallet__label">{t("productBets.balance")}</span>
+          <span className="bets-wallet__label">{t("bets.balance")}</span>
           <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
         </button>
       </header>
@@ -201,7 +201,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             className={mode === value ? "is-active" : ""}
             onClick={() => setMode(value)}
           >
-            <span>{t(`productBets.modes.${value}`)}</span>
+            <span>{t(`bets.modes.${value}`)}</span>
             {value === "MY" && myRounds.length + myRaces.length ? (
               <b>{myRounds.length + myRaces.length}</b>
             ) : null}
@@ -209,15 +209,15 @@ export function Bets({ activeAccount, navigate }: Props) {
         ))}
       </nav>
 
-      {loading ? <FeatureLoading label={t("productBets.loading")} /> : null}
+      {loading ? <FeatureLoading label={t("bets.loading")} /> : null}
 
       {!loading && error ? (
         <div className="bets-empty">
           <CurrencyMark currency="COIN" size={20} />
-          <strong>{t("productBets.error.title")}</strong>
-          <small>{t("productBets.error.copy")}</small>
+          <strong>{t("bets.error.title")}</strong>
+          <small>{t("bets.error.copy")}</small>
           <button type="button" onClick={() => void refresh()}>
-            {t("productBets.error.retry")}
+            {t("bets.error.retry")}
           </button>
         </div>
       ) : null}
@@ -238,12 +238,12 @@ export function Bets({ activeAccount, navigate }: Props) {
               <span className="bets-feature__copy">
                 <small>
                   {featured.status === "OPEN"
-                    ? t("productBets.nextRound")
+                    ? t("bets.nextRound")
                     : roundStatusLabel(t, featured.status)}
                 </small>
                 <strong>{globalEventLabel(t, featured.eventType)}</strong>
                 <em>
-                  {t("productBets.closes", {
+                  {t("bets.closes", {
                     time: formatBetMoment(featured.closesAt, locale),
                   })}
                 </em>
@@ -251,12 +251,12 @@ export function Bets({ activeAccount, navigate }: Props) {
 
               <span className="bets-feature__odds">
                 <span>
-                  <small>{t("productBets.yesUpper")}</small>
+                  <small>{t("bets.yesUpper")}</small>
                   <strong>{formatOdds(featured.yesOdds, locale)}</strong>
                 </span>
                 <i />
                 <span>
-                  <small>{t("productBets.noUpper")}</small>
+                  <small>{t("bets.noUpper")}</small>
                   <strong>{formatOdds(featured.noOdds, locale)}</strong>
                 </span>
               </span>
@@ -270,8 +270,8 @@ export function Bets({ activeAccount, navigate }: Props) {
             </motion.button>
           ) : (
             <EmptyBets
-              title={t("productBets.empty.roundsTitle")}
-              note={t("productBets.empty.roundsCopy")}
+              title={t("bets.empty.roundsTitle")}
+              note={t("bets.empty.roundsCopy")}
             />
           )}
 
@@ -279,7 +279,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             <>
               <header className="bets-section-head">
                 <span>
-                  <small>{t("productBets.moreRounds")}</small>
+                  <small>{t("bets.moreRounds")}</small>
                   <strong>{eventRounds.length}</strong>
                 </span>
               </header>
@@ -325,8 +325,8 @@ export function Bets({ activeAccount, navigate }: Props) {
 
           {!myRounds.length && !myRaces.length ? (
             <EmptyBets
-              title={t("productBets.empty.myTitle")}
-              note={t("productBets.empty.myCopy")}
+              title={t("bets.empty.myTitle")}
+              note={t("bets.empty.myCopy")}
             />
           ) : null}
         </section>
@@ -347,8 +347,8 @@ export function Bets({ activeAccount, navigate }: Props) {
 
           {!races.length ? (
             <EmptyBets
-              title={t("productBets.empty.racesTitle")}
-              note={t("productBets.empty.racesCopy")}
+              title={t("bets.empty.racesTitle")}
+              note={t("bets.empty.racesCopy")}
             />
           ) : null}
         </section>
