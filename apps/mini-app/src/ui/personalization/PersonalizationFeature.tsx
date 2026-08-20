@@ -4,10 +4,11 @@ import { FeatureError } from "../system/FeatureError"
 import { usePersonalizations } from "./data/usePersonalizations"
 import { PersonalizationDetail } from "./detail/PersonalizationDetail"
 import { OwnedPersonalizations } from "./owned/OwnedPersonalizations"
+import "./owned/owned.css"
 import "./personalization.css"
-import "./personalization-typography.css"
 import { PersonalizationStore } from "./store/PersonalizationStore"
 import { PersonalizationStoreCategory } from "./store/PersonalizationStoreCategory"
+import "./store/store.css"
 
 type PersonalizationFeatureProps = {
   routeId: Route["id"]
