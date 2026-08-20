@@ -100,10 +100,10 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
 
   if (!event) {
     return (
-      <div className="screen event-r4-screen">
+      <div className="screen event-detail-screen">
         <PageHeader title={t("events.detail.title")} back={back} />
 
-        <section className="events-r2-empty">
+        <section className="events-feed-empty">
           <Glyph name="events" size={24} />
           <strong>
             {lookupLoading ? t("events.detail.loadingTitle") : t("events.detail.notFoundTitle")}
@@ -142,7 +142,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   }
 
   return (
-    <div className={`screen event-r4-screen event-r4-screen--${event.kind.toLowerCase()}`}>
+    <div className={`screen event-detail-screen event-detail-screen--${event.kind.toLowerCase()}`}>
       <PageHeader
         title={eventTitle(t, event)}
         eyebrow={eventKindLabel(t, event.kind)}
@@ -150,27 +150,27 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
       />
 
       <motion.section
-        className="event-r4-hero"
+        className="event-detail-hero"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <span className="event-r4-hero__scan" aria-hidden="true">
+        <span className="event-detail-hero__scan" aria-hidden="true">
           <i />
           <i />
           <i />
         </span>
 
-        <span className="event-r4-hero__art">
+        <span className="event-detail-hero__art">
           <EventArt event={event} size={66} />
         </span>
 
-        <span className="event-r4-hero__copy">
+        <span className="event-detail-hero__copy">
           <small>{eventKindCaption(t, event)}</small>
           <strong>{eventSubject(t, event)}</strong>
           <em>{eventDetailDescription(t, event)}</em>
 
           {ownEvent ? (
-            <span className="event-r4-owner">
+            <span className="event-detail-owner">
               <OwnerCrown compact />
               {t("events.detail.ownAccount")}
             </span>
@@ -180,20 +180,20 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         <time>{formatOccurredAt(event.occurredAt, locale)}</time>
 
         <img
-          className="event-r4-hero__mascot"
+          className="event-detail-hero__mascot"
           src="/ui-illustrations/mnemos-mascot-event.svg"
           alt=""
           aria-hidden="true"
         />
       </motion.section>
 
-      <section className={`event-r4-follow ${matchingSubscription ? "is-active" : ""}`}>
-        <span className="event-r4-follow__mark" aria-hidden="true">
+      <section className={`event-detail-follow ${matchingSubscription ? "is-active" : ""}`}>
+        <span className="event-detail-follow__mark" aria-hidden="true">
           <Glyph name="bell" size={18} />
           <i />
         </span>
 
-        <span className="event-r4-follow__copy">
+        <span className="event-detail-follow__copy">
           <small>{t("events.detail.notifications")}</small>
           <strong>
             {matchingSubscription
@@ -217,14 +217,14 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         </motion.button>
 
         <button
-          className="event-r4-follow__manage"
+          className="event-detail-follow__manage"
           onClick={() => navigate({ id: "subscriptions" })}
         >
           {t("events.detail.allRules")}
         </button>
       </section>
 
-      <section className="event-r4-facts" aria-label={t("events.detail.dataAria")}>
+      <section className="event-detail-facts" aria-label={t("events.detail.dataAria")}>
         <article className="is-wide">
           <small>{t("events.detail.happened")}</small>
           <strong>
