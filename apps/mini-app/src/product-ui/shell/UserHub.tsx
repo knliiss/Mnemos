@@ -94,7 +94,8 @@ export function UserHubOverlay({
           >
             <header className="user-hub-card">
               <UserAvatar
-                className="user-hub-card__avatar user-hub-card__avatar--placeholder"
+                className="user-hub-card__avatar"
+                placeholderClassName="user-hub-card__avatar--placeholder"
                 size={40}
               />
               <span className="user-hub-card__copy">
@@ -282,7 +283,13 @@ export function UserHubOverlay({
   )
 }
 
-function UserAvatar({ className, size }: { className?: string; size: number }) {
+type UserAvatarProps = {
+  className?: string
+  placeholderClassName?: string
+  size: number
+}
+
+function UserAvatar({ className, placeholderClassName, size }: UserAvatarProps) {
   const product = useProductData()
   const skinUrl = product.activeAccount?.skinUrl
 
@@ -298,7 +305,7 @@ function UserAvatar({ className, size }: { className?: string; size: number }) {
 
   return (
     <span
-      className={`user-avatar-placeholder ${className ?? ""}`.trim()}
+      className={`user-avatar-placeholder ${className ?? ""} ${placeholderClassName ?? ""}`.trim()}
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
