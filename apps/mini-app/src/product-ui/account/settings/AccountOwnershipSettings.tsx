@@ -58,7 +58,7 @@ export function AccountOwnershipSettings({
 
       {selectedMember ? (
         <div className="account-transfer-summary">
-          <span className="account-transfer-summary-v2__avatar" aria-hidden="true">
+          <span className="account-transfer-summary__avatar" aria-hidden="true">
             <Glyph name="person" size={18} />
           </span>
           <span>
