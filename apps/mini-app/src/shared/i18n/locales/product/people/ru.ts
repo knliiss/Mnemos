@@ -4,6 +4,7 @@ export const peopleProductRu = {
       title: "Поиск",
       description: "Аккаунты Mnemos",
       clear: "Очистить",
+      placeholder: "Никнейм Cristalix",
       emptyTitle: "Найди Cristalix аккаунт",
       emptyCopy: "Поиск работает по nickname и открывает публичный профиль Mnemos.",
       oneMore: "Введите ещё один символ",
