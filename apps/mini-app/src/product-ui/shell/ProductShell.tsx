@@ -1,5 +1,6 @@
 import { MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationBridge"
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
 import { useProductData } from "../data/ProductDataProvider"
@@ -12,6 +13,7 @@ import { UserHubOverlay } from "./UserHubOverlay"
 import { UserHubTrigger } from "./UserHubTrigger"
 
 export function ProductShell() {
+  const { t } = useTranslation()
   const product = useProductData()
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [userHubOpen, setUserHubOpen] = useState(
