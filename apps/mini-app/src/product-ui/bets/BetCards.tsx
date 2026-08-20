@@ -30,28 +30,28 @@ type BetRoundCardProps = {
 export function BetRoundCard({ round, locale, t, onClick }: BetRoundCardProps) {
   return (
     <motion.button
-      className={`bets-r2-card event-surface--${globalEventVisualTone(round.eventType)} ${round.status !== "OPEN" ? "is-locked" : ""}`}
+      className={`bets-card event-surface--${globalEventVisualTone(round.eventType)} ${round.status !== "OPEN" ? "is-locked" : ""}`}
       whileTap={{ scale: 0.992 }}
       onClick={onClick}
     >
-      <span className="bets-r2-card__art">
+      <span className="bets-card__art">
         <GlobalEventArt eventType={round.eventType} size={52} />
       </span>
 
-      <span className="bets-r2-card__copy">
+      <span className="bets-card__copy">
         <small>{globalEventLabel(t, round.eventType)}</small>
         <strong>{roundStatusLabel(t, round.status)}</strong>
         <em>{formatBetMoment(round.closesAt, locale)}</em>
       </span>
 
-      <span className="bets-r2-card__odds">
+      <span className="bets-card__odds">
         <b>{formatOdds(round.yesOdds, locale)}</b>
         <i />
         <b>{formatOdds(round.noOdds, locale)}</b>
       </span>
 
       {round.myBet ? (
-        <span className="bets-r2-card__mine">
+        <span className="bets-card__mine">
           <CurrencyMark currency="COIN" size={12} />
           {betAmount(round.myBet)}
         </span>
@@ -70,12 +70,12 @@ type BetRaceCardProps = {
 
 export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardProps) {
   return (
-    <motion.button className="bets-r2-race" whileTap={{ scale: 0.992 }} onClick={onClick}>
-      <span className="bets-r2-race__art">
+    <motion.button className="bets-race" whileTap={{ scale: 0.992 }} onClick={onClick}>
+      <span className="bets-race__art">
         <ItemTypeArt itemType={race.itemType} size={54} />
       </span>
 
-      <span className="bets-r2-race__copy">
+      <span className="bets-race__copy">
         <small>{itemTypeLabel(t, race.itemType)}</small>
         <strong>{race.itemName}</strong>
         <em>
@@ -86,7 +86,7 @@ export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardP
         </em>
       </span>
 
-      <span className="bets-r2-race__entry">
+      <span className="bets-race__entry">
         <small>{position ? t("productBets.race.yours") : t("productBets.race.entryUpper")}</small>
         <CurrencyValue
           currency="COIN"
@@ -100,7 +100,7 @@ export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardP
 
 export function EmptyBets({ title, note }: { title: string; note: string }) {
   return (
-    <div className="bets-r2-empty">
+    <div className="bets-empty">
       <Glyph name="bet" size={23} />
       <strong>{title}</strong>
       <small>{note}</small>
