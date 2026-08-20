@@ -1,3 +1,4 @@
 @import "./components.css";
 @import "./foundation.css";
 @import "./events/event-art.css";
+@import "./events/feed/feed.css";
