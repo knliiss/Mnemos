@@ -2,8 +2,8 @@ import { AppProvider } from "@/app/providers/AppProvider"
 import { RealtimeProvider } from "@/app/providers/RealtimeProvider"
 import { AuthGate } from "@/features/auth/ui/AuthGate"
 import { ProductDataProvider } from "@/ui/data/ProductDataProvider"
-import { ProductLanguageSync } from "@/ui/data/ProductLanguageSync"
-import { ProductShell } from "@/ui/shell/ProductShell"
+import { LanguageSync } from "@/ui/data/LanguageSync"
+import { AppShell } from "@/ui/shell/AppShell"
 import "@/ui/styles.css"
 import { RootErrorBoundary } from "@/shared/errors/RootErrorBoundary"
 import { NotificationHost } from "@/shared/notifications/NotificationHost"
@@ -17,9 +17,9 @@ export function App() {
           <AppProvider>
             <RealtimeProvider>
               <ProductDataProvider>
-                <ProductLanguageSync>
-                  <ProductShell />
-                </ProductLanguageSync>
+                <LanguageSync>
+                  <AppShell />
+                </LanguageSync>
               </ProductDataProvider>
             </RealtimeProvider>
           </AppProvider>
