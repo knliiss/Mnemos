@@ -67,6 +67,9 @@ export function useBetsData(
         revision === requestRevision.current &&
         accountIdRef.current === requestedAccountId
       ) {
+        setRounds([])
+        setRaces([])
+        setPositions([])
         setLoadedAccountId(requestedAccountId)
         setError(true)
         handleError(error)
