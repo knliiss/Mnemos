@@ -31,11 +31,16 @@ type Props = {
   onToggleReplies: (comment: ProfileCommentView) => Promise<void>
   onLoadMoreReplies: (comment: ProfileCommentView) => Promise<void>
   onToggleLike: (comment: ProfileCommentView, rootCommentId?: string) => Promise<void>
+  onEdit: (comment: ProfileCommentView, content: string, rootCommentId?: string) => Promise<void>
   onDelete: (comment: ProfileCommentView, rootCommentId?: string) => Promise<void>
   onSubmit: (content: string, replyTarget: ReplyTarget | null) => Promise<void>
 }
 
 type CommentTone = "lime" | "plum" | "amber"
+type EditingTarget = {
+  comment: ProfileCommentView
+  rootCommentId?: string
+}
 
 export function ProfileCommentsSheet({
   open,
@@ -56,19 +61,28 @@ export function ProfileCommentsSheet({
   onToggleReplies,
   onLoadMoreReplies,
   onToggleLike,
+  onEdit,
   onDelete,
   onSubmit,
 }: Props) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState("")
   const [replyingTo, setReplyingTo] = useState<ReplyTarget | null>(null)
+  const [editing, setEditing] = useState<EditingTarget | null>(null)
   const composerInputRef = useRef<HTMLInputElement>(null)
   const dragControls = useDragControls()
-  const close = useCallback(() => {
+  const composerBusy = submitting || (editing ? busyIds.has(editing.comment.id) : false)
+
+  const resetComposer = useCallback(() => {
     setDraft("")
     setReplyingTo(null)
+    setEditing(null)
+  }, [])
+
+  const close = useCallback(() => {
+    resetComposer()
     onClose()
-  }, [onClose])
+  }, [onClose, resetComposer])
 
   useEffect(() => {
     if (!open) {
@@ -97,26 +111,45 @@ export function ProfileCommentsSheet({
 
     const content = draft.trim()
 
-    if (!content || submitting) {
+    if (!content || composerBusy) {
       return
     }
 
     try {
-      await onSubmit(content, replyingTo)
+      if (editing) {
+        await onEdit(editing.comment, content, editing.rootCommentId)
+      } else {
+        await onSubmit(content, replyingTo)
+      }
     } catch {
       return
     }
 
-    setDraft("")
-    setReplyingTo(null)
+    resetComposer()
   }
 
-  const startReply = (target: ReplyTarget) => {
-    setReplyingTo(target)
-
+  const focusComposer = () => {
     window.requestAnimationFrame(() => {
       composerInputRef.current?.focus()
     })
+  }
+
+  const startReply = (target: ReplyTarget) => {
+    setEditing(null)
+    setDraft("")
+    setReplyingTo(target)
+    focusComposer()
+  }
+
+  const startEdit = (comment: ProfileCommentView, rootCommentId?: string) => {
+    if (!comment.canEdit || busyIds.has(comment.id)) {
+      return
+    }
+
+    setReplyingTo(null)
+    setEditing({ comment, rootCommentId })
+    setDraft(comment.content)
+    focusComposer()
   }
 
   const startSheetDrag = (event: PointerEvent<HTMLButtonElement>) => {
@@ -247,6 +280,12 @@ export function ProfileCommentsSheet({
                               </button>
                             ) : null}
 
+                            {comment.canEdit && !comment.deleted ? (
+                              <button type="button" onClick={() => startEdit(comment)}>
+                                {t("people.profile.edit")}
+                              </button>
+                            ) : null}
+
                             {comment.replies > 0 ? (
                               <button
                                 type="button"
@@ -341,6 +380,15 @@ export function ProfileCommentsSheet({
                                     >
                                       {t("people.profile.reply")}
                                     </button>
+
+                                    {reply.canEdit ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => startEdit(reply, comment.id)}
+                                      >
+                                        {t("people.profile.edit")}
+                                      </button>
+                                    ) : null}
                                   </footer>
                                 ) : null}
                               </div>
@@ -425,7 +473,7 @@ export function ProfileCommentsSheet({
 
             <div className="public-profile-comments-sheet__composer-wrap">
               <AnimatePresence initial={false}>
-                {replyingTo ? (
+                {replyingTo || editing ? (
                   <motion.div
                     className="public-profile-reply-context"
                     initial={{ opacity: 0, y: 4 }}
@@ -433,12 +481,13 @@ export function ProfileCommentsSheet({
                     exit={{ opacity: 0, y: 4 }}
                   >
                     <span>
-                      {t("people.profile.replyingTo")} <strong>@{replyingTo.author}</strong>
+                      {editing ? t("people.profile.edit") : t("people.profile.replyingTo")} {" "}
+                      <strong>@{editing?.comment.author ?? replyingTo?.author}</strong>
                     </span>
                     <button
                       type="button"
-                      onClick={() => setReplyingTo(null)}
-                      aria-label={t("people.profile.cancelReply")}
+                      onClick={resetComposer}
+                      aria-label={editing ? t("people.profile.edit") : t("people.profile.cancelReply")}
                     >
                       <Glyph name="close" size={12} />
                     </button>
@@ -453,24 +502,26 @@ export function ProfileCommentsSheet({
                   ref={composerInputRef}
                   value={draft}
                   maxLength={500}
-                  disabled={submitting}
+                  disabled={composerBusy}
                   onChange={(event) => setDraft(event.target.value)}
                   placeholder={
-                    replyingTo
-                      ? t("people.profile.replyPlaceholder", {
-                          author: replyingTo.author,
-                        })
-                      : t("people.profile.writePlaceholder")
+                    editing
+                      ? t("people.profile.edit")
+                      : replyingTo
+                        ? t("people.profile.replyPlaceholder", {
+                            author: replyingTo.author,
+                          })
+                        : t("people.profile.writePlaceholder")
                   }
                 />
 
                 <motion.button
                   type="submit"
                   whileTap={{ scale: 0.94 }}
-                  disabled={!draft.trim() || submitting}
-                  aria-label={t("people.profile.send")}
+                  disabled={!draft.trim() || composerBusy}
+                  aria-label={editing ? t("people.profile.save") : t("people.profile.send")}
                 >
-                  <Glyph name="send" size={15} />
+                  <Glyph name={editing ? "check" : "send"} size={15} />
                 </motion.button>
               </form>
             </div>
