@@ -111,6 +111,36 @@ describe("useAccountData", () => {
     expect(result.current.loadingAccount).toBe(false)
   })
 
+  it("does not expose the previous account after the new account load fails", async () => {
+    vi.mocked(getAccountBalances)
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 10 }])
+      .mockRejectedValueOnce(new Error("wallet unavailable"))
+
+    const { result, rerender } = renderHook(
+      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      {
+        initialProps: { accountId: "account-a" },
+      },
+    )
+
+    await waitFor(() => {
+      expect(result.current.accountCoin).toBe(10)
+      expect(result.current.dailyReward).toEqual(rewardState)
+    })
+
+    rerender({ accountId: "account-b" })
+
+    await waitFor(() => {
+      expect(result.current.loadingAccount).toBe(false)
+      expect(result.current.accountError).toBe(true)
+    })
+
+    expect(result.current.accountCoin).toBe(0)
+    expect(result.current.members).toEqual([])
+    expect(result.current.roles).toEqual([])
+    expect(result.current.dailyReward).toBeNull()
+  })
+
   it("does not refresh the previous account when a claim completes after a switch", async () => {
     const claim = createDeferred<Awaited<ReturnType<typeof claimDailyReward>>>()
 
