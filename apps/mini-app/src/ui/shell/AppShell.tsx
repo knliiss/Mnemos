@@ -152,7 +152,7 @@ export function AppShell() {
               {rootRoute === "account" && activeAccount ? (
                 <div className="account-root-user-entry">
                   <span className="account-root-user-entry__identity">
-                    <small>{t("productShell.userMenu.userEyebrow")}</small>
+                    <small>{t("appShell.userMenu.userEyebrow")}</small>
                     <strong>@{product.user.username}</strong>
                   </span>
                   {userHubTrigger}
