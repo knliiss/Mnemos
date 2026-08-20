@@ -59,8 +59,10 @@ export type CommentResponse = {
   targetAccountId: string
   authorAccountId: string
   parentCommentId: string | null
+  replyToAuthorAccountId: string | null
   content: string | null
   deleted: boolean
+  canDelete: boolean
   likes: number
   replies: number
   createdAt: string
@@ -165,12 +167,14 @@ export async function createComment(
   accountId: string,
   content: string,
   parentCommentId: string | null = null,
+  replyToCommentId: string | null = null,
 ): Promise<CommentResponse> {
   return api<CommentResponse>(`/api/v1/accounts/${accountId}/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       parentCommentId,
+      replyToCommentId,
       content: content.trim(),
     }),
   })
