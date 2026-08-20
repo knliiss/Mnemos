@@ -1,4 +1,5 @@
-.event-art {
+.event-art,
+.event-row-surface .event-art {
   --event-art-color: #b9c0b2;
 
   position: relative !important;
@@ -14,7 +15,8 @@
   box-shadow: none !important;
 }
 
-.event-art::before {
+.event-art::before,
+.event-row-surface .event-art::before {
   content: "" !important;
   position: absolute !important;
   z-index: 0;
@@ -38,7 +40,8 @@
   pointer-events: none !important;
 }
 
-.event-art::after {
+.event-art::after,
+.event-row-surface .event-art::after {
   content: "" !important;
   position: absolute !important;
   z-index: 0 !important;
@@ -60,7 +63,9 @@
 }
 
 .event-art__image,
-.event-art__vector {
+.event-art__vector,
+.event-row-surface .event-art__image,
+.event-row-surface .event-art__vector {
   position: relative;
   z-index: 2;
   display: block !important;
