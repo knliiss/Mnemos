@@ -45,6 +45,7 @@ jobs:
               "CreatorStudioProduction": "CreatorStudio",
               "CreatorRevenueProduction": "CreatorRevenue",
               "CreatorEditorProduction": "CreatorEditor",
+              "mnemos-r2-orbit": "mnemos-orbit",
           }
 
           changed = []
@@ -61,33 +62,32 @@ jobs:
                   path.write_text(updated)
                   changed.append(path)
 
-          print(f"Changed {len(changed)} files")
-          for path in changed:
-              print(path)
+          report = Path(".github/frontend-semantic-result.txt")
+          lines = [f"changed={len(changed)}"]
+          lines.extend(str(path) for path in changed)
+          report.write_text("\n".join(lines) + "\n")
           PY
 
-      - name: Format changed frontend
-        working-directory: apps/mini-app
+      - name: Audit TypeScript historical names
+        shell: bash
         run: |
-          npm ci
-          npm run lint -- --fix
-          npm run format
+          set -euo pipefail
 
-      - name: Commit semantic names
+          {
+            echo
+            echo "typescript_historical_tokens:"
+            grep -RInE --include='*.ts' --include='*.tsx' \
+              '(^|[^[:alnum:]])(r2|r3|r4|v2|v3|v4|v5|overhaul|polished|round-four|final)([^[:alnum:]]|$)|[A-Za-z][A-Za-z0-9]*Production' \
+              apps/mini-app/src || true
+          } >> .github/frontend-semantic-result.txt
+
+      - name: Commit semantic names and report
         shell: bash
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet; then
-            echo "No semantic rename changes"
-            exit 0
-          fi
-
-          git add apps/mini-app
+          git add apps/mini-app .github/frontend-semantic-result.txt
           git commit -m "normalize frontend semantic naming"
           git push origin HEAD:feat/frontend-integration
-
-# trigger
