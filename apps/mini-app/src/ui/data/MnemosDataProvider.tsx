@@ -7,7 +7,7 @@ import {
 } from "react"
 import { useApp } from "@/app/providers/AppProvider"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
-import type { EventFeedQuery } from "@/shared/api/productApi"
+import type { EventFeedQuery } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useAccountData } from "../account/data/useAccountData"
 import { useEventFeedData } from "../events/feed/useEventFeedData"
