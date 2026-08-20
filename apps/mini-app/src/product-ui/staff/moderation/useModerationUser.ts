@@ -23,6 +23,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const [identity, setIdentity] = useState<IdentitySearchResponse | null>(null)
   const [sanctions, setSanctions] = useState<SanctionResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [loadedUserId, setLoadedUserId] = useState<string | null>(null)
   const [busyScope, setBusyScope] = useState<string | null>(null)
   const [sanctionFormOpen, setSanctionFormOpen] = useState(false)
@@ -117,37 +118,54 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     }
   }, [userId])
 
-  useEffect(() => {
-    let cancelled = false
+  const refreshUser = useCallback(async () => {
     const requestedUserId = userId
 
+    setLoading(true)
+    setLoadError(false)
+
+    try {
+      await Promise.all([refreshIdentity(), refreshSanctions()])
+
+      if (userIdRef.current !== requestedUserId) {
+        return
+      }
+
+      setLoadedUserId(requestedUserId)
+    } catch (error) {
+      if (userIdRef.current !== requestedUserId) {
+        return
+      }
+
+      setIdentity(null)
+      setSanctions([])
+      setAccountTargetId("")
+      setAdjustments([])
+      setAdjustmentScope("")
+      setLoadedUserId(requestedUserId)
+      setLoadError(true)
+      handleError(error)
+    } finally {
+      if (userIdRef.current === requestedUserId) {
+        setLoading(false)
+      }
+    }
+  }, [refreshIdentity, refreshSanctions, userId])
+
+  useEffect(() => {
     mountedRef.current = true
 
     const frame = window.requestAnimationFrame(() => {
-      setLoading(true)
-
-      void Promise.all([refreshIdentity(), refreshSanctions()])
-        .catch((error) => {
-          if (!cancelled && userIdRef.current === requestedUserId) {
-            handleError(error)
-          }
-        })
-        .finally(() => {
-          if (!cancelled && userIdRef.current === requestedUserId) {
-            setLoadedUserId(requestedUserId)
-            setLoading(false)
-          }
-        })
+      void refreshUser()
     })
 
     return () => {
-      cancelled = true
       identityRevision.current += 1
       sanctionsRevision.current += 1
       mountedRef.current = false
       window.cancelAnimationFrame(frame)
     }
-  }, [refreshIdentity, refreshSanctions, userId])
+  }, [refreshUser])
 
   const targetId = walletTarget === "USER" ? userId : accountTargetId
   const currency = walletTarget === "USER" ? ("PRIME" as const) : ("COIN" as const)
@@ -171,7 +189,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     const frame = window.requestAnimationFrame(() => {
       void listWalletAdjustments(targetType, resolvedTargetId)
         .then((items) => {
-          if (cancelled) {
+          if (cancelled || currentScopeRef.current !== resolvedScope) {
             return
           }
 
@@ -180,6 +198,8 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
         })
         .catch((error) => {
           if (!cancelled && currentScopeRef.current === resolvedScope) {
+            setAdjustments([])
+            setAdjustmentScope(resolvedScope)
             handleError(error)
           }
         })
@@ -341,13 +361,8 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
           ...current.filter((item) => item.operationId !== created.operationId),
         ])
         setAdjustmentScope(resolvedScope)
-      }
-
-      if (currentScopeRef.current === resolvedScope) {
         setWalletReason("")
-      }
 
-      if (currentScopeRef.current === resolvedScope) {
         void pollAdjustment(created.operationId, targetType, resolvedTargetId).catch((error) => {
           if (mountedRef.current && currentScopeRef.current === resolvedScope) {
             handleError(error)
@@ -370,6 +385,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     sanctions: currentSanctions,
     adjustments: visibleAdjustments,
     loading: loading || loadedUserId !== userId,
+    loadError: loadedUserId === userId && loadError,
     busy: busyScope === userId,
     sanctionFormOpen,
     sanctionType,
@@ -396,6 +412,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     setOperation,
     setAmount,
     setWalletReason,
+    refreshUser,
     submitSanction,
     revoke,
     submitAdjustment,
