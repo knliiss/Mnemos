@@ -37,6 +37,13 @@ const profile: PublicProfileResponse = {
   createdAt: "2026-08-20T00:00:00Z",
 }
 
+const otherProfile: PublicProfileResponse = {
+  ...profile,
+  accountId: "other-profile-account",
+  cristalixUuid: "00000000-0000-0000-0000-000000000002",
+  cristalixNickname: "OtherProfileOwner",
+}
+
 const commentsPage = {
   content: [
     {
@@ -66,6 +73,7 @@ const commentsPage = {
 
 describe("useProfileComments", () => {
   beforeEach(() => {
+    vi.mocked(getAccountComments).mockReset()
     vi.mocked(getAccountComments).mockResolvedValue(commentsPage)
     vi.mocked(getPublicProfile).mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -101,5 +109,39 @@ describe("useProfileComments", () => {
     expect(result.current.comments[0]?.content).toBe("Stable comment")
     expect(result.current.commentsLoading).toBe(false)
     expect(getAccountComments).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not expose the previous profile comments when the next profile load fails", async () => {
+    vi.mocked(getAccountComments)
+      .mockResolvedValueOnce(commentsPage)
+      .mockRejectedValueOnce(new Error("comments unavailable"))
+
+    const refreshProfileSummary = vi.fn().mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(
+      ({ currentProfile }: { currentProfile: PublicProfileResponse }) =>
+        useProfileComments({
+          activeAccountId: "active-account",
+          activeAccountNickname: "Viewer",
+          profile: currentProfile,
+          locale: "en-US",
+          refreshProfileSummary,
+        }),
+      { initialProps: { currentProfile: profile } },
+    )
+
+    await waitFor(() => expect(result.current.comments).toHaveLength(1))
+
+    rerender({ currentProfile: otherProfile })
+
+    await waitFor(() => {
+      expect(result.current.commentsLoading).toBe(false)
+      expect(result.current.commentsError).toBe(true)
+    })
+
+    expect(result.current.comments).toEqual([])
+    expect(result.current.replies).toEqual({})
+    expect(result.current.expandedReplies.size).toBe(0)
+    expect(result.current.busyIds.size).toBe(0)
+    expect(result.current.submitting).toBe(false)
   })
 })
