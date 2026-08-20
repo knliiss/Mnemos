@@ -46,6 +46,7 @@ export const eventsProductUk = {
       newest: "Спочатку нові",
       oldest: "Спочатку старі",
       loading: "Завантаження подій",
+      loadMore: "Показати ще",
       latest: "ОСТАННЄ",
       oldestFeatured: "НАЙСТАРІШЕ",
       stream: "СТРІЧКА",
