@@ -1,13 +1,8 @@
 import { useTranslation } from "react-i18next"
+import { FeatureLoading } from "../../system/FeatureLoading"
 
 export function PersonalizationLoadingState() {
   const { t } = useTranslation()
 
-  return (
-    <div className="personalization-loading" aria-label={t("personalization.loading")}>
-      <i />
-      <i />
-      <i />
-    </div>
-  )
+  return <FeatureLoading label={t("personalization.loading")} />
 }
