@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
+import "../../events/event-art.css"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
 
 type Props = {
