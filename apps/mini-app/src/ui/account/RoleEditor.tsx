@@ -7,7 +7,7 @@ import {
   updateRolePermissions,
 } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { RolePermission, Route } from "../model"
 import { allRolePermissions, rolePermissionGroups } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
@@ -40,9 +40,9 @@ function emptyPermissions(): Record<RolePermission, boolean> {
 
 export function RoleEditor({ params, navigate, back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
-  const accountId = product.activeAccount?.id ?? null
-  const existing = product.roles.find((role) => role.id === params?.roleId) ?? null
+  const data = useMnemosData()
+  const accountId = data.activeAccount?.id ?? null
+  const existing = data.roles.find((role) => role.id === params?.roleId) ?? null
   const isNew = params?.roleId === "new"
   const initialPermissions = existing
     ? { ...emptyPermissions(), ...existing.permissions }
@@ -148,7 +148,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
         )
       }
 
-      await product.refreshAccount()
+      await data.refreshAccount()
 
       if (mountedRef.current) {
         back()
@@ -175,7 +175,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
     try {
       await deleteRole(accountId, existing.id)
-      await product.refreshAccount()
+      await data.refreshAccount()
 
       if (mountedRef.current) {
         back()
@@ -192,7 +192,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
     }
   }
 
-  if (!isNew && !existing && !product.loadingAccount) {
+  if (!isNew && !existing && !data.loadingAccount) {
     return (
       <div className="screen role-editor-screen">
         <PageHeader title={t("roleEditor.role")} back={back} />
