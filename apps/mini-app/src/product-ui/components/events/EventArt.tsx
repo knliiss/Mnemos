@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react"
-import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../model"
+import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
 
 type Props = {
   event: FeedEvent
