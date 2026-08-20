@@ -14,14 +14,11 @@ export function UserHubLocalization({ localization, onChange }: UserHubLocalizat
     localizationOptions.find((option) => option.value === localization) ?? localizationOptions[0]
 
   return (
-    <section
-      className="user-hub-localization"
-      aria-label={t("productShell.userMenu.languageAria")}
-    >
+    <section className="user-hub-localization" aria-label={t("appShell.userMenu.languageAria")}>
       <span className="user-hub-localization__identity">
         <span className="user-hub-localization__mark" aria-hidden="true" />
         <span className="user-hub-localization__copy">
-          <small>{t("productShell.userMenu.language")}</small>
+          <small>{t("appShell.userMenu.language")}</small>
           <strong>{activeOption.label}</strong>
         </span>
       </span>
@@ -29,7 +26,7 @@ export function UserHubLocalization({ localization, onChange }: UserHubLocalizat
       <span
         className="user-hub-localization__choices"
         role="group"
-        aria-label={t("productShell.userMenu.chooseLanguage")}
+        aria-label={t("appShell.userMenu.chooseLanguage")}
       >
         {localizationOptions.map((option) => (
           <motion.button
