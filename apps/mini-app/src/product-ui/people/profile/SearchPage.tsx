@@ -19,6 +19,7 @@ export function SearchPage({ navigate }: Props) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PublicProfileResponse[]>([])
   const [searching, setSearching] = useState(false)
+  const [errorQuery, setErrorQuery] = useState<string | null>(null)
   const searchRevision = useRef(0)
   const normalizedQuery = query.trim()
 
@@ -27,6 +28,7 @@ export function SearchPage({ navigate }: Props) {
 
     searchRevision.current = revision
     setSearching(true)
+    setErrorQuery(null)
 
     try {
       const page = await searchPublicProfiles(value)
@@ -38,8 +40,9 @@ export function SearchPage({ navigate }: Props) {
       setResults(page.content)
     } catch (error) {
       if (revision === searchRevision.current) {
-        handleError(error)
         setResults([])
+        setErrorQuery(value)
+        handleError(error)
       }
     } finally {
       if (revision === searchRevision.current) {
@@ -63,12 +66,15 @@ export function SearchPage({ navigate }: Props) {
   const changeQuery = (value: string) => {
     searchRevision.current += 1
     setQuery(value)
+    setErrorQuery(null)
 
     if (value.trim().length < 2) {
       setResults([])
       setSearching(false)
     }
   }
+
+  const searchFailed = errorQuery === normalizedQuery
 
   return (
     <div className="screen search-root-screen root-screen">
@@ -82,7 +88,7 @@ export function SearchPage({ navigate }: Props) {
         <input
           value={query}
           onChange={(event) => changeQuery(event.target.value)}
-          placeholder="Cristalix nickname"
+          placeholder={t("people.search.placeholder")}
           autoCapitalize="off"
           autoCorrect="off"
         />
@@ -107,11 +113,20 @@ export function SearchPage({ navigate }: Props) {
 
       {searching ? <p className="search-root-hint">{t("people.search.searching")}</p> : null}
 
-      {normalizedQuery.length >= 2 && !searching && !results.length ? (
+      {normalizedQuery.length >= 2 && !searching && searchFailed ? (
+        <div className="search-root-hint">
+          <span>{t("common.loadErrorTitle")}</span>
+          <button type="button" onClick={() => void runSearch(normalizedQuery)}>
+            {t("common.retry")}
+          </button>
+        </div>
+      ) : null}
+
+      {normalizedQuery.length >= 2 && !searching && !searchFailed && !results.length ? (
         <p className="search-root-hint">{t("people.search.nothingFound")}</p>
       ) : null}
 
-      {results.length ? (
+      {!searchFailed && results.length ? (
         <section className="search-result-panel">
           <div className="search-result-panel__head">
             <span>{t("people.search.results")}</span>
