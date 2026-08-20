@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import { PageHeader, Section } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
@@ -14,9 +14,9 @@ type Props = {
 
 export function ModerationUser({ params, back }: Props) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
+  const mnemos = useMnemosData()
   const userId = params?.userId ?? ""
-  const canAdjustWallet = product.user.systemRoles.some(
+  const canAdjustWallet = mnemos.user.systemRoles.some(
     (role) => role === "ADMIN" || role === "SUPER_ADMIN",
   )
   const controller = useModerationUser({
