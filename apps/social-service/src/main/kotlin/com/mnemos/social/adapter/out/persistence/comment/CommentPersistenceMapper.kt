@@ -15,6 +15,7 @@ object CommentPersistenceMapper {
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
+            replyToCommentId = replyToCommentId?.id,
         )
 
     fun CommentEntity.toDomain(): Comment =
@@ -28,5 +29,6 @@ object CommentPersistenceMapper {
             createdAt = createdAt,
             updatedAt = updatedAt,
             deletedAt = deletedAt,
+            replyToCommentId = replyToCommentId?.let(::CommentId),
         )
 }
