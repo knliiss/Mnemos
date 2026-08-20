@@ -1,7 +1,7 @@
 import { AppProvider } from "@/app/providers/AppProvider"
 import { RealtimeProvider } from "@/app/providers/RealtimeProvider"
 import { AuthGate } from "@/features/auth/ui/AuthGate"
-import ProductApp from "@/product-ui/ProductApp"
+import { ProductShell } from "@/product-ui/shell/ProductShell"
 import { ProductDataProvider } from "@/product-ui/data/ProductDataProvider"
 import { ProductLanguageSync } from "@/product-ui/data/ProductLanguageSync"
 import "@/product-ui/product.css"
@@ -18,7 +18,7 @@ export function App() {
             <RealtimeProvider>
               <ProductDataProvider>
                 <ProductLanguageSync>
-                  <ProductApp />
+                  <ProductShell />
                 </ProductLanguageSync>
               </ProductDataProvider>
             </RealtimeProvider>

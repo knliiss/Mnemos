@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react"
-import type { Account, Route } from "../../model"
-import { FeatureLoading } from "../FeatureLoading"
-import { NotFoundFeature } from "../NotFoundFeature"
+import type { Account, Route } from "../model"
+import { FeatureLoading } from "../system/FeatureLoading"
+import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./events.css"
 
 type Props = {
@@ -13,25 +13,25 @@ type Props = {
 }
 
 const Bets = lazy(() =>
-  import("../Bets").then((module) => ({
+  import("../bets/Bets").then((module) => ({
     default: module.Bets,
   })),
 )
 
 const EventDetail = lazy(() =>
-  import("../EventDetail").then((module) => ({
+  import("./EventDetail").then((module) => ({
     default: module.EventDetail,
   })),
 )
 
 const EventsFeed = lazy(() =>
-  import("./EventsFeed").then((module) => ({
+  import("./feed/EventsFeed").then((module) => ({
     default: module.EventsFeed,
   })),
 )
 
 const Subscriptions = lazy(() =>
-  import("./Subscriptions").then((module) => ({
+  import("./subscriptions/Subscriptions").then((module) => ({
     default: module.Subscriptions,
   })),
 )

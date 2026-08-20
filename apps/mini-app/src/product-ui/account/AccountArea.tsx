@@ -1,12 +1,12 @@
-import type { Route } from "../../model"
-import { AccountInvites } from "../AccountInvites"
-import { AccountCreate, AccountJoin } from "../AccountOnboarding"
-import { AccountSettings } from "../AccountSettings"
-import { AccountWallet } from "../AccountWallet"
-import { NotFoundFeature } from "../NotFoundFeature"
-import { RoleEditor } from "../RoleEditor"
-import { RolesOverview } from "../RolesOverview"
+import type { Route } from "../model"
+import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountHomePage } from "./AccountHomePage"
+import { AccountInvites } from "./AccountInvites"
+import { AccountCreate, AccountJoin } from "./AccountOnboarding"
+import { AccountSettings } from "./AccountSettings"
+import { AccountWallet } from "./AccountWallet"
+import { RoleEditor } from "./RoleEditor"
+import { RolesOverview } from "./RolesOverview"
 
 type Props = {
   navigate: (route: Route) => void

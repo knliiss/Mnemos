@@ -1,9 +1,9 @@
 import { lazy, Suspense } from "react"
-import type { Account, Route } from "../../model"
-import { FeatureLoading } from "../FeatureLoading"
-import { PublicProfilePage } from "./PublicProfilePage"
-import { SearchPage } from "./SearchPage"
-import "./public-profile.css"
+import type { Account, Route } from "../model"
+import { FeatureLoading } from "../system/FeatureLoading"
+import { PublicProfilePage } from "./profile/PublicProfilePage"
+import { SearchPage } from "./profile/SearchPage"
+import "./profile/public-profile.css"
 
 type Props = {
   routeId: Route["id"]
@@ -14,7 +14,7 @@ type Props = {
 }
 
 const UserPrimeWallet = lazy(() =>
-  import("../UserPrimeWallet").then((module) => ({
+  import("./UserPrimeWallet").then((module) => ({
     default: module.UserPrimeWallet,
   })),
 )

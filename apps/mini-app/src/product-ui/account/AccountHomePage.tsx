@@ -1,7 +1,7 @@
 import { useEffect } from "react"
-import { AccountHome } from "../AccountHome"
-import { useProductData } from "../../data/ProductDataProvider"
-import type { Route } from "../../model"
+import { useProductData } from "../data/ProductDataProvider"
+import type { Route } from "../model"
+import { AccountHome } from "./AccountHome"
 
 type Props = {
   navigate: (route: Route) => void
@@ -26,11 +26,5 @@ export function AccountHomePage({ navigate, back, initialMemberId }: Props) {
     })
   }, [activeAccount, initialMemberId, product.refreshEvents])
 
-  return (
-    <AccountHome
-      navigate={navigate}
-      back={back}
-      initialMemberId={initialMemberId}
-    />
-  )
+  return <AccountHome navigate={navigate} back={back} initialMemberId={initialMemberId} />
 }
