@@ -88,7 +88,7 @@
 
 .not-found-copy > small {
   color: #899083;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 750;
   line-height: 1;
   letter-spacing: 0.16em;
@@ -119,7 +119,7 @@
   color: #747c70;
   background: rgba(255, 255, 255, 0.022);
   font: inherit;
-  font-size: 7.5px;
+  font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
