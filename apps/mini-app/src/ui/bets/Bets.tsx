@@ -11,7 +11,7 @@ import {
 } from "@/shared/api/betApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { GlobalEventArt } from "../components/events/EventArt"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { globalEventVisualTone } from "../eventVisualTone"
 import type { Account, BetSide, Route } from "../model"
 import { CurrencyMark } from "../shared/MnemosIcon"
@@ -44,10 +44,10 @@ type ScopedSelection = {
 
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const { rounds, races, positions, loading, error, refresh } = useBetsData(
     activeAccount.id,
-    product.refreshAccount,
+    data.refreshAccount,
   )
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
