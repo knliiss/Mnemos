@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   assignMemberRole,
@@ -17,6 +17,7 @@ import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
 import { formatOccurredAt } from "../timePresentation"
+import { useLatestAccountDrops } from "./data/useLatestAccountDrops"
 
 type Props = {
   navigate: (route: Route) => void
@@ -60,33 +61,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const [rewardBusy, setRewardBusy] = useState(false)
   const selectedMember = product.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
-
-  useEffect(() => {
-    if (!activeAccount || initialMemberId) {
-      return
-    }
-
-    void product.refreshEvents({
-      types: ["ITEM_DROP"],
-      droppedFor: activeAccount.nickname,
-      sort: "NEWEST",
-      limit: 3,
-    })
-  }, [activeAccount, initialMemberId, product.refreshEvents])
-
-  const drops = useMemo(() => {
-    if (!activeAccount) {
-      return []
-    }
-
-    return product.feed
-      .filter(
-        (event) =>
-          event.kind === "ITEM_DROP" &&
-          event.detail.toLowerCase() === activeAccount.nickname.toLowerCase(),
-      )
-      .slice(0, 3)
-  }, [activeAccount, product.feed])
+  const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
 
   if (!activeAccount) {
     return null
@@ -94,7 +69,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
 
   if (initialMemberId && selectedMember) {
     return (
-      <AccountMemberManagementProduction
+      <AccountMemberManagement
         member={selectedMember}
         roles={product.roles}
         accountId={activeAccount.id}
@@ -455,7 +430,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   )
 }
 
-function AccountMemberManagementProduction({
+function AccountMemberManagement({
   member,
   roles,
   accountId,
