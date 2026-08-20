@@ -11,10 +11,12 @@ import {
   PersonalizationVisual,
 } from "../../components/personalization/PersonalizationPreview"
 import { useProductData } from "../../data/ProductDataProvider"
-import { toProductPersonalization } from "../../data/personalizationMappers"
 import type { Personalization, PersonalizationTarget } from "../../model"
+import { toProductPersonalization } from "../../personalization/data/personalizationMappers"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
+import { FeatureLoading } from "../../system/FeatureLoading"
+import "./personalization-review.css"
 
 type ReviewScope = "ALL" | PersonalizationTarget
 
@@ -122,7 +124,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   }
 
   return (
-    <div className="screen review-overhaul-screen">
+    <div className="screen personalization-review-screen">
       <PageHeader title={t("personalization.review.title")} back={back} />
 
       <section className="review-overview">
@@ -160,7 +162,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
       </div>
 
       {loading ? (
-        <LoadingState label={t("personalization.loading")} />
+        <FeatureLoading />
       ) : (
         <div className="review-queue-grid">
           {visible.map((item) => (
@@ -297,16 +299,6 @@ export function PersonalizationReview({ back }: { back: () => void }) {
           </span>
         </section>
       )}
-    </div>
-  )
-}
-
-function LoadingState({ label }: { label: string }) {
-  return (
-    <div className="events-r2-loading" aria-label={label}>
-      <i />
-      <i />
-      <i />
     </div>
   )
 }
