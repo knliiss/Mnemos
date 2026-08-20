@@ -61,6 +61,19 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const selectedMember = product.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
+  useEffect(() => {
+    if (!activeAccount || initialMemberId) {
+      return
+    }
+
+    void product.refreshEvents({
+      types: ["ITEM_DROP"],
+      droppedFor: activeAccount.nickname,
+      sort: "NEWEST",
+      limit: 3,
+    })
+  }, [activeAccount, initialMemberId, product.refreshEvents])
+
   const drops = useMemo(() => {
     if (!activeAccount) {
       return []
