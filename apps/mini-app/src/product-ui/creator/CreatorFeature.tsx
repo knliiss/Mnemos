@@ -15,7 +15,7 @@ import {
 } from "@/shared/api/creatorPersonalizationApi"
 import { getPersonalization, type PersonalizationResponse } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { PersonalizationVisual } from "../components/PersonalizationPreview"
+import { PersonalizationVisual } from "../components/personalization/PersonalizationPreview"
 import { useProductData } from "../data/ProductDataProvider"
 import { toProductPersonalization } from "../data/personalizationMappers"
 import type {
