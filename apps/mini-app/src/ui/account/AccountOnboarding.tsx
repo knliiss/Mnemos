@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { Glyph } from "../shared/MnemosIcon"
 
 const INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -12,7 +12,7 @@ type Props = {
 
 export function AccountCreate({ back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [nickname, setNickname] = useState("")
   const [busy, setBusy] = useState(false)
   const submitLocked = useRef(false)
@@ -38,7 +38,7 @@ export function AccountCreate({ back }: Props) {
     setBusy(true)
 
     try {
-      const succeeded = await product.createAccount(clean)
+      const succeeded = await data.createAccount(clean)
       if (succeeded && mountedRef.current) {
         back()
       }
@@ -125,7 +125,7 @@ export function AccountCreate({ back }: Props) {
 
 export function AccountJoin({ back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [rawCode, setRawCode] = useState("")
   const [busy, setBusy] = useState(false)
   const [pasteFailed, setPasteFailed] = useState(false)
@@ -154,7 +154,7 @@ export function AccountJoin({ back }: Props) {
     setBusy(true)
 
     try {
-      const succeeded = await product.joinAccount(formatInviteCode(normalized))
+      const succeeded = await data.joinAccount(formatInviteCode(normalized))
       if (succeeded && mountedRef.current) {
         back()
       }
@@ -225,10 +225,10 @@ export function AccountJoin({ back }: Props) {
             {pasteFailed
               ? t("accountOnboarding.join.pasteUnavailable")
               : valid
-              ? t("accountOnboarding.join.readyHint")
-              : touched
-                ? t("accountOnboarding.join.invalidHint")
-                : t("accountOnboarding.join.emptyHint")}
+                ? t("accountOnboarding.join.readyHint")
+                : touched
+                  ? t("accountOnboarding.join.invalidHint")
+                  : t("accountOnboarding.join.emptyHint")}
           </span>
         </label>
 
