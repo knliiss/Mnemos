@@ -3,6 +3,7 @@ import type { Route } from "../model"
 import { usePersonalizations } from "./data/usePersonalizations"
 import { PersonalizationDetail } from "./detail/PersonalizationDetail"
 import { OwnedPersonalizations } from "./owned/OwnedPersonalizations"
+import "./personalization.css"
 import { PersonalizationStore } from "./store/PersonalizationStore"
 import { PersonalizationStoreCategory } from "./store/PersonalizationStoreCategory"
 
