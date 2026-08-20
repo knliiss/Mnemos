@@ -122,6 +122,7 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
         await app.selectAccount(account.id)
       } catch (error) {
         handleError(error)
+        throw error
       }
     },
     [app],
