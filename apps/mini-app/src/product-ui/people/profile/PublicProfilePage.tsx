@@ -7,6 +7,7 @@ import { eventVisualTone } from "../../eventVisualTone"
 import type { Account, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
+import { FeatureLoading } from "../../system/FeatureLoading"
 import { formatOccurredAt } from "../../timePresentation"
 import { ProfileCommentsSheet } from "./comments/ProfileCommentsSheet"
 import { useProfileComments } from "./comments/useProfileComments"
@@ -49,14 +50,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
     return (
       <div className="screen public-profile-screen">
         <PageHeader title={t("people.profile.title")} back={back} />
-        <div
-          className="public-profile-state public-profile-state--loading"
-          aria-label={t("people.profile.loading")}
-        >
-          <i />
-          <i />
-          <i />
-        </div>
+        <FeatureLoading label={t("people.profile.loading")} />
       </div>
     )
   }
