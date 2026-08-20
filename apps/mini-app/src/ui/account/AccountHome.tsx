@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { EventArt } from "../components/events/EventArt"
 import { CristalixHead } from "../components/profile/CristalixHead"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { eventVisualTone } from "../eventVisualTone"
 import type { Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
@@ -21,9 +21,9 @@ type Props = {
 
 export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
-  const activeAccount = product.activeAccount
-  const selectedMember = product.members.find((member) => member.id === initialMemberId) ?? null
+  const data = useMnemosData()
+  const activeAccount = data.activeAccount
+  const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
 
@@ -35,16 +35,16 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
     return (
       <AccountMemberManagement
         member={selectedMember}
-        roles={product.roles}
+        roles={data.roles}
         accountId={activeAccount.id}
-        refresh={product.refreshAccount}
+        refresh={data.refreshAccount}
         back={back}
       />
     )
   }
 
   const roleFor = (roleId: string | null) =>
-    product.roles.find((role) => role.id === roleId) ?? null
+    data.roles.find((role) => role.id === roleId) ?? null
 
   return (
     <div className="screen account-home-screen root-screen">
@@ -160,7 +160,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             <strong>{t("accountHome.members")}</strong>
             <em>
               {t("accountHome.membersCount", {
-                count: product.members.length,
+                count: data.members.length,
                 max: activeAccount.maxMembers,
               })}
             </em>
@@ -169,7 +169,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         </header>
 
         <div className="account-home-member-list">
-          {product.members.map((member) => {
+          {data.members.map((member) => {
             const highestRole = roleFor(member.highestRoleId)
             const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
