@@ -23,7 +23,7 @@ const BetAdmin = lazy(() =>
 )
 
 const ModerationUser = lazy(() =>
-  import("./moderation/ModerationFeature").then((module) => ({
+  import("./moderation/ModerationUser").then((module) => ({
     default: module.ModerationUser,
   })),
 )
