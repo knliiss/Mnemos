@@ -1,7 +1,7 @@
 import { AppProvider } from "@/app/providers/AppProvider"
 import { RealtimeProvider } from "@/app/providers/RealtimeProvider"
 import { AuthGate } from "@/features/auth/ui/AuthGate"
-import { ProductDataProvider } from "@/ui/data/ProductDataProvider"
+import { MnemosDataProvider } from "@/ui/data/MnemosDataProvider"
 import { LanguageSync } from "@/ui/data/LanguageSync"
 import { AppShell } from "@/ui/shell/AppShell"
 import "@/ui/styles.css"
@@ -16,11 +16,11 @@ export function App() {
         <AuthGate>
           <AppProvider>
             <RealtimeProvider>
-              <ProductDataProvider>
+              <MnemosDataProvider>
                 <LanguageSync>
                   <AppShell />
                 </LanguageSync>
-              </ProductDataProvider>
+              </MnemosDataProvider>
             </RealtimeProvider>
           </AppProvider>
         </AuthGate>
