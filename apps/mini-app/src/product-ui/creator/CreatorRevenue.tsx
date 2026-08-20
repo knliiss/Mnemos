@@ -41,6 +41,8 @@ export function CreatorRevenue({ back }: Props) {
         })
         .catch((error) => {
           if (!cancelled) {
+            setSummary(null)
+            setOperations([])
             setLoadError(true)
             handleError(error)
           }
@@ -117,7 +119,7 @@ export function CreatorRevenue({ back }: Props) {
 
       {loading ? (
         <CreatorLoadingState />
-      ) : loadError && !summary ? (
+      ) : loadError ? (
         <FeatureEmpty
           icon="wallet"
           title={t("common.loadErrorTitle")}
