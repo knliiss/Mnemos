@@ -280,7 +280,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
               onChange={(event) =>
                 setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))
               }
-              placeholder="EVENT_MASTER"
+              placeholder={t("badgeAdmin.codePlaceholder")}
             />
           </Field>
           <Field label={t("badgeAdmin.name")}>
@@ -288,7 +288,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
               value={name}
               maxLength={64}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Event Master"
+              placeholder={t("badgeAdmin.namePlaceholder")}
             />
           </Field>
           <Field label={t("badgeAdmin.icon")}>
@@ -296,7 +296,6 @@ export function BadgeAdmin({ back }: { back: () => void }) {
               value={icon}
               maxLength={64}
               onChange={(event) => setIcon(event.target.value)}
-              placeholder="✦"
             />
           </Field>
           <Field label={t("badgeAdmin.color")}>
