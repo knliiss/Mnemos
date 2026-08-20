@@ -1,0 +1,206 @@
+.not-found-screen {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 22px 16px 28px !important;
+}
+
+.not-found-hero {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  width: min(100%, 430px);
+  min-height: 700px;
+  overflow: hidden;
+  padding: 38px 22px 28px;
+  border: 1px solid rgba(226, 233, 205, 0.11);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(199, 242, 74, 0.055), transparent 31%),
+    radial-gradient(circle at 10% 76%, rgba(210, 158, 71, 0.055), transparent 30%),
+    radial-gradient(circle at 91% 83%, rgba(153, 113, 160, 0.045), transparent 25%),
+    linear-gradient(155deg, rgba(23, 26, 19, 0.98), rgba(7, 9, 7, 0.995));
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.035),
+    0 28px 70px rgba(0, 0, 0, 0.24);
+}
+
+.not-found-hero::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.025);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.not-found-code {
+  position: absolute;
+  z-index: 0;
+  top: 46px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(231, 235, 223, 0.045);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.not-found-code i,
+.not-found-code b {
+  font-size: 112px;
+  font-style: normal;
+  font-weight: 820;
+  line-height: 0.86;
+  letter-spacing: -0.08em;
+}
+
+.not-found-code b {
+  color: rgba(199, 242, 74, 0.055);
+}
+
+.not-found-mascot {
+  position: relative;
+  z-index: 2;
+  align-self: end;
+  width: min(92%, 330px);
+  height: 278px;
+  margin-top: 62px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.27));
+}
+
+.not-found-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  max-width: 310px;
+  margin-top: -2px;
+  text-align: center;
+}
+
+.not-found-copy > small {
+  color: #899083;
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.16em;
+}
+
+.not-found-copy h1 {
+  margin: 0;
+  color: #f2f3ed;
+  font-size: clamp(30px, 9vw, 40px);
+  font-weight: 790;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.not-found-copy p {
+  margin: 1px 0 0;
+  color: #8f9589;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.not-found-copy code {
+  display: inline-block;
+  max-width: 250px;
+  overflow: hidden;
+  margin-top: 5px;
+  padding: 5px 8px;
+  color: #747c70;
+  background: rgba(255, 255, 255, 0.022);
+  font: inherit;
+  font-size: 7.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.not-found-home {
+  position: relative;
+  z-index: 2;
+  align-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 154px;
+  min-height: 46px;
+  margin-top: 22px;
+  padding: 0 17px;
+  border: 1px solid rgba(199, 242, 74, 0.24);
+  border-radius: 14px;
+  color: #111607;
+  background: linear-gradient(180deg, #d7ff57, #bce82f);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.25),
+    0 12px 28px rgba(133, 181, 23, 0.08);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.not-found-signal {
+  position: absolute;
+  right: 26px;
+  bottom: 26px;
+  display: flex;
+  align-items: end;
+  gap: 4px;
+  height: 25px;
+  opacity: 0.42;
+}
+
+.not-found-signal i {
+  display: block;
+  width: 4px;
+  background: #6f7867;
+}
+
+.not-found-signal i:nth-child(1) {
+  height: 6px;
+}
+
+.not-found-signal i:nth-child(2) {
+  height: 11px;
+}
+
+.not-found-signal i:nth-child(3) {
+  height: 17px;
+  background: #8aa837;
+}
+
+.not-found-signal i:nth-child(4) {
+  height: 24px;
+  background: #b3dc39;
+}
+
+@media (max-width: 374px) {
+  .not-found-screen {
+    padding-inline: 10px !important;
+  }
+
+  .not-found-hero {
+    min-height: 670px;
+    padding-inline: 16px;
+  }
+
+  .not-found-mascot {
+    width: 96%;
+    height: 258px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found-mascot {
+    transform: none !important;
+  }
+}
