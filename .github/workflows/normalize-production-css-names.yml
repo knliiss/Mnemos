@@ -1,0 +1,118 @@
+name: Normalize Production CSS Names
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - ".github/workflows/normalize-production-css-names.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Normalize revision-style class names
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path("apps/mini-app/src")
+          extensions = {".ts", ".tsx", ".css"}
+          patterns = [
+              re.compile(r"-round-(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)(?=(?:__|--|-|[^A-Za-z0-9]|$))"),
+              re.compile(r"-(?:v|r)\d+(?=(?:__|--|-|[^A-Za-z0-9]|$))"),
+              re.compile(r"-(?:final|polished|overhaul|rethink)(?=(?:__|--|-|[^A-Za-z0-9]|$))"),
+          ]
+
+          changed = []
+          for path in sorted(root.rglob("*")):
+              if not path.is_file() or path.suffix not in extensions:
+                  continue
+
+              original = path.read_text(encoding="utf-8")
+              updated = original
+
+              for pattern in patterns:
+                  updated = pattern.sub("", updated)
+
+              if updated != original:
+                  path.write_text(updated, encoding="utf-8")
+                  changed.append(path.as_posix())
+
+          print(f"Normalized {len(changed)} production source files")
+          for path in changed:
+              print(path)
+
+          marker = re.compile(
+              r"(?:-round-(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)|-(?:v|r)\d+|-(?:final|polished|overhaul|rethink))"
+          )
+          leftovers = []
+
+          for path in sorted(root.rglob("*")):
+              if not path.is_file() or path.suffix not in extensions:
+                  continue
+
+              for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                  if marker.search(line):
+                      leftovers.append(f"{path}:{line_number}: {line.strip()}")
+
+          if leftovers:
+              print("Revision-style production names remain:")
+              print("\n".join(leftovers[:80]))
+              raise SystemExit(1)
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.9.0
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Format
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Lint
+        working-directory: apps/mini-app
+        run: npm run lint
+
+      - name: Test
+        working-directory: apps/mini-app
+        run: npm test -- --run
+
+      - name: Build
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Commit normalized names and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm .github/workflows/normalize-production-css-names.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mini-app/src .github/workflows/normalize-production-css-names.yml
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "normalize production css naming"
+          git push origin HEAD:feat/frontend-integration
