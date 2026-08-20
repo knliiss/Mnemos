@@ -46,7 +46,10 @@ type SelectedRace = {
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
-  const { rounds, races, positions, loading, refresh } = useBetsData(product.refreshAccount)
+  const { rounds, races, positions, loading, refresh } = useBetsData(
+    activeAccount.id,
+    product.refreshAccount,
+  )
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<EventBetRoundResponse | null>(null)
   const [selectedRace, setSelectedRace] = useState<SelectedRace | null>(null)
