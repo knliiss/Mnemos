@@ -1,8 +1,8 @@
 import type { TFunction } from "i18next"
 import type { CSSProperties, ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "./EventArt"
-import { personalizationContentById } from "../personalizationPreviewData"
+import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "../events/EventArt"
+import { personalizationContentById } from "../../personalizationPreviewData"
 import type {
   AvatarFrameContent,
   NickStyleContent,
@@ -11,8 +11,8 @@ import type {
   Personalization,
   ProfileEffectContent,
   ProfileThemeContent,
-} from "../model"
-import { Glyph } from "../shared/MnemosIcon"
+} from "../../model"
+import { Glyph } from "../../shared/MnemosIcon"
 
 type PreviewProps = {
   item: Personalization
