@@ -47,8 +47,8 @@ export function OwnedPersonalizations({
       <div className="screen account-personalization-category">
         <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
 
-        <section className="account-personalization-category-v5__intro">
-          <span className="account-personalization-category-v5__icon">
+        <section className="personalization-category-intro">
+          <span className="personalization-category-icon">
             <PersonalizationTypeGlyph type={type} />
           </span>
           <span>
@@ -61,7 +61,7 @@ export function OwnedPersonalizations({
         {loading ? (
           <PersonalizationLoadingState />
         ) : (
-          <section className="account-personalization-category-v5__list">
+          <section className="account-personalization-category-list">
             {typeItems.map((item) => (
               <motion.button
                 key={item.id}
@@ -71,7 +71,7 @@ export function OwnedPersonalizations({
                 onClick={() => void onToggleActive(item)}
               >
                 <PersonalizationVisual item={item} />
-                <span>
+                <span className="account-personalization-category-list__copy">
                   <small>
                     {item.active
                       ? t("personalization.owned.activeEyebrow")
@@ -106,7 +106,7 @@ export function OwnedPersonalizations({
       <div className="screen account-personalization-overview">
         <PageHeader title={t("personalization.owned.accountTitle")} back={back} />
 
-        <section className="account-personalization-v5__hero">
+        <section className="account-personalization-overview-hero">
           <span>
             <small>{t("personalization.owned.accountImageEyebrow")}</small>
             <strong>{t("personalization.owned.accountImageTitle")}</strong>
@@ -123,7 +123,7 @@ export function OwnedPersonalizations({
         {loading ? (
           <PersonalizationLoadingState />
         ) : (
-          <section className="account-personalization-v5__categories">
+          <section className="account-personalization-overview-categories">
             {accountPersonalizationTypes.map((itemType) => {
               const typeItems = ownedItems.filter((item) => item.type === itemType)
               const selected = typeItems.find((item) => item.active) ?? null
@@ -143,11 +143,11 @@ export function OwnedPersonalizations({
                     })
                   }
                 >
-                  <span className="account-personalization-v5__category-icon">
+                  <span className="account-personalization-overview-category__icon">
                     <PersonalizationTypeGlyph type={itemType} />
                   </span>
 
-                  <span className="account-personalization-v5__category-copy">
+                  <span className="account-personalization-overview-category__copy">
                     <small>{personalizationTypeTitle(t, itemType)}</small>
                     <strong>{selected?.name ?? t("personalization.owned.notSelected")}</strong>
                     <em>{personalizationTypeNote(t, itemType)}</em>
@@ -156,7 +156,7 @@ export function OwnedPersonalizations({
                     </span>
                   </span>
 
-                  <span className="account-personalization-v5__category-preview">
+                  <span className="account-personalization-overview-category__preview">
                     {selected ? (
                       <PersonalizationVisual item={selected} small />
                     ) : (
