@@ -8,7 +8,7 @@ import {
   type AccountInviteStatus,
 } from "@/shared/api/accountInviteApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { Glyph } from "../shared/MnemosIcon"
 import { ChoiceGrid, Field, PageHeader, Section } from "../shared/Primitives"
 import { FeatureEmpty } from "../system/FeatureEmpty"
@@ -25,8 +25,8 @@ const expiryMinutes: Record<Expiry, number | null> = {
 
 export function AccountInvites({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
-  const accountId = product.activeAccount?.id ?? null
+  const data = useMnemosData()
+  const accountId = data.activeAccount?.id ?? null
   const [expiry, setExpiry] = useState<Expiry>("1D")
   const [invites, setInvites] = useState<AccountInvite[]>([])
   const [loading, setLoading] = useState(true)
