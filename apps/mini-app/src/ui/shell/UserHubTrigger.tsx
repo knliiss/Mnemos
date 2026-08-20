@@ -1,13 +1,14 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { UserAvatar } from "./UserAvatar"
+import { CristalixHead } from "../components/profile/CristalixHead"
 
 type UserHubTriggerProps = {
   open: boolean
+  skinUrl: string
   onToggle: () => void
 }
 
-export function UserHubTrigger({ open, onToggle }: UserHubTriggerProps) {
+export function UserHubTrigger({ open, skinUrl, onToggle }: UserHubTriggerProps) {
   const { t } = useTranslation()
 
   return (
@@ -18,7 +19,7 @@ export function UserHubTrigger({ open, onToggle }: UserHubTriggerProps) {
       onClick={onToggle}
       aria-label={t("appShell.userMenu.open")}
     >
-      <UserAvatar className="global-user-button__avatar" size={34} />
+      <CristalixHead className="global-user-button__avatar" skinUrl={skinUrl} size={34} />
       <i />
     </motion.button>
   )
