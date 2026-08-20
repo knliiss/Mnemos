@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next"
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -6,9 +5,17 @@ import type { EventFeedQuery } from "@/shared/api/productApi"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
 import { useProductData } from "../../data/ProductDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
-import type { Account, EventKind, FeedEvent, ItemRarity, Route } from "../../model"
+import type { Account, EventKind, ItemRarity, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { formatOccurredAt } from "../../timePresentation"
+import {
+  belongsToAccount,
+  eventFeedDescription,
+  eventGlyph,
+  eventKindLabel,
+  eventTitle,
+  localeForLanguage,
+} from "../eventPresentation"
 
 type Props = {
   activeAccount: Account
@@ -36,6 +43,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   const [rarity, setRarity] = useState<ItemRarityFilter>("ALL")
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<FeedSort>("NEWEST")
+
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const feedQuery = useMemo<EventFeedQuery>(
     () => ({
@@ -79,6 +87,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
           <h1>{t("events.feed.title")}</h1>
           <p>{t("events.feed.description")}</p>
         </span>
+
         <button
           type="button"
           className="events-r2-subscriptions"
@@ -146,12 +155,9 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t("events.feed.searchPlaceholder")}
           />
+
           {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              aria-label={t("events.feed.clear")}
-            >
+            <button type="button" onClick={() => setQuery("")} aria-label={t("events.feed.clear")}>
               <Glyph name="close" size={14} />
             </button>
           ) : null}
@@ -194,22 +200,24 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             <i />
             <i />
           </span>
+
           <span className="events-r2-featured__art">
             <EventArt event={featured} size={78} />
           </span>
+
           <span className="events-r2-featured__copy">
             <small>
-              {sort === "NEWEST"
-                ? t("events.feed.latest")
-                : t("events.feed.oldestFeatured")} · {formatOccurredAt(featured.occurredAt, locale)}
+              {sort === "NEWEST" ? t("events.feed.latest") : t("events.feed.oldestFeatured")} ·{" "}
+              {formatOccurredAt(featured.occurredAt, locale)}
             </small>
-            <strong>{eventDisplayTitle(t, featured)}</strong>
-            <em>{eventDisplayDescription(t, featured)}</em>
+            <strong>{eventTitle(t, featured)}</strong>
+            <em>{eventFeedDescription(t, featured)}</em>
             <span>
               {eventKindLabel(t, featured.kind)}
               {belongsToAccount(featured, activeAccount) ? <OwnerCrown compact /> : null}
             </span>
           </span>
+
           <b className="events-r2-featured__open">›</b>
         </motion.button>
       ) : null}
@@ -244,14 +252,14 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
               <span className="events-r2-row__art">
                 <EventArt event={event} size={48} />
               </span>
+
               <span className="events-r2-row__copy">
                 <small>{eventKindLabel(t, event.kind)}</small>
-                <strong>{eventDisplayTitle(t, event)}</strong>
-                <em>{eventDisplayDescription(t, event)}</em>
+                <strong>{eventTitle(t, event)}</strong>
+                <em>{eventFeedDescription(t, event)}</em>
               </span>
-              <span className="events-r2-row__time">
-                {formatOccurredAt(event.occurredAt, locale)}
-              </span>
+
+              <span className="events-r2-row__time">{formatOccurredAt(event.occurredAt, locale)}</span>
               <span className="events-r2-row__edge" />
             </motion.button>
           ))}
@@ -279,77 +287,4 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       ) : null}
     </div>
   )
-}
-
-function eventGlyph(kind: EventKind): "item-drop" | "booster" | "global" | "raid" {
-  if (kind === "ITEM_DROP") {
-    return "item-drop"
-  }
-
-  if (kind === "BOOSTER") {
-    return "booster"
-  }
-
-  if (kind === "GLOBAL") {
-    return "global"
-  }
-
-  return "raid"
-}
-
-function eventKindLabel(t: TFunction, kind: EventKind) {
-  return t(`events.kinds.${kind}`)
-}
-
-function eventDisplayTitle(t: TFunction, event: FeedEvent) {
-  if (event.kind === "GLOBAL") {
-    return t(`events.globals.${event.title}`, { defaultValue: event.title })
-  }
-
-  if (event.kind === "BOOSTER") {
-    return t(`events.boosters.${event.title}`, { defaultValue: event.title })
-  }
-
-  if (event.kind === "RAID") {
-    return t("events.kinds.RAID")
-  }
-
-  return event.title
-}
-
-function eventDisplayDescription(t: TFunction, event: FeedEvent) {
-  if (event.kind === "ITEM_DROP") {
-    return [event.detail, event.rarity].filter(Boolean).join(" · ")
-  }
-
-  if (event.kind === "BOOSTER") {
-    return event.detail
-  }
-
-  if (event.kind === "GLOBAL") {
-    return t("events.feed.globalDescription")
-  }
-
-  return event.detail
-    ? t("events.feed.locations", { locations: event.detail })
-    : t("events.feed.raidDescription")
-}
-
-function belongsToAccount(event: FeedEvent, activeAccount: Account) {
-  return (
-    event.kind === "ITEM_DROP" &&
-    event.detail.toLowerCase() === activeAccount.nickname.toLowerCase()
-  )
-}
-
-function localeForLanguage(language?: string) {
-  if (language === "en") {
-    return "en-US"
-  }
-
-  if (language === "ru") {
-    return "ru-RU"
-  }
-
-  return "uk-UA"
 }
