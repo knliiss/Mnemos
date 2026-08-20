@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactElement } from "react"
+import "./visuals.css"
 
 export type GlyphName =
   | "events"
