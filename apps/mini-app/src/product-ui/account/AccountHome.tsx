@@ -1,22 +1,16 @@
-import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import {
-  assignMemberRole,
-  getMemberRoles,
-  kickAccountMember,
-  revokeMemberRole,
-} from "@/shared/api/productApi"
-import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt } from "../components/events/EventArt"
 import { CristalixHead } from "../components/profile/CristalixHead"
 import { useProductData } from "../data/ProductDataProvider"
 import { eventVisualTone } from "../eventVisualTone"
-import type { AccountRole, Member, Route } from "../model"
+import type { Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
 import { formatOccurredAt } from "../timePresentation"
+import { AccountDailyReward } from "./AccountDailyReward"
+import { AccountMemberManagement } from "./AccountMemberManagement"
+import { formatMemberDate, localeForLanguage } from "./accountPresentation"
 import { useLatestAccountDrops } from "./data/useLatestAccountDrops"
 
 type Props = {
@@ -25,40 +19,10 @@ type Props = {
   initialMemberId?: string | null
 }
 
-type RewardResult = {
-  coin: number
-  prime: number
-}
-
-type RewardParticleKind = "spark" | "orb" | "shard" | "coin"
-
-type RewardParticle = {
-  kind: RewardParticleKind
-  tone: "coin" | "prime" | "lime"
-  x: number
-  y: number
-  rotate: number
-  delay: number
-  duration: number
-}
-
-const rewardParticles: RewardParticle[] = [
-  { kind: "coin", tone: "coin", x: -78, y: -44, rotate: -42, delay: 0.02, duration: 1.68 },
-  { kind: "spark", tone: "lime", x: -48, y: -72, rotate: 38, delay: 0.08, duration: 1.55 },
-  { kind: "shard", tone: "prime", x: -14, y: -82, rotate: -62, delay: 0.04, duration: 1.85 },
-  { kind: "orb", tone: "coin", x: 34, y: -76, rotate: 24, delay: 0.11, duration: 1.72 },
-  { kind: "spark", tone: "prime", x: 70, y: -48, rotate: 68, delay: 0.06, duration: 1.64 },
-  { kind: "coin", tone: "coin", x: 82, y: -12, rotate: 96, delay: 0.14, duration: 1.9 },
-  { kind: "shard", tone: "lime", x: 52, y: 18, rotate: 116, delay: 0.1, duration: 1.62 },
-  { kind: "orb", tone: "prime", x: -54, y: 16, rotate: -108, delay: 0.13, duration: 1.78 },
-]
-
 export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
   const activeAccount = product.activeAccount
-  const [rewardResult, setRewardResult] = useState<RewardResult | null>(null)
-  const [rewardBusy, setRewardBusy] = useState(false)
   const selectedMember = product.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
@@ -77,45 +41,6 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         back={back}
       />
     )
-  }
-
-  const reward = product.dailyReward
-  const claimAvailable = Boolean(reward && !reward.claimedToday && !reward.recoverable)
-  const restoreAvailable = Boolean(
-    reward && !reward.claimedToday && reward.recoverable && reward.restoresRemaining > 0,
-  )
-
-  const claimDaily = async () => {
-    if (!claimAvailable || rewardBusy) {
-      return
-    }
-
-    setRewardBusy(true)
-
-    try {
-      const result = await product.claimReward()
-      setRewardResult(result)
-    } catch {
-      // Product API already routes the backend error through the global handler.
-    } finally {
-      setRewardBusy(false)
-    }
-  }
-
-  const restoreDaily = async () => {
-    if (!restoreAvailable || rewardBusy) {
-      return
-    }
-
-    setRewardBusy(true)
-
-    try {
-      await product.restoreReward()
-    } catch {
-      // Product API already routes the backend error through the global handler.
-    } finally {
-      setRewardBusy(false)
-    }
   }
 
   const roleFor = (roleId: string | null) =>
@@ -150,108 +75,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         />
       </motion.button>
 
-      <section className={`account-home-reward ${reward?.claimedToday ? "is-claimed" : ""}`}>
-        <span className="account-home-reward__flame" aria-hidden="true">
-          <i />
-          <img src="/ui-icons/flame.png" alt="" />
-        </span>
-
-        <span className="account-home-reward__copy">
-          <small>{t("accountHome.dailyReward")}</small>
-          <span className="account-home-reward__streak">
-            <strong>{reward?.currentStreak || reward?.recoverableStreak || 0}</strong>
-            <span>{t("accountHome.streakDays")}</span>
-          </span>
-
-          {reward && !rewardResult ? (
-            <span className="account-home-reward__range">
-              <span>
-                <CurrencyMark currency="COIN" size={14} />
-                {reward.nextCoinMin}–{reward.nextCoinMax}
-              </span>
-              <span>
-                <CurrencyMark currency="PRIME" size={13} />
-                {t("accountHome.primeChance", { chance: Math.round(reward.primeChance * 100) })}
-              </span>
-            </span>
-          ) : null}
-        </span>
-
-        {claimAvailable ? (
-          <motion.button
-            whileTap={{ scale: 0.96 }}
-            disabled={rewardBusy}
-            onClick={() => void claimDaily()}
-            aria-label={t("accountHome.claimAria")}
-          >
-            <Glyph name="daily" size={15} />
-            {t("accountHome.claim")}
-          </motion.button>
-        ) : restoreAvailable ? (
-          <motion.button
-            className="is-restore"
-            whileTap={{ scale: 0.96 }}
-            disabled={rewardBusy}
-            onClick={() => void restoreDaily()}
-          >
-            <Glyph name="swap" size={14} />
-            {t("accountHome.restore")}
-            <small>{reward?.restoresRemaining}×</small>
-          </motion.button>
-        ) : null}
-
-        <AnimatePresence>
-          {rewardResult ? (
-            <>
-              <span className="account-home-reward-particles" aria-hidden="true">
-                {rewardParticles.map((particle, index) => (
-                  <motion.span
-                    className={`reward-particle reward-particle--${particle.kind} is-${particle.tone}`}
-                    key={`${particle.kind}-${particle.tone}-${index}`}
-                    initial={{ opacity: 0, x: 0, y: 0, scale: 0.35, rotate: 0 }}
-                    animate={{
-                      opacity: [0, 0.96, 0.72, 0],
-                      x: [0, particle.x * 0.24, particle.x * 0.68, particle.x],
-                      y: [0, particle.y * 0.2, particle.y * 0.62, particle.y],
-                      scale: [0.35, 1, 0.82, 0.18],
-                      rotate: [0, particle.rotate * 0.28, particle.rotate * 0.7, particle.rotate],
-                    }}
-                    transition={{
-                      duration: particle.duration,
-                      delay: particle.delay,
-                      ease: [0.2, 0.72, 0.22, 1],
-                      times: [0, 0.2, 0.7, 1],
-                    }}
-                  />
-                ))}
-              </span>
-
-              <motion.div
-                className="account-home-reward-result"
-                initial={{ opacity: 0, scale: 0.94, y: 7 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <span>
-                  <small>{t("accountHome.received")}</small>
-                  <strong>
-                    <CurrencyMark currency="COIN" size={17} />+{rewardResult.coin}
-                  </strong>
-                </span>
-                <span className={rewardResult.prime ? "is-prime" : "is-empty"}>
-                  <small>PRIME</small>
-                  <strong>
-                    <CurrencyMark currency="PRIME" size={15} />
-                    {rewardResult.prime
-                      ? `+${rewardResult.prime}`
-                      : t("accountHome.primeNotDropped")}
-                  </strong>
-                </span>
-              </motion.div>
-            </>
-          ) : null}
-        </AnimatePresence>
-      </section>
+      <AccountDailyReward />
 
       <section className="account-home-feature-grid">
         <motion.button
@@ -292,6 +116,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             <small>{t("accountHome.accessRights")}</small>
           </span>
         </motion.button>
+
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-invites" })}
@@ -304,6 +129,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             <small>{t("accountHome.invitations")}</small>
           </span>
         </motion.button>
+
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-settings" })}
@@ -366,9 +192,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
                       {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                     </span>
                   ) : (
-                    <small className="account-home-member__no-role">
-                      {t("accountHome.noRole")}
-                    </small>
+                    <small className="account-home-member__no-role">{t("accountHome.noRole")}</small>
                   )}
                 </span>
 
@@ -428,165 +252,4 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
       </section>
     </div>
   )
-}
-
-function AccountMemberManagement({
-  member,
-  roles,
-  accountId,
-  refresh,
-  back,
-}: {
-  member: Member
-  roles: AccountRole[]
-  accountId: string
-  refresh: () => Promise<void>
-  back: () => void
-}) {
-  const { t, i18n } = useTranslation()
-  const [roleIds, setRoleIds] = useState<string[]>(member.roleIds)
-  const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
-  const [kickBusy, setKickBusy] = useState(false)
-  const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
-  const locale = localeForLanguage(i18n.resolvedLanguage)
-
-  useEffect(() => {
-    void getMemberRoles(accountId, member.id)
-      .then((memberRoles) => setRoleIds(memberRoles.map((role) => role.id)))
-      .catch(handleError)
-  }, [accountId, member.id])
-
-  const toggleRole = async (role: AccountRole) => {
-    if (member.owner || busyRoleId) {
-      return
-    }
-
-    const assigned = roleIds.includes(role.id)
-    setBusyRoleId(role.id)
-
-    try {
-      if (assigned) {
-        await revokeMemberRole(accountId, member.id, role.id)
-        setRoleIds((current) => current.filter((id) => id !== role.id))
-      } else {
-        await assignMemberRole(accountId, member.id, role.id)
-        setRoleIds((current) => [...current, role.id])
-      }
-
-      await refresh()
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setBusyRoleId(null)
-    }
-  }
-
-  const kick = async () => {
-    if (member.owner || kickBusy) {
-      return
-    }
-
-    setKickBusy(true)
-
-    try {
-      await kickAccountMember(accountId, member.id)
-      await refresh()
-      back()
-    } catch (error) {
-      handleError(error)
-      setKickBusy(false)
-    }
-  }
-
-  return (
-    <div className="screen account-home-member-detail">
-      <PageHeader title={t("accountMember.title")} back={back} />
-
-      <section className="account-member-v4__hero">
-        <span className="account-member-v4__avatar" aria-hidden="true" />
-        <span className="account-member-v4__identity">
-          <small>ACCOUNT MEMBER</small>
-          <strong>{member.name}</strong>
-          <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
-        </span>
-        {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
-      </section>
-
-      <section className="account-member-v4__roles">
-        <header>
-          <span>
-            <small>{t("accountMember.access")}</small>
-            <strong>{t("accountMember.roles")}</strong>
-          </span>
-          <em>{t("accountMember.activeRoles", { count: roleIds.length })}</em>
-        </header>
-
-        <div>
-          {roles.map((role) => {
-            const assigned = roleIds.includes(role.id)
-            const locked = member.owner
-
-            return (
-              <motion.button
-                key={role.id}
-                className={assigned ? "is-active" : ""}
-                disabled={locked || busyRoleId !== null}
-                whileTap={locked ? undefined : { scale: 0.985 }}
-                onClick={() => void toggleRole(role)}
-              >
-                <RoleSigil color={role.color} size={34} compact />
-                <span>
-                  <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
-                  <small>
-                    {t("accountMember.permissionCount", { count: enabledPermissions(role) })}
-                  </small>
-                </span>
-                <i aria-hidden="true">
-                  <b />
-                </i>
-              </motion.button>
-            )
-          })}
-        </div>
-      </section>
-
-      {!member.owner ? (
-        <section className="account-member-v4__danger">
-          <span>
-            <Glyph name="close" size={18} />
-          </span>
-          <span>
-            <strong>{t("accountMember.removeTitle")}</strong>
-            <small>{t("accountMember.removeCopy")}</small>
-          </span>
-          <button disabled={kickBusy} onClick={() => void kick()}>
-            {kickBusy ? "…" : t("accountMember.kick")}
-          </button>
-        </section>
-      ) : null}
-    </div>
-  )
-}
-
-function enabledPermissions(role: AccountRole) {
-  return Object.values(role.permissions).filter(Boolean).length
-}
-
-function formatMemberDate(value: string, locale: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value.replace(" 2026", "")
-  }
-
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(date)
-}
-
-function localeForLanguage(language?: string) {
-  if (language === "en") {
-    return "en-US"
-  }
-  if (language === "ru") {
-    return "ru-RU"
-  }
-  return "uk-UA"
 }
