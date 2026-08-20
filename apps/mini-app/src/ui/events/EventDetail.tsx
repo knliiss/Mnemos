@@ -5,8 +5,8 @@ import { ApiError } from "@/shared/api/httpClient"
 import { getEventFeedItem } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt, OwnerCrown } from "../components/events/EventArt"
-import { useProductData } from "../data/ProductDataProvider"
-import { toProductFeedEvent } from "../data/productMappers"
+import { toFeedEvent } from "../data/dataMappers"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, FeedEvent, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
@@ -39,8 +39,8 @@ type EventLookupResult = {
 
 export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
-  const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
+  const data = useMnemosData()
+  const cachedEvent = data.feed.find((item) => item.id === eventId) ?? null
   const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
   const [lookupErrorId, setLookupErrorId] = useState<string | null>(null)
   const [lookupRevision, setLookupRevision] = useState(0)
@@ -87,7 +87,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         setLookupErrorId(null)
         setLookupResult({
           eventId,
-          event: toProductFeedEvent(response),
+          event: toFeedEvent(response),
         })
       })
       .catch((error) => {
@@ -116,11 +116,11 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const matchingSubscription = useMemo(
     () =>
       event
-        ? (product.subscriptions.find((subscription) =>
+        ? (data.subscriptions.find((subscription) =>
             subscriptionMatchesEvent(subscription, event),
           ) ?? null)
         : null,
-    [event, product.subscriptions],
+    [data.subscriptions, event],
   )
 
   if (!event) {
@@ -168,9 +168,9 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
 
     try {
       if (matchingSubscription) {
-        await product.removeSubscription(matchingSubscription.id)
+        await data.removeSubscription(matchingSubscription.id)
       } else {
-        await product.mutateSubscriptions(() => createSubscriptionForEvent(event))
+        await data.mutateSubscriptions(() => createSubscriptionForEvent(event))
       }
     } finally {
       if (followBusyRef.current === requestedScope) {
