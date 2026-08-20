@@ -59,6 +59,8 @@ export function CreatorStudio({ navigate, back }: Props) {
       }
     } catch (error) {
       if (revision === requestRevision.current) {
+        setItems([])
+        setRevenue(null)
         setLoadError(true)
         handleError(error)
       }
@@ -121,7 +123,8 @@ export function CreatorStudio({ navigate, back }: Props) {
         <div className="creator-hero__art" aria-hidden="true" />
 
         <div className="creator-hero__actions">
-          <button type="button"
+          <button
+            type="button"
             onClick={() =>
               navigate({ id: "personalization-editor", params: { personalizationId: "new" } })
             }
@@ -130,7 +133,11 @@ export function CreatorStudio({ navigate, back }: Props) {
             <span>{t("creator.newWork")}</span>
           </button>
 
-          <button type="button" className="is-revenue" onClick={() => navigate({ id: "creator-revenue" })}>
+          <button
+            type="button"
+            className="is-revenue"
+            onClick={() => navigate({ id: "creator-revenue" })}
+          >
             <CurrencyMark currency="PRIME" size={15} />
             <span>{revenue?.confirmedPrime ?? 0}</span>
             <small>{t("creator.revenue")}</small>
@@ -139,7 +146,8 @@ export function CreatorStudio({ navigate, back }: Props) {
       </section>
 
       <section className="creator-dashboard">
-        <button type="button"
+        <button
+          type="button"
           className={filter === "DRAFT" ? "is-active" : ""}
           onClick={() => setFilter(filter === "DRAFT" ? "ALL" : "DRAFT")}
         >
@@ -148,7 +156,8 @@ export function CreatorStudio({ navigate, back }: Props) {
           <span>{t("creator.drafts")}</span>
         </button>
 
-        <button type="button"
+        <button
+          type="button"
           className={filter === "REVIEW" ? "is-active" : ""}
           onClick={() => setFilter(filter === "REVIEW" ? "ALL" : "REVIEW")}
         >
@@ -157,7 +166,8 @@ export function CreatorStudio({ navigate, back }: Props) {
           <span>{t("creator.review")}</span>
         </button>
 
-        <button type="button"
+        <button
+          type="button"
           className={filter === "PUBLISHED" ? "is-active" : ""}
           onClick={() => setFilter(filter === "PUBLISHED" ? "ALL" : "PUBLISHED")}
         >
@@ -177,7 +187,7 @@ export function CreatorStudio({ navigate, back }: Props) {
 
       {loading ? (
         <CreatorLoadingState />
-      ) : loadError && !items.length ? (
+      ) : loadError ? (
         <FeatureEmpty
           icon="creator"
           title={t("common.loadErrorTitle")}
@@ -191,7 +201,8 @@ export function CreatorStudio({ navigate, back }: Props) {
         <section className="creator-gallery">
           <AnimatePresence initial={false}>
             {visible.map((item, index) => (
-              <motion.button type="button"
+              <motion.button
+                type="button"
                 layout
                 key={item.id}
                 className={`creator-card creator-card--${item.type.toLowerCase()}`}
