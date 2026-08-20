@@ -7,7 +7,7 @@ import {
 import { getPersonalization, type PersonalizationResponse } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Currency } from "../../model"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { Field, PageHeader } from "../../shared/Primitives"
@@ -33,7 +33,7 @@ type Props = {
 
 export function CreatorEditor({ params, back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const personalizationId = params?.personalizationId ?? "new"
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
@@ -107,7 +107,7 @@ export function CreatorEditor({ params, back }: Props) {
     form,
     currentSource?.id ?? "preview",
     currentSource?.status ?? "DRAFT",
-    product.user.username,
+    data.user.username,
     t("creator.editor.fallbackName"),
   )
 
