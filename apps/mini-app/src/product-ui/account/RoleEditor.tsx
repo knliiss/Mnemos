@@ -212,7 +212,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
         back={back}
         actions={
           !isNew ? (
-            <button type="button" className="role-editor-back-to-list" onClick={() => navigate({ id: "roles" })}>
+            <button
+              type="button"
+              className="role-editor-back-to-list"
+              onClick={() => navigate({ id: "roles" })}
+            >
               {t("roleEditor.allRoles")}
             </button>
           ) : undefined
@@ -315,7 +319,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
             placeholder={t("roleEditor.searchPlaceholder")}
           />
           {query ? (
-            <button type="button" onClick={() => setQuery("")} aria-label={t("roleEditor.clearSearch")}>
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label={t("roleEditor.clearSearch")}
+            >
               <Glyph name="close" size={14} />
             </button>
           ) : null}
@@ -337,7 +345,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
                       {enabledInGroup}/{group.permissions.length}
                     </small>
                   </span>
-                  <button type="button"
+                  <button
+                    type="button"
                     disabled={busy}
                     className={allEnabled ? "is-active" : ""}
                     onClick={() => toggleGroup(group.permissions)}
@@ -372,7 +381,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
       </section>
 
       <div className="role-editor-actions">
-        <button type="button"
+        <button
+          type="button"
           className="role-editor-save"
           disabled={!name.trim() || busy}
           onClick={() => void save()}
@@ -392,12 +402,22 @@ export function RoleEditor({ params, navigate, back }: Props) {
                 <button type="button" disabled={busy} onClick={() => setConfirmDelete(false)}>
                   {t("roleEditor.cancel")}
                 </button>
-                <button type="button" disabled={busy} className="is-danger" onClick={() => void remove()}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="is-danger"
+                  onClick={() => void remove()}
+                >
                   {t("roleEditor.confirmDelete")}
                 </button>
               </div>
             ) : (
-              <button type="button" disabled={busy} className="is-danger" onClick={() => setConfirmDelete(true)}>
+              <button
+                type="button"
+                disabled={busy}
+                className="is-danger"
+                onClick={() => setConfirmDelete(true)}
+              >
                 {t("roleEditor.delete")}
               </button>
             )}
