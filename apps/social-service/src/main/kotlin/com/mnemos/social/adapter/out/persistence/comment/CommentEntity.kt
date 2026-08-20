@@ -29,4 +29,6 @@ class CommentEntity(
     var updatedAt: Instant,
     @Column(name = "deleted_at")
     var deletedAt: Instant?,
+    @Column(name = "reply_to_comment_id")
+    var replyToCommentId: UUID? = null,
 )
