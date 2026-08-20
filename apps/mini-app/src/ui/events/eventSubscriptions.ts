@@ -3,7 +3,7 @@ import {
   createGlobalSubscription,
   createItemDropSubscription,
   createRaidSubscription,
-} from "@/shared/api/productApi"
+} from "@/shared/api/subscriptionApi"
 import type { BoosterType, FeedEvent, GlobalEventType, Subscription } from "../model"
 import { parseEventLocations } from "./eventPresentation"
 
