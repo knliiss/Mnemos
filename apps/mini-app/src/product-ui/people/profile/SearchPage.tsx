@@ -5,7 +5,7 @@ import {
   type PublicProfileResponse,
 } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { CristalixHead } from "../../components/CristalixHead"
+import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { nicknameStyle, profileSkinUrl } from "./profilePresentation"
