@@ -10,7 +10,7 @@ import {
   restoreDailyReward,
 } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { toProductMember, toProductRole } from "../../data/productMappers"
+import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
 
 type AccountData = {
@@ -87,8 +87,8 @@ export function useAccountData(accountId: string | undefined): AccountData {
         return
       }
 
-      setMembers(memberResponses.map((member) => toProductMember(member)))
-      setRoles(roleResponses.map(toProductRole))
+      setMembers(memberResponses.map((member) => toMember(member)))
+      setRoles(roleResponses.map(toRole))
       setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
       setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
       setDailyReward(rewardState)
