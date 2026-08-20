@@ -38,7 +38,7 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
 
   return (
     <>
-      <div className="user-hub-workspace-label">{t("productShell.userMenu.workspaces")}</div>
+      <div className="user-hub-workspace-label">{t("appShell.userMenu.workspaces")}</div>
 
       <nav className="user-hub-workspace-grid">
         {access.creator ? (
@@ -50,8 +50,8 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             <span>
               <Glyph name="creator" size={20} />
             </span>
-            <strong>{t("productShell.userMenu.creator")}</strong>
-            <small>{t("productShell.userMenu.creatorDescription")}</small>
+            <strong>{t("appShell.userMenu.creator")}</strong>
+            <small>{t("appShell.userMenu.creatorDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -65,8 +65,8 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             <span>
               <Glyph name="moderation" size={20} />
             </span>
-            <strong>{t("productShell.userMenu.moderation")}</strong>
-            <small>{t("productShell.userMenu.moderationDescription")}</small>
+            <strong>{t("appShell.userMenu.moderation")}</strong>
+            <small>{t("appShell.userMenu.moderationDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -80,8 +80,8 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             <span>
               <Glyph name="creator" size={20} />
             </span>
-            <strong>{t("productShell.userMenu.review")}</strong>
-            <small>{t("productShell.userMenu.reviewDescription")}</small>
+            <strong>{t("appShell.userMenu.review")}</strong>
+            <small>{t("appShell.userMenu.reviewDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -95,8 +95,8 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             <span>
               <Glyph name="admin" size={20} />
             </span>
-            <strong>{t("productShell.userMenu.administration")}</strong>
-            <small>{t("productShell.userMenu.administrationDescription")}</small>
+            <strong>{t("appShell.userMenu.administration")}</strong>
+            <small>{t("appShell.userMenu.administrationDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
