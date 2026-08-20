@@ -7,8 +7,8 @@ import { peopleProductEn } from "./people/en"
 import { personalizationProductEn } from "./personalization/en"
 import { walletProductEn } from "./wallet/en"
 
-export const productEn = {
-  productShell: {
+export const uiEn = {
+  appShell: {
     navigation: {
       aria: "Main navigation",
       bets: "Bets",
