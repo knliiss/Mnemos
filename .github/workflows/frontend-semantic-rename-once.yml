@@ -89,3 +89,5 @@ jobs:
           git add apps/mini-app
           git commit -m "normalize frontend semantic naming"
           git push origin HEAD:feat/frontend-integration
+
+# trigger
