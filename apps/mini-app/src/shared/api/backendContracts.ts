@@ -169,17 +169,48 @@ export type EventFeedResponse = {
   cursor: string | null
 }
 
-export type SubscriptionResponse = {
-  id: string
-  type: "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "GLOBAL" | "RAID"
-  createdAt: string
-  droppedFor?: string | null
-  itemName?: string | null
-  boosterType?: BoosterType | null
-  dungeonType?: DungeonType | null
-  eventType?: GlobalEventType | null
-  locations?: number[] | null
-}
+export type SubscriptionResponse =
+  | {
+      id: string
+      type: "ITEM_DROP"
+      createdAt: string
+      details: {
+        droppedFor: string | null
+        itemName: string | null
+      }
+    }
+  | {
+      id: string
+      type: "BOOSTER"
+      createdAt: string
+      details: {
+        boosterType: BoosterType
+      }
+    }
+  | {
+      id: string
+      type: "DUNGEON"
+      createdAt: string
+      details: {
+        dungeonType: DungeonType
+      }
+    }
+  | {
+      id: string
+      type: "GLOBAL"
+      createdAt: string
+      details: {
+        eventType: GlobalEventType
+      }
+    }
+  | {
+      id: string
+      type: "RAID"
+      createdAt: string
+      details: {
+        locations: number[]
+      }
+    }
 
 export type EventBetRoundResponse = {
   id: string
