@@ -1,0 +1,24 @@
+.events-r2-load-more {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(225, 232, 208, 0.09);
+  border-radius: 13px;
+  color: #9ba394;
+  background: rgba(255, 255, 255, 0.014);
+  font-size: 9px;
+  font-weight: 680;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.events-r2-load-more:hover:not(:disabled) {
+  border-color: rgba(199, 242, 74, 0.16);
+  color: #b8c49a;
+  background: rgba(199, 242, 74, 0.025);
+}
+
+.events-r2-load-more:disabled {
+  opacity: 0.55;
+}
