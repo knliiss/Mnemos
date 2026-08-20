@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { useProductData } from "../../data/ProductDataProvider"
 import { PageHeader, Section } from "../../shared/Primitives"
+import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { ModerationSanctions } from "./ModerationSanctions"
 import { ModerationWalletAdjustments } from "./ModerationWalletAdjustments"
@@ -30,6 +31,10 @@ export function ModerationUser({ params, back }: Props) {
         <FeatureLoading />
       </div>
     )
+  }
+
+  if (controller.loadError) {
+    return <FeatureError back={back} onRetry={() => void controller.refreshUser()} />
   }
 
   if (!controller.identity) {
