@@ -6,7 +6,7 @@ import type { EventFeedQuery } from "@/shared/api/productApi"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
 import { useProductData } from "../../data/ProductDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
-import type { Account, EventKind, FeedEvent, Route } from "../../model"
+import type { Account, EventKind, FeedEvent, ItemRarity, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { formatOccurredAt } from "../../timePresentation"
 
@@ -17,8 +17,10 @@ type Props = {
 
 type EventFilter = "ALL" | EventKind
 type FeedSort = "NEWEST" | "OLDEST"
+type ItemRarityFilter = "ALL" | ItemRarity
 
 const filters: EventKind[] = ["ITEM_DROP", "BOOSTER", "GLOBAL", "RAID"]
+const rarityFilters: ItemRarity[] = ["MYTHICAL", "SECRET"]
 
 export function EventsFeed({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
@@ -31,6 +33,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     subscriptions,
   } = useProductData()
   const [filter, setFilter] = useState<EventFilter>("ALL")
+  const [rarity, setRarity] = useState<ItemRarityFilter>("ALL")
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<FeedSort>("NEWEST")
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -38,10 +41,11 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     () => ({
       types: filter === "ALL" ? undefined : [filter],
       search: query,
+      itemRarity: rarity === "ALL" ? undefined : rarity,
       sort,
       limit: 60,
     }),
-    [filter, query, sort],
+    [filter, query, rarity, sort],
   )
 
   useEffect(() => {
@@ -58,6 +62,14 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   const featured = feed[0]
   const rest = feed.slice(1)
   const sortLabel = sort === "NEWEST" ? t("events.feed.newest") : t("events.feed.oldest")
+
+  const selectFilter = (nextFilter: EventFilter) => {
+    setFilter(nextFilter)
+
+    if (nextFilter !== "ITEM_DROP") {
+      setRarity("ALL")
+    }
+  }
 
   return (
     <div className="screen events-r2-screen root-screen">
@@ -81,7 +93,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         <button
           type="button"
           className={filter === "ALL" ? "is-active" : ""}
-          onClick={() => setFilter("ALL")}
+          onClick={() => selectFilter("ALL")}
         >
           <span className="events-r2-filter-dot" />
           {t("events.feed.all")}
@@ -92,13 +104,39 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             type="button"
             key={kind}
             className={filter === kind ? "is-active" : ""}
-            onClick={() => setFilter(kind)}
+            onClick={() => selectFilter(kind)}
           >
             <Glyph name={eventGlyph(kind)} size={15} />
             {eventKindLabel(t, kind)}
           </button>
         ))}
       </section>
+
+      {filter === "ITEM_DROP" ? (
+        <section
+          className="events-r2-filter-rail events-r2-rarity-rail"
+          aria-label={t("events.feed.rarityFilterAria")}
+        >
+          <button
+            type="button"
+            className={rarity === "ALL" ? "is-active" : ""}
+            onClick={() => setRarity("ALL")}
+          >
+            {t("events.feed.allRarities")}
+          </button>
+
+          {rarityFilters.map((itemRarity) => (
+            <button
+              type="button"
+              key={itemRarity}
+              className={rarity === itemRarity ? "is-active" : ""}
+              onClick={() => setRarity(itemRarity)}
+            >
+              {t(`events.rarities.${itemRarity}`)}
+            </button>
+          ))}
+        </section>
+      ) : null}
 
       <div className="events-r2-query-row">
         <label className="events-r2-search">

@@ -5,6 +5,7 @@ import type {
   Currency,
   DungeonType,
   GlobalEventType,
+  ItemRarity,
   LocalizationLanguage,
   RolePermission,
   SystemRole,
@@ -122,7 +123,7 @@ export type ItemCatalogResponse = {
   id: string
   name: string
   type: BetItemType
-  rarity: string
+  rarity: ItemRarity
 }
 
 export type ItemDropFeedResponse = {
@@ -131,7 +132,7 @@ export type ItemDropFeedResponse = {
   occurredAt: string
   itemId: string
   itemName: string
-  itemRarity: string
+  itemRarity: ItemRarity
   itemType: string
   droppedFor: string
 }

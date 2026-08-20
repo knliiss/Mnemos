@@ -2,6 +2,7 @@ import type {
   BoosterType,
   DungeonType,
   GlobalEventType,
+  ItemRarity,
   LocalizationLanguage,
 } from "@/product-ui/model"
 import type {
@@ -148,7 +149,7 @@ export type EventFeedQuery = {
   types?: EventFeedType[]
   search?: string
   droppedFor?: string
-  itemRarity?: string
+  itemRarity?: ItemRarity
   sort?: "NEWEST" | "OLDEST"
   limit?: number
 }

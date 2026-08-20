@@ -23,6 +23,7 @@ export type BetGlobalEventType = "MOON" | "ECLIPSE" | "EXPLOSION"
 export type BetSide = "YES" | "NO"
 export type EventBetOutcome = "YES" | "NO" | "REFUND"
 export type BetItemType = "SWORD" | "AURA" | "PET" | "BOOK" | "JEWELRY"
+export type ItemRarity = "MYTHICAL" | "SECRET"
 export type EventBetRoundStatus =
   | "OPEN"
   | "LOCKED"
@@ -154,7 +155,7 @@ export type FeedEvent = {
   occurredAt: string
   relative: string
   meta?: string
-  rarity?: string
+  rarity?: ItemRarity
 }
 export type Subscription =
   | { id: string; type: "ITEM_DROP"; droppedFor?: string; itemName?: string }
