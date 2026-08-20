@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { canRenderWithoutActiveAccount } from "@/product-ui/shell/navigation"
+import { canRenderWithoutActiveAccount } from "@/ui/shell/navigation"
 
 describe("active account route gating", () => {
   it("keeps user-scoped wallet and personalization routes available", () => {
