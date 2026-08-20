@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getCurrentUserTransactions } from "@/shared/api/userWalletApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
@@ -24,8 +24,8 @@ const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_
 
 export function UserPrimeWallet({ navigate, back }: Props) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
-  const userId = product.user.id
+  const data = useMnemosData()
+  const userId = data.user.id
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [loadedUserId, setLoadedUserId] = useState<string | null>(null)
@@ -108,7 +108,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
     .filter((transaction) => transaction.type === "CREDIT")
     .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  const prime = product.user.prime
+  const prime = data.user.prime
 
   return (
     <div className="screen prime-wallet-screen">
