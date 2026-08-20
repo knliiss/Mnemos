@@ -6,5 +6,6 @@ import java.util.UUID
 data class CreateCommentCommand(
     val targetAccountId: UUID,
     val parentCommentId: CommentId?,
+    val replyToCommentId: CommentId?,
     val content: String,
 )
