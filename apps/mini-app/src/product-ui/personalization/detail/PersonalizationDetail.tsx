@@ -52,6 +52,9 @@ export function PersonalizationDetail({
 
   const pending = Boolean(pendingPurchases[item.id])
   const busy = busyId === item.id
+  const actionClassName = `personalization-detail-purchase__action ${
+    item.owned && item.active ? "is-active" : ""
+  }`.trim()
 
   return (
     <div className="screen personalization-detail-screen">
@@ -71,7 +74,7 @@ export function PersonalizationDetail({
       <PersonalizationDetails item={item} />
 
       <section className="personalization-detail-purchase">
-        <span>
+        <span className="personalization-detail-purchase__summary">
           <small>
             {item.owned
               ? t("personalization.detail.inCollection")
@@ -90,7 +93,11 @@ export function PersonalizationDetail({
         </span>
 
         {item.owned ? (
-          <button disabled={busy} onClick={() => void onToggleActive(item)}>
+          <button
+            className={actionClassName}
+            disabled={busy}
+            onClick={() => void onToggleActive(item)}
+          >
             {busy
               ? t("personalization.detail.saving")
               : item.active
@@ -98,7 +105,11 @@ export function PersonalizationDetail({
                 : t("personalization.detail.enable")}
           </button>
         ) : (
-          <button disabled={busy || pending} onClick={() => void onPurchase(item)}>
+          <button
+            className={actionClassName}
+            disabled={busy || pending}
+            onClick={() => void onPurchase(item)}
+          >
             {pending
               ? t("personalization.detail.processing")
               : busy
