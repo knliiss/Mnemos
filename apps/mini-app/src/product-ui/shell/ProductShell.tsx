@@ -8,7 +8,8 @@ import { initialStack, isRootRoute } from "../navigation/routeRegistry"
 import { localizationOptions, routeKey } from "./navigation"
 import { ProductRouteContent } from "./ProductRouteContent"
 import { RootNavigation } from "./RootNavigation"
-import { UserHubOverlay, UserHubTrigger } from "./UserHub"
+import { UserHubOverlay } from "./UserHubOverlay"
+import { UserHubTrigger } from "./UserHubTrigger"
 
 export function ProductShell() {
   const product = useProductData()
@@ -102,6 +103,11 @@ export function ProductShell() {
     setAccountPickerOpen(false)
   }
 
+  const userHubTrigger =
+    rootRoute && activeAccount ? (
+      <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
+    ) : null
+
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
       <ErrorNotificationProvider hasTabbar={Boolean(rootRoute && activeAccount)}>
@@ -119,19 +125,17 @@ export function ProductShell() {
               initial={false}
               animate={{ opacity: 1 }}
             >
-              {rootRoute && activeAccount ? (
-                rootRoute === "account" ? (
-                  <div className="account-root-user-entry">
-                    <span className="account-root-user-entry__identity">
-                      <small>MNEMOS USER</small>
-                      <strong>@{product.user.username}</strong>
-                    </span>
-                    <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
-                  </div>
-                ) : (
-                  <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
-                )
-              ) : null}
+              {rootRoute === "account" && activeAccount ? (
+                <div className="account-root-user-entry">
+                  <span className="account-root-user-entry__identity">
+                    <small>MNEMOS USER</small>
+                    <strong>@{product.user.username}</strong>
+                  </span>
+                  {userHubTrigger}
+                </div>
+              ) : (
+                userHubTrigger
+              )}
 
               <ProductRouteContent
                 current={current}
