@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { RootNavIllustration } from "../components/RootNavIllustration"
+import { RootNavIllustration } from "../components/navigation/RootNavIllustration"
 import type { RootRoute } from "../model"
 import { rootItems, rootNavigationKeys } from "./navigation"
 
