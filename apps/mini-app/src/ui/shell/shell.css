@@ -1,0 +1,23 @@
+.user-hub-card__avatar--skin,
+.user-hub-account-switch__mark--skin {
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.user-hub-card__avatar--skin {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px;
+}
+
+.user-hub-account-switch__mark--skin {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px;
+}
+
+.user-hub-localization__choices button {
+  min-height: 36px;
+}
