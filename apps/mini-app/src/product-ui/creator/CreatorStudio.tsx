@@ -91,19 +91,19 @@ export function CreatorStudio({ navigate, back }: Props) {
   })
 
   return (
-    <div className="screen creator-r2-screen">
+    <div className="screen creator-screen">
       <PageHeader title={t("creator.title")} back={back} />
 
-      <section className="creator-r2-hero">
-        <div className="creator-r2-hero__copy">
+      <section className="creator-hero">
+        <div className="creator-hero__copy">
           <small>MNEMOS CREATOR</small>
           <strong>{t("creator.workshopTitle")}</strong>
           <p>{t("creator.workshopCopy")}</p>
         </div>
 
-        <div className="creator-r2-hero__art" aria-hidden="true" />
+        <div className="creator-hero__art" aria-hidden="true" />
 
-        <div className="creator-r2-hero__actions">
+        <div className="creator-hero__actions">
           <button
             onClick={() =>
               navigate({ id: "personalization-editor", params: { personalizationId: "new" } })
@@ -121,7 +121,7 @@ export function CreatorStudio({ navigate, back }: Props) {
         </div>
       </section>
 
-      <section className="creator-r2-dashboard">
+      <section className="creator-dashboard">
         <button
           className={filter === "DRAFT" ? "is-active" : ""}
           onClick={() => setFilter(filter === "DRAFT" ? "ALL" : "DRAFT")}
@@ -150,7 +150,7 @@ export function CreatorStudio({ navigate, back }: Props) {
         </button>
       </section>
 
-      <header className="creator-r2-section-title">
+      <header className="creator-section-title">
         <span>
           <small>{filter === "ALL" ? t("creator.allWorks") : t("creator.filtered")}</small>
           <strong>{t("creator.personalizations")}</strong>
@@ -161,13 +161,13 @@ export function CreatorStudio({ navigate, back }: Props) {
       {loading ? (
         <CreatorLoadingState />
       ) : (
-        <section className="creator-r2-gallery">
+        <section className="creator-gallery">
           <AnimatePresence initial={false}>
             {visible.map((item, index) => (
               <motion.button
                 layout
                 key={item.id}
-                className={`creator-r2-card creator-r2-card--${item.type.toLowerCase()}`}
+                className={`creator-card creator-card--${item.type.toLowerCase()}`}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.98 }}
@@ -176,17 +176,17 @@ export function CreatorStudio({ navigate, back }: Props) {
                   navigate({ id: "personalization-editor", params: { personalizationId: item.id } })
                 }
               >
-                <span className="creator-r2-card__visual">
+                <span className="creator-card__visual">
                   <PersonalizationVisual item={item} small />
                 </span>
 
-                <span className="creator-r2-card__copy">
+                <span className="creator-card__copy">
                   <small>{creatorTypeLabel(t, item.type)}</small>
                   <strong>{item.name}</strong>
                   <em>{item.target === "USER" ? t("creator.forUser") : t("creator.forAccount")}</em>
                 </span>
 
-                <span className={`creator-r2-status is-${item.status.toLowerCase()}`}>
+                <span className={`creator-status is-${item.status.toLowerCase()}`}>
                   {creatorStatusLabel(t, item.status)}
                 </span>
               </motion.button>
