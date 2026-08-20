@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationBridge"
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, RootRoute, Route } from "../model"
 import { initialStack, isRootRoute } from "../navigation/routeRegistry"
 import { localizationOptions, routeKey } from "./navigation"
@@ -14,7 +14,7 @@ import { UserHubTrigger } from "./UserHubTrigger"
 
 export function AppShell() {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [userHubOpen, setUserHubOpen] = useState(
     () => new URLSearchParams(window.location.search).get("hub") === "1",
@@ -30,7 +30,7 @@ export function AppShell() {
   const current = stack[stack.length - 1]
   const notFound = current.id === "account" && current.params?.notFound === "true"
   const rootRoute = !notFound && isRootRoute(current.id) ? current.id : null
-  const activeAccount = product.activeAccount
+  const activeAccount = data.activeAccount
   const activeAccountId = activeAccount?.id ?? "none"
   const currentScrollKey = `${activeAccountId}:${routeKey(current)}`
 
@@ -84,11 +84,11 @@ export function AppShell() {
 
   useEffect(() => {
     const option = localizationOptions.find(
-      (item) => item.value === product.user.language,
+      (item) => item.value === data.user.language,
     )
 
     document.documentElement.lang = option?.htmlLang ?? "uk"
-  }, [product.user.language])
+  }, [data.user.language])
 
   const selectAccount = async (account: Account) => {
     if (
@@ -107,7 +107,7 @@ export function AppShell() {
     setSwitchingAccountId(account.id)
 
     try {
-      const switched = await product.selectAccount(account)
+      const switched = await data.selectAccount(account)
       if (switched) {
         setAccountPickerOpen(false)
       }
@@ -153,7 +153,7 @@ export function AppShell() {
                 <div className="account-root-user-entry">
                   <span className="account-root-user-entry__identity">
                     <small>{t("appShell.userMenu.userEyebrow")}</small>
-                    <strong>@{product.user.username}</strong>
+                    <strong>@{data.user.username}</strong>
                   </span>
                   {userHubTrigger}
                 </div>
@@ -177,13 +177,13 @@ export function AppShell() {
                   open={userHubOpen}
                   accountPickerOpen={accountPickerOpen}
                   activeAccount={activeAccount}
-                  accounts={product.accounts}
+                  accounts={data.accounts}
                   switchingAccountId={switchingAccountId}
-                  localization={product.user.language}
-                  username={product.user.username}
-                  prime={product.user.prime}
-                  systemRoles={product.user.systemRoles}
-                  onLocalizationChange={(language) => void product.setLanguage(language)}
+                  localization={data.user.language}
+                  username={data.user.username}
+                  prime={data.user.prime}
+                  systemRoles={data.user.systemRoles}
+                  onLocalizationChange={(language) => void data.setLanguage(language)}
                   onClose={closeUserHub}
                   onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
                   onSelectAccount={(account) => void selectAccount(account)}
