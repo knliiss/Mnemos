@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { EventFeedQuery } from "@/shared/api/productApi"
+import type { EventFeedQuery } from "@/shared/api/eventApi"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
