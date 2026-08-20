@@ -46,6 +46,7 @@ export const eventsProductRu = {
       newest: "Сначала новые",
       oldest: "Сначала старые",
       loading: "Загрузка событий",
+      loadMore: "Показать ещё",
       latest: "ПОСЛЕДНЕЕ",
       oldestFeatured: "САМОЕ СТАРОЕ",
       stream: "ЛЕНТА",
