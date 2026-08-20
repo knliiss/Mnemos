@@ -1,25 +1,12 @@
 import { MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
-import { AccountArea } from "../account/AccountArea"
 import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationBridge"
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
-import { CreatorArea } from "../creator/CreatorArea"
 import { useProductData } from "../data/ProductDataProvider"
-import { EventsArea } from "../events/EventsArea"
 import type { Account, RootRoute, Route } from "../model"
-import { featureArea, initialStack, isRootRoute } from "../navigation/routeRegistry"
-import { PeopleArea } from "../people/PeopleArea"
-import { PersonalizationArea } from "../personalization/PersonalizationArea"
-import { AdministrationHome } from "../staff/administration/AdministrationHome"
-import { ModerationArea } from "../staff/moderation/ModerationArea"
-import { StaffArea } from "../staff/StaffArea"
-import { NotFoundFeature } from "../system/NotFoundFeature"
-import { AccountAccessLanding } from "./AccountAccessLanding"
-import {
-  canRenderWithoutActiveAccount,
-  localizationOptions,
-  routeKey,
-} from "./navigation"
+import { initialStack, isRootRoute } from "../navigation/routeRegistry"
+import { localizationOptions, routeKey } from "./navigation"
+import { ProductRouteContent } from "./ProductRouteContent"
 import { RootNavigation } from "./RootNavigation"
 import { UserHubOverlay, UserHubTrigger } from "./UserHub"
 
@@ -36,7 +23,6 @@ export function ProductShell() {
   const scrollPositions = useRef<Record<string, number>>({})
 
   const current = stack[stack.length - 1]
-  const area = featureArea(current.id)
   const notFound = current.id === "account" && current.params?.notFound === "true"
   const rootRoute = !notFound && isRootRoute(current.id) ? current.id : null
   const activeAccount = product.activeAccount
@@ -93,6 +79,7 @@ export function ProductShell() {
     const option = localizationOptions.find(
       (item) => item.value === product.user.language,
     )
+
     document.documentElement.lang = option?.htmlLang ?? "uk"
   }, [product.user.language])
 
@@ -114,16 +101,6 @@ export function ProductShell() {
     setUserHubOpen(false)
     setAccountPickerOpen(false)
   }
-
-  const content = renderContent({
-    area,
-    current,
-    notFound,
-    activeAccount,
-    navigate,
-    back,
-    switchRoot,
-  })
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
@@ -156,7 +133,13 @@ export function ProductShell() {
                 )
               ) : null}
 
-              {content}
+              <ProductRouteContent
+                current={current}
+                activeAccount={activeAccount}
+                navigate={navigate}
+                back={back}
+                switchRoot={switchRoot}
+              />
             </motion.div>
 
             {rootRoute && activeAccount ? (
@@ -183,112 +166,5 @@ export function ProductShell() {
         </main>
       </ErrorNotificationProvider>
     </MotionConfig>
-  )
-}
-
-type RenderContentOptions = {
-  area: ReturnType<typeof featureArea>
-  current: Route
-  notFound: boolean
-  activeAccount: Account | null
-  navigate: (route: Route) => void
-  back: () => void
-  switchRoot: (route: RootRoute) => void
-}
-
-function renderContent({
-  area,
-  current,
-  notFound,
-  activeAccount,
-  navigate,
-  back,
-  switchRoot,
-}: RenderContentOptions) {
-  if (notFound) {
-    return (
-      <NotFoundFeature
-        requested={current.params?.requested}
-        onHome={() => switchRoot("account")}
-      />
-    )
-  }
-
-  if (!activeAccount && !canRenderWithoutActiveAccount(current)) {
-    return <AccountAccessLanding route={current} navigate={navigate} back={back} />
-  }
-
-  if (area === "events" && activeAccount) {
-    return (
-      <EventsArea
-        routeId={current.id}
-        params={current.params}
-        activeAccount={activeAccount}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
-  if (area === "account") {
-    return (
-      <AccountArea
-        routeId={current.id}
-        params={current.params}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
-  if (area === "people") {
-    return (
-      <PeopleArea
-        routeId={current.id}
-        params={current.params}
-        activeAccount={activeAccount}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
-  if (area === "personalization") {
-    return (
-      <PersonalizationArea
-        routeId={current.id}
-        params={current.params}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
-  if (area === "creator") {
-    return (
-      <CreatorArea
-        routeId={current.id}
-        params={current.params}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
-  if (current.id === "moderation") {
-    return <ModerationArea navigate={navigate} back={back} />
-  }
-
-  if (current.id === "administration") {
-    return <AdministrationHome navigate={navigate} back={back} />
-  }
-
-  return (
-    <StaffArea
-      routeId={current.id}
-      params={current.params}
-      navigate={navigate}
-      back={back}
-    />
   )
 }
