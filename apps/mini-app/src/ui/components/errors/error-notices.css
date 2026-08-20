@@ -1,0 +1,21 @@
+.error-notice__copy > small {
+  font-size: 9px;
+}
+
+.error-notice__copy > span {
+  font-size: 10px;
+}
+
+.error-notice__copy > em {
+  font-size: 9px;
+}
+
+.error-notice__close {
+  width: 32px;
+  height: 32px;
+}
+
+.error-notice__close i {
+  top: 15px;
+  left: 11px;
+}
