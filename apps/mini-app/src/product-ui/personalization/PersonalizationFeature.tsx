@@ -13,8 +13,11 @@ import {
 } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
-import { useErrorNotifications } from "../components/ErrorNotifications"
-import { PersonalizationDetails, PersonalizationVisual } from "../components/PersonalizationPreview"
+import { useErrorNotifications } from "../components/errors/ErrorNotifications"
+import {
+  PersonalizationDetails,
+  PersonalizationVisual,
+} from "../components/personalization/PersonalizationPreview"
 import { CURRENCIES, PERSONALIZATION_TYPES } from "../contracts"
 import { useProductData } from "../data/ProductDataProvider"
 import { toProductPersonalization } from "../data/personalizationMappers"
