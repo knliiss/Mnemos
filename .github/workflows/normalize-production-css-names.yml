@@ -1,11 +1,13 @@
 name: Normalize Production CSS Names
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feat/frontend-integration
     paths:
       - ".github/workflows/normalize-production-css-names.yml"
+      - "apps/mini-app/src/**"
 
 permissions:
   contents: write
