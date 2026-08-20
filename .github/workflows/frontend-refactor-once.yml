@@ -1,0 +1,187 @@
+name: Frontend refactor once
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - .github/workflows/frontend-refactor-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Normalize production mini app structure
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path("apps/mini-app/src/product-ui")
+
+          path_replacements = {
+              "components/CristalixHead": "components/profile/CristalixHead",
+              "components/EventArt": "components/events/EventArt",
+              "components/ErrorMascot": "components/errors/ErrorMascot",
+              "components/ErrorNotificationBridge": "components/errors/ErrorNotificationBridge",
+              "components/ErrorNotifications": "components/errors/ErrorNotifications",
+              "components/PersonalizationPreview": "components/personalization/PersonalizationPreview",
+              "components/RootNavIllustration": "components/navigation/RootNavIllustration",
+          }
+
+          naming_replacements = {
+              "AccountMemberManagementProduction": "AccountMemberManagement",
+              "CreatorStudioProduction": "CreatorStudio",
+              "CreatorRevenueProduction": "CreatorRevenue",
+              "CreatorEditorProduction": "CreatorEditor",
+              "events-r2-": "events-",
+              "event-r4-": "event-detail-",
+              "bets-r2-": "bets-",
+              "creator-r2-": "creator-",
+              "account-member-v4__": "account-member__",
+              "store-category-v5__": "store-category__",
+              "account-personalization-category-v5__": "account-personalization-category__",
+              "account-personalization-v5__": "account-personalization__",
+              "personalization-detail-v5__": "personalization-detail__",
+              "review-overhaul-screen": "review-screen",
+          }
+
+          source_suffixes = {".ts", ".tsx", ".css"}
+
+          for path in root.rglob("*"):
+              if not path.is_file() or path.suffix not in source_suffixes:
+                  continue
+
+              text = path.read_text()
+              updated = text
+
+              for old, new in path_replacements.items():
+                  updated = updated.replace(old, new)
+
+              for old, new in naming_replacements.items():
+                  updated = updated.replace(old, new)
+
+              if updated != text:
+                  path.write_text(updated)
+
+          duplicate_paths = [
+              root / "components/CristalixHead.tsx",
+              root / "components/ErrorMascot.tsx",
+              root / "components/ErrorNotificationBridge.tsx",
+              root / "components/ErrorNotifications.test.ts",
+              root / "components/ErrorNotifications.tsx",
+              root / "components/EventArt.tsx",
+              root / "components/PersonalizationPreview.tsx",
+              root / "components/RootNavIllustration.tsx",
+          ]
+
+          for path in duplicate_paths:
+              if path.exists():
+                  path.unlink()
+
+          forbidden_imports = [
+              "components/CristalixHead",
+              "components/EventArt",
+              "components/ErrorMascot",
+              "components/ErrorNotificationBridge",
+              "components/ErrorNotifications",
+              "components/PersonalizationPreview",
+              "components/RootNavIllustration",
+          ]
+
+          failures = []
+          historical_pattern = re.compile(
+              r"(?i)(?:^|[-_])(?:v\d+|r\d+|final|polished|overhaul|rethink|round(?:one|two|three|four|five|\d+))(?:[-_]|$)"
+          )
+          token_pattern = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+
+          for path in root.rglob("*"):
+              if not path.is_file() or path.suffix not in source_suffixes:
+                  continue
+
+              text = path.read_text()
+
+              for forbidden in forbidden_imports:
+                  if forbidden in text:
+                      failures.append(f"stale component path: {path}: {forbidden}")
+
+              for token in token_pattern.findall(text):
+                  if historical_pattern.search(token):
+                      failures.append(f"historical token: {path}: {token}")
+
+              for token in token_pattern.findall(text):
+                  if token.endswith("Production"):
+                      failures.append(f"historical production suffix: {path}: {token}")
+
+          if failures:
+              print("\n".join(sorted(set(failures))))
+              raise SystemExit(1)
+
+          print("Production mini-app structural audit passed")
+          PY
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Fix lint
+        working-directory: apps/mini-app
+        run: npm run lint -- --fix
+
+      - name: Format
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Verify formatting
+        working-directory: apps/mini-app
+        run: npm run format:check
+
+      - name: Verify lint
+        working-directory: apps/mini-app
+        run: npm run lint
+
+      - name: Test
+        working-directory: apps/mini-app
+        run: npm test -- --run
+
+      - name: Build
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Ensure no generated output is committed
+        run: rm -rf apps/mini-app/dist
+
+      - name: Remove one-time workflow and commit
+        shell: bash
+        run: |
+          rm .github/workflows/frontend-refactor-once.yml
+
+          git config user.name "knalis"
+          git config user.email "vitallot21@gmail.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "finish mini app structural cleanup"
+          git push origin HEAD:feat/frontend-integration
