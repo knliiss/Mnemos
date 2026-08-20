@@ -291,6 +291,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
         onToggleReplies={comments.toggleReplies}
         onLoadMoreReplies={comments.loadMoreReplies}
         onToggleLike={comments.toggleCommentLike}
+        onEdit={comments.editProfileComment}
         onDelete={comments.removeComment}
         onSubmit={comments.submitComment}
       />
