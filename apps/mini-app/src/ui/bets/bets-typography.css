@@ -1,0 +1,33 @@
+.bets-title small,
+.bets-wallet__label,
+.bets-feature__copy small,
+.bets-feature__odds small,
+.bets-section-head small,
+.bets-card__copy small,
+.bets-race__copy small,
+.bets-card__mine,
+.bets-race__entry small,
+.bets-sheet__event small,
+.bets-empty small {
+  font-size: 9px;
+}
+
+.bets-feature__copy em,
+.bets-card__copy em,
+.bets-race__copy em,
+.bets-sheet__event em {
+  font-size: 9px;
+}
+
+.bets-feature__mine {
+  font-size: 9px;
+}
+
+.bets-empty > button {
+  min-height: 36px;
+}
+
+.bets-side-choice button,
+.bets-mode button {
+  min-height: 40px;
+}
