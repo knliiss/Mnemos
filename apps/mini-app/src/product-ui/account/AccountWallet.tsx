@@ -5,8 +5,8 @@ import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getAccountTransactions } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
-import { CurrencyValue, PageHeader } from "../shared/Primitives"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { CurrencyValue, PageHeader } from "../shared/Primitives"
 
 type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
 
@@ -45,6 +45,7 @@ export function AccountWallet({ back }: { back: () => void }) {
         })
         .catch((error) => {
           if (!cancelled) {
+            setTransactions([])
             setLoadError(true)
             setLoadedAccountId(activeAccountId)
             handleError(error)
