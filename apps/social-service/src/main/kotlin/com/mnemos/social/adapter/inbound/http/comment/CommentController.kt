@@ -1,11 +1,14 @@
 package com.mnemos.social.adapter.inbound.http.comment
 
+import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toCommand
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toRepliesQuery
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toResponse
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toRootQuery
 import com.mnemos.social.adapter.inbound.http.common.pagination.PageResponse
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.comment.model.CommentView
 import com.mnemos.social.application.comment.usecase.create.CreateCommentUseCase
 import com.mnemos.social.application.comment.usecase.delete.DeleteCommentUseCase
 import com.mnemos.social.application.comment.usecase.edit.EditCommentUseCase
@@ -80,10 +83,13 @@ class CommentController(
         @Valid @ModelAttribute request: ListCommentsRequest,
     ): PageResponse<CommentResponse> {
         val currentUserId = actorProvider.requireUserId()
+        val page = listCommentsUseCase.listRoot(request.toRootQuery(accountId))
+        val canModerateAccount = canModerateComments(page.items, currentUserId)
 
-        return listCommentsUseCase
-            .listRoot(request.toRootQuery(accountId))
-            .toResponse(currentUserId)
+        return page.toResponse(
+            currentUserId = currentUserId,
+            canModerateAccount = canModerateAccount,
+        )
     }
 
     @GetMapping("/comments/{commentId}/replies")
@@ -93,9 +99,37 @@ class CommentController(
         @Valid @ModelAttribute request: ListCommentsRequest,
     ): PageResponse<CommentResponse> {
         val currentUserId = actorProvider.requireUserId()
+        val page = listCommentsUseCase.listReplies(request.toRepliesQuery(commentId))
+        val canModerateAccount = canModerateComments(page.items, currentUserId)
 
-        return listCommentsUseCase
-            .listReplies(request.toRepliesQuery(commentId))
-            .toResponse(currentUserId)
+        return page.toResponse(
+            currentUserId = currentUserId,
+            canModerateAccount = canModerateAccount,
+        )
+    }
+
+    private fun canModerateComments(
+        comments: List<CommentView>,
+        currentUserId: UUID,
+    ): Boolean {
+        val firstModeratableComment =
+            comments.firstOrNull { comment ->
+                comment.authorUserId != currentUserId && !comment.deleted
+            } ?: return false
+
+        if (
+            actorProvider.hasAnyUserRole(
+                UserRole.ADMIN,
+                UserRole.SUPER_ADMIN,
+            )
+        ) {
+            return true
+        }
+
+        return actorProvider.hasPermission(
+            accountId = firstModeratableComment.targetAccountId,
+            userId = currentUserId,
+            permission = RolePermission.MODERATE_COMMENTS,
+        )
     }
 }

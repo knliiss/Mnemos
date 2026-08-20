@@ -39,10 +39,21 @@ object CommentApiMapper {
             page = toPageQuery(),
         )
 
-    fun PageResult<CommentView>.toResponse(currentUserId: UUID): PageResponse<CommentResponse> =
-        toPageResponse { view -> view.toResponse(currentUserId) }
+    fun PageResult<CommentView>.toResponse(
+        currentUserId: UUID,
+        canModerateAccount: Boolean = false,
+    ): PageResponse<CommentResponse> =
+        toPageResponse { view ->
+            view.toResponse(
+                currentUserId = currentUserId,
+                canModerateAccount = canModerateAccount,
+            )
+        }
 
-    fun CommentView.toResponse(currentUserId: UUID): CommentResponse {
+    fun CommentView.toResponse(
+        currentUserId: UUID,
+        canModerateAccount: Boolean = false,
+    ): CommentResponse {
         val isAuthor = authorUserId == currentUserId
 
         return CommentResponse(
@@ -54,7 +65,7 @@ object CommentApiMapper {
             content = content,
             deleted = deleted,
             canEdit = isAuthor && !deleted,
-            canDelete = isAuthor,
+            canDelete = !deleted && (isAuthor || canModerateAccount),
             likes = likes,
             replies = replies,
             createdAt = createdAt,

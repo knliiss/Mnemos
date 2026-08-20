@@ -22,6 +22,20 @@ class CommentApiMapperTest {
     }
 
     @Test
+    fun `response exposes delete capability to an account moderator`() {
+        val view = commentView(authorUserId = UUID.randomUUID())
+
+        val response =
+            view.toResponse(
+                currentUserId = UUID.randomUUID(),
+                canModerateAccount = true,
+            )
+
+        assertFalse(response.canEdit)
+        assertTrue(response.canDelete)
+    }
+
+    @Test
     fun `response does not expose author capabilities to another user`() {
         val view = commentView(authorUserId = UUID.randomUUID())
 
@@ -31,7 +45,29 @@ class CommentApiMapperTest {
         assertFalse(response.canDelete)
     }
 
-    private fun commentView(authorUserId: UUID): CommentView {
+    @Test
+    fun `response does not expose edit or delete actions for a deleted comment`() {
+        val currentUserId = UUID.randomUUID()
+        val view =
+            commentView(
+                authorUserId = currentUserId,
+                deleted = true,
+            )
+
+        val response =
+            view.toResponse(
+                currentUserId = currentUserId,
+                canModerateAccount = true,
+            )
+
+        assertFalse(response.canEdit)
+        assertFalse(response.canDelete)
+    }
+
+    private fun commentView(
+        authorUserId: UUID,
+        deleted: Boolean = false,
+    ): CommentView {
         val now = Instant.parse("2026-08-20T12:00:00Z")
 
         return CommentView(
@@ -39,8 +75,8 @@ class CommentApiMapperTest {
             targetAccountId = UUID.randomUUID(),
             authorAccountId = UUID.randomUUID(),
             parentCommentId = null,
-            content = "Comment",
-            deleted = false,
+            content = if (deleted) null else "Comment",
+            deleted = deleted,
             likes = 0,
             replies = 0,
             createdAt = now,
