@@ -28,8 +28,8 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
       <header className="account-onboarding-header account-access-landing__header">
         <div className="account-onboarding-heading">
           <small>MNEMOS × CRISTALIX</small>
-          <h1>{t("productShell.onboarding.title")}</h1>
-          <p>{t("productShell.onboarding.description")}</p>
+          <h1>{t("appShell.onboarding.title")}</h1>
+          <p>{t("appShell.onboarding.description")}</p>
         </div>
       </header>
 
@@ -38,9 +38,9 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
         </div>
         <div className="account-onboarding-hero__copy">
-          <small>{t("productShell.onboarding.start")}</small>
-          <strong>{t("productShell.onboarding.mascotTitle")}</strong>
-          <p>{t("productShell.onboarding.mascotDescription")}</p>
+          <small>{t("appShell.onboarding.start")}</small>
+          <strong>{t("appShell.onboarding.mascotTitle")}</strong>
+          <p>{t("appShell.onboarding.mascotDescription")}</p>
         </div>
       </section>
 
@@ -52,8 +52,8 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
         >
           <span>+</span>
           <div>
-            <strong>{t("productShell.onboarding.newAccount")}</strong>
-            <small>{t("productShell.onboarding.findNickname")}</small>
+            <strong>{t("appShell.onboarding.newAccount")}</strong>
+            <small>{t("appShell.onboarding.findNickname")}</small>
           </div>
         </motion.button>
 
@@ -64,8 +64,8 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
         >
           <span>→</span>
           <div>
-            <strong>{t("productShell.onboarding.joinByCode")}</strong>
-            <small>{t("productShell.onboarding.joinTeam")}</small>
+            <strong>{t("appShell.onboarding.joinByCode")}</strong>
+            <small>{t("appShell.onboarding.joinTeam")}</small>
           </div>
         </motion.button>
       </div>
