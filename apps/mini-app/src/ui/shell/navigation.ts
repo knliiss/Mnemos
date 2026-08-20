@@ -9,11 +9,11 @@ export const rootItems: RootRoute[] = [
 ]
 
 export const rootNavigationKeys: Record<RootRoute, string> = {
-  bets: "productShell.navigation.bets",
-  events: "productShell.navigation.events",
-  account: "productShell.navigation.home",
-  search: "productShell.navigation.search",
-  "personalization-store": "productShell.navigation.store",
+  bets: "appShell.navigation.bets",
+  events: "appShell.navigation.events",
+  account: "appShell.navigation.home",
+  search: "appShell.navigation.search",
+  "personalization-store": "appShell.navigation.store",
 }
 
 export const localizationOptions: Array<{
