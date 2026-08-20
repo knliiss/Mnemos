@@ -8,7 +8,7 @@ import {
 } from "@/shared/api/accountSettingsApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { CristalixHead } from "../components/profile/CristalixHead"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
@@ -28,16 +28,16 @@ type Props = {
 export function AccountSettings({ navigate, back }: Props) {
   const { t } = useTranslation()
   const app = useApp()
-  const product = useProductData()
-  const activeAccount = product.activeAccount
+  const data = useMnemosData()
+  const activeAccount = data.activeAccount
   const contextAccount = app.context?.activeAccount ?? null
   const availableRoles = useMemo(
-    () => [...product.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
-    [product.roles],
+    () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
+    [data.roles],
   )
   const transferableMembers = useMemo(
-    () => product.members.filter((member) => !member.owner),
-    [product.members],
+    () => data.members.filter((member) => !member.owner),
+    [data.members],
   )
   const initialBaseRoleId = contextAccount?.baseRoleId ?? NO_BASE_ROLE
   const [baseRoleId, setBaseRoleId] = useState(initialBaseRoleId)
@@ -119,7 +119,7 @@ export function AccountSettings({ navigate, back }: Props) {
     try {
       await transferAccountOwnership(activeAccount.id, transferTarget.id)
       await app.refresh()
-      await product.refreshAccount()
+      await data.refreshAccount()
 
       if (mountedRef.current && accountIdRef.current === requestedAccountId) {
         setConfirmAction(null)
