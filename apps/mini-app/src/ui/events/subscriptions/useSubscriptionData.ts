@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   deleteSubscription as deleteSubscriptionRequest,
   getSubscriptions,
-} from "@/shared/api/productApi"
+} from "@/shared/api/subscriptionApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { toSubscription } from "../../data/dataMappers"
 import type { Subscription } from "../../model"
