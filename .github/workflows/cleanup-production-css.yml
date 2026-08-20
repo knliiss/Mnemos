@@ -1,4 +1,4 @@
-name: Cleanup Production CSS
+name: Audit Production CSS Naming
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 jobs:
-  cleanup:
+  audit:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,15 +25,15 @@ jobs:
           ref: feat/frontend-integration
           fetch-depth: 0
 
-      - name: Normalize revision-style CSS class names
+      - name: Build naming audit
         shell: python
         run: |
+          from collections import defaultdict
           from pathlib import Path
           import re
 
           source_root = Path("apps/mini-app/src")
-          source_extensions = {".css", ".ts", ".tsx"}
-
+          report_path = Path(".github/production-css-naming-audit.txt")
           class_pattern = re.compile(r"\.([A-Za-z_][A-Za-z0-9_-]*)")
           revision_pattern = re.compile(
               r"(?:"
@@ -43,116 +43,55 @@ jobs:
               r")(?=(?:__|--|-|$))"
           )
 
-          css_files = sorted(source_root.rglob("*.css"))
-          css_classes = set()
+          locations = defaultdict(set)
 
-          for path in css_files:
-              css_classes.update(class_pattern.findall(path.read_text(encoding="utf-8")))
+          for path in sorted(source_root.rglob("*.css")):
+              text = path.read_text(encoding="utf-8")
 
-          mapping = {}
-          for class_name in sorted(css_classes):
-              normalized = revision_pattern.sub("", class_name)
-
-              if normalized != class_name:
-                  mapping[class_name] = normalized
-
-          reverse_mapping = {}
-          collisions = []
-
-          for old_name, new_name in mapping.items():
-              existing = reverse_mapping.get(new_name)
-
-              if existing and existing != old_name:
-                  collisions.append(f"{existing} and {old_name} -> {new_name}")
-
-              if new_name in css_classes and new_name not in mapping:
-                  collisions.append(f"{old_name} -> existing class {new_name}")
-
-              reverse_mapping[new_name] = old_name
-
-          if collisions:
-              print("Unsafe normalization collisions detected:")
-              print("\n".join(collisions))
-              raise SystemExit(1)
-
-          print(f"Normalizing {len(mapping)} CSS class names")
-
-          replacements = sorted(
-              mapping.items(),
-              key=lambda item: len(item[0]),
-              reverse=True,
-          )
-          changed_files = []
-
-          for path in sorted(source_root.rglob("*")):
-              if not path.is_file() or path.suffix not in source_extensions:
-                  continue
-
-              original = path.read_text(encoding="utf-8")
-              updated = original
-
-              for old_name, new_name in replacements:
-                  token_pattern = re.compile(
-                      rf"(?<![A-Za-z0-9_-]){re.escape(old_name)}(?![A-Za-z0-9_-])"
-                  )
-                  updated = token_pattern.sub(new_name, updated)
-
-              if updated != original:
-                  path.write_text(updated, encoding="utf-8")
-                  changed_files.append(path.as_posix())
-
-          remaining = []
-
-          for path in css_files:
-              for line_number, line in enumerate(
-                  path.read_text(encoding="utf-8").splitlines(),
-                  1,
-              ):
+              for line_number, line in enumerate(text.splitlines(), 1):
                   for class_name in class_pattern.findall(line):
-                      if revision_pattern.search(class_name):
-                          remaining.append(f"{path}:{line_number}: .{class_name}")
+                      locations[class_name].add(f"{path}:{line_number}")
 
-          if remaining:
-              print("Revision-style CSS class names remain:")
-              print("\n".join(remaining[:100]))
-              raise SystemExit(1)
+          legacy_classes = sorted(
+              class_name
+              for class_name in locations
+              if revision_pattern.search(class_name)
+          )
+          candidates = {
+              class_name: revision_pattern.sub("", class_name)
+              for class_name in legacy_classes
+          }
+          reverse = defaultdict(list)
 
-          print(f"Changed {len(changed_files)} source files")
-          for path in changed_files:
-              print(path)
+          for old_name, new_name in candidates.items():
+              reverse[new_name].append(old_name)
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: apps/mini-app/.node-version
-          cache: npm
-          cache-dependency-path: apps/mini-app/package-lock.json
+          lines = [
+              f"legacy_class_count={len(legacy_classes)}",
+              "",
+          ]
 
-      - name: Install dependencies
-        working-directory: apps/mini-app
-        run: npm ci
+          for old_name in legacy_classes:
+              new_name = candidates[old_name]
+              conflicts = []
 
-      - name: Format source
-        working-directory: apps/mini-app
-        run: npm run format
+              if new_name in locations and new_name not in candidates:
+                  conflicts.append(f"existing:{new_name}")
 
-      - name: Verify production frontend
-        working-directory: apps/mini-app
-        run: npm run verify
+              if len(reverse[new_name]) > 1:
+                  conflicts.append(
+                      "mapped-by:" + ",".join(sorted(reverse[new_name]))
+                  )
 
-      - name: Ensure branch stayed unchanged
-        shell: bash
-        run: |
-          set -euo pipefail
+              status = "COLLISION " + " ".join(conflicts) if conflicts else "OK"
+              lines.append(f"{old_name} -> {new_name} [{status}]")
 
-          git fetch origin feat/frontend-integration
+              for location in sorted(locations[old_name]):
+                  lines.append(f"  {location}")
 
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/feat/frontend-integration)" ]; then
-            echo "feat/frontend-integration changed during cleanup; refusing to overwrite concurrent work"
-            exit 1
-          fi
+          report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-      - name: Commit cleanup and remove one-shot workflow
+      - name: Commit audit and remove one-shot workflow
         shell: bash
         run: |
           set -euo pipefail
@@ -161,11 +100,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- apps/mini-app/src .github/workflows/cleanup-production-css.yml
-
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-
-          git commit -m "normalize production css class names"
+          git add -- .github/production-css-naming-audit.txt .github/workflows/cleanup-production-css.yml
+          git commit -m "audit production css class naming"
           git push origin HEAD:feat/frontend-integration
