@@ -16,5 +16,7 @@ object CommentViewPersistenceMapper {
             replies = replies,
             createdAt = createdAt,
             updatedAt = updatedAt,
+            authorUserId = authorUserId,
+            replyToAuthorAccountId = replyToAuthorAccountId,
         )
 }
