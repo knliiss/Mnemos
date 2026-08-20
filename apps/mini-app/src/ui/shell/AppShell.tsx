@@ -6,6 +6,7 @@ import { ErrorNotificationProvider } from "../components/errors/ErrorNotificatio
 import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, RootRoute, Route } from "../model"
 import { initialStack, isRootRoute } from "../navigation/routeRegistry"
+import "../shared/layout.css"
 import { localizationOptions, routeKey } from "./navigation"
 import { RootNavigation } from "./RootNavigation"
 import { RouteContent } from "./RouteContent"
