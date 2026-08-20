@@ -1,6 +1,6 @@
 import type { Route } from "../model"
 import { NotFoundFeature } from "../system/NotFoundFeature"
-import { AccountHomePage } from "./AccountHomePage"
+import { AccountHome } from "./AccountHome"
 import { AccountInvites } from "./AccountInvites"
 import { AccountCreate, AccountJoin } from "./AccountOnboarding"
 import { AccountSettings } from "./AccountSettings"
@@ -18,7 +18,7 @@ type Props = {
 export function AccountArea(props: Props) {
   if (props.routeId === "account" || props.routeId === "member") {
     return (
-      <AccountHomePage
+      <AccountHome
         navigate={props.navigate}
         back={props.back}
         initialMemberId={props.routeId === "member" ? (props.params?.memberId ?? null) : null}
