@@ -3,7 +3,7 @@ import { FormEvent, PointerEvent, useEffect, useRef, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
-import { currentUser, feed, initialComments, profiles } from "../mockData"
+import { feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
@@ -73,7 +73,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
     {
       id: "comment-me",
       authorAccountId: activeAccount.id,
-      author: currentUser.username,
+      author: activeAccount.nickname,
       content: "Перевірив — профіль виглядає нормально.",
       likes: 2,
       replies: 0,
@@ -139,7 +139,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           parentCommentId: parentId,
           replyToAuthor: replyingTo.author,
           authorAccountId: activeAccount.id,
-          author: currentUser.username,
+          author: activeAccount.nickname,
           content,
           likes: 0,
           createdAt: "зараз",
@@ -153,7 +153,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
         {
           id: `comment-${Date.now()}`,
           authorAccountId: activeAccount.id,
-          author: currentUser.username,
+          author: activeAccount.nickname,
           content,
           likes: 0,
           replies: 0,
@@ -615,7 +615,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                 </AnimatePresence>
 
                 <form className="public-profile-composer" onSubmit={submit}>
-                  <CommentAvatar author={currentUser.username} compact />
+                  <CommentAvatar author={activeAccount.nickname} compact />
 
                   <input
                     ref={composerInputRef}
