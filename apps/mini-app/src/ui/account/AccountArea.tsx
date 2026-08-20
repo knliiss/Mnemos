@@ -10,6 +10,7 @@ import { AccountWallet } from "./AccountWallet"
 import "./account-home.css"
 import "./account-management-typography.css"
 import "./account-onboarding.css"
+import "./roles.css"
 import { RoleEditor } from "./RoleEditor"
 import { RolesOverview } from "./RolesOverview"
 
