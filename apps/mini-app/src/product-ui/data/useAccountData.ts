@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import {
   claimDailyReward,
@@ -32,8 +32,11 @@ export function useAccountData(accountId: string | undefined): AccountData {
   const [accountCoin, setAccountCoin] = useState(0)
   const [prime, setPrime] = useState(0)
   const [loadingAccount, setLoadingAccount] = useState(false)
+  const requestRevision = useRef(0)
 
   const refreshAccount = useCallback(async () => {
+    const revision = requestRevision.current + 1
+    requestRevision.current = revision
     setLoadingAccount(true)
 
     try {
@@ -41,6 +44,10 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
       if (!accountId) {
         const userBalances = await userBalancesPromise
+
+        if (revision !== requestRevision.current) {
+          return
+        }
 
         setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
         setMembers([])
@@ -59,15 +66,23 @@ export function useAccountData(accountId: string | undefined): AccountData {
           userBalancesPromise,
         ])
 
+      if (revision !== requestRevision.current) {
+        return
+      }
+
       setMembers(memberResponses.map((member) => toProductMember(member)))
       setRoles(roleResponses.map(toProductRole))
       setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
       setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
       setDailyReward(rewardState)
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        handleError(error)
+      }
     } finally {
-      setLoadingAccount(false)
+      if (revision === requestRevision.current) {
+        setLoadingAccount(false)
+      }
     }
   }, [accountId])
 
