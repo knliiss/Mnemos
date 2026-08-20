@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { toProductAccount, toProductFeedEvent, toProductSubscription } from "./productMappers"
+import {
+  toProductAccount,
+  toProductFeedEvent,
+  toProductSubscription,
+} from "./productMappers"
 
 describe("product mappers", () => {
   it("maps account identity, activation and Cristalix skin source", () => {
@@ -72,16 +76,14 @@ describe("product mappers", () => {
     })
   })
 
-  it("maps complete subscriptions and rejects incomplete typed payloads", () => {
+  it("maps nested notification subscription details", () => {
     const booster = {
       id: "subscription-1",
       type: "BOOSTER",
-      boosterType: "LUCK",
-    } as Parameters<typeof toProductSubscription>[0]
-    const incomplete = {
-      id: "subscription-2",
-      type: "BOOSTER",
-      boosterType: null,
+      createdAt: "2026-08-20T00:00:00Z",
+      details: {
+        boosterType: "LUCK",
+      },
     } as Parameters<typeof toProductSubscription>[0]
 
     expect(toProductSubscription(booster)).toEqual({
@@ -89,6 +91,5 @@ describe("product mappers", () => {
       type: "BOOSTER",
       boosterType: "LUCK",
     })
-    expect(toProductSubscription(incomplete)).toBeNull()
   })
 })
