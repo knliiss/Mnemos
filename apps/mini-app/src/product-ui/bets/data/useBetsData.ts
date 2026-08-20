@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   listEventBetRounds,
   listItemRaces,
@@ -18,13 +18,26 @@ type BetsData = {
   refresh(): Promise<void>
 }
 
-export function useBetsData(refreshAccount: () => Promise<void>): BetsData {
+export function useBetsData(
+  activeAccountId: string,
+  refreshAccount: () => Promise<void>,
+): BetsData {
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [positions, setPositions] = useState<ItemRaceParticipantResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const requestRevision = useRef(0)
+  const accountIdRef = useRef(activeAccountId)
+
+  accountIdRef.current = activeAccountId
 
   const refresh = useCallback(async () => {
+    const requestedAccountId = accountIdRef.current
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
+    setLoading(true)
+
     try {
       const [roundResponses, raceResponses, positionResponses] = await Promise.all([
         listEventBetRounds(),
@@ -32,13 +45,24 @@ export function useBetsData(refreshAccount: () => Promise<void>): BetsData {
         listMyItemRacePositions(),
       ])
 
+      if (
+        revision !== requestRevision.current ||
+        accountIdRef.current !== requestedAccountId
+      ) {
+        return
+      }
+
       setRounds(roundResponses)
       setRaces(raceResponses)
       setPositions(positionResponses)
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -48,7 +72,7 @@ export function useBetsData(refreshAccount: () => Promise<void>): BetsData {
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [refresh])
+  }, [activeAccountId, refresh])
 
   useEffect(() => {
     return realtimeEvents.subscribe((event) => {
