@@ -28,7 +28,6 @@ jobs:
           import re
 
           source_root = Path("apps/mini-app/src")
-          product_css = source_root / "product-ui/product.css"
           source_extensions = {".css", ".ts", ".tsx"}
 
           class_pattern = re.compile(r"\.([A-Za-z_][A-Za-z0-9_-]*)")
@@ -40,8 +39,11 @@ jobs:
               r")(?=(?:__|--|-|$))"
           )
 
-          css = product_css.read_text(encoding="utf-8")
-          css_classes = set(class_pattern.findall(css))
+          css_files = sorted(source_root.rglob("*.css"))
+          css_classes = set()
+
+          for path in css_files:
+              css_classes.update(class_pattern.findall(path.read_text(encoding="utf-8")))
 
           mapping = {}
           for class_name in sorted(css_classes):
@@ -51,36 +53,36 @@ jobs:
                   mapping[class_name] = normalized
 
           reverse_mapping = {}
+          collisions = []
+
           for old_name, new_name in mapping.items():
               existing = reverse_mapping.get(new_name)
 
               if existing and existing != old_name:
-                  raise SystemExit(
-                      f"Normalization collision: {existing} and {old_name} -> {new_name}"
+                  collisions.append(
+                      f"{existing} and {old_name} -> {new_name}"
+                  )
+
+              if new_name in css_classes and new_name not in mapping:
+                  collisions.append(
+                      f"{old_name} -> existing class {new_name}"
                   )
 
               reverse_mapping[new_name] = old_name
 
-              if new_name in css_classes and new_name not in mapping:
-                  raise SystemExit(
-                      f"Normalization would collide with existing class: {old_name} -> {new_name}"
-                  )
+          if collisions:
+              print("Unsafe normalization collisions detected:")
+              print("\n".join(collisions))
+              raise SystemExit(1)
 
-          if not mapping:
-              print("No revision-style CSS class names found")
-          else:
-              print(f"Normalizing {len(mapping)} CSS class names")
-
-              for old_name, new_name in mapping.items():
-                  print(f"{old_name} -> {new_name}")
-
-          changed_files = []
+          print(f"Normalizing {len(mapping)} CSS class names")
 
           replacements = sorted(
               mapping.items(),
               key=lambda item: len(item[0]),
               reverse=True,
           )
+          changed_files = []
 
           for path in sorted(source_root.rglob("*")):
               if not path.is_file() or path.suffix not in source_extensions:
@@ -90,7 +92,10 @@ jobs:
               updated = original
 
               for old_name, new_name in replacements:
-                  updated = updated.replace(old_name, new_name)
+                  token_pattern = re.compile(
+                      rf"(?<![A-Za-z0-9_-]){re.escape(old_name)}(?![A-Za-z0-9_-])"
+                  )
+                  updated = token_pattern.sub(new_name, updated)
 
               if updated != original:
                   path.write_text(updated, encoding="utf-8")
@@ -98,13 +103,11 @@ jobs:
 
           remaining = []
 
-          for path in sorted(source_root.rglob("*")):
-              if not path.is_file() or path.suffix not in source_extensions:
-                  continue
-
-              text = path.read_text(encoding="utf-8")
-
-              for line_number, line in enumerate(text.splitlines(), 1):
+          for path in css_files:
+              for line_number, line in enumerate(
+                  path.read_text(encoding="utf-8").splitlines(),
+                  1,
+              ):
                   for class_name in class_pattern.findall(line):
                       if revision_pattern.search(class_name):
                           remaining.append(
@@ -117,6 +120,8 @@ jobs:
               raise SystemExit(1)
 
           print(f"Changed {len(changed_files)} source files")
+          for path in changed_files:
+              print(path)
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -136,6 +141,18 @@ jobs:
       - name: Verify production frontend
         working-directory: apps/mini-app
         run: npm run verify
+
+      - name: Ensure branch stayed unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch origin feat/frontend-integration
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/feat/frontend-integration)" ]; then
+            echo "feat/frontend-integration changed during cleanup; refusing to overwrite concurrent work"
+            exit 1
+          fi
 
       - name: Commit cleanup and remove one-shot workflow
         shell: bash
