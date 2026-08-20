@@ -49,7 +49,10 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
     return (
       <div className="screen public-profile-screen">
         <PageHeader title={t("people.profile.title")} back={back} />
-        <div className="events-r2-loading" aria-label={t("people.profile.loading")}>
+        <div
+          className="public-profile-state public-profile-state--loading"
+          aria-label={t("people.profile.loading")}
+        >
           <i />
           <i />
           <i />
@@ -62,7 +65,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
     return (
       <div className="screen public-profile-screen">
         <PageHeader title={t("people.profile.title")} back={back} />
-        <section className="events-r2-empty">
+        <section className="public-profile-state">
           <Glyph name="profile-mark" size={24} />
           <strong>{t("people.profile.notFoundTitle")}</strong>
           <small>{t("people.profile.notFoundCopy")}</small>
@@ -199,7 +202,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
           ))}
 
           {!drops.length ? (
-            <div className="events-r2-empty">
+            <div className="public-profile-state public-profile-state--compact">
               <Glyph name="item-drop" size={22} />
               <strong>{t("people.profile.noDrops")}</strong>
             </div>
