@@ -57,7 +57,7 @@ export function PersonalizationDetail({
     <div className="screen personalization-detail-screen">
       <PageHeader title={item.name} back={back} />
 
-      <section className="personalization-detail-v5__hero">
+      <section className="personalization-detail-hero">
         <PersonalizationVisual item={item} detail />
         <span>
           <small>
@@ -70,7 +70,7 @@ export function PersonalizationDetail({
 
       <PersonalizationDetails item={item} />
 
-      <section className="personalization-detail-v5__purchase">
+      <section className="personalization-detail-purchase">
         <span>
           <small>
             {item.owned
