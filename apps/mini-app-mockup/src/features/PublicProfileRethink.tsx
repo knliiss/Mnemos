@@ -3,7 +3,7 @@ import { FormEvent, PointerEvent, useEffect, useRef, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
-import { currentUser, feed, initialComments, profiles } from "../mockData"
+import { feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
@@ -16,13 +16,17 @@ type Props = {
   back: () => void
 }
 
+type ThreadComment = ProfileComment & {
+  canDelete?: boolean
+}
+
 type ProfileReply = {
   id: string
   parentCommentId: string
   replyToAuthor?: string
   authorAccountId: string
   author: string
-  createdByUserId: string
+  canDelete: boolean
   content: string
   likes: number
   createdAt: string
@@ -44,7 +48,7 @@ const initialReplies: ProfileReply[] = [
     parentCommentId: "comment-1",
     authorAccountId: "profile-vex",
     author: "vex",
-    createdByUserId: "0198f6ce-e934-7000-8000-000000000033",
+    canDelete: false,
     content: "Та ще й без довгого фарму перед цим.",
     likes: 4,
     createdAt: "12 хв",
@@ -56,7 +60,7 @@ const initialReplies: ProfileReply[] = [
     replyToAuthor: "vex",
     authorAccountId: "profile-north",
     author: "north",
-    createdByUserId: "0198f6ce-e934-7000-8000-000000000034",
+    canDelete: false,
     content: "Саме тому й запамʼятався.",
     likes: 2,
     createdAt: "9 хв",
@@ -76,12 +80,12 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   const composerInputRef = useRef<HTMLInputElement>(null)
   const commentsScrollRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
-  const [comments, setComments] = useState<ProfileComment[]>([
+  const [comments, setComments] = useState<ThreadComment[]>([
     {
       id: "comment-me",
       authorAccountId: activeAccount.id,
       author: activeAccount.nickname,
-      createdByUserId: currentUser.id,
+      canDelete: true,
       content: "Перевірив — профіль виглядає нормально.",
       likes: 2,
       replies: 0,
@@ -148,7 +152,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           replyToAuthor: replyingTo.author,
           authorAccountId: activeAccount.id,
           author: activeAccount.nickname,
-          createdByUserId: currentUser.id,
+          canDelete: true,
           content,
           likes: 0,
           createdAt: "зараз",
@@ -167,7 +171,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           id: `comment-${Date.now()}`,
           authorAccountId: activeAccount.id,
           author: activeAccount.nickname,
-          createdByUserId: currentUser.id,
+          canDelete: true,
           content,
           likes: 0,
           replies: 0,
@@ -250,7 +254,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   const deleteComment = (commentId: string) => {
     const comment = comments.find((item) => item.id === commentId)
 
-    if (!comment || comment.createdByUserId !== currentUser.id) {
+    if (!comment || !comment.canDelete) {
       return
     }
 
@@ -275,7 +279,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   const deleteReply = (replyId: string) => {
     const reply = replies.find((item) => item.id === replyId)
 
-    if (!reply || reply.createdByUserId !== currentUser.id) {
+    if (!reply || !reply.canDelete) {
       return
     }
 
@@ -596,7 +600,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                               <span>{comment.likes || ""}</span>
                             </button>
 
-                            {comment.createdByUserId === currentUser.id ? (
+                            {comment.canDelete ? (
                               <button
                                 type="button"
                                 className="public-profile-comment__delete"
@@ -664,7 +668,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                                       <span>{reply.likes || ""}</span>
                                     </button>
 
-                                    {reply.createdByUserId === currentUser.id ? (
+                                    {reply.canDelete ? (
                                       <button
                                         type="button"
                                         className="public-profile-reply__delete"

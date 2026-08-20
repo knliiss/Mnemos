@@ -219,8 +219,8 @@ export const profiles: PublicProfile[] = [
 ]
 
 export const initialComments: ProfileComment[] = [
-  { id: "comment-1", authorAccountId: "profile-north", author: "north", content: "Останній дроп виглядає сильно.", likes: 14, replies: 2, createdAt: "18 хв", liked: false, createdByUserId: "0198f6ce-e934-7000-8000-000000000031" },
-  { id: "comment-2", authorAccountId: "profile-vex", author: "vex", content: "Міфік за один вечір — це вже статистика.", likes: 8, replies: 0, createdAt: "1 год", liked: true, createdByUserId: "0198f6ce-e934-7000-8000-000000000032" },
+  { id: "comment-1", authorAccountId: "profile-north", author: "north", content: "Останній дроп виглядає сильно.", likes: 14, replies: 2, createdAt: "18 хв", liked: false },
+  { id: "comment-2", authorAccountId: "profile-vex", author: "vex", content: "Міфік за один вечір — це вже статистика.", likes: 8, replies: 0, createdAt: "1 год", liked: true },
 ]
 
 export const permissionGroups: { label: string; permissions: RolePermission[] }[] = [
