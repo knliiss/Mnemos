@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react"
 import { i18n } from "@/shared/i18n"
-import { useProductData } from "./ProductDataProvider"
+import { useMnemosData } from "./MnemosDataProvider"
 
 const languageCodes = {
   UK: "uk",
@@ -9,8 +9,8 @@ const languageCodes = {
 } as const
 
 export function LanguageSync({ children }: { children: ReactNode }) {
-  const product = useProductData()
-  const language = languageCodes[product.user.language]
+  const data = useMnemosData()
+  const language = languageCodes[data.user.language]
 
   useEffect(() => {
     document.documentElement.lang = language
