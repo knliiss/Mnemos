@@ -1,6 +1,6 @@
 import { accountProductUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
-import { betsProductUk } from "./bets/uk"
+import { betsUk } from "./bets/uk"
 import { creatorProductUk } from "./creator/uk"
 import { eventsProductUk } from "./events/uk"
 import { peopleProductUk } from "./people/uk"
@@ -164,7 +164,7 @@ export const uiUk = {
     owned: "ОТРИМАНО",
   },
   ...accountProductUk,
-  ...betsProductUk,
+  ...betsUk,
   ...creatorProductUk,
   ...eventsProductUk,
   ...peopleProductUk,
