@@ -17,6 +17,7 @@ object CommentApiMapper {
         CreateCommentCommand(
             targetAccountId = accountId,
             parentCommentId = parentCommentId?.let(::CommentId),
+            replyToCommentId = replyToCommentId?.let(::CommentId),
             content = content,
         )
 
@@ -38,16 +39,19 @@ object CommentApiMapper {
             page = toPageQuery(),
         )
 
-    fun PageResult<CommentView>.toResponse(): PageResponse<CommentResponse> = toPageResponse { view -> view.toResponse() }
+    fun PageResult<CommentView>.toResponse(currentUserId: UUID): PageResponse<CommentResponse> =
+        toPageResponse { view -> view.toResponse(currentUserId) }
 
-    fun CommentView.toResponse(): CommentResponse =
+    fun CommentView.toResponse(currentUserId: UUID): CommentResponse =
         CommentResponse(
             id = id.id,
             targetAccountId = targetAccountId,
             authorAccountId = authorAccountId,
             parentCommentId = parentCommentId?.id,
+            replyToAuthorAccountId = replyToAuthorAccountId,
             content = content,
             deleted = deleted,
+            canDelete = authorUserId == currentUserId,
             likes = likes,
             replies = replies,
             createdAt = createdAt,
