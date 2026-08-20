@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useApp } from "@/app/providers/AppProvider"
 import {
@@ -45,19 +45,15 @@ export function AccountSettings({ navigate, back }: Props) {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
-    if (transferableMembers.some((member) => member.id === transferTo)) {
-      return
-    }
-
-    setTransferTo(transferableMembers[0]?.id ?? "")
-  }, [transferTo, transferableMembers])
-
   if (!activeAccount) {
     return null
   }
 
-  const transferTarget = transferableMembers.find((member) => member.id === transferTo) ?? null
+  const selectedTransferId = transferableMembers.some((member) => member.id === transferTo)
+    ? transferTo
+    : (transferableMembers[0]?.id ?? "")
+  const transferTarget =
+    transferableMembers.find((member) => member.id === selectedTransferId) ?? null
   const roleChanged = baseRoleId !== savedRoleId
 
   const saveBaseRole = async () => {
@@ -219,7 +215,7 @@ export function AccountSettings({ navigate, back }: Props) {
       {activeAccount.owner ? (
         <AccountOwnershipSettings
           members={transferableMembers}
-          selectedMemberId={transferTo}
+          selectedMemberId={selectedTransferId}
           confirmOpen={confirmAction === "TRANSFER"}
           busy={busy}
           onMemberChange={setTransferTo}
