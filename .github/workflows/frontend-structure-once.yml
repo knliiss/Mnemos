@@ -1,0 +1,226 @@
+name: Frontend structure once
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - .github/workflows/frontend-structure-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Refactor production frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+
+          root = Path("apps/mini-app")
+          src = root / "src"
+          product = src / "product-ui"
+
+          moves = {
+              product / "staff/AdministrationHome.tsx": product / "staff/administration/AdministrationHome.tsx",
+              product / "staff/BadgeAdmin.tsx": product / "staff/badges/BadgeAdmin.tsx",
+              product / "staff/BetAdmin.tsx": product / "staff/bets/BetAdmin.tsx",
+              product / "staff/ModerationArea.tsx": product / "staff/moderation/ModerationArea.tsx",
+              product / "staff/ModerationFeature.tsx": product / "staff/moderation/ModerationFeature.tsx",
+              product / "staff/PersonalizationReview.tsx": product / "staff/personalization/PersonalizationReview.tsx",
+          }
+
+          for old, new in moves.items():
+              if not old.exists():
+                  continue
+
+              text = old.read_text()
+              text = re.sub(
+                  r'(?P<prefix>(?:from\s+|import\()\s*["\'])(?P<path>\.\./[^"\']+)',
+                  lambda match: f'{match.group("prefix")}../{match.group("path")}',
+                  text,
+              )
+
+              new.parent.mkdir(parents=True, exist_ok=True)
+              new.write_text(text)
+              old.unlink()
+
+          staff_area = product / "staff/StaffArea.tsx"
+          text = staff_area.read_text()
+          text = text.replace('import("./BadgeAdmin")', 'import("./badges/BadgeAdmin")')
+          text = text.replace('import("./BetAdmin")', 'import("./bets/BetAdmin")')
+          text = text.replace('import("./ModerationFeature")', 'import("./moderation/ModerationFeature")')
+          text = text.replace(
+              'import("./PersonalizationReview")',
+              'import("./personalization/PersonalizationReview")',
+          )
+          staff_area.write_text(text)
+
+          product_shell = product / "shell/ProductShell.tsx"
+          text = product_shell.read_text()
+          text = text.replace(
+              'from "../staff/AdministrationHome"',
+              'from "../staff/administration/AdministrationHome"',
+          )
+          text = text.replace(
+              'from "../staff/ModerationArea"',
+              'from "../staff/moderation/ModerationArea"',
+          )
+          product_shell.write_text(text)
+
+          text_extensions = {".ts", ".tsx", ".css"}
+          for path in src.rglob("*"):
+              if not path.is_file() or path.suffix not in text_extensions:
+                  continue
+
+              text = path.read_text()
+
+              # Revision labels must never become part of production identifiers or CSS classes.
+              text = re.sub(r"-(?:r|v)\d+-", "-", text, flags=re.IGNORECASE)
+              text = re.sub(r"-(?:r|v)\d+__", "__", text, flags=re.IGNORECASE)
+              text = re.sub(r"-(?:overhaul|polished|rethink|final)-", "-", text, flags=re.IGNORECASE)
+              text = re.sub(
+                  r"\b([A-Za-z][A-Za-z0-9]*?)(?:Production|Overhaul|Polished|Rethink|RoundFour|Final)\b",
+                  r"\1",
+                  text,
+              )
+              text = text.replace(
+                  'className="screen administration-home-screen administration-home-screen"',
+                  'className="screen administration-home-screen"',
+              )
+
+              path.write_text(text)
+
+          package_json = root / "package.json"
+          package_text = package_json.read_text().replace(
+              '"*.{js,json,ts,html,md}"',
+              '"*.{js,json,ts,html}"',
+          )
+          package_json.write_text(package_text)
+
+          old_staff_paths = [str(path) for path in moves if path.exists()]
+          if old_staff_paths:
+              raise SystemExit("Old staff files still exist: " + ", ".join(old_staff_paths))
+
+          components = product / "components"
+          root_component_files = [path for path in components.iterdir() if path.is_file()]
+          if root_component_files:
+              raise SystemExit(
+                  "Files remain directly in product-ui/components: "
+                  + ", ".join(str(path) for path in root_component_files)
+              )
+
+          historical = []
+          historical_pattern = re.compile(
+              r"-(?:r|v)\d+(?:-|__)|-(?:overhaul|polished|rethink|final)-|\b[A-Za-z][A-Za-z0-9]*(?:Production|Overhaul|Polished|Rethink|RoundFour|Final)\b",
+              re.IGNORECASE,
+          )
+          for path in src.rglob("*"):
+              if not path.is_file() or path.suffix not in text_extensions:
+                  continue
+              for line_number, line in enumerate(path.read_text().splitlines(), start=1):
+                  if historical_pattern.search(line):
+                      historical.append(f"{path}:{line_number}: {line.strip()}")
+
+          if historical:
+              print("Historical production naming remains:")
+              print("\n".join(historical[:100]))
+              raise SystemExit(1)
+
+          forbidden_names = []
+          for path in src.rglob("*"):
+              if not path.is_file():
+                  continue
+              lowered = path.name.lower()
+              if "mockdata" in lowered or "mockstore" in lowered:
+                  forbidden_names.append(str(path))
+
+          if forbidden_names:
+              raise SystemExit("Production mock fixture files remain: " + ", ".join(forbidden_names))
+
+          hashes = {}
+          for path in src.rglob("*"):
+              if not path.is_file() or path.suffix not in {".ts", ".tsx"}:
+                  continue
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              hashes.setdefault(digest, []).append(path)
+
+          duplicates = [paths for paths in hashes.values() if len(paths) > 1]
+          if duplicates:
+              print("Byte-identical TypeScript source files remain:")
+              for paths in duplicates:
+                  print("  " + ", ".join(str(path) for path in paths))
+              raise SystemExit(1)
+
+          print("Production frontend structural audit passed")
+          PY
+
+      - name: Setup Node 25.9.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.9.0
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Audit dependencies
+        working-directory: apps/mini-app
+        run: npm audit --audit-level=high
+
+      - name: Format
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Lint
+        working-directory: apps/mini-app
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: apps/mini-app
+        run: npm run format:check
+
+      - name: Test
+        working-directory: apps/mini-app
+        run: npm test
+
+      - name: Build
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Check bundle budgets
+        working-directory: apps/mini-app
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(find dist/assets -type f -name '*.js' -size +500k -print)"
+          test -z "$(find dist/assets -type f -name '*.css' -size +450k -print)"
+
+      - name: Commit verified refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf apps/mini-app/dist
+          rm -f .github/workflows/frontend-structure-once.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "finalize production frontend structure"
+          git push origin HEAD:feat/frontend-integration
