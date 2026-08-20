@@ -8,7 +8,7 @@ type Props = {
 }
 
 const ModerationHome = lazy(() =>
-  import("./ModerationFeature").then((module) => ({
+  import("./ModerationHome").then((module) => ({
     default: module.ModerationHome,
   })),
 )
