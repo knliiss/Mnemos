@@ -1,4 +1,13 @@
 .account-home-profile__copy > small,
+.account-home-reward__copy > small,
+.account-home-feature-copy > small,
+.account-home-panel__head small {
+  font-family: var(--font-meta);
+  font-weight: 600;
+  letter-spacing: 0.115em;
+}
+
+.account-home-profile__copy > small,
 .account-home-feature-copy > small,
 .account-home-actions small,
 .account-home-panel__head small,
@@ -6,6 +15,15 @@
 .account-home-member__no-role,
 .account-home-drop__copy small {
   font-size: 9px;
+}
+
+.account-home-panel__head em,
+.account-home-reward__range,
+.account-home-member__role > small,
+.account-home-member__no-role {
+  font-family: var(--font-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
 }
 
 .account-home-member time,
