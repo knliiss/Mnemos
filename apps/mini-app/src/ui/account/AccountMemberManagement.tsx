@@ -6,7 +6,7 @@ import {
   getMemberRoles,
   kickAccountMember,
   revokeMemberRole,
-} from "@/shared/api/productApi"
+} from "@/shared/api/accountApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { AccountRole, Member } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
