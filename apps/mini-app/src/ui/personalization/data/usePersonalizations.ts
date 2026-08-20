@@ -21,9 +21,9 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { useErrorNotifications } from "../../components/errors/ErrorNotifications"
 import { PERSONALIZATION_TYPES } from "../../contracts"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Personalization } from "../../model"
-import { toProductPersonalization } from "./personalizationMappers"
+import { toPersonalization } from "./personalizationMappers"
 
 type PersonalizationData = {
   items: Personalization[]
@@ -52,7 +52,7 @@ const purchasePollIntervalMs = 900
 
 export function usePersonalizations(): PersonalizationData {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const errors = useErrorNotifications()
   const [items, setItems] = useState<Personalization[]>([])
   const [itemsScopeKey, setItemsScopeKey] = useState<string | null>(null)
@@ -67,10 +67,10 @@ export function usePersonalizations(): PersonalizationData {
   const latestRefreshAccountRef = useRef<() => Promise<void>>(async () => undefined)
   const mountedRef = useRef(true)
 
-  const userId = product.user.id
-  const username = product.user.username
-  const activeAccountId = product.activeAccount?.id ?? null
-  const refreshAccount = product.refreshAccount
+  const userId = data.user.id
+  const username = data.user.username
+  const activeAccountId = data.activeAccount?.id ?? null
+  const refreshAccount = data.refreshAccount
   const scopeKey = `${userId}:${activeAccountId ?? "none"}`
   const userBusyScopeKey = `user:${userId}`
   const scopeKeyRef = useRef(scopeKey)
@@ -148,7 +148,7 @@ export function usePersonalizations(): PersonalizationData {
       }
 
       const mappedItems = [...responsesById.values()].map((response) =>
-        toProductPersonalization(
+        toPersonalization(
           response,
           ownedById.get(response.id) ?? null,
           userId,
