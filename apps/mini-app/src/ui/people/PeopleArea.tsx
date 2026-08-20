@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react"
 import type { Account, Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
+import "./people-wallet-typography.css"
 import { PublicProfilePage } from "./profile/PublicProfilePage"
 import { SearchPage } from "./profile/SearchPage"
 import "./profile/profile-state.css"
