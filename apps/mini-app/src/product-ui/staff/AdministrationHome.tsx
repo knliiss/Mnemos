@@ -50,7 +50,7 @@ export function AdministrationHome({
   }, [])
 
   return (
-    <div className="screen administration-home-screen administration-home-screen">
+    <div className="screen administration-home-screen">
       <PageHeader title={t("administration.title")} back={back} />
 
       <section className="workspace-intro workspace-intro--admin">
