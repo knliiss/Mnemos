@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react"
 import type { Route } from "../model"
-import { FeatureLoading } from "./FeatureLoading"
-import { NotFoundFeature } from "./NotFoundFeature"
+import { FeatureLoading } from "../system/FeatureLoading"
+import { NotFoundFeature } from "../system/NotFoundFeature"
 
 type Props = {
   routeId: Route["id"]
@@ -47,7 +47,10 @@ export function StaffArea(props: Props) {
     content = <BadgeAdmin back={props.back} />
   } else {
     return (
-      <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
+      <NotFoundFeature
+        requested={props.routeId}
+        onHome={() => props.navigate({ id: "account" })}
+      />
     )
   }
 
