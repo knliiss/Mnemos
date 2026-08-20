@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { EventFeedQuery } from "@/shared/api/productApi"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
 import type { Account, EventKind, ItemRarity, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
@@ -40,7 +40,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     loadMoreEvents,
     refreshEvents,
     subscriptions,
-  } = useProductData()
+  } = useMnemosData()
   const [filter, setFilter] = useState<EventFilter>("ALL")
   const [rarity, setRarity] = useState<ItemRarityFilter>("ALL")
   const [query, setQuery] = useState("")
@@ -232,49 +232,55 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </motion.button>
       ) : null}
 
-      {!eventsError ? <header className="events-feed-section-head">
-        <span>
-          <small>{t("events.feed.stream")}</small>
-          <strong>{t("events.feed.eventCount", { count: feed.length })}</strong>
-        </span>
-        <i className={loadingEvents ? "is-loading" : ""} />
-      </header> : null}
+      {!eventsError ? (
+        <header className="events-feed-section-head">
+          <span>
+            <small>{t("events.feed.stream")}</small>
+            <strong>{t("events.feed.eventCount", { count: feed.length })}</strong>
+          </span>
+          <i className={loadingEvents ? "is-loading" : ""} />
+        </header>
+      ) : null}
 
-      {!eventsError ? <section className="events-feed-stream">
-        <AnimatePresence initial={false}>
-          {rest.map((event, index) => (
-            <motion.button
-              layout
-              type="button"
-              key={event.id}
-              className={`events-feed-row event-surface--${eventVisualTone(event)}`}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.985 }}
-              transition={{ delay: Math.min(index * 0.02, 0.08) }}
-              onClick={() =>
-                navigate({
-                  id: "event-detail",
-                  params: { eventId: event.id },
-                })
-              }
-            >
-              <span className="events-feed-row__art">
-                <EventArt event={event} size={48} />
-              </span>
+      {!eventsError ? (
+        <section className="events-feed-stream">
+          <AnimatePresence initial={false}>
+            {rest.map((event, index) => (
+              <motion.button
+                layout
+                type="button"
+                key={event.id}
+                className={`events-feed-row event-surface--${eventVisualTone(event)}`}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.985 }}
+                transition={{ delay: Math.min(index * 0.02, 0.08) }}
+                onClick={() =>
+                  navigate({
+                    id: "event-detail",
+                    params: { eventId: event.id },
+                  })
+                }
+              >
+                <span className="events-feed-row__art">
+                  <EventArt event={event} size={48} />
+                </span>
 
-              <span className="events-feed-row__copy">
-                <small>{eventKindLabel(t, event.kind)}</small>
-                <strong>{eventTitle(t, event)}</strong>
-                <em>{eventFeedDescription(t, event)}</em>
-              </span>
+                <span className="events-feed-row__copy">
+                  <small>{eventKindLabel(t, event.kind)}</small>
+                  <strong>{eventTitle(t, event)}</strong>
+                  <em>{eventFeedDescription(t, event)}</em>
+                </span>
 
-              <span className="events-feed-row__time">{formatOccurredAt(event.occurredAt, locale)}</span>
-              <span className="events-feed-row__edge" />
-            </motion.button>
-          ))}
-        </AnimatePresence>
-      </section> : null}
+                <span className="events-feed-row__time">
+                  {formatOccurredAt(event.occurredAt, locale)}
+                </span>
+                <span className="events-feed-row__edge" />
+              </motion.button>
+            ))}
+          </AnimatePresence>
+        </section>
+      ) : null}
 
       {!eventsError && eventsHasMore ? (
         <motion.button
