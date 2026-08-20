@@ -1,0 +1,75 @@
+.bet-admin-form-block {
+  padding: 12px;
+  border: 1px solid var(--staff-line, rgba(223, 232, 204, 0.105));
+  border-radius: 20px;
+  background: rgba(14, 17, 12, 0.88);
+}
+
+.bet-admin-form-block > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.bet-admin-form-block > header small {
+  color: #9da28f;
+  font-size: 7.5px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+}
+
+.bet-admin-form-block > header strong {
+  color: #dfe2da;
+  font-size: 12px;
+}
+
+.bet-admin-form-block .field {
+  margin-top: 9px;
+}
+
+.bet-admin-form-block .field > span:first-child,
+.bet-admin-form-block .field > label {
+  color: #8a9083 !important;
+  font-size: 8px !important;
+}
+
+.bet-admin-form-block input:not([type="color"]),
+.bet-admin-form-block textarea {
+  border-color: var(--staff-line, rgba(223, 232, 204, 0.105)) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.bet-admin-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.bet-admin-choice button {
+  display: grid;
+  gap: 3px;
+  min-height: 66px;
+  border: 1px solid rgba(229, 236, 213, 0.1);
+  border-radius: 14px;
+  color: #858c7f;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.bet-admin-choice button.is-active {
+  border-color: rgba(199, 242, 74, 0.23);
+  color: #e8ece2;
+  background: rgba(199, 242, 74, 0.035);
+}
+
+.bet-admin-choice strong {
+  color: #c7f24a;
+  font-size: 14px;
+}
+
+@media (max-width: 374px) {
+  .bet-admin-choice {
+    grid-template-columns: 1fr;
+  }
+}
