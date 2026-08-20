@@ -11,7 +11,7 @@ import {
 } from "@/shared/api/productApi"
 import { ApiError } from "@/shared/api/httpClient"
 import { handleError } from "@/shared/errors/errorHandler"
-import { EventArt, OwnerCrown } from "../components/EventArt"
+import { EventArt, OwnerCrown } from "../components/events/EventArt"
 import { useProductData } from "../data/ProductDataProvider"
 import { toProductFeedEvent } from "../data/productMappers"
 import type {
