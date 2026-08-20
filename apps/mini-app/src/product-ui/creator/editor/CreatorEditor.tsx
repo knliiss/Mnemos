@@ -137,7 +137,7 @@ export function CreatorEditor({ params, back }: Props) {
 
   if (loading) {
     return (
-      <div className="screen creator-r2-screen">
+      <div className="screen creator-screen">
         <PageHeader title={t("creator.editor.editing")} back={back} />
         <CreatorLoadingState />
       </div>
@@ -145,13 +145,13 @@ export function CreatorEditor({ params, back }: Props) {
   }
 
   return (
-    <div className="screen creator-r2-screen creator-r2-editor">
+    <div className="screen creator-screen creator-editor">
       <PageHeader
         title={isNew ? t("creator.editor.newWork") : t("creator.editor.editing")}
         back={back}
       />
 
-      <section className="creator-r2-editor-stage">
+      <section className="creator-editor-stage">
         <header>
           <span>
             <i />
@@ -164,7 +164,7 @@ export function CreatorEditor({ params, back }: Props) {
       </section>
 
       {source?.rejectionReason ? (
-        <section className="creator-r2-form-block">
+        <section className="creator-form-block">
           <header>
             <small>{t("creator.editor.moderationEyebrow")}</small>
             <strong>{t("creator.editor.changesRequired")}</strong>
@@ -173,7 +173,7 @@ export function CreatorEditor({ params, back }: Props) {
         </section>
       ) : null}
 
-      <section className="creator-r2-type-picker">
+      <section className="creator-type-picker">
         {creatorTypeOrder.map((value) => (
           <button
             key={value}
@@ -193,7 +193,7 @@ export function CreatorEditor({ params, back }: Props) {
         ))}
       </section>
 
-      <section className="creator-r2-form-block">
+      <section className="creator-form-block">
         <header>
           <small>{t("creator.editor.basicEyebrow")}</small>
           <strong>{t("creator.editor.identity")}</strong>
@@ -209,7 +209,7 @@ export function CreatorEditor({ params, back }: Props) {
           />
         </Field>
 
-        <div className="creator-r2-color-row">
+        <div className="creator-color-row">
           <Field label={t("creator.editor.primary")}>
             <input
               type="color"
@@ -240,7 +240,7 @@ export function CreatorEditor({ params, back }: Props) {
         </div>
 
         <Field label={t("creator.editor.intensity")}>
-          <div className="creator-r2-range">
+          <div className="creator-range">
             <input
               type="range"
               min={1}
@@ -275,19 +275,19 @@ export function CreatorEditor({ params, back }: Props) {
         ) : null}
       </section>
 
-      <section className="creator-r2-form-block">
+      <section className="creator-form-block">
         <header>
           <small>{t("creator.editor.publicationEyebrow")}</small>
           <strong>{t("creator.editor.priceAndStatus")}</strong>
         </header>
 
-        <div className="creator-r2-price-row">
+        <div className="creator-price-row">
           {form.type === "NOTIFICATION_PACK" ? (
-            <span className="creator-r2-fixed-currency">
+            <span className="creator-fixed-currency">
               <CurrencyMark currency="PRIME" size={15} /> PRIME
             </span>
           ) : (
-            <div className="creator-r2-currency-switch">
+            <div className="creator-currency-switch">
               {(["COIN", "PRIME"] as Currency[]).map((value) => (
                 <button
                   key={value}
@@ -325,7 +325,7 @@ export function CreatorEditor({ params, back }: Props) {
         ) : null}
       </section>
 
-      <div className="creator-r2-editor-actions">
+      <div className="creator-editor-actions">
         {editable ? (
           <>
             <button disabled={!valid || busy} onClick={() => void saveAndBack()}>
