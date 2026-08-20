@@ -25,7 +25,7 @@ import {
   GLOBAL_EVENT_TYPES,
   SUBSCRIPTION_TYPES,
 } from "../../contracts"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import { subscriptionVisualTone } from "../../eventVisualTone"
 import type {
   BetItemType,
@@ -52,7 +52,7 @@ const subscriptionIcons: Record<
 
 export function Subscriptions({ back }: { back: () => void }) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [creating, setCreating] = useState(false)
   const [busy, setBusy] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -72,7 +72,7 @@ export function Subscriptions({ back }: { back: () => void }) {
   const mutationLocked = useRef(false)
   const mountedRef = useRef(true)
 
-  const subscriptions = product.subscriptions
+  const subscriptions = data.subscriptions
   const cleanDroppedFor = droppedFor.trim()
   const cleanItemName = itemName.trim()
   const droppedForValid =
@@ -248,7 +248,7 @@ export function Subscriptions({ back }: { back: () => void }) {
         cleanRaidInput && raidInputValid
           ? Array.from(new Set([...raidLocations, raidInputValue]))
           : raidLocations
-      const saved = await product.mutateSubscriptions(async () => {
+      const saved = await data.mutateSubscriptions(async () => {
         if (type === "ITEM_DROP") {
           await createItemDropSubscription(
             cleanDroppedFor || undefined,
@@ -286,7 +286,7 @@ export function Subscriptions({ back }: { back: () => void }) {
     setDeletingId(subscriptionId)
 
     try {
-      await product.removeSubscription(subscriptionId)
+      await data.removeSubscription(subscriptionId)
     } finally {
       mutationLocked.current = false
       if (mountedRef.current) {
@@ -334,16 +334,16 @@ export function Subscriptions({ back }: { back: () => void }) {
         </header>
 
         <div>
-          {product.loadingSubscriptions && !subscriptions.length ? (
+          {data.loadingSubscriptions && !subscriptions.length ? (
             <FeatureLoading label={t("events.subscriptions.loading")} />
           ) : null}
 
-          {!product.loadingSubscriptions && product.subscriptionsError ? (
+          {!data.loadingSubscriptions && data.subscriptionsError ? (
             <div className="feature-empty">
               <Glyph name="bell" size={24} />
               <strong>{t("events.subscriptions.errorTitle")}</strong>
               <small>{t("events.subscriptions.errorCopy")}</small>
-              <button type="button" onClick={() => void product.refreshSubscriptions()}>
+              <button type="button" onClick={() => void data.refreshSubscriptions()}>
                 {t("events.subscriptions.retry")}
               </button>
             </div>
@@ -377,7 +377,7 @@ export function Subscriptions({ back }: { back: () => void }) {
             </article>
           ))}
 
-          {!product.loadingSubscriptions && !product.subscriptionsError && !subscriptions.length ? (
+          {!data.loadingSubscriptions && !data.subscriptionsError && !subscriptions.length ? (
             <div className="feature-empty">
               <Glyph name="bell" size={24} />
               <strong>{t("events.subscriptions.emptyTitle")}</strong>
