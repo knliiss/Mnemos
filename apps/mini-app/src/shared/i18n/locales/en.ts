@@ -1,3 +1,4 @@
+import { errorCodesEn } from "./errors/en"
 import { productEn } from "./product/en"
 
 export const en = {
@@ -150,6 +151,7 @@ export const en = {
         message: "Try the action again shortly.",
       },
     },
+    codes: errorCodesEn,
   },
   ...productEn,
 } as const
