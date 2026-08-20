@@ -1,0 +1,172 @@
+@import url("https://fonts.googleapis.com/css2?family=Geologica:slnt,wght@0,300..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --bg: #050605;
+  --bg-deep: #020302;
+
+  --surface: rgba(22, 23, 19, 0.88);
+  --surface-solid: #151612;
+  --surface-raised: rgba(31, 32, 26, 0.96);
+  --surface-soft: rgba(247, 250, 232, 0.055);
+  --surface-hover: rgba(247, 250, 232, 0.09);
+
+  --line: rgba(235, 241, 213, 0.115);
+  --line-strong: rgba(235, 241, 213, 0.205);
+
+  --text: #f5f6ef;
+  --text-secondary: #b9bbae;
+  --text-muted: #85887b;
+
+  --accent: #cbff2d;
+  --accent-strong: #ddff72;
+  --accent-soft: rgba(203, 255, 45, 0.145);
+  --accent-faint: rgba(203, 255, 45, 0.06);
+
+  --amber: #ffb34f;
+  --amber-soft: rgba(255, 179, 79, 0.14);
+  --plum: #ce91d2;
+  --plum-soft: rgba(206, 145, 210, 0.15);
+  --danger: #ff6873;
+  --danger-soft: rgba(255, 104, 115, 0.13);
+  --positive: #bde06d;
+
+  --blur: blur(24px) saturate(106%);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+
+  --font-ui:
+    "Geologica", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-meta: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  color: var(--text);
+  background: var(--bg-deep);
+  font-family: var(--font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--bg-deep);
+  font-weight: 430;
+  letter-spacing: -0.006em;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  font-weight: 560;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+input,
+textarea {
+  color: var(--text);
+  caret-color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #65695f;
+}
+
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 1px solid rgba(224, 228, 225, 0.6);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+strong {
+  font-family: var(--font-ui);
+  font-variation-settings: "slnt" 0;
+}
+
+h1,
+.page-header h1,
+.personalization-store-header h1 {
+  font-weight: 710;
+  letter-spacing: -0.035em;
+}
+
+h2,
+h3 {
+  font-weight: 660;
+  letter-spacing: -0.022em;
+}
+
+.eyebrow,
+.account-home-profile__copy > small,
+.account-home-reward__copy > small,
+.account-home-feature-copy > small,
+.account-home-panel__head small,
+.personalization-store-header > span > small,
+.personalization-store-hero small,
+.personalization-store-category-card__copy > small,
+.personalization-detail-screen small {
+  font-family: var(--font-meta);
+  font-weight: 600;
+  letter-spacing: 0.115em;
+}
+
+time,
+.account-home-panel__head em,
+.account-home-reward__range,
+.account-home-member__role > small,
+.account-home-member__no-role,
+.personalization-store-category-card__copy > span {
+  font-family: var(--font-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
+}
