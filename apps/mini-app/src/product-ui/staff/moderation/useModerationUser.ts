@@ -98,7 +98,9 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const scopeKey = targetId ? `${walletTarget}:${targetId}` : ""
   const currentScopeRef = useRef(scopeKey)
 
-  currentScopeRef.current = scopeKey
+  useEffect(() => {
+    currentScopeRef.current = scopeKey
+  }, [scopeKey])
 
   useEffect(() => {
     if (!canAdjustWallet || !targetId) {
