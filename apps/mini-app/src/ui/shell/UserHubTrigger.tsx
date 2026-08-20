@@ -16,7 +16,7 @@ export function UserHubTrigger({ open, onToggle }: UserHubTriggerProps) {
       className={`global-user-button ${open ? "is-open" : ""}`}
       whileTap={{ scale: 0.95 }}
       onClick={onToggle}
-      aria-label={t("productShell.userMenu.open")}
+      aria-label={t("appShell.userMenu.open")}
     >
       <UserAvatar className="global-user-button__avatar" size={34} />
       <i />
