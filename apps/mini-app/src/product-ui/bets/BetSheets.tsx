@@ -49,8 +49,8 @@ export function RoundBetSheet({
 
   return (
     <BottomSheet title={globalEventLabel(t, round.eventType)} onClose={onClose}>
-      <div className="bets-r2-sheet">
-        <div className="bets-r2-sheet__event">
+      <div className="bets-sheet">
+        <div className="bets-sheet__event">
           <GlobalEventArt eventType={round.eventType} size={56} />
           <span>
             <small>{roundStatusLabel(t, round.status)}</small>
@@ -64,7 +64,7 @@ export function RoundBetSheet({
         </div>
 
         {!round.myBet ? (
-          <div className="bets-r2-side-choice">
+          <div className="bets-side-choice">
             {BET_SIDES.map((value) => (
               <button
                 key={value}
@@ -80,7 +80,7 @@ export function RoundBetSheet({
             ))}
           </div>
         ) : (
-          <div className="bets-r2-current-position">
+          <div className="bets-current-position">
             <span>
               <small>{t("productBets.sheet.yourPosition")}</small>
               <strong>
@@ -94,7 +94,7 @@ export function RoundBetSheet({
         <Field
           label={round.myBet ? t("productBets.sheet.increaseBy") : t("productBets.sheet.amount")}
         >
-          <div className="bets-r2-amount">
+          <div className="bets-amount">
             <CurrencyMark currency="COIN" size={16} />
             <input
               type="number"
@@ -108,7 +108,7 @@ export function RoundBetSheet({
         </Field>
 
         <button
-          className="bets-r2-submit"
+          className="bets-submit"
           disabled={!amountValid || round.status !== "OPEN" || busy}
           onClick={onSubmit}
         >
@@ -150,8 +150,8 @@ export function RaceBetSheet({
 
   return (
     <BottomSheet title={race.itemName} onClose={onClose}>
-      <div className="bets-r2-sheet">
-        <div className="bets-r2-sheet__event">
+      <div className="bets-sheet">
+        <div className="bets-sheet__event">
           <ItemTypeArt itemType={race.itemType} size={56} />
           <span>
             <small>{itemTypeLabel(t, race.itemType)}</small>
@@ -164,7 +164,7 @@ export function RaceBetSheet({
           </span>
         </div>
 
-        <div className="bets-r2-current-position">
+        <div className="bets-current-position">
           <span>
             <small>
               {position ? t("productBets.race.yourAmount") : t("productBets.race.entry")}
@@ -184,7 +184,7 @@ export function RaceBetSheet({
 
         {position ? (
           <Field label={t("productBets.sheet.increaseBy")}>
-            <div className="bets-r2-amount">
+            <div className="bets-amount">
               <CurrencyMark currency="COIN" size={16} />
               <input
                 type="number"
@@ -198,7 +198,7 @@ export function RaceBetSheet({
         ) : null}
 
         <button
-          className="bets-r2-submit"
+          className="bets-submit"
           disabled={busy || race.status !== "REGISTRATION" || (Boolean(position) && !amountValid)}
           onClick={onSubmit}
         >
