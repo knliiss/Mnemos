@@ -1,6 +1,6 @@
 import { accountProductRu } from "./account/ru"
 import { betAdminRu } from "./bet-admin/ru"
-import { betsProductRu } from "./bets/ru"
+import { betsRu } from "./bets/ru"
 import { creatorProductRu } from "./creator/ru"
 import { eventsProductRu } from "./events/ru"
 import { peopleProductRu } from "./people/ru"
@@ -164,7 +164,7 @@ export const uiRu = {
     owned: "ПОЛУЧЕН",
   },
   ...accountProductRu,
-  ...betsProductRu,
+  ...betsRu,
   ...creatorProductRu,
   ...eventsProductRu,
   ...peopleProductRu,
