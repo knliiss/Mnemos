@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   createSanction,
   createWalletAdjustment,
@@ -35,6 +35,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const [amount, setAmount] = useState("100")
   const [walletReason, setWalletReason] = useState("")
   const [adjustments, setAdjustments] = useState<WalletAdjustmentResponse[]>([])
+  const [adjustmentScope, setAdjustmentScope] = useState("")
 
   const refreshIdentity = useCallback(async () => {
     if (!userId) {
@@ -94,23 +95,30 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
 
   const targetId = walletTarget === "USER" ? userId : accountTargetId
   const currency = walletTarget === "USER" ? ("PRIME" as const) : ("COIN" as const)
+  const scopeKey = targetId ? `${walletTarget}:${targetId}` : ""
+  const currentScopeRef = useRef(scopeKey)
+
+  currentScopeRef.current = scopeKey
 
   useEffect(() => {
     if (!canAdjustWallet || !targetId) {
-      setAdjustments([])
       return
     }
 
     let cancelled = false
     const targetType = walletTarget
     const resolvedTargetId = targetId
+    const resolvedScope = `${targetType}:${resolvedTargetId}`
 
     const frame = window.requestAnimationFrame(() => {
       void listWalletAdjustments(targetType, resolvedTargetId)
         .then((items) => {
-          if (!cancelled) {
-            setAdjustments(items)
+          if (cancelled) {
+            return
           }
+
+          setAdjustments(items)
+          setAdjustmentScope(resolvedScope)
         })
         .catch(handleError)
     })
@@ -121,6 +129,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     }
   }, [canAdjustWallet, targetId, walletTarget])
 
+  const visibleAdjustments = adjustmentScope === scopeKey ? adjustments : []
   const numericDuration = Number(duration)
   const durationValid = !duration || (Number.isInteger(numericDuration) && numericDuration > 0)
   const numericAmount = Number(amount)
@@ -180,6 +189,8 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     targetType: WalletOwnerType,
     resolvedTargetId: string,
   ) => {
+    const resolvedScope = `${targetType}:${resolvedTargetId}`
+
     for (let attempt = 0; attempt < 15; attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, 800))
 
@@ -191,8 +202,9 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
 
       const items = await listWalletAdjustments(targetType, resolvedTargetId)
 
-      if (walletTarget === targetType && targetId === resolvedTargetId) {
+      if (currentScopeRef.current === resolvedScope) {
         setAdjustments(items)
+        setAdjustmentScope(resolvedScope)
       }
 
       return
@@ -206,6 +218,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
 
     const targetType = walletTarget
     const resolvedTargetId = targetId
+    const resolvedScope = `${targetType}:${resolvedTargetId}`
 
     setBusy(true)
 
@@ -219,10 +232,14 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
         reason: walletReason.trim(),
       })
 
-      setAdjustments((current) => [
-        created,
-        ...current.filter((item) => item.operationId !== created.operationId),
-      ])
+      if (currentScopeRef.current === resolvedScope) {
+        setAdjustments((current) => [
+          created,
+          ...current.filter((item) => item.operationId !== created.operationId),
+        ])
+        setAdjustmentScope(resolvedScope)
+      }
+
       setWalletReason("")
 
       void pollAdjustment(created.operationId, targetType, resolvedTargetId).catch(handleError)
@@ -236,7 +253,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   return {
     identity,
     sanctions,
-    adjustments,
+    adjustments: visibleAdjustments,
     loading,
     busy,
     sanctionFormOpen,
@@ -269,3 +286,5 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     submitAdjustment,
   }
 }
+
+export type ModerationUserController = ReturnType<typeof useModerationUser>
