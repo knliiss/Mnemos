@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./cristalix-head.css"
 
 type CristalixHeadProps = {
   skinUrl: string
@@ -10,7 +11,6 @@ type CristalixHeadProps = {
 }
 
 const HEAD_TEXTURE_SIZE = 8
-const OVERLAY_CANVAS_SIZE = 10
 const SKIN_REFERENCE_SIZE = 64
 
 export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadProps) {
@@ -49,7 +49,7 @@ export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadP
       }
 
       drawLayer(baseContext, image, textureScale, 8, 8)
-      drawOverlayLayer(overlayContext, image, textureScale)
+      drawLayer(overlayContext, image, textureScale, 40, 8)
 
       setFailedSkinUrl((current) => (current === skinUrl ? null : current))
       setLoadedSkinUrl(skinUrl)
@@ -78,6 +78,7 @@ export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadP
     <motion.span
       className={`cristalix-head cristalix-head--layered ${failed ? "cristalix-head--fallback" : ""} ${loaded ? "is-loaded" : ""} ${className ?? ""}`.trim()}
       style={style}
+      role="img"
       initial={false}
       animate={{ opacity: loaded || failed ? 1 : 0.72, scale: loaded ? 1 : 0.985 }}
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
@@ -100,8 +101,8 @@ export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadP
         <canvas
           ref={overlayRef}
           className="cristalix-head__canvas cristalix-head__canvas--overlay"
-          width={OVERLAY_CANVAS_SIZE}
-          height={OVERLAY_CANVAS_SIZE}
+          width={HEAD_TEXTURE_SIZE}
+          height={HEAD_TEXTURE_SIZE}
         />
       </span>
     </motion.span>
@@ -128,29 +129,5 @@ function drawLayer(
     0,
     HEAD_TEXTURE_SIZE,
     HEAD_TEXTURE_SIZE,
-  )
-}
-
-function drawOverlayLayer(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  textureScale: number,
-) {
-  context.clearRect(0, 0, OVERLAY_CANVAS_SIZE, OVERLAY_CANVAS_SIZE)
-  context.imageSmoothingEnabled = false
-
-  // The texture is intentionally loaded directly from Cristalix. A cross-origin
-  // image may be drawn to canvas, but reading the canvas back would taint it and
-  // throw a SecurityError in browsers. Keep this path draw-only.
-  context.drawImage(
-    image,
-    40 * textureScale,
-    8 * textureScale,
-    HEAD_TEXTURE_SIZE * textureScale,
-    HEAD_TEXTURE_SIZE * textureScale,
-    0,
-    0,
-    OVERLAY_CANVAS_SIZE,
-    OVERLAY_CANVAS_SIZE,
   )
 }
