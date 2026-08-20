@@ -19,6 +19,6 @@ class ListManagedPersonalizationsService(
         return (
             repository.findByStatus(PersonalizationStatus.PUBLISHED) +
                 repository.findByStatus(PersonalizationStatus.UNLISTED)
-        ).sortedByDescending(Personalization::updatedAt)
+        ).sortedByDescending { personalization -> personalization.updatedAt }
     }
 }
