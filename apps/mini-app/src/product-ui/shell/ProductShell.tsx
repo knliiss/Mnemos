@@ -22,6 +22,7 @@ export function ProductShell() {
   )
   const routeStageRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
+  const accountSwitchInProgress = useRef(false)
 
   const current = stack[stack.length - 1]
   const notFound = current.id === "account" && current.params?.notFound === "true"
@@ -85,12 +86,28 @@ export function ProductShell() {
   }, [product.user.language])
 
   const selectAccount = async (account: Account) => {
-    if (account.active === false && !account.owner) {
+    if (
+      accountSwitchInProgress.current ||
+      (account.active === false && !account.owner)
+    ) {
       return
     }
 
-    await product.selectAccount(account)
-    setAccountPickerOpen(false)
+    if (account.id === activeAccount?.id && account.active !== false) {
+      setAccountPickerOpen(false)
+      return
+    }
+
+    accountSwitchInProgress.current = true
+
+    try {
+      await product.selectAccount(account)
+      setAccountPickerOpen(false)
+    } catch {
+      // ProductDataProvider reports the error. Keep the picker open so the user can retry.
+    } finally {
+      accountSwitchInProgress.current = false
+    }
   }
 
   const toggleUserHub = () => {
