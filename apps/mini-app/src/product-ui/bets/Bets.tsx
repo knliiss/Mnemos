@@ -37,6 +37,11 @@ type Props = {
   navigate: (route: Route) => void
 }
 
+type ScopedSelection = {
+  accountId: string
+  id: string
+}
+
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
@@ -45,8 +50,8 @@ export function Bets({ activeAccount, navigate }: Props) {
     product.refreshAccount,
   )
   const [mode, setMode] = useState<BetMode>("EVENTS")
-  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
-  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null)
+  const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
+  const [selectedRace, setSelectedRace] = useState<ScopedSelection | null>(null)
   const [side, setSide] = useState<BetSide>("YES")
   const [amount, setAmount] = useState("500")
   const [busy, setBusy] = useState(false)
@@ -57,17 +62,23 @@ export function Bets({ activeAccount, navigate }: Props) {
     () => new Map(positions.map((position) => [position.raceId, position])),
     [positions],
   )
-  const selectedRound = rounds.find((round) => round.id === selectedRoundId) ?? null
-  const selectedRace = races.find((race) => race.id === selectedRaceId) ?? null
-  const selectedRacePosition = selectedRace
-    ? (positionsByRace.get(selectedRace.id) ?? null)
+  const selectedRoundValue =
+    selectedRound?.accountId === activeAccount.id
+      ? (rounds.find((round) => round.id === selectedRound.id) ?? null)
+      : null
+  const selectedRaceValue =
+    selectedRace?.accountId === activeAccount.id
+      ? (races.find((race) => race.id === selectedRace.id) ?? null)
+      : null
+  const selectedRacePosition = selectedRaceValue
+    ? (positionsByRace.get(selectedRaceValue.id) ?? null)
     : null
   const featured = rounds.find((round) => round.status === "OPEN") ?? rounds[0] ?? null
   const eventRounds = featured ? rounds.filter((round) => round.id !== featured.id) : rounds
   const myRounds = rounds.filter((round) => round.myBet)
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
   const numericAmount = Number(amount)
-  const selectedHasBet = Boolean(selectedRound?.myBet)
+  const selectedHasBet = Boolean(selectedRoundValue?.myBet)
   const roundAmountValid =
     Number.isInteger(numericAmount) &&
     numericAmount >= (selectedHasBet ? 1 : 100) &&
@@ -76,11 +87,14 @@ export function Bets({ activeAccount, navigate }: Props) {
   const raceAmountValid =
     Number.isInteger(numericAmount) && numericAmount > 0 && numericAmount <= activeAccount.coin
   const raceJoinValid = Boolean(
-    selectedRace && selectedRace.entryAmount <= activeAccount.coin,
+    selectedRaceValue && selectedRaceValue.entryAmount <= activeAccount.coin,
   )
 
   const openRound = (round: EventBetRoundResponse) => {
-    setSelectedRoundId(round.id)
+    setSelectedRound({
+      accountId: activeAccount.id,
+      id: round.id,
+    })
     setSide(round.myBet?.side ?? "YES")
     setAmount(round.myBet ? "100" : "500")
   }
@@ -88,15 +102,18 @@ export function Bets({ activeAccount, navigate }: Props) {
   const openRace = (race: ItemRaceResponse) => {
     const position = positionsByRace.get(race.id) ?? null
 
-    setSelectedRaceId(race.id)
+    setSelectedRace({
+      accountId: activeAccount.id,
+      id: race.id,
+    })
     setAmount(position ? "100" : String(race.entryAmount))
   }
 
   const submitRound = async () => {
     if (
-      !selectedRound ||
+      !selectedRoundValue ||
       !roundAmountValid ||
-      selectedRound.status !== "OPEN" ||
+      selectedRoundValue.status !== "OPEN" ||
       busy ||
       submitLocked.current
     ) {
@@ -107,13 +124,13 @@ export function Bets({ activeAccount, navigate }: Props) {
     setBusy(true)
 
     try {
-      if (selectedRound.myBet) {
-        await increaseEventBet(selectedRound.id, numericAmount)
+      if (selectedRoundValue.myBet) {
+        await increaseEventBet(selectedRoundValue.id, numericAmount)
       } else {
-        await placeEventBet(selectedRound.id, side, numericAmount)
+        await placeEventBet(selectedRoundValue.id, side, numericAmount)
       }
 
-      setSelectedRoundId(null)
+      setSelectedRound(null)
       await refresh()
     } catch (error) {
       handleError(error)
@@ -125,10 +142,10 @@ export function Bets({ activeAccount, navigate }: Props) {
 
   const submitRace = async () => {
     if (
-      !selectedRace ||
+      !selectedRaceValue ||
       busy ||
       submitLocked.current ||
-      selectedRace.status !== "REGISTRATION"
+      selectedRaceValue.status !== "REGISTRATION"
     ) {
       return
     }
@@ -142,12 +159,12 @@ export function Bets({ activeAccount, navigate }: Props) {
 
     try {
       if (selectedRacePosition) {
-        await increaseItemRaceBet(selectedRace.id, numericAmount)
+        await increaseItemRaceBet(selectedRaceValue.id, numericAmount)
       } else {
-        await joinItemRace(selectedRace.id)
+        await joinItemRace(selectedRaceValue.id)
       }
 
-      setSelectedRaceId(null)
+      setSelectedRace(null)
       await refresh()
     } catch (error) {
       handleError(error)
@@ -338,30 +355,30 @@ export function Bets({ activeAccount, navigate }: Props) {
       ) : null}
 
       <AnimatePresence>
-        {selectedRound ? (
+        {selectedRoundValue ? (
           <RoundBetSheet
-            round={selectedRound}
+            round={selectedRoundValue}
             side={side}
             amount={amount}
             amountValid={roundAmountValid}
             busy={busy}
             locale={locale}
-            onClose={() => !busy && setSelectedRoundId(null)}
+            onClose={() => !busy && setSelectedRound(null)}
             onSideChange={setSide}
             onAmountChange={setAmount}
             onSubmit={() => void submitRound()}
           />
         ) : null}
 
-        {selectedRace ? (
+        {selectedRaceValue ? (
           <RaceBetSheet
-            race={selectedRace}
+            race={selectedRaceValue}
             position={selectedRacePosition}
             amount={amount}
             amountValid={selectedRacePosition ? raceAmountValid : raceJoinValid}
             busy={busy}
             locale={locale}
-            onClose={() => !busy && setSelectedRaceId(null)}
+            onClose={() => !busy && setSelectedRace(null)}
             onAmountChange={setAmount}
             onSubmit={() => void submitRace()}
           />
