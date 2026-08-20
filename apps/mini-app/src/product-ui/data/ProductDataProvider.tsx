@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react"
 import { useApp } from "@/app/providers/AppProvider"
@@ -89,6 +90,7 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const [prime, setPrime] = useState(0)
   const [loadingAccount, setLoadingAccount] = useState(false)
   const [loadingEvents, setLoadingEvents] = useState(false)
+  const eventRequestRevision = useRef(0)
 
   const context = app.context
 
@@ -157,19 +159,29 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   }, [context?.activeAccount?.id])
 
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
+    const requestRevision = eventRequestRevision.current + 1
+    eventRequestRevision.current = requestRevision
     setLoadingEvents(true)
 
     try {
       const limit = query.limit ?? 50
       const response = await getEventFeed({ ...query, after: null })
 
+      if (requestRevision !== eventRequestRevision.current) {
+        return
+      }
+
       setFeed(response.items.map(toProductFeedEvent))
       setEventCursor(response.cursor)
       setEventsHasMore(response.items.length >= limit && response.cursor !== null)
     } catch (error) {
-      handleError(error)
+      if (requestRevision === eventRequestRevision.current) {
+        handleError(error)
+      }
     } finally {
-      setLoadingEvents(false)
+      if (requestRevision === eventRequestRevision.current) {
+        setLoadingEvents(false)
+      }
     }
   }, [])
 
@@ -179,6 +191,8 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      const requestRevision = eventRequestRevision.current + 1
+      eventRequestRevision.current = requestRevision
       setLoadingEvents(true)
 
       try {
@@ -187,6 +201,11 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
           ...query,
           after: eventCursor,
         })
+
+        if (requestRevision !== eventRequestRevision.current) {
+          return
+        }
+
         const nextItems = response.items.map(toProductFeedEvent)
 
         setFeed((current) => {
@@ -196,9 +215,13 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
         setEventCursor(response.cursor)
         setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
       } catch (error) {
-        handleError(error)
+        if (requestRevision === eventRequestRevision.current) {
+          handleError(error)
+        }
       } finally {
-        setLoadingEvents(false)
+        if (requestRevision === eventRequestRevision.current) {
+          setLoadingEvents(false)
+        }
       }
     },
     [eventCursor, eventsHasMore, loadingEvents],
