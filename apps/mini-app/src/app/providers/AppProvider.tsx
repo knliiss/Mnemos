@@ -9,19 +9,21 @@ import {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
-import type { LocalizationLanguage } from "@/product-ui/model"
-import type { CurrentContextResponse } from "@/shared/api/backendContracts"
 import {
   createAccount,
-  getCurrentContext,
-  initializeCurrentUser,
   joinAccount,
   leaveActiveAccount,
   reactivateAccount,
   selectActiveAccount,
+} from "@/shared/api/accountApi"
+import type { CurrentContextResponse } from "@/shared/api/backendContracts"
+import {
+  getCurrentContext,
+  initializeCurrentUser,
   updateCurrentLanguage,
-} from "@/shared/api/productApi"
+} from "@/shared/api/userApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import type { LocalizationLanguage } from "@/ui/model"
 
 type AppState = {
   context: CurrentContextResponse | null
