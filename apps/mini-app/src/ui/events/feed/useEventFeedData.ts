@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { getEventFeed, type EventFeedQuery } from "@/shared/api/productApi"
+import { getEventFeed, type EventFeedQuery } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { toFeedEvent } from "../../data/dataMappers"
 import type { FeedEvent } from "../../model"
