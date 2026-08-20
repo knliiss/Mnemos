@@ -7,6 +7,7 @@ import { AccountInvites } from "./AccountInvites"
 import { AccountCreate, AccountJoin } from "./AccountOnboarding"
 import { AccountSettings } from "./AccountSettings"
 import { AccountWallet } from "./AccountWallet"
+import "./account-management-typography.css"
 import { RoleEditor } from "./RoleEditor"
 import { RolesOverview } from "./RolesOverview"
 
