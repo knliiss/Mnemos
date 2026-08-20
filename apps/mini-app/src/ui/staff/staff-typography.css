@@ -1,0 +1,46 @@
+.internal-user-hero > span:nth-child(2) > small,
+.internal-user-hero em,
+.internal-account-list small,
+.internal-account-list em,
+.internal-account-list article > b,
+.moderation-actions small,
+.admin-wallet-panel__head small,
+.admin-wallet-scope small,
+.wallet-adjustment-history small,
+.review-overview small,
+.review-overview em,
+.review-scope button,
+.review-queue-card__meta small,
+.review-queue-card__meta i,
+.review-queue-card__side b,
+.review-workbench > header small,
+.review-workbench > header em,
+.review-metadata small,
+.review-empty-workbench small,
+.staff-form-block > header small,
+.staff-form-block .field > span:first-child,
+.staff-form-block .field > label {
+  font-size: 9px !important;
+}
+
+.review-metadata strong,
+.admin-wallet-scope strong,
+.wallet-adjustment-history strong {
+  font-size: 10px;
+}
+
+.review-workbench > header button,
+.invite-item__actions button {
+  width: 36px;
+  height: 36px;
+}
+
+.review-scope button {
+  min-height: 34px;
+}
+
+.staff-search-results > div > button small,
+.staff-search-results__accounts,
+.moderation-help i {
+  font-size: 9px;
+}
