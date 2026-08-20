@@ -1,5 +1,5 @@
 import type { Route } from "../model"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { FeatureError } from "../system/FeatureError"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountHome } from "./AccountHome"
@@ -18,7 +18,7 @@ type Props = {
 }
 
 export function AccountArea(props: Props) {
-  const product = useProductData()
+  const product = useMnemosData()
   const requiresAccountData = [
     "account",
     "member",
@@ -77,9 +77,6 @@ export function AccountArea(props: Props) {
   }
 
   return (
-    <NotFoundFeature
-      requested={props.routeId}
-      onHome={() => props.navigate({ id: "account" })}
-    />
+    <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
   )
 }

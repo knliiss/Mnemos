@@ -64,9 +64,7 @@ export function ModerationWalletAdjustments({ controller, identity, language }: 
           value={controller.operation}
           options={TRANSACTION_TYPES}
           onChange={controller.setOperation}
-          label={(value) =>
-            value === "CREDIT" ? t("moderation.credit") : t("moderation.debit")
-          }
+          label={(value) => (value === "CREDIT" ? t("moderation.credit") : t("moderation.debit"))}
         />
       </Field>
 
@@ -100,7 +98,8 @@ export function ModerationWalletAdjustments({ controller, identity, language }: 
         />
       </Field>
 
-      <button type="button"
+      <button
+        type="button"
         className="primary-action"
         disabled={
           !controller.targetId ||

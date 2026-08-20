@@ -43,8 +43,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
     )
   }
 
-  const roleFor = (roleId: string | null) =>
-    data.roles.find((role) => role.id === roleId) ?? null
+  const roleFor = (roleId: string | null) => data.roles.find((role) => role.id === roleId) ?? null
 
   return (
     <div className="screen account-home-screen root-screen">
@@ -202,7 +201,9 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
                       {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
                     </span>
                   ) : (
-                    <small className="account-home-member__no-role">{t("accountHome.noRole")}</small>
+                    <small className="account-home-member__no-role">
+                      {t("accountHome.noRole")}
+                    </small>
                   )}
                 </span>
 

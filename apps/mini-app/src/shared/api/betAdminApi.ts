@@ -1,4 +1,4 @@
-import type { BetItemType } from "@/product-ui/model"
+import type { BetItemType } from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 import type { EventBetOutcome } from "@/shared/api/betApi"
 

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it } from "vitest"
-import { initialStack } from "@/product-ui/navigation/routeRegistry"
+import { initialStack } from "@/ui/navigation/routeRegistry"
 
 afterEach(() => {
   window.history.replaceState({}, "", "/")

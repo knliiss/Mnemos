@@ -109,9 +109,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
               whileTap={{ scale: 0.95 }}
               disabled={reactionBusy}
               aria-label={
-                reaction === "LIKE"
-                  ? t("people.profile.unlike")
-                  : t("people.profile.like")
+                reaction === "LIKE" ? t("people.profile.unlike") : t("people.profile.like")
               }
               onClick={() => void toggleReaction("LIKE")}
             >

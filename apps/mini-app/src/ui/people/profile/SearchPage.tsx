@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  searchPublicProfiles,
-  type PublicProfileResponse,
-} from "@/shared/api/profileSocialApi"
+import { searchPublicProfiles, type PublicProfileResponse } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
@@ -93,7 +90,11 @@ export function SearchPage({ navigate }: Props) {
           autoCorrect="off"
         />
         {query ? (
-          <button type="button" onClick={() => changeQuery("")} aria-label={t("people.search.clear")}>
+          <button
+            type="button"
+            onClick={() => changeQuery("")}
+            aria-label={t("people.search.clear")}
+          >
             <Glyph name="close" size={15} />
           </button>
         ) : null}

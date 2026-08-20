@@ -115,7 +115,8 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
         title={t("betAdmin.itemRace")}
         back={back}
         actions={
-          <button type="button"
+          <button
+            type="button"
             className="bet-admin-header-action"
             onClick={() => setFormOpen((value) => !value)}
           >
@@ -143,7 +144,8 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
           <Field label={t("betAdmin.type")}>
             <div className="bet-admin-choice">
               {BET_ITEM_TYPES.map((value) => (
-                <button type="button"
+                <button
+                  type="button"
                   key={value}
                   className={itemType === value ? "is-active" : ""}
                   onClick={() => setItemType(value)}
@@ -174,7 +176,8 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
             />
           </Field>
 
-          <button type="button"
+          <button
+            type="button"
             className="primary-action"
             disabled={!valid || busy}
             onClick={() => void create()}

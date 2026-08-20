@@ -168,7 +168,7 @@ export function AccountWallet({ back }: { back: () => void }) {
         </div>
       </section>
 
-      <section className="coin-history-panel coin-history-panel--production">
+      <section className="coin-history-panel coin-history-panel--detailed">
         <header className="wallet-history-head">
           <span>
             <small>{t("accountWallet.movement")}</small>

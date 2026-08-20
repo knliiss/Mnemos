@@ -145,10 +145,7 @@ export function useProfileComments({
         targetProfile,
       )
 
-      if (
-        requestedScope !== scopeRevision.current ||
-        revision !== rootRequestRevision.current
-      ) {
+      if (requestedScope !== scopeRevision.current || revision !== rootRequestRevision.current) {
         return
       }
 
@@ -164,19 +161,13 @@ export function useProfileComments({
       submittingRef.current = false
       setSubmitting(false)
     } catch (error) {
-      if (
-        requestedScope === scopeRevision.current &&
-        revision === rootRequestRevision.current
-      ) {
+      if (requestedScope === scopeRevision.current && revision === rootRequestRevision.current) {
         resetCommentScope(commentScope)
         setCommentsError(true)
         handleError(error)
       }
     } finally {
-      if (
-        requestedScope === scopeRevision.current &&
-        revision === rootRequestRevision.current
-      ) {
+      if (requestedScope === scopeRevision.current && revision === rootRequestRevision.current) {
         commentsLoadingRef.current = false
         setCommentsLoading(false)
       }
@@ -226,10 +217,7 @@ export function useProfileComments({
         toProfileCommentView(comment, authorNames, locale),
       )
 
-      if (
-        requestedScope !== scopeRevision.current ||
-        revision !== rootRequestRevision.current
-      ) {
+      if (requestedScope !== scopeRevision.current || revision !== rootRequestRevision.current) {
         return
       }
 
@@ -237,17 +225,11 @@ export function useProfileComments({
       setCommentsPage(page.number)
       setCommentsHasMore(!page.last)
     } catch (error) {
-      if (
-        requestedScope === scopeRevision.current &&
-        revision === rootRequestRevision.current
-      ) {
+      if (requestedScope === scopeRevision.current && revision === rootRequestRevision.current) {
         handleError(error)
       }
     } finally {
-      if (
-        requestedScope === scopeRevision.current &&
-        revision === rootRequestRevision.current
-      ) {
+      if (requestedScope === scopeRevision.current && revision === rootRequestRevision.current) {
         commentsLoadingRef.current = false
         setCommentsLoading(false)
       }
@@ -565,13 +547,7 @@ export function useProfileComments({
         }
       }
     },
-    [
-      activeAccountId,
-      activeAccountNickname,
-      locale,
-      refreshProfileSummary,
-      targetProfile,
-    ],
+    [activeAccountId, activeAccountNickname, locale, refreshProfileSummary, targetProfile],
   )
 
   const hasCommentScope = commentScope !== null
@@ -581,7 +557,7 @@ export function useProfileComments({
   const currentExpandedReplies = current ? expandedReplies : new Set<string>()
   const currentBusyIds = current ? busyIds : new Set<string>()
   const latestComment = useMemo(
-    () => (current ? comments.find((comment) => !comment.deleted) ?? null : null),
+    () => (current ? (comments.find((comment) => !comment.deleted) ?? null) : null),
     [comments, current],
   )
 

@@ -57,10 +57,7 @@ export function EventsArea(props: Props) {
     content = <Subscriptions back={props.back} />
   } else {
     return (
-      <NotFoundFeature
-        requested={props.routeId}
-        onHome={() => props.navigate({ id: "events" })}
-      />
+      <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "events" })} />
     )
   }
 

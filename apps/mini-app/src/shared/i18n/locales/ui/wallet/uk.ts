@@ -1,4 +1,4 @@
-export const walletProductUk = {
+export const walletUk = {
   userWallet: {
     userEyebrow: "КОРИСТУВАЧ",
     description: "Персональна преміум-валюта Mnemos",

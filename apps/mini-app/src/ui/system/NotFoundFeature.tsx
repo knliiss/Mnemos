@@ -33,7 +33,12 @@ export function NotFoundFeature({ requested, onHome }: Props) {
           {requested ? <code>{requested}</code> : null}
         </div>
 
-        <motion.button type="button" className="not-found-home" whileTap={{ scale: 0.97 }} onClick={onHome}>
+        <motion.button
+          type="button"
+          className="not-found-home"
+          whileTap={{ scale: 0.97 }}
+          onClick={onHome}
+        >
           <Glyph name="home" size={18} />
           {t("notFound.home")}
         </motion.button>

@@ -1,9 +1,4 @@
-import type {
-  Currency,
-  EffectType,
-  NotificationTemplateKey,
-  PersonalizationType,
-} from "@/product-ui/model"
+import type { Currency, EffectType, NotificationTemplateKey, PersonalizationType } from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 import type {
   GlowStyleResponse,

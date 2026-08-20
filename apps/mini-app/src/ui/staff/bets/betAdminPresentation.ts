@@ -1,9 +1,5 @@
 import type { TFunction } from "i18next"
-import type {
-  EventBetOutcome,
-  EventBetRoundResponse,
-  ItemRaceResponse,
-} from "@/shared/api/betApi"
+import type { EventBetOutcome, EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
 import type { BetGlobalEventType, BetItemType } from "../../model"
 
 export type BetAdminSection = "home" | "rounds" | "history" | "round" | "races"
@@ -49,11 +45,7 @@ export function betAdminOutcomeLabel(t: TFunction, outcome: EventBetOutcome) {
 }
 
 export function formatBetAdminDate(value: string, language: string) {
-  const locale = language.startsWith("ru")
-    ? "ru-RU"
-    : language.startsWith("en")
-      ? "en-US"
-      : "uk-UA"
+  const locale = language.startsWith("ru") ? "ru-RU" : language.startsWith("en") ? "en-US" : "uk-UA"
 
   return new Intl.DateTimeFormat(locale, {
     day: "2-digit",

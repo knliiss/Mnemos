@@ -544,7 +544,6 @@ textarea:focus-visible {
   text-align: left;
 }
 
-/* events */
 .inline-input {
   display: grid;
   grid-template-columns: 1fr 42px;
@@ -596,7 +595,6 @@ textarea:focus-visible {
   border-radius: 0 9px 9px 0;
 }
 
-/* account */
 .cristalix-head {
   position: relative;
   flex: none;
@@ -669,7 +667,6 @@ textarea:focus-visible {
   margin-bottom: 25px;
 }
 
-/* me, profile, comments */
 .comment {
   display: grid;
   grid-template-columns: 30px 1fr;
@@ -679,9 +676,6 @@ textarea:focus-visible {
   transition: opacity 0.2s ease;
 }
 
-/* personalization */
-
-/* moderation */
 .sanction-list {
   border-top: 1px solid var(--line);
 }
@@ -746,8 +740,6 @@ textarea:focus-visible {
   }
 }
 
-/* Feature-specific details kept separate from the visual foundation. */
-
 .account-create {
   margin-top: 8px;
 }
@@ -783,7 +775,6 @@ textarea:focus-visible {
   text-transform: uppercase;
 }
 
-/* Reduce generic glass-card appearance: content sections use edges and rhythm first. */
 .section + .section {
   margin-top: 25px;
 }
@@ -892,7 +883,6 @@ textarea::placeholder {
   padding-top: 15px;
 }
 
-/* Native-feeling bottom shell instead of a floating glass pill. */
 .root-navigation {
   left: 0;
   right: 0;
@@ -968,7 +958,6 @@ textarea::placeholder {
   background: rgba(255, 255, 255, 0.018);
 }
 
-/* Selection language: quiet facets, no generic radio-button/checkmark tiles. */
 .segmented {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.018);
@@ -1053,13 +1042,11 @@ textarea::placeholder {
   background: #d6d8de;
 }
 
-/* Events: hierarchy comes from typography and timeline, not cards. */
 .status-dot--live {
   background: var(--live);
   box-shadow: none;
 }
 
-/* Account: persistent context is the identity itself; tools are one control rail. */
 .cristalix-head {
   border-radius: 11px;
   background: #15161a;
@@ -1071,9 +1058,6 @@ textarea::placeholder {
   color: #d2d4da;
 }
 
-/* Store is one of the few places where cards are semantically justified. */
-
-/* Creator/staff are workspaces: flatter rails, not stacked dashboard cards. */
 .creator-revenue {
   min-height: 72px;
   margin-bottom: 0;
@@ -1245,7 +1229,6 @@ body {
   border-color: var(--line-strong);
 }
 
-/* five-tab product navigation */
 .root-navigation.root-navigation--five {
   left: 10px;
   right: 10px;
@@ -1294,7 +1277,6 @@ body {
     0 0 24px rgba(200, 239, 25, 0.045);
 }
 
-/* global user access */
 .global-user-button {
   position: absolute;
   z-index: 55;
@@ -1360,13 +1342,6 @@ body {
   backdrop-filter: blur(28px);
 }
 
-/* account home */
-
-/* member / roles */
-
-/* events */
-
-/* subscriptions */
 .subscription-summary {
   min-height: 74px;
   display: grid;
@@ -1524,9 +1499,6 @@ body {
   color: var(--text-muted);
 }
 
-/* bets */
-
-/* search/public profile */
 .search-root-input {
   min-height: 52px;
   display: grid;
@@ -1635,8 +1607,6 @@ body {
   font-style: normal;
 }
 
-/* store */
-
 .catalog-state {
   display: flex;
   align-items: center;
@@ -1645,7 +1615,6 @@ body {
   font-size: 8.5px;
 }
 
-/* administration */
 .workspace-intro {
   min-height: 76px;
   display: grid;
@@ -1800,7 +1769,6 @@ body {
   display: none;
 }
 
-/* Root navigation */
 .root-navigation {
   border-color: rgba(255, 246, 219, 0.15) !important;
   background: rgba(18, 17, 15, 0.91) !important;
@@ -1824,7 +1792,6 @@ body {
   box-shadow: 0 0 18px rgba(215, 255, 50, 0.19);
 }
 
-/* Global User button + hub */
 .global-user-button {
   border: 1px solid rgba(229, 255, 105, 0.36) !important;
   background:
@@ -2118,10 +2085,6 @@ body {
   background: linear-gradient(150deg, rgba(215, 255, 50, 0.105), rgba(255, 248, 224, 0.035));
 }
 
-/* Account home */
-
-/* Store */
-
 .store-prime-pill {
   display: flex;
   align-items: center;
@@ -2352,8 +2315,6 @@ body {
   color: #858075;
   font-size: 9px;
 }
-
-/* Moderation / internal user */
 
 .internal-user-hero {
   display: grid;
@@ -2706,7 +2667,6 @@ body {
   background: var(--danger-soft);
 }
 
-/* Small screens */
 @media (max-width: 374px) {
   .user-hub-workspace-grid {
     gap: 5px;
@@ -2749,8 +2709,6 @@ body {
   border-color: rgba(228, 123, 128, 0.2);
   background: linear-gradient(145deg, rgba(228, 123, 128, 0.08), rgba(255, 248, 224, 0.03));
 }
-
-/* Creator: the preview is built from the same fields as the backend content DTOs. */
 
 @media (max-width: 374px) {
   .notification-real-preview.is-detail {
@@ -2889,8 +2847,6 @@ body {
   --plum: #ce9bc5;
   --plum-soft: rgba(206, 155, 197, 0.17);
 }
-
-/* Notification packs: show text samples, not a simulated visual notification card. */
 
 .root-navigation {
   border-color: rgba(255, 246, 219, 0.17) !important;
@@ -3057,7 +3013,6 @@ body {
     0 8px 22px rgba(203, 255, 45, 0.1);
 }
 
-/* Bottom navigation */
 .root-navigation {
   left: 12px !important;
   right: 12px !important;
@@ -3101,7 +3056,6 @@ body {
   filter: drop-shadow(0 0 8px rgba(203, 255, 45, 0.22));
 }
 
-/* User entry and hub */
 .global-user-button {
   top: calc(29px + env(safe-area-inset-top, 0px)) !important;
   right: 29px !important;
@@ -3294,10 +3248,6 @@ body {
   background: rgba(203, 255, 45, 0.12) !important;
 }
 
-/* Account home */
-
-/* Store */
-
 .store-prime-pill {
   min-height: 36px !important;
   border-color: rgba(206, 145, 210, 0.33) !important;
@@ -3305,7 +3255,6 @@ body {
   color: #efb7f1 !important;
 }
 
-/* Moderation landing */
 .moderation-screen {
   position: relative;
 }
@@ -3508,7 +3457,6 @@ body {
   text-align: center;
 }
 
-/* Internal user */
 .internal-user-hero,
 .admin-wallet-panel,
 .moderation-form,
@@ -3529,11 +3477,6 @@ body {
   font-size: 9px !important;
 }
 
-/* Event detail */
-
-/* Public profile */
-
-/* Search, events and dense cards */
 .search-root-input,
 .search-result-panel {
   border-color: rgba(235, 241, 213, 0.12) !important;
@@ -3546,7 +3489,6 @@ body {
     rgba(10, 11, 9, 0.48) !important;
 }
 
-/* Cards and forms across workspaces */
 .workspace-intro,
 .workspace-grid > button,
 .sanction-card {
@@ -3567,9 +3509,6 @@ textarea::placeholder {
   }
 }
 
-/* Secondary screens share the same visual density as the five root areas. */
-
-/* Subscriptions */
 .subscription-summary {
   min-height: 78px !important;
   padding: 13px !important;
@@ -3664,12 +3603,6 @@ textarea::placeholder {
   font-size: 9.5px !important;
 }
 
-/* Bets */
-
-/* Roles */
-
-/* Wallet / account settings / invites */
-
 .choice-grid button {
   min-height: 43px !important;
   border-color: rgba(235, 241, 213, 0.105) !important;
@@ -3685,7 +3618,6 @@ textarea::placeholder {
   background: rgba(203, 255, 45, 0.055) !important;
 }
 
-/* Administration / creator / review workspaces */
 .workspace-intro {
   min-height: 82px !important;
   padding: 14px !important;
@@ -3738,7 +3670,6 @@ textarea::placeholder {
     rgba(9, 10, 8, 0.5) !important;
 }
 
-/* Bottom sheets */
 .sheet {
   border-color: rgba(235, 241, 213, 0.16) !important;
   background:
@@ -3776,14 +3707,11 @@ textarea::placeholder {
   font-size: 11.5px !important;
 }
 
-/* Keep layout compact on the smallest Telegram viewport. */
 @media (max-width: 374px) {
   .subscription-summary {
     grid-template-columns: 40px 1fr auto !important;
   }
 }
-
-/* Keep decorative motion from competing with content. */
 
 .search-result-panel > button,
 .workspace-grid > button,
@@ -3805,8 +3733,6 @@ textarea::placeholder {
   border-color: rgba(235, 241, 213, 0.19) !important;
 }
 
-/* Normalize small metadata so it remains readable at 360px. */
-
 .catalog-state,
 .subscription-rule__copy small {
   font-size: max(9.5px, 0.6rem) !important;
@@ -3821,15 +3747,6 @@ textarea::placeholder {
   }
 }
 
-/* Corrections from the rendered mobile audit, not speculative redesign. */
-
-/* Event detail: prevent translated values from breaking and keep PRIME action in theme. */
-
-/* Notification packs use a semantic mark instead of a fake message preview. */
-
-/* Public profile: keep social content comfortable at normal phone distance. */
-
-/* Skin loading should look deliberate while Cristalix texture is in flight. */
 .cristalix-head__placeholder.is-visible {
   background:
     radial-gradient(circle at 70% 22%, rgba(203, 255, 45, 0.07), transparent 34%),
@@ -3837,7 +3754,6 @@ textarea::placeholder {
   color: #8d9282 !important;
 }
 
-/* Root user access is shell chrome: visually aligned with page headers, never part of scroll content. */
 .global-user-button {
   position: absolute !important;
   top: max(20px, env(safe-area-inset-top)) !important;
@@ -3854,8 +3770,6 @@ textarea::placeholder {
     0 0 0 3px rgba(203, 255, 45, 0.035) !important;
 }
 
-/* Reserve a real header slot instead of letting the user control overlap page actions. */
-
 .search-root-screen > .root-title-block {
   box-sizing: border-box;
   min-height: 54px;
@@ -3866,7 +3780,6 @@ textarea::placeholder {
   margin-right: 0 !important;
 }
 
-/* Minimal, colored event artwork. */
 .event-art {
   --event-art-color: #f0b85e;
   position: relative;
@@ -3985,10 +3898,6 @@ textarea::placeholder {
   height: 12px;
 }
 
-/* Account wallet gets a visual focal point without inventing wallet actions. */
-
-/* Notification packs are represented by one aligned semantic mark, never by a fake notification preview. */
-
 .notification-real-preview {
   position: relative !important;
   display: grid !important;
@@ -4028,7 +3937,6 @@ textarea::placeholder {
   }
 }
 
-/* The user control is shell chrome. The route stage scrolls underneath it, the control itself never scrolls. */
 .global-user-button {
   position: absolute !important;
   top: max(18px, env(safe-area-inset-top)) !important;
@@ -4170,8 +4078,6 @@ textarea::placeholder {
     rgba(255, 255, 255, 0.018) !important;
 }
 
-/* Event color is a semantic cue, never a full-card fill. */
-
 .event-row-surface {
   --event-accent: #a5a39a;
 }
@@ -4246,7 +4152,6 @@ textarea::placeholder {
     rgba(255, 255, 255, 0.015) !important;
 }
 
-/* Raster booster/raid assets keep the same low-resolution character as the source icons. */
 .event-art--booster-luck {
   --event-art-color: #62c879;
 }
@@ -4296,11 +4201,6 @@ textarea::placeholder {
   height: 86%;
 }
 
-/* Existing compact drop rows inherit rarity without adding color-heavy card fills. */
-
-/* Bet rounds are event cards too: their color follows the concrete global event. */
-
-/* Event semantics: neutral cards, saturated identity concentrated around the event artwork. */
 .event-surface--dungeon {
   --event-accent: #98a77c;
 }
@@ -4311,15 +4211,9 @@ textarea::placeholder {
   overflow: hidden;
 }
 
-/* Latest is only a data state. It must never restore the old full semantic outline. */
-
-/* Never draw semantic color around the whole card. */
-
 .event-row-surface::before {
   content: none !important;
 }
-
-/* Local glow only, directly behind the artwork. */
 
 .event-row-surface::after {
   content: "";
@@ -4354,12 +4248,6 @@ textarea::placeholder {
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.016) !important;
 }
 
-/*
- * Event signature.
- * The old rounded icon tile is removed. Raster artwork floats directly on the card;
- * semantic color exists only as two small corner marks and a local glow.
- */
-
 .event-row-surface .event-art {
   --event-art-color: var(--event-accent);
   position: relative;
@@ -4368,8 +4256,6 @@ textarea::placeholder {
   background: transparent !important;
   box-shadow: none !important;
 }
-
-/* Reset legacy pseudo-element paint before drawing the two real corner marks. */
 
 .event-row-surface .event-art::before,
 .event-row-surface .event-art::after {
@@ -4383,8 +4269,6 @@ textarea::placeholder {
   opacity: 1 !important;
   border-radius: 0;
 }
-
-/* Short quiet top-left signature. */
 
 .event-row-surface .event-art::before {
   left: -2px !important;
@@ -4400,8 +4284,6 @@ textarea::placeholder {
   border-radius: 6px 0 0 0;
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--event-accent) 24%, transparent));
 }
-
-/* Slightly stronger bottom-right signature. */
 
 .event-row-surface .event-art::after {
   right: -2px !important;
@@ -4427,7 +4309,6 @@ textarea::placeholder {
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.34));
 }
 
-/* Raster event symbols stay crisp. */
 .event-art--booster-luck .event-art__image,
 .event-art--booster-money .event-art__image,
 .event-art--booster-damage .event-art__image,
@@ -4445,7 +4326,6 @@ textarea::placeholder {
   image-rendering: crisp-edges;
 }
 
-/* Compact subscription rows use the same language at a smaller scale. */
 .subscription-rule.event-row-surface > .event-art {
   width: 36px !important;
   height: 36px !important;
@@ -4457,9 +4337,6 @@ textarea::placeholder {
   height: 84%;
 }
 
-/* Bets stay dark; semantic color remains local around the artwork. */
-
-/* SECRET: sampled from the supplied Cristalix reference. */
 .event-surface--drop-secret {
   --event-accent: #4ce8e7;
 }
@@ -4468,7 +4345,6 @@ textarea::placeholder {
   --event-art-color: #4ce8e7 !important;
 }
 
-/* MYTHICAL: strong crimson sampled from the supplied reference. */
 .event-surface--drop-mythical {
   --event-accent: #b7213c;
 }
@@ -4543,13 +4419,6 @@ textarea::placeholder {
   }
 }
 
-/* Root-layout corrections from rendered screenshots. */
-
-/*
- * The user entry belongs to page content. It is absolutely positioned inside the
- * scrollable route-stage, so it keeps one position relative to the page and scrolls
- * away with the rest of that page instead of being pinned to the viewport.
- */
 .route-stage.has-user-access {
   position: relative !important;
 }
@@ -4565,16 +4434,11 @@ textarea::placeholder {
   z-index: 12 !important;
 }
 
-/* Every root header reserves exactly the same slot for the page-local user entry. */
-
 .search-root-screen > .root-title-block {
   min-height: 54px !important;
   padding-right: 62px !important;
 }
 
-/* Daily reward is one compact account strip, not a second card or a loose divider. */
-
-/* Notification Pack has a semantic icon, not a fake preview or a misaligned asset. */
 .notification-real-preview {
   position: relative !important;
   display: grid !important;
@@ -4619,7 +4483,6 @@ textarea::placeholder {
   transform: translateX(-50%) !important;
 }
 
-/* The detail screen shows the real template examples below; no oversized fake preview. */
 .notification-real-preview.is-detail {
   display: none !important;
 }
@@ -4637,9 +4500,6 @@ textarea::placeholder {
   }
 }
 
-/* User-requested account, event discovery and event-art refinements. */
-
-/* Profile entry: use the active Cristalix head and keep it aligned with each root header. */
 .global-user-button {
   display: grid !important;
   place-items: center !important;
@@ -4661,8 +4521,6 @@ textarea::placeholder {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
-
-/* User hub: the same skin identity is visible in the user card and account switcher. */
 
 .user-hub-account-switch__mark--skin {
   width: 34px !important;
@@ -4687,9 +4545,6 @@ textarea::placeholder {
   background: rgba(255, 255, 255, 0.025) !important;
 }
 
-/* Event discovery: search is primary; sort and endpoint-specific filters stay compact. */
-
-/* User-provided global-event references rebuilt as clean crisp event assets. */
 .event-art--global-eclipse {
   --event-art-color: #a9b5c3;
 }
@@ -4729,7 +4584,6 @@ textarea::placeholder {
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
 }
 
-/* Subscription item suggestions now preview the already available item art. */
 .field-suggestions > button {
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) !important;
@@ -4744,9 +4598,6 @@ textarea::placeholder {
   text-align: left;
 }
 
-/* Follow-up corrections for user identity and event controls. */
-
-/* User identity is independent from the active account skin. Keep a neutral slot until user avatars exist. */
 .user-avatar-placeholder {
   display: grid;
   place-items: center;
@@ -4774,7 +4625,6 @@ textarea::placeholder {
   box-shadow: none !important;
 }
 
-/* Do not pin the user control against the shell corner. */
 .route-stage.has-user-access > .global-user-button {
   top: 26px !important;
   right: 26px !important;
@@ -4796,10 +4646,6 @@ textarea::placeholder {
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.045) !important;
 }
 
-/* Sort uses direction only: down = newest first, up = oldest first. */
-
-/* Filter fields must use the same surface treatment as the rest of the Mini App. */
-
 @media (max-width: 374px) {
   .route-stage.has-user-access > .global-user-button {
     top: 22px !important;
@@ -4809,9 +4655,6 @@ textarea::placeholder {
   }
 }
 
-/* Raster identity, staff workflows and dense mobile-safe controls. */
-
-/* Raster utility marks use the same pixel-art language as event assets. */
 .currency-glyph {
   display: inline-block !important;
   flex: 0 0 auto;
@@ -4851,7 +4694,6 @@ textarea::placeholder {
   filter: none !important;
 }
 
-/* Shared staff form surface. */
 .badge-admin-screen input,
 .badge-admin-screen textarea,
 .internal-user-screen input,
@@ -4883,8 +4725,6 @@ textarea::placeholder {
   border-color: rgba(203, 255, 45, 0.32);
   box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.045);
 }
-
-/* Personalization visual primitives. */
 
 .notification-real-preview {
   position: relative;
@@ -4956,7 +4796,6 @@ textarea::placeholder {
   white-space: nowrap;
 }
 
-/* Full notification pack inspection. */
 .notification-pack-showcase {
   display: grid;
   gap: 10px;
@@ -5124,7 +4963,6 @@ textarea::placeholder {
   text-transform: uppercase;
 }
 
-/* Review workspace. */
 .review-overview {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -5386,9 +5224,6 @@ textarea::placeholder {
   font-size: 8px;
 }
 
-/* Bet admin workspace. */
-
-/* Existing moderation-user page: clearer hierarchy without changing backend-aligned controls. */
 .internal-user-screen .internal-user-hero {
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
@@ -5460,8 +5295,6 @@ textarea::placeholder {
   min-width: 0;
 }
 
-/* Badge admin: keep icon, text and actions in their own columns. */
-
 @media (max-width: 374px) {
   .review-toolbar {
     grid-template-columns: 1fr;
@@ -5494,25 +5327,19 @@ textarea::placeholder {
   }
 }
 
-/* Requested UX round two: transparent event sprites, admin navigation, bets workspace and account settings. */
-
-/* Admin users get the consolidated Administration entry. Moderation stays available inside it. */
 .user-hub-workspace-grid:has(> .is-admin) > .is-moderation {
   display: none;
 }
 
-/* Nick-style previews should show the actual styled nick without explanatory filler. */
 .nick-real-preview > em {
   display: none !important;
 }
 
-/* COIN is optically centered at every size. */
 .currency-glyph {
   background-position: 50% 50%;
   transform: translateY(0);
 }
 
-/* The supplied Moon/Eclipse art now has alpha around the sprite. Keep it crisp without adding a panel behind it. */
 .event-art--global-moon .event-art__image,
 .event-art--global-eclipse .event-art__image {
   width: 100% !important;
@@ -5523,7 +5350,6 @@ textarea::placeholder {
   filter: none !important;
 }
 
-/* ---------------- Account settings ---------------- */
 .account-settings-screen {
   padding-bottom: 34px;
 }
@@ -5961,7 +5787,6 @@ textarea::placeholder {
   background: rgba(217, 143, 143, 0.06);
 }
 
-/* ---------------- Bets admin ---------------- */
 .bet-admin-screen {
   padding-bottom: 34px;
 }
@@ -6196,11 +6021,6 @@ textarea::placeholder {
   }
 }
 
-/* Wallet + role-management product pass. */
-
-/* Fix the account-home currency mark: center the raster mark optically inside its tile. */
-
-/* ---------- PRIME wallet ---------- */
 .prime-wallet-screen,
 .account-wallet-screen,
 .roles-screen,
@@ -6711,7 +6531,6 @@ textarea::placeholder {
   color: #cfff48;
 }
 
-/* ---------- COIN wallet ---------- */
 .coin-wallet-hero {
   background:
     radial-gradient(circle at 82% 18%, rgba(246, 178, 56, 0.1), transparent 34%),
@@ -6757,7 +6576,6 @@ textarea::placeholder {
   }
 }
 
-/* ---------- Roles overview ---------- */
 .roles-create,
 .role-editor-back-to-list {
   display: inline-flex;
@@ -7015,7 +6833,6 @@ textarea::placeholder {
   font-size: 18px;
 }
 
-/* ---------- Role editor ---------- */
 .role-editor-hero {
   position: relative;
   grid-template-columns: auto minmax(0, 1fr);
@@ -7403,7 +7220,6 @@ textarea::placeholder {
   }
 }
 
-/* Role-list alignment after switching the leading marker to RoleSigil. */
 .role-row__main {
   grid-template-columns: 40px minmax(0, 1fr) auto auto;
 }
@@ -7412,11 +7228,6 @@ textarea::placeholder {
   justify-self: center;
 }
 
-/* Account identity, 3D Cristalix heads, member management and history sorting. */
-
-/* Cristalix head */
-
-/* Global profile trigger: lower visual weight than content cards. */
 .global-user-button.global-user-button {
   width: 42px !important;
   height: 42px !important;
@@ -7454,9 +7265,6 @@ textarea::placeholder {
   background: rgba(22, 25, 17, 0.82) !important;
 }
 
-/* Account home */
-
-/* Role selection is communicated by the card border/background; no radio-like check badge. */
 .account-default-role-grid > button > b {
   display: none !important;
 }
@@ -7469,7 +7277,6 @@ textarea::placeholder {
   box-shadow: inset 0 0 0 1px rgba(203, 255, 45, 0.055) !important;
 }
 
-/* Transaction sorting */
 .wallet-history-head {
   display: flex !important;
   align-items: center !important;
@@ -7514,7 +7321,6 @@ textarea::placeholder {
   margin: 0 0 8px !important;
 }
 
-/* Account layout corrections for the consolidated surface. */
 .account-settings-shortcuts.account-settings-shortcuts--four {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
@@ -7533,10 +7339,6 @@ textarea::placeholder {
   }
 }
 
-/* Regression fixes after the account/event asset pass. Keep this sheet last. */
-
-/* ---------- Cristalix head: pixel-perfect front face, no distorted 3D slicing ---------- */
-
 .user-hub-account-switch__mark--skin,
 .user-hub-account-picker__head {
   overflow: hidden !important;
@@ -7545,9 +7347,6 @@ textarea::placeholder {
   box-shadow: none !important;
 }
 
-/* ---------- Role art: raster-like badges instead of generic line sigils ---------- */
-
-/* ---------- Event assets: normalize all content to one compact visual scale ---------- */
 .event-art {
   display: grid !important;
   place-items: center !important;
@@ -7570,10 +7369,6 @@ textarea::placeholder {
   image-rendering: pixelated;
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3)) !important;
 }
-
-/* ---------- Account tab: rebuilt as a dashboard ---------- */
-
-/* ---------- Wallet controls ---------- */
 
 .wallet-history-head {
   overflow: visible !important;
@@ -7678,9 +7473,6 @@ textarea::placeholder {
   }
 }
 
-/* Product pass: account, member management, layered Cristalix heads and account personalization. */
-
-/* ---------- Identity separation ---------- */
 .user-avatar-placeholder {
   display: grid;
   place-items: center;
@@ -7703,7 +7495,6 @@ textarea::placeholder {
   border-radius: 14px;
 }
 
-/* ---------- Cristalix head: base + overlay as separate layers ---------- */
 .cristalix-head.cristalix-head--layered {
   position: relative;
   display: grid;
@@ -7781,7 +7572,6 @@ textarea::placeholder {
   overflow: visible !important;
 }
 
-/* ---------- One shared role mark ---------- */
 .role-sigil.role-sigil--shared {
   display: grid;
   place-items: center;
@@ -7814,7 +7604,6 @@ textarea::placeholder {
   height: 80%;
 }
 
-/* ---------- Account workspace ---------- */
 .account-home-screen {
   display: flex;
   flex-direction: column;
@@ -8520,14 +8309,11 @@ textarea::placeholder {
   white-space: nowrap;
 }
 
-/* ---------- Dedicated member management ---------- */
 .account-home-member-detail {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-
-/* ---------- Account personalization ---------- */
 
 @media (max-width: 374px) {
   .account-home-profile {
@@ -8601,9 +8387,6 @@ textarea::placeholder {
   }
 }
 
-/* Clearer account art, restrained reward motion and scalable personalization navigation. */
-
-/* ---------- Cristalix head: make the skin overlay visibly separate ---------- */
 .cristalix-head--layered .cristalix-head__canvas--overlay {
   left: -18% !important;
   top: -18% !important;
@@ -8616,7 +8399,6 @@ textarea::placeholder {
   filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.26)) saturate(0.98) !important;
 }
 
-/* ---------- Account illustration replacements ---------- */
 .account-home-profile__art,
 .account-home-personalization > img,
 .account-home-members__head > img {
@@ -8644,7 +8426,6 @@ textarea::placeholder {
   opacity: 0.9;
 }
 
-/* ---------- Reward: calmer flame, floating pixels after claim ---------- */
 .account-home-reward__flame > i {
   width: 40px;
   height: 24px;
@@ -8701,7 +8482,6 @@ textarea::placeholder {
   z-index: 5;
 }
 
-/* ---------- Shared personalization typography ---------- */
 .personalization-store-screen,
 .personalization-store-category,
 .personalization-owned-screen,
@@ -8723,7 +8503,6 @@ textarea::placeholder {
   color: #858b7d;
 }
 
-/* ---------- Store root: category navigation instead of a horizontal type rail ---------- */
 .personalization-store-screen {
   padding-top: 8px !important;
 }
@@ -8926,21 +8705,10 @@ textarea::placeholder {
   color: #6f7569;
 }
 
-/* ---------- Store category ---------- */
-
-/* ---------- Account personalization root ---------- */
-
-/* ---------- Account personalization category: one item/page, click again to deselect ---------- */
-
-/* ---------- Impact previews ---------- */
-
-/* ---------- Detail: use space for explanation + live preview ---------- */
-
 .personalization-detail-screen .personalization-spec-grid {
   margin: 0;
 }
 
-/* ---------- Simple owned User library ---------- */
 .personalization-owned-list {
   display: flex;
   flex-direction: column;
@@ -8986,7 +8754,6 @@ textarea::placeholder {
   font-style: normal;
 }
 
-/* ---------- Small screens ---------- */
 @media (max-width: 380px) {
   .personalization-store-category-card {
     grid-template-columns: 42px minmax(0, 1fr) 88px;
@@ -9007,8 +8774,6 @@ textarea::placeholder {
     width: 102px;
   }
 }
-
-/* Small fixes discovered by the screenshot audit. */
 
 .personalization-detail-screen .notification-real-preview__event {
   display: grid !important;
@@ -9063,9 +8828,6 @@ textarea::placeholder {
   font-size: 12px !important;
 }
 
-/* Hotfix pass: external skin rendering, reward celebration and root navigation. */
-
-/* ---------- External Cristalix head ---------- */
 .cristalix-head--layered .cristalix-head__canvas--overlay {
   left: -6% !important;
   top: -6% !important;
@@ -9078,9 +8840,6 @@ textarea::placeholder {
   opacity: 0 !important;
 }
 
-/* ---------- Store header / user button collision ---------- */
-
-/* ---------- Daily reward celebration ---------- */
 .account-home-reward__flame > i {
   animation-duration: 3.8s !important;
 }
@@ -9173,7 +8932,6 @@ textarea::placeholder {
     0 0 8px var(--reward-particle-glow);
 }
 
-/* ---------- Illustrated root navigation ---------- */
 .root-navigation--illustrated button {
   isolation: isolate;
 }
@@ -9229,7 +8987,6 @@ textarea::placeholder {
   margin-top: 1px;
 }
 
-/* ---------- Members: abstract Mnemos identity sigils instead of initials ---------- */
 .account-home-member__avatar {
   --member-sigil: #aeb4a7;
   --member-sigil-rgb: 174, 180, 167;
@@ -9354,9 +9111,6 @@ textarea::placeholder {
   }
 }
 
-/* Account action illustrations. */
-
-/* ---------- Daily claim: compact gift action in the account palette ---------- */
 .account-home-reward > button:not(.is-restore) {
   position: relative;
   flex: 0 0 auto;
@@ -9419,7 +9173,6 @@ textarea::placeholder {
     0 0 0 1px rgba(203, 255, 45, 0.025);
 }
 
-/* ---------- Account actions: compact semantic illustrations ---------- */
 .account-home-actions > button:nth-child(2),
 .account-home-actions > button:nth-child(3) {
   min-height: 88px;
@@ -9489,13 +9242,6 @@ textarea::placeholder {
   }
 }
 
-/*
- * Mnemos typography pass.
- * Geologica keeps the UI geometric and game-adjacent without turning it into a
- * pixel-font interface. IBM Plex Mono is reserved for technical metadata and
- * small counters so the hierarchy stays readable rather than decorative.
- */
-
 :root {
   --font-ui:
     "Geologica", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
@@ -9547,7 +9293,6 @@ h3 {
   letter-spacing: -0.022em;
 }
 
-/* Short uppercase system labels are intentionally more technical. */
 .eyebrow,
 .account-home-profile__copy > small,
 .account-home-reward__copy > small,
@@ -9562,7 +9307,6 @@ h3 {
   letter-spacing: 0.115em !important;
 }
 
-/* Metadata uses tabular forms and a narrower rhythm than main copy. */
 time,
 .account-home-panel__head em,
 .account-home-reward__range,
@@ -9574,7 +9318,6 @@ time,
   letter-spacing: -0.018em;
 }
 
-/* Primary identity and content titles. */
 .account-home-profile__copy > strong {
   font-weight: 720 !important;
   letter-spacing: -0.038em !important;
@@ -9594,7 +9337,6 @@ time,
   letter-spacing: -0.018em !important;
 }
 
-/* Keep descriptive copy softer and more open than titles. */
 .account-home-feature-copy > span,
 .account-home-member__role,
 .account-home-drop__copy > small,
@@ -9606,7 +9348,6 @@ time,
   letter-spacing: 0.002em;
 }
 
-/* Action labels should feel deliberate, not like bold browser defaults. */
 .account-home-actions strong,
 .root-navigation button > span:last-child,
 .primary-action,
@@ -9616,12 +9357,10 @@ time,
   letter-spacing: -0.012em !important;
 }
 
-/* Navigation is intentionally slightly tighter because it lives beside pixel art. */
 .root-navigation button > span:last-child {
   font-size: 11px;
 }
 
-/* Numeric values stay clean and stable while changing. */
 .account-home-reward__streak strong,
 .account-home-wallet .account-home-feature-copy > strong,
 .account-home-reward-result strong,
@@ -9629,7 +9368,6 @@ time,
   font-variant-numeric: tabular-nums;
 }
 
-/* Avoid overly compressed legacy tracking on form and list text. */
 .row__copy strong,
 .field__label,
 .choice-grid button,
@@ -9646,8 +9384,6 @@ time,
     letter-spacing: -0.045em !important;
   }
 }
-
-/* Mnemos mascot placement in the account hero. */
 
 .account-home-profile {
   grid-template-columns: 88px minmax(0, 1fr) 104px;
@@ -9683,12 +9419,6 @@ time,
     margin-left: -10px;
   }
 }
-
-/* Cohesive product pass: user hub, staff workspaces, bets, event art and search mascot. */
-
-/* --------------------------------------------------------------------------
-   User hub / workspace switcher
-   -------------------------------------------------------------------------- */
 
 .user-hub {
   border-color: rgba(220, 229, 197, 0.15);
@@ -9845,10 +9575,6 @@ time,
 .user-hub-workspace-grid > button:active {
   transform: translateY(0) scale(0.988);
 }
-
-/* --------------------------------------------------------------------------
-   Administration home and staff language
-   -------------------------------------------------------------------------- */
 
 .administration-home-screen,
 .moderation-screen,
@@ -10043,7 +9769,6 @@ time,
   transform: scale(0.985);
 }
 
-/* Moderation */
 .moderation-hero {
   display: grid;
   grid-template-columns: 82px minmax(0, 1fr);
@@ -10133,7 +9858,6 @@ time,
   border-color: var(--staff-line-strong) !important;
 }
 
-/* Personalization review */
 .review-overview {
   display: grid;
   grid-template-columns: 84px minmax(0, 1fr);
@@ -10205,7 +9929,6 @@ time,
     rgba(17, 20, 15, 0.94) !important;
 }
 
-/* Bet admin */
 .bet-admin-hero {
   display: grid;
   grid-template-columns: 84px minmax(0, 1fr);
@@ -10266,21 +9989,11 @@ time,
   background: rgba(199, 242, 74, 0.055) !important;
 }
 
-/* Creator area uses the same material language as staff workspaces without
-   making it look like an admin-only screen. */
 .creator-revenue {
   border-color: var(--staff-line) !important;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.018), transparent 48%), rgba(18, 20, 16, 0.88) !important;
 }
-
-/* --------------------------------------------------------------------------
-   Root bets: denser, more coherent cards
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Event art: unified pixel frame + restrained tone effects
-   -------------------------------------------------------------------------- */
 
 .event-art {
   --event-art-tone: #89927f;
@@ -10381,18 +10094,10 @@ time,
   --event-art-tone: #a787b3;
 }
 
-/* --------------------------------------------------------------------------
-   Search initial state: a dedicated mascot variation, not the account mascot
-   -------------------------------------------------------------------------- */
-
 .search-root-screen {
   position: relative;
   min-height: calc(100dvh - 96px);
 }
-
-/* --------------------------------------------------------------------------
-   Event/bet tone bridge
-   -------------------------------------------------------------------------- */
 
 .event-surface--drop-secret {
   --event-tone: #4ed9d4;
@@ -10426,7 +10131,6 @@ time,
   --event-tone: #a787b3;
 }
 
-/* Small-screen guardrails */
 @media (max-width: 374px) {
   .workspace-grid {
     grid-template-columns: 1fr;
@@ -10456,9 +10160,6 @@ time,
   }
 }
 
-/* Details for the cohesive product surface. */
-
-/* Account picker stays compact inside the redesigned hub. */
 .user-hub-account-picker {
   margin-top: 7px;
   overflow: hidden;
@@ -10482,14 +10183,11 @@ time,
   transform: scale(0.993);
 }
 
-/* Administrative detail pages use the same surface depth as the workspace home. */
-
 .internal-user-screen .section,
 .badge-admin-screen .review-workbench {
   border-color: rgba(223, 232, 204, 0.105) !important;
 }
 
-/* Moderation user detail. */
 .internal-user-screen .internal-user-hero {
   border: 1px solid rgba(223, 232, 204, 0.105) !important;
   border-radius: 21px !important;
@@ -10515,7 +10213,6 @@ time,
   gap: 7px;
 }
 
-/* Review workbench: selected personalization feels like one coherent inspector. */
 .badge-admin-screen .review-workbench {
   overflow: hidden;
   border: 1px solid rgba(223, 232, 204, 0.105) !important;
@@ -10535,11 +10232,6 @@ time,
   border-radius: 14px;
 }
 
-/* Bets root: remove the old detached right-side feeling and make each row read as one object. */
-
-/* Event cards get the same quiet material depth as bets while their tone lives near the icon. */
-
-/* Keep the search assistant above the bottom nav on shorter screens. */
 @media (max-height: 700px) {
   .search-root-screen:not(:has(.search-root-hint)):not(:has(.search-result-panel))::after {
     top: 220px;
@@ -10559,10 +10251,6 @@ time,
   }
 }
 
-/* Fixes found in the generated mobile visual audit for the cohesive UI pass. */
-
-/* Existing workspace styles were stronger than the first pass. Rebuild the rows as
-   compact illustrated cards and replace the old icon tiles explicitly. */
 .user-hub-workspace-grid {
   display: grid !important;
   gap: 8px !important;
@@ -10671,9 +10359,6 @@ time,
   transform: scale(0.988);
 }
 
-/* Replace the legacy two rounded L-corners with a four-corner pixel reticle.
-   Semantic color stays local to the artwork instead of outlining the card. */
-
 .event-row-surface .event-art::before {
   content: "" !important;
   position: absolute !important;
@@ -10698,8 +10383,6 @@ time,
   pointer-events: none !important;
 }
 
-/* Four tiny satellite pixels keep the reticle from reading as a generic frame. */
-
 .event-row-surface .event-art::after {
   content: "" !important;
   position: absolute !important;
@@ -10722,7 +10405,6 @@ time,
   pointer-events: none !important;
 }
 
-/* Rarity is stronger than the underlying item type when both classes exist. */
 .event-art.event-art--rarity-secret {
   --event-art-tone: #4ed9d4;
 }
@@ -10730,12 +10412,6 @@ time,
 .event-art.event-art--rarity-mythical {
   --event-art-tone: #d53158;
 }
-
-/* Creator Studio, events, bets, public profile, and staff surfaces. */
-
-/* --------------------------------------------------------------------------
-   Staff hero correction
-   -------------------------------------------------------------------------- */
 
 .workspace-intro--admin {
   display: grid !important;
@@ -10777,10 +10453,6 @@ time,
   line-height: 1.38 !important;
 }
 
-/* --------------------------------------------------------------------------
-   Creator Studio
-   -------------------------------------------------------------------------- */
-
 .staff-form-block > header small {
   color: #9da28f;
   font-size: 7.5px;
@@ -10788,9 +10460,6 @@ time,
   letter-spacing: 0.15em;
 }
 
-/* Creator revenue */
-
-/* Creator editor */
 .staff-form-block {
   border: 1px solid var(--creator-line);
   border-radius: 20px;
@@ -10826,33 +10495,6 @@ time,
   background: rgba(255, 255, 255, 0.02) !important;
 }
 
-/* --------------------------------------------------------------------------
-   Events
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Bets
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Public profile
-   -------------------------------------------------------------------------- */
-
-/* Visual-audit correction for the product surface. */
-
-/* Framer Motion's initial style could still be present when the direct-route screenshot
-   is taken. The hero keeps its own subtle CSS entrance so it never renders blank. */
-
-/* Round three: header utilities, vectorized global events, Creator artwork and event detail composition. */
-
-/* --------------------------------------------------------------------------
-   Root utility placement
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Global event artwork: same silhouettes, cleaner hand-drawn pixel vectors
-   -------------------------------------------------------------------------- */
-
 .event-art--vectorized .event-art__vector {
   position: relative;
   z-index: 1;
@@ -10871,20 +10513,6 @@ time,
   width: min(var(--event-art-content-size), 24px) !important;
   height: min(var(--event-art-content-size), 24px) !important;
 }
-
-/* --------------------------------------------------------------------------
-   Creator Studio: custom illustration language instead of generic glyphs
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Event details: denser information hierarchy + Mnemos inspector companion
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Motion and first-paint stability
-   -------------------------------------------------------------------------- */
-
-/* Visual-audit corrections for round three. */
 
 .event-art--global-moon {
   color: #d13249 !important;
@@ -10910,12 +10538,6 @@ time,
   transform-origin: center;
 }
 
-/* Round four: event clarity, account interaction affordances, role cleanup and typography alignment. */
-
-/* --------------------------------------------------------------------------
-   Typography / utility alignment
-   -------------------------------------------------------------------------- */
-
 .user-hub-card {
   align-items: center !important;
 }
@@ -10935,10 +10557,6 @@ time,
 .user-hub-card__copy strong {
   line-height: 1.02 !important;
 }
-
-/* --------------------------------------------------------------------------
-   Pixel user identity mark
-   -------------------------------------------------------------------------- */
 
 .user-avatar-placeholder {
   position: relative;
@@ -10966,11 +10584,6 @@ time,
   opacity: 1;
 }
 
-/* --------------------------------------------------------------------------
-   Events feed: smaller artwork, denser cards, less empty orbit styling
-   -------------------------------------------------------------------------- */
-
-/* The eclipse keeps the same event meaning, but reads as a corona instead of a dark orb. */
 .event-art--global-eclipse {
   color: #8fc3d5 !important;
 }
@@ -10978,14 +10591,6 @@ time,
 .event-art--global-eclipse .event-art__vector {
   filter: drop-shadow(0 0 4px rgba(143, 195, 213, 0.16)) drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3)) !important;
 }
-
-/* --------------------------------------------------------------------------
-   Event detail
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Roles: the sigil is the icon; it no longer needs a tile behind it
-   -------------------------------------------------------------------------- */
 
 .account-home-actions .role-sigil,
 .account-home-member__role .role-sigil,
@@ -11006,14 +10611,6 @@ time,
 .role-row__main > .role-sigil::after {
   content: none !important;
 }
-
-/* --------------------------------------------------------------------------
-   Creator numeric controls
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Daily reward: no button tile, but clear mobile affordance
-   -------------------------------------------------------------------------- */
 
 .account-home-reward > button:not(.is-restore) {
   overflow: visible !important;
@@ -11090,7 +10687,6 @@ time,
   }
 }
 
-/* Reward result sits on the card itself instead of looking like another card. */
 .account-home-reward-result {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
@@ -11151,10 +10747,6 @@ time,
   font-size: 9px !important;
 }
 
-/* --------------------------------------------------------------------------
-   Account activity: give the header an actual visual rhythm
-   -------------------------------------------------------------------------- */
-
 .account-home-drops__head {
   position: relative !important;
   min-height: 84px !important;
@@ -11206,10 +10798,6 @@ time,
   transform: scale(0.992);
 }
 
-/* --------------------------------------------------------------------------
-   Motion accessibility
-   -------------------------------------------------------------------------- */
-
 @media (prefers-reduced-motion: reduce) {
   .account-home-reward > button:not(.is-restore)::before,
   .account-home-reward > button:not(.is-restore)::after {
@@ -11218,7 +10806,6 @@ time,
 }
 
 @media (max-width: 374px) {
-
   .account-home-drops__head {
     padding-right: 110px !important;
   }
@@ -11227,8 +10814,6 @@ time,
     width: 96px;
   }
 }
-
-/* Small follow-up after the round-four visual audit. */
 
 .account-home-member__role {
   border: 0 !important;
@@ -11239,12 +10824,6 @@ time,
 .account-home-member__role {
   padding: 0 !important;
 }
-
-/* Round five: interaction clarity, alignment, owner mark and custom 404. */
-
-/* --------------------------------------------------------------------------
-   Daily reward: no tile, but an unmistakable touch affordance
-   -------------------------------------------------------------------------- */
 
 .account-home-reward > button:not(.is-restore) {
   cursor: pointer !important;
@@ -11316,7 +10895,6 @@ time,
   }
 }
 
-/* Result labels align with the reward title/value axis rather than sitting low. */
 .account-home-reward-result {
   top: 22px !important;
   right: 12px !important;
@@ -11340,14 +10918,6 @@ time,
   align-items: center !important;
 }
 
-/* --------------------------------------------------------------------------
-   Event fact activity graph: true pixel bars on one baseline
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
-   Account mascot: move away from shell chrome
-   -------------------------------------------------------------------------- */
-
 .account-home-profile__art {
   margin-left: -25px !important;
 }
@@ -11358,26 +10928,15 @@ time,
   }
 }
 
-/* --------------------------------------------------------------------------
-   Owner crown: tiny custom pixel illustration, no badge/tile behind it
-   -------------------------------------------------------------------------- */
-
 .account-home-member__name {
   gap: 7px !important;
 }
 
-/* --------------------------------------------------------------------------
-   Mnemos 404
-   -------------------------------------------------------------------------- */
-
 @media (prefers-reduced-motion: reduce) {
-
   .account-home-reward > button:not(.is-restore) {
     animation: none !important;
   }
 }
-
-/* Daily reward affordance: no outer frame, only motion and local pixel cues. */
 
 .account-home-reward > button:not(.is-restore) {
   background: transparent !important;
@@ -11478,8 +11037,6 @@ time,
   }
 }
 
-/* Round six: event artwork is identified by local color and signal pixels, never by a frame. */
-
 .event-art {
   --event-art-color: #b9c0b2;
   position: relative !important;
@@ -11492,7 +11049,6 @@ time,
   box-shadow: none !important;
 }
 
-/* A tiny asymmetric signal cluster replaces the old corner frame. */
 .event-art::before {
   content: "" !important;
   position: absolute !important;
@@ -11512,7 +11068,6 @@ time,
   pointer-events: none;
 }
 
-/* Colored pixel ground gives the icon weight without enclosing it. */
 .event-art::after {
   content: "" !important;
   position: absolute !important;
@@ -11557,7 +11112,6 @@ button:active .event-art__vector {
   transform: translateY(1px) scale(0.98);
 }
 
-/* Item rarity is the strongest semantic signal for drops. */
 .event-art--rarity-mythical {
   --event-art-color: #df405a !important;
 }
@@ -11566,7 +11120,6 @@ button:active .event-art__vector {
   --event-art-color: #46d7d7 !important;
 }
 
-/* Booster families keep distinct hues instead of collapsing to one neutral frame. */
 .event-art--booster-luck {
   --event-art-color: #48d178 !important;
 }
@@ -11607,8 +11160,6 @@ button:active .event-art__vector {
   --event-art-color: #f49a24 !important;
 }
 
-/* The featured feed item gets a slightly stronger signal, not a larger frame. */
-
 @keyframes mnemos-event-signal {
   0%,
   72%,
@@ -11629,11 +11180,6 @@ button:active .event-art__vector {
   }
 }
 
-/* Round six follow-up: remove every legacy wrapper frame and make event color read from the artwork itself. */
-
-/* Event artwork stands on its own without wrapper corners. */
-
-/* A restrained local halo carries the semantic event hue without washing out the artwork. */
 .event-art::after {
   content: "" !important;
   position: absolute !important;
@@ -11653,7 +11199,6 @@ button:active .event-art__vector {
   pointer-events: none !important;
 }
 
-/* Keep the color readable on the icon edge, but avoid the neon-cloud look. */
 .event-art__image,
 .event-art__vector {
   filter: drop-shadow(0 0 2px color-mix(in srgb, var(--event-art-color) 46%, transparent))
@@ -11662,7 +11207,6 @@ button:active .event-art__vector {
     drop-shadow(0 5px 7px rgba(0, 0, 0, 0.34)) !important;
 }
 
-/* Keep the semantic pixels close to the object so they read as event identity, not a replacement frame. */
 .event-art::before {
   top: 13% !important;
   right: 12% !important;
@@ -11693,9 +11237,6 @@ button:active .event-art__vector {
   }
 }
 
-/* Round seven: quiet living details for the account hero and daily streak. */
-
-/* Framer used to move the whole flame up and down. Keep the anchor fixed and animate the fire itself. */
 .account-home-reward__flame {
   overflow: visible !important;
   transform: none !important;
@@ -11711,7 +11252,6 @@ button:active .event-art__vector {
   animation: mnemos-flame-glow 2.35s steps(4, end) infinite !important;
 }
 
-/* Sparse embers make the icon read as a burning flame without turning it into a busy effect. */
 .account-home-reward__flame::before {
   content: "";
   position: absolute;
@@ -11729,7 +11269,6 @@ button:active .event-art__vector {
   animation: mnemos-flame-embers 4.9s steps(1, end) infinite;
 }
 
-/* A tiny hot core shimmer stays inside the silhouette rather than surrounding it. */
 .account-home-reward__flame::after {
   content: "";
   position: absolute;
@@ -11850,8 +11389,6 @@ button:active .event-art__vector {
     opacity: 0 !important;
   }
 }
-
-/* Backend-aware error notices. Top-anchored, compact and mascot-led. */
 
 .error-notice-viewport {
   position: fixed;
@@ -12175,8 +11712,6 @@ button:active .event-art__vector {
     font-size: 12px;
   }
 }
-
-/* Account creation / invite onboarding. */
 
 .account-onboarding {
   --onboarding-accent: #b9de38;
@@ -12672,8 +12207,6 @@ button:active .event-art__vector {
   }
 }
 
-/* Profile hub localization control. Loaded last so it stays visually stable. */
-
 .user-hub-localization {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -12711,7 +12244,6 @@ button:active .event-art__vector {
   pointer-events: none;
 }
 
-/* Small pixel globe, drawn without another card/background. */
 .user-hub-localization__mark::before {
   inset: 5px;
   background:
@@ -12857,8 +12389,6 @@ button:active .event-art__vector {
     transition: none;
   }
 }
-
-/* Production integration states. Loaded after the visual mockup stack. */
 
 .account-root-user-entry {
   display: flex;

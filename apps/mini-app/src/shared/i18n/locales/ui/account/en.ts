@@ -2,7 +2,7 @@ import { accountHomeEn } from "./home/en"
 import { accountRolesEn } from "./roles/en"
 import { accountSettingsEn } from "./settings/en"
 
-export const accountProductEn = {
+export const accountEn = {
   accountOnboarding: {
     back: "Back",
     create: {

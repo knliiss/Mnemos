@@ -1,10 +1,7 @@
 import { useTranslation } from "react-i18next"
 import type { EventBetRoundResponse } from "@/shared/api/betApi"
 import { GlobalEventArt } from "../../components/events/EventArt"
-import {
-  betAdminEventLabel,
-  formatBetAdminDate,
-} from "./betAdminPresentation"
+import { betAdminEventLabel, formatBetAdminDate } from "./betAdminPresentation"
 
 type Props = {
   round: EventBetRoundResponse

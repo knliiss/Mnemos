@@ -5,7 +5,7 @@ import type {
   TransactionType,
   WalletAdjustmentStatus,
   WalletOwnerType,
-} from "@/product-ui/model"
+} from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 
 export type IdentityAccountResponse = {

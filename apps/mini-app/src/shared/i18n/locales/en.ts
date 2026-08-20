@@ -72,17 +72,6 @@ export const en = {
     placeholder: "Search accounts",
     recent: "Recent",
   },
-  bets: {
-    title: "Bets",
-    events: "Events",
-    race: "Item race",
-    active: "Active",
-    past: "Past",
-    place: "Place bet",
-    enter: "Join race",
-    pool: "Prize pool",
-    participants: "Participants",
-  },
   settings: {
     title: "Settings",
     language: "Language",

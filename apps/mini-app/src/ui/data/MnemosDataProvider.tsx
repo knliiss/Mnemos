@@ -1,10 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react"
+import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react"
 import { useApp } from "@/app/providers/AppProvider"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import type { EventFeedQuery } from "@/shared/api/eventApi"

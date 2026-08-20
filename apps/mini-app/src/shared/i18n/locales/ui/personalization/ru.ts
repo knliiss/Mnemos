@@ -1,4 +1,4 @@
-export const personalizationProductRu = {
+export const personalizationRu = {
   personalization: {
     loading: "Загрузка",
     pages: "Страницы каталога",

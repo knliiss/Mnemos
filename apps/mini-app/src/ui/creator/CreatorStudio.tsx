@@ -15,11 +15,7 @@ import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { FeatureEmpty } from "../system/FeatureEmpty"
 import { CreatorLoadingState } from "./CreatorLoadingState"
-import {
-  creatorStatusLabel,
-  creatorTypeLabel,
-  type StudioFilter,
-} from "./creatorPresentation"
+import { creatorStatusLabel, creatorTypeLabel, type StudioFilter } from "./creatorPresentation"
 
 type Props = {
   navigate: (route: Route) => void

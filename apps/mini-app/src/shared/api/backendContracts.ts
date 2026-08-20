@@ -9,7 +9,7 @@ import type {
   LocalizationLanguage,
   RolePermission,
   SystemRole,
-} from "@/product-ui/model"
+} from "@/ui/model"
 
 export type AccountStatus = "ACTIVE" | "DEACTIVATED"
 

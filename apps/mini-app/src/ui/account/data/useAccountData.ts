@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
-import {
-  claimDailyReward,
-  getDailyRewardState,
-  restoreDailyReward,
-} from "@/shared/api/rewardApi"
-import {
-  getAccountBalances,
-  getCurrentUserBalances,
-} from "@/shared/api/walletApi"
+import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
+import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
@@ -81,10 +74,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
           userBalancesPromise,
         ])
 
-      if (
-        revision !== requestRevision.current ||
-        activeAccountId.current !== requestedAccountId
-      ) {
+      if (revision !== requestRevision.current || activeAccountId.current !== requestedAccountId) {
         return
       }
 
@@ -95,10 +85,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
       setDailyReward(rewardState)
       setLoadedScopeKey(requestedScopeKey)
     } catch (error) {
-      if (
-        revision === requestRevision.current &&
-        activeAccountId.current === requestedAccountId
-      ) {
+      if (revision === requestRevision.current && activeAccountId.current === requestedAccountId) {
         setMembers([])
         setRoles([])
         setDailyReward(null)
@@ -108,10 +95,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
         handleError(error)
       }
     } finally {
-      if (
-        revision === requestRevision.current &&
-        activeAccountId.current === requestedAccountId
-      ) {
+      if (revision === requestRevision.current && activeAccountId.current === requestedAccountId) {
         setLoadingAccount(false)
       }
     }

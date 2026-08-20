@@ -51,10 +51,7 @@ export function useBetsData(
         listMyItemRacePositions(),
       ])
 
-      if (
-        revision !== requestRevision.current ||
-        accountIdRef.current !== requestedAccountId
-      ) {
+      if (revision !== requestRevision.current || accountIdRef.current !== requestedAccountId) {
         return
       }
 
@@ -63,10 +60,7 @@ export function useBetsData(
       setPositions(positionResponses)
       setLoadedAccountId(requestedAccountId)
     } catch (error) {
-      if (
-        revision === requestRevision.current &&
-        accountIdRef.current === requestedAccountId
-      ) {
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
         setRounds([])
         setRaces([])
         setPositions([])
@@ -75,10 +69,7 @@ export function useBetsData(
         handleError(error)
       }
     } finally {
-      if (
-        revision === requestRevision.current &&
-        accountIdRef.current === requestedAccountId
-      ) {
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
         setLoading(false)
       }
     }

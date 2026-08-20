@@ -1,8 +1,4 @@
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-} from "@/ui/model"
+import type { BoosterType, DungeonType, GlobalEventType } from "@/ui/model"
 import type { PageResponse } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
 import type { SubscriptionResponse } from "@/shared/api/subscriptionContracts"

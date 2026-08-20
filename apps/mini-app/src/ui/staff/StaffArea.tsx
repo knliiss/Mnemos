@@ -40,13 +40,7 @@ export function StaffArea(props: Props) {
   if (props.routeId === "moderation-user") {
     const userId = props.params?.userId ?? ""
 
-    content = (
-      <ModerationUser
-        key={userId}
-        params={props.params}
-        back={props.back}
-      />
-    )
+    content = <ModerationUser key={userId} params={props.params} back={props.back} />
   } else if (props.routeId === "personalization-review") {
     content = <PersonalizationReview back={props.back} />
   } else if (props.routeId === "bet-admin") {
@@ -55,10 +49,7 @@ export function StaffArea(props: Props) {
     content = <BadgeAdmin back={props.back} />
   } else {
     return (
-      <NotFoundFeature
-        requested={props.routeId}
-        onHome={() => props.navigate({ id: "account" })}
-      />
+      <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
     )
   }
 

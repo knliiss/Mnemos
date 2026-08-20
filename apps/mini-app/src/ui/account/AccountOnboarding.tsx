@@ -305,9 +305,7 @@ function OnboardingShell({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div
-          className={`account-onboarding-hero__art account-onboarding-production-art is-${mode}`}
-        >
+        <div className={`account-onboarding-hero__art account-onboarding-hero-art is-${mode}`}>
           <img
             src={
               mode === "create"
@@ -317,7 +315,7 @@ function OnboardingShell({
             alt=""
           />
           {mode === "join" ? (
-            <span className="account-onboarding-production-ticket" aria-hidden="true">
+            <span className="account-onboarding-ticket" aria-hidden="true">
               CODE
             </span>
           ) : null}

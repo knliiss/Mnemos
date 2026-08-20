@@ -1,10 +1,7 @@
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  searchIdentities,
-  type IdentitySearchResponse,
-} from "@/shared/api/moderationApi"
+import { searchIdentities, type IdentitySearchResponse } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"

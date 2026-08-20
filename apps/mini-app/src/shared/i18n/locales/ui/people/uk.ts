@@ -1,4 +1,4 @@
-export const peopleProductUk = {
+export const peopleUk = {
   people: {
     search: {
       title: "Пошук",

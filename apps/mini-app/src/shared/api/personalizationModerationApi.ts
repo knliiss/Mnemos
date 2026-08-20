@@ -1,4 +1,4 @@
-import type { Currency } from "@/product-ui/model"
+import type { Currency } from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 import type { PersonalizationResponse } from "@/shared/api/personalizationApi"
 

@@ -65,8 +65,7 @@ describe("useModerationUser", () => {
       .mockRejectedValueOnce(new Error("network"))
 
     const { result, rerender } = renderHook(
-      ({ userId }: { userId: string }) =>
-        useModerationUser({ userId, canAdjustWallet: false }),
+      ({ userId }: { userId: string }) => useModerationUser({ userId, canAdjustWallet: false }),
       { initialProps: { userId: "user-a" } },
     )
 
@@ -89,8 +88,7 @@ describe("useModerationUser", () => {
       .mockResolvedValueOnce([identity("user-b")])
 
     const { result, rerender } = renderHook(
-      ({ userId }: { userId: string }) =>
-        useModerationUser({ userId, canAdjustWallet: false }),
+      ({ userId }: { userId: string }) => useModerationUser({ userId, canAdjustWallet: false }),
       { initialProps: { userId: "user-a" } },
     )
 

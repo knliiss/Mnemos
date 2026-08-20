@@ -1,8 +1,4 @@
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-} from "@/product-ui/model"
+import type { BoosterType, DungeonType, GlobalEventType } from "@/ui/model"
 
 export type SubscriptionResponse =
   | {

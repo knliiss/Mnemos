@@ -6,11 +6,7 @@ type PersonalizationPagerProps = {
   onChange: (page: number) => void
 }
 
-export function PersonalizationPager({
-  page,
-  pageCount,
-  onChange,
-}: PersonalizationPagerProps) {
+export function PersonalizationPager({ page, pageCount, onChange }: PersonalizationPagerProps) {
   const { t } = useTranslation()
 
   return (

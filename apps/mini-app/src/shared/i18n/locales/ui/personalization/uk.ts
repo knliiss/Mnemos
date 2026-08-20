@@ -1,4 +1,4 @@
-export const personalizationProductUk = {
+export const personalizationUk = {
   personalization: {
     loading: "Завантаження",
     pages: "Сторінки каталогу",

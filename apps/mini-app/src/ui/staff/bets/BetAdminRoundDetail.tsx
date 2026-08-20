@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type {
-  EventBetOutcome,
-  EventBetRoundResponse,
-} from "@/shared/api/betApi"
+import type { EventBetOutcome, EventBetRoundResponse } from "@/shared/api/betApi"
 import { resolveEventBetRound } from "@/shared/api/betAdminApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { GlobalEventArt } from "../../components/events/EventArt"
@@ -126,7 +123,8 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
 
           <div className="bet-admin-choice">
             {EVENT_BET_OUTCOMES.map((value) => (
-              <button type="button"
+              <button
+                type="button"
                 key={value}
                 className={outcome === value ? "is-active" : ""}
                 onClick={() => setOutcome(value)}
@@ -145,7 +143,8 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
             />
           </Field>
 
-          <button type="button"
+          <button
+            type="button"
             className="primary-action"
             disabled={!reason.trim() || busy}
             onClick={() => void resolve()}

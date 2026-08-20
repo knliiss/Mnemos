@@ -5,11 +5,7 @@ import { BetAdminDashboard } from "./BetAdminDashboard"
 import { BetAdminRaceManagement } from "./BetAdminRaceManagement"
 import { BetAdminRoundDetail } from "./BetAdminRoundDetail"
 import { BetAdminRoundList } from "./BetAdminRoundList"
-import {
-  activeBetRounds,
-  normalizeBetAdminSection,
-  settledBetRounds,
-} from "./betAdminPresentation"
+import { activeBetRounds, normalizeBetAdminSection, settledBetRounds } from "./betAdminPresentation"
 import { useBetAdminData } from "./useBetAdminData"
 import "./bet-admin.css"
 
@@ -68,12 +64,7 @@ export function BetAdmin({ params, navigate, back }: Props) {
 
   if (section === "races") {
     return (
-      <BetAdminRaceManagement
-        races={races}
-        loading={loading}
-        back={back}
-        onChanged={refresh}
-      />
+      <BetAdminRaceManagement races={races} loading={loading} back={back} onChanged={refresh} />
     )
   }
 

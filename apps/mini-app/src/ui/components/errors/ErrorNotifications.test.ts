@@ -3,16 +3,19 @@ import { resolveErrorPresentation } from "./errorPresentation"
 
 describe("resolveErrorPresentation", () => {
   it("uses localized access presentation for a known backend code", () => {
-    const result = resolveErrorPresentation({
-      code: "ROLE_ACCESS_DENIED",
-      statusCode: 403,
-    }, "uk")
+    const result = resolveErrorPresentation(
+      {
+        code: "ROLE_ACCESS_DENIED",
+        statusCode: 403,
+      },
+      "uk",
+    )
 
     expect(result).toMatchObject({
       tone: "access",
       mascot: "access",
       eyebrow: "ДОСТУП",
-      title: "Дія недоступна",
+      title: "Недостатньо прав",
     })
   })
 
@@ -62,8 +65,8 @@ describe("resolveErrorPresentation", () => {
   it("localizes presentation without changing the backend code contract", () => {
     const payload = { code: "ROLE_ACCESS_DENIED", statusCode: 403 }
 
-    expect(resolveErrorPresentation(payload, "en").title).toBe("Action unavailable")
-    expect(resolveErrorPresentation(payload, "ru").title).toBe("Действие недоступно")
+    expect(resolveErrorPresentation(payload, "en").title).toBe("Insufficient permissions")
+    expect(resolveErrorPresentation(payload, "ru").title).toBe("Недостаточно прав")
     expect(payload.code).toBe("ROLE_ACCESS_DENIED")
   })
 })

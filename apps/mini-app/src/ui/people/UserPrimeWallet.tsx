@@ -218,9 +218,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
             <PrimeHistoryRow key={transaction.id} transaction={transaction} locale={locale} t={t} />
           ))}
 
-          {visibleLoading ? (
-            <FeatureLoading label={t("userWallet.history.loading")} />
-          ) : null}
+          {visibleLoading ? <FeatureLoading label={t("userWallet.history.loading")} /> : null}
 
           {!visibleLoading && loadError ? (
             <FeatureEmpty

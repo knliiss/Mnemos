@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   activatePersonalization,
@@ -148,12 +141,7 @@ export function usePersonalizations(): PersonalizationData {
       }
 
       const mappedItems = [...responsesById.values()].map((response) =>
-        toPersonalization(
-          response,
-          ownedById.get(response.id) ?? null,
-          userId,
-          username,
-        ),
+        toPersonalization(response, ownedById.get(response.id) ?? null, userId, username),
       )
 
       setItems(mappedItems)
@@ -224,10 +212,7 @@ export function usePersonalizations(): PersonalizationData {
 
       if (status === "CONFIRMED") {
         if (pending.target === "USER" || pending.scopeKey === scopeKeyRef.current) {
-          await Promise.all([
-            latestRefreshRef.current(),
-            latestRefreshAccountRef.current(),
-          ])
+          await Promise.all([latestRefreshRef.current(), latestRefreshAccountRef.current()])
         }
 
         return
@@ -246,10 +231,7 @@ export function usePersonalizations(): PersonalizationData {
 
   useEffect(() => {
     return realtimeEvents.subscribe((event) => {
-      if (
-        event.type !== "personalization.purchase.completed" ||
-        !event.operationId
-      ) {
+      if (event.type !== "personalization.purchase.completed" || !event.operationId) {
         return
       }
 
@@ -353,11 +335,7 @@ export function usePersonalizations(): PersonalizationData {
           (pending.target === "USER" || pending.scopeKey === purchaseScopeKey),
       )
 
-      if (
-        item.owned ||
-        existingPurchase ||
-        busyByScopeRef.current[busyScopeKey]
-      ) {
+      if (item.owned || existingPurchase || busyByScopeRef.current[busyScopeKey]) {
         return
       }
 
@@ -408,14 +386,7 @@ export function usePersonalizations(): PersonalizationData {
         }
       }
     },
-    [
-      pollPurchase,
-      scopeKey,
-      updateBusyByScope,
-      updatePendingPurchases,
-      userBusyScopeKey,
-      userId,
-    ],
+    [pollPurchase, scopeKey, updateBusyByScope, updatePendingPurchases, userBusyScopeKey, userId],
   )
 
   const toggleActive = useCallback(
@@ -470,9 +441,7 @@ export function usePersonalizations(): PersonalizationData {
     () =>
       Object.fromEntries(
         Object.entries(pendingPurchaseState)
-          .filter(
-            ([, pending]) => pending.target === "USER" || pending.scopeKey === scopeKey,
-          )
+          .filter(([, pending]) => pending.target === "USER" || pending.scopeKey === scopeKey)
           .map(([, pending]) => [pending.personalizationId, pending.operationId]),
       ),
     [pendingPurchaseState, scopeKey],

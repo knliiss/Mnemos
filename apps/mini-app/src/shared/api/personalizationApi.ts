@@ -7,7 +7,7 @@ import type {
   PersonalizationStatus,
   PersonalizationTarget,
   PersonalizationType,
-} from "@/product-ui/model"
+} from "@/ui/model"
 
 export type GradientStopResponse = {
   color: string

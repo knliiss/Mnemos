@@ -39,7 +39,11 @@ export function PersonalizationStore({
           <p>{t("personalization.store.description")}</p>
         </span>
 
-        <button type="button" className="store-prime-pill" onClick={() => navigate({ id: "user-wallet" })}>
+        <button
+          type="button"
+          className="store-prime-pill"
+          onClick={() => navigate({ id: "user-wallet" })}
+        >
           <CurrencyMark currency="PRIME" size={17} />
           <strong>{prime.toLocaleString(locale)}</strong>
         </button>
@@ -65,7 +69,8 @@ export function PersonalizationStore({
             const sample = typeItems[0] ?? items.find((item) => item.type === type && item.owned)
 
             return (
-              <motion.button type="button"
+              <motion.button
+                type="button"
                 key={type}
                 className={`personalization-store-category-card personalization-store-category-card--${type.toLowerCase()}`}
                 whileTap={{ scale: 0.988 }}

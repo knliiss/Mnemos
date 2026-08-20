@@ -85,10 +85,8 @@ export function Subscriptions({ back }: { back: () => void }) {
     droppedForValid && itemNameValid && Boolean(cleanDroppedFor || cleanItemName)
   const cleanRaidInput = raidInput.trim()
   const raidInputValue = Number(cleanRaidInput)
-  const raidInputValid =
-    !cleanRaidInput || (Number.isInteger(raidInputValue) && raidInputValue > 0)
-  const createValid =
-    (type !== "ITEM_DROP" || itemDropValid) && (type !== "RAID" || raidInputValid)
+  const raidInputValid = !cleanRaidInput || (Number.isInteger(raidInputValue) && raidInputValue > 0)
+  const createValid = (type !== "ITEM_DROP" || itemDropValid) && (type !== "RAID" || raidInputValid)
   const itemSuggestions = itemSearch.query === cleanItemName ? itemSearch.items : []
 
   useEffect(() => {
@@ -115,9 +113,7 @@ export function Subscriptions({ back }: { back: () => void }) {
           setItemSearch({ query: cleanItemName, items })
           setItemTypesByName((current) => ({
             ...current,
-            ...Object.fromEntries(
-              items.map((item) => [normalizeItemName(item.name), item.type]),
-            ),
+            ...Object.fromEntries(items.map((item) => [normalizeItemName(item.name), item.type])),
           }))
         })
         .catch((error) => {
@@ -250,10 +246,7 @@ export function Subscriptions({ back }: { back: () => void }) {
           : raidLocations
       const saved = await data.mutateSubscriptions(async () => {
         if (type === "ITEM_DROP") {
-          await createItemDropSubscription(
-            cleanDroppedFor || undefined,
-            cleanItemName || undefined,
-          )
+          await createItemDropSubscription(cleanDroppedFor || undefined, cleanItemName || undefined)
         } else if (type === "BOOSTER") {
           await createBoosterSubscription(boosterType)
         } else if (type === "DUNGEON") {
@@ -354,10 +347,7 @@ export function Subscriptions({ back }: { back: () => void }) {
               className={`subscription-rule event-row-surface event-surface--${subscriptionVisualTone(subscription)}`}
               key={subscription.id}
             >
-              <SubscriptionRuleIcon
-                subscription={subscription}
-                itemTypesByName={itemTypesByName}
-              />
+              <SubscriptionRuleIcon subscription={subscription} itemTypesByName={itemTypesByName} />
               <span className="subscription-rule__copy">
                 <strong>{subscriptionLabels[subscription.type]}</strong>
                 <small>{description(t, subscription)}</small>
@@ -368,11 +358,7 @@ export function Subscriptions({ back }: { back: () => void }) {
                 disabled={busy || deletingId !== null}
                 onClick={() => void remove(subscription.id)}
               >
-                {deletingId === subscription.id ? (
-                  <span>…</span>
-                ) : (
-                  <Glyph name="close" size={15} />
-                )}
+                {deletingId === subscription.id ? <span>…</span> : <Glyph name="close" size={15} />}
               </button>
             </article>
           ))}

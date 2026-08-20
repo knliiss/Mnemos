@@ -72,17 +72,6 @@ export const ru = {
     placeholder: "Поиск аккаунтов",
     recent: "Недавние",
   },
-  bets: {
-    title: "Ставки",
-    events: "События",
-    race: "Гонка за предметом",
-    active: "Активные",
-    past: "Прошедшие",
-    place: "Сделать ставку",
-    enter: "Войти в гонку",
-    pool: "Призовой фонд",
-    participants: "Участников",
-  },
   settings: {
     title: "Настройки",
     language: "Язык",

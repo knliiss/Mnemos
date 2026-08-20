@@ -7,7 +7,7 @@ import {
   getPublicProfile,
   type PublicProfileResponse,
 } from "@/shared/api/profileSocialApi"
-import { getEventFeed } from "@/shared/api/productApi"
+import { getEventFeed } from "@/shared/api/eventApi"
 import { usePublicProfileData } from "./usePublicProfileData"
 
 vi.mock("@/shared/api/profileSocialApi", () => ({
@@ -18,7 +18,7 @@ vi.mock("@/shared/api/profileSocialApi", () => ({
   setAccountReaction: vi.fn(),
 }))
 
-vi.mock("@/shared/api/productApi", () => ({
+vi.mock("@/shared/api/eventApi", () => ({
   getEventFeed: vi.fn(),
 }))
 

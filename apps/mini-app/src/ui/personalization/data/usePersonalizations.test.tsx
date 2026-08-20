@@ -30,8 +30,8 @@ type Deferred<T> = {
 const productState = vi.hoisted(() => ({ current: null as ProductMock | null }))
 const showBackendError = vi.hoisted(() => vi.fn())
 
-vi.mock("../../data/ProductDataProvider", () => ({
-  useProductData: () => productState.current,
+vi.mock("../../data/MnemosDataProvider", () => ({
+  useMnemosData: () => productState.current,
 }))
 
 vi.mock("../../components/errors/ErrorNotifications", () => ({
@@ -287,9 +287,7 @@ describe("usePersonalizations", () => {
 
     expect(result.current.items.map(({ id }) => id)).toEqual([accountItem.id])
 
-    vi.mocked(listOwnedPersonalizations).mockRejectedValueOnce(
-      new Error("ownership unavailable"),
-    )
+    vi.mocked(listOwnedPersonalizations).mockRejectedValueOnce(new Error("ownership unavailable"))
     productState.current = {
       ...productState.current!,
       activeAccount: { id: "account-b" },

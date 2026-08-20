@@ -269,10 +269,7 @@ export function Bets({ activeAccount, navigate }: Props) {
               ) : null}
             </motion.button>
           ) : (
-            <EmptyBets
-              title={t("bets.empty.roundsTitle")}
-              note={t("bets.empty.roundsCopy")}
-            />
+            <EmptyBets title={t("bets.empty.roundsTitle")} note={t("bets.empty.roundsCopy")} />
           )}
 
           {eventRounds.length ? (
@@ -324,10 +321,7 @@ export function Bets({ activeAccount, navigate }: Props) {
           ))}
 
           {!myRounds.length && !myRaces.length ? (
-            <EmptyBets
-              title={t("bets.empty.myTitle")}
-              note={t("bets.empty.myCopy")}
-            />
+            <EmptyBets title={t("bets.empty.myTitle")} note={t("bets.empty.myCopy")} />
           ) : null}
         </section>
       ) : null}
@@ -346,10 +340,7 @@ export function Bets({ activeAccount, navigate }: Props) {
           ))}
 
           {!races.length ? (
-            <EmptyBets
-              title={t("bets.empty.racesTitle")}
-              note={t("bets.empty.racesCopy")}
-            />
+            <EmptyBets title={t("bets.empty.racesTitle")} note={t("bets.empty.racesCopy")} />
           ) : null}
         </section>
       ) : null}

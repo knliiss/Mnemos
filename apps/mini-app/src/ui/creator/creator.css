@@ -431,13 +431,28 @@
   opacity: 0.72;
 }
 
-.creator-sparkline i:nth-child(1) { height: 21%; }
-.creator-sparkline i:nth-child(2) { height: 38%; }
-.creator-sparkline i:nth-child(3) { height: 31%; }
-.creator-sparkline i:nth-child(4) { height: 58%; }
-.creator-sparkline i:nth-child(5) { height: 46%; }
-.creator-sparkline i:nth-child(6) { height: 75%; }
-.creator-sparkline i:nth-child(7) { height: 92%; background: #c7f24a; }
+.creator-sparkline i:nth-child(1) {
+  height: 21%;
+}
+.creator-sparkline i:nth-child(2) {
+  height: 38%;
+}
+.creator-sparkline i:nth-child(3) {
+  height: 31%;
+}
+.creator-sparkline i:nth-child(4) {
+  height: 58%;
+}
+.creator-sparkline i:nth-child(5) {
+  height: 46%;
+}
+.creator-sparkline i:nth-child(6) {
+  height: 75%;
+}
+.creator-sparkline i:nth-child(7) {
+  height: 92%;
+  background: #c7f24a;
+}
 
 .creator-revenue-stats {
   display: grid;
@@ -615,11 +630,21 @@
     transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.creator-type-picker button:nth-child(1)::before { background-image: url("/ui-illustrations/creator-nick.svg"); }
-.creator-type-picker button:nth-child(2)::before { background-image: url("/ui-illustrations/creator-theme.svg"); }
-.creator-type-picker button:nth-child(3)::before { background-image: url("/ui-illustrations/creator-frame.svg"); }
-.creator-type-picker button:nth-child(4)::before { background-image: url("/ui-illustrations/creator-effect.svg"); }
-.creator-type-picker button:nth-child(5)::before { background-image: url("/ui-illustrations/creator-notification.svg"); }
+.creator-type-picker button:nth-child(1)::before {
+  background-image: url("/ui-illustrations/creator-nick.svg");
+}
+.creator-type-picker button:nth-child(2)::before {
+  background-image: url("/ui-illustrations/creator-theme.svg");
+}
+.creator-type-picker button:nth-child(3)::before {
+  background-image: url("/ui-illustrations/creator-frame.svg");
+}
+.creator-type-picker button:nth-child(4)::before {
+  background-image: url("/ui-illustrations/creator-effect.svg");
+}
+.creator-type-picker button:nth-child(5)::before {
+  background-image: url("/ui-illustrations/creator-notification.svg");
+}
 
 .creator-type-picker button.is-active::before {
   opacity: 1;

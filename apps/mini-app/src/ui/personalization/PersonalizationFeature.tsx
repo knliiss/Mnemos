@@ -1,4 +1,4 @@
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Route } from "../model"
 import { FeatureError } from "../system/FeatureError"
 import { usePersonalizations } from "./data/usePersonalizations"
@@ -21,7 +21,7 @@ export function PersonalizationFeature({
   navigate,
   back,
 }: PersonalizationFeatureProps) {
-  const product = useProductData()
+  const product = useMnemosData()
   const personalization = usePersonalizations()
 
   if (personalization.error) {

@@ -53,9 +53,7 @@ export function AppShell() {
 
   const back = () => {
     rememberScroll()
-    setStack((value) =>
-      value.length > 1 ? value.slice(0, -1) : [{ id: "account" }],
-    )
+    setStack((value) => (value.length > 1 ? value.slice(0, -1) : [{ id: "account" }]))
   }
 
   const switchRoot = (route: RootRoute) => {
@@ -83,18 +81,13 @@ export function AppShell() {
   }, [currentScrollKey])
 
   useEffect(() => {
-    const option = localizationOptions.find(
-      (item) => item.value === data.user.language,
-    )
+    const option = localizationOptions.find((item) => item.value === data.user.language)
 
     document.documentElement.lang = option?.htmlLang ?? "uk"
   }, [data.user.language])
 
   const selectAccount = async (account: Account) => {
-    if (
-      accountSwitchInProgress.current ||
-      (account.active === false && !account.owner)
-    ) {
+    if (accountSwitchInProgress.current || (account.active === false && !account.owner)) {
       return
     }
 

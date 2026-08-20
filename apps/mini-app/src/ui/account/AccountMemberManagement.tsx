@@ -102,10 +102,7 @@ export function AccountMemberManagement({
         handleError(error)
       }
     } finally {
-      if (
-        busyRoleRef.current?.scope === requestedScope &&
-        busyRoleRef.current.roleId === role.id
-      ) {
+      if (busyRoleRef.current?.scope === requestedScope && busyRoleRef.current.roleId === role.id) {
         busyRoleRef.current = null
         setBusyRole(null)
       }

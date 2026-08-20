@@ -224,12 +224,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const submitSanction = async () => {
     const actionScope = userId
 
-    if (
-      !userId ||
-      !reason.trim() ||
-      !durationValid ||
-      busyScopeRef.current === actionScope
-    ) {
+    if (!userId || !reason.trim() || !durationValid || busyScopeRef.current === actionScope) {
       return
     }
 

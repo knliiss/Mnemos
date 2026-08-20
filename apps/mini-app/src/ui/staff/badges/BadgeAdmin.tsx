@@ -154,8 +154,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
   }, [refreshUserBadges, selectedUser])
 
   const userBadges = useMemo(
-    () =>
-      selectedUser?.userId === userBadgeResult.userId ? userBadgeResult.items : [],
+    () => (selectedUser?.userId === userBadgeResult.userId ? userBadgeResult.items : []),
     [selectedUser?.userId, userBadgeResult],
   )
   const assignedIds = useMemo(() => new Set(userBadges.map((item) => item.badge.id)), [userBadges])

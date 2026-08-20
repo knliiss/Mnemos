@@ -1,5 +1,5 @@
 import { api } from "@/shared/api/httpClient"
-import type { BetGlobalEventType, BetItemType, BetSide } from "@/product-ui/model"
+import type { BetGlobalEventType, BetItemType, BetSide } from "@/ui/model"
 
 export type EventBetStatus =
   | "ACTIVE"

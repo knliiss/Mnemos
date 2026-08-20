@@ -1,4 +1,4 @@
-export const walletProductEn = {
+export const walletEn = {
   userWallet: {
     userEyebrow: "USER",
     description: "Your personal Mnemos premium currency",

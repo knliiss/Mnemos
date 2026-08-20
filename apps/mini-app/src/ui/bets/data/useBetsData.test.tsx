@@ -62,14 +62,10 @@ describe("useBetsData", () => {
   it("hides account-specific positions immediately and ignores the previous account response", async () => {
     const accountARounds = createDeferred<Awaited<ReturnType<typeof listEventBetRounds>>>()
     const accountARaces = createDeferred<Awaited<ReturnType<typeof listItemRaces>>>()
-    const accountAPositions = createDeferred<
-      Awaited<ReturnType<typeof listMyItemRacePositions>>
-    >()
+    const accountAPositions = createDeferred<Awaited<ReturnType<typeof listMyItemRacePositions>>>()
     const accountBRounds = createDeferred<Awaited<ReturnType<typeof listEventBetRounds>>>()
     const accountBRaces = createDeferred<Awaited<ReturnType<typeof listItemRaces>>>()
-    const accountBPositions = createDeferred<
-      Awaited<ReturnType<typeof listMyItemRacePositions>>
-    >()
+    const accountBPositions = createDeferred<Awaited<ReturnType<typeof listMyItemRacePositions>>>()
 
     vi.mocked(listEventBetRounds)
       .mockReturnValueOnce(accountARounds.promise)
@@ -94,33 +90,21 @@ describe("useBetsData", () => {
       accountBRounds.resolve([])
       accountBRaces.resolve([])
       accountBPositions.resolve([position("account-b")])
-      await Promise.all([
-        accountBRounds.promise,
-        accountBRaces.promise,
-        accountBPositions.promise,
-      ])
+      await Promise.all([accountBRounds.promise, accountBRaces.promise, accountBPositions.promise])
     })
 
     await waitFor(() => {
-      expect(result.current.positions.map(({ accountId }) => accountId)).toEqual([
-        "account-b",
-      ])
+      expect(result.current.positions.map(({ accountId }) => accountId)).toEqual(["account-b"])
     })
 
     await act(async () => {
       accountARounds.resolve([])
       accountARaces.resolve([])
       accountAPositions.resolve([position("account-a")])
-      await Promise.all([
-        accountARounds.promise,
-        accountARaces.promise,
-        accountAPositions.promise,
-      ])
+      await Promise.all([accountARounds.promise, accountARaces.promise, accountAPositions.promise])
     })
 
-    expect(result.current.positions.map(({ accountId }) => accountId)).toEqual([
-      "account-b",
-    ])
+    expect(result.current.positions.map(({ accountId }) => accountId)).toEqual(["account-b"])
     expect(result.current.loading).toBe(false)
   })
 
@@ -140,9 +124,7 @@ describe("useBetsData", () => {
     )
 
     await waitFor(() => {
-      expect(result.current.positions.map(({ accountId }) => accountId)).toEqual([
-        "account-a",
-      ])
+      expect(result.current.positions.map(({ accountId }) => accountId)).toEqual(["account-a"])
     })
 
     rerender({ accountId: "account-b" })

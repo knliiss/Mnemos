@@ -13,14 +13,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
   const { t } = useTranslation()
 
   if (route.id === "account-create" || route.id === "account-join") {
-    return (
-      <AccountArea
-        routeId={route.id}
-        params={route.params}
-        navigate={navigate}
-        back={back}
-      />
-    )
+    return <AccountArea routeId={route.id} params={route.params} navigate={navigate} back={back} />
   }
 
   return (

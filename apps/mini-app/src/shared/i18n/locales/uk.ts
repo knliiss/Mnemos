@@ -72,17 +72,6 @@ export const uk = {
     placeholder: "Пошук акаунтів",
     recent: "Нещодавні",
   },
-  bets: {
-    title: "Ставки",
-    events: "Події",
-    race: "Гонка за предметом",
-    active: "Активні",
-    past: "Минулі",
-    place: "Зробити ставку",
-    enter: "Увійти в гонку",
-    pool: "Призовий фонд",
-    participants: "Учасників",
-  },
   settings: {
     title: "Налаштування",
     language: "Мова",

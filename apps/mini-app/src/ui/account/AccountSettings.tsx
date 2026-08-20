@@ -83,10 +83,7 @@ export function AccountSettings({ navigate, back }: Props) {
     setBusy(true)
 
     try {
-      await updateAccountBaseRole(
-        activeAccount.id,
-        baseRoleId === NO_BASE_ROLE ? null : baseRoleId,
-      )
+      await updateAccountBaseRole(activeAccount.id, baseRoleId === NO_BASE_ROLE ? null : baseRoleId)
       await app.refresh()
 
       if (mountedRef.current && accountIdRef.current === requestedAccountId) {
@@ -234,9 +231,7 @@ export function AccountSettings({ navigate, back }: Props) {
       <nav className="account-settings-shortcuts account-settings-shortcuts--four">
         <button
           type="button"
-          onClick={() =>
-            navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })
-          }
+          onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
         >
           <span className="is-lime">
             <Glyph name="spark" size={18} />

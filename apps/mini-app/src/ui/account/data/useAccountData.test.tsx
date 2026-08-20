@@ -3,25 +3,25 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { BalanceResponse, DailyRewardStateResponse } from "@/shared/api/backendContracts"
-import {
-  claimDailyReward,
-  getAccountBalances,
-  getAccountMembers,
-  getAccountRoles,
-  getCurrentUserBalances,
-  getDailyRewardState,
-  restoreDailyReward,
-} from "@/shared/api/productApi"
+import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
+import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
+import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { useAccountData } from "./useAccountData"
 
-vi.mock("@/shared/api/productApi", () => ({
-  claimDailyReward: vi.fn(),
-  getAccountBalances: vi.fn(),
+vi.mock("@/shared/api/accountApi", () => ({
   getAccountMembers: vi.fn(),
   getAccountRoles: vi.fn(),
-  getCurrentUserBalances: vi.fn(),
+}))
+
+vi.mock("@/shared/api/rewardApi", () => ({
+  claimDailyReward: vi.fn(),
   getDailyRewardState: vi.fn(),
   restoreDailyReward: vi.fn(),
+}))
+
+vi.mock("@/shared/api/walletApi", () => ({
+  getAccountBalances: vi.fn(),
+  getCurrentUserBalances: vi.fn(),
 }))
 
 const rewardState: DailyRewardStateResponse = {

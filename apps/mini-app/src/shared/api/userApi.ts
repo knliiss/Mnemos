@@ -1,8 +1,5 @@
 import type { LocalizationLanguage } from "@/ui/model"
-import type {
-  CurrentContextResponse,
-  UserResponse,
-} from "@/shared/api/backendContracts"
+import type { CurrentContextResponse, UserResponse } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
 
 export async function initializeCurrentUser(): Promise<UserResponse> {

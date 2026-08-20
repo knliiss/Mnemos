@@ -45,7 +45,8 @@ export function AccountBaseRoleSettings({
       </header>
 
       <div className="account-default-role-grid">
-        <button type="button"
+        <button
+          type="button"
           className={baseRoleId === NO_BASE_ROLE ? "is-selected" : ""}
           onClick={() => onBaseRoleChange(NO_BASE_ROLE)}
         >

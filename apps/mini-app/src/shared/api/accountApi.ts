@@ -1,7 +1,4 @@
-import type {
-  AccountMemberResponse,
-  AccountRoleResponse,
-} from "@/shared/api/backendContracts"
+import type { AccountMemberResponse, AccountRoleResponse } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
 
 export async function selectActiveAccount(accountId: string): Promise<void> {

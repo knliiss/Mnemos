@@ -9,9 +9,9 @@ import {
   type AccountReactionType,
   type PublicProfileResponse,
 } from "@/shared/api/profileSocialApi"
-import { getEventFeed } from "@/shared/api/productApi"
+import { getEventFeed } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { toProductFeedEvent } from "../../../data/productMappers"
+import { toFeedEvent } from "../../../data/dataMappers"
 import type { FeedEvent } from "../../../model"
 
 type PublicProfileData = {
@@ -35,9 +35,7 @@ export function usePublicProfileData(
   const [drops, setDrops] = useState<FeedEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [reactionBusyScopes, setReactionBusyScopes] = useState<Set<string>>(
-    () => new Set(),
-  )
+  const [reactionBusyScopes, setReactionBusyScopes] = useState<Set<string>>(() => new Set())
   const [loadedScopeKey, setLoadedScopeKey] = useState<string | null>(null)
   const loadRevision = useRef(0)
   const summaryRevision = useRef(0)
@@ -84,19 +82,13 @@ export function usePublicProfileData(
     try {
       const nextProfile = await getPublicProfile(accountId)
 
-      if (
-        revision !== summaryRevision.current ||
-        scopeKeyRef.current !== requestedScopeKey
-      ) {
+      if (revision !== summaryRevision.current || scopeKeyRef.current !== requestedScopeKey) {
         return
       }
 
       setProfile(nextProfile)
     } catch (error) {
-      if (
-        revision === summaryRevision.current &&
-        scopeKeyRef.current === requestedScopeKey
-      ) {
+      if (revision === summaryRevision.current && scopeKeyRef.current === requestedScopeKey) {
         handleError(error)
       }
     }
@@ -142,7 +134,7 @@ export function usePublicProfileData(
 
       setProfile(nextProfile)
       setReaction(currentReaction)
-      setDrops(feedResponse.items.map(toProductFeedEvent).slice(0, 3))
+      setDrops(feedResponse.items.map(toFeedEvent).slice(0, 3))
       setLoadedScopeKey(requestedScopeKey)
     } catch (caught) {
       if (revision !== loadRevision.current || scopeKeyRef.current !== requestedScopeKey) {

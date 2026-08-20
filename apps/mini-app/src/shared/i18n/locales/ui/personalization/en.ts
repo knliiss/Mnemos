@@ -1,4 +1,4 @@
-export const personalizationProductEn = {
+export const personalizationEn = {
   personalization: {
     loading: "Loading",
     pages: "Catalog pages",

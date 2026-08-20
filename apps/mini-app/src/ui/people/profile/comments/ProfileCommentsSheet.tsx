@@ -10,11 +10,7 @@ import {
 } from "react"
 import { useTranslation } from "react-i18next"
 import { Glyph } from "../../../shared/MnemosIcon"
-import type {
-  ProfileCommentView,
-  ReplyTarget,
-  ReplyThreadMap,
-} from "../model"
+import type { ProfileCommentView, ReplyTarget, ReplyThreadMap } from "../model"
 
 type Props = {
   open: boolean
@@ -232,9 +228,7 @@ export function ProfileCommentsSheet({
                           </header>
 
                           <p>
-                            {comment.deleted
-                              ? t("people.profile.deletedComment")
-                              : comment.content}
+                            {comment.deleted ? t("people.profile.deletedComment") : comment.content}
                           </p>
 
                           <footer>
@@ -502,10 +496,7 @@ function CommentAvatar({ author, compact = false }: { author: string; compact?: 
 
 function commentTone(author: string): CommentTone {
   const tones: CommentTone[] = ["lime", "plum", "amber"]
-  const score = Array.from(author).reduce(
-    (sum, character) => sum + character.charCodeAt(0),
-    0,
-  )
+  const score = Array.from(author).reduce((sum, character) => sum + character.charCodeAt(0), 0)
 
   return tones[score % tones.length]
 }

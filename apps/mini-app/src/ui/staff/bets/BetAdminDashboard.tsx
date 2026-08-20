@@ -1,18 +1,11 @@
 import { useTranslation } from "react-i18next"
-import type {
-  EventBetRoundResponse,
-  ItemRaceResponse,
-} from "@/shared/api/betApi"
+import type { EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { BetAdminRoundRow } from "./BetAdminRoundRow"
-import {
-  activeBetRounds,
-  activeItemRaces,
-  settledBetRounds,
-} from "./betAdminPresentation"
+import { activeBetRounds, activeItemRaces, settledBetRounds } from "./betAdminPresentation"
 
 type Props = {
   rounds: EventBetRoundResponse[]
@@ -74,7 +67,8 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
           </section>
 
           <nav className="bet-admin-nav-grid">
-            <button type="button"
+            <button
+              type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "rounds" } })}
             >
               <span className="is-lime">
@@ -85,7 +79,8 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
               <b>{active.length} ›</b>
             </button>
 
-            <button type="button"
+            <button
+              type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "history" } })}
             >
               <span className="is-plum">
@@ -96,7 +91,8 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
               <b>{history.length} ›</b>
             </button>
 
-            <button type="button"
+            <button
+              type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "races" } })}
             >
               <span className="is-blue">

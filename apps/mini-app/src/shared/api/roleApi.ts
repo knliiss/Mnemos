@@ -1,6 +1,6 @@
 import type { AccountRoleResponse } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
-import type { RolePermission } from "@/product-ui/model"
+import type { RolePermission } from "@/ui/model"
 
 export async function createRole(
   accountId: string,

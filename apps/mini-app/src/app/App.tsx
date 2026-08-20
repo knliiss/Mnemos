@@ -4,7 +4,7 @@ import { AuthGate } from "@/features/auth/ui/AuthGate"
 import { MnemosDataProvider } from "@/ui/data/MnemosDataProvider"
 import { LanguageSync } from "@/ui/data/LanguageSync"
 import { AppShell } from "@/ui/shell/AppShell"
-import "@/ui/styles.css"
+import "@/ui/app.css"
 import { RootErrorBoundary } from "@/shared/errors/RootErrorBoundary"
 import { NotificationHost } from "@/shared/notifications/NotificationHost"
 

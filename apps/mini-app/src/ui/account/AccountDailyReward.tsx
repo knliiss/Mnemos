@@ -190,9 +190,7 @@ export function AccountDailyReward() {
                 <small>PRIME</small>
                 <strong>
                   <CurrencyMark currency="PRIME" size={15} />
-                  {rewardResult.prime
-                    ? `+${rewardResult.prime}`
-                    : t("accountHome.primeNotDropped")}
+                  {rewardResult.prime ? `+${rewardResult.prime}` : t("accountHome.primeNotDropped")}
                 </strong>
               </span>
             </motion.div>

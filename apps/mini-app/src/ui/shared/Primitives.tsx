@@ -74,11 +74,7 @@ export function CurrencyValue({
 }) {
   const { i18n } = useTranslation()
   const locale =
-    i18n.resolvedLanguage === "en"
-      ? "en-US"
-      : i18n.resolvedLanguage === "ru"
-        ? "ru-RU"
-        : "uk-UA"
+    i18n.resolvedLanguage === "en" ? "en-US" : i18n.resolvedLanguage === "ru" ? "ru-RU" : "uk-UA"
 
   return (
     <span className={`currency-value ${compact ? "currency-value--compact" : ""}`}>

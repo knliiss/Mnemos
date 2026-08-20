@@ -41,7 +41,8 @@ export function AccountOwnershipSettings({
 
       <div className="account-transfer-grid">
         {members.map((member) => (
-          <button type="button"
+          <button
+            type="button"
             key={member.id}
             className={member.id === selectedMemberId ? "is-selected" : ""}
             onClick={() => onMemberChange(member.id)}

@@ -1,4 +1,4 @@
-export const creatorProductUk = {
+export const creatorUk = {
   creator: {
     title: "Creator Studio",
     eyebrow: "АВТОР MNEMOS",

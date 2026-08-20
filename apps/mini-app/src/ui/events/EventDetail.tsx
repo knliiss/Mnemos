@@ -50,14 +50,10 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const actionScope = `${activeAccount.id}:${eventId ?? ""}`
   const followBusy = followBusyScope === actionScope
 
-  const resolvedEvent =
-    lookupResult && lookupResult.eventId === eventId ? lookupResult.event : null
+  const resolvedEvent = lookupResult && lookupResult.eventId === eventId ? lookupResult.event : null
   const event = cachedEvent ?? resolvedEvent
   const lookupLoading = Boolean(
-    eventId &&
-      !cachedEvent &&
-      lookupResult?.eventId !== eventId &&
-      lookupErrorId !== eventId,
+    eventId && !cachedEvent && lookupResult?.eventId !== eventId && lookupErrorId !== eventId,
   )
   const lookupError = lookupErrorId === eventId
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -76,7 +72,6 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
     }
 
     let cancelled = false
-    setLookupErrorId((current) => (current === eventId ? null : current))
 
     void getEventFeedItem(eventId)
       .then((response) => {
@@ -145,7 +140,14 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
                 : t("events.detail.notFoundCopy")}
           </small>
           {lookupError ? (
-            <button type="button" onClick={() => setLookupRevision((value) => value + 1)}>
+            <button
+              type="button"
+              onClick={() => {
+                setLookupErrorId(null)
+                setLookupResult(null)
+                setLookupRevision((value) => value + 1)
+              }}
+            >
               {t("common.retry")}
             </button>
           ) : null}

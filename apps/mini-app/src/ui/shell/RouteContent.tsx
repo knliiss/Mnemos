@@ -31,10 +31,7 @@ export function RouteContent({
 
   if (notFound) {
     return (
-      <NotFoundFeature
-        requested={current.params?.requested}
-        onHome={() => switchRoot("account")}
-      />
+      <NotFoundFeature requested={current.params?.requested} onHome={() => switchRoot("account")} />
     )
   }
 
@@ -58,12 +55,7 @@ export function RouteContent({
 
   if (area === "account") {
     return (
-      <AccountArea
-        routeId={current.id}
-        params={current.params}
-        navigate={navigate}
-        back={back}
-      />
+      <AccountArea routeId={current.id} params={current.params} navigate={navigate} back={back} />
     )
   }
 
@@ -92,12 +84,7 @@ export function RouteContent({
 
   if (area === "creator") {
     return (
-      <CreatorArea
-        routeId={current.id}
-        params={current.params}
-        navigate={navigate}
-        back={back}
-      />
+      <CreatorArea routeId={current.id} params={current.params} navigate={navigate} back={back} />
     )
   }
 
@@ -109,12 +96,5 @@ export function RouteContent({
     return <AdministrationHome navigate={navigate} back={back} />
   }
 
-  return (
-    <StaffArea
-      routeId={current.id}
-      params={current.params}
-      navigate={navigate}
-      back={back}
-    />
-  )
+  return <StaffArea routeId={current.id} params={current.params} navigate={navigate} back={back} />
 }

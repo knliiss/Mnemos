@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import { getEventFeed } from "@/shared/api/productApi"
+import { getEventFeed } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { toProductFeedEvent } from "../../data/productMappers"
+import { toFeedEvent } from "../../data/dataMappers"
 import type { FeedEvent } from "../../model"
 
 export function useLatestAccountDrops(accountNickname: string | null, enabled: boolean) {
@@ -26,7 +26,7 @@ export function useLatestAccountDrops(accountNickname: string | null, enabled: b
           return
         }
 
-        setDrops(response.items.map(toProductFeedEvent))
+        setDrops(response.items.map(toFeedEvent))
         setLoadedNickname(accountNickname)
       })
       .catch((error) => {

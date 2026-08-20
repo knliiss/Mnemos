@@ -2,10 +2,10 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { deleteSubscription, getSubscriptions } from "@/shared/api/productApi"
+import { deleteSubscription, getSubscriptions } from "@/shared/api/subscriptionApi"
 import { useSubscriptionData } from "./useSubscriptionData"
 
-vi.mock("@/shared/api/productApi", () => ({
+vi.mock("@/shared/api/subscriptionApi", () => ({
   deleteSubscription: vi.fn(),
   getSubscriptions: vi.fn(),
 }))
@@ -81,18 +81,14 @@ describe("useSubscriptionData", () => {
       await expect(mutation).resolves.toBe(true)
     })
 
-    expect(result.current.subscriptions.map(({ id }) => id)).toEqual([
-      "current-subscription",
-    ])
+    expect(result.current.subscriptions.map(({ id }) => id)).toEqual(["current-subscription"])
 
     await act(async () => {
       staleRefresh.resolve(subscriptionPage("stale-subscription"))
       await staleRefresh.promise
     })
 
-    expect(result.current.subscriptions.map(({ id }) => id)).toEqual([
-      "current-subscription",
-    ])
+    expect(result.current.subscriptions.map(({ id }) => id)).toEqual(["current-subscription"])
     expect(result.current.loadingSubscriptions).toBe(false)
   })
 })

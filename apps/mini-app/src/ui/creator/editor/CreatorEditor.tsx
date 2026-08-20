@@ -101,8 +101,7 @@ export function CreatorEditor({ params, back }: Props) {
 
   const numericPrice = Number(form.price)
   const valid = form.name.trim().length >= 3 && Number.isInteger(numericPrice) && numericPrice > 0
-  const editable =
-    !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
+  const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
     currentSource?.id ?? "preview",

@@ -116,10 +116,7 @@ export function UserHubOverlay({
               navigate={navigate}
             />
 
-            <UserHubLocalization
-              localization={localization}
-              onChange={onLocalizationChange}
-            />
+            <UserHubLocalization localization={localization} onChange={onLocalizationChange} />
 
             <UserHubWorkspaces systemRoles={systemRoles} navigate={navigate} />
           </motion.aside>

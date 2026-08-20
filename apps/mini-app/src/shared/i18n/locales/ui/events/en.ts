@@ -1,4 +1,4 @@
-export const eventsProductEn = {
+export const eventsEn = {
   events: {
     kinds: {
       ITEM_DROP: "Drop",

@@ -1,11 +1,11 @@
-import { accountProductEn } from "./account/en"
+import { accountEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
 import { betsEn } from "./bets/en"
-import { creatorProductEn } from "./creator/en"
-import { eventsProductEn } from "./events/en"
-import { peopleProductEn } from "./people/en"
-import { personalizationProductEn } from "./personalization/en"
-import { walletProductEn } from "./wallet/en"
+import { creatorEn } from "./creator/en"
+import { eventsEn } from "./events/en"
+import { peopleEn } from "./people/en"
+import { personalizationEn } from "./personalization/en"
+import { walletEn } from "./wallet/en"
 
 export const uiEn = {
   appShell: {
@@ -164,12 +164,12 @@ export const uiEn = {
     active: "ACTIVE",
     owned: "OWNED",
   },
-  ...accountProductEn,
+  ...accountEn,
   ...betsEn,
-  ...creatorProductEn,
-  ...eventsProductEn,
-  ...peopleProductEn,
-  ...personalizationProductEn,
-  ...walletProductEn,
+  ...creatorEn,
+  ...eventsEn,
+  ...peopleEn,
+  ...personalizationEn,
+  ...walletEn,
   ...betAdminEn,
 } as const

@@ -1,11 +1,11 @@
-import { accountProductUk } from "./account/uk"
+import { accountUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 import { betsUk } from "./bets/uk"
-import { creatorProductUk } from "./creator/uk"
-import { eventsProductUk } from "./events/uk"
-import { peopleProductUk } from "./people/uk"
-import { personalizationProductUk } from "./personalization/uk"
-import { walletProductUk } from "./wallet/uk"
+import { creatorUk } from "./creator/uk"
+import { eventsUk } from "./events/uk"
+import { peopleUk } from "./people/uk"
+import { personalizationUk } from "./personalization/uk"
+import { walletUk } from "./wallet/uk"
 
 export const uiUk = {
   appShell: {
@@ -163,12 +163,12 @@ export const uiUk = {
     active: "АКТИВНИЙ",
     owned: "ОТРИМАНО",
   },
-  ...accountProductUk,
+  ...accountUk,
   ...betsUk,
-  ...creatorProductUk,
-  ...eventsProductUk,
-  ...peopleProductUk,
-  ...personalizationProductUk,
-  ...walletProductUk,
+  ...creatorUk,
+  ...eventsUk,
+  ...peopleUk,
+  ...personalizationUk,
+  ...walletUk,
   ...betAdminUk,
 } as const
