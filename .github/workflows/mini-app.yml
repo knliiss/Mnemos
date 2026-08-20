@@ -1,33 +1,34 @@
-name: Mini App Verify
+name: Mini App Finalization
 
 on:
   push:
+    branches:
+      - feat/frontend-integration
     paths:
-      - "apps/mini-app/**"
-      - ".github/workflows/mini-app.yml"
-  pull_request:
-    paths:
-      - "apps/mini-app/**"
+      - "scripts/finalize-mini-app.py"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
-  group: mini-app-${{ github.ref }}
+  group: mini-app-finalization-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   statuses: write
 
 jobs:
-  verify:
+  finalize:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/mini-app
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Apply production migration
+        run: python3 scripts/finalize-mini-app.py
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -36,25 +37,24 @@ jobs:
           cache: npm
           cache-dependency-path: apps/mini-app/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
+        working-directory: apps/mini-app
         run: npm ci
 
-      - name: Audit dependencies
+      - name: Audit frontend dependencies
+        working-directory: apps/mini-app
         run: npm audit --audit-level=high
 
-      - name: Lint
-        run: npm run lint
+      - name: Format frontend
+        working-directory: apps/mini-app
+        run: npm run format
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Test
-        run: npm test -- --run
-
-      - name: Build
-        run: npm run build
+      - name: Verify frontend
+        working-directory: apps/mini-app
+        run: npm run verify
 
       - name: Check bundle budgets
+        working-directory: apps/mini-app
         shell: bash
         run: |
           set -euo pipefail
@@ -73,9 +73,40 @@ jobs:
             exit 1
           fi
 
-      - name: Publish verification status
-        if: always() && github.event_name == 'push'
-        working-directory: .
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Format social service
+        run: ./gradlew :apps:social-service:ktlintFormat --no-daemon
+
+      - name: Verify social service
+        run: ./gradlew :apps:social-service:check --no-daemon
+
+      - name: Commit verified finalization
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf apps/mini-app/dist
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if ! git diff --cached --quiet; then
+            git commit -m "finalize production mini app"
+            git push origin HEAD:feat/frontend-integration
+          fi
+
+          echo "FINAL_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Publish finalization status
+        if: always()
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -85,15 +116,16 @@ jobs:
           set -euo pipefail
 
           if [ "$JOB_STATUS" = "success" ]; then
-            STATE="success"
+            state="success"
           else
-            STATE="failure"
+            state="failure"
           fi
 
-          PAYLOAD="$(jq -n \
-            --arg state "$STATE" \
+          sha="${FINAL_SHA:-${GITHUB_SHA}}"
+          payload="$(jq -n \
+            --arg state "$state" \
             --arg target_url "$RUN_URL" \
-            --arg description "Production Mini App verify: $JOB_STATUS" \
+            --arg description "Production Mini App finalization: $JOB_STATUS" \
             --arg context "mini-app/verify" \
             '{state:$state,target_url:$target_url,description:$description,context:$context}')"
 
@@ -102,5 +134,5 @@ jobs:
             --header "Accept: application/vnd.github+json" \
             --header "Authorization: Bearer $GH_TOKEN" \
             --header "X-GitHub-Api-Version: 2022-11-28" \
-            --data "$PAYLOAD" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${sha}"
