@@ -172,7 +172,8 @@ export function AccountMemberManagement({
             const locked = member.owner
 
             return (
-              <motion.button type="button"
+              <motion.button
+                type="button"
                 key={role.id}
                 className={assigned ? "is-active" : ""}
                 disabled={locked || busyRoleId !== null}
