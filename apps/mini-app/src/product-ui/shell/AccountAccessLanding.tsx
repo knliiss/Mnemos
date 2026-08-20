@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { AccountArea } from "../features/AccountArea"
+import { AccountArea } from "../features/account/AccountArea"
 import type { Route } from "../model"
 
 type Props = {
