@@ -24,7 +24,7 @@ const EventDetail = lazy(() =>
 )
 
 const EventsFeed = lazy(() =>
-  import("../EventsFeed").then((module) => ({
+  import("./EventsFeed").then((module) => ({
     default: module.EventsFeed,
   })),
 )
