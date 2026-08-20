@@ -1,0 +1,39 @@
+.event-art--global-darkness {
+  --event-art-color: #9ba5b4;
+}
+
+.event-art--global-moon {
+  --event-art-color: #d94851;
+}
+
+.event-art--global-explosion {
+  --event-art-color: #ffad16;
+}
+
+.event-art--global-darkness .event-art__image,
+.event-art--global-moon .event-art__image,
+.event-art--global-explosion .event-art__image {
+  width: 80%;
+  height: 80%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .28));
+}
+
+.event-art--global-moon.event-art--asset {
+  background:
+    radial-gradient(circle at 48% 38%, rgba(217, 72, 81, .15), transparent 60%),
+    rgba(255, 255, 255, .018) !important;
+}
+
+.event-art--global-darkness.event-art--asset {
+  background:
+    radial-gradient(circle at 48% 38%, rgba(155, 165, 180, .10), transparent 60%),
+    rgba(255, 255, 255, .018) !important;
+}
+
+.event-art--global-explosion.event-art--asset {
+  background:
+    radial-gradient(circle at 48% 38%, rgba(255, 173, 22, .14), transparent 60%),
+    rgba(255, 255, 255, .018) !important;
+}

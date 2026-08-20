@@ -1,0 +1,148 @@
+/* Follow-up corrections for user identity and event controls. */
+
+/* User identity is independent from the active account skin. Keep a neutral slot until user avatars exist. */
+.user-avatar-placeholder {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  color: #a9aea2;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(203, 255, 45, .055), transparent 58%),
+    rgba(255, 255, 255, .035);
+}
+
+.user-avatar-placeholder > svg {
+  opacity: .78;
+}
+
+.global-user-button--final .global-user-button__avatar {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(203, 255, 45, .055), transparent 58%),
+    rgba(10, 11, 9, .82) !important;
+  box-shadow: none !important;
+}
+
+/* Do not pin the user control against the shell corner. */
+.route-stage.has-user-access > .global-user-button--final,
+.route-stage--account.has-user-access > .global-user-button--final {
+  top: 26px !important;
+  right: 26px !important;
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 13px !important;
+}
+
+.route-stage--account .account-polished-identity {
+  padding-right: 68px !important;
+}
+
+.final-user-card__avatar--placeholder {
+  width: 46px !important;
+  height: 46px !important;
+  flex: 0 0 46px !important;
+  border: 1px solid rgba(235, 241, 213, .14) !important;
+  border-radius: 13px !important;
+  color: #aeb3a7 !important;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(203, 255, 45, .06), transparent 62%),
+    rgba(255, 255, 255, .032) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .045) !important;
+}
+
+/* Sort uses direction only: down = newest first, up = oldest first. */
+.event-browser-actions .event-browser-action:first-child {
+  width: 40px;
+  padding: 0;
+}
+
+.event-browser-actions .event-browser-action:first-child > span,
+.event-browser-actions .event-browser-action:first-child .glyph {
+  display: none;
+}
+
+.event-browser-actions .event-browser-action:first-child::before {
+  content: "↓";
+  color: currentColor;
+  font-size: 18px;
+  font-weight: 520;
+  line-height: 1;
+}
+
+.event-browser-actions .event-browser-action[aria-label="Спочатку старіші"]::before {
+  content: "↑";
+}
+
+/* Filter fields must use the same surface treatment as the rest of the Mini App. */
+.event-filter-sheet .field > input,
+.event-filter-sheet__range input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(235, 241, 213, .12);
+  border-radius: 11px;
+  outline: 0;
+  color: #e2e5dc;
+  background:
+    radial-gradient(circle at 0 50%, rgba(203, 255, 45, .035), transparent 48%),
+    rgba(255, 255, 255, .028);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .025),
+    0 6px 16px rgba(0, 0, 0, .08);
+  font: inherit;
+  font-size: 10.5px;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+.event-filter-sheet .field > input::placeholder,
+.event-filter-sheet__range input::placeholder {
+  color: #73786e;
+  opacity: 1;
+}
+
+.event-filter-sheet .field > input:focus,
+.event-filter-sheet__range input:focus {
+  border-color: rgba(203, 255, 45, .28);
+  background: rgba(203, 255, 45, .035);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .035),
+    0 0 0 3px rgba(203, 255, 45, .045);
+}
+
+.event-filter-sheet__range input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.event-filter-sheet__range input[type="number"]::-webkit-inner-spin-button,
+.event-filter-sheet__range input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.event-filter-sheet__range > span {
+  color: #6f746a !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 374px) {
+  .route-stage.has-user-access > .global-user-button--final,
+  .route-stage--account.has-user-access > .global-user-button--final {
+    top: 22px !important;
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .route-stage--account .account-polished-identity {
+    padding-right: 62px !important;
+  }
+}

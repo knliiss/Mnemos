@@ -1,0 +1,11 @@
+.event-facts--polished > div {
+  grid-template-columns: 1fr !important;
+  gap: 3px !important;
+}
+
+.event-facts--polished dd {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  line-height: 1.3;
+}

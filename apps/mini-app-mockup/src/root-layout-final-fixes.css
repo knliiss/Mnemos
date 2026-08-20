@@ -1,0 +1,203 @@
+/* Final root-layout corrections from rendered screenshots. */
+
+/*
+ * The user entry belongs to page content. It is absolutely positioned inside the
+ * scrollable route-stage, so it keeps one position relative to the page and scrolls
+ * away with the rest of that page instead of being pinned to the viewport.
+ */
+.route-stage.has-user-access {
+  position: relative !important;
+}
+
+.route-stage.has-user-access > .global-user-button--final {
+  position: absolute !important;
+  top: 20px !important;
+  right: 18px !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 44px !important;
+  height: 44px !important;
+  z-index: 12 !important;
+}
+
+/* Every root header reserves exactly the same slot for the page-local user entry. */
+.bets-title-block,
+.events-title-block,
+.store-final-header,
+.search-root-screen > .root-title-block {
+  min-height: 54px !important;
+  padding-right: 62px !important;
+}
+
+.account-polished-hero {
+  padding-right: 14px !important;
+}
+
+.account-polished-identity {
+  padding-right: 54px !important;
+}
+
+/* Daily reward is one compact account strip, not a second card or a loose divider. */
+.daily-compact {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  min-height: 52px !important;
+  margin: 10px 0 0 !important;
+  padding: 8px 9px !important;
+  border: 1px solid rgba(255, 179, 79, .095) !important;
+  border-radius: 13px !important;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(255, 179, 79, .085), transparent 32%),
+    linear-gradient(90deg, rgba(255, 179, 79, .028), rgba(255,255,255,.012)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025) !important;
+}
+
+.daily-compact__streak {
+  min-width: 0;
+  gap: 6px !important;
+}
+
+.daily-compact__streak > i {
+  width: 30px !important;
+  height: 30px !important;
+  flex: 0 0 30px;
+}
+
+.daily-compact__streak strong {
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.daily-compact__streak small {
+  font-size: 0 !important;
+  line-height: 1;
+}
+
+.daily-compact__streak small::after {
+  content: "днів";
+  color: #989b8f;
+  font-size: 8.5px;
+  font-weight: 520;
+  white-space: nowrap;
+}
+
+.daily-compact__reward {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  min-width: 0;
+  color: #adb0a4 !important;
+  font-size: 9.5px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-compact__reward > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px !important;
+  white-space: nowrap !important;
+}
+
+.daily-compact > button,
+.daily-compact__done {
+  min-width: 88px;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  white-space: nowrap;
+}
+
+/* Notification Pack has a semantic icon, not a fake preview or a misaligned asset. */
+.notification-real-preview {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-color: rgba(203,255,45,.16) !important;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(203,255,45,.11), transparent 50%),
+    rgba(203,255,45,.025) !important;
+}
+
+.notification-real-preview > * {
+  display: none !important;
+}
+
+.notification-real-preview::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 19px !important;
+  height: 17px !important;
+  border: 2px solid #cbff2d !important;
+  border-bottom-width: 1.5px !important;
+  border-radius: 10px 10px 6px 6px !important;
+  background: transparent !important;
+  filter: drop-shadow(0 0 6px rgba(203,255,45,.18)) !important;
+  transform: translate(-50%, -56%) !important;
+  box-sizing: border-box;
+}
+
+.notification-real-preview::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: calc(50% + 10px) !important;
+  width: 7px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #cbff2d !important;
+  box-shadow: 0 0 5px rgba(203,255,45,.18) !important;
+  transform: translateX(-50%) !important;
+}
+
+/* The detail screen shows the real template examples below; no oversized fake preview. */
+.notification-real-preview.is-detail {
+  display: none !important;
+}
+
+@media (max-width: 374px) {
+  .route-stage.has-user-access > .global-user-button--final {
+    top: 17px !important;
+    right: 14px !important;
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .bets-title-block,
+  .events-title-block,
+  .store-final-header,
+  .search-root-screen > .root-title-block {
+    padding-right: 56px !important;
+  }
+
+  .account-polished-identity {
+    padding-right: 48px !important;
+  }
+
+  .daily-compact {
+    grid-template-columns: auto 1fr !important;
+    grid-template-areas:
+      "streak action"
+      "reward reward";
+    gap: 7px 9px !important;
+  }
+
+  .daily-compact__streak {
+    grid-area: streak;
+  }
+
+  .daily-compact__reward {
+    grid-area: reward;
+    justify-content: flex-start !important;
+    padding-left: 36px;
+  }
+
+  .daily-compact > button,
+  .daily-compact__done {
+    grid-area: action;
+    justify-self: end;
+  }
+}

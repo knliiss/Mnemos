@@ -1,0 +1,510 @@
+/* Secondary screens share the same visual density as the five root areas. */
+
+/* Subscriptions */
+.subscription-summary {
+  min-height: 78px !important;
+  padding: 13px !important;
+  border-color: rgba(235, 241, 213, 0.14) !important;
+  background:
+    radial-gradient(circle at 7% 25%, rgba(203,255,45,.10), transparent 36%),
+    linear-gradient(145deg, rgba(32,34,27,.94), rgba(13,14,11,.94)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.045), 0 10px 28px rgba(0,0,0,.16);
+}
+
+.subscription-summary__icon {
+  width: 44px !important;
+  height: 44px !important;
+  color: var(--accent-strong) !important;
+  background: rgba(203,255,45,.10) !important;
+  box-shadow: 0 0 18px rgba(203,255,45,.055);
+}
+
+.subscription-summary strong {
+  font-size: 20px !important;
+  font-weight: 720;
+}
+
+.subscription-summary small {
+  color: #92968a !important;
+  font-size: 10px !important;
+}
+
+.subscription-summary > button {
+  min-height: 37px !important;
+  padding: 0 11px !important;
+  color: #141907 !important;
+  background: linear-gradient(180deg, #dcff62, #c6f22c) !important;
+  font-size: 10px !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.3);
+}
+
+.subscription-counts {
+  gap: 6px !important;
+  margin-top: 11px !important;
+}
+
+.subscription-counts span {
+  min-height: 33px !important;
+  border-color: rgba(235,241,213,.11) !important;
+  background: rgba(255,255,255,.025);
+  color: #a8aca0 !important;
+  font-size: 9.5px !important;
+}
+
+.subscription-rules {
+  margin-top: 19px !important;
+}
+
+.subscription-rules h2 {
+  color: #e2e4db;
+  font-size: 14px !important;
+  font-weight: 690;
+}
+
+.subscription-rules header small {
+  color: #8d9185 !important;
+  font-size: 10px !important;
+}
+
+.subscription-rules > div {
+  border-color: rgba(235,241,213,.12) !important;
+  background: rgba(8,9,7,.5) !important;
+}
+
+.subscription-rule {
+  min-height: 62px !important;
+  padding: 8px 10px !important;
+  border-color: rgba(235,241,213,.065) !important;
+}
+
+.subscription-rule__icon {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.subscription-rule__copy strong {
+  color: #e2e4db;
+  font-size: 11.5px !important;
+  font-weight: 650;
+}
+
+.subscription-rule__copy small {
+  color: #909488 !important;
+  font-size: 9.5px !important;
+}
+
+.subscription-create-main {
+  min-height: 44px !important;
+  border-color: rgba(203,255,45,.25) !important;
+  color: var(--accent-strong) !important;
+  background: rgba(203,255,45,.055) !important;
+  font-size: 11px !important;
+}
+
+/* Bets */
+.bets-title-block .root-wallet-chip {
+  min-height: 38px !important;
+  border-color: rgba(203,255,45,.16) !important;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(203,255,45,.11), transparent 52%),
+    rgba(255,255,255,.025) !important;
+}
+
+.bets-root-screen > .segmented {
+  padding: 4px !important;
+  border-color: rgba(235,241,213,.13) !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.025) !important;
+}
+
+.bets-root-screen > .segmented button {
+  min-height: 36px !important;
+  border-radius: 9px !important;
+  font-size: 10.5px !important;
+}
+
+.bets-root-screen > .segmented button.is-selected {
+  color: #eef0e8 !important;
+  background: rgba(255,255,255,.075) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+
+.bet-redesign-list {
+  gap: 9px !important;
+}
+
+.bet-redesign-card {
+  min-height: 96px !important;
+  padding: 12px !important;
+  border-color: rgba(235,241,213,.125) !important;
+  background:
+    radial-gradient(circle at 0 50%, rgba(206,145,210,.055), transparent 34%),
+    linear-gradient(145deg, rgba(33,34,29,.96), rgba(13,14,11,.96)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.04), 0 10px 26px rgba(0,0,0,.14);
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+.bet-redesign-card:hover {
+  border-color: rgba(235,241,213,.2) !important;
+}
+
+.bet-redesign-card__icon {
+  width: 42px !important;
+  height: 42px !important;
+  color: #e2a8e5 !important;
+  background: rgba(206,145,210,.13) !important;
+}
+
+.bet-redesign-card__icon--amber {
+  color: #ffc16d !important;
+  background: rgba(255,179,79,.13) !important;
+}
+
+.bet-redesign-card__copy small,
+.bet-redesign-card__copy time {
+  color: #8f9387 !important;
+  font-size: 9.5px !important;
+}
+
+.bet-redesign-card__copy strong {
+  color: #e8eae2;
+  font-size: 13px !important;
+  font-weight: 680;
+}
+
+.bet-redesign-card__odds span {
+  min-width: 48px !important;
+  min-height: 32px !important;
+  border: 1px solid rgba(235,241,213,.075);
+  color: #93978b !important;
+  background: rgba(255,255,255,.035) !important;
+  font-size: 8.5px !important;
+}
+
+.bet-redesign-card__odds b {
+  color: #edf0e7 !important;
+  font-size: 10.5px !important;
+}
+
+.bet-redesign-card__mine {
+  color: var(--accent-strong) !important;
+}
+
+.bet-redesign-card__mine b,
+.bet-redesign-card__open,
+.race-redesign-card__entry small {
+  font-size: 9px !important;
+}
+
+.bet-sheet--redesign {
+  gap: 14px !important;
+}
+
+.bet-sheet__timing span,
+.race-sheet-summary span,
+.bet-existing-position,
+.race-entry-line,
+.bet-odds-note {
+  border-color: rgba(235,241,213,.12) !important;
+  background: rgba(255,255,255,.028) !important;
+}
+
+.bet-sheet__timing small,
+.race-sheet-summary small,
+.bet-existing-position small {
+  color: #8d9185 !important;
+  font-size: 9px !important;
+}
+
+.bet-sheet__timing strong,
+.race-sheet-summary strong {
+  font-size: 11px !important;
+}
+
+.bet-side-choice button {
+  min-height: 62px !important;
+  border-color: rgba(235,241,213,.12) !important;
+  background: rgba(255,255,255,.025) !important;
+}
+
+.bet-side-choice button.is-active {
+  border-color: rgba(203,255,45,.3) !important;
+  background:
+    radial-gradient(circle at 50% 0, rgba(203,255,45,.13), transparent 80%),
+    rgba(203,255,45,.05) !important;
+}
+
+.bet-side-choice b,
+.bet-odds-note b {
+  color: var(--accent-strong) !important;
+}
+
+/* Roles */
+.roles-toolbar {
+  margin-bottom: 11px !important;
+}
+
+.roles-toolbar span {
+  color: #8e9286 !important;
+  font-size: 10px !important;
+}
+
+.roles-toolbar button {
+  min-height: 34px !important;
+  border-color: rgba(235,241,213,.12) !important;
+  color: #b1b5aa !important;
+  background: rgba(255,255,255,.025);
+  font-size: 10px !important;
+}
+
+.role-stack {
+  gap: 8px !important;
+}
+
+.role-stack__main {
+  min-height: 62px !important;
+  border-color: rgba(235,241,213,.12) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.04), rgba(255,255,255,.014)),
+    rgba(9,10,8,.5) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+}
+
+.role-stack__main > i {
+  width: 7px !important;
+  height: 31px !important;
+}
+
+.role-stack__main strong {
+  color: #e5e7de;
+  font-size: 12.5px !important;
+  font-weight: 660;
+}
+
+.role-stack__main small {
+  color: #8d9185 !important;
+  font-size: 9.5px !important;
+}
+
+.role-preview-line {
+  border-color: rgba(235,241,213,.12) !important;
+  background: rgba(255,255,255,.028) !important;
+}
+
+.permission-groups--redesign {
+  gap: 15px !important;
+}
+
+.permission-groups--redesign section {
+  overflow: hidden;
+  border: 1px solid rgba(235,241,213,.105) !important;
+  border-radius: 15px;
+  background: rgba(8,9,7,.45) !important;
+}
+
+.permission-groups--redesign section h2 {
+  margin: 0 !important;
+  padding: 10px 11px 7px;
+  border-bottom: 1px solid rgba(235,241,213,.06);
+  color: #9da195 !important;
+  font-size: 9.5px !important;
+  font-weight: 680;
+  letter-spacing: .08em;
+}
+
+.permission-groups--redesign .permission-row {
+  min-height: 49px !important;
+  padding: 0 11px;
+  border-color: rgba(235,241,213,.055) !important;
+}
+
+.permission-groups--redesign .permission-name {
+  color: #c3c6bc !important;
+  font-size: 10px !important;
+  text-transform: none !important;
+}
+
+/* Wallet / account settings / invites */
+.balance-grid--single > div,
+.single-balance-card {
+  position: relative;
+  min-height: 94px !important;
+  overflow: hidden;
+  border-color: rgba(203,255,45,.16) !important;
+  background:
+    radial-gradient(circle at 0 100%, rgba(203,255,45,.115), transparent 45%),
+    linear-gradient(145deg, rgba(33,35,27,.95), rgba(13,14,11,.95)) !important;
+}
+
+.balance-grid--single .currency-value,
+.single-balance-card .currency-value {
+  color: #f1f3eb;
+  font-size: 21px !important;
+  font-weight: 700;
+}
+
+.transaction-list {
+  overflow: hidden;
+  border: 1px solid rgba(235,241,213,.105) !important;
+  border-radius: 15px;
+  background: rgba(8,9,7,.45);
+}
+
+.transaction-row {
+  min-height: 59px !important;
+  padding: 0 10px;
+  border-color: rgba(235,241,213,.055) !important;
+}
+
+.transaction-row strong {
+  color: #d7dad0;
+  font-size: 11px !important;
+  font-weight: 620;
+}
+
+.transaction-row small {
+  color: #85897d !important;
+  font-size: 9px !important;
+}
+
+.invite-create,
+.account-settings-final .section {
+  border-color: rgba(235,241,213,.1);
+}
+
+.invite-list {
+  overflow: hidden;
+  border: 1px solid rgba(235,241,213,.105);
+  border-radius: 15px;
+  background: rgba(8,9,7,.45);
+}
+
+.invite-list article {
+  min-height: 58px !important;
+  padding-inline: 10px;
+  border-color: rgba(235,241,213,.055) !important;
+}
+
+.choice-grid button {
+  min-height: 43px !important;
+  border-color: rgba(235,241,213,.105) !important;
+  border-radius: 11px !important;
+  color: #b6baae !important;
+  background: rgba(255,255,255,.025) !important;
+  font-size: 10.5px !important;
+}
+
+.choice-grid button.is-selected {
+  border-color: rgba(203,255,45,.24) !important;
+  color: #e8eae2 !important;
+  background: rgba(203,255,45,.055) !important;
+}
+
+/* Administration / creator / review workspaces */
+.workspace-intro {
+  min-height: 82px !important;
+  padding: 14px !important;
+  border-color: rgba(235,241,213,.13) !important;
+  background:
+    radial-gradient(circle at 0 30%, rgba(203,255,45,.07), transparent 40%),
+    linear-gradient(145deg, rgba(32,34,27,.94), rgba(13,14,11,.94)) !important;
+}
+
+.workspace-intro strong {
+  color: #e7e9e0 !important;
+  font-size: 15px !important;
+}
+
+.workspace-intro small,
+.workspace-intro p {
+  color: #8e9286 !important;
+  font-size: 10px !important;
+  line-height: 1.4;
+}
+
+.workspace-grid {
+  gap: 8px !important;
+}
+
+.workspace-grid > button {
+  min-height: 68px !important;
+  border-color: rgba(235,241,213,.11) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.04), rgba(255,255,255,.014)),
+    rgba(9,10,8,.5) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+}
+
+.workspace-grid > button strong {
+  color: #e4e6dd !important;
+  font-size: 12px !important;
+  font-weight: 660;
+}
+
+.workspace-grid > button small {
+  color: #8d9185 !important;
+  font-size: 9.5px !important;
+}
+
+.creator-item,
+.review-card,
+.sanction-final {
+  border-color: rgba(235,241,213,.11) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.038), rgba(255,255,255,.012)),
+    rgba(9,10,8,.5) !important;
+}
+
+/* Bottom sheets */
+.sheet {
+  border-color: rgba(235,241,213,.16) !important;
+  background:
+    radial-gradient(circle at 80% 0, rgba(203,255,45,.045), transparent 30%),
+    rgba(20,21,17,.985) !important;
+  box-shadow: 0 -20px 72px rgba(0,0,0,.66), inset 0 1px rgba(255,255,255,.055) !important;
+  backdrop-filter: blur(30px) saturate(116%) !important;
+}
+
+.sheet__head h2 {
+  color: #f0f2ea;
+  font-size: 18px !important;
+  font-weight: 700;
+}
+
+.field__label {
+  color: #b7baaf !important;
+  font-size: 10.5px !important;
+}
+
+.field small {
+  color: #85897d !important;
+  font-size: 9.5px !important;
+}
+
+.field > input,
+.field > textarea,
+.amount-input input,
+.price-editor > input {
+  border-color: rgba(235,241,213,.12) !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.028) !important;
+  color: #eff1e9 !important;
+  font-size: 11.5px !important;
+}
+
+/* Keep layout compact on the smallest Telegram viewport. */
+@media (max-width: 374px) {
+  .bet-redesign-card {
+    grid-template-columns: 38px minmax(0,1fr) auto !important;
+    padding: 10px !important;
+  }
+
+  .bet-redesign-card__odds span {
+    min-width: 43px !important;
+    padding-inline: 4px !important;
+  }
+
+  .subscription-summary {
+    grid-template-columns: 40px 1fr auto !important;
+  }
+}

@@ -1,0 +1,22 @@
+/* Final account layout corrections kept after the larger overhaul stylesheet. */
+.account-settings-shortcuts.account-settings-shortcuts--four {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.account-default-role-grid > button {
+  grid-template-columns: auto minmax(0, 1fr) !important;
+}
+
+.account-default-role-grid > button > .role-sigil {
+  grid-row: 1 / span 2;
+}
+
+.account-next-role-grid > button > .role-sigil {
+  grid-row: 1 / span 2;
+}
+
+@media (max-width: 360px) {
+  .account-settings-shortcuts.account-settings-shortcuts--four {
+    grid-template-columns: 1fr !important;
+  }
+}
