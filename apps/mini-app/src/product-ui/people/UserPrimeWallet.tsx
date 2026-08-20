@@ -52,6 +52,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
       }
     } catch (error) {
       if (revision === requestRevision.current) {
+        setTransactions([])
         setLoadedUserId(requestedUserId)
         setLoadError(true)
         handleError(error)
@@ -201,7 +202,8 @@ export function UserPrimeWallet({ navigate, back }: Props) {
 
         <div className="prime-history-filter">
           {historyFilters.map((filter) => (
-            <button type="button"
+            <button
+              type="button"
               key={filter}
               className={historyFilter === filter ? "is-active" : ""}
               onClick={() => setHistoryFilter(filter)}
