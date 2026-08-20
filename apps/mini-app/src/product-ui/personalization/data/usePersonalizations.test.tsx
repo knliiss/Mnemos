@@ -9,6 +9,8 @@ import {
   listOwnedPersonalizations,
   listPersonalizations,
   purchasePersonalization,
+  type PersonalizationResponse,
+  type PurchasePersonalizationResponse,
 } from "@/shared/api/personalizationApi"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import type { Personalization } from "../../model"
@@ -18,6 +20,11 @@ type ProductMock = {
   user: { id: string; username: string }
   activeAccount: { id: string } | null
   refreshAccount: () => Promise<void>
+}
+
+type Deferred<T> = {
+  promise: Promise<T>
+  resolve(value: T): void
 }
 
 const productState = vi.hoisted(() => ({ current: null as ProductMock | null }))
@@ -62,6 +69,54 @@ const accountItem: Personalization = {
   owned: false,
   active: false,
   preview: "Gradient",
+}
+
+const userItem: Personalization = {
+  ...accountItem,
+  id: "notification-pack",
+  type: "NOTIFICATION_PACK",
+  target: "USER",
+  currency: "PRIME",
+}
+
+const accountResponse: PersonalizationResponse = {
+  id: accountItem.id,
+  creatorUserId: "creator-user",
+  type: "NICK_STYLE",
+  origin: "SYSTEM",
+  visibility: "PUBLIC",
+  name: accountItem.name,
+  content: {
+    colors: [
+      { color: "#ffffff", position: 0 },
+      { color: "#a0a0a0", position: 1 },
+    ],
+    angleDegrees: 90,
+    glow: null,
+  },
+  price: {
+    currency: "COIN",
+    amount: 10,
+  },
+  status: "PUBLISHED",
+  rejectionReason: null,
+  createdAt: "2026-08-20T00:00:00Z",
+  updatedAt: "2026-08-20T00:00:00Z",
+}
+
+function createDeferred<T>(): Deferred<T> {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve
+  })
+
+  return { promise, resolve }
+}
+
+async function flushPromises() {
+  await Promise.resolve()
+  await Promise.resolve()
+  await Promise.resolve()
 }
 
 describe("usePersonalizations", () => {
@@ -169,5 +224,84 @@ describe("usePersonalizations", () => {
     expect(result.current.pendingPurchases).toEqual({})
     expect(refreshAccountB).toHaveBeenCalledTimes(1)
     expect(showBackendError).not.toHaveBeenCalled()
+  })
+
+  it("keeps a user purchase busy across account switches before the operation id arrives", async () => {
+    const purchaseOperation = createDeferred<PurchasePersonalizationResponse>()
+
+    vi.mocked(purchasePersonalization).mockReturnValueOnce(purchaseOperation.promise)
+
+    const { result, rerender } = renderHook(() => usePersonalizations())
+    let firstPurchase!: Promise<void>
+
+    act(() => {
+      firstPurchase = result.current.purchase(userItem)
+    })
+
+    expect(result.current.busyId).toBe(userItem.id)
+
+    productState.current = {
+      ...productState.current!,
+      activeAccount: { id: "account-b" },
+    }
+    rerender()
+
+    expect(result.current.busyId).toBe(userItem.id)
+
+    await act(async () => {
+      await result.current.purchase(userItem)
+    })
+
+    expect(purchasePersonalization).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      purchaseOperation.resolve({
+        personalizationId: userItem.id,
+        operationId: "user-operation",
+      })
+      await firstPurchase
+    })
+
+    expect(result.current.pendingPurchases).toEqual({
+      [userItem.id]: "user-operation",
+    })
+  })
+
+  it("does not expose the previous account catalog when the new scope fails to load", async () => {
+    vi.mocked(listPersonalizations).mockImplementation(async (type) =>
+      type === "NICK_STYLE"
+        ? {
+            ...emptyPage,
+            items: [accountResponse],
+            totalItems: 1,
+            totalPages: 1,
+          }
+        : emptyPage,
+    )
+
+    const { result, rerender } = renderHook(() => usePersonalizations())
+
+    await act(async () => {
+      await flushPromises()
+    })
+
+    expect(result.current.items.map(({ id }) => id)).toEqual([accountItem.id])
+
+    vi.mocked(listOwnedPersonalizations).mockRejectedValueOnce(
+      new Error("ownership unavailable"),
+    )
+    productState.current = {
+      ...productState.current!,
+      activeAccount: { id: "account-b" },
+    }
+    rerender()
+
+    await act(async () => {
+      await flushPromises()
+    })
+
+    expect(result.current.loading).toBe(false)
+    expect(result.current.error).toBe(true)
+    expect(result.current.items).toEqual([])
   })
 })
