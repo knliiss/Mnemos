@@ -4,7 +4,7 @@ import {
   getSubscriptions,
 } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { toProductSubscription } from "../../data/productMappers"
+import { toSubscription } from "../../data/dataMappers"
 import type { Subscription } from "../../model"
 
 type SubscriptionData = {
@@ -36,7 +36,7 @@ export function useSubscriptionData(): SubscriptionData {
         return false
       }
 
-      setSubscriptions(response.items.map(toProductSubscription))
+      setSubscriptions(response.items.map(toSubscription))
       return true
     } catch (error) {
       if (revision === requestRevision.current) {
