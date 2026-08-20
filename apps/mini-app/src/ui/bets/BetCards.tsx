@@ -86,14 +86,14 @@ export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardP
         <strong>{race.itemName}</strong>
         <em>
           {raceStatusLabel(t, race.status)} ·{" "}
-          {t("productBets.sheet.until", {
+          {t("bets.sheet.until", {
             time: formatBetMoment(race.registrationClosesAt, locale),
           })}
         </em>
       </span>
 
       <span className="bets-race__entry">
-        <small>{position ? t("productBets.race.yours") : t("productBets.race.entryUpper")}</small>
+        <small>{position ? t("bets.race.yours") : t("bets.race.entryUpper")}</small>
         <CurrencyValue
           currency="COIN"
           value={position ? racePositionAmount(position) : race.entryAmount}
