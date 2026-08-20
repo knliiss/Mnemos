@@ -8,9 +8,9 @@ import {
 } from "@/shared/api/creatorPersonalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { PersonalizationVisual } from "../components/personalization/PersonalizationPreview"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Personalization, Route } from "../model"
-import { toProductPersonalization } from "../personalization/data/personalizationMappers"
+import { toPersonalization } from "../personalization/data/personalizationMappers"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { FeatureEmpty } from "../system/FeatureEmpty"
@@ -28,7 +28,7 @@ type Props = {
 
 export function CreatorStudio({ navigate, back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [items, setItems] = useState<Personalization[]>([])
   const [filter, setFilter] = useState<StudioFilter>("ALL")
   const [loading, setLoading] = useState(true)
@@ -52,7 +52,7 @@ export function CreatorStudio({ navigate, back }: Props) {
       if (revision === requestRevision.current) {
         setItems(
           responses.map((response) =>
-            toProductPersonalization(response, null, product.user.id, product.user.username),
+            toPersonalization(response, null, data.user.id, data.user.username),
           ),
         )
         setRevenue(summary)
@@ -69,7 +69,7 @@ export function CreatorStudio({ navigate, back }: Props) {
         setLoading(false)
       }
     }
-  }, [product.user.id, product.user.username])
+  }, [data.user.id, data.user.username])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
