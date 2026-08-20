@@ -8,7 +8,7 @@ const fastRefreshMixedExportFiles = [
   "src/app/providers/AppProvider.tsx",
   "src/ui/components/errors/ErrorNotifications.tsx",
   "src/ui/components/personalization/PersonalizationPreview.tsx",
-  "src/ui/data/ProductDataProvider.tsx",
+  "src/ui/data/MnemosDataProvider.tsx",
 ]
 
 export default tseslint.config(
