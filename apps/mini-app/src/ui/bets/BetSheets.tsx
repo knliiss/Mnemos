@@ -56,7 +56,7 @@ export function RoundBetSheet({
             <small>{roundStatusLabel(t, round.status)}</small>
             <strong>{formatBetMoment(round.scheduledAt, locale)}</strong>
             <em>
-              {t("productBets.sheet.until", {
+              {t("bets.sheet.until", {
                 time: formatBetMoment(round.closesAt, locale),
               })}
             </em>
@@ -73,7 +73,7 @@ export function RoundBetSheet({
                 className={side === value ? "is-active" : ""}
                 onClick={() => onSideChange(value)}
               >
-                <span>{value === "YES" ? t("productBets.yes") : t("productBets.no")}</span>
+                <span>{value === "YES" ? t("bets.yes") : t("bets.no")}</span>
                 <strong>
                   × {formatOdds(value === "YES" ? round.yesOdds : round.noOdds, locale)}
                 </strong>
@@ -83,18 +83,14 @@ export function RoundBetSheet({
         ) : (
           <div className="bets-current-position">
             <span>
-              <small>{t("productBets.sheet.yourPosition")}</small>
-              <strong>
-                {round.myBet.side === "YES" ? t("productBets.yes") : t("productBets.no")}
-              </strong>
+              <small>{t("bets.sheet.yourPosition")}</small>
+              <strong>{round.myBet.side === "YES" ? t("bets.yes") : t("bets.no")}</strong>
             </span>
             <CurrencyValue currency="COIN" value={betAmount(round.myBet)} compact />
           </div>
         )}
 
-        <Field
-          label={round.myBet ? t("productBets.sheet.increaseBy") : t("productBets.sheet.amount")}
-        >
+        <Field label={round.myBet ? t("bets.sheet.increaseBy") : t("bets.sheet.amount")}>
           <div className="bets-amount">
             <CurrencyMark currency="COIN" size={16} />
             <input
@@ -115,10 +111,10 @@ export function RoundBetSheet({
           onClick={onSubmit}
         >
           {busy
-            ? t("productBets.sheet.sending")
+            ? t("bets.sheet.sending")
             : round.myBet
-              ? t("productBets.sheet.increase")
-              : t("productBets.sheet.place")}
+              ? t("bets.sheet.increase")
+              : t("bets.sheet.place")}
         </button>
       </div>
     </BottomSheet>
@@ -159,7 +155,7 @@ export function RaceBetSheet({
             <small>{itemTypeLabel(t, race.itemType)}</small>
             <strong>{raceStatusLabel(t, race.status)}</strong>
             <em>
-              {t("productBets.race.registrationUntil", {
+              {t("bets.race.registrationUntil", {
                 time: formatBetMoment(race.registrationClosesAt, locale),
               })}
             </em>
@@ -168,13 +164,11 @@ export function RaceBetSheet({
 
         <div className="bets-current-position">
           <span>
-            <small>
-              {position ? t("productBets.race.yourAmount") : t("productBets.race.entry")}
-            </small>
+            <small>{position ? t("bets.race.yourAmount") : t("bets.race.entry")}</small>
             <strong>
               {position
-                ? t("productBets.race.activeParticipation")
-                : t("productBets.race.fee", { percent: race.feePercent })}
+                ? t("bets.race.activeParticipation")
+                : t("bets.race.fee", { percent: race.feePercent })}
             </strong>
           </span>
           <CurrencyValue
@@ -185,7 +179,7 @@ export function RaceBetSheet({
         </div>
 
         {position ? (
-          <Field label={t("productBets.sheet.increaseBy")}>
+          <Field label={t("bets.sheet.increaseBy")}>
             <div className="bets-amount">
               <CurrencyMark currency="COIN" size={16} />
               <input
@@ -206,10 +200,10 @@ export function RaceBetSheet({
           onClick={onSubmit}
         >
           {busy
-            ? t("productBets.sheet.sending")
+            ? t("bets.sheet.sending")
             : position
-              ? t("productBets.sheet.increase")
-              : t("productBets.race.join")}
+              ? t("bets.sheet.increase")
+              : t("bets.race.join")}
         </button>
       </div>
     </BottomSheet>
