@@ -89,8 +89,14 @@ export const personalizationRu = {
     review: {
       title: "Проверка",
       queue: "Очередь персонализаций",
+      reviewView: "Проверка",
+      management: "Управление маркетплейсом",
+      mode: "Режим модерации",
       pendingCount: "Ожидают решения: {{count}}",
+      managedCount: "{{count}} · {{status}}",
       description: "Очередь, preview и решения загружаются из personalization-service.",
+      managementDescription:
+        "Опубликованные и снятые с публикации персонализации управляются отдельно от очереди проверки.",
       searchPlaceholder: "Название, автор или тип",
       scopes: {
         ALL: "Все",
@@ -98,6 +104,7 @@ export const personalizationRu = {
         ACCOUNT: "Account",
       },
       emptyQueue: "Очередь пуста",
+      emptyManagement: "В этом статусе персонализаций нет",
       selected: "ВЫБРАНО",
       close: "Закрыть",
       author: "Автор",
@@ -111,8 +118,10 @@ export const personalizationRu = {
       rejectionReason: "Причина отказа",
       rejectionPlaceholder: "Что именно нужно исправить",
       reject: "Отклонить",
-      selectApplication: "Выбери заявку",
-      selectApplicationCopy: "Появятся preview и инструменты решения.",
+      unlist: "Снять с публикации",
+      relist: "Вернуть в маркетплейс",
+      selectApplication: "Выбери персонализацию",
+      selectApplicationCopy: "Появятся preview и инструменты модерации.",
     },
     preview: {
       missingTitle: "Превью ещё не собрано",
