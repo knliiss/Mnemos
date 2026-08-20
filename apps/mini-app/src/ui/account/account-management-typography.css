@@ -1,0 +1,60 @@
+.account-settings-panel header small,
+.account-settings-status,
+.account-settings-shortcuts small,
+.account-default-role-grid small,
+.account-transfer-grid small,
+.account-role-summary small,
+.account-transfer-summary small,
+.account-role-summary em,
+.account-transfer-summary em,
+.account-danger-card small,
+.account-confirm small,
+.prime-wallet-hero__stats small,
+.coin-wallet-hero__stats small,
+.prime-wallet-shortcuts small,
+.prime-topup-panel header small,
+.prime-history-panel header small,
+.coin-history-panel header small,
+.role-identity-panel header small,
+.role-permissions-panel__head small,
+.prime-topup-status,
+.prime-history-filter button,
+.prime-history-list__copy small,
+.coin-history-list__copy small,
+.roles-hero__copy small,
+.role-editor-hero__copy small,
+.roles-guide small,
+.role-row__copy i,
+.role-row__copy small,
+.role-editor-field > small,
+.role-permissions-panel__head > div button,
+.role-permission-groups > section > header button,
+.role-permission-groups > section > header small,
+.role-permission-row small,
+.role-editor-danger small,
+.wallet-history-sort__trigger span,
+.wallet-history-sort__menu > button {
+  font-size: 9px;
+}
+
+.prime-topup-panel header em,
+.roles-hero__copy em,
+.role-editor-hero__copy em {
+  font-size: 10px;
+}
+
+.account-role-summary button,
+.account-transfer-summary button,
+.account-danger-card button,
+.account-confirm > div button,
+.roles-create,
+.role-editor-back-to-list,
+.role-editor-danger > button,
+.role-editor-danger > div button {
+  min-height: 36px;
+}
+
+.role-permissions-panel__head > div button,
+.role-permission-groups > section > header button {
+  min-height: 32px;
+}
