@@ -21,7 +21,7 @@ import type {
   Subscription,
   SystemRole,
 } from "../model"
-import { toProductAccount } from "./productMappers"
+import { toAccount } from "./dataMappers"
 
 type ProductUser = {
   id: string
@@ -104,7 +104,7 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
   const accounts = useMemo(
     () =>
       context?.availableAccounts.map((account) =>
-        toProductAccount(account, account.id === activeAccountId ? accountCoin : 0),
+        toAccount(account, account.id === activeAccountId ? accountCoin : 0),
       ) ?? [],
     [accountCoin, activeAccountId, context?.availableAccounts],
   )
