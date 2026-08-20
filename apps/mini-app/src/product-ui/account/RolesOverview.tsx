@@ -32,7 +32,8 @@ export function RolesOverview({ navigate, back }: Props) {
         title={t("rolesOverview.title")}
         back={back}
         actions={
-          <button type="button"
+          <button
+            type="button"
             className="roles-create"
             disabled={!accountId}
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
@@ -194,7 +195,8 @@ function SortableRoleRow({
       whileDrag={{ scale: 1.02, zIndex: 5 }}
       onDragEnd={onDragEnd}
     >
-      <button type="button"
+      <button
+        type="button"
         className="role-row__main"
         onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}
       >
