@@ -89,9 +89,15 @@ export const personalizationEn = {
     review: {
       title: "Review",
       queue: "Personalization queue",
+      reviewView: "Review",
+      management: "Marketplace management",
+      mode: "Moderation mode",
       pendingCount: "{{count}} awaiting a decision",
+      managedCount: "{{count}} · {{status}}",
       description:
         "Queue, previews and moderation decisions are loaded from personalization-service.",
+      managementDescription:
+        "Published and unlisted marketplace personalizations are managed separately from the review queue.",
       searchPlaceholder: "Name, creator or type",
       scopes: {
         ALL: "All",
@@ -99,6 +105,7 @@ export const personalizationEn = {
         ACCOUNT: "Account",
       },
       emptyQueue: "The queue is empty",
+      emptyManagement: "No personalizations in this state",
       selected: "SELECTED",
       close: "Close",
       author: "Creator",
@@ -112,8 +119,10 @@ export const personalizationEn = {
       rejectionReason: "Rejection reason",
       rejectionPlaceholder: "What needs to be fixed",
       reject: "Reject",
-      selectApplication: "Select a submission",
-      selectApplicationCopy: "Its preview and decision tools will appear here.",
+      unlist: "Unlist from marketplace",
+      relist: "Relist in marketplace",
+      selectApplication: "Select a personalization",
+      selectApplicationCopy: "Its preview and moderation tools will appear here.",
     },
     preview: {
       missingTitle: "Preview is not available yet",
