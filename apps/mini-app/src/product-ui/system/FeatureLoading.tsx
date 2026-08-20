@@ -1,10 +1,15 @@
 import { useTranslation } from "react-i18next"
+import "./system.css"
 
-export function FeatureLoading() {
+type Props = {
+  label?: string
+}
+
+export function FeatureLoading({ label }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="events-r2-loading" aria-label={t("common.loading")}>
+    <div className="feature-loading" aria-label={label ?? t("common.loading")}>
       <i />
       <i />
       <i />
