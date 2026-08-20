@@ -42,6 +42,8 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const product = useProductData()
   const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
   const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
+  const [lookupErrorId, setLookupErrorId] = useState<string | null>(null)
+  const [lookupRevision, setLookupRevision] = useState(0)
   const [followBusyScope, setFollowBusyScope] = useState<string | null>(null)
   const followBusyRef = useRef<string | null>(null)
   const mountedRef = useRef(true)
@@ -51,7 +53,13 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const resolvedEvent =
     lookupResult && lookupResult.eventId === eventId ? lookupResult.event : null
   const event = cachedEvent ?? resolvedEvent
-  const lookupLoading = Boolean(eventId && !cachedEvent && lookupResult?.eventId !== eventId)
+  const lookupLoading = Boolean(
+    eventId &&
+      !cachedEvent &&
+      lookupResult?.eventId !== eventId &&
+      lookupErrorId !== eventId,
+  )
+  const lookupError = lookupErrorId === eventId
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
@@ -68,6 +76,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
     }
 
     let cancelled = false
+    setLookupErrorId((current) => (current === eventId ? null : current))
 
     void getEventFeedItem(eventId)
       .then((response) => {
@@ -75,6 +84,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           return
         }
 
+        setLookupErrorId(null)
         setLookupResult({
           eventId,
           event: toProductFeedEvent(response),
@@ -85,7 +95,10 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           return
         }
 
-        if (!(error instanceof ApiError && error.status === 404)) {
+        const notFound = error instanceof ApiError && error.status === 404
+
+        if (!notFound) {
+          setLookupErrorId(eventId)
           handleError(error)
         }
 
@@ -98,7 +111,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
     return () => {
       cancelled = true
     }
-  }, [cachedEvent, eventId])
+  }, [cachedEvent, eventId, lookupRevision])
 
   const matchingSubscription = useMemo(
     () =>
@@ -118,11 +131,24 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         <section className="events-feed-empty">
           <Glyph name="events" size={24} />
           <strong>
-            {lookupLoading ? t("events.detail.loadingTitle") : t("events.detail.notFoundTitle")}
+            {lookupLoading
+              ? t("events.detail.loadingTitle")
+              : lookupError
+                ? t("common.loadErrorTitle")
+                : t("events.detail.notFoundTitle")}
           </strong>
           <small>
-            {lookupLoading ? t("events.detail.loadingCopy") : t("events.detail.notFoundCopy")}
+            {lookupLoading
+              ? t("events.detail.loadingCopy")
+              : lookupError
+                ? t("common.loadErrorCopy")
+                : t("events.detail.notFoundCopy")}
           </small>
+          {lookupError ? (
+            <button type="button" onClick={() => setLookupRevision((value) => value + 1)}>
+              {t("common.retry")}
+            </button>
+          ) : null}
         </section>
       </div>
     )
@@ -218,7 +244,8 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           <em>{notificationRuleDescription(t, event)}</em>
         </span>
 
-        <motion.button type="button"
+        <motion.button
+          type="button"
           className={matchingSubscription ? "is-active" : ""}
           whileTap={{ scale: 0.96 }}
           disabled={followBusy}
@@ -231,7 +258,8 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
               : t("events.detail.follow")}
         </motion.button>
 
-        <button type="button"
+        <button
+          type="button"
           className="event-detail-follow__manage"
           onClick={() => navigate({ id: "subscriptions" })}
         >
