@@ -33,14 +33,60 @@ jobs:
           cache-dependency-path: apps/mini-app/package-lock.json
 
       - name: Install dependencies
+        id: install
+        continue-on-error: true
         working-directory: apps/mini-app
         run: npm ci
 
       - name: Format production frontend
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
         working-directory: apps/mini-app
         run: npm run format
 
-      - name: Audit CSS structure
+      - name: Audit legacy source names
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          source_root = Path("apps/mini-app/src")
+          report_path = Path(".github/production-css-audit.txt")
+          extensions = {".ts", ".tsx", ".css"}
+          legacy_pattern = re.compile(
+              r"[A-Za-z_][A-Za-z0-9_-]*"
+              r"(?:-round-(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)"
+              r"|-(?:v|r)\d+"
+              r"|-(?:final|polished|overhaul|rethink))"
+              r"[A-Za-z0-9_-]*"
+          )
+
+          locations: dict[str, set[str]] = {}
+
+          for path in sorted(source_root.rglob("*")):
+              if not path.is_file() or path.suffix not in extensions:
+                  continue
+
+              for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                  for token in legacy_pattern.findall(line):
+                      locations.setdefault(token, set()).add(f"{path.as_posix()}:{line_number}")
+
+          lines = [f"legacy_name_count={len(locations)}", "", "[legacy-names]"]
+
+          for token in sorted(locations):
+              lines.append(token)
+              lines.extend(f"  {location}" for location in sorted(locations[token]))
+
+          report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Audit duplicate CSS selectors
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
         working-directory: apps/mini-app
         shell: bash
         run: |
@@ -51,32 +97,12 @@ jobs:
           import path from "node:path"
           import postcss from "postcss"
 
-          const sourceRoot = path.resolve("src")
-          const repositoryRoot = path.resolve("../..")
-          const reportPath = path.join(repositoryRoot, ".github/production-css-audit.txt")
-          const revisionPattern = /(?:-round-(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)|-(?:v|r)\d+|-(?:final|polished|overhaul|rethink))(?=(?:__|--|-|$))/
-          const classPattern = /\.([A-Za-z_][A-Za-z0-9_-]*)/g
+          const cssPath = path.resolve("src/product-ui/product.css")
+          const reportPath = path.resolve("../../.github/production-css-audit.txt")
+          const root = postcss.parse(fs.readFileSync(cssPath, "utf8"), { from: cssPath })
+          const selectors = new Map()
 
-          function listCssFiles(directory) {
-            return fs
-              .readdirSync(directory, { withFileTypes: true })
-              .flatMap((entry) => {
-                const fullPath = path.join(directory, entry.name)
-
-                if (entry.isDirectory()) {
-                  return listCssFiles(fullPath)
-                }
-
-                return entry.isFile() && entry.name.endsWith(".css") ? [fullPath] : []
-              })
-              .sort()
-          }
-
-          function relative(filePath) {
-            return path.relative(repositoryRoot, filePath).replaceAll(path.sep, "/")
-          }
-
-          function atRuleContext(rule) {
+          function contextFor(rule) {
             const context = []
             let parent = rule.parent
 
@@ -91,85 +117,39 @@ jobs:
             return context.join(" > ") || "top-level"
           }
 
-          const legacyClasses = new Map()
-          const duplicateSelectors = []
+          root.walkRules((rule) => {
+            const selector = rule.selector.replace(/\s+/g, " ").trim()
+            const context = contextFor(rule)
+            const key = `${context}||${selector}`
+            const lines = selectors.get(key) ?? []
 
-          for (const filePath of listCssFiles(sourceRoot)) {
-            const source = fs.readFileSync(filePath, "utf8")
-            const root = postcss.parse(source, { from: filePath })
-            const selectors = new Map()
+            lines.push(rule.source?.start?.line ?? 0)
+            selectors.set(key, lines)
+          })
 
-            root.walkRules((rule) => {
-              const line = rule.source?.start?.line ?? 0
-              const context = atRuleContext(rule)
-              const selector = rule.selector.replace(/\s+/g, " ").trim()
-              const key = `${context}||${selector}`
-              const lines = selectors.get(key) ?? []
-
-              lines.push(line)
-              selectors.set(key, lines)
-
-              for (const match of rule.selector.matchAll(classPattern)) {
-                const className = match[1]
-
-                if (!revisionPattern.test(className)) {
-                  continue
-                }
-
-                const locations = legacyClasses.get(className) ?? []
-                locations.push(`${relative(filePath)}:${line}`)
-                legacyClasses.set(className, locations)
-              }
-            })
-
-            for (const [key, lines] of selectors) {
-              if (lines.length < 2) {
-                continue
-              }
-
+          const duplicates = [...selectors.entries()]
+            .filter(([, lines]) => lines.length > 1)
+            .map(([key, lines]) => {
               const separator = key.indexOf("||")
-              duplicateSelectors.push({
-                file: relative(filePath),
+
+              return {
                 context: key.slice(0, separator),
                 selector: key.slice(separator + 2),
                 lines,
-              })
-            }
-          }
+              }
+            })
+            .sort((left, right) => {
+              return (
+                left.context.localeCompare(right.context) ||
+                left.selector.localeCompare(right.selector)
+              )
+            })
 
-          const report = []
-          const sortedLegacyClasses = [...legacyClasses.entries()].sort(([left], [right]) =>
-            left.localeCompare(right),
-          )
+          const report = fs.readFileSync(reportPath, "utf8").trimEnd().split("\n")
+          report.push("", `duplicate_selector_count=${duplicates.length}`, "", "[duplicate-selectors]")
 
-          report.push(`legacy_class_count=${sortedLegacyClasses.length}`)
-          report.push("")
-          report.push("[legacy-classes]")
-
-          for (const [className, locations] of sortedLegacyClasses) {
-            report.push(`${className} -> ${className.replace(revisionPattern, "")}`)
-
-            for (const location of [...new Set(locations)].sort()) {
-              report.push(`  ${location}`)
-            }
-          }
-
-          duplicateSelectors.sort((left, right) => {
-            return (
-              left.file.localeCompare(right.file) ||
-              left.context.localeCompare(right.context) ||
-              left.selector.localeCompare(right.selector)
-            )
-          })
-
-          report.push("")
-          report.push(`duplicate_selector_count=${duplicateSelectors.length}`)
-          report.push("")
-          report.push("[duplicate-selectors]")
-
-          for (const duplicate of duplicateSelectors) {
-            report.push(`${duplicate.file} :: ${duplicate.context}`)
-            report.push(`  ${duplicate.selector}`)
+          for (const duplicate of duplicates) {
+            report.push(`${duplicate.context} :: ${duplicate.selector}`)
             report.push(`  lines=${duplicate.lines.join(",")}`)
           }
 
@@ -177,13 +157,29 @@ jobs:
           NODE
 
       - name: Verify production frontend
+        if: always()
         working-directory: apps/mini-app
         shell: bash
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
         run: |
           set -uo pipefail
 
           report="../../.github/mini-app-verification.txt"
           : > "$report"
+
+          if [ "$INSTALL_OUTCOME" != "success" ]; then
+            echo "install=FAIL" >> "$report"
+            echo "audit=SKIPPED" >> "$report"
+            echo "lint=SKIPPED" >> "$report"
+            echo "format=SKIPPED" >> "$report"
+            echo "test=SKIPPED" >> "$report"
+            echo "build=SKIPPED" >> "$report"
+            echo "bundle_budget=SKIPPED" >> "$report"
+            exit 0
+          fi
+
+          echo "install=PASS" >> "$report"
 
           run_check() {
             local name="$1"
@@ -228,6 +224,7 @@ jobs:
           fi
 
       - name: Ensure branch stayed unchanged
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
@@ -240,9 +237,17 @@ jobs:
           fi
 
       - name: Commit maintenance result
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
+
+          git fetch origin feat/frontend-integration
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/feat/frontend-integration)" ]; then
+            echo "Skipping stale maintenance result"
+            exit 1
+          fi
 
           rm .github/workflows/cleanup-production-css.yml
 
