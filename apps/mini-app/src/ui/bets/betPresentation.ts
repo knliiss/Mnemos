@@ -22,7 +22,7 @@ export function globalEventLabel(t: TFunction, eventType: EventBetRoundResponse[
 }
 
 export function itemTypeLabel(t: TFunction, itemType: ItemRaceResponse["itemType"]) {
-  return t(`productBets.itemTypes.${itemType}`, { defaultValue: itemType })
+  return t(`bets.itemTypes.${itemType}`, { defaultValue: itemType })
 }
 
 export function formatOdds(value: number, locale: string) {
@@ -45,11 +45,11 @@ export function formatBetMoment(value: string, locale: string) {
 }
 
 export function roundStatusLabel(t: TFunction, status: EventBetRoundResponse["status"]) {
-  return t(`productBets.roundStatus.${status}`, { defaultValue: status })
+  return t(`bets.roundStatus.${status}`, { defaultValue: status })
 }
 
 export function raceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]) {
-  return t(`productBets.raceStatus.${status}`, { defaultValue: status })
+  return t(`bets.raceStatus.${status}`, { defaultValue: status })
 }
 
 export function betLocale(language?: string) {
