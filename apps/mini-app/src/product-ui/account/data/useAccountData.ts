@@ -98,6 +98,10 @@ export function useAccountData(accountId: string | undefined): AccountData {
         revision === requestRevision.current &&
         activeAccountId.current === requestedAccountId
       ) {
+        setMembers([])
+        setRoles([])
+        setDailyReward(null)
+        setAccountCoin(0)
         setLoadedScopeKey(requestedScopeKey)
         setAccountError(true)
         handleError(error)
