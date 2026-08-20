@@ -54,12 +54,12 @@ export function UserHubAccountPicker({
                 <strong>{account.nickname}</strong>
                 <small>
                   {switching
-                    ? t("productShell.userMenu.switching")
+                    ? t("appShell.userMenu.switching")
                     : inactive
-                    ? account.owner
-                      ? t("productShell.userMenu.reactivate")
-                      : t("productShell.userMenu.inactive")
-                    : t(account.role === "OWNER" ? "account.owner" : "account.participant")}
+                      ? account.owner
+                        ? t("appShell.userMenu.reactivate")
+                        : t("appShell.userMenu.inactive")
+                      : t(account.role === "OWNER" ? "account.owner" : "account.participant")}
                 </small>
                 {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
               </button>
@@ -73,7 +73,7 @@ export function UserHubAccountPicker({
               onClick={() => navigate({ id: "account-create" })}
             >
               <Glyph name="plus" size={15} />
-              {t("productShell.userMenu.create")}
+              {t("appShell.userMenu.create")}
             </button>
 
             <button
@@ -82,7 +82,7 @@ export function UserHubAccountPicker({
               onClick={() => navigate({ id: "account-join" })}
             >
               <Glyph name="invite" size={15} />
-              {t("productShell.userMenu.joinCode")}
+              {t("appShell.userMenu.joinCode")}
             </button>
           </footer>
         </motion.div>
