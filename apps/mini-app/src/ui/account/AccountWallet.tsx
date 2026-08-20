@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getAccountTransactions } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
 
@@ -14,8 +14,8 @@ const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_
 
 export function AccountWallet({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
-  const product = useProductData()
-  const activeAccount = product.activeAccount
+  const data = useMnemosData()
+  const activeAccount = data.activeAccount
   const activeAccountId = activeAccount?.id
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
