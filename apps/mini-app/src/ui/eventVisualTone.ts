@@ -15,7 +15,7 @@ export type EventVisualTone =
   | "raid"
   | "dungeon"
 
-export function itemDropVisualTone(rarity?: string): EventVisualTone {
+function itemDropVisualTone(rarity?: string): EventVisualTone {
   if (rarity === "SECRET") {
     return "drop-secret"
   }
@@ -26,7 +26,7 @@ export function itemDropVisualTone(rarity?: string): EventVisualTone {
   return "drop-default"
 }
 
-export function boosterVisualTone(boosterType: BoosterType): EventVisualTone {
+function boosterVisualTone(boosterType: BoosterType): EventVisualTone {
   if (boosterType === "MONEY") {
     return "booster-money"
   }

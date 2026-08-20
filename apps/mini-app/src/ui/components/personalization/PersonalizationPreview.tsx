@@ -127,7 +127,7 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
   )
 }
 
-export function NotificationPackShowcase({ content }: { content: NotificationPackContent }) {
+function NotificationPackShowcase({ content }: { content: NotificationPackContent }) {
   const { t } = useTranslation()
   const templateSamples = createTemplateSamples(t)
 
@@ -394,7 +394,7 @@ function createTemplateSamples(t: TFunction): TemplateSample[] {
   ]
 }
 
-export function renderTemplate(template: string, values: Record<string, string>) {
+function renderTemplate(template: string, values: Record<string, string>) {
   return template.replace(
     /\{([a-zA-Z][a-zA-Z0-9_]*)}/g,
     (_, key: string) => values[key] ?? `{${key}}`,

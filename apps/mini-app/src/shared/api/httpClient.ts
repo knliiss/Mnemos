@@ -88,5 +88,3 @@ async function readResponseBody(response: Response): Promise<ApiErrorBody | stri
     return text
   }
 }
-
-export const request = api

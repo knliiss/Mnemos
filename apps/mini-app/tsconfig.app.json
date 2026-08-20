@@ -20,7 +20,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+    "tsBuildInfoFile": "./node_modules/.cache/tsc-app/tsconfig.app.tsbuildinfo"
   },
   "include": ["src"]
 }

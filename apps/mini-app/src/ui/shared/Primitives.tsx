@@ -39,7 +39,7 @@ export function PageHeader({
   )
 }
 
-export function IconButton({
+function IconButton({
   icon,
   label,
   onClick,
@@ -105,52 +105,6 @@ export function Section({
       ) : null}
       {children}
     </section>
-  )
-}
-
-export function Row({
-  icon,
-  title,
-  meta,
-  value,
-  onClick,
-  danger,
-  children,
-}: {
-  icon?: GlyphName
-  title: string
-  meta?: string
-  value?: ReactNode
-  onClick?: () => void
-  danger?: boolean
-  children?: ReactNode
-}) {
-  const content = (
-    <>
-      {icon ? (
-        <span className="row__icon">
-          <Glyph name={icon} size={19} />
-        </span>
-      ) : null}
-      <span className="row__copy">
-        <strong>{title}</strong>
-        {meta ? <small>{meta}</small> : null}
-      </span>
-      {children}
-      {value ? <span className="row__value">{value}</span> : null}
-      {onClick ? <span className="row__chevron">›</span> : null}
-    </>
-  )
-  return onClick ? (
-    <button
-      type="button"
-      className={`row row--button ${danger ? "row--danger" : ""}`}
-      onClick={onClick}
-    >
-      {content}
-    </button>
-  ) : (
-    <div className={`row ${danger ? "row--danger" : ""}`}>{content}</div>
   )
 }
 
@@ -229,28 +183,6 @@ export function Field({
   )
 }
 
-export function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: (checked: boolean) => void
-  label: string
-}) {
-  return (
-    <button
-      className={`toggle ${checked ? "is-on" : ""}`}
-      onClick={() => onChange(!checked)}
-      type="button"
-      aria-label={label}
-      aria-pressed={checked}
-    >
-      <span />
-    </button>
-  )
-}
-
 export function BottomSheet({
   title,
   children,
@@ -289,18 +221,5 @@ export function BottomSheet({
         {children}
       </motion.section>
     </motion.div>
-  )
-}
-
-export function StatusDot({ tone = "neutral" }: { tone?: "live" | "neutral" | "warning" }) {
-  return <span className={`status-dot status-dot--${tone}`} />
-}
-export function EmptyState({ title, note }: { title: string; note?: string }) {
-  return (
-    <div className="empty-state">
-      <span className="empty-state__mark" />
-      <strong>{title}</strong>
-      {note ? <small>{note}</small> : null}
-    </div>
   )
 }

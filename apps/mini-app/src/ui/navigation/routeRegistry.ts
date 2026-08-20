@@ -7,7 +7,7 @@ type RouteDefinition = {
   root?: true
 }
 
-export const routeRegistry: Record<RouteId, RouteDefinition> = {
+const routeRegistry: Record<RouteId, RouteDefinition> = {
   bets: { area: "events", root: true },
   events: { area: "events", root: true },
   "event-detail": { area: "events" },

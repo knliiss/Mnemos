@@ -81,7 +81,7 @@ function toErrorEventPayload(error: unknown, normalized: AppError): ErrorEventPa
   }
 }
 
-export function normalizeError(error: unknown): AppError {
+function normalizeError(error: unknown): AppError {
   if (error instanceof AppError) {
     return error
   }
@@ -105,15 +105,6 @@ export function handleError(error: unknown): AppError {
   errorEvents.publish(toErrorEventPayload(error, normalized))
 
   return normalized
-}
-
-export async function executeAction<T>(action: () => Promise<T>): Promise<T | undefined> {
-  try {
-    return await action()
-  } catch (error) {
-    handleError(error)
-    return undefined
-  }
 }
 
 export function installGlobalErrorHandlers() {
