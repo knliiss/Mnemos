@@ -105,7 +105,12 @@ export function ProfileCommentsSheet({
       return
     }
 
-    await onSubmit(content, replyingTo)
+    try {
+      await onSubmit(content, replyingTo)
+    } catch {
+      return
+    }
+
     setDraft("")
     setReplyingTo(null)
   }
