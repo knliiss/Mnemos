@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import {
   claimDailyReward,
-  getAccountBalances,
-  getAccountMembers,
-  getAccountRoles,
-  getCurrentUserBalances,
   getDailyRewardState,
   restoreDailyReward,
-} from "@/shared/api/productApi"
+} from "@/shared/api/rewardApi"
+import {
+  getAccountBalances,
+  getCurrentUserBalances,
+} from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
