@@ -1,70 +1,80 @@
 .event-art {
   --event-art-color: #b9c0b2;
 
-  position: relative;
+  position: relative !important;
   isolation: isolate;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  color: var(--event-art-color);
-  background: transparent;
-  box-shadow: none;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--event-art-color) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .event-art::before {
-  content: "";
-  position: absolute;
+  content: "" !important;
+  position: absolute !important;
   z-index: 0;
-  top: 13%;
-  right: 12%;
-  width: 3px;
-  height: 3px;
-  border: 0;
-  border-radius: 0;
-  background: var(--event-art-color);
+  top: 13% !important;
+  right: 12% !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 3px !important;
+  height: 3px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--event-art-color) !important;
   box-shadow:
     -8px 6px 0 color-mix(in srgb, var(--event-art-color) 48%, transparent),
-    2px 12px 0 color-mix(in srgb, var(--event-art-color) 68%, transparent);
-  opacity: 0.78;
-  pointer-events: none;
+    2px 12px 0 color-mix(in srgb, var(--event-art-color) 68%, transparent) !important;
+  opacity: 0.78 !important;
+  filter: none !important;
+  transform: none !important;
+  pointer-events: none !important;
 }
 
 .event-art::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  left: 50%;
-  width: 53%;
-  height: 53%;
-  border: 0;
-  border-radius: 50%;
-  background: var(--event-art-color);
-  opacity: 0.14;
-  filter: blur(9px);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 50% !important;
+  width: 53% !important;
+  height: 53% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--event-art-color) !important;
+  opacity: 0.14 !important;
+  filter: blur(9px) !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
 }
 
 .event-art__image,
 .event-art__vector {
   position: relative;
   z-index: 2;
-  display: block;
-  width: var(--event-art-content-size, 28px);
-  height: var(--event-art-content-size, 28px);
-  max-width: calc(100% - 10px);
-  max-height: calc(100% - 10px);
-  object-fit: contain;
-  transform-origin: center;
+  display: block !important;
+  width: var(--event-art-content-size, 28px) !important;
+  height: var(--event-art-content-size, 28px) !important;
+  max-width: calc(100% - 10px) !important;
+  max-height: calc(100% - 10px) !important;
+  object-fit: contain !important;
+  transform-origin: center !important;
   filter:
     drop-shadow(0 0 2px color-mix(in srgb, var(--event-art-color) 46%, transparent))
     drop-shadow(0 0 6px color-mix(in srgb, var(--event-art-color) 22%, transparent))
     drop-shadow(0 0 11px color-mix(in srgb, var(--event-art-color) 8%, transparent))
-    drop-shadow(0 5px 7px rgba(0, 0, 0, 0.34));
+    drop-shadow(0 5px 7px rgba(0, 0, 0, 0.34)) !important;
 }
 
 .event-art__image {
@@ -76,7 +86,7 @@
 }
 
 .event-art--vectorized .event-art__vector {
-  overflow: visible;
+  overflow: visible !important;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
@@ -85,76 +95,76 @@
 .event-art--global-eclipse .event-art__vector,
 .event-art--global-darkness .event-art__vector,
 .event-art--global-explosion .event-art__vector {
-  width: min(var(--event-art-content-size, 28px), 24px);
-  height: min(var(--event-art-content-size, 28px), 24px);
-  transform: scale(1.72);
+  width: min(var(--event-art-content-size, 28px), 24px) !important;
+  height: min(var(--event-art-content-size, 28px), 24px) !important;
+  transform: scale(1.72) !important;
 }
 
 .event-art--rarity-secret,
 .event-art--drop-aura,
 .event-art--drop-jewelry {
-  --event-art-color: #46d7d7;
+  --event-art-color: #46d7d7 !important;
 }
 
 .event-art--rarity-mythical,
 .event-art--drop-sword {
-  --event-art-color: #df405a;
+  --event-art-color: #df405a !important;
 }
 
 .event-art--drop-pet,
 .event-art--drop-book {
-  --event-art-color: #c68a52;
+  --event-art-color: #c68a52 !important;
 }
 
 .event-art--booster-luck {
-  --event-art-color: #48d178;
+  --event-art-color: #48d178 !important;
 }
 
 .event-art--booster-money {
-  --event-art-color: #e0ae45;
+  --event-art-color: #e0ae45 !important;
 }
 
 .event-art--booster-damage {
-  --event-art-color: #df5364;
+  --event-art-color: #df5364 !important;
 }
 
 .event-art--booster-power {
-  --event-art-color: #b88ccc;
+  --event-art-color: #b88ccc !important;
 }
 
 .event-art--raid {
-  --event-art-color: #d5b888;
+  --event-art-color: #d5b888 !important;
 }
 
 .event-art--dungeon {
-  --event-art-color: #a785bf;
+  --event-art-color: #a785bf !important;
 }
 
 .event-art--global-moon {
-  --event-art-color: #de3b57;
+  --event-art-color: #de3b57 !important;
 }
 
 .event-art--global-eclipse {
-  --event-art-color: #8fc3d5;
+  --event-art-color: #8fc3d5 !important;
 }
 
 .event-art--global-darkness {
-  --event-art-color: #818a96;
+  --event-art-color: #818a96 !important;
 }
 
 .event-art--global-explosion {
-  --event-art-color: #f49a24;
+  --event-art-color: #f49a24 !important;
 }
 
 .event-art--global-eclipse .event-art__vector {
   filter:
     drop-shadow(0 0 4px rgba(143, 195, 213, 0.16))
-    drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+    drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3)) !important;
 }
 
 button:active .event-art__image,
 button:active .event-art__vector {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.98) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
