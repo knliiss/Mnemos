@@ -63,6 +63,7 @@ import "./product-round-seven-living-art.css"
 import "./error-notifications.css"
 import "./account-onboarding.css"
 import "./localization-switch.css"
+import "./public-profile.css"
 
 const criticalArtwork = [
   "/ui-illustrations/account-invites.svg",
