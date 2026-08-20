@@ -9,17 +9,10 @@
 .account-transfer-summary em,
 .account-danger-card small,
 .account-confirm small,
-.prime-wallet-hero__stats small,
 .coin-wallet-hero__stats small,
-.prime-wallet-shortcuts small,
-.prime-topup-panel header small,
-.prime-history-panel header small,
 .coin-history-panel header small,
 .role-identity-panel header small,
 .role-permissions-panel__head small,
-.prime-topup-status,
-.prime-history-filter button,
-.prime-history-list__copy small,
 .coin-history-list__copy small,
 .roles-hero__copy small,
 .role-editor-hero__copy small,
@@ -37,7 +30,6 @@
   font-size: 9px;
 }
 
-.prime-topup-panel header em,
 .roles-hero__copy em,
 .role-editor-hero__copy em {
   font-size: 10px;
