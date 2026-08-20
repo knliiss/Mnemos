@@ -62,6 +62,7 @@ export type CommentResponse = {
   replyToAuthorAccountId: string | null
   content: string | null
   deleted: boolean
+  canEdit: boolean
   canDelete: boolean
   likes: number
   replies: number
