@@ -60,6 +60,7 @@ export function toProfileCommentView(
       : null,
     content: comment.deleted ? "" : (comment.content ?? ""),
     deleted: comment.deleted,
+    canEdit: comment.canEdit,
     canDelete: comment.canDelete,
     likes: comment.likes,
     replies: comment.replies,
