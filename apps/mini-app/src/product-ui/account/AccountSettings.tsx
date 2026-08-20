@@ -232,8 +232,11 @@ export function AccountSettings({ navigate, back }: Props) {
       </section>
 
       <nav className="account-settings-shortcuts account-settings-shortcuts--four">
-        <button type="button"
-          onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
+        <button
+          type="button"
+          onClick={() =>
+            navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })
+          }
         >
           <span className="is-lime">
             <Glyph name="spark" size={18} />
