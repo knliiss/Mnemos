@@ -6,7 +6,10 @@ import {
   rejectPersonalization,
 } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { PersonalizationDetails, PersonalizationVisual } from "../components/PersonalizationPreview"
+import {
+  PersonalizationDetails,
+  PersonalizationVisual,
+} from "../components/personalization/PersonalizationPreview"
 import { useProductData } from "../data/ProductDataProvider"
 import { toProductPersonalization } from "../data/personalizationMappers"
 import type { Personalization, PersonalizationTarget } from "../model"
@@ -92,9 +95,11 @@ export function PersonalizationReview({ back }: { back: () => void }) {
     if (!selected || busy) {
       return
     }
+
     if (decision === "APPROVE" && !priceValid) {
       return
     }
+
     if (decision === "REJECT" && !reason.trim()) {
       return
     }
