@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react"
+import "../events/event-surfaces.css"
 import type { Account, Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
 import "./people-wallet.css"
