@@ -16,7 +16,7 @@ import {
 } from "@/shared/api/betApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
-import { GlobalEventArt, ItemTypeArt } from "../components/EventArt"
+import { GlobalEventArt, ItemTypeArt } from "../components/events/EventArt"
 import { BET_SIDES } from "../contracts"
 import { useProductData } from "../data/ProductDataProvider"
 import { globalEventVisualTone } from "../eventVisualTone"
