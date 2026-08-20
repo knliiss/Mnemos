@@ -1,0 +1,33 @@
+.creator-hero__copy small,
+.creator-section-title small,
+.creator-form-block > header small,
+.creator-revenue-hero__copy > small,
+.creator-hero__actions button.is-revenue small,
+.creator-card__copy small,
+.creator-status,
+.creator-revenue-stats small,
+.creator-revenue-stats em,
+.creator-revenue-log small,
+.creator-revenue-log em,
+.creator-editor-field > small,
+.creator-editor-preview small {
+  font-size: 9px;
+}
+
+.creator-dashboard span,
+.creator-card__copy em,
+.creator-revenue-hero__copy em {
+  font-size: 9px;
+}
+
+.creator-hero__copy p,
+.creator-form-block p,
+.creator-editor-field p {
+  font-size: 10px;
+}
+
+.creator-hero__actions button,
+.creator-form-block button,
+.creator-editor-actions button {
+  min-height: 42px;
+}
