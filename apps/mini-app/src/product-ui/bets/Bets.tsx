@@ -30,6 +30,7 @@ import {
   roundStatusLabel,
   type BetMode,
 } from "./betPresentation"
+import "./bets.css"
 import { useBetsData } from "./data/useBetsData"
 
 type Props = {
@@ -134,20 +135,20 @@ export function Bets({ activeAccount, navigate }: Props) {
   }
 
   return (
-    <div className="screen bets-r2-screen root-screen">
-      <header className="root-title-block bets-r2-title">
+    <div className="screen bets-screen root-screen">
+      <header className="root-title-block bets-title">
         <span>
           <small>MNEMOS BETS</small>
           <h1>{t("productBets.title")}</h1>
           <p>{activeAccount.nickname}</p>
         </span>
 
-        <button className="bets-r2-wallet" onClick={() => navigate({ id: "account-wallet" })}>
+        <button className="bets-wallet" onClick={() => navigate({ id: "account-wallet" })}>
           <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
         </button>
       </header>
 
-      <nav className="bets-r2-mode">
+      <nav className="bets-mode">
         {betModes.map((value) => (
           <button
             key={value}
@@ -168,15 +169,15 @@ export function Bets({ activeAccount, navigate }: Props) {
         <>
           {featured ? (
             <motion.button
-              className={`bets-r2-feature event-surface--${globalEventVisualTone(featured.eventType)}`}
+              className={`bets-feature event-surface--${globalEventVisualTone(featured.eventType)}`}
               whileTap={{ scale: 0.992 }}
               onClick={() => openRound(featured)}
             >
-              <span className="bets-r2-feature__art">
+              <span className="bets-feature__art">
                 <GlobalEventArt eventType={featured.eventType} size={82} />
               </span>
 
-              <span className="bets-r2-feature__copy">
+              <span className="bets-feature__copy">
                 <small>
                   {featured.status === "OPEN"
                     ? t("productBets.nextRound")
@@ -190,7 +191,7 @@ export function Bets({ activeAccount, navigate }: Props) {
                 </em>
               </span>
 
-              <span className="bets-r2-feature__odds">
+              <span className="bets-feature__odds">
                 <span>
                   <small>{t("productBets.yesUpper")}</small>
                   <strong>{formatOdds(featured.yesOdds, locale)}</strong>
@@ -203,7 +204,7 @@ export function Bets({ activeAccount, navigate }: Props) {
               </span>
 
               {featured.myBet ? (
-                <span className="bets-r2-feature__mine">
+                <span className="bets-feature__mine">
                   <CurrencyMark currency="COIN" size={13} />
                   {betAmount(featured.myBet)}
                 </span>
@@ -218,14 +219,14 @@ export function Bets({ activeAccount, navigate }: Props) {
 
           {eventRounds.length ? (
             <>
-              <header className="bets-r2-section-head">
+              <header className="bets-section-head">
                 <span>
                   <small>{t("productBets.moreRounds")}</small>
                   <strong>{eventRounds.length}</strong>
                 </span>
               </header>
 
-              <section className="bets-r2-rounds">
+              <section className="bets-rounds">
                 {eventRounds.map((round) => (
                   <BetRoundCard
                     key={round.id}
@@ -242,7 +243,7 @@ export function Bets({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loading && mode === "MY" ? (
-        <section className="bets-r2-rounds">
+        <section className="bets-rounds">
           {myRounds.map((round) => (
             <BetRoundCard
               key={round.id}
@@ -274,7 +275,7 @@ export function Bets({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loading && mode === "RACES" ? (
-        <section className="bets-r2-races">
+        <section className="bets-races">
           {races.map((race) => (
             <BetRaceCard
               key={race.id}
