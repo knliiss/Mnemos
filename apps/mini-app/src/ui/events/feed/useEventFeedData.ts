@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { getEventFeed, type EventFeedQuery } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { toProductFeedEvent } from "../../data/productMappers"
+import { toFeedEvent } from "../../data/dataMappers"
 import type { FeedEvent } from "../../model"
 
 type EventFeedData = {
@@ -58,7 +58,7 @@ export function useEventFeedData(): EventFeedData {
         return
       }
 
-      setFeed(response.items.map(toProductFeedEvent))
+      setFeed(response.items.map(toFeedEvent))
       setEventCursor(response.cursor)
       setEventsHasMore(response.items.length >= limit && response.cursor !== null)
     } catch (error) {
@@ -96,7 +96,7 @@ export function useEventFeedData(): EventFeedData {
           return
         }
 
-        const nextItems = response.items.map(toProductFeedEvent)
+        const nextItems = response.items.map(toFeedEvent)
 
         setFeed((current) => {
           const knownIds = new Set(current.map((item) => item.id))
