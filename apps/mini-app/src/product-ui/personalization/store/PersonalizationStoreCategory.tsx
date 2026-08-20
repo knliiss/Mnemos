@@ -58,8 +58,8 @@ export function PersonalizationStoreCategory({
     <div className="screen personalization-store-category">
       <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
 
-      <section className="store-category-v5__intro">
-        <span className="store-category-v5__icon">
+      <section className="personalization-category-intro">
+        <span className="personalization-category-icon">
           <PersonalizationTypeGlyph type={type} />
         </span>
         <span>
@@ -73,7 +73,7 @@ export function PersonalizationStoreCategory({
         </span>
       </section>
 
-      <div className="store-category-v5__toolbar">
+      <div className="personalization-category-toolbar">
         <span>{t("personalization.category.positions", { count: visibleItems.length })}</span>
         <Segmented
           value={currency}
@@ -89,11 +89,11 @@ export function PersonalizationStoreCategory({
       {loading ? (
         <PersonalizationLoadingState />
       ) : (
-        <div className="store-category-v5__list">
+        <div className="personalization-category-list">
           {pageItems.map((item) => (
             <motion.button
               key={item.id}
-              className="store-category-v5__card"
+              className="personalization-category-card"
               whileTap={{ scale: 0.992 }}
               onClick={() =>
                 navigate({
@@ -102,17 +102,17 @@ export function PersonalizationStoreCategory({
                 })
               }
             >
-              <span className="store-category-v5__visual">
+              <span className="personalization-category-visual">
                 <PersonalizationVisual item={item} />
               </span>
 
-              <span className="store-category-v5__copy">
+              <span className="personalization-category-copy">
                 <small>{personalizationTypeTitle(t, item.type)}</small>
                 <strong>{item.name}</strong>
                 <em>{item.creator}</em>
               </span>
 
-              <span className="store-category-v5__price">
+              <span className="personalization-category-price">
                 {item.owned ? (
                   <span className="catalog-state">
                     <Glyph name="check" size={13} />
