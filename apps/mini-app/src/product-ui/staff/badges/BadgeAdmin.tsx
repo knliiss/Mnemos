@@ -64,6 +64,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
       }
     } catch (error) {
       if (revision === badgeRequestRevision.current) {
+        setBadges([])
         setLoadError(true)
         handleError(error)
       }
@@ -131,6 +132,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
       }
     } catch (error) {
       if (revision === userBadgeRequestRevision.current) {
+        setUserBadgeResult({ userId, items: [] })
         handleError(error)
       }
     }
@@ -367,7 +369,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
 
       {loading ? (
         <LoadingState />
-      ) : loadError && !badges.length ? (
+      ) : loadError ? (
         <FeatureEmpty
           icon="spark"
           title={t("common.loadErrorTitle")}
