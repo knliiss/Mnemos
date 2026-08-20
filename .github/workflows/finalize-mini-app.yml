@@ -1,0 +1,87 @@
+name: Finalize Mini App
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - "scripts/finalize-mini-app.py"
+      - ".github/workflows/finalize-mini-app.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Apply production frontend migration
+        run: python3 scripts/finalize-mini-app.py
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Format frontend
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Lint frontend
+        working-directory: apps/mini-app
+        run: npm run lint
+
+      - name: Test frontend
+        working-directory: apps/mini-app
+        run: npm test
+
+      - name: Build frontend
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Format social service
+        run: ./gradlew :apps:social-service:ktlintFormat --no-daemon
+
+      - name: Test social service
+        run: ./gradlew :apps:social-service:test --no-daemon
+
+      - name: Commit verified changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf apps/mini-app/dist
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "finalize production mini app"
+          git push origin HEAD:feat/frontend-integration
