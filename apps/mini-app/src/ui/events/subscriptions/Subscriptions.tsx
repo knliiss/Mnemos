@@ -3,14 +3,14 @@ import { AnimatePresence } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemCatalogResponse } from "@/shared/api/backendContracts"
+import { searchItemCatalog } from "@/shared/api/eventApi"
 import {
   createBoosterSubscription,
   createDungeonSubscription,
   createGlobalSubscription,
   createItemDropSubscription,
   createRaidSubscription,
-  searchItemCatalog,
-} from "@/shared/api/productApi"
+} from "@/shared/api/subscriptionApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import {
   BoosterArt,
