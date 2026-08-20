@@ -30,6 +30,8 @@ export function useBetAdminData() {
       }
     } catch (error) {
       if (revision === requestRevision.current) {
+        setRounds([])
+        setRaces([])
         setError(true)
         handleError(error)
       }
