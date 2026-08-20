@@ -10,9 +10,9 @@ import {
   PersonalizationDetails,
   PersonalizationVisual,
 } from "../../components/personalization/PersonalizationPreview"
-import { useProductData } from "../../data/ProductDataProvider"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Personalization, PersonalizationTarget } from "../../model"
-import { toProductPersonalization } from "../../personalization/data/personalizationMappers"
+import { toPersonalization } from "../../personalization/data/personalizationMappers"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
@@ -25,7 +25,7 @@ const reviewScopes: ReviewScope[] = ["ALL", "USER", "ACCOUNT"]
 
 export function PersonalizationReview({ back }: { back: () => void }) {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [items, setItems] = useState<Personalization[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [price, setPrice] = useState("")
@@ -49,7 +49,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
     try {
       const responses = await listPersonalizationReviewQueue()
       const next = responses.map((response) =>
-        toProductPersonalization(response, null, product.user.id, product.user.username),
+        toPersonalization(response, null, data.user.id, data.user.username),
       )
 
       if (revision === requestRevision.current) {
@@ -70,7 +70,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
         setLoading(false)
       }
     }
-  }, [product.user.id, product.user.username])
+  }, [data.user.id, data.user.username])
 
   useEffect(() => {
     mountedRef.current = true
