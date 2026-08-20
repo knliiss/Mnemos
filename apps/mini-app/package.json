@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "audit": "npm audit --audit-level=high",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{js,json,ts,html}\"",
