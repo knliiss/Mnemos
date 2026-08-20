@@ -244,6 +244,10 @@ export function Subscriptions({ back }: { back: () => void }) {
     setBusy(true)
 
     try {
+      const submittedRaidLocations =
+        cleanRaidInput && raidInputValid
+          ? Array.from(new Set([...raidLocations, raidInputValue]))
+          : raidLocations
       const saved = await product.mutateSubscriptions(async () => {
         if (type === "ITEM_DROP") {
           await createItemDropSubscription(
@@ -257,7 +261,7 @@ export function Subscriptions({ back }: { back: () => void }) {
         } else if (type === "GLOBAL") {
           await createGlobalSubscription(globalType)
         } else {
-          await createRaidSubscription(raidLocations)
+          await createRaidSubscription(submittedRaidLocations)
         }
       })
 
