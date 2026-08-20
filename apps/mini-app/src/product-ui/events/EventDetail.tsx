@@ -44,7 +44,8 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
   const [followBusy, setFollowBusy] = useState(false)
 
-  const resolvedEvent = lookupResult?.eventId === eventId ? (lookupResult.event ?? null) : null
+  const resolvedEvent =
+    lookupResult && lookupResult.eventId === eventId ? lookupResult.event : null
   const event = cachedEvent ?? resolvedEvent
   const lookupLoading = Boolean(eventId && !cachedEvent && lookupResult?.eventId !== eventId)
   const locale = localeForLanguage(i18n.resolvedLanguage)
