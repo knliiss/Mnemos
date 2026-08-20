@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   approvePersonalization,
+  listManagedPersonalizations,
   listPersonalizationReviewQueue,
   rejectPersonalization,
+  relistPersonalization,
+  unlistPersonalization,
 } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import {
@@ -20,8 +23,10 @@ import { FeatureLoading } from "../../system/FeatureLoading"
 import "./personalization-review.css"
 
 type ReviewScope = "ALL" | PersonalizationTarget
+type ModerationView = "REVIEW" | "PUBLISHED" | "UNLISTED"
 
 const reviewScopes: ReviewScope[] = ["ALL", "USER", "ACCOUNT"]
+const moderationViews: ModerationView[] = ["REVIEW", "PUBLISHED", "UNLISTED"]
 
 export function PersonalizationReview({ back }: { back: () => void }) {
   const { t } = useTranslation()
@@ -32,6 +37,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   const [reason, setReason] = useState("")
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState<ReviewScope>("ALL")
+  const [view, setView] = useState<ModerationView>("REVIEW")
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -47,7 +53,10 @@ export function PersonalizationReview({ back }: { back: () => void }) {
     setLoadError(false)
 
     try {
-      const responses = await listPersonalizationReviewQueue()
+      const responses =
+        view === "REVIEW"
+          ? await listPersonalizationReviewQueue()
+          : (await listManagedPersonalizations()).filter((response) => response.status === view)
       const next = responses.map((response) =>
         toPersonalization(response, null, data.user.id, data.user.username),
       )
@@ -70,7 +79,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
         setLoading(false)
       }
     }
-  }, [data.user.id, data.user.username])
+  }, [data.user.id, data.user.username, view])
 
   useEffect(() => {
     mountedRef.current = true
@@ -88,7 +97,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   const selected = items.find((item) => item.id === selectedId) ?? null
 
   useEffect(() => {
-    if (!selected) {
+    if (!selected || selected.status !== "IN_REVIEW") {
       return
     }
 
@@ -119,7 +128,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   }, [items, query, scope, t])
 
   const decide = async (decision: "APPROVE" | "REJECT") => {
-    if (!selected || busyRef.current) {
+    if (!selected || selected.status !== "IN_REVIEW" || busyRef.current) {
       return
     }
 
@@ -158,6 +167,45 @@ export function PersonalizationReview({ back }: { back: () => void }) {
     }
   }
 
+  const changeListing = async () => {
+    if (!selected || busyRef.current) {
+      return
+    }
+
+    if (selected.status !== "PUBLISHED" && selected.status !== "UNLISTED") {
+      return
+    }
+
+    const selectedItem = selected
+
+    busyRef.current = true
+    setBusy(true)
+
+    try {
+      if (selectedItem.status === "PUBLISHED") {
+        await unlistPersonalization(selectedItem.id)
+      } else {
+        await relistPersonalization(selectedItem.id)
+      }
+
+      if (mountedRef.current) {
+        await refresh()
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        handleError(error)
+      }
+    } finally {
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
+    }
+  }
+
+  const viewLabel = (value: ModerationView) =>
+    value === "REVIEW" ? t("personalization.review.reviewView") : t(`creator.status.${value}`)
+
   return (
     <div className="screen personalization-review-screen">
       <PageHeader title={t("personalization.review.title")} back={back} />
@@ -167,13 +215,42 @@ export function PersonalizationReview({ back }: { back: () => void }) {
           <Glyph name="creator" size={20} />
         </span>
         <span>
-          <small>{t("personalization.review.queue")}</small>
-          <strong>{t("personalization.review.pendingCount", { count: items.length })}</strong>
-          <em>{t("personalization.review.description")}</em>
+          <small>
+            {view === "REVIEW"
+              ? t("personalization.review.queue")
+              : t("personalization.review.management")}
+          </small>
+          <strong>
+            {view === "REVIEW"
+              ? t("personalization.review.pendingCount", { count: items.length })
+              : t("personalization.review.managedCount", {
+                  count: items.length,
+                  status: viewLabel(view),
+                })}
+          </strong>
+          <em>
+            {view === "REVIEW"
+              ? t("personalization.review.description")
+              : t("personalization.review.managementDescription")}
+          </em>
         </span>
       </section>
 
       <div className="review-toolbar">
+        <div className="review-scope" aria-label={t("personalization.review.mode")}>
+          {moderationViews.map((value) => (
+            <button
+              type="button"
+              key={value}
+              className={view === value ? "is-active" : ""}
+              disabled={busy}
+              onClick={() => setView(value)}
+            >
+              {viewLabel(value)}
+            </button>
+          ))}
+        </div>
+
         <label>
           <Glyph name="search" size={16} />
           <input
@@ -241,7 +318,11 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             </button>
           ))}
           {!visible.length ? (
-            <p className="inline-hint">{t("personalization.review.emptyQueue")}</p>
+            <p className="inline-hint">
+              {view === "REVIEW"
+                ? t("personalization.review.emptyQueue")
+                : t("personalization.review.emptyManagement")}
+            </p>
           ) : null}
         </div>
       )}
@@ -285,62 +366,80 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             </article>
           </div>
 
-          <div className="review-decision-grid">
-            <section className="review-approve-panel">
-              <Field
-                label={t("personalization.review.approvedPrice")}
-                hint={
-                  !priceValid && price.length
-                    ? t("personalization.review.positiveInteger")
-                    : undefined
-                }
-              >
-                <div className="amount-input">
-                  <span>
-                    <CurrencyMark currency={selected.currency} size={18} />
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={price}
-                    disabled={busy}
-                    onChange={(event) => setPrice(event.target.value)}
-                  />
-                </div>
-              </Field>
-              <button
-                type="button"
-                className="primary-action"
-                disabled={!priceValid || busy}
-                onClick={() => void decide("APPROVE")}
-              >
-                <Glyph name="check" size={16} />
-                {busy ? t("personalization.review.saving") : t("personalization.review.approve")}
-              </button>
-            </section>
+          {selected.status === "IN_REVIEW" ? (
+            <div className="review-decision-grid">
+              <section className="review-approve-panel">
+                <Field
+                  label={t("personalization.review.approvedPrice")}
+                  hint={
+                    !priceValid && price.length
+                      ? t("personalization.review.positiveInteger")
+                      : undefined
+                  }
+                >
+                  <div className="amount-input">
+                    <span>
+                      <CurrencyMark currency={selected.currency} size={18} />
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={price}
+                      disabled={busy}
+                      onChange={(event) => setPrice(event.target.value)}
+                    />
+                  </div>
+                </Field>
+                <button
+                  type="button"
+                  className="primary-action"
+                  disabled={!priceValid || busy}
+                  onClick={() => void decide("APPROVE")}
+                >
+                  <Glyph name="check" size={16} />
+                  {busy ? t("personalization.review.saving") : t("personalization.review.approve")}
+                </button>
+              </section>
 
-            <section className="review-reject-panel">
-              <Field label={t("personalization.review.rejectionReason")}>
-                <textarea
-                  value={reason}
-                  maxLength={500}
-                  disabled={busy}
-                  onChange={(event) => setReason(event.target.value)}
-                  placeholder={t("personalization.review.rejectionPlaceholder")}
-                />
-              </Field>
+              <section className="review-reject-panel">
+                <Field label={t("personalization.review.rejectionReason")}>
+                  <textarea
+                    value={reason}
+                    maxLength={500}
+                    disabled={busy}
+                    onChange={(event) => setReason(event.target.value)}
+                    placeholder={t("personalization.review.rejectionPlaceholder")}
+                  />
+                </Field>
+                <button
+                  type="button"
+                  className="destructive-action"
+                  disabled={!reason.trim() || busy}
+                  onClick={() => void decide("REJECT")}
+                >
+                  <Glyph name="close" size={16} />
+                  {busy ? t("personalization.review.saving") : t("personalization.review.reject")}
+                </button>
+              </section>
+            </div>
+          ) : (
+            <section className="review-approve-panel">
               <button
                 type="button"
-                className="destructive-action"
-                disabled={!reason.trim() || busy}
-                onClick={() => void decide("REJECT")}
+                className={selected.status === "PUBLISHED" ? "destructive-action" : "primary-action"}
+                disabled={busy}
+                onClick={() => void changeListing()}
               >
-                <Glyph name="close" size={16} />
-                {busy ? t("personalization.review.saving") : t("personalization.review.reject")}
+                <Glyph name={selected.status === "PUBLISHED" ? "close" : "check"} size={16} />
+                {busy
+                  ? t("personalization.review.saving")
+                  : selected.status === "PUBLISHED"
+                    ? t("personalization.review.unlist")
+                    : t("personalization.review.relist")}
               </button>
             </section>
-          </div>
+          )}
         </section>
       ) : !loadError ? (
         <section className="review-empty-workbench">
