@@ -1,4 +1,4 @@
-name: Audit Production CSS
+name: Maintain Production Mini App
 
 on:
   push:
@@ -6,17 +6,16 @@ on:
       - feat/frontend-integration
     paths:
       - ".github/workflows/cleanup-production-css.yml"
-      - "apps/mini-app/src/**"
 
 concurrency:
-  group: cleanup-production-css
+  group: maintain-production-mini-app
   cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
-  audit:
+  maintain:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +36,11 @@ jobs:
         working-directory: apps/mini-app
         run: npm ci
 
-      - name: Build CSS audit
+      - name: Format production frontend
+        working-directory: apps/mini-app
+        run: npm run format
+
+      - name: Audit CSS structure
         working-directory: apps/mini-app
         shell: bash
         run: |
@@ -49,7 +52,8 @@ jobs:
           import postcss from "postcss"
 
           const sourceRoot = path.resolve("src")
-          const reportPath = path.resolve("../../.github/production-css-audit.txt")
+          const repositoryRoot = path.resolve("../..")
+          const reportPath = path.join(repositoryRoot, ".github/production-css-audit.txt")
           const revisionPattern = /(?:-round-(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)|-(?:v|r)\d+|-(?:final|polished|overhaul|rethink))(?=(?:__|--|-|$))/
           const classPattern = /\.([A-Za-z_][A-Za-z0-9_-]*)/g
 
@@ -69,7 +73,7 @@ jobs:
           }
 
           function relative(filePath) {
-            return path.relative(path.resolve("../.."), filePath).replaceAll(path.sep, "/")
+            return path.relative(repositoryRoot, filePath).replaceAll(path.sep, "/")
           }
 
           function atRuleContext(rule) {
@@ -87,11 +91,10 @@ jobs:
             return context.join(" > ") || "top-level"
           }
 
-          const cssFiles = listCssFiles(sourceRoot)
           const legacyClasses = new Map()
           const duplicateSelectors = []
 
-          for (const filePath of cssFiles) {
+          for (const filePath of listCssFiles(sourceRoot)) {
             const source = fs.readFileSync(filePath, "utf8")
             const root = postcss.parse(source, { from: filePath })
             const selectors = new Map()
@@ -99,12 +102,12 @@ jobs:
             root.walkRules((rule) => {
               const line = rule.source?.start?.line ?? 0
               const context = atRuleContext(rule)
-              const normalizedSelector = rule.selector.replace(/\s+/g, " ").trim()
-              const selectorKey = `${context}||${normalizedSelector}`
-              const existing = selectors.get(selectorKey) ?? []
+              const selector = rule.selector.replace(/\s+/g, " ").trim()
+              const key = `${context}||${selector}`
+              const lines = selectors.get(key) ?? []
 
-              existing.push(line)
-              selectors.set(selectorKey, existing)
+              lines.push(line)
+              selectors.set(key, lines)
 
               for (const match of rule.selector.matchAll(classPattern)) {
                 const className = match[1]
@@ -119,17 +122,16 @@ jobs:
               }
             })
 
-            for (const [selectorKey, lines] of selectors) {
+            for (const [key, lines] of selectors) {
               if (lines.length < 2) {
                 continue
               }
 
-              const [context, selector] = selectorKey.split("||")
-
+              const separator = key.indexOf("||")
               duplicateSelectors.push({
                 file: relative(filePath),
-                context,
-                selector,
+                context: key.slice(0, separator),
+                selector: key.slice(separator + 2),
                 lines,
               })
             }
@@ -145,26 +147,19 @@ jobs:
           report.push("[legacy-classes]")
 
           for (const [className, locations] of sortedLegacyClasses) {
-            const replacement = className.replace(revisionPattern, "")
+            report.push(`${className} -> ${className.replace(revisionPattern, "")}`)
 
-            report.push(`${className} -> ${replacement}`)
             for (const location of [...new Set(locations)].sort()) {
               report.push(`  ${location}`)
             }
           }
 
           duplicateSelectors.sort((left, right) => {
-            const fileComparison = left.file.localeCompare(right.file)
-            if (fileComparison !== 0) {
-              return fileComparison
-            }
-
-            const contextComparison = left.context.localeCompare(right.context)
-            if (contextComparison !== 0) {
-              return contextComparison
-            }
-
-            return left.selector.localeCompare(right.selector)
+            return (
+              left.file.localeCompare(right.file) ||
+              left.context.localeCompare(right.context) ||
+              left.selector.localeCompare(right.selector)
+            )
           })
 
           report.push("")
@@ -181,6 +176,57 @@ jobs:
           fs.writeFileSync(reportPath, `${report.join("\n")}\n`, "utf8")
           NODE
 
+      - name: Verify production frontend
+        working-directory: apps/mini-app
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          report="../../.github/mini-app-verification.txt"
+          : > "$report"
+
+          run_check() {
+            local name="$1"
+            shift
+            local log
+            log="$(mktemp)"
+
+            if "$@" >"$log" 2>&1; then
+              echo "$name=PASS" >> "$report"
+            else
+              echo "$name=FAIL" >> "$report"
+              echo "" >> "$report"
+              echo "[$name]" >> "$report"
+              tail -n 160 "$log" >> "$report"
+              echo "" >> "$report"
+            fi
+
+            rm -f "$log"
+          }
+
+          run_check audit npm run audit
+          run_check lint npm run lint
+          run_check format npm run format:check
+          run_check test npm test
+          run_check build npm run build
+
+          if [ -d dist/assets ]; then
+            oversized_js="$(find dist/assets -type f -name '*.js' -size +500k -print)"
+            oversized_css="$(find dist/assets -type f -name '*.css' -size +450k -print)"
+
+            if [ -z "$oversized_js" ] && [ -z "$oversized_css" ]; then
+              echo "bundle_budget=PASS" >> "$report"
+            else
+              echo "bundle_budget=FAIL" >> "$report"
+              echo "" >> "$report"
+              echo "[bundle_budget]" >> "$report"
+              [ -n "$oversized_js" ] && printf 'JavaScript chunks over 500 KiB:\n%s\n' "$oversized_js" >> "$report"
+              [ -n "$oversized_css" ] && printf 'CSS chunks over 450 KiB:\n%s\n' "$oversized_css" >> "$report"
+            fi
+          else
+            echo "bundle_budget=SKIPPED" >> "$report"
+          fi
+
       - name: Ensure branch stayed unchanged
         shell: bash
         run: |
@@ -189,11 +235,11 @@ jobs:
           git fetch origin feat/frontend-integration
 
           if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/feat/frontend-integration)" ]; then
-            echo "feat/frontend-integration changed during audit; latest source push will rerun this workflow"
+            echo "feat/frontend-integration changed during maintenance"
             exit 1
           fi
 
-      - name: Commit audit and remove one-shot workflow
+      - name: Commit maintenance result
         shell: bash
         run: |
           set -euo pipefail
@@ -202,6 +248,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- .github/production-css-audit.txt .github/workflows/cleanup-production-css.yml
-          git commit -m "audit production css structure"
+          git add -- apps/mini-app .github/production-css-audit.txt .github/mini-app-verification.txt .github/workflows/cleanup-production-css.yml
+          git commit -m "format and audit production mini app"
           git push origin HEAD:feat/frontend-integration
