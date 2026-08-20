@@ -4,6 +4,7 @@ import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonaliz
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
 import com.mnemos.personalization.application.personalization.usecase.approve.ApprovePersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.listmanaged.ListManagedPersonalizationsUseCase
 import com.mnemos.personalization.application.personalization.usecase.listreviewqueue.ListPersonalizationReviewQueueUseCase
 import com.mnemos.personalization.application.personalization.usecase.reject.RejectPersonalizationUseCase
 import com.mnemos.personalization.application.personalization.usecase.relist.RelistPersonalizationUseCase
@@ -24,6 +25,7 @@ import java.util.UUID
 @PreAuthorize("hasAnyRole('PERSONALIZATION_MODERATOR', 'ADMIN', 'SUPER_ADMIN')")
 class PersonalizationModerationController(
     private val listReviewQueueUseCase: ListPersonalizationReviewQueueUseCase,
+    private val listManagedPersonalizationsUseCase: ListManagedPersonalizationsUseCase,
     private val approvePersonalizationUseCase: ApprovePersonalizationUseCase,
     private val rejectPersonalizationUseCase: RejectPersonalizationUseCase,
     private val unlistPersonalizationUseCase: UnlistPersonalizationUseCase,
@@ -32,6 +34,10 @@ class PersonalizationModerationController(
     @GetMapping("/review")
     fun reviewQueue(): List<PersonalizationResponse> =
         listReviewQueueUseCase.execute().map { personalization -> personalization.toResponse() }
+
+    @GetMapping("/managed")
+    fun managed(): List<PersonalizationResponse> =
+        listManagedPersonalizationsUseCase.execute().map { personalization -> personalization.toResponse() }
 
     @PostMapping("/{personalizationId}/approve")
     fun approve(
