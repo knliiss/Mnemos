@@ -1,0 +1,9 @@
+.events-feed-subscriptions::after {
+  content: none;
+}
+
+.events-feed-subscriptions__label {
+  color: #a9aea2;
+  font-size: 9px;
+  font-weight: 670;
+}
