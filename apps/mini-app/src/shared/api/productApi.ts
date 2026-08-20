@@ -1,4 +1,9 @@
-import { api } from "@/shared/api/httpClient"
+import type {
+  BoosterType,
+  DungeonType,
+  GlobalEventType,
+  LocalizationLanguage,
+} from "@/product-ui/model"
 import type {
   AccountMemberResponse,
   AccountRoleResponse,
@@ -11,16 +16,11 @@ import type {
   EventFeedType,
   ItemCatalogResponse,
   PageResponse,
-  SubscriptionResponse,
   UserResponse,
   WalletTransactionResponse,
 } from "@/shared/api/backendContracts"
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-  LocalizationLanguage,
-} from "@/product-ui/model"
+import { api } from "@/shared/api/httpClient"
+import type { SubscriptionResponse } from "@/shared/api/subscriptionContracts"
 
 export async function initializeCurrentUser(): Promise<UserResponse> {
   return api<UserResponse>("/api/v1/users/me", { method: "PUT" })
@@ -125,6 +125,7 @@ export async function getAccountTransactions(
   size = 30,
 ): Promise<PageResponse<WalletTransactionResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
+
   return api<PageResponse<WalletTransactionResponse>>(
     `/api/v1/accounts/${accountId}/transactions?${params}`,
   )
@@ -158,16 +159,21 @@ export async function getEventFeed(query: EventFeedQuery = {}): Promise<EventFee
   if (query.after) {
     params.set("after", query.after)
   }
+
   query.types?.forEach((type) => params.append("type", type))
+
   if (query.search?.trim()) {
     params.set("search", query.search.trim())
   }
+
   if (query.droppedFor?.trim()) {
     params.set("droppedFor", query.droppedFor.trim())
   }
+
   if (query.itemRarity) {
     params.set("itemRarity", query.itemRarity)
   }
+
   params.set("sort", query.sort ?? "NEWEST")
   params.set("limit", String(query.limit ?? 50))
 
@@ -192,6 +198,7 @@ export async function getSubscriptions(
   size = 100,
 ): Promise<PageResponse<SubscriptionResponse>> {
   const params = new URLSearchParams({ page: String(page), size: String(size) })
+
   return api<PageResponse<SubscriptionResponse>>(`/api/v1/subscriptions?${params}`)
 }
 
