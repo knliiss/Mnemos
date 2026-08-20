@@ -18,7 +18,7 @@ import {
   GlobalEventArt,
   ItemTypeArt,
   RaidArt,
-} from "../../components/EventArt"
+} from "../../components/events/EventArt"
 import {
   BOOSTER_TYPES,
   DUNGEON_TYPES,
