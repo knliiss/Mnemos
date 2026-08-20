@@ -10,12 +10,12 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
-import { RoleSigil } from "../components/RoleSigil"
 import { useProductData } from "../data/ProductDataProvider"
 import { eventVisualTone } from "../eventVisualTone"
 import type { AccountRole, Member, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { RoleSigil } from "../shared/RoleSigil"
 import { formatOccurredAt } from "../timePresentation"
 
 type Props = {
