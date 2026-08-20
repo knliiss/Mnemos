@@ -17,6 +17,7 @@ import {
   eventTitle,
   localeForLanguage,
 } from "../eventPresentation"
+import "./feed.css"
 
 type Props = {
   activeAccount: Account
@@ -95,6 +96,9 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
           onClick={() => navigate({ id: "subscriptions" })}
         >
           <Glyph name="bell" size={17} />
+          <span className="events-feed-subscriptions__label">
+            {t("events.subscriptions.title")}
+          </span>
           <b>{subscriptions.length}</b>
         </button>
       </header>
