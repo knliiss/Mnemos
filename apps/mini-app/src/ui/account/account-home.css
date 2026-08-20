@@ -1,0 +1,14 @@
+.account-home-profile__copy > small,
+.account-home-feature-copy > small,
+.account-home-actions small,
+.account-home-panel__head small,
+.account-home-member__role > small,
+.account-home-member__no-role,
+.account-home-drop__copy small {
+  font-size: 9px;
+}
+
+.account-home-member time,
+.account-home-drop time {
+  font-size: 9px;
+}
