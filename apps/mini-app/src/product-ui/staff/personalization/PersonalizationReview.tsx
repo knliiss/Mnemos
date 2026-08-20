@@ -15,8 +15,8 @@ import type { Personalization, PersonalizationTarget } from "../../model"
 import { toProductPersonalization } from "../../personalization/data/personalizationMappers"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
-import { FeatureLoading } from "../../system/FeatureLoading"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
+import { FeatureLoading } from "../../system/FeatureLoading"
 import "./personalization-review.css"
 
 type ReviewScope = "ALL" | PersonalizationTarget
@@ -60,6 +60,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
       }
     } catch (error) {
       if (revision === requestRevision.current) {
+        setItems([])
+        setSelectedId(null)
         setLoadError(true)
         handleError(error)
       }
@@ -183,7 +185,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
 
         <div className="review-scope">
           {reviewScopes.map((value) => (
-            <button type="button"
+            <button
+              type="button"
               key={value}
               className={scope === value ? "is-active" : ""}
               onClick={() => setScope(value)}
@@ -196,7 +199,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
 
       {loading ? (
         <FeatureLoading />
-      ) : loadError && !items.length ? (
+      ) : loadError ? (
         <FeatureEmpty
           icon="creator"
           title={t("common.loadErrorTitle")}
@@ -209,7 +212,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
       ) : (
         <div className="review-queue-grid">
           {visible.map((item) => (
-            <button type="button"
+            <button
+              type="button"
               key={item.id}
               disabled={busy}
               className={
@@ -242,7 +246,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
         </div>
       )}
 
-      {selected ? (
+      {selected && !loadError ? (
         <section className="review-workbench">
           <header>
             <span>
@@ -253,7 +257,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                 {t(`personalization.target.${selected.target}`)}
               </em>
             </span>
-            <button type="button"
+            <button
+              type="button"
               aria-label={t("personalization.review.close")}
               disabled={busy}
               onClick={() => setSelectedId(null)}
@@ -304,7 +309,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                   />
                 </div>
               </Field>
-              <button type="button"
+              <button
+                type="button"
                 className="primary-action"
                 disabled={!priceValid || busy}
                 onClick={() => void decide("APPROVE")}
@@ -324,7 +330,8 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                   placeholder={t("personalization.review.rejectionPlaceholder")}
                 />
               </Field>
-              <button type="button"
+              <button
+                type="button"
                 className="destructive-action"
                 disabled={!reason.trim() || busy}
                 onClick={() => void decide("REJECT")}
@@ -335,7 +342,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             </section>
           </div>
         </section>
-      ) : (
+      ) : !loadError ? (
         <section className="review-empty-workbench">
           <Glyph name="creator" size={22} />
           <span>
@@ -343,7 +350,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             <small>{t("personalization.review.selectApplicationCopy")}</small>
           </span>
         </section>
-      )}
+      ) : null}
     </div>
   )
 }
