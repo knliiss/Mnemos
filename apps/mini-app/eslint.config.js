@@ -6,8 +6,8 @@ import tseslint from "typescript-eslint"
 
 const fastRefreshMixedExportFiles = [
   "src/app/providers/AppProvider.tsx",
-  "src/product-ui/components/ErrorNotifications.tsx",
-  "src/product-ui/components/PersonalizationPreview.tsx",
+  "src/product-ui/components/errors/ErrorNotifications.tsx",
+  "src/product-ui/components/personalization/PersonalizationPreview.tsx",
   "src/product-ui/data/ProductDataProvider.tsx",
 ]
 
