@@ -1,5 +1,5 @@
 import { errorCodesRu } from "./errors/ru"
-import { productRu } from "./product/ru"
+import { productRu } from "./ui/ru"
 
 export const ru = {
   nav: {
