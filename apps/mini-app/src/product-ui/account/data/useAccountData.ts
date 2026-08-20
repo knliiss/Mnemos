@@ -33,19 +33,24 @@ export function useAccountData(accountId: string | undefined): AccountData {
   const [prime, setPrime] = useState(0)
   const [loadingAccount, setLoadingAccount] = useState(false)
   const requestRevision = useRef(0)
+  const activeAccountId = useRef(accountId)
+
+  activeAccountId.current = accountId
 
   const refreshAccount = useCallback(async () => {
+    const requestedAccountId = activeAccountId.current
     const revision = requestRevision.current + 1
+
     requestRevision.current = revision
     setLoadingAccount(true)
 
     try {
       const userBalancesPromise = getCurrentUserBalances()
 
-      if (!accountId) {
+      if (!requestedAccountId) {
         const userBalances = await userBalancesPromise
 
-        if (revision !== requestRevision.current) {
+        if (revision !== requestRevision.current || activeAccountId.current) {
           return
         }
 
@@ -59,14 +64,17 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
       const [memberResponses, roleResponses, balances, rewardState, userBalances] =
         await Promise.all([
-          getAccountMembers(accountId),
-          getAccountRoles(accountId),
-          getAccountBalances(accountId),
+          getAccountMembers(requestedAccountId),
+          getAccountRoles(requestedAccountId),
+          getAccountBalances(requestedAccountId),
           getDailyRewardState(),
           userBalancesPromise,
         ])
 
-      if (revision !== requestRevision.current) {
+      if (
+        revision !== requestRevision.current ||
+        activeAccountId.current !== requestedAccountId
+      ) {
         return
       }
 
@@ -84,7 +92,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
         setLoadingAccount(false)
       }
     }
-  }, [accountId])
+  }, [])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -92,24 +100,13 @@ export function useAccountData(accountId: string | undefined): AccountData {
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [refreshAccount])
+  }, [accountId, refreshAccount])
 
   const claimReward = useCallback(async () => {
     try {
       const result = await claimDailyReward()
 
-      setDailyReward((current) =>
-        current
-          ? {
-              ...current,
-              currentStreak: result.streak,
-              claimedToday: true,
-              recoverable: false,
-            }
-          : current,
-      )
-      setAccountCoin((current) => current + result.coins)
-      setPrime((current) => current + result.primes)
+      await refreshAccount()
 
       return {
         coin: result.coins,
@@ -119,26 +116,17 @@ export function useAccountData(accountId: string | undefined): AccountData {
       handleError(error)
       throw error
     }
-  }, [])
+  }, [refreshAccount])
 
   const restoreReward = useCallback(async () => {
     try {
-      const result = await restoreDailyReward()
-
-      setDailyReward((current) =>
-        current
-          ? {
-              ...current,
-              currentStreak: result.currentStreak,
-              recoverable: false,
-            }
-          : current,
-      )
+      await restoreDailyReward()
+      await refreshAccount()
     } catch (error) {
       handleError(error)
       throw error
     }
-  }, [])
+  }, [refreshAccount])
 
   return {
     members,
