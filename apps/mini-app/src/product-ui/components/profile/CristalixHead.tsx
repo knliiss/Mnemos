@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
-import { Glyph } from "../shared/MnemosIcon"
+import { Glyph } from "../../shared/MnemosIcon"
 
 type CristalixHeadProps = {
   skinUrl: string
