@@ -45,29 +45,20 @@ export function useSubscriptionData(): SubscriptionData {
     return () => window.cancelAnimationFrame(frame)
   }, [refreshSubscriptions])
 
-  const removeSubscription = useCallback(async (subscriptionId: string) => {
-    const revision = requestRevision.current + 1
+  const removeSubscription = useCallback(
+    async (subscriptionId: string) => {
+      requestRevision.current += 1
 
-    requestRevision.current = revision
-
-    try {
-      await deleteSubscriptionRequest(subscriptionId)
-
-      if (revision !== requestRevision.current) {
-        return
-      }
-
-      setSubscriptions((current) =>
-        current.filter((subscription) => subscription.id !== subscriptionId),
-      )
-    } catch (error) {
-      if (revision === requestRevision.current) {
+      try {
+        await deleteSubscriptionRequest(subscriptionId)
+        await refreshSubscriptions()
+      } catch (error) {
         handleError(error)
+        throw error
       }
-
-      throw error
-    }
-  }, [])
+    },
+    [refreshSubscriptions],
+  )
 
   return {
     subscriptions,
