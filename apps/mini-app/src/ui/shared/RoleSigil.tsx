@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react"
+import "./visuals.css"
 
 type RoleSigilProps = {
   color: string
