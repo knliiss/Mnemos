@@ -104,6 +104,20 @@ export function useProfileComments({
     setBusyIds(next)
   }, [])
 
+  const resetCommentScope = useCallback((loadedScope: string | null) => {
+    setComments([])
+    setCommentsPage(0)
+    setCommentsHasMore(false)
+    setLoadedCommentScope(loadedScope)
+    setReplies({})
+    setExpandedReplies(new Set())
+    replyRequestRevisions.current = {}
+    busyIdsRef.current = new Set()
+    setBusyIds(new Set())
+    submittingRef.current = false
+    setSubmitting(false)
+  }, [])
+
   const loadInitialComments = useCallback(async () => {
     const requestedScope = scopeRevision.current + 1
     const revision = rootRequestRevision.current + 1
@@ -112,20 +126,10 @@ export function useProfileComments({
     rootRequestRevision.current = revision
 
     if (!targetProfile) {
-      setComments([])
-      setCommentsPage(0)
-      setCommentsHasMore(false)
+      resetCommentScope(null)
       setCommentsError(false)
-      setLoadedCommentScope(null)
       commentsLoadingRef.current = false
       setCommentsLoading(false)
-      setReplies({})
-      setExpandedReplies(new Set())
-      replyRequestRevisions.current = {}
-      busyIdsRef.current = new Set()
-      setBusyIds(new Set())
-      submittingRef.current = false
-      setSubmitting(false)
       return
     }
 
@@ -164,7 +168,7 @@ export function useProfileComments({
         requestedScope === scopeRevision.current &&
         revision === rootRequestRevision.current
       ) {
-        setLoadedCommentScope(commentScope)
+        resetCommentScope(commentScope)
         setCommentsError(true)
         handleError(error)
       }
@@ -177,7 +181,7 @@ export function useProfileComments({
         setCommentsLoading(false)
       }
     }
-  }, [activeAccount, commentScope, locale, targetProfile])
+  }, [activeAccount, commentScope, locale, resetCommentScope, targetProfile])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -570,7 +574,8 @@ export function useProfileComments({
     ],
   )
 
-  const current = commentScope !== null && loadedCommentScope === commentScope
+  const hasCommentScope = commentScope !== null
+  const current = hasCommentScope && loadedCommentScope === commentScope
   const currentComments = current ? comments : []
   const currentReplies = current ? replies : {}
   const currentExpandedReplies = current ? expandedReplies : new Set<string>()
@@ -583,7 +588,7 @@ export function useProfileComments({
   return {
     comments: currentComments,
     commentsHasMore: current && commentsHasMore,
-    commentsLoading: commentsLoading || !current,
+    commentsLoading: hasCommentScope && (commentsLoading || !current),
     commentsError: current && commentsError,
     replies: currentReplies,
     expandedReplies: currentExpandedReplies,
