@@ -123,4 +123,37 @@ describe("useBetsData", () => {
     ])
     expect(result.current.loading).toBe(false)
   })
+
+  it("does not expose the previous account data when the new account load fails", async () => {
+    vi.mocked(listEventBetRounds)
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce(new Error("bets unavailable"))
+    vi.mocked(listItemRaces).mockResolvedValue([])
+    vi.mocked(listMyItemRacePositions)
+      .mockResolvedValueOnce([position("account-a")])
+      .mockResolvedValueOnce([position("account-b")])
+
+    const refreshAccount = vi.fn().mockResolvedValue(undefined)
+    const { result, rerender } = renderHook(
+      ({ accountId }: { accountId: string }) => useBetsData(accountId, refreshAccount),
+      { initialProps: { accountId: "account-a" } },
+    )
+
+    await waitFor(() => {
+      expect(result.current.positions.map(({ accountId }) => accountId)).toEqual([
+        "account-a",
+      ])
+    })
+
+    rerender({ accountId: "account-b" })
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+      expect(result.current.error).toBe(true)
+    })
+
+    expect(result.current.rounds).toEqual([])
+    expect(result.current.races).toEqual([])
+    expect(result.current.positions).toEqual([])
+  })
 })
