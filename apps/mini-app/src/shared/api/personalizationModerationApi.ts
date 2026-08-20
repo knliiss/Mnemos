@@ -6,6 +6,10 @@ export async function listPersonalizationReviewQueue(): Promise<PersonalizationR
   return api<PersonalizationResponse[]>("/api/v1/personalizations/moderation/review")
 }
 
+export async function listManagedPersonalizations(): Promise<PersonalizationResponse[]> {
+  return api<PersonalizationResponse[]>("/api/v1/personalizations/moderation/managed")
+}
+
 export async function approvePersonalization(
   personalizationId: string,
   currency: Currency,
