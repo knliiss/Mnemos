@@ -1,0 +1,62 @@
+.glyph {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.currency-glyph {
+  display: inline-block !important;
+  flex: 0 0 auto;
+  overflow: visible;
+  vertical-align: middle;
+  color: transparent;
+  background: center / contain no-repeat url("/ui-icons/coin.png");
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.currency-glyph--prime {
+  background-image: url("/ui-icons/prime.png");
+}
+
+.currency-glyph > * {
+  display: none !important;
+}
+
+.currency-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.currency-value--compact {
+  gap: 4px;
+}
+
+.role-sigil.role-sigil--shared {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--role-sigil-color);
+  background: transparent;
+  box-shadow: none;
+}
+
+.role-sigil--shared svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 3px 7px color-mix(in srgb, var(--role-sigil-color) 24%, transparent));
+}
+
+.role-sigil--shared.role-sigil--compact svg {
+  transform: scale(0.92);
+  transform-origin: center;
+}
