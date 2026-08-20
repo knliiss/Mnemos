@@ -1,0 +1,20 @@
+.account-onboarding-field__hint {
+  font-size: 9px;
+}
+
+.account-onboarding-paste {
+  min-height: 32px;
+  font-size: 9px;
+}
+
+.account-onboarding-fact > span {
+  font-size: 9px;
+}
+
+.account-onboarding-fact strong {
+  font-size: 10px;
+}
+
+.account-onboarding-fact small {
+  font-size: 9px;
+}
