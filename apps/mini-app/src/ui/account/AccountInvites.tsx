@@ -13,6 +13,7 @@ import { Glyph } from "../shared/MnemosIcon"
 import { ChoiceGrid, Field, PageHeader, Section } from "../shared/Primitives"
 import { FeatureEmpty } from "../system/FeatureEmpty"
 import { FeatureLoading } from "../system/FeatureLoading"
+import "./account-invites.css"
 
 type Expiry = "NONE" | "1H" | "1D" | "7D"
 
