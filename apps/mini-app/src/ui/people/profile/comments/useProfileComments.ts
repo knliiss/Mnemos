@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   createComment,
   deleteComment,
+  editComment,
   getAccountComments,
   getCommentLikeCount,
   getCommentLikeState,
@@ -36,6 +37,11 @@ type ProfileCommentsController = {
   toggleReplies(comment: ProfileCommentView): Promise<void>
   loadMoreReplies(comment: ProfileCommentView): Promise<void>
   toggleCommentLike(comment: ProfileCommentView, rootCommentId?: string): Promise<void>
+  editProfileComment(
+    comment: ProfileCommentView,
+    content: string,
+    rootCommentId?: string,
+  ): Promise<void>
   removeComment(comment: ProfileCommentView, rootCommentId?: string): Promise<void>
   submitComment(content: string, replyTarget: ReplyTarget | null): Promise<void>
 }
@@ -404,6 +410,73 @@ export function useProfileComments({
     [setBusy],
   )
 
+  const editProfileComment = useCallback(
+    async (comment: ProfileCommentView, content: string, rootCommentId?: string) => {
+      const normalized = content.trim()
+
+      if (
+        !comment.canEdit ||
+        !normalized ||
+        normalized === comment.content ||
+        busyIdsRef.current.has(comment.id)
+      ) {
+        return
+      }
+
+      const requestedScope = scopeRevision.current
+      setBusy(comment.id, true)
+
+      try {
+        const updated = await editComment(comment.id, normalized)
+
+        if (requestedScope !== scopeRevision.current) {
+          return
+        }
+
+        const update = (value: ProfileCommentView) =>
+          value.id === comment.id
+            ? {
+                ...value,
+                content: updated.content ?? normalized,
+                deleted: updated.deleted,
+                canEdit: updated.canEdit,
+                canDelete: updated.canDelete,
+              }
+            : value
+
+        if (rootCommentId) {
+          setReplies((current) => {
+            const thread = current[rootCommentId]
+
+            if (!thread) {
+              return current
+            }
+
+            return {
+              ...current,
+              [rootCommentId]: {
+                ...thread,
+                items: thread.items.map(update),
+              },
+            }
+          })
+        } else {
+          setComments((current) => current.map(update))
+        }
+      } catch (error) {
+        if (requestedScope === scopeRevision.current) {
+          handleError(error)
+        }
+        throw error
+      } finally {
+        if (requestedScope === scopeRevision.current) {
+          setBusy(comment.id, false)
+        }
+      }
+    },
+    [setBusy],
+  )
+
   const removeComment = useCallback(
     async (comment: ProfileCommentView, rootCommentId?: string) => {
       if (!comment.canDelete || busyIdsRef.current.has(comment.id)) {
@@ -576,6 +649,7 @@ export function useProfileComments({
     toggleReplies,
     loadMoreReplies,
     toggleCommentLike,
+    editProfileComment,
     removeComment,
     submitComment,
   }
