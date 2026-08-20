@@ -38,7 +38,15 @@ export function StaffArea(props: Props) {
   let content
 
   if (props.routeId === "moderation-user") {
-    content = <ModerationUser params={props.params} back={props.back} />
+    const userId = props.params?.userId ?? ""
+
+    content = (
+      <ModerationUser
+        key={userId}
+        params={props.params}
+        back={props.back}
+      />
+    )
   } else if (props.routeId === "personalization-review") {
     content = <PersonalizationReview back={props.back} />
   } else if (props.routeId === "bet-admin") {
