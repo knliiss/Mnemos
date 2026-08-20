@@ -8,10 +8,12 @@ import { formatOccurredAt } from "../../../timePresentation"
 import type { ProfileCommentView } from "../model"
 import { shortAccountId } from "../profilePresentation"
 
+type CommentTargetProfile = Pick<PublicProfileResponse, "accountId" | "cristalixNickname">
+
 export async function resolveProfileCommentAuthorNames(
   comments: CommentResponse[],
   activeAccount: Account,
-  targetProfile: PublicProfileResponse,
+  targetProfile: CommentTargetProfile,
 ): Promise<Map<string, string>> {
   const result = new Map<string, string>([
     [activeAccount.id, activeAccount.nickname],
