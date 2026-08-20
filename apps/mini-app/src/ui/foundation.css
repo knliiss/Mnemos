@@ -134,8 +134,7 @@ strong {
 }
 
 h1,
-.page-header h1,
-.personalization-store-header h1 {
+.page-header h1 {
   font-weight: 710;
   letter-spacing: -0.035em;
 }
@@ -146,26 +145,13 @@ h3 {
   letter-spacing: -0.022em;
 }
 
-.eyebrow,
-.account-home-profile__copy > small,
-.account-home-reward__copy > small,
-.account-home-feature-copy > small,
-.account-home-panel__head small,
-.personalization-store-header > span > small,
-.personalization-store-hero small,
-.personalization-store-category-card__copy > small,
-.personalization-detail-screen small {
+.eyebrow {
   font-family: var(--font-meta);
   font-weight: 600;
   letter-spacing: 0.115em;
 }
 
-time,
-.account-home-panel__head em,
-.account-home-reward__range,
-.account-home-member__role > small,
-.account-home-member__no-role,
-.personalization-store-category-card__copy > span {
+time {
   font-family: var(--font-meta);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.018em;
