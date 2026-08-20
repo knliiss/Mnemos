@@ -3,7 +3,7 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { updateRoleHierarchy } from "@/shared/api/roleApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import type { AccountRole, Route } from "../model"
 import { allRolePermissions } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
@@ -18,11 +18,11 @@ type Props = {
 
 export function RolesOverview({ navigate, back }: Props) {
   const { t } = useTranslation()
-  const product = useProductData()
-  const accountId = product.activeAccount?.id ?? null
+  const data = useMnemosData()
+  const accountId = data.activeAccount?.id ?? null
   const roles = useMemo(
-    () => [...product.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
-    [product.roles],
+    () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
+    [data.roles],
   )
   const totalPermissions = allRolePermissions.length
 
@@ -79,16 +79,16 @@ export function RolesOverview({ navigate, back }: Props) {
             new Map(
               roles.map((role) => [
                 role.id,
-                product.members.filter((member) => member.highestRoleId === role.id).length,
+                data.members.filter((member) => member.highestRoleId === role.id).length,
               ]),
             )
           }
           navigate={navigate}
-          refresh={product.refreshAccount}
+          refresh={data.refreshAccount}
         />
       ) : null}
 
-      {!roles.length && !product.loadingAccount ? (
+      {!roles.length && !data.loadingAccount ? (
         <FeatureEmpty
           icon="roles"
           title={t("rolesOverview.emptyTitle")}
