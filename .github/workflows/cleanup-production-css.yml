@@ -7,6 +7,10 @@ on:
     paths:
       - ".github/workflows/cleanup-production-css.yml"
 
+concurrency:
+  group: cleanup-production-css
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -59,14 +63,10 @@ jobs:
               existing = reverse_mapping.get(new_name)
 
               if existing and existing != old_name:
-                  collisions.append(
-                      f"{existing} and {old_name} -> {new_name}"
-                  )
+                  collisions.append(f"{existing} and {old_name} -> {new_name}")
 
               if new_name in css_classes and new_name not in mapping:
-                  collisions.append(
-                      f"{old_name} -> existing class {new_name}"
-                  )
+                  collisions.append(f"{old_name} -> existing class {new_name}")
 
               reverse_mapping[new_name] = old_name
 
@@ -110,9 +110,7 @@ jobs:
               ):
                   for class_name in class_pattern.findall(line):
                       if revision_pattern.search(class_name):
-                          remaining.append(
-                              f"{path}:{line_number}: .{class_name}"
-                          )
+                          remaining.append(f"{path}:{line_number}: .{class_name}")
 
           if remaining:
               print("Revision-style CSS class names remain:")
