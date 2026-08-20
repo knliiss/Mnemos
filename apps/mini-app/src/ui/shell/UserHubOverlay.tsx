@@ -53,7 +53,7 @@ export function UserHubOverlay({
           <motion.button
             type="button"
             className="user-hub-backdrop"
-            aria-label={t("productShell.userMenu.close")}
+            aria-label={t("appShell.userMenu.close")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -73,7 +73,7 @@ export function UserHubOverlay({
                 size={40}
               />
               <span className="user-hub-card__copy">
-                <small>{t("productShell.userMenu.userEyebrow")}</small>
+                <small>{t("appShell.userMenu.userEyebrow")}</small>
                 <strong>@{username}</strong>
               </span>
               <button
@@ -98,12 +98,12 @@ export function UserHubOverlay({
                 size={34}
               />
               <span>
-                <small>{t("productShell.userMenu.activeAccount")}</small>
+                <small>{t("appShell.userMenu.activeAccount")}</small>
                 <strong>{activeAccount.nickname}</strong>
               </span>
               <span className="user-hub-account-switch__action">
                 <Glyph name="swap" size={16} />
-                {t("productShell.userMenu.change")}
+                {t("appShell.userMenu.change")}
               </span>
             </button>
 
