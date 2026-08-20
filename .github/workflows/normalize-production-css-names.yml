@@ -1,3 +1,4 @@
+# One-shot workflow. It removes itself after a verified normalization commit.
 name: Normalize Production CSS Names
 
 on:
