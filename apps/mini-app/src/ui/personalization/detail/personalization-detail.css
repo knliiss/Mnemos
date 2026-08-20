@@ -1,18 +1,40 @@
+.personalization-detail-screen {
+  padding-bottom: 34px;
+}
+
+.personalization-detail-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 126px;
+  align-items: center;
+  gap: 12px;
+  min-height: 144px;
+  overflow: hidden;
+  margin: 8px 0 14px;
+  padding: 16px 13px 16px 17px;
+  border: 1px solid rgba(226, 233, 205, 0.12);
+  border-radius: 23px;
+  background:
+    radial-gradient(circle at 90% 15%, rgba(203, 255, 45, 0.065), transparent 42%),
+    radial-gradient(circle at 10% 110%, rgba(198, 137, 194, 0.045), transparent 45%),
+    linear-gradient(145deg, rgba(25, 28, 20, 0.98), rgba(11, 13, 9, 0.985));
+}
+
 .personalization-detail-hero__copy {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 3px;
+  gap: 4px;
 }
 
 .personalization-detail-hero__copy > small {
   color: #858b7d;
   font-family: var(--font-meta);
-  font-size: 7px;
-  font-weight: 750;
-  letter-spacing: 0.12em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
 }
 
 .personalization-detail-hero__copy > strong {
@@ -28,7 +50,7 @@
 .personalization-detail-hero__copy > em {
   overflow: hidden;
   color: #8c9285;
-  font-size: 8.5px;
+  font-size: 10px;
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -41,12 +63,101 @@
   min-width: 0 !important;
   height: 112px !important;
   min-height: 0 !important;
+  margin: 0;
   overflow: hidden;
   border-radius: 16px;
 }
 
+.personalization-detail-purchase {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 0.72fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(226, 233, 205, 0.11);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(203, 255, 45, 0.045), transparent 42%),
+    rgba(14, 16, 12, 0.95);
+}
+
+.personalization-detail-purchase__summary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+.personalization-detail-purchase__summary > small {
+  color: #858b7d;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.personalization-detail-purchase__summary > strong {
+  overflow: hidden;
+  color: #e7e9e1;
+  font-size: 13px;
+  font-weight: 640;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-detail-purchase__summary > .currency-value {
+  color: #e8ebe3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.personalization-detail-purchase__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 15px;
+  color: #111607;
+  background: linear-gradient(180deg, #d9ff58, #bff127);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.32),
+    0 10px 24px rgba(153, 211, 18, 0.08);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.personalization-detail-purchase__action.is-active {
+  border: 1px solid rgba(226, 233, 205, 0.12);
+  color: #c3c8bb;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
+.personalization-detail-screen .notification-real-preview__copy > small,
+.personalization-detail-screen .notification-real-preview__copy > em {
+  font-size: 9px;
+}
+
+.personalization-detail-screen .notification-real-preview__copy > p {
+  font-size: 10px;
+}
+
 @media (max-width: 380px) {
+  .personalization-detail-hero {
+    grid-template-columns: minmax(0, 1fr) 105px;
+  }
+
   .personalization-detail-hero > .real-preview.is-detail {
     width: 105px !important;
+  }
+
+  .personalization-detail-purchase {
+    grid-template-columns: 1fr;
   }
 }
