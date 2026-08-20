@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
-import { renderHook, waitFor } from "@testing-library/react"
+import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
+  editComment,
   getAccountComments,
   getPublicProfile,
   type PublicProfileResponse,
@@ -12,6 +13,7 @@ import { useProfileComments } from "./useProfileComments"
 vi.mock("@/shared/api/profileSocialApi", () => ({
   createComment: vi.fn(),
   deleteComment: vi.fn(),
+  editComment: vi.fn(),
   getAccountComments: vi.fn(),
   getCommentLikeCount: vi.fn(),
   getCommentLikeState: vi.fn(),
@@ -44,23 +46,24 @@ const otherProfile: PublicProfileResponse = {
   cristalixNickname: "OtherProfileOwner",
 }
 
+const commentResponse = {
+  id: "comment",
+  targetAccountId: profile.accountId,
+  authorAccountId: "active-account",
+  parentCommentId: null,
+  replyToAuthorAccountId: null,
+  content: "Stable comment",
+  deleted: false,
+  canEdit: true,
+  canDelete: true,
+  likes: 0,
+  replies: 0,
+  createdAt: "2026-08-20T00:00:00Z",
+  updatedAt: "2026-08-20T00:00:00Z",
+}
+
 const commentsPage = {
-  content: [
-    {
-      id: "comment",
-      targetAccountId: profile.accountId,
-      authorAccountId: "active-account",
-      parentCommentId: null,
-      replyToAuthorAccountId: null,
-      content: "Stable comment",
-      deleted: false,
-      canDelete: true,
-      likes: 0,
-      replies: 0,
-      createdAt: "2026-08-20T00:00:00Z",
-      updatedAt: "2026-08-20T00:00:00Z",
-    },
-  ],
+  content: [commentResponse],
   totalElements: 1,
   totalPages: 1,
   number: 0,
@@ -76,6 +79,7 @@ describe("useProfileComments", () => {
     vi.mocked(getAccountComments).mockReset()
     vi.mocked(getAccountComments).mockResolvedValue(commentsPage)
     vi.mocked(getPublicProfile).mockReset()
+    vi.mocked(editComment).mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)
       return 1
@@ -108,6 +112,35 @@ describe("useProfileComments", () => {
 
     expect(result.current.comments[0]?.content).toBe("Stable comment")
     expect(result.current.commentsLoading).toBe(false)
+    expect(getAccountComments).toHaveBeenCalledTimes(1)
+  })
+
+  it("updates an editable comment without refetching the profile thread", async () => {
+    vi.mocked(editComment).mockResolvedValue({
+      ...commentResponse,
+      content: "Edited comment",
+      updatedAt: "2026-08-20T00:01:00Z",
+    })
+
+    const refreshProfileSummary = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() =>
+      useProfileComments({
+        activeAccountId: "active-account",
+        activeAccountNickname: "Viewer",
+        profile,
+        locale: "en-US",
+        refreshProfileSummary,
+      }),
+    )
+
+    await waitFor(() => expect(result.current.comments).toHaveLength(1))
+
+    await act(async () => {
+      await result.current.editProfileComment(result.current.comments[0], " Edited comment ")
+    })
+
+    expect(editComment).toHaveBeenCalledWith("comment", "Edited comment")
+    expect(result.current.comments[0]?.content).toBe("Edited comment")
     expect(getAccountComments).toHaveBeenCalledTimes(1)
   })
 
