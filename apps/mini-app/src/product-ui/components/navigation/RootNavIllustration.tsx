@@ -1,4 +1,4 @@
-import type { RootRoute } from "../model"
+import type { RootRoute } from "../../model"
 
 type Props = {
   route: RootRoute
