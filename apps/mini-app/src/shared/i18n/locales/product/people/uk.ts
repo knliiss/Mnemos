@@ -4,6 +4,7 @@ export const peopleProductUk = {
       title: "Пошук",
       description: "Аккаунти Mnemos",
       clear: "Очистити",
+      placeholder: "Нікнейм Cristalix",
       emptyTitle: "Знайди Cristalix аккаунт",
       emptyCopy: "Пошук працює по nickname і відкриває публічний профіль Mnemos.",
       oneMore: "Введи ще один символ",
