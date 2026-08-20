@@ -1,5 +1,5 @@
 import { errorCodesEn } from "./errors/en"
-import { productEn } from "./product/en"
+import { productEn } from "./ui/en"
 
 export const en = {
   nav: {
