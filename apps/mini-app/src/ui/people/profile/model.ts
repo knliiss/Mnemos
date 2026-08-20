@@ -5,6 +5,7 @@ export type ProfileCommentView = {
   replyToAuthor: string | null
   content: string
   deleted: boolean
+  canEdit: boolean
   canDelete: boolean
   likes: number
   replies: number
