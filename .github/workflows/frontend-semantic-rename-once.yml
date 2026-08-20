@@ -1,0 +1,91 @@
+name: Frontend semantic rename once
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - .github/workflows/frontend-semantic-rename-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+          fetch-depth: 0
+
+      - name: Rename historical frontend identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("apps/mini-app/src")
+          replacements = {
+              "events-r2-": "events-",
+              "event-r4-": "event-",
+              "bets-r2-": "bets-",
+              "creator-r2-": "creator-",
+              "account-member-v4__": "account-member__",
+              "store-category-v5__": "store-category__",
+              "account-personalization-category-v5__": "account-personalization-category__",
+              "account-personalization-v5__": "account-personalization__",
+              "personalization-detail-v5__": "personalization-detail__",
+              "review-overhaul-screen": "review-screen",
+              "AccountMemberManagementProduction": "AccountMemberManagement",
+              "CreatorStudioProduction": "CreatorStudio",
+              "CreatorRevenueProduction": "CreatorRevenue",
+              "CreatorEditorProduction": "CreatorEditor",
+          }
+
+          changed = []
+          for path in root.rglob("*"):
+              if not path.is_file() or path.suffix not in {".ts", ".tsx", ".css"}:
+                  continue
+
+              original = path.read_text()
+              updated = original
+              for before, after in replacements.items():
+                  updated = updated.replace(before, after)
+
+              if updated != original:
+                  path.write_text(updated)
+                  changed.append(path)
+
+          print(f"Changed {len(changed)} files")
+          for path in changed:
+              print(path)
+          PY
+
+      - name: Format changed frontend
+        working-directory: apps/mini-app
+        run: |
+          npm ci
+          npm run lint -- --fix
+          npm run format
+
+      - name: Commit semantic names
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No semantic rename changes"
+            exit 0
+          fi
+
+          git add apps/mini-app
+          git commit -m "normalize frontend semantic naming"
+          git push origin HEAD:feat/frontend-integration
