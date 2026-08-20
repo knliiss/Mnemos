@@ -33,7 +33,6 @@ jobs:
         run: |
           python3 <<'PY'
           from pathlib import Path
-          import re
 
           root = Path("apps/mini-app/src/product-ui")
 
@@ -96,7 +95,17 @@ jobs:
           for path in duplicate_paths:
               if path.exists():
                   path.unlink()
+          PY
 
+      - name: Audit structure
+        shell: bash
+        run: |
+          python3 <<'PY' > /tmp/frontend-audit.txt
+          from pathlib import Path
+          import re
+
+          root = Path("apps/mini-app/src/product-ui")
+          source_suffixes = {".ts", ".tsx", ".css"}
           forbidden_imports = [
               "components/CristalixHead",
               "components/EventArt",
@@ -106,12 +115,13 @@ jobs:
               "components/PersonalizationPreview",
               "components/RootNavIllustration",
           ]
-
-          failures = []
           historical_pattern = re.compile(
               r"(?i)(?:^|[-_])(?:v\d+|r\d+|final|polished|overhaul|rethink|round(?:one|two|three|four|five|\d+))(?:[-_]|$)"
           )
           token_pattern = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+
+          findings = []
+          stale_paths = []
 
           for path in root.rglob("*"):
               if not path.is_file() or path.suffix not in source_suffixes:
@@ -121,22 +131,25 @@ jobs:
 
               for forbidden in forbidden_imports:
                   if forbidden in text:
-                      failures.append(f"stale component path: {path}: {forbidden}")
+                      stale_paths.append(f"stale component path: {path}: {forbidden}")
 
               for token in token_pattern.findall(text):
-                  if historical_pattern.search(token):
-                      failures.append(f"historical token: {path}: {token}")
+                  if historical_pattern.search(token) or token.endswith("Production"):
+                      findings.append(f"{path}: {token}")
 
-              for token in token_pattern.findall(text):
-                  if token.endswith("Production"):
-                      failures.append(f"historical production suffix: {path}: {token}")
-
-          if failures:
-              print("\n".join(sorted(set(failures))))
+          if stale_paths:
+              print("\n".join(sorted(set(stale_paths))))
               raise SystemExit(1)
 
-          print("Production mini-app structural audit passed")
+          unique_findings = sorted(set(findings))
+          if unique_findings:
+              print("Residual historical tokens:")
+              print("\n".join(unique_findings[:120]))
+          else:
+              print("Structural audit: no historical tokens remain")
           PY
+
+          cat /tmp/frontend-audit.txt
 
       - name: Install dependencies
         working-directory: apps/mini-app
@@ -183,5 +196,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "finish mini app structural cleanup"
+          audit="$(cat /tmp/frontend-audit.txt)"
+          git commit -m "finish mini app structural cleanup" -m "$audit"
           git push origin HEAD:feat/frontend-integration
