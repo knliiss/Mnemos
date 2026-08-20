@@ -7,6 +7,7 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
+import "./account-wallet.css"
 
 type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
 
