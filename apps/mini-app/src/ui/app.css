@@ -1,6 +1,2 @@
 @import "./components.css";
 @import "./foundation.css";
-@import "./shell/shell.css";
-@import "./events/event-art.css";
-@import "./account/account-access.css";
-@import "./components/errors/error-notices.css";
