@@ -12,6 +12,7 @@ import { useProductData } from "../data/ProductDataProvider"
 import type { Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
+import "./account-settings.css"
 import { NO_BASE_ROLE } from "./accountSettingsPresentation"
 import { AccountBaseRoleSettings } from "./settings/AccountBaseRoleSettings"
 import { AccountLifecycleSettings } from "./settings/AccountLifecycleSettings"
@@ -137,7 +138,7 @@ export function AccountSettings({ navigate, back }: Props) {
 
       <section className="account-settings-hero">
         <CristalixHead skinUrl={activeAccount.skinUrl} size={58} />
-        <span className="account-settings-hero-v2__copy">
+        <span className="account-settings-hero__copy">
           <small>CRISTALIX ACCOUNT</small>
           <strong>{activeAccount.nickname}</strong>
           <em>
@@ -149,7 +150,7 @@ export function AccountSettings({ navigate, back }: Props) {
           <i />
           ACTIVE
         </span>
-        <div className="account-settings-hero-v2__stats">
+        <div className="account-settings-hero__stats">
           <span>
             <small>{t("accountSettings.members")}</small>
             <strong>
