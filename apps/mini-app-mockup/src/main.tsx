@@ -78,6 +78,7 @@ const criticalArtwork = [
   "/ui-illustrations/admin-bets.svg",
   "/ui-illustrations/mnemos-user-mark.svg",
   "/ui-illustrations/mnemos-comments.svg",
+  "/ui-illustrations/mnemos-trash.svg",
   "/ui-illustrations/mnemos-mascot-cat.svg",
   "/ui-illustrations/mnemos-mascot-search.svg",
   "/ui-illustrations/mnemos-mascot-event.svg",

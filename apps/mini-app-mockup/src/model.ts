@@ -124,7 +124,7 @@ export type Personalization = {
 }
 
 export type WalletTransaction = { id: string; currency: Currency; type: TransactionType; source: TransactionSource; amount: number; createdAt: string }
-export type ProfileComment = { id: string; authorAccountId: string; author: string; content: string; likes: number; replies: number; createdAt: string; liked: boolean; pending?: boolean; failed?: boolean }
+export type ProfileComment = { id: string; authorAccountId: string; author: string; content: string; likes: number; replies: number; createdAt: string; liked: boolean; createdByUserId?: string; pending?: boolean; failed?: boolean }
 export type PublicProfile = { accountId: string; cristalixUuid: string; nickname: string; likes: number; dislikes: number; comments: number; skinUrl: string }
 
 export type InternalIdentityAccount = {

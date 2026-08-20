@@ -3,7 +3,7 @@ import { FormEvent, PointerEvent, useEffect, useRef, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
-import { feed, initialComments, profiles } from "../mockData"
+import { currentUser, feed, initialComments, profiles } from "../mockData"
 import type { Account, ProfileComment, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
@@ -22,6 +22,7 @@ type ProfileReply = {
   replyToAuthor?: string
   authorAccountId: string
   author: string
+  createdByUserId: string
   content: string
   likes: number
   createdAt: string
@@ -35,12 +36,15 @@ type ReplyTarget = {
 
 type CommentTone = "lime" | "plum" | "amber"
 
+const REPLY_BATCH_SIZE = 3
+
 const initialReplies: ProfileReply[] = [
   {
     id: "reply-1",
     parentCommentId: "comment-1",
     authorAccountId: "profile-vex",
     author: "vex",
+    createdByUserId: "0198f6ce-e934-7000-8000-000000000033",
     content: "Та ще й без довгого фарму перед цим.",
     likes: 4,
     createdAt: "12 хв",
@@ -52,6 +56,7 @@ const initialReplies: ProfileReply[] = [
     replyToAuthor: "vex",
     authorAccountId: "profile-north",
     author: "north",
+    createdByUserId: "0198f6ce-e934-7000-8000-000000000034",
     content: "Саме тому й запамʼятався.",
     likes: 2,
     createdAt: "9 хв",
@@ -66,14 +71,17 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [replyingTo, setReplyingTo] = useState<ReplyTarget | null>(null)
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())
+  const [visibleReplyCounts, setVisibleReplyCounts] = useState<Record<string, number>>({})
   const [replies, setReplies] = useState<ProfileReply[]>(initialReplies)
   const composerInputRef = useRef<HTMLInputElement>(null)
+  const commentsScrollRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
   const [comments, setComments] = useState<ProfileComment[]>([
     {
       id: "comment-me",
       authorAccountId: activeAccount.id,
       author: activeAccount.nickname,
+      createdByUserId: currentUser.id,
       content: "Перевірив — профіль виглядає нормально.",
       likes: 2,
       replies: 0,
@@ -140,6 +148,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           replyToAuthor: replyingTo.author,
           authorAccountId: activeAccount.id,
           author: activeAccount.nickname,
+          createdByUserId: currentUser.id,
           content,
           likes: 0,
           createdAt: "зараз",
@@ -147,6 +156,10 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
         },
       ])
       setExpandedReplies((current) => new Set(current).add(parentId))
+      setVisibleReplyCounts((current) => ({
+        ...current,
+        [parentId]: replies.filter((reply) => reply.parentCommentId === parentId).length + 1,
+      }))
       setReplyingTo(null)
     } else {
       setComments((current) => [
@@ -154,6 +167,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           id: `comment-${Date.now()}`,
           authorAccountId: activeAccount.id,
           author: activeAccount.nickname,
+          createdByUserId: currentUser.id,
           content,
           likes: 0,
           replies: 0,
@@ -204,6 +218,8 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   }
 
   const toggleReplies = (commentId: string) => {
+    const opening = !expandedReplies.has(commentId)
+
     setExpandedReplies((current) => {
       const next = new Set(current)
 
@@ -215,6 +231,55 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
 
       return next
     })
+
+    if (opening) {
+      setVisibleReplyCounts((current) => ({
+        ...current,
+        [commentId]: current[commentId] ?? REPLY_BATCH_SIZE,
+      }))
+    }
+  }
+
+  const showMoreReplies = (commentId: string) => {
+    setVisibleReplyCounts((current) => ({
+      ...current,
+      [commentId]: (current[commentId] ?? REPLY_BATCH_SIZE) + REPLY_BATCH_SIZE,
+    }))
+  }
+
+  const deleteComment = (commentId: string) => {
+    const comment = comments.find((item) => item.id === commentId)
+
+    if (!comment || comment.createdByUserId !== currentUser.id) {
+      return
+    }
+
+    setComments((current) => current.filter((item) => item.id !== commentId))
+    setReplies((current) => current.filter((reply) => reply.parentCommentId !== commentId))
+    setExpandedReplies((current) => {
+      const next = new Set(current)
+      next.delete(commentId)
+      return next
+    })
+    setVisibleReplyCounts((current) => {
+      const next = { ...current }
+      delete next[commentId]
+      return next
+    })
+
+    if (replyingTo?.rootCommentId === commentId) {
+      setReplyingTo(null)
+    }
+  }
+
+  const deleteReply = (replyId: string) => {
+    const reply = replies.find((item) => item.id === replyId)
+
+    if (!reply || reply.createdByUserId !== currentUser.id) {
+      return
+    }
+
+    setReplies((current) => current.filter((item) => item.id !== replyId))
   }
 
   const openComments = () => {
@@ -458,17 +523,22 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                 </button>
               </header>
 
-              <div className="public-profile-comments-sheet__scroll">
+              <div ref={commentsScrollRef} className="public-profile-comments-sheet__scroll">
                 <AnimatePresence initial={false}>
                   {comments.map((comment, index) => {
                     const commentReplies = replies.filter(
                       (reply) => reply.parentCommentId === comment.id,
                     )
                     const repliesExpanded = expandedReplies.has(comment.id)
+                    const visibleReplyCount =
+                      visibleReplyCounts[comment.id] ?? REPLY_BATCH_SIZE
+                    const visibleReplies = commentReplies.slice(0, visibleReplyCount)
+                    const hiddenReplyCount = commentReplies.length - visibleReplies.length
 
                     return (
                       <motion.article
-                        layout
+                        layout="position"
+                        id={`profile-thread-${comment.id}`}
                         key={comment.id}
                         className={`public-profile-thread is-${commentTone(comment.author)}`}
                         initial={{ opacity: 0, y: 5 }}
@@ -515,26 +585,38 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                             </footer>
                           </div>
 
-                          <button
-                            type="button"
-                            className={`public-profile-comment__like ${comment.liked ? "is-active" : ""}`}
-                            onClick={() => toggleCommentLike(comment.id)}
-                            aria-label={comment.liked ? "Прибрати лайк" : "Поставити лайк"}
-                          >
-                            <Glyph name="like" size={15} />
-                            <span>{comment.likes || ""}</span>
-                          </button>
+                          <div className="public-profile-comment__actions">
+                            <button
+                              type="button"
+                              className={`public-profile-comment__like ${comment.liked ? "is-active" : ""}`}
+                              onClick={() => toggleCommentLike(comment.id)}
+                              aria-label={comment.liked ? "Прибрати лайк" : "Поставити лайк"}
+                            >
+                              <Glyph name="like" size={15} />
+                              <span>{comment.likes || ""}</span>
+                            </button>
+
+                            {comment.createdByUserId === currentUser.id ? (
+                              <button
+                                type="button"
+                                className="public-profile-comment__delete"
+                                onClick={() => deleteComment(comment.id)}
+                                aria-label="Видалити свій коментар"
+                              >
+                                <img src="/ui-illustrations/mnemos-trash.svg" alt="" />
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
 
-                        <AnimatePresence initial={false}>
-                          {repliesExpanded ? (
-                            <motion.div
-                              className="public-profile-replies"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                            >
-                              {commentReplies.map((reply) => (
+                        {repliesExpanded ? (
+                          <motion.div
+                            className="public-profile-replies"
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.16 }}
+                          >
+                            {visibleReplies.map((reply) => (
                                 <div
                                   className={`public-profile-reply is-${commentTone(reply.author)}`}
                                   key={reply.id}
@@ -571,20 +653,43 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
                                     </footer>
                                   </div>
 
-                                  <button
-                                    type="button"
-                                    className={`public-profile-reply__like ${reply.liked ? "is-active" : ""}`}
-                                    onClick={() => toggleReplyLike(reply.id)}
-                                    aria-label={reply.liked ? "Прибрати лайк" : "Поставити лайк"}
-                                  >
-                                    <Glyph name="like" size={12} />
-                                    <span>{reply.likes || ""}</span>
-                                  </button>
+                                  <div className="public-profile-reply__actions">
+                                    <button
+                                      type="button"
+                                      className={`public-profile-reply__like ${reply.liked ? "is-active" : ""}`}
+                                      onClick={() => toggleReplyLike(reply.id)}
+                                      aria-label={reply.liked ? "Прибрати лайк" : "Поставити лайк"}
+                                    >
+                                      <Glyph name="like" size={12} />
+                                      <span>{reply.likes || ""}</span>
+                                    </button>
+
+                                    {reply.createdByUserId === currentUser.id ? (
+                                      <button
+                                        type="button"
+                                        className="public-profile-reply__delete"
+                                        onClick={() => deleteReply(reply.id)}
+                                        aria-label="Видалити свою відповідь"
+                                      >
+                                        <img src="/ui-illustrations/mnemos-trash.svg" alt="" />
+                                      </button>
+                                    ) : null}
+                                  </div>
                                 </div>
-                              ))}
-                            </motion.div>
-                          ) : null}
-                        </AnimatePresence>
+                            ))}
+
+                            {hiddenReplyCount > 0 ? (
+                              <button
+                                type="button"
+                                className="public-profile-replies__more"
+                                onClick={() => showMoreReplies(comment.id)}
+                              >
+                                <i />
+                                Показати ще {Math.min(hiddenReplyCount, REPLY_BATCH_SIZE)}
+                              </button>
+                            ) : null}
+                          </motion.div>
+                        ) : null}
                       </motion.article>
                     )
                   })}

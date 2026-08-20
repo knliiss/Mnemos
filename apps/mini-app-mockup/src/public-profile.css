@@ -502,6 +502,7 @@
   display: grid;
   grid-template-rows: 22px 64px minmax(0, 1fr) auto;
   width: 100%;
+  min-height: 0;
   height: min(76dvh, 680px);
   max-height: calc(100dvh - 24px);
   overflow: hidden;
@@ -634,14 +635,18 @@
 }
 
 .public-profile-comments-sheet__scroll {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 10px 10px 14px;
+  overscroll-behavior-y: contain;
+  padding: 10px 10px 18px;
   scrollbar-width: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .public-profile-comments-sheet__scroll::-webkit-scrollbar {
@@ -652,7 +657,8 @@
   --comment-accent: #8c9386;
   --comment-accent-soft: rgba(140, 147, 134, 0.06);
   position: relative;
-  overflow: hidden;
+  flex: 0 0 auto;
+  overflow: visible;
   border: 1px solid rgba(225, 232, 208, 0.075);
   border-radius: 18px;
   background:
@@ -844,6 +850,15 @@
   background: #586055;
 }
 
+.public-profile-comment__actions,
+.public-profile-reply__actions {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
 .public-profile-comment__like,
 .public-profile-reply__like {
   display: grid;
@@ -870,10 +885,42 @@
   color: #c7f24a;
 }
 
+.public-profile-comment__delete,
+.public-profile-reply__delete {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  opacity: 0.5;
+  transition:
+    opacity 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.public-profile-comment__delete:hover,
+.public-profile-reply__delete:hover {
+  border-color: rgba(164, 122, 170, 0.17);
+  background: rgba(164, 122, 170, 0.045);
+  opacity: 1;
+}
+
+.public-profile-comment__delete img,
+.public-profile-reply__delete img {
+  width: 15px;
+  height: 15px;
+  image-rendering: pixelated;
+}
+
 .public-profile-replies {
   position: relative;
   display: grid;
   gap: 2px;
+  overflow: visible;
   margin: 0 9px 10px 55px;
   padding: 4px 0 0 15px;
   border-top: 1px solid rgba(225, 232, 208, 0.055);
@@ -902,6 +949,27 @@
 
 .public-profile-reply + .public-profile-reply {
   border-top: 1px solid rgba(225, 232, 208, 0.045);
+}
+
+.public-profile-replies__more {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 7px;
+  min-height: 28px;
+  margin: 2px 0 1px 42px;
+  padding: 0;
+  border: 0;
+  color: #7d8578;
+  background: transparent;
+  font-size: 7px;
+  font-weight: 670;
+}
+
+.public-profile-replies__more i {
+  width: 17px;
+  height: 1px;
+  background: #596156;
 }
 
 .public-profile-reply__body {
@@ -1075,7 +1143,7 @@
 
   .public-profile-comments-sheet {
     width: 100%;
-    height: min(86dvh, 760px);
+    height: min(76dvh, 680px);
     border-radius: 24px 24px 0 0;
   }
 
