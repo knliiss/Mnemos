@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { CristalixHead } from "../components/CristalixHead"
+import { CristalixHead } from "../components/profile/CristalixHead"
 import { useProductData } from "../data/ProductDataProvider"
 import type { Account, LocalizationLanguage, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
