@@ -2,6 +2,7 @@ import type { Route } from "../model"
 import { CreatorRevenue } from "./CreatorRevenue"
 import { CreatorStudio } from "./CreatorStudio"
 import "./creator.css"
+import "./creator-typography.css"
 import { CreatorEditor } from "./editor/CreatorEditor"
 
 type Props = {
