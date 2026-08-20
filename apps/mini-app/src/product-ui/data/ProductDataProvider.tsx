@@ -9,6 +9,9 @@ import { useApp } from "@/app/providers/AppProvider"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import type { EventFeedQuery } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { useAccountData } from "../account/data/useAccountData"
+import { useEventFeedData } from "../events/feed/useEventFeedData"
+import { useSubscriptionData } from "../events/subscriptions/useSubscriptionData"
 import type {
   Account,
   AccountRole,
@@ -19,9 +22,6 @@ import type {
   SystemRole,
 } from "../model"
 import { toProductAccount } from "./productMappers"
-import { useAccountData } from "./useAccountData"
-import { useEventFeedData } from "./useEventFeedData"
-import { useSubscriptionData } from "./useSubscriptionData"
 
 type ProductUser = {
   id: string
