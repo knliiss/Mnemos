@@ -11,6 +11,7 @@ data class CommentResponse(
     val replyToAuthorAccountId: UUID?,
     val content: String?,
     val deleted: Boolean,
+    val canEdit: Boolean,
     val canDelete: Boolean,
     val likes: Long,
     val replies: Long,
