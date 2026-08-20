@@ -9,6 +9,7 @@ import { initialStack, isRootRoute } from "../navigation/routeRegistry"
 import { localizationOptions, routeKey } from "./navigation"
 import { RootNavigation } from "./RootNavigation"
 import { RouteContent } from "./RouteContent"
+import "./shell.css"
 import { UserHubOverlay } from "./UserHubOverlay"
 import { UserHubTrigger } from "./UserHubTrigger"
 
