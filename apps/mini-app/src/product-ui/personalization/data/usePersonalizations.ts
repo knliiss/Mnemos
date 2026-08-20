@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   activatePersonalization,
@@ -29,6 +29,14 @@ type PersonalizationData = {
 
 type PurchaseStatus = "CONFIRMED" | "FAILED"
 
+type PendingPurchase = {
+  operationId: string
+  target: Personalization["target"]
+  scopeKey: string
+}
+
+type PendingPurchaseState = Record<string, PendingPurchase>
+
 const purchasePollAttempts = 15
 const purchasePollIntervalMs = 900
 
@@ -39,13 +47,36 @@ export function usePersonalizations(): PersonalizationData {
   const [items, setItems] = useState<Personalization[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [pendingPurchases, setPendingPurchases] = useState<Record<string, string>>({})
+  const [pendingPurchaseState, setPendingPurchaseState] = useState<PendingPurchaseState>({})
+  const requestRevision = useRef(0)
+  const pendingPurchaseStateRef = useRef<PendingPurchaseState>({})
 
   const userId = product.user.id
   const username = product.user.username
+  const activeAccountId = product.activeAccount?.id ?? null
   const refreshAccount = product.refreshAccount
+  const scopeKey = `${userId}:${activeAccountId ?? "none"}`
+  const scopeKeyRef = useRef(scopeKey)
+
+  scopeKeyRef.current = scopeKey
+
+  const updatePendingPurchases = useCallback(
+    (update: (current: PendingPurchaseState) => PendingPurchaseState) => {
+      setPendingPurchaseState((current) => {
+        const next = update(current)
+
+        pendingPurchaseStateRef.current = next
+        return next
+      })
+    },
+    [],
+  )
 
   const refresh = useCallback(async () => {
+    const requestedScopeKey = scopeKey
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
     setLoading(true)
 
     try {
@@ -76,6 +107,10 @@ export function usePersonalizations(): PersonalizationData {
         }
       }
 
+      if (revision !== requestRevision.current || scopeKeyRef.current !== requestedScopeKey) {
+        return
+      }
+
       const mappedItems = [...responsesById.values()].map((response) =>
         toProductPersonalization(
           response,
@@ -87,11 +122,15 @@ export function usePersonalizations(): PersonalizationData {
 
       setItems(mappedItems)
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current && scopeKeyRef.current === requestedScopeKey) {
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current && scopeKeyRef.current === requestedScopeKey) {
+        setLoading(false)
+      }
     }
-  }, [userId, username])
+  }, [scopeKey, userId, username])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -104,19 +143,32 @@ export function usePersonalizations(): PersonalizationData {
   const finishPurchase = useCallback(
     async (
       personalizationId: string,
+      operationId: string,
       status: PurchaseStatus,
       failureReason?: string | null,
     ) => {
-      setPendingPurchases((current) => {
+      const pending = pendingPurchaseStateRef.current[personalizationId]
+
+      if (!pending || pending.operationId !== operationId) {
+        return
+      }
+
+      updatePendingPurchases((current) => {
+        if (current[personalizationId]?.operationId !== operationId) {
+          return current
+        }
+
         const next = { ...current }
 
         delete next[personalizationId]
-
         return next
       })
 
       if (status === "CONFIRMED") {
-        await Promise.all([refresh(), refreshAccount()])
+        if (pending.target === "USER" || pending.scopeKey === scopeKeyRef.current) {
+          await Promise.all([refresh(), refreshAccount()])
+        }
+
         return
       }
 
@@ -126,17 +178,27 @@ export function usePersonalizations(): PersonalizationData {
         message: failureReason ?? t("personalization.purchaseFailed"),
       })
     },
-    [errors, refresh, refreshAccount, t],
+    [errors, refresh, refreshAccount, t, updatePendingPurchases],
   )
 
   useEffect(() => {
     return realtimeEvents.subscribe((event) => {
-      if (event.type !== "personalization.purchase.completed") {
+      if (
+        event.type !== "personalization.purchase.completed" ||
+        !event.operationId
+      ) {
+        return
+      }
+
+      const pending = pendingPurchaseStateRef.current[event.payload.personalizationId]
+
+      if (!pending || pending.operationId !== event.operationId) {
         return
       }
 
       void finishPurchase(
         event.payload.personalizationId,
+        event.operationId,
         event.payload.status,
         event.payload.failureReason,
       )
@@ -146,39 +208,75 @@ export function usePersonalizations(): PersonalizationData {
   const pollPurchase = useCallback(
     async (personalizationId: string, operationId: string) => {
       for (let attempt = 0; attempt < purchasePollAttempts; attempt += 1) {
+        const pending = pendingPurchaseStateRef.current[personalizationId]
+
+        if (!pending || pending.operationId !== operationId) {
+          return
+        }
+
         await new Promise((resolve) => window.setTimeout(resolve, purchasePollIntervalMs))
 
         try {
           const operation = await getPurchaseOperation(operationId)
+          const current = pendingPurchaseStateRef.current[personalizationId]
+
+          if (!current || current.operationId !== operationId) {
+            return
+          }
+
+          if (operation.ownerType === "ACCOUNT") {
+            const operationScopeKey = `${userId}:${operation.ownerId}`
+
+            if (current.scopeKey !== operationScopeKey) {
+              updatePendingPurchases((state) => ({
+                ...state,
+                [personalizationId]: {
+                  ...current,
+                  scopeKey: operationScopeKey,
+                },
+              }))
+            }
+          }
 
           if (operation.status === "PENDING") {
             continue
           }
 
-          await finishPurchase(personalizationId, operation.status, operation.failureReason)
+          await finishPurchase(
+            personalizationId,
+            operationId,
+            operation.status,
+            operation.failureReason,
+          )
           return
         } catch {
           // Realtime delivery is primary. Polling only covers reconnect races.
         }
       }
     },
-    [finishPurchase],
+    [finishPurchase, updatePendingPurchases, userId],
   )
 
   const purchase = useCallback(
     async (item: Personalization) => {
-      if (item.owned || pendingPurchases[item.id] || busyId) {
+      if (item.owned || pendingPurchaseStateRef.current[item.id] || busyId) {
         return
       }
+
+      const purchaseScopeKey = scopeKeyRef.current
 
       setBusyId(item.id)
 
       try {
         const operation = await purchasePersonalization(item.id)
 
-        setPendingPurchases((current) => ({
+        updatePendingPurchases((current) => ({
           ...current,
-          [item.id]: operation.operationId,
+          [item.id]: {
+            operationId: operation.operationId,
+            target: item.target,
+            scopeKey: purchaseScopeKey,
+          },
         }))
 
         void pollPurchase(item.id, operation.operationId)
@@ -188,7 +286,7 @@ export function usePersonalizations(): PersonalizationData {
         setBusyId(null)
       }
     },
-    [busyId, pendingPurchases, pollPurchase],
+    [busyId, pollPurchase, updatePendingPurchases],
   )
 
   const toggleActive = useCallback(
@@ -196,6 +294,8 @@ export function usePersonalizations(): PersonalizationData {
       if (!item.owned || busyId) {
         return
       }
+
+      const actionScopeKey = scopeKeyRef.current
 
       setBusyId(item.id)
 
@@ -206,7 +306,9 @@ export function usePersonalizations(): PersonalizationData {
           await activatePersonalization(item.id)
         }
 
-        await refresh()
+        if (item.target === "USER" || actionScopeKey === scopeKeyRef.current) {
+          await refresh()
+        }
       } catch (error) {
         handleError(error)
       } finally {
@@ -214,6 +316,18 @@ export function usePersonalizations(): PersonalizationData {
       }
     },
     [busyId, refresh],
+  )
+
+  const pendingPurchases = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(pendingPurchaseState)
+          .filter(
+            ([, pending]) => pending.target === "USER" || pending.scopeKey === scopeKey,
+          )
+          .map(([personalizationId, pending]) => [personalizationId, pending.operationId]),
+      ),
+    [pendingPurchaseState, scopeKey],
   )
 
   return {
