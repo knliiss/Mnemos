@@ -37,28 +37,34 @@ class CreateCommentService(
             }
 
         if (parent != null) {
-            if (parent.deleted) {
-                throw DeletedCommentOperationException(
-                    commentId = parent.id,
-                    operation = "replied to",
-                )
+            validateRootParent(
+                parent = parent,
+                targetAccountId = command.targetAccountId,
+            )
+        } else if (command.replyToCommentId != null) {
+            throw InvalidCommentReplyException(
+                parentCommentId = command.replyToCommentId,
+                targetAccountId = command.targetAccountId,
+                reason = "Reply target requires a root parent comment",
+            )
+        }
+
+        val replyTarget =
+            command.replyToCommentId?.let { id ->
+                if (parent?.id == id) {
+                    parent
+                } else {
+                    repository.findByIdForUpdate(id)
+                        ?: throw CommentNotFoundException(id)
+                }
             }
 
-            if (parent.targetAccountId != command.targetAccountId) {
-                throw InvalidCommentReplyException(
-                    parentCommentId = parent.id,
-                    targetAccountId = command.targetAccountId,
-                    reason = "Reply must target the same account as its parent",
-                )
-            }
-
-            if (parent.parentCommentId != null) {
-                throw InvalidCommentReplyException(
-                    parentCommentId = parent.id,
-                    targetAccountId = command.targetAccountId,
-                    reason = "Replies can only target root comments",
-                )
-            }
+        if (replyTarget != null && parent != null) {
+            validateReplyTarget(
+                parent = parent,
+                replyTarget = replyTarget,
+                targetAccountId = command.targetAccountId,
+            )
         }
 
         val now = clock.instant()
@@ -71,6 +77,7 @@ class CreateCommentService(
                     parentCommentId = parent?.id,
                     content = command.content,
                     now = now,
+                    replyToCommentId = replyTarget?.id,
                 ),
             )
 
@@ -81,5 +88,64 @@ class CreateCommentService(
         )
 
         return saved
+    }
+
+    private fun validateRootParent(
+        parent: Comment,
+        targetAccountId: java.util.UUID,
+    ) {
+        if (parent.deleted) {
+            throw DeletedCommentOperationException(
+                commentId = parent.id,
+                operation = "replied to",
+            )
+        }
+
+        if (parent.targetAccountId != targetAccountId) {
+            throw InvalidCommentReplyException(
+                parentCommentId = parent.id,
+                targetAccountId = targetAccountId,
+                reason = "Reply must target the same account as its parent",
+            )
+        }
+
+        if (parent.parentCommentId != null) {
+            throw InvalidCommentReplyException(
+                parentCommentId = parent.id,
+                targetAccountId = targetAccountId,
+                reason = "parentCommentId must reference the root comment",
+            )
+        }
+    }
+
+    private fun validateReplyTarget(
+        parent: Comment,
+        replyTarget: Comment,
+        targetAccountId: java.util.UUID,
+    ) {
+        if (replyTarget.deleted) {
+            throw DeletedCommentOperationException(
+                commentId = replyTarget.id,
+                operation = "replied to",
+            )
+        }
+
+        if (replyTarget.targetAccountId != targetAccountId) {
+            throw InvalidCommentReplyException(
+                parentCommentId = parent.id,
+                targetAccountId = targetAccountId,
+                reason = "Reply target must belong to the same account",
+            )
+        }
+
+        val belongsToThread = replyTarget.id == parent.id || replyTarget.parentCommentId == parent.id
+
+        if (!belongsToThread) {
+            throw InvalidCommentReplyException(
+                parentCommentId = parent.id,
+                targetAccountId = targetAccountId,
+                reason = "Reply target must belong to the same root thread",
+            )
+        }
     }
 }
