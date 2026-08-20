@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react"
 import type { Account, Route } from "../../model"
 import { FeatureLoading } from "../FeatureLoading"
 import { NotFoundFeature } from "../NotFoundFeature"
+import "./events.css"
 
 type Props = {
   routeId: Route["id"]
