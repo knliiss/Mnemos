@@ -48,7 +48,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
 
   return (
     <div className="screen account-home-screen root-screen">
-      <motion.button type="button"
+      <motion.button
+        type="button"
         className="account-home-profile"
         whileTap={{ scale: 0.992 }}
         onClick={() => navigate({ id: "public-profile", params: { accountId: activeAccount.id } })}
@@ -78,7 +79,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
       <AccountDailyReward />
 
       <section className="account-home-feature-grid">
-        <motion.button type="button"
+        <motion.button
+          type="button"
           className="account-home-wallet"
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate({ id: "account-wallet" })}
@@ -94,7 +96,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
         </motion.button>
 
-        <motion.button type="button"
+        <motion.button
+          type="button"
           className="account-home-personalization"
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
@@ -109,7 +112,11 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
       </section>
 
       <nav className="account-home-actions" aria-label={t("accountHome.managementAria")}>
-        <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={() => navigate({ id: "roles" })}>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate({ id: "roles" })}
+        >
           <RoleSigil color="#A985A8" size={27} compact />
           <span>
             <strong>{t("accountHome.roles")}</strong>
@@ -117,7 +124,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           </span>
         </motion.button>
 
-        <motion.button type="button"
+        <motion.button
+          type="button"
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-invites" })}
         >
@@ -130,7 +138,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           </span>
         </motion.button>
 
-        <motion.button type="button"
+        <motion.button
+          type="button"
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-settings" })}
         >
@@ -165,7 +174,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
             return (
-              <motion.button type="button"
+              <motion.button
+                type="button"
                 className="account-home-member"
                 key={member.id}
                 whileTap={{ scale: 0.992 }}
@@ -226,7 +236,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
               const tone = eventVisualTone(drop)
 
               return (
-                <motion.button type="button"
+                <motion.button
+                  type="button"
                   className={`account-home-drop event-surface--${tone}`}
                   key={drop.id}
                   whileTap={{ scale: 0.992 }}
