@@ -12,6 +12,7 @@ import type {
   ProfileThemeContent,
 } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./personalization-preview.css"
 
 type PreviewProps = {
   item: Personalization
