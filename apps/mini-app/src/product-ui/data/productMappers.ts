@@ -3,8 +3,8 @@ import type {
   AccountRoleResponse,
   AccountSummaryResponse,
   EventFeedItemResponse,
-  SubscriptionResponse,
 } from "@/shared/api/backendContracts"
+import type { SubscriptionResponse } from "@/shared/api/subscriptionContracts"
 import type {
   Account,
   AccountRole,
@@ -104,47 +104,43 @@ export function toProductFeedEvent(event: EventFeedItemResponse): FeedEvent {
   }
 }
 
-export function toProductSubscription(subscription: SubscriptionResponse): Subscription | null {
+export function toProductSubscription(subscription: SubscriptionResponse): Subscription {
   if (subscription.type === "ITEM_DROP") {
     return {
       id: subscription.id,
       type: "ITEM_DROP",
-      droppedFor: subscription.droppedFor ?? undefined,
-      itemName: subscription.itemName ?? undefined,
+      droppedFor: subscription.details.droppedFor ?? undefined,
+      itemName: subscription.details.itemName ?? undefined,
     }
   }
 
-  if (subscription.type === "BOOSTER" && subscription.boosterType) {
+  if (subscription.type === "BOOSTER") {
     return {
       id: subscription.id,
       type: "BOOSTER",
-      boosterType: subscription.boosterType,
+      boosterType: subscription.details.boosterType,
     }
   }
 
-  if (subscription.type === "DUNGEON" && subscription.dungeonType) {
+  if (subscription.type === "DUNGEON") {
     return {
       id: subscription.id,
       type: "DUNGEON",
-      dungeonType: subscription.dungeonType,
+      dungeonType: subscription.details.dungeonType,
     }
   }
 
-  if (subscription.type === "GLOBAL" && subscription.eventType) {
+  if (subscription.type === "GLOBAL") {
     return {
       id: subscription.id,
       type: "GLOBAL",
-      eventType: subscription.eventType,
+      eventType: subscription.details.eventType,
     }
   }
 
-  if (subscription.type === "RAID") {
-    return {
-      id: subscription.id,
-      type: "RAID",
-      locations: subscription.locations ?? [],
-    }
+  return {
+    id: subscription.id,
+    type: "RAID",
+    locations: subscription.details.locations,
   }
-
-  return null
 }
