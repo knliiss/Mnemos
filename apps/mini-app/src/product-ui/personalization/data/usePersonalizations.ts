@@ -41,6 +41,10 @@ export function usePersonalizations(): PersonalizationData {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [pendingPurchases, setPendingPurchases] = useState<Record<string, string>>({})
 
+  const userId = product.user.id
+  const username = product.user.username
+  const refreshAccount = product.refreshAccount
+
   const refresh = useCallback(async () => {
     setLoading(true)
 
@@ -76,8 +80,8 @@ export function usePersonalizations(): PersonalizationData {
         toProductPersonalization(
           response,
           ownedById.get(response.id) ?? null,
-          product.user.id,
-          product.user.username,
+          userId,
+          username,
         ),
       )
 
@@ -87,7 +91,7 @@ export function usePersonalizations(): PersonalizationData {
     } finally {
       setLoading(false)
     }
-  }, [product.user.id, product.user.username])
+  }, [userId, username])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -112,7 +116,7 @@ export function usePersonalizations(): PersonalizationData {
       })
 
       if (status === "CONFIRMED") {
-        await Promise.all([refresh(), product.refreshAccount()])
+        await Promise.all([refresh(), refreshAccount()])
         return
       }
 
@@ -122,7 +126,7 @@ export function usePersonalizations(): PersonalizationData {
         message: failureReason ?? t("personalization.purchaseFailed"),
       })
     },
-    [errors, product, refresh, t],
+    [errors, refresh, refreshAccount, t],
   )
 
   useEffect(() => {
