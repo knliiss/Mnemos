@@ -11,25 +11,25 @@ type Props = {
 }
 
 const BadgeAdmin = lazy(() =>
-  import("./BadgeAdmin").then((module) => ({
+  import("./badges/BadgeAdmin").then((module) => ({
     default: module.BadgeAdmin,
   })),
 )
 
 const BetAdmin = lazy(() =>
-  import("./BetAdmin").then((module) => ({
+  import("./bets/BetAdmin").then((module) => ({
     default: module.BetAdmin,
   })),
 )
 
 const ModerationUser = lazy(() =>
-  import("./ModerationFeature").then((module) => ({
+  import("./moderation/ModerationFeature").then((module) => ({
     default: module.ModerationUser,
   })),
 )
 
 const PersonalizationReview = lazy(() =>
-  import("./PersonalizationReview").then((module) => ({
+  import("./personalization/PersonalizationReview").then((module) => ({
     default: module.PersonalizationReview,
   })),
 )

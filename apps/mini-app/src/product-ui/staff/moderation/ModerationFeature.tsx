@@ -14,11 +14,11 @@ import {
   type WalletAdjustmentResponse,
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { SANCTION_TYPES, TRANSACTION_TYPES } from "../contracts"
-import { useProductData } from "../data/ProductDataProvider"
-import type { Route, SanctionType, TransactionType, WalletOwnerType } from "../model"
-import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { ChoiceGrid, Field, PageHeader, Section, Segmented } from "../shared/Primitives"
+import { SANCTION_TYPES, TRANSACTION_TYPES } from "../../contracts"
+import { useProductData } from "../../data/ProductDataProvider"
+import type { Route, SanctionType, TransactionType, WalletOwnerType } from "../../model"
+import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
+import { ChoiceGrid, Field, PageHeader, Section, Segmented } from "../../shared/Primitives"
 
 type HomeProps = {
   navigate: (route: Route) => void
@@ -192,6 +192,7 @@ export function ModerationUser({ params, back }: UserProps) {
     if (!userId) {
       return
     }
+
     setSanctions(await listSanctions(userId))
   }, [userId])
 
@@ -259,6 +260,7 @@ export function ModerationUser({ params, back }: UserProps) {
     if (busy) {
       return
     }
+
     setBusy(true)
 
     try {
@@ -421,7 +423,7 @@ export function ModerationUser({ params, back }: UserProps) {
       </section>
 
       <Section title={t("moderation.sanctions")}>
-        <div className="sanction-list sanction-list">
+        <div className="sanction-list">
           {sanctions.map((sanction) => (
             <article
               key={sanction.id}
@@ -452,7 +454,7 @@ export function ModerationUser({ params, back }: UserProps) {
       </Section>
 
       {sanctionFormOpen ? (
-        <section className="moderation-form moderation-form">
+        <section className="moderation-form">
           <div className="section__head">
             <h2>{t("moderation.newSanction")}</h2>
             <button aria-label={t("moderation.close")} onClick={() => setSanctionFormOpen(false)}>

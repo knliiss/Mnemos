@@ -4,9 +4,9 @@ import { listAdminBadges } from "@/shared/api/badgeAdminApi"
 import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import type { Route } from "../model"
-import { Glyph } from "../shared/MnemosIcon"
-import { PageHeader } from "../shared/Primitives"
+import type { Route } from "../../model"
+import { Glyph } from "../../shared/MnemosIcon"
+import { PageHeader } from "../../shared/Primitives"
 
 type AdminStats = {
   review: number

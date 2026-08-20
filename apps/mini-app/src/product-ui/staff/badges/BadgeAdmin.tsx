@@ -11,8 +11,8 @@ import {
 } from "@/shared/api/badgeAdminApi"
 import { searchIdentities, type IdentitySearchResponse } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { Glyph } from "../shared/MnemosIcon"
-import { Field, PageHeader } from "../shared/Primitives"
+import { Glyph } from "../../shared/MnemosIcon"
+import { Field, PageHeader } from "../../shared/Primitives"
 
 export function BadgeAdmin({ back }: { back: () => void }) {
   const { t } = useTranslation()

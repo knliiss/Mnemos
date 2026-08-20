@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react"
-import type { Route } from "../model"
-import { FeatureLoading } from "../system/FeatureLoading"
+import type { Route } from "../../model"
+import { FeatureLoading } from "../../system/FeatureLoading"
 
 type Props = {
   navigate: (route: Route) => void

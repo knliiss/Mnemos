@@ -9,11 +9,11 @@ import {
 } from "@/shared/api/betApi"
 import { cancelItemRace, createItemRace, resolveEventBetRound } from "@/shared/api/betAdminApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { GlobalEventArt, ItemTypeArt } from "../components/EventArt"
-import { BET_ITEM_TYPES, EVENT_BET_OUTCOMES } from "../contracts"
-import type { BetGlobalEventType, BetItemType, Route } from "../model"
-import { Glyph } from "../shared/MnemosIcon"
-import { CurrencyValue, Field, PageHeader } from "../shared/Primitives"
+import { GlobalEventArt, ItemTypeArt } from "../../components/events/EventArt"
+import { BET_ITEM_TYPES, EVENT_BET_OUTCOMES } from "../../contracts"
+import type { BetGlobalEventType, BetItemType, Route } from "../../model"
+import { Glyph } from "../../shared/MnemosIcon"
+import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 
 type Props = {
   params?: Record<string, string>

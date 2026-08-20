@@ -9,12 +9,12 @@ import { handleError } from "@/shared/errors/errorHandler"
 import {
   PersonalizationDetails,
   PersonalizationVisual,
-} from "../components/personalization/PersonalizationPreview"
-import { useProductData } from "../data/ProductDataProvider"
-import { toProductPersonalization } from "../data/personalizationMappers"
-import type { Personalization, PersonalizationTarget } from "../model"
-import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { CurrencyValue, Field, PageHeader } from "../shared/Primitives"
+} from "../../components/personalization/PersonalizationPreview"
+import { useProductData } from "../../data/ProductDataProvider"
+import { toProductPersonalization } from "../../data/personalizationMappers"
+import type { Personalization, PersonalizationTarget } from "../../model"
+import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
+import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 
 type ReviewScope = "ALL" | PersonalizationTarget
 
