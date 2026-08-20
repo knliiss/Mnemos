@@ -278,7 +278,8 @@ export function CreatorEditor({ params, back }: Props) {
 
       <section className="creator-type-picker">
         {creatorTypeOrder.map((value) => (
-          <button type="button"
+          <button
+            type="button"
             key={value}
             disabled={!editable || Boolean(currentSource)}
             className={form.type === value ? "is-active" : ""}
@@ -392,7 +393,8 @@ export function CreatorEditor({ params, back }: Props) {
           ) : (
             <div className="creator-currency-switch">
               {(["COIN", "PRIME"] as Currency[]).map((value) => (
-                <button type="button"
+                <button
+                  type="button"
                   key={value}
                   disabled={!editable}
                   className={form.currency === value ? "is-active" : ""}
@@ -434,16 +436,28 @@ export function CreatorEditor({ params, back }: Props) {
             <button type="button" disabled={!valid || busy} onClick={() => void saveAndBack()}>
               {busy ? t("creator.editor.saving") : t("creator.editor.save")}
             </button>
-            <button type="button" className="is-primary" disabled={!valid || busy} onClick={() => void submit()}>
+            <button
+              type="button"
+              className="is-primary"
+              disabled={!valid || busy}
+              onClick={() => void submit()}
+            >
               {busy ? t("creator.editor.submitting") : t("creator.editor.submit")}
             </button>
           </>
         ) : currentSource?.status === "APPROVED" ? (
-          <button type="button" className="is-primary" disabled={busy} onClick={() => void publish()}>
+          <button
+            type="button"
+            className="is-primary"
+            disabled={busy}
+            onClick={() => void publish()}
+          >
             {busy ? t("creator.editor.publishing") : t("creator.editor.publish")}
           </button>
         ) : (
-          <button type="button" disabled>{t("creator.editor.editingUnavailable")}</button>
+          <button type="button" disabled>
+            {t("creator.editor.editingUnavailable")}
+          </button>
         )}
       </div>
     </div>
