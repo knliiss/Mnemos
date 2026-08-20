@@ -1,0 +1,259 @@
+name: Apply public profile thread fix
+
+on:
+  push:
+    branches:
+      - feat/frontend-integration
+    paths:
+      - ".github/workflows/apply-public-profile-thread-fix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/frontend-integration
+
+      - name: Patch public profile comments
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("apps/mini-app-mockup")
+          feature = root / "src/features/PublicProfileRethink.tsx"
+          model = root / "src/model.ts"
+          mock = root / "src/mockData.ts"
+          css = root / "src/public-profile.css"
+          main = root / "src/main.tsx"
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
+              return text.replace(old, new, 1)
+
+          model_text = model.read_text()
+          model_text = replace_once(
+              model_text,
+              'export type ProfileComment = { id: string; authorAccountId: string; author: string; content: string; likes: number; replies: number; createdAt: string; liked: boolean; pending?: boolean; failed?: boolean }',
+              'export type ProfileComment = { id: string; authorAccountId: string; author: string; content: string; likes: number; replies: number; createdAt: string; liked: boolean; createdByUserId?: string; pending?: boolean; failed?: boolean }',
+              "ProfileComment ownership",
+          )
+          model.write_text(model_text)
+
+          mock_text = mock.read_text()
+          mock_text = replace_once(
+              mock_text,
+              '{ id: "comment-1", authorAccountId: "profile-north", author: "north", content: "Останній дроп виглядає сильно.", likes: 14, replies: 2, createdAt: "18 хв", liked: false },',
+              '{ id: "comment-1", authorAccountId: "profile-north", author: "north", content: "Останній дроп виглядає сильно.", likes: 14, replies: 2, createdAt: "18 хв", liked: false, createdByUserId: "0198f6ce-e934-7000-8000-000000000031" },',
+              "north comment owner",
+          )
+          mock_text = replace_once(
+              mock_text,
+              '{ id: "comment-2", authorAccountId: "profile-vex", author: "vex", content: "Міфік за один вечір — це вже статистика.", likes: 8, replies: 0, createdAt: "1 год", liked: true },',
+              '{ id: "comment-2", authorAccountId: "profile-vex", author: "vex", content: "Міфік за один вечір — це вже статистика.", likes: 8, replies: 0, createdAt: "1 год", liked: true, createdByUserId: "0198f6ce-e934-7000-8000-000000000032" },',
+              "vex comment owner",
+          )
+          mock.write_text(mock_text)
+
+          feature_text = feature.read_text()
+          feature_text = replace_once(
+              feature_text,
+              'import { feed, initialComments, profiles } from "../mockData"',
+              'import { currentUser, feed, initialComments, profiles } from "../mockData"',
+              "currentUser import",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '  authorAccountId: string\n  author: string\n  content: string',
+              '  authorAccountId: string\n  author: string\n  createdByUserId: string\n  content: string',
+              "reply owner type",
+          )
+          feature_text = replace_once(
+              feature_text,
+              'type CommentTone = "lime" | "plum" | "amber"\n',
+              'type CommentTone = "lime" | "plum" | "amber"\n\nconst REPLY_BATCH_SIZE = 3\n',
+              "reply batch constant",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '    authorAccountId: "profile-vex",\n    author: "vex",\n    content:',
+              '    authorAccountId: "profile-vex",\n    author: "vex",\n    createdByUserId: "0198f6ce-e934-7000-8000-000000000033",\n    content:',
+              "first reply owner",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '    authorAccountId: "profile-north",\n    author: "north",\n    content:',
+              '    authorAccountId: "profile-north",\n    author: "north",\n    createdByUserId: "0198f6ce-e934-7000-8000-000000000034",\n    content:',
+              "second reply owner",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())\n  const [replies, setReplies] = useState<ProfileReply[]>(initialReplies)\n  const composerInputRef = useRef<HTMLInputElement>(null)\n  const dragControls = useDragControls()',
+              '  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())\n  const [visibleReplyCounts, setVisibleReplyCounts] = useState<Record<string, number>>({})\n  const [replies, setReplies] = useState<ProfileReply[]>(initialReplies)\n  const composerInputRef = useRef<HTMLInputElement>(null)\n  const commentsScrollRef = useRef<HTMLDivElement>(null)\n  const dragControls = useDragControls()',
+              "thread state",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '      authorAccountId: activeAccount.id,\n      author: activeAccount.nickname,\n      content: "Перевірив — профіль виглядає нормально.",',
+              '      authorAccountId: activeAccount.id,\n      author: activeAccount.nickname,\n      createdByUserId: currentUser.id,\n      content: "Перевірив — профіль виглядає нормально.",',
+              "own comment owner",
+          )
+
+          old_new_reply = '''        {\n          id: `reply-${Date.now()}`,\n          parentCommentId: parentId,\n          replyToAuthor: replyingTo.author,\n          authorAccountId: activeAccount.id,\n          author: activeAccount.nickname,\n          content,\n          likes: 0,\n          createdAt: "зараз",\n          liked: false,\n        },'''
+          new_new_reply = '''        {\n          id: `reply-${Date.now()}`,\n          parentCommentId: parentId,\n          replyToAuthor: replyingTo.author,\n          authorAccountId: activeAccount.id,\n          author: activeAccount.nickname,\n          createdByUserId: currentUser.id,\n          content,\n          likes: 0,\n          createdAt: "зараз",\n          liked: false,\n        },'''
+          feature_text = replace_once(feature_text, old_new_reply, new_new_reply, "new reply owner")
+          feature_text = replace_once(
+              feature_text,
+              '      setExpandedReplies((current) => new Set(current).add(parentId))\n      setReplyingTo(null)',
+              '      setExpandedReplies((current) => new Set(current).add(parentId))\n      setVisibleReplyCounts((current) => ({\n        ...current,\n        [parentId]: replies.filter((reply) => reply.parentCommentId === parentId).length + 1,\n      }))\n      setReplyingTo(null)',
+              "new reply visibility",
+          )
+
+          old_new_comment = '''        {\n          id: `comment-${Date.now()}`,\n          authorAccountId: activeAccount.id,\n          author: activeAccount.nickname,\n          content,\n          likes: 0,\n          replies: 0,\n          createdAt: "зараз",\n          liked: false,\n        },'''
+          new_new_comment = '''        {\n          id: `comment-${Date.now()}`,\n          authorAccountId: activeAccount.id,\n          author: activeAccount.nickname,\n          createdByUserId: currentUser.id,\n          content,\n          likes: 0,\n          replies: 0,\n          createdAt: "зараз",\n          liked: false,\n        },'''
+          feature_text = replace_once(feature_text, old_new_comment, new_new_comment, "new comment owner")
+
+          old_toggle = '''  const toggleReplies = (commentId: string) => {\n    setExpandedReplies((current) => {\n      const next = new Set(current)\n\n      if (next.has(commentId)) {\n        next.delete(commentId)\n      } else {\n        next.add(commentId)\n      }\n\n      return next\n    })\n  }\n'''
+          new_toggle = '''  const toggleReplies = (commentId: string) => {\n    const opening = !expandedReplies.has(commentId)\n\n    setExpandedReplies((current) => {\n      const next = new Set(current)\n\n      if (next.has(commentId)) {\n        next.delete(commentId)\n      } else {\n        next.add(commentId)\n      }\n\n      return next\n    })\n\n    if (opening) {\n      setVisibleReplyCounts((current) => ({\n        ...current,\n        [commentId]: current[commentId] ?? REPLY_BATCH_SIZE,\n      }))\n    }\n  }\n\n  const showMoreReplies = (commentId: string) => {\n    setVisibleReplyCounts((current) => ({\n      ...current,\n      [commentId]: (current[commentId] ?? REPLY_BATCH_SIZE) + REPLY_BATCH_SIZE,\n    }))\n  }\n\n  const deleteComment = (commentId: string) => {\n    const comment = comments.find((item) => item.id === commentId)\n\n    if (!comment || comment.createdByUserId !== currentUser.id) {\n      return\n    }\n\n    setComments((current) => current.filter((item) => item.id !== commentId))\n    setReplies((current) => current.filter((reply) => reply.parentCommentId !== commentId))\n    setExpandedReplies((current) => {\n      const next = new Set(current)\n      next.delete(commentId)\n      return next\n    })\n    setVisibleReplyCounts((current) => {\n      const next = { ...current }\n      delete next[commentId]\n      return next\n    })\n\n    if (replyingTo?.rootCommentId === commentId) {\n      setReplyingTo(null)\n    }\n  }\n\n  const deleteReply = (replyId: string) => {\n    const reply = replies.find((item) => item.id === replyId)\n\n    if (!reply || reply.createdByUserId !== currentUser.id) {\n      return\n    }\n\n    setReplies((current) => current.filter((item) => item.id !== replyId))\n  }\n'''
+          feature_text = replace_once(feature_text, old_toggle, new_toggle, "thread actions")
+
+          feature_text = replace_once(
+              feature_text,
+              '              <div className="public-profile-comments-sheet__scroll">',
+              '              <div ref={commentsScrollRef} className="public-profile-comments-sheet__scroll">',
+              "scroll ref",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '                    const repliesExpanded = expandedReplies.has(comment.id)\n',
+              '                    const repliesExpanded = expandedReplies.has(comment.id)\n                    const visibleReplyCount =\n                      visibleReplyCounts[comment.id] ?? REPLY_BATCH_SIZE\n                    const visibleReplies = commentReplies.slice(0, visibleReplyCount)\n                    const hiddenReplyCount = commentReplies.length - visibleReplies.length\n',
+              "visible replies",
+          )
+          feature_text = replace_once(
+              feature_text,
+              '                        layout\n                        key={comment.id}',
+              '                        layout="position"\n                        id={`profile-thread-${comment.id}`}\n                        key={comment.id}',
+              "thread layout",
+          )
+
+          old_root_like = '''                          <button\n                            type="button"\n                            className={`public-profile-comment__like ${comment.liked ? "is-active" : ""}`}\n                            onClick={() => toggleCommentLike(comment.id)}\n                            aria-label={comment.liked ? "Прибрати лайк" : "Поставити лайк"}\n                          >\n                            <Glyph name="like" size={15} />\n                            <span>{comment.likes || ""}</span>\n                          </button>'''
+          new_root_like = '''                          <div className="public-profile-comment__actions">\n                            <button\n                              type="button"\n                              className={`public-profile-comment__like ${comment.liked ? "is-active" : ""}`}\n                              onClick={() => toggleCommentLike(comment.id)}\n                              aria-label={comment.liked ? "Прибрати лайк" : "Поставити лайк"}\n                            >\n                              <Glyph name="like" size={15} />\n                              <span>{comment.likes || ""}</span>\n                            </button>\n\n                            {comment.createdByUserId === currentUser.id ? (\n                              <button\n                                type="button"\n                                className="public-profile-comment__delete"\n                                onClick={() => deleteComment(comment.id)}\n                                aria-label="Видалити свій коментар"\n                              >\n                                <img src="/ui-illustrations/mnemos-trash.svg" alt="" />\n                              </button>\n                            ) : null}\n                          </div>'''
+          feature_text = replace_once(feature_text, old_root_like, new_root_like, "root actions")
+
+          old_replies_open = '''                        <AnimatePresence initial={false}>\n                          {repliesExpanded ? (\n                            <motion.div\n                              className="public-profile-replies"\n                              initial={{ opacity: 0, height: 0 }}\n                              animate={{ opacity: 1, height: "auto" }}\n                              exit={{ opacity: 0, height: 0 }}\n                            >\n                              {commentReplies.map((reply) => ('''
+          new_replies_open = '''                        {repliesExpanded ? (\n                          <motion.div\n                            className="public-profile-replies"\n                            initial={{ opacity: 0, y: -4 }}\n                            animate={{ opacity: 1, y: 0 }}\n                            transition={{ duration: 0.16 }}\n                          >\n                            {visibleReplies.map((reply) => ('''
+          feature_text = replace_once(feature_text, old_replies_open, new_replies_open, "stable replies opening")
+
+          old_reply_like = '''                                  <button\n                                    type="button"\n                                    className={`public-profile-reply__like ${reply.liked ? "is-active" : ""}`}\n                                    onClick={() => toggleReplyLike(reply.id)}\n                                    aria-label={reply.liked ? "Прибрати лайк" : "Поставити лайк"}\n                                  >\n                                    <Glyph name="like" size={12} />\n                                    <span>{reply.likes || ""}</span>\n                                  </button>'''
+          new_reply_like = '''                                  <div className="public-profile-reply__actions">\n                                    <button\n                                      type="button"\n                                      className={`public-profile-reply__like ${reply.liked ? "is-active" : ""}`}\n                                      onClick={() => toggleReplyLike(reply.id)}\n                                      aria-label={reply.liked ? "Прибрати лайк" : "Поставити лайк"}\n                                    >\n                                      <Glyph name="like" size={12} />\n                                      <span>{reply.likes || ""}</span>\n                                    </button>\n\n                                    {reply.createdByUserId === currentUser.id ? (\n                                      <button\n                                        type="button"\n                                        className="public-profile-reply__delete"\n                                        onClick={() => deleteReply(reply.id)}\n                                        aria-label="Видалити свою відповідь"\n                                      >\n                                        <img src="/ui-illustrations/mnemos-trash.svg" alt="" />\n                                      </button>\n                                    ) : null}\n                                  </div>'''
+          feature_text = replace_once(feature_text, old_reply_like, new_reply_like, "reply actions")
+
+          old_replies_close = '''                              ))}\n                            </motion.div>\n                          ) : null}\n                        </AnimatePresence>'''
+          new_replies_close = '''                            ))}\n\n                            {hiddenReplyCount > 0 ? (\n                              <button\n                                type="button"\n                                className="public-profile-replies__more"\n                                onClick={() => showMoreReplies(comment.id)}\n                              >\n                                <i />\n                                Показати ще {Math.min(hiddenReplyCount, REPLY_BATCH_SIZE)}\n                              </button>\n                            ) : null}\n                          </motion.div>\n                        ) : null}'''
+          feature_text = replace_once(feature_text, old_replies_close, new_replies_close, "stable replies closing")
+
+          feature.write_text(feature_text)
+
+          css_text = css.read_text()
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-comments-sheet {\n  position: relative;\n  display: grid;\n  grid-template-rows: 22px 64px minmax(0, 1fr) auto;\n  width: 100%;\n  height: min(76dvh, 680px);''',
+              '''.public-profile-comments-sheet {\n  position: relative;\n  display: grid;\n  grid-template-rows: 22px 64px minmax(0, 1fr) auto;\n  width: 100%;\n  min-height: 0;\n  height: min(76dvh, 680px);''',
+              "sheet min height",
+          )
+          old_scroll = '''.public-profile-comments-sheet__scroll {\n  display: grid;\n  align-content: start;\n  gap: 8px;\n  min-height: 0;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n  padding: 10px 10px 14px;\n  scrollbar-width: none;\n}'''
+          new_scroll = '''.public-profile-comments-sheet__scroll {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  min-height: 0;\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n  overscroll-behavior-y: contain;\n  padding: 10px 10px 18px;\n  scrollbar-width: none;\n  touch-action: pan-y;\n  -webkit-overflow-scrolling: touch;\n}'''
+          css_text = replace_once(css_text, old_scroll, new_scroll, "scroll container")
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-thread {\n  --comment-accent: #8c9386;\n  --comment-accent-soft: rgba(140, 147, 134, 0.06);\n  position: relative;\n  overflow: hidden;''',
+              '''.public-profile-thread {\n  --comment-accent: #8c9386;\n  --comment-accent-soft: rgba(140, 147, 134, 0.06);\n  position: relative;\n  flex: 0 0 auto;\n  overflow: visible;''',
+              "thread sizing",
+          )
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-comment__like,\n.public-profile-reply__like {\n  display: grid;''',
+              '''.public-profile-comment__actions,\n.public-profile-reply__actions {\n  display: grid;\n  justify-items: center;\n  align-content: start;\n  gap: 2px;\n  min-width: 0;\n}\n\n.public-profile-comment__like,\n.public-profile-reply__like {\n  display: grid;''',
+              "action columns",
+          )
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-comment__like.is-active,\n.public-profile-reply__like.is-active {\n  color: #c7f24a;\n}\n''',
+              '''.public-profile-comment__like.is-active,\n.public-profile-reply__like.is-active {\n  color: #c7f24a;\n}\n\n.public-profile-comment__delete,\n.public-profile-reply__delete {\n  display: grid;\n  place-items: center;\n  width: 24px;\n  height: 24px;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 8px;\n  background: transparent;\n  opacity: 0.5;\n  transition:\n    opacity 0.16s ease,\n    border-color 0.16s ease,\n    background 0.16s ease;\n}\n\n.public-profile-comment__delete:hover,\n.public-profile-reply__delete:hover {\n  border-color: rgba(164, 122, 170, 0.17);\n  background: rgba(164, 122, 170, 0.045);\n  opacity: 1;\n}\n\n.public-profile-comment__delete img,\n.public-profile-reply__delete img {\n  width: 15px;\n  height: 15px;\n  image-rendering: pixelated;\n}\n''',
+              "trash action styles",
+          )
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-replies {\n  position: relative;\n  display: grid;\n  gap: 2px;''',
+              '''.public-profile-replies {\n  position: relative;\n  display: grid;\n  gap: 2px;\n  overflow: visible;''',
+              "reply overflow",
+          )
+          css_text = replace_once(
+              css_text,
+              '''.public-profile-reply + .public-profile-reply {\n  border-top: 1px solid rgba(225, 232, 208, 0.045);\n}\n''',
+              '''.public-profile-reply + .public-profile-reply {\n  border-top: 1px solid rgba(225, 232, 208, 0.045);\n}\n\n.public-profile-replies__more {\n  display: inline-flex;\n  align-items: center;\n  justify-self: start;\n  gap: 7px;\n  min-height: 28px;\n  margin: 2px 0 1px 42px;\n  padding: 0;\n  border: 0;\n  color: #7d8578;\n  background: transparent;\n  font-size: 7px;\n  font-weight: 670;\n}\n\n.public-profile-replies__more i {\n  width: 17px;\n  height: 1px;\n  background: #596156;\n}\n''',
+              "reply paging",
+          )
+          css_text = replace_once(
+              css_text,
+              '''  .public-profile-comments-sheet {\n    width: 100%;\n    height: min(86dvh, 760px);\n    border-radius: 24px 24px 0 0;\n  }''',
+              '''  .public-profile-comments-sheet {\n    width: 100%;\n    height: min(76dvh, 680px);\n    border-radius: 24px 24px 0 0;\n  }''',
+              "mobile sheet height",
+          )
+          css.write_text(css_text)
+
+          main_text = main.read_text()
+          anchor = '  "/ui-illustrations/mnemos-comments.svg",\n'
+          trash = '  "/ui-illustrations/mnemos-trash.svg",\n'
+          if trash not in main_text:
+              if anchor not in main_text:
+                  raise SystemExit("comments preload anchor missing")
+              main_text = main_text.replace(anchor, anchor + trash, 1)
+          main.write_text(main_text)
+          PY
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build mockup
+        working-directory: apps/mini-app-mockup
+        run: |
+          npm install
+          npm run build
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            apps/mini-app-mockup/src/features/PublicProfileRethink.tsx \
+            apps/mini-app-mockup/src/model.ts \
+            apps/mini-app-mockup/src/mockData.ts \
+            apps/mini-app-mockup/src/public-profile.css \
+            apps/mini-app-mockup/src/main.tsx
+
+          git diff --cached --check
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "fix public profile comment threads"
+          git push origin HEAD:feat/frontend-integration
