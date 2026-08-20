@@ -1,5 +1,5 @@
-export const betsProductRu = {
-  productBets: {
+export const betsRu = {
+  bets: {
     eyebrow: "СТАВКИ MNEMOS",
     title: "Ставки",
     balance: "Баланс",
