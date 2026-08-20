@@ -46,6 +46,7 @@ export const eventsProductEn = {
       newest: "Newest first",
       oldest: "Oldest first",
       loading: "Loading events",
+      loadMore: "Load more",
       latest: "LATEST",
       oldestFeatured: "OLDEST",
       stream: "FEED",
