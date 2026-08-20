@@ -42,8 +42,10 @@ object CommentApiMapper {
     fun PageResult<CommentView>.toResponse(currentUserId: UUID): PageResponse<CommentResponse> =
         toPageResponse { view -> view.toResponse(currentUserId) }
 
-    fun CommentView.toResponse(currentUserId: UUID): CommentResponse =
-        CommentResponse(
+    fun CommentView.toResponse(currentUserId: UUID): CommentResponse {
+        val isAuthor = authorUserId == currentUserId
+
+        return CommentResponse(
             id = id.id,
             targetAccountId = targetAccountId,
             authorAccountId = authorAccountId,
@@ -51,12 +53,14 @@ object CommentApiMapper {
             replyToAuthorAccountId = replyToAuthorAccountId,
             content = content,
             deleted = deleted,
-            canDelete = authorUserId == currentUserId,
+            canEdit = isAuthor && !deleted,
+            canDelete = isAuthor,
             likes = likes,
             replies = replies,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
+    }
 
     private fun ListCommentsRequest.toPageQuery(): PageQuery =
         PageQuery(
