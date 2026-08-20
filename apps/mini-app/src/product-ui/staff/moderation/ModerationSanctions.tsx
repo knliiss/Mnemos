@@ -13,6 +13,7 @@ type Props = {
 
 export function ModerationSanctions({ controller, language }: Props) {
   const { t } = useTranslation()
+  const activeBan = controller.activeBan
   const sanctionLabels: Record<SanctionType, string> = {
     BAN: t("moderation.sanctionBan"),
     NOTIFICATION_SUSPENSION: t("moderation.sanctionNotification"),
@@ -21,7 +22,7 @@ export function ModerationSanctions({ controller, language }: Props) {
   return (
     <>
       <section className="moderation-actions">
-        {!controller.activeBan ? (
+        {!activeBan ? (
           <button
             onClick={() => {
               controller.setSanctionType("BAN")
@@ -38,12 +39,12 @@ export function ModerationSanctions({ controller, language }: Props) {
           <button
             className="moderation-action-revoke"
             disabled={controller.busy}
-            onClick={() => void controller.revoke(controller.activeBan!.id)}
+            onClick={() => void controller.revoke(activeBan.id)}
           >
             <Glyph name="check" size={18} />
             <span>
               <strong>{t("moderation.unban")}</strong>
-              <small>{controller.activeBan.reason}</small>
+              <small>{activeBan.reason}</small>
             </span>
           </button>
         )}
