@@ -38,15 +38,15 @@ export function CreatorRevenue({ back }: Props) {
   }, [])
 
   return (
-    <div className="screen creator-r2-screen creator-r2-revenue">
+    <div className="screen creator-screen creator-revenue">
       <PageHeader title={t("creator.revenuePage.title")} back={back} />
 
-      <section className="creator-r2-revenue-hero">
-        <span className="creator-r2-revenue-hero__mark">
+      <section className="creator-revenue-hero">
+        <span className="creator-revenue-hero__mark">
           <CurrencyMark currency="PRIME" size={22} />
         </span>
 
-        <span className="creator-r2-revenue-hero__copy">
+        <span className="creator-revenue-hero__copy">
           <small>{t("creator.revenuePage.confirmed")}</small>
           <CurrencyValue currency="PRIME" value={summary?.confirmedPrime ?? 0} />
           <em>
@@ -56,7 +56,7 @@ export function CreatorRevenue({ back }: Props) {
           </em>
         </span>
 
-        <div className="creator-r2-sparkline" aria-hidden="true">
+        <div className="creator-sparkline" aria-hidden="true">
           <i />
           <i />
           <i />
@@ -67,7 +67,7 @@ export function CreatorRevenue({ back }: Props) {
         </div>
       </section>
 
-      <section className="creator-r2-revenue-stats">
+      <section className="creator-revenue-stats">
         <article>
           <small>{t("creator.revenuePage.pending")}</small>
           <strong>{summary?.pendingPrime ?? 0}</strong>
@@ -87,7 +87,7 @@ export function CreatorRevenue({ back }: Props) {
         </article>
       </section>
 
-      <header className="creator-r2-section-title">
+      <header className="creator-section-title">
         <span>
           <small>{t("creator.revenuePage.operationsEyebrow")}</small>
           <strong>{t("creator.revenuePage.recentActivity")}</strong>
@@ -97,7 +97,7 @@ export function CreatorRevenue({ back }: Props) {
       {loading ? (
         <CreatorLoadingState />
       ) : (
-        <section className="creator-r2-revenue-log">
+        <section className="creator-revenue-log">
           {operations.map((operation) => (
             <article key={operation.id}>
               <i className={`is-${operation.status.toLowerCase()}`} />
