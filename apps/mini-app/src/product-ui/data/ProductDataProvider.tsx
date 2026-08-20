@@ -3,26 +3,11 @@ import {
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react"
 import { useApp } from "@/app/providers/AppProvider"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
-import {
-  claimDailyReward,
-  deleteSubscription as deleteSubscriptionRequest,
-  getAccountBalances,
-  getAccountMembers,
-  getAccountRoles,
-  getCurrentUserBalances,
-  getDailyRewardState,
-  getEventFeed,
-  getSubscriptions,
-  restoreDailyReward,
-  type EventFeedQuery,
-} from "@/shared/api/productApi"
+import type { EventFeedQuery } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type {
   Account,
@@ -33,13 +18,10 @@ import type {
   Subscription,
   SystemRole,
 } from "../model"
-import {
-  toProductAccount,
-  toProductFeedEvent,
-  toProductMember,
-  toProductRole,
-  toProductSubscription,
-} from "../data/productMappers"
+import { toProductAccount } from "./productMappers"
+import { useAccountData } from "./useAccountData"
+import { useEventFeedData } from "./useEventFeedData"
+import { useSubscriptionData } from "./useSubscriptionData"
 
 type ProductUser = {
   id: string
@@ -79,32 +61,43 @@ const ProductDataContext = createContext<ProductDataState | null>(null)
 
 export function ProductDataProvider({ children }: { children: ReactNode }) {
   const app = useApp()
-  const [members, setMembers] = useState<Member[]>([])
-  const [roles, setRoles] = useState<AccountRole[]>([])
-  const [feed, setFeed] = useState<FeedEvent[]>([])
-  const [eventCursor, setEventCursor] = useState<string | null>(null)
-  const [eventsHasMore, setEventsHasMore] = useState(true)
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
-  const [dailyReward, setDailyReward] = useState<DailyRewardStateResponse | null>(null)
-  const [accountCoin, setAccountCoin] = useState(0)
-  const [prime, setPrime] = useState(0)
-  const [loadingAccount, setLoadingAccount] = useState(false)
-  const [loadingEvents, setLoadingEvents] = useState(false)
-  const eventRequestRevision = useRef(0)
-
   const context = app.context
+  const activeAccountId = context?.activeAccount?.id
+
+  const {
+    members,
+    roles,
+    dailyReward,
+    accountCoin,
+    prime,
+    loadingAccount,
+    refreshAccount,
+    claimReward,
+    restoreReward,
+  } = useAccountData(activeAccountId)
+
+  const {
+    feed,
+    eventCursor,
+    eventsHasMore,
+    loadingEvents,
+    refreshEvents,
+    loadMoreEvents,
+  } = useEventFeedData()
+
+  const { subscriptions, refreshSubscriptions, removeSubscription } = useSubscriptionData()
 
   const accounts = useMemo(
     () =>
       context?.availableAccounts.map((account) =>
-        toProductAccount(account, account.id === context.activeAccount?.id ? accountCoin : 0),
+        toProductAccount(account, account.id === activeAccountId ? accountCoin : 0),
       ) ?? [],
-    [accountCoin, context],
+    [accountCoin, activeAccountId, context?.availableAccounts],
   )
 
   const activeAccount = useMemo(
-    () => accounts.find((account) => account.id === context?.activeAccount?.id) ?? null,
-    [accounts, context?.activeAccount?.id],
+    () => accounts.find((account) => account.id === activeAccountId) ?? null,
+    [accounts, activeAccountId],
   )
 
   const user = useMemo<ProductUser>(
@@ -115,151 +108,18 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
       prime,
       systemRoles: context?.systemRoles ?? [],
     }),
-    [context, prime],
+    [context?.systemRoles, context?.user, prime],
   )
-
-  const refreshAccount = useCallback(async () => {
-    const accountId = context?.activeAccount?.id
-
-    setLoadingAccount(true)
-
-    try {
-      const userBalancesPromise = getCurrentUserBalances()
-
-      if (!accountId) {
-        const userBalances = await userBalancesPromise
-
-        setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
-        setMembers([])
-        setRoles([])
-        setDailyReward(null)
-        setAccountCoin(0)
-        return
-      }
-
-      const [memberResponses, roleResponses, balances, rewardState, userBalances] =
-        await Promise.all([
-          getAccountMembers(accountId),
-          getAccountRoles(accountId),
-          getAccountBalances(accountId),
-          getDailyRewardState(),
-          userBalancesPromise,
-        ])
-
-      setMembers(memberResponses.map((member) => toProductMember(member)))
-      setRoles(roleResponses.map(toProductRole))
-      setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
-      setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
-      setDailyReward(rewardState)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setLoadingAccount(false)
-    }
-  }, [context?.activeAccount?.id])
-
-  const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
-    const requestRevision = eventRequestRevision.current + 1
-    eventRequestRevision.current = requestRevision
-    setLoadingEvents(true)
-
-    try {
-      const limit = query.limit ?? 50
-      const response = await getEventFeed({ ...query, after: null })
-
-      if (requestRevision !== eventRequestRevision.current) {
-        return
-      }
-
-      setFeed(response.items.map(toProductFeedEvent))
-      setEventCursor(response.cursor)
-      setEventsHasMore(response.items.length >= limit && response.cursor !== null)
-    } catch (error) {
-      if (requestRevision === eventRequestRevision.current) {
-        handleError(error)
-      }
-    } finally {
-      if (requestRevision === eventRequestRevision.current) {
-        setLoadingEvents(false)
-      }
-    }
-  }, [])
-
-  const loadMoreEvents = useCallback(
-    async (query: EventFeedQuery = {}) => {
-      if (loadingEvents || !eventsHasMore || !eventCursor) {
-        return
-      }
-
-      const requestRevision = eventRequestRevision.current + 1
-      eventRequestRevision.current = requestRevision
-      setLoadingEvents(true)
-
-      try {
-        const limit = query.limit ?? 50
-        const response = await getEventFeed({
-          ...query,
-          after: eventCursor,
-        })
-
-        if (requestRevision !== eventRequestRevision.current) {
-          return
-        }
-
-        const nextItems = response.items.map(toProductFeedEvent)
-
-        setFeed((current) => {
-          const knownIds = new Set(current.map((item) => item.id))
-          return [...current, ...nextItems.filter((item) => !knownIds.has(item.id))]
-        })
-        setEventCursor(response.cursor)
-        setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
-      } catch (error) {
-        if (requestRevision === eventRequestRevision.current) {
-          handleError(error)
-        }
-      } finally {
-        if (requestRevision === eventRequestRevision.current) {
-          setLoadingEvents(false)
-        }
-      }
-    },
-    [eventCursor, eventsHasMore, loadingEvents],
-  )
-
-  const refreshSubscriptions = useCallback(async () => {
-    try {
-      const response = await getSubscriptions()
-      setSubscriptions(response.items.map(toProductSubscription))
-    } catch (error) {
-      handleError(error)
-    }
-  }, [])
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      void refreshAccount()
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [refreshAccount])
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      void refreshSubscriptions()
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [refreshSubscriptions])
 
   const selectAccount = useCallback(
     async (account: Account) => {
       try {
         if (account.active === false && account.owner) {
           await app.reactivate(account.id)
-        } else {
-          await app.selectAccount(account.id)
+          return
         }
+
+        await app.selectAccount(account.id)
       } catch (error) {
         handleError(error)
       }
@@ -301,63 +161,6 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     },
     [app],
   )
-
-  const claimReward = useCallback(async () => {
-    try {
-      const result = await claimDailyReward()
-
-      setDailyReward((current) =>
-        current
-          ? {
-              ...current,
-              currentStreak: result.streak,
-              claimedToday: true,
-              recoverable: false,
-            }
-          : current,
-      )
-      setAccountCoin((current) => current + result.coins)
-      setPrime((current) => current + result.primes)
-
-      return {
-        coin: result.coins,
-        prime: result.primes,
-      }
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [])
-
-  const restoreReward = useCallback(async () => {
-    try {
-      const result = await restoreDailyReward()
-      setDailyReward((current) =>
-        current
-          ? {
-              ...current,
-              currentStreak: result.currentStreak,
-              recoverable: false,
-            }
-          : current,
-      )
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [])
-
-  const removeSubscription = useCallback(async (subscriptionId: string) => {
-    try {
-      await deleteSubscriptionRequest(subscriptionId)
-      setSubscriptions((current) =>
-        current.filter((subscription) => subscription.id !== subscriptionId),
-      )
-    } catch (error) {
-      handleError(error)
-      throw error
-    }
-  }, [])
 
   const value = useMemo<ProductDataState>(
     () => ({
