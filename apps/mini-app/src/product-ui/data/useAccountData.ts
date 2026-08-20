@@ -59,7 +59,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
           userBalancesPromise,
         ])
 
-      setMembers(memberResponses.map(toProductMember))
+      setMembers(memberResponses.map((member) => toProductMember(member)))
       setRoles(roleResponses.map(toProductRole))
       setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
       setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
