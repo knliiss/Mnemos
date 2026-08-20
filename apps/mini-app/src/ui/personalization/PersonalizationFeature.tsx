@@ -5,6 +5,7 @@ import { usePersonalizations } from "./data/usePersonalizations"
 import { PersonalizationDetail } from "./detail/PersonalizationDetail"
 import { OwnedPersonalizations } from "./owned/OwnedPersonalizations"
 import "./personalization.css"
+import "./personalization-typography.css"
 import { PersonalizationStore } from "./store/PersonalizationStore"
 import { PersonalizationStoreCategory } from "./store/PersonalizationStoreCategory"
 
