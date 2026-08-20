@@ -72,6 +72,7 @@ export function AccountInvites({ back }: { back: () => void }) {
       }
     } catch (error) {
       if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
+        setInvites([])
         setLoadedAccountId(requestedAccountId)
         setLoadError(true)
         handleError(error)
@@ -148,6 +149,14 @@ export function AccountInvites({ back }: { back: () => void }) {
     }
   }
 
+  const copyInviteCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+    } catch (error) {
+      handleError(error)
+    }
+  }
+
   const expiryLabels: Record<Expiry, string> = {
     NONE: t("accountInvites.expiryOptions.none"),
     "1H": t("accountInvites.expiryOptions.oneHour"),
@@ -203,7 +212,8 @@ export function AccountInvites({ back }: { back: () => void }) {
             labels={expiryLabels}
           />
         </Field>
-        <button type="button"
+        <button
+          type="button"
           className="primary-action"
           disabled={creating || !accountId}
           onClick={() => void create()}
@@ -230,7 +240,7 @@ export function AccountInvites({ back }: { back: () => void }) {
                   <button
                     type="button"
                     aria-label={t("accountInvites.copy")}
-                    onClick={() => void navigator.clipboard?.writeText(invite.code)}
+                    onClick={() => void copyInviteCode(invite.code)}
                   >
                     <Glyph name="external" size={14} />
                   </button>
