@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { CurrencyMark, Glyph, type GlyphName } from "./MnemosIcon"
+import "./primitives.css"
 
 export function PageHeader({
   title,
