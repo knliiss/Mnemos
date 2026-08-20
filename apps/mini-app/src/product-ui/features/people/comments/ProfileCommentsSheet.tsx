@@ -2,6 +2,7 @@ import { AnimatePresence, motion, useDragControls } from "framer-motion"
 import {
   type FormEvent,
   type PointerEvent,
+  type UIEvent,
   useEffect,
   useRef,
   useState,
@@ -112,7 +113,7 @@ export function ProfileCommentsSheet({
     dragControls.start(event)
   }
 
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const element = event.currentTarget
     const remaining = element.scrollHeight - element.scrollTop - element.clientHeight
 
