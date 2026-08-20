@@ -17,6 +17,7 @@ import { globalEventVisualTone } from "../eventVisualTone"
 import type { Account, BetSide, Route } from "../model"
 import { CurrencyMark } from "../shared/MnemosIcon"
 import { CurrencyValue } from "../shared/Primitives"
+import { FeatureLoading } from "../system/FeatureLoading"
 import { BetRaceCard, BetRoundCard, EmptyBets } from "./BetCards"
 import { RaceBetSheet, RoundBetSheet } from "./BetSheets"
 import {
@@ -29,7 +30,6 @@ import {
   roundStatusLabel,
   type BetMode,
 } from "./betPresentation"
-import "./bets.css"
 import { useBetsData } from "./data/useBetsData"
 
 type Props = {
@@ -162,13 +162,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         ))}
       </nav>
 
-      {loading ? (
-        <div className="bets-loading" aria-label={t("productBets.loading")}>
-          <i />
-          <i />
-          <i />
-        </div>
-      ) : null}
+      {loading ? <FeatureLoading label={t("productBets.loading")} /> : null}
 
       {!loading && mode === "EVENTS" ? (
         <>
