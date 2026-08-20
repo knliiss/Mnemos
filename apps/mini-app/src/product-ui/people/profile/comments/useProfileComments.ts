@@ -60,6 +60,18 @@ export function useProfileComments({
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())
   const [busyIds, setBusyIds] = useState<Set<string>>(() => new Set())
   const [submitting, setSubmitting] = useState(false)
+  const profileAccountId = profile?.accountId ?? null
+  const profileNickname = profile?.cristalixNickname ?? null
+  const targetProfile = useMemo(
+    () =>
+      profileAccountId && profileNickname
+        ? {
+            accountId: profileAccountId,
+            cristalixNickname: profileNickname,
+          }
+        : null,
+    [profileAccountId, profileNickname],
+  )
 
   const setBusy = useCallback((id: string, busy: boolean) => {
     setBusyIds((current) => {
@@ -76,7 +88,7 @@ export function useProfileComments({
   }, [])
 
   const loadInitialComments = useCallback(async () => {
-    if (!profile) {
+    if (!targetProfile) {
       setComments([])
       setCommentsPage(0)
       setCommentsHasMore(false)
@@ -88,8 +100,12 @@ export function useProfileComments({
     setCommentsLoading(true)
 
     try {
-      const page = await getAccountComments(profile.accountId, 0, ROOT_COMMENT_PAGE_SIZE)
-      const authorNames = await resolveProfileCommentAuthorNames(page.content, activeAccount, profile)
+      const page = await getAccountComments(targetProfile.accountId, 0, ROOT_COMMENT_PAGE_SIZE)
+      const authorNames = await resolveProfileCommentAuthorNames(
+        page.content,
+        activeAccount,
+        targetProfile,
+      )
 
       setComments(page.content.map((comment) => toProfileCommentView(comment, authorNames, locale)))
       setCommentsPage(page.number)
@@ -101,7 +117,7 @@ export function useProfileComments({
     } finally {
       setCommentsLoading(false)
     }
-  }, [activeAccount, locale, profile])
+  }, [activeAccount, locale, targetProfile])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -112,7 +128,7 @@ export function useProfileComments({
   }, [loadInitialComments])
 
   const loadMoreComments = useCallback(async () => {
-    if (!profile || commentsLoading || !commentsHasMore) {
+    if (!targetProfile || commentsLoading || !commentsHasMore) {
       return
     }
 
@@ -120,8 +136,16 @@ export function useProfileComments({
     setCommentsLoading(true)
 
     try {
-      const page = await getAccountComments(profile.accountId, nextPage, ROOT_COMMENT_PAGE_SIZE)
-      const authorNames = await resolveProfileCommentAuthorNames(page.content, activeAccount, profile)
+      const page = await getAccountComments(
+        targetProfile.accountId,
+        nextPage,
+        ROOT_COMMENT_PAGE_SIZE,
+      )
+      const authorNames = await resolveProfileCommentAuthorNames(
+        page.content,
+        activeAccount,
+        targetProfile,
+      )
       const nextItems = page.content.map((comment) =>
         toProfileCommentView(comment, authorNames, locale),
       )
@@ -134,11 +158,11 @@ export function useProfileComments({
     } finally {
       setCommentsLoading(false)
     }
-  }, [activeAccount, commentsHasMore, commentsLoading, commentsPage, locale, profile])
+  }, [activeAccount, commentsHasMore, commentsLoading, commentsPage, locale, targetProfile])
 
   const fetchReplyPage = useCallback(
     async (root: ProfileCommentView, pageNumber: number, append: boolean) => {
-      if (!profile) {
+      if (!targetProfile) {
         return
       }
 
@@ -154,7 +178,11 @@ export function useProfileComments({
 
       try {
         const page = await getCommentReplies(root.id, pageNumber, REPLY_PAGE_SIZE)
-        const authorNames = await resolveProfileCommentAuthorNames(page.content, activeAccount, profile)
+        const authorNames = await resolveProfileCommentAuthorNames(
+          page.content,
+          activeAccount,
+          targetProfile,
+        )
         const nextItems = page.content.map((comment) =>
           toProfileCommentView(comment, authorNames, locale),
         )
@@ -183,7 +211,7 @@ export function useProfileComments({
         }))
       }
     },
-    [activeAccount, locale, profile],
+    [activeAccount, locale, targetProfile],
   )
 
   const toggleReplies = useCallback(
@@ -335,7 +363,7 @@ export function useProfileComments({
 
   const submitComment = useCallback(
     async (content: string, replyTarget: ReplyTarget | null) => {
-      if (!profile || submitting) {
+      if (!targetProfile || submitting) {
         return
       }
 
@@ -343,14 +371,14 @@ export function useProfileComments({
 
       try {
         const created = await createComment(
-          profile.accountId,
+          targetProfile.accountId,
           content,
           replyTarget?.rootCommentId ?? null,
           replyTarget?.targetCommentId ?? null,
         )
         const authorNames = new Map<string, string>([
           [activeAccount.id, activeAccount.nickname],
-          [profile.accountId, profile.cristalixNickname],
+          [targetProfile.accountId, targetProfile.cristalixNickname],
         ])
 
         if (created.replyToAuthorAccountId && replyTarget) {
@@ -393,7 +421,7 @@ export function useProfileComments({
         setSubmitting(false)
       }
     },
-    [activeAccount, locale, profile, refreshProfileSummary, submitting],
+    [activeAccount, locale, refreshProfileSummary, submitting, targetProfile],
   )
 
   const latestComment = useMemo(
