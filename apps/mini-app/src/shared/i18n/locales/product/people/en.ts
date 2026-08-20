@@ -4,6 +4,7 @@ export const peopleProductEn = {
       title: "Search",
       description: "Mnemos accounts",
       clear: "Clear",
+      placeholder: "Cristalix nickname",
       emptyTitle: "Find a Cristalix account",
       emptyCopy: "Search by nickname and open the public Mnemos profile.",
       oneMore: "Enter one more character",
