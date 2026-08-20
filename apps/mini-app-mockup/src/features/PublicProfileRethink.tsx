@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import { CristalixHead } from "../components/CristalixHead"
 import { EventArt } from "../components/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
@@ -16,10 +16,49 @@ type Props = {
   back: () => void
 }
 
+type ProfileReply = {
+  id: string
+  parentCommentId: string
+  authorAccountId: string
+  author: string
+  content: string
+  likes: number
+  createdAt: string
+  liked: boolean
+}
+
+const initialReplies: ProfileReply[] = [
+  {
+    id: "reply-1",
+    parentCommentId: "comment-1",
+    authorAccountId: "profile-vex",
+    author: "vex",
+    content: "Та ще й без довгого фарму перед цим.",
+    likes: 4,
+    createdAt: "12 хв",
+    liked: false,
+  },
+  {
+    id: "reply-2",
+    parentCommentId: "comment-1",
+    authorAccountId: "profile-north",
+    author: "north",
+    content: "Саме тому й запамʼятався.",
+    likes: 2,
+    createdAt: "9 хв",
+    liked: false,
+  },
+]
+
 export function PublicProfileRethink({ activeAccount, params, navigate, back }: Props) {
   const profile = profiles.find((item) => item.accountId === params?.accountId) ?? profiles[0]
   const [reaction, setReaction] = useState<"LIKE" | "DISLIKE" | null>(null)
   const [draft, setDraft] = useState("")
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<ProfileComment | null>(null)
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())
+  const [replies, setReplies] = useState<ProfileReply[]>(initialReplies)
+  const composerInputRef = useRef<HTMLInputElement>(null)
   const [comments, setComments] = useState<ProfileComment[]>([
     {
       id: "comment-me",
@@ -47,6 +86,23 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
   const dislikeCount = profile.dislikes + (reaction === "DISLIKE" ? 1 : 0)
   const reputation = likeCount - dislikeCount
 
+  useEffect(() => {
+    if (!commentsOpen) {
+      setReplyingTo(null)
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setCommentsOpen(false)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [commentsOpen])
+
   const submit = (event: FormEvent) => {
     event.preventDefault()
 
@@ -56,19 +112,40 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
       return
     }
 
-    setComments((current) => [
-      {
-        id: `comment-${Date.now()}`,
-        authorAccountId: activeAccount.id,
-        author: currentUser.username,
-        content,
-        likes: 0,
-        replies: 0,
-        createdAt: "зараз",
-        liked: false,
-      },
-      ...current,
-    ])
+    if (replyingTo) {
+      const parentId = replyingTo.id
+
+      setReplies((current) => [
+        ...current,
+        {
+          id: `reply-${Date.now()}`,
+          parentCommentId: parentId,
+          authorAccountId: activeAccount.id,
+          author: currentUser.username,
+          content,
+          likes: 0,
+          createdAt: "зараз",
+          liked: false,
+        },
+      ])
+      setExpandedReplies((current) => new Set(current).add(parentId))
+      setReplyingTo(null)
+    } else {
+      setComments((current) => [
+        {
+          id: `comment-${Date.now()}`,
+          authorAccountId: activeAccount.id,
+          author: currentUser.username,
+          content,
+          likes: 0,
+          replies: 0,
+          createdAt: "зараз",
+          liked: false,
+        },
+        ...current,
+      ])
+    }
+
     setDraft("")
   }
 
@@ -84,6 +161,46 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           : comment,
       ),
     )
+  }
+
+  const toggleReplyLike = (id: string) => {
+    setReplies((current) =>
+      current.map((reply) =>
+        reply.id === id
+          ? {
+              ...reply,
+              liked: !reply.liked,
+              likes: reply.likes + (reply.liked ? -1 : 1),
+            }
+          : reply,
+      ),
+    )
+  }
+
+  const startReply = (comment: ProfileComment) => {
+    setReplyingTo(comment)
+
+    window.requestAnimationFrame(() => {
+      composerInputRef.current?.focus()
+    })
+  }
+
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplies((current) => {
+      const next = new Set(current)
+
+      if (next.has(commentId)) {
+        next.delete(commentId)
+      } else {
+        next.add(commentId)
+      }
+
+      return next
+    })
+  }
+
+  const openComments = () => {
+    setCommentsOpen(true)
   }
 
   return (
@@ -142,7 +259,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
             </span>
           </article>
 
-          <article>
+          <button type="button" onClick={openComments}>
             <span className="public-profile-metric-icon">
               <Glyph name="chat" size={14} />
             </span>
@@ -150,7 +267,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
               <small>КОМЕНТАРІ</small>
               <strong>{comments.length}</strong>
             </span>
-          </article>
+          </button>
 
           <article>
             <span className="public-profile-metric-icon is-reputation">
@@ -200,14 +317,16 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
               </span>
 
               <span className="public-profile-drop__order">0{index + 1}</span>
-              <span className="public-profile-drop__open" aria-hidden="true">›</span>
+              <span className="public-profile-drop__open" aria-hidden="true">
+                ›
+              </span>
             </motion.button>
           ))}
         </div>
       </section>
 
-      <section className="public-profile-social">
-        <header className="public-profile-section-head public-profile-social__head">
+      <section className="public-profile-comments-preview">
+        <header className="public-profile-section-head public-profile-comments-preview__head">
           <span>
             <small>СОЦІАЛЬНЕ</small>
             <strong>Коментарі</strong>
@@ -215,68 +334,226 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           <b>{comments.length}</b>
         </header>
 
-        <form className="public-profile-composer" onSubmit={submit}>
-          <span className="public-profile-composer__mark">
-            <Glyph name="profile-mark" size={17} />
+        <button
+          className="public-profile-comments-preview__open"
+          type="button"
+          onClick={openComments}
+        >
+          <span className="public-profile-comments-preview__avatars" aria-hidden="true">
+            <i>
+              <Glyph name="profile-mark" size={13} />
+            </i>
+            <i>
+              <Glyph name="profile-mark" size={13} />
+            </i>
           </span>
 
-          <input
-            value={draft}
-            maxLength={500}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Написати щось про цей аккаунт"
-          />
+          <span className="public-profile-comments-preview__copy">
+            <strong>{comments[0]?.content ?? "Коментарів ще немає"}</strong>
+            <small>
+              {comments.length > 1
+                ? `Відкрити всі ${comments.length} коментарі`
+                : "Відкрити коментарі"}
+            </small>
+          </span>
 
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            disabled={!draft.trim()}
-            aria-label="Надіслати"
-          >
-            <Glyph name="send" size={15} />
-          </motion.button>
-        </form>
-
-        <div className="public-profile-comments">
-          <AnimatePresence initial={false}>
-            {comments.map((comment, index) => (
-              <motion.article
-                layout
-                key={comment.id}
-                className="public-profile-comment"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.985 }}
-                transition={{ delay: Math.min(index * 0.025, 0.1) }}
-              >
-                <span className="public-profile-comment__avatar">
-                  <Glyph name="profile-mark" size={15} />
-                </span>
-
-                <div className="public-profile-comment__body">
-                  <header>
-                    <strong>{comment.author}</strong>
-                    <time>{comment.createdAt}</time>
-                  </header>
-
-                  <p>{comment.content}</p>
-
-                  <footer>
-                    <button
-                      className={comment.liked ? "is-active" : ""}
-                      onClick={() => toggleCommentLike(comment.id)}
-                    >
-                      <Glyph name="like" size={12} />
-                      {comment.likes || ""}
-                    </button>
-                    <button>Відповісти</button>
-                    {comment.replies ? <span>{comment.replies} відповіді</span> : null}
-                  </footer>
-                </div>
-              </motion.article>
-            ))}
-          </AnimatePresence>
-        </div>
+          <span className="public-profile-comments-preview__arrow" aria-hidden="true">
+            ›
+          </span>
+        </button>
       </section>
+
+      <AnimatePresence>
+        {commentsOpen ? (
+          <motion.div
+            className="public-profile-comments-layer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onMouseDown={(event) => {
+              if (event.currentTarget === event.target) {
+                setCommentsOpen(false)
+              }
+            }}
+          >
+            <motion.section
+              className="public-profile-comments-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              aria-modal="true"
+              role="dialog"
+              aria-label="Коментарі профілю"
+            >
+              <header className="public-profile-comments-sheet__header">
+                <span className="public-profile-comments-sheet__grabber" aria-hidden="true" />
+                <strong>{comments.length} коментарі</strong>
+                <button
+                  type="button"
+                  onClick={() => setCommentsOpen(false)}
+                  aria-label="Закрити коментарі"
+                >
+                  <Glyph name="close" size={15} />
+                </button>
+              </header>
+
+              <div className="public-profile-comments-sheet__scroll">
+                <AnimatePresence initial={false}>
+                  {comments.map((comment, index) => {
+                    const commentReplies = replies.filter(
+                      (reply) => reply.parentCommentId === comment.id,
+                    )
+                    const repliesExpanded = expandedReplies.has(comment.id)
+
+                    return (
+                      <motion.article
+                        layout
+                        key={comment.id}
+                        className="public-profile-thread"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.985 }}
+                        transition={{ delay: Math.min(index * 0.025, 0.1) }}
+                      >
+                        <div className="public-profile-comment">
+                          <span className="public-profile-comment__avatar">
+                            <Glyph name="profile-mark" size={15} />
+                          </span>
+
+                          <div className="public-profile-comment__body">
+                            <header>
+                              <strong>{comment.author}</strong>
+                              <time>{comment.createdAt}</time>
+                            </header>
+
+                            <p>{comment.content}</p>
+
+                            <footer>
+                              <button
+                                type="button"
+                                className={comment.liked ? "is-active" : ""}
+                                onClick={() => toggleCommentLike(comment.id)}
+                              >
+                                <Glyph name="like" size={12} />
+                                {comment.likes || ""}
+                              </button>
+                              <button type="button" onClick={() => startReply(comment)}>
+                                Відповісти
+                              </button>
+                            </footer>
+
+                            {commentReplies.length ? (
+                              <button
+                                type="button"
+                                className="public-profile-thread__toggle"
+                                onClick={() => toggleReplies(comment.id)}
+                              >
+                                <i />
+                                {repliesExpanded
+                                  ? "Сховати відповіді"
+                                  : `Показати ${commentReplies.length} відповіді`}
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                          {repliesExpanded ? (
+                            <motion.div
+                              className="public-profile-replies"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                            >
+                              {commentReplies.map((reply) => (
+                                <div className="public-profile-reply" key={reply.id}>
+                                  <span className="public-profile-reply__avatar">
+                                    <Glyph name="profile-mark" size={12} />
+                                  </span>
+
+                                  <div>
+                                    <header>
+                                      <strong>{reply.author}</strong>
+                                      <time>{reply.createdAt}</time>
+                                    </header>
+                                    <p>{reply.content}</p>
+                                    <footer>
+                                      <button
+                                        type="button"
+                                        className={reply.liked ? "is-active" : ""}
+                                        onClick={() => toggleReplyLike(reply.id)}
+                                      >
+                                        <Glyph name="like" size={11} />
+                                        {reply.likes || ""}
+                                      </button>
+                                    </footer>
+                                  </div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          ) : null}
+                        </AnimatePresence>
+                      </motion.article>
+                    )
+                  })}
+                </AnimatePresence>
+              </div>
+
+              <div className="public-profile-comments-sheet__composer-wrap">
+                <AnimatePresence initial={false}>
+                  {replyingTo ? (
+                    <motion.div
+                      className="public-profile-reply-context"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                    >
+                      <span>
+                        Відповідь <strong>@{replyingTo.author}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        aria-label="Скасувати відповідь"
+                      >
+                        <Glyph name="close" size={12} />
+                      </button>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+
+                <form className="public-profile-composer" onSubmit={submit}>
+                  <span className="public-profile-composer__mark">
+                    <Glyph name="profile-mark" size={17} />
+                  </span>
+
+                  <input
+                    ref={composerInputRef}
+                    value={draft}
+                    maxLength={500}
+                    onChange={(event) => setDraft(event.target.value)}
+                    placeholder={
+                      replyingTo
+                        ? `Відповісти @${replyingTo.author}`
+                        : "Додати коментар..."
+                    }
+                  />
+
+                  <motion.button
+                    type="submit"
+                    whileTap={{ scale: 0.94 }}
+                    disabled={!draft.trim()}
+                    aria-label={replyingTo ? "Надіслати відповідь" : "Надіслати коментар"}
+                  >
+                    <Glyph name="send" size={15} />
+                  </motion.button>
+                </form>
+              </div>
+            </motion.section>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   )
 }
