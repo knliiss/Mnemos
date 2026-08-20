@@ -1,0 +1,71 @@
+.event-surface--drop-secret {
+  --event-accent: #46d7d7;
+}
+
+.event-surface--drop-mythical {
+  --event-accent: #df405a;
+}
+
+.event-surface--drop-default {
+  --event-accent: #c68a52;
+}
+
+.event-surface--booster-luck {
+  --event-accent: #48d178;
+}
+
+.event-surface--booster-money {
+  --event-accent: #e0ae45;
+}
+
+.event-surface--booster-damage {
+  --event-accent: #df5364;
+}
+
+.event-surface--booster-power {
+  --event-accent: #b88ccc;
+}
+
+.event-surface--global-moon {
+  --event-accent: #de3b57;
+}
+
+.event-surface--global-eclipse {
+  --event-accent: #8fc3d5;
+}
+
+.event-surface--global-darkness {
+  --event-accent: #818a96;
+}
+
+.event-surface--global-explosion {
+  --event-accent: #f49a24;
+}
+
+.event-surface--raid {
+  --event-accent: #d5b888;
+}
+
+.event-surface--dungeon {
+  --event-accent: #a785bf;
+}
+
+.event-row-surface {
+  --event-accent: #9aa295;
+}
+
+.event-row-surface.event-surface--drop-secret,
+.event-row-surface.event-surface--drop-mythical,
+.event-row-surface.event-surface--drop-default,
+.event-row-surface.event-surface--booster-luck,
+.event-row-surface.event-surface--booster-money,
+.event-row-surface.event-surface--booster-damage,
+.event-row-surface.event-surface--booster-power,
+.event-row-surface.event-surface--global-moon,
+.event-row-surface.event-surface--global-eclipse,
+.event-row-surface.event-surface--global-darkness,
+.event-row-surface.event-surface--global-explosion,
+.event-row-surface.event-surface--raid,
+.event-row-surface.event-surface--dungeon {
+  border-color: color-mix(in srgb, var(--event-accent) 13%, rgba(235, 241, 213, 0.08));
+}
