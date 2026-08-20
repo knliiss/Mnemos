@@ -72,6 +72,7 @@ export function usePersonalizations(): PersonalizationData {
   const activeAccountId = product.activeAccount?.id ?? null
   const refreshAccount = product.refreshAccount
   const scopeKey = `${userId}:${activeAccountId ?? "none"}`
+  const userBusyScopeKey = `user:${userId}`
   const scopeKeyRef = useRef(scopeKey)
 
   useLayoutEffect(() => {
@@ -159,6 +160,7 @@ export function usePersonalizations(): PersonalizationData {
       setItemsScopeKey(requestedScopeKey)
     } catch (error) {
       if (revision === requestRevision.current && scopeKeyRef.current === requestedScopeKey) {
+        setItems([])
         setItemsScopeKey(requestedScopeKey)
         setError(true)
         handleError(error)
@@ -344,6 +346,7 @@ export function usePersonalizations(): PersonalizationData {
   const purchase = useCallback(
     async (item: Personalization) => {
       const purchaseScopeKey = scopeKey
+      const busyScopeKey = item.target === "USER" ? userBusyScopeKey : purchaseScopeKey
       const existingPurchase = Object.values(pendingPurchaseStateRef.current).some(
         (pending) =>
           pending.personalizationId === item.id &&
@@ -353,12 +356,12 @@ export function usePersonalizations(): PersonalizationData {
       if (
         item.owned ||
         existingPurchase ||
-        busyByScopeRef.current[purchaseScopeKey]
+        busyByScopeRef.current[busyScopeKey]
       ) {
         return
       }
 
-      updateBusyByScope((current) => ({ ...current, [purchaseScopeKey]: item.id }))
+      updateBusyByScope((current) => ({ ...current, [busyScopeKey]: item.id }))
 
       try {
         const operation = await purchasePersonalization(item.id)
@@ -393,30 +396,38 @@ export function usePersonalizations(): PersonalizationData {
       } finally {
         if (mountedRef.current) {
           updateBusyByScope((current) => {
-            if (current[purchaseScopeKey] !== item.id) {
+            if (current[busyScopeKey] !== item.id) {
               return current
             }
 
             const next = { ...current }
 
-            delete next[purchaseScopeKey]
+            delete next[busyScopeKey]
             return next
           })
         }
       }
     },
-    [pollPurchase, scopeKey, updateBusyByScope, updatePendingPurchases, userId],
+    [
+      pollPurchase,
+      scopeKey,
+      updateBusyByScope,
+      updatePendingPurchases,
+      userBusyScopeKey,
+      userId,
+    ],
   )
 
   const toggleActive = useCallback(
     async (item: Personalization) => {
       const actionScopeKey = scopeKey
+      const busyScopeKey = item.target === "USER" ? userBusyScopeKey : actionScopeKey
 
-      if (!item.owned || busyByScopeRef.current[actionScopeKey]) {
+      if (!item.owned || busyByScopeRef.current[busyScopeKey]) {
         return
       }
 
-      updateBusyByScope((current) => ({ ...current, [actionScopeKey]: item.id }))
+      updateBusyByScope((current) => ({ ...current, [busyScopeKey]: item.id }))
 
       try {
         if (item.active) {
@@ -425,7 +436,9 @@ export function usePersonalizations(): PersonalizationData {
           await activatePersonalization(item.id)
         }
 
-        if (item.target === "USER" || actionScopeKey === scopeKeyRef.current) {
+        if (item.target === "USER") {
+          await latestRefreshRef.current()
+        } else if (actionScopeKey === scopeKeyRef.current) {
           await refresh()
         }
       } catch (error) {
@@ -438,19 +451,19 @@ export function usePersonalizations(): PersonalizationData {
       } finally {
         if (mountedRef.current) {
           updateBusyByScope((current) => {
-            if (current[actionScopeKey] !== item.id) {
+            if (current[busyScopeKey] !== item.id) {
               return current
             }
 
             const next = { ...current }
 
-            delete next[actionScopeKey]
+            delete next[busyScopeKey]
             return next
           })
         }
       }
     },
-    [refresh, scopeKey, updateBusyByScope],
+    [refresh, scopeKey, updateBusyByScope, userBusyScopeKey],
   )
 
   const pendingPurchases = useMemo(
@@ -469,7 +482,7 @@ export function usePersonalizations(): PersonalizationData {
     items: itemsScopeKey === scopeKey ? items : [],
     loading: loading || itemsScopeKey !== scopeKey,
     error: itemsScopeKey === scopeKey && error,
-    busyId: busyByScope[scopeKey] ?? null,
+    busyId: busyByScope[userBusyScopeKey] ?? busyByScope[scopeKey] ?? null,
     pendingPurchases,
     refresh,
     purchase,
