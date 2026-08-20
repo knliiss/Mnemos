@@ -363,7 +363,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
           onClick={openComments}
         >
           <span className="public-profile-comments-preview__art" aria-hidden="true">
-            <CommentAvatar author={latestComment?.author ?? profile.nickname} compact />
+            <img className="public-profile-comments-preview__illustration" src="/ui-illustrations/mnemos-comments.svg" alt="" />
             <span className="public-profile-comments-preview__spark is-lime" />
             <span className="public-profile-comments-preview__spark is-plum" />
           </span>
@@ -438,7 +438,7 @@ export function PublicProfileRethink({ activeAccount, params, navigate, back }: 
 
               <header className="public-profile-comments-sheet__header">
                 <span className="public-profile-comments-sheet__mark" aria-hidden="true">
-                  <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
+                  <img src="/ui-illustrations/mnemos-comments.svg" alt="" />
                 </span>
 
                 <span className="public-profile-comments-sheet__title">
