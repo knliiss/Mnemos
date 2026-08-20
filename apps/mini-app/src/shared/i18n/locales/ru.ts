@@ -16,6 +16,12 @@ export const ru = {
     save: "Сохранить",
     cancel: "Отмена",
     soon: "Скоро",
+    unavailable: "Временно недоступно",
+    loadErrorTitle: "Не удалось загрузить данные",
+    loadErrorCopy: "Проверьте соединение и повторите попытку.",
+    retry: "Повторить",
+    close: "Закрыть",
+    copy: "Скопировать",
   },
   home: {
     online: "Онлайн",
@@ -105,6 +111,45 @@ export const ru = {
   error: {
     title: "Произошла ошибка",
     retry: "Повторить",
+  },
+  errorBoundary: {
+    message: "Интерфейс неожиданно остановился.",
+    reload: "Перезагрузить",
+  },
+  errorNotifications: {
+    close: "Закрыть сообщение",
+    tones: {
+      validation: {
+        eyebrow: "ДАННЫЕ",
+        title: "Проверьте значения",
+        message: "Запрос содержит некорректные данные.",
+      },
+      access: {
+        eyebrow: "ДОСТУП",
+        title: "Действие недоступно",
+        message: "Для него недостаточно прав.",
+      },
+      conflict: {
+        eyebrow: "СОСТОЯНИЕ",
+        title: "Данные уже изменились",
+        message: "Обновите страницу и повторите действие.",
+      },
+      notFound: {
+        eyebrow: "НЕ НАЙДЕНО",
+        title: "Объект недоступен",
+        message: "Возможно, он был удалён.",
+      },
+      waiting: {
+        eyebrow: "ВРЕМЕННО",
+        title: "Попробуйте немного позже",
+        message: "Сервис или операция сейчас заняты.",
+      },
+      internal: {
+        eyebrow: "MNEMOS",
+        title: "Неизвестная ошибка",
+        message: "Повторите действие немного позже.",
+      },
+    },
   },
   ...productRu,
 } as const

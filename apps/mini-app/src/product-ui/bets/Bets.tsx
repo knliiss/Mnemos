@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   increaseEventBet,
@@ -7,7 +7,6 @@ import {
   joinItemRace,
   placeEventBet,
   type EventBetRoundResponse,
-  type ItemRaceParticipantResponse,
   type ItemRaceResponse,
 } from "@/shared/api/betApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -38,30 +37,31 @@ type Props = {
   navigate: (route: Route) => void
 }
 
-type SelectedRace = {
-  race: ItemRaceResponse
-  position: ItemRaceParticipantResponse | null
-}
-
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
-  const { rounds, races, positions, loading, refresh } = useBetsData(
+  const { rounds, races, positions, loading, error, refresh } = useBetsData(
     activeAccount.id,
     product.refreshAccount,
   )
   const [mode, setMode] = useState<BetMode>("EVENTS")
-  const [selectedRound, setSelectedRound] = useState<EventBetRoundResponse | null>(null)
-  const [selectedRace, setSelectedRace] = useState<SelectedRace | null>(null)
+  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
+  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null)
   const [side, setSide] = useState<BetSide>("YES")
   const [amount, setAmount] = useState("500")
   const [busy, setBusy] = useState(false)
+  const submitLocked = useRef(false)
   const locale = betLocale(i18n.resolvedLanguage)
 
   const positionsByRace = useMemo(
     () => new Map(positions.map((position) => [position.raceId, position])),
     [positions],
   )
+  const selectedRound = rounds.find((round) => round.id === selectedRoundId) ?? null
+  const selectedRace = races.find((race) => race.id === selectedRaceId) ?? null
+  const selectedRacePosition = selectedRace
+    ? (positionsByRace.get(selectedRace.id) ?? null)
+    : null
   const featured = rounds.find((round) => round.status === "OPEN") ?? rounds[0] ?? null
   const eventRounds = featured ? rounds.filter((round) => round.id !== featured.id) : rounds
   const myRounds = rounds.filter((round) => round.myBet)
@@ -71,11 +71,16 @@ export function Bets({ activeAccount, navigate }: Props) {
   const roundAmountValid =
     Number.isInteger(numericAmount) &&
     numericAmount >= (selectedHasBet ? 1 : 100) &&
+    numericAmount <= activeAccount.coin &&
     (selectedHasBet || numericAmount <= 5_000)
-  const raceAmountValid = Number.isInteger(numericAmount) && numericAmount > 0
+  const raceAmountValid =
+    Number.isInteger(numericAmount) && numericAmount > 0 && numericAmount <= activeAccount.coin
+  const raceJoinValid = Boolean(
+    selectedRace && selectedRace.entryAmount <= activeAccount.coin,
+  )
 
   const openRound = (round: EventBetRoundResponse) => {
-    setSelectedRound(round)
+    setSelectedRoundId(round.id)
     setSide(round.myBet?.side ?? "YES")
     setAmount(round.myBet ? "100" : "500")
   }
@@ -83,15 +88,22 @@ export function Bets({ activeAccount, navigate }: Props) {
   const openRace = (race: ItemRaceResponse) => {
     const position = positionsByRace.get(race.id) ?? null
 
-    setSelectedRace({ race, position })
+    setSelectedRaceId(race.id)
     setAmount(position ? "100" : String(race.entryAmount))
   }
 
   const submitRound = async () => {
-    if (!selectedRound || !roundAmountValid || selectedRound.status !== "OPEN" || busy) {
+    if (
+      !selectedRound ||
+      !roundAmountValid ||
+      selectedRound.status !== "OPEN" ||
+      busy ||
+      submitLocked.current
+    ) {
       return
     }
 
+    submitLocked.current = true
     setBusy(true)
 
     try {
@@ -101,38 +113,46 @@ export function Bets({ activeAccount, navigate }: Props) {
         await placeEventBet(selectedRound.id, side, numericAmount)
       }
 
-      setSelectedRound(null)
+      setSelectedRoundId(null)
       await refresh()
     } catch (error) {
       handleError(error)
     } finally {
+      submitLocked.current = false
       setBusy(false)
     }
   }
 
   const submitRace = async () => {
-    if (!selectedRace || busy || selectedRace.race.status !== "REGISTRATION") {
+    if (
+      !selectedRace ||
+      busy ||
+      submitLocked.current ||
+      selectedRace.status !== "REGISTRATION"
+    ) {
       return
     }
 
-    if (selectedRace.position && !raceAmountValid) {
+    if (selectedRacePosition ? !raceAmountValid : !raceJoinValid) {
       return
     }
 
+    submitLocked.current = true
     setBusy(true)
 
     try {
-      if (selectedRace.position) {
-        await increaseItemRaceBet(selectedRace.race.id, numericAmount)
+      if (selectedRacePosition) {
+        await increaseItemRaceBet(selectedRace.id, numericAmount)
       } else {
-        await joinItemRace(selectedRace.race.id)
+        await joinItemRace(selectedRace.id)
       }
 
-      setSelectedRace(null)
+      setSelectedRaceId(null)
       await refresh()
     } catch (error) {
       handleError(error)
     } finally {
+      submitLocked.current = false
       setBusy(false)
     }
   }
@@ -141,12 +161,17 @@ export function Bets({ activeAccount, navigate }: Props) {
     <div className="screen bets-screen root-screen">
       <header className="root-title-block bets-title">
         <span>
-          <small>MNEMOS BETS</small>
+          <small>{t("productBets.eyebrow")}</small>
           <h1>{t("productBets.title")}</h1>
           <p>{activeAccount.nickname}</p>
         </span>
 
-        <button className="bets-wallet" onClick={() => navigate({ id: "account-wallet" })}>
+        <button
+          type="button"
+          className="bets-wallet"
+          onClick={() => navigate({ id: "account-wallet" })}
+        >
+          <span className="bets-wallet__label">{t("productBets.balance")}</span>
           <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
         </button>
       </header>
@@ -154,6 +179,7 @@ export function Bets({ activeAccount, navigate }: Props) {
       <nav className="bets-mode">
         {betModes.map((value) => (
           <button
+            type="button"
             key={value}
             className={mode === value ? "is-active" : ""}
             onClick={() => setMode(value)}
@@ -168,10 +194,22 @@ export function Bets({ activeAccount, navigate }: Props) {
 
       {loading ? <FeatureLoading label={t("productBets.loading")} /> : null}
 
-      {!loading && mode === "EVENTS" ? (
+      {!loading && error ? (
+        <div className="bets-empty">
+          <CurrencyMark currency="COIN" size={20} />
+          <strong>{t("productBets.error.title")}</strong>
+          <small>{t("productBets.error.copy")}</small>
+          <button type="button" onClick={() => void refresh()}>
+            {t("productBets.error.retry")}
+          </button>
+        </div>
+      ) : null}
+
+      {!loading && !error && mode === "EVENTS" ? (
         <>
           {featured ? (
             <motion.button
+              type="button"
               className={`bets-feature event-surface--${globalEventVisualTone(featured.eventType)}`}
               whileTap={{ scale: 0.992 }}
               onClick={() => openRound(featured)}
@@ -245,7 +283,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </>
       ) : null}
 
-      {!loading && mode === "MY" ? (
+      {!loading && !error && mode === "MY" ? (
         <section className="bets-rounds">
           {myRounds.map((round) => (
             <BetRoundCard
@@ -277,7 +315,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </section>
       ) : null}
 
-      {!loading && mode === "RACES" ? (
+      {!loading && !error && mode === "RACES" ? (
         <section className="bets-races">
           {races.map((race) => (
             <BetRaceCard
@@ -308,7 +346,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             amountValid={roundAmountValid}
             busy={busy}
             locale={locale}
-            onClose={() => !busy && setSelectedRound(null)}
+            onClose={() => !busy && setSelectedRoundId(null)}
             onSideChange={setSide}
             onAmountChange={setAmount}
             onSubmit={() => void submitRound()}
@@ -317,13 +355,13 @@ export function Bets({ activeAccount, navigate }: Props) {
 
         {selectedRace ? (
           <RaceBetSheet
-            race={selectedRace.race}
-            position={selectedRace.position}
+            race={selectedRace}
+            position={selectedRacePosition}
             amount={amount}
-            amountValid={raceAmountValid}
+            amountValid={selectedRacePosition ? raceAmountValid : raceJoinValid}
             busy={busy}
             locale={locale}
-            onClose={() => !busy && setSelectedRace(null)}
+            onClose={() => !busy && setSelectedRaceId(null)}
             onAmountChange={setAmount}
             onSubmit={() => void submitRace()}
           />

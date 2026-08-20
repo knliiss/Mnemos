@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
@@ -40,11 +41,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
   const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const contextRevision = useRef(0)
+  const mountedRef = useRef(true)
 
   const refresh = useCallback(async () => {
+    const revision = contextRevision.current + 1
+
+    contextRevision.current = revision
     const next = await getCurrentContext()
 
-    setContext(next)
+    if (revision === contextRevision.current) {
+      setContext(next)
+    }
+
     return next
   }, [])
 
@@ -53,14 +62,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       await initializeCurrentUser()
-      const next = await getCurrentContext()
 
-      setContext(next)
-      await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      if (!mountedRef.current) {
+        return
+      }
+
+      const next = await refresh()
+
+      if (mountedRef.current) {
+        await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      }
     } finally {
-      setLoading(false)
+      if (mountedRef.current) {
+        setLoading(false)
+      }
     }
-  }, [i18n])
+  }, [i18n, refresh])
 
   const selectAccount = useCallback(
     async (accountId: string) => {
@@ -114,11 +131,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   useEffect(() => {
+    mountedRef.current = true
     const frame = window.requestAnimationFrame(() => {
       void bootstrap().catch(handleError)
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      contextRevision.current += 1
+      mountedRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
   }, [bootstrap])
 
   const value = useMemo<AppState>(

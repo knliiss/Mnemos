@@ -31,6 +31,7 @@ export const accountHomeUk = {
   },
   accountMember: {
     title: "Учасник",
+    eyebrow: "УЧАСНИК АККАУНТА",
     since: "У команді з {{date}}",
     access: "ДОСТУП",
     roles: "Ролі учасника",

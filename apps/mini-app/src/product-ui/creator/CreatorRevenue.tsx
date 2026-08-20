@@ -9,6 +9,7 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { CurrencyMark } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
+import { FeatureEmpty } from "../system/FeatureEmpty"
 import { CreatorLoadingState } from "./CreatorLoadingState"
 import { creatorLocale, formatCreatorOperationDate } from "./creatorPresentation"
 
@@ -21,21 +22,41 @@ export function CreatorRevenue({ back }: Props) {
   const [summary, setSummary] = useState<CreatorRevenueSummaryResponse | null>(null)
   const [operations, setOperations] = useState<CreatorRevenueOperationResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadRevision, setReloadRevision] = useState(0)
   const locale = creatorLocale(i18n.resolvedLanguage)
 
   useEffect(() => {
+    let cancelled = false
     const frame = window.requestAnimationFrame(() => {
+      setLoading(true)
+      setLoadError(false)
+
       void Promise.all([getCreatorRevenueSummary(), getCreatorRevenueOperations()])
         .then(([nextSummary, nextOperations]) => {
-          setSummary(nextSummary)
-          setOperations(nextOperations)
+          if (!cancelled) {
+            setSummary(nextSummary)
+            setOperations(nextOperations)
+          }
         })
-        .catch(handleError)
-        .finally(() => setLoading(false))
+        .catch((error) => {
+          if (!cancelled) {
+            setLoadError(true)
+            handleError(error)
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false)
+          }
+        })
     })
 
-    return () => window.cancelAnimationFrame(frame)
-  }, [])
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
+  }, [reloadRevision])
 
   return (
     <div className="screen creator-screen creator-revenue">
@@ -96,6 +117,16 @@ export function CreatorRevenue({ back }: Props) {
 
       {loading ? (
         <CreatorLoadingState />
+      ) : loadError && !summary ? (
+        <FeatureEmpty
+          icon="wallet"
+          title={t("common.loadErrorTitle")}
+          copy={t("common.loadErrorCopy")}
+        >
+          <button type="button" onClick={() => setReloadRevision((value) => value + 1)}>
+            {t("common.retry")}
+          </button>
+        </FeatureEmpty>
       ) : (
         <section className="creator-revenue-log">
           {operations.map((operation) => (

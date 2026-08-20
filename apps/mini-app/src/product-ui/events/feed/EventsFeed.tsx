@@ -17,7 +17,6 @@ import {
   eventTitle,
   localeForLanguage,
 } from "../eventPresentation"
-import "./feed.css"
 
 type Props = {
   activeAccount: Account
@@ -37,6 +36,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     feed,
     eventsHasMore,
     loadingEvents,
+    eventsError,
     loadMoreEvents,
     refreshEvents,
     subscriptions,
@@ -85,7 +85,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     <div className="screen events-feed-screen root-screen">
       <header className="root-title-block events-feed-title">
         <span>
-          <small>LIVE FEED</small>
+          <small>{t("events.feed.eyebrow")}</small>
           <h1>{t("events.feed.title")}</h1>
           <p>{t("events.feed.description")}</p>
         </span>
@@ -182,7 +182,18 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
 
       {loadingEvents && !feed.length ? <FeatureLoading label={t("events.feed.loading")} /> : null}
 
-      {featured ? (
+      {!loadingEvents && eventsError ? (
+        <section className="events-feed-empty">
+          <Glyph name="events" size={24} />
+          <strong>{t("events.feed.errorTitle")}</strong>
+          <small>{t("events.feed.errorCopy")}</small>
+          <button type="button" onClick={() => void refreshEvents(feedQuery)}>
+            {t("events.feed.retry")}
+          </button>
+        </section>
+      ) : null}
+
+      {!eventsError && featured ? (
         <motion.button
           type="button"
           className={`events-feed-featured event-surface--${eventVisualTone(featured)}`}
@@ -221,15 +232,15 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </motion.button>
       ) : null}
 
-      <header className="events-feed-section-head">
+      {!eventsError ? <header className="events-feed-section-head">
         <span>
           <small>{t("events.feed.stream")}</small>
           <strong>{t("events.feed.eventCount", { count: feed.length })}</strong>
         </span>
         <i className={loadingEvents ? "is-loading" : ""} />
-      </header>
+      </header> : null}
 
-      <section className="events-feed-stream">
+      {!eventsError ? <section className="events-feed-stream">
         <AnimatePresence initial={false}>
           {rest.map((event, index) => (
             <motion.button
@@ -263,9 +274,9 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             </motion.button>
           ))}
         </AnimatePresence>
-      </section>
+      </section> : null}
 
-      {eventsHasMore ? (
+      {!eventsError && eventsHasMore ? (
         <motion.button
           type="button"
           className="events-feed-load-more"
@@ -277,7 +288,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </motion.button>
       ) : null}
 
-      {!loadingEvents && !feed.length ? (
+      {!loadingEvents && !eventsError && !feed.length ? (
         <section className="events-feed-empty">
           <Glyph name="events" size={24} />
           <strong>{t("events.feed.emptyTitle")}</strong>

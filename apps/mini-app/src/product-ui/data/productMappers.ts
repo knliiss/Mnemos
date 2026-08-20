@@ -21,7 +21,7 @@ export function toProductAccount(account: AccountSummaryResponse, coin = 0): Acc
     id: account.id,
     cristalixUuid: account.cristalixUuid,
     nickname: account.cristalixNickname,
-    role: account.owner ? "Власник" : "Учасник",
+    role: account.owner ? "OWNER" : "MEMBER",
     skinUrl: `${SKIN_BASE_URL}/${account.cristalixUuid}`,
     memberCount: account.memberCount,
     maxMembers: account.maxMembers,

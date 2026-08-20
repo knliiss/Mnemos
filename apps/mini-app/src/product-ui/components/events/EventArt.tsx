@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react"
+import { useTranslation } from "react-i18next"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
 
 type Props = {
@@ -48,10 +49,12 @@ export function GlobalEventArt({
 }
 
 export function OwnerCrown({ compact = false }: { compact?: boolean }) {
+  const { t } = useTranslation()
+
   return (
     <span
       className={`owner-event-crown ${compact ? "is-compact" : ""}`}
-      title="Подія активного аккаунта"
+      title={t("events.detail.ownAccount")}
     >
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M5 8.5 8.7 12l3.3-6 3.3 6L19 8.5l-1.4 8H6.4L5 8.5Z" />

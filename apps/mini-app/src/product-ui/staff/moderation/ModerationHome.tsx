@@ -19,26 +19,45 @@ type Props = {
 export function ModerationHome({ navigate, back }: Props) {
   const { t } = useTranslation()
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<IdentitySearchResponse[]>([])
-  const [loading, setLoading] = useState(false)
+  const [searchState, setSearchState] = useState<{
+    query: string
+    results: IdentitySearchResponse[]
+    loading: boolean
+    error: boolean
+  }>({ query: "", results: [], loading: false, error: false })
   const normalized = query.trim()
-  const visibleResults = normalized.length >= 2 ? results : []
+  const currentSearch = searchState.query === normalized
+  const visibleResults = currentSearch ? searchState.results : []
+  const loading = normalized.length >= 2 && (!currentSearch || searchState.loading)
+  const searchError = currentSearch && searchState.error
 
   useEffect(() => {
     if (normalized.length < 2) {
       return
     }
 
+    let cancelled = false
     const timer = window.setTimeout(() => {
-      setLoading(true)
+      setSearchState({ query: normalized, results: [], loading: true, error: false })
 
       void searchIdentities(normalized)
-        .then(setResults)
-        .catch(handleError)
-        .finally(() => setLoading(false))
+        .then((results) => {
+          if (!cancelled) {
+            setSearchState({ query: normalized, results, loading: false, error: false })
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            setSearchState({ query: normalized, results: [], loading: false, error: true })
+            handleError(error)
+          }
+        })
     }, 250)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
   }, [normalized])
 
   return (
@@ -50,7 +69,7 @@ export function ModerationHome({ navigate, back }: Props) {
           <Glyph name="moderation" size={23} />
         </span>
         <span>
-          <small>INTERNAL</small>
+          <small>{t("moderation.internal")}</small>
           <strong>{t("moderation.heroTitle")}</strong>
           <p>{t("moderation.heroDescription")}</p>
         </span>
@@ -67,7 +86,7 @@ export function ModerationHome({ navigate, back }: Props) {
           placeholder={t("moderation.searchPlaceholder")}
         />
         {query ? (
-          <button aria-label={t("moderation.clear")} onClick={() => setQuery("")}>
+          <button type="button" aria-label={t("moderation.clear")} onClick={() => setQuery("")}>
             <Glyph name="close" size={14} />
           </button>
         ) : null}
@@ -77,9 +96,9 @@ export function ModerationHome({ navigate, back }: Props) {
         <section className="moderation-help">
           <span>{t("moderation.searchableBy")}</span>
           <div>
-            <i>Username</i>
-            <i>Telegram ID</i>
-            <i>User ID</i>
+            <i>{t("moderation.username")}</i>
+            <i>{t("moderation.telegramId")}</i>
+            <i>{t("moderation.userId")}</i>
             <i>Cristalix</i>
           </div>
         </section>
@@ -91,7 +110,11 @@ export function ModerationHome({ navigate, back }: Props) {
 
       {normalized.length >= 2 && loading ? <FeatureLoading /> : null}
 
-      {!loading && visibleResults.length ? (
+      {!loading && searchError ? (
+        <p className="moderation-empty">{t("common.loadErrorTitle")}</p>
+      ) : null}
+
+      {!loading && !searchError && visibleResults.length ? (
         <section className="staff-search-results">
           <header>
             <strong>{t("moderation.results")}</strong>
@@ -101,6 +124,7 @@ export function ModerationHome({ navigate, back }: Props) {
           <div>
             {visibleResults.map((identity) => (
               <motion.button
+                type="button"
                 key={identity.userId}
                 whileTap={{ scale: 0.985 }}
                 onClick={() =>
@@ -127,7 +151,7 @@ export function ModerationHome({ navigate, back }: Props) {
         </section>
       ) : null}
 
-      {!loading && normalized.length >= 2 && !visibleResults.length ? (
+      {!loading && !searchError && normalized.length >= 2 && !visibleResults.length ? (
         <p className="moderation-empty">{t("moderation.nothingFound")}</p>
       ) : null}
     </div>

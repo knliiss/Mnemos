@@ -1,6 +1,7 @@
 export const accountSettingsRu = {
   accountSettings: {
     title: "Настройки аккаунта",
+    eyebrow: "АККАУНТ CRISTALIX",
     owner: "Владелец",
     member: "Участник",
     active: "активный",

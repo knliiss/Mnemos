@@ -41,20 +41,25 @@ type ProductDataState = {
   eventCursor: string | null
   eventsHasMore: boolean
   subscriptions: Subscription[]
+  loadingSubscriptions: boolean
+  subscriptionsError: boolean
   dailyReward: DailyRewardStateResponse | null
   loadingAccount: boolean
+  accountError: boolean
   loadingEvents: boolean
+  eventsError: boolean
   refreshAccount(): Promise<void>
   refreshEvents(query?: EventFeedQuery): Promise<void>
   loadMoreEvents(query?: EventFeedQuery): Promise<void>
-  refreshSubscriptions(): Promise<void>
-  selectAccount(account: Account): Promise<void>
-  createAccount(nickname: string): Promise<void>
-  joinAccount(inviteCode: string): Promise<void>
+  refreshSubscriptions(): Promise<boolean>
+  mutateSubscriptions(mutation: () => Promise<void>): Promise<boolean>
+  selectAccount(account: Account): Promise<boolean>
+  createAccount(nickname: string): Promise<boolean>
+  joinAccount(inviteCode: string): Promise<boolean>
   setLanguage(language: LocalizationLanguage): Promise<void>
-  claimReward(): Promise<{ coin: number; prime: number }>
+  claimReward(): Promise<{ coin: number; prime: number } | null>
   restoreReward(): Promise<void>
-  removeSubscription(subscriptionId: string): Promise<void>
+  removeSubscription(subscriptionId: string): Promise<boolean>
 }
 
 const ProductDataContext = createContext<ProductDataState | null>(null)
@@ -71,6 +76,7 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     accountCoin,
     prime,
     loadingAccount,
+    accountError,
     refreshAccount,
     claimReward,
     restoreReward,
@@ -81,11 +87,19 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     eventCursor,
     eventsHasMore,
     loadingEvents,
+    eventsError,
     refreshEvents,
     loadMoreEvents,
   } = useEventFeedData()
 
-  const { subscriptions, refreshSubscriptions, removeSubscription } = useSubscriptionData()
+  const {
+    subscriptions,
+    loadingSubscriptions,
+    subscriptionsError,
+    refreshSubscriptions,
+    mutateSubscriptions,
+    removeSubscription,
+  } = useSubscriptionData()
 
   const accounts = useMemo(
     () =>
@@ -116,13 +130,14 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
       try {
         if (account.active === false && account.owner) {
           await app.reactivate(account.id)
-          return
+          return true
         }
 
         await app.selectAccount(account.id)
+        return true
       } catch (error) {
         handleError(error)
-        throw error
+        return false
       }
     },
     [app],
@@ -132,9 +147,10 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     async (nickname: string) => {
       try {
         await app.registerAccount(nickname)
+        return true
       } catch (error) {
         handleError(error)
-        throw error
+        return false
       }
     },
     [app],
@@ -144,9 +160,10 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
     async (inviteCode: string) => {
       try {
         await app.joinByCode(inviteCode)
+        return true
       } catch (error) {
         handleError(error)
-        throw error
+        return false
       }
     },
     [app],
@@ -174,13 +191,18 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
       eventCursor,
       eventsHasMore,
       subscriptions,
+      loadingSubscriptions,
+      subscriptionsError,
       dailyReward,
       loadingAccount,
+      accountError,
       loadingEvents,
+      eventsError,
       refreshAccount,
       refreshEvents,
       loadMoreEvents,
       refreshSubscriptions,
+      mutateSubscriptions,
       selectAccount,
       createAccount,
       joinAccount,
@@ -199,13 +221,18 @@ export function ProductDataProvider({ children }: { children: ReactNode }) {
       eventCursor,
       eventsHasMore,
       subscriptions,
+      loadingSubscriptions,
+      subscriptionsError,
       dailyReward,
       loadingAccount,
+      accountError,
       loadingEvents,
+      eventsError,
       refreshAccount,
       refreshEvents,
       loadMoreEvents,
       refreshSubscriptions,
+      mutateSubscriptions,
       selectAccount,
       createAccount,
       joinAccount,

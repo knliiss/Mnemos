@@ -17,7 +17,13 @@ export function CreatorFeature(props: Props) {
   }
 
   if (props.routeId === "personalization-editor") {
-    return <CreatorEditor params={props.params} back={props.back} />
+    return (
+      <CreatorEditor
+        key={props.params?.personalizationId ?? "new"}
+        params={props.params}
+        back={props.back}
+      />
+    )
   }
 
   return <CreatorStudio navigate={props.navigate} back={props.back} />

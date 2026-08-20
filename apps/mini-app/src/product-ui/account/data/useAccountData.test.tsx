@@ -54,6 +54,8 @@ function createDeferred<T>(): Deferred<T> {
 
 describe("useAccountData", () => {
   beforeEach(() => {
+    vi.mocked(getAccountBalances).mockReset()
+    vi.mocked(getAccountBalances).mockResolvedValue([])
     vi.mocked(getAccountMembers).mockResolvedValue([])
     vi.mocked(getAccountRoles).mockResolvedValue([])
     vi.mocked(getCurrentUserBalances).mockResolvedValue([])
@@ -107,5 +109,69 @@ describe("useAccountData", () => {
 
     expect(result.current.accountCoin).toBe(20)
     expect(result.current.loadingAccount).toBe(false)
+  })
+
+  it("does not refresh the previous account when a claim completes after a switch", async () => {
+    const claim = createDeferred<Awaited<ReturnType<typeof claimDailyReward>>>()
+
+    vi.mocked(getAccountBalances).mockImplementation(async (accountId) => [
+      { currency: "COIN", amount: accountId === "account-a" ? 10 : 20 },
+    ])
+    vi.mocked(claimDailyReward).mockReturnValue(claim.promise)
+
+    const { result, rerender } = renderHook(
+      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      { initialProps: { accountId: "account-a" } },
+    )
+
+    await waitFor(() => expect(result.current.accountCoin).toBe(10))
+
+    let claimPromise!: ReturnType<typeof result.current.claimReward>
+    act(() => {
+      claimPromise = result.current.claimReward()
+    })
+
+    rerender({ accountId: "account-b" })
+    await waitFor(() => expect(result.current.accountCoin).toBe(20))
+
+    await act(async () => {
+      claim.resolve({ streak: 2, coins: 99, primes: 1, primeChance: 0.1 })
+      await expect(claimPromise).resolves.toBeNull()
+    })
+
+    expect(result.current.accountCoin).toBe(20)
+    expect(getAccountBalances).toHaveBeenCalledTimes(2)
+  })
+
+  it("does not refresh the previous account when a restore completes after a switch", async () => {
+    const restore = createDeferred<Awaited<ReturnType<typeof restoreDailyReward>>>()
+
+    vi.mocked(getAccountBalances).mockImplementation(async (accountId) => [
+      { currency: "COIN", amount: accountId === "account-a" ? 10 : 20 },
+    ])
+    vi.mocked(restoreDailyReward).mockReturnValue(restore.promise)
+
+    const { result, rerender } = renderHook(
+      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      { initialProps: { accountId: "account-a" } },
+    )
+
+    await waitFor(() => expect(result.current.accountCoin).toBe(10))
+
+    let restorePromise!: ReturnType<typeof result.current.restoreReward>
+    act(() => {
+      restorePromise = result.current.restoreReward()
+    })
+
+    rerender({ accountId: "account-b" })
+    await waitFor(() => expect(result.current.accountCoin).toBe(20))
+
+    await act(async () => {
+      restore.resolve({ currentStreak: 1 })
+      await restorePromise
+    })
+
+    expect(result.current.accountCoin).toBe(20)
+    expect(getAccountBalances).toHaveBeenCalledTimes(2)
   })
 })

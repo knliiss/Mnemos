@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   getCreatorRevenueSummary,
@@ -13,6 +13,7 @@ import type { Personalization, Route } from "../model"
 import { toProductPersonalization } from "../personalization/data/personalizationMappers"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
+import { FeatureEmpty } from "../system/FeatureEmpty"
 import { CreatorLoadingState } from "./CreatorLoadingState"
 import {
   creatorStatusLabel,
@@ -31,10 +32,16 @@ export function CreatorStudio({ navigate, back }: Props) {
   const [items, setItems] = useState<Personalization[]>([])
   const [filter, setFilter] = useState<StudioFilter>("ALL")
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [revenue, setRevenue] = useState<CreatorRevenueSummaryResponse | null>(null)
+  const requestRevision = useRef(0)
 
   const refresh = useCallback(async () => {
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
     setLoading(true)
+    setLoadError(false)
 
     try {
       const [responses, summary] = await Promise.all([
@@ -42,16 +49,23 @@ export function CreatorStudio({ navigate, back }: Props) {
         getCreatorRevenueSummary(),
       ])
 
-      setItems(
-        responses.map((response) =>
-          toProductPersonalization(response, null, product.user.id, product.user.username),
-        ),
-      )
-      setRevenue(summary)
+      if (revision === requestRevision.current) {
+        setItems(
+          responses.map((response) =>
+            toProductPersonalization(response, null, product.user.id, product.user.username),
+          ),
+        )
+        setRevenue(summary)
+      }
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        setLoadError(true)
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current) {
+        setLoading(false)
+      }
     }
   }, [product.user.id, product.user.username])
 
@@ -60,7 +74,10 @@ export function CreatorStudio({ navigate, back }: Props) {
       void refresh()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      window.cancelAnimationFrame(frame)
+    }
   }, [refresh])
 
   const counts = useMemo(
@@ -96,7 +113,7 @@ export function CreatorStudio({ navigate, back }: Props) {
 
       <section className="creator-hero">
         <div className="creator-hero__copy">
-          <small>MNEMOS CREATOR</small>
+          <small>{t("creator.eyebrow")}</small>
           <strong>{t("creator.workshopTitle")}</strong>
           <p>{t("creator.workshopCopy")}</p>
         </div>
@@ -104,7 +121,7 @@ export function CreatorStudio({ navigate, back }: Props) {
         <div className="creator-hero__art" aria-hidden="true" />
 
         <div className="creator-hero__actions">
-          <button
+          <button type="button"
             onClick={() =>
               navigate({ id: "personalization-editor", params: { personalizationId: "new" } })
             }
@@ -113,7 +130,7 @@ export function CreatorStudio({ navigate, back }: Props) {
             <span>{t("creator.newWork")}</span>
           </button>
 
-          <button className="is-revenue" onClick={() => navigate({ id: "creator-revenue" })}>
+          <button type="button" className="is-revenue" onClick={() => navigate({ id: "creator-revenue" })}>
             <CurrencyMark currency="PRIME" size={15} />
             <span>{revenue?.confirmedPrime ?? 0}</span>
             <small>{t("creator.revenue")}</small>
@@ -122,7 +139,7 @@ export function CreatorStudio({ navigate, back }: Props) {
       </section>
 
       <section className="creator-dashboard">
-        <button
+        <button type="button"
           className={filter === "DRAFT" ? "is-active" : ""}
           onClick={() => setFilter(filter === "DRAFT" ? "ALL" : "DRAFT")}
         >
@@ -131,7 +148,7 @@ export function CreatorStudio({ navigate, back }: Props) {
           <span>{t("creator.drafts")}</span>
         </button>
 
-        <button
+        <button type="button"
           className={filter === "REVIEW" ? "is-active" : ""}
           onClick={() => setFilter(filter === "REVIEW" ? "ALL" : "REVIEW")}
         >
@@ -140,7 +157,7 @@ export function CreatorStudio({ navigate, back }: Props) {
           <span>{t("creator.review")}</span>
         </button>
 
-        <button
+        <button type="button"
           className={filter === "PUBLISHED" ? "is-active" : ""}
           onClick={() => setFilter(filter === "PUBLISHED" ? "ALL" : "PUBLISHED")}
         >
@@ -160,11 +177,21 @@ export function CreatorStudio({ navigate, back }: Props) {
 
       {loading ? (
         <CreatorLoadingState />
+      ) : loadError && !items.length ? (
+        <FeatureEmpty
+          icon="creator"
+          title={t("common.loadErrorTitle")}
+          copy={t("common.loadErrorCopy")}
+        >
+          <button type="button" onClick={() => void refresh()}>
+            {t("common.retry")}
+          </button>
+        </FeatureEmpty>
       ) : (
         <section className="creator-gallery">
           <AnimatePresence initial={false}>
             {visible.map((item, index) => (
-              <motion.button
+              <motion.button type="button"
                 layout
                 key={item.id}
                 className={`creator-card creator-card--${item.type.toLowerCase()}`}

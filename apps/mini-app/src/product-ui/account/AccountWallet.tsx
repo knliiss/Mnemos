@@ -21,6 +21,9 @@ export function AccountWallet({ back }: { back: () => void }) {
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const [sortOpen, setSortOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadRevision, setReloadRevision] = useState(0)
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   useEffect(() => {
@@ -31,15 +34,19 @@ export function AccountWallet({ back }: { back: () => void }) {
     let cancelled = false
     const timeout = window.setTimeout(() => {
       setLoading(true)
+      setLoadError(false)
 
       void getAccountTransactions(activeAccountId, 0, 100)
         .then((response) => {
           if (!cancelled) {
             setTransactions(response.items)
+            setLoadedAccountId(activeAccountId)
           }
         })
         .catch((error) => {
           if (!cancelled) {
+            setLoadError(true)
+            setLoadedAccountId(activeAccountId)
             handleError(error)
           }
         })
@@ -54,27 +61,33 @@ export function AccountWallet({ back }: { back: () => void }) {
       cancelled = true
       window.clearTimeout(timeout)
     }
-  }, [activeAccountId])
+  }, [activeAccountId, reloadRevision])
+
+  const visibleTransactions = useMemo(
+    () => (loadedAccountId === activeAccountId ? transactions : []),
+    [activeAccountId, loadedAccountId, transactions],
+  )
+  const visibleLoading = loading || loadedAccountId !== activeAccountId
 
   const totalEarned = useMemo(
     () =>
-      transactions
+      visibleTransactions
         .filter((transaction) => transaction.type === "CREDIT")
         .reduce((sum, transaction) => sum + transaction.amount, 0),
-    [transactions],
+    [visibleTransactions],
   )
 
   const totalSpent = useMemo(
     () =>
-      transactions
+      visibleTransactions
         .filter((transaction) => transaction.type === "DEBIT")
         .reduce((sum, transaction) => sum + transaction.amount, 0),
-    [transactions],
+    [visibleTransactions],
   )
 
   const history = useMemo(
     () =>
-      [...transactions].sort((left, right) => {
+      [...visibleTransactions].sort((left, right) => {
         if (historySort === "OLDEST") {
           return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
         }
@@ -88,7 +101,7 @@ export function AccountWallet({ back }: { back: () => void }) {
 
         return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
       }),
-    [historySort, transactions],
+    [historySort, visibleTransactions],
   )
 
   if (!activeAccount) {
@@ -221,7 +234,18 @@ export function AccountWallet({ back }: { back: () => void }) {
             )
           })}
 
-          {!loading && !history.length ? (
+          {!visibleLoading && loadError ? (
+            <div className="coin-history-empty">
+              <Glyph name="events" size={22} />
+              <strong>{t("common.loadErrorTitle")}</strong>
+              <small>{t("common.loadErrorCopy")}</small>
+              <button type="button" onClick={() => setReloadRevision((value) => value + 1)}>
+                {t("common.retry")}
+              </button>
+            </div>
+          ) : null}
+
+          {!visibleLoading && !loadError && !history.length ? (
             <div className="coin-history-empty">
               <CurrencyMark currency="COIN" size={22} />
               <strong>{t("accountWallet.emptyTitle")}</strong>
@@ -229,7 +253,7 @@ export function AccountWallet({ back }: { back: () => void }) {
             </div>
           ) : null}
 
-          {loading ? (
+          {visibleLoading ? (
             <div className="coin-history-loading">
               <i />
               <i />

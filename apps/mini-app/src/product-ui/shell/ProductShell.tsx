@@ -20,6 +20,7 @@ export function ProductShell() {
   const [accountPickerOpen, setAccountPickerOpen] = useState(
     () => new URLSearchParams(window.location.search).get("accounts") === "1",
   )
+  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(null)
   const routeStageRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
   const accountSwitchInProgress = useRef(false)
@@ -28,9 +29,11 @@ export function ProductShell() {
   const notFound = current.id === "account" && current.params?.notFound === "true"
   const rootRoute = !notFound && isRootRoute(current.id) ? current.id : null
   const activeAccount = product.activeAccount
+  const activeAccountId = activeAccount?.id ?? "none"
+  const currentScrollKey = `${activeAccountId}:${routeKey(current)}`
 
   const rememberScroll = () => {
-    scrollPositions.current[routeKey(current)] = routeStageRef.current?.scrollTop ?? 0
+    scrollPositions.current[currentScrollKey] = routeStageRef.current?.scrollTop ?? 0
   }
 
   const navigate = (route: Route) => {
@@ -69,13 +72,13 @@ export function ProductShell() {
 
     const frame = window.requestAnimationFrame(() => {
       element.scrollTo({
-        top: scrollPositions.current[routeKey(current)] ?? 0,
+        top: scrollPositions.current[currentScrollKey] ?? 0,
         behavior: "auto",
       })
     })
 
     return () => window.cancelAnimationFrame(frame)
-  }, [current])
+  }, [currentScrollKey])
 
   useEffect(() => {
     const option = localizationOptions.find(
@@ -99,14 +102,16 @@ export function ProductShell() {
     }
 
     accountSwitchInProgress.current = true
+    setSwitchingAccountId(account.id)
 
     try {
-      await product.selectAccount(account)
-      setAccountPickerOpen(false)
-    } catch {
-      // ProductDataProvider reports the error. Keep the picker open so the user can retry.
+      const switched = await product.selectAccount(account)
+      if (switched) {
+        setAccountPickerOpen(false)
+      }
     } finally {
       accountSwitchInProgress.current = false
+      setSwitchingAccountId(null)
     }
   }
 
@@ -145,7 +150,7 @@ export function ProductShell() {
               {rootRoute === "account" && activeAccount ? (
                 <div className="account-root-user-entry">
                   <span className="account-root-user-entry__identity">
-                    <small>MNEMOS USER</small>
+                    <small>{t("productShell.userMenu.userEyebrow")}</small>
                     <strong>@{product.user.username}</strong>
                   </span>
                   {userHubTrigger}
@@ -155,6 +160,7 @@ export function ProductShell() {
               )}
 
               <ProductRouteContent
+                key={activeAccountId}
                 current={current}
                 activeAccount={activeAccount}
                 navigate={navigate}
@@ -170,6 +176,7 @@ export function ProductShell() {
                   accountPickerOpen={accountPickerOpen}
                   activeAccount={activeAccount}
                   accounts={product.accounts}
+                  switchingAccountId={switchingAccountId}
                   localization={product.user.language}
                   username={product.user.username}
                   prime={product.user.prime}

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { CurrencyMark, Glyph, type GlyphName } from "./MnemosIcon"
 
 export function PageHeader({
@@ -13,11 +14,18 @@ export function PageHeader({
   back?: () => void
   actions?: ReactNode
 }) {
+  const { t } = useTranslation()
+
   return (
     <header className="page-header">
       <div className="page-header__lead">
         {back ? (
-          <button className="icon-button icon-button--back" onClick={back} aria-label="Назад">
+          <button
+            type="button"
+            className="icon-button icon-button--back"
+            onClick={back}
+            aria-label={t("common.back")}
+          >
             <Glyph name="back" size={20} />
           </button>
         ) : null}
@@ -44,6 +52,7 @@ export function IconButton({
 }) {
   return (
     <button
+      type="button"
       className={`icon-button ${active ? "is-active" : ""}`}
       onClick={onClick}
       aria-label={label}
@@ -63,10 +72,18 @@ export function CurrencyValue({
   value: number
   compact?: boolean
 }) {
+  const { i18n } = useTranslation()
+  const locale =
+    i18n.resolvedLanguage === "en"
+      ? "en-US"
+      : i18n.resolvedLanguage === "ru"
+        ? "ru-RU"
+        : "uk-UA"
+
   return (
     <span className={`currency-value ${compact ? "currency-value--compact" : ""}`}>
       <CurrencyMark currency={currency} size={compact ? 15 : 18} />
-      <span>{value.toLocaleString("uk-UA")}</span>
+      <span>{value.toLocaleString(locale)}</span>
     </span>
   )
 }
@@ -129,7 +146,11 @@ export function Row({
     </>
   )
   return onClick ? (
-    <button className={`row row--button ${danger ? "row--danger" : ""}`} onClick={onClick}>
+    <button
+      type="button"
+      className={`row row--button ${danger ? "row--danger" : ""}`}
+      onClick={onClick}
+    >
       {content}
     </button>
   ) : (
@@ -243,6 +264,8 @@ export function BottomSheet({
   children: ReactNode
   onClose: () => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <motion.div
       className="sheet-backdrop"
@@ -253,6 +276,9 @@ export function BottomSheet({
     >
       <motion.section
         className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         initial={{ y: 32, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 32, opacity: 0 }}
@@ -262,7 +288,7 @@ export function BottomSheet({
         <div className="sheet__grip" />
         <div className="sheet__head">
           <h2>{title}</h2>
-          <IconButton icon="close" label="Закрити" onClick={onClose} />
+          <IconButton icon="close" label={t("common.close")} onClick={onClose} />
         </div>
         {children}
       </motion.section>

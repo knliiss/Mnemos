@@ -91,7 +91,7 @@ export function PersonalizationStoreCategory({
       ) : (
         <div className="personalization-category-list">
           {pageItems.map((item) => (
-            <motion.button
+            <motion.button type="button"
               key={item.id}
               className="personalization-category-card"
               whileTap={{ scale: 0.992 }}

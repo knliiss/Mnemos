@@ -50,7 +50,7 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             <span>
               <Glyph name="creator" size={20} />
             </span>
-            <strong>Creator Studio</strong>
+            <strong>{t("productShell.userMenu.creator")}</strong>
             <small>{t("productShell.userMenu.creatorDescription")}</small>
             <b>›</b>
           </button>

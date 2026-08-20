@@ -26,6 +26,7 @@ export function AdministrationHome({
   const [stats, setStats] = useState<AdminStats | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     const frame = window.requestAnimationFrame(() => {
       void Promise.all([
         listPersonalizationReviewQueue(),
@@ -34,19 +35,28 @@ export function AdministrationHome({
         listAdminBadges(),
       ])
         .then(([review, rounds, races, badges]) => {
-          setStats({
-            review: review.length,
-            activeRounds: rounds.filter((round) => round.status !== "SETTLED").length,
-            activeRaces: races.filter(
-              (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
-            ).length,
-            badges: badges.length,
-          })
+          if (!cancelled) {
+            setStats({
+              review: review.length,
+              activeRounds: rounds.filter((round) => round.status !== "SETTLED").length,
+              activeRaces: races.filter(
+                (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
+              ).length,
+              badges: badges.length,
+            })
+          }
         })
-        .catch(handleError)
+        .catch((error) => {
+          if (!cancelled) {
+            handleError(error)
+          }
+        })
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
   }, [])
 
   return (
@@ -64,7 +74,7 @@ export function AdministrationHome({
       </section>
 
       <div className="workspace-grid">
-        <button onClick={() => navigate({ id: "moderation" })}>
+        <button type="button" onClick={() => navigate({ id: "moderation" })}>
           <span className="workspace-grid__icon workspace-grid__icon--danger">
             <Glyph name="members" size={20} />
           </span>
@@ -75,7 +85,7 @@ export function AdministrationHome({
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "personalization-review" })}>
+        <button type="button" onClick={() => navigate({ id: "personalization-review" })}>
           <span className="workspace-grid__icon workspace-grid__icon--plum">
             <Glyph name="creator" size={20} />
           </span>
@@ -90,7 +100,7 @@ export function AdministrationHome({
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "bet-admin" })}>
+        <button type="button" onClick={() => navigate({ id: "bet-admin" })}>
           <span className="workspace-grid__icon workspace-grid__icon--amber">
             <Glyph name="bet" size={20} />
           </span>
@@ -108,7 +118,7 @@ export function AdministrationHome({
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "badge-admin" })}>
+        <button type="button" onClick={() => navigate({ id: "badge-admin" })}>
           <span className="workspace-grid__icon">
             <Glyph name="spark" size={20} />
           </span>

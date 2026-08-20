@@ -32,6 +32,7 @@ export function PeopleArea(props: Props) {
   if (props.routeId === "public-profile" && props.activeAccount) {
     return (
       <PublicProfilePage
+        key={props.params?.accountId ?? "missing"}
         activeAccount={props.activeAccount}
         accountId={props.params?.accountId ?? ""}
         navigate={props.navigate}

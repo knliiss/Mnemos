@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   publishCreatorPersonalization,
@@ -11,6 +11,7 @@ import { useProductData } from "../../data/ProductDataProvider"
 import type { Currency } from "../../model"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { Field, PageHeader } from "../../shared/Primitives"
+import { FeatureEmpty } from "../../system/FeatureEmpty"
 import { CreatorLoadingState } from "../CreatorLoadingState"
 import {
   creatorStatusLabel,
@@ -38,56 +39,112 @@ export function CreatorEditor({ params, back }: Props) {
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
   const [form, setForm] = useState(() => createDefaultCreatorEditorForm(t))
   const [loading, setLoading] = useState(!isNew)
+  const [loadedId, setLoadedId] = useState<string | null>(isNew ? personalizationId : null)
+  const [loadError, setLoadError] = useState(false)
+  const [reloadRevision, setReloadRevision] = useState(0)
   const [busy, setBusy] = useState(false)
+  const busyScopeRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
+  const scopeRef = useRef(personalizationId)
+
+  useLayoutEffect(() => {
+    scopeRef.current = personalizationId
+  }, [personalizationId])
 
   useEffect(() => {
-    if (isNew) {
-      return
-    }
+    let cancelled = false
+    const requestedId = personalizationId
 
     const frame = window.requestAnimationFrame(() => {
+      mountedRef.current = true
+      setLoading(!isNew)
+      setLoadError(false)
+
+      if (isNew) {
+        setSource(null)
+        setForm(createDefaultCreatorEditorForm(t))
+        setLoadedId(requestedId)
+        return
+      }
+
       void getPersonalization(personalizationId)
         .then((response) => {
-          setSource(response)
-          setForm(creatorResponseToEditorForm(response, t))
+          if (!cancelled && scopeRef.current === requestedId) {
+            setSource(response)
+            setForm(creatorResponseToEditorForm(response, t))
+            setLoadedId(requestedId)
+          }
         })
-        .catch(handleError)
-        .finally(() => setLoading(false))
+        .catch((error) => {
+          if (!cancelled && scopeRef.current === requestedId) {
+            setLoadError(true)
+            setLoadedId(requestedId)
+            handleError(error)
+          }
+        })
+        .finally(() => {
+          if (!cancelled && scopeRef.current === requestedId) {
+            setLoading(false)
+          }
+        })
     })
 
-    return () => window.cancelAnimationFrame(frame)
-  }, [isNew, personalizationId, t])
+    return () => {
+      cancelled = true
+      mountedRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
+  }, [isNew, personalizationId, reloadRevision, t])
+
+  const currentSource = loadedId === personalizationId ? source : null
+  const visibleLoading = loading || loadedId !== personalizationId
 
   const numericPrice = Number(form.price)
   const valid = form.name.trim().length >= 3 && Number.isInteger(numericPrice) && numericPrice > 0
-  const editable = !source || ["DRAFT", "REJECTED", "PRIVATE"].includes(source.status)
+  const editable =
+    !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
-    source?.id ?? "preview",
-    source?.status ?? "DRAFT",
+    currentSource?.id ?? "preview",
+    currentSource?.status ?? "DRAFT",
     product.user.username,
     t("creator.editor.fallbackName"),
   )
 
   const save = async (): Promise<PersonalizationResponse | null> => {
-    if (!valid || !editable || busy) {
+    const actionScope = personalizationId
+
+    if (!valid || !editable || busyScopeRef.current === actionScope) {
       return null
     }
 
+    busyScopeRef.current = actionScope
     setBusy(true)
 
     try {
-      const saved = await saveCreatorForm(source?.id ?? null, form)
+      const saved = await saveCreatorForm(currentSource?.id ?? null, form)
+
+      if (!mountedRef.current || scopeRef.current !== actionScope) {
+        return null
+      }
 
       setSource(saved)
+      setLoadedId(actionScope)
       setForm(creatorResponseToEditorForm(saved, t))
 
       return saved
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && scopeRef.current === actionScope) {
+        handleError(error)
+      }
       return null
     } finally {
-      setBusy(false)
+      if (busyScopeRef.current === actionScope) {
+        busyScopeRef.current = null
+        if (mountedRef.current) {
+          setBusy(false)
+        }
+      }
     }
   }
 
@@ -100,46 +157,92 @@ export function CreatorEditor({ params, back }: Props) {
   }
 
   const submit = async () => {
+    const actionScope = personalizationId
     const saved = await save()
 
-    if (!saved) {
+    if (!saved || !mountedRef.current || scopeRef.current !== actionScope) {
       return
     }
 
+    busyScopeRef.current = actionScope
     setBusy(true)
 
     try {
       await submitCreatorPersonalization(saved.id)
-      back()
+
+      if (mountedRef.current && scopeRef.current === actionScope) {
+        back()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && scopeRef.current === actionScope) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (busyScopeRef.current === actionScope) {
+        busyScopeRef.current = null
+        if (mountedRef.current) {
+          setBusy(false)
+        }
+      }
     }
   }
 
   const publish = async () => {
-    if (!source || source.status !== "APPROVED" || busy) {
+    const actionScope = personalizationId
+
+    if (
+      !currentSource ||
+      currentSource.status !== "APPROVED" ||
+      busyScopeRef.current === actionScope
+    ) {
       return
     }
 
+    busyScopeRef.current = actionScope
     setBusy(true)
 
     try {
-      await publishCreatorPersonalization(source.id)
-      back()
+      await publishCreatorPersonalization(currentSource.id)
+
+      if (mountedRef.current && scopeRef.current === actionScope) {
+        back()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && scopeRef.current === actionScope) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (busyScopeRef.current === actionScope) {
+        busyScopeRef.current = null
+        if (mountedRef.current) {
+          setBusy(false)
+        }
+      }
     }
   }
 
-  if (loading) {
+  if (visibleLoading) {
     return (
       <div className="screen creator-screen">
         <PageHeader title={t("creator.editor.editing")} back={back} />
         <CreatorLoadingState />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="screen creator-screen">
+        <PageHeader title={t("creator.editor.editing")} back={back} />
+        <FeatureEmpty
+          icon="creator"
+          title={t("common.loadErrorTitle")}
+          copy={t("common.loadErrorCopy")}
+        >
+          <button type="button" onClick={() => setReloadRevision((value) => value + 1)}>
+            {t("common.retry")}
+          </button>
+        </FeatureEmpty>
       </div>
     )
   }
@@ -163,21 +266,21 @@ export function CreatorEditor({ params, back }: Props) {
         <PersonalizationVisual item={preview} detail />
       </section>
 
-      {source?.rejectionReason ? (
+      {currentSource?.rejectionReason ? (
         <section className="creator-form-block">
           <header>
             <small>{t("creator.editor.moderationEyebrow")}</small>
             <strong>{t("creator.editor.changesRequired")}</strong>
           </header>
-          <p>{source.rejectionReason}</p>
+          <p>{currentSource.rejectionReason}</p>
         </section>
       ) : null}
 
       <section className="creator-type-picker">
         {creatorTypeOrder.map((value) => (
-          <button
+          <button type="button"
             key={value}
-            disabled={!editable || Boolean(source)}
+            disabled={!editable || Boolean(currentSource)}
             className={form.type === value ? "is-active" : ""}
             onClick={() =>
               setForm((current) => ({
@@ -289,7 +392,7 @@ export function CreatorEditor({ params, back }: Props) {
           ) : (
             <div className="creator-currency-switch">
               {(["COIN", "PRIME"] as Currency[]).map((value) => (
-                <button
+                <button type="button"
                   key={value}
                   disabled={!editable}
                   className={form.currency === value ? "is-active" : ""}
@@ -316,10 +419,10 @@ export function CreatorEditor({ params, back }: Props) {
           />
         </div>
 
-        {source ? (
+        {currentSource ? (
           <p className="inline-hint inline-hint--left">
             {t("creator.editor.status", {
-              status: creatorStatusLabel(t, source.status),
+              status: creatorStatusLabel(t, currentSource.status),
             })}
           </p>
         ) : null}
@@ -328,19 +431,19 @@ export function CreatorEditor({ params, back }: Props) {
       <div className="creator-editor-actions">
         {editable ? (
           <>
-            <button disabled={!valid || busy} onClick={() => void saveAndBack()}>
+            <button type="button" disabled={!valid || busy} onClick={() => void saveAndBack()}>
               {busy ? t("creator.editor.saving") : t("creator.editor.save")}
             </button>
-            <button className="is-primary" disabled={!valid || busy} onClick={() => void submit()}>
+            <button type="button" className="is-primary" disabled={!valid || busy} onClick={() => void submit()}>
               {busy ? t("creator.editor.submitting") : t("creator.editor.submit")}
             </button>
           </>
-        ) : source?.status === "APPROVED" ? (
-          <button className="is-primary" disabled={busy} onClick={() => void publish()}>
+        ) : currentSource?.status === "APPROVED" ? (
+          <button type="button" className="is-primary" disabled={busy} onClick={() => void publish()}>
             {busy ? t("creator.editor.publishing") : t("creator.editor.publish")}
           </button>
         ) : (
-          <button disabled>{t("creator.editor.editingUnavailable")}</button>
+          <button type="button" disabled>{t("creator.editor.editingUnavailable")}</button>
         )}
       </div>
     </div>

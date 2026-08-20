@@ -34,10 +34,10 @@ export function AccountConfirmPanel({
       </span>
 
       <div>
-        <button disabled={busy} onClick={onCancel}>
+        <button type="button" disabled={busy} onClick={onCancel}>
           {t("accountSettings.cancel")}
         </button>
-        <button disabled={busy} onClick={onConfirm}>
+        <button type="button" disabled={busy} onClick={onConfirm}>
           {busy ? "…" : confirmLabel}
         </button>
       </div>

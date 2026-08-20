@@ -52,20 +52,20 @@ export function ModerationUser({ params, back }: Props) {
           {identity.username.slice(0, 1).toUpperCase()}
         </span>
         <span>
-          <small>USER</small>
+          <small>{t("moderation.user")}</small>
           <strong>@{identity.username}</strong>
           <em>{identity.userId}</em>
         </span>
         <span
           className={controller.activeBan ? "internal-user-state is-banned" : "internal-user-state"}
         >
-          {controller.activeBan ? "BAN" : "OK"}
+          {controller.activeBan ? t("moderation.banned") : t("moderation.ok")}
         </span>
       </section>
 
       <section className="internal-info-grid">
         <article>
-          <small>Telegram ID</small>
+          <small>{t("moderation.telegramId")}</small>
           <strong>{identity.telegramId}</strong>
         </article>
         <article>

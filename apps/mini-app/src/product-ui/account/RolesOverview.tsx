@@ -9,6 +9,7 @@ import { allRolePermissions } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
+import { FeatureEmpty } from "../system/FeatureEmpty"
 
 type Props = {
   navigate: (route: Route) => void
@@ -31,7 +32,7 @@ export function RolesOverview({ navigate, back }: Props) {
         title={t("rolesOverview.title")}
         back={back}
         actions={
-          <button
+          <button type="button"
             className="roles-create"
             disabled={!accountId}
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
@@ -87,14 +88,15 @@ export function RolesOverview({ navigate, back }: Props) {
       ) : null}
 
       {!roles.length && !product.loadingAccount ? (
-        <section className="events-r2-empty">
-          <Glyph name="roles" size={24} />
-          <strong>{t("rolesOverview.emptyTitle")}</strong>
-          <small>{t("rolesOverview.emptyCopy")}</small>
-        </section>
+        <FeatureEmpty
+          icon="roles"
+          title={t("rolesOverview.emptyTitle")}
+          copy={t("rolesOverview.emptyCopy")}
+        />
       ) : null}
 
       <button
+        type="button"
         className="roles-create-card"
         disabled={!accountId}
         onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
@@ -192,7 +194,7 @@ function SortableRoleRow({
       whileDrag={{ scale: 1.02, zIndex: 5 }}
       onDragEnd={onDragEnd}
     >
-      <button
+      <button type="button"
         className="role-row__main"
         onClick={() => navigate({ id: "role-editor", params: { roleId: role.id } })}
       >

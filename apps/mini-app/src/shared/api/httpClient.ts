@@ -49,7 +49,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
 
     throw new NetworkError(
-      `Не удалось подключиться к серверу.\n${options.method ?? "GET"} ${url}\nПричина: ${reason}`,
+      `Network request failed.\n${options.method ?? "GET"} ${url}\nCause: ${reason}`,
       error,
     )
   }
@@ -71,7 +71,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   try {
     return JSON.parse(text) as T
   } catch {
-    throw new ApiError(response.status, "Сервер вернул некорректный JSON")
+    throw new ApiError(response.status, "Server returned invalid JSON")
   }
 }
 

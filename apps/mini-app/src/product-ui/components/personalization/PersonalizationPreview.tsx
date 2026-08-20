@@ -173,11 +173,11 @@ export function NotificationPackShowcase({ content }: { content: NotificationPac
                 <p>{renderTemplate(template.soloBody, sample.values)}</p>
                 <span className="notification-pack-template__variants">
                   <em>
-                    <small>compact</small>
+                    <small>{t("personalization.preview.compact")}</small>
                     {renderTemplate(template.compact, sample.values)}
                   </em>
                   <em>
-                    <small>aggregate</small>
+                    <small>{t("personalization.preview.aggregate")}</small>
                     {renderTemplate(template.aggregateTitle, sample.values)}
                   </em>
                 </span>
@@ -205,7 +205,7 @@ function NotificationPackPreview({
   const template = content.templates.ITEM_DROP
   const values = {
     player: "north",
-    item: "Eternal Blade",
+    item: t("personalization.preview.samples.item"),
     rarity: t("personalization.preview.samples.mythical"),
     itemType: t("personalization.preview.samples.sword"),
   }
@@ -219,7 +219,7 @@ function NotificationPackPreview({
         <ItemTypeArt itemType="SWORD" size={small ? 26 : detail ? 46 : 34} />
       </span>
       <span className="notification-real-preview__copy">
-        <small>ITEM DROP</small>
+        <small>{t("personalization.preview.itemDrop")}</small>
         <strong>{renderTemplate(template.soloTitle, values)}</strong>
         {!small ? <p>{body}</p> : null}
         {detail ? <em>{renderTemplate(template.compact, values)}</em> : null}
@@ -240,14 +240,14 @@ function NickPreview({ content, className }: { content: NickStyleContent; classN
 
   return (
     <div className={`${className} nick-real-preview`}>
-      <small>NICK STYLE</small>
+      <small>{t("personalization.preview.nickStyle")}</small>
       <strong
         style={{
           backgroundImage: `linear-gradient(${content.angleDegrees}deg, ${stops})`,
           textShadow: glow,
         }}
       >
-        knalis
+        {t("personalization.preview.samples.nickname")}
       </strong>
       <em>{t("personalization.preview.nickExample")}</em>
     </div>
@@ -255,6 +255,9 @@ function NickPreview({ content, className }: { content: NickStyleContent; classN
 }
 
 function ThemePreview({ content, className }: { content: ProfileThemeContent; className: string }) {
+  const { t } = useTranslation()
+  const nickname = t("personalization.preview.samples.nickname")
+
   return (
     <div
       className={`${className} theme-real-preview`}
@@ -271,10 +274,10 @@ function ThemePreview({ content, className }: { content: ProfileThemeContent; cl
           borderColor: content.accent,
         }}
       >
-        K
+        {nickname.slice(0, 1).toUpperCase()}
       </span>
       <span style={{ background: content.surface }}>
-        <b style={{ color: content.text }}>knalis</b>
+        <b style={{ color: content.text }}>{nickname}</b>
         <i style={{ background: content.accent }} />
       </span>
     </div>
@@ -283,6 +286,7 @@ function ThemePreview({ content, className }: { content: ProfileThemeContent; cl
 
 function FramePreview({ content, className }: { content: AvatarFrameContent; className: string }) {
   const { t } = useTranslation()
+  const nickname = t("personalization.preview.samples.nickname")
 
   return (
     <div className={`${className} frame-real-preview`}>
@@ -296,7 +300,7 @@ function FramePreview({ content, className }: { content: AvatarFrameContent; cla
             : "none",
         }}
       >
-        K
+        {nickname.slice(0, 1).toUpperCase()}
       </span>
       <small>{t("personalization.preview.avatarFrame")}</small>
     </div>
@@ -310,6 +314,9 @@ function EffectPreview({
   content: ProfileEffectContent
   className: string
 }) {
+  const { t } = useTranslation()
+  const nickname = t("personalization.preview.samples.nickname")
+
   return (
     <div
       className={`${className} effect-real-preview effect-real-preview--${content.effect.toLowerCase()}`}
@@ -321,9 +328,9 @@ function EffectPreview({
         } as CSSProperties
       }
     >
-      <span>K</span>
+      <span>{nickname.slice(0, 1).toUpperCase()}</span>
       <small>
-        {content.effect} · {content.intensity}%
+        {t(`personalization.preview.effects.${content.effect}`)} · {content.intensity}%
       </small>
     </div>
   )
@@ -345,7 +352,7 @@ function createTemplateSamples(t: TFunction): TemplateSample[] {
       label: t("personalization.preview.samples.ITEM_DROP"),
       values: {
         player: "north",
-        item: "Eternal Blade",
+        item: t("personalization.preview.samples.item"),
         rarity: t("personalization.preview.samples.mythical"),
         itemType: t("personalization.preview.samples.sword"),
       },

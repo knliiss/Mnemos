@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react"
+import { i18n } from "@/shared/i18n"
 import { handleError } from "./errorHandler"
 
 interface State {
@@ -15,10 +16,12 @@ export class RootErrorBoundary extends Component<{ children: ReactNode }, State>
   }
   render() {
     return this.state.error ? (
-      <div className="fatal-error">
+      <div className="fatal-error" role="alert">
         <h1>Mnemos</h1>
-        <p>{this.state.error.message}</p>
-        <button onClick={() => location.reload()}>Reload</button>
+        <p>{i18n.t("errorBoundary.message")}</p>
+        <button type="button" onClick={() => location.reload()}>
+          {i18n.t("errorBoundary.reload")}
+        </button>
       </div>
     ) : (
       this.props.children

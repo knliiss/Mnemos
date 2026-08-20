@@ -1,9 +1,11 @@
 import { Check, Copy, X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { notifications } from "./notificationCenter"
 import type { AppNotification } from "./notification.types"
 
 export function NotificationHost() {
+  const { t } = useTranslation()
   const [notification, setNotification] = useState<AppNotification | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -47,7 +49,7 @@ export function NotificationHost() {
             type="button"
             className="notification__button"
             onClick={() => void copy()}
-            aria-label="Скопировать"
+            aria-label={t("common.copy")}
           >
             <CopyIcon size={18} />
           </button>
@@ -56,7 +58,7 @@ export function NotificationHost() {
           type="button"
           className="notification__button"
           onClick={() => notifications.clear()}
-          aria-label="Закрыть"
+          aria-label={t("common.close")}
         >
           <X size={18} />
         </button>

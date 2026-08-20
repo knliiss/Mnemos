@@ -53,7 +53,7 @@ export function AccountLifecycleSettings({
             {owner ? t("accountSettings.deactivateCopy") : t("accountSettings.leaveCopy")}
           </small>
         </span>
-        <button disabled={busy} onClick={owner ? onRequestDeactivate : onRequestLeave}>
+        <button type="button" disabled={busy} onClick={owner ? onRequestDeactivate : onRequestLeave}>
           {owner ? t("accountSettings.deactivate") : t("accountSettings.leave")}
         </button>
       </div>

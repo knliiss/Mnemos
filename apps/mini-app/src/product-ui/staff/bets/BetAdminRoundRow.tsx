@@ -15,7 +15,7 @@ export function BetAdminRoundRow({ round, onClick }: Props) {
   const { t, i18n } = useTranslation()
 
   return (
-    <button className="bet-admin-round-row" onClick={onClick}>
+    <button type="button" className="bet-admin-round-row" onClick={onClick}>
       <span>
         <GlobalEventArt eventType={round.eventType} size={48} />
       </span>

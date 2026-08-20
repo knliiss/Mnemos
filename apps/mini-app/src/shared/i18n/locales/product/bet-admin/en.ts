@@ -1,6 +1,7 @@
 export const betAdminEn = {
   betAdmin: {
     title: "Bets",
+    workspaceEyebrow: "ADMIN WORKSPACE",
     workspaceTitle: "Bet management",
     workspaceDescription: "Round and race state is loaded directly from bet-service.",
     active: "Active",
@@ -29,6 +30,7 @@ export const betAdminEn = {
     result: "Result",
     refund: "Refund",
     manualResolution: "Confirm result",
+    manualResolutionEyebrow: "MANUAL RESOLUTION",
     reason: "Reason",
     reasonPlaceholder: "Why this result is being confirmed manually",
     saving: "Saving…",
@@ -36,6 +38,7 @@ export const betAdminEn = {
     close: "Close",
     new: "New",
     newRace: "New Item race",
+    newRaceEyebrow: "NEW RACE",
     item: "Item",
     type: "Type",
     durationHours: "Duration, hours",

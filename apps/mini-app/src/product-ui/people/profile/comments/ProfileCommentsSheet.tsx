@@ -3,6 +3,7 @@ import {
   type FormEvent,
   type PointerEvent,
   type UIEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -23,12 +24,14 @@ type Props = {
   comments: ProfileCommentView[]
   commentsHasMore: boolean
   commentsLoading: boolean
+  commentsError: boolean
   replies: ReplyThreadMap
   expandedReplies: Set<string>
   busyIds: Set<string>
   submitting: boolean
   onClose: () => void
   onLoadMoreComments: () => Promise<void>
+  onRetryComments: () => Promise<void>
   onToggleReplies: (comment: ProfileCommentView) => Promise<void>
   onLoadMoreReplies: (comment: ProfileCommentView) => Promise<void>
   onToggleLike: (comment: ProfileCommentView, rootCommentId?: string) => Promise<void>
@@ -46,12 +49,14 @@ export function ProfileCommentsSheet({
   comments,
   commentsHasMore,
   commentsLoading,
+  commentsError,
   replies,
   expandedReplies,
   busyIds,
   submitting,
   onClose,
   onLoadMoreComments,
+  onRetryComments,
   onToggleReplies,
   onLoadMoreReplies,
   onToggleLike,
@@ -63,10 +68,14 @@ export function ProfileCommentsSheet({
   const [replyingTo, setReplyingTo] = useState<ReplyTarget | null>(null)
   const composerInputRef = useRef<HTMLInputElement>(null)
   const dragControls = useDragControls()
+  const close = useCallback(() => {
+    setDraft("")
+    setReplyingTo(null)
+    onClose()
+  }, [onClose])
 
   useEffect(() => {
     if (!open) {
-      setReplyingTo(null)
       return
     }
 
@@ -75,7 +84,7 @@ export function ProfileCommentsSheet({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose()
+        close()
       }
     }
 
@@ -85,7 +94,7 @@ export function ProfileCommentsSheet({
       document.body.style.overflow = previousOverflow
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [onClose, open])
+  }, [close, open])
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -132,7 +141,7 @@ export function ProfileCommentsSheet({
           exit={{ opacity: 0 }}
           onMouseDown={(event) => {
             if (event.currentTarget === event.target) {
-              onClose()
+              close()
             }
           }}
         >
@@ -150,7 +159,7 @@ export function ProfileCommentsSheet({
             dragSnapToOrigin
             onDragEnd={(_, info) => {
               if (info.offset.y > 110 || info.velocity.y > 720) {
-                onClose()
+                close()
               }
             }}
             aria-modal="true"
@@ -183,7 +192,7 @@ export function ProfileCommentsSheet({
               <button
                 type="button"
                 className="public-profile-comments-sheet__close"
-                onClick={onClose}
+                onClick={close}
                 aria-label={t("people.profile.closeComments")}
               >
                 <Glyph name="close" size={15} />
@@ -391,7 +400,18 @@ export function ProfileCommentsSheet({
                 })}
               </AnimatePresence>
 
-              {!comments.length && !commentsLoading ? (
+              {commentsError ? (
+                <div className="public-profile-comments-sheet__empty is-error">
+                  <Glyph name="spark" size={24} />
+                  <strong>{t("common.loadErrorTitle")}</strong>
+                  <small>{t("common.loadErrorCopy")}</small>
+                  <button type="button" onClick={() => void onRetryComments()}>
+                    {t("common.retry")}
+                  </button>
+                </div>
+              ) : null}
+
+              {!comments.length && !commentsLoading && !commentsError ? (
                 <div className="public-profile-comments-sheet__empty">
                   <img src="/ui-illustrations/mnemos-comments.svg" alt="" />
                   <strong>{t("people.profile.noComments")}</strong>
@@ -399,7 +419,7 @@ export function ProfileCommentsSheet({
                 </div>
               ) : null}
 
-              {commentsLoading ? (
+              {commentsLoading && !commentsError ? (
                 <span className="public-profile-comments-sheet__loading">…</span>
               ) : null}
             </div>

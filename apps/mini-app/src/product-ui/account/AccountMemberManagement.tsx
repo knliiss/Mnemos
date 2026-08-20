@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   assignMemberRole,
@@ -32,58 +32,111 @@ export function AccountMemberManagement({
 }: AccountMemberManagementProps) {
   const { t, i18n } = useTranslation()
   const [roleIds, setRoleIds] = useState<string[]>(member.roleIds)
-  const [busyRoleId, setBusyRoleId] = useState<string | null>(null)
-  const [kickBusy, setKickBusy] = useState(false)
+  const [roleIdsScope, setRoleIdsScope] = useState(`${accountId}:${member.id}`)
+  const [busyRole, setBusyRole] = useState<{ scope: string; roleId: string } | null>(null)
+  const [kickBusyScope, setKickBusyScope] = useState<string | null>(null)
+  const busyRoleRef = useRef<{ scope: string; roleId: string } | null>(null)
+  const kickBusyScopeRef = useRef<string | null>(null)
+  const scope = `${accountId}:${member.id}`
+  const scopeRef = useRef(scope)
 
   const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
+  useLayoutEffect(() => {
+    scopeRef.current = scope
+  }, [scope])
+
   useEffect(() => {
+    let cancelled = false
+
     void getMemberRoles(accountId, member.id)
-      .then((memberRoles) => setRoleIds(memberRoles.map((role) => role.id)))
-      .catch(handleError)
-  }, [accountId, member.id])
+      .then((memberRoles) => {
+        if (!cancelled) {
+          setRoleIds(memberRoles.map((role) => role.id))
+          setRoleIdsScope(scope)
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          handleError(error)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [accountId, member.id, scope])
+
+  const visibleRoleIds = roleIdsScope === scope ? roleIds : member.roleIds
+  const busyRoleId = busyRole?.scope === scope ? busyRole.roleId : null
+  const kickBusy = kickBusyScope === scope
 
   const toggleRole = async (role: AccountRole) => {
-    if (member.owner || busyRoleId) {
+    if (member.owner || busyRoleRef.current?.scope === scope) {
       return
     }
 
-    const assigned = roleIds.includes(role.id)
+    const requestedScope = scope
+    const assigned = visibleRoleIds.includes(role.id)
 
-    setBusyRoleId(role.id)
+    busyRoleRef.current = { scope: requestedScope, roleId: role.id }
+    setBusyRole({ scope: requestedScope, roleId: role.id })
 
     try {
       if (assigned) {
         await revokeMemberRole(accountId, member.id, role.id)
-        setRoleIds((current) => current.filter((id) => id !== role.id))
       } else {
         await assignMemberRole(accountId, member.id, role.id)
-        setRoleIds((current) => [...current, role.id])
       }
 
-      await refresh()
+      if (scopeRef.current === requestedScope) {
+        setRoleIds((current) =>
+          assigned ? current.filter((id) => id !== role.id) : [...current, role.id],
+        )
+        setRoleIdsScope(requestedScope)
+        await refresh()
+      }
     } catch (error) {
-      handleError(error)
+      if (scopeRef.current === requestedScope) {
+        handleError(error)
+      }
     } finally {
-      setBusyRoleId(null)
+      if (
+        busyRoleRef.current?.scope === requestedScope &&
+        busyRoleRef.current.roleId === role.id
+      ) {
+        busyRoleRef.current = null
+        setBusyRole(null)
+      }
     }
   }
 
   const kickMember = async () => {
-    if (member.owner || kickBusy) {
+    if (member.owner || kickBusyScopeRef.current === scope) {
       return
     }
 
-    setKickBusy(true)
+    const requestedScope = scope
+
+    kickBusyScopeRef.current = requestedScope
+    setKickBusyScope(requestedScope)
 
     try {
       await kickAccountMember(accountId, member.id)
-      await refresh()
-      back()
+      if (scopeRef.current === requestedScope) {
+        await refresh()
+        back()
+      }
     } catch (error) {
-      handleError(error)
-      setKickBusy(false)
+      if (scopeRef.current === requestedScope) {
+        handleError(error)
+      }
+    } finally {
+      if (kickBusyScopeRef.current === requestedScope) {
+        kickBusyScopeRef.current = null
+        setKickBusyScope(null)
+      }
     }
   }
 
@@ -95,7 +148,7 @@ export function AccountMemberManagement({
         <span className="account-member__avatar" aria-hidden="true" />
 
         <span className="account-member__identity">
-          <small>ACCOUNT MEMBER</small>
+          <small>{t("accountMember.eyebrow")}</small>
           <strong>{member.name}</strong>
           <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
         </span>
@@ -110,16 +163,16 @@ export function AccountMemberManagement({
             <strong>{t("accountMember.roles")}</strong>
           </span>
 
-          <em>{t("accountMember.activeRoles", { count: roleIds.length })}</em>
+          <em>{t("accountMember.activeRoles", { count: visibleRoleIds.length })}</em>
         </header>
 
         <div>
           {roles.map((role) => {
-            const assigned = roleIds.includes(role.id)
+            const assigned = visibleRoleIds.includes(role.id)
             const locked = member.owner
 
             return (
-              <motion.button
+              <motion.button type="button"
                 key={role.id}
                 className={assigned ? "is-active" : ""}
                 disabled={locked || busyRoleId !== null}
@@ -157,7 +210,7 @@ export function AccountMemberManagement({
             <small>{t("accountMember.removeCopy")}</small>
           </span>
 
-          <button disabled={kickBusy} onClick={() => void kickMember()}>
+          <button type="button" disabled={kickBusy} onClick={() => void kickMember()}>
             {kickBusy ? "…" : t("accountMember.kick")}
           </button>
         </section>

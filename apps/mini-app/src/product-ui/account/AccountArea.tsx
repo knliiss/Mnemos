@@ -1,4 +1,6 @@
 import type { Route } from "../model"
+import { useProductData } from "../data/ProductDataProvider"
+import { FeatureError } from "../system/FeatureError"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountHome } from "./AccountHome"
 import { AccountInvites } from "./AccountInvites"
@@ -16,6 +18,19 @@ type Props = {
 }
 
 export function AccountArea(props: Props) {
+  const product = useProductData()
+  const requiresAccountData = [
+    "account",
+    "member",
+    "roles",
+    "role-editor",
+    "account-settings",
+  ].includes(props.routeId)
+
+  if (requiresAccountData && product.accountError) {
+    return <FeatureError back={props.back} onRetry={() => void product.refreshAccount()} />
+  }
+
   if (props.routeId === "account" || props.routeId === "member") {
     return (
       <AccountHome
@@ -35,7 +50,14 @@ export function AccountArea(props: Props) {
   }
 
   if (props.routeId === "role-editor") {
-    return <RoleEditor params={props.params} navigate={props.navigate} back={props.back} />
+    return (
+      <RoleEditor
+        key={props.params?.roleId ?? "missing"}
+        params={props.params}
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
   }
 
   if (props.routeId === "account-settings") {

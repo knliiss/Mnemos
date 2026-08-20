@@ -16,6 +16,12 @@ export const uk = {
     save: "Зберегти",
     cancel: "Скасувати",
     soon: "Незабаром",
+    unavailable: "Тимчасово недоступно",
+    loadErrorTitle: "Не вдалося завантажити дані",
+    loadErrorCopy: "Перевірте зʼєднання та повторіть спробу.",
+    retry: "Повторити",
+    close: "Закрити",
+    copy: "Скопіювати",
   },
   home: {
     online: "Онлайн",
@@ -105,6 +111,45 @@ export const uk = {
   error: {
     title: "Сталася помилка",
     retry: "Повторити",
+  },
+  errorBoundary: {
+    message: "Інтерфейс неочікувано зупинився.",
+    reload: "Перезавантажити",
+  },
+  errorNotifications: {
+    close: "Закрити повідомлення",
+    tones: {
+      validation: {
+        eyebrow: "ДАНІ",
+        title: "Перевір значення",
+        message: "Запит містить некоректні дані.",
+      },
+      access: {
+        eyebrow: "ДОСТУП",
+        title: "Дія недоступна",
+        message: "Для неї бракує прав.",
+      },
+      conflict: {
+        eyebrow: "СТАН",
+        title: "Дані вже змінились",
+        message: "Онови сторінку та повтори дію.",
+      },
+      notFound: {
+        eyebrow: "НЕ ЗНАЙДЕНО",
+        title: "Обʼєкт недоступний",
+        message: "Він міг бути видалений.",
+      },
+      waiting: {
+        eyebrow: "ТИМЧАСОВО",
+        title: "Спробуй трохи пізніше",
+        message: "Сервіс або операція зараз зайняті.",
+      },
+      internal: {
+        eyebrow: "MNEMOS",
+        title: "Невідома помилка",
+        message: "Повтори дію трохи пізніше.",
+      },
+    },
   },
   ...productUk,
 } as const

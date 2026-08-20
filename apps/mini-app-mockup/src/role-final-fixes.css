@@ -1,8 +1,0 @@
-/* Final role-list alignment after switching the leading marker to RoleSigil. */
-.role-v2-row__main {
-  grid-template-columns: 40px minmax(0, 1fr) auto auto;
-}
-
-.role-v2-row__main > .role-sigil {
-  justify-self: center;
-}

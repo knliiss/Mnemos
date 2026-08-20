@@ -1014,6 +1014,17 @@
   font-size: 7.5px;
 }
 
+.public-profile-comments-sheet__empty.is-error button {
+  margin-top: 7px;
+  border: 1px solid rgba(185, 207, 104, 0.22);
+  border-radius: 4px;
+  padding: 7px 11px;
+  background: rgba(185, 207, 104, 0.08);
+  color: #cfd9ad;
+  font: inherit;
+  cursor: pointer;
+}
+
 .public-profile-comments-sheet__loading {
   display: grid;
   place-items: center;

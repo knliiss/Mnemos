@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   searchPublicProfiles,
@@ -19,19 +19,32 @@ export function SearchPage({ navigate }: Props) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PublicProfileResponse[]>([])
   const [searching, setSearching] = useState(false)
+  const searchRevision = useRef(0)
   const normalizedQuery = query.trim()
 
   const runSearch = useCallback(async (value: string) => {
+    const revision = searchRevision.current + 1
+
+    searchRevision.current = revision
     setSearching(true)
 
     try {
       const page = await searchPublicProfiles(value)
+
+      if (revision !== searchRevision.current) {
+        return
+      }
+
       setResults(page.content)
     } catch (error) {
-      handleError(error)
-      setResults([])
+      if (revision === searchRevision.current) {
+        handleError(error)
+        setResults([])
+      }
     } finally {
-      setSearching(false)
+      if (revision === searchRevision.current) {
+        setSearching(false)
+      }
     }
   }, [])
 
@@ -48,6 +61,7 @@ export function SearchPage({ navigate }: Props) {
   }, [normalizedQuery, runSearch])
 
   const changeQuery = (value: string) => {
+    searchRevision.current += 1
     setQuery(value)
 
     if (value.trim().length < 2) {

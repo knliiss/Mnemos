@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   listEventBetRounds,
   listItemRaces,
@@ -11,17 +11,32 @@ export function useBetAdminData() {
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const requestRevision = useRef(0)
 
   const refresh = useCallback(async () => {
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
+    setLoading(true)
+    setError(false)
+
     try {
       const [nextRounds, nextRaces] = await Promise.all([listEventBetRounds(), listItemRaces()])
 
-      setRounds(nextRounds)
-      setRaces(nextRaces)
+      if (revision === requestRevision.current) {
+        setRounds(nextRounds)
+        setRaces(nextRaces)
+      }
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        setError(true)
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -30,13 +45,17 @@ export function useBetAdminData() {
       void refresh()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      window.cancelAnimationFrame(frame)
+    }
   }, [refresh])
 
   return {
     rounds,
     races,
     loading,
+    error,
     refresh,
   }
 }

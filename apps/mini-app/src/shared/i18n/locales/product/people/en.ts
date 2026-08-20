@@ -51,6 +51,8 @@ export const peopleProductEn = {
       showMoreReplies: "Show more replies",
       like: "Like",
       unlike: "Remove like",
+      dislike: "Dislike",
+      removeDislike: "Remove dislike",
       deleteOwnComment: "Delete your comment",
       deleteOwnReply: "Delete your reply",
       reactionAria: "Profile reaction",

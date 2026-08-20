@@ -46,6 +46,7 @@ export function EventsArea(props: Props) {
   } else if (props.routeId === "event-detail") {
     content = (
       <EventDetail
+        key={props.params?.eventId ?? "missing"}
         eventId={props.params?.eventId}
         activeAccount={props.activeAccount}
         navigate={props.navigate}

@@ -1,5 +1,6 @@
 import { useProductData } from "../data/ProductDataProvider"
 import type { Route } from "../model"
+import { FeatureError } from "../system/FeatureError"
 import { usePersonalizations } from "./data/usePersonalizations"
 import { PersonalizationDetail } from "./detail/PersonalizationDetail"
 import { OwnedPersonalizations } from "./owned/OwnedPersonalizations"
@@ -22,6 +23,10 @@ export function PersonalizationFeature({
 }: PersonalizationFeatureProps) {
   const product = useProductData()
   const personalization = usePersonalizations()
+
+  if (personalization.error) {
+    return <FeatureError back={back} onRetry={() => void personalization.refresh()} />
+  }
 
   if (routeId === "personalization-owned") {
     return (

@@ -122,7 +122,7 @@ export type Account = {
   id: string
   cristalixUuid: string
   nickname: string
-  role: string
+  role: "OWNER" | "MEMBER"
   skinUrl: string
   memberCount: number
   maxMembers: number

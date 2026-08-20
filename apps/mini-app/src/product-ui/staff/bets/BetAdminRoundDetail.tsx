@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
   EventBetOutcome,
@@ -28,6 +28,16 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
   const [outcome, setOutcome] = useState<EventBetOutcome>("YES")
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   if (loading) {
     return (
@@ -51,19 +61,27 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
     round.status === "AWAITING_RESULT" || round.status === "AWAITING_ADMIN_CONFIRMATION"
 
   const resolve = async () => {
-    if (!canResolve || !reason.trim() || busy) {
+    if (!canResolve || !reason.trim() || busyRef.current) {
       return
     }
 
+    busyRef.current = true
     setBusy(true)
 
     try {
       await resolveEventBetRound(round.id, outcome, reason.trim())
-      await onResolved()
+      if (mountedRef.current) {
+        await onResolved()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -102,13 +120,13 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
       {canResolve ? (
         <section className="bet-admin-form-block">
           <header>
-            <small>MANUAL RESOLUTION</small>
+            <small>{t("betAdmin.manualResolutionEyebrow")}</small>
             <strong>{t("betAdmin.manualResolution")}</strong>
           </header>
 
           <div className="bet-admin-choice">
             {EVENT_BET_OUTCOMES.map((value) => (
-              <button
+              <button type="button"
                 key={value}
                 className={outcome === value ? "is-active" : ""}
                 onClick={() => setOutcome(value)}
@@ -127,7 +145,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
             />
           </Field>
 
-          <button
+          <button type="button"
             className="primary-action"
             disabled={!reason.trim() || busy}
             onClick={() => void resolve()}

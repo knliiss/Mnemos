@@ -63,7 +63,7 @@ export function OwnedPersonalizations({
         ) : (
           <section className="account-personalization-category-list">
             {typeItems.map((item) => (
-              <motion.button
+              <motion.button type="button"
                 key={item.id}
                 className={item.active ? "is-selected" : ""}
                 whileTap={{ scale: 0.992 }}
@@ -129,7 +129,7 @@ export function OwnedPersonalizations({
               const selected = typeItems.find((item) => item.active) ?? null
 
               return (
-                <motion.button
+                <motion.button type="button"
                   key={itemType}
                   className={selected ? "is-selected" : ""}
                   whileTap={{ scale: 0.99 }}
@@ -190,7 +190,7 @@ export function OwnedPersonalizations({
       ) : (
         <section className="personalization-owned-list">
           {visibleItems.map((item) => (
-            <motion.button
+            <motion.button type="button"
               key={item.id}
               whileTap={{ scale: 0.992 }}
               onClick={() =>

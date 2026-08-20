@@ -8,6 +8,7 @@ type UserHubAccountPickerProps = {
   open: boolean
   activeAccount: Account
   accounts: Account[]
+  switchingAccountId: string | null
   onSelectAccount: (account: Account) => void
   navigate: (route: Route) => void
 }
@@ -16,6 +17,7 @@ export function UserHubAccountPicker({
   open,
   activeAccount,
   accounts,
+  switchingAccountId,
   onSelectAccount,
   navigate,
 }: UserHubAccountPickerProps) {
@@ -33,6 +35,7 @@ export function UserHubAccountPicker({
           {accounts.map((account) => {
             const inactive = account.active === false
             const unavailable = inactive && !account.owner
+            const switching = switchingAccountId === account.id
 
             return (
               <button
@@ -40,6 +43,7 @@ export function UserHubAccountPicker({
                 key={account.id}
                 className={account.id === activeAccount.id ? "is-active" : ""}
                 aria-disabled={unavailable}
+                disabled={unavailable || switchingAccountId !== null}
                 onClick={() => onSelectAccount(account)}
               >
                 <CristalixHead
@@ -49,11 +53,13 @@ export function UserHubAccountPicker({
                 />
                 <strong>{account.nickname}</strong>
                 <small>
-                  {inactive
+                  {switching
+                    ? t("productShell.userMenu.switching")
+                    : inactive
                     ? account.owner
                       ? t("productShell.userMenu.reactivate")
                       : t("productShell.userMenu.inactive")
-                    : account.role}
+                    : t(account.role === "OWNER" ? "account.owner" : "account.participant")}
                 </small>
                 {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
               </button>
@@ -61,12 +67,20 @@ export function UserHubAccountPicker({
           })}
 
           <footer>
-            <button type="button" onClick={() => navigate({ id: "account-create" })}>
+            <button
+              type="button"
+              disabled={switchingAccountId !== null}
+              onClick={() => navigate({ id: "account-create" })}
+            >
               <Glyph name="plus" size={15} />
               {t("productShell.userMenu.create")}
             </button>
 
-            <button type="button" onClick={() => navigate({ id: "account-join" })}>
+            <button
+              type="button"
+              disabled={switchingAccountId !== null}
+              onClick={() => navigate({ id: "account-join" })}
+            >
               <Glyph name="invite" size={15} />
               {t("productShell.userMenu.joinCode")}
             </button>

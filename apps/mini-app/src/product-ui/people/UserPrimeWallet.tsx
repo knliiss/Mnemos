@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getCurrentUserTransactions } from "@/shared/api/userWalletApi"
@@ -8,6 +8,8 @@ import { useProductData } from "../data/ProductDataProvider"
 import type { Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
+import { FeatureEmpty } from "../system/FeatureEmpty"
+import { FeatureLoading } from "../system/FeatureLoading"
 
 type Props = {
   navigate: (route: Route) => void
@@ -16,20 +18,6 @@ type Props = {
 
 type HistoryFilter = "ALL" | "CREDIT" | "DEBIT"
 type HistorySort = "NEWEST" | "OLDEST" | "AMOUNT_DESC" | "AMOUNT_ASC"
-type PrimePackLabel = "start" | "popular" | "reserve"
-
-type PrimePack = {
-  id: string
-  amount: number
-  bonus: number
-  label: PrimePackLabel
-}
-
-const primePacks: PrimePack[] = [
-  { id: "prime-50", amount: 50, bonus: 0, label: "start" },
-  { id: "prime-120", amount: 120, bonus: 8, label: "popular" },
-  { id: "prime-300", amount: 300, bonus: 30, label: "reserve" },
-]
 
 const historyFilters: HistoryFilter[] = ["ALL", "CREDIT", "DEBIT"]
 const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_ASC"]
@@ -37,37 +25,63 @@ const historySorts: HistorySort[] = ["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_
 export function UserPrimeWallet({ navigate, back }: Props) {
   const { t, i18n } = useTranslation()
   const product = useProductData()
+  const userId = product.user.id
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPackId, setSelectedPackId] = useState(primePacks[1].id)
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("ALL")
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
-  const selectedPack = primePacks.find((pack) => pack.id === selectedPackId) ?? primePacks[0]
+  const requestRevision = useRef(0)
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
   const loadTransactions = useCallback(async () => {
+    const requestedUserId = userId
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
     setLoading(true)
+    setLoadError(false)
 
     try {
       const page = await getCurrentUserTransactions()
-      setTransactions(page.items.filter((transaction) => transaction.currency === "PRIME"))
+
+      if (revision === requestRevision.current) {
+        setTransactions(page.items.filter((transaction) => transaction.currency === "PRIME"))
+        setLoadedUserId(requestedUserId)
+      }
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        setLoadedUserId(requestedUserId)
+        setLoadError(true)
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current) {
+        setLoading(false)
+      }
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       void loadTransactions()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      window.cancelAnimationFrame(frame)
+    }
   }, [loadTransactions])
 
+  const scopedTransactions = useMemo(
+    () => (loadedUserId === userId ? transactions : []),
+    [loadedUserId, transactions, userId],
+  )
+  const visibleLoading = loading || loadedUserId !== userId
+
   const visibleTransactions = useMemo(() => {
-    const filtered = transactions.filter(
+    const filtered = scopedTransactions.filter(
       (transaction) => historyFilter === "ALL" || transaction.type === historyFilter,
     )
 
@@ -83,22 +97,21 @@ export function UserPrimeWallet({ navigate, back }: Props) {
       }
       return Date.parse(right.createdAt) - Date.parse(left.createdAt)
     })
-  }, [historyFilter, historySort, transactions])
+  }, [historyFilter, historySort, scopedTransactions])
 
-  const spent = transactions
+  const spent = scopedTransactions
     .filter((transaction) => transaction.type === "DEBIT")
     .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  const earned = transactions
+  const earned = scopedTransactions
     .filter((transaction) => transaction.type === "CREDIT")
     .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  const packTotal = selectedPack.amount + selectedPack.bonus
   const prime = product.user.prime
 
   return (
     <div className="screen prime-wallet-screen">
-      <PageHeader title="PRIME" eyebrow="USER" back={back} />
+      <PageHeader title="PRIME" eyebrow={t("userWallet.userEyebrow")} back={back} />
 
       <section className="prime-wallet-hero">
         <div className="prime-wallet-hero__copy">
@@ -130,7 +143,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
       </section>
 
       <nav className="prime-wallet-shortcuts" aria-label={t("userWallet.shortcutsAria")}>
-        <button onClick={() => navigate({ id: "personalization-store" })}>
+        <button type="button" onClick={() => navigate({ id: "personalization-store" })}>
           <span className="is-plum">
             <Glyph name="spark" size={19} />
           </span>
@@ -138,7 +151,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
           <small>{t("userWallet.personalizations")}</small>
           <b>›</b>
         </button>
-        <button onClick={() => navigate({ id: "account-wallet" })}>
+        <button type="button" onClick={() => navigate({ id: "account-wallet" })}>
           <span className="is-lime">
             <Glyph name="wallet" size={19} />
           </span>
@@ -155,49 +168,10 @@ export function UserPrimeWallet({ navigate, back }: Props) {
             <strong>{t("userWallet.topup.title")}</strong>
             <em>{t("userWallet.topup.copy")}</em>
           </span>
-          <span className="prime-topup-status">SOON</span>
+          <span className="prime-topup-status">{t("userWallet.topup.soon")}</span>
         </header>
 
-        <div className="prime-pack-grid">
-          {primePacks.map((pack) => (
-            <button
-              key={pack.id}
-              className={selectedPackId === pack.id ? "is-selected" : ""}
-              aria-pressed={selectedPackId === pack.id}
-              onClick={() => setSelectedPackId(pack.id)}
-            >
-              <img src="/ui-illustrations/prime-package.png" alt="" aria-hidden="true" />
-              <span>
-                <small>{t(`userWallet.topup.packs.${pack.label}`)}</small>
-                <strong>{pack.amount} PRIME</strong>
-                <em>
-                  {pack.bonus
-                    ? t("userWallet.topup.bonus", { count: pack.bonus })
-                    : t("userWallet.topup.noBonus")}
-                </em>
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="prime-topup-summary">
-          <span>
-            <small>{t("userWallet.topup.after")}</small>
-            <strong>
-              {prime.toLocaleString(locale)} → {(prime + packTotal).toLocaleString(locale)} PRIME
-            </strong>
-            <em>
-              {selectedPack.bonus
-                ? t("userWallet.topup.bonusSummary", { count: selectedPack.bonus })
-                : t("userWallet.topup.baseSummary")}
-            </em>
-          </span>
-          <span className="prime-topup-summary__amount">
-            <CurrencyValue currency="PRIME" value={packTotal} compact />
-          </span>
-        </div>
-
-        <button className="prime-topup-disabled" disabled>
+        <button type="button" className="prime-topup-disabled" disabled>
           <Glyph name="clock" size={16} />
           {t("userWallet.topup.unavailable")}
         </button>
@@ -227,7 +201,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
 
         <div className="prime-history-filter">
           {historyFilters.map((filter) => (
-            <button
+            <button type="button"
               key={filter}
               className={historyFilter === filter ? "is-active" : ""}
               onClick={() => setHistoryFilter(filter)}
@@ -242,19 +216,24 @@ export function UserPrimeWallet({ navigate, back }: Props) {
             <PrimeHistoryRow key={transaction.id} transaction={transaction} locale={locale} t={t} />
           ))}
 
-          {loading ? (
-            <div className="events-r2-loading" aria-label={t("userWallet.history.loading")}>
-              <i />
-              <i />
-              <i />
-            </div>
+          {visibleLoading ? (
+            <FeatureLoading label={t("userWallet.history.loading")} />
           ) : null}
 
-          {!loading && !visibleTransactions.length ? (
-            <div className="events-r2-empty">
-              <Glyph name="wallet" size={22} />
-              <strong>{t("userWallet.history.empty")}</strong>
-            </div>
+          {!visibleLoading && loadError ? (
+            <FeatureEmpty
+              icon="wallet"
+              title={t("common.loadErrorTitle")}
+              copy={t("common.loadErrorCopy")}
+            >
+              <button type="button" onClick={() => void loadTransactions()}>
+                {t("common.retry")}
+              </button>
+            </FeatureEmpty>
+          ) : null}
+
+          {!visibleLoading && !loadError && !visibleTransactions.length ? (
+            <FeatureEmpty icon="wallet" title={t("userWallet.history.empty")} />
           ) : null}
         </div>
       </section>

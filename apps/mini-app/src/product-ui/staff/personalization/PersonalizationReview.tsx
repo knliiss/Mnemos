@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   approvePersonalization,
@@ -16,6 +16,7 @@ import { toProductPersonalization } from "../../personalization/data/personaliza
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import { FeatureEmpty } from "../../system/FeatureEmpty"
 import "./personalization-review.css"
 
 type ReviewScope = "ALL" | PersonalizationTarget
@@ -32,32 +33,54 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState<ReviewScope>("ALL")
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
+  const requestRevision = useRef(0)
+  const busyRef = useRef(false)
+  const mountedRef = useRef(true)
 
   const refresh = useCallback(async () => {
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
+    setLoading(true)
+    setLoadError(false)
+
     try {
       const responses = await listPersonalizationReviewQueue()
       const next = responses.map((response) =>
         toProductPersonalization(response, null, product.user.id, product.user.username),
       )
 
-      setItems(next)
-      setSelectedId((current) =>
-        current && next.some((item) => item.id === current) ? current : (next[0]?.id ?? null),
-      )
+      if (revision === requestRevision.current) {
+        setItems(next)
+        setSelectedId((current) =>
+          current && next.some((item) => item.id === current) ? current : (next[0]?.id ?? null),
+        )
+      }
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current) {
+        setLoadError(true)
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current) {
+        setLoading(false)
+      }
     }
   }, [product.user.id, product.user.username])
 
   useEffect(() => {
+    mountedRef.current = true
     const frame = window.requestAnimationFrame(() => {
       void refresh()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      mountedRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
   }, [refresh])
 
   const selected = items.find((item) => item.id === selectedId) ?? null
@@ -94,7 +117,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
   }, [items, query, scope, t])
 
   const decide = async (decision: "APPROVE" | "REJECT") => {
-    if (!selected || busy) {
+    if (!selected || busyRef.current) {
       return
     }
 
@@ -106,20 +129,30 @@ export function PersonalizationReview({ back }: { back: () => void }) {
       return
     }
 
+    const selectedItem = selected
+
+    busyRef.current = true
     setBusy(true)
 
     try {
       if (decision === "APPROVE") {
-        await approvePersonalization(selected.id, selected.currency, numericPrice)
+        await approvePersonalization(selectedItem.id, selectedItem.currency, numericPrice)
       } else {
-        await rejectPersonalization(selected.id, reason.trim())
+        await rejectPersonalization(selectedItem.id, reason.trim())
       }
 
-      await refresh()
+      if (mountedRef.current) {
+        await refresh()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -150,7 +183,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
 
         <div className="review-scope">
           {reviewScopes.map((value) => (
-            <button
+            <button type="button"
               key={value}
               className={scope === value ? "is-active" : ""}
               onClick={() => setScope(value)}
@@ -163,11 +196,22 @@ export function PersonalizationReview({ back }: { back: () => void }) {
 
       {loading ? (
         <FeatureLoading />
+      ) : loadError && !items.length ? (
+        <FeatureEmpty
+          icon="creator"
+          title={t("common.loadErrorTitle")}
+          copy={t("common.loadErrorCopy")}
+        >
+          <button type="button" onClick={() => void refresh()}>
+            {t("common.retry")}
+          </button>
+        </FeatureEmpty>
       ) : (
         <div className="review-queue-grid">
           {visible.map((item) => (
-            <button
+            <button type="button"
               key={item.id}
+              disabled={busy}
               className={
                 selectedId === item.id ? "review-queue-card is-selected" : "review-queue-card"
               }
@@ -209,8 +253,9 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                 {t(`personalization.target.${selected.target}`)}
               </em>
             </span>
-            <button
+            <button type="button"
               aria-label={t("personalization.review.close")}
+              disabled={busy}
               onClick={() => setSelectedId(null)}
             >
               <Glyph name="close" size={16} />
@@ -259,7 +304,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                   />
                 </div>
               </Field>
-              <button
+              <button type="button"
                 className="primary-action"
                 disabled={!priceValid || busy}
                 onClick={() => void decide("APPROVE")}
@@ -279,7 +324,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
                   placeholder={t("personalization.review.rejectionPlaceholder")}
                 />
               </Field>
-              <button
+              <button type="button"
                 className="destructive-action"
                 disabled={!reason.trim() || busy}
                 onClick={() => void decide("REJECT")}

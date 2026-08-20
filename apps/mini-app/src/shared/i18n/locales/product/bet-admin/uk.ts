@@ -1,6 +1,7 @@
 export const betAdminUk = {
   betAdmin: {
     title: "Ставки",
+    workspaceEyebrow: "ПРОСТІР АДМІНІСТРАТОРА",
     workspaceTitle: "Керування ставками",
     workspaceDescription: "Стан раундів і перегонів завантажується напряму з bet-service.",
     active: "Активні",
@@ -29,6 +30,7 @@ export const betAdminUk = {
     result: "Результат",
     refund: "Повернення",
     manualResolution: "Підтвердження результату",
+    manualResolutionEyebrow: "РУЧНЕ ЗАВЕРШЕННЯ",
     reason: "Причина",
     reasonPlaceholder: "Чому результат підтверджується вручну",
     saving: "Зберігаємо…",
@@ -36,6 +38,7 @@ export const betAdminUk = {
     close: "Закрити",
     new: "Новий",
     newRace: "Новий Item race",
+    newRaceEyebrow: "НОВА ГОНКА",
     item: "Предмет",
     type: "Тип",
     durationHours: "Тривалість, год",

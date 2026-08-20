@@ -15,13 +15,13 @@ export function PersonalizationPager({
 
   return (
     <nav className="catalog-pager" aria-label={t("personalization.pages")}>
-      <button disabled={page <= 0} onClick={() => onChange(page - 1)}>
+      <button type="button" disabled={page <= 0} onClick={() => onChange(page - 1)}>
         ‹
       </button>
       <span>
         {page + 1} / {pageCount}
       </span>
-      <button disabled={page >= pageCount - 1} onClick={() => onChange(page + 1)}>
+      <button type="button" disabled={page >= pageCount - 1} onClick={() => onChange(page + 1)}>
         ›
       </button>
     </nav>

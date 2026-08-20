@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import type { Route } from "../../model"
+import { FeatureError } from "../../system/FeatureError"
 import { BetAdminDashboard } from "./BetAdminDashboard"
 import { BetAdminRaceManagement } from "./BetAdminRaceManagement"
 import { BetAdminRoundDetail } from "./BetAdminRoundDetail"
@@ -20,14 +21,19 @@ type Props = {
 
 export function BetAdmin({ params, navigate, back }: Props) {
   const { t } = useTranslation()
-  const { rounds, races, loading, refresh } = useBetAdminData()
+  const { rounds, races, loading, error, refresh } = useBetAdminData()
   const section = normalizeBetAdminSection(params?.section)
+
+  if (error && !rounds.length && !races.length) {
+    return <FeatureError back={back} onRetry={() => void refresh()} />
+  }
 
   if (section === "round") {
     const round = rounds.find((item) => item.id === params?.roundId) ?? null
 
     return (
       <BetAdminRoundDetail
+        key={params?.roundId ?? "missing"}
         round={round}
         loading={loading}
         back={back}

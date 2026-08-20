@@ -1,12 +1,19 @@
 export const betsProductUk = {
   productBets: {
+    eyebrow: "СТАВКИ MNEMOS",
     title: "Ставки",
+    balance: "Баланс",
     modes: {
       EVENTS: "Події",
       MY: "Мої",
       RACES: "Перегони",
     },
     loading: "Завантаження ставок",
+    error: {
+      title: "Не вдалося завантажити ставки",
+      copy: "Перевірте зʼєднання та повторіть спробу.",
+      retry: "Повторити",
+    },
     nextRound: "НАСТУПНИЙ РАУНД",
     closes: "Закриття {{time}}",
     yes: "Так",

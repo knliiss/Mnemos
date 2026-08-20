@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useProductData } from "../data/ProductDataProvider"
 import { Glyph } from "../shared/MnemosIcon"
@@ -15,24 +15,38 @@ export function AccountCreate({ back }: Props) {
   const product = useProductData()
   const [nickname, setNickname] = useState("")
   const [busy, setBusy] = useState(false)
+  const submitLocked = useRef(false)
+  const mountedRef = useRef(true)
   const clean = nickname.trim()
   const valid = clean.length >= 4 && clean.length <= 20
   const touched = nickname.length > 0
 
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
   const submit = async () => {
-    if (!valid || busy) {
+    if (!valid || submitLocked.current) {
       return
     }
 
+    submitLocked.current = true
     setBusy(true)
 
     try {
-      await product.createAccount(clean)
-      back()
-    } catch {
-      // The global backend error presenter handles the error. Keep the form open.
+      const succeeded = await product.createAccount(clean)
+      if (succeeded && mountedRef.current) {
+        back()
+      }
     } finally {
-      setBusy(false)
+      submitLocked.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -114,37 +128,54 @@ export function AccountJoin({ back }: Props) {
   const product = useProductData()
   const [rawCode, setRawCode] = useState("")
   const [busy, setBusy] = useState(false)
+  const [pasteFailed, setPasteFailed] = useState(false)
+  const submitLocked = useRef(false)
+  const mountedRef = useRef(true)
   const normalized = useMemo(() => normalizeInviteCode(rawCode), [rawCode])
   const formatted = useMemo(() => formatInviteCode(normalized), [normalized])
   const valid =
     normalized.length === 16 && [...normalized].every((symbol) => INVITE_ALPHABET.includes(symbol))
   const touched = rawCode.length > 0
 
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
   const submit = async () => {
-    if (!valid || busy) {
+    if (!valid || submitLocked.current) {
       return
     }
 
+    submitLocked.current = true
     setBusy(true)
 
     try {
-      await product.joinAccount(formatInviteCode(normalized))
-      back()
-    } catch {
-      // The global backend error presenter handles the error. Keep the form open.
+      const succeeded = await product.joinAccount(formatInviteCode(normalized))
+      if (succeeded && mountedRef.current) {
+        back()
+      }
     } finally {
-      setBusy(false)
+      submitLocked.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
   const paste = async () => {
+    setPasteFailed(false)
+
     try {
       const value = await navigator.clipboard?.readText()
       if (value) {
         setRawCode(value)
       }
     } catch {
-      // Clipboard permission is optional. Manual input remains available.
+      setPasteFailed(true)
     }
   }
 
@@ -183,12 +214,17 @@ export function AccountJoin({ back }: Props) {
               value={formatted}
               maxLength={19}
               placeholder="XXXX-XXXX-XXXX-XXXX"
-              onChange={(event) => setRawCode(event.target.value)}
+              onChange={(event) => {
+                setPasteFailed(false)
+                setRawCode(event.target.value)
+              }}
             />
           </span>
           <span className="account-onboarding-field__hint">
             <i className={valid ? "is-ready" : ""} />
-            {valid
+            {pasteFailed
+              ? t("accountOnboarding.join.pasteUnavailable")
+              : valid
               ? t("accountOnboarding.join.readyHint")
               : touched
                 ? t("accountOnboarding.join.invalidHint")

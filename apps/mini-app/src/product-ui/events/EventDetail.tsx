@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ApiError } from "@/shared/api/httpClient"
 import { getEventFeedItem } from "@/shared/api/productApi"
@@ -42,13 +42,25 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const product = useProductData()
   const cachedEvent = product.feed.find((item) => item.id === eventId) ?? null
   const [lookupResult, setLookupResult] = useState<EventLookupResult | null>(null)
-  const [followBusy, setFollowBusy] = useState(false)
+  const [followBusyScope, setFollowBusyScope] = useState<string | null>(null)
+  const followBusyRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
+  const actionScope = `${activeAccount.id}:${eventId ?? ""}`
+  const followBusy = followBusyScope === actionScope
 
   const resolvedEvent =
     lookupResult && lookupResult.eventId === eventId ? lookupResult.event : null
   const event = cachedEvent ?? resolvedEvent
   const lookupLoading = Boolean(eventId && !cachedEvent && lookupResult?.eventId !== eventId)
   const locale = localeForLanguage(i18n.resolvedLanguage)
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!eventId || cachedEvent) {
@@ -119,25 +131,28 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   const ownEvent = belongsToAccount(event, activeAccount)
 
   const toggleFollow = async () => {
-    if (followBusy) {
+    if (followBusyRef.current === actionScope) {
       return
     }
 
-    setFollowBusy(true)
+    const requestedScope = actionScope
+
+    followBusyRef.current = requestedScope
+    setFollowBusyScope(requestedScope)
 
     try {
       if (matchingSubscription) {
         await product.removeSubscription(matchingSubscription.id)
       } else {
-        await createSubscriptionForEvent(event)
-        await product.refreshSubscriptions()
-      }
-    } catch (error) {
-      if (!matchingSubscription) {
-        handleError(error)
+        await product.mutateSubscriptions(() => createSubscriptionForEvent(event))
       }
     } finally {
-      setFollowBusy(false)
+      if (followBusyRef.current === requestedScope) {
+        followBusyRef.current = null
+        if (mountedRef.current) {
+          setFollowBusyScope(null)
+        }
+      }
     }
   }
 
@@ -203,7 +218,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           <em>{notificationRuleDescription(t, event)}</em>
         </span>
 
-        <motion.button
+        <motion.button type="button"
           className={matchingSubscription ? "is-active" : ""}
           whileTap={{ scale: 0.96 }}
           disabled={followBusy}
@@ -216,7 +231,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
               : t("events.detail.follow")}
         </motion.button>
 
-        <button
+        <button type="button"
           className="event-detail-follow__manage"
           onClick={() => navigate({ id: "subscriptions" })}
         >

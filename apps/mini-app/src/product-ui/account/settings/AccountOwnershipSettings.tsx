@@ -41,7 +41,7 @@ export function AccountOwnershipSettings({
 
       <div className="account-transfer-grid">
         {members.map((member) => (
-          <button
+          <button type="button"
             key={member.id}
             className={member.id === selectedMemberId ? "is-selected" : ""}
             onClick={() => onMemberChange(member.id)}
@@ -66,7 +66,7 @@ export function AccountOwnershipSettings({
             <strong>{selectedMember.name}</strong>
             <em>{t("accountSettings.afterTransferCopy")}</em>
           </span>
-          <button disabled={busy} onClick={onRequestTransfer}>
+          <button type="button" disabled={busy} onClick={onRequestTransfer}>
             {t("accountSettings.transfer")}
           </button>
         </div>

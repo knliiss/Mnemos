@@ -14,6 +14,7 @@ type UserHubOverlayProps = {
   accountPickerOpen: boolean
   activeAccount: Account
   accounts: Account[]
+  switchingAccountId: string | null
   localization: LocalizationLanguage
   username: string
   prime: number
@@ -30,6 +31,7 @@ export function UserHubOverlay({
   accountPickerOpen,
   activeAccount,
   accounts,
+  switchingAccountId,
   localization,
   username,
   prime,
@@ -71,7 +73,7 @@ export function UserHubOverlay({
                 size={40}
               />
               <span className="user-hub-card__copy">
-                <small>MNEMOS USER</small>
+                <small>{t("productShell.userMenu.userEyebrow")}</small>
                 <strong>@{username}</strong>
               </span>
               <button
@@ -109,6 +111,7 @@ export function UserHubOverlay({
               open={accountPickerOpen}
               activeAccount={activeAccount}
               accounts={accounts}
+              switchingAccountId={switchingAccountId}
               onSelectAccount={onSelectAccount}
               navigate={navigate}
             />

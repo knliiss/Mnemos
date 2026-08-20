@@ -51,6 +51,8 @@ export const peopleProductUk = {
       showMoreReplies: "Показати ще відповіді",
       like: "Поставити лайк",
       unlike: "Прибрати лайк",
+      dislike: "Поставити дизлайк",
+      removeDislike: "Прибрати дизлайк",
       deleteOwnComment: "Видалити свій коментар",
       deleteOwnReply: "Видалити свою відповідь",
       reactionAria: "Реакція на профіль",

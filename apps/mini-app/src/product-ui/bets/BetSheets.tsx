@@ -67,6 +67,7 @@ export function RoundBetSheet({
           <div className="bets-side-choice">
             {BET_SIDES.map((value) => (
               <button
+                type="button"
                 key={value}
                 disabled={busy}
                 className={side === value ? "is-active" : ""}
@@ -108,6 +109,7 @@ export function RoundBetSheet({
         </Field>
 
         <button
+          type="button"
           className="bets-submit"
           disabled={!amountValid || round.status !== "OPEN" || busy}
           onClick={onSubmit}
@@ -198,6 +200,7 @@ export function RaceBetSheet({
         ) : null}
 
         <button
+          type="button"
           className="bets-submit"
           disabled={busy || race.status !== "REGISTRATION" || (Boolean(position) && !amountValid)}
           onClick={onSubmit}

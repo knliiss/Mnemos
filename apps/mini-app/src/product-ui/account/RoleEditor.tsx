@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   createRole,
@@ -13,6 +13,7 @@ import { allRolePermissions, rolePermissionGroups } from "../rolePermissions"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
+import { FeatureEmpty } from "../system/FeatureEmpty"
 
 type Props = {
   params?: Record<string, string>
@@ -53,6 +54,16 @@ export function RoleEditor({ params, navigate, back }: Props) {
   const [query, setQuery] = useState("")
   const [busy, setBusy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const busyRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const selectedCount = Object.values(permissions).filter(Boolean).length
   const normalizedQuery = query.trim().toLowerCase()
@@ -74,7 +85,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   )
 
   const togglePermission = (permission: RolePermission) => {
-    if (busy) {
+    if (busyRef.current) {
       return
     }
 
@@ -85,7 +96,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const toggleGroup = (groupPermissions: RolePermission[]) => {
-    if (busy) {
+    if (busyRef.current) {
       return
     }
 
@@ -103,7 +114,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const setAllPermissions = (checked: boolean) => {
-    if (busy) {
+    if (busyRef.current) {
       return
     }
 
@@ -117,10 +128,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
   const save = async () => {
     const cleanName = name.trim()
-    if (!accountId || !cleanName || busy) {
+    if (!accountId || !cleanName || busyRef.current) {
       return
     }
 
+    busyRef.current = true
     setBusy(true)
 
     try {
@@ -137,28 +149,46 @@ export function RoleEditor({ params, navigate, back }: Props) {
       }
 
       await product.refreshAccount()
-      back()
+
+      if (mountedRef.current) {
+        back()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
   const remove = async () => {
-    if (!accountId || !existing || busy) {
+    if (!accountId || !existing || busyRef.current) {
       return
     }
 
+    busyRef.current = true
     setBusy(true)
 
     try {
       await deleteRole(accountId, existing.id)
       await product.refreshAccount()
-      back()
+
+      if (mountedRef.current) {
+        back()
+      }
     } catch (error) {
-      handleError(error)
-      setBusy(false)
+      if (mountedRef.current) {
+        handleError(error)
+      }
+    } finally {
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -166,11 +196,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
     return (
       <div className="screen role-editor-screen">
         <PageHeader title={t("roleEditor.role")} back={back} />
-        <section className="events-r2-empty">
-          <Glyph name="roles" size={24} />
-          <strong>{t("roleEditor.notFoundTitle")}</strong>
-          <small>{t("roleEditor.notFoundCopy")}</small>
-        </section>
+        <FeatureEmpty
+          icon="roles"
+          title={t("roleEditor.notFoundTitle")}
+          copy={t("roleEditor.notFoundCopy")}
+        />
       </div>
     )
   }
@@ -182,7 +212,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
         back={back}
         actions={
           !isNew ? (
-            <button className="role-editor-back-to-list" onClick={() => navigate({ id: "roles" })}>
+            <button type="button" className="role-editor-back-to-list" onClick={() => navigate({ id: "roles" })}>
               {t("roleEditor.allRoles")}
             </button>
           ) : undefined
@@ -268,10 +298,10 @@ export function RoleEditor({ params, navigate, back }: Props) {
             <strong>{t("roleEditor.enabledCount", { count: selectedCount })}</strong>
           </span>
           <div>
-            <button disabled={busy} onClick={() => setAllPermissions(true)}>
+            <button type="button" disabled={busy} onClick={() => setAllPermissions(true)}>
               {t("roleEditor.all")}
             </button>
-            <button disabled={busy} onClick={() => setAllPermissions(false)}>
+            <button type="button" disabled={busy} onClick={() => setAllPermissions(false)}>
               {t("roleEditor.clear")}
             </button>
           </div>
@@ -285,7 +315,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
             placeholder={t("roleEditor.searchPlaceholder")}
           />
           {query ? (
-            <button onClick={() => setQuery("")} aria-label={t("roleEditor.clearSearch")}>
+            <button type="button" onClick={() => setQuery("")} aria-label={t("roleEditor.clearSearch")}>
               <Glyph name="close" size={14} />
             </button>
           ) : null}
@@ -307,7 +337,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
                       {enabledInGroup}/{group.permissions.length}
                     </small>
                   </span>
-                  <button
+                  <button type="button"
                     disabled={busy}
                     className={allEnabled ? "is-active" : ""}
                     onClick={() => toggleGroup(group.permissions)}
@@ -342,7 +372,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
       </section>
 
       <div className="role-editor-actions">
-        <button
+        <button type="button"
           className="role-editor-save"
           disabled={!name.trim() || busy}
           onClick={() => void save()}
@@ -359,15 +389,15 @@ export function RoleEditor({ params, navigate, back }: Props) {
             </span>
             {confirmDelete ? (
               <div>
-                <button disabled={busy} onClick={() => setConfirmDelete(false)}>
+                <button type="button" disabled={busy} onClick={() => setConfirmDelete(false)}>
                   {t("roleEditor.cancel")}
                 </button>
-                <button disabled={busy} className="is-danger" onClick={() => void remove()}>
+                <button type="button" disabled={busy} className="is-danger" onClick={() => void remove()}>
                   {t("roleEditor.confirmDelete")}
                 </button>
               </div>
             ) : (
-              <button disabled={busy} className="is-danger" onClick={() => setConfirmDelete(true)}>
+              <button type="button" disabled={busy} className="is-danger" onClick={() => setConfirmDelete(true)}>
                 {t("roleEditor.delete")}
               </button>
             )}

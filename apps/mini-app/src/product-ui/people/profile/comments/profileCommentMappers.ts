@@ -3,16 +3,19 @@ import {
   type CommentResponse,
   type PublicProfileResponse,
 } from "@/shared/api/profileSocialApi"
-import type { Account } from "../../../model"
 import { formatOccurredAt } from "../../../timePresentation"
 import type { ProfileCommentView } from "../model"
 import { shortAccountId } from "../profilePresentation"
 
 type CommentTargetProfile = Pick<PublicProfileResponse, "accountId" | "cristalixNickname">
+type ActiveCommentAccount = {
+  id: string
+  nickname: string
+}
 
 export async function resolveProfileCommentAuthorNames(
   comments: CommentResponse[],
-  activeAccount: Account,
+  activeAccount: ActiveCommentAccount,
   targetProfile: CommentTargetProfile,
 ): Promise<Map<string, string>> {
   const result = new Map<string, string>([

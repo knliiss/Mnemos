@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next"
 import { AnimatePresence } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemCatalogResponse } from "@/shared/api/backendContracts"
 import {
@@ -37,6 +37,7 @@ import type {
 } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { BottomSheet, ChoiceGrid, Field, PageHeader } from "../../shared/Primitives"
+import { FeatureLoading } from "../../system/FeatureLoading"
 
 const subscriptionIcons: Record<
   SubscriptionType,
@@ -63,8 +64,13 @@ export function Subscriptions({ back }: { back: () => void }) {
   const [globalType, setGlobalType] = useState<GlobalEventType>("ECLIPSE")
   const [raidLocations, setRaidLocations] = useState<number[]>([])
   const [raidInput, setRaidInput] = useState("")
-  const [itemSuggestions, setItemSuggestions] = useState<ItemCatalogResponse[]>([])
+  const [itemSearch, setItemSearch] = useState<{
+    query: string
+    items: ItemCatalogResponse[]
+  }>({ query: "", items: [] })
   const [itemTypesByName, setItemTypesByName] = useState<Record<string, BetItemType>>({})
+  const mutationLocked = useRef(false)
+  const mountedRef = useRef(true)
 
   const subscriptions = product.subscriptions
   const cleanDroppedFor = droppedFor.trim()
@@ -77,10 +83,24 @@ export function Subscriptions({ back }: { back: () => void }) {
   const itemNameValid = !cleanItemName || cleanItemName.length <= 24
   const itemDropValid =
     droppedForValid && itemNameValid && Boolean(cleanDroppedFor || cleanItemName)
+  const cleanRaidInput = raidInput.trim()
+  const raidInputValue = Number(cleanRaidInput)
+  const raidInputValid =
+    !cleanRaidInput || (Number.isInteger(raidInputValue) && raidInputValue > 0)
+  const createValid =
+    (type !== "ITEM_DROP" || itemDropValid) && (type !== "RAID" || raidInputValid)
+  const itemSuggestions = itemSearch.query === cleanItemName ? itemSearch.items : []
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     if (cleanItemName.length < 2) {
-      setItemSuggestions([])
       return
     }
 
@@ -92,7 +112,7 @@ export function Subscriptions({ back }: { back: () => void }) {
             return
           }
 
-          setItemSuggestions(items)
+          setItemSearch({ query: cleanItemName, items })
           setItemTypesByName((current) => ({
             ...current,
             ...Object.fromEntries(
@@ -100,7 +120,11 @@ export function Subscriptions({ back }: { back: () => void }) {
             ),
           }))
         })
-        .catch(handleError)
+        .catch((error) => {
+          if (!cancelled) {
+            handleError(error)
+          }
+        })
     }, 220)
 
     return () => {
@@ -154,7 +178,11 @@ export function Subscriptions({ back }: { back: () => void }) {
           }))
         }
       })
-      .catch(handleError)
+      .catch((error) => {
+        if (!cancelled) {
+          handleError(error)
+        }
+      })
 
     return () => {
       cancelled = true
@@ -185,10 +213,12 @@ export function Subscriptions({ back }: { back: () => void }) {
   ) as Record<GlobalEventType, string>
 
   const addRaidLocation = () => {
-    const value = Number(raidInput)
+    if (!raidInputValid || !cleanRaidInput) {
+      return
+    }
 
-    if (Number.isInteger(value) && value > 0 && !raidLocations.includes(value)) {
-      setRaidLocations((current) => [...current, value])
+    if (!raidLocations.includes(raidInputValue)) {
+      setRaidLocations((current) => [...current, raidInputValue])
     }
 
     setRaidInput("")
@@ -197,7 +227,7 @@ export function Subscriptions({ back }: { back: () => void }) {
   const resetDraft = () => {
     setDroppedFor("")
     setItemName("")
-    setItemSuggestions([])
+    setItemSearch({ query: "", items: [] })
     setBoosterType("LUCK")
     setDungeonType("EASY")
     setGlobalType("ECLIPSE")
@@ -206,46 +236,58 @@ export function Subscriptions({ back }: { back: () => void }) {
   }
 
   const create = async () => {
-    if (busy || (type === "ITEM_DROP" && !itemDropValid)) {
+    if (mutationLocked.current || !createValid) {
       return
     }
 
+    mutationLocked.current = true
     setBusy(true)
 
     try {
-      if (type === "ITEM_DROP") {
-        await createItemDropSubscription(cleanDroppedFor || undefined, cleanItemName || undefined)
-      } else if (type === "BOOSTER") {
-        await createBoosterSubscription(boosterType)
-      } else if (type === "DUNGEON") {
-        await createDungeonSubscription(dungeonType)
-      } else if (type === "GLOBAL") {
-        await createGlobalSubscription(globalType)
-      } else {
-        await createRaidSubscription(raidLocations)
-      }
+      const saved = await product.mutateSubscriptions(async () => {
+        if (type === "ITEM_DROP") {
+          await createItemDropSubscription(
+            cleanDroppedFor || undefined,
+            cleanItemName || undefined,
+          )
+        } else if (type === "BOOSTER") {
+          await createBoosterSubscription(boosterType)
+        } else if (type === "DUNGEON") {
+          await createDungeonSubscription(dungeonType)
+        } else if (type === "GLOBAL") {
+          await createGlobalSubscription(globalType)
+        } else {
+          await createRaidSubscription(raidLocations)
+        }
+      })
 
-      await product.refreshSubscriptions()
-      resetDraft()
-      setCreating(false)
-    } catch (error) {
-      handleError(error)
+      if (saved && mountedRef.current) {
+        resetDraft()
+        setCreating(false)
+      }
     } finally {
-      setBusy(false)
+      mutationLocked.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
   const remove = async (subscriptionId: string) => {
-    if (deletingId) {
+    if (mutationLocked.current) {
       return
     }
 
+    mutationLocked.current = true
     setDeletingId(subscriptionId)
 
     try {
       await product.removeSubscription(subscriptionId)
     } finally {
-      setDeletingId(null)
+      mutationLocked.current = false
+      if (mountedRef.current) {
+        setDeletingId(null)
+      }
     }
   }
 
@@ -261,7 +303,11 @@ export function Subscriptions({ back }: { back: () => void }) {
           <strong>{subscriptions.length}</strong>
           <small>{t("events.subscriptions.activeRules")}</small>
         </span>
-        <button type="button" disabled={busy} onClick={() => setCreating(true)}>
+        <button
+          type="button"
+          disabled={busy || deletingId !== null}
+          onClick={() => setCreating(true)}
+        >
           <Glyph name="plus" size={17} />
           {t("events.subscriptions.new")}
         </button>
@@ -284,6 +330,21 @@ export function Subscriptions({ back }: { back: () => void }) {
         </header>
 
         <div>
+          {product.loadingSubscriptions && !subscriptions.length ? (
+            <FeatureLoading label={t("events.subscriptions.loading")} />
+          ) : null}
+
+          {!product.loadingSubscriptions && product.subscriptionsError ? (
+            <div className="feature-empty">
+              <Glyph name="bell" size={24} />
+              <strong>{t("events.subscriptions.errorTitle")}</strong>
+              <small>{t("events.subscriptions.errorCopy")}</small>
+              <button type="button" onClick={() => void product.refreshSubscriptions()}>
+                {t("events.subscriptions.retry")}
+              </button>
+            </div>
+          ) : null}
+
           {subscriptions.map((subscription) => (
             <article
               className={`subscription-rule event-row-surface event-surface--${subscriptionVisualTone(subscription)}`}
@@ -300,7 +361,7 @@ export function Subscriptions({ back }: { back: () => void }) {
               <button
                 type="button"
                 aria-label={t("events.subscriptions.delete")}
-                disabled={deletingId !== null}
+                disabled={busy || deletingId !== null}
                 onClick={() => void remove(subscription.id)}
               >
                 {deletingId === subscription.id ? (
@@ -312,8 +373,8 @@ export function Subscriptions({ back }: { back: () => void }) {
             </article>
           ))}
 
-          {!subscriptions.length ? (
-            <div className="events-r2-empty">
+          {!product.loadingSubscriptions && !product.subscriptionsError && !subscriptions.length ? (
+            <div className="feature-empty">
               <Glyph name="bell" size={24} />
               <strong>{t("events.subscriptions.emptyTitle")}</strong>
               <small>{t("events.subscriptions.emptyCopy")}</small>
@@ -376,7 +437,7 @@ export function Subscriptions({ back }: { back: () => void }) {
                             type="button"
                             onClick={() => {
                               setItemName(item.name)
-                              setItemSuggestions([])
+                              setItemSearch({ query: item.name, items: [] })
                             }}
                           >
                             <ItemTypeArt itemType={item.type} size={28} />
@@ -428,7 +489,11 @@ export function Subscriptions({ back }: { back: () => void }) {
               {type === "RAID" ? (
                 <Field
                   label={t("events.subscriptions.locations")}
-                  hint={t("events.subscriptions.allLocationsHint")}
+                  hint={
+                    raidInputValid
+                      ? t("events.subscriptions.allLocationsHint")
+                      : t("events.subscriptions.locationInvalid")
+                  }
                 >
                   <div className="inline-input">
                     <input
@@ -442,6 +507,7 @@ export function Subscriptions({ back }: { back: () => void }) {
                     <button
                       type="button"
                       aria-label={t("events.subscriptions.addLocation")}
+                      disabled={!cleanRaidInput || !raidInputValid}
                       onClick={addRaidLocation}
                     >
                       <Glyph name="plus" size={17} />
@@ -470,7 +536,7 @@ export function Subscriptions({ back }: { back: () => void }) {
               <button
                 type="button"
                 className="primary-action"
-                disabled={busy || (type === "ITEM_DROP" && !itemDropValid)}
+                disabled={busy || !createValid}
                 onClick={() => void create()}
               >
                 {busy ? t("events.subscriptions.saving") : t("events.subscriptions.save")}

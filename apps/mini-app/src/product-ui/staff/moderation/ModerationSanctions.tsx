@@ -23,7 +23,7 @@ export function ModerationSanctions({ controller, language }: Props) {
     <>
       <section className="moderation-actions">
         {!activeBan ? (
-          <button
+          <button type="button"
             onClick={() => {
               controller.setSanctionType("BAN")
               controller.setSanctionFormOpen(true)
@@ -36,7 +36,7 @@ export function ModerationSanctions({ controller, language }: Props) {
             </span>
           </button>
         ) : (
-          <button
+          <button type="button"
             className="moderation-action-revoke"
             disabled={controller.busy}
             onClick={() => void controller.revoke(activeBan.id)}
@@ -49,7 +49,7 @@ export function ModerationSanctions({ controller, language }: Props) {
           </button>
         )}
 
-        <button
+        <button type="button"
           onClick={() => {
             controller.setSanctionType("NOTIFICATION_SUSPENSION")
             controller.setSanctionFormOpen(true)
@@ -82,7 +82,7 @@ export function ModerationSanctions({ controller, language }: Props) {
                 </em>
               </span>
               {sanction.status === "ACTIVE" ? (
-                <button
+                <button type="button"
                   disabled={controller.busy}
                   onClick={() => void controller.revoke(sanction.id)}
                 >
@@ -102,7 +102,7 @@ export function ModerationSanctions({ controller, language }: Props) {
         <section className="moderation-form">
           <div className="section__head">
             <h2>{t("moderation.newSanction")}</h2>
-            <button
+            <button type="button"
               aria-label={t("moderation.close")}
               onClick={() => controller.setSanctionFormOpen(false)}
             >
@@ -150,7 +150,7 @@ export function ModerationSanctions({ controller, language }: Props) {
             />
           </Field>
 
-          <button
+          <button type="button"
             className="destructive-action"
             disabled={!controller.reason.trim() || !controller.durationValid || controller.busy}
             onClick={() => void controller.submitSanction()}

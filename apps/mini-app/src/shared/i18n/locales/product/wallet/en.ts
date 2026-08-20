@@ -1,5 +1,6 @@
 export const walletProductEn = {
   userWallet: {
+    userEyebrow: "USER",
     description: "Your personal Mnemos premium currency",
     earned: "Received",
     spent: "Spent",
@@ -8,20 +9,11 @@ export const walletProductEn = {
     personalizations: "Personalizations",
     accountWallet: "Account wallet",
     topup: {
+      soon: "SOON",
       eyebrow: "TOP UP",
       title: "Add PRIME",
-      copy: "These packs preview the future purchase flow. Charging and crediting are disabled here for now.",
-      after: "After top up",
-      bonus: "+{{count}} bonus",
-      noBonus: "no bonus",
-      bonusSummary: "This pack includes {{count}} bonus PRIME.",
-      baseSummary: "Base pack without a bonus.",
+      copy: "PRIME purchases are being prepared. Charging and crediting remain disabled for now.",
       unavailable: "Temporarily unavailable",
-      packs: {
-        start: "Starter",
-        popular: "Popular",
-        reserve: "Reserve",
-      },
     },
     history: {
       movement: "PRIME MOVEMENT",

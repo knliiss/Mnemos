@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   createComment,
   deleteComment,
@@ -11,7 +11,6 @@ import {
   type PublicProfileResponse,
 } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import type { Account } from "../../../model"
 import type { ProfileCommentView, ReplyTarget, ReplyThreadMap } from "../model"
 import {
   mergeProfileComments,
@@ -26,11 +25,13 @@ type ProfileCommentsController = {
   comments: ProfileCommentView[]
   commentsHasMore: boolean
   commentsLoading: boolean
+  commentsError: boolean
   replies: ReplyThreadMap
   expandedReplies: Set<string>
   busyIds: Set<string>
   submitting: boolean
   latestComment: ProfileCommentView | null
+  retryComments(): Promise<void>
   loadMoreComments(): Promise<void>
   toggleReplies(comment: ProfileCommentView): Promise<void>
   loadMoreReplies(comment: ProfileCommentView): Promise<void>
@@ -40,14 +41,16 @@ type ProfileCommentsController = {
 }
 
 type Options = {
-  activeAccount: Account
+  activeAccountId: string
+  activeAccountNickname: string
   profile: PublicProfileResponse | null
   locale: string
   refreshProfileSummary(): Promise<void>
 }
 
 export function useProfileComments({
-  activeAccount,
+  activeAccountId,
+  activeAccountNickname,
   profile,
   locale,
   refreshProfileSummary,
@@ -56,10 +59,22 @@ export function useProfileComments({
   const [commentsPage, setCommentsPage] = useState(0)
   const [commentsHasMore, setCommentsHasMore] = useState(false)
   const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentsError, setCommentsError] = useState(false)
+  const [loadedCommentScope, setLoadedCommentScope] = useState<string | null>(null)
   const [replies, setReplies] = useState<ReplyThreadMap>({})
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(() => new Set())
   const [busyIds, setBusyIds] = useState<Set<string>>(() => new Set())
   const [submitting, setSubmitting] = useState(false)
+  const scopeRevision = useRef(0)
+  const rootRequestRevision = useRef(0)
+  const replyRequestRevisions = useRef<Record<string, number>>({})
+  const commentsLoadingRef = useRef(false)
+  const busyIdsRef = useRef<Set<string>>(new Set())
+  const submittingRef = useRef(false)
+  const activeAccount = useMemo(
+    () => ({ id: activeAccountId, nickname: activeAccountNickname }),
+    [activeAccountId, activeAccountNickname],
+  )
   const profileAccountId = profile?.accountId ?? null
   const profileNickname = profile?.cristalixNickname ?? null
   const targetProfile = useMemo(
@@ -72,32 +87,51 @@ export function useProfileComments({
         : null,
     [profileAccountId, profileNickname],
   )
+  const commentScope = targetProfile
+    ? `${activeAccountId}:${activeAccountNickname}:${targetProfile.accountId}:${targetProfile.cristalixNickname}:${locale}`
+    : null
 
   const setBusy = useCallback((id: string, busy: boolean) => {
-    setBusyIds((current) => {
-      const next = new Set(current)
+    const next = new Set(busyIdsRef.current)
 
-      if (busy) {
-        next.add(id)
-      } else {
-        next.delete(id)
-      }
+    if (busy) {
+      next.add(id)
+    } else {
+      next.delete(id)
+    }
 
-      return next
-    })
+    busyIdsRef.current = next
+    setBusyIds(next)
   }, [])
 
   const loadInitialComments = useCallback(async () => {
+    const requestedScope = scopeRevision.current + 1
+    const revision = rootRequestRevision.current + 1
+
+    scopeRevision.current = requestedScope
+    rootRequestRevision.current = revision
+
     if (!targetProfile) {
       setComments([])
       setCommentsPage(0)
       setCommentsHasMore(false)
+      setCommentsError(false)
+      setLoadedCommentScope(null)
+      commentsLoadingRef.current = false
+      setCommentsLoading(false)
       setReplies({})
       setExpandedReplies(new Set())
+      replyRequestRevisions.current = {}
+      busyIdsRef.current = new Set()
+      setBusyIds(new Set())
+      submittingRef.current = false
+      setSubmitting(false)
       return
     }
 
+    commentsLoadingRef.current = true
     setCommentsLoading(true)
+    setCommentsError(false)
 
     try {
       const page = await getAccountComments(targetProfile.accountId, 0, ROOT_COMMENT_PAGE_SIZE)
@@ -107,32 +141,70 @@ export function useProfileComments({
         targetProfile,
       )
 
+      if (
+        requestedScope !== scopeRevision.current ||
+        revision !== rootRequestRevision.current
+      ) {
+        return
+      }
+
       setComments(page.content.map((comment) => toProfileCommentView(comment, authorNames, locale)))
       setCommentsPage(page.number)
       setCommentsHasMore(!page.last)
+      setLoadedCommentScope(commentScope)
       setReplies({})
       setExpandedReplies(new Set())
+      replyRequestRevisions.current = {}
+      busyIdsRef.current = new Set()
+      setBusyIds(new Set())
+      submittingRef.current = false
+      setSubmitting(false)
     } catch (error) {
-      handleError(error)
+      if (
+        requestedScope === scopeRevision.current &&
+        revision === rootRequestRevision.current
+      ) {
+        setLoadedCommentScope(commentScope)
+        setCommentsError(true)
+        handleError(error)
+      }
     } finally {
-      setCommentsLoading(false)
+      if (
+        requestedScope === scopeRevision.current &&
+        revision === rootRequestRevision.current
+      ) {
+        commentsLoadingRef.current = false
+        setCommentsLoading(false)
+      }
     }
-  }, [activeAccount, locale, targetProfile])
+  }, [activeAccount, commentScope, locale, targetProfile])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       void loadInitialComments()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      scopeRevision.current += 1
+      rootRequestRevision.current += 1
+      commentsLoadingRef.current = false
+      busyIdsRef.current = new Set()
+      submittingRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
   }, [loadInitialComments])
 
   const loadMoreComments = useCallback(async () => {
-    if (!targetProfile || commentsLoading || !commentsHasMore) {
+    if (!targetProfile || commentsLoadingRef.current || !commentsHasMore) {
       return
     }
 
     const nextPage = commentsPage + 1
+    const requestedScope = scopeRevision.current
+    const revision = rootRequestRevision.current + 1
+
+    rootRequestRevision.current = revision
+    commentsLoadingRef.current = true
     setCommentsLoading(true)
 
     try {
@@ -150,21 +222,44 @@ export function useProfileComments({
         toProfileCommentView(comment, authorNames, locale),
       )
 
+      if (
+        requestedScope !== scopeRevision.current ||
+        revision !== rootRequestRevision.current
+      ) {
+        return
+      }
+
       setComments((current) => mergeProfileComments(current, nextItems))
       setCommentsPage(page.number)
       setCommentsHasMore(!page.last)
     } catch (error) {
-      handleError(error)
+      if (
+        requestedScope === scopeRevision.current &&
+        revision === rootRequestRevision.current
+      ) {
+        handleError(error)
+      }
     } finally {
-      setCommentsLoading(false)
+      if (
+        requestedScope === scopeRevision.current &&
+        revision === rootRequestRevision.current
+      ) {
+        commentsLoadingRef.current = false
+        setCommentsLoading(false)
+      }
     }
-  }, [activeAccount, commentsHasMore, commentsLoading, commentsPage, locale, targetProfile])
+  }, [activeAccount, commentsHasMore, commentsPage, locale, targetProfile])
 
   const fetchReplyPage = useCallback(
     async (root: ProfileCommentView, pageNumber: number, append: boolean) => {
       if (!targetProfile) {
         return
       }
+
+      const requestedScope = scopeRevision.current
+      const requestRevision = (replyRequestRevisions.current[root.id] ?? 0) + 1
+
+      replyRequestRevisions.current[root.id] = requestRevision
 
       setReplies((current) => ({
         ...current,
@@ -187,6 +282,13 @@ export function useProfileComments({
           toProfileCommentView(comment, authorNames, locale),
         )
 
+        if (
+          requestedScope !== scopeRevision.current ||
+          replyRequestRevisions.current[root.id] !== requestRevision
+        ) {
+          return
+        }
+
         setReplies((current) => ({
           ...current,
           [root.id]: {
@@ -199,6 +301,13 @@ export function useProfileComments({
           },
         }))
       } catch (error) {
+        if (
+          requestedScope !== scopeRevision.current ||
+          replyRequestRevisions.current[root.id] !== requestRevision
+        ) {
+          return
+        }
+
         handleError(error)
         setReplies((current) => ({
           ...current,
@@ -252,10 +361,11 @@ export function useProfileComments({
 
   const toggleCommentLike = useCallback(
     async (comment: ProfileCommentView, rootCommentId?: string) => {
-      if (busyIds.has(comment.id)) {
+      if (busyIdsRef.current.has(comment.id)) {
         return
       }
 
+      const requestedScope = scopeRevision.current
       setBusy(comment.id, true)
 
       try {
@@ -268,6 +378,11 @@ export function useProfileComments({
         }
 
         const likes = await getCommentLikeCount(comment.id)
+
+        if (requestedScope !== scopeRevision.current) {
+          return
+        }
+
         const update = (value: ProfileCommentView) =>
           value.id === comment.id ? { ...value, liked: !liked, likes } : value
 
@@ -291,24 +406,33 @@ export function useProfileComments({
           setComments((current) => current.map(update))
         }
       } catch (error) {
-        handleError(error)
+        if (requestedScope === scopeRevision.current) {
+          handleError(error)
+        }
       } finally {
-        setBusy(comment.id, false)
+        if (requestedScope === scopeRevision.current) {
+          setBusy(comment.id, false)
+        }
       }
     },
-    [busyIds, setBusy],
+    [setBusy],
   )
 
   const removeComment = useCallback(
     async (comment: ProfileCommentView, rootCommentId?: string) => {
-      if (!comment.canDelete || busyIds.has(comment.id)) {
+      if (!comment.canDelete || busyIdsRef.current.has(comment.id)) {
         return
       }
 
+      const requestedScope = scopeRevision.current
       setBusy(comment.id, true)
 
       try {
         await deleteComment(comment.id)
+
+        if (requestedScope !== scopeRevision.current) {
+          return
+        }
 
         if (rootCommentId) {
           setReplies((current) => {
@@ -353,20 +477,26 @@ export function useProfileComments({
 
         await refreshProfileSummary()
       } catch (error) {
-        handleError(error)
+        if (requestedScope === scopeRevision.current) {
+          handleError(error)
+        }
       } finally {
-        setBusy(comment.id, false)
+        if (requestedScope === scopeRevision.current) {
+          setBusy(comment.id, false)
+        }
       }
     },
-    [busyIds, refreshProfileSummary, setBusy],
+    [refreshProfileSummary, setBusy],
   )
 
   const submitComment = useCallback(
     async (content: string, replyTarget: ReplyTarget | null) => {
-      if (!targetProfile || submitting) {
+      if (!targetProfile || submittingRef.current) {
         return
       }
 
+      const requestedScope = scopeRevision.current
+      submittingRef.current = true
       setSubmitting(true)
 
       try {
@@ -376,8 +506,13 @@ export function useProfileComments({
           replyTarget?.rootCommentId ?? null,
           replyTarget?.targetCommentId ?? null,
         )
+
+        if (requestedScope !== scopeRevision.current) {
+          return
+        }
+
         const authorNames = new Map<string, string>([
-          [activeAccount.id, activeAccount.nickname],
+          [activeAccountId, activeAccountNickname],
           [targetProfile.accountId, targetProfile.cristalixNickname],
         ])
 
@@ -415,29 +550,47 @@ export function useProfileComments({
 
         await refreshProfileSummary()
       } catch (error) {
-        handleError(error)
+        if (requestedScope === scopeRevision.current) {
+          handleError(error)
+        }
         throw error
       } finally {
-        setSubmitting(false)
+        if (requestedScope === scopeRevision.current) {
+          submittingRef.current = false
+          setSubmitting(false)
+        }
       }
     },
-    [activeAccount, locale, refreshProfileSummary, submitting, targetProfile],
+    [
+      activeAccountId,
+      activeAccountNickname,
+      locale,
+      refreshProfileSummary,
+      targetProfile,
+    ],
   )
 
+  const current = commentScope !== null && loadedCommentScope === commentScope
+  const currentComments = current ? comments : []
+  const currentReplies = current ? replies : {}
+  const currentExpandedReplies = current ? expandedReplies : new Set<string>()
+  const currentBusyIds = current ? busyIds : new Set<string>()
   const latestComment = useMemo(
-    () => comments.find((comment) => !comment.deleted) ?? null,
-    [comments],
+    () => (current ? comments.find((comment) => !comment.deleted) ?? null : null),
+    [comments, current],
   )
 
   return {
-    comments,
-    commentsHasMore,
-    commentsLoading,
-    replies,
-    expandedReplies,
-    busyIds,
-    submitting,
+    comments: currentComments,
+    commentsHasMore: current && commentsHasMore,
+    commentsLoading: commentsLoading || !current,
+    commentsError: current && commentsError,
+    replies: currentReplies,
+    expandedReplies: currentExpandedReplies,
+    busyIds: currentBusyIds,
+    submitting: current && submitting,
     latestComment,
+    retryComments: loadInitialComments,
     loadMoreComments,
     toggleReplies,
     loadMoreReplies,

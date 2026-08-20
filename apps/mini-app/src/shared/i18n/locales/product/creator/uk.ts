@@ -1,6 +1,7 @@
 export const creatorProductUk = {
   creator: {
     title: "Creator Studio",
+    eyebrow: "АВТОР MNEMOS",
     workshopTitle: "Твоя майстерня",
     workshopCopy: "Роботи, модерація та дохід синхронізовані з personalization-service.",
     newWork: "Нова робота",

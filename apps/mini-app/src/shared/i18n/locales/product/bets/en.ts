@@ -1,12 +1,19 @@
 export const betsProductEn = {
   productBets: {
+    eyebrow: "MNEMOS BETS",
     title: "Bets",
+    balance: "Balance",
     modes: {
       EVENTS: "Events",
       MY: "Mine",
       RACES: "Races",
     },
     loading: "Loading bets",
+    error: {
+      title: "Bets could not be loaded",
+      copy: "Check the connection and try again.",
+      retry: "Try again",
+    },
     nextRound: "NEXT ROUND",
     closes: "Closes {{time}}",
     yes: "Yes",

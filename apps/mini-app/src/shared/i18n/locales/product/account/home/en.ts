@@ -31,6 +31,7 @@ export const accountHomeEn = {
   },
   accountMember: {
     title: "Member",
+    eyebrow: "ACCOUNT MEMBER",
     since: "In the team since {{date}}",
     access: "ACCESS",
     roles: "Member roles",

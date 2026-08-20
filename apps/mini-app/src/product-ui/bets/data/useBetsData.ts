@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
   listEventBetRounds,
   listItemRaces,
@@ -15,6 +15,7 @@ type BetsData = {
   races: ItemRaceResponse[]
   positions: ItemRaceParticipantResponse[]
   loading: boolean
+  error: boolean
   refresh(): Promise<void>
 }
 
@@ -26,17 +27,22 @@ export function useBetsData(
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [positions, setPositions] = useState<ItemRaceParticipantResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
   const requestRevision = useRef(0)
   const accountIdRef = useRef(activeAccountId)
 
-  accountIdRef.current = activeAccountId
+  useLayoutEffect(() => {
+    accountIdRef.current = activeAccountId
+  }, [activeAccountId])
 
   const refresh = useCallback(async () => {
-    const requestedAccountId = accountIdRef.current
+    const requestedAccountId = activeAccountId
     const revision = requestRevision.current + 1
 
     requestRevision.current = revision
     setLoading(true)
+    setError(false)
 
     try {
       const [roundResponses, raceResponses, positionResponses] = await Promise.all([
@@ -55,23 +61,35 @@ export function useBetsData(
       setRounds(roundResponses)
       setRaces(raceResponses)
       setPositions(positionResponses)
+      setLoadedAccountId(requestedAccountId)
     } catch (error) {
-      if (revision === requestRevision.current) {
+      if (
+        revision === requestRevision.current &&
+        accountIdRef.current === requestedAccountId
+      ) {
+        setLoadedAccountId(requestedAccountId)
+        setError(true)
         handleError(error)
       }
     } finally {
-      if (revision === requestRevision.current) {
+      if (
+        revision === requestRevision.current &&
+        accountIdRef.current === requestedAccountId
+      ) {
         setLoading(false)
       }
     }
-  }, [])
+  }, [activeAccountId])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       void refresh()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      window.cancelAnimationFrame(frame)
+    }
   }, [activeAccountId, refresh])
 
   useEffect(() => {
@@ -85,11 +103,14 @@ export function useBetsData(
     })
   }, [refresh, refreshAccount])
 
+  const current = loadedAccountId === activeAccountId
+
   return {
-    rounds,
-    races,
-    positions,
-    loading,
+    rounds: current ? rounds : [],
+    races: current ? races : [],
+    positions: current ? positions : [],
+    loading: loading || !current,
+    error: current && error,
     refresh,
   }
 }

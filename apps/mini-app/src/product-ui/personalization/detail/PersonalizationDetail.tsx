@@ -95,7 +95,7 @@ export function PersonalizationDetail({
         </span>
 
         {item.owned ? (
-          <button
+          <button type="button"
             className={actionClassName}
             disabled={busy}
             onClick={() => void onToggleActive(item)}
@@ -107,7 +107,7 @@ export function PersonalizationDetail({
                 : t("personalization.detail.enable")}
           </button>
         ) : (
-          <button
+          <button type="button"
             className={actionClassName}
             disabled={busy || pending}
             onClick={() => void onPurchase(item)}

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useProductData } from "../data/ProductDataProvider"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
@@ -37,6 +37,7 @@ export function AccountDailyReward() {
   const product = useProductData()
   const [rewardResult, setRewardResult] = useState<RewardResult | null>(null)
   const [rewardBusy, setRewardBusy] = useState(false)
+  const rewardBusyRef = useRef(false)
 
   const reward = product.dailyReward
   const claimAvailable = Boolean(reward && !reward.claimedToday && !reward.recoverable)
@@ -45,28 +46,33 @@ export function AccountDailyReward() {
   )
 
   const claimDaily = async () => {
-    if (!claimAvailable || rewardBusy) {
+    if (!claimAvailable || rewardBusyRef.current) {
       return
     }
 
+    rewardBusyRef.current = true
     setRewardBusy(true)
 
     try {
       const result = await product.claimReward()
 
-      setRewardResult(result)
+      if (result) {
+        setRewardResult(result)
+      }
     } catch {
       // Product API already routes the backend error through the global handler.
     } finally {
+      rewardBusyRef.current = false
       setRewardBusy(false)
     }
   }
 
   const restoreDaily = async () => {
-    if (!restoreAvailable || rewardBusy) {
+    if (!restoreAvailable || rewardBusyRef.current) {
       return
     }
 
+    rewardBusyRef.current = true
     setRewardBusy(true)
 
     try {
@@ -74,6 +80,7 @@ export function AccountDailyReward() {
     } catch {
       // Product API already routes the backend error through the global handler.
     } finally {
+      rewardBusyRef.current = false
       setRewardBusy(false)
     }
   }
@@ -111,6 +118,7 @@ export function AccountDailyReward() {
 
       {claimAvailable ? (
         <motion.button
+          type="button"
           whileTap={{ scale: 0.96 }}
           disabled={rewardBusy}
           onClick={() => void claimDaily()}
@@ -121,6 +129,7 @@ export function AccountDailyReward() {
         </motion.button>
       ) : restoreAvailable ? (
         <motion.button
+          type="button"
           className="is-restore"
           whileTap={{ scale: 0.96 }}
           disabled={rewardBusy}

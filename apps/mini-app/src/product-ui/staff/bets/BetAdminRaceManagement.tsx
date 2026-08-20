@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ItemRaceResponse } from "@/shared/api/betApi"
 import { cancelItemRace, createItemRace } from "@/shared/api/betAdminApi"
@@ -26,6 +26,16 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
   const [durationHours, setDurationHours] = useState("24")
   const [entryAmount, setEntryAmount] = useState("1000")
   const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const duration = Number(durationHours)
   const entry = Number(entryAmount)
@@ -40,10 +50,11 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
     entry <= 5000
 
   const create = async () => {
-    if (!valid || busy) {
+    if (!valid || busyRef.current) {
       return
     }
 
+    busyRef.current = true
     setBusy(true)
 
     try {
@@ -54,33 +65,47 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
         entryAmount: entry,
       })
 
-      setItemName("")
-      setDurationHours("24")
-      setEntryAmount("1000")
-      setFormOpen(false)
-
-      await onChanged()
+      if (mountedRef.current) {
+        setItemName("")
+        setDurationHours("24")
+        setEntryAmount("1000")
+        setFormOpen(false)
+        await onChanged()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
   const cancel = async (raceId: string) => {
-    if (busy) {
+    if (busyRef.current) {
       return
     }
 
+    busyRef.current = true
     setBusy(true)
 
     try {
       await cancelItemRace(raceId)
-      await onChanged()
+      if (mountedRef.current) {
+        await onChanged()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      busyRef.current = false
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -90,7 +115,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
         title={t("betAdmin.itemRace")}
         back={back}
         actions={
-          <button
+          <button type="button"
             className="bet-admin-header-action"
             onClick={() => setFormOpen((value) => !value)}
           >
@@ -103,7 +128,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       {formOpen ? (
         <section className="bet-admin-form-block">
           <header>
-            <small>NEW RACE</small>
+            <small>{t("betAdmin.newRaceEyebrow")}</small>
             <strong>{t("betAdmin.newRace")}</strong>
           </header>
 
@@ -118,7 +143,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
           <Field label={t("betAdmin.type")}>
             <div className="bet-admin-choice">
               {BET_ITEM_TYPES.map((value) => (
-                <button
+                <button type="button"
                   key={value}
                   className={itemType === value ? "is-active" : ""}
                   onClick={() => setItemType(value)}
@@ -149,7 +174,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
             />
           </Field>
 
-          <button
+          <button type="button"
             className="primary-action"
             disabled={!valid || busy}
             onClick={() => void create()}
@@ -188,7 +213,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                   <small>{t("betAdmin.bank")}</small>
                 </span>
                 {cancellable ? (
-                  <button disabled={busy} onClick={() => void cancel(race.id)}>
+                  <button type="button" disabled={busy} onClick={() => void cancel(race.id)}>
                     {t("betAdmin.cancel")}
                   </button>
                 ) : null}

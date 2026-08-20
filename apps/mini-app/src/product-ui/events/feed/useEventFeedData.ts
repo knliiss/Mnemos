@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { getEventFeed, type EventFeedQuery } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { toProductFeedEvent } from "../../data/productMappers"
@@ -9,6 +9,7 @@ type EventFeedData = {
   eventCursor: string | null
   eventsHasMore: boolean
   loadingEvents: boolean
+  eventsError: boolean
   refreshEvents(query?: EventFeedQuery): Promise<void>
   loadMoreEvents(query?: EventFeedQuery): Promise<void>
 }
@@ -17,13 +18,34 @@ export function useEventFeedData(): EventFeedData {
   const [feed, setFeed] = useState<FeedEvent[]>([])
   const [eventCursor, setEventCursor] = useState<string | null>(null)
   const [eventsHasMore, setEventsHasMore] = useState(true)
-  const [loadingEvents, setLoadingEvents] = useState(false)
+  const [loadingEvents, setLoadingEvents] = useState(true)
+  const [eventsError, setEventsError] = useState(false)
   const requestRevision = useRef(0)
+  const queryKeyRef = useRef<string | null>(null)
+  const loadingRef = useRef(true)
 
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
     const revision = requestRevision.current + 1
+    const queryKey = JSON.stringify({
+      types: query.types ?? null,
+      search: query.search?.trim() ?? "",
+      droppedFor: query.droppedFor?.trim() ?? "",
+      itemRarity: query.itemRarity ?? null,
+      sort: query.sort ?? "NEWEST",
+      limit: query.limit ?? 50,
+    })
+
     requestRevision.current = revision
+    loadingRef.current = true
     setLoadingEvents(true)
+    setEventsError(false)
+
+    if (queryKeyRef.current !== queryKey) {
+      queryKeyRef.current = queryKey
+      setFeed([])
+      setEventCursor(null)
+      setEventsHasMore(true)
+    }
 
     try {
       const limit = query.limit ?? 50
@@ -41,10 +63,12 @@ export function useEventFeedData(): EventFeedData {
       setEventsHasMore(response.items.length >= limit && response.cursor !== null)
     } catch (error) {
       if (revision === requestRevision.current) {
+        setEventsError(true)
         handleError(error)
       }
     } finally {
       if (revision === requestRevision.current) {
+        loadingRef.current = false
         setLoadingEvents(false)
       }
     }
@@ -52,12 +76,13 @@ export function useEventFeedData(): EventFeedData {
 
   const loadMoreEvents = useCallback(
     async (query: EventFeedQuery = {}) => {
-      if (loadingEvents || !eventsHasMore || !eventCursor) {
+      if (loadingRef.current || !eventsHasMore || !eventCursor) {
         return
       }
 
       const revision = requestRevision.current + 1
       requestRevision.current = revision
+      loadingRef.current = true
       setLoadingEvents(true)
 
       try {
@@ -87,11 +112,20 @@ export function useEventFeedData(): EventFeedData {
         }
       } finally {
         if (revision === requestRevision.current) {
+          loadingRef.current = false
           setLoadingEvents(false)
         }
       }
     },
-    [eventCursor, eventsHasMore, loadingEvents],
+    [eventCursor, eventsHasMore],
+  )
+
+  useEffect(
+    () => () => {
+      requestRevision.current += 1
+      loadingRef.current = false
+    },
+    [],
   )
 
   return {
@@ -99,6 +133,7 @@ export function useEventFeedData(): EventFeedData {
     eventCursor,
     eventsHasMore,
     loadingEvents,
+    eventsError,
     refreshEvents,
     loadMoreEvents,
   }

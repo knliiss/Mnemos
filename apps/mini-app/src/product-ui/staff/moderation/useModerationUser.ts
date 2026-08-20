@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
   createSanction,
   createWalletAdjustment,
@@ -23,7 +23,8 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const [identity, setIdentity] = useState<IdentitySearchResponse | null>(null)
   const [sanctions, setSanctions] = useState<SanctionResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null)
+  const [busyScope, setBusyScope] = useState<string | null>(null)
   const [sanctionFormOpen, setSanctionFormOpen] = useState(false)
   const [sanctionType, setSanctionType] = useState<SanctionType>("BAN")
   const [reason, setReason] = useState("")
@@ -36,15 +37,46 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const [walletReason, setWalletReason] = useState("")
   const [adjustments, setAdjustments] = useState<WalletAdjustmentResponse[]>([])
   const [adjustmentScope, setAdjustmentScope] = useState("")
+  const identityRevision = useRef(0)
+  const sanctionsRevision = useRef(0)
+  const busyScopeRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
+  const userIdRef = useRef(userId)
+
+  useLayoutEffect(() => {
+    userIdRef.current = userId
+  }, [userId])
+
+  const setScopeBusy = useCallback((scope: string, value: boolean) => {
+    if (!value && busyScopeRef.current !== scope) {
+      return
+    }
+
+    const next = value ? scope : null
+
+    busyScopeRef.current = next
+    setBusyScope(next)
+  }, [])
 
   const refreshIdentity = useCallback(async () => {
+    const requestedUserId = userId
+    const revision = identityRevision.current + 1
+
+    identityRevision.current = revision
+
     if (!userId) {
-      setIdentity(null)
+      if (userIdRef.current === requestedUserId) {
+        setIdentity(null)
+      }
       return
     }
 
     const matches = await searchIdentities(userId, 5)
     const found = matches.find((item) => item.userId === userId) ?? matches[0] ?? null
+
+    if (revision !== identityRevision.current || userIdRef.current !== requestedUserId) {
+      return
+    }
 
     setIdentity(found)
 
@@ -66,22 +98,43 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   }, [userId])
 
   const refreshSanctions = useCallback(async () => {
+    const requestedUserId = userId
+    const revision = sanctionsRevision.current + 1
+
+    sanctionsRevision.current = revision
+
     if (!userId) {
-      setSanctions([])
+      if (userIdRef.current === requestedUserId) {
+        setSanctions([])
+      }
       return
     }
 
-    setSanctions(await listSanctions(userId))
+    const nextSanctions = await listSanctions(userId)
+
+    if (revision === sanctionsRevision.current && userIdRef.current === requestedUserId) {
+      setSanctions(nextSanctions)
+    }
   }, [userId])
 
   useEffect(() => {
     let cancelled = false
+    const requestedUserId = userId
+
+    mountedRef.current = true
 
     const frame = window.requestAnimationFrame(() => {
+      setLoading(true)
+
       void Promise.all([refreshIdentity(), refreshSanctions()])
-        .catch(handleError)
+        .catch((error) => {
+          if (!cancelled && userIdRef.current === requestedUserId) {
+            handleError(error)
+          }
+        })
         .finally(() => {
-          if (!cancelled) {
+          if (!cancelled && userIdRef.current === requestedUserId) {
+            setLoadedUserId(requestedUserId)
             setLoading(false)
           }
         })
@@ -89,16 +142,19 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
 
     return () => {
       cancelled = true
+      identityRevision.current += 1
+      sanctionsRevision.current += 1
+      mountedRef.current = false
       window.cancelAnimationFrame(frame)
     }
-  }, [refreshIdentity, refreshSanctions])
+  }, [refreshIdentity, refreshSanctions, userId])
 
   const targetId = walletTarget === "USER" ? userId : accountTargetId
   const currency = walletTarget === "USER" ? ("PRIME" as const) : ("COIN" as const)
-  const scopeKey = targetId ? `${walletTarget}:${targetId}` : ""
+  const scopeKey = targetId ? `${userId}:${walletTarget}:${targetId}` : ""
   const currentScopeRef = useRef(scopeKey)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     currentScopeRef.current = scopeKey
   }, [scopeKey])
 
@@ -110,7 +166,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     let cancelled = false
     const targetType = walletTarget
     const resolvedTargetId = targetId
-    const resolvedScope = `${targetType}:${resolvedTargetId}`
+    const resolvedScope = `${userId}:${targetType}:${resolvedTargetId}`
 
     const frame = window.requestAnimationFrame(() => {
       void listWalletAdjustments(targetType, resolvedTargetId)
@@ -122,30 +178,42 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
           setAdjustments(items)
           setAdjustmentScope(resolvedScope)
         })
-        .catch(handleError)
+        .catch((error) => {
+          if (!cancelled && currentScopeRef.current === resolvedScope) {
+            handleError(error)
+          }
+        })
     })
 
     return () => {
       cancelled = true
       window.cancelAnimationFrame(frame)
     }
-  }, [canAdjustWallet, targetId, walletTarget])
+  }, [canAdjustWallet, targetId, userId, walletTarget])
 
   const visibleAdjustments = adjustmentScope === scopeKey ? adjustments : []
   const numericDuration = Number(duration)
   const durationValid = !duration || (Number.isInteger(numericDuration) && numericDuration > 0)
   const numericAmount = Number(amount)
   const amountValid = Number.isInteger(numericAmount) && numericAmount > 0
-  const activeBan = sanctions.find(
+  const currentSanctions = loadedUserId === userId ? sanctions : []
+  const activeBan = currentSanctions.find(
     (sanction) => sanction.type === "BAN" && sanction.status === "ACTIVE",
   )
 
   const submitSanction = async () => {
-    if (!userId || !reason.trim() || !durationValid || busy) {
+    const actionScope = userId
+
+    if (
+      !userId ||
+      !reason.trim() ||
+      !durationValid ||
+      busyScopeRef.current === actionScope
+    ) {
       return
     }
 
-    setBusy(true)
+    setScopeBusy(actionScope, true)
 
     try {
       await createSanction({
@@ -156,6 +224,10 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
         durationHours: duration ? numericDuration : null,
       })
 
+      if (!mountedRef.current || userIdRef.current !== actionScope) {
+        return
+      }
+
       setReason("")
       setInternalNote("")
       setDuration("")
@@ -163,26 +235,39 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
 
       await refreshSanctions()
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && userIdRef.current === actionScope) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (mountedRef.current) {
+        setScopeBusy(actionScope, false)
+      }
     }
   }
 
   const revoke = async (sanctionId: string) => {
-    if (busy) {
+    const actionScope = userId
+
+    if (!actionScope || busyScopeRef.current === actionScope) {
       return
     }
 
-    setBusy(true)
+    setScopeBusy(actionScope, true)
 
     try {
       await revokeSanction(sanctionId)
-      await refreshSanctions()
+
+      if (mountedRef.current && userIdRef.current === actionScope) {
+        await refreshSanctions()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && userIdRef.current === actionScope) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (mountedRef.current) {
+        setScopeBusy(actionScope, false)
+      }
     }
   }
 
@@ -191,10 +276,18 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
     targetType: WalletOwnerType,
     resolvedTargetId: string,
   ) => {
-    const resolvedScope = `${targetType}:${resolvedTargetId}`
+    const resolvedScope = `${userIdRef.current}:${targetType}:${resolvedTargetId}`
 
     for (let attempt = 0; attempt < 15; attempt += 1) {
+      if (!mountedRef.current || currentScopeRef.current !== resolvedScope) {
+        return
+      }
+
       await new Promise((resolve) => window.setTimeout(resolve, 800))
+
+      if (!mountedRef.current || currentScopeRef.current !== resolvedScope) {
+        return
+      }
 
       const current = await getWalletAdjustment(operationId)
 
@@ -214,15 +307,23 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   }
 
   const submitAdjustment = async () => {
-    if (!canAdjustWallet || !targetId || !amountValid || !walletReason.trim() || busy) {
+    const actionScope = userId
+
+    if (
+      !canAdjustWallet ||
+      !targetId ||
+      !amountValid ||
+      !walletReason.trim() ||
+      busyScopeRef.current === actionScope
+    ) {
       return
     }
 
     const targetType = walletTarget
     const resolvedTargetId = targetId
-    const resolvedScope = `${targetType}:${resolvedTargetId}`
+    const resolvedScope = `${userId}:${targetType}:${resolvedTargetId}`
 
-    setBusy(true)
+    setScopeBusy(actionScope, true)
 
     try {
       const created = await createWalletAdjustment({
@@ -242,22 +343,34 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
         setAdjustmentScope(resolvedScope)
       }
 
-      setWalletReason("")
+      if (currentScopeRef.current === resolvedScope) {
+        setWalletReason("")
+      }
 
-      void pollAdjustment(created.operationId, targetType, resolvedTargetId).catch(handleError)
+      if (currentScopeRef.current === resolvedScope) {
+        void pollAdjustment(created.operationId, targetType, resolvedTargetId).catch((error) => {
+          if (mountedRef.current && currentScopeRef.current === resolvedScope) {
+            handleError(error)
+          }
+        })
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && userIdRef.current === actionScope) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (mountedRef.current) {
+        setScopeBusy(actionScope, false)
+      }
     }
   }
 
   return {
-    identity,
-    sanctions,
+    identity: loadedUserId === userId ? identity : null,
+    sanctions: currentSanctions,
     adjustments: visibleAdjustments,
-    loading,
-    busy,
+    loading: loading || loadedUserId !== userId,
+    busy: busyScope === userId,
     sanctionFormOpen,
     sanctionType,
     reason,

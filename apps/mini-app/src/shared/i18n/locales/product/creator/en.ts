@@ -1,6 +1,7 @@
 export const creatorProductEn = {
   creator: {
     title: "Creator Studio",
+    eyebrow: "MNEMOS CREATOR",
     workshopTitle: "Your workshop",
     workshopCopy: "Works, moderation and revenue are synchronized with personalization-service.",
     newWork: "New work",

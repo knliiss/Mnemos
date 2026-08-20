@@ -1,5 +1,6 @@
 export const walletProductUk = {
   userWallet: {
+    userEyebrow: "КОРИСТУВАЧ",
     description: "Персональна преміум-валюта Mnemos",
     earned: "Надійшло",
     spent: "Витрачено",
@@ -8,20 +9,11 @@ export const walletProductUk = {
     personalizations: "Персоналізації",
     accountWallet: "Гаманець аккаунта",
     topup: {
+      soon: "НЕЗАБАРОМ",
       eyebrow: "ПОПОВНЕННЯ",
       title: "Додати PRIME",
-      copy: "Пакети показують майбутній purchase flow. Списання та зарахування тут поки вимкнені.",
-      after: "Після поповнення",
-      bonus: "+{{count}} бонус",
-      noBonus: "без бонусу",
-      bonusSummary: "Пакет містить {{count}} бонусних PRIME.",
-      baseSummary: "Базовий пакет без бонусу.",
+      copy: "Купівля PRIME готується. Списання та зарахування поки вимкнені.",
       unavailable: "Тимчасово недоступно",
-      packs: {
-        start: "Старт",
-        popular: "Популярний",
-        reserve: "Запас",
-      },
     },
     history: {
       movement: "РУХ PRIME",

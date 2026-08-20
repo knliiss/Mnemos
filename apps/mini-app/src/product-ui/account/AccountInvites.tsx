@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   createAccountInvite,
@@ -11,6 +11,8 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { useProductData } from "../data/ProductDataProvider"
 import { Glyph } from "../shared/MnemosIcon"
 import { ChoiceGrid, Field, PageHeader, Section } from "../shared/Primitives"
+import { FeatureEmpty } from "../system/FeatureEmpty"
+import { FeatureLoading } from "../system/FeatureLoading"
 
 type Expiry = "NONE" | "1H" | "1D" | "7D"
 
@@ -28,67 +30,121 @@ export function AccountInvites({ back }: { back: () => void }) {
   const [expiry, setExpiry] = useState<Expiry>("1D")
   const [invites, setInvites] = useState<AccountInvite[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
+  const requestRevision = useRef(0)
+  const accountIdRef = useRef(accountId)
+  const createLocked = useRef(false)
+  const revokeLocked = useRef(false)
+  const mountedRef = useRef(true)
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
+  useLayoutEffect(() => {
+    accountIdRef.current = accountId
+  }, [accountId])
+
   const refresh = useCallback(async () => {
+    const requestedAccountId = accountId
+    const revision = requestRevision.current + 1
+
+    requestRevision.current = revision
+
     if (!accountId) {
-      setInvites([])
-      setLoading(false)
+      if (accountIdRef.current === requestedAccountId) {
+        setInvites([])
+        setLoadedAccountId(null)
+        setLoading(false)
+      }
       return
     }
 
     setLoading(true)
+    setLoadError(false)
 
     try {
-      setInvites(await getAccountInvites(accountId))
+      const nextInvites = await getAccountInvites(accountId)
+
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
+        setInvites(nextInvites)
+        setLoadedAccountId(requestedAccountId)
+      }
     } catch (error) {
-      handleError(error)
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
+        setLoadedAccountId(requestedAccountId)
+        setLoadError(true)
+        handleError(error)
+      }
     } finally {
-      setLoading(false)
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
+        setLoading(false)
+      }
     }
   }, [accountId])
 
   useEffect(() => {
+    mountedRef.current = true
     const frame = window.requestAnimationFrame(() => {
       void refresh()
     })
 
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      requestRevision.current += 1
+      mountedRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
   }, [refresh])
 
   const create = async () => {
-    if (!accountId || creating) {
+    if (!accountId || createLocked.current) {
       return
     }
 
+    const requestedAccountId = accountId
+    createLocked.current = true
     setCreating(true)
 
     try {
       await createAccountInvite(accountId, expiryMinutes[expiry])
-      await refresh()
+      if (accountIdRef.current === requestedAccountId) {
+        await refresh()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setCreating(false)
+      createLocked.current = false
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        setCreating(false)
+      }
     }
   }
 
   const revoke = async (inviteId: string) => {
-    if (!accountId || revokingId) {
+    if (!accountId || revokeLocked.current) {
       return
     }
 
+    const requestedAccountId = accountId
+    revokeLocked.current = true
     setRevokingId(inviteId)
 
     try {
       await revokeAccountInvite(accountId, inviteId)
-      await refresh()
+      if (accountIdRef.current === requestedAccountId) {
+        await refresh()
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setRevokingId(null)
+      revokeLocked.current = false
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        setRevokingId(null)
+      }
     }
   }
 
@@ -130,9 +186,12 @@ export function AccountInvites({ back }: { back: () => void }) {
   }
 
   const inviteStatusLabel = (status: AccountInviteStatus) => t(`accountInvites.status.${status}`)
+  const current = loadedAccountId === accountId
+  const visibleInvites = current ? invites : []
+  const visibleLoading = loading || !current
 
   return (
-    <div className="screen invites-screen invites-screen">
+    <div className="screen invites-screen">
       <PageHeader title={t("accountInvites.title")} back={back} />
 
       <section className="invite-create-panel">
@@ -144,7 +203,7 @@ export function AccountInvites({ back }: { back: () => void }) {
             labels={expiryLabels}
           />
         </Field>
-        <button
+        <button type="button"
           className="primary-action"
           disabled={creating || !accountId}
           onClick={() => void create()}
@@ -156,7 +215,7 @@ export function AccountInvites({ back }: { back: () => void }) {
 
       <Section title={t("accountInvites.title")}>
         <div className="invite-list">
-          {invites.map((invite) => (
+          {visibleInvites.map((invite) => (
             <article
               key={invite.id}
               className={`invite-item invite-item--${invite.status.toLowerCase()}`}
@@ -169,12 +228,14 @@ export function AccountInvites({ back }: { back: () => void }) {
               {invite.status === "ACTIVE" ? (
                 <span className="invite-item__actions">
                   <button
+                    type="button"
                     aria-label={t("accountInvites.copy")}
                     onClick={() => void navigator.clipboard?.writeText(invite.code)}
                   >
                     <Glyph name="external" size={14} />
                   </button>
                   <button
+                    type="button"
                     aria-label={t("accountInvites.revoke")}
                     className="is-danger"
                     disabled={revokingId !== null}
@@ -187,20 +248,28 @@ export function AccountInvites({ back }: { back: () => void }) {
             </article>
           ))}
 
-          {!loading && !invites.length ? (
-            <div className="events-r2-empty">
-              <Glyph name="invite" size={24} />
-              <strong>{t("accountInvites.emptyTitle")}</strong>
-              <small>{t("accountInvites.emptyCopy")}</small>
-            </div>
+          {!visibleLoading && loadError ? (
+            <FeatureEmpty
+              icon="invite"
+              title={t("common.loadErrorTitle")}
+              copy={t("common.loadErrorCopy")}
+            >
+              <button type="button" onClick={() => void refresh()}>
+                {t("common.retry")}
+              </button>
+            </FeatureEmpty>
           ) : null}
 
-          {loading && !invites.length ? (
-            <div className="events-r2-loading" aria-label={t("accountInvites.loading")}>
-              <i />
-              <i />
-              <i />
-            </div>
+          {!visibleLoading && !loadError && !visibleInvites.length ? (
+            <FeatureEmpty
+              icon="invite"
+              title={t("accountInvites.emptyTitle")}
+              copy={t("accountInvites.emptyCopy")}
+            />
+          ) : null}
+
+          {visibleLoading && !visibleInvites.length ? (
+            <FeatureLoading label={t("accountInvites.loading")} />
           ) : null}
         </div>
       </Section>

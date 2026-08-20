@@ -7,6 +7,7 @@ import { eventVisualTone } from "../../eventVisualTone"
 import type { Account, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
+import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { formatOccurredAt } from "../../timePresentation"
 import { ProfileCommentsSheet } from "./comments/ProfileCommentsSheet"
@@ -35,12 +36,15 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
     reaction,
     drops,
     loading,
+    error,
     reactionBusy,
+    refresh,
     refreshProfileSummary,
     toggleReaction,
-  } = usePublicProfileData(accountId)
+  } = usePublicProfileData(accountId, activeAccount.id)
   const comments = useProfileComments({
-    activeAccount,
+    activeAccountId: activeAccount.id,
+    activeAccountNickname: activeAccount.nickname,
     profile,
     locale,
     refreshProfileSummary,
@@ -53,6 +57,10 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
         <FeatureLoading label={t("people.profile.loading")} />
       </div>
     )
+  }
+
+  if (error) {
+    return <FeatureError back={back} onRetry={() => void refresh()} />
   }
 
   if (!profile) {
@@ -100,6 +108,11 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
               className={reaction === "LIKE" ? "is-active" : ""}
               whileTap={{ scale: 0.95 }}
               disabled={reactionBusy}
+              aria-label={
+                reaction === "LIKE"
+                  ? t("people.profile.unlike")
+                  : t("people.profile.like")
+              }
               onClick={() => void toggleReaction("LIKE")}
             >
               <Glyph name="like" size={15} />
@@ -111,6 +124,11 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
               className={reaction === "DISLIKE" ? "is-active is-negative" : ""}
               whileTap={{ scale: 0.95 }}
               disabled={reactionBusy}
+              aria-label={
+                reaction === "DISLIKE"
+                  ? t("people.profile.removeDislike")
+                  : t("people.profile.dislike")
+              }
               onClick={() => void toggleReaction("DISLIKE")}
             >
               <Glyph name="dislike" size={15} />
@@ -264,12 +282,14 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
         comments={comments.comments}
         commentsHasMore={comments.commentsHasMore}
         commentsLoading={comments.commentsLoading}
+        commentsError={comments.commentsError}
         replies={comments.replies}
         expandedReplies={comments.expandedReplies}
         busyIds={comments.busyIds}
         submitting={comments.submitting}
         onClose={() => setCommentsOpen(false)}
         onLoadMoreComments={comments.loadMoreComments}
+        onRetryComments={comments.retryComments}
         onToggleReplies={comments.toggleReplies}
         onLoadMoreReplies={comments.loadMoreReplies}
         onToggleLike={comments.toggleCommentLike}

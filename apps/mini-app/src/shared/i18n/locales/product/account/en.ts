@@ -32,6 +32,7 @@ export const accountProductEn = {
         "Paste the invite code — Mnemos will verify it and add you to the right account.",
       codeLabel: "INVITE CODE",
       paste: "Paste",
+      pasteUnavailable: "Clipboard access is unavailable. Enter the code manually.",
       readyHint: "The format is valid — the code is ready to verify",
       invalidHint: "16 characters · A–Z without I/O · digits 2–9",
       emptyHint: "The code contains four groups of 4 characters",

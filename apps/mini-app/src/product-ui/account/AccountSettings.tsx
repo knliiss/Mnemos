@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useApp } from "@/app/providers/AppProvider"
 import {
@@ -45,6 +45,21 @@ export function AccountSettings({ navigate, back }: Props) {
   const [transferTo, setTransferTo] = useState(transferableMembers[0]?.id ?? "")
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [busy, setBusy] = useState(false)
+  const actionScopeRef = useRef<string | null>(null)
+  const accountIdRef = useRef(activeAccount?.id ?? null)
+  const mountedRef = useRef(true)
+
+  useLayoutEffect(() => {
+    accountIdRef.current = activeAccount?.id ?? null
+  }, [activeAccount?.id])
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   if (!activeAccount) {
     return null
@@ -58,10 +73,13 @@ export function AccountSettings({ navigate, back }: Props) {
   const roleChanged = baseRoleId !== savedRoleId
 
   const saveBaseRole = async () => {
-    if (busy || !roleChanged) {
+    const requestedAccountId = activeAccount.id
+
+    if (actionScopeRef.current || !roleChanged) {
       return
     }
 
+    actionScopeRef.current = requestedAccountId
     setBusy(true)
 
     try {
@@ -70,65 +88,114 @@ export function AccountSettings({ navigate, back }: Props) {
         baseRoleId === NO_BASE_ROLE ? null : baseRoleId,
       )
       await app.refresh()
-      setSavedRoleId(baseRoleId)
+
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        setSavedRoleId(baseRoleId)
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (actionScopeRef.current === requestedAccountId) {
+        actionScopeRef.current = null
+        if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+          setBusy(false)
+        }
+      }
     }
   }
 
   const transfer = async () => {
-    if (!activeAccount.owner || !transferTarget || busy) {
+    const requestedAccountId = activeAccount.id
+
+    if (!activeAccount.owner || !transferTarget || actionScopeRef.current) {
       return
     }
 
+    actionScopeRef.current = requestedAccountId
     setBusy(true)
 
     try {
       await transferAccountOwnership(activeAccount.id, transferTarget.id)
       await app.refresh()
       await product.refreshAccount()
-      setConfirmAction(null)
+
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        setConfirmAction(null)
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (actionScopeRef.current === requestedAccountId) {
+        actionScopeRef.current = null
+        if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+          setBusy(false)
+        }
+      }
     }
   }
 
   const deactivate = async () => {
-    if (!activeAccount.owner || busy) {
+    const requestedAccountId = activeAccount.id
+
+    if (!activeAccount.owner || actionScopeRef.current) {
       return
     }
 
+    actionScopeRef.current = requestedAccountId
     setBusy(true)
 
     try {
       await deactivateAccount(activeAccount.id)
       await app.refresh()
-      navigate({ id: "account" })
+
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        navigate({ id: "account" })
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (actionScopeRef.current === requestedAccountId) {
+        actionScopeRef.current = null
+        if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+          setBusy(false)
+        }
+      }
     }
   }
 
   const leave = async () => {
-    if (activeAccount.owner || busy) {
+    const requestedAccountId = activeAccount.id
+
+    if (activeAccount.owner || actionScopeRef.current) {
       return
     }
 
+    actionScopeRef.current = requestedAccountId
     setBusy(true)
 
     try {
       await app.leaveAccount()
-      navigate({ id: "account" })
+
+      if (mountedRef.current) {
+        navigate({ id: "account" })
+      }
     } catch (error) {
-      handleError(error)
+      if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        handleError(error)
+      }
     } finally {
-      setBusy(false)
+      if (actionScopeRef.current === requestedAccountId) {
+        actionScopeRef.current = null
+        if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+          setBusy(false)
+        }
+      }
     }
   }
 
@@ -139,7 +206,7 @@ export function AccountSettings({ navigate, back }: Props) {
       <section className="account-settings-hero">
         <CristalixHead skinUrl={activeAccount.skinUrl} size={58} />
         <span className="account-settings-hero__copy">
-          <small>CRISTALIX ACCOUNT</small>
+          <small>{t("accountSettings.eyebrow")}</small>
           <strong>{activeAccount.nickname}</strong>
           <em>
             {activeAccount.owner ? t("accountSettings.owner") : t("accountSettings.member")} ·{" "}
@@ -148,7 +215,7 @@ export function AccountSettings({ navigate, back }: Props) {
         </span>
         <span className="account-settings-status is-active">
           <i />
-          ACTIVE
+          {t("accountSettings.active")}
         </span>
         <div className="account-settings-hero__stats">
           <span>
@@ -165,7 +232,7 @@ export function AccountSettings({ navigate, back }: Props) {
       </section>
 
       <nav className="account-settings-shortcuts account-settings-shortcuts--four">
-        <button
+        <button type="button"
           onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
         >
           <span className="is-lime">
@@ -176,7 +243,7 @@ export function AccountSettings({ navigate, back }: Props) {
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "roles" })}>
+        <button type="button" onClick={() => navigate({ id: "roles" })}>
           <span className="is-plum">
             <Glyph name="roles" size={18} />
           </span>
@@ -185,7 +252,7 @@ export function AccountSettings({ navigate, back }: Props) {
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "account-invites" })}>
+        <button type="button" onClick={() => navigate({ id: "account-invites" })}>
           <span className="is-amber">
             <Glyph name="invite" size={18} />
           </span>
@@ -194,7 +261,7 @@ export function AccountSettings({ navigate, back }: Props) {
           <b>›</b>
         </button>
 
-        <button onClick={() => navigate({ id: "account-wallet" })}>
+        <button type="button" onClick={() => navigate({ id: "account-wallet" })}>
           <span className="is-lime">
             <Glyph name="wallet" size={18} />
           </span>

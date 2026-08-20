@@ -23,7 +23,7 @@ export function ModerationWalletAdjustments({ controller, identity, language }: 
         </span>
         <span>
           <strong>{t("moderation.walletAdjustment")}</strong>
-          <small>ADMIN / SUPER_ADMIN</small>
+          <small>{t("moderation.walletRoles")}</small>
         </span>
       </div>
 
@@ -100,7 +100,7 @@ export function ModerationWalletAdjustments({ controller, identity, language }: 
         />
       </Field>
 
-      <button
+      <button type="button"
         className="primary-action"
         disabled={
           !controller.targetId ||

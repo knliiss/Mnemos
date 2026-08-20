@@ -16,6 +16,12 @@ export const en = {
     save: "Save",
     cancel: "Cancel",
     soon: "Soon",
+    unavailable: "Temporarily unavailable",
+    loadErrorTitle: "The data could not be loaded",
+    loadErrorCopy: "Check the connection and try again.",
+    retry: "Try again",
+    close: "Close",
+    copy: "Copy",
   },
   home: {
     online: "Online",
@@ -105,6 +111,45 @@ export const en = {
   error: {
     title: "Something went wrong",
     retry: "Retry",
+  },
+  errorBoundary: {
+    message: "The interface stopped unexpectedly.",
+    reload: "Reload",
+  },
+  errorNotifications: {
+    close: "Close message",
+    tones: {
+      validation: {
+        eyebrow: "DATA",
+        title: "Check the values",
+        message: "The request contains invalid data.",
+      },
+      access: {
+        eyebrow: "ACCESS",
+        title: "Action unavailable",
+        message: "You do not have permission for this action.",
+      },
+      conflict: {
+        eyebrow: "STATE",
+        title: "The data has changed",
+        message: "Refresh the page and try again.",
+      },
+      notFound: {
+        eyebrow: "NOT FOUND",
+        title: "Object unavailable",
+        message: "It may have been deleted.",
+      },
+      waiting: {
+        eyebrow: "TEMPORARILY",
+        title: "Try again shortly",
+        message: "The service or operation is currently busy.",
+      },
+      internal: {
+        eyebrow: "MNEMOS",
+        title: "Unknown error",
+        message: "Try the action again shortly.",
+      },
+    },
   },
   ...productEn,
 } as const

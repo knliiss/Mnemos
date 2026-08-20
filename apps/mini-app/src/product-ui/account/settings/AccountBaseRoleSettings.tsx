@@ -45,7 +45,7 @@ export function AccountBaseRoleSettings({
       </header>
 
       <div className="account-default-role-grid">
-        <button
+        <button type="button"
           className={baseRoleId === NO_BASE_ROLE ? "is-selected" : ""}
           onClick={() => onBaseRoleChange(NO_BASE_ROLE)}
         >
@@ -85,7 +85,7 @@ export function AccountBaseRoleSettings({
           </em>
         </span>
 
-        <button disabled={!roleChanged || busy} onClick={onSave}>
+        <button type="button" disabled={!roleChanged || busy} onClick={onSave}>
           {busy ? "…" : t("accountSettings.save")}
         </button>
       </div>
@@ -103,7 +103,7 @@ function RoleOption({ role, selected, onClick }: RoleOptionProps) {
   const { t } = useTranslation()
 
   return (
-    <button className={selected ? "is-selected" : ""} onClick={onClick}>
+    <button type="button" className={selected ? "is-selected" : ""} onClick={onClick}>
       <RoleSigil color={role.color} size={40} />
       <strong>{role.name}</strong>
       <small>

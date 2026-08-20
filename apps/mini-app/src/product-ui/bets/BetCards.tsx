@@ -30,6 +30,7 @@ type BetRoundCardProps = {
 export function BetRoundCard({ round, locale, t, onClick }: BetRoundCardProps) {
   return (
     <motion.button
+      type="button"
       className={`bets-card event-surface--${globalEventVisualTone(round.eventType)} ${round.status !== "OPEN" ? "is-locked" : ""}`}
       whileTap={{ scale: 0.992 }}
       onClick={onClick}
@@ -70,7 +71,12 @@ type BetRaceCardProps = {
 
 export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardProps) {
   return (
-    <motion.button className="bets-race" whileTap={{ scale: 0.992 }} onClick={onClick}>
+    <motion.button
+      type="button"
+      className="bets-race"
+      whileTap={{ scale: 0.992 }}
+      onClick={onClick}
+    >
       <span className="bets-race__art">
         <ItemTypeArt itemType={race.itemType} size={54} />
       </span>

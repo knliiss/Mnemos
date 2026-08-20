@@ -40,7 +40,7 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
           <Glyph name="bet" size={22} />
         </span>
         <span>
-          <small>ADMIN WORKSPACE</small>
+          <small>{t("betAdmin.workspaceEyebrow")}</small>
           <strong>{t("betAdmin.workspaceTitle")}</strong>
           <em>{t("betAdmin.workspaceDescription")}</em>
         </span>
@@ -74,7 +74,7 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
           </section>
 
           <nav className="bet-admin-nav-grid">
-            <button
+            <button type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "rounds" } })}
             >
               <span className="is-lime">
@@ -85,7 +85,7 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
               <b>{active.length} ›</b>
             </button>
 
-            <button
+            <button type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "history" } })}
             >
               <span className="is-plum">
@@ -96,7 +96,7 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
               <b>{history.length} ›</b>
             </button>
 
-            <button
+            <button type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "races" } })}
             >
               <span className="is-blue">
