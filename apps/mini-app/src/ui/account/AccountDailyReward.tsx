@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useProductData } from "../data/ProductDataProvider"
+import { useMnemosData } from "../data/MnemosDataProvider"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 
 type RewardResult = {
@@ -34,12 +34,12 @@ const rewardParticles: RewardParticle[] = [
 
 export function AccountDailyReward() {
   const { t } = useTranslation()
-  const product = useProductData()
+  const data = useMnemosData()
   const [rewardResult, setRewardResult] = useState<RewardResult | null>(null)
   const [rewardBusy, setRewardBusy] = useState(false)
   const rewardBusyRef = useRef(false)
 
-  const reward = product.dailyReward
+  const reward = data.dailyReward
   const claimAvailable = Boolean(reward && !reward.claimedToday && !reward.recoverable)
   const restoreAvailable = Boolean(
     reward && !reward.claimedToday && reward.recoverable && reward.restoresRemaining > 0,
@@ -54,13 +54,13 @@ export function AccountDailyReward() {
     setRewardBusy(true)
 
     try {
-      const result = await product.claimReward()
+      const result = await data.claimReward()
 
       if (result) {
         setRewardResult(result)
       }
     } catch {
-      // Product API already routes the backend error through the global handler.
+      // Backend errors are already routed through the global error handler.
     } finally {
       rewardBusyRef.current = false
       setRewardBusy(false)
@@ -76,9 +76,9 @@ export function AccountDailyReward() {
     setRewardBusy(true)
 
     try {
-      await product.restoreReward()
+      await data.restoreReward()
     } catch {
-      // Product API already routes the backend error through the global handler.
+      // Backend errors are already routed through the global error handler.
     } finally {
       rewardBusyRef.current = false
       setRewardBusy(false)
