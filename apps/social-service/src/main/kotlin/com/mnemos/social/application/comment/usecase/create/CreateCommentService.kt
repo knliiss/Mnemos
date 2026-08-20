@@ -13,6 +13,7 @@ import com.mnemos.social.domain.comment.repository.CommentRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.util.UUID
 
 @Service
 class CreateCommentService(
@@ -92,7 +93,7 @@ class CreateCommentService(
 
     private fun validateRootParent(
         parent: Comment,
-        targetAccountId: java.util.UUID,
+        targetAccountId: UUID,
     ) {
         if (parent.deleted) {
             throw DeletedCommentOperationException(
@@ -121,7 +122,7 @@ class CreateCommentService(
     private fun validateReplyTarget(
         parent: Comment,
         replyTarget: Comment,
-        targetAccountId: java.util.UUID,
+        targetAccountId: UUID,
     ) {
         if (replyTarget.deleted) {
             throw DeletedCommentOperationException(
