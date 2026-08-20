@@ -16,6 +16,7 @@ import {
   type NoticePresentation,
 } from "./errorPresentation"
 import { ErrorMascot } from "./ErrorMascot"
+import "./error-notices.css"
 
 type ErrorNotice = {
   id: number
