@@ -1,5 +1,5 @@
 import { errorCodesUk } from "./errors/uk"
-import { productUk } from "./product/uk"
+import { productUk } from "./ui/uk"
 
 export const uk = {
   nav: {
