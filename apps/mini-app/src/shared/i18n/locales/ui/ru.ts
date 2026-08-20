@@ -7,8 +7,8 @@ import { peopleProductRu } from "./people/ru"
 import { personalizationProductRu } from "./personalization/ru"
 import { walletProductRu } from "./wallet/ru"
 
-export const productRu = {
-  productShell: {
+export const uiRu = {
+  appShell: {
     navigation: {
       aria: "Основная навигация",
       bets: "Ставки",
