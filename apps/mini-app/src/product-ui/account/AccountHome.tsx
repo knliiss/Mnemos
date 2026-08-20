@@ -8,8 +8,8 @@ import {
   revokeMemberRole,
 } from "@/shared/api/productApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { CristalixHead } from "../components/CristalixHead"
-import { EventArt } from "../components/EventArt"
+import { EventArt } from "../components/events/EventArt"
+import { CristalixHead } from "../components/profile/CristalixHead"
 import { useProductData } from "../data/ProductDataProvider"
 import { eventVisualTone } from "../eventVisualTone"
 import type { AccountRole, Member, Route } from "../model"
