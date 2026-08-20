@@ -5,6 +5,7 @@ import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toReplies
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toResponse
 import com.mnemos.social.adapter.inbound.http.comment.CommentApiMapper.toRootQuery
 import com.mnemos.social.adapter.inbound.http.common.pagination.PageResponse
+import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.comment.usecase.create.CreateCommentUseCase
 import com.mnemos.social.application.comment.usecase.delete.DeleteCommentUseCase
 import com.mnemos.social.application.comment.usecase.edit.EditCommentUseCase
@@ -32,6 +33,7 @@ class CommentController(
     private val deleteCommentUseCase: DeleteCommentUseCase,
     private val getCommentUseCase: GetCommentUseCase,
     private val listCommentsUseCase: ListCommentsUseCase,
+    private val actorProvider: SocialActorProvider,
 ) {
     @PostMapping("/accounts/{accountId}/comments")
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,11 +42,12 @@ class CommentController(
         accountId: UUID,
         @Valid @RequestBody request: CreateCommentRequest,
     ): CommentResponse {
+        val currentUserId = actorProvider.requireUserId()
         val comment = createCommentUseCase.execute(request.toCommand(accountId))
 
         return getCommentUseCase
             .execute(comment.id.id)
-            .toResponse()
+            .toResponse(currentUserId)
     }
 
     @PatchMapping("/comments/{commentId}")
@@ -53,11 +56,12 @@ class CommentController(
         commentId: UUID,
         @Valid @RequestBody request: EditCommentRequest,
     ): CommentResponse {
+        val currentUserId = actorProvider.requireUserId()
         val comment = editCommentUseCase.execute(request.toCommand(commentId))
 
         return getCommentUseCase
             .execute(comment.id.id)
-            .toResponse()
+            .toResponse(currentUserId)
     }
 
     @DeleteMapping("/comments/{commentId}")
@@ -74,18 +78,24 @@ class CommentController(
         @PathVariable
         accountId: UUID,
         @Valid @ModelAttribute request: ListCommentsRequest,
-    ): PageResponse<CommentResponse> =
-        listCommentsUseCase
+    ): PageResponse<CommentResponse> {
+        val currentUserId = actorProvider.requireUserId()
+
+        return listCommentsUseCase
             .listRoot(request.toRootQuery(accountId))
-            .toResponse()
+            .toResponse(currentUserId)
+    }
 
     @GetMapping("/comments/{commentId}/replies")
     fun replies(
         @PathVariable
         commentId: UUID,
         @Valid @ModelAttribute request: ListCommentsRequest,
-    ): PageResponse<CommentResponse> =
-        listCommentsUseCase
+    ): PageResponse<CommentResponse> {
+        val currentUserId = actorProvider.requireUserId()
+
+        return listCommentsUseCase
             .listReplies(request.toRepliesQuery(commentId))
-            .toResponse()
+            .toResponse(currentUserId)
+    }
 }
