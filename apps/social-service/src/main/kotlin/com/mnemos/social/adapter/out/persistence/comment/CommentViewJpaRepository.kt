@@ -12,8 +12,10 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
         value = """
             SELECT c.id AS "id",
                    c.target_account_id AS "targetAccountId",
+                   c.author_user_id AS "authorUserId",
                    c.author_account_id AS "authorAccountId",
                    c.parent_comment_id AS "parentCommentId",
+                   reply_target.author_account_id AS "replyToAuthorAccountId",
                    CASE WHEN c.deleted_at IS NULL THEN c.content ELSE NULL END AS "content",
                    (c.deleted_at IS NOT NULL) AS "deleted",
                    CASE
@@ -32,6 +34,7 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                    c.created_at AS "createdAt",
                    c.updated_at AS "updatedAt"
             FROM comments c
+            LEFT JOIN comments reply_target ON reply_target.id = c.reply_to_comment_id
             WHERE c.id = :commentId
         """,
         nativeQuery = true,
@@ -44,8 +47,10 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
         value = """
             SELECT c.id AS "id",
                    c.target_account_id AS "targetAccountId",
+                   c.author_user_id AS "authorUserId",
                    c.author_account_id AS "authorAccountId",
                    c.parent_comment_id AS "parentCommentId",
+                   reply_target.author_account_id AS "replyToAuthorAccountId",
                    CASE WHEN c.deleted_at IS NULL THEN c.content ELSE NULL END AS "content",
                    (c.deleted_at IS NOT NULL) AS "deleted",
                    CASE
@@ -64,6 +69,7 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                    c.created_at AS "createdAt",
                    c.updated_at AS "updatedAt"
             FROM comments c
+            LEFT JOIN comments reply_target ON reply_target.id = c.reply_to_comment_id
             WHERE c.target_account_id = :targetAccountId
               AND c.parent_comment_id IS NULL
             ORDER BY c.created_at DESC, c.id DESC
@@ -85,8 +91,10 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
         value = """
             SELECT c.id AS "id",
                    c.target_account_id AS "targetAccountId",
+                   c.author_user_id AS "authorUserId",
                    c.author_account_id AS "authorAccountId",
                    c.parent_comment_id AS "parentCommentId",
+                   reply_target.author_account_id AS "replyToAuthorAccountId",
                    CASE WHEN c.deleted_at IS NULL THEN c.content ELSE NULL END AS "content",
                    (c.deleted_at IS NOT NULL) AS "deleted",
                    CASE
@@ -101,6 +109,7 @@ interface CommentViewJpaRepository : Repository<CommentEntity, UUID> {
                    c.created_at AS "createdAt",
                    c.updated_at AS "updatedAt"
             FROM comments c
+            LEFT JOIN comments reply_target ON reply_target.id = c.reply_to_comment_id
             WHERE c.parent_comment_id = :parentCommentId
             ORDER BY c.created_at ASC, c.id ASC
         """,
