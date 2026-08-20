@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useApp } from "@/app/providers/AppProvider"
 import {
@@ -44,6 +44,14 @@ export function AccountSettings({ navigate, back }: Props) {
   const [transferTo, setTransferTo] = useState(transferableMembers[0]?.id ?? "")
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (transferableMembers.some((member) => member.id === transferTo)) {
+      return
+    }
+
+    setTransferTo(transferableMembers[0]?.id ?? "")
+  }, [transferTo, transferableMembers])
 
   if (!activeAccount) {
     return null
