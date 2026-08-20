@@ -4,7 +4,7 @@ import type {
   GlobalEventType,
   ItemRarity,
   LocalizationLanguage,
-} from "@/product-ui/model"
+} from "@/ui/model"
 import type {
   AccountMemberResponse,
   AccountRoleResponse,
