@@ -1,0 +1,382 @@
+.prime-wallet-screen {
+  padding-bottom: 34px;
+}
+
+.prime-wallet-hero {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  margin: 8px 0 12px;
+  padding: 20px;
+  border: 1px solid rgba(206, 145, 210, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(206, 145, 210, 0.13), transparent 36%),
+    radial-gradient(circle at 22% 118%, rgba(203, 255, 45, 0.055), transparent 44%),
+    rgba(255, 255, 255, 0.022);
+}
+
+.prime-wallet-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 62%;
+  gap: 7px;
+}
+
+.prime-wallet-hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  color: #dfa6e1;
+  font-family: var(--font-meta);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+}
+
+.prime-wallet-hero__value {
+  color: #f2edf3;
+  font-size: clamp(38px, 10vw, 58px);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.prime-wallet-hero__copy > small {
+  color: #8b858d;
+  font-size: 9px;
+}
+
+.prime-wallet-hero__art {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 10px;
+  width: 132px;
+  height: 108px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.24));
+}
+
+.prime-wallet-hero__stats {
+  position: absolute;
+  z-index: 2;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.prime-wallet-hero__stats > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 12px;
+  background: rgba(7, 9, 7, 0.4);
+}
+
+.prime-wallet-hero__stats small {
+  color: #817b84;
+  font-size: 9px;
+}
+
+.prime-wallet-hero__stats strong {
+  color: #e6dce7;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.prime-wallet-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.prime-wallet-shortcuts > button {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 9px;
+  min-width: 0;
+  min-height: 68px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 14px;
+  color: #dfe3da;
+  background: rgba(255, 255, 255, 0.015);
+  text-align: left;
+}
+
+.prime-wallet-shortcuts > button > span:first-child {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.prime-wallet-shortcuts > button > span.is-plum {
+  color: #d69cda;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.prime-wallet-shortcuts > button > span.is-lime {
+  color: #cbff2d;
+  background: rgba(203, 255, 45, 0.07);
+}
+
+.prime-wallet-shortcuts strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-wallet-shortcuts small {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-wallet-shortcuts b {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  color: #666d63;
+  font-size: 18px;
+}
+
+.prime-topup-panel,
+.prime-history-panel {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.085);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.prime-topup-panel > header,
+.prime-wallet-screen .wallet-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.prime-topup-panel > header > span:first-child,
+.prime-wallet-screen .wallet-history-head > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prime-topup-panel header small,
+.prime-history-panel header small {
+  color: #747b70;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.prime-topup-panel header strong,
+.prime-history-panel header strong {
+  color: #e2e6dd;
+  font-size: 13px;
+}
+
+.prime-topup-panel header em {
+  color: #7d8478;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.prime-topup-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: #b890b9;
+  background: rgba(206, 145, 210, 0.07);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.prime-topup-disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 11px;
+  color: #777d73;
+  background: rgba(255, 255, 255, 0.018);
+  font-size: 9px;
+}
+
+.prime-wallet-screen .wallet-history-head--stacked {
+  align-items: center;
+}
+
+.prime-wallet-screen .wallet-history-sort {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-width: 136px;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 11px;
+  color: #8b9286;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prime-wallet-screen .wallet-history-sort select {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #aeb4a8;
+  background: transparent;
+  font-size: 9px;
+}
+
+.prime-history-filter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.prime-history-filter button {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 10px;
+  color: #7f867b;
+  background: rgba(255, 255, 255, 0.016);
+  font-size: 9px;
+}
+
+.prime-history-filter button.is-active {
+  border-color: rgba(206, 145, 210, 0.18);
+  color: #d0abd2;
+  background: rgba(206, 145, 210, 0.065);
+}
+
+.prime-history-list {
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 14px;
+}
+
+.prime-history-list > article {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.045);
+}
+
+.prime-history-list > article:last-of-type {
+  border-bottom: 0;
+}
+
+.prime-history-list__sign {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: #d27d84;
+  background: rgba(188, 61, 68, 0.055);
+  font-size: 14px;
+}
+
+.prime-history-list__sign.is-credit {
+  color: #d9a4dd;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.prime-history-list__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.prime-history-list__copy strong {
+  overflow: hidden;
+  color: #dde1d8;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-history-list__copy small {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prime-history-list__amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #d8ddd4;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.prime-history-list__amount.is-credit {
+  color: #d8a1dc;
+}
+
+.prime-history-list > .feature-loading,
+.prime-history-list > .feature-empty {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 374px) {
+  .prime-wallet-hero__art {
+    right: 4px;
+    width: 112px;
+  }
+
+  .prime-wallet-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .prime-wallet-screen .wallet-history-head--stacked {
+    display: grid;
+  }
+
+  .prime-wallet-screen .wallet-history-sort {
+    width: 100%;
+  }
+}
