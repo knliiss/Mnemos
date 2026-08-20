@@ -1,0 +1,52 @@
+.personalization-detail-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+
+.personalization-detail-hero__copy > small {
+  color: #858b7d;
+  font-family: var(--font-meta);
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.personalization-detail-hero__copy > strong {
+  overflow: hidden;
+  color: #f1f2ec;
+  font-size: 22px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-detail-hero__copy > em {
+  overflow: hidden;
+  color: #8c9285;
+  font-size: 8.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-detail-hero > .real-preview.is-detail {
+  position: relative;
+  z-index: 1;
+  width: 126px !important;
+  min-width: 0 !important;
+  height: 112px !important;
+  min-height: 0 !important;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+@media (max-width: 380px) {
+  .personalization-detail-hero > .real-preview.is-detail {
+    width: 105px !important;
+  }
+}
