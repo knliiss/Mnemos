@@ -4,7 +4,6 @@ import { CristalixHead } from "../components/profile/CristalixHead"
 import type { Account, LocalizationLanguage, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { localizationOptions } from "./navigation"
-import { UserAvatar } from "./UserAvatar"
 import { UserHubAccountPicker } from "./UserHubAccountPicker"
 import { UserHubLocalization } from "./UserHubLocalization"
 import { UserHubWorkspaces } from "./UserHubWorkspaces"
@@ -67,9 +66,9 @@ export function UserHubOverlay({
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
             <header className="user-hub-card">
-              <UserAvatar
-                className="user-hub-card__avatar"
-                placeholderClassName="user-hub-card__avatar--placeholder"
+              <CristalixHead
+                className="user-hub-card__avatar user-hub-card__avatar--skin"
+                skinUrl={activeAccount.skinUrl}
                 size={40}
               />
               <span className="user-hub-card__copy">
