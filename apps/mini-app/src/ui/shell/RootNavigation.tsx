@@ -14,7 +14,7 @@ export function RootNavigation({ current, onChange }: Props) {
   return (
     <nav
       className="root-navigation root-navigation--five root-navigation--illustrated"
-      aria-label={t("productShell.navigation.aria")}
+      aria-label={t("appShell.navigation.aria")}
     >
       {rootItems.map((item) => (
         <button
