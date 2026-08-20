@@ -12,6 +12,7 @@ import type { AccountRole, Member } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
+import "./account-member.css"
 import { formatMemberDate, localeForLanguage } from "./accountPresentation"
 
 type AccountMemberManagementProps = {
@@ -90,10 +91,10 @@ export function AccountMemberManagement({
     <div className="screen account-home-member-detail">
       <PageHeader title={t("accountMember.title")} back={back} />
 
-      <section className="account-member-v4__hero">
-        <span className="account-member-v4__avatar" aria-hidden="true" />
+      <section className="account-member__hero">
+        <span className="account-member__avatar" aria-hidden="true" />
 
-        <span className="account-member-v4__identity">
+        <span className="account-member__identity">
           <small>ACCOUNT MEMBER</small>
           <strong>{member.name}</strong>
           <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
@@ -102,7 +103,7 @@ export function AccountMemberManagement({
         {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
       </section>
 
-      <section className="account-member-v4__roles">
+      <section className="account-member__roles">
         <header>
           <span>
             <small>{t("accountMember.access")}</small>
@@ -146,7 +147,7 @@ export function AccountMemberManagement({
       </section>
 
       {!member.owner ? (
-        <section className="account-member-v4__danger">
+        <section className="account-member__danger">
           <span>
             <Glyph name="close" size={18} />
           </span>
