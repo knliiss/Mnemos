@@ -7,6 +7,7 @@ import { useProductData } from "../../data/ProductDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
 import type { Account, EventKind, ItemRarity, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
+import { FeatureLoading } from "../../system/FeatureLoading"
 import { formatOccurredAt } from "../../timePresentation"
 import {
   belongsToAccount,
@@ -80,8 +81,8 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   }
 
   return (
-    <div className="screen events-r2-screen root-screen">
-      <header className="root-title-block events-r2-title">
+    <div className="screen events-feed-screen root-screen">
+      <header className="root-title-block events-feed-title">
         <span>
           <small>LIVE FEED</small>
           <h1>{t("events.feed.title")}</h1>
@@ -90,7 +91,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
 
         <button
           type="button"
-          className="events-r2-subscriptions"
+          className="events-feed-subscriptions"
           onClick={() => navigate({ id: "subscriptions" })}
         >
           <Glyph name="bell" size={17} />
@@ -98,13 +99,13 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </button>
       </header>
 
-      <section className="events-r2-filter-rail" aria-label={t("events.feed.filterAria")}>
+      <section className="events-feed-filters" aria-label={t("events.feed.filterAria")}>
         <button
           type="button"
           className={filter === "ALL" ? "is-active" : ""}
           onClick={() => selectFilter("ALL")}
         >
-          <span className="events-r2-filter-dot" />
+          <span className="events-feed-filter-dot" />
           {t("events.feed.all")}
         </button>
 
@@ -123,7 +124,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
 
       {filter === "ITEM_DROP" ? (
         <section
-          className="events-r2-filter-rail events-r2-rarity-rail"
+          className="events-feed-filters events-feed-rarity-filters"
           aria-label={t("events.feed.rarityFilterAria")}
         >
           <button
@@ -147,8 +148,8 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </section>
       ) : null}
 
-      <div className="events-r2-query-row">
-        <label className="events-r2-search">
+      <div className="events-feed-query">
+        <label className="events-feed-search">
           <Glyph name="search" size={18} />
           <input
             value={query}
@@ -165,7 +166,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
 
         <motion.button
           type="button"
-          className={`events-r2-sort ${sort === "OLDEST" ? "is-oldest" : ""}`}
+          className={`events-feed-sort ${sort === "OLDEST" ? "is-oldest" : ""}`}
           whileTap={{ scale: 0.94 }}
           onClick={() => setSort((current) => (current === "NEWEST" ? "OLDEST" : "NEWEST"))}
           aria-label={sortLabel}
@@ -175,18 +176,12 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </motion.button>
       </div>
 
-      {loadingEvents && !feed.length ? (
-        <section className="events-r2-loading" aria-label={t("events.feed.loading")}>
-          <i />
-          <i />
-          <i />
-        </section>
-      ) : null}
+      {loadingEvents && !feed.length ? <FeatureLoading label={t("events.feed.loading")} /> : null}
 
       {featured ? (
         <motion.button
           type="button"
-          className={`events-r2-featured event-surface--${eventVisualTone(featured)}`}
+          className={`events-feed-featured event-surface--${eventVisualTone(featured)}`}
           whileTap={{ scale: 0.992 }}
           onClick={() =>
             navigate({
@@ -195,17 +190,17 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             })
           }
         >
-          <span className="events-r2-featured__signal">
+          <span className="events-feed-featured__signal">
             <i />
             <i />
             <i />
           </span>
 
-          <span className="events-r2-featured__art">
+          <span className="events-feed-featured__art">
             <EventArt event={featured} size={78} />
           </span>
 
-          <span className="events-r2-featured__copy">
+          <span className="events-feed-featured__copy">
             <small>
               {sort === "NEWEST" ? t("events.feed.latest") : t("events.feed.oldestFeatured")} ·{" "}
               {formatOccurredAt(featured.occurredAt, locale)}
@@ -218,11 +213,11 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             </span>
           </span>
 
-          <b className="events-r2-featured__open">›</b>
+          <b className="events-feed-featured__open">›</b>
         </motion.button>
       ) : null}
 
-      <header className="events-r2-section-head">
+      <header className="events-feed-section-head">
         <span>
           <small>{t("events.feed.stream")}</small>
           <strong>{t("events.feed.eventCount", { count: feed.length })}</strong>
@@ -230,14 +225,14 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         <i className={loadingEvents ? "is-loading" : ""} />
       </header>
 
-      <section className="events-r2-stream">
+      <section className="events-feed-stream">
         <AnimatePresence initial={false}>
           {rest.map((event, index) => (
             <motion.button
               layout
               type="button"
               key={event.id}
-              className={`events-r2-row event-surface--${eventVisualTone(event)}`}
+              className={`events-feed-row event-surface--${eventVisualTone(event)}`}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.985 }}
@@ -249,18 +244,18 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
                 })
               }
             >
-              <span className="events-r2-row__art">
+              <span className="events-feed-row__art">
                 <EventArt event={event} size={48} />
               </span>
 
-              <span className="events-r2-row__copy">
+              <span className="events-feed-row__copy">
                 <small>{eventKindLabel(t, event.kind)}</small>
                 <strong>{eventTitle(t, event)}</strong>
                 <em>{eventFeedDescription(t, event)}</em>
               </span>
 
-              <span className="events-r2-row__time">{formatOccurredAt(event.occurredAt, locale)}</span>
-              <span className="events-r2-row__edge" />
+              <span className="events-feed-row__time">{formatOccurredAt(event.occurredAt, locale)}</span>
+              <span className="events-feed-row__edge" />
             </motion.button>
           ))}
         </AnimatePresence>
@@ -269,7 +264,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       {eventsHasMore ? (
         <motion.button
           type="button"
-          className="events-r2-load-more"
+          className="events-feed-load-more"
           whileTap={{ scale: 0.98 }}
           disabled={loadingEvents}
           onClick={() => void loadMoreEvents(feedQuery)}
@@ -279,7 +274,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loadingEvents && !feed.length ? (
-        <section className="events-r2-empty">
+        <section className="events-feed-empty">
           <Glyph name="events" size={24} />
           <strong>{t("events.feed.emptyTitle")}</strong>
           <small>{t("events.feed.emptyCopy")}</small>
