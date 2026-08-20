@@ -1,0 +1,27 @@
+.events-feed-title small,
+.events-feed-featured__copy > small,
+.events-feed-section-head small,
+.events-feed-row__copy small {
+  font-size: 9px;
+}
+
+.events-feed-title p,
+.events-feed-subscriptions__label,
+.events-feed-filters button,
+.events-feed-featured__copy > em,
+.events-feed-load-more,
+.events-feed-empty > button {
+  font-size: 10px;
+}
+
+.events-feed-subscriptions b,
+.events-feed-featured__copy > span,
+.events-feed-row__copy em,
+.events-feed-row__time,
+.events-feed-empty small {
+  font-size: 9px;
+}
+
+.events-feed-search input {
+  font-size: 11px;
+}
