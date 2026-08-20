@@ -7,6 +7,7 @@ import type { Personalization } from "../../model"
 import { CurrencyValue, PageHeader } from "../../shared/Primitives"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { personalizationTypeTitle } from "../personalizationPresentation"
+import "./personalization-detail.css"
 
 type PersonalizationDetailProps = {
   params?: Record<string, string>
@@ -61,14 +62,15 @@ export function PersonalizationDetail({
       <PageHeader title={item.name} back={back} />
 
       <section className="personalization-detail-hero">
-        <PersonalizationVisual item={item} detail />
-        <span>
+        <span className="personalization-detail-hero__copy">
           <small>
             {personalizationTypeTitle(t, item.type)} · {t(`personalization.target.${item.target}`)}
           </small>
           <strong>{item.name}</strong>
           <em>{item.creator}</em>
         </span>
+
+        <PersonalizationVisual item={item} detail />
       </section>
 
       <PersonalizationDetails item={item} />
