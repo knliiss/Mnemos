@@ -5,7 +5,6 @@ import { FeatureError } from "../system/FeatureError"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountHome } from "./AccountHome"
 import { AccountSettings } from "./AccountSettings"
-import { AccountWallet } from "./AccountWallet"
 import "./account-home.css"
 import "./onboarding/account-onboarding.css"
 import "./role-shared.css"
@@ -16,6 +15,7 @@ import { AccountCreate } from "./onboarding/AccountCreate"
 import { AccountJoin } from "./onboarding/AccountJoin"
 import { RoleEditor } from "./RoleEditor"
 import { RolesOverview } from "./RolesOverview"
+import { AccountWallet } from "./wallet/AccountWallet"
 
 type Props = {
   navigate: (route: Route) => void
