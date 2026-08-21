@@ -120,13 +120,14 @@ export function RoleEditor({ params, navigate, back }: Props) {
       return
     }
 
-    setPermissions((current) =>
-      Object.fromEntries(
-        allRolePermissions.map((permission) => [
-          permission,
-          checked ? current[permission] || canEnablePermission(permission) : false,
-        ]),
-      ) as Record<RolePermission, boolean>,
+    setPermissions(
+      (current) =>
+        Object.fromEntries(
+          allRolePermissions.map((permission) => [
+            permission,
+            checked ? current[permission] || canEnablePermission(permission) : false,
+          ]),
+        ) as Record<RolePermission, boolean>,
     )
   }
 

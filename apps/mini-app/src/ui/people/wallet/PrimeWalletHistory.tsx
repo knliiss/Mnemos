@@ -92,12 +92,7 @@ export function PrimeWalletHistory({
 
       <div className="prime-history-list">
         {visibleTransactions.map((transaction) => (
-          <PrimeHistoryRow
-            key={transaction.id}
-            transaction={transaction}
-            locale={locale}
-            t={t}
-          />
+          <PrimeHistoryRow key={transaction.id} transaction={transaction} locale={locale} t={t} />
         ))}
 
         {loading ? <FeatureLoading label={t("userWallet.history.loading")} /> : null}

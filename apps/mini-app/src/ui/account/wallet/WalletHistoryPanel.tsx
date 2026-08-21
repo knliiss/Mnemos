@@ -133,9 +133,7 @@ export function WalletHistoryPanel({
 
               return (
                 <article key={transaction.id}>
-                  <span
-                    className={`coin-history-list__sign ${credit ? "is-credit" : "is-debit"}`}
-                  >
+                  <span className={`coin-history-list__sign ${credit ? "is-credit" : "is-debit"}`}>
                     {credit ? "+" : "−"}
                   </span>
 

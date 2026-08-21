@@ -1,9 +1,6 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import type {
-  AccountReactionType,
-  PublicProfileResponse,
-} from "@/shared/api/profileSocialApi"
+import type { AccountReactionType, PublicProfileResponse } from "@/shared/api/profileSocialApi"
 import { CristalixHead } from "../../../components/profile/CristalixHead"
 import { Glyph } from "../../../shared/MnemosIcon"
 import { nicknameStyle, profileSkinUrl } from "../profilePresentation"
@@ -55,9 +52,7 @@ export function PublicProfileSummary({
             className={reaction === "LIKE" ? "is-active" : ""}
             whileTap={{ scale: 0.95 }}
             disabled={reactionBusy}
-            aria-label={
-              reaction === "LIKE" ? t("people.profile.unlike") : t("people.profile.like")
-            }
+            aria-label={reaction === "LIKE" ? t("people.profile.unlike") : t("people.profile.like")}
             onClick={() => void onToggleReaction("LIKE")}
           >
             <Glyph name="like" size={15} />

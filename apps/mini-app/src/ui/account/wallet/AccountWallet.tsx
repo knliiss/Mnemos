@@ -12,14 +12,8 @@ export function AccountWallet({ back }: { back: () => void }) {
   const activeAccount = data.activeAccount
   const canViewHistory = data.hasPermission("VIEW_TRANSACTION_HISTORY")
   const locale = localeForLanguage(i18n.resolvedLanguage)
-  const {
-    transactions,
-    loading,
-    loadError,
-    totalEarned,
-    totalSpent,
-    retry,
-  } = useAccountWalletTransactions(activeAccount?.id, canViewHistory)
+  const { transactions, loading, loadError, totalEarned, totalSpent, retry } =
+    useAccountWalletTransactions(activeAccount?.id, canViewHistory)
 
   if (!activeAccount) {
     return null

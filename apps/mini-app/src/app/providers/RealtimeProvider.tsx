@@ -153,9 +153,7 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
       </span>
 
       <span className="realtime-spotlight__copy">
-        <small>
-          SPOTLIGHT · {spotlight.payload.itemRarity}
-        </small>
+        <small>SPOTLIGHT · {spotlight.payload.itemRarity}</small>
         <strong>{title}</strong>
         {compact ? <em>{body}</em> : <p>{body}</p>}
       </span>

@@ -40,7 +40,9 @@ export function AccountMembersPanel({
 
       <div className="account-home-member-list">
         {members.map((member) => {
-          const highestRole = member.highestRoleId ? (roleById.get(member.highestRoleId) ?? null) : null
+          const highestRole = member.highestRoleId
+            ? (roleById.get(member.highestRoleId) ?? null)
+            : null
           const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
           return (

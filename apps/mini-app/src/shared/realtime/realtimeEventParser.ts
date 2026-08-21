@@ -131,9 +131,12 @@ function isGameEventBroadcast(value: unknown): value is GameEventBroadcast {
   const raidValid = payload.raid === null || isGameRaid(payload.raid)
   const boosterValid = payload.booster === null || isGameBooster(payload.booster)
   const globalValid = payload.global === null || isGameGlobal(payload.global)
-  const populatedPayloads = [payload.itemDrop, payload.raid, payload.booster, payload.global].filter(
-    (entry) => entry !== null,
-  )
+  const populatedPayloads = [
+    payload.itemDrop,
+    payload.raid,
+    payload.booster,
+    payload.global,
+  ].filter((entry) => entry !== null)
 
   return (
     isUuid(payload.eventId) &&
@@ -192,9 +195,7 @@ function isGameRaid(value: unknown): boolean {
 }
 
 function isGameBooster(value: unknown): boolean {
-  return (
-    isRecord(value) && isNonBlankString(value.activatedBy) && isNonBlankString(value.type)
-  )
+  return isRecord(value) && isNonBlankString(value.activatedBy) && isNonBlankString(value.type)
 }
 
 function isGameGlobal(value: unknown): boolean {

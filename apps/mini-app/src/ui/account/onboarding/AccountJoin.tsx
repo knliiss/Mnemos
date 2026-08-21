@@ -131,7 +131,9 @@ export function AccountJoin({ back }: Props) {
           disabled={!valid || busy}
           whileTap={valid && !busy ? { scale: 0.975 } : undefined}
         >
-          <span>{busy ? t("accountOnboarding.join.busy") : t("accountOnboarding.join.submit")}</span>
+          <span>
+            {busy ? t("accountOnboarding.join.busy") : t("accountOnboarding.join.submit")}
+          </span>
           <ButtonSignal busy={busy} />
         </motion.button>
       </form>

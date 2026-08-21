@@ -16,8 +16,9 @@ export function UserPrimeWallet({ navigate, back }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
   const locale = localeForLanguage(i18n.resolvedLanguage)
-  const { transactions, loading, loadError, earned, spent, reload } =
-    useUserPrimeTransactions(data.user.id)
+  const { transactions, loading, loadError, earned, spent, reload } = useUserPrimeTransactions(
+    data.user.id,
+  )
 
   return (
     <div className="screen prime-wallet-screen">

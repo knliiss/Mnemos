@@ -27,9 +27,7 @@ export function AccountBaseRoleSettings({
   onSave,
 }: Props) {
   const { t } = useTranslation()
-  const baseRole = readable
-    ? (availableRoles.find((role) => role.id === baseRoleId) ?? null)
-    : null
+  const baseRole = readable ? (availableRoles.find((role) => role.id === baseRoleId) ?? null) : null
   const roleChanged = baseRoleId !== savedRoleId
 
   return (
@@ -83,9 +81,7 @@ export function AccountBaseRoleSettings({
       )}
 
       {readable && !editable ? (
-        <p className="inline-hint inline-hint--left">
-          {t("accountSettings.baseRoleUnavailable")}
-        </p>
+        <p className="inline-hint inline-hint--left">{t("accountSettings.baseRoleUnavailable")}</p>
       ) : null}
 
       <div className="account-role-summary">
@@ -99,9 +95,7 @@ export function AccountBaseRoleSettings({
 
         <span>
           <small>{t("accountSettings.baseRoleSummary")}</small>
-          <strong>
-            {readable ? (baseRole?.name ?? t("accountSettings.noRole")) : "—"}
-          </strong>
+          <strong>{readable ? (baseRole?.name ?? t("accountSettings.noRole")) : "—"}</strong>
           <em>
             {readable
               ? t("accountSettings.permissionsCount", {
