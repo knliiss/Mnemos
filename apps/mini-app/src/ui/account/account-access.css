@@ -1,3 +1,125 @@
+.account-access-landing__header {
+  grid-template-columns: 1fr;
+  margin-bottom: 18px;
+}
+
+.account-access-landing__header .account-onboarding-heading {
+  max-width: 330px;
+}
+
+.account-access-landing__hero {
+  grid-template-columns: 148px minmax(0, 1fr);
+}
+
+.account-access-landing__hero .account-onboarding-hero__art img {
+  display: block;
+  width: 118px;
+  max-width: 88%;
+  height: 128px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.24));
+}
+
+.account-access-landing__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.account-access-landing__actions > button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  min-width: 0;
+  min-height: 88px;
+  padding: 12px 11px;
+  border: 1px solid rgba(215, 222, 209, 0.09);
+  border-radius: 17px;
+  color: inherit;
+  background: rgba(11, 14, 10, 0.74);
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.account-access-landing__actions > button:hover {
+  border-color: rgba(185, 222, 56, 0.18);
+  background: rgba(185, 222, 56, 0.025);
+}
+
+.account-access-landing__actions > button > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(185, 222, 56, 0.12);
+  border-radius: 9px;
+  color: #c8e75f;
+  background: rgba(185, 222, 56, 0.055);
+  font-family: var(--font-meta);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.account-access-landing__actions > button:last-child > span {
+  border-color: rgba(214, 166, 83, 0.14);
+  color: #d7b46f;
+  background: rgba(214, 166, 83, 0.055);
+}
+
+.account-access-landing__actions > button > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.account-access-landing__actions strong {
+  color: #dfe3da;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.account-access-landing__actions small {
+  color: #777e73;
+  font-size: 9px;
+  line-height: 1.42;
+}
+
 .account-root-user-entry__identity small {
   font-size: 9px;
+}
+
+@media (max-width: 374px) {
+  .account-access-landing__hero {
+    grid-template-columns: 132px minmax(0, 1fr);
+  }
+
+  .account-access-landing__hero .account-onboarding-hero__art img {
+    width: 106px;
+  }
+
+  .account-access-landing__actions {
+    gap: 6px;
+  }
+
+  .account-access-landing__actions > button {
+    grid-template-columns: 26px minmax(0, 1fr);
+    padding-inline: 9px;
+  }
+
+  .account-access-landing__actions > button > span {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-access-landing__actions > button {
+    transition: none;
+  }
 }
