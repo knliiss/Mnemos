@@ -25,6 +25,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const activeAccount = data.activeAccount
   const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
+  const canViewWallet = data.hasPermission("VIEW_WALLET")
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
 
   if (!activeAccount) {
@@ -87,10 +88,16 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
           <span className="account-home-feature-copy">
             <small>{t("accountHome.wallet")}</small>
             <strong>
-              <CurrencyMark currency="COIN" size={19} />
-              {activeAccount.coin.toLocaleString(locale)}
+              {canViewWallet ? (
+                <>
+                  <CurrencyMark currency="COIN" size={19} />
+                  {activeAccount.coin.toLocaleString(locale)}
+                </>
+              ) : (
+                "—"
+              )}
             </strong>
-            <span>COIN</span>
+            <span>{canViewWallet ? "COIN" : t("accountHome.balanceUnavailable")}</span>
           </span>
           <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
         </motion.button>
