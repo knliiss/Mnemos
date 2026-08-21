@@ -1,6 +1,5 @@
 package com.mnemos.social.application.accountreaction.usecase.set
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.accountreaction.exception.SelfAccountReactionException
 import com.mnemos.social.application.actor.SocialActorProvider
@@ -22,7 +21,7 @@ class SetAccountReactionService(
 ) : SetAccountReactionUseCase {
     @Transactional
     override fun execute(command: SetAccountReactionCommand) {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+        val actor = actorProvider.requireActor()
 
         if (actor.accountId == command.targetAccountId) {
             throw SelfAccountReactionException(command.targetAccountId)
