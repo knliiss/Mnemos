@@ -30,6 +30,7 @@ export async function createAdminBadge(request: {
 }): Promise<BadgeResponse> {
   return api<BadgeResponse>("/api/v1/personalizations/admin/badges", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   })
 }
