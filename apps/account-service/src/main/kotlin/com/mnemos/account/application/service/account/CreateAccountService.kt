@@ -20,7 +20,6 @@ import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.account.integration.cristalix.CristalixIdentityProvider
 import com.mnemos.account.integration.cristalix.model.CristalixPlayer
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.springframework.stereotype.Service
@@ -88,7 +87,7 @@ class CreateAccountService(
                     roleColor = HexColor(DEFAULT_BASE_ROLE_COLOR),
                     roleName = AccountRoleName(DEFAULT_BASE_ROLE_NAME),
                     hierarchyRank = Role.RANK_STEP,
-                    permissions = DEFAULT_BASE_ROLE_PERMISSIONS.toMutableSet(),
+                    permissions = mutableSetOf(),
                 ),
             )
 
@@ -116,19 +115,5 @@ class CreateAccountService(
     private companion object {
         const val DEFAULT_BASE_ROLE_NAME = "Member"
         const val DEFAULT_BASE_ROLE_COLOR = "#A9B1A4"
-
-        val DEFAULT_BASE_ROLE_PERMISSIONS =
-            setOf(
-                RolePermission.VIEW_MEMBERS,
-                RolePermission.VIEW_ROLES,
-                RolePermission.VIEW_WALLET,
-                RolePermission.CLAIM_DAILY_REWARD,
-                RolePermission.PUBLISH_COMMENTS,
-                RolePermission.PUBLISH_REACTIONS,
-                RolePermission.VIEW_BETS,
-                RolePermission.VIEW_BET_HISTORY,
-                RolePermission.VIEW_PERSONALIZATIONS,
-                RolePermission.APPLY_PERSONALIZATIONS,
-            )
     }
 }
