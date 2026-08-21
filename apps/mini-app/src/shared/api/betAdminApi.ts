@@ -9,6 +9,7 @@ export async function resolveEventBetRound(
 ): Promise<void> {
   await api<void>(`/api/v1/bets/admin/event-rounds/${roundId}/resolution`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       outcome,
       reason,
@@ -24,6 +25,7 @@ export async function createItemRace(request: {
 }): Promise<string> {
   return api<string>("/api/v1/bets/admin/item-races", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   })
 }
