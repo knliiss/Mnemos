@@ -18,6 +18,8 @@ export function AccountWallet({ back }: { back: () => void }) {
   const data = useMnemosData()
   const activeAccount = data.activeAccount
   const activeAccountId = activeAccount?.id
+  const canViewBalance = data.hasPermission("VIEW_WALLET")
+  const canViewHistory = data.hasPermission("VIEW_TRANSACTION_HISTORY")
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
   const [sortOpen, setSortOpen] = useState(false)
@@ -36,6 +38,13 @@ export function AccountWallet({ back }: { back: () => void }) {
     const timeout = window.setTimeout(() => {
       setLoading(true)
       setLoadError(false)
+
+      if (!canViewHistory) {
+        setTransactions([])
+        setLoadedAccountId(activeAccountId)
+        setLoading(false)
+        return
+      }
 
       void getAccountTransactions(activeAccountId, 0, 100)
         .then((response) => {
@@ -63,13 +72,14 @@ export function AccountWallet({ back }: { back: () => void }) {
       cancelled = true
       window.clearTimeout(timeout)
     }
-  }, [activeAccountId, reloadRevision])
+  }, [activeAccountId, canViewHistory, reloadRevision])
 
   const visibleTransactions = useMemo(
     () => (loadedAccountId === activeAccountId ? transactions : []),
     [activeAccountId, loadedAccountId, transactions],
   )
-  const visibleLoading = loading || loadedAccountId !== activeAccountId
+  const visibleLoading =
+    canViewHistory && (loading || loadedAccountId !== activeAccountId)
 
   const totalEarned = useMemo(
     () =>
@@ -145,9 +155,11 @@ export function AccountWallet({ back }: { back: () => void }) {
             <strong>COIN</strong>
           </span>
           <strong className="coin-wallet-hero__value">
-            {activeAccount.coin.toLocaleString(locale)}
+            {canViewBalance ? activeAccount.coin.toLocaleString(locale) : "—"}
           </strong>
-          <small>{t("accountWallet.balance")}</small>
+          <small>
+            {canViewBalance ? t("accountWallet.balance") : t("accountWallet.balanceUnavailable")}
+          </small>
         </div>
 
         <img
@@ -160,11 +172,11 @@ export function AccountWallet({ back }: { back: () => void }) {
         <div className="coin-wallet-hero__stats">
           <span>
             <small>{t("accountWallet.earned")}</small>
-            <strong>+{totalEarned.toLocaleString(locale)}</strong>
+            <strong>{canViewHistory ? `+${totalEarned.toLocaleString(locale)}` : "—"}</strong>
           </span>
           <span>
             <small>{t("accountWallet.spent")}</small>
-            <strong>−{totalSpent.toLocaleString(locale)}</strong>
+            <strong>{canViewHistory ? `−${totalSpent.toLocaleString(locale)}` : "—"}</strong>
           </span>
         </div>
       </section>
@@ -183,6 +195,7 @@ export function AccountWallet({ back }: { back: () => void }) {
               type="button"
               className="wallet-history-sort__trigger"
               aria-expanded={sortOpen}
+              disabled={!canViewHistory}
               onClick={() => setSortOpen((value) => !value)}
             >
               <Glyph name="swap" size={14} />
@@ -191,7 +204,7 @@ export function AccountWallet({ back }: { back: () => void }) {
             </button>
 
             <AnimatePresence>
-              {sortOpen ? (
+              {sortOpen && canViewHistory ? (
                 <motion.div
                   className="wallet-history-sort__menu"
                   initial={{ opacity: 0, y: -6, scale: 0.98 }}
@@ -216,27 +229,39 @@ export function AccountWallet({ back }: { back: () => void }) {
         </header>
 
         <div className="coin-history-list">
-          {history.map((transaction) => {
-            const credit = transaction.type === "CREDIT"
+          {canViewHistory
+            ? history.map((transaction) => {
+                const credit = transaction.type === "CREDIT"
 
-            return (
-              <article key={transaction.id}>
-                <span className={`coin-history-list__sign ${credit ? "is-credit" : "is-debit"}`}>
-                  {credit ? "+" : "−"}
-                </span>
-                <span className="coin-history-list__copy">
-                  <strong>{transactionSourceLabel(transaction.source)}</strong>
-                  <small>{formatTransactionDate(transaction.createdAt)}</small>
-                </span>
-                <span className={`coin-history-list__amount ${credit ? "is-credit" : ""}`}>
-                  {credit ? "+" : "−"}
-                  <CurrencyValue currency="COIN" value={transaction.amount} compact />
-                </span>
-              </article>
-            )
-          })}
+                return (
+                  <article key={transaction.id}>
+                    <span
+                      className={`coin-history-list__sign ${credit ? "is-credit" : "is-debit"}`}
+                    >
+                      {credit ? "+" : "−"}
+                    </span>
+                    <span className="coin-history-list__copy">
+                      <strong>{transactionSourceLabel(transaction.source)}</strong>
+                      <small>{formatTransactionDate(transaction.createdAt)}</small>
+                    </span>
+                    <span className={`coin-history-list__amount ${credit ? "is-credit" : ""}`}>
+                      {credit ? "+" : "−"}
+                      <CurrencyValue currency="COIN" value={transaction.amount} compact />
+                    </span>
+                  </article>
+                )
+              })
+            : null}
 
-          {!visibleLoading && loadError ? (
+          {!canViewHistory ? (
+            <div className="coin-history-empty">
+              <Glyph name="wallet" size={22} />
+              <strong>{t("accountWallet.historyUnavailableTitle")}</strong>
+              <small>{t("accountWallet.historyUnavailableCopy")}</small>
+            </div>
+          ) : null}
+
+          {canViewHistory && !visibleLoading && loadError ? (
             <div className="coin-history-empty">
               <Glyph name="events" size={22} />
               <strong>{t("common.loadErrorTitle")}</strong>
@@ -247,7 +272,7 @@ export function AccountWallet({ back }: { back: () => void }) {
             </div>
           ) : null}
 
-          {!visibleLoading && !loadError && !history.length ? (
+          {canViewHistory && !visibleLoading && !loadError && !history.length ? (
             <div className="coin-history-empty">
               <CurrencyMark currency="COIN" size={22} />
               <strong>{t("accountWallet.emptyTitle")}</strong>
