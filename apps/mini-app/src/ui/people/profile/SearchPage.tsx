@@ -84,6 +84,7 @@ export function SearchPage({ navigate }: Props) {
         <Glyph name="search" size={20} />
         <input
           value={query}
+          maxLength={64}
           onChange={(event) => changeQuery(event.target.value)}
           placeholder={t("people.search.placeholder")}
           autoCapitalize="off"
