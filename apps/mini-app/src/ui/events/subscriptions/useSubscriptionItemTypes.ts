@@ -16,6 +16,7 @@ export function useSubscriptionItemTypes(subscriptions: Subscription[]) {
               subscription.type === "ITEM_DROP" && Boolean(subscription.itemName),
           )
           .map((subscription) => subscription.itemName as string)
+          .filter((name) => name.trim().length >= 2)
           .filter((name) => !itemTypesByName[normalizeSubscriptionItemName(name)]),
       ),
     )
