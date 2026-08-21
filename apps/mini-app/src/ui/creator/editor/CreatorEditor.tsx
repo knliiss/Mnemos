@@ -100,7 +100,12 @@ export function CreatorEditor({ params, back }: Props) {
   const visibleLoading = loading || loadedId !== personalizationId
 
   const numericPrice = Number(form.price)
-  const valid = form.name.trim().length >= 3 && Number.isInteger(numericPrice) && numericPrice > 0
+  const messageValid = form.type !== "NOTIFICATION_PACK" || form.message.trim().length > 0
+  const valid =
+    form.name.trim().length >= 3 &&
+    Number.isInteger(numericPrice) &&
+    numericPrice > 0 &&
+    messageValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
