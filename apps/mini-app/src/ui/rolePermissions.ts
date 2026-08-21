@@ -15,17 +15,11 @@ export const rolePermissionGroups: {
 }[] = [
   {
     key: "account",
-    permissions: ["VIEW_ACCOUNT_SETTINGS", "EDIT_ACCOUNT_SETTINGS", "MANAGE_ACCOUNT_INVITES"],
+    permissions: ["MANAGE_ACCOUNT_INVITES"],
   },
   {
     key: "members",
-    permissions: [
-      "VIEW_MEMBERS",
-      "INVITE_MEMBERS",
-      "REMOVE_MEMBERS",
-      "ASSIGN_MEMBER_ROLES",
-      "KICK_MEMBERS",
-    ],
+    permissions: ["VIEW_MEMBERS", "ASSIGN_MEMBER_ROLES", "KICK_MEMBERS"],
   },
   {
     key: "roles",
