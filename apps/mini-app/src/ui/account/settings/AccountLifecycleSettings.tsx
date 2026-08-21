@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./account-lifecycle.css"
 import { AccountConfirmPanel } from "./AccountConfirmPanel"
 
 type ConfirmAction = "DEACTIVATE" | "LEAVE" | null

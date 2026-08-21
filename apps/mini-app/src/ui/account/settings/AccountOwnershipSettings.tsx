@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import type { Member } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { formatJoinedAt, localeForLanguage } from "../accountSettingsPresentation"
+import "./account-ownership.css"
 import { AccountConfirmPanel } from "./AccountConfirmPanel"
 
 type Props = {

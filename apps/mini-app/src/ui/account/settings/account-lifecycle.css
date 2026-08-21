@@ -1,0 +1,59 @@
+.account-danger-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(225, 101, 111, 0.12);
+  border-radius: 14px;
+  background: rgba(176, 54, 65, 0.025);
+}
+
+.account-danger-card > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #d27d84;
+  background: rgba(190, 65, 76, 0.07);
+}
+
+.account-danger-card > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-danger-card strong {
+  color: #d9c7c8;
+  font-size: 10px;
+}
+
+.account-danger-card small {
+  color: #7c6e70;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.account-danger-card > button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(222, 105, 112, 0.19);
+  border-radius: 10px;
+  color: #db999e;
+  background: rgba(188, 61, 68, 0.055);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+@media (max-width: 374px) {
+  .account-danger-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .account-danger-card > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

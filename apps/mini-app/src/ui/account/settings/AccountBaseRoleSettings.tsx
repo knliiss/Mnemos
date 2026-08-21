@@ -3,6 +3,7 @@ import type { AccountRole } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { RoleSigil } from "../../shared/RoleSigil"
 import { countEnabledPermissions, NO_BASE_ROLE } from "../accountSettingsPresentation"
+import "./account-base-role.css"
 
 type Props = {
   availableRoles: AccountRole[]

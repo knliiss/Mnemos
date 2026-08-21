@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./account-confirm.css"
 
 type Props = {
   tone: "warning" | "danger"

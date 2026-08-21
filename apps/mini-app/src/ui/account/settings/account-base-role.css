@@ -1,0 +1,26 @@
+.account-default-role-grid > button {
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 2px 9px;
+}
+
+.account-default-role-grid > button > .role-sigil,
+.account-default-role-grid > button > .account-base-role-empty {
+  grid-row: 1 / span 2;
+}
+
+.account-base-role-empty {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: #777e73;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.account-base-role-empty--summary {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
