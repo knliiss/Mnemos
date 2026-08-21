@@ -26,7 +26,7 @@ class KickAccountMemberService(
         val context =
             contextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = RolePermission.KICK_MEMBERS,
+                permission = RolePermission.MANAGE_MEMBERS,
             )
 
         val targetMember =
