@@ -1,8 +1,5 @@
 package com.mnemos.social.application.comment.usecase.edit
 
-import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.comment.exception.CommentAccessDeniedException
 import com.mnemos.social.application.comment.exception.CommentNotFoundException
@@ -34,19 +31,6 @@ class EditCommentService(
             throw DeletedCommentOperationException(
                 commentId = command.commentId,
                 operation = "edited",
-            )
-        }
-
-        if (
-            !actorProvider.hasPermission(
-                accountId = comment.authorAccountId,
-                userId = userId,
-                permission = RolePermission.PUBLISH_COMMENTS,
-            )
-        ) {
-            throw AccountPermissionDeniedException(
-                accountId = AccountId(comment.authorAccountId),
-                requiredPermissions = setOf(RolePermission.PUBLISH_COMMENTS.name),
             )
         }
 
