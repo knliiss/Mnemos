@@ -81,7 +81,7 @@
   border-radius: 8px;
   color: #9ea694;
   background: rgba(8, 10, 7, 0.94);
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 760;
   letter-spacing: 0.13em;
   transform: translateX(-50%);
@@ -105,7 +105,7 @@
 .public-profile-identity small,
 .public-profile-section-head small {
   color: #909789;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 760;
   letter-spacing: 0.14em;
 }
@@ -123,7 +123,7 @@
 
 .public-profile-identity > span {
   color: #72796d;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 560;
 }
 
@@ -140,7 +140,7 @@
   justify-content: center;
   gap: 6px;
   min-width: 48px;
-  height: 34px;
+  min-height: 36px;
   padding: 0 9px;
   border: 1px solid rgba(225, 232, 208, 0.1);
   border-radius: 11px;
@@ -211,7 +211,7 @@
 
 .public-profile-metrics small {
   color: #747b70;
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 730;
   letter-spacing: 0.09em;
 }
@@ -316,7 +316,7 @@
 
 .public-profile-drop__copy small {
   color: #8d9487;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 680;
 }
 
@@ -332,13 +332,13 @@
 
 .public-profile-drop__copy em {
   color: #6f766b;
-  font-size: 7.5px;
+  font-size: 9px;
   font-style: normal;
 }
 
 .public-profile-drop__order {
   color: #62695f;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 650;
 }
 
@@ -436,7 +436,7 @@
 
 .public-profile-comments-preview__copy > small {
   color: #858c80;
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 760;
   letter-spacing: 0.12em;
 }
@@ -459,7 +459,7 @@
 
 .public-profile-comments-preview__copy > em {
   color: #777e73;
-  font-size: 7.5px;
+  font-size: 9px;
   font-style: normal;
   font-weight: 620;
 }
@@ -467,8 +467,8 @@
 .public-profile-comments-preview__count {
   display: grid;
   place-items: center;
-  min-width: 28px;
-  height: 28px;
+  min-width: 32px;
+  height: 32px;
   border: 1px solid rgba(199, 242, 74, 0.11);
   border-radius: 9px;
   color: #a7b772;
@@ -601,7 +601,7 @@
 .public-profile-comments-sheet__title small {
   overflow: hidden;
   color: #747c70;
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 720;
   letter-spacing: 0.1em;
   text-overflow: ellipsis;
@@ -806,7 +806,7 @@
 .public-profile-comment__body header time,
 .public-profile-reply__body header time {
   color: #676f64;
-  font-size: 6.8px;
+  font-size: 9px;
   white-space: nowrap;
 }
 
@@ -834,7 +834,7 @@
   border: 0;
   color: #788074;
   background: transparent;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 660;
 }
 
@@ -876,7 +876,7 @@
 
 .public-profile-comment__like span,
 .public-profile-reply__like span {
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 650;
 }
 
@@ -963,7 +963,7 @@
   border: 0;
   color: #7d8578;
   background: transparent;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 670;
 }
 
@@ -978,7 +978,7 @@
 }
 
 .public-profile-reply__body p {
-  font-size: 9.2px;
+  font-size: 10px;
 }
 
 .public-profile-reply__mention {
@@ -1011,7 +1011,7 @@
 .public-profile-comments-sheet__empty small,
 .public-profile-comments-sheet__loading {
   color: #6f776c;
-  font-size: 7.5px;
+  font-size: 9px;
 }
 
 .public-profile-comments-sheet__empty.is-error button {
@@ -1049,7 +1049,7 @@
   min-height: 28px;
   padding: 6px 12px 0 56px;
   color: #747c70;
-  font-size: 7.5px;
+  font-size: 9px;
 }
 
 .public-profile-reply-context strong {
