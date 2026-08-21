@@ -9,6 +9,7 @@ type Props = {
   baseRoleId: string
   savedRoleId: string
   busy: boolean
+  editable: boolean
   onBaseRoleChange: (roleId: string) => void
   onSave: () => void
 }
@@ -18,6 +19,7 @@ export function AccountBaseRoleSettings({
   baseRoleId,
   savedRoleId,
   busy,
+  editable,
   onBaseRoleChange,
   onSave,
 }: Props) {
@@ -48,6 +50,7 @@ export function AccountBaseRoleSettings({
         <button
           type="button"
           className={baseRoleId === NO_BASE_ROLE ? "is-selected" : ""}
+          disabled={!editable || busy}
           onClick={() => onBaseRoleChange(NO_BASE_ROLE)}
         >
           <span className="account-base-role-empty">
@@ -62,10 +65,15 @@ export function AccountBaseRoleSettings({
             key={role.id}
             role={role}
             selected={role.id === baseRoleId}
+            disabled={!editable || busy}
             onClick={() => onBaseRoleChange(role.id)}
           />
         ))}
       </div>
+
+      {!editable ? (
+        <p className="inline-hint inline-hint--left">{t("accountSettings.baseRoleUnavailable")}</p>
+      ) : null}
 
       <div className="account-role-summary">
         {baseRole ? (
@@ -77,7 +85,7 @@ export function AccountBaseRoleSettings({
         )}
 
         <span>
-          <small>{t("accountSettings.newMembersReceive")}</small>
+          <small>{t("accountSettings.baseRoleSummary")}</small>
           <strong>{baseRole?.name ?? t("accountSettings.noRole")}</strong>
           <em>
             {t("accountSettings.permissionsCount", {
@@ -86,7 +94,7 @@ export function AccountBaseRoleSettings({
           </em>
         </span>
 
-        <button type="button" disabled={!roleChanged || busy} onClick={onSave}>
+        <button type="button" disabled={!editable || !roleChanged || busy} onClick={onSave}>
           {busy ? "…" : t("accountSettings.save")}
         </button>
       </div>
@@ -97,14 +105,20 @@ export function AccountBaseRoleSettings({
 type RoleOptionProps = {
   role: AccountRole
   selected: boolean
+  disabled: boolean
   onClick: () => void
 }
 
-function RoleOption({ role, selected, onClick }: RoleOptionProps) {
+function RoleOption({ role, selected, disabled, onClick }: RoleOptionProps) {
   const { t } = useTranslation()
 
   return (
-    <button type="button" className={selected ? "is-selected" : ""} onClick={onClick}>
+    <button
+      type="button"
+      className={selected ? "is-selected" : ""}
+      disabled={disabled}
+      onClick={onClick}
+    >
       <RoleSigil color={role.color} size={40} />
       <strong>{role.name}</strong>
       <small>
