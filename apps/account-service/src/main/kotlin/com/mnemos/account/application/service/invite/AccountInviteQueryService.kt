@@ -4,7 +4,7 @@ import com.mnemos.account.application.context.account.ActiveAccountContextProvid
 import com.mnemos.account.application.query.account.invite.AccountInviteListItem
 import com.mnemos.account.application.query.account.invite.AccountInviteQueryRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ACCOUNT_INVITES
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_MEMBERS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -18,7 +18,7 @@ class AccountInviteQueryService(
     fun getInvites(accountId: AccountId): List<AccountInviteListItem> {
         contextProvider.requirePermission(
             accountId = accountId,
-            permission = MANAGE_ACCOUNT_INVITES,
+            permission = MANAGE_MEMBERS,
         )
 
         return inviteQueryRepository.findAllByAccountId(
