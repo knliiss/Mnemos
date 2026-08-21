@@ -16,6 +16,7 @@ concurrency:
 permissions:
   contents: read
   deployments: write
+  statuses: write
 
 jobs:
   deploy:
@@ -301,3 +302,34 @@ jobs:
           fi
 
           jq '{name:.result.name,status:.result.status,verification_status:.result.verification_data.status}' <<<"$domain_response"
+
+      - name: Publish deployment status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+          else
+            state="failure"
+          fi
+
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Cloudflare Pages production deploy: $JOB_STATUS" \
+            --arg context "cloudflare-pages/deploy" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
