@@ -18,7 +18,7 @@ interface JpaRoleRepository : JpaRepository<RoleEntity, UUID> {
 
     @Query(
         """
-            SELECT COALESCE(MAX(role.hierarchyRank))
+            SELECT MAX(role.hierarchyRank)
             FROM RoleEntity role
             WHERE role.accountId = :accountId
         """,
