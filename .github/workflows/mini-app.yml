@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     defaults:
       run:
         working-directory: apps/mini-app
