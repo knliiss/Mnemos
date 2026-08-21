@@ -32,6 +32,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const activeAccount = data.activeAccount
   const contextAccount = app.context?.activeAccount ?? null
   const canViewWallet = data.hasPermission("VIEW_WALLET")
+  const canManageRoles = data.hasPermission("MANAGE_ROLES")
   const availableRoles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -76,7 +77,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const saveBaseRole = async () => {
     const requestedAccountId = activeAccount.id
 
-    if (actionScopeRef.current || !roleChanged) {
+    if (!canManageRoles || actionScopeRef.current || !roleChanged) {
       return
     }
 
@@ -279,6 +280,7 @@ export function AccountSettings({ navigate, back }: Props) {
         baseRoleId={baseRoleId}
         savedRoleId={savedRoleId}
         busy={busy}
+        editable={canManageRoles}
         onBaseRoleChange={setBaseRoleId}
         onSave={() => void saveBaseRole()}
       />
