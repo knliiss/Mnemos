@@ -72,7 +72,7 @@ export const accountRolesRu = {
       EDIT_ROLE_PERMISSIONS: "Разрешения ролей",
       DELETE_ROLES: "Удаление ролей",
       MANAGE_ROLE_HIERARCHY: "Порядок ролей",
-      MANAGE_ROLES: "Управление ролями",
+      MANAGE_BASE_ROLE: "Управление базовой ролью",
       VIEW_WALLET: "Просмотр кошелька",
       VIEW_TRANSACTION_HISTORY: "История транзакций",
       SPEND_WALLET_FUNDS: "Расходы из кошелька",
