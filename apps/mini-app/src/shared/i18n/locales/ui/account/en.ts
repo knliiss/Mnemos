@@ -60,6 +60,8 @@ export const accountEn = {
     create: "Create invite",
     copy: "Copy",
     revoke: "Revoke",
+    unavailableTitle: "Invites unavailable",
+    unavailableCopy: "Your role cannot manage invites for this account.",
     emptyTitle: "No invites yet",
     emptyCopy: "Create a code and send it to a member.",
     loading: "Loading invites",
@@ -77,10 +79,13 @@ export const accountEn = {
   accountWallet: {
     title: "Wallet",
     balance: "Account balance",
+    balanceUnavailable: "Balance unavailable for your role",
     earned: "Received",
     spent: "Spent",
     movement: "COIN MOVEMENT",
     history: "History",
+    historyUnavailableTitle: "History unavailable",
+    historyUnavailableCopy: "Your role cannot view this account's transaction history.",
     emptyTitle: "No transactions yet",
     emptyCopy: "COIN credits and spending will appear here.",
     sort: {
