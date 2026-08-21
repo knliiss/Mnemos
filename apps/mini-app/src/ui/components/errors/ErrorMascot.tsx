@@ -88,13 +88,7 @@ export function ErrorMascot({ variant }: Props) {
   )
 }
 
-function ErrorAccessory({
-  variant,
-  tone,
-}: {
-  variant: ErrorMascotDisplayVariant
-  tone: string
-}) {
+function ErrorAccessory({ variant, tone }: { variant: ErrorMascotDisplayVariant; tone: string }) {
   switch (variant) {
     case "validation":
       return (

@@ -1,10 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  initializeAuth,
-  retryAuth,
-  subscribeAuthRuntimeState,
-} from "@/features/auth/api/auth"
+import { initializeAuth, retryAuth, subscribeAuthRuntimeState } from "@/features/auth/api/auth"
 import { isAuthError } from "@/features/auth/api/authErrors"
 import { LoadingPage } from "@/pages/loading/LoadingPage"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -93,10 +89,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   return <LoadingPage label={t("auth.authorizing")} />
 }
 
-function applyAuthFailure(
-  error: unknown,
-  setState: (state: AuthState) => void,
-): void {
+function applyAuthFailure(error: unknown, setState: (state: AuthState) => void): void {
   if (isAuthError(error, "TELEGRAM_REQUIRED")) {
     setState("telegram")
     return
