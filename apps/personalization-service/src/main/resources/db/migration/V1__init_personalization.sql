@@ -166,6 +166,15 @@ CREATE TABLE owned_personalizations
 CREATE INDEX idx_owned_personalizations_owner
     ON owned_personalizations (owner_type, owner_id, acquired_at DESC, id DESC);
 
+CREATE INDEX idx_owned_personalizations_owner_type
+    ON owned_personalizations (
+        owner_type,
+        owner_id,
+        personalization_type,
+        acquired_at DESC,
+        id DESC
+    );
+
 CREATE UNIQUE INDEX uq_owned_personalizations_active_slot
     ON owned_personalizations (owner_type, owner_id, personalization_type)
     WHERE active = TRUE;
@@ -212,6 +221,7 @@ CREATE TABLE purchase_operations
 (
     id                    UUID PRIMARY KEY,
     request_id            UUID        NOT NULL UNIQUE,
+    idempotency_key       UUID,
     personalization_id    UUID        NOT NULL REFERENCES personalizations(id),
     buyer_user_id         UUID        NOT NULL,
     owner_type            VARCHAR(16) NOT NULL,
@@ -263,6 +273,10 @@ CREATE TABLE purchase_operations
             )
         )
 );
+
+CREATE UNIQUE INDEX uq_purchase_operations_idempotency_key
+    ON purchase_operations (idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
 
 CREATE UNIQUE INDEX uq_purchase_operations_pending_owner_item
     ON purchase_operations (owner_type, owner_id, personalization_id)
