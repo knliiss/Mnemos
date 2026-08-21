@@ -73,6 +73,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
     }
   }, [])
 
+  const canEnablePermission = (permission: RolePermission) => data.hasPermission(permission)
   const selectedCount = Object.values(permissions).filter(Boolean).length
   const normalizedQuery = query.trim().toLowerCase()
   const cleanName = name.trim()
@@ -86,9 +87,15 @@ export function RoleEditor({ params, navigate, back }: Props) {
         (permission) => permissions[permission] !== existing.permissions[permission],
       ),
   )
+  const canSaveRole = existing ? canEditDetails || canEditPermissions : canCreateRole
   const hasEditableChanges = existing
     ? (canEditDetails && detailsChanged) || (canEditPermissions && permissionsChanged)
     : canCreateRole
+  const hasMutablePermissions =
+    canEditPermissions &&
+    allRolePermissions.some(
+      (permission) => permissions[permission] || canEnablePermission(permission),
+    )
   const saveDisabled = !accountId || !cleanName || busy || !hasEditableChanges
 
   const visibleGroups = useMemo(
@@ -107,8 +114,6 @@ export function RoleEditor({ params, navigate, back }: Props) {
     [normalizedQuery, t],
   )
 
-  const canEnablePermission = (permission: RolePermission) => data.hasPermission(permission)
-
   const togglePermission = (permission: RolePermission) => {
     if (busyRef.current || !canEditPermissions) {
       return
@@ -125,7 +130,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const toggleGroup = (groupPermissions: RolePermission[]) => {
-    if (busyRef.current || !canEditPermissions) {
+    if (busyRef.current || !canEditPermissions || !groupPermissions.length) {
       return
     }
 
@@ -150,7 +155,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const setAllPermissions = (checked: boolean) => {
-    if (busyRef.current || !canEditPermissions) {
+    if (busyRef.current || !hasMutablePermissions) {
       return
     }
 
@@ -362,16 +367,16 @@ export function RoleEditor({ params, navigate, back }: Props) {
           <div>
             <button
               type="button"
-              disabled={busy || !canEditPermissions}
-              title={!canEditPermissions ? accessMessage : undefined}
+              disabled={busy || !hasMutablePermissions}
+              title={!hasMutablePermissions ? accessMessage : undefined}
               onClick={() => setAllPermissions(true)}
             >
               {t("roleEditor.all")}
             </button>
             <button
               type="button"
-              disabled={busy || !canEditPermissions}
-              title={!canEditPermissions ? accessMessage : undefined}
+              disabled={busy || !hasMutablePermissions}
+              title={!hasMutablePermissions ? accessMessage : undefined}
               onClick={() => setAllPermissions(false)}
             >
               {t("roleEditor.clear")}
@@ -402,7 +407,13 @@ export function RoleEditor({ params, navigate, back }: Props) {
             const enabledInGroup = group.permissions.filter(
               (permission) => permissions[permission],
             ).length
-            const allEnabled = enabledInGroup === group.permissions.length
+            const mutablePermissions = group.permissions.filter(
+              (permission) => permissions[permission] || canEnablePermission(permission),
+            )
+            const allMutableEnabled =
+              mutablePermissions.length > 0 &&
+              mutablePermissions.every((permission) => permissions[permission])
+            const groupLocked = !canEditPermissions || !mutablePermissions.length
 
             return (
               <section key={group.key}>
@@ -415,12 +426,12 @@ export function RoleEditor({ params, navigate, back }: Props) {
                   </span>
                   <button
                     type="button"
-                    disabled={busy || !canEditPermissions}
-                    title={!canEditPermissions ? accessMessage : undefined}
-                    className={allEnabled ? "is-active" : ""}
-                    onClick={() => toggleGroup(group.permissions)}
+                    disabled={busy || groupLocked}
+                    title={groupLocked ? accessMessage : undefined}
+                    className={allMutableEnabled ? "is-active" : ""}
+                    onClick={() => toggleGroup(mutablePermissions)}
                   >
-                    {allEnabled ? t("roleEditor.disableGroup") : t("roleEditor.enableGroup")}
+                    {allMutableEnabled ? t("roleEditor.disableGroup") : t("roleEditor.enableGroup")}
                   </button>
                 </header>
 
@@ -461,7 +472,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
           type="button"
           className="role-editor-save"
           disabled={saveDisabled}
-          title={!hasEditableChanges && !busy ? accessMessage : undefined}
+          title={!canSaveRole ? accessMessage : undefined}
           onClick={() => void save()}
         >
           <Glyph name="check" size={16} />
