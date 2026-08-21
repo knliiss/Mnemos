@@ -32,14 +32,14 @@ class CreateRoleService(
                 accountId = accountId,
                 permission = CREATE_ROLES,
             )
-
-        val hierarchyRank = prepareHierarchyRank(context.account.id)
         val finalPermissions = permissions.toMutableSet()
 
         roleAccessGuard.requireCanGrantPermissions(
             context = context,
             permissions = finalPermissions,
         )
+
+        val hierarchyRank = prepareHierarchyRank(context.account.id)
 
         val role =
             Role.create(
