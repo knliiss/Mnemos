@@ -427,7 +427,9 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             <section className="review-approve-panel">
               <button
                 type="button"
-                className={selected.status === "PUBLISHED" ? "destructive-action" : "primary-action"}
+                className={
+                  selected.status === "PUBLISHED" ? "destructive-action" : "primary-action"
+                }
                 disabled={busy}
                 onClick={() => void changeListing()}
               >

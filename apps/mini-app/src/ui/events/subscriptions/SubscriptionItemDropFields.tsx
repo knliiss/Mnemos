@@ -45,10 +45,7 @@ export function SubscriptionItemDropFields({
         />
       </Field>
 
-      <Field
-        label={t("events.subscriptions.item")}
-        hint={t("events.subscriptions.itemHint")}
-      >
+      <Field label={t("events.subscriptions.item")} hint={t("events.subscriptions.itemHint")}>
         <input
           value={itemName}
           onChange={(event) => onItemNameChange(event.target.value)}

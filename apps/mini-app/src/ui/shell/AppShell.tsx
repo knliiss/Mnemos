@@ -124,11 +124,7 @@ export function AppShell() {
 
   const userHubTrigger =
     rootRoute && activeAccount ? (
-      <UserHubTrigger
-        open={userHubOpen}
-        skinUrl={activeAccount.skinUrl}
-        onToggle={toggleUserHub}
-      />
+      <UserHubTrigger open={userHubOpen} skinUrl={activeAccount.skinUrl} onToggle={toggleUserHub} />
     ) : null
 
   return (

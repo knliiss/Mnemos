@@ -5,10 +5,7 @@ type ProfileCommentAvatarProps = {
   compact?: boolean
 }
 
-export function ProfileCommentAvatar({
-  author,
-  compact = false,
-}: ProfileCommentAvatarProps) {
+export function ProfileCommentAvatar({ author, compact = false }: ProfileCommentAvatarProps) {
   return (
     <span
       className={`public-profile-comment-avatar is-${profileCommentTone(author)} ${compact ? "is-compact" : ""}`}

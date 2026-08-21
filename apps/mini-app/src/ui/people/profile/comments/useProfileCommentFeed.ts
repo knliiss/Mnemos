@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  getAccountComments,
-  getCommentReplies,
-} from "@/shared/api/profileSocialApi"
+import { getAccountComments, getCommentReplies } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { ProfileCommentView, ReplyThreadMap } from "../model"
 import {
@@ -10,10 +7,7 @@ import {
   resolveProfileCommentAuthorNames,
   toProfileCommentView,
 } from "./profileCommentMappers"
-import type {
-  ProfileCommentAccountIdentity,
-  ProfileCommentTarget,
-} from "./profileCommentContext"
+import type { ProfileCommentAccountIdentity, ProfileCommentTarget } from "./profileCommentContext"
 
 const ROOT_COMMENT_PAGE_SIZE = 20
 const REPLY_PAGE_SIZE = 3

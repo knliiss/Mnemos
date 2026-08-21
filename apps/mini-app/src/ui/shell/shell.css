@@ -304,8 +304,7 @@
   border: 1px solid rgba(225, 233, 207, 0.105);
   border-radius: 15px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.028), transparent 44%),
-    rgba(255, 255, 255, 0.017);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.028), transparent 44%), rgba(255, 255, 255, 0.017);
 }
 
 .user-hub-card__avatar--skin,
@@ -378,8 +377,7 @@
   border-radius: 16px;
   color: var(--text);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.028), transparent 44%),
-    rgba(255, 255, 255, 0.017) !important;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.028), transparent 44%), rgba(255, 255, 255, 0.017) !important;
   text-align: left;
   transition:
     border-color 0.2s ease,

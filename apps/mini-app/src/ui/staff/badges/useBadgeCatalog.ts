@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  createAdminBadge,
-  listAdminBadges,
-  type BadgeResponse,
-} from "@/shared/api/badgeAdminApi"
+import { createAdminBadge, listAdminBadges, type BadgeResponse } from "@/shared/api/badgeAdminApi"
 import { handleError } from "@/shared/errors/errorHandler"
 
 export type BadgeDraft = {

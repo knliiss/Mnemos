@@ -10,12 +10,7 @@ import {
 } from "@/shared/api/subscriptionApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { useMnemosData } from "../../data/MnemosDataProvider"
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-  SubscriptionType,
-} from "../../model"
+import type { BoosterType, DungeonType, GlobalEventType, SubscriptionType } from "../../model"
 
 export function useSubscriptionCreateDraft(onSaved: () => void) {
   const data = useMnemosData()

@@ -47,7 +47,7 @@ export function ProfileCommentComposer({
             exit={{ opacity: 0, y: 4 }}
           >
             <span>
-              {editing ? t("people.profile.edit") : t("people.profile.replyingTo")} {" "}
+              {editing ? t("people.profile.edit") : t("people.profile.replyingTo")}{" "}
               <strong>@{editing?.comment.author ?? replyingTo?.author}</strong>
             </span>
             <button

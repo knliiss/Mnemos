@@ -13,12 +13,7 @@ type Options = {
   onSubmit(content: string, replyTarget: ReplyTarget | null): Promise<void>
 }
 
-export function useProfileCommentComposer({
-  busyIds,
-  submitting,
-  onEdit,
-  onSubmit,
-}: Options) {
+export function useProfileCommentComposer({ busyIds, submitting, onEdit, onSubmit }: Options) {
   const [draft, setDraft] = useState("")
   const [replyingTo, setReplyingTo] = useState<ReplyTarget | null>(null)
   const [editing, setEditing] = useState<ProfileCommentEditingTarget | null>(null)

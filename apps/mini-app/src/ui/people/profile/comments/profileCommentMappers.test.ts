@@ -20,11 +20,7 @@ describe("profileCommentMappers", () => {
       updatedAt: "2026-08-20T12:00:00Z",
     }
 
-    const view = toProfileCommentView(
-      comment,
-      new Map([["author-account", "Author"]]),
-      "en",
-    )
+    const view = toProfileCommentView(comment, new Map([["author-account", "Author"]]), "en")
 
     expect(view.canEdit).toBe(false)
     expect(view.canDelete).toBe(true)

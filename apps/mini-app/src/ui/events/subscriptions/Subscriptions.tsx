@@ -82,11 +82,7 @@ export function Subscriptions({ back }: { back: () => void }) {
           <small>{t("events.subscriptions.activeRules")}</small>
         </span>
 
-        <button
-          type="button"
-          disabled={deletingId !== null}
-          onClick={() => setCreating(true)}
-        >
+        <button type="button" disabled={deletingId !== null} onClick={() => setCreating(true)}>
           <Glyph name="plus" size={17} />
           {t("events.subscriptions.new")}
         </button>

@@ -55,9 +55,7 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
         <input
           value={code}
           maxLength={32}
-          onChange={(event) =>
-            setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))
-          }
+          onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
           placeholder={t("badgeAdmin.codePlaceholder")}
         />
       </Field>

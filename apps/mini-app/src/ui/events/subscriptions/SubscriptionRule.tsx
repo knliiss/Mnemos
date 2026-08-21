@@ -9,10 +9,7 @@ import {
 import { subscriptionVisualTone } from "../../eventVisualTone"
 import type { BetItemType, Subscription } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
-import {
-  normalizeSubscriptionItemName,
-  subscriptionDescription,
-} from "./subscriptionPresentation"
+import { normalizeSubscriptionItemName, subscriptionDescription } from "./subscriptionPresentation"
 
 type SubscriptionRuleProps = {
   subscription: Subscription

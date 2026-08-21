@@ -62,8 +62,7 @@
   gap: 9px;
   padding: 9px;
   background:
-    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%),
-    #11140e;
+    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%), #11140e;
 }
 
 .notification-real-preview.is-small {
@@ -232,7 +231,8 @@
 .effect-real-preview > span {
   border-color: color-mix(in srgb, var(--effect-primary) 55%, transparent);
   box-shadow:
-    0 0 calc(3px + var(--effect-intensity) * 0.12) color-mix(in srgb, var(--effect-primary) 38%, transparent),
+    0 0 calc(3px + var(--effect-intensity) * 0.12)
+      color-mix(in srgb, var(--effect-primary) 38%, transparent),
     inset 0 0 16px color-mix(in srgb, var(--effect-secondary) 12%, transparent);
 }
 

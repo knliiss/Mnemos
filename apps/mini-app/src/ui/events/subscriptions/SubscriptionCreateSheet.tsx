@@ -5,12 +5,7 @@ import {
   GLOBAL_EVENT_TYPES,
   SUBSCRIPTION_TYPES,
 } from "../../contracts"
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-  SubscriptionType,
-} from "../../model"
+import type { BoosterType, DungeonType, GlobalEventType, SubscriptionType } from "../../model"
 import { BottomSheet, ChoiceGrid, Field } from "../../shared/Primitives"
 import { SubscriptionItemDropFields } from "./SubscriptionItemDropFields"
 import { SubscriptionRaidFields } from "./SubscriptionRaidFields"

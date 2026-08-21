@@ -72,8 +72,7 @@ export function useProfileCommentMutations({
   const submitting = submissionState.scope === commentScope && submissionState.active
 
   const isBusy = useCallback(
-    (id: string) =>
-      busyStateRef.current.scope === commentScope && busyStateRef.current.ids.has(id),
+    (id: string) => busyStateRef.current.scope === commentScope && busyStateRef.current.ids.has(id),
     [commentScope],
   )
 
