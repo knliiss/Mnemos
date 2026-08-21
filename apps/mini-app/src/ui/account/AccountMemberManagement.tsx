@@ -19,6 +19,7 @@ type AccountMemberManagementProps = {
   member: Member
   roles: AccountRole[]
   accountId: string
+  canViewRoles: boolean
   refresh(): Promise<void>
   back(): void
 }
@@ -27,6 +28,7 @@ export function AccountMemberManagement({
   member,
   roles,
   accountId,
+  canViewRoles,
   refresh,
   back,
 }: AccountMemberManagementProps) {
@@ -48,6 +50,10 @@ export function AccountMemberManagement({
   }, [scope])
 
   useEffect(() => {
+    if (!canViewRoles) {
+      return
+    }
+
     let cancelled = false
 
     void getMemberRoles(accountId, member.id)
@@ -66,14 +72,14 @@ export function AccountMemberManagement({
     return () => {
       cancelled = true
     }
-  }, [accountId, member.id, scope])
+  }, [accountId, canViewRoles, member.id, scope])
 
   const visibleRoleIds = roleIdsScope === scope ? roleIds : member.roleIds
   const busyRoleId = busyRole?.scope === scope ? busyRole.roleId : null
   const kickBusy = kickBusyScope === scope
 
   const toggleRole = async (role: AccountRole) => {
-    if (member.owner || busyRoleRef.current?.scope === scope) {
+    if (!canViewRoles || member.owner || busyRoleRef.current?.scope === scope) {
       return
     }
 
@@ -150,7 +156,7 @@ export function AccountMemberManagement({
           <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
         </span>
 
-        {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
+        {canViewRoles && highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
       </section>
 
       <section className="account-member__roles">
@@ -160,40 +166,46 @@ export function AccountMemberManagement({
             <strong>{t("accountMember.roles")}</strong>
           </span>
 
-          <em>{t("accountMember.activeRoles", { count: visibleRoleIds.length })}</em>
+          <em>{canViewRoles ? t("accountMember.activeRoles", { count: visibleRoleIds.length }) : "—"}</em>
         </header>
 
         <div>
-          {roles.map((role) => {
-            const assigned = visibleRoleIds.includes(role.id)
-            const locked = member.owner
+          {canViewRoles ? (
+            roles.map((role) => {
+              const assigned = visibleRoleIds.includes(role.id)
+              const locked = member.owner
 
-            return (
-              <motion.button
-                type="button"
-                key={role.id}
-                className={assigned ? "is-active" : ""}
-                disabled={locked || busyRoleId !== null}
-                whileTap={locked ? undefined : { scale: 0.985 }}
-                onClick={() => void toggleRole(role)}
-              >
-                <RoleSigil color={role.color} size={34} compact />
+              return (
+                <motion.button
+                  type="button"
+                  key={role.id}
+                  className={assigned ? "is-active" : ""}
+                  disabled={locked || busyRoleId !== null}
+                  whileTap={locked ? undefined : { scale: 0.985 }}
+                  onClick={() => void toggleRole(role)}
+                >
+                  <RoleSigil color={role.color} size={34} compact />
 
-                <span>
-                  <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
-                  <small>
-                    {t("accountMember.permissionCount", {
-                      count: enabledPermissions(role),
-                    })}
-                  </small>
-                </span>
+                  <span>
+                    <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
+                    <small>
+                      {t("accountMember.permissionCount", {
+                        count: enabledPermissions(role),
+                      })}
+                    </small>
+                  </span>
 
-                <i aria-hidden="true">
-                  <b />
-                </i>
-              </motion.button>
-            )
-          })}
+                  <i aria-hidden="true">
+                    <b />
+                  </i>
+                </motion.button>
+              )
+            })
+          ) : (
+            <p className="inline-hint inline-hint--left">
+              {t("errorNotifications.tones.access.message")}
+            </p>
+          )}
         </div>
       </section>
 
