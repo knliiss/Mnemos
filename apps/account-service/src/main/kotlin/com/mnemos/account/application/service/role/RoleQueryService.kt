@@ -8,8 +8,6 @@ import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_MEMBERS
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_ROLES
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,10 +18,7 @@ class RoleQueryService(
     private val roleRepository: RoleRepository,
 ) {
     fun getRoles(accountId: AccountId): List<RoleView> {
-        contextProvider.requirePermission(
-            accountId = accountId,
-            permission = VIEW_ROLES,
-        )
+        contextProvider.requireActiveContext(accountId)
 
         return roleRepository
             .findAllByAccountIdOrderByRank(accountId)
@@ -34,10 +29,7 @@ class RoleQueryService(
         accountId: AccountId,
         roleId: RoleId,
     ): RoleView {
-        contextProvider.requirePermission(
-            accountId = accountId,
-            permission = VIEW_ROLES,
-        )
+        contextProvider.requireActiveContext(accountId)
 
         return roleRepository
             .findByIdAndAccountId(
@@ -53,14 +45,7 @@ class RoleQueryService(
         accountId: AccountId,
         memberId: AccountMemberId,
     ): List<RoleView> {
-        contextProvider.requirePermission(
-            accountId = accountId,
-            permission = VIEW_MEMBERS,
-        )
-        contextProvider.requirePermission(
-            accountId = accountId,
-            permission = VIEW_ROLES,
-        )
+        contextProvider.requireActiveContext(accountId)
 
         return roleRepository
             .findAllByMemberId(
