@@ -152,6 +152,32 @@ jobs:
             echo "${schema}: ${migrations} migrations"
           done
 
+      - name: Diagnose stack failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+
+          echo "=== Compose state ==="
+          $CI_COMPOSE_COMMAND ps -a
+
+          echo "=== Kafka health ==="
+          kafka_container="$($CI_COMPOSE_COMMAND ps -q kafka)"
+          if [ -n "$kafka_container" ]; then
+            docker inspect \
+              --format '{{json .State.Health}}' \
+              "$kafka_container"
+          fi
+
+          echo "=== Kafka logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=300 kafka
+
+          echo "=== Kafka init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 kafka-init
+
+          echo "=== Keycloak config logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 keycloak-config
+
       - name: Cleanup isolated stack
         if: always()
         shell: bash
