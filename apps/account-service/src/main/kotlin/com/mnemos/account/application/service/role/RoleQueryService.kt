@@ -26,7 +26,7 @@ class RoleQueryService(
         )
 
         return roleRepository
-            .findAllByAccountId(accountId)
+            .findAllByAccountIdOrderByRank(accountId)
             .map { it.toView() }
     }
 
