@@ -82,12 +82,10 @@ export const accountRolesEn = {
       MODERATE_COMMENTS: "Moderate comments",
       VIEW_BETS: "View bets",
       PLACE_BETS: "Place bets",
-      MANAGE_BETS: "Manage bets",
       VIEW_BET_HISTORY: "View bet history",
       VIEW_PERSONALIZATIONS: "View personalizations",
       APPLY_PERSONALIZATIONS: "Activate personalizations",
       BUY_PERSONALIZATIONS: "Buy personalizations",
-      MANAGE_PERSONALIZATIONS: "Manage personalizations",
     },
   },
 } as const
