@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import {
   createComment,
   deleteComment,
@@ -27,6 +27,18 @@ type Options = {
   refreshProfileSummary(): Promise<void>
 }
 
+type BusyState = {
+  scope: string | null
+  ids: Set<string>
+}
+
+type SubmissionState = {
+  scope: string | null
+  active: boolean
+}
+
+const EMPTY_BUSY_IDS = new Set<string>()
+
 export function useProfileCommentMutations({
   activeAccountId,
   activeAccountNickname,
@@ -39,34 +51,58 @@ export function useProfileCommentMutations({
   setExpandedReplies,
   refreshProfileSummary,
 }: Options) {
-  const [busyIds, setBusyIds] = useState<Set<string>>(() => new Set())
-  const [submitting, setSubmitting] = useState(false)
-  const busyIdsRef = useRef<Set<string>>(new Set())
-  const submittingRef = useRef(false)
+  const [busyState, setBusyState] = useState<BusyState>(() => ({
+    scope: commentScope,
+    ids: new Set(),
+  }))
+  const [submissionState, setSubmissionState] = useState<SubmissionState>(() => ({
+    scope: commentScope,
+    active: false,
+  }))
+  const busyStateRef = useRef<BusyState>({
+    scope: commentScope,
+    ids: new Set(),
+  })
+  const submissionStateRef = useRef<SubmissionState>({
+    scope: commentScope,
+    active: false,
+  })
 
-  const setBusy = useCallback((id: string, busy: boolean) => {
-    const next = new Set(busyIdsRef.current)
+  const busyIds = busyState.scope === commentScope ? busyState.ids : EMPTY_BUSY_IDS
+  const submitting = submissionState.scope === commentScope && submissionState.active
 
-    if (busy) {
-      next.add(id)
-    } else {
-      next.delete(id)
-    }
+  const isBusy = useCallback(
+    (id: string) =>
+      busyStateRef.current.scope === commentScope && busyStateRef.current.ids.has(id),
+    [commentScope],
+  )
 
-    busyIdsRef.current = next
-    setBusyIds(next)
-  }, [])
+  const setBusy = useCallback(
+    (id: string, busy: boolean) => {
+      const currentIds =
+        busyStateRef.current.scope === commentScope ? busyStateRef.current.ids : EMPTY_BUSY_IDS
+      const nextIds = new Set(currentIds)
 
-  useEffect(() => {
-    busyIdsRef.current = new Set()
-    setBusyIds(new Set())
-    submittingRef.current = false
-    setSubmitting(false)
-  }, [commentScope])
+      if (busy) {
+        nextIds.add(id)
+      } else {
+        nextIds.delete(id)
+      }
+
+      const nextState = {
+        scope: commentScope,
+        ids: nextIds,
+      }
+
+      busyStateRef.current = nextState
+      setBusyState(nextState)
+    },
+    [commentScope],
+  )
 
   const toggleCommentLike = useCallback(
     async (comment: ProfileCommentView, rootCommentId?: string) => {
-      if (busyIdsRef.current.has(comment.id)) {
+      if (isBusy(comment.id)) {
         return
       }
 
@@ -120,19 +156,14 @@ export function useProfileCommentMutations({
         }
       }
     },
-    [scopeRevision, setBusy, setComments, setReplies],
+    [isBusy, scopeRevision, setBusy, setComments, setReplies],
   )
 
   const editProfileComment = useCallback(
     async (comment: ProfileCommentView, content: string, rootCommentId?: string) => {
       const normalized = content.trim()
 
-      if (
-        !comment.canEdit ||
-        !normalized ||
-        normalized === comment.content ||
-        busyIdsRef.current.has(comment.id)
-      ) {
+      if (!comment.canEdit || !normalized || normalized === comment.content || isBusy(comment.id)) {
         return
       }
 
@@ -188,12 +219,12 @@ export function useProfileCommentMutations({
         }
       }
     },
-    [scopeRevision, setBusy, setComments, setReplies],
+    [isBusy, scopeRevision, setBusy, setComments, setReplies],
   )
 
   const removeComment = useCallback(
     async (comment: ProfileCommentView, rootCommentId?: string) => {
-      if (!comment.canDelete || busyIdsRef.current.has(comment.id)) {
+      if (!comment.canDelete || isBusy(comment.id)) {
         return
       }
 
@@ -259,18 +290,34 @@ export function useProfileCommentMutations({
         }
       }
     },
-    [refreshProfileSummary, scopeRevision, setBusy, setComments, setExpandedReplies, setReplies],
+    [
+      isBusy,
+      refreshProfileSummary,
+      scopeRevision,
+      setBusy,
+      setComments,
+      setExpandedReplies,
+      setReplies,
+    ],
   )
 
   const submitComment = useCallback(
     async (content: string, replyTarget: ReplyTarget | null) => {
-      if (!targetProfile || submittingRef.current) {
+      const alreadySubmitting =
+        submissionStateRef.current.scope === commentScope && submissionStateRef.current.active
+
+      if (!targetProfile || alreadySubmitting) {
         return
       }
 
       const requestedScope = scopeRevision.current
-      submittingRef.current = true
-      setSubmitting(true)
+      const activeSubmission = {
+        scope: commentScope,
+        active: true,
+      }
+
+      submissionStateRef.current = activeSubmission
+      setSubmissionState(activeSubmission)
 
       try {
         const created = await createComment(
@@ -330,14 +377,20 @@ export function useProfileCommentMutations({
         throw error
       } finally {
         if (requestedScope === scopeRevision.current) {
-          submittingRef.current = false
-          setSubmitting(false)
+          const inactiveSubmission = {
+            scope: commentScope,
+            active: false,
+          }
+
+          submissionStateRef.current = inactiveSubmission
+          setSubmissionState(inactiveSubmission)
         }
       }
     },
     [
       activeAccountId,
       activeAccountNickname,
+      commentScope,
       locale,
       refreshProfileSummary,
       scopeRevision,
