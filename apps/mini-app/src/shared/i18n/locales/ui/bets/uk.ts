@@ -3,6 +3,7 @@ export const betsUk = {
     eyebrow: "СТАВКИ MNEMOS",
     title: "Ставки",
     balance: "Баланс",
+    balanceUnavailable: "Баланс недоступний для твоєї ролі",
     modes: {
       EVENTS: "Події",
       MY: "Мої",
