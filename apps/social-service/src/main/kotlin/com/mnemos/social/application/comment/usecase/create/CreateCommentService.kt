@@ -1,6 +1,5 @@
 package com.mnemos.social.application.comment.usecase.create
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
@@ -25,7 +24,7 @@ class CreateCommentService(
 ) : CreateCommentUseCase {
     @Transactional
     override fun execute(command: CreateCommentCommand): Comment {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_COMMENTS)
+        val actor = actorProvider.requireActor()
 
         if (!accountAccessPort.isActiveAccount(command.targetAccountId)) {
             throw SocialAccountNotFoundException(command.targetAccountId)
