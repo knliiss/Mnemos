@@ -57,6 +57,7 @@ export function Bets({ activeAccount, navigate }: Props) {
   const [busy, setBusy] = useState(false)
   const submitLocked = useRef(false)
   const locale = betLocale(i18n.resolvedLanguage)
+  const canViewWallet = data.hasPermission("VIEW_WALLET")
 
   const positionsByRace = useMemo(
     () => new Map(positions.map((position) => [position.raceId, position])),
@@ -79,15 +80,16 @@ export function Bets({ activeAccount, navigate }: Props) {
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
   const numericAmount = Number(amount)
   const selectedHasBet = Boolean(selectedRoundValue?.myBet)
+  const withinVisibleBalance = !canViewWallet || numericAmount <= activeAccount.coin
   const roundAmountValid =
     Number.isInteger(numericAmount) &&
     numericAmount >= (selectedHasBet ? 1 : 100) &&
-    numericAmount <= activeAccount.coin &&
+    withinVisibleBalance &&
     (selectedHasBet || numericAmount <= 5_000)
   const raceAmountValid =
-    Number.isInteger(numericAmount) && numericAmount > 0 && numericAmount <= activeAccount.coin
+    Number.isInteger(numericAmount) && numericAmount > 0 && withinVisibleBalance
   const raceJoinValid = Boolean(
-    selectedRaceValue && selectedRaceValue.entryAmount <= activeAccount.coin,
+    selectedRaceValue && (!canViewWallet || selectedRaceValue.entryAmount <= activeAccount.coin),
   )
 
   const openRound = (round: EventBetRoundResponse) => {
@@ -189,7 +191,11 @@ export function Bets({ activeAccount, navigate }: Props) {
           onClick={() => navigate({ id: "account-wallet" })}
         >
           <span className="bets-wallet__label">{t("bets.balance")}</span>
-          <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
+          {canViewWallet ? (
+            <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
+          ) : (
+            <strong title={t("bets.balanceUnavailable")}>—</strong>
+          )}
         </button>
       </header>
 
