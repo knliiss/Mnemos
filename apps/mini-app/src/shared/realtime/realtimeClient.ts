@@ -1,8 +1,8 @@
 import { getToken } from "@/features/auth/api/auth"
 import { runtimeConfig } from "@/shared/config/runtimeConfig"
-import { realtimeEvents } from "./realtimeEventBus"
-import { parseRealtimeEvent } from "./realtimeEventParser"
-import type { RealtimeEvent } from "./realtime.types"
+import { realtimeBroadcasts, realtimeEvents } from "./realtimeEventBus"
+import { parseRealtimeBroadcast, parseRealtimeEvent } from "./realtimeEventParser"
+import type { RealtimeBroadcast, RealtimeEvent } from "./realtime.types"
 
 const INITIAL_RECONNECT_DELAY_MS = 1_000
 const MAX_RECONNECT_DELAY_MS = 15_000
@@ -70,10 +70,14 @@ class RealtimeClient {
 
     await consumeEventStream(
       response.body,
-      (event) => {
-        storeLastEventId(storageKey, event.id)
+      (event, sseEventId) => {
+        if (sseEventId === event.id) {
+          storeLastEventId(storageKey, sseEventId)
+        }
+
         realtimeEvents.publish(event)
       },
+      (broadcast) => realtimeBroadcasts.publish(broadcast),
       signal,
     )
   }
@@ -81,25 +85,35 @@ class RealtimeClient {
 
 async function consumeEventStream(
   stream: ReadableStream<Uint8Array>,
-  onEvent: (event: RealtimeEvent) => void,
+  onEvent: (event: RealtimeEvent, sseEventId: string | null) => void,
+  onBroadcast: (event: RealtimeBroadcast) => void,
   signal: AbortSignal,
 ) {
   const reader = stream.getReader()
   const decoder = new TextDecoder()
   let buffer = ""
   let eventName = "message"
+  let eventId: string | null = null
   let dataLines: string[] = []
 
   const dispatch = () => {
     if (eventName !== "connected" && dataLines.length > 0) {
-      const event = parseRealtimeEvent(dataLines.join("\n"))
+      const data = dataLines.join("\n")
+      const event = parseRealtimeEvent(data)
 
       if (event) {
-        onEvent(event)
+        onEvent(event, eventId)
+      } else {
+        const broadcast = parseRealtimeBroadcast(eventName, data)
+
+        if (broadcast) {
+          onBroadcast(broadcast)
+        }
       }
     }
 
     eventName = "message"
+    eventId = null
     dataLines = []
   }
 
@@ -123,6 +137,8 @@ async function consumeEventStream(
           dispatch()
         } else if (line.startsWith("event:")) {
           eventName = line.slice("event:".length).trimStart()
+        } else if (line.startsWith("id:")) {
+          eventId = line.slice("id:".length).trim() || null
         } else if (line.startsWith("data:")) {
           dataLines.push(line.slice("data:".length).trimStart())
         }

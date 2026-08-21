@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { parseRealtimeEvent } from "./realtimeEventParser"
+import { parseRealtimeBroadcast, parseRealtimeEvent } from "./realtimeEventParser"
 
 describe("parseRealtimeEvent", () => {
   it("accepts a typed bet completion event", () => {
@@ -147,5 +147,108 @@ describe("parseRealtimeEvent", () => {
     )
 
     expect(event).toBeNull()
+  })
+})
+
+describe("parseRealtimeBroadcast", () => {
+  it("accepts a drop spotlight broadcast with a notification pack snapshot", () => {
+    const broadcast = parseRealtimeBroadcast(
+      "drop-spotlight",
+      JSON.stringify({
+        id: "019c1129-ef54-7000-8000-000000000341",
+        type: "drop-spotlight",
+        sequence: 12,
+        occurredAt: "2026-08-15T10:00:00Z",
+        expiresAt: "2026-08-15T10:05:00Z",
+        presentationMode: "COMPACT",
+        payload: {
+          spotlightId: "019c1129-ef54-7000-8000-000000000342",
+          sequence: 12,
+          sourceAccountId: "019c1129-ef54-7000-8000-000000000343",
+          itemDropEventId: "019c1129-ef54-7000-8000-000000000344",
+          droppedFor: "north",
+          itemId: "019c1129-ef54-7000-8000-000000000345",
+          itemName: "Moon Blade",
+          itemRarity: "MYTHICAL",
+          itemType: "SWORD",
+          notificationPack: {
+            mixedAggregateTitle: "Mnemos",
+            templates: [
+              {
+                type: "ITEM_DROP",
+                emoji: "✨",
+                soloTitle: "{player} found {item}",
+                soloBody: "{rarity} {itemType}",
+                compact: "{player} · {item}",
+                aggregateTitle: "Drops",
+              },
+            ],
+          },
+          publishedAt: "2026-08-15T10:00:00Z",
+          expiresAt: "2026-08-15T10:05:00Z",
+          minimumPresentationGapSeconds: 20,
+        },
+      }),
+    )
+
+    expect(broadcast?.type).toBe("drop-spotlight")
+  })
+
+  it("accepts a typed game event broadcast", () => {
+    const broadcast = parseRealtimeBroadcast(
+      "game-event",
+      JSON.stringify({
+        id: "019c1129-ef54-7000-8000-000000000351",
+        type: "game-event",
+        occurredAt: "2026-08-15T10:00:00Z",
+        payload: {
+          eventId: "019c1129-ef54-7000-8000-000000000352",
+          eventType: "ITEM_DROP",
+          occurredAt: "2026-08-15T10:00:00Z",
+          itemDrop: {
+            itemId: "019c1129-ef54-7000-8000-000000000353",
+            itemName: "Moon Blade",
+            itemType: "SWORD",
+            itemRarity: "MYTHICAL",
+            droppedFor: "north",
+          },
+          raid: null,
+          booster: null,
+          global: null,
+        },
+      }),
+    )
+
+    expect(broadcast?.type).toBe("game-event")
+  })
+
+  it("rejects a game event carrying more than one typed payload", () => {
+    const broadcast = parseRealtimeBroadcast(
+      "game-event",
+      JSON.stringify({
+        id: "019c1129-ef54-7000-8000-000000000361",
+        type: "game-event",
+        occurredAt: "2026-08-15T10:00:00Z",
+        payload: {
+          eventId: "019c1129-ef54-7000-8000-000000000362",
+          eventType: "ITEM_DROP",
+          occurredAt: "2026-08-15T10:00:00Z",
+          itemDrop: {
+            itemId: "019c1129-ef54-7000-8000-000000000363",
+            itemName: "Moon Blade",
+            itemType: "SWORD",
+            itemRarity: "MYTHICAL",
+            droppedFor: "north",
+          },
+          raid: null,
+          booster: null,
+          global: {
+            type: "ECLIPSE",
+          },
+        },
+      }),
+    )
+
+    expect(broadcast).toBeNull()
   })
 })

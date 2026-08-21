@@ -70,8 +70,169 @@
   font-weight: 700;
 }
 
+.realtime-spotlight {
+  position: fixed;
+  z-index: 1900;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  width: min(calc(100vw - 24px), 406px);
+  min-height: 82px;
+  padding: 12px 13px;
+  border: 1px solid rgba(199, 242, 74, 0.22);
+  border-radius: 18px;
+  color: #e8ece2;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(199, 242, 74, 0.11), transparent 33%),
+    radial-gradient(circle at 94% 90%, rgba(164, 122, 170, 0.09), transparent 30%),
+    rgba(12, 15, 11, 0.97);
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: realtime-spotlight-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(18px);
+}
+
+.realtime-spotlight.is-compact {
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  min-height: 62px;
+  padding: 9px 11px;
+  border-radius: 15px;
+}
+
+.realtime-spotlight__mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(199, 242, 74, 0.16);
+  border-radius: 13px;
+  color: #c7f24a;
+  background: rgba(199, 242, 74, 0.055);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.realtime-spotlight.is-compact .realtime-spotlight__mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  font-size: 17px;
+}
+
+.realtime-spotlight__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.realtime-spotlight__copy > small {
+  overflow: hidden;
+  color: #98a276;
+  font-family: var(--font-meta);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.realtime-spotlight__copy > strong {
+  overflow: hidden;
+  color: #f0f3ea;
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.realtime-spotlight__copy > p,
+.realtime-spotlight__copy > em {
+  overflow: hidden;
+  margin: 2px 0 0;
+  color: #9ba194;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.realtime-spotlight__copy > p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.realtime-spotlight__copy > em {
+  white-space: nowrap;
+}
+
+.realtime-spotlight__pulse {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  height: 18px;
+}
+
+.realtime-spotlight__pulse i {
+  width: 2px;
+  height: 7px;
+  background: #a9c655;
+  opacity: 0.42;
+  animation: realtime-spotlight-pulse 0.9s ease-in-out infinite;
+}
+
+.realtime-spotlight__pulse i:nth-child(2) {
+  height: 13px;
+  animation-delay: 0.12s;
+}
+
+.realtime-spotlight__pulse i:nth-child(3) {
+  height: 9px;
+  animation-delay: 0.24s;
+}
+
+@keyframes realtime-spotlight-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes realtime-spotlight-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.75);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scaleY(1);
+  }
+}
+
+@media (max-width: 374px) {
+  .realtime-spotlight {
+    width: calc(100vw - 18px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .feature-loading i {
+  .feature-loading i,
+  .realtime-spotlight,
+  .realtime-spotlight__pulse i {
     animation: none;
   }
 }

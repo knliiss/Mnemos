@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { getEventFeed, type EventFeedQuery } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { realtimeBroadcasts } from "@/shared/realtime/realtimeEventBus"
 import { toFeedEvent } from "../../data/dataMappers"
 import type { FeedEvent } from "../../model"
 
@@ -22,6 +23,7 @@ export function useEventFeedData(): EventFeedData {
   const [eventsError, setEventsError] = useState(false)
   const requestRevision = useRef(0)
   const queryKeyRef = useRef<string | null>(null)
+  const activeQueryRef = useRef<EventFeedQuery>({})
   const loadingRef = useRef(true)
 
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
@@ -36,6 +38,7 @@ export function useEventFeedData(): EventFeedData {
     })
 
     requestRevision.current = revision
+    activeQueryRef.current = query
     loadingRef.current = true
     setLoadingEvents(true)
     setEventsError(false)
@@ -82,6 +85,7 @@ export function useEventFeedData(): EventFeedData {
 
       const revision = requestRevision.current + 1
       requestRevision.current = revision
+      activeQueryRef.current = query
       loadingRef.current = true
       setLoadingEvents(true)
 
@@ -119,6 +123,16 @@ export function useEventFeedData(): EventFeedData {
     },
     [eventCursor, eventsHasMore],
   )
+
+  useEffect(() => {
+    return realtimeBroadcasts.subscribe((event) => {
+      if (event.type !== "game-event" || queryKeyRef.current === null) {
+        return
+      }
+
+      void refreshEvents(activeQueryRef.current)
+    })
+  }, [refreshEvents])
 
   useEffect(
     () => () => {

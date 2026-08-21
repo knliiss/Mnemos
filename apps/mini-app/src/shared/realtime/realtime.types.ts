@@ -56,10 +56,77 @@ export type PersonalizationPurchaseCompletedEvent = RealtimeEventEnvelope<
   }
 >
 
+export type NotificationPackBroadcastTemplate = {
+  type: string
+  emoji: string | null
+  soloTitle: string
+  soloBody: string
+  compact: string
+  aggregateTitle: string
+}
+
+export type DropSpotlightBroadcast = {
+  id: string
+  type: "drop-spotlight"
+  sequence: number
+  occurredAt: string
+  expiresAt: string
+  presentationMode: "FULL" | "COMPACT"
+  payload: {
+    spotlightId: string
+    sequence: number
+    sourceAccountId: string
+    itemDropEventId: string
+    droppedFor: string
+    itemId: string
+    itemName: string
+    itemRarity: string
+    itemType: string
+    notificationPack: {
+      mixedAggregateTitle: string
+      templates: NotificationPackBroadcastTemplate[]
+    } | null
+    publishedAt: string
+    expiresAt: string
+    minimumPresentationGapSeconds: number
+  }
+}
+
+export type GameEventBroadcast = {
+  id: string
+  type: "game-event"
+  occurredAt: string
+  payload: {
+    eventId: string
+    eventType: string
+    occurredAt: string
+    itemDrop: {
+      itemId: string
+      itemName: string
+      itemType: string
+      itemRarity: string
+      droppedFor: string
+    } | null
+    raid: {
+      locations: number[]
+    } | null
+    booster: {
+      activatedBy: string
+      type: string
+    } | null
+    global: {
+      type: string
+    } | null
+  }
+}
+
 export type RealtimeEvent =
   | WalletTransactionCompletedEvent
   | WalletTransactionFailedEvent
   | BetOperationCompletedEvent
   | PersonalizationPurchaseCompletedEvent
 
+export type RealtimeBroadcast = DropSpotlightBroadcast | GameEventBroadcast
+
 export type RealtimeEventListener = (event: RealtimeEvent) => void
+export type RealtimeBroadcastListener = (event: RealtimeBroadcast) => void
