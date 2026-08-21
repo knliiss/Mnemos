@@ -20,6 +20,8 @@ export function RolesOverview({ navigate, back }: Props) {
   const { t } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
+  const canViewRoles = data.hasPermission("VIEW_ROLES")
+  const canViewMembers = data.hasPermission("VIEW_MEMBERS")
   const roles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -52,7 +54,7 @@ export function RolesOverview({ navigate, back }: Props) {
           <small>{t("rolesOverview.hierarchyEyebrow")}</small>
           <strong>
             {t("rolesOverview.hierarchySummary", {
-              roles: roles.length,
+              roles: canViewRoles ? roles.length : "—",
               permissions: totalPermissions,
             })}
           </strong>
@@ -70,25 +72,35 @@ export function RolesOverview({ navigate, back }: Props) {
         </span>
       </section>
 
-      {accountId && roles.length ? (
+      {canViewRoles && accountId && roles.length ? (
         <RoleReorderList
           key={roles.map((role) => `${role.id}:${role.hierarchyRank}`).join("|")}
           accountId={accountId}
           initialRoles={roles}
           memberCounts={
-            new Map(
-              roles.map((role) => [
-                role.id,
-                data.members.filter((member) => member.highestRoleId === role.id).length,
-              ]),
-            )
+            canViewMembers
+              ? new Map(
+                  roles.map((role) => [
+                    role.id,
+                    data.members.filter((member) => member.highestRoleId === role.id).length,
+                  ]),
+                )
+              : null
           }
           navigate={navigate}
           refresh={data.refreshAccount}
         />
       ) : null}
 
-      {!roles.length && !data.loadingAccount ? (
+      {!canViewRoles ? (
+        <FeatureEmpty
+          icon="roles"
+          title={t("errorNotifications.tones.access.title")}
+          copy={t("errorNotifications.tones.access.message")}
+        />
+      ) : null}
+
+      {canViewRoles && !roles.length && !data.loadingAccount ? (
         <FeatureEmpty
           icon="roles"
           title={t("rolesOverview.emptyTitle")}
@@ -124,7 +136,7 @@ function RoleReorderList({
 }: {
   accountId: string
   initialRoles: AccountRole[]
-  memberCounts: Map<string, number>
+  memberCounts: Map<string, number> | null
   navigate: (route: Route) => void
   refresh: () => Promise<void>
 }) {
@@ -159,7 +171,7 @@ function RoleReorderList({
           <SortableRoleRow
             key={role.id}
             role={role}
-            memberCount={memberCounts.get(role.id) ?? 0}
+            memberCount={memberCounts?.get(role.id) ?? null}
             disabled={savingOrder}
             navigate={navigate}
             onDragEnd={() => void persist()}
@@ -178,7 +190,7 @@ function SortableRoleRow({
   onDragEnd,
 }: {
   role: AccountRole
-  memberCount: number
+  memberCount: number | null
   disabled: boolean
   navigate: (route: Route) => void
   onDragEnd: () => void
@@ -204,7 +216,7 @@ function SortableRoleRow({
         <span className="role-row__copy">
           <span>
             <strong>{role.name}</strong>
-            <i>{t("rolesOverview.primaryMembers", { count: memberCount })}</i>
+            <i>{memberCount === null ? "—" : t("rolesOverview.primaryMembers", { count: memberCount })}</i>
           </span>
           <small>
             {t("rolesOverview.permissionSummary", {
