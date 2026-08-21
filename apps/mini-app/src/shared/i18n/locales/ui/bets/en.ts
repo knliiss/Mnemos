@@ -3,6 +3,7 @@ export const betsEn = {
     eyebrow: "MNEMOS BETS",
     title: "Bets",
     balance: "Balance",
+    balanceUnavailable: "Balance unavailable for your role",
     modes: {
       EVENTS: "Events",
       MY: "Mine",
