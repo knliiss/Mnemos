@@ -62,12 +62,8 @@ export const accountRolesRu = {
       personalization: "Персонализация",
     },
     permissions: {
-      VIEW_ACCOUNT_SETTINGS: "Просмотр настроек",
-      EDIT_ACCOUNT_SETTINGS: "Редактирование настроек",
       MANAGE_ACCOUNT_INVITES: "Управление инвайтами",
       VIEW_MEMBERS: "Просмотр участников",
-      INVITE_MEMBERS: "Приглашать участников",
-      REMOVE_MEMBERS: "Удалять участников",
       ASSIGN_MEMBER_ROLES: "Назначать роли",
       KICK_MEMBERS: "Кикать участников",
       VIEW_ROLES: "Просмотр ролей",
