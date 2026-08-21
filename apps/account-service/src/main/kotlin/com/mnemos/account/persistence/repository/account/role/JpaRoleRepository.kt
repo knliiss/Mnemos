@@ -16,15 +16,6 @@ interface JpaRoleRepository : JpaRepository<RoleEntity, UUID> {
         accountId: UUID,
     ): RoleEntity?
 
-    @Query(
-        """
-            SELECT MAX(role.hierarchyRank)
-            FROM RoleEntity role
-            WHERE role.accountId = :accountId
-        """,
-    )
-    fun findMaxRank(accountId: UUID): Long?
-
     fun findAllByAccountIdOrderByHierarchyRank(accountId: UUID): List<RoleEntity>
 
     @Query(
