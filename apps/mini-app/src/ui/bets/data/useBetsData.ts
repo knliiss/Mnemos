@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import {
   listEventBetRounds,
   listItemRaces,
-  listMyItemRacePositions,
   type EventBetRoundResponse,
   type ItemRaceParticipantResponse,
   type ItemRaceResponse,
@@ -45,19 +44,22 @@ export function useBetsData(
     setError(false)
 
     try {
-      const [roundResponses, raceResponses, positionResponses] = await Promise.all([
+      const [roundResponses, raceResponses] = await Promise.all([
         listEventBetRounds(),
         listItemRaces(),
-        listMyItemRacePositions(),
       ])
 
       if (revision !== requestRevision.current || accountIdRef.current !== requestedAccountId) {
         return
       }
 
+      const currentPositions = raceResponses.flatMap((race) =>
+        race.participants.filter((participant) => participant.accountId === requestedAccountId),
+      )
+
       setRounds(roundResponses)
       setRaces(raceResponses)
-      setPositions(positionResponses)
+      setPositions(currentPositions)
       setLoadedAccountId(requestedAccountId)
     } catch (error) {
       if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
