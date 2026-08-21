@@ -5,7 +5,6 @@ import com.mnemos.bet.domain.exception.BetNotFoundException
 import com.mnemos.bet.domain.wallet.model.WalletOperation
 import com.mnemos.bet.domain.wallet.model.WalletOperationId
 import com.mnemos.bet.domain.wallet.repository.WalletOperationRepository
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,7 +15,7 @@ class GetBetOperationService(
 ) {
     @Transactional(readOnly = true)
     fun execute(operationId: WalletOperationId): WalletOperation {
-        val account = accountProvider.requireActiveAccount(VIEW_BETS)
+        val account = accountProvider.requireActiveAccount()
         val operation = repository.findById(operationId)
 
         if (operation == null || operation.accountId != account.id) {
