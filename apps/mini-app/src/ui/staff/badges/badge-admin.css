@@ -82,6 +82,10 @@
   gap: 3px;
 }
 
+.badge-admin-screen .staff-form-block .field__label {
+  font-size: 9px;
+}
+
 .badge-admin-screen input {
   box-sizing: border-box;
   width: 100%;
