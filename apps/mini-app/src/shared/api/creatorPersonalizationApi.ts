@@ -114,6 +114,7 @@ export async function createCreatorPersonalization<TType extends Personalization
 ): Promise<PersonalizationResponse> {
   return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${createPaths[type]}`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   })
 }
@@ -127,6 +128,7 @@ export async function updateCreatorPersonalization<TType extends Personalization
     `/api/v1/personalizations/creator/${personalizationId}/${updatePaths[type]}`,
     {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     },
   )
