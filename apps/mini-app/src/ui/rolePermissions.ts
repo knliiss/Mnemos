@@ -48,16 +48,11 @@ export const rolePermissionGroups: {
   },
   {
     key: "bets",
-    permissions: ["VIEW_BETS", "PLACE_BETS", "MANAGE_BETS", "VIEW_BET_HISTORY"],
+    permissions: ["VIEW_BETS", "PLACE_BETS", "VIEW_BET_HISTORY"],
   },
   {
     key: "personalization",
-    permissions: [
-      "VIEW_PERSONALIZATIONS",
-      "APPLY_PERSONALIZATIONS",
-      "BUY_PERSONALIZATIONS",
-      "MANAGE_PERSONALIZATIONS",
-    ],
+    permissions: ["VIEW_PERSONALIZATIONS", "APPLY_PERSONALIZATIONS", "BUY_PERSONALIZATIONS"],
   },
 ]
 
