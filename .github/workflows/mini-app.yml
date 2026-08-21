@@ -2,6 +2,8 @@ name: Mini App Verify
 
 on:
   push:
+    branches:
+      - master
     paths:
       - "apps/mini-app/**"
       - ".github/workflows/mini-app.yml"
