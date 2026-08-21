@@ -40,7 +40,7 @@ class PersonalizationOwnershipSupport(
                     accountAccess.hasPermission(
                         accountId = accountId,
                         userId = userId,
-                        permission = RolePermission.APPLY_PERSONALIZATIONS,
+                        permission = RolePermission.APPLY_ACCOUNT_PERSONALIZATIONS,
                     )
 
                 if (!granted) {
@@ -53,15 +53,7 @@ class PersonalizationOwnershipSupport(
 
     fun resolveReadableAccountId(userId: UserId): AccountId? =
         try {
-            val accountId = accountAccess.requireActiveAccount(userId)
-            val canView =
-                accountAccess.hasPermission(
-                    accountId = accountId,
-                    userId = userId,
-                    permission = RolePermission.VIEW_PERSONALIZATIONS,
-                )
-
-            accountId.takeIf { canView }
+            accountAccess.requireActiveAccount(userId)
         } catch (_: ActiveAccountRequiredException) {
             null
         }
