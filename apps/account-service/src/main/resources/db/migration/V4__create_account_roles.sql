@@ -33,10 +33,6 @@ CREATE TABLE roles
         CHECK (role_color ~ '^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$')
 );
 
-CREATE INDEX idx_roles_account_id
-    ON roles (account_id);
-
-
 CREATE TABLE role_permissions
 (
     role_id    UUID        NOT NULL,
@@ -51,16 +47,15 @@ CREATE TABLE role_permissions
             ON DELETE CASCADE
 );
 
-
 CREATE TABLE role_assignments
 (
-    account_id         UUID        NOT NULL,
-    account_member_id  UUID        NOT NULL,
-    role_id            UUID        NOT NULL,
-    assigned_by_type   VARCHAR(16) NOT NULL,
+    account_id          UUID        NOT NULL,
+    account_member_id   UUID        NOT NULL,
+    role_id             UUID        NOT NULL,
+    assigned_by_type    VARCHAR(16) NOT NULL,
     assigned_by_user_id UUID,
-    assignment_reason  VARCHAR(32) NOT NULL,
-    assigned_at        TIMESTAMPTZ NOT NULL,
+    assignment_reason   VARCHAR(32) NOT NULL,
+    assigned_at         TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT pk_role_assignments
         PRIMARY KEY (account_member_id, role_id),
@@ -83,20 +78,33 @@ CREATE TABLE role_assignments
         CHECK (
             (
                 assigned_by_type = 'USER'
-                    AND assigned_by_user_id IS NOT NULL
-                    AND assignment_reason = 'MANUAL'
-                )
-                OR
+                AND assigned_by_user_id IS NOT NULL
+                AND assignment_reason = 'MANUAL'
+            )
+            OR
             (
                 assigned_by_type = 'SYSTEM'
-                    AND assigned_by_user_id IS NULL
-                    AND assignment_reason = 'BASE_ROLE'
-                )
+                AND assigned_by_user_id IS NULL
+                AND assignment_reason = 'BASE_ROLE'
             )
+        )
 );
+
+ALTER TABLE accounts
+    ADD COLUMN base_role_id UUID,
+    ADD CONSTRAINT fk_accounts_base_role
+        FOREIGN KEY (id, base_role_id)
+            REFERENCES roles (account_id, id);
+
+CREATE INDEX idx_roles_account_id
+    ON roles (account_id);
 
 CREATE INDEX idx_role_assignments_account_id
     ON role_assignments (account_id);
 
 CREATE INDEX idx_role_assignments_role_id
     ON role_assignments (role_id);
+
+CREATE INDEX idx_accounts_base_role_id
+    ON accounts (base_role_id)
+    WHERE base_role_id IS NOT NULL;
