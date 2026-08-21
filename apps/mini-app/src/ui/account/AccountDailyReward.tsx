@@ -146,7 +146,7 @@ export function AccountDailyReward() {
       ) : restricted ? (
         <button
           type="button"
-          className="is-restricted"
+          className="is-restore is-restricted"
           disabled
           aria-label={t("accountHome.rewardUnavailable")}
         >
