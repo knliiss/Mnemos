@@ -2,7 +2,6 @@ import { lazy, Suspense } from "react"
 import "../events/event-surfaces.css"
 import type { Account, Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
-import "./people-wallet.css"
 import { PublicProfilePage } from "./profile/PublicProfilePage"
 import { SearchPage } from "./profile/SearchPage"
 import "./profile/profile-state.css"
@@ -18,7 +17,7 @@ type Props = {
 }
 
 const UserPrimeWallet = lazy(() =>
-  import("./UserPrimeWallet").then((module) => ({
+  import("./wallet/UserPrimeWallet").then((module) => ({
     default: module.UserPrimeWallet,
   })),
 )
