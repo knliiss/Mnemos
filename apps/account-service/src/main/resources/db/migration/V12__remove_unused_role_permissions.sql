@@ -1,0 +1,7 @@
+DELETE FROM role_permissions
+WHERE permission IN (
+    'VIEW_ACCOUNT_SETTINGS',
+    'EDIT_ACCOUNT_SETTINGS',
+    'INVITE_MEMBERS',
+    'REMOVE_MEMBERS'
+);
