@@ -88,7 +88,7 @@ describe("useBetsData", () => {
 
     const refreshAccount = vi.fn().mockResolvedValue(undefined)
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useBetsData(accountId, refreshAccount, true),
+      ({ accountId }: { accountId: string }) => useBetsData(accountId, refreshAccount),
       { initialProps: { accountId: "account-a" } },
     )
 
@@ -125,7 +125,7 @@ describe("useBetsData", () => {
 
     const refreshAccount = vi.fn().mockResolvedValue(undefined)
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useBetsData(accountId, refreshAccount, true),
+      ({ accountId }: { accountId: string }) => useBetsData(accountId, refreshAccount),
       { initialProps: { accountId: "account-a" } },
     )
 
@@ -145,19 +145,19 @@ describe("useBetsData", () => {
     expect(result.current.positions).toEqual([])
   })
 
-  it("does not request bet data when the role cannot view bets", async () => {
+  it("loads bet data for every active account member", async () => {
+    vi.mocked(listEventBetRounds).mockResolvedValue([])
+    vi.mocked(listItemRaces).mockResolvedValue([])
+
     const refreshAccount = vi.fn().mockResolvedValue(undefined)
-    const { result } = renderHook(() => useBetsData("account-a", refreshAccount, false))
+    const { result } = renderHook(() => useBetsData("account-a", refreshAccount))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
     })
 
-    expect(listEventBetRounds).not.toHaveBeenCalled()
-    expect(listItemRaces).not.toHaveBeenCalled()
+    expect(listEventBetRounds).toHaveBeenCalledTimes(1)
+    expect(listItemRaces).toHaveBeenCalledTimes(1)
     expect(result.current.error).toBe(false)
-    expect(result.current.rounds).toEqual([])
-    expect(result.current.races).toEqual([])
-    expect(result.current.positions).toEqual([])
   })
 })

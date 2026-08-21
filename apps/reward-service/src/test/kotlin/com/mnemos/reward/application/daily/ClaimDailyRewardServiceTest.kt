@@ -2,7 +2,6 @@ package com.mnemos.reward.application.daily
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.port.out.RewardRandom
@@ -59,7 +58,7 @@ class ClaimDailyRewardServiceTest {
         assertEquals(1, result.streak)
         assertEquals(60, result.coins)
         assertEquals(1, result.primes)
-        assertEquals(setOf(RolePermission.CLAIM_DAILY_REWARD), accountProvider.requestedPermissions)
+        assertEquals(1, accountProvider.calls)
         assertEquals(
             listOf(
                 Currency.COIN to 60L,
@@ -100,12 +99,10 @@ class ClaimDailyRewardServiceTest {
     private class RecordingActiveAccountProvider(
         private val context: ActiveAccountContext,
     ) : ActiveAccountProvider {
-        val requestedPermissions = mutableSetOf<RolePermission>()
+        var calls = 0
 
-        override fun getActiveAccountContext(): ActiveAccountContext = context
-
-        override fun getActiveAccountContext(permission: RolePermission): ActiveAccountContext {
-            requestedPermissions += permission
+        override fun getActiveAccountContext(): ActiveAccountContext {
+            calls += 1
 
             return context
         }
