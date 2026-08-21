@@ -1,12 +1,8 @@
 import { lazy, Suspense } from "react"
-import "../events/event-surfaces.css"
 import type { Account, Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { PublicProfilePage } from "./profile/PublicProfilePage"
 import { SearchPage } from "./profile/SearchPage"
-import "./profile/profile-state.css"
-import "./profile/public-profile.css"
-import "./profile/search.css"
 
 type Props = {
   routeId: Route["id"]

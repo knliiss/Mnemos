@@ -6,6 +6,7 @@ import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { nicknameStyle, profileSkinUrl } from "./profilePresentation"
+import "./search.css"
 
 type Props = {
   navigate: (route: Route) => void
