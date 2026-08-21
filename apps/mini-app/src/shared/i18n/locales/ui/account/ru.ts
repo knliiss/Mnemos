@@ -58,6 +58,8 @@ export const accountRu = {
     create: "Создать инвайт",
     copy: "Копировать",
     revoke: "Отозвать",
+    unavailableTitle: "Инвайты недоступны",
+    unavailableCopy: "У твоей роли нет разрешения управлять инвайтами этого аккаунта.",
     emptyTitle: "Инвайтов пока нет",
     emptyCopy: "Создай код и передай его участнику.",
     loading: "Загрузка инвайтов",
@@ -75,10 +77,13 @@ export const accountRu = {
   accountWallet: {
     title: "Кошелёк",
     balance: "Баланс аккаунта",
+    balanceUnavailable: "Баланс недоступен для твоей роли",
     earned: "Получено",
     spent: "Потрачено",
     movement: "ДВИЖЕНИЕ COIN",
     history: "История",
+    historyUnavailableTitle: "История недоступна",
+    historyUnavailableCopy: "У твоей роли нет доступа к истории транзакций аккаунта.",
     emptyTitle: "Транзакций пока нет",
     emptyCopy: "Начисления и расходы COIN появятся здесь.",
     sort: {
