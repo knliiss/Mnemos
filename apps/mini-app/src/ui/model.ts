@@ -31,12 +31,8 @@ export type PersonalizationStatus =
 export type EffectType = "AURORA" | "PULSE" | "SHIMMER" | "PARTICLES"
 export type NotificationTemplateKey = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAID" | "GLOBAL"
 export type RolePermission =
-  | "VIEW_ACCOUNT_SETTINGS"
-  | "EDIT_ACCOUNT_SETTINGS"
   | "MANAGE_ACCOUNT_INVITES"
   | "VIEW_MEMBERS"
-  | "INVITE_MEMBERS"
-  | "REMOVE_MEMBERS"
   | "ASSIGN_MEMBER_ROLES"
   | "KICK_MEMBERS"
   | "VIEW_ROLES"
