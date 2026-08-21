@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./account-onboarding.css"
 
 type OnboardingMode = "create" | "join"
 
