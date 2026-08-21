@@ -12,6 +12,7 @@ import type {
   FeedEvent,
   LocalizationLanguage,
   Member,
+  RolePermission,
   Subscription,
   SystemRole,
 } from "../model"
@@ -42,6 +43,7 @@ type MnemosDataState = {
   accountError: boolean
   loadingEvents: boolean
   eventsError: boolean
+  hasPermission(permission: RolePermission): boolean
   refreshAccount(): Promise<void>
   refreshEvents(query?: EventFeedQuery): Promise<void>
   loadMoreEvents(query?: EventFeedQuery): Promise<void>
@@ -62,6 +64,14 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
   const app = useApp()
   const context = app.context
   const activeAccountId = context?.activeAccount?.id
+  const permissionSet = useMemo(
+    () => new Set<RolePermission>(context?.effectivePermissions ?? []),
+    [context?.effectivePermissions],
+  )
+  const hasPermission = useCallback(
+    (permission: RolePermission) => permissionSet.has(permission),
+    [permissionSet],
+  )
 
   const {
     members,
@@ -74,7 +84,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
     refreshAccount,
     claimReward,
     restoreReward,
-  } = useAccountData(activeAccountId)
+  } = useAccountData(activeAccountId, permissionSet.has("VIEW_WALLET"))
 
   const {
     feed,
@@ -192,6 +202,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
       accountError,
       loadingEvents,
       eventsError,
+      hasPermission,
       refreshAccount,
       refreshEvents,
       loadMoreEvents,
@@ -222,6 +233,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
       accountError,
       loadingEvents,
       eventsError,
+      hasPermission,
       refreshAccount,
       refreshEvents,
       loadMoreEvents,
