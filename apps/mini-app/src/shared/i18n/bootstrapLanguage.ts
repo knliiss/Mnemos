@@ -1,8 +1,8 @@
 export type BootstrapLanguage = "en" | "ru" | "uk"
 
 export function resolveBootstrapLanguage(
-  telegramLanguage = window.Telegram?.WebApp.initDataUnsafe?.user?.language_code,
-  browserLanguage = typeof navigator !== "undefined" ? navigator.language : undefined,
+  telegramLanguage = resolveTelegramLanguage(),
+  browserLanguage = resolveBrowserLanguage(),
 ): BootstrapLanguage {
   return normalizeLanguage(telegramLanguage) ?? normalizeLanguage(browserLanguage) ?? "ru"
 }
@@ -27,4 +27,20 @@ export function normalizeLanguage(language?: string): BootstrapLanguage | null {
   }
 
   return null
+}
+
+function resolveTelegramLanguage(): string | undefined {
+  if (typeof window === "undefined") {
+    return undefined
+  }
+
+  return window.Telegram?.WebApp.initDataUnsafe?.user?.language_code
+}
+
+function resolveBrowserLanguage(): string | undefined {
+  if (typeof navigator === "undefined") {
+    return undefined
+  }
+
+  return navigator.language
 }
