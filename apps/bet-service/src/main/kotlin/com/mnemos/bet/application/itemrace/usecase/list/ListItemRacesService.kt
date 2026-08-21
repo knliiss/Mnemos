@@ -3,7 +3,6 @@ package com.mnemos.bet.application.itemrace.usecase.list
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.itemrace.model.ItemRaceView
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +13,7 @@ class ListItemRacesService(
     private val accountProvider: AccountProvider,
 ) : ListItemRacesUseCase {
     override fun execute(): List<ItemRaceView> {
-        accountProvider.requireActiveAccount(VIEW_BETS)
+        accountProvider.requireActiveAccount()
 
         return reader.findCurrent()
     }
