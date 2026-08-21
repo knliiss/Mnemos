@@ -31,6 +31,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const data = useMnemosData()
   const activeAccount = data.activeAccount
   const contextAccount = app.context?.activeAccount ?? null
+  const canViewWallet = data.hasPermission("VIEW_WALLET")
   const availableRoles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -223,7 +224,11 @@ export function AccountSettings({ navigate, back }: Props) {
           </span>
           <span>
             <small>{t("accountSettings.balance")}</small>
-            <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
+            {canViewWallet ? (
+              <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
+            ) : (
+              <strong title={t("accountWallet.balanceUnavailable")}>—</strong>
+            )}
           </span>
         </div>
       </section>
