@@ -29,6 +29,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const canViewWallet = data.hasPermission("VIEW_WALLET")
   const canViewMembers = data.hasPermission("VIEW_MEMBERS")
   const canViewRoles = data.hasPermission("VIEW_ROLES")
+  const canAssignRoles = data.hasPermission("ASSIGN_MEMBER_ROLES")
+  const canKickMembers = data.hasPermission("KICK_MEMBERS")
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !showingMemberDetail)
 
   if (!activeAccount) {
@@ -42,6 +44,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         roles={data.roles}
         accountId={activeAccount.id}
         canViewRoles={canViewRoles}
+        canAssignRoles={canAssignRoles}
+        canKickMembers={canKickMembers}
         refresh={data.refreshAccount}
         back={back}
       />
