@@ -18,15 +18,6 @@ interface JpaRoleRepository : JpaRepository<RoleEntity, UUID> {
 
     @Query(
         """
-            SELECT COALESCE(MIN(role.hierarchyRank))
-            FROM RoleEntity role
-            WHERE role.accountId = :accountId
-        """,
-    )
-    fun findMinRank(accountId: UUID): Long?
-
-    @Query(
-        """
             SELECT COALESCE(MAX(role.hierarchyRank))
             FROM RoleEntity role
             WHERE role.accountId = :accountId
@@ -38,7 +29,7 @@ interface JpaRoleRepository : JpaRepository<RoleEntity, UUID> {
 
     @Query(
         """
-            SELECT role 
+            SELECT role
             FROM RoleEntity role
             WHERE role.accountId = :accountId
                 AND EXISTS(
