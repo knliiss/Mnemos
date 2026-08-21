@@ -20,6 +20,8 @@ type AccountMemberManagementProps = {
   roles: AccountRole[]
   accountId: string
   canViewRoles: boolean
+  canAssignRoles: boolean
+  canKickMembers: boolean
   refresh(): Promise<void>
   back(): void
 }
@@ -29,6 +31,8 @@ export function AccountMemberManagement({
   roles,
   accountId,
   canViewRoles,
+  canAssignRoles,
+  canKickMembers,
   refresh,
   back,
 }: AccountMemberManagementProps) {
@@ -41,6 +45,7 @@ export function AccountMemberManagement({
   const kickBusyScopeRef = useRef<string | null>(null)
   const scope = `${accountId}:${member.id}`
   const scopeRef = useRef(scope)
+  const accessMessage = t("errorNotifications.tones.access.message")
 
   const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
@@ -79,7 +84,12 @@ export function AccountMemberManagement({
   const kickBusy = kickBusyScope === scope
 
   const toggleRole = async (role: AccountRole) => {
-    if (!canViewRoles || member.owner || busyRoleRef.current?.scope === scope) {
+    if (
+      !canViewRoles ||
+      !canAssignRoles ||
+      member.owner ||
+      busyRoleRef.current?.scope === scope
+    ) {
       return
     }
 
@@ -116,7 +126,7 @@ export function AccountMemberManagement({
   }
 
   const kickMember = async () => {
-    if (member.owner || kickBusyScopeRef.current === scope) {
+    if (!canKickMembers || member.owner || kickBusyScopeRef.current === scope) {
       return
     }
 
@@ -177,7 +187,7 @@ export function AccountMemberManagement({
           {canViewRoles ? (
             roles.map((role) => {
               const assigned = visibleRoleIds.includes(role.id)
-              const locked = member.owner
+              const locked = member.owner || !canAssignRoles
 
               return (
                 <motion.button
@@ -185,6 +195,7 @@ export function AccountMemberManagement({
                   key={role.id}
                   className={assigned ? "is-active" : ""}
                   disabled={locked || busyRoleId !== null}
+                  title={!canAssignRoles ? accessMessage : undefined}
                   whileTap={locked ? undefined : { scale: 0.985 }}
                   onClick={() => void toggleRole(role)}
                 >
@@ -206,9 +217,7 @@ export function AccountMemberManagement({
               )
             })
           ) : (
-            <p className="inline-hint inline-hint--left">
-              {t("errorNotifications.tones.access.message")}
-            </p>
+            <p className="inline-hint inline-hint--left">{accessMessage}</p>
           )}
         </div>
       </section>
@@ -224,7 +233,12 @@ export function AccountMemberManagement({
             <small>{t("accountMember.removeCopy")}</small>
           </span>
 
-          <button type="button" disabled={kickBusy} onClick={() => void kickMember()}>
+          <button
+            type="button"
+            disabled={kickBusy || !canKickMembers}
+            title={!canKickMembers ? accessMessage : undefined}
+            onClick={() => void kickMember()}
+          >
             {kickBusy ? "…" : t("accountMember.kick")}
           </button>
         </section>
