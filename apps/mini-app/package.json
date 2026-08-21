@@ -13,7 +13,7 @@
     "test": "vitest run",
     "audit": "npm audit --audit-level=high",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{js,json,ts,html}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{js,json,ts,html}\"",
+    "format:check": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{js,json,ts,html}\" && git diff --exit-code",
     "verify": "npm run audit && npm run lint && npm run format:check && npm test && npm run build"
   },
   "dependencies": {
@@ -32,7 +32,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.4",
     "eslint": "10.7.0",
-    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-hooks": "6.2.0",
     "eslint-plugin-react-refresh": "0.5.3",
     "globals": "17.7.0",
     "jsdom": "29.1.1",
