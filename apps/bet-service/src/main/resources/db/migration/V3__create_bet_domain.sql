@@ -1,12 +1,3 @@
-DROP TABLE IF EXISTS wallet_operations CASCADE;
-DROP TABLE IF EXISTS event_bet_round_resolutions CASCADE;
-DROP TABLE IF EXISTS event_bets CASCADE;
-DROP TABLE IF EXISTS event_bet_rounds CASCADE;
-DROP TABLE IF EXISTS item_race_participants CASCADE;
-DROP TABLE IF EXISTS item_races CASCADE;
-DROP TABLE IF EXISTS drop_candidates CASCADE;
-DROP TABLE IF EXISTS global_occurrences CASCADE;
-
 CREATE TABLE event_bet_rounds
 (
     id UUID PRIMARY KEY,
@@ -162,6 +153,9 @@ CREATE TABLE wallet_operations
     id UUID PRIMARY KEY,
     request_id UUID NOT NULL UNIQUE,
     account_id UUID NOT NULL,
+    initiated_by_user_id UUID,
+    request_type VARCHAR(32),
+    idempotency_key UUID,
     amount BIGINT NOT NULL,
     kind VARCHAR(16) NOT NULL,
     event_bet_id UUID REFERENCES event_bets (id),
@@ -185,6 +179,18 @@ CREATE TABLE wallet_operations
             (event_bet_id IS NULL AND race_participant_id IS NOT NULL)
         )
 );
+
+CREATE UNIQUE INDEX uq_wallet_operations_idempotency_key
+    ON wallet_operations (idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+
+CREATE INDEX idx_wallet_operations_request_type
+    ON wallet_operations (request_type)
+    WHERE request_type IS NOT NULL;
+
+CREATE INDEX idx_wallet_operations_initiator
+    ON wallet_operations (initiated_by_user_id, created_at DESC)
+    WHERE initiated_by_user_id IS NOT NULL;
 
 CREATE UNIQUE INDEX uq_wallet_event_bet_credit
     ON wallet_operations (event_bet_id, kind)
