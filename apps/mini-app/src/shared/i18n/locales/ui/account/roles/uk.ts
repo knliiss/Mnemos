@@ -61,12 +61,8 @@ export const accountRolesUk = {
       personalization: "Персоналізація",
     },
     permissions: {
-      VIEW_ACCOUNT_SETTINGS: "Перегляд налаштувань",
-      EDIT_ACCOUNT_SETTINGS: "Редагування налаштувань",
       MANAGE_ACCOUNT_INVITES: "Керування інвайтами",
       VIEW_MEMBERS: "Перегляд учасників",
-      INVITE_MEMBERS: "Запрошувати учасників",
-      REMOVE_MEMBERS: "Видаляти учасників",
       ASSIGN_MEMBER_ROLES: "Призначати ролі",
       KICK_MEMBERS: "Кікати учасників",
       VIEW_ROLES: "Перегляд ролей",
