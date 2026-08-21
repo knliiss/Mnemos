@@ -1,0 +1,67 @@
+import { motion } from "framer-motion"
+import { useTranslation } from "react-i18next"
+import { EventArt } from "../../components/events/EventArt"
+import { eventVisualTone } from "../../eventVisualTone"
+import type { FeedEvent, Route } from "../../model"
+import { formatOccurredAt } from "../../timePresentation"
+
+type AccountDropsPanelProps = {
+  drops: FeedEvent[]
+  locale: string
+  navigate: (route: Route) => void
+}
+
+export function AccountDropsPanel({ drops, locale, navigate }: AccountDropsPanelProps) {
+  const { t } = useTranslation()
+
+  return (
+    <section className="account-home-panel account-home-drops">
+      <header className="account-home-panel__head account-home-drops__head">
+        <span className="account-home-drops__title-icon">
+          <img src="/ui-icons/drop-stack.svg" alt="" aria-hidden="true" />
+        </span>
+        <span>
+          <small>{t("accountHome.activity")}</small>
+          <strong>{t("accountHome.latestDrops")}</strong>
+        </span>
+        <img
+          className="account-home-drops__activity-art"
+          src="/ui-illustrations/account-activity.svg"
+          alt=""
+          aria-hidden="true"
+        />
+      </header>
+
+      <div className="account-home-drop-list">
+        {drops.length ? (
+          drops.map((drop) => {
+            const tone = eventVisualTone(drop)
+
+            return (
+              <motion.button
+                type="button"
+                className={`account-home-drop event-surface--${tone}`}
+                key={drop.id}
+                whileTap={{ scale: 0.992 }}
+                onClick={() => navigate({ id: "event-detail", params: { eventId: drop.id } })}
+              >
+                <EventArt event={drop} size={42} />
+                <span className="account-home-drop__copy">
+                  <strong>{drop.title}</strong>
+                  <small>
+                    {drop.rarity
+                      ? t(`events.rarities.${drop.rarity}`, { defaultValue: drop.rarity })
+                      : drop.meta}
+                  </small>
+                </span>
+                <time>{formatOccurredAt(drop.occurredAt, locale)}</time>
+              </motion.button>
+            )
+          })
+        ) : (
+          <p className="inline-hint inline-hint--left">{t("accountHome.noDrops")}</p>
+        )}
+      </div>
+    </section>
+  )
+}
