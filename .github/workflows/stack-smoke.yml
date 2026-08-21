@@ -1,0 +1,165 @@
+name: Stack Smoke
+
+on:
+  pull_request:
+    paths:
+      - "apps/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "keycloak-extensions/**"
+      - "infrastructure/compose/**"
+      - "infrastructure/kafka/**"
+      - "infrastructure/keycloak/**"
+      - "scripts/generate-kafka-message-keys.sh"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle/**"
+      - ".github/ci/compose-isolation.override.yml"
+      - ".github/workflows/stack-smoke.yml"
+
+concurrency:
+  group: stack-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Prepare isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .env.example .env.ci
+
+          set_env() {
+            local key="$1"
+            local value="$2"
+
+            sed -i "s|^${key}=.*|${key}=${value}|" .env.ci
+          }
+
+          port_base=$((40000 + GITHUB_RUN_ID % 10000))
+
+          set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
+          set_env APP_POSTGRES_HOST_PORT "$port_base"
+          set_env KEYCLOAK_POSTGRES_HOST_PORT "$((port_base + 1))"
+          set_env KEYCLOAK_HOST_PORT "$((port_base + 2))"
+          set_env KAFKA_HOST_PORT "$((port_base + 3))"
+          set_env REDIS_HOST_PORT "$((port_base + 4))"
+          set_env GATEWAY_HOST_PORT "$((port_base + 5))"
+
+          set_env MNEMOS_FRONTEND_ORIGIN "http://127.0.0.1:$((port_base + 6))"
+          set_env MNEMOS_API_ORIGIN "http://127.0.0.1:$((port_base + 5))"
+          set_env MNEMOS_AUTH_ORIGIN "http://127.0.0.1:$((port_base + 2))"
+          set_env MNEMOS_TELEGRAM_BOT_TOKEN "ci-not-used"
+          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_TOKEN "ci-not-used"
+          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY "ci-not-used"
+
+          scripts/generate-kafka-message-keys.sh .env.ci
+
+          for key in \
+            SOCIAL_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            PROFILE_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS; do
+            if ! grep -Eq "^${key}=.+" .env.ci; then
+              echo "Generated environment is missing ${key}" >&2
+              exit 1
+            fi
+          done
+
+          compose_command="docker compose --env-file .env.ci"
+
+          for file in infrastructure/compose/compose.*.yml infrastructure/compose/apps/compose.*.yml; do
+            compose_command+=" -f ${file}"
+          done
+
+          compose_command+=" -f .github/ci/compose-isolation.override.yml"
+          echo "CI_COMPOSE_COMMAND=${compose_command}" >> "$GITHUB_ENV"
+
+      - name: Validate Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          $CI_COMPOSE_COMMAND config --quiet
+
+      - name: Build stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" build
+
+      - name: Start clean stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          STARTUP_CHECK_DELAY=45 make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
+          sleep 20
+          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
+
+      - name: Verify Flyway schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          schemas=(
+            account
+            bet
+            event
+            moderation
+            notification
+            personalization
+            profile
+            realtime
+            reward
+            social
+            wallet
+          )
+
+          for schema in "${schemas[@]}"; do
+            migrations="$($CI_COMPOSE_COMMAND exec -T app-postgres \
+              psql \
+              --username mnemos \
+              --dbname mnemos \
+              --tuples-only \
+              --no-align \
+              --command "SELECT COUNT(*) FROM ${schema}.flyway_schema_history WHERE success = true;")"
+
+            migrations="$(echo "$migrations" | tr -d '[:space:]')"
+
+            if [ -z "$migrations" ] || [ "$migrations" -lt 1 ]; then
+              echo "No successful Flyway migrations found for schema ${schema}" >&2
+              exit 1
+            fi
+
+            echo "${schema}: ${migrations} migrations"
+          done
+
+      - name: Cleanup isolated stack
+        if: always()
+        shell: bash
+        run: |
+          set +e
+
+          if [ -n "${CI_COMPOSE_COMMAND:-}" ]; then
+            $CI_COMPOSE_COMMAND down --volumes --remove-orphans
+          fi
+
+          rm -f .env.ci
