@@ -45,11 +45,10 @@ type ScopedSelection = {
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
-  const canViewBets = data.hasPermission("VIEW_BETS")
+  const canPlaceBets = data.hasPermission("PLACE_BETS")
   const { rounds, races, positions, loading, error, refresh } = useBetsData(
     activeAccount.id,
     data.refreshAccount,
-    canViewBets,
   )
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
@@ -59,7 +58,6 @@ export function Bets({ activeAccount, navigate }: Props) {
   const [busy, setBusy] = useState(false)
   const submitLocked = useRef(false)
   const locale = betLocale(i18n.resolvedLanguage)
-  const canViewWallet = data.hasPermission("VIEW_WALLET")
 
   const positionsByRace = useMemo(
     () => new Map(positions.map((position) => [position.raceId, position])),
@@ -82,16 +80,17 @@ export function Bets({ activeAccount, navigate }: Props) {
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
   const numericAmount = Number(amount)
   const selectedHasBet = Boolean(selectedRoundValue?.myBet)
-  const withinVisibleBalance = !canViewWallet || numericAmount <= activeAccount.coin
+  const withinBalance = numericAmount <= activeAccount.coin
   const roundAmountValid =
+    canPlaceBets &&
     Number.isInteger(numericAmount) &&
     numericAmount >= (selectedHasBet ? 1 : 100) &&
-    withinVisibleBalance &&
+    withinBalance &&
     (selectedHasBet || numericAmount <= 5_000)
   const raceAmountValid =
-    Number.isInteger(numericAmount) && numericAmount > 0 && withinVisibleBalance
+    canPlaceBets && Number.isInteger(numericAmount) && numericAmount > 0 && withinBalance
   const raceJoinValid = Boolean(
-    selectedRaceValue && (!canViewWallet || selectedRaceValue.entryAmount <= activeAccount.coin),
+    canPlaceBets && selectedRaceValue && selectedRaceValue.entryAmount <= activeAccount.coin,
   )
 
   const openRound = (round: EventBetRoundResponse) => {
@@ -193,11 +192,7 @@ export function Bets({ activeAccount, navigate }: Props) {
           onClick={() => navigate({ id: "account-wallet" })}
         >
           <span className="bets-wallet__label">{t("bets.balance")}</span>
-          {canViewWallet ? (
-            <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
-          ) : (
-            <strong title={t("bets.balanceUnavailable")}>—</strong>
-          )}
+          <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
         </button>
       </header>
 
@@ -219,15 +214,7 @@ export function Bets({ activeAccount, navigate }: Props) {
 
       {loading ? <FeatureLoading label={t("bets.loading")} /> : null}
 
-      {!loading && !canViewBets ? (
-        <div className="bets-empty">
-          <CurrencyMark currency="COIN" size={20} />
-          <strong>{t("errorNotifications.tones.access.title")}</strong>
-          <small>{t("errorNotifications.tones.access.message")}</small>
-        </div>
-      ) : null}
-
-      {!loading && canViewBets && error ? (
+      {!loading && error ? (
         <div className="bets-empty">
           <CurrencyMark currency="COIN" size={20} />
           <strong>{t("bets.error.title")}</strong>
@@ -238,7 +225,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </div>
       ) : null}
 
-      {!loading && canViewBets && !error && mode === "EVENTS" ? (
+      {!loading && !error && mode === "EVENTS" ? (
         <>
           {featured ? (
             <motion.button
@@ -313,7 +300,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </>
       ) : null}
 
-      {!loading && canViewBets && !error && mode === "MY" ? (
+      {!loading && !error && mode === "MY" ? (
         <section className="bets-rounds">
           {myRounds.map((round) => (
             <BetRoundCard
@@ -342,7 +329,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </section>
       ) : null}
 
-      {!loading && canViewBets && !error && mode === "RACES" ? (
+      {!loading && !error && mode === "RACES" ? (
         <section className="bets-races">
           {races.map((race) => (
             <BetRaceCard

@@ -31,8 +31,6 @@ export function AccountSettings({ navigate, back }: Props) {
   const data = useMnemosData()
   const activeAccount = data.activeAccount
   const contextAccount = app.context?.activeAccount ?? null
-  const canViewWallet = data.hasPermission("VIEW_WALLET")
-  const canViewRoles = data.hasPermission("VIEW_ROLES")
   const canManageBaseRole = data.hasPermission("MANAGE_BASE_ROLE")
   const availableRoles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
@@ -74,12 +72,11 @@ export function AccountSettings({ navigate, back }: Props) {
   const transferTarget =
     transferableMembers.find((member) => member.id === selectedTransferId) ?? null
   const roleChanged = baseRoleId !== savedRoleId
-  const canEditBaseRole = canViewRoles && canManageBaseRole
 
   const saveBaseRole = async () => {
     const requestedAccountId = activeAccount.id
 
-    if (!canEditBaseRole || actionScopeRef.current || !roleChanged) {
+    if (!canManageBaseRole || actionScopeRef.current || !roleChanged) {
       return
     }
 
@@ -100,6 +97,7 @@ export function AccountSettings({ navigate, back }: Props) {
     } finally {
       if (actionScopeRef.current === requestedAccountId) {
         actionScopeRef.current = null
+
         if (mountedRef.current && accountIdRef.current === requestedAccountId) {
           setBusy(false)
         }
@@ -132,6 +130,7 @@ export function AccountSettings({ navigate, back }: Props) {
     } finally {
       if (actionScopeRef.current === requestedAccountId) {
         actionScopeRef.current = null
+
         if (mountedRef.current && accountIdRef.current === requestedAccountId) {
           setBusy(false)
         }
@@ -163,6 +162,7 @@ export function AccountSettings({ navigate, back }: Props) {
     } finally {
       if (actionScopeRef.current === requestedAccountId) {
         actionScopeRef.current = null
+
         if (mountedRef.current && accountIdRef.current === requestedAccountId) {
           setBusy(false)
         }
@@ -193,6 +193,7 @@ export function AccountSettings({ navigate, back }: Props) {
     } finally {
       if (actionScopeRef.current === requestedAccountId) {
         actionScopeRef.current = null
+
         if (mountedRef.current && accountIdRef.current === requestedAccountId) {
           setBusy(false)
         }
@@ -227,11 +228,7 @@ export function AccountSettings({ navigate, back }: Props) {
           </span>
           <span>
             <small>{t("accountSettings.balance")}</small>
-            {canViewWallet ? (
-              <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
-            ) : (
-              <strong title={t("accountWallet.balanceUnavailable")}>—</strong>
-            )}
+            <CurrencyValue currency="COIN" value={activeAccount.coin} compact />
           </span>
         </div>
       </section>
@@ -282,8 +279,8 @@ export function AccountSettings({ navigate, back }: Props) {
         baseRoleId={baseRoleId}
         savedRoleId={savedRoleId}
         busy={busy}
-        readable={canViewRoles}
-        editable={canEditBaseRole}
+        readable
+        editable={canManageBaseRole}
         onBaseRoleChange={setBaseRoleId}
         onSave={() => void saveBaseRole()}
       />

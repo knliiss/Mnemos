@@ -196,7 +196,7 @@ export function RaceBetSheet({
         <button
           type="button"
           className="bets-submit"
-          disabled={busy || race.status !== "REGISTRATION" || (Boolean(position) && !amountValid)}
+          disabled={busy || race.status !== "REGISTRATION" || !amountValid}
           onClick={onSubmit}
         >
           {busy

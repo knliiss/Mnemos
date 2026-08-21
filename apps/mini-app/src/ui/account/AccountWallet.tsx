@@ -18,7 +18,6 @@ export function AccountWallet({ back }: { back: () => void }) {
   const data = useMnemosData()
   const activeAccount = data.activeAccount
   const activeAccountId = activeAccount?.id
-  const canViewBalance = data.hasPermission("VIEW_WALLET")
   const canViewHistory = data.hasPermission("VIEW_TRANSACTION_HISTORY")
   const [transactions, setTransactions] = useState<WalletTransactionResponse[]>([])
   const [historySort, setHistorySort] = useState<HistorySort>("NEWEST")
@@ -78,8 +77,7 @@ export function AccountWallet({ back }: { back: () => void }) {
     () => (loadedAccountId === activeAccountId ? transactions : []),
     [activeAccountId, loadedAccountId, transactions],
   )
-  const visibleLoading =
-    canViewHistory && (loading || loadedAccountId !== activeAccountId)
+  const visibleLoading = canViewHistory && (loading || loadedAccountId !== activeAccountId)
 
   const totalEarned = useMemo(
     () =>
@@ -107,6 +105,7 @@ export function AccountWallet({ back }: { back: () => void }) {
         if (historySort === "AMOUNT_DESC") {
           return right.amount - left.amount
         }
+
         if (historySort === "AMOUNT_ASC") {
           return left.amount - right.amount
         }
@@ -128,6 +127,7 @@ export function AccountWallet({ back }: { back: () => void }) {
   const sortLabel = (sort: HistorySort) => t(`accountWallet.sort.${sort}`)
   const formatTransactionDate = (value: string) => {
     const date = new Date(value)
+
     if (Number.isNaN(date.getTime())) {
       return value
     }
@@ -155,11 +155,9 @@ export function AccountWallet({ back }: { back: () => void }) {
             <strong>COIN</strong>
           </span>
           <strong className="coin-wallet-hero__value">
-            {canViewBalance ? activeAccount.coin.toLocaleString(locale) : "—"}
+            {activeAccount.coin.toLocaleString(locale)}
           </strong>
-          <small>
-            {canViewBalance ? t("accountWallet.balance") : t("accountWallet.balanceUnavailable")}
-          </small>
+          <small>{t("accountWallet.balance")}</small>
         </div>
 
         <img
@@ -297,8 +295,10 @@ function localeForLanguage(language?: string) {
   if (language === "en") {
     return "en-US"
   }
+
   if (language === "ru") {
     return "ru-RU"
   }
+
   return "uk-UA"
 }

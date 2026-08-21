@@ -21,12 +21,11 @@ type BetsData = {
 export function useBetsData(
   activeAccountId: string,
   refreshAccount: () => Promise<void>,
-  canViewBets: boolean,
 ): BetsData {
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [positions, setPositions] = useState<ItemRaceParticipantResponse[]>([])
-  const [loading, setLoading] = useState(canViewBets)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
   const requestRevision = useRef(0)
@@ -42,16 +41,6 @@ export function useBetsData(
 
     requestRevision.current = revision
     setError(false)
-
-    if (!canViewBets) {
-      setRounds([])
-      setRaces([])
-      setPositions([])
-      setLoadedAccountId(requestedAccountId)
-      setLoading(false)
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -86,7 +75,7 @@ export function useBetsData(
         setLoading(false)
       }
     }
-  }, [activeAccountId, canViewBets])
+  }, [activeAccountId])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
