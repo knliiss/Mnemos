@@ -1,6 +1,5 @@
 package com.mnemos.social.application.accountreaction.usecase.remove
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
@@ -21,7 +20,7 @@ class RemoveAccountReactionService(
 ) : RemoveAccountReactionUseCase {
     @Transactional
     override fun execute(targetAccountId: UUID) {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+        val actor = actorProvider.requireActor()
 
         if (!accountAccessPort.isActiveAccount(targetAccountId)) {
             throw SocialAccountNotFoundException(targetAccountId)
