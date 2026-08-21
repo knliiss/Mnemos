@@ -20,7 +20,7 @@ type AccountData = {
   restoreReward(): Promise<void>
 }
 
-export function useAccountData(accountId: string | undefined): AccountData {
+export function useAccountData(accountId: string | undefined, canViewWallet: boolean): AccountData {
   const [members, setMembers] = useState<Member[]>([])
   const [roles, setRoles] = useState<AccountRole[]>([])
   const [dailyReward, setDailyReward] = useState<DailyRewardStateResponse | null>(null)
@@ -65,11 +65,15 @@ export function useAccountData(accountId: string | undefined): AccountData {
         return
       }
 
+      const accountBalancesPromise = canViewWallet
+        ? getAccountBalances(requestedAccountId)
+        : Promise.resolve([])
+
       const [memberResponses, roleResponses, balances, rewardState, userBalances] =
         await Promise.all([
           getAccountMembers(requestedAccountId),
           getAccountRoles(requestedAccountId),
-          getAccountBalances(requestedAccountId),
+          accountBalancesPromise,
           getDailyRewardState(),
           userBalancesPromise,
         ])
@@ -99,7 +103,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
         setLoadingAccount(false)
       }
     }
-  }, [accountId])
+  }, [accountId, canViewWallet])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
