@@ -84,12 +84,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
     refreshAccount,
     claimReward,
     restoreReward,
-  } = useAccountData(
-    activeAccountId,
-    permissionSet.has("VIEW_WALLET"),
-    permissionSet.has("VIEW_MEMBERS"),
-    permissionSet.has("VIEW_ROLES"),
-  )
+  } = useAccountData(activeAccountId)
 
   const {
     feed,

@@ -42,15 +42,13 @@ export function RoleEditor({ params, navigate, back }: Props) {
   const { t } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
-  const canViewRoles = data.hasPermission("VIEW_ROLES")
-  const canCreateRole = data.hasPermission("CREATE_ROLES")
+  const canManageRoles = data.hasPermission("MANAGE_ROLES")
+  const canCreateRole = canManageRoles
   const existing = data.roles.find((role) => role.id === params?.roleId) ?? null
   const isNew = params?.roleId === "new"
-  const canEditDetails = isNew ? canCreateRole : data.hasPermission("EDIT_ROLE_DETAILS")
-  const canEditPermissions = isNew
-    ? canCreateRole
-    : data.hasPermission("EDIT_ROLE_PERMISSIONS")
-  const canDeleteRole = data.hasPermission("DELETE_ROLES")
+  const canEditDetails = canManageRoles
+  const canEditPermissions = canManageRoles
+  const canDeleteRole = canManageRoles
   const accessMessage = t("errorNotifications.tones.access.message")
   const initialPermissions = existing
     ? { ...emptyPermissions(), ...existing.permissions }
@@ -237,19 +235,6 @@ export function RoleEditor({ params, navigate, back }: Props) {
         setBusy(false)
       }
     }
-  }
-
-  if (!isNew && !canViewRoles) {
-    return (
-      <div className="screen role-editor-screen">
-        <PageHeader title={t("roleEditor.role")} back={back} />
-        <FeatureEmpty
-          icon="roles"
-          title={t("errorNotifications.tones.access.title")}
-          copy={accessMessage}
-        />
-      </div>
-    )
   }
 
   if (!isNew && !existing && !data.loadingAccount) {

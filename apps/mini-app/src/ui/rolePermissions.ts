@@ -1,7 +1,6 @@
 import type { RolePermission } from "./model"
 
 export type PermissionGroupKey =
-  | "account"
   | "members"
   | "roles"
   | "wallet"
@@ -14,45 +13,28 @@ export const rolePermissionGroups: {
   permissions: RolePermission[]
 }[] = [
   {
-    key: "account",
-    permissions: ["MANAGE_ACCOUNT_INVITES"],
-  },
-  {
     key: "members",
-    permissions: ["VIEW_MEMBERS", "ASSIGN_MEMBER_ROLES", "KICK_MEMBERS"],
+    permissions: ["MANAGE_MEMBERS", "ASSIGN_MEMBER_ROLES"],
   },
   {
     key: "roles",
-    permissions: [
-      "VIEW_ROLES",
-      "CREATE_ROLES",
-      "EDIT_ROLE_DETAILS",
-      "EDIT_ROLE_PERMISSIONS",
-      "DELETE_ROLES",
-      "MANAGE_ROLE_HIERARCHY",
-      "MANAGE_BASE_ROLE",
-    ],
+    permissions: ["MANAGE_ROLES", "MANAGE_ROLE_HIERARCHY", "MANAGE_BASE_ROLE"],
   },
   {
     key: "wallet",
-    permissions: ["VIEW_WALLET", "VIEW_TRANSACTION_HISTORY", "SPEND_WALLET_FUNDS"],
+    permissions: ["VIEW_TRANSACTION_HISTORY"],
   },
   {
     key: "activity",
-    permissions: [
-      "CLAIM_DAILY_REWARD",
-      "PUBLISH_COMMENTS",
-      "PUBLISH_REACTIONS",
-      "MODERATE_COMMENTS",
-    ],
+    permissions: ["MODERATE_COMMENTS"],
   },
   {
     key: "bets",
-    permissions: ["VIEW_BETS", "PLACE_BETS", "VIEW_BET_HISTORY"],
+    permissions: ["PLACE_BETS"],
   },
   {
     key: "personalization",
-    permissions: ["VIEW_PERSONALIZATIONS", "APPLY_PERSONALIZATIONS", "BUY_PERSONALIZATIONS"],
+    permissions: ["BUY_ACCOUNT_PERSONALIZATIONS", "APPLY_ACCOUNT_PERSONALIZATIONS"],
   },
 ]
 

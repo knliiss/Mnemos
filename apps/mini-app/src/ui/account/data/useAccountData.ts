@@ -20,12 +20,7 @@ type AccountData = {
   restoreReward(): Promise<void>
 }
 
-export function useAccountData(
-  accountId: string | undefined,
-  canViewWallet: boolean,
-  canViewMembers: boolean,
-  canViewRoles: boolean,
-): AccountData {
+export function useAccountData(accountId: string | undefined): AccountData {
   const [members, setMembers] = useState<Member[]>([])
   const [roles, setRoles] = useState<AccountRole[]>([])
   const [dailyReward, setDailyReward] = useState<DailyRewardStateResponse | null>(null)
@@ -70,19 +65,11 @@ export function useAccountData(
         return
       }
 
-      const membersPromise = canViewMembers
-        ? getAccountMembers(requestedAccountId)
-        : Promise.resolve([])
-      const rolesPromise = canViewRoles ? getAccountRoles(requestedAccountId) : Promise.resolve([])
-      const accountBalancesPromise = canViewWallet
-        ? getAccountBalances(requestedAccountId)
-        : Promise.resolve([])
-
       const [memberResponses, roleResponses, balances, rewardState, userBalances] =
         await Promise.all([
-          membersPromise,
-          rolesPromise,
-          accountBalancesPromise,
+          getAccountMembers(requestedAccountId),
+          getAccountRoles(requestedAccountId),
+          getAccountBalances(requestedAccountId),
           getDailyRewardState(),
           userBalancesPromise,
         ])
@@ -112,7 +99,7 @@ export function useAccountData(
         setLoadingAccount(false)
       }
     }
-  }, [accountId, canViewMembers, canViewRoles, canViewWallet])
+  }, [accountId])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {

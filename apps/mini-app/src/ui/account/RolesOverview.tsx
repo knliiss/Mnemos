@@ -20,9 +20,7 @@ export function RolesOverview({ navigate, back }: Props) {
   const { t } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
-  const canViewRoles = data.hasPermission("VIEW_ROLES")
-  const canViewMembers = data.hasPermission("VIEW_MEMBERS")
-  const canCreateRoles = data.hasPermission("CREATE_ROLES")
+  const canManageRoles = data.hasPermission("MANAGE_ROLES")
   const canManageHierarchy = data.hasPermission("MANAGE_ROLE_HIERARCHY")
   const accessMessage = t("errorNotifications.tones.access.message")
   const roles = useMemo(
@@ -30,6 +28,16 @@ export function RolesOverview({ navigate, back }: Props) {
     [data.roles],
   )
   const totalPermissions = allRolePermissions.length
+  const memberCounts = useMemo(
+    () =>
+      new Map(
+        roles.map((role) => [
+          role.id,
+          data.members.filter((member) => member.highestRoleId === role.id).length,
+        ]),
+      ),
+    [data.members, roles],
+  )
 
   return (
     <div className="screen roles-screen">
@@ -40,8 +48,8 @@ export function RolesOverview({ navigate, back }: Props) {
           <button
             type="button"
             className="roles-create"
-            disabled={!accountId || !canCreateRoles}
-            title={!canCreateRoles ? accessMessage : undefined}
+            disabled={!accountId || !canManageRoles}
+            title={!canManageRoles ? accessMessage : undefined}
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
           >
             <Glyph name="plus" size={16} />
@@ -58,7 +66,7 @@ export function RolesOverview({ navigate, back }: Props) {
           <small>{t("rolesOverview.hierarchyEyebrow")}</small>
           <strong>
             {t("rolesOverview.hierarchySummary", {
-              roles: canViewRoles ? roles.length : "—",
+              roles: roles.length,
               permissions: totalPermissions,
             })}
           </strong>
@@ -76,36 +84,19 @@ export function RolesOverview({ navigate, back }: Props) {
         </span>
       </section>
 
-      {canViewRoles && accountId && roles.length ? (
+      {accountId && roles.length ? (
         <RoleReorderList
           key={roles.map((role) => `${role.id}:${role.hierarchyRank}`).join("|")}
           accountId={accountId}
           initialRoles={roles}
-          memberCounts={
-            canViewMembers
-              ? new Map(
-                  roles.map((role) => [
-                    role.id,
-                    data.members.filter((member) => member.highestRoleId === role.id).length,
-                  ]),
-                )
-              : null
-          }
+          memberCounts={memberCounts}
           canManageHierarchy={canManageHierarchy}
           navigate={navigate}
           refresh={data.refreshAccount}
         />
       ) : null}
 
-      {!canViewRoles ? (
-        <FeatureEmpty
-          icon="roles"
-          title={t("errorNotifications.tones.access.title")}
-          copy={accessMessage}
-        />
-      ) : null}
-
-      {canViewRoles && !roles.length && !data.loadingAccount ? (
+      {!roles.length && !data.loadingAccount ? (
         <FeatureEmpty
           icon="roles"
           title={t("rolesOverview.emptyTitle")}
@@ -116,8 +107,8 @@ export function RolesOverview({ navigate, back }: Props) {
       <button
         type="button"
         className="roles-create-card"
-        disabled={!accountId || !canCreateRoles}
-        title={!canCreateRoles ? accessMessage : undefined}
+        disabled={!accountId || !canManageRoles}
+        title={!canManageRoles ? accessMessage : undefined}
         onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
       >
         <span>
@@ -143,7 +134,7 @@ function RoleReorderList({
 }: {
   accountId: string
   initialRoles: AccountRole[]
-  memberCounts: Map<string, number> | null
+  memberCounts: Map<string, number>
   canManageHierarchy: boolean
   navigate: (route: Route) => void
   refresh: () => Promise<void>
@@ -180,7 +171,7 @@ function RoleReorderList({
             key={role.id}
             role={role}
             priority={index + 1}
-            memberCount={memberCounts?.get(role.id) ?? null}
+            memberCount={memberCounts.get(role.id) ?? 0}
             canManageHierarchy={canManageHierarchy}
             savingOrder={savingOrder}
             navigate={navigate}
@@ -203,7 +194,7 @@ function SortableRoleRow({
 }: {
   role: AccountRole
   priority: number
-  memberCount: number | null
+  memberCount: number
   canManageHierarchy: boolean
   savingOrder: boolean
   navigate: (route: Route) => void
@@ -231,11 +222,7 @@ function SortableRoleRow({
         <span className="role-row__copy">
           <span>
             <strong>{role.name}</strong>
-            <i>
-              {memberCount === null
-                ? "—"
-                : t("rolesOverview.primaryMembers", { count: memberCount })}
-            </i>
+            <i>{t("rolesOverview.primaryMembers", { count: memberCount })}</i>
           </span>
           <small>
             {t("rolesOverview.permissionSummary", {
