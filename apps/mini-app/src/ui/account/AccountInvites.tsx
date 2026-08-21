@@ -28,6 +28,7 @@ export function AccountInvites({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
+  const canManageInvites = data.hasPermission("MANAGE_ACCOUNT_INVITES")
   const [expiry, setExpiry] = useState<Expiry>("1D")
   const [invites, setInvites] = useState<AccountInvite[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +65,15 @@ export function AccountInvites({ back }: { back: () => void }) {
     setLoading(true)
     setLoadError(false)
 
+    if (!canManageInvites) {
+      if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
+        setInvites([])
+        setLoadedAccountId(requestedAccountId)
+        setLoading(false)
+      }
+      return
+    }
+
     try {
       const nextInvites = await getAccountInvites(accountId)
 
@@ -83,7 +93,7 @@ export function AccountInvites({ back }: { back: () => void }) {
         setLoading(false)
       }
     }
-  }, [accountId])
+  }, [accountId, canManageInvites])
 
   useEffect(() => {
     mountedRef.current = true
@@ -99,7 +109,7 @@ export function AccountInvites({ back }: { back: () => void }) {
   }, [refresh])
 
   const create = async () => {
-    if (!accountId || createLocked.current) {
+    if (!accountId || !canManageInvites || createLocked.current) {
       return
     }
 
@@ -125,7 +135,7 @@ export function AccountInvites({ back }: { back: () => void }) {
   }
 
   const revoke = async (inviteId: string) => {
-    if (!accountId || revokeLocked.current) {
+    if (!accountId || !canManageInvites || revokeLocked.current) {
       return
     }
 
@@ -216,12 +226,17 @@ export function AccountInvites({ back }: { back: () => void }) {
         <button
           type="button"
           className="primary-action"
-          disabled={creating || !accountId}
+          disabled={creating || !accountId || !canManageInvites}
           onClick={() => void create()}
         >
           <Glyph name="plus" size={16} />
           {creating ? t("accountInvites.creating") : t("accountInvites.create")}
         </button>
+        {!canManageInvites ? (
+          <small className="inline-hint inline-hint--left">
+            {t("accountInvites.unavailableCopy")}
+          </small>
+        ) : null}
       </section>
 
       <Section title={t("accountInvites.title")}>
@@ -259,7 +274,15 @@ export function AccountInvites({ back }: { back: () => void }) {
             </article>
           ))}
 
-          {!visibleLoading && loadError ? (
+          {!visibleLoading && !canManageInvites ? (
+            <FeatureEmpty
+              icon="invite"
+              title={t("accountInvites.unavailableTitle")}
+              copy={t("accountInvites.unavailableCopy")}
+            />
+          ) : null}
+
+          {canManageInvites && !visibleLoading && loadError ? (
             <FeatureEmpty
               icon="invite"
               title={t("common.loadErrorTitle")}
@@ -271,7 +294,7 @@ export function AccountInvites({ back }: { back: () => void }) {
             </FeatureEmpty>
           ) : null}
 
-          {!visibleLoading && !loadError && !visibleInvites.length ? (
+          {canManageInvites && !visibleLoading && !loadError && !visibleInvites.length ? (
             <FeatureEmpty
               icon="invite"
               title={t("accountInvites.emptyTitle")}
