@@ -29,13 +29,6 @@ interface RoleRepository {
 
     fun updateAll(roles: Collection<Role>): List<Role>
 
-    fun findAllByMemberIdAndAccountIdOrderByRank(
-        memberId: AccountMemberId,
-        accountId: AccountId,
-    ): List<Role>
-
-    fun findAllByAccountId(accountId: AccountId): List<Role>
-
     fun findAllByMemberId(
         accountId: AccountId,
         memberId: AccountMemberId,
