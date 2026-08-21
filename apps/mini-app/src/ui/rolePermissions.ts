@@ -30,7 +30,7 @@ export const rolePermissionGroups: {
       "EDIT_ROLE_PERMISSIONS",
       "DELETE_ROLES",
       "MANAGE_ROLE_HIERARCHY",
-      "MANAGE_ROLES",
+      "MANAGE_BASE_ROLE",
     ],
   },
   {
