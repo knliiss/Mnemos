@@ -19,7 +19,6 @@ type AccountMemberManagementProps = {
   member: Member
   roles: AccountRole[]
   accountId: string
-  canViewRoles: boolean
   canAssignRoles: boolean
   canKickMembers: boolean
   refresh(): Promise<void>
@@ -30,7 +29,6 @@ export function AccountMemberManagement({
   member,
   roles,
   accountId,
-  canViewRoles,
   canAssignRoles,
   canKickMembers,
   refresh,
@@ -55,10 +53,6 @@ export function AccountMemberManagement({
   }, [scope])
 
   useEffect(() => {
-    if (!canViewRoles) {
-      return
-    }
-
     let cancelled = false
 
     void getMemberRoles(accountId, member.id)
@@ -77,19 +71,14 @@ export function AccountMemberManagement({
     return () => {
       cancelled = true
     }
-  }, [accountId, canViewRoles, member.id, scope])
+  }, [accountId, member.id, scope])
 
   const visibleRoleIds = roleIdsScope === scope ? roleIds : member.roleIds
   const busyRoleId = busyRole?.scope === scope ? busyRole.roleId : null
   const kickBusy = kickBusyScope === scope
 
   const toggleRole = async (role: AccountRole) => {
-    if (
-      !canViewRoles ||
-      !canAssignRoles ||
-      member.owner ||
-      busyRoleRef.current?.scope === scope
-    ) {
+    if (!canAssignRoles || member.owner || busyRoleRef.current?.scope === scope) {
       return
     }
 
@@ -166,7 +155,7 @@ export function AccountMemberManagement({
           <em>{t("accountMember.since", { date: formatMemberDate(member.joinedAt, locale) })}</em>
         </span>
 
-        {canViewRoles && highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
+        {highestRole ? <RoleSigil color={highestRole.color} size={42} /> : null}
       </section>
 
       <section className="account-member__roles">
@@ -176,49 +165,41 @@ export function AccountMemberManagement({
             <strong>{t("accountMember.roles")}</strong>
           </span>
 
-          <em>
-            {canViewRoles
-              ? t("accountMember.activeRoles", { count: visibleRoleIds.length })
-              : "—"}
-          </em>
+          <em>{t("accountMember.activeRoles", { count: visibleRoleIds.length })}</em>
         </header>
 
         <div>
-          {canViewRoles ? (
-            roles.map((role) => {
-              const assigned = visibleRoleIds.includes(role.id)
-              const locked = member.owner || !canAssignRoles
+          {roles.map((role) => {
+            const assigned = visibleRoleIds.includes(role.id)
+            const locked = member.owner || !canAssignRoles
 
-              return (
-                <motion.button
-                  type="button"
-                  key={role.id}
-                  className={assigned ? "is-active" : ""}
-                  disabled={locked || busyRoleId !== null}
-                  title={!canAssignRoles ? accessMessage : undefined}
-                  whileTap={locked ? undefined : { scale: 0.985 }}
-                  onClick={() => void toggleRole(role)}
-                >
-                  <RoleSigil color={role.color} size={34} compact />
+            return (
+              <motion.button
+                type="button"
+                key={role.id}
+                className={assigned ? "is-active" : ""}
+                disabled={locked || busyRoleId !== null}
+                title={!canAssignRoles ? accessMessage : undefined}
+                whileTap={locked ? undefined : { scale: 0.985 }}
+                onClick={() => void toggleRole(role)}
+              >
+                <RoleSigil color={role.color} size={34} compact />
 
-                  <span>
-                    <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
-                    <small>
-                      {t("accountMember.permissionCount", {
-                        count: enabledPermissions(role),
-                      })}
-                    </small>
-                  </span>
+                <span>
+                  <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
+                  <small>
+                    {t("accountMember.permissionCount", {
+                      count: enabledPermissions(role),
+                    })}
+                  </small>
+                </span>
 
-                  <i aria-hidden="true">
-                    <b />
-                  </i>
-                </motion.button>
-              )
-            })
-          ) : (
-            <p className="inline-hint inline-hint--left">{accessMessage}</p>
-          )}
+                <i aria-hidden="true">
+                  <b />
+                </i>
+              </motion.button>
+            )
+          })}
         </div>
       </section>
 
