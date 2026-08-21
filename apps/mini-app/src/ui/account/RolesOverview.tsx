@@ -180,7 +180,8 @@ function RoleReorderList({
             key={role.id}
             role={role}
             memberCount={memberCounts?.get(role.id) ?? null}
-            disabled={savingOrder || !canManageHierarchy}
+            canManageHierarchy={canManageHierarchy}
+            savingOrder={savingOrder}
             navigate={navigate}
             onDragEnd={() => void persist()}
           />
@@ -193,18 +194,21 @@ function RoleReorderList({
 function SortableRoleRow({
   role,
   memberCount,
-  disabled,
+  canManageHierarchy,
+  savingOrder,
   navigate,
   onDragEnd,
 }: {
   role: AccountRole
   memberCount: number | null
-  disabled: boolean
+  canManageHierarchy: boolean
+  savingOrder: boolean
   navigate: (route: Route) => void
   onDragEnd: () => void
 }) {
   const { t } = useTranslation()
   const dragControls = useDragControls()
+  const dragDisabled = savingOrder || !canManageHierarchy
 
   return (
     <Reorder.Item
@@ -243,11 +247,15 @@ function SortableRoleRow({
       <button
         type="button"
         className="role-drag-handle"
-        disabled={disabled}
+        disabled={dragDisabled}
         aria-label={t("rolesOverview.dragAria", { name: role.name })}
-        title={disabled ? t("errorNotifications.tones.access.message") : t("rolesOverview.dragAction")}
+        title={
+          canManageHierarchy
+            ? t("rolesOverview.dragAction")
+            : t("errorNotifications.tones.access.message")
+        }
         onPointerDown={(event) => {
-          if (!disabled) {
+          if (!dragDisabled) {
             dragControls.start(event)
           }
         }}
