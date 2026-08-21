@@ -20,7 +20,7 @@
 
 .bets-title small {
   color: #7e8576;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 740;
   line-height: 1;
   letter-spacing: 0.11em;
@@ -62,7 +62,7 @@
 
 .bets-wallet__label {
   color: #7f8678;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 720;
   line-height: 1;
   letter-spacing: 0.08em;
@@ -91,7 +91,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 38px;
+  min-height: 40px;
   border: 0;
   border-radius: 11px;
   color: #767d71;
@@ -114,7 +114,7 @@
   border-radius: 5px;
   color: #182004;
   background: #c7f24a;
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .bets-feature {
@@ -176,7 +176,7 @@
 
 .bets-feature__copy small {
   color: color-mix(in srgb, var(--event-accent) 65%, #7c8275);
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 720;
   letter-spacing: 0.1em;
 }
@@ -189,7 +189,7 @@
 
 .bets-feature__copy em {
   color: #858b7e;
-  font-size: 8px;
+  font-size: 9px;
   font-style: normal;
 }
 
@@ -213,7 +213,7 @@
 
 .bets-feature__odds small {
   color: #757c70;
-  font-size: 6.5px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -237,7 +237,7 @@
   align-items: center;
   gap: 4px;
   color: #c7f24a;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .bets-section-head {
@@ -256,7 +256,7 @@
 
 .bets-section-head small {
   color: #7c8376;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 730;
   letter-spacing: 0.13em;
 }
@@ -318,7 +318,7 @@
 .bets-card__copy small,
 .bets-race__copy small {
   color: #7f8579;
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .bets-card__copy strong {
@@ -332,7 +332,7 @@
 .bets-card__copy em,
 .bets-race__copy em {
   color: #747b6f;
-  font-size: 7.5px;
+  font-size: 9px;
   font-style: normal;
 }
 
@@ -365,7 +365,7 @@
   align-items: center;
   gap: 3px;
   color: #c7f24a;
-  font-size: 6.5px;
+  font-size: 9px;
 }
 
 .bets-race {
@@ -412,7 +412,7 @@
 
 .bets-race__entry small {
   color: #72796d;
-  font-size: 6.5px;
+  font-size: 9px;
   letter-spacing: 0.1em;
 }
 
@@ -438,11 +438,11 @@
 }
 
 .bets-empty small {
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .bets-empty > button {
-  min-height: 34px;
+  min-height: 36px;
   padding: 0 14px;
   border: 1px solid rgba(199, 242, 74, 0.18);
   border-radius: 10px;
@@ -475,7 +475,7 @@
 
 .bets-sheet__event small {
   color: #7d8477;
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .bets-sheet__event strong {
@@ -485,7 +485,7 @@
 
 .bets-sheet__event em {
   color: #747b6f;
-  font-size: 7.5px;
+  font-size: 9px;
   font-style: normal;
 }
 
@@ -534,7 +534,7 @@
 
 .bets-current-position small {
   color: #777e72;
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .bets-current-position strong {
