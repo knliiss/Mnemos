@@ -42,6 +42,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   const { t } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
+  const canViewRoles = data.hasPermission("VIEW_ROLES")
   const existing = data.roles.find((role) => role.id === params?.roleId) ?? null
   const isNew = params?.roleId === "new"
   const initialPermissions = existing
@@ -190,6 +191,19 @@ export function RoleEditor({ params, navigate, back }: Props) {
         setBusy(false)
       }
     }
+  }
+
+  if (!isNew && !canViewRoles) {
+    return (
+      <div className="screen role-editor-screen">
+        <PageHeader title={t("roleEditor.role")} back={back} />
+        <FeatureEmpty
+          icon="roles"
+          title={t("errorNotifications.tones.access.title")}
+          copy={t("errorNotifications.tones.access.message")}
+        />
+      </div>
+    )
   }
 
   if (!isNew && !existing && !data.loadingAccount) {
