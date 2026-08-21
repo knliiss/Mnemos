@@ -9,6 +9,7 @@ type Props = {
   baseRoleId: string
   savedRoleId: string
   busy: boolean
+  readable: boolean
   editable: boolean
   onBaseRoleChange: (roleId: string) => void
   onSave: () => void
@@ -19,12 +20,15 @@ export function AccountBaseRoleSettings({
   baseRoleId,
   savedRoleId,
   busy,
+  readable,
   editable,
   onBaseRoleChange,
   onSave,
 }: Props) {
   const { t } = useTranslation()
-  const baseRole = availableRoles.find((role) => role.id === baseRoleId) ?? null
+  const baseRole = readable
+    ? (availableRoles.find((role) => role.id === baseRoleId) ?? null)
+    : null
   const roleChanged = baseRoleId !== savedRoleId
 
   return (
@@ -46,55 +50,67 @@ export function AccountBaseRoleSettings({
         )}
       </header>
 
-      <div className="account-default-role-grid">
-        <button
-          type="button"
-          className={baseRoleId === NO_BASE_ROLE ? "is-selected" : ""}
-          disabled={!editable || busy}
-          onClick={() => onBaseRoleChange(NO_BASE_ROLE)}
-        >
-          <span className="account-base-role-empty">
-            <Glyph name="close" size={16} />
-          </span>
-          <strong>{t("accountSettings.noRole")}</strong>
-          <small>{t("accountSettings.permissionsCount", { count: 0 })}</small>
-        </button>
-
-        {availableRoles.map((role) => (
-          <RoleOption
-            key={role.id}
-            role={role}
-            selected={role.id === baseRoleId}
+      {readable ? (
+        <div className="account-default-role-grid">
+          <button
+            type="button"
+            className={baseRoleId === NO_BASE_ROLE ? "is-selected" : ""}
             disabled={!editable || busy}
-            onClick={() => onBaseRoleChange(role.id)}
-          />
-        ))}
-      </div>
+            onClick={() => onBaseRoleChange(NO_BASE_ROLE)}
+          >
+            <span className="account-base-role-empty">
+              <Glyph name="close" size={16} />
+            </span>
+            <strong>{t("accountSettings.noRole")}</strong>
+            <small>{t("accountSettings.permissionsCount", { count: 0 })}</small>
+          </button>
 
-      {!editable ? (
+          {availableRoles.map((role) => (
+            <RoleOption
+              key={role.id}
+              role={role}
+              selected={role.id === baseRoleId}
+              disabled={!editable || busy}
+              onClick={() => onBaseRoleChange(role.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="inline-hint inline-hint--left">
+          {t("errorNotifications.tones.access.message")}
+        </p>
+      )}
+
+      {readable && !editable ? (
         <p className="inline-hint inline-hint--left">{t("accountSettings.baseRoleUnavailable")}</p>
       ) : null}
 
       <div className="account-role-summary">
-        {baseRole ? (
+        {readable && baseRole ? (
           <RoleSigil color={baseRole.color} size={42} />
         ) : (
           <span className="account-base-role-empty account-base-role-empty--summary">
-            <Glyph name="close" size={18} />
+            <Glyph name={readable ? "close" : "roles"} size={18} />
           </span>
         )}
 
         <span>
           <small>{t("accountSettings.baseRoleSummary")}</small>
-          <strong>{baseRole?.name ?? t("accountSettings.noRole")}</strong>
+          <strong>{readable ? (baseRole?.name ?? t("accountSettings.noRole")) : "—"}</strong>
           <em>
-            {t("accountSettings.permissionsCount", {
-              count: countEnabledPermissions(baseRole),
-            })}
+            {readable
+              ? t("accountSettings.permissionsCount", {
+                  count: countEnabledPermissions(baseRole),
+                })
+              : t("errorNotifications.tones.access.message")}
           </em>
         </span>
 
-        <button type="button" disabled={!editable || !roleChanged || busy} onClick={onSave}>
+        <button
+          type="button"
+          disabled={!readable || !editable || !roleChanged || busy}
+          onClick={onSave}
+        >
           {busy ? "…" : t("accountSettings.save")}
         </button>
       </div>
