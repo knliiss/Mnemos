@@ -26,6 +26,8 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const canViewWallet = data.hasPermission("VIEW_WALLET")
+  const canViewMembers = data.hasPermission("VIEW_MEMBERS")
+  const canViewRoles = data.hasPermission("VIEW_ROLES")
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
 
   if (!activeAccount) {
@@ -38,6 +40,7 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
         member={selectedMember}
         roles={data.roles}
         accountId={activeAccount.id}
+        canViewRoles={canViewRoles}
         refresh={data.refreshAccount}
         back={back}
       />
@@ -165,59 +168,80 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
             <small>{t("accountHome.team")}</small>
             <strong>{t("accountHome.members")}</strong>
             <em>
-              {t("accountHome.membersCount", {
-                count: data.members.length,
-                max: activeAccount.maxMembers,
-              })}
+              {canViewMembers
+                ? t("accountHome.membersCount", {
+                    count: data.members.length,
+                    max: activeAccount.maxMembers,
+                  })
+                : "—"}
             </em>
           </span>
           <img src="/ui-illustrations/team-roster.svg" alt="" aria-hidden="true" />
         </header>
 
         <div className="account-home-member-list">
-          {data.members.map((member) => {
-            const highestRole = roleFor(member.highestRoleId)
-            const extraRoleCount = Math.max(0, member.roleIds.length - 1)
+          {canViewMembers ? (
+            data.members.map((member) => {
+              const highestRole = roleFor(member.highestRoleId)
+              const extraRoleCount = Math.max(0, member.roleIds.length - 1)
 
-            return (
-              <motion.button
-                type="button"
-                className="account-home-member"
-                key={member.id}
-                whileTap={{ scale: 0.992 }}
-                onClick={() => navigate({ id: "member", params: { memberId: member.id } })}
-              >
-                <span className="account-home-member__avatar" aria-hidden="true" />
+              return (
+                <motion.button
+                  type="button"
+                  className="account-home-member"
+                  key={member.id}
+                  whileTap={{ scale: 0.992 }}
+                  onClick={() => navigate({ id: "member", params: { memberId: member.id } })}
+                >
+                  <span className="account-home-member__avatar" aria-hidden="true" />
 
-                <span className="account-home-member__copy">
-                  <span className="account-home-member__name">
-                    <strong>{member.name}</strong>
-                    {member.owner ? (
-                      <img
-                        className="account-home-owner-crown"
-                        src="/ui-illustrations/account-owner-crown.svg"
-                        alt={t("accountHome.owner")}
-                      />
-                    ) : null}
+                  <span className="account-home-member__copy">
+                    <span className="account-home-member__name">
+                      <strong>{member.name}</strong>
+                      {member.owner ? (
+                        <img
+                          className="account-home-owner-crown"
+                          src="/ui-illustrations/account-owner-crown.svg"
+                          alt={t("accountHome.owner")}
+                        />
+                      ) : null}
+                    </span>
+
+                    {canViewRoles ? (
+                      highestRole ? (
+                        <span className="account-home-member__role">
+                          <RoleSigil color={highestRole.color} size={21} compact />
+                          <span style={{ color: highestRole.color }}>{highestRole.name}</span>
+                          {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
+                        </span>
+                      ) : (
+                        <small className="account-home-member__no-role">
+                          {t("accountHome.noRole")}
+                        </small>
+                      )
+                    ) : member.highestRoleId ? (
+                      <small
+                        className="account-home-member__no-role"
+                        title={t("errorNotifications.tones.access.message")}
+                      >
+                        —
+                      </small>
+                    ) : (
+                      <small className="account-home-member__no-role">
+                        {t("accountHome.noRole")}
+                      </small>
+                    )}
                   </span>
 
-                  {highestRole ? (
-                    <span className="account-home-member__role">
-                      <RoleSigil color={highestRole.color} size={21} compact />
-                      <span style={{ color: highestRole.color }}>{highestRole.name}</span>
-                      {extraRoleCount > 0 ? <small>+{extraRoleCount}</small> : null}
-                    </span>
-                  ) : (
-                    <small className="account-home-member__no-role">
-                      {t("accountHome.noRole")}
-                    </small>
-                  )}
-                </span>
-
-                <time>{formatMemberDate(member.joinedAt, locale)}</time>
-              </motion.button>
-            )
-          })}
+                  <time>{formatMemberDate(member.joinedAt, locale)}</time>
+                </motion.button>
+              )
+            })
+          ) : (
+            <p className="inline-hint inline-hint--left">
+              {t("errorNotifications.tones.access.message")}
+            </p>
+          )}
         </div>
       </section>
 
