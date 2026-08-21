@@ -63,11 +63,12 @@ export function ProfileCommentsSheet({
     onEdit,
     onSubmit,
   })
+  const resetComposer = composer.reset
 
   const close = useCallback(() => {
-    composer.reset()
+    resetComposer()
     onClose()
-  }, [composer, onClose])
+  }, [onClose, resetComposer])
 
   useEffect(() => {
     if (!open) {
@@ -224,7 +225,7 @@ export function ProfileCommentsSheet({
               inputRef={composer.inputRef}
               busy={composer.busy}
               onDraftChange={composer.setDraft}
-              onReset={composer.reset}
+              onReset={resetComposer}
               onSubmit={composer.submit}
             />
           </motion.section>
