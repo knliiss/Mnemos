@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   createRole,
@@ -9,27 +9,19 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import type { RolePermission, Route } from "../model"
-import { allRolePermissions, rolePermissionGroups } from "../rolePermissions"
-import { Glyph } from "../shared/MnemosIcon"
+import { allRolePermissions } from "../rolePermissions"
 import { PageHeader } from "../shared/Primitives"
-import { RoleSigil } from "../shared/RoleSigil"
 import { FeatureEmpty } from "../system/FeatureEmpty"
+import { RoleEditorActions } from "./role-editor/RoleEditorActions"
+import { RoleEditorHero } from "./role-editor/RoleEditorHero"
+import { RoleIdentityPanel } from "./role-editor/RoleIdentityPanel"
+import { RolePermissionsPanel } from "./role-editor/RolePermissionsPanel"
 
 type Props = {
   params?: Record<string, string>
   navigate: (route: Route) => void
   back: () => void
 }
-
-const roleColors = [
-  "#A985A8",
-  "#D8A64A",
-  "#CFFF35",
-  "#67B7DC",
-  "#E57C73",
-  "#8E9AE6",
-  "#A9B1A4",
-] as const
 
 function emptyPermissions(): Record<RolePermission, boolean> {
   return Object.fromEntries(allRolePermissions.map((permission) => [permission, false])) as Record<
@@ -43,12 +35,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
   const canManageRoles = data.hasPermission("MANAGE_ROLES")
-  const canCreateRole = canManageRoles
   const existing = data.roles.find((role) => role.id === params?.roleId) ?? null
   const isNew = params?.roleId === "new"
-  const canEditDetails = canManageRoles
-  const canEditPermissions = canManageRoles
-  const canDeleteRole = canManageRoles
   const accessMessage = t("errorNotifications.tones.access.message")
   const initialPermissions = existing
     ? { ...emptyPermissions(), ...existing.permissions }
@@ -57,9 +45,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   const [color, setColor] = useState(existing?.color ?? "#A985A8")
   const [permissions, setPermissions] =
     useState<Record<RolePermission, boolean>>(initialPermissions)
-  const [query, setQuery] = useState("")
   const [busy, setBusy] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
   const busyRef = useRef(false)
   const mountedRef = useRef(true)
 
@@ -73,7 +59,6 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
   const canEnablePermission = (permission: RolePermission) => data.hasPermission(permission)
   const selectedCount = Object.values(permissions).filter(Boolean).length
-  const normalizedQuery = query.trim().toLowerCase()
   const cleanName = name.trim()
   const detailsChanged = Boolean(
     existing &&
@@ -85,35 +70,13 @@ export function RoleEditor({ params, navigate, back }: Props) {
         (permission) => permissions[permission] !== existing.permissions[permission],
       ),
   )
-  const canSaveRole = existing ? canEditDetails || canEditPermissions : canCreateRole
   const hasEditableChanges = existing
-    ? (canEditDetails && detailsChanged) || (canEditPermissions && permissionsChanged)
-    : canCreateRole
-  const hasMutablePermissions =
-    canEditPermissions &&
-    allRolePermissions.some(
-      (permission) => permissions[permission] || canEnablePermission(permission),
-    )
+    ? (canManageRoles && detailsChanged) || (canManageRoles && permissionsChanged)
+    : canManageRoles
   const saveDisabled = !accountId || !cleanName || busy || !hasEditableChanges
 
-  const visibleGroups = useMemo(
-    () =>
-      rolePermissionGroups
-        .map((group) => ({
-          ...group,
-          permissions: group.permissions.filter(
-            (permission) =>
-              !normalizedQuery ||
-              t(`roleEditor.permissions.${permission}`).toLowerCase().includes(normalizedQuery) ||
-              permission.toLowerCase().includes(normalizedQuery),
-          ),
-        }))
-        .filter((group) => group.permissions.length),
-    [normalizedQuery, t],
-  )
-
   const togglePermission = (permission: RolePermission) => {
-    if (busyRef.current || !canEditPermissions) {
+    if (busyRef.current || !canManageRoles) {
       return
     }
 
@@ -128,7 +91,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const toggleGroup = (groupPermissions: RolePermission[]) => {
-    if (busyRef.current || !canEditPermissions || !groupPermissions.length) {
+    if (busyRef.current || !canManageRoles || !groupPermissions.length) {
       return
     }
 
@@ -153,7 +116,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const setAllPermissions = (checked: boolean) => {
-    if (busyRef.current || !hasMutablePermissions) {
+    if (busyRef.current || !canManageRoles) {
       return
     }
 
@@ -177,11 +140,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
     try {
       if (existing) {
-        if (canEditDetails && detailsChanged) {
+        if (detailsChanged) {
           await updateRoleDetails(accountId, existing.id, cleanName, color)
         }
 
-        if (canEditPermissions && permissionsChanged) {
+        if (permissionsChanged) {
           await updateRolePermissions(accountId, existing.id, permissions)
         }
       } else {
@@ -204,6 +167,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
       }
     } finally {
       busyRef.current = false
+
       if (mountedRef.current) {
         setBusy(false)
       }
@@ -211,7 +175,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const remove = async () => {
-    if (!accountId || !existing || !canDeleteRole || busyRef.current) {
+    if (!accountId || !existing || !canManageRoles || busyRef.current) {
       return
     }
 
@@ -231,6 +195,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
       }
     } finally {
       busyRef.current = false
+
       if (mountedRef.current) {
         setBusy(false)
       }
@@ -268,237 +233,46 @@ export function RoleEditor({ params, navigate, back }: Props) {
         }
       />
 
-      <section className="role-editor-hero">
-        <RoleSigil color={color} size={48} />
-        <span className="role-editor-hero__copy">
-          <small>{isNew ? t("roleEditor.newEyebrow") : t("roleEditor.editEyebrow")}</small>
-          <strong style={{ color }}>{cleanName || t("roleEditor.roleNameFallback")}</strong>
-          <em>
-            {t("roleEditor.enabledSummary", {
-              selected: selectedCount,
-              total: allRolePermissions.length,
-            })}
-          </em>
-        </span>
-        <div className="role-editor-progress" aria-hidden="true">
-          <i
-            style={{
-              width: `${(selectedCount / Math.max(1, allRolePermissions.length)) * 100}%`,
-              background: color,
-            }}
-          />
-        </div>
-      </section>
+      <RoleEditorHero
+        color={color}
+        name={cleanName}
+        selectedCount={selectedCount}
+        totalPermissions={allRolePermissions.length}
+        isNew={isNew}
+      />
 
-      <section className="role-identity-panel">
-        <header>
-          <span>
-            <small>{t("roleEditor.appearance")}</small>
-            <strong>{t("roleEditor.nameAndColor")}</strong>
-          </span>
-        </header>
+      <RoleIdentityPanel
+        name={name}
+        color={color}
+        busy={busy}
+        editable={canManageRoles}
+        accessMessage={accessMessage}
+        onNameChange={setName}
+        onColorChange={setColor}
+      />
 
-        <label className="role-editor-field">
-          <span>{t("roleEditor.name")}</span>
-          <input
-            value={name}
-            maxLength={32}
-            disabled={busy || !canEditDetails}
-            title={!canEditDetails ? accessMessage : undefined}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t("roleEditor.namePlaceholder")}
-          />
-          <small>{name.length}/32</small>
-        </label>
+      <RolePermissionsPanel
+        permissions={permissions}
+        busy={busy}
+        editable={canManageRoles}
+        accessMessage={accessMessage}
+        canEnablePermission={canEnablePermission}
+        onTogglePermission={togglePermission}
+        onToggleGroup={toggleGroup}
+        onSetAllPermissions={setAllPermissions}
+      />
 
-        <div className="role-color-editor">
-          <label>
-            <span>{t("roleEditor.color")}</span>
-            <span className="role-color-input">
-              <input
-                type="color"
-                value={color.slice(0, 7)}
-                disabled={busy || !canEditDetails}
-                title={!canEditDetails ? accessMessage : undefined}
-                onChange={(event) => setColor(event.target.value.toUpperCase())}
-              />
-              <code>{color}</code>
-            </span>
-          </label>
-
-          <div className="role-color-presets" aria-label={t("roleEditor.quickColors")}>
-            {roleColors.map((presetColor) => (
-              <button
-                key={presetColor}
-                type="button"
-                disabled={busy || !canEditDetails}
-                title={!canEditDetails ? accessMessage : undefined}
-                className={color.toUpperCase() === presetColor ? "is-active" : ""}
-                style={{ background: presetColor }}
-                aria-label={t("roleEditor.colorAria", { color: presetColor })}
-                onClick={() => setColor(presetColor)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="role-permissions-panel">
-        <header className="role-permissions-panel__head">
-          <span>
-            <small>{t("roleEditor.permissionsEyebrow")}</small>
-            <strong>{t("roleEditor.enabledCount", { count: selectedCount })}</strong>
-          </span>
-          <div>
-            <button
-              type="button"
-              disabled={busy || !hasMutablePermissions}
-              title={!hasMutablePermissions ? accessMessage : undefined}
-              onClick={() => setAllPermissions(true)}
-            >
-              {t("roleEditor.all")}
-            </button>
-            <button
-              type="button"
-              disabled={busy || !hasMutablePermissions}
-              title={!hasMutablePermissions ? accessMessage : undefined}
-              onClick={() => setAllPermissions(false)}
-            >
-              {t("roleEditor.clear")}
-            </button>
-          </div>
-        </header>
-
-        <label className="role-permission-search">
-          <Glyph name="search" size={16} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("roleEditor.searchPlaceholder")}
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              aria-label={t("roleEditor.clearSearch")}
-            >
-              <Glyph name="close" size={14} />
-            </button>
-          ) : null}
-        </label>
-
-        <div className="role-permission-groups">
-          {visibleGroups.map((group) => {
-            const enabledInGroup = group.permissions.filter(
-              (permission) => permissions[permission],
-            ).length
-            const mutablePermissions = group.permissions.filter(
-              (permission) => permissions[permission] || canEnablePermission(permission),
-            )
-            const allMutableEnabled =
-              mutablePermissions.length > 0 &&
-              mutablePermissions.every((permission) => permissions[permission])
-            const groupLocked = !canEditPermissions || !mutablePermissions.length
-
-            return (
-              <section key={group.key}>
-                <header>
-                  <span>
-                    <strong>{t(`roleEditor.groups.${group.key}`)}</strong>
-                    <small>
-                      {enabledInGroup}/{group.permissions.length}
-                    </small>
-                  </span>
-                  <button
-                    type="button"
-                    disabled={busy || groupLocked}
-                    title={groupLocked ? accessMessage : undefined}
-                    className={allMutableEnabled ? "is-active" : ""}
-                    onClick={() => toggleGroup(mutablePermissions)}
-                  >
-                    {allMutableEnabled ? t("roleEditor.disableGroup") : t("roleEditor.enableGroup")}
-                  </button>
-                </header>
-
-                <div>
-                  {group.permissions.map((permission) => {
-                    const permissionLocked =
-                      !canEditPermissions ||
-                      (!permissions[permission] && !canEnablePermission(permission))
-
-                    return (
-                      <button
-                        key={permission}
-                        type="button"
-                        className={`role-permission-row ${permissions[permission] ? "is-on" : ""}`}
-                        disabled={busy || permissionLocked}
-                        title={permissionLocked ? accessMessage : undefined}
-                        onClick={() => togglePermission(permission)}
-                      >
-                        <span>
-                          <strong>{t(`roleEditor.permissions.${permission}`)}</strong>
-                          <small>{permission}</small>
-                        </span>
-                        <i aria-hidden="true">
-                          <b />
-                        </i>
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-            )
-          })}
-        </div>
-      </section>
-
-      <div className="role-editor-actions">
-        <button
-          type="button"
-          className="role-editor-save"
-          disabled={saveDisabled}
-          title={!canSaveRole ? accessMessage : undefined}
-          onClick={() => void save()}
-        >
-          <Glyph name="check" size={16} />
-          {busy ? t("roleEditor.saving") : isNew ? t("roleEditor.create") : t("roleEditor.save")}
-        </button>
-
-        {existing ? (
-          <section className="role-editor-danger">
-            <span>
-              <strong>{t("roleEditor.deleteTitle")}</strong>
-              <small>{t("roleEditor.deleteCopy")}</small>
-            </span>
-            {confirmDelete ? (
-              <div>
-                <button type="button" disabled={busy} onClick={() => setConfirmDelete(false)}>
-                  {t("roleEditor.cancel")}
-                </button>
-                <button
-                  type="button"
-                  disabled={busy || !canDeleteRole}
-                  title={!canDeleteRole ? accessMessage : undefined}
-                  className="is-danger"
-                  onClick={() => void remove()}
-                >
-                  {t("roleEditor.confirmDelete")}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                disabled={busy || !canDeleteRole}
-                title={!canDeleteRole ? accessMessage : undefined}
-                className="is-danger"
-                onClick={() => setConfirmDelete(true)}
-              >
-                {t("roleEditor.delete")}
-              </button>
-            )}
-          </section>
-        ) : null}
-      </div>
+      <RoleEditorActions
+        existing={Boolean(existing)}
+        busy={busy}
+        saveDisabled={saveDisabled}
+        canSaveRole={canManageRoles}
+        canDeleteRole={canManageRoles}
+        accessMessage={accessMessage}
+        isNew={isNew}
+        onSave={() => void save()}
+        onDelete={() => void remove()}
+      />
     </div>
   )
 }
