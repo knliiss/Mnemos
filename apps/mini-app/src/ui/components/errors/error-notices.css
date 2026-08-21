@@ -1,21 +1,350 @@
+.error-notice-viewport {
+  position: fixed;
+  z-index: 160;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  bottom: auto;
+  display: grid;
+  gap: 8px;
+  width: min(352px, calc(100vw - 22px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.error-notice-viewport.has-tabbar {
+  top: max(12px, env(safe-area-inset-top));
+  bottom: auto;
+}
+
+.error-notice {
+  --error-accent: #a98ab2;
+
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr) 32px;
+  align-items: center;
+  min-height: 82px;
+  overflow: hidden;
+  padding: 8px 8px 8px 7px;
+  border: 1px solid color-mix(in srgb, var(--error-accent) 20%, rgba(223, 231, 210, 0.09));
+  border-radius: 18px;
+  color: #edf0e8;
+  background:
+    radial-gradient(
+      circle at 11% 44%,
+      color-mix(in srgb, var(--error-accent) 8%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(145deg, rgba(22, 25, 20, 0.985), rgba(9, 11, 8, 0.99));
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.31),
+    inset 0 1px rgba(255, 255, 255, 0.04);
+  pointer-events: auto;
+}
+
+.error-notice::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  border-radius: 17px;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.018),
+    transparent 34%,
+    transparent 76%,
+    color-mix(in srgb, var(--error-accent) 2%, transparent)
+  );
+  pointer-events: none;
+}
+
+.error-notice--validation {
+  --error-accent: #d6a653;
+}
+
+.error-notice--access {
+  --error-accent: #c98ba9;
+}
+
+.error-notice--conflict {
+  --error-accent: #d98b55;
+}
+
+.error-notice--not-found {
+  --error-accent: #76c8ce;
+}
+
+.error-notice--waiting {
+  --error-accent: #b9cf68;
+}
+
+.error-notice--internal {
+  --error-accent: #a98ab2;
+}
+
+.error-notice__mascot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  overflow: visible;
+}
+
+.error-notice__mascot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 32px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--error-accent) 7%, transparent);
+  filter: blur(6px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.error-mascot {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  overflow: visible;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.26));
+  transform-origin: 50% 84%;
+}
+
+.error-notice__copy {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  gap: 2px;
+  padding: 1px 5px 1px 0;
+}
+
 .error-notice__copy > small {
+  color: color-mix(in srgb, var(--error-accent) 72%, #a9afa2);
+  font-family: var(--font-meta);
   font-size: 9px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+}
+
+.error-notice__copy > strong {
+  color: #f0f2eb;
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.14;
+  letter-spacing: -0.018em;
 }
 
 .error-notice__copy > span {
+  max-width: 226px;
+  margin-top: 1px;
+  color: #92988b;
   font-size: 10px;
+  font-weight: 520;
+  line-height: 1.3;
 }
 
 .error-notice__copy > em {
+  margin-top: 2px;
+  color: #686e64;
+  font-family: var(--font-meta);
   font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
 .error-notice__close {
+  position: relative;
+  align-self: start;
+  justify-self: end;
   width: 32px;
   height: 32px;
+  margin: 0;
+  border-radius: 9px;
+  color: #7f857a;
+  background: transparent;
+  transition:
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.error-notice__close:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.error-notice__close:active {
+  background: rgba(255, 255, 255, 0.035);
+  transform: scale(0.94);
 }
 
 .error-notice__close i {
+  position: absolute;
   top: 15px;
   left: 11px;
+  width: 10px;
+  height: 1.5px;
+  background: currentColor;
+  transform-origin: center;
+}
+
+.error-notice__close i:first-child {
+  transform: rotate(45deg);
+}
+
+.error-notice__close i:last-child {
+  transform: rotate(-45deg);
+}
+
+.error-notice__signal {
+  position: absolute;
+  right: 11px;
+  bottom: 8px;
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  height: 8px;
+  opacity: 0.4;
+}
+
+.error-notice__signal i {
+  display: block;
+  width: 2px;
+  background: var(--error-accent);
+}
+
+.error-notice__signal i:nth-child(1) {
+  height: 2px;
+  opacity: 0.4;
+}
+
+.error-notice__signal i:nth-child(2) {
+  height: 4px;
+  opacity: 0.65;
+}
+
+.error-notice__signal i:nth-child(3) {
+  height: 7px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .error-notice--validation .error-mascot,
+  .error-notice--conflict .error-mascot {
+    animation: error-mascot-nudge 5.8s steps(1, end) infinite;
+  }
+
+  .error-notice--waiting .error-mascot {
+    animation: error-mascot-wait 7s ease-in-out infinite;
+  }
+
+  .error-notice--not-found .error-mascot {
+    animation: error-mascot-look 7.6s steps(1, end) infinite;
+  }
+
+  .error-notice--internal .error-notice__signal {
+    animation: error-notice-signal 4.2s steps(1, end) infinite;
+  }
+}
+
+@keyframes error-mascot-nudge {
+  0%,
+  74%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+
+  78% {
+    transform: translateX(-1px) rotate(-1deg);
+  }
+
+  82% {
+    transform: translateX(1px) rotate(1deg);
+  }
+
+  86% {
+    transform: translateX(0) rotate(0);
+  }
+}
+
+@keyframes error-mascot-wait {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes error-mascot-look {
+  0%,
+  70%,
+  100% {
+    transform: translateX(0);
+  }
+
+  74%,
+  82% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes error-notice-signal {
+  0%,
+  64%,
+  100% {
+    opacity: 0.28;
+  }
+
+  68% {
+    opacity: 0.65;
+  }
+
+  71% {
+    opacity: 0.2;
+  }
+
+  74% {
+    opacity: 0.48;
+  }
+}
+
+@media (max-width: 374px) {
+  .error-notice-viewport {
+    width: calc(100vw - 16px);
+  }
+
+  .error-notice {
+    grid-template-columns: 60px minmax(0, 1fr) 32px;
+    min-height: 78px;
+    padding-left: 5px;
+  }
+
+  .error-notice__mascot {
+    width: 60px;
+    height: 60px;
+  }
+
+  .error-mascot {
+    width: 58px;
+    height: 58px;
+  }
+
+  .error-notice__copy > strong {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-notice__close {
+    transition: none;
+  }
 }
