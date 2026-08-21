@@ -10,7 +10,7 @@ import com.mnemos.account.domain.model.account.role.Role
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.core.model.permission.RolePermission.CREATE_ROLES
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ROLES
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -30,7 +30,7 @@ class CreateRoleService(
         val context =
             accountContextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = CREATE_ROLES,
+                permission = MANAGE_ROLES,
             )
         val finalPermissions = permissions.toMutableSet()
 
