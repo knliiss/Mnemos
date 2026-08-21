@@ -46,10 +46,14 @@ export function AuthGate({ children }: { children: ReactNode }) {
         setState("session-expired")
       }
     })
+    const frame = window.requestAnimationFrame(() => {
+      void startAuthentication()
+    })
 
-    void startAuthentication()
-
-    return unsubscribe
+    return () => {
+      window.cancelAnimationFrame(frame)
+      unsubscribe()
+    }
   }, [startAuthentication])
 
   useEffect(() => {
