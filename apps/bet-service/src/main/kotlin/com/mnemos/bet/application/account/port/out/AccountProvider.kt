@@ -8,7 +8,5 @@ interface AccountProvider {
 
     fun requireActiveAccount(permission: RolePermission): AccountSnapshot
 
-    fun requireActiveAccount(permissions: Set<RolePermission>): AccountSnapshot
-
     fun findByNickname(nickname: String): AccountSnapshot?
 }
