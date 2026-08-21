@@ -4,6 +4,7 @@ import com.mnemos.account.application.context.account.ActiveAccountContextProvid
 import com.mnemos.account.application.query.account.member.AccountMemberListItem
 import com.mnemos.account.application.query.account.member.AccountMemberQueryRepository
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.permission.RolePermission.VIEW_MEMBERS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +15,10 @@ class AccountMemberQueryService(
     private val memberQueryRepository: AccountMemberQueryRepository,
 ) {
     fun getMembers(accountId: AccountId): List<AccountMemberListItem> {
-        contextProvider.requireActiveContext(accountId)
+        contextProvider.requirePermission(
+            accountId = accountId,
+            permission = VIEW_MEMBERS,
+        )
 
         return memberQueryRepository.findAllByAccountId(accountId)
     }
