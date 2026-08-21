@@ -6,7 +6,6 @@ import "./people-wallet.css"
 import { PublicProfilePage } from "./profile/PublicProfilePage"
 import { SearchPage } from "./profile/SearchPage"
 import "./profile/profile-state.css"
-import "./profile/profile-typography.css"
 import "./profile/public-profile.css"
 import "./profile/search.css"
 
