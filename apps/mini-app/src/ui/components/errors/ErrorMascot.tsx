@@ -5,6 +5,7 @@ export type ErrorMascotVariant =
   | "not-found"
   | "waiting"
   | "internal"
+  | "service-unavailable"
 
 type Props = {
   variant: ErrorMascotVariant
@@ -17,12 +18,15 @@ const tones: Record<ErrorMascotVariant, string> = {
   "not-found": "#76C8CE",
   waiting: "#B9CF68",
   internal: "#A98AB2",
+  "service-unavailable": "#7F8A73",
 }
 
 export function ErrorMascot({ variant }: Props) {
   const tone = tones[variant]
   const lookingAside = variant === "not-found" || variant === "internal"
+  const isServiceUnavailable = variant === "service-unavailable"
   const pupilShift = lookingAside ? 2 : 0
+  const pupilY = isServiceUnavailable ? 46 : 45
 
   return (
     <svg
@@ -53,12 +57,25 @@ export function ErrorMascot({ variant }: Props) {
         <rect x="47" y="43" width="11" height="9" fill="#171A17" />
         <rect x="29" y="43" width="6" height="6" fill="#B8CA79" />
         <rect x="50" y="43" width="6" height="6" fill="#B8CA79" />
-        <rect x={31 + pupilShift} y="45" width="3" height="5" fill="#090B09" />
-        <rect x={52 + pupilShift} y="45" width="3" height="5" fill="#090B09" />
+        <rect x={31 + pupilShift} y={pupilY} width="3" height="5" fill="#090B09" />
+        <rect x={52 + pupilShift} y={pupilY} width="3" height="5" fill="#090B09" />
 
-        <rect x="32" y="52" width="20" height="4" fill="#E5DED3" />
-        <rect x="36" y="56" width="12" height="4" fill="#E5DED3" />
-        <rect x="39" y="51" width="6" height="4" fill="#B98689" />
+        {isServiceUnavailable ? (
+          <>
+            <rect x="35" y="53" width="14" height="3" fill="#E5DED3" />
+            <rect x="32" y="56" width="4" height="3" fill="#E5DED3" />
+            <rect x="48" y="56" width="4" height="3" fill="#E5DED3" />
+            <rect x="39" y="51" width="6" height="4" fill="#B98689" />
+            <rect x="55" y="50" width="2" height="5" fill="#76A9B0" />
+            <rect x="56" y="55" width="2" height="3" fill="#76A9B0" />
+          </>
+        ) : (
+          <>
+            <rect x="32" y="52" width="20" height="4" fill="#E5DED3" />
+            <rect x="36" y="56" width="12" height="4" fill="#E5DED3" />
+            <rect x="39" y="51" width="6" height="4" fill="#B98689" />
+          </>
+        )}
 
         <rect x="32" y="60" width="20" height="3" fill="#BB914F" />
         <rect x="40" y="62" width="4" height="5" fill="#111411" />
@@ -130,6 +147,20 @@ function ErrorAccessory({ variant, tone }: { variant: ErrorMascotVariant; tone: 
           <rect x="7" y="5" width="5" height="3" fill={tone} />
           <rect x="10" y="8" width="3" height="4" fill={tone} />
           <rect x="7" y="15" width="3" height="3" fill={tone} />
+        </g>
+      )
+
+    case "service-unavailable":
+      return (
+        <g transform="translate(60 47)">
+          <rect x="1" y="16" width="4" height="6" fill="#333A33" />
+          <rect x="7" y="11" width="4" height="11" fill="#333A33" />
+          <rect x="13" y="5" width="4" height="17" fill="#333A33" />
+          <rect x="2" y="3" width="3" height="3" fill={tone} />
+          <rect x="5" y="6" width="3" height="3" fill={tone} />
+          <rect x="8" y="9" width="3" height="3" fill={tone} />
+          <rect x="11" y="12" width="3" height="3" fill={tone} />
+          <rect x="14" y="15" width="3" height="3" fill={tone} />
         </g>
       )
   }

@@ -9,6 +9,7 @@ import {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
+import { isAuthError } from "@/features/auth/api/authErrors"
 import {
   createAccount,
   joinAccount,
@@ -17,12 +18,14 @@ import {
   selectActiveAccount,
 } from "@/shared/api/accountApi"
 import type { CurrentContextResponse } from "@/shared/api/backendContracts"
+import { isServiceUnavailableError } from "@/shared/api/httpClient"
 import {
   getCurrentContext,
   initializeCurrentUser,
   updateCurrentLanguage,
 } from "@/shared/api/userApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
 import type { LocalizationLanguage } from "@/ui/model"
 
 type AppState = {
@@ -37,14 +40,17 @@ type AppState = {
   setLanguage(language: LocalizationLanguage): Promise<void>
 }
 
+const AUTOMATIC_RETRY_DELAY_MS = 10_000
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
   const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [serviceUnavailable, setServiceUnavailable] = useState(false)
   const contextRevision = useRef(0)
   const mountedRef = useRef(true)
+  const bootstrapPromiseRef = useRef<Promise<void> | null>(null)
 
   const refresh = useCallback(async () => {
     const revision = contextRevision.current + 1
@@ -59,7 +65,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return next
   }, [])
 
-  const bootstrap = useCallback(async () => {
+  const runBootstrap = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -71,15 +77,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const next = await refresh()
 
-      if (mountedRef.current) {
-        await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      if (!mountedRef.current) {
+        return
       }
+
+      await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      setServiceUnavailable(false)
+    } catch (error) {
+      if (!mountedRef.current) {
+        return
+      }
+
+      if (isServiceUnavailableError(error) || isAuthError(error, "AUTH_UNAVAILABLE")) {
+        setServiceUnavailable(true)
+        return
+      }
+
+      handleError(error)
+      setServiceUnavailable(true)
     } finally {
       if (mountedRef.current) {
         setLoading(false)
       }
     }
   }, [i18n, refresh])
+
+  const bootstrap = useCallback((): Promise<void> => {
+    if (bootstrapPromiseRef.current) {
+      return bootstrapPromiseRef.current
+    }
+
+    const attempt = runBootstrap()
+    bootstrapPromiseRef.current = attempt
+
+    void attempt.then(
+      () => {
+        if (bootstrapPromiseRef.current === attempt) {
+          bootstrapPromiseRef.current = null
+        }
+      },
+      () => {
+        if (bootstrapPromiseRef.current === attempt) {
+          bootstrapPromiseRef.current = null
+        }
+      },
+    )
+
+    return attempt
+  }, [runBootstrap])
 
   const selectAccount = useCallback(
     async (accountId: string) => {
@@ -135,7 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mountedRef.current = true
     const frame = window.requestAnimationFrame(() => {
-      void bootstrap().catch(handleError)
+      void bootstrap()
     })
 
     return () => {
@@ -144,6 +189,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.cancelAnimationFrame(frame)
     }
   }, [bootstrap])
+
+  useEffect(() => {
+    if (!serviceUnavailable) {
+      return
+    }
+
+    const retryTimer = window.setTimeout(() => {
+      void bootstrap()
+    }, AUTOMATIC_RETRY_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(retryTimer)
+    }
+  }, [bootstrap, serviceUnavailable])
 
   const value = useMemo<AppState>(
     () => ({
@@ -169,6 +228,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLanguage,
     ],
   )
+
+  if (serviceUnavailable) {
+    return <ServiceUnavailableScreen reason="service" onRetry={bootstrap} />
+  }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

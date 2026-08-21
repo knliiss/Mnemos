@@ -51,13 +51,8 @@ public final class TelegramAuthenticator implements Authenticator {
             );
 
             if (initData == null || initData.isBlank()) {
-                LOGGER.warn("Telegram authentication request does not contain initData");
-                fail(
-                        context,
-                        AuthenticationFlowError.INVALID_CREDENTIALS,
-                        Response.Status.BAD_REQUEST,
-                        "Telegram initData is missing"
-                );
+                LOGGER.debug("Telegram authentication skipped because initData is not present");
+                context.attempted();
                 return;
             }
 

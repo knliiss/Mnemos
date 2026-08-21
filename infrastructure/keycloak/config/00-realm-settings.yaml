@@ -23,8 +23,8 @@ quickLoginCheckMilliSeconds: 1000
 maxDeltaTimeSeconds: 43200
 
 accessTokenLifespan: 600
-ssoSessionIdleTimeout: 1800
-ssoSessionMaxLifespan: 36000
+ssoSessionIdleTimeout: 86400
+ssoSessionMaxLifespan: 604800
 offlineSessionIdleTimeout: 2592000
 
 passwordPolicy: "length(10) and maxLength(128) and notUsername(undefined)"

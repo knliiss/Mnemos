@@ -32,26 +32,13 @@ export class NetworkError extends Error {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = await getToken()
   const url = `${runtimeConfig.apiUrl}${path}`
-  let response: Response
+  let token = await getToken()
+  let response = await sendRequest(url, options, token)
 
-  try {
-    response = await fetch(url, {
-      ...options,
-      headers: {
-        Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-    })
-  } catch (error) {
-    const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-
-    throw new NetworkError(
-      `Network request failed.\n${options.method ?? "GET"} ${url}\nCause: ${reason}`,
-      error,
-    )
+  if (response.status === 401) {
+    token = await getToken({ forceRefresh: true })
+    response = await sendRequest(url, options, token)
   }
 
   if (!response.ok) {
@@ -72,6 +59,34 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     return JSON.parse(text) as T
   } catch {
     throw new ApiError(response.status, "Server returned invalid JSON")
+  }
+}
+
+export function isServiceUnavailableError(error: unknown): boolean {
+  return error instanceof NetworkError || (error instanceof ApiError && error.status >= 500)
+}
+
+async function sendRequest(url: string, options: RequestInit, token: string): Promise<Response> {
+  const headers = new Headers(options.headers)
+
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json")
+  }
+
+  headers.set("Authorization", `Bearer ${token}`)
+
+  try {
+    return await fetch(url, {
+      ...options,
+      headers,
+    })
+  } catch (error) {
+    const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+
+    throw new NetworkError(
+      `Network request failed.\n${options.method ?? "GET"} ${url}\nCause: ${reason}`,
+      error,
+    )
   }
 }
 
