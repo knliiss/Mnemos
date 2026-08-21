@@ -32,12 +32,6 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
                   account.owner_member_id = member.id
                   OR EXISTS (
                       SELECT 1
-                      FROM role_permissions permission
-                      WHERE permission.role_id = account.base_role_id
-                        AND permission.permission = :permission
-                  )
-                  OR EXISTS (
-                      SELECT 1
                       FROM role_assignments assignment
                       JOIN role_permissions permission
                           ON permission.role_id = assignment.role_id
@@ -61,22 +55,12 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
     ): AccountMemberEntity?
 
     @Query(
-        value = """
-        SELECT DISTINCT permission.permission
-        FROM account_members member
-        JOIN accounts account
-            ON account.id = member.account_id
-        JOIN role_permissions permission
-            ON permission.role_id = account.base_role_id
-        WHERE member.id = :memberId
-
-        UNION
-
-        SELECT DISTINCT permission.permission
-        FROM role_assignments assignment
-        JOIN role_permissions permission
-            ON permission.role_id = assignment.role_id
-        WHERE assignment.account_member_id = :memberId
+        """
+    SELECT DISTINCT permission.permission
+    FROM role_assignments assignment
+    JOIN role_permissions permission
+        ON permission.role_id = assignment.role_id
+    WHERE assignment.account_member_id = :memberId
     """,
         nativeQuery = true,
     )
@@ -84,30 +68,14 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
 
     @Query(
         value = """
-        SELECT EXISTS (
-            SELECT 1
-            FROM account_members member
-            JOIN accounts account
-                ON account.id = member.account_id
-            WHERE member.id = :memberId
-              AND (
-                  EXISTS (
-                      SELECT 1
-                      FROM role_permissions permission
-                      WHERE permission.role_id = account.base_role_id
-                        AND permission.permission = :permission
-                  )
-                  OR EXISTS (
-                      SELECT 1
-                      FROM role_assignments assignment
-                      JOIN role_permissions permission
-                          ON permission.role_id = assignment.role_id
-                      WHERE assignment.account_member_id = member.id
-                        AND assignment.account_id = member.account_id
-                        AND permission.permission = :permission
-                  )
-              )
-        )
+    SELECT EXISTS (
+        SELECT 1
+        FROM role_assignments assignment
+        JOIN role_permissions permission
+            ON permission.role_id = assignment.role_id
+        WHERE assignment.account_member_id = :memberId
+          AND permission.permission = :permission
+    )
     """,
         nativeQuery = true,
     )
