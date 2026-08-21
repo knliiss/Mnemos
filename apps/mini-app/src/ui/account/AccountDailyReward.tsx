@@ -40,10 +40,14 @@ export function AccountDailyReward() {
   const rewardBusyRef = useRef(false)
 
   const reward = data.dailyReward
-  const claimAvailable = Boolean(reward && !reward.claimedToday && !reward.recoverable)
-  const restoreAvailable = Boolean(
+  const canClaimReward = data.hasPermission("CLAIM_DAILY_REWARD")
+  const claimReady = Boolean(reward && !reward.claimedToday && !reward.recoverable)
+  const restoreReady = Boolean(
     reward && !reward.claimedToday && reward.recoverable && reward.restoresRemaining > 0,
   )
+  const claimAvailable = canClaimReward && claimReady
+  const restoreAvailable = canClaimReward && restoreReady
+  const restricted = !canClaimReward && (claimReady || restoreReady)
 
   const claimDaily = async () => {
     if (!claimAvailable || rewardBusyRef.current) {
@@ -139,6 +143,16 @@ export function AccountDailyReward() {
           {t("accountHome.restore")}
           <small>{reward?.restoresRemaining}×</small>
         </motion.button>
+      ) : restricted ? (
+        <button
+          type="button"
+          className="is-restricted"
+          disabled
+          aria-label={t("accountHome.rewardUnavailable")}
+        >
+          <Glyph name="daily" size={15} />
+          {t("accountHome.noPermission")}
+        </button>
       ) : null}
 
       <AnimatePresence>
