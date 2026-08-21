@@ -1,17 +1,6 @@
 export type Currency = "COIN" | "PRIME"
 export type WalletOwnerType = "ACCOUNT" | "USER"
 export type TransactionType = "CREDIT" | "DEBIT"
-export type TransactionSource =
-  | "DAILY_REWARD"
-  | "ITEM_DROP_REWARD"
-  | "BET_PLACE"
-  | "BET_WIN"
-  | "BET_REFUND"
-  | "PERSONALIZATION_PURCHASE"
-  | "CREATOR_REVENUE"
-  | "SPOTLIGHT_PURCHASE"
-  | "PRIME_PURCHASE"
-  | "ADMIN_ADJUSTMENT"
 export type LocalizationLanguage = "EN" | "RU" | "UK"
 export type DropSpotlightPresentationMode = "FULL" | "COMPACT"
 export type EventKind = "ITEM_DROP" | "BOOSTER" | "GLOBAL" | "RAID"
@@ -24,12 +13,6 @@ export type BetSide = "YES" | "NO"
 export type EventBetOutcome = "YES" | "NO" | "REFUND"
 export type BetItemType = "SWORD" | "AURA" | "PET" | "BOOK" | "JEWELRY"
 export type ItemRarity = "MYTHICAL" | "SECRET"
-export type EventBetRoundStatus =
-  | "OPEN"
-  | "LOCKED"
-  | "AWAITING_RESULT"
-  | "AWAITING_ADMIN_CONFIRMATION"
-  | "SETTLED"
 export type PersonalizationType =
   | "NOTIFICATION_PACK"
   | "NICK_STYLE"
@@ -139,6 +122,7 @@ export type Member = {
   highestRoleId: string | null
   roleIds: string[]
 }
+
 export type AccountRole = {
   id: string
   name: string
@@ -147,6 +131,7 @@ export type AccountRole = {
   permissions: Record<RolePermission, boolean>
   locked?: boolean
 }
+
 export type FeedEvent = {
   id: string
   kind: EventKind
@@ -157,34 +142,13 @@ export type FeedEvent = {
   meta?: string
   rarity?: ItemRarity
 }
+
 export type Subscription =
   | { id: string; type: "ITEM_DROP"; droppedFor?: string; itemName?: string }
   | { id: string; type: "BOOSTER"; boosterType: BoosterType }
   | { id: string; type: "DUNGEON"; dungeonType: DungeonType }
   | { id: string; type: "GLOBAL"; eventType: GlobalEventType }
   | { id: string; type: "RAID"; locations: number[] }
-export type BetRound = {
-  id: string
-  eventType: BetGlobalEventType
-  scheduledAt: string
-  closesAt: string
-  resolvesAt: string
-  yesOdds: number
-  noOdds: number
-  status: EventBetRoundStatus
-  mySide?: BetSide
-  myAmount?: number
-}
-export type ItemRace = {
-  id: string
-  itemName: string
-  itemType: BetItemType
-  entryAmount: number
-  closesAt: string
-  participants: number
-  joined: boolean
-  myAmount?: number
-}
 
 export type GradientStop = {
   color: string
@@ -263,76 +227,4 @@ export type Personalization = {
   active: boolean
   preview: string
   content?: PersonalizationContent
-}
-
-export type WalletTransaction = {
-  id: string
-  currency: Currency
-  type: TransactionType
-  source: TransactionSource
-  amount: number
-  createdAt: string
-}
-export type ProfileComment = {
-  id: string
-  authorAccountId: string
-  author: string
-  content: string
-  likes: number
-  replies: number
-  createdAt: string
-  liked: boolean
-  pending?: boolean
-  failed?: boolean
-}
-export type PublicProfile = {
-  accountId: string
-  cristalixUuid: string
-  nickname: string
-  likes: number
-  dislikes: number
-  comments: number
-  skinUrl: string
-}
-
-export type InternalIdentityAccount = {
-  accountId: string
-  cristalixUuid: string
-  cristalixNickname: string
-  active: boolean
-}
-
-export type InternalIdentity = {
-  userId: string
-  username: string
-  telegramId: number
-  accounts: InternalIdentityAccount[]
-}
-
-export type ModerationSanction = {
-  id: string
-  userId: string
-  type: SanctionType
-  reason: string
-  internalNote?: string
-  createdByUserId: string
-  createdAt: string
-  expiresAt?: string
-  status: SanctionStatus
-}
-
-export type WalletAdjustment = {
-  operationId: string
-  requestId: string
-  targetType: WalletOwnerType
-  targetId: string
-  actorUserId: string
-  currency: Currency
-  type: TransactionType
-  amount: number
-  reason: string
-  status: WalletAdjustmentStatus
-  walletTransactionId?: string
-  failureReason?: string
-  createdAt: string
 }
