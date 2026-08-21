@@ -18,7 +18,7 @@ export const accountSettingsEn = {
     accessEyebrow: "ACCESS",
     defaultRoleTitle: "Base account role",
     defaultRoleCopy:
-      "While a role is assigned as the base role, its permissions apply to every account member. With no base role assigned, those permissions are not added.",
+      "This role is assigned automatically to a new member when they join the account. Changing the base role does not change roles that were already assigned to existing members.",
     baseRoleUnavailable: "Your role cannot change the account base role.",
     unsaved: "Unsaved",
     saved: "Saved",
