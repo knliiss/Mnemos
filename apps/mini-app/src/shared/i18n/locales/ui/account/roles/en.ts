@@ -62,12 +62,8 @@ export const accountRolesEn = {
       personalization: "Personalization",
     },
     permissions: {
-      VIEW_ACCOUNT_SETTINGS: "View account settings",
-      EDIT_ACCOUNT_SETTINGS: "Edit account settings",
       MANAGE_ACCOUNT_INVITES: "Manage invites",
       VIEW_MEMBERS: "View members",
-      INVITE_MEMBERS: "Invite members",
-      REMOVE_MEMBERS: "Remove members",
       ASSIGN_MEMBER_ROLES: "Assign roles",
       KICK_MEMBERS: "Kick members",
       VIEW_ROLES: "View roles",
