@@ -1,6 +1,5 @@
 package com.mnemos.social.application.commentlike.usecase.unlike
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.domain.reaction.repository.CommentLikeRepository
 import org.springframework.stereotype.Service
@@ -14,7 +13,7 @@ class UnlikeCommentService(
 ) : UnlikeCommentUseCase {
     @Transactional
     override fun execute(commentId: UUID) {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+        val actor = actorProvider.requireActor()
 
         repository.remove(
             commentId = commentId,
