@@ -82,12 +82,10 @@ export const accountRolesRu = {
       MODERATE_COMMENTS: "Модерация комментариев",
       VIEW_BETS: "Просмотр ставок",
       PLACE_BETS: "Делать ставки",
-      MANAGE_BETS: "Управление ставками",
       VIEW_BET_HISTORY: "История ставок",
       VIEW_PERSONALIZATIONS: "Просмотр персонализаций",
       APPLY_PERSONALIZATIONS: "Активировать персонализации",
       BUY_PERSONALIZATIONS: "Покупать персонализации",
-      MANAGE_PERSONALIZATIONS: "Управление персонализациями",
     },
   },
 } as const
