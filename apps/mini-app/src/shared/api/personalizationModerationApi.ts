@@ -19,6 +19,7 @@ export async function approvePersonalization(
     `/api/v1/personalizations/moderation/${personalizationId}/approve`,
     {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         price: {
           currency,
@@ -37,6 +38,7 @@ export async function rejectPersonalization(
     `/api/v1/personalizations/moderation/${personalizationId}/reject`,
     {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reason }),
     },
   )
