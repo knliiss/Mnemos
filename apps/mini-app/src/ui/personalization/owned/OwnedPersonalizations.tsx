@@ -20,6 +20,7 @@ type OwnedPersonalizationsProps = {
   items: Personalization[]
   loading: boolean
   busyId: string | null
+  canApplyAccountPersonalizations: boolean
   onToggleActive: (item: Personalization) => Promise<void>
   navigate: (route: Route) => void
   back: () => void
@@ -30,6 +31,7 @@ export function OwnedPersonalizations({
   items,
   loading,
   busyId,
+  canApplyAccountPersonalizations,
   onToggleActive,
   navigate,
   back,
@@ -37,6 +39,7 @@ export function OwnedPersonalizations({
   const { t } = useTranslation()
   const target = params?.target === "ACCOUNT" || params?.target === "USER" ? params.target : null
   const type = readPersonalizationType(params?.type)
+  const accessMessage = t("errorNotifications.tones.access.message")
 
   if (target === "ACCOUNT" && type && personalizationTargets[type] === "ACCOUNT") {
     const typeItems = items.filter(
@@ -67,8 +70,9 @@ export function OwnedPersonalizations({
                 type="button"
                 key={item.id}
                 className={item.active ? "is-selected" : ""}
-                whileTap={{ scale: 0.992 }}
-                disabled={busyId === item.id}
+                whileTap={canApplyAccountPersonalizations ? { scale: 0.992 } : undefined}
+                disabled={busyId === item.id || !canApplyAccountPersonalizations}
+                title={!canApplyAccountPersonalizations ? accessMessage : undefined}
                 onClick={() => void onToggleActive(item)}
               >
                 <PersonalizationVisual item={item} />

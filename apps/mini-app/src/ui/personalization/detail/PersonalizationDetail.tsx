@@ -15,6 +15,8 @@ type PersonalizationDetailProps = {
   loading: boolean
   busyId: string | null
   pendingPurchases: Record<string, string>
+  canBuyAccountPersonalizations: boolean
+  canApplyAccountPersonalizations: boolean
   onPurchase: (item: Personalization) => Promise<void>
   onToggleActive: (item: Personalization) => Promise<void>
   back: () => void
@@ -26,6 +28,8 @@ export function PersonalizationDetail({
   loading,
   busyId,
   pendingPurchases,
+  canBuyAccountPersonalizations,
+  canApplyAccountPersonalizations,
   onPurchase,
   onToggleActive,
   back,
@@ -53,6 +57,9 @@ export function PersonalizationDetail({
 
   const pending = Boolean(pendingPurchases[item.id])
   const busy = busyId === item.id
+  const canPurchase = item.target === "USER" || canBuyAccountPersonalizations
+  const canToggleActive = item.target === "USER" || canApplyAccountPersonalizations
+  const accessMessage = t("errorNotifications.tones.access.message")
   const actionClassName = `personalization-detail-purchase__action ${
     item.owned && item.active ? "is-active" : ""
   }`.trim()
@@ -98,7 +105,8 @@ export function PersonalizationDetail({
           <button
             type="button"
             className={actionClassName}
-            disabled={busy}
+            disabled={busy || !canToggleActive}
+            title={!canToggleActive ? accessMessage : undefined}
             onClick={() => void onToggleActive(item)}
           >
             {busy
@@ -111,7 +119,8 @@ export function PersonalizationDetail({
           <button
             type="button"
             className={actionClassName}
-            disabled={busy || pending}
+            disabled={busy || pending || !canPurchase}
+            title={!canPurchase ? accessMessage : undefined}
             onClick={() => void onPurchase(item)}
           >
             {pending

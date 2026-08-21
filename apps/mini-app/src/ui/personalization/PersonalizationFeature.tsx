@@ -25,6 +25,12 @@ export function PersonalizationFeature({
 }: PersonalizationFeatureProps) {
   const product = useMnemosData()
   const personalization = usePersonalizations()
+  const canBuyAccountPersonalizations = Boolean(
+    product.activeAccount && product.hasPermission("BUY_ACCOUNT_PERSONALIZATIONS"),
+  )
+  const canApplyAccountPersonalizations = Boolean(
+    product.activeAccount && product.hasPermission("APPLY_ACCOUNT_PERSONALIZATIONS"),
+  )
 
   if (personalization.error) {
     return <FeatureError back={back} onRetry={() => void personalization.refresh()} />
@@ -37,6 +43,7 @@ export function PersonalizationFeature({
         items={personalization.items}
         loading={personalization.loading}
         busyId={personalization.busyId}
+        canApplyAccountPersonalizations={canApplyAccountPersonalizations}
         onToggleActive={personalization.toggleActive}
         navigate={navigate}
         back={back}
@@ -64,6 +71,8 @@ export function PersonalizationFeature({
         loading={personalization.loading}
         busyId={personalization.busyId}
         pendingPurchases={personalization.pendingPurchases}
+        canBuyAccountPersonalizations={canBuyAccountPersonalizations}
+        canApplyAccountPersonalizations={canApplyAccountPersonalizations}
         onPurchase={personalization.purchase}
         onToggleActive={personalization.toggleActive}
         back={back}
