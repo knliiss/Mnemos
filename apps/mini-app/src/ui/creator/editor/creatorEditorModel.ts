@@ -3,7 +3,10 @@ import {
   createCreatorPersonalization,
   updateCreatorPersonalization,
 } from "@/shared/api/creatorPersonalizationApi"
-import type { PersonalizationResponse } from "@/shared/api/personalizationApi"
+import type {
+  NotificationPackContentResponse,
+  PersonalizationResponse,
+} from "@/shared/api/personalizationApi"
 import type {
   Currency,
   Personalization,
@@ -212,12 +215,12 @@ export function creatorResponseToEditorForm(
     }
   }
 
-  const value = content as { mixedAggregateTitle: string }
+  const value = content as NotificationPackContentResponse
 
   return {
     ...base,
     currency: "PRIME",
-    message: value.mixedAggregateTitle || base.message,
+    message: value.templates.ITEM_DROP.soloBody || value.mixedAggregateTitle || base.message,
   }
 }
 
