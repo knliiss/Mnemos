@@ -5,7 +5,7 @@ import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ROLES
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_BASE_ROLE
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -24,7 +24,7 @@ class UpdateAccountBaseRoleService(
         val context =
             contextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = MANAGE_ROLES,
+                permission = MANAGE_BASE_ROLE,
             )
 
         val validatedRoleId =
