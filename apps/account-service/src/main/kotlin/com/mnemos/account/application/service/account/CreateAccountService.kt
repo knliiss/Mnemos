@@ -119,7 +119,6 @@ class CreateAccountService(
 
         val DEFAULT_BASE_ROLE_PERMISSIONS =
             setOf(
-                RolePermission.VIEW_ACCOUNT_SETTINGS,
                 RolePermission.VIEW_MEMBERS,
                 RolePermission.VIEW_ROLES,
                 RolePermission.VIEW_WALLET,
