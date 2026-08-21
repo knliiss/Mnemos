@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { PageHeader, Section } from "../../shared/Primitives"
@@ -19,10 +20,17 @@ export function ModerationUser({ params, back }: Props) {
   const canAdjustWallet = mnemos.user.systemRoles.some(
     (role) => role === "ADMIN" || role === "SUPER_ADMIN",
   )
+  const canAdjustPrime = mnemos.user.systemRoles.includes("SUPER_ADMIN")
   const controller = useModerationUser({
     userId,
     canAdjustWallet,
   })
+
+  useLayoutEffect(() => {
+    if (canAdjustWallet && !canAdjustPrime && controller.walletTarget !== "ACCOUNT") {
+      controller.setWalletTarget("ACCOUNT")
+    }
+  }, [canAdjustPrime, canAdjustWallet, controller.setWalletTarget, controller.walletTarget])
 
   if (controller.loading) {
     return (
@@ -104,6 +112,7 @@ export function ModerationUser({ params, back }: Props) {
           controller={controller}
           identity={identity}
           language={i18n.language}
+          canAdjustPrime={canAdjustPrime}
         />
       ) : null}
     </div>

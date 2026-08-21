@@ -10,10 +10,17 @@ type Props = {
   controller: ModerationUserController
   identity: IdentitySearchResponse
   language: string
+  canAdjustPrime: boolean
 }
 
-export function ModerationWalletAdjustments({ controller, identity, language }: Props) {
+export function ModerationWalletAdjustments({
+  controller,
+  identity,
+  language,
+  canAdjustPrime,
+}: Props) {
   const { t } = useTranslation()
+  const walletTargets = canAdjustPrime ? (["USER", "ACCOUNT"] as const) : (["ACCOUNT"] as const)
 
   return (
     <section className="admin-wallet-panel">
@@ -30,7 +37,7 @@ export function ModerationWalletAdjustments({ controller, identity, language }: 
       <Field label={t("moderation.target")}>
         <Segmented
           value={controller.walletTarget}
-          options={["USER", "ACCOUNT"] as const}
+          options={walletTargets}
           onChange={controller.setWalletTarget}
           label={(value) =>
             value === "USER" ? t("moderation.userTarget") : t("moderation.accountTarget")
