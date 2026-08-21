@@ -11,7 +11,6 @@ import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipant
 import com.mnemos.bet.domain.itemrace.repository.ItemRaceRepository
 import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
 import com.mnemos.common.core.model.permission.RolePermission.PLACE_BETS
-import com.mnemos.common.core.model.permission.RolePermission.SPEND_WALLET_FUNDS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -27,7 +26,7 @@ class JoinItemRaceService(
 ) : JoinItemRaceUseCase {
     @Transactional
     override fun execute(command: JoinItemRaceCommand): JoinItemRaceResult {
-        val account = accountProvider.requireActiveAccount(setOf(PLACE_BETS, SPEND_WALLET_FUNDS))
+        val account = accountProvider.requireActiveAccount(PLACE_BETS)
         val actorUserId = currentActorProvider.requireUserId()
         val race =
             repository.findByIdForUpdate(command.raceId)
