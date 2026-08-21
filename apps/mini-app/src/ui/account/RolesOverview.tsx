@@ -22,6 +22,9 @@ export function RolesOverview({ navigate, back }: Props) {
   const accountId = data.activeAccount?.id ?? null
   const canViewRoles = data.hasPermission("VIEW_ROLES")
   const canViewMembers = data.hasPermission("VIEW_MEMBERS")
+  const canCreateRoles = data.hasPermission("CREATE_ROLES")
+  const canManageHierarchy = data.hasPermission("MANAGE_ROLE_HIERARCHY")
+  const accessMessage = t("errorNotifications.tones.access.message")
   const roles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -37,7 +40,8 @@ export function RolesOverview({ navigate, back }: Props) {
           <button
             type="button"
             className="roles-create"
-            disabled={!accountId}
+            disabled={!accountId || !canCreateRoles}
+            title={!canCreateRoles ? accessMessage : undefined}
             onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
           >
             <Glyph name="plus" size={16} />
@@ -87,6 +91,7 @@ export function RolesOverview({ navigate, back }: Props) {
                 )
               : null
           }
+          canManageHierarchy={canManageHierarchy}
           navigate={navigate}
           refresh={data.refreshAccount}
         />
@@ -96,7 +101,7 @@ export function RolesOverview({ navigate, back }: Props) {
         <FeatureEmpty
           icon="roles"
           title={t("errorNotifications.tones.access.title")}
-          copy={t("errorNotifications.tones.access.message")}
+          copy={accessMessage}
         />
       ) : null}
 
@@ -111,7 +116,8 @@ export function RolesOverview({ navigate, back }: Props) {
       <button
         type="button"
         className="roles-create-card"
-        disabled={!accountId}
+        disabled={!accountId || !canCreateRoles}
+        title={!canCreateRoles ? accessMessage : undefined}
         onClick={() => navigate({ id: "role-editor", params: { roleId: "new" } })}
       >
         <span>
@@ -131,12 +137,14 @@ function RoleReorderList({
   accountId,
   initialRoles,
   memberCounts,
+  canManageHierarchy,
   navigate,
   refresh,
 }: {
   accountId: string
   initialRoles: AccountRole[]
   memberCounts: Map<string, number> | null
+  canManageHierarchy: boolean
   navigate: (route: Route) => void
   refresh: () => Promise<void>
 }) {
@@ -144,7 +152,7 @@ function RoleReorderList({
   const [savingOrder, setSavingOrder] = useState(false)
 
   const persist = async () => {
-    if (savingOrder) {
+    if (savingOrder || !canManageHierarchy) {
       return
     }
 
@@ -172,7 +180,7 @@ function RoleReorderList({
             key={role.id}
             role={role}
             memberCount={memberCounts?.get(role.id) ?? null}
-            disabled={savingOrder}
+            disabled={savingOrder || !canManageHierarchy}
             navigate={navigate}
             onDragEnd={() => void persist()}
           />
@@ -237,7 +245,7 @@ function SortableRoleRow({
         className="role-drag-handle"
         disabled={disabled}
         aria-label={t("rolesOverview.dragAria", { name: role.name })}
-        title={t("rolesOverview.dragAction")}
+        title={disabled ? t("errorNotifications.tones.access.message") : t("rolesOverview.dragAction")}
         onPointerDown={(event) => {
           if (!disabled) {
             dragControls.start(event)
