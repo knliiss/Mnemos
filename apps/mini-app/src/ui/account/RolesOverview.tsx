@@ -216,7 +216,11 @@ function SortableRoleRow({
         <span className="role-row__copy">
           <span>
             <strong>{role.name}</strong>
-            <i>{memberCount === null ? "—" : t("rolesOverview.primaryMembers", { count: memberCount })}</i>
+            <i>
+              {memberCount === null
+                ? "—"
+                : t("rolesOverview.primaryMembers", { count: memberCount })}
+            </i>
           </span>
           <small>
             {t("rolesOverview.permissionSummary", {
