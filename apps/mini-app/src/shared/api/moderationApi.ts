@@ -87,6 +87,7 @@ export async function listSanctions(userId: string): Promise<SanctionResponse[]>
 export async function createSanction(request: CreateSanctionRequest): Promise<SanctionResponse> {
   return api<SanctionResponse>("/api/v1/moderation/sanctions", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
   })
 }
@@ -111,6 +112,7 @@ export async function createWalletAdjustment(
   return api<WalletAdjustmentResponse>("/api/v1/moderation/wallet-adjustments", {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       "Idempotency-Key": crypto.randomUUID(),
     },
     body: JSON.stringify(request),
