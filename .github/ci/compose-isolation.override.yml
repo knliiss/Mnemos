@@ -1,0 +1,48 @@
+services:
+  account-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-account-service"
+    image: "${COMPOSE_PROJECT_NAME}/account-service:${ACCOUNT_SERVICE_VERSION:-local}"
+
+  bet-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-bet-service"
+    image: "${COMPOSE_PROJECT_NAME}/bet-service:${BET_SERVICE_VERSION:-local}"
+
+  event-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-event-service"
+    image: "${COMPOSE_PROJECT_NAME}/event-service:${EVENT_SERVICE_VERSION:-local}"
+
+  gateway-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-gateway-service"
+    image: "${COMPOSE_PROJECT_NAME}/gateway-service:${GATEWAY_SERVICE_VERSION:-local}"
+
+  moderation-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-moderation-service"
+    image: "${COMPOSE_PROJECT_NAME}/moderation-service:${MODERATION_SERVICE_VERSION:-local}"
+
+  notification-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-notification-service"
+    image: "${COMPOSE_PROJECT_NAME}/notification-service:${NOTIFICATION_SERVICE_VERSION:-local}"
+
+  personalization-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-personalization-service"
+    image: "${COMPOSE_PROJECT_NAME}/personalization-service:${PERSONALIZATION_SERVICE_VERSION:-local}"
+
+  profile-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-profile-service"
+    image: "${COMPOSE_PROJECT_NAME}/profile-service:${PROFILE_SERVICE_VERSION:-local}"
+
+  realtime-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-realtime-service"
+    image: "${COMPOSE_PROJECT_NAME}/realtime-service:${REALTIME_SERVICE_VERSION:-local}"
+
+  reward-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-reward-service"
+    image: "${COMPOSE_PROJECT_NAME}/reward-service:${REWARD_SERVICE_VERSION:-local}"
+
+  social-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-social-service"
+    image: "${COMPOSE_PROJECT_NAME}/social-service:${SOCIAL_SERVICE_VERSION:-local}"
+
+  wallet-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-wallet-service"
+    image: "${COMPOSE_PROJECT_NAME}/wallet-service:${WALLET_SERVICE_VERSION:-local}"
