@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
@@ -33,7 +34,7 @@ class CreateRoleService(
                 permission = CREATE_ROLES,
             )
 
-        val maxRank = roleRepository.findMaxRank(accountId)
+        val hierarchyRank = prepareHierarchyRank(context)
         val finalPermissions = permissions.toMutableSet()
 
         roleAccessGuard.requireCanGrantPermissions(
@@ -44,12 +45,33 @@ class CreateRoleService(
         val role =
             Role.create(
                 accountId = context.account.id,
-                hierarchyRank = maxRank + Role.RANK_STEP,
+                hierarchyRank = hierarchyRank,
                 roleColor = HexColor(color),
                 roleName = AccountRoleName(name),
                 permissions = finalPermissions,
             )
 
         return roleRepository.create(role).toView()
+    }
+
+    private fun prepareHierarchyRank(context: ActiveAccountContext): Long {
+        val accountId = context.account.id
+        val maxRank = roleRepository.findMaxRank(accountId)
+        val nextRank = Math.addExact(maxRank, Role.RANK_STEP)
+        val baseRoleId = context.account.baseRoleId ?: return nextRank
+        val baseRole =
+            roleRepository.findByIdAndAccountId(
+                roleId = baseRoleId,
+                accountId = accountId,
+            ) ?: return nextRank
+
+        if (baseRole.hierarchyRank != maxRank) {
+            return nextRank
+        }
+
+        baseRole.updateHierarchyRank(nextRank)
+        roleRepository.update(baseRole)
+
+        return maxRank
     }
 }
