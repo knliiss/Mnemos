@@ -17,9 +17,10 @@ import type { SanctionType, TransactionType, WalletOwnerType } from "../../model
 type Options = {
   userId: string
   canAdjustWallet: boolean
+  canAdjustPrime: boolean
 }
 
-export function useModerationUser({ userId, canAdjustWallet }: Options) {
+export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: Options) {
   const [identity, setIdentity] = useState<IdentitySearchResponse | null>(null)
   const [sanctions, setSanctions] = useState<SanctionResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +32,7 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const [reason, setReason] = useState("")
   const [internalNote, setInternalNote] = useState("")
   const [duration, setDuration] = useState("")
-  const [walletTarget, setWalletTarget] = useState<WalletOwnerType>("USER")
+  const [requestedWalletTarget, setRequestedWalletTarget] = useState<WalletOwnerType>("USER")
   const [accountTargetId, setAccountTargetId] = useState("")
   const [operation, setOperation] = useState<TransactionType>("CREDIT")
   const [amount, setAmount] = useState("100")
@@ -43,10 +44,22 @@ export function useModerationUser({ userId, canAdjustWallet }: Options) {
   const busyScopeRef = useRef<string | null>(null)
   const mountedRef = useRef(true)
   const userIdRef = useRef(userId)
+  const walletTarget: WalletOwnerType = canAdjustPrime ? requestedWalletTarget : "ACCOUNT"
 
   useLayoutEffect(() => {
     userIdRef.current = userId
   }, [userId])
+
+  const setWalletTarget = useCallback(
+    (target: WalletOwnerType) => {
+      if (target === "USER" && !canAdjustPrime) {
+        return
+      }
+
+      setRequestedWalletTarget(target)
+    },
+    [canAdjustPrime],
+  )
 
   const setScopeBusy = useCallback((scope: string, value: boolean) => {
     if (!value && busyScopeRef.current !== scope) {

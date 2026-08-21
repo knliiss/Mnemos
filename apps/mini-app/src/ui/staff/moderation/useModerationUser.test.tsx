@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   listSanctions,
+  listWalletAdjustments,
   searchIdentities,
   type IdentitySearchResponse,
 } from "@/shared/api/moderationApi"
@@ -42,11 +43,29 @@ function identity(userId: string): IdentitySearchResponse {
   }
 }
 
+function identityWithAccount(userId: string, accountId: string): IdentitySearchResponse {
+  return {
+    userId,
+    username: userId,
+    telegramId: 1,
+    accounts: [
+      {
+        accountId,
+        cristalixUuid: "019c1129-ef54-7000-8000-000000000401",
+        cristalixNickname: "north",
+        active: true,
+      },
+    ],
+  }
+}
+
 describe("useModerationUser", () => {
   beforeEach(() => {
     vi.mocked(searchIdentities).mockReset()
     vi.mocked(listSanctions).mockReset()
     vi.mocked(listSanctions).mockResolvedValue([])
+    vi.mocked(listWalletAdjustments).mockReset()
+    vi.mocked(listWalletAdjustments).mockResolvedValue([])
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)
       return 1
@@ -65,7 +84,12 @@ describe("useModerationUser", () => {
       .mockRejectedValueOnce(new Error("network"))
 
     const { result, rerender } = renderHook(
-      ({ userId }: { userId: string }) => useModerationUser({ userId, canAdjustWallet: false }),
+      ({ userId }: { userId: string }) =>
+        useModerationUser({
+          userId,
+          canAdjustWallet: false,
+          canAdjustPrime: false,
+        }),
       { initialProps: { userId: "user-a" } },
     )
 
@@ -88,7 +112,12 @@ describe("useModerationUser", () => {
       .mockResolvedValueOnce([identity("user-b")])
 
     const { result, rerender } = renderHook(
-      ({ userId }: { userId: string }) => useModerationUser({ userId, canAdjustWallet: false }),
+      ({ userId }: { userId: string }) =>
+        useModerationUser({
+          userId,
+          canAdjustWallet: false,
+          canAdjustPrime: false,
+        }),
       { initialProps: { userId: "user-a" } },
     )
 
@@ -103,5 +132,26 @@ describe("useModerationUser", () => {
 
     expect(result.current.identity?.userId).toBe("user-b")
     expect(result.current.loadError).toBe(false)
+  })
+
+  it("never requests the user PRIME wallet for an ADMIN", async () => {
+    const accountId = "019c1129-ef54-7000-8000-000000000402"
+
+    vi.mocked(searchIdentities).mockResolvedValueOnce([identityWithAccount("user-a", accountId)])
+
+    const { result } = renderHook(() =>
+      useModerationUser({
+        userId: "user-a",
+        canAdjustWallet: true,
+        canAdjustPrime: false,
+      }),
+    )
+
+    await waitFor(() => expect(result.current.identity?.userId).toBe("user-a"))
+    await waitFor(() => expect(listWalletAdjustments).toHaveBeenCalledWith("ACCOUNT", accountId))
+
+    expect(result.current.walletTarget).toBe("ACCOUNT")
+    expect(result.current.currency).toBe("COIN")
+    expect(listWalletAdjustments).not.toHaveBeenCalledWith("USER", "user-a")
   })
 })
