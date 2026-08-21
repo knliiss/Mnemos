@@ -72,7 +72,7 @@ export const accountRolesEn = {
       EDIT_ROLE_PERMISSIONS: "Edit role permissions",
       DELETE_ROLES: "Delete roles",
       MANAGE_ROLE_HIERARCHY: "Manage role order",
-      MANAGE_ROLES: "Manage roles",
+      MANAGE_BASE_ROLE: "Manage base role",
       VIEW_WALLET: "View wallet",
       VIEW_TRANSACTION_HISTORY: "View transaction history",
       SPEND_WALLET_FUNDS: "Spend wallet funds",
