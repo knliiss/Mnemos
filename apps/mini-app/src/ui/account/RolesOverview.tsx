@@ -175,10 +175,11 @@ function RoleReorderList({
   return (
     <section className="roles-stack">
       <Reorder.Group axis="y" values={roles} onReorder={setRoles} className="role-reorder">
-        {roles.map((role) => (
+        {roles.map((role, index) => (
           <SortableRoleRow
             key={role.id}
             role={role}
+            priority={index + 1}
             memberCount={memberCounts?.get(role.id) ?? null}
             canManageHierarchy={canManageHierarchy}
             savingOrder={savingOrder}
@@ -193,6 +194,7 @@ function RoleReorderList({
 
 function SortableRoleRow({
   role,
+  priority,
   memberCount,
   canManageHierarchy,
   savingOrder,
@@ -200,6 +202,7 @@ function SortableRoleRow({
   onDragEnd,
 }: {
   role: AccountRole
+  priority: number
   memberCount: number | null
   canManageHierarchy: boolean
   savingOrder: boolean
@@ -237,7 +240,7 @@ function SortableRoleRow({
           <small>
             {t("rolesOverview.permissionSummary", {
               count: enabledPermissions(role),
-              rank: role.hierarchyRank,
+              rank: priority,
             })}
           </small>
         </span>
