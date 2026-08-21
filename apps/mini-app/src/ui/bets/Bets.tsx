@@ -45,9 +45,11 @@ type ScopedSelection = {
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
+  const canViewBets = data.hasPermission("VIEW_BETS")
   const { rounds, races, positions, loading, error, refresh } = useBetsData(
     activeAccount.id,
     data.refreshAccount,
+    canViewBets,
   )
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
@@ -217,7 +219,15 @@ export function Bets({ activeAccount, navigate }: Props) {
 
       {loading ? <FeatureLoading label={t("bets.loading")} /> : null}
 
-      {!loading && error ? (
+      {!loading && !canViewBets ? (
+        <div className="bets-empty">
+          <CurrencyMark currency="COIN" size={20} />
+          <strong>{t("errorNotifications.tones.access.title")}</strong>
+          <small>{t("errorNotifications.tones.access.message")}</small>
+        </div>
+      ) : null}
+
+      {!loading && canViewBets && error ? (
         <div className="bets-empty">
           <CurrencyMark currency="COIN" size={20} />
           <strong>{t("bets.error.title")}</strong>
@@ -228,7 +238,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </div>
       ) : null}
 
-      {!loading && !error && mode === "EVENTS" ? (
+      {!loading && canViewBets && !error && mode === "EVENTS" ? (
         <>
           {featured ? (
             <motion.button
@@ -303,7 +313,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </>
       ) : null}
 
-      {!loading && !error && mode === "MY" ? (
+      {!loading && canViewBets && !error && mode === "MY" ? (
         <section className="bets-rounds">
           {myRounds.map((round) => (
             <BetRoundCard
@@ -332,7 +342,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         </section>
       ) : null}
 
-      {!loading && !error && mode === "RACES" ? (
+      {!loading && canViewBets && !error && mode === "RACES" ? (
         <section className="bets-races">
           {races.map((race) => (
             <BetRaceCard
