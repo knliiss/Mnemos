@@ -71,7 +71,7 @@ export const accountRolesUk = {
       EDIT_ROLE_PERMISSIONS: "Дозволи ролей",
       DELETE_ROLES: "Видалення ролей",
       MANAGE_ROLE_HIERARCHY: "Порядок ролей",
-      MANAGE_ROLES: "Керування ролями",
+      MANAGE_BASE_ROLE: "Керування базовою роллю",
       VIEW_WALLET: "Перегляд гаманця",
       VIEW_TRANSACTION_HISTORY: "Історія транзакцій",
       SPEND_WALLET_FUNDS: "Витрати з гаманця",
