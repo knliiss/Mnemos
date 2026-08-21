@@ -33,7 +33,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const contextAccount = app.context?.activeAccount ?? null
   const canViewWallet = data.hasPermission("VIEW_WALLET")
   const canViewRoles = data.hasPermission("VIEW_ROLES")
-  const canManageRoles = data.hasPermission("MANAGE_ROLES")
+  const canManageBaseRole = data.hasPermission("MANAGE_BASE_ROLE")
   const availableRoles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -74,7 +74,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const transferTarget =
     transferableMembers.find((member) => member.id === selectedTransferId) ?? null
   const roleChanged = baseRoleId !== savedRoleId
-  const canEditBaseRole = canViewRoles && canManageRoles
+  const canEditBaseRole = canViewRoles && canManageBaseRole
 
   const saveBaseRole = async () => {
     const requestedAccountId = activeAccount.id
