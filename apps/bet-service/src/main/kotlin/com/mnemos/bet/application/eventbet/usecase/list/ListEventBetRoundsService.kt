@@ -3,7 +3,6 @@ package com.mnemos.bet.application.eventbet.usecase.list
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.eventbet.model.EventBetRoundView
 import com.mnemos.bet.application.eventbet.port.out.EventBetReader
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +13,7 @@ class ListEventBetRoundsService(
     private val accountProvider: AccountProvider,
 ) : ListEventBetRoundsUseCase {
     override fun execute(): List<EventBetRoundView> {
-        accountProvider.requireActiveAccount(VIEW_BETS)
+        accountProvider.requireActiveAccount()
 
         return reader.findCurrentRounds()
     }
