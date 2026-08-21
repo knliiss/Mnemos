@@ -157,6 +157,7 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
           <Glyph name="search" size={18} />
           <input
             value={query}
+            maxLength={64}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t("events.feed.searchPlaceholder")}
           />
