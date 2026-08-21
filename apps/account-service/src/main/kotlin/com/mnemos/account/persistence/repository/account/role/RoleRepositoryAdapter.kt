@@ -52,9 +52,8 @@ class RoleRepositoryAdapter(
         accountId: AccountId,
     ): Role? = jpaRoleRepository.findByIdAndAccountId(roleId.id, accountId.id)?.toDomain()
 
-    override fun findMinRank(accountId: AccountId): Long = jpaRoleRepository.findMinRank(accountId.id) ?: 0L
-
-    override fun findMaxRank(accountId: AccountId): Long = jpaRoleRepository.findMaxRank(accountId.id) ?: 0L
+    override fun findMaxRank(accountId: AccountId): Long =
+        jpaRoleRepository.findMaxRank(accountId.id) ?: 0L
 
     override fun findAllByAccountIdOrderByRank(accountId: AccountId): List<Role> =
         jpaRoleRepository
