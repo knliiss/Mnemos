@@ -1,6 +1,5 @@
 package com.mnemos.social.application.commentlike.usecase.like
 
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.comment.exception.CommentNotFoundException
 import com.mnemos.social.application.comment.exception.DeletedCommentOperationException
@@ -21,7 +20,7 @@ class LikeCommentService(
 ) : LikeCommentUseCase {
     @Transactional
     override fun execute(commentId: UUID) {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+        val actor = actorProvider.requireActor()
         val id = CommentId(commentId)
         val comment =
             commentRepository.findByIdForUpdate(id)
