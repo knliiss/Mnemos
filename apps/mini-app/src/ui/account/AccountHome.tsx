@@ -24,11 +24,12 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
   const data = useMnemosData()
   const activeAccount = data.activeAccount
   const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
+  const showingMemberDetail = Boolean(initialMemberId && selectedMember)
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const canViewWallet = data.hasPermission("VIEW_WALLET")
   const canViewMembers = data.hasPermission("VIEW_MEMBERS")
   const canViewRoles = data.hasPermission("VIEW_ROLES")
-  const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !initialMemberId)
+  const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !showingMemberDetail)
 
   if (!activeAccount) {
     return null
