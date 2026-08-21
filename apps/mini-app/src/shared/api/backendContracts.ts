@@ -1,9 +1,7 @@
 import type {
-  BetGlobalEventType,
   BetItemType,
   BoosterType,
   Currency,
-  DungeonType,
   GlobalEventType,
   ItemRarity,
   LocalizationLanguage,
@@ -168,91 +166,4 @@ export type EventFeedItemResponse =
 export type EventFeedResponse = {
   items: EventFeedItemResponse[]
   cursor: string | null
-}
-
-export type SubscriptionResponse =
-  | {
-      id: string
-      type: "ITEM_DROP"
-      createdAt: string
-      details: {
-        droppedFor: string | null
-        itemName: string | null
-      }
-    }
-  | {
-      id: string
-      type: "BOOSTER"
-      createdAt: string
-      details: {
-        boosterType: BoosterType
-      }
-    }
-  | {
-      id: string
-      type: "DUNGEON"
-      createdAt: string
-      details: {
-        dungeonType: DungeonType
-      }
-    }
-  | {
-      id: string
-      type: "GLOBAL"
-      createdAt: string
-      details: {
-        eventType: GlobalEventType
-      }
-    }
-  | {
-      id: string
-      type: "RAID"
-      createdAt: string
-      details: {
-        locations: number[]
-      }
-    }
-
-export type EventBetRoundResponse = {
-  id: string
-  eventType: BetGlobalEventType
-  scheduledAt: string
-  closesAt: string
-  resolvesAt: string
-  status: string
-  yesOdds: number
-  noOdds: number
-}
-
-export type BetActivityResponse = {
-  roundId: string
-  side: "YES" | "NO"
-  amount: number
-}
-
-export type ItemRaceResponse = {
-  id: string
-  itemName: string
-  itemType: string
-  entryAmount: number
-  closesAt: string
-  participants: number
-  joined?: boolean
-  myAmount?: number
-}
-
-export type PublicProfileResponse = {
-  accountId: string
-  cristalixUuid: string
-  cristalixNickname: string
-  likes: number
-  dislikes: number
-  comments: number
-}
-
-export type IdentitySearchResponse = {
-  accountId: string
-  cristalixUuid: string
-  cristalixNickname: string
-  active: boolean
 }
