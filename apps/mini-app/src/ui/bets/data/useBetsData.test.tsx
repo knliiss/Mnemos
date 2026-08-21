@@ -5,15 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   listEventBetRounds,
   listItemRaces,
-  listMyItemRacePositions,
   type ItemRaceParticipantResponse,
+  type ItemRaceResponse,
 } from "@/shared/api/betApi"
 import { useBetsData } from "./useBetsData"
 
 vi.mock("@/shared/api/betApi", () => ({
   listEventBetRounds: vi.fn(),
   listItemRaces: vi.fn(),
-  listMyItemRacePositions: vi.fn(),
 }))
 
 type Deferred<T> = {
@@ -42,11 +41,26 @@ function position(accountId: string): ItemRaceParticipantResponse {
   }
 }
 
+function race(accountId: string): ItemRaceResponse {
+  return {
+    id: "race",
+    itemName: "Test Item",
+    itemType: "SWORD",
+    registrationClosesAt: "2026-08-21T12:00:00Z",
+    startsAt: "2026-08-21T13:00:00Z",
+    expiresAt: "2026-08-21T14:00:00Z",
+    entryAmount: 100,
+    feePercent: 5,
+    status: "REGISTRATION",
+    winnerAccountId: null,
+    participants: [position(accountId)],
+  }
+}
+
 describe("useBetsData", () => {
   beforeEach(() => {
     vi.mocked(listEventBetRounds).mockReset()
     vi.mocked(listItemRaces).mockReset()
-    vi.mocked(listMyItemRacePositions).mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)
       return 1
@@ -62,10 +76,8 @@ describe("useBetsData", () => {
   it("hides account-specific positions immediately and ignores the previous account response", async () => {
     const accountARounds = createDeferred<Awaited<ReturnType<typeof listEventBetRounds>>>()
     const accountARaces = createDeferred<Awaited<ReturnType<typeof listItemRaces>>>()
-    const accountAPositions = createDeferred<Awaited<ReturnType<typeof listMyItemRacePositions>>>()
     const accountBRounds = createDeferred<Awaited<ReturnType<typeof listEventBetRounds>>>()
     const accountBRaces = createDeferred<Awaited<ReturnType<typeof listItemRaces>>>()
-    const accountBPositions = createDeferred<Awaited<ReturnType<typeof listMyItemRacePositions>>>()
 
     vi.mocked(listEventBetRounds)
       .mockReturnValueOnce(accountARounds.promise)
@@ -73,9 +85,6 @@ describe("useBetsData", () => {
     vi.mocked(listItemRaces)
       .mockReturnValueOnce(accountARaces.promise)
       .mockReturnValueOnce(accountBRaces.promise)
-    vi.mocked(listMyItemRacePositions)
-      .mockReturnValueOnce(accountAPositions.promise)
-      .mockReturnValueOnce(accountBPositions.promise)
 
     const refreshAccount = vi.fn().mockResolvedValue(undefined)
     const { result, rerender } = renderHook(
@@ -88,9 +97,8 @@ describe("useBetsData", () => {
 
     await act(async () => {
       accountBRounds.resolve([])
-      accountBRaces.resolve([])
-      accountBPositions.resolve([position("account-b")])
-      await Promise.all([accountBRounds.promise, accountBRaces.promise, accountBPositions.promise])
+      accountBRaces.resolve([race("account-b")])
+      await Promise.all([accountBRounds.promise, accountBRaces.promise])
     })
 
     await waitFor(() => {
@@ -99,9 +107,8 @@ describe("useBetsData", () => {
 
     await act(async () => {
       accountARounds.resolve([])
-      accountARaces.resolve([])
-      accountAPositions.resolve([position("account-a")])
-      await Promise.all([accountARounds.promise, accountARaces.promise, accountAPositions.promise])
+      accountARaces.resolve([race("account-a")])
+      await Promise.all([accountARounds.promise, accountARaces.promise])
     })
 
     expect(result.current.positions.map(({ accountId }) => accountId)).toEqual(["account-b"])
@@ -112,10 +119,9 @@ describe("useBetsData", () => {
     vi.mocked(listEventBetRounds)
       .mockResolvedValueOnce([])
       .mockRejectedValueOnce(new Error("bets unavailable"))
-    vi.mocked(listItemRaces).mockResolvedValue([])
-    vi.mocked(listMyItemRacePositions)
-      .mockResolvedValueOnce([position("account-a")])
-      .mockResolvedValueOnce([position("account-b")])
+    vi.mocked(listItemRaces)
+      .mockResolvedValueOnce([race("account-a")])
+      .mockResolvedValueOnce([race("account-b")])
 
     const refreshAccount = vi.fn().mockResolvedValue(undefined)
     const { result, rerender } = renderHook(
