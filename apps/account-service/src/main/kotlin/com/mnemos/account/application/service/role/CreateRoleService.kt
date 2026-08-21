@@ -20,17 +20,6 @@ class CreateRoleService(
     private val accountContextProvider: ActiveAccountContextProvider,
     private val roleAccessGuard: RoleAccessGuard,
 ) {
-    private val basePermissions =
-        setOf(
-            RolePermission.CLAIM_DAILY_REWARD,
-            RolePermission.PUBLISH_COMMENTS,
-            RolePermission.PUBLISH_REACTIONS,
-            RolePermission.VIEW_BETS,
-            RolePermission.VIEW_BET_HISTORY,
-            RolePermission.VIEW_PERSONALIZATIONS,
-            RolePermission.APPLY_PERSONALIZATIONS,
-        )
-
     @Transactional
     fun createRole(
         accountId: AccountId,
@@ -45,10 +34,7 @@ class CreateRoleService(
             )
 
         val maxRank = roleRepository.findMaxRank(accountId)
-        val finalPermissions =
-            permissions
-                .ifEmpty { basePermissions }
-                .toMutableSet()
+        val finalPermissions = permissions.toMutableSet()
 
         roleAccessGuard.requireCanGrantPermissions(
             context = context,
