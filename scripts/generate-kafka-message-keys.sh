@@ -53,7 +53,20 @@ service_variable_name() {
     printf '%s' "$1" | tr '[:lower:]-' '[:upper:]_'
 }
 
-services="account-service wallet-service event-service notification-service reward-service bet-service moderation-service gateway-service realtime-service personalization-service"
+services="
+account-service
+wallet-service
+event-service
+notification-service
+reward-service
+bet-service
+moderation-service
+gateway-service
+realtime-service
+personalization-service
+social-service
+profile-service
+"
 
 set_env "KAFKA_BROKER_PASSWORD" "$(openssl rand -hex 32)"
 set_env "KAFKA_ADMIN_PASSWORD" "$(openssl rand -hex 32)"
