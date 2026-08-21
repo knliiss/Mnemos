@@ -39,7 +39,11 @@ class CreateRoleService(
             permissions = finalPermissions,
         )
 
-        val hierarchyRank = prepareHierarchyRank(context.account.id)
+        val hierarchyRank =
+            resolveHierarchyRank(
+                accountId = context.account.id,
+                owner = context.account.isOwner(context.member.id),
+            )
 
         val role =
             Role.create(
@@ -53,16 +57,20 @@ class CreateRoleService(
         return roleRepository.create(role).toView()
     }
 
-    private fun prepareHierarchyRank(accountId: AccountId): Long {
-        val lowestRole = roleRepository.findAllByAccountIdOrderByRank(accountId).lastOrNull()
-            ?: return Role.RANK_STEP
+    private fun resolveHierarchyRank(
+        accountId: AccountId,
+        owner: Boolean,
+    ): Long {
+        val roles = roleRepository.findAllByAccountIdOrderByRank(accountId)
 
-        val hierarchyRank = lowestRole.hierarchyRank
-        val nextRank = Math.addExact(hierarchyRank, Role.RANK_STEP)
+        if (roles.isEmpty()) {
+            return Role.RANK_STEP
+        }
 
-        lowestRole.updateHierarchyRank(nextRank)
-        roleRepository.update(lowestRole)
-
-        return hierarchyRank
+        return if (owner) {
+            Math.subtractExact(roles.first().hierarchyRank, Role.RANK_STEP)
+        } else {
+            Math.addExact(roles.last().hierarchyRank, Role.RANK_STEP)
+        }
     }
 }
