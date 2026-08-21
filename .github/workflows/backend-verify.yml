@@ -4,13 +4,17 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   statuses: write
 
 jobs:
   check:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
