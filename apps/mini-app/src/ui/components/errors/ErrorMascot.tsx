@@ -5,13 +5,14 @@ export type ErrorMascotVariant =
   | "not-found"
   | "waiting"
   | "internal"
-  | "service-unavailable"
+
+type ErrorMascotDisplayVariant = ErrorMascotVariant | "service-unavailable"
 
 type Props = {
-  variant: ErrorMascotVariant
+  variant: ErrorMascotDisplayVariant
 }
 
-const tones: Record<ErrorMascotVariant, string> = {
+const tones: Record<ErrorMascotDisplayVariant, string> = {
   validation: "#D6A653",
   access: "#C98BA9",
   conflict: "#D98B55",
@@ -87,7 +88,13 @@ export function ErrorMascot({ variant }: Props) {
   )
 }
 
-function ErrorAccessory({ variant, tone }: { variant: ErrorMascotVariant; tone: string }) {
+function ErrorAccessory({
+  variant,
+  tone,
+}: {
+  variant: ErrorMascotDisplayVariant
+  tone: string
+}) {
   switch (variant) {
     case "validation":
       return (
