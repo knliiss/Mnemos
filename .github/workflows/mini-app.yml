@@ -1,30 +1,33 @@
-name: Mini App Format
+name: Mini App Verify
 
 on:
+  push:
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/mini-app.yml"
   pull_request:
     paths:
       - "apps/mini-app/**"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
-  group: mini-app-format-${{ github.ref }}
+  group: mini-app-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
+  statuses: write
 
 jobs:
-  format:
+  verify:
     runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     defaults:
       run:
         working-directory: apps/mini-app
 
     steps:
-      - name: Checkout head branch
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -36,22 +39,68 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Format source
-        run: npm run format
+      - name: Audit dependencies
+        run: npm run audit
 
-      - name: Commit formatting
-        working-directory: .
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Check bundle budgets
         shell: bash
         run: |
           set -euo pipefail
 
-          if git diff --quiet -- apps/mini-app; then
-            echo "No formatting changes required."
-            exit 0
+          oversized_js="$(find dist/assets -type f -name '*.js' -size +500k -print)"
+          if [ -n "$oversized_js" ]; then
+            echo "JavaScript chunks over 500 KiB:"
+            echo "$oversized_js"
+            exit 1
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/mini-app
-          git commit -m "Format mini app source"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          oversized_css="$(find dist/assets -type f -name '*.css' -size +450k -print)"
+          if [ -n "$oversized_css" ]; then
+            echo "CSS chunks over 450 KiB:"
+            echo "$oversized_css"
+            exit 1
+          fi
+
+      - name: Publish verification status
+        if: always() && github.event_name == 'push'
+        working-directory: .
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+          else
+            state="failure"
+          fi
+
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Production Mini App verify: $JOB_STATUS" \
+            --arg context "mini-app/verify" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
