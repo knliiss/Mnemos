@@ -2,14 +2,10 @@ package com.mnemos.common.core.model.permission
 
 enum class RolePermission {
     // ACCOUNT
-    VIEW_ACCOUNT_SETTINGS,
-    EDIT_ACCOUNT_SETTINGS,
     MANAGE_ACCOUNT_INVITES,
 
     // MEMBERS
     VIEW_MEMBERS,
-    INVITE_MEMBERS,
-    REMOVE_MEMBERS,
     ASSIGN_MEMBER_ROLES,
     KICK_MEMBERS,
 
