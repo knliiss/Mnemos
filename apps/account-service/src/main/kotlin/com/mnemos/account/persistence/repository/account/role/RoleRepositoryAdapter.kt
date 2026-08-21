@@ -64,21 +64,6 @@ class RoleRepositoryAdapter(
             .map { it.toDomain() }
             .toList()
 
-    override fun findAllByMemberIdAndAccountIdOrderByRank(
-        memberId: AccountMemberId,
-        accountId: AccountId,
-    ): List<Role> =
-        jpaRoleRepository
-            .findAllByMemberIdAndAccountIdOrderByRank(
-                memberId = memberId.id,
-                accountId = accountId.id,
-            ).map { it.toDomain() }
-
-    override fun findAllByAccountId(accountId: AccountId): List<Role> =
-        jpaRoleRepository
-            .findAllByAccountIdOrderByHierarchyRank(accountId = accountId.id)
-            .map { it.toDomain() }
-
     override fun findAllByMemberId(
         accountId: AccountId,
         memberId: AccountMemberId,
