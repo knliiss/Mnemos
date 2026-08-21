@@ -166,7 +166,11 @@ export function AccountMemberManagement({
             <strong>{t("accountMember.roles")}</strong>
           </span>
 
-          <em>{canViewRoles ? t("accountMember.activeRoles", { count: visibleRoleIds.length }) : "—"}</em>
+          <em>
+            {canViewRoles
+              ? t("accountMember.activeRoles", { count: visibleRoleIds.length })
+              : "—"}
+          </em>
         </header>
 
         <div>
