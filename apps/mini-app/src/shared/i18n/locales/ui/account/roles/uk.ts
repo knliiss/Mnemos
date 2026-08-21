@@ -81,12 +81,10 @@ export const accountRolesUk = {
       MODERATE_COMMENTS: "Модерація коментарів",
       VIEW_BETS: "Перегляд ставок",
       PLACE_BETS: "Робити ставки",
-      MANAGE_BETS: "Керування ставками",
       VIEW_BET_HISTORY: "Історія ставок",
       VIEW_PERSONALIZATIONS: "Перегляд персоналізацій",
       APPLY_PERSONALIZATIONS: "Активувати персоналізації",
       BUY_PERSONALIZATIONS: "Купувати персоналізації",
-      MANAGE_PERSONALIZATIONS: "Керування персоналізаціями",
     },
   },
 } as const
