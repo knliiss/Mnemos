@@ -59,6 +59,8 @@ export const accountUk = {
     create: "Створити інвайт",
     copy: "Копіювати",
     revoke: "Відкликати",
+    unavailableTitle: "Інвайти недоступні",
+    unavailableCopy: "У твоєї ролі немає дозволу керувати інвайтами цього аккаунта.",
     emptyTitle: "Інвайтів ще немає",
     emptyCopy: "Створи код і передай його учаснику.",
     loading: "Завантаження інвайтів",
@@ -76,10 +78,13 @@ export const accountUk = {
   accountWallet: {
     title: "Гаманець",
     balance: "Баланс аккаунта",
+    balanceUnavailable: "Баланс недоступний для твоєї ролі",
     earned: "Надійшло",
     spent: "Витрачено",
     movement: "РУХ COIN",
     history: "Історія",
+    historyUnavailableTitle: "Історія недоступна",
+    historyUnavailableCopy: "У твоєї ролі немає доступу до історії транзакцій аккаунта.",
     emptyTitle: "Транзакцій ще немає",
     emptyCopy: "Нарахування та витрати COIN зʼявляться тут.",
     sort: {
