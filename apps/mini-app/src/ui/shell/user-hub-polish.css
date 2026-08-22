@@ -1,3 +1,10 @@
+.global-user-button .global-user-button__mnemos-mark {
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: scale(0.74);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+}
+
 .user-hub {
   max-height: calc(100dvh - 96px - env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
@@ -8,6 +15,32 @@
 
 .user-hub::-webkit-scrollbar {
   display: none;
+}
+
+.user-hub-card__avatar--mnemos {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: visible;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(203, 255, 45, 0.12), transparent 70%),
+    rgba(203, 255, 45, 0.035);
+}
+
+.user-hub-card__avatar--mnemos > img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.user-hub-prime {
+  min-width: 78px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .user-hub-localization {
