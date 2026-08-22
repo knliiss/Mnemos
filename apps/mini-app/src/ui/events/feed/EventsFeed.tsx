@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { EventFeedQuery } from "@/shared/api/eventApi"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
+import { RootNavIllustration } from "../../components/navigation/RootNavIllustration"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
 import type { Account, EventKind, ItemRarity, Route } from "../../model"
@@ -184,8 +185,10 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       {loadingEvents && !feed.length ? <FeatureLoading label={t("events.feed.loading")} /> : null}
 
       {!loadingEvents && eventsError ? (
-        <section className="events-feed-empty">
-          <Glyph name="events" size={24} />
+        <section className="events-feed-empty events-feed-empty--illustrated">
+          <span className="events-feed-empty__illustration" aria-hidden="true">
+            <RootNavIllustration route="events" />
+          </span>
           <strong>{t("events.feed.errorTitle")}</strong>
           <small>{t("events.feed.errorCopy")}</small>
           <button type="button" onClick={() => void refreshEvents(feedQuery)}>
@@ -296,8 +299,10 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loadingEvents && !eventsError && !feed.length ? (
-        <section className="events-feed-empty">
-          <Glyph name="events" size={24} />
+        <section className="events-feed-empty events-feed-empty--illustrated">
+          <span className="events-feed-empty__illustration" aria-hidden="true">
+            <RootNavIllustration route="events" />
+          </span>
           <strong>{t("events.feed.emptyTitle")}</strong>
           <small>{t("events.feed.emptyCopy")}</small>
         </section>
