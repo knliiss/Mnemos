@@ -5,6 +5,7 @@ import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./event-detail.css"
 import "./event-surfaces.css"
 import "./events.css"
+import "./feed/events-feed-visuals.css"
 import "./feed/feed.css"
 import "./subscriptions/subscriptions.css"
 
