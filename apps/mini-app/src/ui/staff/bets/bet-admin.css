@@ -30,14 +30,24 @@
     rgba(255, 255, 255, 0.016);
 }
 
-.bet-admin-hero__icon {
+.bet-admin-hero {
+  grid-template-columns: 86px minmax(0, 1fr);
+  min-height: 112px;
+  padding: 11px 15px 11px 9px;
+}
+
+.bet-admin-hero__art {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  color: #cbff2d;
-  background: rgba(203, 255, 45, 0.07);
+  width: 86px;
+  height: 82px;
+}
+
+.bet-admin-hero__art img {
+  width: 82px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
 }
 
 .bet-admin-hero > span:last-child,
@@ -72,13 +82,10 @@
 
 .bet-admin-hero em,
 .bet-admin-round-detail-hero em {
-  overflow: hidden;
   color: #7d8478;
   font-size: 9px;
   font-style: normal;
   line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .bet-admin-kpis {
@@ -160,9 +167,9 @@
   background: rgba(206, 145, 210, 0.08);
 }
 
-.bet-admin-nav-grid > button > span.is-blue {
-  color: #91b6d7;
-  background: rgba(111, 156, 199, 0.08);
+.bet-admin-nav-grid > button > span.is-amber {
+  color: #ffb34f;
+  background: rgba(255, 179, 79, 0.08);
 }
 
 .bet-admin-nav-grid strong {
@@ -300,8 +307,8 @@
 
 .bet-admin-form-block .field > span:first-child,
 .bet-admin-form-block .field > label {
-  color: #8a9083 !important;
-  font-size: 9px !important;
+  color: #8a9083;
+  font-size: 9px;
 }
 
 .bet-admin-form-block input:not([type="color"]),
@@ -311,11 +318,11 @@
   min-width: 0;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid rgba(223, 232, 204, 0.1) !important;
+  border: 1px solid rgba(223, 232, 204, 0.1);
   border-radius: 11px;
   outline: none;
   color: #e3e7de;
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .bet-admin-form-block textarea {
@@ -327,7 +334,7 @@
 
 .bet-admin-form-block input:focus,
 .bet-admin-form-block textarea:focus {
-  border-color: rgba(203, 255, 45, 0.22) !important;
+  border-color: rgba(203, 255, 45, 0.22);
   box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
 }
 
@@ -462,6 +469,18 @@
 }
 
 @media (max-width: 374px) {
+  .bet-admin-hero {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .bet-admin-hero__art {
+    width: 72px;
+  }
+
+  .bet-admin-hero__art img {
+    width: 68px;
+  }
+
   .bet-admin-choice {
     grid-template-columns: 1fr;
   }
