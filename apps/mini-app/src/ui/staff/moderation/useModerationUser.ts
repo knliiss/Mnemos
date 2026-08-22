@@ -3,6 +3,7 @@ import {
   createSanction,
   createWalletAdjustment,
   getWalletAdjustment,
+  getWalletBalance,
   listSanctions,
   listWalletAdjustments,
   revokeSanction,
@@ -10,6 +11,7 @@ import {
   type IdentitySearchResponse,
   type SanctionResponse,
   type WalletAdjustmentResponse,
+  type WalletBalanceResponse,
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { SanctionType, TransactionType, WalletOwnerType } from "../../model"
@@ -37,6 +39,8 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
   const [operation, setOperation] = useState<TransactionType>("CREDIT")
   const [amount, setAmount] = useState("100")
   const [walletReason, setWalletReason] = useState("")
+  const [balance, setBalance] = useState<WalletBalanceResponse | null>(null)
+  const [balanceScope, setBalanceScope] = useState("")
   const [adjustments, setAdjustments] = useState<WalletAdjustmentResponse[]>([])
   const [adjustmentScope, setAdjustmentScope] = useState("")
   const identityRevision = useRef(0)
@@ -153,6 +157,8 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
       setIdentity(null)
       setSanctions([])
       setAccountTargetId("")
+      setBalance(null)
+      setBalanceScope("")
       setAdjustments([])
       setAdjustmentScope("")
       setLoadedUserId(requestedUserId)
@@ -189,8 +195,32 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     currentScopeRef.current = scopeKey
   }, [scopeKey])
 
+  const refreshWalletScope = useCallback(
+    async (targetType: WalletOwnerType, resolvedTargetId: string) => {
+      const resolvedScope = `${userIdRef.current}:${targetType}:${resolvedTargetId}`
+      const [nextBalance, nextAdjustments] = await Promise.all([
+        getWalletBalance(targetType, resolvedTargetId),
+        listWalletAdjustments(targetType, resolvedTargetId),
+      ])
+
+      if (!mountedRef.current || currentScopeRef.current !== resolvedScope) {
+        return
+      }
+
+      setBalance(nextBalance)
+      setBalanceScope(resolvedScope)
+      setAdjustments(nextAdjustments)
+      setAdjustmentScope(resolvedScope)
+    },
+    [],
+  )
+
   useEffect(() => {
     if (!canAdjustWallet || !targetId) {
+      setBalance(null)
+      setBalanceScope("")
+      setAdjustments([])
+      setAdjustmentScope("")
       return
     }
 
@@ -200,30 +230,26 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     const resolvedScope = `${userId}:${targetType}:${resolvedTargetId}`
 
     const frame = window.requestAnimationFrame(() => {
-      void listWalletAdjustments(targetType, resolvedTargetId)
-        .then((items) => {
-          if (cancelled || currentScopeRef.current !== resolvedScope) {
-            return
-          }
+      void refreshWalletScope(targetType, resolvedTargetId).catch((error) => {
+        if (cancelled || currentScopeRef.current !== resolvedScope) {
+          return
+        }
 
-          setAdjustments(items)
-          setAdjustmentScope(resolvedScope)
-        })
-        .catch((error) => {
-          if (!cancelled && currentScopeRef.current === resolvedScope) {
-            setAdjustments([])
-            setAdjustmentScope(resolvedScope)
-            handleError(error)
-          }
-        })
+        setBalance(null)
+        setBalanceScope(resolvedScope)
+        setAdjustments([])
+        setAdjustmentScope(resolvedScope)
+        handleError(error)
+      })
     })
 
     return () => {
       cancelled = true
       window.cancelAnimationFrame(frame)
     }
-  }, [canAdjustWallet, targetId, userId, walletTarget])
+  }, [canAdjustWallet, refreshWalletScope, targetId, userId, walletTarget])
 
+  const visibleBalance = balanceScope === scopeKey ? balance : null
   const visibleAdjustments = adjustmentScope === scopeKey ? adjustments : []
   const numericDuration = Number(duration)
   const durationValid = !duration || (Number.isInteger(numericDuration) && numericDuration > 0)
@@ -323,13 +349,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
         continue
       }
 
-      const items = await listWalletAdjustments(targetType, resolvedTargetId)
-
-      if (currentScopeRef.current === resolvedScope) {
-        setAdjustments(items)
-        setAdjustmentScope(resolvedScope)
-      }
-
+      await refreshWalletScope(targetType, resolvedTargetId)
       return
     }
   }
@@ -391,6 +411,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
   return {
     identity: loadedUserId === userId ? identity : null,
     sanctions: currentSanctions,
+    balance: visibleBalance,
     adjustments: visibleAdjustments,
     loading: loading || loadedUserId !== userId,
     loadError: loadedUserId === userId && loadError,
@@ -421,6 +442,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     setAmount,
     setWalletReason,
     refreshUser,
+    refreshWalletScope,
     submitSanction,
     revoke,
     submitAdjustment,
