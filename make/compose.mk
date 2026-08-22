@@ -64,8 +64,10 @@ endef
 
 up: require-compose
 	$(call title,stack,UP)
+	$(call run_step,Kafka auth config,$(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE))
 	@$(DC) up -d --no-build --no-recreate
 	$(call verify_containers,$(COMPOSE_SERVICE_NAMES))
+	$(call run_step,Kafka auth runtime,$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) $(ENV_FILE))
 	$(call success,stack,running)
 
 stop: require-compose
@@ -75,10 +77,13 @@ stop: require-compose
 
 restart: require-gradle require-compose
 	$(call title,stack,RESTART)
+	$(call run_step,Kafka auth sync,$(KAFKA_MESSAGE_AUTH_SYNC) $(ENV_FILE))
+	$(call run_step,Kafka auth config,$(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE))
 	$(call run_step,Gradle build,$(GRADLEW) build --console=plain)
 	$(call run_step,Docker images,$(DC) build --quiet $(BUILDABLE_SERVICE_NAMES))
 	$(call run_step,Recreate stack,$(DC) up -d --force-recreate --no-build)
 	$(call verify_containers,$(COMPOSE_SERVICE_NAMES))
+	$(call run_step,Kafka auth runtime,$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) $(ENV_FILE))
 	$(call success,stack,restarted with current changes)
 
 down: require-compose
@@ -97,6 +102,8 @@ pull: require-compose
 status: require-compose
 	@$(DC) ps -a
 	$(call verify_containers,$(COMPOSE_SERVICE_NAMES))
+	$(call run_step,Kafka auth config,$(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE))
+	$(call run_step,Kafka auth runtime,$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) $(ENV_FILE))
 
 compose-config: require-compose
 	@$(DC) config
@@ -104,9 +111,17 @@ compose-config: require-compose
 %-up: require-compose
 	$(call require_known_compose_service,$*)
 	@target="$(call resolve_compose_service,$*)"; \
+	if printf '%s\n' "$(APP_SERVICE_NAMES)" | tr ' ' '\n' | grep -qx "$$target"; then \
+		$(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE) || exit $$?; \
+		$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) --allow-missing $(ENV_FILE) || exit $$?; \
+	fi; \
 	printf "$(BOLD)$(MAGENTA)◆$(RESET) $(BOLD)%-18s$(RESET) $(CYAN)%s$(RESET)\n" "$*" "UP"; \
 	$(DC) up -d --no-build --no-recreate "$$target" >/dev/null
 	$(call verify_containers,$(call resolve_compose_service,$*))
+	@target="$(call resolve_compose_service,$*)"; \
+	if printf '%s\n' "$(APP_SERVICE_NAMES)" | tr ' ' '\n' | grep -qx "$$target"; then \
+		$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) --allow-missing $(ENV_FILE); \
+	fi
 	$(call success,$*,running)
 
 %-stop: require-compose
@@ -137,12 +152,17 @@ compose-config: require-compose
 		fi; \
 	}; \
 	if [ "$$is_app" = "1" ]; then \
+		run_quiet "Kafka auth config" $(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE) || exit $$?; \
+		run_quiet "Kafka auth runtime" $(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) --allow-missing $(ENV_FILE) || exit $$?; \
 		run_quiet "Gradle" $(GRADLEW) :apps:$$target:build --console=plain || exit $$?; \
 	fi; \
 	if [ "$$is_buildable" = "1" ]; then \
 		run_quiet "Docker image" $(DC) build --quiet "$$target" || exit $$?; \
 	fi; \
-	run_quiet "Recreate" $(DC) up -d --no-deps --force-recreate --no-build "$$target" || exit $$?
+	run_quiet "Recreate" $(DC) up -d --no-deps --force-recreate --no-build "$$target" || exit $$?; \
+	if [ "$$is_app" = "1" ]; then \
+		run_quiet "Kafka auth runtime" $(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) --allow-missing $(ENV_FILE) || exit $$?; \
+	fi
 	$(call verify_containers,$(call resolve_compose_service,$*))
 	$(call success,$*,running with current changes)
 

@@ -11,6 +11,8 @@ on:
       - "infrastructure/kafka/**"
       - "infrastructure/keycloak/**"
       - "scripts/generate-kafka-message-keys.sh"
+      - "scripts/verify-kafka-message-auth.sh"
+      - "scripts/verify-kafka-message-auth-runtime.sh"
       - "build.gradle.kts"
       - "settings.gradle.kts"
       - "gradle/**"
@@ -74,6 +76,7 @@ jobs:
           set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY "ci-not-used"
 
           scripts/generate-kafka-message-keys.sh .env.ci
+          scripts/verify-kafka-message-auth.sh .env.ci
 
           for key in \
             SOCIAL_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
@@ -113,6 +116,7 @@ jobs:
           STARTUP_CHECK_DELAY=45 make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
           sleep 20
           make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
+          scripts/verify-kafka-message-auth-runtime.sh .env.ci
 
       - name: Verify Flyway schemas
         shell: bash
