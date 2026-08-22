@@ -1,0 +1,63 @@
+.bets-feature {
+  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-rows: minmax(58px, auto) auto;
+  align-items: stretch;
+  gap: 6px 14px;
+  min-height: 172px;
+  padding: 15px 17px 15px 13px;
+}
+
+.bets-feature__art {
+  grid-row: 1 / 3;
+}
+
+.bets-feature__copy {
+  align-self: end;
+  padding-bottom: 7px;
+}
+
+.bets-feature__odds {
+  grid-column: 2;
+  min-height: 47px;
+  padding-top: 8px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--event-accent) 14%, rgba(229, 236, 213, 0.06));
+  border-radius: 0;
+  background: transparent;
+}
+
+.bets-feature__odds > span {
+  align-content: center;
+  place-items: start;
+  gap: 2px;
+  padding-inline: 4px;
+}
+
+.bets-feature__odds > span:last-child {
+  place-items: end;
+  text-align: right;
+}
+
+.bets-feature__odds small {
+  color: color-mix(in srgb, var(--event-accent) 54%, #737a6f);
+}
+
+.bets-feature__odds strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+.bets-feature__odds > i {
+  height: 24px;
+  background: color-mix(in srgb, var(--event-accent) 13%, rgba(229, 236, 213, 0.05));
+}
+
+@media (max-width: 374px) {
+  .bets-feature {
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 6px 10px;
+    min-height: 162px;
+    padding-inline: 10px 13px;
+  }
+}
