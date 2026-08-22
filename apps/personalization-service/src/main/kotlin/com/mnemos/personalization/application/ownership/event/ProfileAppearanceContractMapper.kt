@@ -33,6 +33,10 @@ object ProfileAppearanceContractMapper {
             text = theme.text.value,
             border = theme.border.value,
             glow = theme.glow?.toContract(),
+            backgroundSecondary = theme.backgroundSecondary.value,
+            surfaceSecondary = theme.surfaceSecondary.value,
+            gradientAngleDegrees = theme.gradientAngleDegrees,
+            textureStrength = theme.textureStrength,
         )
     }
 
@@ -47,6 +51,9 @@ object ProfileAppearanceContractMapper {
             borderWidthPx = frame.borderWidthPx,
             radiusPx = frame.radiusPx,
             glow = frame.glow?.toContract(),
+            secondaryBorderColor = frame.secondaryBorderColor.value,
+            gapPx = frame.gapPx,
+            style = frame.style.name,
         )
     }
 
@@ -61,6 +68,9 @@ object ProfileAppearanceContractMapper {
             intensity = profileEffect.intensity,
             primaryColor = profileEffect.primaryColor.value,
             secondaryColor = profileEffect.secondaryColor?.value,
+            speed = profileEffect.speed,
+            density = profileEffect.density,
+            scale = profileEffect.scale,
         )
     }
 
