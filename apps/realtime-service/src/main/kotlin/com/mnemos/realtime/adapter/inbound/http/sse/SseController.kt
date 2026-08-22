@@ -1,5 +1,6 @@
 package com.mnemos.realtime.adapter.inbound.http.sse
 
+import com.mnemos.common.web.exception.AppException
 import com.mnemos.realtime.adapter.sse.connection.SseConnectionRegistry
 import com.mnemos.realtime.application.delivery.usecase.replay.GetRealtimeReplayQuery
 import com.mnemos.realtime.application.delivery.usecase.replay.GetRealtimeReplayService
@@ -9,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,6 +35,8 @@ class SseController(
     fun events(
         @RequestHeader(LAST_EVENT_ID_HEADER, required = false)
         lastEventId: String?,
+        @RequestHeader(REALTIME_SESSION_HEADER, required = false)
+        clientSessionId: String?,
         request: HttpServletRequest,
         response: HttpServletResponse,
     ): SseEmitter {
@@ -43,7 +48,7 @@ class SseController(
             getRealtimeReplayService.execute(
                 GetRealtimeReplayQuery(
                     userId = userId,
-                    lastEventId = parseEventId(lastEventId),
+                    lastEventId = parseUuid(lastEventId),
                 ),
             )
         val clientIp = clientIpResolver.resolve(request)
@@ -52,6 +57,7 @@ class SseController(
             connectionRegistry.register(
                 userId = userId,
                 clientIp = clientIp,
+                clientSessionId = parseUuid(clientSessionId),
                 emitter = emitter,
                 dropSpotlightPresentationMode = replay.dropSpotlightPresentationMode,
             )
@@ -81,7 +87,13 @@ class SseController(
         return emitter
     }
 
-    private fun parseEventId(value: String?): UUID? =
+    @ExceptionHandler(AppException::class)
+    fun handleAppException(exception: AppException): ResponseEntity<Void> =
+        ResponseEntity
+            .status(exception.httpStatus)
+            .build()
+
+    private fun parseUuid(value: String?): UUID? =
         try {
             value?.takeIf(String::isNotBlank)?.let(UUID::fromString)
         } catch (_: IllegalArgumentException) {
@@ -90,5 +102,6 @@ class SseController(
 
     private companion object {
         const val LAST_EVENT_ID_HEADER = "Last-Event-ID"
+        const val REALTIME_SESSION_HEADER = "X-Mnemos-Realtime-Session"
     }
 }

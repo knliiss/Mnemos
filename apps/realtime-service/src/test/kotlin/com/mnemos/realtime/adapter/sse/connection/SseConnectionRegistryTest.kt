@@ -91,6 +91,44 @@ class SseConnectionRegistryTest {
     }
 
     @Test
+    fun `replaces existing connection with same client session before applying user limit`() {
+        val leaseStore = FakeSseConnectionLeaseStore()
+        val registry =
+            registry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 10,
+                        maxConnectionsTotal = 10,
+                    ),
+                leaseStore = leaseStore,
+            )
+        val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000031")
+        val clientSessionId = UUID.fromString("019c1129-ef54-7000-8000-000000000032")
+        val firstEmitter = mock<SseEmitter>()
+        val secondEmitter = mock<SseEmitter>()
+        val firstConnectionId =
+            register(
+                registry = registry,
+                userId = userId,
+                emitter = firstEmitter,
+                clientSessionId = clientSessionId,
+            )
+
+        assertDoesNotThrow {
+            register(
+                registry = registry,
+                userId = userId,
+                emitter = secondEmitter,
+                clientSessionId = clientSessionId,
+            )
+        }
+
+        verify(firstEmitter).complete()
+        assertEquals(setOf(firstConnectionId), leaseStore.releasedConnectionIds)
+    }
+
+    @Test
     fun `rejects connections above instance limit`() {
         val registry =
             registry(
@@ -165,10 +203,12 @@ class SseConnectionRegistryTest {
         registry: SseConnectionRegistry,
         userId: UUID,
         emitter: SseEmitter = mock(),
+        clientSessionId: UUID? = null,
     ): UUID =
         registry.register(
             userId = userId,
             clientIp = CLIENT_IP,
+            clientSessionId = clientSessionId,
             emitter = emitter,
             dropSpotlightPresentationMode = DropSpotlightPresentationMode.FULL,
         )

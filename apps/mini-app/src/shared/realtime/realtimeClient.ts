@@ -6,6 +6,8 @@ import type { RealtimeBroadcast, RealtimeEvent } from "./realtime.types"
 
 const INITIAL_RECONNECT_DELAY_MS = 1_000
 const MAX_RECONNECT_DELAY_MS = 15_000
+const REALTIME_CLIENT_SESSION_STORAGE_KEY = "mnemos-realtime-client-session-id"
+let fallbackClientSessionId: string | null = null
 
 class RealtimeClient {
   private abortController: AbortController | null = null
@@ -49,12 +51,14 @@ class RealtimeClient {
   private async connect(signal: AbortSignal) {
     const token = await getToken()
     const storageKey = resolveStorageKey(token)
+    const clientSessionId = resolveClientSessionId()
     const lastEventId = readLastEventId(storageKey)
     const response = await fetch(`${runtimeConfig.apiUrl}/api/v1/realtime/events`, {
       cache: "no-store",
       headers: {
-        Accept: "text/event-stream",
+        Accept: "text/event-stream, application/json",
         Authorization: `Bearer ${token}`,
+        "X-Mnemos-Realtime-Session": clientSessionId,
         ...(lastEventId ? { "Last-Event-ID": lastEventId } : {}),
       },
       signal,
@@ -156,6 +160,24 @@ async function consumeEventStream(
 function resolveStorageKey(token: string): string {
   const subject = resolveTokenSubject(token) ?? "current-user"
   return `mnemos-realtime-last-event-id:${subject}`
+}
+
+function resolveClientSessionId(): string {
+  try {
+    const storedSessionId = sessionStorage.getItem(REALTIME_CLIENT_SESSION_STORAGE_KEY)
+
+    if (storedSessionId) {
+      return storedSessionId
+    }
+
+    const sessionId = crypto.randomUUID()
+    sessionStorage.setItem(REALTIME_CLIENT_SESSION_STORAGE_KEY, sessionId)
+
+    return sessionId
+  } catch {
+    fallbackClientSessionId ??= crypto.randomUUID()
+    return fallbackClientSessionId
+  }
 }
 
 function resolveTokenSubject(token: string): string | null {

@@ -17,13 +17,19 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stop = realtimeClient.start()
+
+    return () => {
+      stop()
+    }
+  }, [])
+
+  useEffect(() => {
     const unsubscribe = realtimeEvents.subscribe((event) => {
       notifyAboutOperation(event, (key) => t(key))
     })
 
     return () => {
       unsubscribe()
-      stop()
     }
   }, [t])
 

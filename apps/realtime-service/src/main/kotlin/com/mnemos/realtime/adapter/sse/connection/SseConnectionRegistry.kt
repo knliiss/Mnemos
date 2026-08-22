@@ -31,9 +31,15 @@ class SseConnectionRegistry(
     fun register(
         userId: UUID,
         clientIp: String,
+        clientSessionId: UUID? = null,
         emitter: SseEmitter,
         dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ): UUID {
+        replaceExistingClientSession(
+            userId = userId,
+            clientSessionId = clientSessionId,
+        )
+
         val existingUserConnections = connectionsByUser[userId]
 
         if ((existingUserConnections?.size ?: 0) >= properties.maxConnectionsPerUser) {
@@ -86,6 +92,7 @@ class SseConnectionRegistry(
                 Connection(
                     emitter = emitter,
                     clientIp = clientIp,
+                    clientSessionId = clientSessionId,
                     deduplicationLimit = properties.deduplicationLimit,
                     dropSpotlightPresentationMode = dropSpotlightPresentationMode,
                 )
@@ -221,6 +228,30 @@ class SseConnectionRegistry(
     }
 
     @Synchronized
+    private fun replaceExistingClientSession(
+        userId: UUID,
+        clientSessionId: UUID?,
+    ) {
+        if (clientSessionId == null) {
+            return
+        }
+
+        val connections = connectionsByUser[userId] ?: return
+        val existing =
+            connections.entries.firstOrNull { (_, connection) ->
+                connection.clientSessionId == clientSessionId
+            } ?: return
+        val connectionId = existing.key
+        val connection = existing.value
+
+        remove(
+            userId = userId,
+            connectionId = connectionId,
+        )
+        connection.complete()
+    }
+
+    @Synchronized
     private fun remove(
         userId: UUID,
         connectionId: UUID,
@@ -274,6 +305,7 @@ class SseConnectionRegistry(
     private class Connection(
         val emitter: SseEmitter,
         val clientIp: String,
+        val clientSessionId: UUID?,
         private val deduplicationLimit: Int,
         private var dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ) {
@@ -339,6 +371,14 @@ class SseConnectionRegistry(
                     .event()
                     .comment("heartbeat"),
             )
+        }
+
+        fun complete() {
+            try {
+                emitter.complete()
+            } catch (_: Exception) {
+                // The registry has already removed this connection and released its lease.
+            }
         }
 
         fun completeWithError(exception: Exception) {
