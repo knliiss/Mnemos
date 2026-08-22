@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next"
-import { Glyph } from "../shared/MnemosIcon"
+import { ErrorMascot } from "../components/errors/ErrorMascot"
 import { PageHeader } from "../shared/Primitives"
 import "./system.css"
+import "./feature-error-polish.css"
 
 type Props = {
   back?: () => void
@@ -14,8 +15,8 @@ export function FeatureError({ back, onRetry }: Props) {
   return (
     <div className="screen">
       {back ? <PageHeader title={t("common.unavailable")} back={back} /> : null}
-      <section className="feature-empty" role="status">
-        <Glyph name="events" size={24} />
+      <section className="feature-empty feature-empty--error" role="status">
+        <ErrorMascot variant="internal" />
         <strong>{t("common.loadErrorTitle")}</strong>
         <small>{t("common.loadErrorCopy")}</small>
         <button type="button" onClick={onRetry}>
