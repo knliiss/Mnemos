@@ -4,7 +4,10 @@
 .review-toolbar > label,
 .bets-amount,
 .amount-input,
-.inline-input {
+.inline-input,
+.field > input,
+.field > textarea,
+.field > select {
   transition:
     border-color 0.16s ease,
     box-shadow 0.16s ease,
@@ -17,8 +20,15 @@
 .review-toolbar > label:focus-within,
 .bets-amount:focus-within,
 .amount-input:focus-within,
-.inline-input:focus-within {
+.inline-input:focus-within,
+.field > input:focus,
+.field > input:focus-visible,
+.field > textarea:focus,
+.field > textarea:focus-visible,
+.field > select:focus,
+.field > select:focus-visible {
   border-color: rgba(203, 255, 45, 0.24);
+  outline: 0;
   box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.04);
 }
 
@@ -55,11 +65,6 @@
   box-shadow: none;
 }
 
-textarea:focus-visible,
-select:focus-visible {
-  outline-offset: 1px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .role-permission-search,
   .staff-search,
@@ -67,7 +72,10 @@ select:focus-visible {
   .review-toolbar > label,
   .bets-amount,
   .amount-input,
-  .inline-input {
+  .inline-input,
+  .field > input,
+  .field > textarea,
+  .field > select {
     transition: none;
   }
 }
