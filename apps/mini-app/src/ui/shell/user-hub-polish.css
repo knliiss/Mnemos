@@ -1,0 +1,164 @@
+.user-hub {
+  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.user-hub::-webkit-scrollbar {
+  display: none;
+}
+
+.user-hub-localization {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-height: 0;
+  margin: 10px 0 4px;
+  padding: 10px;
+  border-color: rgba(225, 233, 207, 0.085);
+  background: rgba(255, 255, 255, 0.014);
+  box-shadow: none;
+}
+
+.user-hub-localization__identity {
+  grid-template-columns: 1fr;
+}
+
+.user-hub-localization__mark {
+  display: none;
+}
+
+.user-hub-localization__copy {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.user-hub-localization__copy small {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.user-hub-localization__copy strong {
+  font-size: 11px;
+  font-weight: 650;
+  text-align: right;
+}
+
+.user-hub-localization__choices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  gap: 3px;
+  padding: 3px;
+  border: 0;
+  background: rgba(4, 6, 4, 0.42);
+}
+
+.user-hub-localization__choices button {
+  width: auto;
+  min-width: 0;
+  min-height: 36px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.user-hub-workspace-label {
+  margin-top: 15px;
+  padding: 0 4px 7px;
+  font-size: 9px;
+}
+
+.user-hub-workspace-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.user-hub-workspace-grid > button {
+  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 9px;
+  min-height: 88px;
+  padding: 10px;
+}
+
+.user-hub-workspace-grid > button > .user-hub-workspace-art {
+  width: 50px;
+  height: 50px;
+  margin: 0;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.user-hub-workspace-art img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.user-hub-workspace-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy strong {
+  overflow: hidden;
+  color: currentColor;
+  font-size: 12px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #8f9588;
+  font-size: 9.5px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.user-hub-workspace-grid > button > b {
+  top: 9px;
+  right: 8px;
+}
+
+.telegram-mini-app .user-hub {
+  top: calc(
+    70px +
+      max(
+        env(safe-area-inset-top, 0px),
+        var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+      )
+  );
+  max-height: calc(
+    100dvh -
+      86px -
+      max(
+        env(safe-area-inset-top, 0px),
+        var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+      ) -
+      max(
+        env(safe-area-inset-bottom, 0px),
+        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+      )
+  );
+}
+
+@media (max-width: 360px) {
+  .user-hub-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-hub {
+    right: 10px !important;
+    width: calc(100% - 20px) !important;
+  }
+}
