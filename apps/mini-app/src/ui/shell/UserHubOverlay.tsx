@@ -1,8 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import type { UserBadge } from "@/shared/api/badgeApi"
 import { CristalixHead } from "../components/profile/CristalixHead"
 import type { Account, LocalizationLanguage, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
+import { UserBadgeMark } from "./badges/UserBadgeMark"
+import { UserBadgeSelector } from "./badges/UserBadgeSelector"
 import { localizationOptions } from "./navigation"
 import { UserHubAccountPicker } from "./UserHubAccountPicker"
 import { UserHubLocalization } from "./UserHubLocalization"
@@ -18,10 +21,15 @@ type UserHubOverlayProps = {
   username: string
   prime: number
   systemRoles: string[]
+  badges: UserBadge[]
+  badgesLoading: boolean
+  busyBadgeId: string | null
   onLocalizationChange: (localization: LocalizationLanguage) => void
   onClose: () => void
   onToggleAccounts: () => void
   onSelectAccount: (account: Account) => void
+  onActivateBadge: (badgeId: string) => void
+  onDeactivateBadge: () => void
   navigate: (route: Route) => void
 }
 
@@ -35,15 +43,21 @@ export function UserHubOverlay({
   username,
   prime,
   systemRoles,
+  badges,
+  badgesLoading,
+  busyBadgeId,
   onLocalizationChange,
   onClose,
   onToggleAccounts,
   onSelectAccount,
+  onActivateBadge,
+  onDeactivateBadge,
   navigate,
 }: UserHubOverlayProps) {
   const { t } = useTranslation()
   const localizationOption =
     localizationOptions.find((option) => option.value === localization) ?? localizationOptions[0]
+  const activeBadge = badges.find((item) => item.active) ?? null
 
   return (
     <AnimatePresence>
@@ -68,10 +82,12 @@ export function UserHubOverlay({
             <header className="user-hub-card">
               <span className="user-hub-card__avatar user-hub-card__avatar--mnemos">
                 <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
+                {activeBadge ? <UserBadgeMark badge={activeBadge.badge} compact /> : null}
               </span>
               <span className="user-hub-card__copy">
                 <small>{t("appShell.userMenu.userEyebrow")}</small>
                 <strong>@{username}</strong>
+                {activeBadge ? <em>{activeBadge.badge.name}</em> : null}
               </span>
               <button
                 type="button"
@@ -83,6 +99,14 @@ export function UserHubOverlay({
                 <b>›</b>
               </button>
             </header>
+
+            <UserBadgeSelector
+              badges={badges}
+              loading={badgesLoading}
+              busyBadgeId={busyBadgeId}
+              onActivate={onActivateBadge}
+              onDeactivate={onDeactivateBadge}
+            />
 
             <button
               type="button"
