@@ -24,6 +24,7 @@ import {
   creatorTypeLabel,
   creatorTypeOrder,
 } from "../creatorPresentation"
+import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
 import {
   buildCreatorPreview,
   createDefaultCreatorEditorForm,
@@ -31,6 +32,8 @@ import {
   notificationTemplateKeys,
   saveCreatorForm,
 } from "./creatorEditorModel"
+import { isCreatorVisualFormValid } from "./creatorEditorValidation"
+import "./creator-visual-editor.css"
 import {
   isCreatorPriceValid,
   normalizeCreatorPrice,
@@ -118,10 +121,12 @@ export function CreatorEditor({ params, back }: Props) {
   const visibleLoading = loading || loadedId !== personalizationId
   const priceRange = pricing ? resolveCreatorPriceRange(pricing, form.type, form.currency) : null
   const priceValid = isCreatorPriceValid(form, pricing)
+  const visualValid = isCreatorVisualFormValid(form)
   const notificationMessagesValid =
     form.type !== "NOTIFICATION_PACK" ||
     notificationTemplateKeys.every((key) => form.notificationMessages[key].trim().length > 0)
-  const valid = form.name.trim().length >= 3 && priceValid && notificationMessagesValid
+  const valid =
+    form.name.trim().length >= 3 && priceValid && visualValid && notificationMessagesValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
@@ -365,56 +370,7 @@ export function CreatorEditor({ params, back }: Props) {
             ))}
           </div>
         ) : (
-          <>
-            <div className="creator-color-row">
-              <Field label={t("creator.editor.primary")}>
-                <input
-                  type="color"
-                  value={form.accent}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      accent: event.target.value.toUpperCase(),
-                    }))
-                  }
-                />
-              </Field>
-
-              <Field label={t("creator.editor.secondary")}>
-                <input
-                  type="color"
-                  value={form.secondary}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      secondary: event.target.value.toUpperCase(),
-                    }))
-                  }
-                />
-              </Field>
-            </div>
-
-            <Field label={t("creator.editor.intensity")}>
-              <div className="creator-range">
-                <input
-                  type="range"
-                  min={1}
-                  max={100}
-                  value={form.intensity}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      intensity: Number(event.target.value),
-                    }))
-                  }
-                />
-                <output>{form.intensity}%</output>
-              </div>
-            </Field>
-          </>
+          <CreatorPersonalizationControls form={form} editable={editable} setForm={setForm} />
         )}
       </section>
 
