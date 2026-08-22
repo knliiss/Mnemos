@@ -29,6 +29,7 @@ import {
   type BetMode,
 } from "./betPresentation"
 import "./bets.css"
+import "./bets-featured.css"
 import { useBetsData } from "./data/useBetsData"
 
 type Props = {
