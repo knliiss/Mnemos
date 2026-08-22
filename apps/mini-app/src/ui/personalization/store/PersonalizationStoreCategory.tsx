@@ -8,8 +8,8 @@ import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented } from "../../shared/Primitives"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { PersonalizationPager } from "../components/PersonalizationPager"
-import { PersonalizationTypeGlyph } from "../components/PersonalizationTypeGlyph"
 import {
+  personalizationIllustrations,
   personalizationTargets,
   personalizationTypeImpact,
   personalizationTypeNote,
@@ -59,8 +59,8 @@ export function PersonalizationStoreCategory({
       <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
 
       <section className="personalization-category-intro">
-        <span className="personalization-category-icon">
-          <PersonalizationTypeGlyph type={type} />
+        <span className="personalization-category-icon personalization-category-icon--illustrated">
+          <img src={personalizationIllustrations[type]} alt="" aria-hidden="true" />
         </span>
         <span>
           <small>
