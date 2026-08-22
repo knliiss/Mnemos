@@ -58,8 +58,9 @@ export function CreatorEditor({ params, back }: Props) {
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
   const [pricing, setPricing] = useState<PersonalizationPricingResponse | null>(null)
-  const [notificationDescriptor, setNotificationDescriptor] =
-    useState<NotificationPackEditorDescriptorResponse | null>(null)
+  const [descriptor, setDescriptor] = useState<NotificationPackEditorDescriptorResponse | null>(
+    null,
+  )
   const [form, setForm] = useState(() => createDefaultCreatorEditorForm())
   const [loading, setLoading] = useState(true)
   const [loadedId, setLoadedId] = useState<string | null>(null)
@@ -102,7 +103,7 @@ export function CreatorEditor({ params, back }: Props) {
             : createDefaultCreatorEditorForm(descriptorResponse)
 
           setPricing(pricingResponse)
-          setNotificationDescriptor(descriptorResponse)
+          setDescriptor(descriptorResponse)
           setSource(response)
           setForm(normalizeCreatorPrice(nextForm, pricingResponse))
           setLoadedId(requestedId)
@@ -110,7 +111,7 @@ export function CreatorEditor({ params, back }: Props) {
         .catch((error) => {
           if (!cancelled && scopeRef.current === requestedId) {
             setPricing(null)
-            setNotificationDescriptor(null)
+            setDescriptor(null)
             setSource(null)
             setLoadError(true)
             setLoadedId(requestedId)
@@ -132,28 +133,18 @@ export function CreatorEditor({ params, back }: Props) {
   }, [isNew, personalizationId, reloadRevision])
 
   const currentSource = loadedId === personalizationId ? source : null
-  const visibleLoading = loading || loadedId !== personalizationId || !notificationDescriptor
+  const visibleLoading = loading || loadedId !== personalizationId
   const priceRange = pricing ? resolveCreatorPriceRange(pricing, form.type, form.currency) : null
   const priceValid = isCreatorPriceValid(form, pricing)
   const visualValid = isCreatorVisualFormValid(form)
-  const notificationPackValid = isNotificationPackFormValid(form, notificationDescriptor)
+  const notificationPackValid = isNotificationPackFormValid(form, descriptor)
   const valid = form.name.trim().length >= 3 && priceValid && visualValid && notificationPackValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
-  const preview = notificationDescriptor
-    ? buildCreatorPreview(
-        form,
-        notificationDescriptor,
-        currentSource?.id ?? "preview",
-        currentSource?.status ?? "DRAFT",
-        data.user.username,
-        t("creator.editor.fallbackName"),
-      )
-    : null
 
   const save = async (): Promise<PersonalizationResponse | null> => {
     const actionScope = personalizationId
     const currentPricing = pricing
-    const currentDescriptor = notificationDescriptor
+    const currentDescriptor = descriptor
 
     if (
       !currentPricing ||
@@ -189,10 +180,12 @@ export function CreatorEditor({ params, back }: Props) {
       if (mountedRef.current && scopeRef.current === actionScope) {
         handleError(error)
       }
+
       return null
     } finally {
       if (busyScopeRef.current === actionScope) {
         busyScopeRef.current = null
+
         if (mountedRef.current) {
           setBusy(false)
         }
@@ -232,6 +225,7 @@ export function CreatorEditor({ params, back }: Props) {
     } finally {
       if (busyScopeRef.current === actionScope) {
         busyScopeRef.current = null
+
         if (mountedRef.current) {
           setBusy(false)
         }
@@ -266,6 +260,7 @@ export function CreatorEditor({ params, back }: Props) {
     } finally {
       if (busyScopeRef.current === actionScope) {
         busyScopeRef.current = null
+
         if (mountedRef.current) {
           setBusy(false)
         }
@@ -282,7 +277,7 @@ export function CreatorEditor({ params, back }: Props) {
     )
   }
 
-  if (loadError || !notificationDescriptor || !preview) {
+  if (loadError || !descriptor) {
     return (
       <div className="screen creator-screen">
         <PageHeader title={t("creator.editor.editing")} back={back} />
@@ -299,6 +294,15 @@ export function CreatorEditor({ params, back }: Props) {
     )
   }
 
+  const preview = buildCreatorPreview(
+    form,
+    descriptor,
+    currentSource?.id ?? "preview",
+    currentSource?.status ?? "DRAFT",
+    data.user.username,
+    t("creator.editor.fallbackName"),
+  )
+
   return (
     <div className="screen creator-screen creator-editor">
       <PageHeader
@@ -306,19 +310,17 @@ export function CreatorEditor({ params, back }: Props) {
         back={back}
       />
 
-      {form.type !== "NOTIFICATION_PACK" ? (
-        <section className="creator-editor-stage">
-          <header>
-            <span>
-              <i />
-              {t("creator.editor.live")}
-            </span>
-            <small>{creatorTypeLabel(t, form.type)}</small>
-          </header>
+      <section className="creator-editor-stage">
+        <header>
+          <span>
+            <i />
+            {t("creator.editor.live")}
+          </span>
+          <small>{creatorTypeLabel(t, form.type)}</small>
+        </header>
 
-          <PersonalizationVisual item={preview} detail />
-        </section>
-      ) : null}
+        <PersonalizationVisual item={preview} detail />
+      </section>
 
       {currentSource?.rejectionReason ? (
         <section className="creator-form-block">
@@ -374,7 +376,7 @@ export function CreatorEditor({ params, back }: Props) {
         {form.type === "NOTIFICATION_PACK" ? (
           <CreatorNotificationPackStudio
             form={form}
-            descriptor={notificationDescriptor}
+            descriptor={descriptor}
             editable={editable}
             setForm={setForm}
           />
