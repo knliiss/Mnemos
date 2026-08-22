@@ -5,13 +5,13 @@
 .personalization-detail-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 126px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  grid-template-rows: 156px auto;
   gap: 12px;
-  min-height: 144px;
+  min-height: 230px;
   overflow: hidden;
   margin: 8px 0 14px;
-  padding: 16px 13px 16px 17px;
+  padding: 12px;
   border: 1px solid rgba(226, 233, 205, 0.12);
   border-radius: 23px;
   background:
@@ -23,10 +23,11 @@
 .personalization-detail-hero__copy {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
+  grid-row: 2;
+  display: grid;
   min-width: 0;
   gap: 4px;
+  padding: 0 4px 3px;
 }
 
 .personalization-detail-hero__copy > small {
@@ -59,13 +60,14 @@
 .personalization-detail-hero > .real-preview.is-detail {
   position: relative;
   z-index: 1;
-  width: 126px !important;
-  min-width: 0 !important;
-  height: 112px !important;
-  min-height: 0 !important;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  height: 156px;
+  min-height: 0;
   margin: 0;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 17px;
 }
 
 .personalization-detail-purchase {
@@ -111,6 +113,7 @@
   color: #e8ebe3;
   font-size: 13px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .personalization-detail-purchase__action {
@@ -150,11 +153,12 @@
 
 @media (max-width: 380px) {
   .personalization-detail-hero {
-    grid-template-columns: minmax(0, 1fr) 105px;
+    grid-template-rows: 138px auto;
+    min-height: 210px;
   }
 
   .personalization-detail-hero > .real-preview.is-detail {
-    width: 105px !important;
+    height: 138px;
   }
 
   .personalization-detail-purchase {
