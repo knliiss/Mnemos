@@ -7,11 +7,9 @@
   width: 32px;
   height: 32px;
   flex: 0 0 auto;
-  border: 1px solid color-mix(in srgb, var(--user-badge-accent) 38%, rgba(235, 241, 213, 0.08));
+  border: 1px solid rgba(235, 241, 213, 0.12);
   border-radius: 10px;
-  background:
-    radial-gradient(circle at 32% 24%, color-mix(in srgb, var(--user-badge-accent) 12%, transparent), transparent 62%),
-    rgba(12, 14, 10, 0.96);
+  background: rgba(12, 14, 10, 0.96);
   box-shadow:
     0 5px 16px rgba(0, 0, 0, 0.34),
     0 0 14px color-mix(in srgb, var(--user-badge-accent) 10%, transparent);
@@ -105,13 +103,9 @@
   gap: 10px;
 }
 
-.user-hub-badges > header > span,
-.user-hub-badges > header:not(:has(> span)) {
-  min-width: 0;
-}
-
 .user-hub-badges > header > span {
   display: grid;
+  min-width: 0;
   gap: 2px;
 }
 
