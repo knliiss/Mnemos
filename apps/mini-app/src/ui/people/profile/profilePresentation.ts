@@ -6,19 +6,28 @@ const SKIN_BASE_URL = "https://webdata.c7x.dev/textures/skin"
 
 type ProfileCardStyle = CSSProperties & {
   "--profile-theme-background"?: string
+  "--profile-theme-background-secondary"?: string
   "--profile-theme-surface"?: string
+  "--profile-theme-surface-secondary"?: string
   "--profile-theme-accent"?: string
   "--profile-theme-text"?: string
   "--profile-theme-border"?: string
+  "--profile-theme-angle"?: string
+  "--profile-theme-texture"?: string
   "--profile-theme-glow"?: string
   "--profile-effect-primary"?: string
   "--profile-effect-secondary"?: string
   "--profile-effect-opacity"?: string
+  "--profile-effect-duration"?: string
+  "--profile-effect-density"?: string
+  "--profile-effect-scale"?: string
 }
 
 type ProfileHeadStyle = CSSProperties & {
   "--profile-frame-color"?: string
+  "--profile-frame-secondary"?: string
   "--profile-frame-width"?: string
+  "--profile-frame-gap"?: string
   "--profile-frame-radius"?: string
   "--profile-frame-glow"?: string
 }
@@ -55,19 +64,28 @@ export function profileCardStyle(profile: PublicProfileResponse): ProfileCardSty
 
   if (theme) {
     style["--profile-theme-background"] = theme.background
+    style["--profile-theme-background-secondary"] = theme.backgroundSecondary
     style["--profile-theme-surface"] = theme.surface
+    style["--profile-theme-surface-secondary"] = theme.surfaceSecondary
     style["--profile-theme-accent"] = theme.accent
     style["--profile-theme-text"] = theme.text
     style["--profile-theme-border"] = theme.border
+    style["--profile-theme-angle"] = `${theme.gradientAngleDegrees}deg`
+    style["--profile-theme-texture"] = `${Math.round(theme.textureStrength * 0.16)}%`
     style["--profile-theme-glow"] = glowShadow(theme.glow)
   }
 
   if (effect) {
     const opacity = 0.08 + (effect.intensity / 100) * 0.2
+    const durationSeconds = 8.2 - (effect.speed / 100) * 6.4
+    const scale = 0.8 + (effect.scale / 100) * 0.5
 
     style["--profile-effect-primary"] = effect.primaryColor
     style["--profile-effect-secondary"] = effect.secondaryColor ?? effect.primaryColor
     style["--profile-effect-opacity"] = opacity.toFixed(3)
+    style["--profile-effect-duration"] = `${durationSeconds.toFixed(2)}s`
+    style["--profile-effect-density"] = String(effect.density / 100)
+    style["--profile-effect-scale"] = scale.toFixed(3)
   }
 
   return style
@@ -91,6 +109,19 @@ export function profileCardClassName(profile: PublicProfileResponse): string {
   return classes.join(" ")
 }
 
+export function profileHeadClassName(profile: PublicProfileResponse): string {
+  const frame = profile.appearance.avatarFrame
+  const classes = ["public-profile-head"]
+
+  if (!frame) {
+    return classes.join(" ")
+  }
+
+  classes.push("has-avatar-frame", `profile-frame--${frame.style.toLowerCase()}`)
+
+  return classes.join(" ")
+}
+
 export function profileHeadStyle(profile: PublicProfileResponse): ProfileHeadStyle | undefined {
   const frame = profile.appearance.avatarFrame
 
@@ -100,7 +131,9 @@ export function profileHeadStyle(profile: PublicProfileResponse): ProfileHeadSty
 
   return {
     "--profile-frame-color": frame.borderColor,
+    "--profile-frame-secondary": frame.secondaryBorderColor,
     "--profile-frame-width": `${frame.borderWidthPx}px`,
+    "--profile-frame-gap": `${frame.gapPx}px`,
     "--profile-frame-radius": `${frame.radiusPx}px`,
     "--profile-frame-glow": glowShadow(frame.glow),
   }
