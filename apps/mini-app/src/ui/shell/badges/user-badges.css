@@ -1,0 +1,212 @@
+.user-badge-mark {
+  --user-badge-accent: #c7f24a;
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--user-badge-accent) 38%, rgba(235, 241, 213, 0.08));
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 32% 24%, color-mix(in srgb, var(--user-badge-accent) 12%, transparent), transparent 62%),
+    rgba(12, 14, 10, 0.96);
+  box-shadow:
+    0 5px 16px rgba(0, 0, 0, 0.34),
+    0 0 14px color-mix(in srgb, var(--user-badge-accent) 10%, transparent);
+}
+
+.user-badge-mark--compact {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.user-badge-mark > img {
+  display: block;
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.user-badge-mark__tooltip {
+  position: absolute;
+  z-index: 90;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  width: max-content;
+  max-width: 180px;
+  padding: 6px 8px;
+  border: 1px solid rgba(235, 241, 213, 0.12);
+  border-radius: 8px;
+  color: #e5e9df;
+  background: rgba(7, 8, 6, 0.97);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.25;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+.user-badge-mark:hover .user-badge-mark__tooltip,
+.global-user-button:focus-visible .user-badge-mark__tooltip,
+.user-hub-badge-option:focus-visible .user-badge-mark__tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.global-user-button > .user-badge-mark {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+}
+
+.user-hub-card__avatar--mnemos {
+  position: relative;
+}
+
+.user-hub-card__avatar--mnemos > .user-badge-mark {
+  position: absolute;
+  right: -7px;
+  bottom: -5px;
+}
+
+.user-hub-card__copy > em {
+  overflow: hidden;
+  color: #909788;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-badges {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid rgba(225, 233, 207, 0.08);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.user-hub-badges > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-hub-badges > header > span,
+.user-hub-badges > header:not(:has(> span)) {
+  min-width: 0;
+}
+
+.user-hub-badges > header > span {
+  display: grid;
+  gap: 2px;
+}
+
+.user-hub-badges header small {
+  color: #777e73;
+  font-family: var(--font-meta);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.user-hub-badges header strong {
+  overflow: hidden;
+  color: #dce1d7;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-badges__clear {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 7px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 8px;
+  color: #969d90;
+  background: rgba(255, 255, 255, 0.018);
+  font-size: 8px;
+}
+
+.user-hub-badges__clear:disabled,
+.user-hub-badge-option:disabled {
+  opacity: 0.55;
+}
+
+.user-hub-badges__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.user-hub-badge-option {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px 7px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 11px;
+  color: #cfd5c9;
+  background: rgba(255, 255, 255, 0.012);
+  text-align: left;
+}
+
+.user-hub-badge-option.is-active {
+  border-color: rgba(199, 242, 74, 0.18);
+  background: rgba(199, 242, 74, 0.035);
+}
+
+.user-hub-badge-option > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.user-hub-badge-option strong,
+.user-hub-badge-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-badge-option strong {
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.user-hub-badge-option small {
+  color: #757c71;
+  font-size: 8px;
+}
+
+.user-hub-badge-option.is-active small {
+  color: #b8d75c;
+}
+
+@media (max-width: 360px) {
+  .user-hub-badges__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-badge-mark__tooltip {
+    transition: none;
+  }
+}
