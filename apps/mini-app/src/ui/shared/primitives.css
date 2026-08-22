@@ -185,21 +185,33 @@
 
 .field > input,
 .field > textarea,
+.field > select,
 .inline-input input,
 .amount-input input {
+  box-sizing: border-box;
   width: 100%;
+  min-width: 0;
   min-height: 42px;
   padding: 0 11px;
   border: 1px solid var(--line);
   border-radius: 9px;
   outline: 0;
+  color: var(--text);
   background: rgba(255, 255, 255, 0.025);
+  font: inherit;
 }
 
 .field > textarea {
   min-height: 84px;
   padding-top: 10px;
+  padding-bottom: 10px;
+  line-height: 1.45;
   resize: vertical;
+}
+
+.field > select {
+  padding-right: 34px;
+  color-scheme: dark;
 }
 
 .field input[type="range"] {
