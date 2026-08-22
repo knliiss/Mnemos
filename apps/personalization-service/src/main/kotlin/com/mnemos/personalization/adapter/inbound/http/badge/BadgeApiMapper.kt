@@ -9,7 +9,7 @@ object BadgeApiMapper {
             id = id.id,
             code = code,
             name = name,
-            icon = icon,
+            imageUrl = "/api/v1/personalizations/badges/${id.id}/image",
             color = color.value,
         )
 
