@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
+  getCreatorPersonalization,
   publishCreatorPersonalization,
   submitCreatorPersonalization,
 } from "@/shared/api/creatorPersonalizationApi"
 import {
-  getPersonalization,
   getPersonalizationPricing,
   type PersonalizationPricingResponse,
   type PersonalizationResponse,
@@ -72,7 +72,9 @@ export function CreatorEditor({ params, back }: Props) {
       setLoading(true)
       setLoadError(false)
 
-      const sourceRequest = isNew ? Promise.resolve(null) : getPersonalization(personalizationId)
+      const sourceRequest = isNew
+        ? Promise.resolve(null)
+        : getCreatorPersonalization(personalizationId)
 
       void Promise.all([getPersonalizationPricing(), sourceRequest])
         .then(([pricingResponse, response]) => {
