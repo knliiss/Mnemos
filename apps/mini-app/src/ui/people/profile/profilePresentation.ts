@@ -84,7 +84,7 @@ export function profileCardStyle(profile: PublicProfileResponse): ProfileCardSty
     style["--profile-effect-secondary"] = effect.secondaryColor ?? effect.primaryColor
     style["--profile-effect-opacity"] = opacity.toFixed(3)
     style["--profile-effect-duration"] = `${durationSeconds.toFixed(2)}s`
-    style["--profile-effect-density"] = String(effect.density / 100)
+    style["--profile-effect-density"] = `${effect.density}%`
     style["--profile-effect-scale"] = scale.toFixed(3)
   }
 
