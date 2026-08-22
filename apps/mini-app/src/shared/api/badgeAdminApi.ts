@@ -1,22 +1,25 @@
 import { api } from "@/shared/api/httpClient"
 import { resolveBadgeImageUrl, type Badge, type UserBadge } from "@/shared/api/badgeApi"
 
-type BadgeResponse = Omit<Badge, "imageUrl"> & {
+export type BadgeResponse = Badge
+export type UserBadgeResponse = UserBadge
+
+type RawBadgeResponse = Omit<Badge, "imageUrl"> & {
   imageUrl: string
 }
 
-type UserBadgeResponse = Omit<UserBadge, "badge"> & {
-  badge: BadgeResponse
+type RawUserBadgeResponse = Omit<UserBadge, "badge"> & {
+  badge: RawBadgeResponse
 }
 
 export async function listAdminBadges(): Promise<Badge[]> {
-  const response = await api<BadgeResponse[]>("/api/v1/personalizations/admin/badges")
+  const response = await api<RawBadgeResponse[]>("/api/v1/personalizations/admin/badges")
 
   return response.map(toBadge)
 }
 
 export async function listAdminUserBadges(userId: string): Promise<UserBadge[]> {
-  const response = await api<UserBadgeResponse[]>(
+  const response = await api<RawUserBadgeResponse[]>(
     `/api/v1/personalizations/admin/badges/users/${userId}`,
   )
 
@@ -49,7 +52,7 @@ export async function createAdminBadge(request: {
   form.append("metadata", metadata)
   form.append("image", request.image, request.image.name)
 
-  const response = await api<BadgeResponse>("/api/v1/personalizations/admin/badges", {
+  const response = await api<RawBadgeResponse>("/api/v1/personalizations/admin/badges", {
     method: "POST",
     body: form,
   })
@@ -69,7 +72,7 @@ export async function revokeAdminBadge(badgeId: string, userId: string): Promise
   })
 }
 
-function toBadge(response: BadgeResponse): Badge {
+function toBadge(response: RawBadgeResponse): Badge {
   return {
     ...response,
     imageUrl: resolveBadgeImageUrl(response.imageUrl),
