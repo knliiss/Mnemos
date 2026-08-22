@@ -40,9 +40,7 @@ export function UserBadgeSelector({
       <header>
         <span>
           <small>{t("appShell.userMenu.badgeEyebrow")}</small>
-          <strong>
-            {activeBadge?.badge.name ?? t("appShell.userMenu.badgeNone")}
-          </strong>
+          <strong>{activeBadge?.badge.name ?? t("appShell.userMenu.badgeNone")}</strong>
         </span>
 
         {activeBadge ? (
@@ -61,6 +59,11 @@ export function UserBadgeSelector({
         {badges.map((item) => {
           const active = item.active
           const busy = busyBadgeId === item.badge.id
+          const statusLabel = busy
+            ? t("appShell.userMenu.badgeSaving")
+            : active
+              ? t("appShell.userMenu.badgeActive")
+              : t("appShell.userMenu.badgeUse")
 
           return (
             <button
@@ -77,13 +80,7 @@ export function UserBadgeSelector({
               <UserBadgeMark badge={item.badge} compact />
               <span>
                 <strong>{item.badge.name}</strong>
-                <small>
-                  {busy
-                    ? t("appShell.userMenu.badgeSaving")
-                    : active
-                      ? t("appShell.userMenu.badgeActive")
-                      : t("appShell.userMenu.badgeUse")}
-                </small>
+                <small>{statusLabel}</small>
               </span>
             </button>
           )
