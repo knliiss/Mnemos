@@ -131,25 +131,11 @@
 }
 
 .telegram-mini-app .user-hub {
-  top: calc(
-    70px +
-      max(
-        env(safe-area-inset-top, 0px),
-        var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
-      )
-  );
-  max-height: calc(
-    100dvh -
-      86px -
-      max(
-        env(safe-area-inset-top, 0px),
-        var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
-      ) -
-      max(
-        env(safe-area-inset-bottom, 0px),
-        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
-      )
-  );
+  --user-hub-safe-top: var(--tg-content-safe-area-inset-top, 0px);
+  --user-hub-safe-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
+
+  top: calc(70px + var(--user-hub-safe-top));
+  max-height: calc(100dvh - 86px - var(--user-hub-safe-top) - var(--user-hub-safe-bottom));
 }
 
 @media (max-width: 360px) {
