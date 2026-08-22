@@ -8,8 +8,7 @@
   }
 }
 
-.splash,
-.fatal-error {
+.splash {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,8 +21,7 @@
   text-align: center;
 }
 
-.splash p,
-.fatal-error p {
+.splash p {
   max-width: 320px;
   margin: 0;
   color: #9ca194;
@@ -60,22 +58,6 @@
   box-shadow: 0 0 35px rgba(203, 255, 45, 0.08);
   font-size: 24px;
   font-weight: 720;
-}
-
-.fatal-error h1 {
-  margin: 0;
-  font-size: 28px;
-}
-
-.fatal-error button {
-  min-height: 40px;
-  padding: 0 16px;
-  border: 1px solid rgba(203, 255, 45, 0.18);
-  border-radius: 11px;
-  color: #dfff72;
-  background: rgba(203, 255, 45, 0.06);
-  font-size: 11px;
-  font-weight: 650;
 }
 
 .notification {
