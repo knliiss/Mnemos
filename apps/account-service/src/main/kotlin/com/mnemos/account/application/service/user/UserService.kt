@@ -39,7 +39,8 @@ class UserService(
         val keycloakId = KeycloakId(principal.keycloakId)
 
         val userCreation =
-            userRepository.findByKeycloakId(keycloakId)
+            userRepository
+                .findByKeycloakId(keycloakId)
                 ?.let { existingUser ->
                     UserCreationResult(
                         user = existingUser,
