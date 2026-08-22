@@ -12,6 +12,7 @@ import { RouteContent } from "./RouteContent"
 import "./shell.css"
 import "./native-shell.css"
 import "./user-hub-polish.css"
+import "./shell-layout.css"
 import { UserHubOverlay } from "./UserHubOverlay"
 import { UserHubTrigger } from "./UserHubTrigger"
 
@@ -124,7 +125,9 @@ export function AppShell() {
 
   const userHubTrigger =
     rootRoute && activeAccount ? (
-      <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
+      <div className="root-user-access">
+        <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
+      </div>
     ) : null
 
   return (
@@ -146,14 +149,16 @@ export function AppShell() {
             >
               {userHubTrigger}
 
-              <RouteContent
-                key={activeAccountId}
-                current={current}
-                activeAccount={activeAccount}
-                navigate={navigate}
-                back={back}
-                switchRoot={switchRoot}
-              />
+              <div className="route-content-frame">
+                <RouteContent
+                  key={activeAccountId}
+                  current={current}
+                  activeAccount={activeAccount}
+                  navigate={navigate}
+                  back={back}
+                  switchRoot={switchRoot}
+                />
+              </div>
             </motion.div>
 
             {rootRoute && activeAccount ? (
