@@ -1,3 +1,22 @@
+.personalization-store-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  align-items: start;
+  min-height: 108px;
+}
+
+.personalization-store-header > span {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.store-prime-pill {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+  margin-top: 4px;
+}
+
 .personalization-store-category-card {
   grid-template-columns: 72px minmax(0, 1fr) 96px;
   min-height: 124px;
@@ -72,7 +91,51 @@
   font-size: 10.5px;
 }
 
+.personalization-store-category .personalization-category-list {
+  min-height: 238px;
+}
+
+.personalization-store-category .personalization-category-card--featured {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 152px auto;
+  gap: 12px 14px;
+  min-height: 226px;
+  padding: 12px;
+}
+
+.personalization-store-category .personalization-category-visual {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 152px;
+  border-radius: 16px;
+}
+
+.personalization-store-category .personalization-category-visual > .real-preview {
+  width: 100% !important;
+  height: 152px !important;
+}
+
+.personalization-store-category .personalization-category-copy {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.personalization-store-category .personalization-category-copy > strong {
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.personalization-store-category .personalization-category-price {
+  grid-column: 2;
+  align-self: end;
+  padding: 0 2px 1px 0;
+}
+
 @media (max-width: 390px) {
+  .personalization-store-header {
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+
   .personalization-store-category-card {
     grid-template-columns: 62px minmax(0, 1fr) 76px;
     gap: 8px;
@@ -91,5 +154,18 @@
   .personalization-store-category-card__preview {
     width: 76px;
     height: 70px;
+  }
+
+  .personalization-store-category .personalization-category-card--featured {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 136px auto;
+    gap: 10px 12px;
+    min-height: 212px;
+  }
+
+  .personalization-store-category .personalization-category-visual,
+  .personalization-store-category .personalization-category-visual > .real-preview {
+    width: 100% !important;
+    height: 136px !important;
   }
 }
