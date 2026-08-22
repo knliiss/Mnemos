@@ -61,9 +61,9 @@ export function ModerationHome({ navigate, back }: Props) {
     <div className="screen moderation-screen">
       <PageHeader title={t("moderation.title")} back={back} />
 
-      <section className="moderation-hero">
-        <span className="moderation-hero__icon">
-          <Glyph name="moderation" size={23} />
+      <section className="moderation-hero moderation-hero--illustrated">
+        <span className="moderation-hero__art" aria-hidden="true">
+          <img src="/ui-illustrations/admin-users.svg" alt="" />
         </span>
         <span>
           <small>{t("moderation.internal")}</small>
@@ -131,8 +131,8 @@ export function ModerationHome({ navigate, back }: Props) {
                   })
                 }
               >
-                <span className="staff-search-results__avatar">
-                  {identity.username.slice(0, 1).toUpperCase()}
+                <span className="staff-search-results__avatar staff-search-results__avatar--mnemos">
+                  <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
                 </span>
                 <span>
                   <strong>@{identity.username}</strong>
