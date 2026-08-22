@@ -1,0 +1,206 @@
+html.telegram-mini-app,
+html.telegram-mini-app body,
+html.telegram-mini-app #root {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  background: #050604;
+}
+
+.telegram-mini-app .preview-stage {
+  display: block;
+  min-height: 100dvh;
+  background: #050604;
+}
+
+.telegram-mini-app .app-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  border: 0;
+  box-shadow: none;
+}
+
+.telegram-mini-app .route-stage {
+  padding-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+  );
+  padding-right: var(--tg-safe-area-inset-right, env(safe-area-inset-right, 0px));
+  padding-left: var(--tg-safe-area-inset-left, env(safe-area-inset-left, 0px));
+}
+
+.telegram-mini-app .route-stage.has-tabbar {
+  padding-bottom: calc(
+    92px + max(
+        env(safe-area-inset-bottom, 0px),
+        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+      )
+  );
+}
+
+.telegram-mini-app .root-navigation.root-navigation--five {
+  right: max(10px, var(--tg-safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  bottom: calc(
+    8px + max(
+        env(safe-area-inset-bottom, 0px),
+        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+      )
+  );
+  left: max(10px, var(--tg-safe-area-inset-left, env(safe-area-inset-left, 0px)));
+}
+
+.global-user-button .global-user-button__mnemos-mark {
+  width: 31px !important;
+  height: 31px !important;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+}
+
+.user-hub-card__avatar--mnemos {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(203, 255, 45, 0.12), transparent 70%),
+    rgba(203, 255, 45, 0.035);
+}
+
+.user-hub-card__avatar--mnemos img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.user-hub-card__copy small {
+  font-size: 10px !important;
+  letter-spacing: 0.09em !important;
+}
+
+.user-hub-card__copy strong {
+  font-size: 18px !important;
+  letter-spacing: -0.02em;
+}
+
+.user-hub-prime {
+  flex: 0 0 auto;
+  min-width: 78px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.user-hub-localization {
+  min-height: 72px;
+  margin-top: 10px;
+  padding: 11px 12px;
+}
+
+.user-hub-localization__copy small {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+
+.user-hub-localization__copy strong {
+  font-size: 15px;
+}
+
+.user-hub-localization__choices {
+  grid-template-columns: repeat(3, 42px);
+  gap: 4px;
+}
+
+.user-hub-localization__choices button {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 730;
+}
+
+.user-hub-workspace-label {
+  margin-top: 16px;
+  padding: 0 5px 8px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+
+.user-hub-workspace-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.user-hub-workspace-grid > button {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 92px;
+  padding: 11px;
+}
+
+.user-hub-workspace-grid > button > .user-hub-workspace-art {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.user-hub-workspace-art img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.user-hub-workspace-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy strong {
+  overflow: hidden;
+  color: currentColor;
+  font-size: 13px;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #8f9588;
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.user-hub-workspace-grid > button > b {
+  top: 10px;
+  right: 9px;
+}
+
+@media (max-width: 360px) {
+  .user-hub-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-hub {
+    width: calc(100% - 20px) !important;
+    right: 10px !important;
+  }
+}
