@@ -156,7 +156,11 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
       const currentAccountId = activeAccountId.current
 
-      if (currentAccountId && event.payload.ownerType === "ACCOUNT" && event.payload.ownerId === currentAccountId) {
+      if (
+        currentAccountId &&
+        event.payload.ownerType === "ACCOUNT" &&
+        event.payload.ownerId === currentAccountId
+      ) {
         void refreshAccountBalance(currentAccountId).catch(handleError)
       }
     })
