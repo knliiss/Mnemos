@@ -9,6 +9,7 @@ import {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
+import { getToken } from "@/features/auth/api/auth"
 import { isAuthError } from "@/features/auth/api/authErrors"
 import {
   createAccount,
@@ -70,6 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       await initializeCurrentUser()
+      await getToken({ forceRefresh: true })
 
       if (!mountedRef.current) {
         return
