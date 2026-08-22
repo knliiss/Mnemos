@@ -19,8 +19,7 @@ class GatewayCorsConfigurationTest {
                     .header(
                         "Access-Control-Request-Headers",
                         "authorization,x-mnemos-realtime-session",
-                    )
-                    .build(),
+                    ).build(),
             )
 
         val cors = source.getCorsConfiguration(exchange)
