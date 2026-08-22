@@ -25,6 +25,7 @@ type RoundBetSheetProps = {
   side: BetSide
   amount: string
   amountValid: boolean
+  amountHint: string | null
   busy: boolean
   locale: string
   onClose: () => void
@@ -38,6 +39,7 @@ export function RoundBetSheet({
   side,
   amount,
   amountValid,
+  amountHint,
   busy,
   locale,
   onClose,
@@ -95,14 +97,17 @@ export function RoundBetSheet({
             <CurrencyMark currency="COIN" size={16} />
             <input
               type="number"
-              min={round.myBet ? 1 : 100}
+              min={round.myBet ? 1 : 500}
               max={round.myBet ? undefined : 5000}
               value={amount}
               disabled={busy}
+              aria-invalid={Boolean(amountHint)}
               onChange={(event) => onAmountChange(event.target.value)}
             />
           </div>
         </Field>
+
+        {amountHint ? <p className="inline-hint inline-hint--left">{amountHint}</p> : null}
 
         <button
           type="button"
