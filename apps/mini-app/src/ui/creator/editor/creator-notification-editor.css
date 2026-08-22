@@ -1,0 +1,46 @@
+.creator-notification-messages {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.creator-notification-messages > header {
+  display: grid;
+  gap: 3px;
+  padding: 7px 2px 1px;
+}
+
+.creator-notification-messages > header small {
+  color: #7f867a;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.creator-notification-messages > header strong {
+  color: #dfe3da;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.creator-notification-messages .field {
+  margin-top: 0;
+  padding: 10px;
+  border: 1px solid rgba(228, 235, 213, 0.075);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 92% 0, rgba(199, 242, 74, 0.035), transparent 40%),
+    rgba(255, 255, 255, 0.012);
+}
+
+.creator-notification-messages textarea {
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.creator-notification-messages textarea:focus {
+  border-color: rgba(199, 242, 74, 0.22) !important;
+  box-shadow: 0 0 0 3px rgba(199, 242, 74, 0.025);
+}
