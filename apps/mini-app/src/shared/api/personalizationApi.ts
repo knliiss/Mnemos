@@ -3,6 +3,7 @@ import { api } from "@/shared/api/httpClient"
 import type {
   Currency,
   EffectType,
+  FrameStyle,
   NotificationTemplateKey,
   PersonalizationStatus,
   PersonalizationTarget,
@@ -40,23 +41,33 @@ export type NickStyleContentResponse = {
 
 export type ProfileThemeContentResponse = {
   background: string
+  backgroundSecondary: string
   surface: string
+  surfaceSecondary: string
   accent: string
   text: string
   border: string
+  gradientAngleDegrees: number
+  textureStrength: number
   glow: GlowStyleResponse | null
 }
 
 export type AvatarFrameContentResponse = {
   borderColor: string
+  secondaryBorderColor: string
   borderWidthPx: number
+  gapPx: number
   radiusPx: number
+  style: FrameStyle
   glow: GlowStyleResponse | null
 }
 
 export type ProfileEffectContentResponse = {
   effect: EffectType
   intensity: number
+  speed: number
+  density: number
+  scale: number
   primaryColor: string
   secondaryColor: string | null
 }
