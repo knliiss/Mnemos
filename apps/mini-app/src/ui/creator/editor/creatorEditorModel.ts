@@ -1,12 +1,13 @@
-import type { TFunction } from "i18next"
 import {
   createCreatorPersonalization,
   updateCreatorPersonalization,
 } from "@/shared/api/creatorPersonalizationApi"
+import type { NotificationPackEditorDescriptorResponse } from "@/shared/api/creatorPersonalizationApi"
 import type {
   AvatarFrameContentResponse,
   NickStyleContentResponse,
   NotificationPackContentResponse,
+  NotificationTemplateResponse,
   PersonalizationResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
@@ -68,6 +69,11 @@ export type ProfileEffectEditorForm = {
   secondaryColor: string
 }
 
+export type NotificationPackEditorForm = {
+  mixedAggregateTitle: string
+  templates: Record<string, NotificationTemplateResponse>
+}
+
 export type CreatorEditorForm = {
   type: PersonalizationType
   name: string
@@ -77,16 +83,8 @@ export type CreatorEditorForm = {
   profileTheme: ProfileThemeEditorForm
   avatarFrame: AvatarFrameEditorForm
   profileEffect: ProfileEffectEditorForm
-  notificationMessages: Record<NotificationTemplateKey, string>
+  notificationPack: NotificationPackEditorForm
 }
-
-export const notificationTemplateKeys: NotificationTemplateKey[] = [
-  "ITEM_DROP",
-  "BOOSTER",
-  "DUNGEON",
-  "RAID",
-  "GLOBAL",
-]
 
 const targetByType: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   NOTIFICATION_PACK: "USER",
@@ -94,26 +92,6 @@ const targetByType: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   PROFILE_THEME: "ACCOUNT",
   AVATAR_FRAME: "ACCOUNT",
   PROFILE_EFFECT: "ACCOUNT",
-}
-
-function notificationMessages(message: string): Record<NotificationTemplateKey, string> {
-  return {
-    ITEM_DROP: message,
-    BOOSTER: message,
-    DUNGEON: message,
-    RAID: message,
-    GLOBAL: message,
-  }
-}
-
-function notificationTemplate(name: string, message: string) {
-  return {
-    emoji: null,
-    soloTitle: name,
-    soloBody: message,
-    compact: message,
-    aggregateTitle: name,
-  }
 }
 
 function glowRequest(glow: CreatorGlowForm) {
@@ -139,9 +117,45 @@ function glowForm(
   }
 }
 
+function notificationPackDefaults(
+  descriptor?: NotificationPackEditorDescriptorResponse,
+): NotificationPackEditorForm {
+  if (!descriptor) {
+    return {
+      mixedAggregateTitle: "",
+      templates: {},
+    }
+  }
+
+  return {
+    mixedAggregateTitle: descriptor.mixedAggregateTitleDefault,
+    templates: Object.fromEntries(
+      descriptor.templates.map((template) => [template.type, { ...template.defaults }]),
+    ),
+  }
+}
+
+function completeNotificationTemplates(
+  form: CreatorEditorForm,
+  descriptor: NotificationPackEditorDescriptorResponse,
+): Record<NotificationTemplateKey, NotificationTemplateResponse> {
+  return Object.fromEntries(
+    descriptor.templates.map((templateDescriptor) => {
+      const template = form.notificationPack.templates[templateDescriptor.type]
+
+      if (!template) {
+        throw new Error(`Notification template ${templateDescriptor.type} is missing`)
+      }
+
+      return [templateDescriptor.type, template]
+    }),
+  ) as Record<NotificationTemplateKey, NotificationTemplateResponse>
+}
+
 export async function saveCreatorForm(
   id: string | null,
   form: CreatorEditorForm,
+  descriptor: NotificationPackEditorDescriptorResponse,
 ): Promise<PersonalizationResponse> {
   const price = {
     currency: form.type === "NOTIFICATION_PACK" ? ("PRIME" as const) : form.currency,
@@ -225,14 +239,8 @@ export async function saveCreatorForm(
 
   const request = {
     name,
-    mixedAggregateTitle: name,
-    templates: {
-      ITEM_DROP: notificationTemplate(name, form.notificationMessages.ITEM_DROP.trim()),
-      BOOSTER: notificationTemplate(name, form.notificationMessages.BOOSTER.trim()),
-      DUNGEON: notificationTemplate(name, form.notificationMessages.DUNGEON.trim()),
-      RAID: notificationTemplate(name, form.notificationMessages.RAID.trim()),
-      GLOBAL: notificationTemplate(name, form.notificationMessages.GLOBAL.trim()),
-    },
+    mixedAggregateTitle: form.notificationPack.mixedAggregateTitle.trim(),
+    templates: completeNotificationTemplates(form, descriptor),
     price,
   }
 
@@ -241,9 +249,9 @@ export async function saveCreatorForm(
     : createCreatorPersonalization("NOTIFICATION_PACK", request)
 }
 
-export function createDefaultCreatorEditorForm(t: TFunction): CreatorEditorForm {
-  const defaultMessage = t("creator.editor.defaultMessage")
-
+export function createDefaultCreatorEditorForm(
+  descriptor?: NotificationPackEditorDescriptorResponse,
+): CreatorEditorForm {
   return {
     type: "NICK_STYLE",
     name: "",
@@ -300,15 +308,15 @@ export function createDefaultCreatorEditorForm(t: TFunction): CreatorEditorForm 
       primaryColor: "#CBFF2D",
       secondaryColor: "#B98DC2",
     },
-    notificationMessages: notificationMessages(defaultMessage),
+    notificationPack: notificationPackDefaults(descriptor),
   }
 }
 
 export function creatorResponseToEditorForm(
   response: PersonalizationResponse,
-  t: TFunction,
+  descriptor: NotificationPackEditorDescriptorResponse,
 ): CreatorEditorForm {
-  const defaults = createDefaultCreatorEditorForm(t)
+  const defaults = createDefaultCreatorEditorForm(descriptor)
   const base: CreatorEditorForm = {
     ...defaults,
     type: response.type,
@@ -397,18 +405,16 @@ export function creatorResponseToEditorForm(
   return {
     ...base,
     currency: "PRIME",
-    notificationMessages: {
-      ITEM_DROP: value.templates.ITEM_DROP.soloBody || defaults.notificationMessages.ITEM_DROP,
-      BOOSTER: value.templates.BOOSTER.soloBody || defaults.notificationMessages.BOOSTER,
-      DUNGEON: value.templates.DUNGEON.soloBody || defaults.notificationMessages.DUNGEON,
-      RAID: value.templates.RAID.soloBody || defaults.notificationMessages.RAID,
-      GLOBAL: value.templates.GLOBAL.soloBody || defaults.notificationMessages.GLOBAL,
+    notificationPack: {
+      mixedAggregateTitle: value.mixedAggregateTitle,
+      templates: { ...value.templates },
     },
   }
 }
 
 export function buildCreatorPreview(
   form: CreatorEditorForm,
+  descriptor: NotificationPackEditorDescriptorResponse,
   id: string,
   status: PersonalizationStatus,
   username: string,
@@ -460,18 +466,10 @@ export function buildCreatorPreview(
       secondaryColor: form.profileEffect.secondaryColor,
     }
   } else {
-    const name = form.name || "Mnemos"
-
     content = {
       kind: "NOTIFICATION_PACK",
-      mixedAggregateTitle: name,
-      templates: {
-        ITEM_DROP: notificationTemplate(name, form.notificationMessages.ITEM_DROP),
-        BOOSTER: notificationTemplate(name, form.notificationMessages.BOOSTER),
-        DUNGEON: notificationTemplate(name, form.notificationMessages.DUNGEON),
-        RAID: notificationTemplate(name, form.notificationMessages.RAID),
-        GLOBAL: notificationTemplate(name, form.notificationMessages.GLOBAL),
-      },
+      mixedAggregateTitle: form.notificationPack.mixedAggregateTitle,
+      templates: completeNotificationTemplates(form, descriptor),
     }
   }
 
