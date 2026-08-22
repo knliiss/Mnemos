@@ -29,8 +29,8 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
       <PageHeader title={t("betAdmin.title")} back={back} />
 
       <section className="bet-admin-hero">
-        <span className="bet-admin-hero__icon">
-          <Glyph name="bet" size={22} />
+        <span className="bet-admin-hero__art" aria-hidden="true">
+          <img src="/ui-illustrations/admin-bets.svg" alt="" />
         </span>
         <span>
           <small>{t("betAdmin.workspaceEyebrow")}</small>
@@ -95,7 +95,7 @@ export function BetAdminDashboard({ rounds, races, loading, navigate, back }: Pr
               type="button"
               onClick={() => navigate({ id: "bet-admin", params: { section: "races" } })}
             >
-              <span className="is-blue">
+              <span className="is-amber">
                 <Glyph name="item-drop" size={20} />
               </span>
               <strong>{t("betAdmin.itemRace")}</strong>
