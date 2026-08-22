@@ -26,7 +26,6 @@ import {
   formatBetMoment,
   formatOdds,
   globalEventLabel,
-  roundStatusLabel,
   type BetMode,
 } from "./betPresentation"
 import "./bets.css"
@@ -389,7 +388,6 @@ export function Bets({ activeAccount, navigate }: Props) {
             onClose={() => !busy && setSelectedRace(null)}
             onAmountChange={setAmount}
             onSubmit={() => void submitRace()}
-          />
         ) : null}
       </AnimatePresence>
     </div>
