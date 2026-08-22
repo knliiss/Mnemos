@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Geologica:slnt,wght@0,300..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
   --bg: #050605;
@@ -34,7 +34,7 @@
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
 
   --font-ui:
-    "Geologica", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Inter", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   --font-meta: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
@@ -65,7 +65,7 @@ body {
   overflow: hidden;
   color: var(--text);
   background: var(--bg-deep);
-  font-weight: 430;
+  font-weight: 400;
   letter-spacing: -0.006em;
 }
 
@@ -89,7 +89,7 @@ button {
   border: 0;
   color: inherit;
   background: none;
-  font-weight: 560;
+  font-weight: 600;
 }
 
 button:not(:disabled) {
@@ -130,18 +130,17 @@ h2,
 h3,
 strong {
   font-family: var(--font-ui);
-  font-variation-settings: "slnt" 0;
 }
 
 h1,
 .page-header h1 {
-  font-weight: 710;
+  font-weight: 700;
   letter-spacing: -0.035em;
 }
 
 h2,
 h3 {
-  font-weight: 660;
+  font-weight: 600;
   letter-spacing: -0.022em;
 }
 
