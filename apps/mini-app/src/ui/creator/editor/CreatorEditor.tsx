@@ -28,6 +28,7 @@ import {
   buildCreatorPreview,
   createDefaultCreatorEditorForm,
   creatorResponseToEditorForm,
+  notificationTemplateKeys,
   saveCreatorForm,
 } from "./creatorEditorModel"
 import {
@@ -115,8 +116,10 @@ export function CreatorEditor({ params, back }: Props) {
   const visibleLoading = loading || loadedId !== personalizationId
   const priceRange = pricing ? resolveCreatorPriceRange(pricing, form.type, form.currency) : null
   const priceValid = isCreatorPriceValid(form, pricing)
-  const messageValid = form.type !== "NOTIFICATION_PACK" || form.message.trim().length > 0
-  const valid = form.name.trim().length >= 3 && priceValid && messageValid
+  const notificationMessagesValid =
+    form.type !== "NOTIFICATION_PACK" ||
+    notificationTemplateKeys.every((key) => form.notificationMessages[key].trim().length > 0)
+  const valid = form.name.trim().length >= 3 && priceValid && notificationMessagesValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
@@ -333,70 +336,84 @@ export function CreatorEditor({ params, back }: Props) {
           />
         </Field>
 
-        <div className="creator-color-row">
-          <Field label={t("creator.editor.primary")}>
-            <input
-              type="color"
-              value={form.accent}
-              disabled={!editable}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  accent: event.target.value.toUpperCase(),
-                }))
-              }
-            />
-          </Field>
-
-          <Field label={t("creator.editor.secondary")}>
-            <input
-              type="color"
-              value={form.secondary}
-              disabled={!editable}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  secondary: event.target.value.toUpperCase(),
-                }))
-              }
-            />
-          </Field>
-        </div>
-
-        <Field label={t("creator.editor.intensity")}>
-          <div className="creator-range">
-            <input
-              type="range"
-              min={1}
-              max={100}
-              value={form.intensity}
-              disabled={!editable}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  intensity: Number(event.target.value),
-                }))
-              }
-            />
-            <output>{form.intensity}%</output>
-          </div>
-        </Field>
-
         {form.type === "NOTIFICATION_PACK" ? (
-          <Field label={t("creator.editor.messageText")}>
-            <textarea
-              maxLength={512}
-              value={form.message}
-              disabled={!editable}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  message: event.target.value,
-                }))
-              }
-            />
-          </Field>
-        ) : null}
+          <div className="creator-notification-messages">
+            <header>
+              <small>{t("creator.editor.notificationEyebrow")}</small>
+              <strong>{t("creator.editor.notificationMessages")}</strong>
+            </header>
+
+            {notificationTemplateKeys.map((key) => (
+              <Field key={key} label={t(`creator.editor.notificationTypes.${key}`)}>
+                <textarea
+                  maxLength={512}
+                  value={form.notificationMessages[key]}
+                  disabled={!editable}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      notificationMessages: {
+                        ...current.notificationMessages,
+                        [key]: event.target.value,
+                      },
+                    }))
+                  }
+                />
+              </Field>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="creator-color-row">
+              <Field label={t("creator.editor.primary")}>
+                <input
+                  type="color"
+                  value={form.accent}
+                  disabled={!editable}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      accent: event.target.value.toUpperCase(),
+                    }))
+                  }
+                />
+              </Field>
+
+              <Field label={t("creator.editor.secondary")}>
+                <input
+                  type="color"
+                  value={form.secondary}
+                  disabled={!editable}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      secondary: event.target.value.toUpperCase(),
+                    }))
+                  }
+                />
+              </Field>
+            </div>
+
+            <Field label={t("creator.editor.intensity")}>
+              <div className="creator-range">
+                <input
+                  type="range"
+                  min={1}
+                  max={100}
+                  value={form.intensity}
+                  disabled={!editable}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      intensity: Number(event.target.value),
+                    }))
+                  }
+                />
+                <output>{form.intensity}%</output>
+              </div>
+            </Field>
+          </>
+        )}
       </section>
 
       <section className="creator-form-block">
