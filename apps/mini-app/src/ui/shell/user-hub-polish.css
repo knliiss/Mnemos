@@ -71,22 +71,24 @@
 }
 
 .user-hub-workspace-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 7px;
 }
 
 .user-hub-workspace-grid > button {
-  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-columns: 54px minmax(0, 1fr) 16px;
   grid-template-rows: 1fr;
   align-items: center;
-  gap: 9px;
-  min-height: 88px;
+  gap: 10px;
+  min-height: 78px;
   padding: 10px;
 }
 
 .user-hub-workspace-grid > button > .user-hub-workspace-art {
-  width: 50px;
-  height: 50px;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
   margin: 0;
   border: 0;
   border-radius: 13px;
@@ -94,15 +96,21 @@
 }
 
 .user-hub-workspace-art img {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
 }
 
-.user-hub-workspace-copy {
+.user-hub-workspace-grid > button > .user-hub-workspace-copy {
   display: grid;
+  place-items: initial;
+  width: auto;
+  height: auto;
   min-width: 0;
+  margin: 0;
   gap: 4px;
+  border-radius: 0;
+  background: transparent;
 }
 
 .user-hub-workspace-grid > button .user-hub-workspace-copy strong {
@@ -126,23 +134,40 @@
 }
 
 .user-hub-workspace-grid > button > b {
-  top: 9px;
-  right: 8px;
+  position: static;
+  align-self: center;
+  justify-self: end;
 }
 
 .telegram-mini-app .user-hub {
   --user-hub-safe-top: var(--tg-content-safe-area-inset-top, 0px);
   --user-hub-safe-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
 
-  top: calc(70px + var(--user-hub-safe-top));
   max-height: calc(100dvh - 86px - var(--user-hub-safe-top) - var(--user-hub-safe-bottom));
 }
 
-@media (max-width: 360px) {
+@media (min-width: 520px) {
   .user-hub-workspace-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .user-hub-workspace-grid > button {
+    grid-template-columns: 48px minmax(0, 1fr) 14px;
+    min-height: 84px;
+  }
+
+  .user-hub-workspace-grid > button > .user-hub-workspace-art {
+    width: 48px;
+    height: 48px;
+  }
+
+  .user-hub-workspace-art img {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 360px) {
   .user-hub {
     right: 10px !important;
     width: calc(100% - 20px) !important;
