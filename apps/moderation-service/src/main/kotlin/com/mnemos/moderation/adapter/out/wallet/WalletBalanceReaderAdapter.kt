@@ -2,8 +2,8 @@ package com.mnemos.moderation.adapter.out.wallet
 
 import com.mnemos.moderation.application.wallet.model.WalletBalance
 import com.mnemos.moderation.application.wallet.port.out.ModerationWalletBalanceReader
+import com.mnemos.wallet.contracts.wallet.shared.Currency
 import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
-import com.mnemos.wallet.domain.wallet.policy.WalletCurrencyPolicy
 import org.springframework.stereotype.Component
 import java.util.UUID
 
@@ -15,7 +15,11 @@ class WalletBalanceReaderAdapter(
         ownerType: WalletOwnerType,
         ownerId: UUID,
     ): WalletBalance {
-        val currency = WalletCurrencyPolicy.supportedCurrencies(ownerType).single()
+        val currency =
+            when (ownerType) {
+                WalletOwnerType.ACCOUNT -> Currency.COIN
+                WalletOwnerType.USER -> Currency.PRIME
+            }
         val balances = walletServiceClient.getBalances(ownerType, ownerId)
         val amount = balances.firstOrNull { balance -> balance.currency == currency }?.amount ?: 0
 
