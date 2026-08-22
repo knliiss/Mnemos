@@ -34,6 +34,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
     loading,
     error,
     reactionBusy,
+    canReact,
     refresh,
     refreshProfileSummary,
     toggleReaction,
@@ -81,6 +82,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
         reaction={reaction}
         dropsCount={drops.length}
         reactionBusy={reactionBusy}
+        canReact={canReact}
         onToggleReaction={toggleReaction}
         onOpenComments={() => setCommentsOpen(true)}
       />
