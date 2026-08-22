@@ -30,6 +30,30 @@
   min-height: 80px;
 }
 
+.public-profile-drops-empty {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  min-height: 102px;
+  padding: 10px 16px 10px 10px;
+  border-color: rgba(199, 242, 74, 0.075);
+  background:
+    radial-gradient(circle at 12% 50%, rgba(199, 242, 74, 0.04), transparent 32%),
+    rgba(15, 18, 13, 0.45);
+  text-align: left;
+}
+
+.public-profile-drops-empty img {
+  width: 78px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.22));
+}
+
+.public-profile-drops-empty strong {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .search-root-empty {
   display: grid;
   grid-template-columns: 124px minmax(0, 1fr);
