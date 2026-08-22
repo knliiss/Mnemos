@@ -172,6 +172,12 @@ public final class KafkaBootstrap {
                 acls,
                 "wallet_service",
                 "wallet-service",
+                "mnemos.account.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "wallet_service",
+                "wallet-service",
                 "mnemos.wallet.commands.v2"
         );
         allowTopicWrite(
