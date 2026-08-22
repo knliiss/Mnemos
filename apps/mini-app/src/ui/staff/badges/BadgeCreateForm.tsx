@@ -1,7 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Field } from "../../shared/Primitives"
 import type { BadgeDraft } from "./useBadgeCatalog"
+
+const MAX_BADGE_IMAGE_BYTES = 256 * 1024
 
 type BadgeCreateFormProps = {
   busy: boolean
@@ -13,26 +15,37 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   const { t } = useTranslation()
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
-  const [icon, setIcon] = useState("✦")
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
   const [color, setColor] = useState("#C7F24A")
 
   const codeValid = /^[A-Z][A-Z0-9_]{1,31}$/.test(code)
-  const createValid =
-    codeValid &&
-    name.trim().length > 0 &&
-    name.trim().length <= 64 &&
-    icon.trim().length > 0 &&
-    icon.trim().length <= 64
+  const imageValid =
+    image !== null && image.type === "image/png" && image.size <= MAX_BADGE_IMAGE_BYTES
+  const createValid = codeValid && name.trim().length > 0 && name.trim().length <= 64 && imageValid
+
+  useEffect(() => {
+    if (!image) {
+      setImagePreviewUrl(null)
+      return
+    }
+
+    const url = URL.createObjectURL(image)
+
+    setImagePreviewUrl(url)
+
+    return () => URL.revokeObjectURL(url)
+  }, [image])
 
   const create = async () => {
-    if (!createValid || busy) {
+    if (!createValid || !image || busy) {
       return
     }
 
     const created = await onCreate({
       code,
       name: name.trim(),
-      icon: icon.trim(),
+      image,
       color,
     })
 
@@ -42,7 +55,7 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   }
 
   return (
-    <section className="staff-form-block">
+    <section className="staff-form-block badge-create-form">
       <header>
         <small>{t("badgeAdmin.newEyebrow")}</small>
         <strong>{t("badgeAdmin.newBadge")}</strong>
@@ -69,8 +82,27 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
         />
       </Field>
 
-      <Field label={t("badgeAdmin.icon")}>
-        <input value={icon} maxLength={64} onChange={(event) => setIcon(event.target.value)} />
+      <Field label={t("badgeAdmin.image")} hint={t("badgeAdmin.imageHint")}>
+        <label className={`badge-image-picker ${imageValid ? "has-image" : ""}`}>
+          <input
+            type="file"
+            accept="image/png,.png"
+            onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+          />
+
+          <span className="badge-image-picker__preview">
+            {imagePreviewUrl && imageValid ? (
+              <img src={imagePreviewUrl} alt="" aria-hidden="true" />
+            ) : (
+              <img src="/ui-illustrations/admin-badges.svg" alt="" aria-hidden="true" />
+            )}
+          </span>
+
+          <span className="badge-image-picker__copy">
+            <strong>{image?.name ?? t("badgeAdmin.image")}</strong>
+            <small>{t("badgeAdmin.imageHint")}</small>
+          </span>
+        </label>
       </Field>
 
       <Field label={t("badgeAdmin.color")}>
