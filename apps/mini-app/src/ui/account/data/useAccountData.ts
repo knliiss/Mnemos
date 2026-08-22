@@ -4,6 +4,7 @@ import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
 
@@ -30,12 +31,45 @@ export function useAccountData(accountId: string | undefined): AccountData {
   const [accountError, setAccountError] = useState(false)
   const [loadedScopeKey, setLoadedScopeKey] = useState<string | null>(null)
   const requestRevision = useRef(0)
+  const accountBalanceRevision = useRef(0)
+  const userBalanceRevision = useRef(0)
   const activeAccountId = useRef(accountId)
   const scopeKey = accountId ?? "user"
 
   useLayoutEffect(() => {
     activeAccountId.current = accountId
   }, [accountId])
+
+  const refreshUserBalance = useCallback(async () => {
+    const revision = userBalanceRevision.current + 1
+
+    userBalanceRevision.current = revision
+
+    const balances = await getCurrentUserBalances()
+
+    if (revision !== userBalanceRevision.current) {
+      return
+    }
+
+    setPrime(balances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
+  }, [])
+
+  const refreshAccountBalance = useCallback(async (requestedAccountId: string) => {
+    const revision = accountBalanceRevision.current + 1
+
+    accountBalanceRevision.current = revision
+
+    const balances = await getAccountBalances(requestedAccountId)
+
+    if (
+      revision !== accountBalanceRevision.current ||
+      activeAccountId.current !== requestedAccountId
+    ) {
+      return
+    }
+
+    setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
+  }, [])
 
   const refreshAccount = useCallback(async () => {
     const requestedAccountId = accountId
@@ -47,16 +81,15 @@ export function useAccountData(accountId: string | undefined): AccountData {
     setAccountError(false)
 
     try {
-      const userBalancesPromise = getCurrentUserBalances()
+      const userBalancePromise = refreshUserBalance()
 
       if (!requestedAccountId) {
-        const userBalances = await userBalancesPromise
+        await userBalancePromise
 
         if (revision !== requestRevision.current || activeAccountId.current) {
           return
         }
 
-        setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
         setMembers([])
         setRoles([])
         setDailyReward(null)
@@ -65,14 +98,13 @@ export function useAccountData(accountId: string | undefined): AccountData {
         return
       }
 
-      const [memberResponses, roleResponses, balances, rewardState, userBalances] =
-        await Promise.all([
-          getAccountMembers(requestedAccountId),
-          getAccountRoles(requestedAccountId),
-          getAccountBalances(requestedAccountId),
-          getDailyRewardState(),
-          userBalancesPromise,
-        ])
+      const [memberResponses, roleResponses, rewardState] = await Promise.all([
+        getAccountMembers(requestedAccountId),
+        getAccountRoles(requestedAccountId),
+        getDailyRewardState(),
+        refreshAccountBalance(requestedAccountId),
+        userBalancePromise,
+      ])
 
       if (revision !== requestRevision.current || activeAccountId.current !== requestedAccountId) {
         return
@@ -80,8 +112,6 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
       setMembers(memberResponses.map((member) => toMember(member)))
       setRoles(roleResponses.map(toRole))
-      setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
-      setPrime(userBalances.find((balance) => balance.currency === "PRIME")?.amount ?? 0)
       setDailyReward(rewardState)
       setLoadedScopeKey(requestedScopeKey)
     } catch (error) {
@@ -99,7 +129,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
         setLoadingAccount(false)
       }
     }
-  }, [accountId])
+  }, [accountId, refreshAccountBalance, refreshUserBalance])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -108,9 +138,33 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
     return () => {
       requestRevision.current += 1
+      accountBalanceRevision.current += 1
       window.cancelAnimationFrame(frame)
     }
   }, [accountId, refreshAccount])
+
+  useEffect(() => {
+    const unsubscribe = realtimeEvents.subscribe((event) => {
+      if (event.type !== "wallet.transaction.completed") {
+        return
+      }
+
+      if (event.payload.ownerType === "USER") {
+        void refreshUserBalance().catch(handleError)
+        return
+      }
+
+      const currentAccountId = activeAccountId.current
+
+      if (currentAccountId && event.payload.ownerType === "ACCOUNT" && event.payload.ownerId === currentAccountId) {
+        void refreshAccountBalance(currentAccountId).catch(handleError)
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [refreshAccountBalance, refreshUserBalance])
 
   const claimReward = useCallback(async () => {
     const requestedAccountId = accountId

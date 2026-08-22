@@ -6,6 +6,7 @@ import type { BalanceResponse, DailyRewardStateResponse } from "@/shared/api/bac
 import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { useAccountData } from "./useAccountData"
 
 vi.mock("@/shared/api/accountApi", () => ({
@@ -58,6 +59,7 @@ describe("useAccountData", () => {
     vi.mocked(getAccountBalances).mockResolvedValue([])
     vi.mocked(getAccountMembers).mockResolvedValue([])
     vi.mocked(getAccountRoles).mockResolvedValue([])
+    vi.mocked(getCurrentUserBalances).mockReset()
     vi.mocked(getCurrentUserBalances).mockResolvedValue([])
     vi.mocked(getDailyRewardState).mockResolvedValue(rewardState)
     vi.mocked(claimDailyReward).mockReset()
@@ -203,5 +205,103 @@ describe("useAccountData", () => {
 
     expect(result.current.accountCoin).toBe(20)
     expect(getAccountBalances).toHaveBeenCalledTimes(2)
+  })
+
+  it("refreshes PRIME when a completed user wallet transaction arrives", async () => {
+    vi.mocked(getCurrentUserBalances)
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 10 }])
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 35 }])
+
+    const { result } = renderHook(() => useAccountData(undefined))
+
+    await waitFor(() => expect(result.current.prime).toBe(10))
+
+    act(() => {
+      realtimeEvents.publish({
+        id: "019c1129-ef54-7000-8000-000000000060",
+        type: "wallet.transaction.completed",
+        occurredAt: "2026-08-22T17:00:00Z",
+        operationId: null,
+        payload: {
+          requestId: "019c1129-ef54-7000-8000-000000000061",
+          transactionId: "019c1129-ef54-7000-8000-000000000062",
+          ownerType: "USER",
+          ownerId: "019c1129-ef54-7000-8000-000000000063",
+          currency: "PRIME",
+          source: "ADMIN_ADJUSTMENT",
+          sourceReferenceId: "019c1129-ef54-7000-8000-000000000064",
+          amount: 25,
+        },
+      })
+    })
+
+    await waitFor(() => expect(result.current.prime).toBe(35))
+    expect(getCurrentUserBalances).toHaveBeenCalledTimes(2)
+  })
+
+  it("refreshes COIN when a completed transaction arrives for the active account", async () => {
+    vi.mocked(getAccountBalances)
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 100 }])
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 160 }])
+
+    const { result } = renderHook(() => useAccountData("account-a"))
+
+    await waitFor(() => expect(result.current.accountCoin).toBe(100))
+
+    act(() => {
+      realtimeEvents.publish({
+        id: "019c1129-ef54-7000-8000-000000000070",
+        type: "wallet.transaction.completed",
+        occurredAt: "2026-08-22T17:01:00Z",
+        operationId: null,
+        payload: {
+          requestId: "019c1129-ef54-7000-8000-000000000071",
+          transactionId: "019c1129-ef54-7000-8000-000000000072",
+          ownerType: "ACCOUNT",
+          ownerId: "account-a",
+          currency: "COIN",
+          source: "DAILY_REWARD",
+          sourceReferenceId: "019c1129-ef54-7000-8000-000000000073",
+          amount: 60,
+        },
+      })
+    })
+
+    await waitFor(() => expect(result.current.accountCoin).toBe(160))
+    expect(getAccountBalances).toHaveBeenCalledTimes(2)
+  })
+
+  it("ignores completed wallet transactions for another account", async () => {
+    vi.mocked(getAccountBalances).mockResolvedValue([{ currency: "COIN", amount: 100 }])
+
+    const { result } = renderHook(() => useAccountData("account-a"))
+
+    await waitFor(() => expect(result.current.accountCoin).toBe(100))
+
+    act(() => {
+      realtimeEvents.publish({
+        id: "019c1129-ef54-7000-8000-000000000080",
+        type: "wallet.transaction.completed",
+        occurredAt: "2026-08-22T17:02:00Z",
+        operationId: null,
+        payload: {
+          requestId: "019c1129-ef54-7000-8000-000000000081",
+          transactionId: "019c1129-ef54-7000-8000-000000000082",
+          ownerType: "ACCOUNT",
+          ownerId: "account-b",
+          currency: "COIN",
+          source: "ADMIN_ADJUSTMENT",
+          sourceReferenceId: "019c1129-ef54-7000-8000-000000000083",
+          amount: 60,
+        },
+      })
+    })
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(result.current.accountCoin).toBe(100)
+    expect(getAccountBalances).toHaveBeenCalledTimes(1)
   })
 })

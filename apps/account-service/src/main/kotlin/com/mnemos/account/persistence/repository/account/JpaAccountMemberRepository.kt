@@ -13,6 +13,18 @@ interface JpaAccountMemberRepository : JpaRepository<AccountMemberEntity, UUID> 
         userId: UUID,
     ): AccountMemberEntity?
 
+    @Query(
+        """
+        SELECT member.userId
+        FROM AccountMemberEntity member
+        WHERE member.accountId = :accountId
+        ORDER BY member.joinedAt, member.id
+        """,
+    )
+    fun findUserIdsByAccountId(
+        @Param("accountId") accountId: UUID,
+    ): List<UUID>
+
     fun existsByAccountIdAndUserId(
         accountId: UUID,
         userId: UUID,
