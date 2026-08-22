@@ -45,6 +45,7 @@ type ScopedSelection = {
 }
 
 type PendingRoundOperation = {
+  accountId: string
   operationId: string
   side: BetSide
   amount: number
@@ -121,7 +122,6 @@ export function Bets({ activeAccount, navigate }: Props) {
 
   useEffect(() => {
     activeAccountIdRef.current = activeAccount.id
-    setPendingRoundOperations({})
   }, [activeAccount.id])
 
   const roundsWithPending = useMemo(
@@ -129,7 +129,7 @@ export function Bets({ activeAccount, navigate }: Props) {
       rounds.map((round) => {
         const pending = pendingRoundOperations[round.id]
 
-        if (!pending) {
+        if (!pending || pending.accountId !== activeAccount.id) {
           return round
         }
 
@@ -160,7 +160,7 @@ export function Bets({ activeAccount, navigate }: Props) {
           myBet,
         }
       }),
-    [pendingRoundOperations, rounds],
+    [activeAccount.id, pendingRoundOperations, rounds],
   )
 
   const positionsByRace = useMemo(
@@ -222,6 +222,19 @@ export function Bets({ activeAccount, navigate }: Props) {
     canPlaceBets && selectedRaceValue && selectedRaceValue.entryAmount <= activeAccount.coin,
   )
 
+  const removePendingRoundOperation = (roundId: string, operationId: string) => {
+    setPendingRoundOperations((current) => {
+      if (current[roundId]?.operationId !== operationId) {
+        return current
+      }
+
+      const next = { ...current }
+      delete next[roundId]
+
+      return next
+    })
+  }
+
   const reconcileRoundOperation = async (
     accountId: string,
     roundId: string,
@@ -230,7 +243,15 @@ export function Bets({ activeAccount, navigate }: Props) {
     try {
       const status = await waitForBetOperation(operation.operationId)
 
-      if (!mountedRef.current || activeAccountIdRef.current !== accountId) {
+      if (!mountedRef.current) {
+        return
+      }
+
+      if (activeAccountIdRef.current !== accountId) {
+        if (status !== "PENDING") {
+          removePendingRoundOperation(roundId, operation.operationId)
+        }
+
         return
       }
 
@@ -245,16 +266,7 @@ export function Bets({ activeAccount, navigate }: Props) {
       }
 
       if (status !== "PENDING") {
-        setPendingRoundOperations((current) => {
-          if (current[roundId]?.operationId !== operation.operationId) {
-            return current
-          }
-
-          const next = { ...current }
-          delete next[roundId]
-
-          return next
-        })
+        removePendingRoundOperation(roundId, operation.operationId)
       }
     } catch (operationError) {
       if (mountedRef.current && activeAccountIdRef.current === accountId) {
@@ -307,6 +319,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         ? await increaseEventBet(roundId, numericAmount)
         : await placeEventBet(roundId, operationSide, numericAmount)
       const pendingOperation: PendingRoundOperation = {
+        accountId,
         operationId: accepted.operationId,
         side: operationSide,
         amount: numericAmount,
