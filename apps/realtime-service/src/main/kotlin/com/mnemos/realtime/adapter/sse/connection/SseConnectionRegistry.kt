@@ -192,8 +192,14 @@ class SseConnectionRegistry(
                     connection.heartbeat()
                 } catch (exception: Exception) {
                     telemetry.recordSseSendFailure()
-                    connection.completeWithError(exception)
+                    log.debug(
+                        "Closing failed SSE connection during heartbeat, userId={}, connectionId={}",
+                        userId,
+                        connectionId,
+                        exception,
+                    )
                     remove(userId, connectionId)
+                    connection.complete()
                 }
             }
         }
@@ -217,13 +223,13 @@ class SseConnectionRegistry(
         } catch (exception: Exception) {
             telemetry.recordSseSendFailure()
             log.debug(
-                "Removing failed SSE connection, userId={}, connectionId={}",
+                "Closing failed SSE connection, userId={}, connectionId={}",
                 userId,
                 connectionId,
                 exception,
             )
-            connection.completeWithError(exception)
             remove(userId, connectionId)
+            connection.complete()
         }
     }
 
@@ -378,14 +384,6 @@ class SseConnectionRegistry(
                 emitter.complete()
             } catch (_: Exception) {
                 // The registry has already removed this connection and released its lease.
-            }
-        }
-
-        fun completeWithError(exception: Exception) {
-            try {
-                emitter.completeWithError(exception)
-            } catch (_: Exception) {
-                // The connection is removed by the registry regardless of emitter state.
             }
         }
 
