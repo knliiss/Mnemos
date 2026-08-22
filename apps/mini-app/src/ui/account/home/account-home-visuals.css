@@ -130,8 +130,8 @@
 }
 
 .account-home-balance {
-  font-size: 25px !important;
-  font-weight: 780 !important;
+  font-size: 25px;
+  font-weight: 780;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.045em;
 }
