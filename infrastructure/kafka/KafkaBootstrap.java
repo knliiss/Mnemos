@@ -242,6 +242,11 @@ public final class KafkaBootstrap {
         allowTopicWrite(
                 acls,
                 "moderation_service",
+                "mnemos.wallet.commands.v2"
+        );
+        allowTopicWrite(
+                acls,
+                "moderation_service",
                 "mnemos.moderation.events.v1"
         );
 
