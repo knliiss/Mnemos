@@ -10,6 +10,7 @@ type PublicProfileSummaryProps = {
   reaction: AccountReactionType | null
   dropsCount: number
   reactionBusy: boolean
+  canReact: boolean
   onToggleReaction(reaction: AccountReactionType): Promise<void>
   onOpenComments(): void
 }
@@ -19,6 +20,7 @@ export function PublicProfileSummary({
   reaction,
   dropsCount,
   reactionBusy,
+  canReact,
   onToggleReaction,
   onOpenComments,
 }: PublicProfileSummaryProps) {
@@ -46,12 +48,15 @@ export function PublicProfileSummary({
           <span>{profile.cristalixUuid.slice(0, 8)}</span>
         </div>
 
-        <div className="public-profile-reactions" aria-label={t("people.profile.reactionAria")}>
+        <div
+          className={`public-profile-reactions ${canReact ? "" : "is-readonly"}`}
+          aria-label={t("people.profile.reactionAria")}
+        >
           <motion.button
             type="button"
             className={reaction === "LIKE" ? "is-active" : ""}
-            whileTap={{ scale: 0.95 }}
-            disabled={reactionBusy}
+            whileTap={canReact ? { scale: 0.95 } : undefined}
+            disabled={!canReact || reactionBusy}
             aria-label={reaction === "LIKE" ? t("people.profile.unlike") : t("people.profile.like")}
             onClick={() => void onToggleReaction("LIKE")}
           >
@@ -62,8 +67,8 @@ export function PublicProfileSummary({
           <motion.button
             type="button"
             className={reaction === "DISLIKE" ? "is-active is-negative" : ""}
-            whileTap={{ scale: 0.95 }}
-            disabled={reactionBusy}
+            whileTap={canReact ? { scale: 0.95 } : undefined}
+            disabled={!canReact || reactionBusy}
             aria-label={
               reaction === "DISLIKE"
                 ? t("people.profile.removeDislike")
