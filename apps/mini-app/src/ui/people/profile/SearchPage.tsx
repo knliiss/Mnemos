@@ -5,6 +5,7 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
+import { FeatureLoading } from "../../system/FeatureLoading"
 import { nicknameStyle, profileSkinUrl } from "./profilePresentation"
 import "./search.css"
 
@@ -62,14 +63,19 @@ export function SearchPage({ navigate }: Props) {
   }, [normalizedQuery, runSearch])
 
   const changeQuery = (value: string) => {
-    searchRevision.current += 1
-    setQuery(value)
-    setErrorQuery(null)
+    const nextNormalizedQuery = value.trim()
+    const normalizedQueryChanged = nextNormalizedQuery !== normalizedQuery
 
-    if (value.trim().length < 2) {
-      setResults([])
-      setSearching(false)
+    setQuery(value)
+
+    if (!normalizedQueryChanged) {
+      return
     }
+
+    searchRevision.current += 1
+    setErrorQuery(null)
+    setResults([])
+    setSearching(nextNormalizedQuery.length >= 2)
   }
 
   const searchFailed = errorQuery === normalizedQuery
@@ -114,10 +120,10 @@ export function SearchPage({ navigate }: Props) {
         <p className="search-root-hint">{t("people.search.oneMore")}</p>
       ) : null}
 
-      {searching ? <p className="search-root-hint">{t("people.search.searching")}</p> : null}
+      {searching ? <FeatureLoading label={t("people.search.searching")} /> : null}
 
       {normalizedQuery.length >= 2 && !searching && searchFailed ? (
-        <div className="search-root-hint">
+        <div className="search-root-hint" role="status">
           <span>{t("common.loadErrorTitle")}</span>
           <button type="button" onClick={() => void runSearch(normalizedQuery)}>
             {t("common.retry")}
