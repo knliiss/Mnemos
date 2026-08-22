@@ -1,6 +1,5 @@
 import { MotionConfig, motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationBridge"
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
 import { useMnemosData } from "../data/MnemosDataProvider"
@@ -11,11 +10,11 @@ import { localizationOptions, routeKey } from "./navigation"
 import { RootNavigation } from "./RootNavigation"
 import { RouteContent } from "./RouteContent"
 import "./shell.css"
+import "./native-shell.css"
 import { UserHubOverlay } from "./UserHubOverlay"
 import { UserHubTrigger } from "./UserHubTrigger"
 
 export function AppShell() {
-  const { t } = useTranslation()
   const data = useMnemosData()
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [userHubOpen, setUserHubOpen] = useState(
@@ -123,9 +122,7 @@ export function AppShell() {
   }
 
   const userHubTrigger =
-    rootRoute && activeAccount ? (
-      <UserHubTrigger open={userHubOpen} skinUrl={activeAccount.skinUrl} onToggle={toggleUserHub} />
-    ) : null
+    rootRoute && activeAccount ? <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} /> : null
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
@@ -144,17 +141,7 @@ export function AppShell() {
               initial={false}
               animate={{ opacity: 1 }}
             >
-              {rootRoute === "account" && activeAccount ? (
-                <div className="account-root-user-entry">
-                  <span className="account-root-user-entry__identity">
-                    <small>{t("appShell.userMenu.userEyebrow")}</small>
-                    <strong>@{data.user.username}</strong>
-                  </span>
-                  {userHubTrigger}
-                </div>
-              ) : (
-                userHubTrigger
-              )}
+              {userHubTrigger}
 
               <RouteContent
                 key={activeAccountId}
