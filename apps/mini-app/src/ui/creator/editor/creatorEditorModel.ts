@@ -9,6 +9,7 @@ import type {
 } from "@/shared/api/personalizationApi"
 import type {
   Currency,
+  NotificationTemplateKey,
   Personalization,
   PersonalizationContent,
   PersonalizationStatus,
@@ -23,8 +24,16 @@ export type CreatorEditorForm = {
   accent: string
   secondary: string
   intensity: number
-  message: string
+  notificationMessages: Record<NotificationTemplateKey, string>
 }
+
+export const notificationTemplateKeys: NotificationTemplateKey[] = [
+  "ITEM_DROP",
+  "BOOSTER",
+  "DUNGEON",
+  "RAID",
+  "GLOBAL",
+]
 
 const targetByType: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   NOTIFICATION_PACK: "USER",
@@ -32,6 +41,26 @@ const targetByType: Record<PersonalizationType, "USER" | "ACCOUNT"> = {
   PROFILE_THEME: "ACCOUNT",
   AVATAR_FRAME: "ACCOUNT",
   PROFILE_EFFECT: "ACCOUNT",
+}
+
+function notificationMessages(message: string): Record<NotificationTemplateKey, string> {
+  return {
+    ITEM_DROP: message,
+    BOOSTER: message,
+    DUNGEON: message,
+    RAID: message,
+    GLOBAL: message,
+  }
+}
+
+function notificationTemplate(name: string, message: string) {
+  return {
+    emoji: null,
+    soloTitle: name,
+    soloBody: message,
+    compact: message,
+    aggregateTitle: name,
+  }
 }
 
 export async function saveCreatorForm(
@@ -107,22 +136,16 @@ export async function saveCreatorForm(
       : createCreatorPersonalization("PROFILE_EFFECT", request)
   }
 
-  const template = {
-    emoji: null,
-    soloTitle: form.name.trim(),
-    soloBody: form.message.trim(),
-    compact: form.message.trim(),
-    aggregateTitle: form.name.trim(),
-  }
+  const name = form.name.trim()
   const request = {
-    name: form.name.trim(),
-    mixedAggregateTitle: form.name.trim(),
+    name,
+    mixedAggregateTitle: name,
     templates: {
-      ITEM_DROP: template,
-      BOOSTER: template,
-      DUNGEON: template,
-      RAID: template,
-      GLOBAL: template,
+      ITEM_DROP: notificationTemplate(name, form.notificationMessages.ITEM_DROP.trim()),
+      BOOSTER: notificationTemplate(name, form.notificationMessages.BOOSTER.trim()),
+      DUNGEON: notificationTemplate(name, form.notificationMessages.DUNGEON.trim()),
+      RAID: notificationTemplate(name, form.notificationMessages.RAID.trim()),
+      GLOBAL: notificationTemplate(name, form.notificationMessages.GLOBAL.trim()),
     },
     price,
   }
@@ -133,6 +156,8 @@ export async function saveCreatorForm(
 }
 
 export function createDefaultCreatorEditorForm(t: TFunction): CreatorEditorForm {
+  const defaultMessage = t("creator.editor.defaultMessage")
+
   return {
     type: "NICK_STYLE",
     name: "",
@@ -141,7 +166,7 @@ export function createDefaultCreatorEditorForm(t: TFunction): CreatorEditorForm 
     accent: "#C7F24A",
     secondary: "#B98DC2",
     intensity: 48,
-    message: t("creator.editor.defaultMessage"),
+    notificationMessages: notificationMessages(defaultMessage),
   }
 }
 
@@ -220,7 +245,13 @@ export function creatorResponseToEditorForm(
   return {
     ...base,
     currency: "PRIME",
-    message: value.templates.ITEM_DROP.soloBody || value.mixedAggregateTitle || base.message,
+    notificationMessages: {
+      ITEM_DROP: value.templates.ITEM_DROP.soloBody || defaults.notificationMessages.ITEM_DROP,
+      BOOSTER: value.templates.BOOSTER.soloBody || defaults.notificationMessages.BOOSTER,
+      DUNGEON: value.templates.DUNGEON.soloBody || defaults.notificationMessages.DUNGEON,
+      RAID: value.templates.RAID.soloBody || defaults.notificationMessages.RAID,
+      GLOBAL: value.templates.GLOBAL.soloBody || defaults.notificationMessages.GLOBAL,
+    },
   }
 }
 
@@ -270,23 +301,17 @@ export function buildCreatorPreview(
       secondaryColor: form.secondary,
     }
   } else {
-    const template = {
-      emoji: null,
-      soloTitle: form.name || "Mnemos",
-      soloBody: form.message,
-      compact: form.message,
-      aggregateTitle: form.name || "Mnemos",
-    }
+    const name = form.name || "Mnemos"
 
     content = {
       kind: "NOTIFICATION_PACK",
-      mixedAggregateTitle: form.name || "Mnemos",
+      mixedAggregateTitle: name,
       templates: {
-        ITEM_DROP: template,
-        BOOSTER: template,
-        DUNGEON: template,
-        RAID: template,
-        GLOBAL: template,
+        ITEM_DROP: notificationTemplate(name, form.notificationMessages.ITEM_DROP),
+        BOOSTER: notificationTemplate(name, form.notificationMessages.BOOSTER),
+        DUNGEON: notificationTemplate(name, form.notificationMessages.DUNGEON),
+        RAID: notificationTemplate(name, form.notificationMessages.RAID),
+        GLOBAL: notificationTemplate(name, form.notificationMessages.GLOBAL),
       },
     }
   }
