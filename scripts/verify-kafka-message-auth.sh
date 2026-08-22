@@ -52,17 +52,17 @@ trusted_key_for() {
         BEGIN {
             count = split(trusted_keys, entries, ";")
 
-            for (index = 1; index <= count; index++) {
-                separator = index(entries[index], "=")
+            for (i = 1; i <= count; i++) {
+                separator = index(entries[i], "=")
 
                 if (separator <= 1) {
                     continue
                 }
 
-                name = substr(entries[index], 1, separator - 1)
+                name = substr(entries[i], 1, separator - 1)
 
                 if (name == producer) {
-                    print substr(entries[index], separator + 1)
+                    print substr(entries[i], separator + 1)
                     exit
                 }
             }
