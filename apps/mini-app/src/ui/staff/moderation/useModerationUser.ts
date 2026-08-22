@@ -217,10 +217,6 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
 
   useEffect(() => {
     if (!canAdjustWallet || !targetId) {
-      setBalance(null)
-      setBalanceScope("")
-      setAdjustments([])
-      setAdjustmentScope("")
       return
     }
 
