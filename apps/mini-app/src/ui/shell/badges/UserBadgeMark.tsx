@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import type { Badge } from "@/shared/api/badgeApi"
 
 type UserBadgeMarkProps = {
@@ -6,10 +7,14 @@ type UserBadgeMarkProps = {
 }
 
 export function UserBadgeMark({ badge, compact = false }: UserBadgeMarkProps) {
+  const style = {
+    "--user-badge-accent": badge.color,
+  } as CSSProperties
+
   return (
     <span
       className={`user-badge-mark ${compact ? "user-badge-mark--compact" : ""}`}
-      style={{ "--user-badge-accent": badge.color } as React.CSSProperties}
+      style={style}
       aria-label={badge.name}
     >
       <img src={badge.imageUrl} alt="" aria-hidden="true" />
