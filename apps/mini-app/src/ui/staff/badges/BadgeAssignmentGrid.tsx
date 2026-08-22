@@ -35,11 +35,11 @@ export function BadgeAssignmentGrid({
             onClick={() => onToggleAssignment(badge)}
           >
             <span
-              className="review-overview__mark"
-              style={{ color: badge.color, borderColor: badge.color }}
+              className="review-overview__mark review-overview__mark--badge-image"
+              style={{ borderColor: badge.color }}
               aria-hidden="true"
             >
-              {badge.icon}
+              <img src={badge.imageUrl} alt="" />
             </span>
 
             <span className="review-queue-card__copy">
