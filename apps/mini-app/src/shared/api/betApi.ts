@@ -81,6 +81,20 @@ export type AcceptedBetOperationResponse = {
   operationId: string
 }
 
+export type BetOperationStatus = "PENDING" | "COMPLETED" | "FAILED"
+
+export type BetOperationResponse = {
+  operationId: string
+  accountId: string
+  amount: number
+  kind: string
+  status: BetOperationStatus
+  eventBetId: string | null
+  itemRaceParticipantId: string | null
+  walletTransactionId: string | null
+  createdAt: string
+}
+
 export async function listEventBetRounds(): Promise<EventBetRoundResponse[]> {
   return api<EventBetRoundResponse[]>("/api/v1/bets/event-rounds")
 }
@@ -105,6 +119,10 @@ export async function increaseEventBet(
     roundId,
     amount,
   })
+}
+
+export async function getBetOperation(operationId: string): Promise<BetOperationResponse> {
+  return api<BetOperationResponse>(`/api/v1/bets/operations/${operationId}`)
 }
 
 export async function listItemRaces(): Promise<ItemRaceResponse[]> {
