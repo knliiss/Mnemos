@@ -3,6 +3,7 @@ import { CreatorRevenue } from "./CreatorRevenue"
 import { CreatorStudio } from "./CreatorStudio"
 import "./creator.css"
 import { CreatorEditor } from "./editor/CreatorEditor"
+import "./editor/creator-notification-editor.css"
 
 type Props = {
   routeId: Route["id"]
