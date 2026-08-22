@@ -56,8 +56,8 @@ export function ModerationUser({ params, back }: Props) {
       <PageHeader title={`@${identity.username}`} back={back} />
 
       <section className="internal-user-hero">
-        <span className="internal-user-hero__avatar">
-          {identity.username.slice(0, 1).toUpperCase()}
+        <span className="internal-user-hero__avatar internal-user-hero__avatar--mnemos">
+          <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
         </span>
         <span>
           <small>{t("moderation.user")}</small>
