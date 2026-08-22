@@ -117,6 +117,10 @@ object CreatorPersonalizationApiMapper {
             text = HexColor(text),
             border = HexColor(border),
             glow = glow?.toDomain(),
+            backgroundSecondary = HexColor(backgroundSecondary),
+            surfaceSecondary = HexColor(surfaceSecondary),
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
         )
 
     fun CreateAvatarFrameRequest.toContent(): PersonalizationContent.AvatarFrame =
@@ -125,6 +129,9 @@ object CreatorPersonalizationApiMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toDomain(),
+            secondaryBorderColor = HexColor(secondaryBorderColor),
+            gapPx = gapPx,
+            style = style,
         )
 
     fun CreateProfileEffectRequest.toContent(): PersonalizationContent.ProfileEffect =
@@ -133,9 +140,13 @@ object CreatorPersonalizationApiMapper {
             intensity = intensity,
             primaryColor = HexColor(primaryColor),
             secondaryColor = secondaryColor?.let(::HexColor),
+            speed = speed,
+            density = density,
+            scale = scale,
         )
 
-    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack = templates.toContent(mixedAggregateTitle)
+    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack =
+        templates.toContent(mixedAggregateTitle)
 
     fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(
         mixedAggregateTitle: String,
