@@ -67,6 +67,10 @@ object PersonalizationApiMapper {
                     text = text.value,
                     border = border.value,
                     glow = glow?.toResponse(),
+                    backgroundSecondary = backgroundSecondary.value,
+                    surfaceSecondary = surfaceSecondary.value,
+                    gradientAngleDegrees = gradientAngleDegrees,
+                    textureStrength = textureStrength,
                 )
 
             is PersonalizationContent.AvatarFrame ->
@@ -75,6 +79,9 @@ object PersonalizationApiMapper {
                     borderWidthPx = borderWidthPx,
                     radiusPx = radiusPx,
                     glow = glow?.toResponse(),
+                    secondaryBorderColor = secondaryBorderColor.value,
+                    gapPx = gapPx,
+                    style = style,
                 )
 
             is PersonalizationContent.ProfileEffect ->
@@ -83,6 +90,9 @@ object PersonalizationApiMapper {
                     intensity = intensity,
                     primaryColor = primaryColor.value,
                     secondaryColor = secondaryColor?.value,
+                    speed = speed,
+                    density = density,
+                    scale = scale,
                 )
 
             is PersonalizationContent.NotificationPack ->
