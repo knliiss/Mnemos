@@ -23,7 +23,9 @@ export function AppShell() {
   const [accountPickerOpen, setAccountPickerOpen] = useState(
     () => new URLSearchParams(window.location.search).get("accounts") === "1",
   )
-  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(null)
+  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(
+    null,
+  )
   const routeStageRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
   const accountSwitchInProgress = useRef(false)
@@ -54,7 +56,9 @@ export function AppShell() {
 
   const back = () => {
     rememberScroll()
-    setStack((value) => (value.length > 1 ? value.slice(0, -1) : [{ id: "account" }]))
+    setStack((value) =>
+      value.length > 1 ? value.slice(0, -1) : [{ id: "account" }],
+    )
   }
 
   const switchRoot = (route: RootRoute) => {
@@ -88,7 +92,10 @@ export function AppShell() {
   }, [data.user.language])
 
   const selectAccount = async (account: Account) => {
-    if (accountSwitchInProgress.current || (account.active === false && !account.owner)) {
+    if (
+      accountSwitchInProgress.current ||
+      (account.active === false && !account.owner)
+    ) {
       return
     }
 
@@ -122,7 +129,9 @@ export function AppShell() {
   }
 
   const userHubTrigger =
-    rootRoute && activeAccount ? <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} /> : null
+    rootRoute && activeAccount ? (
+      <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
+    ) : null
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
