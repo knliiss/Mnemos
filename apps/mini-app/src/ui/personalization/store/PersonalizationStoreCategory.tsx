@@ -25,7 +25,7 @@ type PersonalizationStoreCategoryProps = {
   back: () => void
 }
 
-const pageSize = 6
+const pageSize = 1
 
 export function PersonalizationStoreCategory({
   params,
@@ -94,7 +94,7 @@ export function PersonalizationStoreCategory({
             <motion.button
               type="button"
               key={item.id}
-              className="personalization-category-card"
+              className="personalization-category-card personalization-category-card--featured"
               whileTap={{ scale: 0.992 }}
               onClick={() =>
                 navigate({
