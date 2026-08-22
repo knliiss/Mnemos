@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { searchPublicProfiles, type PublicProfileResponse } from "@/shared/api/profileSocialApi"
-import { handleError } from "@/shared/errors/errorHandler"
 import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import { useProfileSearch } from "./data/useProfileSearch"
 import { nicknameStyle, profileSkinUrl } from "./profilePresentation"
 import "./search.css"
 
@@ -15,70 +13,7 @@ type Props = {
 
 export function SearchPage({ navigate }: Props) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState("")
-  const [results, setResults] = useState<PublicProfileResponse[]>([])
-  const [searching, setSearching] = useState(false)
-  const [errorQuery, setErrorQuery] = useState<string | null>(null)
-  const searchRevision = useRef(0)
-  const normalizedQuery = query.trim()
-
-  const runSearch = useCallback(async (value: string) => {
-    const revision = searchRevision.current + 1
-
-    searchRevision.current = revision
-    setSearching(true)
-    setErrorQuery(null)
-
-    try {
-      const page = await searchPublicProfiles(value)
-
-      if (revision !== searchRevision.current) {
-        return
-      }
-
-      setResults(page.content)
-    } catch (error) {
-      if (revision === searchRevision.current) {
-        setResults([])
-        setErrorQuery(value)
-        handleError(error)
-      }
-    } finally {
-      if (revision === searchRevision.current) {
-        setSearching(false)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (normalizedQuery.length < 2) {
-      return
-    }
-
-    const timeout = window.setTimeout(() => {
-      void runSearch(normalizedQuery)
-    }, 260)
-
-    return () => window.clearTimeout(timeout)
-  }, [normalizedQuery, runSearch])
-
-  const changeQuery = (value: string) => {
-    const nextNormalizedQuery = value.trim()
-    const normalizedQueryChanged = nextNormalizedQuery !== normalizedQuery
-
-    setQuery(value)
-
-    if (!normalizedQueryChanged) {
-      return
-    }
-
-    searchRevision.current += 1
-    setErrorQuery(null)
-    setResults([])
-    setSearching(nextNormalizedQuery.length >= 2)
-  }
-
-  const searchFailed = errorQuery === normalizedQuery
+  const search = useProfileSearch()
 
   return (
     <div className="screen search-root-screen root-screen">
@@ -90,17 +25,17 @@ export function SearchPage({ navigate }: Props) {
       <label className="search-root-input">
         <Glyph name="search" size={20} />
         <input
-          value={query}
+          value={search.query}
           maxLength={64}
-          onChange={(event) => changeQuery(event.target.value)}
+          onChange={(event) => search.changeQuery(event.target.value)}
           placeholder={t("people.search.placeholder")}
           autoCapitalize="off"
           autoCorrect="off"
         />
-        {query ? (
+        {search.query ? (
           <button
             type="button"
-            onClick={() => changeQuery("")}
+            onClick={() => search.changeQuery("")}
             aria-label={t("people.search.clear")}
           >
             <Glyph name="close" size={15} />
@@ -108,7 +43,7 @@ export function SearchPage({ navigate }: Props) {
         ) : null}
       </label>
 
-      {!normalizedQuery ? (
+      {!search.normalizedQuery ? (
         <section className="search-root-empty">
           <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
           <strong>{t("people.search.emptyTitle")}</strong>
@@ -116,33 +51,36 @@ export function SearchPage({ navigate }: Props) {
         </section>
       ) : null}
 
-      {normalizedQuery.length === 1 ? (
+      {search.normalizedQuery.length === 1 ? (
         <p className="search-root-hint">{t("people.search.oneMore")}</p>
       ) : null}
 
-      {searching ? <FeatureLoading label={t("people.search.searching")} /> : null}
+      {search.searching ? <FeatureLoading label={t("people.search.searching")} /> : null}
 
-      {normalizedQuery.length >= 2 && !searching && searchFailed ? (
+      {search.normalizedQuery.length >= 2 && !search.searching && search.searchFailed ? (
         <div className="search-root-hint" role="status">
           <span>{t("common.loadErrorTitle")}</span>
-          <button type="button" onClick={() => void runSearch(normalizedQuery)}>
+          <button type="button" onClick={search.retry}>
             {t("common.retry")}
           </button>
         </div>
       ) : null}
 
-      {normalizedQuery.length >= 2 && !searching && !searchFailed && !results.length ? (
+      {search.normalizedQuery.length >= 2 &&
+      !search.searching &&
+      !search.searchFailed &&
+      !search.results.length ? (
         <p className="search-root-hint">{t("people.search.nothingFound")}</p>
       ) : null}
 
-      {!searchFailed && results.length ? (
+      {!search.searchFailed && search.results.length ? (
         <section className="search-result-panel">
           <div className="search-result-panel__head">
             <span>{t("people.search.results")}</span>
-            <b>{results.length}</b>
+            <b>{search.results.length}</b>
           </div>
 
-          {results.map((profile) => (
+          {search.results.map((profile) => (
             <button
               key={profile.accountId}
               type="button"
