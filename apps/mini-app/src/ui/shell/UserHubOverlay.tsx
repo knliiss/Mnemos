@@ -66,11 +66,9 @@ export function UserHubOverlay({
             exit={{ opacity: 0, y: -7, scale: 0.985 }}
           >
             <header className="user-hub-card">
-              <CristalixHead
-                className="user-hub-card__avatar user-hub-card__avatar--skin"
-                skinUrl={activeAccount.skinUrl}
-                size={40}
-              />
+              <span className="user-hub-card__avatar user-hub-card__avatar--mnemos">
+                <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
+              </span>
               <span className="user-hub-card__copy">
                 <small>{t("appShell.userMenu.userEyebrow")}</small>
                 <strong>@{username}</strong>
