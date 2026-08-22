@@ -5,7 +5,7 @@ import { handleError } from "@/shared/errors/errorHandler"
 export type BadgeDraft = {
   code: string
   name: string
-  icon: string
+  image: File
   color: string
 }
 
