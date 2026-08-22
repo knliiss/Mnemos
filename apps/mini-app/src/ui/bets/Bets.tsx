@@ -42,6 +42,23 @@ type ScopedSelection = {
   id: string
 }
 
+function resolveNextOpenRounds(rounds: EventBetRoundResponse[]): EventBetRoundResponse[] {
+  const openRounds = rounds
+    .filter((round) => round.status === "OPEN")
+    .sort((left, right) => Date.parse(left.scheduledAt) - Date.parse(right.scheduledAt))
+  const nextByType = new Map<EventBetRoundResponse["eventType"], EventBetRoundResponse>()
+
+  for (const round of openRounds) {
+    if (!nextByType.has(round.eventType)) {
+      nextByType.set(round.eventType, round)
+    }
+  }
+
+  return [...nextByType.values()].sort(
+    (left, right) => Date.parse(left.scheduledAt) - Date.parse(right.scheduledAt),
+  )
+}
+
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
@@ -63,6 +80,7 @@ export function Bets({ activeAccount, navigate }: Props) {
     () => new Map(positions.map((position) => [position.raceId, position])),
     [positions],
   )
+  const nextOpenRounds = useMemo(() => resolveNextOpenRounds(rounds), [rounds])
   const selectedRoundValue =
     selectedRound?.accountId === activeAccount.id
       ? (rounds.find((round) => round.id === selectedRound.id) ?? null)
@@ -74,8 +92,8 @@ export function Bets({ activeAccount, navigate }: Props) {
   const selectedRacePosition = selectedRaceValue
     ? (positionsByRace.get(selectedRaceValue.id) ?? null)
     : null
-  const featured = rounds.find((round) => round.status === "OPEN") ?? rounds[0] ?? null
-  const eventRounds = featured ? rounds.filter((round) => round.id !== featured.id) : rounds
+  const featured = nextOpenRounds[0] ?? null
+  const eventRounds = nextOpenRounds.slice(1)
   const myRounds = rounds.filter((round) => round.myBet)
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
   const numericAmount = Number(amount)
@@ -239,11 +257,7 @@ export function Bets({ activeAccount, navigate }: Props) {
               </span>
 
               <span className="bets-feature__copy">
-                <small>
-                  {featured.status === "OPEN"
-                    ? t("bets.nextRound")
-                    : roundStatusLabel(t, featured.status)}
-                </small>
+                <small>{t("bets.nextRound")}</small>
                 <strong>{globalEventLabel(t, featured.eventType)}</strong>
                 <em>
                   {t("bets.closes", {
