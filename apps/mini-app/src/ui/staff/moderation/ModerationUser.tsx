@@ -20,6 +20,7 @@ export function ModerationUser({ params, back }: Props) {
     (role) => role === "ADMIN" || role === "SUPER_ADMIN",
   )
   const canAdjustPrime = mnemos.user.systemRoles.includes("SUPER_ADMIN")
+  const canSanction = Boolean(userId && mnemos.user.id && userId !== mnemos.user.id)
   const controller = useModerationUser({
     userId,
     canAdjustWallet,
@@ -99,7 +100,11 @@ export function ModerationUser({ params, back }: Props) {
         </div>
       </Section>
 
-      <ModerationSanctions controller={controller} language={i18n.language} />
+      <ModerationSanctions
+        controller={controller}
+        language={i18n.language}
+        canSanction={canSanction}
+      />
 
       {canAdjustWallet ? (
         <ModerationWalletAdjustments
