@@ -108,6 +108,12 @@ export async function listCreatorPersonalizations(): Promise<PersonalizationResp
   return api<PersonalizationResponse[]>("/api/v1/personalizations/creator/me")
 }
 
+export async function getCreatorPersonalization(
+  personalizationId: string,
+): Promise<PersonalizationResponse> {
+  return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${personalizationId}`)
+}
+
 export async function createCreatorPersonalization<TType extends PersonalizationType>(
   type: TType,
   request: CreatorRequestByType[TType],
