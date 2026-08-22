@@ -40,6 +40,19 @@
   background: rgba(203, 255, 45, 0.06);
 }
 
+.badge-admin-screen .review-overview__mark--badge-image {
+  overflow: hidden;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.badge-admin-screen .review-overview__mark--badge-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .badge-admin-screen .review-overview > span:last-child {
   display: grid;
   gap: 3px;
@@ -109,6 +122,88 @@
   padding: 5px;
 }
 
+.badge-image-picker {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 66px;
+  padding: 7px 10px 7px 7px;
+  border: 1px dashed rgba(235, 241, 213, 0.13);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.012);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.badge-image-picker:hover,
+.badge-image-picker:focus-within {
+  border-color: rgba(203, 255, 45, 0.22);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.badge-admin-screen .badge-image-picker input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.badge-image-picker__preview {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge-image-picker__preview img {
+  display: block;
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+.badge-image-picker:not(.has-image) .badge-image-picker__preview img {
+  width: 70%;
+  height: 70%;
+  opacity: 0.62;
+}
+
+.badge-image-picker__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.badge-image-picker__copy strong,
+.badge-image-picker__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-image-picker__copy strong {
+  color: #dfe4da;
+  font-size: 10px;
+}
+
+.badge-image-picker__copy small {
+  color: #72796e;
+  font-size: 8px;
+}
+
 .badge-admin-screen .staff-form-block > .primary-action {
   display: inline-flex;
   align-items: center;
@@ -160,7 +255,6 @@
 .badge-admin-screen .review-queue-card > .review-overview__mark {
   width: 42px;
   height: 42px;
-  background: rgba(255, 255, 255, 0.025);
 }
 
 .badge-admin-screen .review-queue-card__copy {
