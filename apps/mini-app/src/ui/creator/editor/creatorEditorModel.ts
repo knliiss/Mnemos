@@ -351,7 +351,8 @@ export function creatorResponseToEditorForm(
         accent: value.accent,
         text: value.text,
         border: value.border,
-        gradientAngleDegrees: value.gradientAngleDegrees ?? defaults.profileTheme.gradientAngleDegrees,
+        gradientAngleDegrees:
+          value.gradientAngleDegrees ?? defaults.profileTheme.gradientAngleDegrees,
         textureStrength: value.textureStrength ?? defaults.profileTheme.textureStrength,
         glow: glowForm(
           value.glow,

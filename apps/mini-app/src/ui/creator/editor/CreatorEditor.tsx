@@ -34,10 +34,7 @@ import {
   creatorResponseToEditorForm,
   saveCreatorForm,
 } from "./creatorEditorModel"
-import {
-  isCreatorVisualFormValid,
-  isNotificationPackFormValid,
-} from "./creatorEditorValidation"
+import { isCreatorVisualFormValid, isNotificationPackFormValid } from "./creatorEditorValidation"
 import "./creator-notification-studio.css"
 import "./creator-visual-editor.css"
 import {

@@ -76,7 +76,8 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     useState<AggregatePreviewMode>("SAME_TYPE")
   const [activeField, setActiveField] = useState<EditableTemplateField>("soloBody")
   const templateDescriptor =
-    descriptor.templates.find((template) => template.type === selectedType) ?? descriptor.templates[0]
+    descriptor.templates.find((template) => template.type === selectedType) ??
+    descriptor.templates[0]
   const template = templateDescriptor
     ? form.notificationPack.templates[templateDescriptor.type]
     : null
@@ -84,9 +85,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
   const variableFields = useMemo(
     () =>
       new Set(
-        descriptor.fields
-          .filter((field) => field.variablesAllowed)
-          .map((field) => field.key),
+        descriptor.fields.filter((field) => field.variablesAllowed).map((field) => field.key),
       ),
     [descriptor.fields],
   )
@@ -368,7 +367,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                     renderTemplate(template.soloTitle, templateDescriptor.sampleValues),
                   )}
                 </small>
-                <strong>{renderTemplate(template.soloBody, templateDescriptor.sampleValues)}</strong>
+                <strong>
+                  {renderTemplate(template.soloBody, templateDescriptor.sampleValues)}
+                </strong>
               </span>
             </div>
           </section>

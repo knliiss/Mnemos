@@ -167,7 +167,10 @@ export function Bets({ activeAccount, navigate }: Props) {
     () => new Map(positions.map((position) => [position.raceId, position])),
     [positions],
   )
-  const nextOpenRounds = useMemo(() => resolveNextOpenRounds(roundsWithPending), [roundsWithPending])
+  const nextOpenRounds = useMemo(
+    () => resolveNextOpenRounds(roundsWithPending),
+    [roundsWithPending],
+  )
   const selectedRoundValue =
     selectedRound?.accountId === activeAccount.id
       ? (roundsWithPending.find((round) => round.id === selectedRound.id) ?? null)

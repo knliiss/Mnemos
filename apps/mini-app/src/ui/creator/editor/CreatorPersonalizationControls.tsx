@@ -37,15 +37,7 @@ type GlowControlsProps = {
   onChange(glow: CreatorGlowForm): void
 }
 
-function RangeField({
-  label,
-  value,
-  min,
-  max,
-  suffix = "%",
-  disabled,
-  onChange,
-}: RangeFieldProps) {
+function RangeField({ label, value, min, max, suffix = "%", disabled, onChange }: RangeFieldProps) {
   return (
     <Field label={label}>
       <div className="creator-parameter-range">

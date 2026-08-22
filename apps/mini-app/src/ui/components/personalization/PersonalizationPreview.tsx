@@ -114,7 +114,10 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
         <Spec label={t("personalization.preview.accent")} value={content.accent} />
         <Spec label={t("personalization.preview.surface")} value={content.surface} />
         <Spec label={t("personalization.preview.border")} value={content.border} />
-        <Spec label={t("personalization.preview.angle")} value={`${content.gradientAngleDegrees}°`} />
+        <Spec
+          label={t("personalization.preview.angle")}
+          value={`${content.gradientAngleDegrees}°`}
+        />
         <Spec label={t("personalization.preview.texture")} value={`${content.textureStrength}%`} />
       </section>
     )

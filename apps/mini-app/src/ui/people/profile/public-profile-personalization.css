@@ -4,12 +4,7 @@
   background:
     repeating-linear-gradient(
       135deg,
-      color-mix(
-          in srgb,
-          var(--profile-theme-text) var(--profile-theme-texture),
-          transparent
-        )
-        0 1px,
+      color-mix(in srgb, var(--profile-theme-text) var(--profile-theme-texture), transparent) 0 1px,
       transparent 1px 6px
     ),
     radial-gradient(
