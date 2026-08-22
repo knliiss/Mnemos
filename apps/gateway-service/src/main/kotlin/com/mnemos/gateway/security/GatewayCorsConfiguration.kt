@@ -31,6 +31,7 @@ class GatewayCorsConfiguration {
                         "Content-Type",
                         "Accept",
                         "Last-Event-ID",
+                        "X-Mnemos-Realtime-Session",
                         "Idempotency-Key",
                     )
                 allowCredentials = true
