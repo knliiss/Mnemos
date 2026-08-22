@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { PERSONALIZATION_TYPES } from "../../contracts"
 import type { Personalization, Route } from "../../model"
-import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
+import { CurrencyMark } from "../../shared/MnemosIcon"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
-import { PersonalizationTypeGlyph } from "../components/PersonalizationTypeGlyph"
 import {
   localeForLanguage,
+  personalizationIllustrations,
   personalizationTargets,
   personalizationTypeNote,
   personalizationTypeTitle,
@@ -82,7 +82,7 @@ export function PersonalizationStore({
                 }
               >
                 <span className="personalization-store-category-card__icon">
-                  <PersonalizationTypeGlyph type={type} />
+                  <img src={personalizationIllustrations[type]} alt="" aria-hidden="true" />
                 </span>
 
                 <span className="personalization-store-category-card__copy">
@@ -101,7 +101,12 @@ export function PersonalizationStore({
                   {sample ? (
                     <PersonalizationVisual item={sample} small />
                   ) : (
-                    <Glyph name="spark" size={20} />
+                    <img
+                      className="personalization-store-category-card__fallback-art"
+                      src={personalizationIllustrations[type]}
+                      alt=""
+                      aria-hidden="true"
+                    />
                   )}
                 </span>
               </motion.button>
