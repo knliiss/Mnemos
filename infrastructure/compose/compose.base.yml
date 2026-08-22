@@ -19,3 +19,6 @@ volumes:
 
   redis-data:
     name: ${COMPOSE_PROJECT_NAME:-mnemos}-redis-data
+
+  minio-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-minio-data
