@@ -1,38 +1,60 @@
 import { api } from "@/shared/api/httpClient"
+import { resolveBadgeImageUrl, type Badge, type UserBadge } from "@/shared/api/badgeApi"
 
-export type BadgeResponse = {
-  id: string
-  code: string
-  name: string
-  icon: string
-  color: string
+type BadgeResponse = Omit<Badge, "imageUrl"> & {
+  imageUrl: string
 }
 
-export type UserBadgeResponse = {
+type UserBadgeResponse = Omit<UserBadge, "badge"> & {
   badge: BadgeResponse
-  grantedAt: string
-  active: boolean
 }
 
-export async function listAdminBadges(): Promise<BadgeResponse[]> {
-  return api<BadgeResponse[]>("/api/v1/personalizations/admin/badges")
+export async function listAdminBadges(): Promise<Badge[]> {
+  const response = await api<BadgeResponse[]>("/api/v1/personalizations/admin/badges")
+
+  return response.map(toBadge)
 }
 
-export async function listAdminUserBadges(userId: string): Promise<UserBadgeResponse[]> {
-  return api<UserBadgeResponse[]>(`/api/v1/personalizations/admin/badges/users/${userId}`)
+export async function listAdminUserBadges(userId: string): Promise<UserBadge[]> {
+  const response = await api<UserBadgeResponse[]>(
+    `/api/v1/personalizations/admin/badges/users/${userId}`,
+  )
+
+  return response.map((item) => ({
+    ...item,
+    badge: toBadge(item.badge),
+  }))
 }
 
 export async function createAdminBadge(request: {
   code: string
   name: string
-  icon: string
+  image: File
   color: string
-}): Promise<BadgeResponse> {
-  return api<BadgeResponse>("/api/v1/personalizations/admin/badges", {
+}): Promise<Badge> {
+  const form = new FormData()
+  const metadata = new Blob(
+    [
+      JSON.stringify({
+        code: request.code,
+        name: request.name,
+        color: request.color,
+      }),
+    ],
+    {
+      type: "application/json",
+    },
+  )
+
+  form.append("metadata", metadata)
+  form.append("image", request.image, request.image.name)
+
+  const response = await api<BadgeResponse>("/api/v1/personalizations/admin/badges", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
+    body: form,
   })
+
+  return toBadge(response)
 }
 
 export async function grantAdminBadge(badgeId: string, userId: string): Promise<void> {
@@ -45,4 +67,11 @@ export async function revokeAdminBadge(badgeId: string, userId: string): Promise
   await api<void>(`/api/v1/personalizations/admin/badges/${badgeId}/users/${userId}`, {
     method: "DELETE",
   })
+}
+
+function toBadge(response: BadgeResponse): Badge {
+  return {
+    ...response,
+    imageUrl: resolveBadgeImageUrl(response.imageUrl),
+  }
 }
