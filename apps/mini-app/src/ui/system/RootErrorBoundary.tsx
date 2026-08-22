@@ -1,8 +1,8 @@
 import { Component, type ErrorInfo, type ReactNode } from "react"
-import { i18n } from "@/shared/i18n"
 import { handleError } from "@/shared/errors/errorHandler"
+import { i18n } from "@/shared/i18n"
 import { ErrorMascot } from "../components/errors/ErrorMascot"
-import "./root-error.css"
+import "./service-unavailable.css"
 
 type RootErrorBoundaryProps = {
   children: ReactNode
@@ -34,19 +34,25 @@ export class RootErrorBoundary extends Component<RootErrorBoundaryProps, RootErr
     }
 
     return (
-      <main className="root-error-screen" role="alert" aria-live="assertive">
-        <section className="root-error-screen__panel">
-          <div className="root-error-screen__illustration" aria-hidden="true">
+      <main className="service-unavailable" role="alert" aria-live="assertive">
+        <section className="service-unavailable__panel">
+          <div className="service-unavailable__illustration" aria-hidden="true">
             <ErrorMascot variant="internal" />
           </div>
 
-          <div className="root-error-screen__copy">
-            <span>{i18n.t("errorNotifications.tones.internal.eyebrow")}</span>
+          <div className="service-unavailable__copy">
+            <span className="service-unavailable__eyebrow">
+              {i18n.t("errorNotifications.tones.internal.eyebrow")}
+            </span>
             <h1>{i18n.t("errorNotifications.tones.internal.title")}</h1>
             <p>{i18n.t("errorBoundary.message")}</p>
           </div>
 
-          <button type="button" onClick={() => window.location.reload()}>
+          <button
+            type="button"
+            className="service-unavailable__retry"
+            onClick={() => window.location.reload()}
+          >
             {i18n.t("errorBoundary.reload")}
           </button>
         </section>
