@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Account, Route } from "../../model"
-import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
+import { CurrencyMark } from "../../shared/MnemosIcon"
 import { RoleSigil } from "../../shared/RoleSigil"
 import { AccountDailyReward } from "../AccountDailyReward"
 
@@ -56,7 +56,7 @@ export function AccountOverview({ account, locale, navigate }: AccountOverviewPr
         >
           <span className="account-home-feature-copy">
             <small>{t("accountHome.wallet")}</small>
-            <strong>
+            <strong className="account-home-balance">
               <CurrencyMark currency="COIN" size={19} />
               {account.coin.toLocaleString(locale)}
             </strong>
@@ -86,7 +86,9 @@ export function AccountOverview({ account, locale, navigate }: AccountOverviewPr
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "roles" })}
         >
-          <RoleSigil color="#A985A8" size={27} compact />
+          <span className="account-home-actions__icon account-home-actions__icon--role">
+            <RoleSigil color="#A985A8" size={27} compact />
+          </span>
           <span>
             <strong>{t("accountHome.roles")}</strong>
             <small>{t("accountHome.accessRights")}</small>
@@ -98,8 +100,8 @@ export function AccountOverview({ account, locale, navigate }: AccountOverviewPr
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-invites" })}
         >
-          <span className="account-home-actions__icon is-amber">
-            <Glyph name="invite" size={17} />
+          <span className="account-home-actions__icon account-home-actions__icon--illustrated">
+            <img src="/ui-illustrations/account-invites.svg" alt="" aria-hidden="true" />
           </span>
           <span>
             <strong>{t("accountHome.invites")}</strong>
@@ -112,8 +114,8 @@ export function AccountOverview({ account, locale, navigate }: AccountOverviewPr
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate({ id: "account-settings" })}
         >
-          <span className="account-home-actions__icon">
-            <Glyph name="settings" size={17} />
+          <span className="account-home-actions__icon account-home-actions__icon--illustrated">
+            <img src="/ui-illustrations/account-settings.svg" alt="" aria-hidden="true" />
           </span>
           <span>
             <strong>{t("accountHome.settings")}</strong>
