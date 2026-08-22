@@ -2,7 +2,9 @@ package com.mnemos.personalization.application.badge.usecase.create
 
 import com.mnemos.personalization.application.badge.exception.BadgeAlreadyExistsException
 import com.mnemos.personalization.application.badge.model.CreateBadgeCommand
+import com.mnemos.personalization.application.badge.port.out.BadgeImageStorage
 import com.mnemos.personalization.application.badge.support.BadgeAdministrationSupport
+import com.mnemos.personalization.application.badge.support.BadgeImageValidator
 import com.mnemos.personalization.domain.badge.model.Badge
 import com.mnemos.personalization.domain.badge.repository.BadgeRepository
 import org.springframework.dao.DataIntegrityViolationException
@@ -14,6 +16,8 @@ import java.time.Clock
 class CreateBadgeService(
     private val support: BadgeAdministrationSupport,
     private val repository: BadgeRepository,
+    private val badgeImageStorage: BadgeImageStorage,
+    private val badgeImageValidator: BadgeImageValidator,
     private val clock: Clock,
 ) : CreateBadgeUseCase {
     @Transactional
@@ -24,19 +28,32 @@ class CreateBadgeService(
             throw BadgeAlreadyExistsException()
         }
 
+        val image = badgeImageValidator.validate(command.image)
         val badge =
             Badge.create(
                 code = command.code,
                 name = command.name,
-                icon = command.icon,
                 color = command.color,
                 now = clock.instant(),
             )
 
+        badgeImageStorage.store(
+            objectKey = badge.imageObjectKey,
+            image = image,
+        )
+
         return try {
             repository.save(badge)
-        } catch (_: DataIntegrityViolationException) {
-            throw BadgeAlreadyExistsException()
+        } catch (exception: RuntimeException) {
+            runCatching {
+                badgeImageStorage.delete(badge.imageObjectKey)
+            }
+
+            if (exception is DataIntegrityViolationException) {
+                throw BadgeAlreadyExistsException()
+            }
+
+            throw exception
         }
     }
 }
