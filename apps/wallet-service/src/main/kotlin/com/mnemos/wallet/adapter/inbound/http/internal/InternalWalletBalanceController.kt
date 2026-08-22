@@ -19,11 +19,13 @@ class InternalWalletBalanceController(
     fun balances(
         @PathVariable ownerType: WalletOwnerType,
         @PathVariable ownerId: UUID,
-    ): List<BalanceResponse> =
-        getWalletBalancesService
-            .execute(
+    ): List<BalanceResponse> {
+        val balances =
+            getWalletBalancesService.execute(
                 ownerType = ownerType,
                 ownerId = ownerId,
             )
-            .map { balance -> balance.toResponse() }
+
+        return balances.map { balance -> balance.toResponse() }
+    }
 }
