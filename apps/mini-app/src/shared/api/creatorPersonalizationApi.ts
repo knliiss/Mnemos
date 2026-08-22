@@ -1,4 +1,10 @@
-import type { Currency, EffectType, NotificationTemplateKey, PersonalizationType } from "@/ui/model"
+import type {
+  Currency,
+  EffectType,
+  FrameStyle,
+  NotificationTemplateKey,
+  PersonalizationType,
+} from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 import type {
   GlowStyleResponse,
@@ -27,10 +33,14 @@ export type CreateNickStyleRequest = {
 export type CreateProfileThemeRequest = {
   name: string
   background: string
+  backgroundSecondary: string
   surface: string
+  surfaceSecondary: string
   accent: string
   text: string
   border: string
+  gradientAngleDegrees: number
+  textureStrength: number
   glow: GlowStyleRequest | null
   price: PersonalizationPriceRequest
 }
@@ -38,8 +48,11 @@ export type CreateProfileThemeRequest = {
 export type CreateAvatarFrameRequest = {
   name: string
   borderColor: string
+  secondaryBorderColor: string
   borderWidthPx: number
+  gapPx: number
   radiusPx: number
+  style: FrameStyle
   glow: GlowStyleRequest | null
   price: PersonalizationPriceRequest
 }
@@ -48,6 +61,9 @@ export type CreateProfileEffectRequest = {
   name: string
   effect: EffectType
   intensity: number
+  speed: number
+  density: number
+  scale: number
   primaryColor: string
   secondaryColor: string | null
   price: PersonalizationPriceRequest
