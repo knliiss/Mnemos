@@ -29,6 +29,7 @@ export type PersonalizationStatus =
   | "PUBLISHED"
   | "UNLISTED"
 export type EffectType = "AURORA" | "PULSE" | "SHIMMER" | "PARTICLES"
+export type FrameStyle = "SOLID" | "DOUBLE" | "SEGMENTED"
 export type NotificationTemplateKey = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAID" | "GLOBAL"
 export type RolePermission =
   | "MANAGE_MEMBERS"
@@ -164,18 +165,25 @@ export type NickStyleContent = {
 export type ProfileThemeContent = {
   kind: "PROFILE_THEME"
   background: string
+  backgroundSecondary: string
   surface: string
+  surfaceSecondary: string
   accent: string
   text: string
   border: string
+  gradientAngleDegrees: number
+  textureStrength: number
   glow: GlowStyle | null
 }
 
 export type AvatarFrameContent = {
   kind: "AVATAR_FRAME"
   borderColor: string
+  secondaryBorderColor: string
   borderWidthPx: number
+  gapPx: number
   radiusPx: number
+  style: FrameStyle
   glow: GlowStyle | null
 }
 
@@ -183,6 +191,9 @@ export type ProfileEffectContent = {
   kind: "PROFILE_EFFECT"
   effect: EffectType
   intensity: number
+  speed: number
+  density: number
+  scale: number
   primaryColor: string
   secondaryColor: string | null
 }
