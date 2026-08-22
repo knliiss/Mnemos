@@ -145,8 +145,7 @@ object CreatorPersonalizationApiMapper {
             scale = scale,
         )
 
-    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack =
-        templates.toContent(mixedAggregateTitle)
+    fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack = templates.toContent(mixedAggregateTitle)
 
     fun Map<NotificationTemplateKey, NotificationTemplateRequest>.toContent(
         mixedAggregateTitle: String,
