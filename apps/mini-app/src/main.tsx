@@ -6,6 +6,7 @@ import "@/shared/i18n"
 import "@/shared/styles/global.css"
 import { initializeTelegramWebApp } from "@/shared/telegram/telegramWebApp"
 import "@/ui/app.css"
+import "@/ui/system/telegram-safe-area.css"
 
 installGlobalErrorHandlers()
 initializeTelegramWebApp()
