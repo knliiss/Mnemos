@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { EventArt } from "../../../components/events/EventArt"
 import { eventVisualTone } from "../../../eventVisualTone"
 import type { FeedEvent, Route } from "../../../model"
-import { Glyph } from "../../../shared/MnemosIcon"
 import { formatOccurredAt } from "../../../timePresentation"
 import { rarityLabel } from "../profilePresentation"
 
@@ -65,8 +64,8 @@ export function PublicProfileDropsSection({
         ))}
 
         {!drops.length ? (
-          <div className="public-profile-state public-profile-state--compact">
-            <Glyph name="item-drop" size={22} />
+          <div className="public-profile-state public-profile-state--compact public-profile-drops-empty">
+            <img src="/ui-illustrations/account-activity.svg" alt="" aria-hidden="true" />
             <strong>{t("people.profile.noDrops")}</strong>
           </div>
         ) : null}
