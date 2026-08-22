@@ -61,7 +61,7 @@ export function ModerationWalletAdjustments({
       <div className="admin-wallet-scope">
         <CurrencyMark currency={controller.currency} size={20} />
         <span>
-          <small>{t("moderation.currentBalance")}</small>
+          <small>{t("bets.balance")}</small>
           <strong>
             {controller.balance
               ? `${controller.balance.amount.toLocaleString()} ${controller.balance.currency}`
