@@ -3,6 +3,8 @@ set -eu
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+COMPOSE_ENV_WRAPPER="$SCRIPT_DIR/docker-compose-env.sh"
+MAKE_CONFIG="$REPOSITORY_ROOT/make/config.mk"
 
 fail() {
     echo "$1" >&2
@@ -47,6 +49,15 @@ service_config() {
 
     return 1
 }
+
+[ -f "$COMPOSE_ENV_WRAPPER" ] || fail "Compose Kafka environment wrapper is missing"
+
+grep -Fq 'COMPOSE_ENV_WRAPPER := scripts/docker-compose-env.sh' "$MAKE_CONFIG" ||
+    fail "Make config does not define the Compose Kafka environment wrapper"
+grep -Fq 'DC := sh $(COMPOSE_ENV_WRAPPER) "$(ENV_FILE)" $(COMPOSE_ARGS)' "$MAKE_CONFIG" ||
+    fail "Make config does not route Docker Compose through the environment wrapper"
+
+"$SCRIPT_DIR/verify-compose-env-isolation.sh"
 
 verified_services=0
 listener_services=0

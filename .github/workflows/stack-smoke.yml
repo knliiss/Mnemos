@@ -10,7 +10,10 @@ on:
       - "infrastructure/compose/**"
       - "infrastructure/kafka/**"
       - "infrastructure/keycloak/**"
+      - "make/**"
+      - "scripts/docker-compose-env.sh"
       - "scripts/generate-kafka-message-keys.sh"
+      - "scripts/verify-compose-env-isolation.sh"
       - "scripts/verify-kafka-message-auth.sh"
       - "scripts/verify-kafka-message-auth-runtime.sh"
       - "scripts/verify-kafka-service-config.sh"
@@ -90,7 +93,7 @@ jobs:
             fi
           done
 
-          compose_command="docker compose --env-file .env.ci"
+          compose_command="sh scripts/docker-compose-env.sh .env.ci"
 
           for file in infrastructure/compose/compose.*.yml infrastructure/compose/apps/compose.*.yml; do
             compose_command+=" -f ${file}"
@@ -98,6 +101,13 @@ jobs:
 
           compose_command+=" -f .github/ci/compose-isolation.override.yml"
           echo "CI_COMPOSE_COMMAND=${compose_command}" >> "$GITHUB_ENV"
+
+          # Deliberately poison the runner environment. Docker Compose normally gives
+          # exported shell variables precedence over --env-file, which previously
+          # allowed stale Kafka key material to override the generated environment.
+          echo "MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS=account-service=stale-shell-key" >> "$GITHUB_ENV"
+          echo "ACCOUNT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY=stale-shell-private-key" >> "$GITHUB_ENV"
+          echo "KAFKA_ACCOUNT_SERVICE_PASSWORD=stale-shell-password" >> "$GITHUB_ENV"
 
       - name: Validate Compose configuration
         shell: bash

@@ -38,7 +38,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sh -n scripts/docker-compose-env.sh
           sh -n scripts/generate-kafka-message-keys.sh
+          sh -n scripts/verify-compose-env-isolation.sh
           sh -n scripts/verify-kafka-message-auth.sh
           sh -n scripts/verify-kafka-message-auth-runtime.sh
           sh -n scripts/verify-kafka-service-config.sh
