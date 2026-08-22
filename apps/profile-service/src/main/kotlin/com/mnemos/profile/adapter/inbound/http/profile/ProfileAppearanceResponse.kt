@@ -23,6 +23,10 @@ data class ProfileAppearanceResponse(
         val text: String,
         val border: String,
         val glow: Glow?,
+        val backgroundSecondary: String,
+        val surfaceSecondary: String,
+        val gradientAngleDegrees: Int,
+        val textureStrength: Int,
     )
 
     data class AvatarFrame(
@@ -31,6 +35,9 @@ data class ProfileAppearanceResponse(
         val borderWidthPx: Int,
         val radiusPx: Int,
         val glow: Glow?,
+        val secondaryBorderColor: String,
+        val gapPx: Int,
+        val style: String,
     )
 
     data class ProfileEffect(
@@ -39,6 +46,9 @@ data class ProfileAppearanceResponse(
         val intensity: Int,
         val primaryColor: String,
         val secondaryColor: String?,
+        val speed: Int,
+        val density: Int,
+        val scale: Int,
     )
 
     data class GradientStop(
