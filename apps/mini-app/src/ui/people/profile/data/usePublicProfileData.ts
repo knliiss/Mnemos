@@ -21,6 +21,7 @@ type PublicProfileData = {
   loading: boolean
   error: boolean
   reactionBusy: boolean
+  canReact: boolean
   refresh(): Promise<void>
   refreshProfileSummary(): Promise<void>
   toggleReaction(reaction: AccountReactionType): Promise<void>
@@ -43,6 +44,7 @@ export function usePublicProfileData(
   const mountedRef = useRef(true)
   const scopeKey = `${viewerAccountId}:${accountId}`
   const scopeKeyRef = useRef(scopeKey)
+  const canReact = Boolean(accountId && viewerAccountId && accountId !== viewerAccountId)
 
   useLayoutEffect(() => {
     scopeKeyRef.current = scopeKey
@@ -119,7 +121,7 @@ export function usePublicProfileData(
       }
 
       const [currentReaction, feedResponse] = await Promise.all([
-        getAccountReaction(accountId),
+        canReact ? getAccountReaction(accountId) : Promise.resolve(null),
         getEventFeed({
           types: ["ITEM_DROP"],
           droppedFor: nextProfile.cristalixNickname,
@@ -155,7 +157,7 @@ export function usePublicProfileData(
         setLoading(false)
       }
     }
-  }, [accountId, scopeKey, viewerAccountId])
+  }, [accountId, canReact, scopeKey, viewerAccountId])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -171,7 +173,7 @@ export function usePublicProfileData(
 
   const toggleReaction = useCallback(
     async (nextReaction: AccountReactionType) => {
-      if (!profile || reactionBusyScopesRef.current.has(scopeKey)) {
+      if (!canReact || !profile || reactionBusyScopesRef.current.has(scopeKey)) {
         return
       }
 
@@ -207,7 +209,7 @@ export function usePublicProfileData(
         }
       }
     },
-    [profile, reaction, scopeKey, setReactionScopeBusy],
+    [canReact, profile, reaction, scopeKey, setReactionScopeBusy],
   )
 
   const current = loadedScopeKey === scopeKey
@@ -219,6 +221,7 @@ export function usePublicProfileData(
     loading: loading || !current,
     error: current && error,
     reactionBusy: current && reactionBusyScopes.has(scopeKey),
+    canReact,
     refresh,
     refreshProfileSummary,
     toggleReaction,
