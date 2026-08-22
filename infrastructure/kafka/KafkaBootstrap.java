@@ -233,6 +233,12 @@ public final class KafkaBootstrap {
                 "mnemos.wallet.commands.v2"
         );
 
+        allowConsumer(
+                acls,
+                "moderation_service",
+                "moderation-service",
+                "mnemos.wallet.events.v2"
+        );
         allowTopicWrite(
                 acls,
                 "moderation_service",
@@ -275,6 +281,12 @@ public final class KafkaBootstrap {
                 acls,
                 "realtime_service",
                 "mnemos.collector.ingress.v2"
+        );
+        allowConsumer(
+                acls,
+                "realtime_service",
+                "realtime-service",
+                "mnemos.event.events.v1"
         );
         allowConsumer(
                 acls,
@@ -352,6 +364,12 @@ public final class KafkaBootstrap {
                 "profile_service",
                 "profile-service",
                 "mnemos.social.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "profile_service",
+                "profile-service",
+                "mnemos.personalization.events.v1"
         );
 
         admin

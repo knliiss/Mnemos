@@ -34,6 +34,16 @@ jobs:
       - name: Verify Make wiring
         run: make make-verify
 
+      - name: Verify Kafka service configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/generate-kafka-message-keys.sh
+          sh -n scripts/verify-kafka-message-auth.sh
+          sh -n scripts/verify-kafka-message-auth-runtime.sh
+          sh -n scripts/verify-kafka-service-config.sh
+          scripts/verify-kafka-service-config.sh
+
       - name: Verify backend
         run: ./gradlew check --no-daemon
 

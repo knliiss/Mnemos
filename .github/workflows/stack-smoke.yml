@@ -13,6 +13,7 @@ on:
       - "scripts/generate-kafka-message-keys.sh"
       - "scripts/verify-kafka-message-auth.sh"
       - "scripts/verify-kafka-message-auth-runtime.sh"
+      - "scripts/verify-kafka-service-config.sh"
       - "build.gradle.kts"
       - "settings.gradle.kts"
       - "gradle/**"
@@ -75,6 +76,7 @@ jobs:
           set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_TOKEN "ci-not-used"
           set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY "ci-not-used"
 
+          scripts/verify-kafka-service-config.sh
           scripts/generate-kafka-message-keys.sh .env.ci
           scripts/verify-kafka-message-auth.sh .env.ci
 
