@@ -19,6 +19,7 @@ public final class TelegramAuthenticator implements Authenticator {
     private static final Logger LOGGER = Logger.getLogger(TelegramAuthenticator.class);
 
     private static final String INIT_DATA_PARAMETER = "telegram_init_data";
+    private static final String TELEGRAM_LOGIN_TEMPLATE = "telegram-login.ftl";
     private static final String TELEGRAM_USER_ID_ATTRIBUTE = "telegram_user_id";
     private static final String TELEGRAM_USERNAME_ATTRIBUTE = "telegram_username";
     private static final String TELEGRAM_LANGUAGE_ATTRIBUTE = "telegram_language";
@@ -51,8 +52,8 @@ public final class TelegramAuthenticator implements Authenticator {
             );
 
             if (initData == null || initData.isBlank()) {
-                LOGGER.debug("Telegram authentication skipped because initData is not present");
-                context.attempted();
+                LOGGER.debug("Telegram authentication requires a challenge because initData is not present");
+                context.challenge(context.form().createForm(TELEGRAM_LOGIN_TEMPLATE));
                 return;
             }
 
@@ -290,12 +291,21 @@ public final class TelegramAuthenticator implements Authenticator {
 
     @Override
     public void action(AuthenticationFlowContext context) {
-        fail(
-                context,
-                AuthenticationFlowError.INVALID_CREDENTIALS,
-                Response.Status.BAD_REQUEST,
-                "Interactive Telegram authentication is not supported"
-        );
+        String initData = context.getHttpRequest()
+                .getDecodedFormParameters()
+                .getFirst(INIT_DATA_PARAMETER);
+
+        if (initData == null || initData.isBlank()) {
+            fail(
+                    context,
+                    AuthenticationFlowError.INVALID_CREDENTIALS,
+                    Response.Status.BAD_REQUEST,
+                    "Telegram authentication data is missing"
+            );
+            return;
+        }
+
+        authenticateTelegramUser(context, initData);
     }
 
     @Override
