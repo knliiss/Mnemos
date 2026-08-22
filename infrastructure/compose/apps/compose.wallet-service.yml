@@ -35,6 +35,7 @@ services:
 
       ACCOUNT_SERVICE_URL: http://account-service:8081
       WALLET_SERVICE_ACCOUNT_API_KEY: ${WALLET_SERVICE_ACCOUNT_API_KEY}
+      MODERATION_SERVICE_WALLET_API_KEY: ${MODERATION_SERVICE_WALLET_API_KEY}
 
     depends_on:
       app-postgres:
