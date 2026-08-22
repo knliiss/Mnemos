@@ -76,6 +76,31 @@ export type CreateNotificationPackRequest = {
   price: PersonalizationPriceRequest
 }
 
+export type NotificationPackEditorFieldKey =
+  | "SOLO_TITLE"
+  | "SOLO_BODY"
+  | "COMPACT"
+  | "AGGREGATE_TITLE"
+
+export type NotificationPackEditorDescriptorResponse = {
+  mixedAggregateTitleDefault: string
+  maxTextLength: number
+  maxEmojiLength: number
+  fields: Array<{
+    key: NotificationPackEditorFieldKey
+    variablesAllowed: boolean
+  }>
+  templates: Array<{
+    type: NotificationTemplateKey
+    variables: Array<{
+      key: string
+      sampleValue: string
+    }>
+    sampleValues: Record<string, string>
+    defaults: NotificationTemplateResponse
+  }>
+}
+
 export type CreatorRequestByType = {
   NICK_STYLE: CreateNickStyleRequest
   PROFILE_THEME: CreateProfileThemeRequest
@@ -128,6 +153,12 @@ export async function getCreatorPersonalization(
   personalizationId: string,
 ): Promise<PersonalizationResponse> {
   return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${personalizationId}`)
+}
+
+export async function getNotificationPackEditorDescriptor(): Promise<NotificationPackEditorDescriptorResponse> {
+  return api<NotificationPackEditorDescriptorResponse>(
+    "/api/v1/personalizations/creator/notification-packs/descriptor",
+  )
 }
 
 export async function createCreatorPersonalization<TType extends PersonalizationType>(
