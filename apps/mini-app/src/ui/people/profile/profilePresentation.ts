@@ -4,6 +4,25 @@ import type { PublicProfileResponse } from "@/shared/api/profileSocialApi"
 
 const SKIN_BASE_URL = "https://webdata.c7x.dev/textures/skin"
 
+type ProfileCardStyle = CSSProperties & {
+  "--profile-theme-background"?: string
+  "--profile-theme-surface"?: string
+  "--profile-theme-accent"?: string
+  "--profile-theme-text"?: string
+  "--profile-theme-border"?: string
+  "--profile-theme-glow"?: string
+  "--profile-effect-primary"?: string
+  "--profile-effect-secondary"?: string
+  "--profile-effect-opacity"?: string
+}
+
+type ProfileHeadStyle = CSSProperties & {
+  "--profile-frame-color"?: string
+  "--profile-frame-width"?: string
+  "--profile-frame-radius"?: string
+  "--profile-frame-glow"?: string
+}
+
 export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | undefined {
   const style = profile.appearance.nickStyle
 
@@ -21,6 +40,69 @@ export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | u
     textShadow: style.glow
       ? `0 0 ${Math.max(2, Math.round(style.glow.strength / 10))}px ${style.glow.color}`
       : undefined,
+  }
+}
+
+export function profileCardStyle(profile: PublicProfileResponse): ProfileCardStyle | undefined {
+  const theme = profile.appearance.profileTheme
+  const effect = profile.appearance.profileEffect
+
+  if (!theme && !effect) {
+    return undefined
+  }
+
+  const style: ProfileCardStyle = {}
+
+  if (theme) {
+    style["--profile-theme-background"] = theme.background
+    style["--profile-theme-surface"] = theme.surface
+    style["--profile-theme-accent"] = theme.accent
+    style["--profile-theme-text"] = theme.text
+    style["--profile-theme-border"] = theme.border
+    style["--profile-theme-glow"] = glowShadow(theme.glow)
+  }
+
+  if (effect) {
+    const opacity = 0.08 + (effect.intensity / 100) * 0.2
+
+    style["--profile-effect-primary"] = effect.primaryColor
+    style["--profile-effect-secondary"] = effect.secondaryColor ?? effect.primaryColor
+    style["--profile-effect-opacity"] = opacity.toFixed(3)
+  }
+
+  return style
+}
+
+export function profileCardClassName(profile: PublicProfileResponse): string {
+  const classes = ["public-profile-card"]
+  const appearance = profile.appearance
+
+  if (appearance.profileTheme) {
+    classes.push("has-profile-theme")
+  }
+
+  if (appearance.profileEffect) {
+    classes.push(
+      "has-profile-effect",
+      `profile-effect--${appearance.profileEffect.effect.toLowerCase()}`,
+    )
+  }
+
+  return classes.join(" ")
+}
+
+export function profileHeadStyle(profile: PublicProfileResponse): ProfileHeadStyle | undefined {
+  const frame = profile.appearance.avatarFrame
+
+  if (!frame) {
+    return undefined
+  }
+
+  return {
+    "--profile-frame-color": frame.borderColor,
+    "--profile-frame-width": `${frame.borderWidthPx}px`,
+    "--profile-frame-radius": `${frame.radiusPx}px`,
+    "--profile-frame-glow": glowShadow(frame.glow),
   }
 }
 
@@ -50,4 +132,15 @@ export function localeForLanguage(language?: string) {
   }
 
   return "uk-UA"
+}
+
+function glowShadow(glow: { color: string; strength: number } | null): string {
+  if (!glow) {
+    return "none"
+  }
+
+  const blur = Math.max(6, Math.round(glow.strength * 0.32))
+  const alpha = Math.min(0.6, 0.14 + glow.strength / 220)
+
+  return `0 0 ${blur}px color-mix(in srgb, ${glow.color} ${Math.round(alpha * 100)}%, transparent)`
 }
