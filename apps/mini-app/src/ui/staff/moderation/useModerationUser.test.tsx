@@ -3,6 +3,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
+  getWalletBalance,
   listSanctions,
   listWalletAdjustments,
   searchIdentities,
@@ -14,6 +15,7 @@ vi.mock("@/shared/api/moderationApi", () => ({
   createSanction: vi.fn(),
   createWalletAdjustment: vi.fn(),
   getWalletAdjustment: vi.fn(),
+  getWalletBalance: vi.fn(),
   listSanctions: vi.fn(),
   listWalletAdjustments: vi.fn(),
   revokeSanction: vi.fn(),
@@ -64,6 +66,13 @@ describe("useModerationUser", () => {
     vi.mocked(searchIdentities).mockReset()
     vi.mocked(listSanctions).mockReset()
     vi.mocked(listSanctions).mockResolvedValue([])
+    vi.mocked(getWalletBalance).mockReset()
+    vi.mocked(getWalletBalance).mockImplementation(async (targetType, targetId) => ({
+      targetType,
+      targetId,
+      currency: targetType === "USER" ? "PRIME" : "COIN",
+      amount: 0,
+    }))
     vi.mocked(listWalletAdjustments).mockReset()
     vi.mocked(listWalletAdjustments).mockResolvedValue([])
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -138,6 +147,12 @@ describe("useModerationUser", () => {
     const accountId = "019c1129-ef54-7000-8000-000000000402"
 
     vi.mocked(searchIdentities).mockResolvedValueOnce([identityWithAccount("user-a", accountId)])
+    vi.mocked(getWalletBalance).mockResolvedValueOnce({
+      targetType: "ACCOUNT",
+      targetId: accountId,
+      currency: "COIN",
+      amount: 725,
+    })
 
     const { result } = renderHook(() =>
       useModerationUser({
@@ -148,10 +163,12 @@ describe("useModerationUser", () => {
     )
 
     await waitFor(() => expect(result.current.identity?.userId).toBe("user-a"))
-    await waitFor(() => expect(listWalletAdjustments).toHaveBeenCalledWith("ACCOUNT", accountId))
+    await waitFor(() => expect(getWalletBalance).toHaveBeenCalledWith("ACCOUNT", accountId))
+    await waitFor(() => expect(result.current.balance?.amount).toBe(725))
 
     expect(result.current.walletTarget).toBe("ACCOUNT")
     expect(result.current.currency).toBe("COIN")
+    expect(getWalletBalance).not.toHaveBeenCalledWith("USER", "user-a")
     expect(listWalletAdjustments).not.toHaveBeenCalledWith("USER", "user-a")
   })
 })
