@@ -9,9 +9,10 @@ import type { ModerationUserController } from "./useModerationUser"
 type Props = {
   controller: ModerationUserController
   language: string
+  canSanction: boolean
 }
 
-export function ModerationSanctions({ controller, language }: Props) {
+export function ModerationSanctions({ controller, language, canSanction }: Props) {
   const { t } = useTranslation()
   const activeBan = controller.activeBan
   const sanctionLabels: Record<SanctionType, string> = {
@@ -21,50 +22,52 @@ export function ModerationSanctions({ controller, language }: Props) {
 
   return (
     <>
-      <section className="moderation-actions">
-        {!activeBan ? (
+      {canSanction ? (
+        <section className="moderation-actions">
+          {!activeBan ? (
+            <button
+              type="button"
+              onClick={() => {
+                controller.setSanctionType("BAN")
+                controller.setSanctionFormOpen(true)
+              }}
+            >
+              <Glyph name="moderation" size={19} />
+              <span>
+                <strong>{t("moderation.ban")}</strong>
+                <small>{t("moderation.createBan")}</small>
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="moderation-action-revoke"
+              disabled={controller.busy}
+              onClick={() => void controller.revoke(activeBan.id)}
+            >
+              <Glyph name="check" size={18} />
+              <span>
+                <strong>{t("moderation.unban")}</strong>
+                <small>{activeBan.reason}</small>
+              </span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
-              controller.setSanctionType("BAN")
+              controller.setSanctionType("NOTIFICATION_SUSPENSION")
               controller.setSanctionFormOpen(true)
             }}
           >
-            <Glyph name="moderation" size={19} />
+            <Glyph name="bell" size={19} />
             <span>
-              <strong>{t("moderation.ban")}</strong>
-              <small>{t("moderation.createBan")}</small>
+              <strong>{t("moderation.notifications")}</strong>
+              <small>{t("moderation.suspendDelivery")}</small>
             </span>
           </button>
-        ) : (
-          <button
-            type="button"
-            className="moderation-action-revoke"
-            disabled={controller.busy}
-            onClick={() => void controller.revoke(activeBan.id)}
-          >
-            <Glyph name="check" size={18} />
-            <span>
-              <strong>{t("moderation.unban")}</strong>
-              <small>{activeBan.reason}</small>
-            </span>
-          </button>
-        )}
-
-        <button
-          type="button"
-          onClick={() => {
-            controller.setSanctionType("NOTIFICATION_SUSPENSION")
-            controller.setSanctionFormOpen(true)
-          }}
-        >
-          <Glyph name="bell" size={19} />
-          <span>
-            <strong>{t("moderation.notifications")}</strong>
-            <small>{t("moderation.suspendDelivery")}</small>
-          </span>
-        </button>
-      </section>
+        </section>
+      ) : null}
 
       <Section title={t("moderation.sanctions")}>
         <div className="sanction-list">
@@ -84,7 +87,7 @@ export function ModerationSanctions({ controller, language }: Props) {
                     : t("moderation.indefinite")}
                 </em>
               </span>
-              {sanction.status === "ACTIVE" ? (
+              {canSanction && sanction.status === "ACTIVE" ? (
                 <button
                   type="button"
                   disabled={controller.busy}
@@ -102,7 +105,7 @@ export function ModerationSanctions({ controller, language }: Props) {
         </div>
       </Section>
 
-      {controller.sanctionFormOpen ? (
+      {canSanction && controller.sanctionFormOpen ? (
         <section className="moderation-form">
           <div className="section__head">
             <h2>{t("moderation.newSanction")}</h2>
