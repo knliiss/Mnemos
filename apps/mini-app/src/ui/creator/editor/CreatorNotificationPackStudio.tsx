@@ -17,7 +17,7 @@ import type { NotificationTemplateKey } from "../../model"
 import { Field } from "../../shared/Primitives"
 import type { CreatorEditorForm } from "./creatorEditorModel"
 
- type EditorMode = "SOLO" | "AGGREGATE"
+type EditorMode = "SOLO" | "AGGREGATE"
 type AggregatePreviewMode = "SAME_TYPE" | "MIXED"
 type EditableTemplateField = "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
 
@@ -77,7 +77,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
   const [activeField, setActiveField] = useState<EditableTemplateField>("soloBody")
   const templateDescriptor =
     descriptor.templates.find((template) => template.type === selectedType) ?? descriptor.templates[0]
-  const template = templateDescriptor ? form.notificationPack.templates[templateDescriptor.type] : null
+  const template = templateDescriptor
+    ? form.notificationPack.templates[templateDescriptor.type]
+    : null
 
   const variableFields = useMemo(
     () =>
@@ -178,7 +180,10 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
         <em>{t("creator.editor.serverDriven")}</em>
       </header>
 
-      <nav className="notification-pack-template-tabs" aria-label={t("creator.editor.eventTemplate")}>
+      <nav
+        className="notification-pack-template-tabs"
+        aria-label={t("creator.editor.eventTemplate")}
+      >
         {descriptor.templates.map((candidate) => (
           <button
             type="button"
@@ -281,7 +286,8 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             </>
           )}
 
-          {variableFields.has(fieldContractKey[activeField]) && templateDescriptor.variables.length ? (
+          {variableFields.has(fieldContractKey[activeField]) &&
+          templateDescriptor.variables.length ? (
             <section className="notification-variable-palette">
               <header>
                 <span>
@@ -356,7 +362,12 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             <div>
               <span>{eventArt(templateDescriptor.type)}</span>
               <span>
-                <small>{withEmoji(template.emoji, renderTemplate(template.soloTitle, templateDescriptor.sampleValues))}</small>
+                <small>
+                  {withEmoji(
+                    template.emoji,
+                    renderTemplate(template.soloTitle, templateDescriptor.sampleValues),
+                  )}
+                </small>
                 <strong>{renderTemplate(template.soloBody, templateDescriptor.sampleValues)}</strong>
               </span>
             </div>
