@@ -1,12 +1,15 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import type { Badge } from "@/shared/api/badgeApi"
+import { UserBadgeMark } from "./badges/UserBadgeMark"
 
 type UserHubTriggerProps = {
   open: boolean
+  activeBadge: Badge | null
   onToggle: () => void
 }
 
-export function UserHubTrigger({ open, onToggle }: UserHubTriggerProps) {
+export function UserHubTrigger({ open, activeBadge, onToggle }: UserHubTriggerProps) {
   const { t } = useTranslation()
 
   return (
@@ -23,7 +26,7 @@ export function UserHubTrigger({ open, onToggle }: UserHubTriggerProps) {
         alt=""
         aria-hidden="true"
       />
-      <i />
+      {activeBadge ? <UserBadgeMark badge={activeBadge} compact /> : <i />}
     </motion.button>
   )
 }
