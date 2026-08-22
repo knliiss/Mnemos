@@ -21,7 +21,6 @@ class ListUserBadgesServiceTest {
             Badge.create(
                 code = "EVENT_MASTER",
                 name = "Event Master",
-                icon = "star",
                 color = HexColor("#C7F24A"),
                 now = Instant.parse("2026-08-19T18:00:00Z"),
             )
