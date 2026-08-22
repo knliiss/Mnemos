@@ -388,6 +388,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             onClose={() => !busy && setSelectedRace(null)}
             onAmountChange={setAmount}
             onSubmit={() => void submitRace()}
+          />
         ) : null}
       </AnimatePresence>
     </div>
