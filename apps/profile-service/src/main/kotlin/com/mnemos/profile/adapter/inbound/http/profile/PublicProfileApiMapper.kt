@@ -58,6 +58,10 @@ object PublicProfileApiMapper {
             text = text,
             border = border,
             glow = glow?.toResponse(),
+            backgroundSecondary = backgroundSecondary,
+            surfaceSecondary = surfaceSecondary,
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
         )
 
     private fun ProfileAppearance.AvatarFrame.toResponse(): ProfileAppearanceResponse.AvatarFrame =
@@ -67,6 +71,9 @@ object PublicProfileApiMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toResponse(),
+            secondaryBorderColor = secondaryBorderColor,
+            gapPx = gapPx,
+            style = style,
         )
 
     private fun ProfileAppearance.ProfileEffect.toResponse(): ProfileAppearanceResponse.ProfileEffect =
@@ -76,6 +83,9 @@ object PublicProfileApiMapper {
             intensity = intensity,
             primaryColor = primaryColor,
             secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
         )
 
     private fun ProfileAppearance.GradientStop.toResponse(): ProfileAppearanceResponse.GradientStop =
