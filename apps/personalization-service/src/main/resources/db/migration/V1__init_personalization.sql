@@ -181,19 +181,19 @@ CREATE UNIQUE INDEX uq_owned_personalizations_active_slot
 
 CREATE TABLE badges
 (
-    id         UUID PRIMARY KEY,
-    code       VARCHAR(32) NOT NULL UNIQUE,
-    name       VARCHAR(64) NOT NULL,
-    icon       VARCHAR(64) NOT NULL,
-    color      VARCHAR(7)  NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    id               UUID PRIMARY KEY,
+    code             VARCHAR(32) NOT NULL UNIQUE,
+    name             VARCHAR(64) NOT NULL,
+    image_object_key VARCHAR(96) NOT NULL UNIQUE,
+    color            VARCHAR(7)  NOT NULL,
+    created_at       TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT ck_badges_code_not_blank
         CHECK (BTRIM(code) <> ''),
     CONSTRAINT ck_badges_name_not_blank
         CHECK (BTRIM(name) <> ''),
-    CONSTRAINT ck_badges_icon_not_blank
-        CHECK (BTRIM(icon) <> ''),
+    CONSTRAINT ck_badges_image_object_key
+        CHECK (image_object_key ~ '^badges/[0-9a-fA-F-]{36}\.png$'),
     CONSTRAINT ck_badges_color
         CHECK (color ~ '^#[0-9A-Fa-f]{6}$')
 );
