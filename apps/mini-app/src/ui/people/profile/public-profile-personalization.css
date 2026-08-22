@@ -2,6 +2,16 @@
   border-color: color-mix(in srgb, var(--profile-theme-border) 72%, transparent);
   color: var(--profile-theme-text);
   background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(
+          in srgb,
+          var(--profile-theme-text) var(--profile-theme-texture),
+          transparent
+        )
+        0 1px,
+      transparent 1px 6px
+    ),
     radial-gradient(
       circle at 88% 12%,
       color-mix(in srgb, var(--profile-theme-accent) 16%, transparent),
@@ -9,13 +19,13 @@
     ),
     radial-gradient(
       circle at 8% 108%,
-      color-mix(in srgb, var(--profile-theme-surface) 28%, transparent),
+      color-mix(in srgb, var(--profile-theme-surface-secondary) 30%, transparent),
       transparent 40%
     ),
     linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--profile-theme-background) 92%, #111 8%),
-      color-mix(in srgb, var(--profile-theme-surface) 58%, #070807 42%)
+      var(--profile-theme-angle),
+      color-mix(in srgb, var(--profile-theme-background) 94%, #090a09 6%),
+      color-mix(in srgb, var(--profile-theme-background-secondary) 90%, #070807 10%)
     );
   box-shadow:
     var(--profile-theme-glow),
@@ -32,12 +42,20 @@
 .public-profile-card.has-profile-theme .public-profile-metric-icon,
 .public-profile-card.has-profile-theme .public-profile-reactions button {
   border-color: color-mix(in srgb, var(--profile-theme-border) 54%, transparent);
-  background: color-mix(in srgb, var(--profile-theme-surface) 44%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--profile-theme-surface) 50%, transparent),
+    color-mix(in srgb, var(--profile-theme-surface-secondary) 38%, transparent)
+  );
 }
 
 .public-profile-card.has-profile-theme .public-profile-metrics {
   border-top-color: color-mix(in srgb, var(--profile-theme-border) 48%, transparent);
-  background: color-mix(in srgb, var(--profile-theme-surface) 24%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--profile-theme-surface) 28%, transparent),
+    color-mix(in srgb, var(--profile-theme-surface-secondary) 20%, transparent)
+  );
 }
 
 .public-profile-card.has-profile-theme .public-profile-metrics > * + * {
@@ -56,6 +74,16 @@
   border-radius: var(--profile-frame-radius);
   background: transparent;
   box-shadow: var(--profile-frame-glow);
+}
+
+.public-profile-head.profile-frame--double::before {
+  outline: var(--profile-frame-width) solid var(--profile-frame-secondary);
+  outline-offset: var(--profile-frame-gap);
+}
+
+.public-profile-head.profile-frame--segmented::before {
+  border-style: dashed;
+  border-color: var(--profile-frame-color) var(--profile-frame-secondary);
 }
 
 .public-profile-card__main,
@@ -86,7 +114,7 @@
       color-mix(in srgb, var(--profile-effect-secondary) 72%, transparent),
       transparent 38%
     );
-  animation: public-profile-aurora 7s ease-in-out infinite alternate;
+  animation: public-profile-aurora var(--profile-effect-duration) ease-in-out infinite alternate;
 }
 
 .profile-effect--pulse .public-profile-effect {
@@ -98,7 +126,7 @@
     color-mix(in srgb, var(--profile-effect-secondary) 44%, transparent),
     transparent 68%
   );
-  animation: public-profile-pulse 2.8s ease-out infinite;
+  animation: public-profile-pulse var(--profile-effect-duration) ease-out infinite;
 }
 
 .profile-effect--shimmer .public-profile-effect {
@@ -111,7 +139,7 @@
     transparent 62%
   );
   transform: translateX(-34%);
-  animation: public-profile-shimmer 4.4s ease-in-out infinite;
+  animation: public-profile-shimmer var(--profile-effect-duration) ease-in-out infinite;
 }
 
 .profile-effect--particles .public-profile-effect {
@@ -125,7 +153,8 @@
   border-radius: 1px;
   background: var(--profile-effect-primary);
   box-shadow: 0 0 8px color-mix(in srgb, var(--profile-effect-primary) 65%, transparent);
-  animation: public-profile-particle 4.8s ease-in-out infinite;
+  filter: opacity(var(--profile-effect-density));
+  animation: public-profile-particle var(--profile-effect-duration) ease-in-out infinite;
 }
 
 .profile-effect--particles .public-profile-effect i:nth-child(1) {
@@ -157,13 +186,28 @@
   animation-delay: -3.5s;
 }
 
+.profile-effect--particles .public-profile-effect i:nth-child(5) {
+  top: 13%;
+  left: 48%;
+  width: 2px;
+  height: 2px;
+  animation-delay: -0.8s;
+}
+
+.profile-effect--particles .public-profile-effect i:nth-child(6) {
+  right: 9%;
+  bottom: 39%;
+  background: var(--profile-effect-secondary);
+  animation-delay: -2.9s;
+}
+
 @keyframes public-profile-aurora {
   from {
     transform: translate3d(-4%, -2%, 0) scale(1.02);
   }
 
   to {
-    transform: translate3d(4%, 2%, 0) scale(1.1);
+    transform: translate3d(4%, 2%, 0) scale(var(--profile-effect-scale));
   }
 }
 
@@ -179,19 +223,19 @@
 
   100% {
     opacity: 0;
-    transform: scale(1.42);
+    transform: scale(var(--profile-effect-scale));
   }
 }
 
 @keyframes public-profile-shimmer {
   0%,
   28% {
-    transform: translateX(-38%);
+    transform: translateX(-38%) scale(var(--profile-effect-scale));
   }
 
   72%,
   100% {
-    transform: translateX(38%);
+    transform: translateX(38%) scale(var(--profile-effect-scale));
   }
 }
 
@@ -204,7 +248,7 @@
 
   50% {
     opacity: 1;
-    transform: translate3d(2px, -5px, 0) scale(1.16);
+    transform: translate3d(2px, -5px, 0) scale(var(--profile-effect-scale));
   }
 }
 
