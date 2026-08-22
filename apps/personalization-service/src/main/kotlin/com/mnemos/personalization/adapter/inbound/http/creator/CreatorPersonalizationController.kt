@@ -2,6 +2,7 @@ package com.mnemos.personalization.adapter.inbound.http.creator
 
 import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonalizationApiMapper.toCreateCommand
 import com.mnemos.personalization.adapter.inbound.http.creator.CreatorPersonalizationApiMapper.toUpdateCommand
+import com.mnemos.personalization.adapter.inbound.http.creator.NotificationPackEditorDescriptorApiMapper.toResponse
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateAvatarFrameRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNickStyleRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNotificationPackRequest
@@ -11,6 +12,7 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.Personali
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationResponse
 import com.mnemos.personalization.application.personalization.usecase.createcreator.CreateCreatorPersonalizationUseCase
 import com.mnemos.personalization.application.personalization.usecase.getcreator.GetCreatorPersonalizationUseCase
+import com.mnemos.personalization.application.personalization.usecase.getnotificationpackdescriptor.GetNotificationPackEditorDescriptorUseCase
 import com.mnemos.personalization.application.personalization.usecase.listcreator.ListCreatorPersonalizationsUseCase
 import com.mnemos.personalization.application.personalization.usecase.publish.PublishPersonalizationUseCase
 import com.mnemos.personalization.application.personalization.usecase.submit.SubmitPersonalizationUseCase
@@ -36,6 +38,7 @@ class CreatorPersonalizationController(
     private val createCreatorPersonalizationUseCase: CreateCreatorPersonalizationUseCase,
     private val updateCreatorPersonalizationUseCase: UpdateCreatorPersonalizationUseCase,
     private val getCreatorPersonalizationUseCase: GetCreatorPersonalizationUseCase,
+    private val getNotificationPackEditorDescriptorUseCase: GetNotificationPackEditorDescriptorUseCase,
     private val listCreatorPersonalizationsUseCase: ListCreatorPersonalizationsUseCase,
     private val submitPersonalizationUseCase: SubmitPersonalizationUseCase,
     private val publishPersonalizationUseCase: PublishPersonalizationUseCase,
@@ -43,6 +46,10 @@ class CreatorPersonalizationController(
     @GetMapping("/me")
     fun listMine(): List<PersonalizationResponse> =
         listCreatorPersonalizationsUseCase.execute().map { personalization -> personalization.toResponse() }
+
+    @GetMapping("/notification-packs/descriptor")
+    fun getNotificationPackEditorDescriptor(): NotificationPackEditorDescriptorResponse =
+        getNotificationPackEditorDescriptorUseCase.execute().toResponse()
 
     @GetMapping("/{personalizationId}")
     fun getMine(
