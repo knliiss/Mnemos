@@ -1,5 +1,7 @@
 package com.mnemos.personalization.domain.personalization.model
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+
 sealed interface PersonalizationContent {
     data class NickStyle(
         val colors: List<GradientStop>,
@@ -187,12 +189,14 @@ data class NotificationTemplate(
     val aggregateTitle: String,
 )
 
-enum class NotificationTemplateKey(
-    val allowedPlaceholders: Set<String>,
-) {
-    ITEM_DROP(setOf("player", "item", "rarity", "itemType")),
-    BOOSTER(setOf("player", "booster")),
-    DUNGEON(setOf("dungeon")),
-    RAID(setOf("locations")),
-    GLOBAL(setOf("event")),
+enum class NotificationTemplateKey {
+    ITEM_DROP,
+    BOOSTER,
+    DUNGEON,
+    RAID,
+    GLOBAL,
+    ;
+
+    val allowedPlaceholders: Set<String>
+        get() = NotificationPackTemplateType.valueOf(name).allowedPlaceholders
 }
