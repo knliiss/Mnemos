@@ -228,28 +228,80 @@
   font-weight: 720;
 }
 
+.frame-real-preview__avatar--segmented {
+  border-style: dashed;
+}
+
+.effect-real-preview {
+  isolation: isolate;
+}
+
+.effect-real-preview > span,
+.effect-real-preview > small {
+  position: relative;
+  z-index: 2;
+}
+
 .effect-real-preview > span {
   border-color: color-mix(in srgb, var(--effect-primary) 55%, transparent);
   box-shadow:
-    0 0 calc(3px + var(--effect-intensity) * 0.12)
-      color-mix(in srgb, var(--effect-primary) 38%, transparent),
+    0 0 var(--effect-blur) color-mix(in srgb, var(--effect-primary) 38%, transparent),
     inset 0 0 16px color-mix(in srgb, var(--effect-secondary) 12%, transparent);
 }
 
-.effect-real-preview--aura > span {
-  border-radius: 50%;
+.effect-real-preview::before,
+.effect-real-preview::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.effect-real-preview--aurora::before {
+  inset: -28%;
+  background:
+    radial-gradient(
+      ellipse at 24% 44%,
+      color-mix(in srgb, var(--effect-primary) 54%, transparent),
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 76% 56%,
+      color-mix(in srgb, var(--effect-secondary) 48%, transparent),
+      transparent 38%
+    );
+  filter: blur(8px);
+  animation: preview-effect-aurora var(--effect-duration) ease-in-out infinite alternate;
+}
+
+.effect-real-preview--pulse > span {
+  animation: preview-effect-pulse var(--effect-duration) ease-out infinite;
+}
+
+.effect-real-preview--shimmer::before {
+  inset: -60% -80%;
+  background: linear-gradient(
+    112deg,
+    transparent 40%,
+    color-mix(in srgb, var(--effect-primary) 54%, transparent) 48%,
+    color-mix(in srgb, var(--effect-secondary) 42%, transparent) 52%,
+    transparent 60%
+  );
+  animation: preview-effect-shimmer var(--effect-duration) ease-in-out infinite;
 }
 
 .effect-real-preview--particles::before,
 .effect-real-preview--particles::after {
-  content: "";
-  position: absolute;
   width: 4px;
   height: 4px;
   background: var(--effect-primary);
+  filter: opacity(var(--effect-density));
   box-shadow:
     14px 8px var(--effect-secondary),
-    -12px 17px color-mix(in srgb, var(--effect-primary) 58%, transparent);
+    -12px 17px color-mix(in srgb, var(--effect-primary) 58%, transparent),
+    24px 24px color-mix(in srgb, var(--effect-secondary) 76%, transparent),
+    -20px -8px color-mix(in srgb, var(--effect-primary) 72%, transparent);
+  animation: preview-effect-particles var(--effect-duration) ease-in-out infinite alternate;
 }
 
 .effect-real-preview--particles::before {
@@ -260,6 +312,50 @@
 .effect-real-preview--particles::after {
   right: 22px;
   bottom: 15px;
+  animation-delay: -1.4s;
+}
+
+@keyframes preview-effect-aurora {
+  from {
+    transform: translate3d(-6%, -2%, 0) scale(0.96);
+  }
+
+  to {
+    transform: translate3d(6%, 2%, 0) scale(var(--effect-scale));
+  }
+}
+
+@keyframes preview-effect-pulse {
+  0%,
+  100% {
+    transform: scale(0.92);
+  }
+
+  50% {
+    transform: scale(var(--effect-scale));
+  }
+}
+
+@keyframes preview-effect-shimmer {
+  0%,
+  24% {
+    transform: translateX(-42%) scale(var(--effect-scale));
+  }
+
+  76%,
+  100% {
+    transform: translateX(42%) scale(var(--effect-scale));
+  }
+}
+
+@keyframes preview-effect-particles {
+  from {
+    transform: translate3d(-2px, 3px, 0) scale(0.86);
+  }
+
+  to {
+    transform: translate3d(3px, -4px, 0) scale(var(--effect-scale));
+  }
 }
 
 .personalization-spec-grid {
@@ -485,6 +581,14 @@
   background: rgba(255, 255, 255, 0.022);
   font-size: 9px;
   font-style: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .effect-real-preview::before,
+  .effect-real-preview::after,
+  .effect-real-preview > span {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 420px) {
