@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
+  getBetOperation,
   increaseEventBet,
   increaseItemRaceBet,
   joinItemRace,
@@ -9,6 +10,7 @@ import {
   type EventBetRoundResponse,
   type ItemRaceResponse,
 } from "@/shared/api/betApi"
+import { AppError } from "@/shared/errors/AppError"
 import { handleError } from "@/shared/errors/errorHandler"
 import { GlobalEventArt } from "../components/events/EventArt"
 import { useMnemosData } from "../data/MnemosDataProvider"
@@ -42,6 +44,18 @@ type ScopedSelection = {
   id: string
 }
 
+type PendingRoundOperation = {
+  operationId: string
+  side: BetSide
+  amount: number
+  baselineAmount: number
+}
+
+const FIRST_EVENT_BET_MIN = 500
+const FIRST_EVENT_BET_MAX = 5_000
+const BET_OPERATION_POLL_ATTEMPTS = 30
+const BET_OPERATION_POLL_DELAY_MS = 750
+
 function resolveNextOpenRounds(rounds: EventBetRoundResponse[]): EventBetRoundResponse[] {
   const openRounds = rounds
     .filter((round) => round.status === "OPEN")
@@ -59,6 +73,22 @@ function resolveNextOpenRounds(rounds: EventBetRoundResponse[]): EventBetRoundRe
   )
 }
 
+async function waitForBetOperation(operationId: string) {
+  for (let attempt = 0; attempt < BET_OPERATION_POLL_ATTEMPTS; attempt += 1) {
+    const operation = await getBetOperation(operationId)
+
+    if (operation.status !== "PENDING") {
+      return operation.status
+    }
+
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, BET_OPERATION_POLL_DELAY_MS)
+    })
+  }
+
+  return "PENDING" as const
+}
+
 export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
@@ -73,17 +103,74 @@ export function Bets({ activeAccount, navigate }: Props) {
   const [side, setSide] = useState<BetSide>("YES")
   const [amount, setAmount] = useState("500")
   const [busy, setBusy] = useState(false)
+  const [pendingRoundOperations, setPendingRoundOperations] = useState<
+    Record<string, PendingRoundOperation>
+  >({})
   const submitLocked = useRef(false)
+  const mountedRef = useRef(true)
+  const activeAccountIdRef = useRef(activeAccount.id)
   const locale = betLocale(i18n.resolvedLanguage)
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    activeAccountIdRef.current = activeAccount.id
+    setPendingRoundOperations({})
+  }, [activeAccount.id])
+
+  const roundsWithPending = useMemo(
+    () =>
+      rounds.map((round) => {
+        const pending = pendingRoundOperations[round.id]
+
+        if (!pending) {
+          return round
+        }
+
+        const currentAmount = round.myBet ? betAmount(round.myBet) : 0
+        const targetAmount = pending.baselineAmount + pending.amount
+        const missingAmount = Math.max(targetAmount - currentAmount, 0)
+
+        if (missingAmount === 0) {
+          return round
+        }
+
+        const myBet = round.myBet
+          ? {
+              ...round.myBet,
+              pendingAmount: round.myBet.pendingAmount + missingAmount,
+            }
+          : {
+              id: `pending:${pending.operationId}`,
+              roundId: round.id,
+              side: pending.side,
+              confirmedAmount: 0,
+              pendingAmount: missingAmount,
+              status: "ACTIVE" as const,
+            }
+
+        return {
+          ...round,
+          myBet,
+        }
+      }),
+    [pendingRoundOperations, rounds],
+  )
 
   const positionsByRace = useMemo(
     () => new Map(positions.map((position) => [position.raceId, position])),
     [positions],
   )
-  const nextOpenRounds = useMemo(() => resolveNextOpenRounds(rounds), [rounds])
+  const nextOpenRounds = useMemo(() => resolveNextOpenRounds(roundsWithPending), [roundsWithPending])
   const selectedRoundValue =
     selectedRound?.accountId === activeAccount.id
-      ? (rounds.find((round) => round.id === selectedRound.id) ?? null)
+      ? (roundsWithPending.find((round) => round.id === selectedRound.id) ?? null)
       : null
   const selectedRaceValue =
     selectedRace?.accountId === activeAccount.id
@@ -94,22 +181,87 @@ export function Bets({ activeAccount, navigate }: Props) {
     : null
   const featured = nextOpenRounds[0] ?? null
   const eventRounds = nextOpenRounds.slice(1)
-  const myRounds = rounds.filter((round) => round.myBet)
+  const myRounds = roundsWithPending.filter((round) => round.myBet)
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
   const numericAmount = Number(amount)
   const selectedHasBet = Boolean(selectedRoundValue?.myBet)
+  const amountIsInteger = Number.isInteger(numericAmount)
   const withinBalance = numericAmount <= activeAccount.coin
   const roundAmountValid =
     canPlaceBets &&
-    Number.isInteger(numericAmount) &&
-    numericAmount >= (selectedHasBet ? 1 : 100) &&
+    amountIsInteger &&
+    numericAmount >= (selectedHasBet ? 1 : FIRST_EVENT_BET_MIN) &&
     withinBalance &&
-    (selectedHasBet || numericAmount <= 5_000)
+    (selectedHasBet || numericAmount <= FIRST_EVENT_BET_MAX)
+  const roundAmountHint = (() => {
+    if (!amountIsInteger) {
+      return t("bets.sheet.amountInteger")
+    }
+
+    if (!selectedHasBet && numericAmount < FIRST_EVENT_BET_MIN) {
+      return t("bets.sheet.amountMinimum")
+    }
+
+    if (!selectedHasBet && numericAmount > FIRST_EVENT_BET_MAX) {
+      return t("bets.sheet.amountMaximum")
+    }
+
+    if (numericAmount < 1) {
+      return t("bets.sheet.amountInteger")
+    }
+
+    if (!withinBalance) {
+      return t("bets.sheet.insufficientBalance")
+    }
+
+    return null
+  })()
   const raceAmountValid =
     canPlaceBets && Number.isInteger(numericAmount) && numericAmount > 0 && withinBalance
   const raceJoinValid = Boolean(
     canPlaceBets && selectedRaceValue && selectedRaceValue.entryAmount <= activeAccount.coin,
   )
+
+  const reconcileRoundOperation = async (
+    accountId: string,
+    roundId: string,
+    operation: PendingRoundOperation,
+  ) => {
+    try {
+      const status = await waitForBetOperation(operation.operationId)
+
+      if (!mountedRef.current || activeAccountIdRef.current !== accountId) {
+        return
+      }
+
+      await Promise.all([refresh(), data.refreshAccount()])
+
+      if (!mountedRef.current || activeAccountIdRef.current !== accountId) {
+        return
+      }
+
+      if (status === "FAILED") {
+        handleError(new AppError("validation", t("bets.sheet.operationFailed")))
+      }
+
+      if (status !== "PENDING") {
+        setPendingRoundOperations((current) => {
+          if (current[roundId]?.operationId !== operation.operationId) {
+            return current
+          }
+
+          const next = { ...current }
+          delete next[roundId]
+
+          return next
+        })
+      }
+    } catch (operationError) {
+      if (mountedRef.current && activeAccountIdRef.current === accountId) {
+        handleError(operationError)
+      }
+    }
+  }
 
   const openRound = (round: EventBetRoundResponse) => {
     setSelectedRound({
@@ -141,23 +293,45 @@ export function Bets({ activeAccount, navigate }: Props) {
       return
     }
 
+    const accountId = activeAccount.id
+    const roundId = selectedRoundValue.id
+    const selectedBet = selectedRoundValue.myBet
+    const operationSide = selectedBet?.side ?? side
+    const baselineAmount = selectedBet ? betAmount(selectedBet) : 0
+
     submitLocked.current = true
     setBusy(true)
 
     try {
-      if (selectedRoundValue.myBet) {
-        await increaseEventBet(selectedRoundValue.id, numericAmount)
-      } else {
-        await placeEventBet(selectedRoundValue.id, side, numericAmount)
+      const accepted = selectedBet
+        ? await increaseEventBet(roundId, numericAmount)
+        : await placeEventBet(roundId, operationSide, numericAmount)
+      const pendingOperation: PendingRoundOperation = {
+        operationId: accepted.operationId,
+        side: operationSide,
+        amount: numericAmount,
+        baselineAmount,
       }
 
+      if (!mountedRef.current || activeAccountIdRef.current !== accountId) {
+        return
+      }
+
+      setPendingRoundOperations((current) => ({
+        ...current,
+        [roundId]: pendingOperation,
+      }))
       setSelectedRound(null)
-      await refresh()
-    } catch (error) {
-      handleError(error)
+      setMode("MY")
+
+      void reconcileRoundOperation(accountId, roundId, pendingOperation)
+    } catch (submitError) {
+      handleError(submitError)
     } finally {
       submitLocked.current = false
-      setBusy(false)
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -187,11 +361,13 @@ export function Bets({ activeAccount, navigate }: Props) {
 
       setSelectedRace(null)
       await refresh()
-    } catch (error) {
-      handleError(error)
+    } catch (submitError) {
+      handleError(submitError)
     } finally {
       submitLocked.current = false
-      setBusy(false)
+      if (mountedRef.current) {
+        setBusy(false)
+      }
     }
   }
 
@@ -369,6 +545,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             side={side}
             amount={amount}
             amountValid={roundAmountValid}
+            amountHint={roundAmountHint}
             busy={busy}
             locale={locale}
             onClose={() => !busy && setSelectedRound(null)}
