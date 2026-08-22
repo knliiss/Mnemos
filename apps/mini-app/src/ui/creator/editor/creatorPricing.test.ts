@@ -42,7 +42,13 @@ function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
     accent: "#C7F24A",
     secondary: "#B98DC2",
     intensity: 48,
-    message: "Example",
+    notificationMessages: {
+      ITEM_DROP: "Example",
+      BOOSTER: "Example",
+      DUNGEON: "Example",
+      RAID: "Example",
+      GLOBAL: "Example",
+    },
     ...overrides,
   }
 }
