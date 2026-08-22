@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Field } from "../../shared/Primitives"
 import type { BadgeDraft } from "./useBadgeCatalog"
@@ -16,26 +16,22 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [image, setImage] = useState<File | null>(null)
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
   const [color, setColor] = useState("#C7F24A")
 
   const codeValid = /^[A-Z][A-Z0-9_]{1,31}$/.test(code)
   const imageValid =
     image !== null && image.type === "image/png" && image.size <= MAX_BADGE_IMAGE_BYTES
   const createValid = codeValid && name.trim().length > 0 && name.trim().length <= 64 && imageValid
+  const imagePreviewUrl = useMemo(() => (image ? URL.createObjectURL(image) : null), [image])
 
-  useEffect(() => {
-    if (!image) {
-      setImagePreviewUrl(null)
-      return
-    }
-
-    const url = URL.createObjectURL(image)
-
-    setImagePreviewUrl(url)
-
-    return () => URL.revokeObjectURL(url)
-  }, [image])
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl)
+      }
+    },
+    [imagePreviewUrl],
+  )
 
   const create = async () => {
     if (!createValid || !image || busy) {
