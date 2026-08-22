@@ -17,8 +17,8 @@ class BadgeEntity(
     var code: String,
     @Column(name = "name", nullable = false, length = 64)
     var name: String,
-    @Column(name = "icon", nullable = false, length = 64)
-    var icon: String,
+    @Column(name = "image_object_key", nullable = false, unique = true, length = 96)
+    var imageObjectKey: String,
     @Column(name = "color", nullable = false, length = 7)
     var color: String,
     @Column(name = "created_at", nullable = false)
