@@ -47,8 +47,7 @@ export function CreatorEditor({ params, back }: Props) {
   const personalizationId = params?.personalizationId ?? "new"
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
-  const [pricing, setPricing] =
-    useState<PersonalizationPricingResponse | null>(null)
+  const [pricing, setPricing] = useState<PersonalizationPricingResponse | null>(null)
   const [form, setForm] = useState(() => createDefaultCreatorEditorForm(t))
   const [loading, setLoading] = useState(true)
   const [loadedId, setLoadedId] = useState<string | null>(null)
@@ -72,9 +71,7 @@ export function CreatorEditor({ params, back }: Props) {
       setLoading(true)
       setLoadError(false)
 
-      const sourceRequest = isNew
-        ? Promise.resolve(null)
-        : getPersonalization(personalizationId)
+      const sourceRequest = isNew ? Promise.resolve(null) : getPersonalization(personalizationId)
 
       void Promise.all([getPersonalizationPricing(), sourceRequest])
         .then(([pricingResponse, response]) => {
@@ -116,9 +113,7 @@ export function CreatorEditor({ params, back }: Props) {
 
   const currentSource = loadedId === personalizationId ? source : null
   const visibleLoading = loading || loadedId !== personalizationId
-  const priceRange = pricing
-    ? resolveCreatorPriceRange(pricing, form.type, form.currency)
-    : null
+  const priceRange = pricing ? resolveCreatorPriceRange(pricing, form.type, form.currency) : null
   const priceValid = isCreatorPriceValid(form, pricing)
   const messageValid = form.type !== "NOTIFICATION_PACK" || form.message.trim().length > 0
   const valid = form.name.trim().length >= 3 && priceValid && messageValid
@@ -151,9 +146,7 @@ export function CreatorEditor({ params, back }: Props) {
 
       setSource(saved)
       setLoadedId(actionScope)
-      setForm(
-        normalizeCreatorPrice(creatorResponseToEditorForm(saved, t), currentPricing),
-      )
+      setForm(normalizeCreatorPrice(creatorResponseToEditorForm(saved, t), currentPricing))
 
       return saved
     } catch (error) {
@@ -311,8 +304,7 @@ export function CreatorEditor({ params, back }: Props) {
                 const next = {
                   ...current,
                   type: value,
-                  currency:
-                    value === "NOTIFICATION_PACK" ? ("PRIME" as const) : current.currency,
+                  currency: value === "NOTIFICATION_PACK" ? ("PRIME" as const) : current.currency,
                 }
 
                 return pricing ? normalizeCreatorPrice(next, pricing) : next

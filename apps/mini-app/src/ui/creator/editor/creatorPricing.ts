@@ -15,9 +15,7 @@ export function resolveCreatorPriceRange(
   return (
     pricing.ranges.find(
       (range) =>
-        range.origin === "CREATOR" &&
-        range.type === type &&
-        range.currency === resolvedCurrency,
+        range.origin === "CREATOR" && range.type === type && range.currency === resolvedCurrency,
     ) ?? null
   )
 }
@@ -37,8 +35,7 @@ export function normalizeCreatorPrice(
   }
 
   const amount = Number(form.price)
-  const valid =
-    Number.isInteger(amount) && amount >= range.min && amount <= range.max
+  const valid = Number.isInteger(amount) && amount >= range.min && amount <= range.max
 
   return {
     ...form,
@@ -63,7 +60,5 @@ export function isCreatorPriceValid(
 
   const amount = Number(form.price)
 
-  return (
-    Number.isInteger(amount) && amount >= range.min && amount <= range.max
-  )
+  return Number.isInteger(amount) && amount >= range.min && amount <= range.max
 }
