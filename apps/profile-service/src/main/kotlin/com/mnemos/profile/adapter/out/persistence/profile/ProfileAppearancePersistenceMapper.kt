@@ -54,6 +54,10 @@ object ProfileAppearancePersistenceMapper {
             text = text,
             border = border,
             glow = glow?.toDocument(),
+            backgroundSecondary = backgroundSecondary,
+            surfaceSecondary = surfaceSecondary,
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
         )
 
     private fun ProfileAppearanceDocument.ProfileTheme.toDomain(): ProfileAppearance.ProfileTheme =
@@ -65,6 +69,10 @@ object ProfileAppearancePersistenceMapper {
             text = text,
             border = border,
             glow = glow?.toDomain(),
+            backgroundSecondary = backgroundSecondary,
+            surfaceSecondary = surfaceSecondary,
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
         )
 
     private fun ProfileAppearance.AvatarFrame.toDocument(): ProfileAppearanceDocument.AvatarFrame =
@@ -74,6 +82,9 @@ object ProfileAppearancePersistenceMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toDocument(),
+            secondaryBorderColor = secondaryBorderColor,
+            gapPx = gapPx,
+            style = style,
         )
 
     private fun ProfileAppearanceDocument.AvatarFrame.toDomain(): ProfileAppearance.AvatarFrame =
@@ -83,6 +94,9 @@ object ProfileAppearancePersistenceMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toDomain(),
+            secondaryBorderColor = secondaryBorderColor,
+            gapPx = gapPx,
+            style = style,
         )
 
     private fun ProfileAppearance.ProfileEffect.toDocument(): ProfileAppearanceDocument.ProfileEffect =
@@ -92,6 +106,9 @@ object ProfileAppearancePersistenceMapper {
             intensity = intensity,
             primaryColor = primaryColor,
             secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
         )
 
     private fun ProfileAppearanceDocument.ProfileEffect.toDomain(): ProfileAppearance.ProfileEffect =
@@ -101,6 +118,9 @@ object ProfileAppearancePersistenceMapper {
             intensity = intensity,
             primaryColor = primaryColor,
             secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
         )
 
     private fun ProfileAppearance.GradientStop.toDocument(): ProfileAppearanceDocument.GradientStop =
