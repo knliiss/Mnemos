@@ -9,6 +9,14 @@ export const personalizationTargets: Record<PersonalizationType, Personalization
   PROFILE_EFFECT: "ACCOUNT",
 }
 
+export const personalizationIllustrations: Record<PersonalizationType, string> = {
+  NOTIFICATION_PACK: "/ui-illustrations/creator-notification.svg",
+  NICK_STYLE: "/ui-illustrations/creator-nick.svg",
+  PROFILE_THEME: "/ui-illustrations/creator-theme.svg",
+  AVATAR_FRAME: "/ui-illustrations/creator-frame.svg",
+  PROFILE_EFFECT: "/ui-illustrations/creator-effect.svg",
+}
+
 export const accountPersonalizationTypes = PERSONALIZATION_TYPES.filter(
   (type) => personalizationTargets[type] === "ACCOUNT",
 )
