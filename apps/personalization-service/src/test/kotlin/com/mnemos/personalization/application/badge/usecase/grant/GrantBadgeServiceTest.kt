@@ -6,7 +6,6 @@ import com.mnemos.personalization.application.badge.support.BadgeAdministrationS
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.badge.model.Badge
-import com.mnemos.personalization.domain.badge.model.BadgeId
 import com.mnemos.personalization.domain.badge.model.UserBadge
 import com.mnemos.personalization.domain.badge.repository.BadgeRepository
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -71,13 +70,11 @@ class GrantBadgeServiceTest {
         )
 
     private fun badge(): Badge =
-        Badge(
-            id = BadgeId.generate(),
+        Badge.create(
             code = "EARLY_SUPPORTER",
             name = "Early Supporter",
-            icon = "star",
             color = HexColor("#FFFFFF"),
-            createdAt = now.minusSeconds(120),
+            now = now.minusSeconds(120),
         )
 
     private class FixedActorProvider(
