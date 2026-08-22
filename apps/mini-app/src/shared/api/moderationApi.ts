@@ -42,6 +42,13 @@ export type CreateSanctionRequest = {
   durationHours: number | null
 }
 
+export type WalletBalanceResponse = {
+  targetType: WalletOwnerType
+  targetId: string
+  currency: Currency
+  amount: number
+}
+
 export type WalletAdjustmentResponse = {
   operationId: string
   requestId: string
@@ -96,6 +103,14 @@ export async function revokeSanction(sanctionId: string): Promise<void> {
   await api<void>(`/api/v1/moderation/sanctions/${sanctionId}`, {
     method: "DELETE",
   })
+}
+
+export async function getWalletBalance(
+  targetType: WalletOwnerType,
+  targetId: string,
+): Promise<WalletBalanceResponse> {
+  const params = new URLSearchParams({ targetType, targetId })
+  return api<WalletBalanceResponse>(`/api/v1/moderation/wallet-balances?${params}`)
 }
 
 export async function listWalletAdjustments(
