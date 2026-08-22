@@ -53,7 +53,9 @@ export function AccountMembersPanel({
               whileTap={{ scale: 0.992 }}
               onClick={() => navigate({ id: "member", params: { memberId: member.id } })}
             >
-              <span className="account-home-member__avatar" aria-hidden="true" />
+              <span className="account-home-member__avatar" aria-hidden="true">
+                <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
+              </span>
 
               <span className="account-home-member__copy">
                 <span className="account-home-member__name">
