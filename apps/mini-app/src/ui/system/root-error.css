@@ -9,8 +9,7 @@
   color: #edf0e8;
   background:
     radial-gradient(circle at 50% 28%, rgba(169, 138, 178, 0.085), transparent 28%),
-    radial-gradient(circle at 82% 84%, rgba(199, 242, 74, 0.03), transparent 24%),
-    #050705;
+    radial-gradient(circle at 82% 84%, rgba(199, 242, 74, 0.03), transparent 24%), #050705;
 }
 
 .root-error-screen::before {
