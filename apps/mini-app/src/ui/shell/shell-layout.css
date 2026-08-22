@@ -63,12 +63,18 @@
 }
 
 .telegram-mini-app .user-hub {
-  top: calc(72px + var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))) !important;
+  top: calc(
+    72px + var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+  ) !important;
 }
 
 @media (min-width: 700px) {
-  .preview-stage:not(.telegram-mini-app .preview-stage) .app-shell {
+  .app-shell {
     width: min(calc(100% - 36px), 1100px);
+  }
+
+  .telegram-mini-app .app-shell {
+    width: 100%;
   }
 
   .user-hub {
