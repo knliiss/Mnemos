@@ -23,4 +23,13 @@ data class CreateProfileEffectRequest(
     val secondaryColor: String?,
     @field:Valid
     val price: PersonalizationPriceRequest,
+    @field:Min(1)
+    @field:Max(100)
+    val speed: Int = 50,
+    @field:Min(1)
+    @field:Max(100)
+    val density: Int = 50,
+    @field:Min(1)
+    @field:Max(100)
+    val scale: Int = 50,
 )
