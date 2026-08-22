@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next"
 import type { Route } from "../model"
-import { Glyph } from "../shared/MnemosIcon"
 
 type UserHubWorkspacesProps = {
   systemRoles: string[]
@@ -32,6 +31,14 @@ function resolveWorkspaceAccess(systemRoles: string[]): WorkspaceAccess {
   }
 }
 
+function WorkspaceIllustration({ src }: { src: string }) {
+  return (
+    <span className="user-hub-workspace-art" aria-hidden="true">
+      <img src={src} alt="" />
+    </span>
+  )
+}
+
 export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesProps) {
   const { t } = useTranslation()
   const access = resolveWorkspaceAccess(systemRoles)
@@ -47,11 +54,11 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             className="is-creator"
             onClick={() => navigate({ id: "creator-studio" })}
           >
-            <span>
-              <Glyph name="creator" size={20} />
+            <WorkspaceIllustration src="/ui-illustrations/workspace-creator.svg" />
+            <span className="user-hub-workspace-copy">
+              <strong>{t("appShell.userMenu.creator")}</strong>
+              <small>{t("appShell.userMenu.creatorDescription")}</small>
             </span>
-            <strong>{t("appShell.userMenu.creator")}</strong>
-            <small>{t("appShell.userMenu.creatorDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -62,11 +69,11 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             className="is-moderation"
             onClick={() => navigate({ id: "moderation" })}
           >
-            <span>
-              <Glyph name="moderation" size={20} />
+            <WorkspaceIllustration src="/ui-illustrations/admin-users.svg" />
+            <span className="user-hub-workspace-copy">
+              <strong>{t("appShell.userMenu.moderation")}</strong>
+              <small>{t("appShell.userMenu.moderationDescription")}</small>
             </span>
-            <strong>{t("appShell.userMenu.moderation")}</strong>
-            <small>{t("appShell.userMenu.moderationDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -77,11 +84,11 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             className="is-creator"
             onClick={() => navigate({ id: "personalization-review" })}
           >
-            <span>
-              <Glyph name="creator" size={20} />
+            <WorkspaceIllustration src="/ui-illustrations/admin-review.svg" />
+            <span className="user-hub-workspace-copy">
+              <strong>{t("appShell.userMenu.review")}</strong>
+              <small>{t("appShell.userMenu.reviewDescription")}</small>
             </span>
-            <strong>{t("appShell.userMenu.review")}</strong>
-            <small>{t("appShell.userMenu.reviewDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
@@ -92,11 +99,11 @@ export function UserHubWorkspaces({ systemRoles, navigate }: UserHubWorkspacesPr
             className="is-admin"
             onClick={() => navigate({ id: "administration" })}
           >
-            <span>
-              <Glyph name="admin" size={20} />
+            <WorkspaceIllustration src="/ui-illustrations/workspace-admin.svg" />
+            <span className="user-hub-workspace-copy">
+              <strong>{t("appShell.userMenu.administration")}</strong>
+              <small>{t("appShell.userMenu.administrationDescription")}</small>
             </span>
-            <strong>{t("appShell.userMenu.administration")}</strong>
-            <small>{t("appShell.userMenu.administrationDescription")}</small>
             <b>›</b>
           </button>
         ) : null}
