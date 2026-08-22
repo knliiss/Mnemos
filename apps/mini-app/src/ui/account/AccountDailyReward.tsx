@@ -89,7 +89,16 @@ export function AccountDailyReward() {
     <section className={`account-home-reward ${reward?.claimedToday ? "is-claimed" : ""}`}>
       <span className="account-home-reward__flame" aria-hidden="true">
         <i />
-        <img src="/ui-icons/flame.png" alt="" />
+        <motion.img
+          src="/ui-icons/flame.png"
+          alt=""
+          animate={{
+            y: [0, -2, 1, -1, 0],
+            scale: [1, 1.045, 0.985, 1.025, 1],
+            rotate: [0, -1.5, 1.3, -0.7, 0],
+          }}
+          transition={{ duration: 1.45, repeat: Infinity, ease: "easeInOut" }}
+        />
       </span>
 
       <span className="account-home-reward__copy">
@@ -119,13 +128,20 @@ export function AccountDailyReward() {
       {claimAvailable ? (
         <motion.button
           type="button"
+          className="account-home-reward__claim"
           whileTap={{ scale: 0.96 }}
           disabled={rewardBusy}
           onClick={() => void claimDaily()}
           aria-label={t("accountHome.claimAria")}
         >
-          <Glyph name="daily" size={15} />
-          {t("accountHome.claim")}
+          <motion.img
+            src="/ui-illustrations/daily-claim.svg"
+            alt=""
+            aria-hidden="true"
+            animate={{ y: [0, -2.5, 0] }}
+            transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <span>{t("accountHome.claim")}</span>
         </motion.button>
       ) : restoreAvailable ? (
         <motion.button
@@ -149,13 +165,7 @@ export function AccountDailyReward() {
                 <motion.span
                   className={`reward-particle reward-particle--${particle.kind} is-${particle.tone}`}
                   key={`${particle.kind}-${particle.tone}-${index}`}
-                  initial={{
-                    opacity: 0,
-                    x: 0,
-                    y: 0,
-                    scale: 0.35,
-                    rotate: 0,
-                  }}
+                  initial={{ opacity: 0, x: 0, y: 0, scale: 0.35, rotate: 0 }}
                   animate={{
                     opacity: [0, 0.96, 0.72, 0],
                     x: [0, particle.x * 0.24, particle.x * 0.68, particle.x],
