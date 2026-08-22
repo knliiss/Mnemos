@@ -2,8 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   getCreatorPersonalization,
+  getNotificationPackEditorDescriptor,
   publishCreatorPersonalization,
   submitCreatorPersonalization,
+  type NotificationPackEditorDescriptorResponse,
 } from "@/shared/api/creatorPersonalizationApi"
 import {
   getPersonalizationPricing,
@@ -24,15 +26,19 @@ import {
   creatorTypeLabel,
   creatorTypeOrder,
 } from "../creatorPresentation"
+import { CreatorNotificationPackStudio } from "./CreatorNotificationPackStudio"
 import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
 import {
   buildCreatorPreview,
   createDefaultCreatorEditorForm,
   creatorResponseToEditorForm,
-  notificationTemplateKeys,
   saveCreatorForm,
 } from "./creatorEditorModel"
-import { isCreatorVisualFormValid } from "./creatorEditorValidation"
+import {
+  isCreatorVisualFormValid,
+  isNotificationPackFormValid,
+} from "./creatorEditorValidation"
+import "./creator-notification-studio.css"
 import "./creator-visual-editor.css"
 import {
   isCreatorPriceValid,
@@ -52,7 +58,9 @@ export function CreatorEditor({ params, back }: Props) {
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
   const [pricing, setPricing] = useState<PersonalizationPricingResponse | null>(null)
-  const [form, setForm] = useState(() => createDefaultCreatorEditorForm(t))
+  const [notificationDescriptor, setNotificationDescriptor] =
+    useState<NotificationPackEditorDescriptorResponse | null>(null)
+  const [form, setForm] = useState(() => createDefaultCreatorEditorForm())
   const [loading, setLoading] = useState(true)
   const [loadedId, setLoadedId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -79,17 +87,22 @@ export function CreatorEditor({ params, back }: Props) {
         ? Promise.resolve(null)
         : getCreatorPersonalization(personalizationId)
 
-      void Promise.all([getPersonalizationPricing(), sourceRequest])
-        .then(([pricingResponse, response]) => {
+      void Promise.all([
+        getPersonalizationPricing(),
+        getNotificationPackEditorDescriptor(),
+        sourceRequest,
+      ])
+        .then(([pricingResponse, descriptorResponse, response]) => {
           if (cancelled || scopeRef.current !== requestedId) {
             return
           }
 
           const nextForm = response
-            ? creatorResponseToEditorForm(response, t)
-            : createDefaultCreatorEditorForm(t)
+            ? creatorResponseToEditorForm(response, descriptorResponse)
+            : createDefaultCreatorEditorForm(descriptorResponse)
 
           setPricing(pricingResponse)
+          setNotificationDescriptor(descriptorResponse)
           setSource(response)
           setForm(normalizeCreatorPrice(nextForm, pricingResponse))
           setLoadedId(requestedId)
@@ -97,6 +110,7 @@ export function CreatorEditor({ params, back }: Props) {
         .catch((error) => {
           if (!cancelled && scopeRef.current === requestedId) {
             setPricing(null)
+            setNotificationDescriptor(null)
             setSource(null)
             setLoadError(true)
             setLoadedId(requestedId)
@@ -115,32 +129,39 @@ export function CreatorEditor({ params, back }: Props) {
       mountedRef.current = false
       window.cancelAnimationFrame(frame)
     }
-  }, [isNew, personalizationId, reloadRevision, t])
+  }, [isNew, personalizationId, reloadRevision])
 
   const currentSource = loadedId === personalizationId ? source : null
-  const visibleLoading = loading || loadedId !== personalizationId
+  const visibleLoading = loading || loadedId !== personalizationId || !notificationDescriptor
   const priceRange = pricing ? resolveCreatorPriceRange(pricing, form.type, form.currency) : null
   const priceValid = isCreatorPriceValid(form, pricing)
   const visualValid = isCreatorVisualFormValid(form)
-  const notificationMessagesValid =
-    form.type !== "NOTIFICATION_PACK" ||
-    notificationTemplateKeys.every((key) => form.notificationMessages[key].trim().length > 0)
-  const valid =
-    form.name.trim().length >= 3 && priceValid && visualValid && notificationMessagesValid
+  const notificationPackValid = isNotificationPackFormValid(form, notificationDescriptor)
+  const valid = form.name.trim().length >= 3 && priceValid && visualValid && notificationPackValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
-  const preview = buildCreatorPreview(
-    form,
-    currentSource?.id ?? "preview",
-    currentSource?.status ?? "DRAFT",
-    data.user.username,
-    t("creator.editor.fallbackName"),
-  )
+  const preview = notificationDescriptor
+    ? buildCreatorPreview(
+        form,
+        notificationDescriptor,
+        currentSource?.id ?? "preview",
+        currentSource?.status ?? "DRAFT",
+        data.user.username,
+        t("creator.editor.fallbackName"),
+      )
+    : null
 
   const save = async (): Promise<PersonalizationResponse | null> => {
     const actionScope = personalizationId
     const currentPricing = pricing
+    const currentDescriptor = notificationDescriptor
 
-    if (!currentPricing || !valid || !editable || busyScopeRef.current === actionScope) {
+    if (
+      !currentPricing ||
+      !currentDescriptor ||
+      !valid ||
+      !editable ||
+      busyScopeRef.current === actionScope
+    ) {
       return null
     }
 
@@ -148,7 +169,7 @@ export function CreatorEditor({ params, back }: Props) {
     setBusy(true)
 
     try {
-      const saved = await saveCreatorForm(currentSource?.id ?? null, form)
+      const saved = await saveCreatorForm(currentSource?.id ?? null, form, currentDescriptor)
 
       if (!mountedRef.current || scopeRef.current !== actionScope) {
         return null
@@ -156,7 +177,12 @@ export function CreatorEditor({ params, back }: Props) {
 
       setSource(saved)
       setLoadedId(actionScope)
-      setForm(normalizeCreatorPrice(creatorResponseToEditorForm(saved, t), currentPricing))
+      setForm(
+        normalizeCreatorPrice(
+          creatorResponseToEditorForm(saved, currentDescriptor),
+          currentPricing,
+        ),
+      )
 
       return saved
     } catch (error) {
@@ -256,7 +282,7 @@ export function CreatorEditor({ params, back }: Props) {
     )
   }
 
-  if (loadError) {
+  if (loadError || !notificationDescriptor || !preview) {
     return (
       <div className="screen creator-screen">
         <PageHeader title={t("creator.editor.editing")} back={back} />
@@ -280,17 +306,19 @@ export function CreatorEditor({ params, back }: Props) {
         back={back}
       />
 
-      <section className="creator-editor-stage">
-        <header>
-          <span>
-            <i />
-            {t("creator.editor.live")}
-          </span>
-          <small>{creatorTypeLabel(t, form.type)}</small>
-        </header>
+      {form.type !== "NOTIFICATION_PACK" ? (
+        <section className="creator-editor-stage">
+          <header>
+            <span>
+              <i />
+              {t("creator.editor.live")}
+            </span>
+            <small>{creatorTypeLabel(t, form.type)}</small>
+          </header>
 
-        <PersonalizationVisual item={preview} detail />
-      </section>
+          <PersonalizationVisual item={preview} detail />
+        </section>
+      ) : null}
 
       {currentSource?.rejectionReason ? (
         <section className="creator-form-block">
@@ -344,31 +372,12 @@ export function CreatorEditor({ params, back }: Props) {
         </Field>
 
         {form.type === "NOTIFICATION_PACK" ? (
-          <div className="creator-notification-messages">
-            <header>
-              <small>{t("creator.editor.notificationEyebrow")}</small>
-              <strong>{t("creator.editor.notificationMessages")}</strong>
-            </header>
-
-            {notificationTemplateKeys.map((key) => (
-              <Field key={key} label={t(`creator.editor.notificationTypes.${key}`)}>
-                <textarea
-                  maxLength={512}
-                  value={form.notificationMessages[key]}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      notificationMessages: {
-                        ...current.notificationMessages,
-                        [key]: event.target.value,
-                      },
-                    }))
-                  }
-                />
-              </Field>
-            ))}
-          </div>
+          <CreatorNotificationPackStudio
+            form={form}
+            descriptor={notificationDescriptor}
+            editable={editable}
+            setForm={setForm}
+          />
         ) : (
           <CreatorPersonalizationControls form={form} editable={editable} setForm={setForm} />
         )}
