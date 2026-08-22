@@ -1,24 +1,3 @@
-type TelegramWebApp = {
-  initData?: string
-  platform?: string
-  ready?: () => void
-  expand?: () => void
-  requestFullscreen?: () => void
-  disableVerticalSwipes?: () => void
-  setHeaderColor?: (color: string) => void
-  setBackgroundColor?: (color: string) => void
-  setBottomBarColor?: (color: string) => void
-  isVersionAtLeast?: (version: string) => boolean
-}
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: TelegramWebApp
-    }
-  }
-}
-
 const TELEGRAM_BACKGROUND = "#050604"
 const TELEGRAM_CHROME = "#07090b"
 
@@ -43,10 +22,10 @@ export function initializeTelegramWebApp(): void {
 
   document.documentElement.classList.add("telegram-mini-app")
 
-  webApp.ready?.()
-  webApp.expand?.()
-  webApp.setHeaderColor?.(TELEGRAM_CHROME)
-  webApp.setBackgroundColor?.(TELEGRAM_BACKGROUND)
+  webApp.ready()
+  webApp.expand()
+  webApp.setHeaderColor(TELEGRAM_CHROME)
+  webApp.setBackgroundColor(TELEGRAM_BACKGROUND)
 
   if (supports(webApp, "7.10")) {
     webApp.setBottomBarColor?.(TELEGRAM_BACKGROUND)
