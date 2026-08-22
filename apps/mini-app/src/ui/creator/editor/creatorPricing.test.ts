@@ -89,12 +89,9 @@ function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
       primaryColor: "#CBFF2D",
       secondaryColor: "#B98DC2",
     },
-    notificationMessages: {
-      ITEM_DROP: "Example",
-      BOOSTER: "Example",
-      DUNGEON: "Example",
-      RAID: "Example",
-      GLOBAL: "Example",
+    notificationPack: {
+      mixedAggregateTitle: "Several events",
+      templates: {},
     },
     ...overrides,
   }
