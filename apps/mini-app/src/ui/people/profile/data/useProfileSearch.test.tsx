@@ -61,9 +61,7 @@ describe("useProfileSearch", () => {
   })
 
   it("clears previous results immediately when the normalized query changes", async () => {
-    vi.mocked(searchPublicProfiles).mockResolvedValueOnce(
-      page([profile("account-a", "Knalis")]),
-    )
+    vi.mocked(searchPublicProfiles).mockResolvedValueOnce(page([profile("account-a", "Knalis")]))
 
     const { result } = renderHook(() => useProfileSearch())
 
@@ -86,9 +84,7 @@ describe("useProfileSearch", () => {
   })
 
   it("keeps valid results when only surrounding whitespace changes", async () => {
-    vi.mocked(searchPublicProfiles).mockResolvedValueOnce(
-      page([profile("account-a", "Knalis")]),
-    )
+    vi.mocked(searchPublicProfiles).mockResolvedValueOnce(page([profile("account-a", "Knalis")]))
 
     const { result } = renderHook(() => useProfileSearch())
 
