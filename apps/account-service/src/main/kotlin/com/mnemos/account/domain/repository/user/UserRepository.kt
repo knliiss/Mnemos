@@ -32,5 +32,5 @@ interface UserRepository {
         updatedAt: Instant,
     ): Boolean
 
-    fun createIfAbsentByKeycloakId(user: User): User
+    fun createIfAbsentByKeycloakId(user: User): UserCreationResult
 }
