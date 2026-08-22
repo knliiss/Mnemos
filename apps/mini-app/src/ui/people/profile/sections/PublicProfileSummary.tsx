@@ -7,6 +7,7 @@ import {
   nicknameStyle,
   profileCardClassName,
   profileCardStyle,
+  profileHeadClassName,
   profileHeadStyle,
   profileSkinUrl,
 } from "../profilePresentation"
@@ -47,14 +48,13 @@ export function PublicProfileSummary({
           <i />
           <i />
           <i />
+          <i />
+          <i />
         </span>
       ) : null}
 
       <div className="public-profile-card__main">
-        <div
-          className={`public-profile-head ${profile.appearance.avatarFrame ? "has-avatar-frame" : ""}`}
-          style={profileHeadStyle(profile)}
-        >
+        <div className={profileHeadClassName(profile)} style={profileHeadStyle(profile)}>
           <CristalixHead skinUrl={profileSkinUrl(profile.cristalixUuid)} size={78} />
           <span className="public-profile-presence">
             <i />
