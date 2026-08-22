@@ -32,7 +32,8 @@ html.telegram-mini-app #root {
 
 .telegram-mini-app .route-stage.has-tabbar {
   padding-bottom: calc(
-    92px + max(
+    92px +
+      max(
         env(safe-area-inset-bottom, 0px),
         var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
       )
@@ -42,7 +43,8 @@ html.telegram-mini-app #root {
 .telegram-mini-app .root-navigation.root-navigation--five {
   right: max(10px, var(--tg-safe-area-inset-right, env(safe-area-inset-right, 0px)));
   bottom: calc(
-    8px + max(
+    8px +
+      max(
         env(safe-area-inset-bottom, 0px),
         var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
       )
