@@ -26,6 +26,7 @@ interface TelegramWebApp {
     }
   }
   colorScheme?: "light" | "dark"
+  platform?: string
 
   ready(): void
 
@@ -33,9 +34,17 @@ interface TelegramWebApp {
 
   close(): void
 
+  requestFullscreen?(): void
+
+  disableVerticalSwipes?(): void
+
   setHeaderColor(color: string): void
 
   setBackgroundColor(color: string): void
+
+  setBottomBarColor?(color: string): void
+
+  isVersionAtLeast?(version: string): boolean
 
   BackButton?: {
     show(): void
