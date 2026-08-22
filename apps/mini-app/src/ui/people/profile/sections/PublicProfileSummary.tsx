@@ -3,7 +3,14 @@ import { useTranslation } from "react-i18next"
 import type { AccountReactionType, PublicProfileResponse } from "@/shared/api/profileSocialApi"
 import { CristalixHead } from "../../../components/profile/CristalixHead"
 import { Glyph } from "../../../shared/MnemosIcon"
-import { nicknameStyle, profileSkinUrl } from "../profilePresentation"
+import {
+  nicknameStyle,
+  profileCardClassName,
+  profileCardStyle,
+  profileHeadStyle,
+  profileSkinUrl,
+} from "../profilePresentation"
+import "../public-profile-personalization.css"
 
 type PublicProfileSummaryProps = {
   profile: PublicProfileResponse
@@ -29,12 +36,25 @@ export function PublicProfileSummary({
 
   return (
     <motion.section
-      className="public-profile-card"
+      className={profileCardClassName(profile)}
+      style={profileCardStyle(profile)}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      {profile.appearance.profileEffect ? (
+        <span className="public-profile-effect" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
+      ) : null}
+
       <div className="public-profile-card__main">
-        <div className="public-profile-head">
+        <div
+          className={`public-profile-head ${profile.appearance.avatarFrame ? "has-avatar-frame" : ""}`}
+          style={profileHeadStyle(profile)}
+        >
           <CristalixHead skinUrl={profileSkinUrl(profile.cristalixUuid)} size={78} />
           <span className="public-profile-presence">
             <i />
