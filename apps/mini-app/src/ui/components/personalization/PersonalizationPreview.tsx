@@ -27,6 +27,15 @@ type TemplateSample = {
   art: ReactElement
 }
 
+type EffectPreviewStyle = CSSProperties & {
+  "--effect-primary": string
+  "--effect-secondary": string
+  "--effect-blur": string
+  "--effect-duration": string
+  "--effect-density": string
+  "--effect-scale": string
+}
+
 export function PersonalizationVisual({ item, small = false, detail = false }: PreviewProps) {
   const content = item.content
   const className =
@@ -105,6 +114,8 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
         <Spec label={t("personalization.preview.accent")} value={content.accent} />
         <Spec label={t("personalization.preview.surface")} value={content.surface} />
         <Spec label={t("personalization.preview.border")} value={content.border} />
+        <Spec label={t("personalization.preview.angle")} value={`${content.gradientAngleDegrees}°`} />
+        <Spec label={t("personalization.preview.texture")} value={`${content.textureStrength}%`} />
       </section>
     )
   }
@@ -112,7 +123,9 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
   if (content.kind === "AVATAR_FRAME") {
     return (
       <section className="personalization-spec-grid">
+        <Spec label={t("personalization.preview.style")} value={content.style} />
         <Spec label={t("personalization.preview.thickness")} value={`${content.borderWidthPx}px`} />
+        <Spec label={t("personalization.preview.gap")} value={`${content.gapPx}px`} />
         <Spec label={t("personalization.preview.radius")} value={`${content.radiusPx}px`} />
         <Spec label={t("personalization.preview.color")} value={content.borderColor} />
       </section>
@@ -123,6 +136,9 @@ export function PersonalizationDetails({ item }: { item: Personalization }) {
     <section className="personalization-spec-grid">
       <Spec label={t("personalization.preview.effect")} value={content.effect} />
       <Spec label={t("personalization.preview.intensity")} value={`${content.intensity}%`} />
+      <Spec label={t("personalization.preview.speed")} value={`${content.speed}%`} />
+      <Spec label={t("personalization.preview.density")} value={`${content.density}%`} />
+      <Spec label={t("personalization.preview.scale")} value={`${content.scale}%`} />
       <Spec label={t("personalization.preview.primary")} value={content.primaryColor} />
     </section>
   )
@@ -258,26 +274,35 @@ function NickPreview({ content, className }: { content: NickStyleContent; classN
 function ThemePreview({ content, className }: { content: ProfileThemeContent; className: string }) {
   const { t } = useTranslation()
   const nickname = t("personalization.preview.samples.nickname")
+  const texture = Math.round(content.textureStrength * 0.16)
+  const glow = content.glow
+    ? `0 0 ${Math.max(6, content.glow.strength / 2)}px color-mix(in srgb, ${content.glow.color} 44%, transparent)`
+    : "none"
 
   return (
     <div
       className={`${className} theme-real-preview`}
       style={{
-        background: content.background,
+        background: `repeating-linear-gradient(135deg, color-mix(in srgb, ${content.text} ${texture}%, transparent) 0 1px, transparent 1px 6px), linear-gradient(${content.gradientAngleDegrees}deg, ${content.background}, ${content.backgroundSecondary})`,
         borderColor: content.border,
+        boxShadow: glow,
         color: content.text,
       }}
     >
       <span
         className="theme-real-preview__avatar"
         style={{
-          background: content.surface,
+          background: `linear-gradient(135deg, ${content.surface}, ${content.surfaceSecondary})`,
           borderColor: content.accent,
         }}
       >
         {nickname.slice(0, 1).toUpperCase()}
       </span>
-      <span style={{ background: content.surface }}>
+      <span
+        style={{
+          background: `linear-gradient(135deg, ${content.surface}, ${content.surfaceSecondary})`,
+        }}
+      >
         <b style={{ color: content.text }}>{nickname}</b>
         <i style={{ background: content.accent }} />
       </span>
@@ -288,14 +313,24 @@ function ThemePreview({ content, className }: { content: ProfileThemeContent; cl
 function FramePreview({ content, className }: { content: AvatarFrameContent; className: string }) {
   const { t } = useTranslation()
   const nickname = t("personalization.preview.samples.nickname")
+  const doubleFrame = content.style === "DOUBLE"
+  const segmentedFrame = content.style === "SEGMENTED"
 
   return (
     <div className={`${className} frame-real-preview`}>
       <span
+        className={`frame-real-preview__avatar frame-real-preview__avatar--${content.style.toLowerCase()}`}
         style={{
-          borderColor: content.borderColor,
+          borderColor: segmentedFrame
+            ? `${content.borderColor} ${content.secondaryBorderColor}`
+            : content.borderColor,
+          borderStyle: segmentedFrame ? "dashed" : "solid",
           borderWidth: content.borderWidthPx,
           borderRadius: content.radiusPx,
+          outline: doubleFrame
+            ? `${content.borderWidthPx}px solid ${content.secondaryBorderColor}`
+            : undefined,
+          outlineOffset: doubleFrame ? content.gapPx : undefined,
           boxShadow: content.glow
             ? `0 0 ${Math.max(6, content.glow.strength / 2)}px color-mix(in srgb, ${content.glow.color} 55%, transparent)`
             : "none",
@@ -317,17 +352,22 @@ function EffectPreview({
 }) {
   const { t } = useTranslation()
   const nickname = t("personalization.preview.samples.nickname")
+  const durationSeconds = 8.2 - (content.speed / 100) * 6.4
+  const scale = 0.8 + (content.scale / 100) * 0.5
+  const blur = 4 + content.intensity * 0.13
+  const style: EffectPreviewStyle = {
+    "--effect-primary": content.primaryColor,
+    "--effect-secondary": content.secondaryColor ?? content.primaryColor,
+    "--effect-blur": `${blur.toFixed(1)}px`,
+    "--effect-duration": `${durationSeconds.toFixed(2)}s`,
+    "--effect-density": `${content.density}%`,
+    "--effect-scale": scale.toFixed(3),
+  }
 
   return (
     <div
       className={`${className} effect-real-preview effect-real-preview--${content.effect.toLowerCase()}`}
-      style={
-        {
-          "--effect-primary": content.primaryColor,
-          "--effect-secondary": content.secondaryColor ?? content.primaryColor,
-          "--effect-intensity": `${content.intensity}%`,
-        } as CSSProperties
-      }
+      style={style}
     >
       <span>{nickname.slice(0, 1).toUpperCase()}</span>
       <small>
