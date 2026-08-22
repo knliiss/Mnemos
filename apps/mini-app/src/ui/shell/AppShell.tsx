@@ -7,6 +7,8 @@ import type { Account, RootRoute, Route } from "../model"
 import { initialStack, isRootRoute } from "../navigation/routeRegistry"
 import "../shared/layout.css"
 import "../shared/form-controls.css"
+import "./badges/user-badges.css"
+import { useUserBadges } from "./badges/useUserBadges"
 import { localizationOptions, routeKey } from "./navigation"
 import { RootNavigation } from "./RootNavigation"
 import { RouteContent } from "./RouteContent"
@@ -19,6 +21,7 @@ import { UserHubTrigger } from "./UserHubTrigger"
 
 export function AppShell() {
   const data = useMnemosData()
+  const userBadges = useUserBadges()
   const [stack, setStack] = useState<Route[]>(initialStack)
   const [userHubOpen, setUserHubOpen] = useState(
     () => new URLSearchParams(window.location.search).get("hub") === "1",
@@ -127,7 +130,11 @@ export function AppShell() {
   const userHubTrigger =
     rootRoute && activeAccount ? (
       <div className="root-user-access">
-        <UserHubTrigger open={userHubOpen} onToggle={toggleUserHub} />
+        <UserHubTrigger
+          open={userHubOpen}
+          activeBadge={userBadges.activeBadge?.badge ?? null}
+          onToggle={toggleUserHub}
+        />
       </div>
     ) : null
 
@@ -174,10 +181,15 @@ export function AppShell() {
                   username={data.user.username}
                   prime={data.user.prime}
                   systemRoles={data.user.systemRoles}
+                  badges={userBadges.badges}
+                  badgesLoading={userBadges.loading}
+                  busyBadgeId={userBadges.busyBadgeId}
                   onLocalizationChange={(language) => void data.setLanguage(language)}
                   onClose={closeUserHub}
                   onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
                   onSelectAccount={(account) => void selectAccount(account)}
+                  onActivateBadge={(badgeId) => void userBadges.activate(badgeId)}
+                  onDeactivateBadge={() => void userBadges.deactivate()}
                   navigate={navigate}
                 />
                 <RootNavigation current={rootRoute} onChange={switchRoot} />
