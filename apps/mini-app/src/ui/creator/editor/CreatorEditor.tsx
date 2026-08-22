@@ -4,7 +4,12 @@ import {
   publishCreatorPersonalization,
   submitCreatorPersonalization,
 } from "@/shared/api/creatorPersonalizationApi"
-import { getPersonalization, type PersonalizationResponse } from "@/shared/api/personalizationApi"
+import {
+  getPersonalization,
+  getPersonalizationPricing,
+  type PersonalizationPricingResponse,
+  type PersonalizationResponse,
+} from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { useMnemosData } from "../../data/MnemosDataProvider"
@@ -25,6 +30,11 @@ import {
   creatorResponseToEditorForm,
   saveCreatorForm,
 } from "./creatorEditorModel"
+import {
+  isCreatorPriceValid,
+  normalizeCreatorPrice,
+  resolveCreatorPriceRange,
+} from "./creatorPricing"
 
 type Props = {
   params?: Record<string, string>
@@ -37,9 +47,10 @@ export function CreatorEditor({ params, back }: Props) {
   const personalizationId = params?.personalizationId ?? "new"
   const isNew = personalizationId === "new"
   const [source, setSource] = useState<PersonalizationResponse | null>(null)
+  const [pricing, setPricing] = useState<PersonalizationPricingResponse | null>(null)
   const [form, setForm] = useState(() => createDefaultCreatorEditorForm(t))
-  const [loading, setLoading] = useState(!isNew)
-  const [loadedId, setLoadedId] = useState<string | null>(isNew ? personalizationId : null)
+  const [loading, setLoading] = useState(true)
+  const [loadedId, setLoadedId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [reloadRevision, setReloadRevision] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -57,26 +68,30 @@ export function CreatorEditor({ params, back }: Props) {
 
     const frame = window.requestAnimationFrame(() => {
       mountedRef.current = true
-      setLoading(!isNew)
+      setLoading(true)
       setLoadError(false)
 
-      if (isNew) {
-        setSource(null)
-        setForm(createDefaultCreatorEditorForm(t))
-        setLoadedId(requestedId)
-        return
-      }
+      const sourceRequest = isNew ? Promise.resolve(null) : getPersonalization(personalizationId)
 
-      void getPersonalization(personalizationId)
-        .then((response) => {
-          if (!cancelled && scopeRef.current === requestedId) {
-            setSource(response)
-            setForm(creatorResponseToEditorForm(response, t))
-            setLoadedId(requestedId)
+      void Promise.all([getPersonalizationPricing(), sourceRequest])
+        .then(([pricingResponse, response]) => {
+          if (cancelled || scopeRef.current !== requestedId) {
+            return
           }
+
+          const nextForm = response
+            ? creatorResponseToEditorForm(response, t)
+            : createDefaultCreatorEditorForm(t)
+
+          setPricing(pricingResponse)
+          setSource(response)
+          setForm(normalizeCreatorPrice(nextForm, pricingResponse))
+          setLoadedId(requestedId)
         })
         .catch((error) => {
           if (!cancelled && scopeRef.current === requestedId) {
+            setPricing(null)
+            setSource(null)
             setLoadError(true)
             setLoadedId(requestedId)
             handleError(error)
@@ -98,14 +113,12 @@ export function CreatorEditor({ params, back }: Props) {
 
   const currentSource = loadedId === personalizationId ? source : null
   const visibleLoading = loading || loadedId !== personalizationId
-
-  const numericPrice = Number(form.price)
+  const priceRange = pricing
+    ? resolveCreatorPriceRange(pricing, form.type, form.currency)
+    : null
+  const priceValid = isCreatorPriceValid(form, pricing)
   const messageValid = form.type !== "NOTIFICATION_PACK" || form.message.trim().length > 0
-  const valid =
-    form.name.trim().length >= 3 &&
-    Number.isInteger(numericPrice) &&
-    numericPrice > 0 &&
-    messageValid
+  const valid = form.name.trim().length >= 3 && priceValid && messageValid
   const editable = !currentSource || ["DRAFT", "REJECTED", "PRIVATE"].includes(currentSource.status)
   const preview = buildCreatorPreview(
     form,
@@ -117,8 +130,9 @@ export function CreatorEditor({ params, back }: Props) {
 
   const save = async (): Promise<PersonalizationResponse | null> => {
     const actionScope = personalizationId
+    const currentPricing = pricing
 
-    if (!valid || !editable || busyScopeRef.current === actionScope) {
+    if (!currentPricing || !valid || !editable || busyScopeRef.current === actionScope) {
       return null
     }
 
@@ -134,7 +148,7 @@ export function CreatorEditor({ params, back }: Props) {
 
       setSource(saved)
       setLoadedId(actionScope)
-      setForm(creatorResponseToEditorForm(saved, t))
+      setForm(normalizeCreatorPrice(creatorResponseToEditorForm(saved, t), currentPricing))
 
       return saved
     } catch (error) {
@@ -288,11 +302,15 @@ export function CreatorEditor({ params, back }: Props) {
             disabled={!editable || Boolean(currentSource)}
             className={form.type === value ? "is-active" : ""}
             onClick={() =>
-              setForm((current) => ({
-                ...current,
-                type: value,
-                currency: value === "NOTIFICATION_PACK" ? "PRIME" : current.currency,
-              }))
+              setForm((current) => {
+                const next = {
+                  ...current,
+                  type: value,
+                  currency: value === "NOTIFICATION_PACK" ? ("PRIME" as const) : current.currency,
+                }
+
+                return pricing ? normalizeCreatorPrice(next, pricing) : next
+              })
             }
           >
             <Glyph name={creatorTypeGlyph[value]} size={18} />
@@ -402,7 +420,13 @@ export function CreatorEditor({ params, back }: Props) {
                   key={value}
                   disabled={!editable}
                   className={form.currency === value ? "is-active" : ""}
-                  onClick={() => setForm((current) => ({ ...current, currency: value }))}
+                  onClick={() =>
+                    setForm((current) => {
+                      const next = { ...current, currency: value }
+
+                      return pricing ? normalizeCreatorPrice(next, pricing) : next
+                    })
+                  }
                 >
                   {value}
                 </button>
@@ -412,10 +436,12 @@ export function CreatorEditor({ params, back }: Props) {
 
           <input
             type="number"
-            min={1}
+            min={priceRange?.min ?? 1}
+            max={priceRange?.max}
             step={1}
             value={form.price}
             disabled={!editable}
+            aria-invalid={!priceValid}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -424,6 +450,12 @@ export function CreatorEditor({ params, back }: Props) {
             }
           />
         </div>
+
+        {priceRange ? (
+          <p className="inline-hint inline-hint--left">
+            {priceRange.min}–{priceRange.max} {priceRange.currency}
+          </p>
+        ) : null}
 
         {currentSource ? (
           <p className="inline-hint inline-hint--left">

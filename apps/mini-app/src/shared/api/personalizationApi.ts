@@ -86,6 +86,22 @@ export type PersonalizationResponse = {
   updatedAt: string
 }
 
+export type PersonalizationPriceRangeResponse = {
+  type: PersonalizationType
+  origin: string
+  currency: Currency
+  min: number
+  max: number
+}
+
+export type PersonalizationPricingResponse = {
+  ranges: PersonalizationPriceRangeResponse[]
+  customNotificationPackPurchasePrice: {
+    currency: Currency
+    amount: number
+  }
+}
+
 export type OwnedPersonalizationResponse = {
   personalizationId: string
   ownerType: PersonalizationTarget
@@ -136,6 +152,10 @@ export async function getPersonalization(
   personalizationId: string,
 ): Promise<PersonalizationResponse> {
   return api<PersonalizationResponse>(`/api/v1/personalizations/${personalizationId}`)
+}
+
+export async function getPersonalizationPricing(): Promise<PersonalizationPricingResponse> {
+  return api<PersonalizationPricingResponse>("/api/v1/personalizations/pricing")
 }
 
 export async function listOwnedPersonalizations(
