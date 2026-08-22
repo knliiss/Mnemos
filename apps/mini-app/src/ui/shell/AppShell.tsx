@@ -11,6 +11,7 @@ import { RootNavigation } from "./RootNavigation"
 import { RouteContent } from "./RouteContent"
 import "./shell.css"
 import "./native-shell.css"
+import "./user-hub-polish.css"
 import { UserHubOverlay } from "./UserHubOverlay"
 import { UserHubTrigger } from "./UserHubTrigger"
 
