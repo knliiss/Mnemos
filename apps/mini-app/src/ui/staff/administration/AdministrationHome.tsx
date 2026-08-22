@@ -5,7 +5,6 @@ import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Route } from "../../model"
-import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 
 type AdminStats = {
@@ -13,6 +12,35 @@ type AdminStats = {
   activeRounds: number
   activeRaces: number
   badges: number
+}
+
+type AdministrationWorkspaceProps = {
+  illustration: string
+  title: string
+  description: string
+  tone: "users" | "review" | "bets" | "badges"
+  onClick(): void
+}
+
+function AdministrationWorkspace({
+  illustration,
+  title,
+  description,
+  tone,
+  onClick,
+}: AdministrationWorkspaceProps) {
+  return (
+    <button type="button" className={`administration-workspace is-${tone}`} onClick={onClick}>
+      <span className="administration-workspace__art" aria-hidden="true">
+        <img src={illustration} alt="" />
+      </span>
+      <span className="administration-workspace__copy">
+        <strong>{title}</strong>
+        <small>{description}</small>
+      </span>
+      <b>›</b>
+    </button>
+  )
 }
 
 export function AdministrationHome({
@@ -63,9 +91,9 @@ export function AdministrationHome({
     <div className="screen administration-home-screen">
       <PageHeader title={t("administration.title")} back={back} />
 
-      <section className="workspace-intro workspace-intro--admin">
-        <span className="workspace-intro__icon">
-          <Glyph name="admin" size={23} />
+      <section className="workspace-intro workspace-intro--admin workspace-intro--illustrated">
+        <span className="workspace-intro__art" aria-hidden="true">
+          <img src="/ui-illustrations/workspace-admin.svg" alt="" />
         </span>
         <div>
           <strong>{t("administration.introTitle")}</strong>
@@ -73,65 +101,53 @@ export function AdministrationHome({
         </div>
       </section>
 
-      <div className="workspace-grid">
-        <button type="button" onClick={() => navigate({ id: "moderation" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--danger">
-            <Glyph name="members" size={20} />
-          </span>
-          <span>
-            <strong>{t("administration.users")}</strong>
-            <small>{t("administration.usersDescription")}</small>
-          </span>
-          <b>›</b>
-        </button>
+      <div className="administration-workspace-grid">
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-users.svg"
+          title={t("administration.users")}
+          description={t("administration.usersDescription")}
+          tone="users"
+          onClick={() => navigate({ id: "moderation" })}
+        />
 
-        <button type="button" onClick={() => navigate({ id: "personalization-review" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--plum">
-            <Glyph name="creator" size={20} />
-          </span>
-          <span>
-            <strong>{t("administration.personalizations")}</strong>
-            <small>
-              {stats
-                ? t("administration.reviewCount", { count: stats.review })
-                : t("administration.reviewQueue")}
-            </small>
-          </span>
-          <b>›</b>
-        </button>
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-review.svg"
+          title={t("administration.personalizations")}
+          description={
+            stats
+              ? t("administration.reviewCount", { count: stats.review })
+              : t("administration.reviewQueue")
+          }
+          tone="review"
+          onClick={() => navigate({ id: "personalization-review" })}
+        />
 
-        <button type="button" onClick={() => navigate({ id: "bet-admin" })}>
-          <span className="workspace-grid__icon workspace-grid__icon--amber">
-            <Glyph name="bet" size={20} />
-          </span>
-          <span>
-            <strong>{t("administration.bets")}</strong>
-            <small>
-              {stats
-                ? t("administration.betsStats", {
-                    rounds: stats.activeRounds,
-                    races: stats.activeRaces,
-                  })
-                : t("administration.betsFallback")}
-            </small>
-          </span>
-          <b>›</b>
-        </button>
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-bets.svg"
+          title={t("administration.bets")}
+          description={
+            stats
+              ? t("administration.betsStats", {
+                  rounds: stats.activeRounds,
+                  races: stats.activeRaces,
+                })
+              : t("administration.betsFallback")
+          }
+          tone="bets"
+          onClick={() => navigate({ id: "bet-admin" })}
+        />
 
-        <button type="button" onClick={() => navigate({ id: "badge-admin" })}>
-          <span className="workspace-grid__icon">
-            <Glyph name="spark" size={20} />
-          </span>
-          <span>
-            <strong>{t("administration.badges")}</strong>
-            <small>
-              {stats
-                ? t("administration.badgesCount", { count: stats.badges })
-                : t("administration.badgesFallback")}
-            </small>
-          </span>
-          <b>›</b>
-        </button>
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-badges.svg"
+          title={t("administration.badges")}
+          description={
+            stats
+              ? t("administration.badgesCount", { count: stats.badges })
+              : t("administration.badgesFallback")
+          }
+          tone="badges"
+          onClick={() => navigate({ id: "badge-admin" })}
+        />
       </div>
     </div>
   )
