@@ -7,7 +7,6 @@
   gap: 5px;
   min-height: 64px;
   margin-bottom: 14px;
-  padding-right: 58px;
 }
 
 .search-root-screen > .root-title-block h1 {
@@ -37,11 +36,6 @@
   background:
     radial-gradient(circle at 8% 50%, rgba(203, 255, 45, 0.04), transparent 34%),
     rgba(255, 255, 255, 0.019);
-}
-
-.search-root-input:focus-within {
-  border-color: rgba(203, 255, 45, 0.22);
-  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
 }
 
 .search-root-input input {
@@ -203,10 +197,6 @@
 }
 
 @media (max-width: 374px) {
-  .search-root-screen > .root-title-block {
-    padding-right: 52px;
-  }
-
   .search-root-empty {
     min-height: 280px;
   }
