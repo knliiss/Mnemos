@@ -4,9 +4,11 @@ import { App } from "@/app/App"
 import { installGlobalErrorHandlers } from "@/shared/errors/errorHandler"
 import "@/shared/i18n"
 import "@/shared/styles/global.css"
+import { initializeTelegramWebApp } from "@/shared/telegram/telegramWebApp"
 import "@/ui/app.css"
 
 installGlobalErrorHandlers()
+initializeTelegramWebApp()
 
 const root = document.getElementById("root")
 
