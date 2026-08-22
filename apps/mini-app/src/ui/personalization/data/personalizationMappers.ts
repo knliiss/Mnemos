@@ -82,10 +82,14 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     return {
       kind: "PROFILE_THEME",
       background: content.background,
+      backgroundSecondary: content.backgroundSecondary,
       surface: content.surface,
+      surfaceSecondary: content.surfaceSecondary,
       accent: content.accent,
       text: content.text,
       border: content.border,
+      gradientAngleDegrees: content.gradientAngleDegrees,
+      textureStrength: content.textureStrength,
       glow: content.glow,
     } satisfies ProfileThemeContent
   }
@@ -96,8 +100,11 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     return {
       kind: "AVATAR_FRAME",
       borderColor: content.borderColor,
+      secondaryBorderColor: content.secondaryBorderColor,
       borderWidthPx: content.borderWidthPx,
+      gapPx: content.gapPx,
       radiusPx: content.radiusPx,
+      style: content.style,
       glow: content.glow,
     } satisfies AvatarFrameContent
   }
@@ -108,6 +115,9 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     kind: "PROFILE_EFFECT",
     effect: content.effect,
     intensity: content.intensity,
+    speed: content.speed,
+    density: content.density,
+    scale: content.scale,
     primaryColor: content.primaryColor,
     secondaryColor: content.secondaryColor,
   } satisfies ProfileEffectContent
