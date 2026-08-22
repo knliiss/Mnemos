@@ -1,18 +1,23 @@
+.account-home-member-detail {
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+
 .account-member__hero,
 .account-member__roles,
 .account-member__danger {
   border: 1px solid rgba(226, 233, 205, 0.12);
-  border-radius: 21px;
+  border-radius: 18px;
   background: rgba(13, 15, 11, 0.96);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.032);
 }
 
 .account-member__hero {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr) auto;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 11px;
-  min-height: 88px;
+  gap: 12px;
+  min-height: 86px;
   padding: 12px;
   background:
     radial-gradient(circle at 7% 40%, rgba(203, 255, 45, 0.07), transparent 34%),
@@ -27,23 +32,33 @@
 }
 
 .account-member__avatar {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 62px;
-  height: 62px;
-  border: 1px solid rgba(235, 241, 213, 0.11);
-  border-radius: 18px;
-  color: #d9ddd1;
-  background: rgba(255, 255, 255, 0.028);
-  font-size: 17px;
-  font-weight: 750;
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(203, 255, 45, 0.1), transparent 72%),
+    rgba(203, 255, 45, 0.025);
+}
+
+.account-member__avatar::before {
+  content: "";
+  width: 40px;
+  height: 40px;
+  background: url("/ui-illustrations/mnemos-user-mark.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 5px 9px rgba(0, 0, 0, 0.28));
 }
 
 .account-member__identity {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 2px;
+  gap: 3px;
 }
 
 .account-member__identity > small,
@@ -51,8 +66,8 @@
   color: #858b7d;
   font-family: var(--font-meta);
   font-size: 9px;
-  font-weight: 600 !important;
-  letter-spacing: 0.115em !important;
+  font-weight: 600;
+  letter-spacing: 0.115em;
 }
 
 .account-member__identity > strong {
@@ -72,6 +87,7 @@
 
 .account-member__roles {
   overflow: hidden;
+  margin-top: 10px;
 }
 
 .account-member__roles > header {
@@ -95,6 +111,7 @@
 }
 
 .account-member__roles > header em {
+  flex: 0 0 auto;
   color: #7c8275;
   font-size: 9px;
   font-style: normal;
@@ -102,28 +119,33 @@
 
 .account-member__roles > div {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
-  padding: 9px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  padding: 10px;
 }
 
 .account-member__roles > div > button {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 26px;
+  grid-template-columns: 34px minmax(0, 1fr) 28px;
   align-items: center;
-  gap: 8px;
-  min-height: 61px;
-  padding: 8px;
+  gap: 9px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 9px;
   border: 1px solid rgba(235, 241, 213, 0.075);
-  border-radius: 14px;
+  border-radius: 13px;
   color: inherit;
   background: rgba(255, 255, 255, 0.018);
   text-align: left;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .account-member__roles > div > button.is-active {
-  border-color: rgba(203, 255, 45, 0.13);
-  background: rgba(203, 255, 45, 0.025);
+  border-color: rgba(203, 255, 45, 0.15);
+  background: rgba(203, 255, 45, 0.03);
 }
 
 .account-member__roles > div > button:disabled {
@@ -154,8 +176,8 @@
 .account-member__roles > div > button > i {
   position: relative;
   display: block;
-  width: 26px;
-  height: 15px;
+  width: 28px;
+  height: 16px;
   border: 1px solid rgba(235, 241, 213, 0.09);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.025);
@@ -165,8 +187,8 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #73796d;
   transition:
@@ -176,14 +198,15 @@
 
 .account-member__roles > div > button.is-active > i > b {
   background: #cfff35;
-  transform: translateX(11px);
+  transform: translateX(12px);
 }
 
 .account-member__danger {
   display: grid;
   grid-template-columns: 35px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
+  margin-top: 10px;
   padding: 10px;
   border-color: rgba(220, 93, 93, 0.11);
   background: rgba(37, 14, 14, 0.22);
@@ -202,6 +225,7 @@
 .account-member__danger > span:nth-child(2) {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: 2px;
 }
 
@@ -224,4 +248,54 @@
   background: rgba(211, 72, 72, 0.045);
   font-size: 10px;
   font-weight: 650;
+}
+
+@media (max-width: 520px) {
+  .account-member__roles > div {
+    grid-template-columns: 1fr;
+  }
+
+  .account-member__hero {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+  }
+
+  .account-member__avatar {
+    width: 54px;
+    height: 54px;
+  }
+
+  .account-member__avatar::before {
+    width: 37px;
+    height: 37px;
+  }
+}
+
+@media (max-width: 374px) {
+  .account-member__hero {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .account-member__hero > .role-sigil {
+    display: none;
+  }
+
+  .account-member__avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .account-member__danger {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .account-member__danger > button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-member__roles > div > button,
+  .account-member__roles > div > button > i > b {
+    transition: none;
+  }
 }
