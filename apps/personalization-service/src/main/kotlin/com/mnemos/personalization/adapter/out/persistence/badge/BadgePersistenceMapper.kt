@@ -12,7 +12,7 @@ object BadgePersistenceMapper {
             id = id.id,
             code = code,
             name = name,
-            icon = icon,
+            imageObjectKey = imageObjectKey,
             color = color.value,
             createdAt = createdAt,
         )
@@ -23,7 +23,7 @@ object BadgePersistenceMapper {
                 id = BadgeId(id),
                 code = code,
                 name = name,
-                icon = icon,
+                imageObjectKey = imageObjectKey,
                 color = HexColor(color),
                 createdAt = createdAt,
             )
