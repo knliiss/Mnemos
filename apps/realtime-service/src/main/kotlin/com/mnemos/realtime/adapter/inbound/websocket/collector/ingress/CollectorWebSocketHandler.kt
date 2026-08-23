@@ -8,6 +8,7 @@ import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.Coll
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorStateUpdatedMessage
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorTransportErrorCode
 import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorTransportErrorMessage
+import com.mnemos.realtime.adapter.inbound.websocket.collector.protocol.dto.CollectorUpdateSlotMessage
 import com.mnemos.realtime.adapter.inbound.websocket.collector.ratelimit.CollectorMessageRateLimiter
 import com.mnemos.realtime.adapter.inbound.websocket.collector.session.CollectorSessionRegistry
 import com.mnemos.realtime.application.collector.model.CollectorObservationUpdateResult
@@ -115,11 +116,18 @@ class CollectorWebSocketHandler(
                     payload = message.payload,
                 )
 
+            COLLECTOR_UPDATE_READY_TYPE ->
+                handleCollectorUpdateReady(
+                    session = session,
+                    collectorId = collectorId,
+                    payload = message.payload,
+                )
+
             else ->
                 sendError(
                     session = session,
                     code = CollectorTransportErrorCode.INVALID_MESSAGE,
-                    message = "Only EVENT_REPORT and COLLECTOR_STATE messages are supported",
+                    message = "Only EVENT_REPORT, COLLECTOR_STATE and COLLECTOR_UPDATE_READY messages are supported",
                 )
         }
     }
@@ -305,6 +313,69 @@ class CollectorWebSocketHandler(
         )
     }
 
+    private fun handleCollectorUpdateReady(
+        session: WebSocketSession,
+        collectorId: CollectorCredentialId,
+        payload: String,
+    ) {
+        val updateMessage =
+            try {
+                messageCodec.readUpdateReady(payload)
+            } catch (_: Exception) {
+                sendError(
+                    session = session,
+                    code = CollectorTransportErrorCode.INVALID_MESSAGE,
+                    message = "Collector update readiness message is invalid",
+                )
+                return
+            }
+
+        if (!COLLECTOR_VERSION_PATTERN.matches(updateMessage.version)) {
+            sendError(
+                session = session,
+                code = CollectorTransportErrorCode.INVALID_MESSAGE,
+                message = "Collector update version is invalid",
+            )
+            return
+        }
+
+        val decision =
+            try {
+                sessionRegistry.requestUpdateSlot(
+                    session = session,
+                    version = updateMessage.version,
+                )
+            } catch (exception: Exception) {
+                log.warn(
+                    "Failed to coordinate collector update, collectorId={}, version={}",
+                    collectorId.id,
+                    updateMessage.version,
+                    exception,
+                )
+
+                sendError(
+                    session = session,
+                    code = CollectorTransportErrorCode.DELIVERY_UNAVAILABLE,
+                    message = "Collector update coordination is temporarily unavailable",
+                )
+                return
+            }
+
+        if (decision == null) {
+            session.close(CloseStatus.POLICY_VIOLATION)
+            return
+        }
+
+        send(
+            session = session,
+            payload =
+                CollectorUpdateSlotMessage(
+                    granted = decision.granted,
+                    retryAfterSeconds = decision.retryAfterSeconds,
+                ),
+        )
+    }
+
     override fun handlePongMessage(
         session: WebSocketSession,
         message: PongMessage,
@@ -454,8 +525,10 @@ class CollectorWebSocketHandler(
 
     private companion object {
         const val COLLECTOR_STATE_TYPE = "COLLECTOR_STATE"
+        const val COLLECTOR_UPDATE_READY_TYPE = "COLLECTOR_UPDATE_READY"
         const val EVENT_REPORT_TYPE = "EVENT_REPORT"
 
+        val COLLECTOR_VERSION_PATTERN = Regex("^[0-9A-Za-z][0-9A-Za-z._+-]{0,31}$")
         val log = LoggerFactory.getLogger(CollectorWebSocketHandler::class.java)
     }
 }
