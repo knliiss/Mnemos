@@ -19,6 +19,7 @@ import {
   raceStatusLabel,
   roundStatusLabel,
 } from "./betPresentation"
+import "./bets-race-empty.css"
 
 type BetRoundCardProps = {
   round: EventBetRoundResponse
