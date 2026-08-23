@@ -81,6 +81,15 @@
   border-color: var(--profile-frame-color) var(--profile-frame-secondary);
 }
 
+.public-profile-card__layers {
+  z-index: 1;
+}
+
+.public-profile-head__layers {
+  z-index: 3;
+  overflow: visible;
+}
+
 .public-profile-card__main,
 .public-profile-metrics {
   position: relative;
