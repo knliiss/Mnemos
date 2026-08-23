@@ -3,7 +3,6 @@ import type { Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./badges/badge-admin.css"
-import "./personalization/personalization-review-polish.css"
 
 type Props = {
   routeId: Route["id"]
