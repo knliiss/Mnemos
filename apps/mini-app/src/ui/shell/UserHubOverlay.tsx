@@ -103,22 +103,6 @@ export function UserHubOverlay({
               </button>
             </header>
 
-            <UserBadgeSelector
-              badges={badges}
-              loading={badgesLoading}
-              busyBadgeId={busyBadgeId}
-              onActivate={onActivateBadge}
-              onDeactivate={onDeactivateBadge}
-            />
-
-            <UserNotificationPackSelector
-              packs={notificationPacks.packs}
-              loading={notificationPacks.loading}
-              busyPackId={notificationPacks.busyPackId}
-              onActivate={(personalizationId) => void notificationPacks.activate(personalizationId)}
-              onDeactivate={() => void notificationPacks.deactivate()}
-            />
-
             <button
               type="button"
               className={`user-hub-account-switch ${accountPickerOpen ? "is-open" : ""}`}
@@ -146,6 +130,22 @@ export function UserHubOverlay({
               switchingAccountId={switchingAccountId}
               onSelectAccount={onSelectAccount}
               navigate={navigate}
+            />
+
+            <UserBadgeSelector
+              badges={badges}
+              loading={badgesLoading}
+              busyBadgeId={busyBadgeId}
+              onActivate={onActivateBadge}
+              onDeactivate={onDeactivateBadge}
+            />
+
+            <UserNotificationPackSelector
+              packs={notificationPacks.packs}
+              loading={notificationPacks.loading}
+              busyPackId={notificationPacks.busyPackId}
+              onActivate={(personalizationId) => void notificationPacks.activate(personalizationId)}
+              onDeactivate={() => void notificationPacks.deactivate()}
             />
 
             <UserHubLocalization localization={localization} onChange={onLocalizationChange} />
