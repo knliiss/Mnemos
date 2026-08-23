@@ -1,9 +1,6 @@
 import Keycloak from "keycloak-js"
 import { AuthError } from "@/features/auth/api/authErrors"
-import {
-  getTelegramInitDataState,
-  getTelegramUserId,
-} from "@/features/auth/api/telegramInitData"
+import { getTelegramInitDataState, getTelegramUserId } from "@/features/auth/api/telegramInitData"
 import { createTelegramLoginRedirectUrl } from "@/features/auth/api/telegramLoginTransport"
 
 const keycloakUrl = (import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest").replace(

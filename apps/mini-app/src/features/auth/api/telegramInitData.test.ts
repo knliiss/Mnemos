@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  getTelegramInitDataState,
-  getTelegramUserId,
-} from "@/features/auth/api/telegramInitData"
+import { getTelegramInitDataState, getTelegramUserId } from "@/features/auth/api/telegramInitData"
 
 describe("getTelegramInitDataState", () => {
   const nowMilliseconds = 2_000_000 * 1000
