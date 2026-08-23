@@ -1,6 +1,9 @@
 import Keycloak from "keycloak-js"
 import { AuthError } from "@/features/auth/api/authErrors"
-import { getTelegramInitDataState } from "@/features/auth/api/telegramInitData"
+import {
+  getTelegramInitDataState,
+  getTelegramUserId,
+} from "@/features/auth/api/telegramInitData"
 import { createTelegramLoginRedirectUrl } from "@/features/auth/api/telegramLoginTransport"
 
 const keycloakUrl = (import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest").replace(
@@ -158,9 +161,11 @@ async function initialize(): Promise<void> {
       throw new AuthError("TOKEN_MISSING")
     }
 
-    publishAuthRuntimeState("ready")
-    startSessionMaintenance(candidate)
-    return
+    if (hasMatchingTelegramIdentity(candidate, telegram.initData)) {
+      publishAuthRuntimeState("ready")
+      startSessionMaintenance(candidate)
+      return
+    }
   }
 
   if (getTelegramInitDataState(telegram.initData) !== "fresh") {
@@ -173,14 +178,7 @@ async function initialize(): Promise<void> {
   }
 
   await ensureAuthServiceAvailable()
-
-  const loginUrl = await candidate.createLoginUrl({
-    redirectUri: window.location.origin,
-    scope: OFFLINE_ACCESS_SCOPE,
-  })
-  const redirectUrl = createTelegramLoginRedirectUrl(loginUrl, telegram.initData)
-
-  window.location.replace(redirectUrl)
+  await redirectToTelegramLogin(candidate, telegram.initData)
 
   return new Promise<void>(() => undefined)
 }
@@ -199,6 +197,40 @@ function createKeycloakClient(): KeycloakClient {
   }
 
   return candidate
+}
+
+async function redirectToTelegramLogin(current: KeycloakClient, initData: string): Promise<void> {
+  const loginUrl = await current.createLoginUrl({
+    redirectUri: window.location.origin,
+    scope: OFFLINE_ACCESS_SCOPE,
+    prompt: "login",
+  })
+  const redirectUrl = createTelegramLoginRedirectUrl(loginUrl, initData)
+
+  window.location.replace(redirectUrl)
+}
+
+function hasMatchingTelegramIdentity(current: KeycloakClient, initData: string): boolean {
+  const launchTelegramUserId = getTelegramUserId(initData)
+  const tokenTelegramUserId = getTokenTelegramUserId(current)
+
+  return launchTelegramUserId !== null && tokenTelegramUserId === launchTelegramUserId
+}
+
+function getTokenTelegramUserId(current: KeycloakClient): number | null {
+  const claim = current.tokenParsed?.telegram_id
+
+  if (typeof claim === "number") {
+    return Number.isSafeInteger(claim) && claim > 0 ? claim : null
+  }
+
+  if (typeof claim !== "string" || !/^\d+$/.test(claim)) {
+    return null
+  }
+
+  const parsed = Number(claim)
+
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
 async function refreshAccessToken(current: KeycloakClient, forceRefresh: boolean): Promise<string> {

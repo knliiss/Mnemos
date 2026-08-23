@@ -34,6 +34,32 @@ export function getTelegramInitDataState(
   return "fresh"
 }
 
+export function getTelegramUserId(initData: string): number | null {
+  const rawUser = new URLSearchParams(initData).get("user")
+
+  if (!rawUser) {
+    return null
+  }
+
+  try {
+    const user: unknown = JSON.parse(rawUser)
+
+    if (!isRecord(user)) {
+      return null
+    }
+
+    const userId = user.id
+
+    if (typeof userId !== "number" || !Number.isSafeInteger(userId) || userId <= 0) {
+      return null
+    }
+
+    return userId
+  } catch {
+    return null
+  }
+}
+
 export function getConfiguredMaximumAgeSeconds(): number {
   const configured = Number(import.meta.env.VITE_TELEGRAM_INIT_DATA_MAX_AGE_SECONDS)
 
@@ -42,4 +68,8 @@ export function getConfiguredMaximumAgeSeconds(): number {
   }
 
   return DEFAULT_MAXIMUM_AGE_SECONDS
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
 }

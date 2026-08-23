@@ -26,6 +26,15 @@ grep -Fq 'createTelegramLoginRedirectUrl' "$MINI_APP_AUTH" ||
 grep -Fq 'window.location.replace(redirectUrl)' "$MINI_APP_AUTH" ||
     fail "Mini App must replace the current location with the protected Telegram login redirect"
 
+grep -Fq 'getTelegramUserId' "$MINI_APP_AUTH" ||
+    fail "Mini App must compare the restored Keycloak session with the current Telegram launch identity"
+
+grep -Fq 'tokenParsed?.telegram_id' "$MINI_APP_AUTH" ||
+    fail "Mini App must bind restored Keycloak sessions to the Telegram identity claim"
+
+grep -Fq 'prompt: "login"' "$MINI_APP_AUTH" ||
+    fail "Explicit Telegram login must force re-authentication instead of accepting a stale Keycloak SSO cookie"
+
 if grep -Eq 'searchParams\.(set|append).*telegram_init_data' "$MINI_APP_AUTH" "$LOGIN_TRANSPORT"; then
     fail "Mini App must not place Telegram initData in Keycloak authorization query parameters"
 fi
@@ -60,4 +69,4 @@ if grep -Fq 'telegram-web-app.js' "$LOGIN_TEMPLATE"; then
     fail "Keycloak login challenge must not depend on a third-party Telegram script to recover initData"
 fi
 
-echo "Telegram initData transport verified: client-only fragment to POST body"
+echo "Telegram initData transport verified: identity-bound fragment to POST body"
