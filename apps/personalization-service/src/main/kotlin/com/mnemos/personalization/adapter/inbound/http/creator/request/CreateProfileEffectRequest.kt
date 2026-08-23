@@ -32,4 +32,7 @@ data class CreateProfileEffectRequest(
     @field:Min(1)
     @field:Max(100)
     val scale: Int = 50,
+    @field:Valid
+    @field:Size(max = 8)
+    val layers: List<VisualLayerRequest> = emptyList(),
 )
