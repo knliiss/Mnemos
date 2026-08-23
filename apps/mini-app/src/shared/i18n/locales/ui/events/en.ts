@@ -97,7 +97,8 @@ export const eventsEn = {
       title: "Subscriptions",
       eyebrow: "NOTIFICATION ROUTES",
       mascotTitle: "Teach Mnemos what to watch",
-      mascotCopy: "Keep the rules that matter close and sort the rest without hunting through a long list.",
+      mascotCopy:
+        "Keep the rules that matter close and sort the rest without hunting through a long list.",
       activeRules: "active rules",
       new: "New",
       all: "All",
