@@ -5,13 +5,16 @@ import com.mnemos.realtime.application.collector.credential.usecase.create.Creat
 import com.mnemos.realtime.application.collector.credential.usecase.create.CreateCollectorCredentialUseCase
 import com.mnemos.realtime.application.collector.credential.usecase.disable.DisableCollectorCredentialUseCase
 import com.mnemos.realtime.application.collector.credential.usecase.enable.EnableCollectorCredentialUseCase
+import com.mnemos.realtime.application.collector.credential.usecase.list.ListCollectorCredentialsUseCase
 import com.mnemos.realtime.application.collector.credential.usecase.revoke.RevokeCollectorCredentialUseCase
 import com.mnemos.realtime.application.collector.credential.usecase.rotate.RotateCollectorCredentialUseCase
+import com.mnemos.realtime.application.collector.presence.GetCollectorPresenceUseCase
 import com.mnemos.realtime.domain.collector.model.CollectorCredentialId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -24,12 +27,30 @@ import java.util.UUID
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 @RequestMapping("/api/v1/realtime/admin/collectors")
 class CollectorCredentialController(
+    private val listCredentialsUseCase: ListCollectorCredentialsUseCase,
+    private val getPresenceUseCase: GetCollectorPresenceUseCase,
     private val createCredentialUseCase: CreateCollectorCredentialUseCase,
     private val rotateCredentialUseCase: RotateCollectorCredentialUseCase,
     private val enableCredentialUseCase: EnableCollectorCredentialUseCase,
     private val disableCredentialUseCase: DisableCollectorCredentialUseCase,
     private val revokeCredentialUseCase: RevokeCollectorCredentialUseCase,
 ) {
+    @GetMapping
+    fun list(): List<CollectorCredentialResponse> =
+        listCredentialsUseCase
+            .execute()
+            .map { it.toResponse() }
+
+    @GetMapping("/presence")
+    fun presence(): CollectorPresenceResponse {
+        val snapshot = getPresenceUseCase.execute()
+
+        return CollectorPresenceResponse(
+            activeCollectors = snapshot.activeCollectors,
+            revision = snapshot.revision,
+        )
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(

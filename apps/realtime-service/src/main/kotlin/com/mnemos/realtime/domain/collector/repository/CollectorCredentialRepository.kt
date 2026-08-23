@@ -9,4 +9,6 @@ interface CollectorCredentialRepository {
     fun save(credential: CollectorCredential): CollectorCredential
 
     fun findById(id: CollectorCredentialId): CollectorCredential?
+
+    fun findAll(): List<CollectorCredential>
 }

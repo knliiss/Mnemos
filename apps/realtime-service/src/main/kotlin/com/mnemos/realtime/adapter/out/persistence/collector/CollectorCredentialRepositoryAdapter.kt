@@ -26,4 +26,9 @@ class CollectorCredentialRepositoryAdapter(
             .findById(id.id)
             .orElse(null)
             ?.toDomain()
+
+    override fun findAll(): List<CollectorCredential> =
+        jpaRepository
+            .findAll()
+            .map { it.toDomain() }
 }
