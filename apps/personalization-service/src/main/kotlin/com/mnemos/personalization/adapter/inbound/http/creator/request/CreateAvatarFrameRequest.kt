@@ -32,4 +32,7 @@ data class CreateAvatarFrameRequest(
     @field:Max(8)
     val gapPx: Int = 0,
     val style: FrameStyle = FrameStyle.SOLID,
+    @field:Valid
+    @field:Size(max = 8)
+    val layers: List<VisualLayerRequest> = emptyList(),
 )
