@@ -1,0 +1,129 @@
+.creator-design-presets {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.creator-design-presets > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.creator-design-presets > header > span {
+  display: grid;
+  gap: 2px;
+}
+
+.creator-design-presets > header small {
+  color: #7c8377;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+  font-weight: 720;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.creator-design-presets > header strong {
+  color: #e2e6dd;
+  font-size: 12px;
+}
+
+.creator-design-presets > header em {
+  max-width: 230px;
+  color: #747b70;
+  font-size: 8.5px;
+  font-style: normal;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.creator-design-presets__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.creator-design-presets__grid > button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 8px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 12px;
+  color: #dce1d7;
+  background: rgba(5, 7, 5, 0.28);
+  text-align: left;
+}
+
+.creator-design-presets__grid > button:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.17);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.creator-design-presets__swatch {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 5px rgba(0, 0, 0, 0.24);
+}
+
+.creator-design-presets__grid > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.creator-design-presets__grid strong {
+  overflow: hidden;
+  color: #dfe4da;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creator-design-presets__grid small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #777e73;
+  font-size: 8px;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.creator-design-presets button:disabled {
+  opacity: 0.46;
+}
+
+@media (max-width: 720px) {
+  .creator-design-presets__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .creator-design-presets > header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .creator-design-presets > header em {
+    max-width: none;
+    text-align: left;
+  }
+
+  .creator-design-presets__grid {
+    grid-template-columns: 1fr;
+  }
+}
