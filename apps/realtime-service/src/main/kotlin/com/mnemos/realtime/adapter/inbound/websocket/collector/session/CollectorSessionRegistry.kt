@@ -2,6 +2,7 @@ package com.mnemos.realtime.adapter.inbound.websocket.collector.session
 
 import com.mnemos.realtime.application.collector.model.CollectorObservationUpdateResult
 import com.mnemos.realtime.application.collector.model.CollectorPresenceSnapshot
+import com.mnemos.realtime.application.collector.model.CollectorUpdateSlotDecision
 import com.mnemos.realtime.application.collector.port.out.CollectorSessionControl
 import com.mnemos.realtime.application.collector.port.out.CollectorSessionLeaseStore
 import com.mnemos.realtime.configuration.collector.CollectorConnectionProperties
@@ -165,6 +166,22 @@ class CollectorSessionRegistry(
         return leaseStore.markPaused(
             collectorId = collectorId,
             sessionToken = sessionToken,
+        )
+    }
+
+    fun requestUpdateSlot(
+        session: WebSocketSession,
+        version: String,
+    ): CollectorUpdateSlotDecision? {
+        val collectorId = collectorBySessionId[session.id] ?: return null
+        val sessionToken = sessionTokenBySessionId[session.id] ?: return null
+
+        return leaseStore.requestUpdateSlot(
+            collectorId = collectorId,
+            sessionToken = sessionToken,
+            version = version,
+            slotTtl = properties.updateSlotTtl,
+            retryDelay = properties.updateRetryDelay,
         )
     }
 

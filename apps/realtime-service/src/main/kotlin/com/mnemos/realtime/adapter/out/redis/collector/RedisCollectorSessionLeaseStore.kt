@@ -2,6 +2,7 @@ package com.mnemos.realtime.adapter.out.redis.collector
 
 import com.mnemos.realtime.application.collector.model.CollectorObservationUpdateResult
 import com.mnemos.realtime.application.collector.model.CollectorPresenceSnapshot
+import com.mnemos.realtime.application.collector.model.CollectorUpdateSlotDecision
 import com.mnemos.realtime.application.collector.port.out.CollectorSessionLeaseStore
 import com.mnemos.realtime.domain.collector.model.CollectorCredentialId
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -98,6 +99,60 @@ class RedisCollectorSessionLeaseStore(
             ),
         )
 
+    override fun requestUpdateSlot(
+        collectorId: CollectorCredentialId,
+        sessionToken: UUID,
+        version: String,
+        slotTtl: Duration,
+        retryDelay: Duration,
+    ): CollectorUpdateSlotDecision? {
+        val retryDelaySeconds =
+            ((retryDelay.toMillis() + MILLISECONDS_PER_SECOND - 1) / MILLISECONDS_PER_SECOND)
+                .coerceAtLeast(1)
+        val encoded =
+            requireNotNull(
+                redisTemplate.execute(
+                    requestUpdateSlotScript,
+                    listOf(
+                        leaseKey(collectorId),
+                        ACTIVE_COLLECTORS_KEY,
+                        UPDATE_SLOT_KEY,
+                    ),
+                    sessionToken.toString(),
+                    collectorId.id.toString(),
+                    version,
+                    slotTtl.toMillis().toString(),
+                    retryDelaySeconds.toString(),
+                ),
+            ) {
+                "Redis did not return a collector update slot decision"
+            }
+
+        if (encoded == UPDATE_SESSION_NOT_OWNED) {
+            return null
+        }
+
+        val parts = encoded.split(':', limit = 2)
+        val status = parts.first()
+        val retryAfterSeconds = parts.getOrNull(1)?.toLongOrNull()
+
+        return when (status) {
+            UPDATE_GRANTED ->
+                CollectorUpdateSlotDecision(
+                    granted = true,
+                    retryAfterSeconds = null,
+                )
+
+            UPDATE_DEFERRED ->
+                CollectorUpdateSlotDecision(
+                    granted = false,
+                    retryAfterSeconds = requireNotNull(retryAfterSeconds),
+                )
+
+            else -> error("Redis returned an unknown collector update slot decision: $encoded")
+        }
+    }
+
     override fun release(
         collectorId: CollectorCredentialId,
         sessionToken: UUID,
@@ -165,10 +220,16 @@ class RedisCollectorSessionLeaseStore(
         const val LEASE_KEY_PREFIX = "realtime:{collectors}:lease"
         const val PRESENCE_COUNT_KEY = "realtime:{collectors}:presence:count"
         const val PRESENCE_REVISION_KEY = "realtime:{collectors}:presence:revision"
+        const val UPDATE_SLOT_KEY = "realtime:{collectors}:update:slot"
 
+        const val MILLISECONDS_PER_SECOND = 1000L
         const val SESSION_NOT_OWNED = -1L
         const val OBSERVATION_UNCHANGED = 0L
         const val OBSERVATION_CHANGED = 1L
+
+        const val UPDATE_SESSION_NOT_OWNED = "NOT_OWNED"
+        const val UPDATE_GRANTED = "GRANTED"
+        const val UPDATE_DEFERRED = "DEFERRED"
 
         val acquireScript =
             DefaultRedisScript(
@@ -250,6 +311,45 @@ class RedisCollectorSessionLeaseStore(
                 return redis.call('ZREM', KEYS[2], ARGV[2])
                 """.trimIndent(),
                 Long::class.java,
+            )
+
+        val requestUpdateSlotScript =
+            DefaultRedisScript(
+                """
+                if redis.call('GET', KEYS[1]) ~= ARGV[1] then
+                    return 'NOT_OWNED'
+                end
+
+                local time = redis.call('TIME')
+                local now = (time[1] * 1000) + math.floor(time[2] / 1000)
+
+                redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', now)
+
+                local requested_slot = ARGV[2] .. '|' .. ARGV[3]
+                local current_slot = redis.call('GET', KEYS[3])
+
+                if current_slot then
+                    if current_slot == requested_slot then
+                        return 'GRANTED:0'
+                    end
+
+                    local remaining = redis.call('PTTL', KEYS[3])
+                    local retry_after = math.max(1, math.ceil(remaining / 1000))
+
+                    return 'DEFERRED:' .. tostring(retry_after)
+                end
+
+                local observing_until = redis.call('ZSCORE', KEYS[2], ARGV[2])
+                local active_collectors = redis.call('ZCARD', KEYS[2])
+
+                if observing_until and tonumber(observing_until) > now and active_collectors <= 1 then
+                    return 'DEFERRED:' .. ARGV[5]
+                end
+
+                redis.call('SET', KEYS[3], requested_slot, 'PX', ARGV[4])
+                return 'GRANTED:0'
+                """.trimIndent(),
+                String::class.java,
             )
 
         val releaseScript =
