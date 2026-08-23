@@ -37,4 +37,7 @@ data class CreateProfileThemeRequest(
     @field:Min(0)
     @field:Max(100)
     val textureStrength: Int = 0,
+    @field:Valid
+    @field:Size(max = 8)
+    val layers: List<VisualLayerRequest> = emptyList(),
 )
