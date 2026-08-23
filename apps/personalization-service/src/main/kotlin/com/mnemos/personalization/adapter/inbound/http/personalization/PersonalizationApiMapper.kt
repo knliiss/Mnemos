@@ -10,12 +10,14 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.content.N
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileEffectContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileThemeContentResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.VisualLayerResponse
 import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object PersonalizationApiMapper {
     fun PageResult<Personalization>.toResponse(): PageResponse<PersonalizationResponse> =
@@ -71,6 +73,7 @@ object PersonalizationApiMapper {
                     surfaceSecondary = surfaceSecondary.value,
                     gradientAngleDegrees = gradientAngleDegrees,
                     textureStrength = textureStrength,
+                    layers = layers.map { layer -> layer.toResponse() },
                 )
 
             is PersonalizationContent.AvatarFrame ->
@@ -82,6 +85,7 @@ object PersonalizationApiMapper {
                     secondaryBorderColor = secondaryBorderColor.value,
                     gapPx = gapPx,
                     style = style,
+                    layers = layers.map { layer -> layer.toResponse() },
                 )
 
             is PersonalizationContent.ProfileEffect ->
@@ -93,6 +97,7 @@ object PersonalizationApiMapper {
                     speed = speed,
                     density = density,
                     scale = scale,
+                    layers = layers.map { layer -> layer.toResponse() },
                 )
 
             is PersonalizationContent.NotificationPack ->
@@ -104,6 +109,21 @@ object PersonalizationApiMapper {
                         },
                 )
         }
+
+    private fun VisualLayer.toResponse(): VisualLayerResponse =
+        VisualLayerResponse(
+            id = id,
+            assetId = assetId.id,
+            assetUrl = "/api/v1/personalizations/assets/${assetId.id}/content",
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
+        )
 
     private fun GradientStop.toResponse(): GradientStopResponse =
         GradientStopResponse(
