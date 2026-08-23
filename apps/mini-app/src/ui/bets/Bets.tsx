@@ -53,8 +53,8 @@ type PendingRoundOperation = {
   baselineAmount: number
 }
 
-const FIRST_EVENT_BET_MIN = 500
-const FIRST_EVENT_BET_MAX = 5_000
+const EVENT_BET_MIN = 500
+const EVENT_BET_MAX = 5_000
 const BET_OPERATION_POLL_ATTEMPTS = 30
 const BET_OPERATION_POLL_DELAY_MS = 750
 
@@ -193,30 +193,32 @@ export function Bets({ activeAccount, navigate }: Props) {
   const historicalPositionCount = historicalEventBets.length + historicalRacePositions.length
   const myPositionCount = currentPositionCount + historicalPositionCount
   const numericAmount = Number(amount)
+  const selectedRoundAmount = selectedRoundValue?.myBet ? betAmount(selectedRoundValue.myBet) : 0
   const selectedHasBet = Boolean(selectedRoundValue?.myBet)
   const amountIsInteger = Number.isInteger(numericAmount)
   const withinBalance = numericAmount <= activeAccount.coin
+  const withinRoundMaximum = selectedRoundAmount + numericAmount <= EVENT_BET_MAX
   const roundAmountValid =
     canPlaceBets &&
     amountIsInteger &&
-    numericAmount >= (selectedHasBet ? 1 : FIRST_EVENT_BET_MIN) &&
+    numericAmount >= (selectedHasBet ? 1 : EVENT_BET_MIN) &&
     withinBalance &&
-    (selectedHasBet || numericAmount <= FIRST_EVENT_BET_MAX)
+    withinRoundMaximum
   const roundAmountHint = (() => {
     if (!amountIsInteger) {
       return t("bets.sheet.amountInteger")
     }
 
-    if (!selectedHasBet && numericAmount < FIRST_EVENT_BET_MIN) {
+    if (!selectedHasBet && numericAmount < EVENT_BET_MIN) {
       return t("bets.sheet.amountMinimum")
-    }
-
-    if (!selectedHasBet && numericAmount > FIRST_EVENT_BET_MAX) {
-      return t("bets.sheet.amountMaximum")
     }
 
     if (numericAmount < 1) {
       return t("bets.sheet.amountInteger")
+    }
+
+    if (!withinRoundMaximum) {
+      return t("bets.sheet.amountMaximum")
     }
 
     if (!withinBalance) {
@@ -285,12 +287,16 @@ export function Bets({ activeAccount, navigate }: Props) {
   }
 
   const openRound = (round: EventBetRoundResponse) => {
+    const currentAmount = round.myBet ? betAmount(round.myBet) : 0
+    const remainingAmount = Math.max(EVENT_BET_MAX - currentAmount, 0)
+    const suggestedIncrease = Math.min(100, remainingAmount)
+
     setSelectedRound({
       accountId: activeAccount.id,
       id: round.id,
     })
     setSide(round.myBet?.side ?? "YES")
-    setAmount(round.myBet ? "100" : "500")
+    setAmount(round.myBet ? String(suggestedIncrease) : String(EVENT_BET_MIN))
   }
 
   const openRace = (race: ItemRaceResponse) => {
