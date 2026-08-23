@@ -1,6 +1,7 @@
 import Keycloak from "keycloak-js"
 import { AuthError } from "@/features/auth/api/authErrors"
 import { getTelegramInitDataState } from "@/features/auth/api/telegramInitData"
+import { createTelegramLoginRedirectUrl } from "@/features/auth/api/telegramLoginTransport"
 
 const keycloakUrl = (import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest").replace(
   /\/+$/,
@@ -173,10 +174,13 @@ async function initialize(): Promise<void> {
 
   await ensureAuthServiceAvailable()
 
-  await candidate.login({
+  const loginUrl = await candidate.createLoginUrl({
     redirectUri: window.location.origin,
     scope: OFFLINE_ACCESS_SCOPE,
   })
+  const redirectUrl = createTelegramLoginRedirectUrl(loginUrl, telegram.initData)
+
+  window.location.replace(redirectUrl)
 
   return new Promise<void>(() => undefined)
 }
