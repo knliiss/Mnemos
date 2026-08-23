@@ -62,8 +62,7 @@
   gap: 9px;
   padding: 9px;
   background:
-    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%),
-    #11140e;
+    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%), #11140e;
 }
 
 .notification-real-preview.is-small {
