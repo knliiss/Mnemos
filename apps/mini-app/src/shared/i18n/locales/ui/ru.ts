@@ -38,6 +38,9 @@ export const uiRu = {
       badgeSaving: "Сохраняем…",
       badgeActive: "Активен",
       badgeUse: "Использовать",
+      personalizationEyebrow: "ОФОРМЛЕНИЕ ПОЛЬЗОВАТЕЛЯ",
+      personalization: "Персонализация",
+      personalizationDescription: "Бейджи и паки уведомлений",
       workspaces: "Рабочие области",
       creator: "Студия автора",
       creatorDescription: "Создание персонализаций",
@@ -59,6 +62,16 @@ export const uiRu = {
       joinByCode: "Вход по коду",
       joinTeam: "Присоединиться к команде",
     },
+  },
+  userPersonalization: {
+    title: "Персонализация пользователя",
+    eyebrow: "ТВОЁ ОФОРМЛЕНИЕ",
+    introTitle: "Бейджи и уведомления отдельно от профиля",
+    introDescription:
+      "Здесь управляются пользовательский бейдж и активный пак уведомлений. Меню профиля остаётся компактным даже при большой коллекции.",
+    activeBadge: "Активный бейдж",
+    activePack: "Активный пак уведомлений",
+    none: "Не выбрано",
   },
   notFound: {
     mascotAlt: "Озадаченный маскот Mnemos с картой",
