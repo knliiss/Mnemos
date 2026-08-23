@@ -16,14 +16,15 @@ class ListItemRacesService(
         val account = accountProvider.requireActiveAccount()
 
         return reader.findCurrent().map { race ->
+            val participant =
+                reader.findParticipant(
+                    raceId = race.id,
+                    accountId = account.id,
+                )
+
             GetItemRaceResult(
                 race = race,
-                participants = listOfNotNull(
-                    reader.findParticipant(
-                        raceId = race.id,
-                        accountId = account.id,
-                    ),
-                ),
+                participants = listOfNotNull(participant),
             )
         }
     }
