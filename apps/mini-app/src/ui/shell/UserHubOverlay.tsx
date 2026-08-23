@@ -7,6 +7,8 @@ import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { UserBadgeMark } from "./badges/UserBadgeMark"
 import { UserBadgeSelector } from "./badges/UserBadgeSelector"
 import { localizationOptions } from "./navigation"
+import { UserNotificationPackSelector } from "./personalization/UserNotificationPackSelector"
+import { useUserNotificationPacks } from "./personalization/useUserNotificationPacks"
 import { UserHubAccountPicker } from "./UserHubAccountPicker"
 import { UserHubLocalization } from "./UserHubLocalization"
 import { UserHubWorkspaces } from "./UserHubWorkspaces"
@@ -55,6 +57,7 @@ export function UserHubOverlay({
   navigate,
 }: UserHubOverlayProps) {
   const { t } = useTranslation()
+  const notificationPacks = useUserNotificationPacks(open)
   const localizationOption =
     localizationOptions.find((option) => option.value === localization) ?? localizationOptions[0]
   const activeBadge = badges.find((item) => item.active) ?? null
@@ -106,6 +109,14 @@ export function UserHubOverlay({
               busyBadgeId={busyBadgeId}
               onActivate={onActivateBadge}
               onDeactivate={onDeactivateBadge}
+            />
+
+            <UserNotificationPackSelector
+              packs={notificationPacks.packs}
+              loading={notificationPacks.loading}
+              busyPackId={notificationPacks.busyPackId}
+              onActivate={(personalizationId) => void notificationPacks.activate(personalizationId)}
+              onDeactivate={() => void notificationPacks.deactivate()}
             />
 
             <button
