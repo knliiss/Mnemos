@@ -19,34 +19,22 @@
 }
 
 .personalization-review-screen .review-empty-workbench {
-  grid-template-columns: 104px minmax(0, 1fr);
-  align-items: center;
-  gap: 16px;
-  min-height: 118px;
-  padding: 12px 18px 12px 10px;
-  border-style: solid;
-  background:
-    radial-gradient(circle at 10% 50%, rgba(206, 145, 210, 0.045), transparent 30%),
-    rgba(255, 255, 255, 0.01);
-}
-
-.personalization-review-screen .review-empty-workbench::before {
-  content: "";
   display: block;
-  width: 96px;
-  height: 84px;
-  background: url("/ui-illustrations/admin-review.svg") center / 88px 76px no-repeat;
-  opacity: 0.72;
-  filter: saturate(0.82) brightness(0.88);
+  min-height: 0;
+  padding: 18px;
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.01);
 }
 
+.personalization-review-screen .review-empty-workbench::before,
 .personalization-review-screen .review-empty-workbench > svg {
   display: none;
 }
 
 .personalization-review-screen .review-empty-workbench > span {
-  align-self: center;
-  padding-left: 2px;
+  display: grid;
+  gap: 4px;
+  padding: 0;
 }
 
 .personalization-review-screen .review-queue-card {
@@ -101,14 +89,7 @@
   }
 
   .personalization-review-screen .review-empty-workbench {
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .personalization-review-screen .review-empty-workbench::before {
-    width: 70px;
-    height: 64px;
-    background-size: 68px 60px;
+    padding: 14px;
   }
 
   .personalization-review-screen .review-queue-card {
@@ -140,15 +121,5 @@
   .personalization-review-screen .review-overview__mark {
     width: 66px;
     background-size: 62px 54px;
-  }
-
-  .personalization-review-screen .review-empty-workbench {
-    grid-template-columns: 62px minmax(0, 1fr);
-  }
-
-  .personalization-review-screen .review-empty-workbench::before {
-    width: 58px;
-    height: 54px;
-    background-size: 56px 50px;
   }
 }
