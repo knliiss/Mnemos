@@ -51,6 +51,44 @@ const translationKeys = {
   },
 } as const satisfies Record<NoticeTone, Record<"eyebrow" | "title" | "message", string>>
 
+function collectDetailMessages(value: unknown, path = ""): string[] {
+  if (typeof value === "string") {
+    const message = value.trim()
+
+    if (!message) {
+      return []
+    }
+
+    return [path ? `${path}: ${message}` : message]
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectDetailMessages(item, path))
+  }
+
+  if (!value || typeof value !== "object") {
+    return []
+  }
+
+  return Object.entries(value).flatMap(([key, item]) => {
+    const nextPath = path ? `${path}.${key}` : key
+
+    return collectDetailMessages(item, nextPath)
+  })
+}
+
+function concreteMessage(payload: BackendErrorPayload): string | null {
+  const details = collectDetailMessages(payload.details).slice(0, 3)
+
+  if (details.length) {
+    return details.join(" · ")
+  }
+
+  const backendMessage = payload.message?.trim()
+
+  return backendMessage || null
+}
+
 export function resolveErrorPresentation(
   payload: BackendErrorPayload,
   language = i18n.resolvedLanguage ?? "uk",
@@ -62,7 +100,7 @@ export function resolveErrorPresentation(
   const fallback = {
     eyebrow: translate(keys.eyebrow),
     title: translate(keys.title),
-    message: translate(keys.message),
+    message: concreteMessage(payload) ?? translate(keys.message),
   }
 
   if (!code) {
@@ -74,6 +112,9 @@ export function resolveErrorPresentation(
   }
 
   const codePrefix = `errorNotifications.codes.${code}`
+  const translatedCodeMessage = translate(`${codePrefix}.message`, {
+    defaultValue: "",
+  }).trim()
 
   return {
     tone,
@@ -84,8 +125,6 @@ export function resolveErrorPresentation(
     title: translate(`${codePrefix}.title`, {
       defaultValue: fallback.title,
     }),
-    message: translate(`${codePrefix}.message`, {
-      defaultValue: fallback.message,
-    }),
+    message: concreteMessage(payload) ?? translatedCodeMessage || fallback.message,
   }
 }
