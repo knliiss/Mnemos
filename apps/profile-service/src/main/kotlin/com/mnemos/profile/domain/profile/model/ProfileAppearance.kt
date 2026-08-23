@@ -31,6 +31,7 @@ data class ProfileAppearance(
         val surfaceSecondary: String = surface,
         val gradientAngleDegrees: Int = 145,
         val textureStrength: Int = 0,
+        val layers: List<VisualLayer> = emptyList(),
     )
 
     data class AvatarFrame(
@@ -42,6 +43,7 @@ data class ProfileAppearance(
         val secondaryBorderColor: String = borderColor,
         val gapPx: Int = 0,
         val style: String = "SOLID",
+        val layers: List<VisualLayer> = emptyList(),
     )
 
     data class ProfileEffect(
@@ -53,6 +55,20 @@ data class ProfileAppearance(
         val speed: Int = 50,
         val density: Int = 50,
         val scale: Int = 50,
+        val layers: List<VisualLayer> = emptyList(),
+    )
+
+    data class VisualLayer(
+        val id: String,
+        val assetId: UUID,
+        val xPercent: Int,
+        val yPercent: Int,
+        val widthPercent: Int,
+        val opacity: Int,
+        val rotationDegrees: Int,
+        val blendMode: String,
+        val animation: String,
+        val zIndex: Int,
     )
 
     data class GradientStop(
