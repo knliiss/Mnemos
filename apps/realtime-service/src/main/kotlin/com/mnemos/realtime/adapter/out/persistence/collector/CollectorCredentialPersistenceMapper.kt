@@ -8,6 +8,7 @@ object CollectorCredentialPersistenceMapper {
         CollectorCredentialEntity(
             id = id.id,
             name = name,
+            ownerUserId = ownerUserId,
             secretHash = secretHash,
             enabled = enabled,
             createdAt = createdAt,
@@ -19,6 +20,7 @@ object CollectorCredentialPersistenceMapper {
         CollectorCredential.restore(
             id = CollectorCredentialId(id),
             name = name,
+            ownerUserId = ownerUserId,
             secretHash = secretHash,
             enabled = enabled,
             createdAt = createdAt,
