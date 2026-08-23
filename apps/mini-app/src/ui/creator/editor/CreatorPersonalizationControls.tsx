@@ -42,13 +42,7 @@ function RangeField({ label, value, min, max, suffix = "%", disabled, onChange }
   return (
     <Field label={label}>
       <div className="creator-parameter-range">
-        <RangeControl
-          value={value}
-          min={min}
-          max={max}
-          disabled={disabled}
-          onChange={onChange}
-        />
+        <RangeControl value={value} min={min} max={max} disabled={disabled} onChange={onChange} />
         <output>
           {value}
           {suffix}

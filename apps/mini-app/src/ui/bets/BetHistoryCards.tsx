@@ -29,11 +29,10 @@ type EventBetHistoryCardProps = {
 
 export function EventBetHistoryCard({ round, bet, locale, t }: EventBetHistoryCardProps) {
   const outcome = round.outcome ? eventOutcomeLabel(t, round.outcome) : null
+  const tone = globalEventVisualTone(round.eventType)
 
   return (
-    <article
-      className={`bets-card bets-history-card event-surface--${globalEventVisualTone(round.eventType)}`}
-    >
+    <article className={`bets-card bets-history-card event-surface--${tone}`}>
       <span className="bets-card__art">
         <GlobalEventArt eventType={round.eventType} size={52} />
       </span>
@@ -63,6 +62,9 @@ type ItemRaceHistoryCardProps = {
 }
 
 export function ItemRaceHistoryCard({ race, position, locale, t }: ItemRaceHistoryCardProps) {
+  const status = raceParticipantStatusLabel(t, position.status)
+  const startedAt = formatBetMoment(race.startsAt, locale)
+
   return (
     <article className="bets-race bets-history-card">
       <span className="bets-race__art">
@@ -72,9 +74,7 @@ export function ItemRaceHistoryCard({ race, position, locale, t }: ItemRaceHisto
       <span className="bets-race__copy">
         <small>{itemTypeLabel(t, race.itemType)}</small>
         <strong>{race.itemName}</strong>
-        <em>
-          {raceParticipantStatusLabel(t, position.status)} · {formatBetMoment(race.startsAt, locale)}
-        </em>
+        <em>{`${status} · ${startedAt}`}</em>
       </span>
 
       <span className="bets-history-card__position">
