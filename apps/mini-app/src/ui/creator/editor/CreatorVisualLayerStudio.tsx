@@ -7,10 +7,7 @@ import {
   type PersonalizationAssetResponse,
 } from "@/shared/api/creatorPersonalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import type {
-  VisualLayerAnimation,
-  VisualLayerBlendMode,
-} from "../../model"
+import type { VisualLayerAnimation, VisualLayerBlendMode } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PersonalizationAssetImage } from "../../components/personalization/PersonalizationAssetImage"
 import type { CreatorEditorForm, CreatorVisualLayerForm } from "./creatorEditorModel"
@@ -24,13 +21,7 @@ type Props = {
   setForm: Dispatch<SetStateAction<CreatorEditorForm>>
 }
 
-const blendModes: VisualLayerBlendMode[] = [
-  "NORMAL",
-  "SCREEN",
-  "MULTIPLY",
-  "OVERLAY",
-  "SOFT_LIGHT",
-]
+const blendModes: VisualLayerBlendMode[] = ["NORMAL", "SCREEN", "MULTIPLY", "OVERLAY", "SOFT_LIGHT"]
 
 const animations: VisualLayerAnimation[] = ["NONE", "FLOAT", "PULSE", "SPIN", "DRIFT"]
 
@@ -380,9 +371,7 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
                 value={selectedLayer.rotationDegrees}
                 disabled={!editable}
                 suffix="°"
-                onChange={(rotationDegrees) =>
-                  updateLayer(selectedLayer.id, { rotationDegrees })
-                }
+                onChange={(rotationDegrees) => updateLayer(selectedLayer.id, { rotationDegrees })}
               />
 
               <label className="creator-layer-select">
@@ -488,15 +477,7 @@ type LayerRangeProps = {
   onChange(value: number): void
 }
 
-function LayerRange({
-  label,
-  value,
-  min,
-  max,
-  disabled,
-  suffix = "%",
-  onChange,
-}: LayerRangeProps) {
+function LayerRange({ label, value, min, max, disabled, suffix = "%", onChange }: LayerRangeProps) {
   return (
     <label className="creator-layer-range">
       <span>{label}</span>
