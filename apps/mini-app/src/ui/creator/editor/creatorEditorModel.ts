@@ -2,7 +2,10 @@ import {
   createCreatorPersonalization,
   updateCreatorPersonalization,
 } from "@/shared/api/creatorPersonalizationApi"
-import type { NotificationPackEditorDescriptorResponse } from "@/shared/api/creatorPersonalizationApi"
+import type {
+  NotificationPackEditorDescriptorResponse,
+  VisualLayerRequest,
+} from "@/shared/api/creatorPersonalizationApi"
 import type {
   AvatarFrameContentResponse,
   NickStyleContentResponse,
@@ -22,6 +25,7 @@ import type {
   PersonalizationContent,
   PersonalizationStatus,
   PersonalizationType,
+  VisualLayer,
 } from "../../model"
 
 export type CreatorGlowForm = {
@@ -29,6 +33,8 @@ export type CreatorGlowForm = {
   color: string
   strength: number
 }
+
+export type CreatorVisualLayerForm = VisualLayer
 
 export type NickStyleEditorForm = {
   colors: GradientStop[]
@@ -47,6 +53,7 @@ export type ProfileThemeEditorForm = {
   gradientAngleDegrees: number
   textureStrength: number
   glow: CreatorGlowForm
+  layers: CreatorVisualLayerForm[]
 }
 
 export type AvatarFrameEditorForm = {
@@ -57,6 +64,7 @@ export type AvatarFrameEditorForm = {
   radiusPx: number
   style: FrameStyle
   glow: CreatorGlowForm
+  layers: CreatorVisualLayerForm[]
 }
 
 export type ProfileEffectEditorForm = {
@@ -67,6 +75,7 @@ export type ProfileEffectEditorForm = {
   scale: number
   primaryColor: string
   secondaryColor: string
+  layers: CreatorVisualLayerForm[]
 }
 
 export type NotificationPackEditorForm = {
@@ -114,6 +123,21 @@ function glowForm(
     enabled: Boolean(glow),
     color: glow?.color ?? fallbackColor,
     strength: glow?.strength ?? fallbackStrength,
+  }
+}
+
+function layerRequest(layer: CreatorVisualLayerForm): VisualLayerRequest {
+  return {
+    id: layer.id,
+    assetId: layer.assetId,
+    xPercent: layer.xPercent,
+    yPercent: layer.yPercent,
+    widthPercent: layer.widthPercent,
+    opacity: layer.opacity,
+    rotationDegrees: layer.rotationDegrees,
+    blendMode: layer.blendMode,
+    animation: layer.animation,
+    zIndex: layer.zIndex,
   }
 }
 
@@ -191,6 +215,7 @@ export async function saveCreatorForm(
       gradientAngleDegrees: theme.gradientAngleDegrees,
       textureStrength: theme.textureStrength,
       glow: glowRequest(theme.glow),
+      layers: theme.layers.map(layerRequest),
       price,
     }
 
@@ -210,6 +235,7 @@ export async function saveCreatorForm(
       radiusPx: frame.radiusPx,
       style: frame.style,
       glow: glowRequest(frame.glow),
+      layers: frame.layers.map(layerRequest),
       price,
     }
 
@@ -229,6 +255,7 @@ export async function saveCreatorForm(
       scale: effect.scale,
       primaryColor: effect.primaryColor,
       secondaryColor: effect.secondaryColor,
+      layers: effect.layers.map(layerRequest),
       price,
     }
 
@@ -285,6 +312,7 @@ export function createDefaultCreatorEditorForm(
         color: "#CBFF2D",
         strength: 28,
       },
+      layers: [],
     },
     avatarFrame: {
       borderColor: "#CBFF2D",
@@ -298,6 +326,7 @@ export function createDefaultCreatorEditorForm(
         color: "#CBFF2D",
         strength: 42,
       },
+      layers: [],
     },
     profileEffect: {
       effect: "AURORA",
@@ -307,6 +336,7 @@ export function createDefaultCreatorEditorForm(
       scale: 60,
       primaryColor: "#CBFF2D",
       secondaryColor: "#B98DC2",
+      layers: [],
     },
     notificationPack: notificationPackDefaults(descriptor),
   }
@@ -359,6 +389,7 @@ export function creatorResponseToEditorForm(
           defaults.profileTheme.glow.color,
           defaults.profileTheme.glow.strength,
         ),
+        layers: value.layers ?? [],
       },
     }
   }
@@ -380,6 +411,7 @@ export function creatorResponseToEditorForm(
           defaults.avatarFrame.glow.color,
           defaults.avatarFrame.glow.strength,
         ),
+        layers: value.layers ?? [],
       },
     }
   }
@@ -397,6 +429,7 @@ export function creatorResponseToEditorForm(
         scale: value.scale ?? defaults.profileEffect.scale,
         primaryColor: value.primaryColor,
         secondaryColor: value.secondaryColor ?? defaults.profileEffect.secondaryColor,
+        layers: value.layers ?? [],
       },
     }
   }
@@ -443,6 +476,7 @@ export function buildCreatorPreview(
       gradientAngleDegrees: form.profileTheme.gradientAngleDegrees,
       textureStrength: form.profileTheme.textureStrength,
       glow: glowRequest(form.profileTheme.glow),
+      layers: form.profileTheme.layers,
     }
   } else if (form.type === "AVATAR_FRAME") {
     content = {
@@ -454,6 +488,7 @@ export function buildCreatorPreview(
       radiusPx: form.avatarFrame.radiusPx,
       style: form.avatarFrame.style,
       glow: glowRequest(form.avatarFrame.glow),
+      layers: form.avatarFrame.layers,
     }
   } else if (form.type === "PROFILE_EFFECT") {
     content = {
@@ -465,6 +500,7 @@ export function buildCreatorPreview(
       scale: form.profileEffect.scale,
       primaryColor: form.profileEffect.primaryColor,
       secondaryColor: form.profileEffect.secondaryColor,
+      layers: form.profileEffect.layers,
     }
   } else {
     content = {
