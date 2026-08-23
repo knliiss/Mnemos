@@ -124,8 +124,8 @@ export function UserHubOverlay({
               className="user-hub-personalization-entry"
               onClick={() => navigate({ id: "user-personalization" })}
             >
-              <span className="user-hub-personalization-entry__mark">
-                <Glyph name="creator" size={18} />
+              <span className="user-hub-personalization-entry__art" aria-hidden="true">
+                <img src="/ui-illustrations/personalization-studio.svg" alt="" />
               </span>
               <span>
                 <small>{t("appShell.userMenu.personalizationEyebrow")}</small>
