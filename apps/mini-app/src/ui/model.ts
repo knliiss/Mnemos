@@ -30,6 +30,8 @@ export type PersonalizationStatus =
   | "UNLISTED"
 export type EffectType = "AURORA" | "PULSE" | "SHIMMER" | "PARTICLES"
 export type FrameStyle = "SOLID" | "DOUBLE" | "SEGMENTED"
+export type VisualLayerBlendMode = "NORMAL" | "SCREEN" | "MULTIPLY" | "OVERLAY" | "SOFT_LIGHT"
+export type VisualLayerAnimation = "NONE" | "FLOAT" | "PULSE" | "SPIN" | "DRIFT"
 export type NotificationTemplateKey = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAID" | "GLOBAL"
 export type RolePermission =
   | "MANAGE_MEMBERS"
@@ -142,6 +144,20 @@ export type GlowStyle = {
   strength: number
 }
 
+export type VisualLayer = {
+  id: string
+  assetId: string
+  assetUrl: string
+  xPercent: number
+  yPercent: number
+  widthPercent: number
+  opacity: number
+  rotationDegrees: number
+  blendMode: VisualLayerBlendMode
+  animation: VisualLayerAnimation
+  zIndex: number
+}
+
 export type NotificationTemplate = {
   emoji: string | null
   soloTitle: string
@@ -175,6 +191,7 @@ export type ProfileThemeContent = {
   gradientAngleDegrees: number
   textureStrength: number
   glow: GlowStyle | null
+  layers: VisualLayer[]
 }
 
 export type AvatarFrameContent = {
@@ -186,6 +203,7 @@ export type AvatarFrameContent = {
   radiusPx: number
   style: FrameStyle
   glow: GlowStyle | null
+  layers: VisualLayer[]
 }
 
 export type ProfileEffectContent = {
@@ -197,6 +215,7 @@ export type ProfileEffectContent = {
   scale: number
   primaryColor: string
   secondaryColor: string | null
+  layers: VisualLayer[]
 }
 
 export type PersonalizationContent =
