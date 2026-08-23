@@ -8,12 +8,7 @@ type Props = {
   draggable?: boolean
 }
 
-export function PersonalizationAssetImage({
-  src,
-  alt = "",
-  className,
-  draggable = false,
-}: Props) {
+export function PersonalizationAssetImage({ src, alt = "", className, draggable = false }: Props) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
