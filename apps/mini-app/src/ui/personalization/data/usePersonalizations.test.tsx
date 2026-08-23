@@ -63,6 +63,7 @@ const accountItem: Personalization = {
   target: "ACCOUNT",
   name: "Gradient",
   creator: "Creator",
+  createdByCurrentUser: false,
   currency: "COIN",
   price: 10,
   status: "PUBLISHED",
