@@ -23,6 +23,10 @@ class PersonalizationAssetImageValidator {
             throw InvalidPersonalizationAssetException("Personalization asset must use image/png content type")
         }
 
+        if (!bytes.hasPngSignature()) {
+            throw InvalidPersonalizationAssetException("Personalization asset must be a valid PNG image")
+        }
+
         val image =
             ByteArrayInputStream(bytes).use { input ->
                 javax.imageio.ImageIO.read(input)
@@ -44,10 +48,30 @@ class PersonalizationAssetImageValidator {
         )
     }
 
+    private fun ByteArray.hasPngSignature(): Boolean {
+        if (size < PNG_SIGNATURE.size) {
+            return false
+        }
+
+        return PNG_SIGNATURE.indices.all { index -> this[index] == PNG_SIGNATURE[index] }
+    }
+
     companion object {
         const val PNG_CONTENT_TYPE = "image/png"
         const val MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024
         const val MIN_DIMENSION_PX = 16
         const val MAX_DIMENSION_PX = 2048
+
+        private val PNG_SIGNATURE =
+            byteArrayOf(
+                0x89.toByte(),
+                0x50,
+                0x4E,
+                0x47,
+                0x0D,
+                0x0A,
+                0x1A,
+                0x0A,
+            )
     }
 }
