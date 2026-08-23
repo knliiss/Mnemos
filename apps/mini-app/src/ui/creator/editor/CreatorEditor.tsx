@@ -26,6 +26,7 @@ import {
   creatorTypeLabel,
   creatorTypeOrder,
 } from "../creatorPresentation"
+import { CreatorDesignPresets } from "./CreatorDesignPresets"
 import { CreatorNotificationPackStudio } from "./CreatorNotificationPackStudio"
 import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
 import { CreatorVisualLayerStudio } from "./CreatorVisualLayerStudio"
@@ -380,6 +381,7 @@ export function CreatorEditor({ params, back }: Props) {
           />
         ) : (
           <>
+            <CreatorDesignPresets form={form} editable={editable} setForm={setForm} />
             <CreatorPersonalizationControls form={form} editable={editable} setForm={setForm} />
             <CreatorVisualLayerStudio form={form} editable={editable} setForm={setForm} />
           </>
