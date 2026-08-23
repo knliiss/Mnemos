@@ -4,6 +4,8 @@ import type {
   FrameStyle,
   NotificationTemplateKey,
   PersonalizationType,
+  VisualLayerAnimation,
+  VisualLayerBlendMode,
 } from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 import type {
@@ -21,6 +23,29 @@ export type PersonalizationPriceRequest = {
 export type GlowStyleRequest = GlowStyleResponse
 export type GradientStopRequest = GradientStopResponse
 export type NotificationTemplateRequest = NotificationTemplateResponse
+
+export type VisualLayerRequest = {
+  id: string
+  assetId: string
+  xPercent: number
+  yPercent: number
+  widthPercent: number
+  opacity: number
+  rotationDegrees: number
+  blendMode: VisualLayerBlendMode
+  animation: VisualLayerAnimation
+  zIndex: number
+}
+
+export type PersonalizationAssetResponse = {
+  id: string
+  contentUrl: string
+  contentType: string
+  sizeBytes: number
+  widthPx: number
+  heightPx: number
+  createdAt: string
+}
 
 export type CreateNickStyleRequest = {
   name: string
@@ -42,6 +67,7 @@ export type CreateProfileThemeRequest = {
   gradientAngleDegrees: number
   textureStrength: number
   glow: GlowStyleRequest | null
+  layers: VisualLayerRequest[]
   price: PersonalizationPriceRequest
 }
 
@@ -54,6 +80,7 @@ export type CreateAvatarFrameRequest = {
   radiusPx: number
   style: FrameStyle
   glow: GlowStyleRequest | null
+  layers: VisualLayerRequest[]
   price: PersonalizationPriceRequest
 }
 
@@ -66,6 +93,7 @@ export type CreateProfileEffectRequest = {
   scale: number
   primaryColor: string
   secondaryColor: string | null
+  layers: VisualLayerRequest[]
   price: PersonalizationPriceRequest
 }
 
@@ -153,6 +181,23 @@ export async function getCreatorPersonalization(
   personalizationId: string,
 ): Promise<PersonalizationResponse> {
   return api<PersonalizationResponse>(`/api/v1/personalizations/creator/${personalizationId}`)
+}
+
+export async function listCreatorPersonalizationAssets(): Promise<PersonalizationAssetResponse[]> {
+  return api<PersonalizationAssetResponse[]>("/api/v1/personalizations/creator/assets")
+}
+
+export async function uploadCreatorPersonalizationAsset(
+  file: File,
+): Promise<PersonalizationAssetResponse> {
+  const body = new FormData()
+
+  body.append("file", file)
+
+  return api<PersonalizationAssetResponse>("/api/v1/personalizations/creator/assets", {
+    method: "POST",
+    body,
+  })
 }
 
 export async function getNotificationPackEditorDescriptor(): Promise<NotificationPackEditorDescriptorResponse> {
