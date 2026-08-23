@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react"
 import { useTranslation } from "react-i18next"
 import type { EffectType, FrameStyle, GradientStop } from "../../model"
 import { Field } from "../../shared/Primitives"
+import { RangeControl } from "../../shared/RangeControl"
 import type { CreatorEditorForm, CreatorGlowForm } from "./creatorEditorModel"
 
 const frameStyles: FrameStyle[] = ["SOLID", "DOUBLE", "SEGMENTED"]
@@ -41,13 +42,12 @@ function RangeField({ label, value, min, max, suffix = "%", disabled, onChange }
   return (
     <Field label={label}>
       <div className="creator-parameter-range">
-        <input
-          type="range"
+        <RangeControl
+          value={value}
           min={min}
           max={max}
-          value={value}
           disabled={disabled}
-          onChange={(event) => onChange(Number(event.target.value))}
+          onChange={onChange}
         />
         <output>
           {value}
@@ -185,17 +185,16 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
                     })
                   }
                 />
-                <input
-                  type="range"
+                <RangeControl
                   min={0}
                   max={100}
                   value={stop.position}
                   disabled={!editable}
-                  aria-label={t("creator.editor.gradientPosition", { index: index + 1 })}
-                  onChange={(event) =>
+                  ariaLabel={t("creator.editor.gradientPosition", { index: index + 1 })}
+                  onChange={(position) =>
                     updateStop(index, {
                       ...stop,
-                      position: Number(event.target.value),
+                      position,
                     })
                   }
                 />
