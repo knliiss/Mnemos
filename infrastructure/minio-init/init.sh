@@ -64,7 +64,8 @@ write_application_policy() {
         "s3:DeleteObject"
       ],
       "Resource": [
-        "arn:aws:s3:::$MINIO_PERSONALIZATION_BUCKET/badges/*"
+        "arn:aws:s3:::$MINIO_PERSONALIZATION_BUCKET/badges/*",
+        "arn:aws:s3:::$MINIO_PERSONALIZATION_BUCKET/personalizations/*"
       ]
     }
   ]
