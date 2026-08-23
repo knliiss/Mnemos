@@ -1,15 +1,16 @@
 .personalization-review-screen .review-overview {
-  grid-template-columns: 86px minmax(0, 1fr);
-  min-height: 112px;
-  padding: 10px 15px 10px 9px;
+  grid-template-columns: 104px minmax(0, 1fr);
+  min-height: 118px;
+  gap: 14px;
+  padding: 12px 16px 12px 10px;
 }
 
 .personalization-review-screen .review-overview__mark {
-  width: 86px;
-  height: 82px;
+  width: 96px;
+  height: 86px;
   border: 0;
   border-radius: 0;
-  background: url("/ui-illustrations/admin-review.svg") center / 82px 72px no-repeat;
+  background: url("/ui-illustrations/admin-review.svg") center / 88px 76px no-repeat;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
 }
 
@@ -18,9 +19,11 @@
 }
 
 .personalization-review-screen .review-empty-workbench {
-  grid-template-columns: 78px minmax(0, 1fr);
-  min-height: 104px;
-  padding: 10px 14px 10px 8px;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 118px;
+  padding: 12px 18px 12px 10px;
   border-style: solid;
   background:
     radial-gradient(circle at 10% 50%, rgba(206, 145, 210, 0.045), transparent 30%),
@@ -29,9 +32,10 @@
 
 .personalization-review-screen .review-empty-workbench::before {
   content: "";
-  width: 76px;
-  height: 70px;
-  background: url("/ui-illustrations/admin-review.svg") center / contain no-repeat;
+  display: block;
+  width: 96px;
+  height: 84px;
+  background: url("/ui-illustrations/admin-review.svg") center / 88px 76px no-repeat;
   opacity: 0.72;
   filter: saturate(0.82) brightness(0.88);
 }
@@ -40,31 +44,111 @@
   display: none;
 }
 
+.personalization-review-screen .review-empty-workbench > span {
+  align-self: center;
+  padding-left: 2px;
+}
+
+.personalization-review-screen .review-queue-card {
+  grid-template-columns: 104px minmax(0, 1fr) auto;
+  gap: 14px;
+  min-height: 112px;
+  padding: 12px 14px 12px 10px;
+}
+
+.personalization-review-screen .review-queue-card > .real-preview.is-small {
+  width: 96px;
+  min-width: 96px;
+  height: 88px;
+  min-height: 88px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.personalization-review-screen .review-queue-card__copy {
+  gap: 5px;
+}
+
+.personalization-review-screen .review-queue-card__copy > strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.personalization-review-screen .review-queue-card__copy > em,
+.personalization-review-screen .review-queue-card__meta small,
+.personalization-review-screen .review-queue-card__meta i {
+  font-size: 9.5px;
+}
+
 .personalization-review-screen .review-workbench > .real-preview.is-detail {
   width: 100%;
   min-width: 0;
-  height: 156px;
-  min-height: 0;
+  height: 188px;
+  min-height: 188px;
   overflow: hidden;
   border-radius: 16px;
 }
 
-@media (max-width: 374px) {
+@media (max-width: 699px) {
   .personalization-review-screen .review-overview {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .personalization-review-screen .review-overview__mark {
-    width: 72px;
-    background-size: 68px 60px;
+    width: 74px;
+    background-size: 70px 62px;
   }
 
   .personalization-review-screen .review-empty-workbench {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .personalization-review-screen .review-empty-workbench::before {
-    width: 62px;
-    height: 58px;
+    width: 70px;
+    height: 64px;
+    background-size: 68px 60px;
+  }
+
+  .personalization-review-screen .review-queue-card {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    gap: 9px;
+    min-height: 86px;
+    padding: 9px;
+  }
+
+  .personalization-review-screen .review-queue-card > .real-preview.is-small {
+    width: 60px;
+    min-width: 60px;
+    height: 60px;
+    min-height: 60px;
+    border-radius: 11px;
+  }
+
+  .personalization-review-screen .review-workbench > .real-preview.is-detail {
+    height: 156px;
+    min-height: 156px;
+  }
+}
+
+@media (max-width: 374px) {
+  .personalization-review-screen .review-overview {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .personalization-review-screen .review-overview__mark {
+    width: 66px;
+    background-size: 62px 54px;
+  }
+
+  .personalization-review-screen .review-empty-workbench {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .personalization-review-screen .review-empty-workbench::before {
+    width: 58px;
+    height: 54px;
+    background-size: 56px 50px;
   }
 }
