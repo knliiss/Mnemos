@@ -38,6 +38,9 @@ export const uiUk = {
       badgeSaving: "Зберігаємо…",
       badgeActive: "Активний",
       badgeUse: "Використати",
+      personalizationEyebrow: "ОФОРМЛЕННЯ КОРИСТУВАЧА",
+      personalization: "Персоналізація",
+      personalizationDescription: "Бейджі та паки сповіщень",
       workspaces: "Робочі області",
       creator: "Студія автора",
       creatorDescription: "Створення персоналізацій",
@@ -59,6 +62,16 @@ export const uiUk = {
       joinByCode: "Вхід за кодом",
       joinTeam: "Приєднатися до команди",
     },
+  },
+  userPersonalization: {
+    title: "Персоналізація користувача",
+    eyebrow: "ТВОЄ ОФОРМЛЕННЯ",
+    introTitle: "Бейджі та сповіщення окремо від меню профілю",
+    introDescription:
+      "Тут керуються активний бейдж користувача та пак сповіщень. Меню профілю лишається компактним навіть із великою колекцією.",
+    activeBadge: "Активний бейдж",
+    activePack: "Активний пак сповіщень",
+    none: "Не вибрано",
   },
   notFound: {
     mascotAlt: "Збентежений маскот Mnemos з картою",
