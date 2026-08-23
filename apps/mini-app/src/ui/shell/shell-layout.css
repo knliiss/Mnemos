@@ -114,6 +114,36 @@
     width: 100%;
   }
 
+  .route-stage.has-tabbar {
+    padding-bottom: calc(102px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .root-navigation.root-navigation--five {
+    min-height: 84px;
+    padding-top: 5px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .telegram-mini-app .route-stage.has-tabbar {
+    padding-bottom: calc(
+      102px +
+        max(
+          env(safe-area-inset-bottom, 0px),
+          var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+        )
+    );
+  }
+
+  .telegram-mini-app .root-navigation.root-navigation--five {
+    padding-bottom: calc(
+      15px +
+        max(
+          env(safe-area-inset-bottom, 0px),
+          var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+        )
+    );
+  }
+
   .user-hub {
     right: max(14px, calc((100% - 960px) / 2 + 18px)) !important;
   }
