@@ -12,6 +12,7 @@ import type {
   ProfileThemeContent,
 } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
+import { PersonalizationVisualLayers } from "./PersonalizationVisualLayers"
 import "./personalization-preview.css"
 
 type PreviewProps = {
@@ -292,6 +293,7 @@ function ThemePreview({ content, className }: { content: ProfileThemeContent; cl
         color: content.text,
       }}
     >
+      <PersonalizationVisualLayers layers={content.layers} />
       <span
         className="theme-real-preview__avatar"
         style={{
@@ -321,6 +323,7 @@ function FramePreview({ content, className }: { content: AvatarFrameContent; cla
 
   return (
     <div className={`${className} frame-real-preview`}>
+      <PersonalizationVisualLayers layers={content.layers} />
       <span
         className={`frame-real-preview__avatar frame-real-preview__avatar--${content.style.toLowerCase()}`}
         style={{
@@ -372,6 +375,7 @@ function EffectPreview({
       className={`${className} effect-real-preview effect-real-preview--${content.effect.toLowerCase()}`}
       style={style}
     >
+      <PersonalizationVisualLayers layers={content.layers} />
       <span>{nickname.slice(0, 1).toUpperCase()}</span>
       <small>
         {t(`personalization.preview.effects.${content.effect}`)} · {content.intensity}%
