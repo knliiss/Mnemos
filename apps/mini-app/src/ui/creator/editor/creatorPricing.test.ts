@@ -66,6 +66,7 @@ function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
         color: "#CBFF2D",
         strength: 28,
       },
+      layers: [],
     },
     avatarFrame: {
       borderColor: "#CBFF2D",
@@ -79,6 +80,7 @@ function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
         color: "#CBFF2D",
         strength: 42,
       },
+      layers: [],
     },
     profileEffect: {
       effect: "AURORA",
@@ -88,6 +90,7 @@ function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
       scale: 60,
       primaryColor: "#CBFF2D",
       secondaryColor: "#B98DC2",
+      layers: [],
     },
     notificationPack: {
       mixedAggregateTitle: "Several events",
