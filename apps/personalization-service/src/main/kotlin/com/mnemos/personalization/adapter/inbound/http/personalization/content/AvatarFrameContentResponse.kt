@@ -10,4 +10,5 @@ data class AvatarFrameContentResponse(
     val secondaryBorderColor: String,
     val gapPx: Int,
     val style: FrameStyle,
+    val layers: List<VisualLayerResponse>,
 ) : PersonalizationContentResponse
