@@ -20,7 +20,7 @@ export const collectorAdminUk = {
     total: "Доступів",
     enabled: "Увімкнено",
     disabled: "Вимкнено",
-    activeObservers: "Спостерігають зараз",
+    activeObservers: "Активні спостерігачі",
     directoryTitle: "Доступи колекторів",
     directoryDescription: "Увімкни, тимчасово вимкни або назавжди відклич інсталяцію.",
     refreshing: "Оновлюємо…",
