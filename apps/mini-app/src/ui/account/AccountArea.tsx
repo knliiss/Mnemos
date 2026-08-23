@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { Badge } from "@/shared/api/badgeApi"
 import "../events/event-surfaces.css"
 import type { Route } from "../model"
 import { useMnemosData } from "../data/MnemosDataProvider"
@@ -22,6 +23,7 @@ type Props = {
   routeId: Route["id"]
   params?: Record<string, string>
   rootUserAccess?: ReactNode
+  activeUserBadge: Badge | null
 }
 
 export function AccountArea(props: Props) {
@@ -43,6 +45,7 @@ export function AccountArea(props: Props) {
       <AccountHome
         navigate={props.navigate}
         back={props.back}
+        activeUserBadge={props.activeUserBadge}
         rootUserAccess={props.routeId === "account" ? props.rootUserAccess : null}
         initialMemberId={props.routeId === "member" ? (props.params?.memberId ?? null) : null}
       />
