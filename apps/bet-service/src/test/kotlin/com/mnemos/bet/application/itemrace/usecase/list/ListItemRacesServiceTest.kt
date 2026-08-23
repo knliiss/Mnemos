@@ -14,7 +14,6 @@ import com.mnemos.common.core.model.id.AccountId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -36,16 +35,10 @@ class ListItemRacesServiceTest {
         val firstRace = createRace("019c1e23-5000-7000-8000-000000000002")
         val secondRace = createRace("019c1e23-5000-7000-8000-000000000003")
         val participant =
-            ItemRaceParticipantView(
-                id =
-                    ItemRaceParticipantId(
-                        UUID.fromString("019c1e23-5000-7000-8000-000000000004"),
-                    ),
+            createParticipant(
+                id = "019c1e23-5000-7000-8000-000000000004",
                 raceId = firstRace.id,
                 accountId = accountId,
-                accountNickname = "knaliz",
-                confirmedAmount = 1_000,
-                pendingAmount = 0,
                 status = ItemRaceParticipantStatus.ACTIVE,
             )
 
@@ -56,35 +49,70 @@ class ListItemRacesServiceTest {
             ),
         )
         whenever(reader.findCurrent()).thenReturn(listOf(firstRace, secondRace))
-        whenever(
-            reader.findParticipant(
-                raceId = eq(firstRace.id),
-                accountId = eq(accountId),
-            ),
-        ).thenReturn(participant)
-        whenever(
-            reader.findParticipant(
-                raceId = eq(secondRace.id),
-                accountId = eq(accountId),
-            ),
-        ).thenReturn(null)
+        whenever(reader.findOngoingParticipants(accountId)).thenReturn(listOf(participant))
 
         val result = service.execute()
 
         assertEquals(2, result.size)
         assertEquals(listOf(participant), result[0].participants)
         assertTrue(result[1].participants.isEmpty())
-        verify(reader).findParticipant(
-            raceId = eq(firstRace.id),
-            accountId = eq(accountId),
-        )
-        verify(reader).findParticipant(
-            raceId = eq(secondRace.id),
-            accountId = eq(accountId),
-        )
+        verify(reader).findOngoingParticipants(accountId)
     }
 
-    private fun createRace(id: String): ItemRaceView =
+    @Test
+    fun `joined ongoing race remains visible when current query omits it`() {
+        val accountId = AccountId(UUID.fromString("019c1e23-5000-7000-8000-000000000011"))
+        val race =
+            createRace(
+                id = "019c1e23-5000-7000-8000-000000000012",
+                status = ItemRaceStatus.REFUNDING,
+            )
+        val participant =
+            createParticipant(
+                id = "019c1e23-5000-7000-8000-000000000013",
+                raceId = race.id,
+                accountId = accountId,
+                status = ItemRaceParticipantStatus.REFUND_PENDING,
+            )
+
+        whenever(accountProvider.requireActiveAccount()).thenReturn(
+            AccountSnapshot(
+                id = accountId,
+                nickname = "knaliz",
+            ),
+        )
+        whenever(reader.findCurrent()).thenReturn(emptyList())
+        whenever(reader.findOngoingParticipants(accountId)).thenReturn(listOf(participant))
+        whenever(reader.find(race.id)).thenReturn(race)
+
+        val result = service.execute()
+
+        assertEquals(1, result.size)
+        assertEquals(race, result.single().race)
+        assertEquals(listOf(participant), result.single().participants)
+        verify(reader).find(race.id)
+    }
+
+    private fun createParticipant(
+        id: String,
+        raceId: ItemRaceId,
+        accountId: AccountId,
+        status: ItemRaceParticipantStatus,
+    ): ItemRaceParticipantView =
+        ItemRaceParticipantView(
+            id = ItemRaceParticipantId(UUID.fromString(id)),
+            raceId = raceId,
+            accountId = accountId,
+            accountNickname = "knaliz",
+            confirmedAmount = 1_000,
+            pendingAmount = 0,
+            status = status,
+        )
+
+    private fun createRace(
+        id: String,
+        status: ItemRaceStatus = ItemRaceStatus.REGISTRATION,
+    ): ItemRaceView =
         ItemRaceView(
             id = ItemRaceId(UUID.fromString(id)),
             itemName = "Eternal Blade",
@@ -94,7 +122,7 @@ class ListItemRacesServiceTest {
             expiresAt = Instant.parse("2026-08-24T12:05:00Z"),
             entryAmount = 1_000,
             feePercent = 5,
-            status = ItemRaceStatus.REGISTRATION,
+            status = status,
             winnerAccountId = null,
         )
 }
