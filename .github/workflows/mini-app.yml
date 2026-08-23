@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   statuses: write
 
 jobs:
@@ -51,6 +51,33 @@ jobs:
       - name: Check formatting
         id: formatting
         run: npm run format:check
+
+      - name: Format PR head
+        if: failure() && steps.formatting.outcome == 'failure' && github.event_name == 'pull_request'
+        working-directory: .
+        shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin "$HEAD_REF"
+          git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
+
+          cd apps/mini-app
+          npm run format >/dev/null
+          cd ../..
+
+          if git diff --quiet -- apps/mini-app/src; then
+            echo "Prettier produced no source changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/mini-app/src
+          git commit -m "Format Mini App sources"
+          git push origin "HEAD:$HEAD_REF"
 
       - name: Show formatting diff
         if: failure() && steps.formatting.outcome == 'failure'
