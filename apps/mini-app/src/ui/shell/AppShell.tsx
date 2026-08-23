@@ -164,6 +164,7 @@ export function AppShell() {
                   current={current}
                   activeAccount={activeAccount}
                   activeUserBadge={userBadges.activeBadge?.badge ?? null}
+                  userBadges={userBadges}
                   rootUserAccess={accountUserHubTrigger}
                   navigate={navigate}
                   back={back}
@@ -184,15 +185,11 @@ export function AppShell() {
                   username={data.user.username}
                   prime={data.user.prime}
                   systemRoles={data.user.systemRoles}
-                  badges={userBadges.badges}
-                  badgesLoading={userBadges.loading}
-                  busyBadgeId={userBadges.busyBadgeId}
+                  activeBadge={userBadges.activeBadge?.badge ?? null}
                   onLocalizationChange={(language) => void data.setLanguage(language)}
                   onClose={closeUserHub}
                   onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
                   onSelectAccount={(account) => void selectAccount(account)}
-                  onActivateBadge={(badgeId) => void userBadges.activate(badgeId)}
-                  onDeactivateBadge={() => void userBadges.deactivate()}
                   navigate={navigate}
                 />
                 <RootNavigation current={rootRoute} onChange={switchRoot} />
