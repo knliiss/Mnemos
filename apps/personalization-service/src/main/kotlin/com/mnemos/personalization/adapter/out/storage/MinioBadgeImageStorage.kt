@@ -5,11 +5,11 @@ import com.mnemos.personalization.application.badge.port.out.BadgeImageStorage
 import com.mnemos.personalization.configuration.storage.PersonalizationStorageProperties
 import io.minio.BucketExistsArgs
 import io.minio.GetObjectArgs
-import io.minio.MakeBucketArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.RemoveObjectArgs
 import io.minio.errors.ErrorResponseException
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import java.io.ByteArrayInputStream
 
@@ -18,17 +18,27 @@ class MinioBadgeImageStorage(
     private val client: MinioClient,
     private val properties: PersonalizationStorageProperties,
 ) : BadgeImageStorage {
-    @Volatile
-    private var bucketReady = false
+    @PostConstruct
+    fun verifyBucketAccess() {
+        val exists =
+            client.bucketExists(
+                BucketExistsArgs
+                    .builder()
+                    .bucket(properties.bucket)
+                    .build(),
+            )
 
-    private val bucketLock = Any()
+        if (!exists) {
+            throw IllegalStateException(
+                "Personalization object storage bucket '${properties.bucket}' is unavailable",
+            )
+        }
+    }
 
     override fun store(
         objectKey: String,
         image: BadgeImageContent,
     ) {
-        ensureBucket()
-
         ByteArrayInputStream(image.bytes).use { input ->
             client.putObject(
                 PutObjectArgs
@@ -45,10 +55,8 @@ class MinioBadgeImageStorage(
         }
     }
 
-    override fun load(objectKey: String): BadgeImageContent? {
-        ensureBucket()
-
-        return try {
+    override fun load(objectKey: String): BadgeImageContent? =
+        try {
             client
                 .getObject(
                     GetObjectArgs
@@ -63,17 +71,19 @@ class MinioBadgeImageStorage(
                     )
                 }
         } catch (exception: ErrorResponseException) {
-            if (exception.errorResponse().code() == NO_SUCH_KEY) {
-                null
-            } else {
-                throw exception
+            when (exception.errorResponse().code()) {
+                NO_SUCH_KEY -> null
+                NO_SUCH_BUCKET ->
+                    throw IllegalStateException(
+                        "Personalization object storage bucket '${properties.bucket}' disappeared",
+                        exception,
+                    )
+
+                else -> throw exception
             }
         }
-    }
 
     override fun delete(objectKey: String) {
-        ensureBucket()
-
         client.removeObject(
             RemoveObjectArgs
                 .builder()
@@ -83,39 +93,9 @@ class MinioBadgeImageStorage(
         )
     }
 
-    private fun ensureBucket() {
-        if (bucketReady) {
-            return
-        }
-
-        synchronized(bucketLock) {
-            if (bucketReady) {
-                return
-            }
-
-            val exists =
-                client.bucketExists(
-                    BucketExistsArgs
-                        .builder()
-                        .bucket(properties.bucket)
-                        .build(),
-                )
-
-            if (!exists) {
-                client.makeBucket(
-                    MakeBucketArgs
-                        .builder()
-                        .bucket(properties.bucket)
-                        .build(),
-                )
-            }
-
-            bucketReady = true
-        }
-    }
-
     companion object {
         private const val DEFAULT_CONTENT_TYPE = "application/octet-stream"
         private const val NO_SUCH_KEY = "NoSuchKey"
+        private const val NO_SUCH_BUCKET = "NoSuchBucket"
     }
 }

@@ -34,9 +34,9 @@ services:
       MNEMOS_PERSONALIZATION_CREATOR_REVENUE_RETRY_BATCH_SIZE: ${MNEMOS_PERSONALIZATION_CREATOR_REVENUE_RETRY_BATCH_SIZE:-100}
       MNEMOS_PERSONALIZATION_CREATOR_RETRY_SCAN_DELAY_MS: ${MNEMOS_PERSONALIZATION_CREATOR_RETRY_SCAN_DELAY_MS:-10000}
       MINIO_ENDPOINT: http://minio:9000
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_PERSONALIZATION_BUCKET: ${MINIO_PERSONALIZATION_BUCKET}
+      MINIO_PERSONALIZATION_ACCESS_KEY: ${MINIO_PERSONALIZATION_ACCESS_KEY:-mnemos-personalization}
+      MINIO_PERSONALIZATION_SECRET_KEY: ${MINIO_PERSONALIZATION_SECRET_KEY:-mnemos_local_storage_password}
+      MINIO_PERSONALIZATION_BUCKET: ${MINIO_PERSONALIZATION_BUCKET:-mnemos-personalization}
     depends_on:
       app-postgres:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
         condition: service_completed_successfully
       account-service:
         condition: service_started
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     networks:
       - mnemos-network

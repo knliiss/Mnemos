@@ -10,15 +10,19 @@ import com.mnemos.personalization.application.badge.support.BadgeAdministrationS
 import com.mnemos.personalization.application.badge.support.BadgeImageValidator
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
+import com.mnemos.personalization.domain.badge.model.Badge
 import com.mnemos.personalization.domain.badge.repository.BadgeRepository
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.time.Clock
@@ -37,14 +41,7 @@ class CreateBadgeServiceTest {
     fun `concurrent badge code conflict removes stored image and returns application conflict`() {
         val repository = mock<BadgeRepository>()
         val storage = mock<BadgeImageStorage>()
-        val service =
-            CreateBadgeService(
-                support = support(repository),
-                repository = repository,
-                badgeImageStorage = storage,
-                badgeImageValidator = BadgeImageValidator(),
-                clock = clock,
-            )
+        val service = createService(repository, storage)
 
         whenever(repository.findByCode("EARLY_SUPPORTER")).thenReturn(null)
         whenever(repository.save(any())).thenThrow(
@@ -52,22 +49,65 @@ class CreateBadgeServiceTest {
         )
 
         assertThrows(BadgeAlreadyExistsException::class.java) {
-            service.execute(
-                CreateBadgeCommand(
-                    code = "EARLY_SUPPORTER",
-                    name = "Early Supporter",
-                    image =
-                        BadgeImageUpload(
-                            bytes = pngBytes(),
-                            contentType = "image/png",
-                        ),
-                    color = HexColor("#FFFFFF"),
-                ),
-            )
+            service.execute(command())
         }
 
         verify(storage).delete(any())
     }
+
+    @Test
+    fun `transaction rollback removes stored image after repository save succeeded`() {
+        val repository = mock<BadgeRepository>()
+        val storage = mock<BadgeImageStorage>()
+        val service = createService(repository, storage)
+
+        whenever(repository.findByCode("EARLY_SUPPORTER")).thenReturn(null)
+        whenever(repository.save(any())).thenAnswer { invocation ->
+            invocation.getArgument<Badge>(0)
+        }
+
+        TransactionSynchronizationManager.initSynchronization()
+
+        try {
+            val badge = service.execute(command())
+
+            verify(storage, never()).delete(any())
+
+            TransactionSynchronizationManager
+                .getSynchronizations()
+                .forEach { synchronization ->
+                    synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK)
+                }
+
+            verify(storage).delete(badge.imageObjectKey)
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
+    }
+
+    private fun createService(
+        repository: BadgeRepository,
+        storage: BadgeImageStorage,
+    ): CreateBadgeService =
+        CreateBadgeService(
+            support = support(repository),
+            repository = repository,
+            badgeImageStorage = storage,
+            badgeImageValidator = BadgeImageValidator(),
+            clock = clock,
+        )
+
+    private fun command(): CreateBadgeCommand =
+        CreateBadgeCommand(
+            code = "EARLY_SUPPORTER",
+            name = "Early Supporter",
+            image =
+                BadgeImageUpload(
+                    bytes = pngBytes(),
+                    contentType = "image/png",
+                ),
+            color = HexColor("#FFFFFF"),
+        )
 
     private fun support(repository: BadgeRepository): BadgeAdministrationSupport =
         BadgeAdministrationSupport(

@@ -10,6 +10,7 @@ on:
       - "infrastructure/compose/**"
       - "infrastructure/kafka/**"
       - "infrastructure/keycloak/**"
+      - "infrastructure/minio-init/**"
       - "make/**"
       - "scripts/docker-compose-env.sh"
       - "scripts/generate-kafka-message-keys.sh"
@@ -130,6 +131,35 @@ jobs:
           make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
           scripts/verify-kafka-message-auth-runtime.sh .env.ci
 
+      - name: Verify MinIO isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minio_init_container="$($CI_COMPOSE_COMMAND ps -aq minio-init)"
+
+          if [ -z "$minio_init_container" ]; then
+            echo "minio-init container is missing" >&2
+            exit 1
+          fi
+
+          minio_init_state="$(docker inspect -f '{{.State.Status}}' "$minio_init_container")"
+          minio_init_exit_code="$(docker inspect -f '{{.State.ExitCode}}' "$minio_init_container")"
+
+          if [ "$minio_init_state" != "exited" ] || [ "$minio_init_exit_code" != "0" ]; then
+            echo "minio-init did not complete successfully" >&2
+            exit 1
+          fi
+
+          if $CI_COMPOSE_COMMAND exec -T personalization-service sh -c \
+            'env | grep -q "^MINIO_ROOT_"'; then
+            echo "personalization-service must not receive MinIO root credentials" >&2
+            exit 1
+          fi
+
+          $CI_COMPOSE_COMMAND exec -T personalization-service sh -ec \
+            'test -n "$MINIO_PERSONALIZATION_ACCESS_KEY" && test -n "$MINIO_PERSONALIZATION_SECRET_KEY"'
+
       - name: Verify Flyway schemas
         shell: bash
         run: |
@@ -193,6 +223,12 @@ jobs:
 
           echo "=== Keycloak config logs ==="
           $CI_COMPOSE_COMMAND logs --no-color --tail=200 keycloak-config
+
+          echo "=== MinIO logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 minio
+
+          echo "=== MinIO init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 minio-init
 
       - name: Cleanup isolated stack
         if: always()

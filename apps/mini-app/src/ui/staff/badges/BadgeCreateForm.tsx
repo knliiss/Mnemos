@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Field } from "../../shared/Primitives"
+import { validateBadgeImageFile } from "./badgeImageValidation"
 import type { BadgeDraft } from "./useBadgeCatalog"
-
-const MAX_BADGE_IMAGE_BYTES = 256 * 1024
 
 type BadgeCreateFormProps = {
   busy: boolean
@@ -16,13 +15,48 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [image, setImage] = useState<File | null>(null)
+  const [imageValid, setImageValid] = useState(false)
+  const [checkingImage, setCheckingImage] = useState(false)
   const [color, setColor] = useState("#C7F24A")
 
   const codeValid = /^[A-Z][A-Z0-9_]{1,31}$/.test(code)
-  const imageValid =
-    image !== null && image.type === "image/png" && image.size <= MAX_BADGE_IMAGE_BYTES
-  const createValid = codeValid && name.trim().length > 0 && name.trim().length <= 64 && imageValid
+  const createValid =
+    codeValid &&
+    name.trim().length > 0 &&
+    name.trim().length <= 64 &&
+    image !== null &&
+    imageValid &&
+    !checkingImage
   const imagePreviewUrl = useMemo(() => (image ? URL.createObjectURL(image) : null), [image])
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!image) {
+      setImageValid(false)
+      setCheckingImage(false)
+
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setImageValid(false)
+    setCheckingImage(true)
+
+    void validateBadgeImageFile(image)
+      .catch(() => false)
+      .then((valid) => {
+        if (!cancelled) {
+          setImageValid(valid)
+          setCheckingImage(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [image])
 
   useEffect(
     () => () => {

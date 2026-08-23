@@ -10,6 +10,8 @@ import com.mnemos.personalization.domain.badge.repository.BadgeRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.Clock
 
 @Service
@@ -42,11 +44,13 @@ class CreateBadgeService(
             image = image,
         )
 
+        val rollbackCleanupRegistered = registerRollbackCleanup(badge.imageObjectKey)
+
         return try {
             repository.save(badge)
         } catch (exception: RuntimeException) {
-            runCatching {
-                badgeImageStorage.delete(badge.imageObjectKey)
+            if (!rollbackCleanupRegistered) {
+                deleteImageBestEffort(badge.imageObjectKey)
             }
 
             if (exception is DataIntegrityViolationException) {
@@ -54,6 +58,30 @@ class CreateBadgeService(
             }
 
             throw exception
+        }
+    }
+
+    private fun registerRollbackCleanup(objectKey: String): Boolean {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return false
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCompletion(status: Int) {
+                    if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                        deleteImageBestEffort(objectKey)
+                    }
+                }
+            },
+        )
+
+        return true
+    }
+
+    private fun deleteImageBestEffort(objectKey: String) {
+        runCatching {
+            badgeImageStorage.delete(objectKey)
         }
     }
 }
