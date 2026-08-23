@@ -1,5 +1,5 @@
 import type { Dispatch, PointerEvent, SetStateAction } from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   listCreatorPersonalizationAssets,
@@ -83,11 +83,11 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
   const [uploading, setUploading] = useState(false)
   const [draggingLayerId, setDraggingLayerId] = useState<string | null>(null)
   const layers = currentLayers(form)
+  const selectedLayer =
+    layers.find((layer) => layer.id === selectedLayerId) ?? layers.at(-1) ?? null
 
   useEffect(() => {
     let cancelled = false
-
-    setLoadingAssets(true)
 
     void listCreatorPersonalizationAssets()
       .then((response) => {
@@ -110,17 +110,6 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
       cancelled = true
     }
   }, [])
-
-  useEffect(() => {
-    if (selectedLayerId && !layers.some((layer) => layer.id === selectedLayerId)) {
-      setSelectedLayerId(layers.at(-1)?.id ?? null)
-    }
-  }, [layers, selectedLayerId])
-
-  const selectedLayer = useMemo(
-    () => layers.find((layer) => layer.id === selectedLayerId) ?? null,
-    [layers, selectedLayerId],
-  )
 
   if (!isLayeredType(form.type)) {
     return null
@@ -292,7 +281,7 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
                 type="button"
                 key={layer.id}
                 className={
-                  layer.id === selectedLayerId
+                  layer.id === selectedLayer?.id
                     ? "creator-layer-canvas__layer is-selected"
                     : "creator-layer-canvas__layer"
                 }
