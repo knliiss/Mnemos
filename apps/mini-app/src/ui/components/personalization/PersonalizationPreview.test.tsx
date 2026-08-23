@@ -19,6 +19,7 @@ describe("PersonalizationDetails", () => {
       target: "USER",
       name: "Unavailable pack",
       creator: "@creator",
+      createdByCurrentUser: false,
       currency: "PRIME",
       price: 100,
       status: "PUBLISHED",
