@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type {
-  PersonalizationResponse,
-  VisualLayerResponse,
-} from "@/shared/api/personalizationApi"
+import type { PersonalizationResponse, VisualLayerResponse } from "@/shared/api/personalizationApi"
 import { toPersonalization } from "./personalizationMappers"
 
 describe("personalization mappers", () => {
