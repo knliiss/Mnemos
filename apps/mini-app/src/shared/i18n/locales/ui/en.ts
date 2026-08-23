@@ -38,6 +38,9 @@ export const uiEn = {
       badgeSaving: "Saving…",
       badgeActive: "Active",
       badgeUse: "Use badge",
+      personalizationEyebrow: "USER APPEARANCE",
+      personalization: "Personalization",
+      personalizationDescription: "Badges and notification packs",
       workspaces: "Workspaces",
       creator: "Creator Studio",
       creatorDescription: "Create personalizations",
@@ -60,6 +63,16 @@ export const uiEn = {
       joinByCode: "Join by code",
       joinTeam: "Join a team",
     },
+  },
+  userPersonalization: {
+    title: "User personalization",
+    eyebrow: "YOUR APPEARANCE",
+    introTitle: "Badges and notifications live outside the profile menu",
+    introDescription:
+      "Manage the active user badge and notification pack here so the profile menu stays compact even with a large collection.",
+    activeBadge: "Active badge",
+    activePack: "Active notification pack",
+    none: "Not selected",
   },
   notFound: {
     mascotAlt: "Confused Mnemos mascot holding a map",
