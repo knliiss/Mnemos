@@ -154,6 +154,36 @@
   image-rendering: pixelated;
 }
 
+.personalization-review-screen .review-empty-workbench {
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 108px;
+  overflow: hidden;
+  padding: 18px;
+}
+
+.personalization-review-screen .review-empty-workbench > :first-child {
+  position: static !important;
+  display: block;
+  align-self: center;
+  justify-self: center;
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.personalization-review-screen .review-empty-workbench > span:last-child {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding-left: 0;
+}
+
 @media (max-width: 374px) {
   .workspace-intro--illustrated,
   .moderation-hero--illustrated {
