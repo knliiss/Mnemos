@@ -163,6 +163,7 @@ export function AppShell() {
                   key={activeAccountId}
                   current={current}
                   activeAccount={activeAccount}
+                  activeUserBadge={userBadges.activeBadge?.badge ?? null}
                   rootUserAccess={accountUserHubTrigger}
                   navigate={navigate}
                   back={back}
