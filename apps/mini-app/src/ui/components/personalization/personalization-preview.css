@@ -20,7 +20,7 @@
 
 .real-preview.is-detail {
   width: 100%;
-  min-height: 210px;
+  min-height: 156px;
   margin-bottom: 12px;
   border-radius: 20px;
 }
@@ -62,7 +62,8 @@
   gap: 9px;
   padding: 9px;
   background:
-    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%), #11140e;
+    radial-gradient(circle at 10% 20%, rgba(203, 255, 45, 0.075), transparent 46%),
+    #11140e;
 }
 
 .notification-real-preview.is-small {
@@ -129,7 +130,41 @@
 }
 
 .notification-real-preview--detail {
-  min-height: 92px;
+  grid-template-columns: 74px minmax(0, 1fr) 38px;
+  gap: 14px;
+  min-height: 132px;
+  padding: 16px;
+}
+
+.notification-real-preview--detail .notification-real-preview__event {
+  min-height: 74px;
+  border-radius: 16px;
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.notification-real-preview--detail .notification-real-preview__copy {
+  gap: 5px;
+}
+
+.notification-real-preview--detail .notification-real-preview__copy > strong {
+  font-size: 14px;
+  white-space: normal;
+}
+
+.notification-real-preview--detail .notification-real-preview__copy > p {
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.notification-real-preview--detail .notification-real-preview__copy > em {
+  font-size: 9px;
+}
+
+.notification-real-preview--detail .notification-real-preview__emoji {
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 11px;
+  font-size: 18px;
 }
 
 .nick-real-preview {
@@ -159,6 +194,26 @@
   color: #858b80;
   font-size: 9px;
   font-style: normal;
+}
+
+.nick-real-preview.is-detail {
+  gap: 8px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(203, 255, 45, 0.045), transparent 42%),
+    linear-gradient(145deg, #171a13, #0d0f0b);
+}
+
+.nick-real-preview.is-detail strong {
+  max-width: 92%;
+  font-size: clamp(26px, 8vw, 38px);
+  line-height: 1.05;
+  text-align: center;
+}
+
+.nick-real-preview.is-detail small,
+.nick-real-preview.is-detail em {
+  font-size: 9.5px;
 }
 
 .theme-real-preview {
@@ -206,6 +261,37 @@
   border-radius: 50%;
 }
 
+.theme-real-preview.is-detail {
+  grid-template-columns: 66px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 164px;
+  padding: 24px;
+}
+
+.theme-real-preview.is-detail .theme-real-preview__avatar {
+  width: 66px;
+  height: 66px;
+  border-radius: 18px;
+  font-size: 18px;
+}
+
+.theme-real-preview.is-detail > span:last-child {
+  min-height: 58px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.theme-real-preview.is-detail b {
+  font-size: 14px;
+}
+
+.theme-real-preview.is-detail i {
+  top: 12px;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+}
+
 .frame-real-preview,
 .effect-real-preview {
   align-content: center;
@@ -226,6 +312,25 @@
   background: rgba(255, 255, 255, 0.035);
   font-size: 13px;
   font-weight: 720;
+}
+
+.frame-real-preview.is-detail,
+.effect-real-preview.is-detail {
+  gap: 10px;
+  min-height: 164px;
+  padding: 20px;
+}
+
+.frame-real-preview.is-detail > span,
+.effect-real-preview.is-detail > span {
+  width: 76px;
+  height: 76px;
+  font-size: 20px;
+}
+
+.frame-real-preview.is-detail > small,
+.effect-real-preview.is-detail > small {
+  font-size: 9.5px;
 }
 
 .frame-real-preview__avatar--segmented {
@@ -592,6 +697,30 @@
 }
 
 @media (max-width: 420px) {
+  .notification-real-preview--detail {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .notification-real-preview--detail .notification-real-preview__emoji {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .theme-real-preview.is-detail {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .theme-real-preview.is-detail .theme-real-preview__avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+  }
+
   .personalization-spec-grid {
     grid-template-columns: 1fr;
   }
