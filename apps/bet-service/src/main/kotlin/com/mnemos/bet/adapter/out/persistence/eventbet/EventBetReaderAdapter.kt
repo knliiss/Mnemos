@@ -20,8 +20,10 @@ class EventBetReaderAdapter(
                 settledStatus = EventBetRoundStatus.SETTLED,
             ).map { it.toView() }
 
-    override fun findRound(roundId: EventBetRoundId): EventBetRoundView? =
-        roundJpaRepository.findById(roundId.id).orElse(null)?.toView()
+    override fun findRound(roundId: EventBetRoundId): EventBetRoundView? = roundJpaRepository
+        .findById(roundId.id)
+        .orElse(null)
+        ?.toView()
 
     override fun findBet(
         roundId: EventBetRoundId,
