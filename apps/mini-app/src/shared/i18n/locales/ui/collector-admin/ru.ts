@@ -20,7 +20,7 @@ export const collectorAdminRu = {
     total: "Доступов",
     enabled: "Включено",
     disabled: "Отключено",
-    activeObservers: "Наблюдают сейчас",
+    activeObservers: "Активные наблюдатели",
     directoryTitle: "Доступы коллекторов",
     directoryDescription: "Включай, временно отключай или навсегда отзывай установку.",
     refreshing: "Обновляем…",
