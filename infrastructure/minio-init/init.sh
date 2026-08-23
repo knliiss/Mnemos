@@ -49,7 +49,8 @@ write_application_policy() {
     {
       "Effect": "Allow",
       "Action": [
-        "s3:ListBucket"
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
       ],
       "Resource": [
         "arn:aws:s3:::$MINIO_PERSONALIZATION_BUCKET"
