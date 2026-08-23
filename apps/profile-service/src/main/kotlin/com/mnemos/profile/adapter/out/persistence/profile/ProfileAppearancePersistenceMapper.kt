@@ -58,6 +58,7 @@ object ProfileAppearancePersistenceMapper {
             surfaceSecondary = surfaceSecondary,
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDocument() },
         )
 
     private fun ProfileAppearanceDocument.ProfileTheme.toDomain(): ProfileAppearance.ProfileTheme =
@@ -73,6 +74,7 @@ object ProfileAppearancePersistenceMapper {
             surfaceSecondary = surfaceSecondary,
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     private fun ProfileAppearance.AvatarFrame.toDocument(): ProfileAppearanceDocument.AvatarFrame =
@@ -85,6 +87,7 @@ object ProfileAppearancePersistenceMapper {
             secondaryBorderColor = secondaryBorderColor,
             gapPx = gapPx,
             style = style,
+            layers = layers.map { layer -> layer.toDocument() },
         )
 
     private fun ProfileAppearanceDocument.AvatarFrame.toDomain(): ProfileAppearance.AvatarFrame =
@@ -97,6 +100,7 @@ object ProfileAppearancePersistenceMapper {
             secondaryBorderColor = secondaryBorderColor,
             gapPx = gapPx,
             style = style,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     private fun ProfileAppearance.ProfileEffect.toDocument(): ProfileAppearanceDocument.ProfileEffect =
@@ -109,6 +113,7 @@ object ProfileAppearancePersistenceMapper {
             speed = speed,
             density = density,
             scale = scale,
+            layers = layers.map { layer -> layer.toDocument() },
         )
 
     private fun ProfileAppearanceDocument.ProfileEffect.toDomain(): ProfileAppearance.ProfileEffect =
@@ -121,6 +126,35 @@ object ProfileAppearancePersistenceMapper {
             speed = speed,
             density = density,
             scale = scale,
+            layers = layers.map { layer -> layer.toDomain() },
+        )
+
+    private fun ProfileAppearance.VisualLayer.toDocument(): ProfileAppearanceDocument.VisualLayer =
+        ProfileAppearanceDocument.VisualLayer(
+            id = id,
+            assetId = assetId.toString(),
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
+        )
+
+    private fun ProfileAppearanceDocument.VisualLayer.toDomain(): ProfileAppearance.VisualLayer =
+        ProfileAppearance.VisualLayer(
+            id = id,
+            assetId = UUID.fromString(assetId),
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
         )
 
     private fun ProfileAppearance.GradientStop.toDocument(): ProfileAppearanceDocument.GradientStop =
