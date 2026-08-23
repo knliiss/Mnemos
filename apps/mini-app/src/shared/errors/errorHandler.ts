@@ -1,53 +1,31 @@
 import { ApiError, NetworkError } from "@/shared/api/httpClient"
 import { AppError } from "./AppError"
 import { errorEvents, type ErrorEventPayload } from "./errorEventBus"
+import { resolveUserFacingErrorMessage } from "./userFacingErrorMessage"
 
-function formatApiError(error: ApiError): string {
+function apiErrorPayload(error: ApiError): ErrorEventPayload {
   const body = error.body
+
   if (typeof body === "string") {
-    return body
+    return {
+      message: body,
+      statusCode: error.status,
+    }
   }
 
-  const lines = [`HTTP ${error.status}`]
-
-  if (body.code) {
-    lines.push(`Code: ${body.code}`)
+  return {
+    code: body.code,
+    message: body.message,
+    statusCode: body.statusCode ?? error.status,
+    details: body.details,
+    path: body.path,
+    requestId: body.requestId,
   }
-  if (body.message) {
-    lines.push(`Message: ${body.message}`)
-  }
-  if (body.path) {
-    lines.push(`Path: ${body.path}`)
-  }
-  if (body.requestId) {
-    lines.push(`Request ID: ${body.requestId}`)
-  }
-  if (body.details && Object.keys(body.details).length) {
-    lines.push(`Details: ${JSON.stringify(body.details)}`)
-  }
-
-  return lines.join("\n")
 }
 
 function toErrorEventPayload(error: unknown, normalized: AppError): ErrorEventPayload {
   if (error instanceof ApiError) {
-    const body = error.body
-
-    if (typeof body === "string") {
-      return {
-        message: body,
-        statusCode: error.status,
-      }
-    }
-
-    return {
-      code: body.code,
-      message: body.message,
-      statusCode: body.statusCode ?? error.status,
-      details: body.details,
-      path: body.path,
-      requestId: body.requestId,
-    }
+    return apiErrorPayload(error)
   }
 
   if (error instanceof NetworkError || normalized.kind === "network") {
@@ -85,17 +63,32 @@ function normalizeError(error: unknown): AppError {
   if (error instanceof AppError) {
     return error
   }
+
   if (error instanceof ApiError) {
-    return new AppError("api", formatApiError(error), error)
-  }
-  if (error instanceof NetworkError) {
-    return new AppError("network", error.message, error)
-  }
-  if (error instanceof Error) {
-    return new AppError("unexpected", error.message || "Unknown error", error)
+    const payload = apiErrorPayload(error)
+
+    return new AppError("api", resolveUserFacingErrorMessage(payload), error)
   }
 
-  return new AppError("unexpected", String(error), error)
+  if (error instanceof NetworkError) {
+    return new AppError(
+      "network",
+      resolveUserFacingErrorMessage({
+        code: "NETWORK_UNAVAILABLE",
+        statusCode: 503,
+      }),
+      error,
+    )
+  }
+
+  return new AppError(
+    "unexpected",
+    resolveUserFacingErrorMessage({
+      code: "CLIENT_UNEXPECTED_ERROR",
+      statusCode: 500,
+    }),
+    error,
+  )
 }
 
 export function handleError(error: unknown): AppError {
