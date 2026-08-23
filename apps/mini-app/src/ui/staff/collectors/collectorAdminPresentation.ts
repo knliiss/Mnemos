@@ -31,7 +31,7 @@ export function filterAndSortCollectors(
     return stateMatches && queryMatches
   })
 
-  return filtered.toSorted((left, right) => compareCollectors(left, right, sort))
+  return [...filtered].sort((left, right) => compareCollectors(left, right, sort))
 }
 
 function compareCollectors(
