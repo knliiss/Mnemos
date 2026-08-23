@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { Badge } from "@/shared/api/badgeApi"
 import { AccountArea } from "../account/AccountArea"
 import { CreatorArea } from "../creator/CreatorArea"
 import { EventsArea } from "../events/EventsArea"
@@ -18,6 +19,7 @@ import { canRenderWithoutActiveAccount } from "./navigation"
 type RouteContentProps = {
   current: Route
   activeAccount: Account | null
+  activeUserBadge: Badge | null
   rootUserAccess?: ReactNode
   navigate(route: Route): void
   back(): void
@@ -27,6 +29,7 @@ type RouteContentProps = {
 export function RouteContent({
   current,
   activeAccount,
+  activeUserBadge,
   rootUserAccess,
   navigate,
   back,
@@ -63,6 +66,7 @@ export function RouteContent({
       <AccountArea
         routeId={current.id}
         params={current.params}
+        activeUserBadge={activeUserBadge}
         rootUserAccess={rootUserAccess}
         navigate={navigate}
         back={back}
