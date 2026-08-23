@@ -17,5 +17,7 @@ interface ItemRaceReader {
         accountId: AccountId,
     ): ItemRaceParticipantView?
 
+    fun findOngoingParticipants(accountId: AccountId): List<ItemRaceParticipantView>
+
     fun findHistory(accountId: AccountId): List<ItemRaceParticipantView>
 }
