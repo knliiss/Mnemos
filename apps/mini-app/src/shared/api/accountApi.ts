@@ -29,10 +29,6 @@ export async function leaveActiveAccount(): Promise<void> {
   await api<void>("/api/v1/me/accounts/active/leave", { method: "POST" })
 }
 
-export async function reactivateAccount(accountId: string): Promise<void> {
-  await api<void>(`/api/v1/accounts/${accountId}/reactivate`, { method: "POST" })
-}
-
 export async function getAccountMembers(accountId: string): Promise<AccountMemberResponse[]> {
   return api<AccountMemberResponse[]>(`/api/v1/accounts/${accountId}/members`)
 }

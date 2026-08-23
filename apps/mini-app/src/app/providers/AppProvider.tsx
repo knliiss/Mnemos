@@ -15,7 +15,6 @@ import {
   createAccount,
   joinAccount,
   leaveActiveAccount,
-  reactivateAccount,
   selectActiveAccount,
 } from "@/shared/api/accountApi"
 import type { CurrentContextResponse } from "@/shared/api/backendContracts"
@@ -37,7 +36,6 @@ type AppState = {
   registerAccount(nickname: string): Promise<void>
   joinByCode(inviteCode: string): Promise<void>
   leaveAccount(): Promise<void>
-  reactivate(accountId: string): Promise<void>
   setLanguage(language: LocalizationLanguage): Promise<void>
 }
 
@@ -161,15 +159,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refresh()
   }, [refresh])
 
-  const reactivate = useCallback(
-    async (accountId: string) => {
-      await reactivateAccount(accountId)
-      await selectActiveAccount(accountId)
-      await refresh()
-    },
-    [refresh],
-  )
-
   const setLanguage = useCallback(
     async (language: LocalizationLanguage) => {
       await updateCurrentLanguage(language)
@@ -215,7 +204,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       registerAccount,
       joinByCode,
       leaveAccount,
-      reactivate,
       setLanguage,
     }),
     [
@@ -226,7 +214,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       registerAccount,
       joinByCode,
       leaveAccount,
-      reactivate,
       setLanguage,
     ],
   )

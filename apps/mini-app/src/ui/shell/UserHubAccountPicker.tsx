@@ -34,7 +34,6 @@ export function UserHubAccountPicker({
         >
           {accounts.map((account) => {
             const inactive = account.active === false
-            const unavailable = inactive && !account.owner
             const switching = switchingAccountId === account.id
 
             return (
@@ -42,8 +41,8 @@ export function UserHubAccountPicker({
                 type="button"
                 key={account.id}
                 className={account.id === activeAccount.id ? "is-active" : ""}
-                aria-disabled={unavailable}
-                disabled={unavailable || switchingAccountId !== null}
+                aria-disabled={inactive}
+                disabled={inactive || switchingAccountId !== null}
                 onClick={() => onSelectAccount(account)}
               >
                 <CristalixHead
@@ -56,9 +55,7 @@ export function UserHubAccountPicker({
                   {switching
                     ? t("appShell.userMenu.switching")
                     : inactive
-                      ? account.owner
-                        ? t("appShell.userMenu.reactivate")
-                        : t("appShell.userMenu.inactive")
+                      ? t("appShell.userMenu.inactive")
                       : t(account.role === "OWNER" ? "account.owner" : "account.participant")}
                 </small>
                 {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}

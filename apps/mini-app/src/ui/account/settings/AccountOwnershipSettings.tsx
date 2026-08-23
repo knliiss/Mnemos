@@ -8,6 +8,7 @@ import { AccountConfirmPanel } from "./AccountConfirmPanel"
 type Props = {
   members: Member[]
   selectedMemberId: string
+  confirmationMemberId: string | null
   confirmOpen: boolean
   busy: boolean
   onMemberChange: (memberId: string) => void
@@ -19,6 +20,7 @@ type Props = {
 export function AccountOwnershipSettings({
   members,
   selectedMemberId,
+  confirmationMemberId,
   confirmOpen,
   busy,
   onMemberChange,
@@ -28,7 +30,10 @@ export function AccountOwnershipSettings({
 }: Props) {
   const { t, i18n } = useTranslation()
   const selectedMember = members.find((member) => member.id === selectedMemberId) ?? null
+  const confirmationMember =
+    members.find((member) => member.id === confirmationMemberId) ?? selectedMember
   const locale = localeForLanguage(i18n.resolvedLanguage)
+  const selectionLocked = confirmOpen || busy
 
   return (
     <section className="account-settings-panel account-owner-panel">
@@ -46,10 +51,11 @@ export function AccountOwnershipSettings({
             type="button"
             key={member.id}
             className={member.id === selectedMemberId ? "is-selected" : ""}
+            disabled={selectionLocked}
             onClick={() => onMemberChange(member.id)}
           >
-            <span aria-hidden="true">
-              <Glyph name="person" size={16} />
+            <span className="account-transfer-user-mark" aria-hidden="true">
+              <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
             </span>
             <strong>{member.name}</strong>
             <small>{formatJoinedAt(member.joinedAt, locale)}</small>
@@ -61,14 +67,14 @@ export function AccountOwnershipSettings({
       {selectedMember ? (
         <div className="account-transfer-summary">
           <span className="account-transfer-summary__avatar" aria-hidden="true">
-            <Glyph name="person" size={18} />
+            <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
           </span>
           <span>
             <small>{t("accountSettings.newOwner")}</small>
             <strong>{selectedMember.name}</strong>
             <em>{t("accountSettings.afterTransferCopy")}</em>
           </span>
-          <button type="button" disabled={busy} onClick={onRequestTransfer}>
+          <button type="button" disabled={selectionLocked} onClick={onRequestTransfer}>
             {t("accountSettings.transfer")}
           </button>
         </div>
@@ -80,7 +86,7 @@ export function AccountOwnershipSettings({
         <AccountConfirmPanel
           tone="warning"
           title={t("accountSettings.transferConfirmTitle", {
-            name: selectedMember?.name ?? "",
+            name: confirmationMember?.name ?? "",
           })}
           note={t("accountSettings.transferConfirmCopy")}
           confirmLabel={t("accountSettings.transferConfirm")}

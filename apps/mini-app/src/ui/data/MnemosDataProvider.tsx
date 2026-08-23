@@ -133,11 +133,6 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
   const selectAccount = useCallback(
     async (account: Account) => {
       try {
-        if (account.active === false && account.owner) {
-          await app.reactivate(account.id)
-          return true
-        }
-
         await app.selectAccount(account.id)
         return true
       } catch (error) {

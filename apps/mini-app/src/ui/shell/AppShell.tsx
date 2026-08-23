@@ -95,11 +95,11 @@ export function AppShell() {
   }, [data.user.language])
 
   const selectAccount = async (account: Account) => {
-    if (accountSwitchInProgress.current || (account.active === false && !account.owner)) {
+    if (accountSwitchInProgress.current || account.active === false) {
       return
     }
 
-    if (account.id === activeAccount?.id && account.active !== false) {
+    if (account.id === activeAccount?.id) {
       setAccountPickerOpen(false)
       return
     }

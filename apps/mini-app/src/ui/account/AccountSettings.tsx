@@ -50,6 +50,9 @@ export function AccountSettings({ navigate, back }: Props) {
   const [baseRoleId, setBaseRoleId] = useState(initialBaseRoleId)
   const [savedRoleId, setSavedRoleId] = useState(initialBaseRoleId)
   const [transferTo, setTransferTo] = useState(transferableMembers[0]?.id ?? "")
+  const [transferConfirmationMemberId, setTransferConfirmationMemberId] = useState<string | null>(
+    null,
+  )
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
   const [busy, setBusy] = useState(false)
   const actionScopeRef = useRef<string | null>(null)
@@ -101,6 +104,8 @@ export function AccountSettings({ navigate, back }: Props) {
     : (transferableMembers[0]?.id ?? "")
   const transferTarget =
     transferableMembers.find((member) => member.id === selectedTransferId) ?? null
+  const confirmedTransferTarget =
+    transferableMembers.find((member) => member.id === transferConfirmationMemberId) ?? null
   const roleChanged = baseRoleId !== savedRoleId
 
   const saveBaseRole = async () => {
@@ -140,10 +145,28 @@ export function AccountSettings({ navigate, back }: Props) {
     }
   }
 
+  const requestTransfer = () => {
+    if (!activeAccount.owner || !transferTarget || actionScopeRef.current) {
+      return
+    }
+
+    setTransferConfirmationMemberId(transferTarget.id)
+    setConfirmAction("TRANSFER")
+  }
+
+  const cancelTransfer = () => {
+    if (busy) {
+      return
+    }
+
+    setTransferConfirmationMemberId(null)
+    setConfirmAction(null)
+  }
+
   const transfer = async () => {
     const requestedAccountId = activeAccount.id
 
-    if (!activeAccount.owner || !transferTarget || actionScopeRef.current) {
+    if (!activeAccount.owner || !confirmedTransferTarget || actionScopeRef.current) {
       return
     }
 
@@ -151,11 +174,12 @@ export function AccountSettings({ navigate, back }: Props) {
     setBusy(true)
 
     try {
-      await transferAccountOwnership(activeAccount.id, transferTarget.id)
+      await transferAccountOwnership(activeAccount.id, confirmedTransferTarget.id)
       await app.refresh()
       await data.refreshAccount()
 
       if (mountedRef.current && accountIdRef.current === requestedAccountId) {
+        setTransferConfirmationMemberId(null)
         setConfirmAction(null)
       }
     } catch (error) {
@@ -325,11 +349,12 @@ export function AccountSettings({ navigate, back }: Props) {
         <AccountOwnershipSettings
           members={transferableMembers}
           selectedMemberId={selectedTransferId}
+          confirmationMemberId={transferConfirmationMemberId}
           confirmOpen={confirmAction === "TRANSFER"}
           busy={busy}
           onMemberChange={setTransferTo}
-          onRequestTransfer={() => setConfirmAction("TRANSFER")}
-          onCancelTransfer={() => setConfirmAction(null)}
+          onRequestTransfer={requestTransfer}
+          onCancelTransfer={cancelTransfer}
           onConfirmTransfer={() => void transfer()}
         />
       ) : null}
@@ -340,8 +365,14 @@ export function AccountSettings({ navigate, back }: Props) {
           confirmAction === "DEACTIVATE" || confirmAction === "LEAVE" ? confirmAction : null
         }
         busy={busy}
-        onRequestDeactivate={() => setConfirmAction("DEACTIVATE")}
-        onRequestLeave={() => setConfirmAction("LEAVE")}
+        onRequestDeactivate={() => {
+          setTransferConfirmationMemberId(null)
+          setConfirmAction("DEACTIVATE")
+        }}
+        onRequestLeave={() => {
+          setTransferConfirmationMemberId(null)
+          setConfirmAction("LEAVE")
+        }}
         onCancel={() => setConfirmAction(null)}
         onDeactivate={() => void deactivate()}
         onLeave={() => void leave()}
