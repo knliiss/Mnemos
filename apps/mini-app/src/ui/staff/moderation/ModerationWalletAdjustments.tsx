@@ -21,6 +21,11 @@ export function ModerationWalletAdjustments({
 }: Props) {
   const { t } = useTranslation()
   const walletTargets = canAdjustPrime ? (["USER", "ACCOUNT"] as const) : (["ACCOUNT"] as const)
+  const numericAmount = Number(controller.amount)
+  const debitExceedsBalance =
+    controller.operation === "DEBIT" &&
+    (!controller.balance || numericAmount > controller.balance.amount)
+  const amountAllowed = controller.amountValid && !debitExceedsBalance
 
   return (
     <section className="admin-wallet-panel">
@@ -83,9 +88,11 @@ export function ModerationWalletAdjustments({
       <Field
         label={t("moderation.amount")}
         hint={
-          !controller.amountValid && controller.amount.length
-            ? t("moderation.positiveInteger")
-            : undefined
+          debitExceedsBalance
+            ? t("bets.sheet.insufficientBalance")
+            : !controller.amountValid && controller.amount.length
+              ? t("moderation.positiveInteger")
+              : undefined
         }
       >
         <div className="amount-input">
@@ -95,6 +102,7 @@ export function ModerationWalletAdjustments({
           <input
             type="number"
             min={1}
+            max={controller.operation === "DEBIT" ? controller.balance?.amount : undefined}
             step={1}
             value={controller.amount}
             onChange={(event) => controller.setAmount(event.target.value)}
@@ -115,7 +123,7 @@ export function ModerationWalletAdjustments({
         className="primary-action"
         disabled={
           !controller.targetId ||
-          !controller.amountValid ||
+          !amountAllowed ||
           !controller.walletReason.trim() ||
           controller.busy
         }
