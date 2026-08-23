@@ -516,6 +516,7 @@ export function buildCreatorPreview(
     target: targetByType[form.type],
     name: form.name.trim() || fallbackName,
     creator: `@${username}`,
+    createdByCurrentUser: true,
     currency: form.type === "NOTIFICATION_PACK" ? "PRIME" : form.currency,
     price: Number(form.price) || 0,
     status,
