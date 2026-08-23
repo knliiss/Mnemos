@@ -31,7 +31,10 @@ export function resolveActorMember(account: Account, members: Member[]): Member 
   return members.find((member) => member.id === account.currentMemberId) ?? null
 }
 
-export function resolveHighestRole(member: Member | null, roles: AccountRole[]): AccountRole | null {
+export function resolveHighestRole(
+  member: Member | null,
+  roles: AccountRole[],
+): AccountRole | null {
   if (!member?.highestRoleId) {
     return null
   }

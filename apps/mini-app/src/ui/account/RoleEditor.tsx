@@ -68,9 +68,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
         )
       : managementAccess
   const detailsEditable = isNew ? canManageRoles : managementAccess === "ALLOWED"
-  const permissionsEditable = isNew
-    ? canManageRoles
-    : permissionMutationAccess === "ALLOWED"
+  const permissionsEditable = isNew ? canManageRoles : permissionMutationAccess === "ALLOWED"
   const detailsAccessMessage =
     managementAccess === "ALLOWED"
       ? t("errorNotifications.tones.access.message")
@@ -218,12 +216,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const remove = async () => {
-    if (
-      !accountId ||
-      !existing ||
-      managementAccess !== "ALLOWED" ||
-      busyRef.current
-    ) {
+    if (!accountId || !existing || managementAccess !== "ALLOWED" || busyRef.current) {
       return
     }
 

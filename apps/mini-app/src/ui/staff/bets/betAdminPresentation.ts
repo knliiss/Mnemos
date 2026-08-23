@@ -1,20 +1,11 @@
 import type { TFunction } from "i18next"
-import type {
-  EventBetOutcome,
-  EventBetRoundResponse,
-  ItemRaceResponse,
-} from "@/shared/api/betApi"
+import type { EventBetOutcome, EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
 import type { BetGlobalEventType, BetItemType } from "../../model"
 
 export type BetAdminSection = "home" | "rounds" | "history" | "round" | "races"
 
 export function normalizeBetAdminSection(value?: string): BetAdminSection {
-  if (
-    value === "rounds" ||
-    value === "history" ||
-    value === "round" ||
-    value === "races"
-  ) {
+  if (value === "rounds" || value === "history" || value === "round" || value === "races") {
     return value
   }
 
@@ -60,19 +51,12 @@ export function betAdminRoundStatusLabel(
   return t(`bets.roundStatus.${status}`, { defaultValue: status })
 }
 
-export function betAdminRaceStatusLabel(
-  t: TFunction,
-  status: ItemRaceResponse["status"],
-): string {
+export function betAdminRaceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]): string {
   return t(`bets.raceStatus.${status}`, { defaultValue: status })
 }
 
 export function formatBetAdminDate(value: string, language: string) {
-  const locale = language.startsWith("ru")
-    ? "ru-RU"
-    : language.startsWith("en")
-      ? "en-US"
-      : "uk-UA"
+  const locale = language.startsWith("ru") ? "ru-RU" : language.startsWith("en") ? "en-US" : "uk-UA"
 
   return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
@@ -91,7 +75,5 @@ export function settledBetRounds(rounds: EventBetRoundResponse[]) {
 }
 
 export function activeItemRaces(races: ItemRaceResponse[]) {
-  return races.filter(
-    (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
-  )
+  return races.filter((race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status))
 }

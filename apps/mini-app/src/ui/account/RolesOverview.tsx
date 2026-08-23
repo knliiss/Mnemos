@@ -251,12 +251,7 @@ function StaticRoleRow({
 }) {
   return (
     <article className="role-row is-protected">
-      <RoleRowMain
-        role={role}
-        priority={priority}
-        memberCount={memberCount}
-        navigate={navigate}
-      />
+      <RoleRowMain role={role} priority={priority} memberCount={memberCount} navigate={navigate} />
       <button type="button" className="role-drag-handle" disabled title={lockedMessage}>
         ⠿
       </button>
@@ -291,12 +286,7 @@ function SortableRoleRow({
       whileDrag={{ scale: 1.02, zIndex: 5 }}
       onDragEnd={onDragEnd}
     >
-      <RoleRowMain
-        role={role}
-        priority={priority}
-        memberCount={memberCount}
-        navigate={navigate}
-      />
+      <RoleRowMain role={role} priority={priority} memberCount={memberCount} navigate={navigate} />
 
       <button
         type="button"

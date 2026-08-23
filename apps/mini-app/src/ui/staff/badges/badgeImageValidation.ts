@@ -34,8 +34,6 @@ export function validateBadgePngHeader(header: Uint8Array): boolean {
   const height = view.getUint32(HEIGHT_OFFSET)
 
   return (
-    width === height &&
-    width >= MIN_BADGE_IMAGE_DIMENSION &&
-    width <= MAX_BADGE_IMAGE_DIMENSION
+    width === height && width >= MIN_BADGE_IMAGE_DIMENSION && width <= MAX_BADGE_IMAGE_DIMENSION
   )
 }

@@ -1,12 +1,6 @@
 import type { ErrorEventPayload } from "./errorEventBus"
 
-export type ErrorTone =
-  | "validation"
-  | "access"
-  | "conflict"
-  | "not-found"
-  | "waiting"
-  | "internal"
+export type ErrorTone = "validation" | "access" | "conflict" | "not-found" | "waiting" | "internal"
 
 const toneOverrides: Record<string, ErrorTone> = {
   INVALID_AUTHENTICATION_PRINCIPAL: "access",
@@ -104,13 +98,7 @@ export function inferErrorTone(payload: ErrorEventPayload): ErrorTone {
     return "waiting"
   }
 
-  if (
-    status === 400 ||
-    status === 405 ||
-    status === 406 ||
-    status === 415 ||
-    status === 422
-  ) {
+  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) {
     return "validation"
   }
 

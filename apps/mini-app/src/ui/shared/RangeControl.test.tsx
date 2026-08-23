@@ -8,15 +8,7 @@ describe("RangeControl", () => {
   it("renders controlled value and emits numeric changes", () => {
     const onChange = vi.fn()
 
-    render(
-      <RangeControl
-        value={25}
-        min={0}
-        max={100}
-        ariaLabel="Intensity"
-        onChange={onChange}
-      />,
-    )
+    render(<RangeControl value={25} min={0} max={100} ariaLabel="Intensity" onChange={onChange} />)
 
     const input = screen.getByRole("slider", { name: "Intensity" }) as HTMLInputElement
 
@@ -38,9 +30,7 @@ describe("RangeControl", () => {
 
     expect(input.parentElement?.style.getPropertyValue("--range-progress")).toBe("0%")
 
-    rerender(
-      <RangeControl value={140} min={0} max={100} ariaLabel="Scale" onChange={onChange} />,
-    )
+    rerender(<RangeControl value={140} min={0} max={100} ariaLabel="Scale" onChange={onChange} />)
 
     expect(input.parentElement?.style.getPropertyValue("--range-progress")).toBe("100%")
   })

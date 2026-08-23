@@ -49,10 +49,7 @@ const translationKeys = {
     title: "errorNotifications.tones.internal.title",
     message: "errorNotifications.tones.internal.message",
   },
-} as const satisfies Record<
-  NoticeTone,
-  Record<"eyebrow" | "title" | "message", string>
->
+} as const satisfies Record<NoticeTone, Record<"eyebrow" | "title" | "message", string>>
 
 export function resolveErrorPresentation(
   payload: BackendErrorPayload,

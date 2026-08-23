@@ -557,13 +557,7 @@ export function Bets({ activeAccount, navigate }: Props) {
 
               <section className="bets-rounds">
                 {historicalEventBets.map(({ round, bet }) => (
-                  <EventBetHistoryCard
-                    key={bet.id}
-                    round={round}
-                    bet={bet}
-                    locale={locale}
-                    t={t}
-                  />
+                  <EventBetHistoryCard key={bet.id} round={round} bet={bet} locale={locale} t={t} />
                 ))}
 
                 {historicalRacePositions.map(({ race, position }) => (

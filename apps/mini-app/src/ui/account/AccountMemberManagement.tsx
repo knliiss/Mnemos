@@ -264,9 +264,7 @@ export function AccountMemberManagement({
             type="button"
             disabled={kickBusy || kickAccess !== "ALLOWED"}
             title={
-              kickAccess === "ALLOWED"
-                ? undefined
-                : t(roleAccessReasonTranslationKey(kickAccess))
+              kickAccess === "ALLOWED" ? undefined : t(roleAccessReasonTranslationKey(kickAccess))
             }
             onClick={() => void kickMember()}
           >
