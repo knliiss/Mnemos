@@ -7,7 +7,17 @@ import {
 } from "@/shared/api/badgeApi"
 import { handleError } from "@/shared/errors/errorHandler"
 
-export function useUserBadges() {
+export type UserBadgesController = {
+  badges: UserBadge[]
+  activeBadge: UserBadge | null
+  loading: boolean
+  busyBadgeId: string | null
+  refresh: () => Promise<void>
+  activate: (badgeId: string) => Promise<void>
+  deactivate: () => Promise<void>
+}
+
+export function useUserBadges(): UserBadgesController {
   const [badges, setBadges] = useState<UserBadge[]>([])
   const [loading, setLoading] = useState(true)
   const [busyBadgeId, setBusyBadgeId] = useState<string | null>(null)
@@ -122,6 +132,7 @@ export function useUserBadges() {
     activeBadge,
     loading,
     busyBadgeId,
+    refresh,
     activate,
     deactivate,
   }
