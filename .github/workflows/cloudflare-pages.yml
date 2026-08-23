@@ -3,7 +3,7 @@ name: Cloudflare Pages Deploy
 on:
   push:
     branches:
-      - feat/frontend-integration
+      - master
     paths:
       - "apps/mini-app/**"
       - ".github/workflows/cloudflare-pages.yml"
@@ -26,7 +26,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_PROJECT_NAME: mnemos-mini-app
-      CLOUDFLARE_PRODUCTION_BRANCH: feat/frontend-integration
+      CLOUDFLARE_PRODUCTION_BRANCH: master
       CLOUDFLARE_ZONE_NAME: knalis.rest
       CLOUDFLARE_CUSTOM_DOMAIN: app.knalis.rest
       VITE_KEYCLOAK_URL: https://auth.knalis.rest
@@ -145,7 +145,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=feat/frontend-integration
+          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Ensure Pages custom domain
