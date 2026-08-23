@@ -271,11 +271,9 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
               <button
                 type="button"
                 key={layer.id}
-                className={
-                  layer.id === selectedLayer?.id
-                    ? "creator-layer-canvas__layer is-selected"
-                    : "creator-layer-canvas__layer"
-                }
+                className={`creator-layer-canvas__layer is-${layer.animation.toLowerCase()} ${
+                  layer.id === selectedLayer?.id ? "is-selected" : ""
+                }`.trim()}
                 style={{
                   left: `${layer.xPercent}%`,
                   top: `${layer.yPercent}%`,
