@@ -35,6 +35,12 @@ type BetsData = {
   refresh(): Promise<void>
 }
 
+const currentRaceStatuses = new Set<ItemRaceResponse["status"]>([
+  "REGISTRATION",
+  "ACTIVE",
+  "SETTLING",
+])
+
 async function hydrateEntities<T>(
   current: T[],
   historyIds: string[],
@@ -79,6 +85,24 @@ function raceHistoryEntries(
 
     return race ? [{ race, position }] : []
   })
+}
+
+function currentRaces(
+  races: ItemRaceResponse[],
+  positions: ItemRaceParticipantResponse[],
+  racesById: Map<string, ItemRaceResponse>,
+): ItemRaceResponse[] {
+  const byId = new Map(races.map((race) => [race.id, race]))
+
+  for (const position of positions) {
+    const race = racesById.get(position.raceId)
+
+    if (race && currentRaceStatuses.has(race.status)) {
+      byId.set(race.id, race)
+    }
+  }
+
+  return [...byId.values()]
 }
 
 function currentRacePositions(
@@ -165,14 +189,15 @@ export function useBetsData(
               myBet: betByRoundId.get(round.id) ?? null,
             },
       )
+      const visibleRaces = currentRaces(raceResponses, racePositionResponses, racesById)
       const currentPositions = currentRacePositions(
-        raceResponses,
+        visibleRaces,
         racePositionResponses,
         requestedAccountId,
       )
 
       setRounds(currentRounds)
-      setRaces(raceResponses)
+      setRaces(visibleRaces)
       setPositions(currentPositions)
       setEventHistory(eventHistoryEntries(eventBetResponses, roundsById))
       setRaceHistory(raceHistoryEntries(racePositionResponses, racesById))
