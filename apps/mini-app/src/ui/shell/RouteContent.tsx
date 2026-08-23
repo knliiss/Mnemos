@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { AccountArea } from "../account/AccountArea"
 import { CreatorArea } from "../creator/CreatorArea"
 import { EventsArea } from "../events/EventsArea"
@@ -17,6 +18,7 @@ import { canRenderWithoutActiveAccount } from "./navigation"
 type RouteContentProps = {
   current: Route
   activeAccount: Account | null
+  rootUserAccess?: ReactNode
   navigate(route: Route): void
   back(): void
   switchRoot(route: RootRoute): void
@@ -25,6 +27,7 @@ type RouteContentProps = {
 export function RouteContent({
   current,
   activeAccount,
+  rootUserAccess,
   navigate,
   back,
   switchRoot,
@@ -57,7 +60,13 @@ export function RouteContent({
 
   if (area === "account") {
     return (
-      <AccountArea routeId={current.id} params={current.params} navigate={navigate} back={back} />
+      <AccountArea
+        routeId={current.id}
+        params={current.params}
+        rootUserAccess={rootUserAccess}
+        navigate={navigate}
+        back={back}
+      />
     )
   }
 

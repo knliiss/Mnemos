@@ -3,9 +3,53 @@
 }
 
 .account-home-profile {
+  display: block;
   min-height: 132px;
   margin-top: 0;
+  padding: 0;
   border-color: rgba(203, 255, 45, 0.16);
+}
+
+.account-home-profile__account {
+  position: relative;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 130px;
+  padding: 15px;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.account-home-profile__user-access {
+  position: absolute;
+  z-index: 6;
+  top: 14px;
+  right: 14px;
+}
+
+.account-home-profile__user-access > .global-user-button {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.account-home-profile__copy {
+  padding-right: 118px;
+}
+
+.account-home-profile__art {
+  right: 58px;
+  bottom: -4px;
+  width: 96px;
+  height: 104px;
 }
 
 .account-home-profile__copy > small,
@@ -205,7 +249,12 @@
 .account-home-member__avatar {
   display: grid;
   place-items: center;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.account-home-member__avatar::before,
+.account-home-member__avatar::after {
+  content: none;
 }
 
 .account-home-member__avatar img {
@@ -219,7 +268,41 @@
   font-size: 12px;
 }
 
+@media (max-width: 470px) {
+  .account-home-profile__account {
+    grid-template-columns: 78px minmax(0, 1fr);
+    padding-inline: 11px;
+  }
+
+  .account-home-profile__copy {
+    padding-right: 92px;
+  }
+
+  .account-home-profile__art {
+    right: 52px;
+    bottom: -1px;
+    width: 74px;
+    height: 82px;
+  }
+
+  .account-home-profile__user-access {
+    top: 12px;
+    right: 12px;
+  }
+}
+
 @media (max-width: 370px) {
+  .account-home-profile__copy {
+    padding-right: 70px;
+  }
+
+  .account-home-profile__art {
+    right: 46px;
+    width: 60px;
+    height: 70px;
+    opacity: 0.68;
+  }
+
   .account-home-actions {
     grid-template-columns: 1fr;
   }

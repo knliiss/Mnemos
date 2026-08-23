@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Glyph } from "../../shared/MnemosIcon"
 import "./account-onboarding.css"
+import "./account-onboarding-layout.css"
 
 type OnboardingMode = "create" | "join"
 

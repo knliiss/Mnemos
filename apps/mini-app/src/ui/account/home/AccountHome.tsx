@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Route } from "../../model"
@@ -13,10 +14,11 @@ import { AccountOverview } from "./AccountOverview"
 type Props = {
   navigate: (route: Route) => void
   back: () => void
+  rootUserAccess?: ReactNode
   initialMemberId?: string | null
 }
 
-export function AccountHome({ navigate, back, initialMemberId }: Props) {
+export function AccountHome({ navigate, back, rootUserAccess, initialMemberId }: Props) {
   const { i18n } = useTranslation()
   const data = useMnemosData()
   const activeAccount = data.activeAccount
@@ -47,7 +49,12 @@ export function AccountHome({ navigate, back, initialMemberId }: Props) {
 
   return (
     <div className="screen account-home-screen root-screen">
-      <AccountOverview account={activeAccount} locale={locale} navigate={navigate} />
+      <AccountOverview
+        account={activeAccount}
+        locale={locale}
+        userHubTrigger={rootUserAccess}
+        navigate={navigate}
+      />
 
       <AccountMembersPanel
         members={data.members}

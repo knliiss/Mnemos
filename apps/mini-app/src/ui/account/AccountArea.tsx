@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import "../events/event-surfaces.css"
 import type { Route } from "../model"
 import { useMnemosData } from "../data/MnemosDataProvider"
@@ -20,6 +21,7 @@ type Props = {
   back: () => void
   routeId: Route["id"]
   params?: Record<string, string>
+  rootUserAccess?: ReactNode
 }
 
 export function AccountArea(props: Props) {
@@ -41,6 +43,7 @@ export function AccountArea(props: Props) {
       <AccountHome
         navigate={props.navigate}
         back={props.back}
+        rootUserAccess={props.routeId === "account" ? props.rootUserAccess : null}
         initialMemberId={props.routeId === "member" ? (props.params?.memberId ?? null) : null}
       />
     )

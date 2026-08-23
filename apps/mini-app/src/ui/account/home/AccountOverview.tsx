@@ -1,4 +1,5 @@
 import { motion } from "framer-motion"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Account, Route } from "../../model"
@@ -9,41 +10,53 @@ import { AccountDailyReward } from "../AccountDailyReward"
 type AccountOverviewProps = {
   account: Account
   locale: string
+  userHubTrigger?: ReactNode
   navigate: (route: Route) => void
 }
 
-export function AccountOverview({ account, locale, navigate }: AccountOverviewProps) {
+export function AccountOverview({
+  account,
+  locale,
+  userHubTrigger,
+  navigate,
+}: AccountOverviewProps) {
   const { t } = useTranslation()
 
   return (
     <>
-      <motion.button
-        type="button"
-        className="account-home-profile"
-        whileTap={{ scale: 0.992 }}
-        onClick={() => navigate({ id: "public-profile", params: { accountId: account.id } })}
-      >
-        <span className="account-home-profile__head">
-          <CristalixHead skinUrl={account.skinUrl} size={82} />
-        </span>
-
-        <span className="account-home-profile__copy">
-          <small>{t("accountHome.activeAccount")}</small>
-          <strong>{account.nickname}</strong>
-          <span className="account-home-profile__pulse" aria-hidden="true">
-            <i />
-            <i />
-            <i />
+      <section className="account-home-profile">
+        <motion.button
+          type="button"
+          className="account-home-profile__account"
+          whileTap={{ scale: 0.992 }}
+          onClick={() => navigate({ id: "public-profile", params: { accountId: account.id } })}
+        >
+          <span className="account-home-profile__head">
+            <CristalixHead skinUrl={account.skinUrl} size={82} />
           </span>
-        </span>
 
-        <img
-          className="account-home-profile__art"
-          src="/ui-illustrations/mnemos-mascot-cat.svg"
-          alt=""
-          aria-hidden="true"
-        />
-      </motion.button>
+          <span className="account-home-profile__copy">
+            <small>{t("accountHome.activeAccount")}</small>
+            <strong>{account.nickname}</strong>
+            <span className="account-home-profile__pulse" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          </span>
+
+          <img
+            className="account-home-profile__art"
+            src="/ui-illustrations/mnemos-mascot-cat.svg"
+            alt=""
+            aria-hidden="true"
+          />
+        </motion.button>
+
+        {userHubTrigger ? (
+          <div className="account-home-profile__user-access">{userHubTrigger}</div>
+        ) : null}
+      </section>
 
       <AccountDailyReward />
 

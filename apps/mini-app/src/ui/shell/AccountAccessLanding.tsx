@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import "../account/onboarding/account-onboarding.css"
+import "../account/onboarding/account-onboarding-layout.css"
 import { AccountArea } from "../account/AccountArea"
 import type { Route } from "../model"
 
@@ -18,7 +19,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
   }
 
   return (
-    <div className="screen account-onboarding account-onboarding--create">
+    <div className="screen account-onboarding account-onboarding--create account-access-landing">
       <header className="account-onboarding-header account-access-landing__header">
         <div className="account-onboarding-heading">
           <small>MNEMOS × CRISTALIX</small>
@@ -28,7 +29,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
       </header>
 
       <section className="account-onboarding-hero account-access-landing__hero">
-        <div className="account-onboarding-hero__art">
+        <div className="account-onboarding-hero__art account-onboarding-hero-art">
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
         </div>
         <div className="account-onboarding-hero__copy">
@@ -44,7 +45,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate({ id: "account-create" })}
         >
-          <span>+</span>
+          <span aria-hidden="true">+</span>
           <div>
             <strong>{t("appShell.onboarding.newAccount")}</strong>
             <small>{t("appShell.onboarding.findNickname")}</small>
@@ -56,7 +57,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate({ id: "account-join" })}
         >
-          <span>→</span>
+          <span aria-hidden="true">→</span>
           <div>
             <strong>{t("appShell.onboarding.joinByCode")}</strong>
             <small>{t("appShell.onboarding.joinTeam")}</small>

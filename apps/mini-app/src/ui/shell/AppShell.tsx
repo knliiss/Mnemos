@@ -130,14 +130,14 @@ export function AppShell() {
 
   const userHubTrigger =
     rootRoute && activeAccount ? (
-      <div className="root-user-access">
-        <UserHubTrigger
-          open={userHubOpen}
-          activeBadge={userBadges.activeBadge?.badge ?? null}
-          onToggle={toggleUserHub}
-        />
-      </div>
+      <UserHubTrigger
+        open={userHubOpen}
+        activeBadge={userBadges.activeBadge?.badge ?? null}
+        onToggle={toggleUserHub}
+      />
     ) : null
+  const accountUserHubTrigger = rootRoute === "account" ? userHubTrigger : null
+  const rootHeaderUserHubTrigger = rootRoute && rootRoute !== "account" ? userHubTrigger : null
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
@@ -149,20 +149,21 @@ export function AppShell() {
             <motion.div
               ref={routeStageRef}
               className={`route-stage ${
-                rootRoute && activeAccount
-                  ? `has-tabbar has-user-access route-stage--${rootRoute}`
-                  : ""
+                rootRoute && activeAccount ? `has-tabbar route-stage--${rootRoute}` : ""
               }`}
               initial={false}
               animate={{ opacity: 1 }}
             >
-              {userHubTrigger}
+              {rootHeaderUserHubTrigger ? (
+                <div className="root-user-access">{rootHeaderUserHubTrigger}</div>
+              ) : null}
 
               <div className="route-content-frame">
                 <RouteContent
                   key={activeAccountId}
                   current={current}
                   activeAccount={activeAccount}
+                  rootUserAccess={accountUserHubTrigger}
                   navigate={navigate}
                   back={back}
                   switchRoot={switchRoot}
