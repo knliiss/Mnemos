@@ -5,11 +5,14 @@ import { notifications } from "@/shared/notifications/notificationCenter"
 import { realtimeClient } from "@/shared/realtime/realtimeClient"
 import { realtimeBroadcasts, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import type { DropSpotlightBroadcast, RealtimeEvent } from "@/shared/realtime/realtime.types"
+import { ItemTypeArt } from "@/ui/components/events/EventArt"
+import type { BetItemType } from "@/ui/model"
 import { Glyph } from "@/ui/shared/MnemosIcon"
 import "@/ui/system/system.css"
 
 const FULL_SPOTLIGHT_DURATION_MS = 7_000
 const COMPACT_SPOTLIGHT_DURATION_MS = 4_500
+const supportedSpotlightItemTypes: BetItemType[] = ["SWORD", "AURA", "PET", "BOOK", "JEWELRY"]
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -146,6 +149,7 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
     spotlight.presentationMode === "COMPACT" ? template?.compact : template?.soloBody
   const body = renderedTemplate(bodyTemplate, values) || fallbackBody
   const compact = spotlight.presentationMode === "COMPACT"
+  const itemType = resolveSpotlightItemType(spotlight.payload.itemType)
 
   return (
     <aside
@@ -154,23 +158,41 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
       aria-live="polite"
       aria-atomic="true"
     >
-      <span className="realtime-spotlight__mark" aria-hidden="true">
-        {template?.emoji ? template.emoji : <Glyph name="item-drop" size={compact ? 18 : 22} />}
+      <span className="realtime-spotlight__visual" aria-hidden="true">
+        {itemType ? (
+          <ItemTypeArt itemType={itemType} size={compact ? 40 : 78} />
+        ) : (
+          <Glyph name="item-drop" size={compact ? 20 : 32} />
+        )}
+        {template?.emoji ? <b>{template.emoji}</b> : null}
       </span>
 
       <span className="realtime-spotlight__copy">
-        <small>SPOTLIGHT · {spotlight.payload.itemRarity}</small>
+        <small>
+          <i /> SPOTLIGHT · {spotlight.payload.itemRarity}
+        </small>
         <strong>{title}</strong>
         {compact ? <em>{body}</em> : <p>{body}</p>}
+        {!compact ? (
+          <span className="realtime-spotlight__meta">
+            <b>{spotlight.payload.droppedFor}</b>
+            <i />
+            <em>{spotlight.payload.itemType}</em>
+          </span>
+        ) : null}
       </span>
 
-      <span className="realtime-spotlight__pulse" aria-hidden="true">
+      <span className="realtime-spotlight__signal" aria-hidden="true">
         <i />
         <i />
         <i />
       </span>
     </aside>
   )
+}
+
+function resolveSpotlightItemType(value: string): BetItemType | null {
+  return supportedSpotlightItemTypes.includes(value as BetItemType) ? (value as BetItemType) : null
 }
 
 function renderedTemplate(template: string | undefined, values: Record<string, string>): string {
