@@ -57,7 +57,8 @@ export function PersonalizationDetail({
 
   const pending = Boolean(pendingPurchases[item.id])
   const busy = busyId === item.id
-  const canPurchase = !item.createdByCurrentUser && (item.target === "USER" || canBuyAccountPersonalizations)
+  const canPurchase =
+    !item.createdByCurrentUser && (item.target === "USER" || canBuyAccountPersonalizations)
   const canToggleActive = item.target === "USER" || canApplyAccountPersonalizations
   const accessMessage = t("errorNotifications.tones.access.message")
   const actionClassName = `personalization-detail-purchase__action ${
