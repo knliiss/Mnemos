@@ -23,6 +23,7 @@ class GatewaySecurityConfiguration(
                 it.pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 it.pathMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 it.pathMatchers(HttpMethod.GET, "/api/v1/personalizations/badges/*/image").permitAll()
+                it.pathMatchers(HttpMethod.POST, "/api/v1/realtime/collector-activations/redeem").permitAll()
                 it.pathMatchers("/ws/v1/collector").permitAll()
                 it.anyExchange().authenticated()
             }.oauth2ResourceServer {
