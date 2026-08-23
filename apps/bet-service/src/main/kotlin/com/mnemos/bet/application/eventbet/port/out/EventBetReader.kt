@@ -15,5 +15,10 @@ interface EventBetReader {
         accountId: AccountId,
     ): EventBetView?
 
+    fun findBets(
+        roundIds: Collection<EventBetRoundId>,
+        accountId: AccountId,
+    ): List<EventBetView>
+
     fun findHistory(accountId: AccountId): List<EventBetView>
 }

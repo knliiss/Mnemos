@@ -20,12 +20,28 @@ class EventBetReaderAdapter(
                 settledStatus = EventBetRoundStatus.SETTLED,
             ).map { it.toView() }
 
-    override fun findRound(roundId: EventBetRoundId): EventBetRoundView? = roundJpaRepository.findById(roundId.id).orElse(null)?.toView()
+    override fun findRound(roundId: EventBetRoundId): EventBetRoundView? =
+        roundJpaRepository.findById(roundId.id).orElse(null)?.toView()
 
     override fun findBet(
         roundId: EventBetRoundId,
         accountId: AccountId,
     ): EventBetView? = betJpaRepository.findByRoundIdAndAccountId(roundId.id, accountId.id)?.toView()
+
+    override fun findBets(
+        roundIds: Collection<EventBetRoundId>,
+        accountId: AccountId,
+    ): List<EventBetView> {
+        if (roundIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return betJpaRepository
+            .findAllByRoundIdInAndAccountId(
+                roundIds = roundIds.map { it.id },
+                accountId = accountId.id,
+            ).map { it.toView() }
+    }
 
     override fun findHistory(accountId: AccountId): List<EventBetView> =
         betJpaRepository.findAllByAccountIdOrderByIdDesc(accountId.id).map { it.toView() }

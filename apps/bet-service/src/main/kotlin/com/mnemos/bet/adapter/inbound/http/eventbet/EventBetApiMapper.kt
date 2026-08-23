@@ -3,11 +3,14 @@ package com.mnemos.bet.adapter.inbound.http.eventbet
 import com.mnemos.bet.application.eventbet.model.EventBetRoundView
 import com.mnemos.bet.application.eventbet.model.EventBetView
 import com.mnemos.bet.application.eventbet.usecase.get.GetEventBetRoundResult
+import com.mnemos.bet.application.eventbet.usecase.list.ListEventBetRoundResult
 import com.mnemos.bet.contracts.shared.BetGlobalEventType
 import com.mnemos.bet.contracts.shared.BetSide
 
 object EventBetApiMapper {
     fun GetEventBetRoundResult.toResponse(): EventBetRoundResponse = round.toResponse(myBet)
+
+    fun ListEventBetRoundResult.toResponse(): EventBetRoundResponse = round.toResponse(myBet)
 
     fun EventBetRoundView.toResponse(myBet: EventBetView? = null): EventBetRoundResponse =
         EventBetRoundResponse(
