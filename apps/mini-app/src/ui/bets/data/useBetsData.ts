@@ -81,6 +81,22 @@ function raceHistoryEntries(
   })
 }
 
+function currentRacePositions(
+  races: ItemRaceResponse[],
+  myPositions: ItemRaceParticipantResponse[],
+  accountId: string,
+): ItemRaceParticipantResponse[] {
+  const myPositionByRace = new Map(myPositions.map((position) => [position.raceId, position]))
+
+  return races.flatMap((race) => {
+    const embeddedPosition =
+      race.participants.find((participant) => participant.accountId === accountId) ?? null
+    const position = embeddedPosition ?? myPositionByRace.get(race.id) ?? null
+
+    return position ? [position] : []
+  })
+}
+
 export function useBetsData(
   activeAccountId: string,
   refreshAccount: () => Promise<void>,
@@ -149,8 +165,10 @@ export function useBetsData(
               myBet: betByRoundId.get(round.id) ?? null,
             },
       )
-      const currentPositions = raceResponses.flatMap((race) =>
-        race.participants.filter((participant) => participant.accountId === requestedAccountId),
+      const currentPositions = currentRacePositions(
+        raceResponses,
+        racePositionResponses,
+        requestedAccountId,
       )
 
       setRounds(currentRounds)
