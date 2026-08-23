@@ -24,15 +24,13 @@ export function UserBadgeSelector({
     return (
       <section className="user-hub-badges" aria-busy="true">
         <header>
-          <small>{t("appShell.userMenu.badgeEyebrow")}</small>
-          <strong>{t("appShell.userMenu.badgeLoading")}</strong>
+          <span>
+            <small>{t("appShell.userMenu.badgeEyebrow")}</small>
+            <strong>{t("appShell.userMenu.badgeLoading")}</strong>
+          </span>
         </header>
       </section>
     )
-  }
-
-  if (!badges.length) {
-    return null
   }
 
   return (
@@ -55,37 +53,41 @@ export function UserBadgeSelector({
         ) : null}
       </header>
 
-      <div className="user-hub-badges__grid">
-        {badges.map((item) => {
-          const active = item.active
-          const busy = busyBadgeId === item.badge.id
-          const statusLabel = busy
-            ? t("appShell.userMenu.badgeSaving")
-            : active
-              ? t("appShell.userMenu.badgeActive")
-              : t("appShell.userMenu.badgeUse")
+      {badges.length ? (
+        <div className="user-hub-badges__grid">
+          {badges.map((item) => {
+            const active = item.active
+            const busy = busyBadgeId === item.badge.id
+            const statusLabel = busy
+              ? t("appShell.userMenu.badgeSaving")
+              : active
+                ? t("appShell.userMenu.badgeActive")
+                : t("appShell.userMenu.badgeUse")
 
-          return (
-            <button
-              type="button"
-              key={item.badge.id}
-              className={`user-hub-badge-option ${active ? "is-active" : ""}`}
-              disabled={busyBadgeId !== null}
-              onClick={() => {
-                if (!active) {
-                  onActivate(item.badge.id)
-                }
-              }}
-            >
-              <UserBadgeMark badge={item.badge} compact />
-              <span>
-                <strong>{item.badge.name}</strong>
-                <small>{statusLabel}</small>
-              </span>
-            </button>
-          )
-        })}
-      </div>
+            return (
+              <button
+                type="button"
+                key={item.badge.id}
+                className={`user-hub-badge-option ${active ? "is-active" : ""}`}
+                disabled={busyBadgeId !== null}
+                onClick={() => {
+                  if (!active) {
+                    onActivate(item.badge.id)
+                  }
+                }}
+              >
+                <UserBadgeMark badge={item.badge} compact />
+                <span>
+                  <strong>{item.badge.name}</strong>
+                  <small>{statusLabel}</small>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="user-hub-personalization-empty">{t("personalization.owned.empty")}</p>
+      )}
     </section>
   )
 }
