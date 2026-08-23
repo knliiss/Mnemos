@@ -11,4 +11,5 @@ data class ProfileThemeContentResponse(
     val surfaceSecondary: String,
     val gradientAngleDegrees: Int,
     val textureStrength: Int,
+    val layers: List<VisualLayerResponse>,
 ) : PersonalizationContentResponse
