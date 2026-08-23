@@ -36,7 +36,10 @@ export function CollectorCredentialList({
         const confirmingRevoke = revokeCandidate === credential.id
 
         return (
-          <article key={credential.id} className={`collector-credential-card is-${state.toLowerCase()}`}>
+          <article
+            key={credential.id}
+            className={`collector-credential-card is-${state.toLowerCase()}`}
+          >
             <header>
               <span className="collector-credential-card__icon" aria-hidden="true">
                 <Glyph name="admin" size={19} />
@@ -92,9 +95,7 @@ export function CollectorCredentialList({
                     type="button"
                     disabled={busy}
                     onClick={() =>
-                      state === "ENABLED"
-                        ? onDisable(credential.id)
-                        : onEnable(credential.id)
+                      state === "ENABLED" ? onDisable(credential.id) : onEnable(credential.id)
                     }
                   >
                     <Glyph name={state === "ENABLED" ? "close" : "check"} size={15} />
