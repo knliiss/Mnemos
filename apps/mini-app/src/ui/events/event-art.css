@@ -16,50 +16,11 @@
 }
 
 .event-art::before,
-.event-row-surface .event-art::before {
-  content: "" !important;
-  position: absolute !important;
-  z-index: 0;
-  top: 13% !important;
-  right: 12% !important;
-  bottom: auto !important;
-  left: auto !important;
-  width: 3px !important;
-  height: 3px !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: var(--event-art-color) !important;
-  box-shadow:
-    -8px 6px 0 color-mix(in srgb, var(--event-art-color) 48%, transparent),
-    2px 12px 0 color-mix(in srgb, var(--event-art-color) 68%, transparent) !important;
-  opacity: 0.78 !important;
-  filter: none !important;
-  transform: none !important;
-  pointer-events: none !important;
-}
-
 .event-art::after,
+.event-row-surface .event-art::before,
 .event-row-surface .event-art::after {
-  content: "" !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  top: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: 50% !important;
-  width: 53% !important;
-  height: 53% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background: var(--event-art-color) !important;
-  opacity: 0.14 !important;
-  filter: blur(9px) !important;
-  transform: translate(-50%, -50%) !important;
-  pointer-events: none !important;
+  content: none !important;
+  display: none !important;
 }
 
 .event-art__image,
@@ -75,10 +36,7 @@
   max-height: calc(100% - 10px) !important;
   object-fit: contain !important;
   transform-origin: center !important;
-  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--event-art-color) 46%, transparent))
-    drop-shadow(0 0 6px color-mix(in srgb, var(--event-art-color) 22%, transparent))
-    drop-shadow(0 0 11px color-mix(in srgb, var(--event-art-color) 8%, transparent))
-    drop-shadow(0 5px 7px rgba(0, 0, 0, 0.34)) !important;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.34)) !important;
 }
 
 .event-art__image {
@@ -160,12 +118,7 @@
   --event-art-color: #f49a24 !important;
 }
 
-.event-art--global-eclipse .event-art__vector {
-  filter: drop-shadow(0 0 4px rgba(143, 195, 213, 0.16)) drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3)) !important;
-}
-
-button:active .event-art__image,
-button:active .event-art__vector {
+button:active .event-art__image {
   transform: translateY(1px) scale(0.98) !important;
 }
 
