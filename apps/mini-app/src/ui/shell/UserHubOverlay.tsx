@@ -1,14 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import type { UserBadge } from "@/shared/api/badgeApi"
+import type { Badge } from "@/shared/api/badgeApi"
 import { CristalixHead } from "../components/profile/CristalixHead"
 import type { Account, LocalizationLanguage, Route } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
 import { UserBadgeMark } from "./badges/UserBadgeMark"
-import { UserBadgeSelector } from "./badges/UserBadgeSelector"
 import { localizationOptions } from "./navigation"
-import { UserNotificationPackSelector } from "./personalization/UserNotificationPackSelector"
-import { useUserNotificationPacks } from "./personalization/useUserNotificationPacks"
 import { UserHubAccountPicker } from "./UserHubAccountPicker"
 import { UserHubLocalization } from "./UserHubLocalization"
 import { UserHubWorkspaces } from "./UserHubWorkspaces"
@@ -23,15 +20,11 @@ type UserHubOverlayProps = {
   username: string
   prime: number
   systemRoles: string[]
-  badges: UserBadge[]
-  badgesLoading: boolean
-  busyBadgeId: string | null
+  activeBadge: Badge | null
   onLocalizationChange: (localization: LocalizationLanguage) => void
   onClose: () => void
   onToggleAccounts: () => void
   onSelectAccount: (account: Account) => void
-  onActivateBadge: (badgeId: string) => void
-  onDeactivateBadge: () => void
   navigate: (route: Route) => void
 }
 
@@ -45,22 +38,16 @@ export function UserHubOverlay({
   username,
   prime,
   systemRoles,
-  badges,
-  badgesLoading,
-  busyBadgeId,
+  activeBadge,
   onLocalizationChange,
   onClose,
   onToggleAccounts,
   onSelectAccount,
-  onActivateBadge,
-  onDeactivateBadge,
   navigate,
 }: UserHubOverlayProps) {
   const { t } = useTranslation()
-  const notificationPacks = useUserNotificationPacks(open)
   const localizationOption =
     localizationOptions.find((option) => option.value === localization) ?? localizationOptions[0]
-  const activeBadge = badges.find((item) => item.active) ?? null
 
   return (
     <AnimatePresence>
@@ -85,12 +72,12 @@ export function UserHubOverlay({
             <header className="user-hub-card">
               <span className="user-hub-card__avatar user-hub-card__avatar--mnemos">
                 <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
-                {activeBadge ? <UserBadgeMark badge={activeBadge.badge} compact /> : null}
+                {activeBadge ? <UserBadgeMark badge={activeBadge} compact /> : null}
               </span>
               <span className="user-hub-card__copy">
                 <small>{t("appShell.userMenu.userEyebrow")}</small>
                 <strong>@{username}</strong>
-                {activeBadge ? <em>{activeBadge.badge.name}</em> : null}
+                {activeBadge ? <em>{activeBadge.name}</em> : null}
               </span>
               <button
                 type="button"
@@ -132,21 +119,21 @@ export function UserHubOverlay({
               navigate={navigate}
             />
 
-            <UserBadgeSelector
-              badges={badges}
-              loading={badgesLoading}
-              busyBadgeId={busyBadgeId}
-              onActivate={onActivateBadge}
-              onDeactivate={onDeactivateBadge}
-            />
-
-            <UserNotificationPackSelector
-              packs={notificationPacks.packs}
-              loading={notificationPacks.loading}
-              busyPackId={notificationPacks.busyPackId}
-              onActivate={(personalizationId) => void notificationPacks.activate(personalizationId)}
-              onDeactivate={() => void notificationPacks.deactivate()}
-            />
+            <button
+              type="button"
+              className="user-hub-personalization-entry"
+              onClick={() => navigate({ id: "user-personalization" })}
+            >
+              <span className="user-hub-personalization-entry__mark">
+                <Glyph name="creator" size={18} />
+              </span>
+              <span>
+                <small>{t("appShell.userMenu.personalizationEyebrow")}</small>
+                <strong>{t("appShell.userMenu.personalization")}</strong>
+                <em>{t("appShell.userMenu.personalizationDescription")}</em>
+              </span>
+              <b>›</b>
+            </button>
 
             <UserHubLocalization localization={localization} onChange={onLocalizationChange} />
 
