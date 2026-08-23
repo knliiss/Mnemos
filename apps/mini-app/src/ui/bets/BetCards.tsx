@@ -104,10 +104,26 @@ export function BetRaceCard({ race, position, locale, t, onClick }: BetRaceCardP
   )
 }
 
-export function EmptyBets({ title, note }: { title: string; note: string }) {
+type EmptyBetsProps = {
+  title: string
+  note: string
+  illustration?: "race"
+}
+
+export function EmptyBets({ title, note, illustration }: EmptyBetsProps) {
   return (
-    <div className="bets-empty">
-      <Glyph name="bet" size={23} />
+    <div className={`bets-empty ${illustration ? `bets-empty--${illustration}` : ""}`.trim()}>
+      {illustration === "race" ? (
+        <img
+          className="bets-empty__illustration"
+          src="/ui-illustrations/mnemos-mascot-race.svg"
+          alt=""
+          aria-hidden="true"
+        />
+      ) : (
+        <Glyph name="bet" size={23} />
+      )}
+
       <strong>{title}</strong>
       <small>{note}</small>
     </div>
