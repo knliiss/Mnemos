@@ -7,6 +7,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react"
+import { useTranslation } from "react-i18next"
 import {
   createAccountInvite,
   getAccountInvites,
@@ -14,7 +15,13 @@ import {
   type AccountInvite,
 } from "@/shared/api/accountInviteApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { notifications } from "@/shared/notifications/notificationCenter"
 import { useMnemosData } from "../../data/MnemosDataProvider"
+import {
+  copyInviteCodeToClipboard,
+  deliverInviteCode,
+  type InviteDeliveryResult,
+} from "./inviteDelivery"
 
 export type InviteExpiry = "NONE" | "1H" | "1D" | "7D"
 
@@ -28,10 +35,12 @@ type AccountInvitesData = {
   loadError: boolean
   creating: boolean
   revokingId: string | null
+  deliveringCode: string | null
   refresh(): Promise<void>
   createInvite(): Promise<void>
   revokeInvite(inviteId: string): Promise<void>
   copyInviteCode(code: string): Promise<void>
+  shareInviteCode(code: string): Promise<void>
 }
 
 const expiryMinutes: Record<InviteExpiry, number | null> = {
@@ -42,6 +51,7 @@ const expiryMinutes: Record<InviteExpiry, number | null> = {
 }
 
 export function useAccountInvites(): AccountInvitesData {
+  const { t } = useTranslation()
   const data = useMnemosData()
   const accountId = data.activeAccount?.id ?? null
   const canManageInvites = data.hasPermission("MANAGE_MEMBERS")
@@ -52,10 +62,12 @@ export function useAccountInvites(): AccountInvitesData {
   const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
+  const [deliveringCode, setDeliveringCode] = useState<string | null>(null)
   const requestRevision = useRef(0)
   const accountIdRef = useRef(accountId)
   const createLocked = useRef(false)
   const revokeLocked = useRef(false)
+  const deliveryLocked = useRef(false)
   const mountedRef = useRef(true)
 
   useLayoutEffect(() => {
@@ -121,6 +133,7 @@ export function useAccountInvites(): AccountInvitesData {
     return () => {
       requestRevision.current += 1
       mountedRef.current = false
+      deliveryLocked.current = false
       window.cancelAnimationFrame(frame)
     }
   }, [refresh])
@@ -183,12 +196,52 @@ export function useAccountInvites(): AccountInvitesData {
     }
   }
 
-  const copyInviteCode = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code)
-    } catch (error) {
-      handleError(error)
+  const runDelivery = async (
+    code: string,
+    action: () => Promise<InviteDeliveryResult>,
+  ): Promise<void> => {
+    if (deliveryLocked.current) {
+      return
     }
+
+    deliveryLocked.current = true
+    setDeliveringCode(code)
+
+    try {
+      const result = await action()
+
+      if (!mountedRef.current) {
+        return
+      }
+
+      if (result === "SHARED") {
+        notifications.success(t("common.shared"))
+      } else if (result === "COPIED") {
+        notifications.success(t("common.copied"))
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        handleError(error)
+      }
+    } finally {
+      deliveryLocked.current = false
+
+      if (mountedRef.current) {
+        setDeliveringCode(null)
+      }
+    }
+  }
+
+  const copyInviteCode = async (code: string) => {
+    await runDelivery(code, async () => {
+      await copyInviteCodeToClipboard(code)
+
+      return "COPIED"
+    })
+  }
+
+  const shareInviteCode = async (code: string) => {
+    await runDelivery(code, () => deliverInviteCode(code))
   }
 
   const current = loadedAccountId === accountId
@@ -203,9 +256,11 @@ export function useAccountInvites(): AccountInvitesData {
     loadError,
     creating,
     revokingId,
+    deliveringCode,
     refresh,
     createInvite,
     revokeInvite,
     copyInviteCode,
+    shareInviteCode,
   }
 }

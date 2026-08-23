@@ -23,6 +23,9 @@ export const uk = {
     retry: "Повторити",
     close: "Закрити",
     copy: "Скопіювати",
+    share: "Поділитися",
+    copied: "Скопійовано",
+    shared: "Надіслано",
   },
   home: {
     online: "Онлайн",

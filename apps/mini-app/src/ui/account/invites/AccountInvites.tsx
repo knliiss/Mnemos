@@ -19,10 +19,12 @@ export function AccountInvites({ back }: { back: () => void }) {
     loadError,
     creating,
     revokingId,
+    deliveringCode,
     refresh,
     createInvite,
     revokeInvite,
     copyInviteCode,
+    shareInviteCode,
   } = useAccountInvites()
   const locale = localeForLanguage(i18n.resolvedLanguage)
 
@@ -99,41 +101,61 @@ export function AccountInvites({ back }: { back: () => void }) {
 
       <Section title={t("accountInvites.title")}>
         <div className="invite-list">
-          {invites.map((invite) => (
-            <article
-              key={invite.id}
-              className={`invite-item invite-item--${invite.status.toLowerCase()}`}
-            >
-              <span className="invite-item__code">
-                <strong>{invite.code}</strong>
-                <small>{inviteExpiryLabel(invite)}</small>
-              </span>
+          {invites.map((invite) => {
+            const delivering = deliveringCode === invite.code
+            const deliveryBlocked = deliveringCode !== null
 
-              <span className="invite-item__status">{inviteStatusLabel(invite.status)}</span>
-
-              {invite.status === "ACTIVE" ? (
-                <span className="invite-item__actions">
-                  <button
-                    type="button"
-                    aria-label={t("accountInvites.copy")}
-                    onClick={() => void copyInviteCode(invite.code)}
-                  >
-                    <Glyph name="external" size={14} />
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label={t("accountInvites.revoke")}
-                    className="is-danger"
-                    disabled={revokingId !== null}
-                    onClick={() => void revokeInvite(invite.id)}
-                  >
-                    {revokingId === invite.id ? <span>…</span> : <Glyph name="trash" size={14} />}
-                  </button>
+            return (
+              <article
+                key={invite.id}
+                className={`invite-item invite-item--${invite.status.toLowerCase()}`}
+              >
+                <span className="invite-item__code">
+                  <strong>{invite.code}</strong>
+                  <small>{inviteExpiryLabel(invite)}</small>
                 </span>
-              ) : null}
-            </article>
-          ))}
+
+                <span className="invite-item__status">{inviteStatusLabel(invite.status)}</span>
+
+                {invite.status === "ACTIVE" ? (
+                  <span className="invite-item__actions">
+                    <button
+                      type="button"
+                      aria-label={t("common.copy")}
+                      disabled={deliveryBlocked}
+                      onClick={() => void copyInviteCode(invite.code)}
+                    >
+                      {delivering ? (
+                        <span className="invite-action-progress">…</span>
+                      ) : (
+                        <Glyph name="external" size={14} />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="is-share"
+                      aria-label={t("common.share")}
+                      disabled={deliveryBlocked}
+                      onClick={() => void shareInviteCode(invite.code)}
+                    >
+                      <Glyph name="send" size={14} />
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label={t("accountInvites.revoke")}
+                      className="is-danger"
+                      disabled={revokingId !== null}
+                      onClick={() => void revokeInvite(invite.id)}
+                    >
+                      {revokingId === invite.id ? <span>…</span> : <Glyph name="trash" size={14} />}
+                    </button>
+                  </span>
+                ) : null}
+              </article>
+            )
+          })}
 
           {!loading && !canManageInvites ? (
             <FeatureEmpty

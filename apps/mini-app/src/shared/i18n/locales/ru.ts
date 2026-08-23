@@ -23,6 +23,9 @@ export const ru = {
     retry: "Повторить",
     close: "Закрыть",
     copy: "Скопировать",
+    share: "Поделиться",
+    copied: "Скопировано",
+    shared: "Отправлено",
   },
   home: {
     online: "Онлайн",

@@ -23,6 +23,9 @@ export const en = {
     retry: "Try again",
     close: "Close",
     copy: "Copy",
+    share: "Share",
+    copied: "Copied",
+    shared: "Shared",
   },
   home: {
     online: "Online",
