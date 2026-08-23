@@ -55,9 +55,12 @@
   background:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    radial-gradient(circle at 50% 45%, rgba(203, 255, 45, 0.045), transparent 40%),
-    #090b08;
-  background-size: 24px 24px, 24px 24px, auto, auto;
+    radial-gradient(circle at 50% 45%, rgba(203, 255, 45, 0.045), transparent 40%), #090b08;
+  background-size:
+    24px 24px,
+    24px 24px,
+    auto,
+    auto;
   touch-action: none;
 }
 
@@ -280,8 +283,7 @@
   border-radius: 8px;
   background:
     linear-gradient(45deg, rgba(255, 255, 255, 0.025) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 25%, transparent 25%),
-    rgba(3, 4, 3, 0.42);
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 25%, transparent 25%), rgba(3, 4, 3, 0.42);
   background-size: 10px 10px;
 }
 
