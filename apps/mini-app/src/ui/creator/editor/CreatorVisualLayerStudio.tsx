@@ -367,7 +367,9 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
                     value={selectedLayer.rotationDegrees}
                     disabled={!editable}
                     suffix="°"
-                    onChange={(rotationDegrees) => updateLayer(selectedLayer.id, { rotationDegrees })}
+                    onChange={(rotationDegrees) =>
+                      updateLayer(selectedLayer.id, { rotationDegrees })
+                    }
                   />
 
                   <label className="creator-layer-select">
