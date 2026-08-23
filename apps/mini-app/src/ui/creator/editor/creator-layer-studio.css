@@ -122,6 +122,7 @@
   transform-origin: center;
   cursor: grab;
   touch-action: none;
+  will-change: transform, opacity;
 }
 
 .creator-layer-canvas__layer:active {
@@ -141,6 +142,22 @@
   height: auto;
   user-select: none;
   pointer-events: none;
+}
+
+.creator-layer-canvas__layer.is-float {
+  animation: creator-layer-float 4.8s ease-in-out infinite alternate;
+}
+
+.creator-layer-canvas__layer.is-pulse {
+  animation: creator-layer-pulse 2.8s ease-in-out infinite;
+}
+
+.creator-layer-canvas__layer.is-spin {
+  animation: creator-layer-spin 12s linear infinite;
+}
+
+.creator-layer-canvas__layer.is-drift {
+  animation: creator-layer-drift 6.5s ease-in-out infinite alternate;
 }
 
 .creator-layer-canvas__empty {
@@ -306,6 +323,53 @@
   padding: 9px 2px;
   color: #747b70;
   font-size: 9px;
+}
+
+@keyframes creator-layer-float {
+  from {
+    margin-top: -2%;
+  }
+
+  to {
+    margin-top: 2%;
+  }
+}
+
+@keyframes creator-layer-pulse {
+  0%,
+  100% {
+    filter: brightness(0.92);
+  }
+
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes creator-layer-spin {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes creator-layer-drift {
+  from {
+    margin-left: -3%;
+  }
+
+  to {
+    margin-left: 3%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .creator-layer-canvas__layer {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 720px) {
