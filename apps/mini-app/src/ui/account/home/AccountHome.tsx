@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { Badge } from "@/shared/api/badgeApi"
 import { useTranslation } from "react-i18next"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Route } from "../../model"
@@ -15,11 +16,18 @@ import { AccountOverview } from "./AccountOverview"
 type Props = {
   navigate: (route: Route) => void
   back: () => void
+  activeUserBadge: Badge | null
   rootUserAccess?: ReactNode
   initialMemberId?: string | null
 }
 
-export function AccountHome({ navigate, back, rootUserAccess, initialMemberId }: Props) {
+export function AccountHome({
+  navigate,
+  back,
+  activeUserBadge,
+  rootUserAccess,
+  initialMemberId,
+}: Props) {
   const { i18n } = useTranslation()
   const data = useMnemosData()
   const activeAccount = data.activeAccount
@@ -59,6 +67,8 @@ export function AccountHome({ navigate, back, rootUserAccess, initialMemberId }:
       <AccountMembersPanel
         members={data.members}
         roles={data.roles}
+        currentMemberId={activeAccount.currentMemberId}
+        activeUserBadge={activeUserBadge}
         maxMembers={activeAccount.maxMembers}
         locale={locale}
         navigate={navigate}
