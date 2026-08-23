@@ -15,8 +15,7 @@
   border-radius: 10px;
   color: #b6bcb1;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012)),
-    #0f110d;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012)), #0f110d;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
   font-size: 9px;
   text-align: left;
@@ -29,8 +28,7 @@
 .subscription-sort__trigger:hover {
   border-color: rgba(203, 255, 45, 0.16);
   background:
-    linear-gradient(180deg, rgba(203, 255, 45, 0.035), rgba(255, 255, 255, 0.012)),
-    #0f110d;
+    linear-gradient(180deg, rgba(203, 255, 45, 0.035), rgba(255, 255, 255, 0.012)), #0f110d;
 }
 
 .subscription-sort__trigger:focus-visible {
@@ -44,8 +42,7 @@
 .subscription-sort.is-open .subscription-sort__trigger {
   border-color: rgba(203, 255, 45, 0.22);
   background:
-    linear-gradient(180deg, rgba(203, 255, 45, 0.045), rgba(255, 255, 255, 0.014)),
-    #10120e;
+    linear-gradient(180deg, rgba(203, 255, 45, 0.045), rgba(255, 255, 255, 0.014)), #10120e;
 }
 
 .subscription-sort__chevron {
