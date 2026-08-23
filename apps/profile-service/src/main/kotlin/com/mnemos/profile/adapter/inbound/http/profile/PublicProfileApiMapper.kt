@@ -62,6 +62,7 @@ object PublicProfileApiMapper {
             surfaceSecondary = surfaceSecondary,
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toResponse() },
         )
 
     private fun ProfileAppearance.AvatarFrame.toResponse(): ProfileAppearanceResponse.AvatarFrame =
@@ -74,6 +75,7 @@ object PublicProfileApiMapper {
             secondaryBorderColor = secondaryBorderColor,
             gapPx = gapPx,
             style = style,
+            layers = layers.map { layer -> layer.toResponse() },
         )
 
     private fun ProfileAppearance.ProfileEffect.toResponse(): ProfileAppearanceResponse.ProfileEffect =
@@ -86,6 +88,22 @@ object PublicProfileApiMapper {
             speed = speed,
             density = density,
             scale = scale,
+            layers = layers.map { layer -> layer.toResponse() },
+        )
+
+    private fun ProfileAppearance.VisualLayer.toResponse(): ProfileAppearanceResponse.VisualLayer =
+        ProfileAppearanceResponse.VisualLayer(
+            id = id,
+            assetId = assetId,
+            assetUrl = "/api/v1/personalizations/assets/$assetId/content",
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
         )
 
     private fun ProfileAppearance.GradientStop.toResponse(): ProfileAppearanceResponse.GradientStop =
