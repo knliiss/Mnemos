@@ -115,6 +115,7 @@ export function resolveErrorPresentation(
   const translatedCodeMessage = translate(`${codePrefix}.message`, {
     defaultValue: "",
   }).trim()
+  const message = concreteMessage(payload) ?? translatedCodeMessage
 
   return {
     tone,
@@ -125,6 +126,6 @@ export function resolveErrorPresentation(
     title: translate(`${codePrefix}.title`, {
       defaultValue: fallback.title,
     }),
-    message: concreteMessage(payload) ?? translatedCodeMessage || fallback.message,
+    message: message || fallback.message,
   }
 }
