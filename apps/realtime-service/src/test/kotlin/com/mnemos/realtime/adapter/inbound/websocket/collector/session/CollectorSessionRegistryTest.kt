@@ -2,6 +2,7 @@ package com.mnemos.realtime.adapter.inbound.websocket.collector.session
 
 import com.mnemos.realtime.application.collector.model.CollectorObservationUpdateResult
 import com.mnemos.realtime.application.collector.model.CollectorPresenceSnapshot
+import com.mnemos.realtime.application.collector.model.CollectorUpdateSlotDecision
 import com.mnemos.realtime.application.collector.port.out.CollectorSessionLeaseStore
 import com.mnemos.realtime.configuration.collector.CollectorConnectionProperties
 import com.mnemos.realtime.domain.collector.model.CollectorCredentialId
@@ -114,6 +115,53 @@ class CollectorSessionRegistryTest {
         assertEquals(0, registry.presenceSnapshot().activeCollectors)
     }
 
+    @Test
+    fun `the last observing collector is deferred from updating`() {
+        val leaseStore = InMemoryCollectorSessionLeaseStore()
+        val registry = registry(leaseStore)
+        val collectorId =
+            CollectorCredentialId(
+                UUID.fromString("019c1129-ef54-7000-8000-000000000204"),
+            )
+        val session = session("last-observer")
+
+        registry.register(session, collectorId)
+        registry.markObserving(session)
+
+        val decision = registry.requestUpdateSlot(session, "0.2.0")
+
+        assertEquals(
+            CollectorUpdateSlotDecision(
+                granted = false,
+                retryAfterSeconds = 30,
+            ),
+            decision,
+        )
+    }
+
+    @Test
+    fun `a paused collector may acquire an update slot`() {
+        val leaseStore = InMemoryCollectorSessionLeaseStore()
+        val registry = registry(leaseStore)
+        val collectorId =
+            CollectorCredentialId(
+                UUID.fromString("019c1129-ef54-7000-8000-000000000205"),
+            )
+        val session = session("paused-updater")
+
+        registry.register(session, collectorId)
+
+        val decision = registry.requestUpdateSlot(session, "0.2.0")
+
+        assertEquals(
+            CollectorUpdateSlotDecision(
+                granted = true,
+                retryAfterSeconds = null,
+            ),
+            decision,
+        )
+    }
+
     private fun registry(leaseStore: CollectorSessionLeaseStore): CollectorSessionRegistry =
         CollectorSessionRegistry(
             leaseStore = leaseStore,
@@ -192,6 +240,30 @@ class CollectorSessionRegistryTest {
             revision++
 
             return CollectorObservationUpdateResult.CHANGED
+        }
+
+        override fun requestUpdateSlot(
+            collectorId: CollectorCredentialId,
+            sessionToken: UUID,
+            version: String,
+            slotTtl: Duration,
+            retryDelay: Duration,
+        ): CollectorUpdateSlotDecision? {
+            if (owners[collectorId] != sessionToken) {
+                return null
+            }
+
+            if (collectorId in observing && observing.size <= 1) {
+                return CollectorUpdateSlotDecision(
+                    granted = false,
+                    retryAfterSeconds = retryDelay.seconds,
+                )
+            }
+
+            return CollectorUpdateSlotDecision(
+                granted = true,
+                retryAfterSeconds = null,
+            )
         }
 
         override fun release(
