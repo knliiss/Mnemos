@@ -10,6 +10,7 @@ import { FeatureLoading } from "../../system/FeatureLoading"
 import { sortSubscriptions, type SubscriptionSort } from "./subscriptionPresentation"
 import { SubscriptionCreateSheet } from "./SubscriptionCreateSheet"
 import { SubscriptionRule } from "./SubscriptionRule"
+import { SubscriptionSortMenu } from "./SubscriptionSortMenu"
 import { useSubscriptionItemTypes } from "./useSubscriptionItemTypes"
 
 const subscriptionIcons: Record<
@@ -22,8 +23,6 @@ const subscriptionIcons: Record<
   RAID: "raid",
   GLOBAL: "global",
 }
-
-const sortOptions: SubscriptionSort[] = ["NEWEST", "OLDEST", "TYPE", "NAME"]
 
 type SubscriptionFilter = "ALL" | SubscriptionType
 
@@ -135,20 +134,7 @@ export function Subscriptions({ back }: { back: () => void }) {
           ))}
         </div>
 
-        <label className="subscription-sort">
-          <span>{t("events.subscriptions.sortLabel")}</span>
-          <select
-            aria-label={t("events.subscriptions.sortAria")}
-            value={sort}
-            onChange={(event) => setSort(event.target.value as SubscriptionSort)}
-          >
-            {sortOptions.map((option) => (
-              <option key={option} value={option}>
-                {t(`events.subscriptions.sort.${option.toLowerCase()}`)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SubscriptionSortMenu value={sort} onChange={setSort} />
       </div>
 
       <section className="subscription-rules">
