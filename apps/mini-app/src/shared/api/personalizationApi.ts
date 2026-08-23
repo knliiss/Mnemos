@@ -8,6 +8,8 @@ import type {
   PersonalizationStatus,
   PersonalizationTarget,
   PersonalizationType,
+  VisualLayerAnimation,
+  VisualLayerBlendMode,
 } from "@/ui/model"
 
 export type GradientStopResponse = {
@@ -18,6 +20,20 @@ export type GradientStopResponse = {
 export type GlowStyleResponse = {
   color: string
   strength: number
+}
+
+export type VisualLayerResponse = {
+  id: string
+  assetId: string
+  assetUrl: string
+  xPercent: number
+  yPercent: number
+  widthPercent: number
+  opacity: number
+  rotationDegrees: number
+  blendMode: VisualLayerBlendMode
+  animation: VisualLayerAnimation
+  zIndex: number
 }
 
 export type NotificationTemplateResponse = {
@@ -50,6 +66,7 @@ export type ProfileThemeContentResponse = {
   gradientAngleDegrees: number
   textureStrength: number
   glow: GlowStyleResponse | null
+  layers: VisualLayerResponse[]
 }
 
 export type AvatarFrameContentResponse = {
@@ -60,6 +77,7 @@ export type AvatarFrameContentResponse = {
   radiusPx: number
   style: FrameStyle
   glow: GlowStyleResponse | null
+  layers: VisualLayerResponse[]
 }
 
 export type ProfileEffectContentResponse = {
@@ -70,6 +88,7 @@ export type ProfileEffectContentResponse = {
   scale: number
   primaryColor: string
   secondaryColor: string | null
+  layers: VisualLayerResponse[]
 }
 
 export type PersonalizationContentResponse =
