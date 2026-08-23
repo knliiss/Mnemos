@@ -11,7 +11,7 @@ services:
       - "POSTGRES_PASSWORD=${APP_POSTGRES_PASSWORD}"
 
     ports:
-      - "${APP_POSTGRES_HOST_PORT}:5432"
+      - "${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${APP_POSTGRES_HOST_PORT}:5432"
 
     volumes:
       - "app-postgres-data:/var/lib/postgresql/data"
@@ -22,6 +22,55 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+    networks:
+      - mnemos-network
+
+  app-postgres-security-init:
+    image: "postgres:${POSTGRES_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-app-postgres-security-init"
+    restart: "no"
+
+    environment:
+      PGHOST: app-postgres
+      PGPORT: 5432
+      PGDATABASE: ${APP_POSTGRES_DB}
+      PGUSER: ${APP_POSTGRES_USER}
+      PGPASSWORD: ${APP_POSTGRES_PASSWORD}
+
+      ACCOUNT_POSTGRES_USER: ${ACCOUNT_POSTGRES_USER}
+      ACCOUNT_POSTGRES_PASSWORD: ${ACCOUNT_POSTGRES_PASSWORD}
+      WALLET_POSTGRES_USER: ${WALLET_POSTGRES_USER}
+      WALLET_POSTGRES_PASSWORD: ${WALLET_POSTGRES_PASSWORD}
+      EVENT_POSTGRES_USER: ${EVENT_POSTGRES_USER}
+      EVENT_POSTGRES_PASSWORD: ${EVENT_POSTGRES_PASSWORD}
+      NOTIFICATION_POSTGRES_USER: ${NOTIFICATION_POSTGRES_USER}
+      NOTIFICATION_POSTGRES_PASSWORD: ${NOTIFICATION_POSTGRES_PASSWORD}
+      REWARD_POSTGRES_USER: ${REWARD_POSTGRES_USER}
+      REWARD_POSTGRES_PASSWORD: ${REWARD_POSTGRES_PASSWORD}
+      BET_POSTGRES_USER: ${BET_POSTGRES_USER}
+      BET_POSTGRES_PASSWORD: ${BET_POSTGRES_PASSWORD}
+      MODERATION_POSTGRES_USER: ${MODERATION_POSTGRES_USER}
+      MODERATION_POSTGRES_PASSWORD: ${MODERATION_POSTGRES_PASSWORD}
+      REALTIME_POSTGRES_USER: ${REALTIME_POSTGRES_USER}
+      REALTIME_POSTGRES_PASSWORD: ${REALTIME_POSTGRES_PASSWORD}
+      PERSONALIZATION_POSTGRES_USER: ${PERSONALIZATION_POSTGRES_USER}
+      PERSONALIZATION_POSTGRES_PASSWORD: ${PERSONALIZATION_POSTGRES_PASSWORD}
+      SOCIAL_POSTGRES_USER: ${SOCIAL_POSTGRES_USER}
+      SOCIAL_POSTGRES_PASSWORD: ${SOCIAL_POSTGRES_PASSWORD}
+      PROFILE_POSTGRES_USER: ${PROFILE_POSTGRES_USER}
+      PROFILE_POSTGRES_PASSWORD: ${PROFILE_POSTGRES_PASSWORD}
+
+    entrypoint:
+      - /bin/sh
+      - /usr/local/bin/init-service-database-access.sh
+
+    volumes:
+      - "../postgres/init-service-database-access.sh:/usr/local/bin/init-service-database-access.sh:ro"
+
+    depends_on:
+      app-postgres:
+        condition: service_healthy
 
     networks:
       - mnemos-network
@@ -38,7 +87,7 @@ services:
       - "POSTGRES_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}"
 
     ports:
-      - "${KEYCLOAK_POSTGRES_HOST_PORT}:5432"
+      - "${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_POSTGRES_HOST_PORT}:5432"
 
     volumes:
       - "keycloak-postgres-data:/var/lib/postgresql/data"

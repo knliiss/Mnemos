@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 class PersonalizationAssetImageValidatorTest {
@@ -38,6 +39,25 @@ class PersonalizationAssetImageValidatorTest {
         }
     }
 
+    @Test
+    fun `rejects oversized declared dimensions before image decode`() {
+        val bytes = imageBytes(format = "png")
+        ByteBuffer.wrap(bytes).putInt(PNG_WIDTH_OFFSET, 100_000)
+
+        val exception =
+            assertThrows(InvalidPersonalizationAssetException::class.java) {
+                validator.validate(
+                    bytes = bytes,
+                    contentType = PersonalizationAssetImageValidator.PNG_CONTENT_TYPE,
+                )
+            }
+
+        assertEquals(
+            "Personalization asset width must be between 16 and 2048 pixels",
+            exception.message,
+        )
+    }
+
     private fun imageBytes(format: String): ByteArray {
         val image = BufferedImage(32, 24, BufferedImage.TYPE_INT_RGB)
 
@@ -45,5 +65,9 @@ class PersonalizationAssetImageValidatorTest {
             check(ImageIO.write(image, format, output))
             output.toByteArray()
         }
+    }
+
+    companion object {
+        private const val PNG_WIDTH_OFFSET = 16
     }
 }

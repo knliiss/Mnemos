@@ -31,9 +31,9 @@ COMPOSE_SERVICE_NAMES := $(sort $(shell \
 
 INFRA_SERVICE_NAMES := $(filter-out $(APP_SERVICE_NAMES),$(COMPOSE_SERVICE_NAMES))
 
-BUILDABLE_INFRA_SERVICE_NAMES := kafka-init minio-init
+BUILDABLE_INFRA_SERVICE_NAMES := kafka-init kafka-tls-init minio-init
 BUILDABLE_SERVICE_NAMES := $(sort $(APP_SERVICE_NAMES) $(BUILDABLE_INFRA_SERVICE_NAMES))
-ONE_SHOT_SERVICE_NAMES := kafka-init keycloak-config minio-init
+ONE_SHOT_SERVICE_NAMES := app-postgres-security-init kafka-init kafka-tls-init keycloak-config minio-init
 SHELLABLE_SERVICE_NAMES := $(filter-out $(ONE_SHOT_SERVICE_NAMES),$(COMPOSE_SERVICE_NAMES))
 PULLABLE_SERVICE_NAMES := $(filter-out $(BUILDABLE_INFRA_SERVICE_NAMES),$(INFRA_SERVICE_NAMES))
 

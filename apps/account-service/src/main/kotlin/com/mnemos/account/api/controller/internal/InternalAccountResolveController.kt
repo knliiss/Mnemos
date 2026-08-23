@@ -6,6 +6,7 @@ import com.mnemos.account.application.service.account.InternalAccountQueryServic
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,6 +14,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/internal/v1/accounts")
+@PreAuthorize(
+    "authentication.name == 'bet-service' or " +
+        "authentication.name == 'reward-service' or " +
+        "authentication.name == 'wallet-service' or " +
+        "authentication.name == 'social-service' or " +
+        "authentication.name == 'personalization-service'",
+)
 class InternalAccountResolveController(
     private val queryService: InternalAccountQueryService,
 ) {

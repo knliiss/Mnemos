@@ -58,6 +58,14 @@ clients:
           userinfo.token.claim: "true"
           multivalued: "false"
 
+      - name: mnemos-api-audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        config:
+          included.custom.audience: mnemos-api
+          access.token.claim: "true"
+          id.token.claim: "false"
+
   - clientId: "$(env:MNEMOS_ACCOUNT_SERVICE_CLIENT_ID)"
     name: Account Service Admin
     description: Service account used by account-service to manage users

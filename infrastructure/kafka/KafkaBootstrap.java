@@ -35,11 +35,13 @@ public final class KafkaBootstrap {
     private static Properties adminProperties() {
         String bootstrapServer = requiredEnvironment("KAFKA_BOOTSTRAP_SERVER");
         String adminPassword = requiredEnvironment("KAFKA_ADMIN_PASSWORD");
+        String tlsStorePassword = requiredEnvironment("KAFKA_TLS_STORE_PASSWORD");
+        String tlsTruststoreLocation = requiredEnvironment("KAFKA_TLS_TRUSTSTORE_LOCATION");
 
         Properties properties = new Properties();
 
         properties.put("bootstrap.servers", bootstrapServer);
-        properties.put("security.protocol", "SASL_PLAINTEXT");
+        properties.put("security.protocol", "SASL_SSL");
         properties.put("sasl.mechanism", "PLAIN");
         properties.put(
                 "sasl.jaas.config",
@@ -47,6 +49,9 @@ public final class KafkaBootstrap {
                         + "username=\"kafka_admin\" "
                         + "password=\"" + adminPassword + "\";"
         );
+        properties.put("ssl.truststore.location", tlsTruststoreLocation);
+        properties.put("ssl.truststore.password", tlsStorePassword);
+        properties.put("ssl.truststore.type", "PKCS12");
 
         properties.put("client.id", "mnemos-kafka-bootstrap");
         properties.put("request.timeout.ms", "30000");

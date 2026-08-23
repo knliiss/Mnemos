@@ -173,14 +173,10 @@ async function initialize(): Promise<void> {
 
   await ensureAuthServiceAvailable()
 
-  const loginUrl = await candidate.createLoginUrl({
+  await candidate.login({
     redirectUri: window.location.origin,
     scope: OFFLINE_ACCESS_SCOPE,
   })
-  const url = new URL(loginUrl)
-
-  url.searchParams.set("telegram_init_data", telegram.initData)
-  window.location.replace(url)
 
   return new Promise<void>(() => undefined)
 }

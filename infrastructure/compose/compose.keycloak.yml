@@ -51,7 +51,7 @@ services:
       - ../keycloak/themes/mnemos:/opt/keycloak/themes/mnemos:ro
 
     ports:
-      - "${KEYCLOAK_HOST_PORT:-8079}:8080"
+      - "${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}:8080"
 
     depends_on:
       keycloak-postgres:

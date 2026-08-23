@@ -10,8 +10,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8088
       SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=realtime
-      SPRING_DATASOURCE_USERNAME: ${APP_POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${APP_POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: ${REALTIME_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${REALTIME_POSTGRES_PASSWORD}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${APP_DATASOURCE_MAX_POOL_SIZE:-5}
       SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${APP_DATASOURCE_MIN_IDLE:-1}
       MNEMOS_AUTH_ORIGIN: ${MNEMOS_AUTH_ORIGIN}
@@ -21,9 +21,12 @@ services:
       MNEMOS_ACCOUNT_SERVICE_URL: http://account-service:8081
       REALTIME_SERVICE_ACCOUNT_API_KEY: ${REALTIME_SERVICE_ACCOUNT_API_KEY}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
       SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
       SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"realtime_service\" password=\"${KAFKA_REALTIME_SERVICE_PASSWORD}\";"
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/mnemos/kafka/kafka.truststore.p12
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: ${KAFKA_TLS_STORE_PASSWORD}
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_TYPE: PKCS12
       MNEMOS_KAFKA_MANAGE_TOPICS: "false"
       MNEMOS_KAFKA_MESSAGEAUTH_ENABLED: "true"
       MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${REALTIME_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
@@ -31,11 +34,13 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - "kafka-client-tls:/etc/mnemos/kafka:ro"
     depends_on:
       account-service:
         condition: service_started
-      app-postgres:
-        condition: service_healthy
+      app-postgres-security-init:
+        condition: service_completed_successfully
       keycloak:
         condition: service_healthy
       kafka-init:

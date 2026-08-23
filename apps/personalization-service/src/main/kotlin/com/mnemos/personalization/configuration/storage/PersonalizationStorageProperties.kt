@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class PersonalizationStorageProperties(
     val endpoint: String = "http://localhost:9000",
     val accessKey: String = "mnemos",
-    val secretKey: String = "mnemos_local_password",
+    val secretKey: String,
     val bucket: String = "mnemos-personalization",
 ) {
     init {

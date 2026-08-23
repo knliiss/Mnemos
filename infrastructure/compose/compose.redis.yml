@@ -22,7 +22,7 @@ services:
       - "${REDIS_PASSWORD}"
 
     ports:
-      - "${REDIS_HOST_PORT}:6379"
+      - "${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${REDIS_HOST_PORT}:6379"
 
     volumes:
       - "redis-data:/data"

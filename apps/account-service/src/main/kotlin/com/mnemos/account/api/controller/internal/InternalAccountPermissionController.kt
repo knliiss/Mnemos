@@ -8,6 +8,7 @@ import com.mnemos.account.application.service.permission.AccountPermissionQueryS
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.UserId
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -18,6 +19,13 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/internal/v1/accounts/{accountId}/permissions")
+@PreAuthorize(
+    "authentication.name == 'bet-service' or " +
+        "authentication.name == 'reward-service' or " +
+        "authentication.name == 'wallet-service' or " +
+        "authentication.name == 'social-service' or " +
+        "authentication.name == 'personalization-service'",
+)
 class InternalAccountPermissionController(
     private val permissionQueryService: AccountPermissionQueryService,
 ) {

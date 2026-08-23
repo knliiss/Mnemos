@@ -4,6 +4,7 @@ import com.mnemos.wallet.adapter.inbound.http.WalletApiMapper.toResponse
 import com.mnemos.wallet.adapter.inbound.http.balance.BalanceResponse
 import com.mnemos.wallet.application.balance.usecase.get.GetWalletBalancesService
 import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,6 +13,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/internal/v1/wallets")
+@PreAuthorize("authentication.name == 'moderation-service'")
 class InternalWalletBalanceController(
     private val getWalletBalancesService: GetWalletBalancesService,
 ) {
