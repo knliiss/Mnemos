@@ -73,8 +73,9 @@ describe("useUserNotificationPacks", () => {
       items: [],
       page: 0,
       size: 100,
-      totalElements: 0,
+      totalItems: 0,
       totalPages: 0,
+      hasNextPage: false,
     })
 
     const { rerender } = renderHook(({ enabled }) => useUserNotificationPacks(enabled), {
@@ -112,8 +113,9 @@ describe("useUserNotificationPacks", () => {
       ],
       page: 0,
       size: 100,
-      totalElements: 2,
+      totalItems: 2,
       totalPages: 1,
+      hasNextPage: false,
     })
     vi.mocked(getPersonalization)
       .mockResolvedValueOnce(publicPack)
