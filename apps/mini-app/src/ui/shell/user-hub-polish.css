@@ -43,6 +43,70 @@
   font-variant-numeric: tabular-nums;
 }
 
+.user-hub-personalization-entry {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 64px;
+  margin-top: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(225, 233, 207, 0.085);
+  border-radius: 15px;
+  color: #dfe4da;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(206, 145, 210, 0.055), transparent 38%),
+    rgba(255, 255, 255, 0.014);
+  text-align: left;
+}
+
+.user-hub-personalization-entry__mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: #d1a2d4;
+  background: rgba(206, 145, 210, 0.07);
+}
+
+.user-hub-personalization-entry > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.user-hub-personalization-entry small {
+  color: #7e8579;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.user-hub-personalization-entry strong {
+  color: #dfe4da;
+  font-size: 11px;
+}
+
+.user-hub-personalization-entry em {
+  overflow: hidden;
+  color: #777e73;
+  font-size: 8.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-personalization-entry > b {
+  justify-self: end;
+  color: #9da694;
+  font-size: 20px;
+  font-weight: 400;
+}
+
 .user-hub-localization {
   grid-template-columns: 1fr;
   gap: 8px;
