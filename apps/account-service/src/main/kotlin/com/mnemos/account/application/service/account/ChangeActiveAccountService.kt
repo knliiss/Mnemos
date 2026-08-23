@@ -21,6 +21,15 @@ class ChangeActiveAccountService(
     @Transactional
     fun changeActiveAccount(accountId: AccountId) {
         val user = currentUserProvider.get()
+
+        accountMemberRepository.findByAccountIdAndUserId(
+            accountId = accountId,
+            userId = user.id,
+        ) ?: throw AccountMemberNotFoundException(
+            accountId = accountId,
+            userId = user.id,
+        )
+
         val account =
             accountRepository.findByIdForUpdate(accountId)
                 ?: throw AccountNotFoundException(accountId)
@@ -31,14 +40,6 @@ class ChangeActiveAccountService(
                 status = account.status,
             )
         }
-
-        accountMemberRepository.findByAccountIdAndUserId(
-            accountId = accountId,
-            userId = user.id,
-        ) ?: throw AccountMemberNotFoundException(
-            accountId = accountId,
-            userId = user.id,
-        )
 
         user.changeActiveAccount(accountId)
 

@@ -25,11 +25,17 @@ import java.util.UUID
 
 class ChangeActiveAccountServiceTest {
     @Test
-    fun `changing active account rejects deactivated account before membership or user mutation`() {
+    fun `changing active account rejects deactivated account after membership validation`() {
         val accountId = AccountId.generate()
         val ownerMemberId = AccountMemberId.generate()
         val account = createAccount(accountId, ownerMemberId)
         val user = createUser()
+        val member =
+            AccountMember.create(
+                id = ownerMemberId,
+                accountId = accountId,
+                userId = user.id,
+            )
         val userRepository = mock<UserRepository>()
         val accountRepository = mock<AccountRepository>()
         val accountMemberRepository = mock<AccountMemberRepository>()
@@ -38,6 +44,12 @@ class ChangeActiveAccountServiceTest {
         account.deactivate()
 
         whenever(currentUserProvider.get()).thenReturn(user)
+        whenever(
+            accountMemberRepository.findByAccountIdAndUserId(
+                accountId = accountId,
+                userId = user.id,
+            ),
+        ).thenReturn(member)
         whenever(accountRepository.findByIdForUpdate(accountId)).thenReturn(account)
 
         val service =
@@ -52,8 +64,12 @@ class ChangeActiveAccountServiceTest {
             service.changeActiveAccount(accountId)
         }
 
+        verify(accountMemberRepository).findByAccountIdAndUserId(
+            accountId = accountId,
+            userId = user.id,
+        )
         verify(accountRepository).findByIdForUpdate(accountId)
-        verifyNoInteractions(accountMemberRepository, userRepository)
+        verifyNoInteractions(userRepository)
     }
 
     @Test
@@ -74,13 +90,13 @@ class ChangeActiveAccountServiceTest {
         val currentUserProvider = mock<CurrentUserProvider>()
 
         whenever(currentUserProvider.get()).thenReturn(user)
-        whenever(accountRepository.findByIdForUpdate(accountId)).thenReturn(account)
         whenever(
             accountMemberRepository.findByAccountIdAndUserId(
                 accountId = accountId,
                 userId = user.id,
             ),
         ).thenReturn(member)
+        whenever(accountRepository.findByIdForUpdate(accountId)).thenReturn(account)
 
         val service =
             ChangeActiveAccountService(
@@ -92,6 +108,10 @@ class ChangeActiveAccountServiceTest {
 
         service.changeActiveAccount(accountId)
 
+        verify(accountMemberRepository).findByAccountIdAndUserId(
+            accountId = accountId,
+            userId = user.id,
+        )
         verify(accountRepository).findByIdForUpdate(accountId)
         verify(userRepository).update(user)
     }
