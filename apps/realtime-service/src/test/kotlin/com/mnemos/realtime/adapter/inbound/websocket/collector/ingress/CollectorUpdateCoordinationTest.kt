@@ -93,7 +93,7 @@ class CollectorUpdateCoordinationTest {
 
         val updateSlot = response.firstValue as CollectorUpdateSlotMessage
         assertEquals(false, updateSlot.granted)
-        assertEquals(30, updateSlot.retryAfterSeconds)
+        assertEquals(30L, updateSlot.retryAfterSeconds)
     }
 
     private companion object {
