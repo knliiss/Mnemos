@@ -1,0 +1,103 @@
+.user-personalization-settings {
+  display: grid;
+  gap: 14px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.user-personalization-settings__intro {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(225, 233, 207, 0.1);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(206, 145, 210, 0.08), transparent 38%),
+    rgba(255, 255, 255, 0.014);
+}
+
+.user-personalization-settings__mark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
+  color: #d8a6da;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.user-personalization-settings__intro > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.user-personalization-settings__intro small,
+.user-personalization-settings__summary small {
+  color: #7d8478;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.user-personalization-settings__intro strong {
+  color: #e5e9e0;
+  font-size: 15px;
+}
+
+.user-personalization-settings__intro p {
+  max-width: 640px;
+  margin: 0;
+  color: #858c80;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.user-personalization-settings__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.user-personalization-settings__summary article {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(225, 233, 207, 0.075);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.user-personalization-settings__summary strong {
+  overflow: hidden;
+  color: #dce1d7;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-personalization-settings .user-hub-badges,
+.user-personalization-settings .user-hub-notification-packs {
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.user-personalization-settings .user-hub-badges__grid,
+.user-personalization-settings .user-hub-notification-packs__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 680px) {
+  .user-personalization-settings__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .user-personalization-settings .user-hub-badges__grid,
+  .user-personalization-settings .user-hub-notification-packs__grid {
+    grid-template-columns: 1fr;
+  }
+}
