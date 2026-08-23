@@ -220,6 +220,31 @@ describe("useBetsData", () => {
     expect(result.current.error).toBe(false)
   })
 
+  it("keeps a joined active race visible when the current race list omits it", async () => {
+    const joinedPosition = position("account-a", "race-joined", "position-joined")
+    const joinedRace = race("account-a", "race-joined", "ACTIVE")
+
+    joinedRace.participants = [joinedPosition]
+
+    vi.mocked(listEventBetRounds).mockResolvedValue([])
+    vi.mocked(listItemRaces).mockResolvedValue([])
+    vi.mocked(listMyItemRaceHistory).mockResolvedValue([joinedPosition])
+    vi.mocked(getItemRace).mockResolvedValue(joinedRace)
+
+    const refreshAccount = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useBetsData("account-a", refreshAccount))
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(result.current.races.map(({ id }) => id)).toEqual(["race-joined"])
+    expect(result.current.positions.map(({ id }) => id)).toEqual(["position-joined"])
+    expect(result.current.raceHistory.map(({ position: entry }) => entry.id)).toEqual([
+      "position-joined",
+    ])
+  })
+
   it("hydrates historical parents only when they are missing from current data", async () => {
     const currentBet = eventBet("round-current", "bet-current")
     const historicalBet = eventBet("round-history", "bet-history")
