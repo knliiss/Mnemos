@@ -97,9 +97,14 @@ function currentRaces(
   for (const position of positions) {
     const race = racesById.get(position.raceId)
 
-    if (race && currentRaceStatuses.has(race.status)) {
-      byId.set(race.id, race)
+    if (!race || !currentRaceStatuses.has(race.status)) {
+      continue
     }
+
+    byId.set(race.id, {
+      ...race,
+      participants: [position],
+    })
   }
 
   return [...byId.values()]
