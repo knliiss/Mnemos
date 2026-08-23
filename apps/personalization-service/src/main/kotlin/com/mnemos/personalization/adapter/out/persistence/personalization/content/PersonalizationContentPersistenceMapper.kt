@@ -1,5 +1,6 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization.content
 
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.EffectType
 import com.mnemos.personalization.domain.personalization.model.FrameStyle
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
@@ -9,6 +10,10 @@ import com.mnemos.personalization.domain.personalization.model.NotificationTempl
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.VisualLayer
+import com.mnemos.personalization.domain.personalization.model.VisualLayerAnimation
+import com.mnemos.personalization.domain.personalization.model.VisualLayerBlendMode
+import java.util.UUID
 
 object PersonalizationContentPersistenceMapper {
     fun PersonalizationContent.toDocument(): Map<String, Any?> =
@@ -32,6 +37,7 @@ object PersonalizationContentPersistenceMapper {
                     "gradientAngleDegrees" to gradientAngleDegrees,
                     "textureStrength" to textureStrength,
                     "glow" to glow?.toDocument(),
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.AvatarFrame ->
@@ -43,6 +49,7 @@ object PersonalizationContentPersistenceMapper {
                     "radiusPx" to radiusPx,
                     "style" to style.name,
                     "glow" to glow?.toDocument(),
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.ProfileEffect ->
@@ -54,6 +61,7 @@ object PersonalizationContentPersistenceMapper {
                     "speed" to speed,
                     "density" to density,
                     "scale" to scale,
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.NotificationPack ->
@@ -100,6 +108,7 @@ object PersonalizationContentPersistenceMapper {
             gradientAngleDegrees = numberOrNull("gradientAngleDegrees")?.toInt() ?: 145,
             textureStrength = numberOrNull("textureStrength")?.toInt() ?: 0,
             glow = documentOrNull("glow")?.toGlow(),
+            layers = visualLayers(),
         )
     }
 
@@ -114,6 +123,7 @@ object PersonalizationContentPersistenceMapper {
             radiusPx = requireNumber("radiusPx").toInt(),
             style = stringOrNull("style")?.let(FrameStyle::valueOf) ?: FrameStyle.SOLID,
             glow = documentOrNull("glow")?.toGlow(),
+            layers = visualLayers(),
         )
     }
 
@@ -126,6 +136,7 @@ object PersonalizationContentPersistenceMapper {
             speed = numberOrNull("speed")?.toInt() ?: 50,
             density = numberOrNull("density")?.toInt() ?: 50,
             scale = numberOrNull("scale")?.toInt() ?: 50,
+            layers = visualLayers(),
         )
 
     private fun Map<String, Any?>.toNotificationPack(): PersonalizationContent.NotificationPack {
@@ -150,6 +161,39 @@ object PersonalizationContentPersistenceMapper {
                     }.toMap(),
         )
     }
+
+    private fun Map<String, Any?>.visualLayers(): List<VisualLayer> =
+        optionalList("layers").map { value ->
+            requireDocument(value).toVisualLayer()
+        }
+
+    private fun VisualLayer.toDocument(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "assetId" to assetId.id.toString(),
+            "xPercent" to xPercent,
+            "yPercent" to yPercent,
+            "widthPercent" to widthPercent,
+            "opacity" to opacity,
+            "rotationDegrees" to rotationDegrees,
+            "blendMode" to blendMode.name,
+            "animation" to animation.name,
+            "zIndex" to zIndex,
+        )
+
+    private fun Map<String, Any?>.toVisualLayer(): VisualLayer =
+        VisualLayer(
+            id = requireString("id"),
+            assetId = PersonalizationAssetId(UUID.fromString(requireString("assetId"))),
+            xPercent = requireNumber("xPercent").toInt(),
+            yPercent = requireNumber("yPercent").toInt(),
+            widthPercent = requireNumber("widthPercent").toInt(),
+            opacity = requireNumber("opacity").toInt(),
+            rotationDegrees = requireNumber("rotationDegrees").toInt(),
+            blendMode = VisualLayerBlendMode.valueOf(requireString("blendMode")),
+            animation = VisualLayerAnimation.valueOf(requireString("animation")),
+            zIndex = requireNumber("zIndex").toInt(),
+        )
 
     private fun GradientStop.toDocument(): Map<String, Any?> =
         mapOf(
@@ -212,6 +256,13 @@ object PersonalizationContentPersistenceMapper {
     private fun Map<String, Any?>.requireList(key: String): List<*> =
         requireValue(key) as? List<*>
             ?: throw IllegalArgumentException("Personalization content field $key must be a list")
+
+    private fun Map<String, Any?>.optionalList(key: String): List<*> =
+        when (val value = this[key]) {
+            null -> emptyList<Any?>()
+            is List<*> -> value
+            else -> throw IllegalArgumentException("Personalization content field $key must be a list")
+        }
 
     private fun Map<String, Any?>.documentOrNull(key: String): Map<String, Any?>? = this[key]?.let(::requireDocument)
 
