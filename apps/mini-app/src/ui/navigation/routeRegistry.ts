@@ -25,6 +25,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
 
   search: { area: "people", root: true },
   "public-profile": { area: "people" },
+  "user-personalization": { area: "people" },
   "user-wallet": { area: "people" },
 
   "personalization-store": { area: "personalization", root: true },
