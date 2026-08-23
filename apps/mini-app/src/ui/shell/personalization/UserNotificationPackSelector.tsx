@@ -25,15 +25,13 @@ export function UserNotificationPackSelector({
     return (
       <section className="user-hub-notification-packs" aria-busy="true">
         <header>
-          <small>{t("personalization.types.NOTIFICATION_PACK.title")}</small>
-          <strong>{t("common.loading")}</strong>
+          <span>
+            <small>{t("personalization.types.NOTIFICATION_PACK.title")}</small>
+            <strong>{t("common.loading")}</strong>
+          </span>
         </header>
       </section>
     )
-  }
-
-  if (!packs.length) {
-    return null
   }
 
   return (
@@ -56,39 +54,43 @@ export function UserNotificationPackSelector({
         ) : null}
       </header>
 
-      <div className="user-hub-notification-packs__grid">
-        {packs.map((pack) => {
-          const active = pack.active
-          const busy = busyPackId === pack.id
-          const statusLabel = busy
-            ? t("personalization.detail.saving")
-            : active
-              ? t("personalization.owned.active")
-              : t("personalization.detail.enable")
+      {packs.length ? (
+        <div className="user-hub-notification-packs__grid">
+          {packs.map((pack) => {
+            const active = pack.active
+            const busy = busyPackId === pack.id
+            const statusLabel = busy
+              ? t("personalization.detail.saving")
+              : active
+                ? t("personalization.owned.active")
+                : t("personalization.detail.enable")
 
-          return (
-            <button
-              type="button"
-              key={pack.id}
-              className={`user-hub-notification-pack-option ${active ? "is-active" : ""}`}
-              disabled={busyPackId !== null}
-              onClick={() => {
-                if (!active) {
-                  onActivate(pack.id)
-                }
-              }}
-            >
-              <span className="user-hub-notification-pack-option__mark">
-                <Glyph name="bell" size={16} />
-              </span>
-              <span>
-                <strong>{pack.name}</strong>
-                <small>{statusLabel}</small>
-              </span>
-            </button>
-          )
-        })}
-      </div>
+            return (
+              <button
+                type="button"
+                key={pack.id}
+                className={`user-hub-notification-pack-option ${active ? "is-active" : ""}`}
+                disabled={busyPackId !== null}
+                onClick={() => {
+                  if (!active) {
+                    onActivate(pack.id)
+                  }
+                }}
+              >
+                <span className="user-hub-notification-pack-option__mark">
+                  <Glyph name="bell" size={16} />
+                </span>
+                <span>
+                  <strong>{pack.name}</strong>
+                  <small>{statusLabel}</small>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="user-hub-personalization-empty">{t("personalization.owned.empty")}</p>
+      )}
     </section>
   )
 }
