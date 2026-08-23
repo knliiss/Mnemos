@@ -1,4 +1,8 @@
-import { inferErrorTone, normalizeErrorCode, type ErrorTone } from "@/shared/errors/errorClassification"
+import {
+  inferErrorTone,
+  normalizeErrorCode,
+  type ErrorTone,
+} from "@/shared/errors/errorClassification"
 import type { ErrorEventPayload } from "@/shared/errors/errorEventBus"
 import { i18n } from "@/shared/i18n"
 import type { ErrorMascotVariant } from "./ErrorMascot"
@@ -45,7 +49,10 @@ const translationKeys = {
     title: "errorNotifications.tones.internal.title",
     message: "errorNotifications.tones.internal.message",
   },
-} as const satisfies Record<NoticeTone, Record<"eyebrow" | "title" | "message", string>>
+} as const satisfies Record<
+  NoticeTone,
+  Record<"eyebrow" | "title" | "message", string>
+>
 
 export function resolveErrorPresentation(
   payload: BackendErrorPayload,

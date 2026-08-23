@@ -9,7 +9,13 @@ describe("RangeControl", () => {
     const onChange = vi.fn()
 
     render(
-      <RangeControl value={25} min={0} max={100} ariaLabel="Intensity" onChange={onChange} />,
+      <RangeControl
+        value={25}
+        min={0}
+        max={100}
+        ariaLabel="Intensity"
+        onChange={onChange}
+      />,
     )
 
     const input = screen.getByRole("slider", { name: "Intensity" }) as HTMLInputElement

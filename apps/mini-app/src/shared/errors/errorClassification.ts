@@ -104,7 +104,13 @@ export function inferErrorTone(payload: ErrorEventPayload): ErrorTone {
     return "waiting"
   }
 
-  if (status === 400 || status === 405 || status === 406 || status === 415 || status === 422) {
+  if (
+    status === 400 ||
+    status === 405 ||
+    status === 406 ||
+    status === 415 ||
+    status === 422
+  ) {
     return "validation"
   }
 

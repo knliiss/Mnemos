@@ -95,16 +95,8 @@ export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
   const canPlaceBets = data.hasPermission("PLACE_BETS")
-  const {
-    rounds,
-    races,
-    positions,
-    eventHistory,
-    raceHistory,
-    loading,
-    error,
-    refresh,
-  } = useBetsData(activeAccount.id, data.refreshAccount)
+  const { rounds, races, positions, eventHistory, raceHistory, loading, error, refresh } =
+    useBetsData(activeAccount.id, data.refreshAccount)
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
   const [selectedRace, setSelectedRace] = useState<ScopedSelection | null>(null)
