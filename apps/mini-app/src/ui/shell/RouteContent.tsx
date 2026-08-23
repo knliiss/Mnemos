@@ -14,12 +14,14 @@ import "../staff/staff.css"
 import "../staff/staff-polish.css"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountAccessLanding } from "./AccountAccessLanding"
+import type { UserBadgesController } from "./badges/useUserBadges"
 import { canRenderWithoutActiveAccount } from "./navigation"
 
 type RouteContentProps = {
   current: Route
   activeAccount: Account | null
   activeUserBadge: Badge | null
+  userBadges: UserBadgesController
   rootUserAccess?: ReactNode
   navigate(route: Route): void
   back(): void
@@ -30,6 +32,7 @@ export function RouteContent({
   current,
   activeAccount,
   activeUserBadge,
+  userBadges,
   rootUserAccess,
   navigate,
   back,
@@ -80,6 +83,7 @@ export function RouteContent({
         routeId={current.id}
         params={current.params}
         activeAccount={activeAccount}
+        userBadges={userBadges}
         navigate={navigate}
         back={back}
       />
