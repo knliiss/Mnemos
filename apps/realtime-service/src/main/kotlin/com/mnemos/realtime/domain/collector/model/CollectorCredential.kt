@@ -1,10 +1,12 @@
 package com.mnemos.realtime.domain.collector.model
 
 import java.time.Instant
+import java.util.UUID
 
 class CollectorCredential private constructor(
     val id: CollectorCredentialId,
     val name: String,
+    val ownerUserId: UUID?,
     secretHash: String,
     enabled: Boolean,
     val createdAt: Instant,
@@ -61,6 +63,7 @@ class CollectorCredential private constructor(
             name: String,
             secretHash: String,
             now: Instant,
+            ownerUserId: UUID? = null,
         ): CollectorCredential {
             require(name.isNotBlank())
             require(secretHash.matches(SECRET_HASH_PATTERN))
@@ -68,6 +71,7 @@ class CollectorCredential private constructor(
             return CollectorCredential(
                 id = CollectorCredentialId.generate(),
                 name = name.trim(),
+                ownerUserId = ownerUserId,
                 secretHash = secretHash,
                 enabled = true,
                 createdAt = now,
@@ -79,6 +83,7 @@ class CollectorCredential private constructor(
         fun restore(
             id: CollectorCredentialId,
             name: String,
+            ownerUserId: UUID?,
             secretHash: String,
             enabled: Boolean,
             createdAt: Instant,
@@ -88,6 +93,7 @@ class CollectorCredential private constructor(
             CollectorCredential(
                 id = id,
                 name = name,
+                ownerUserId = ownerUserId,
                 secretHash = secretHash,
                 enabled = enabled,
                 createdAt = createdAt,
