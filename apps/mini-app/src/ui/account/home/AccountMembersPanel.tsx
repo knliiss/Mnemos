@@ -1,12 +1,16 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import type { Badge } from "@/shared/api/badgeApi"
 import type { AccountRole, Member, Route } from "../../model"
 import { RoleSigil } from "../../shared/RoleSigil"
+import { UserBadgeMark } from "../../shell/badges/UserBadgeMark"
 import { formatMemberDate } from "../accountPresentation"
 
 type AccountMembersPanelProps = {
   members: Member[]
   roles: AccountRole[]
+  currentMemberId: string | null
+  activeUserBadge: Badge | null
   maxMembers: number
   locale: string
   navigate: (route: Route) => void
@@ -15,6 +19,8 @@ type AccountMembersPanelProps = {
 export function AccountMembersPanel({
   members,
   roles,
+  currentMemberId,
+  activeUserBadge,
   maxMembers,
   locale,
   navigate,
@@ -44,6 +50,7 @@ export function AccountMembersPanel({
             ? (roleById.get(member.highestRoleId) ?? null)
             : null
           const extraRoleCount = Math.max(0, member.roleIds.length - 1)
+          const memberBadge = member.id === currentMemberId ? activeUserBadge : null
 
           return (
             <motion.button
@@ -55,6 +62,7 @@ export function AccountMembersPanel({
             >
               <span className="account-home-member__avatar" aria-hidden="true">
                 <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
+                {memberBadge ? <UserBadgeMark badge={memberBadge} compact /> : null}
               </span>
 
               <span className="account-home-member__copy">
