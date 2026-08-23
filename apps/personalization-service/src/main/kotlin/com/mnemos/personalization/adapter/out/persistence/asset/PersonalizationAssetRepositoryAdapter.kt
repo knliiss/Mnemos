@@ -12,11 +12,9 @@ import org.springframework.stereotype.Component
 class PersonalizationAssetRepositoryAdapter(
     private val repository: PersonalizationAssetJpaRepository,
 ) : PersonalizationAssetRepository {
-    override fun save(asset: PersonalizationAsset): PersonalizationAsset =
-        repository.saveAndFlush(asset.toEntity()).toDomain()
+    override fun save(asset: PersonalizationAsset): PersonalizationAsset = repository.saveAndFlush(asset.toEntity()).toDomain()
 
-    override fun findById(id: PersonalizationAssetId): PersonalizationAsset? =
-        repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: PersonalizationAssetId): PersonalizationAsset? = repository.findById(id.id).orElse(null)?.toDomain()
 
     override fun findByOwnerUserId(ownerUserId: UserId): List<PersonalizationAsset> =
         repository
