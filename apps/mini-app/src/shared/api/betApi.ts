@@ -50,7 +50,16 @@ export type ItemRaceStatus =
   | "REFUNDED"
   | "CANCELLED"
 
-export type ItemRaceParticipantStatus = string
+export type ItemRaceParticipantStatus =
+  | "PENDING"
+  | "ACTIVE"
+  | "PAYOUT_PENDING"
+  | "PAYOUT_FAILED"
+  | "WON"
+  | "LOST"
+  | "REFUND_PENDING"
+  | "REFUND_FAILED"
+  | "REFUNDED"
 
 export type ItemRaceParticipantResponse = {
   id: string
@@ -99,6 +108,14 @@ export async function listEventBetRounds(): Promise<EventBetRoundResponse[]> {
   return api<EventBetRoundResponse[]>("/api/v1/bets/event-rounds")
 }
 
+export async function getEventBetRound(roundId: string): Promise<EventBetRoundResponse> {
+  return api<EventBetRoundResponse>(`/api/v1/bets/event-rounds/${roundId}`)
+}
+
+export async function listMyEventBets(): Promise<EventBetResponse[]> {
+  return api<EventBetResponse[]>("/api/v1/bets/event-bets/me")
+}
+
 export async function placeEventBet(
   roundId: string,
   side: BetSide,
@@ -127,6 +144,14 @@ export async function getBetOperation(operationId: string): Promise<BetOperation
 
 export async function listItemRaces(): Promise<ItemRaceResponse[]> {
   return api<ItemRaceResponse[]>("/api/v1/bets/item-races")
+}
+
+export async function getItemRace(raceId: string): Promise<ItemRaceResponse> {
+  return api<ItemRaceResponse>(`/api/v1/bets/item-races/${raceId}`)
+}
+
+export async function listMyItemRaceHistory(): Promise<ItemRaceParticipantResponse[]> {
+  return api<ItemRaceParticipantResponse[]>("/api/v1/bets/item-race-participants/me")
 }
 
 export async function joinItemRace(raceId: string): Promise<AcceptedBetOperationResponse> {

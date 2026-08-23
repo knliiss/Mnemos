@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next"
 import type {
+  EventBetResponse,
   EventBetRoundResponse,
   ItemRaceParticipantResponse,
   ItemRaceResponse,
@@ -48,8 +49,26 @@ export function roundStatusLabel(t: TFunction, status: EventBetRoundResponse["st
   return t(`bets.roundStatus.${status}`, { defaultValue: status })
 }
 
+export function eventBetStatusLabel(t: TFunction, status: EventBetResponse["status"]) {
+  return t(`bets.history.eventStatus.${status}`, { defaultValue: status })
+}
+
+export function eventOutcomeLabel(
+  t: TFunction,
+  outcome: NonNullable<EventBetRoundResponse["outcome"]>,
+) {
+  return t(`bets.history.outcome.${outcome}`, { defaultValue: outcome })
+}
+
 export function raceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]) {
   return t(`bets.raceStatus.${status}`, { defaultValue: status })
+}
+
+export function raceParticipantStatusLabel(
+  t: TFunction,
+  status: ItemRaceParticipantResponse["status"],
+) {
+  return t(`bets.history.participantStatus.${status}`, { defaultValue: status })
 }
 
 export function betLocale(language?: string) {

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
+  getEventBetRound,
+  getItemRace,
   listEventBetRounds,
   listItemRaces,
+  listMyEventBets,
+  listMyItemRaceHistory,
+  type EventBetResponse,
   type EventBetRoundResponse,
   type ItemRaceParticipantResponse,
   type ItemRaceResponse,
@@ -9,13 +14,71 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 
+export type EventBetHistoryEntry = {
+  round: EventBetRoundResponse
+  bet: EventBetResponse
+}
+
+export type ItemRaceHistoryEntry = {
+  race: ItemRaceResponse
+  position: ItemRaceParticipantResponse
+}
+
 type BetsData = {
   rounds: EventBetRoundResponse[]
   races: ItemRaceResponse[]
   positions: ItemRaceParticipantResponse[]
+  eventHistory: EventBetHistoryEntry[]
+  raceHistory: ItemRaceHistoryEntry[]
   loading: boolean
   error: boolean
   refresh(): Promise<void>
+}
+
+async function hydrateEntities<T>(
+  current: T[],
+  historyIds: string[],
+  idOf: (value: T) => string,
+  load: (id: string) => Promise<T>,
+): Promise<Map<string, T>> {
+  const byId = new Map(current.map((value) => [idOf(value), value]))
+  const missingIds = [...new Set(historyIds)].filter((id) => !byId.has(id))
+
+  if (!missingIds.length) {
+    return byId
+  }
+
+  const results = await Promise.allSettled(missingIds.map((id) => load(id)))
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      byId.set(missingIds[index], result.value)
+    }
+  })
+
+  return byId
+}
+
+function eventHistoryEntries(
+  bets: EventBetResponse[],
+  roundsById: Map<string, EventBetRoundResponse>,
+): EventBetHistoryEntry[] {
+  return bets.flatMap((bet) => {
+    const round = roundsById.get(bet.roundId)
+
+    return round ? [{ round, bet }] : []
+  })
+}
+
+function raceHistoryEntries(
+  positions: ItemRaceParticipantResponse[],
+  racesById: Map<string, ItemRaceResponse>,
+): ItemRaceHistoryEntry[] {
+  return positions.flatMap((position) => {
+    const race = racesById.get(position.raceId)
+
+    return race ? [{ race, position }] : []
+  })
 }
 
 export function useBetsData(
@@ -25,6 +88,8 @@ export function useBetsData(
   const [rounds, setRounds] = useState<EventBetRoundResponse[]>([])
   const [races, setRaces] = useState<ItemRaceResponse[]>([])
   const [positions, setPositions] = useState<ItemRaceParticipantResponse[]>([])
+  const [eventHistory, setEventHistory] = useState<EventBetHistoryEntry[]>([])
+  const [raceHistory, setRaceHistory] = useState<ItemRaceHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [loadedAccountId, setLoadedAccountId] = useState<string | null>(null)
@@ -44,28 +109,63 @@ export function useBetsData(
     setLoading(true)
 
     try {
-      const [roundResponses, raceResponses] = await Promise.all([
-        listEventBetRounds(),
-        listItemRaces(),
+      const [roundResponses, raceResponses, eventBetResponses, racePositionResponses] =
+        await Promise.all([
+          listEventBetRounds(),
+          listItemRaces(),
+          listMyEventBets(),
+          listMyItemRaceHistory(),
+        ])
+
+      if (revision !== requestRevision.current || accountIdRef.current !== requestedAccountId) {
+        return
+      }
+
+      const [roundsById, racesById] = await Promise.all([
+        hydrateEntities(
+          roundResponses,
+          eventBetResponses.map((bet) => bet.roundId),
+          (round) => round.id,
+          getEventBetRound,
+        ),
+        hydrateEntities(
+          raceResponses,
+          racePositionResponses.map((position) => position.raceId),
+          (race) => race.id,
+          getItemRace,
+        ),
       ])
 
       if (revision !== requestRevision.current || accountIdRef.current !== requestedAccountId) {
         return
       }
 
+      const betByRoundId = new Map(eventBetResponses.map((bet) => [bet.roundId, bet]))
+      const currentRounds = roundResponses.map((round) =>
+        round.myBet
+          ? round
+          : {
+              ...round,
+              myBet: betByRoundId.get(round.id) ?? null,
+            },
+      )
       const currentPositions = raceResponses.flatMap((race) =>
         race.participants.filter((participant) => participant.accountId === requestedAccountId),
       )
 
-      setRounds(roundResponses)
+      setRounds(currentRounds)
       setRaces(raceResponses)
       setPositions(currentPositions)
+      setEventHistory(eventHistoryEntries(eventBetResponses, roundsById))
+      setRaceHistory(raceHistoryEntries(racePositionResponses, racesById))
       setLoadedAccountId(requestedAccountId)
     } catch (error) {
       if (revision === requestRevision.current && accountIdRef.current === requestedAccountId) {
         setRounds([])
         setRaces([])
         setPositions([])
+        setEventHistory([])
+        setRaceHistory([])
         setLoadedAccountId(requestedAccountId)
         setError(true)
         handleError(error)
@@ -105,6 +205,8 @@ export function useBetsData(
     rounds: current ? rounds : [],
     races: current ? races : [],
     positions: current ? positions : [],
+    eventHistory: current ? eventHistory : [],
+    raceHistory: current ? raceHistory : [],
     loading: loading || !current,
     error: current && error,
     refresh,

@@ -3,16 +3,26 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
+  getEventBetRound,
+  getItemRace,
   listEventBetRounds,
   listItemRaces,
+  listMyEventBets,
+  listMyItemRaceHistory,
+  type EventBetResponse,
+  type EventBetRoundResponse,
   type ItemRaceParticipantResponse,
   type ItemRaceResponse,
 } from "@/shared/api/betApi"
 import { useBetsData } from "./useBetsData"
 
 vi.mock("@/shared/api/betApi", () => ({
+  getEventBetRound: vi.fn(),
+  getItemRace: vi.fn(),
   listEventBetRounds: vi.fn(),
   listItemRaces: vi.fn(),
+  listMyEventBets: vi.fn(),
+  listMyItemRaceHistory: vi.fn(),
 }))
 
 type Deferred<T> = {
@@ -29,21 +39,59 @@ function createDeferred<T>(): Deferred<T> {
   return { promise, resolve }
 }
 
-function position(accountId: string): ItemRaceParticipantResponse {
+function eventBet(roundId: string, id = `bet-${roundId}`): EventBetResponse {
   return {
-    id: `position-${accountId}`,
-    raceId: "race",
+    id,
+    roundId,
+    side: "YES",
+    confirmedAmount: 500,
+    pendingAmount: 0,
+    status: "SETTLED",
+  }
+}
+
+function round(
+  id: string,
+  myBet: EventBetResponse | null = null,
+  status: EventBetRoundResponse["status"] = "OPEN",
+): EventBetRoundResponse {
+  return {
+    id,
+    eventType: "MOON",
+    scheduledAt: "2026-08-21T12:00:00Z",
+    closesAt: "2026-08-21T11:55:00Z",
+    resolvesAt: "2026-08-21T12:05:00Z",
+    yesOdds: 2,
+    noOdds: 2,
+    status,
+    outcome: status === "SETTLED" ? "YES" : null,
+    myBet,
+  }
+}
+
+function position(
+  accountId: string,
+  raceId = "race",
+  id = `position-${accountId}-${raceId}`,
+): ItemRaceParticipantResponse {
+  return {
+    id,
+    raceId,
     accountId,
     accountNickname: accountId,
     confirmedAmount: accountId === "account-a" ? 10 : 20,
     pendingAmount: 0,
-    status: "CONFIRMED",
+    status: "ACTIVE",
   }
 }
 
-function race(accountId: string): ItemRaceResponse {
+function race(
+  accountId: string,
+  id = "race",
+  status: ItemRaceResponse["status"] = "REGISTRATION",
+): ItemRaceResponse {
   return {
-    id: "race",
+    id,
     itemName: "Test Item",
     itemType: "SWORD",
     registrationClosesAt: "2026-08-21T12:00:00Z",
@@ -51,16 +99,21 @@ function race(accountId: string): ItemRaceResponse {
     expiresAt: "2026-08-21T14:00:00Z",
     entryAmount: 100,
     feePercent: 5,
-    status: "REGISTRATION",
+    status,
     winnerAccountId: null,
-    participants: [position(accountId)],
+    participants: [position(accountId, id)],
   }
 }
 
 describe("useBetsData", () => {
   beforeEach(() => {
+    vi.mocked(getEventBetRound).mockReset()
+    vi.mocked(getItemRace).mockReset()
     vi.mocked(listEventBetRounds).mockReset()
     vi.mocked(listItemRaces).mockReset()
+    vi.mocked(listMyEventBets).mockReset().mockResolvedValue([])
+    vi.mocked(listMyItemRaceHistory).mockReset().mockResolvedValue([])
+
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0)
       return 1
@@ -94,6 +147,8 @@ describe("useBetsData", () => {
 
     rerender({ accountId: "account-b" })
     expect(result.current.positions).toEqual([])
+    expect(result.current.eventHistory).toEqual([])
+    expect(result.current.raceHistory).toEqual([])
 
     await act(async () => {
       accountBRounds.resolve([])
@@ -143,6 +198,8 @@ describe("useBetsData", () => {
     expect(result.current.rounds).toEqual([])
     expect(result.current.races).toEqual([])
     expect(result.current.positions).toEqual([])
+    expect(result.current.eventHistory).toEqual([])
+    expect(result.current.raceHistory).toEqual([])
   })
 
   it("loads bet data for every active account member", async () => {
@@ -158,6 +215,53 @@ describe("useBetsData", () => {
 
     expect(listEventBetRounds).toHaveBeenCalledTimes(1)
     expect(listItemRaces).toHaveBeenCalledTimes(1)
+    expect(listMyEventBets).toHaveBeenCalledTimes(1)
+    expect(listMyItemRaceHistory).toHaveBeenCalledTimes(1)
     expect(result.current.error).toBe(false)
+  })
+
+  it("hydrates historical parents only when they are missing from current data", async () => {
+    const currentBet = eventBet("round-current", "bet-current")
+    const historicalBet = eventBet("round-history", "bet-history")
+    const currentRacePosition = position("account-a", "race-current", "position-current")
+    const historicalRacePosition = position("account-a", "race-history", "position-history")
+    const currentRound = round("round-current")
+    const historicalRound = round("round-history", null, "SETTLED")
+    const currentRace = race("account-a", "race-current")
+    const historicalRace = race("account-a", "race-history", "SETTLED")
+
+    currentRace.participants = [currentRacePosition]
+    historicalRace.participants = [historicalRacePosition]
+
+    vi.mocked(listEventBetRounds).mockResolvedValue([currentRound])
+    vi.mocked(listItemRaces).mockResolvedValue([currentRace])
+    vi.mocked(listMyEventBets).mockResolvedValue([currentBet, historicalBet])
+    vi.mocked(listMyItemRaceHistory).mockResolvedValue([
+      currentRacePosition,
+      historicalRacePosition,
+    ])
+    vi.mocked(getEventBetRound).mockResolvedValue(historicalRound)
+    vi.mocked(getItemRace).mockResolvedValue(historicalRace)
+
+    const refreshAccount = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => useBetsData("account-a", refreshAccount))
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(getEventBetRound).toHaveBeenCalledTimes(1)
+    expect(getEventBetRound).toHaveBeenCalledWith("round-history")
+    expect(getItemRace).toHaveBeenCalledTimes(1)
+    expect(getItemRace).toHaveBeenCalledWith("race-history")
+    expect(result.current.rounds[0].myBet?.id).toBe("bet-current")
+    expect(result.current.eventHistory.map(({ bet }) => bet.id)).toEqual([
+      "bet-current",
+      "bet-history",
+    ])
+    expect(result.current.raceHistory.map(({ position: entry }) => entry.id)).toEqual([
+      "position-current",
+      "position-history",
+    ])
   })
 })

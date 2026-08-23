@@ -20,6 +20,7 @@ import { CurrencyMark } from "../shared/MnemosIcon"
 import { CurrencyValue } from "../shared/Primitives"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { BetRaceCard, BetRoundCard, EmptyBets } from "./BetCards"
+import { EventBetHistoryCard, ItemRaceHistoryCard } from "./BetHistoryCards"
 import { RaceBetSheet, RoundBetSheet } from "./BetSheets"
 import {
   betAmount,
@@ -94,10 +95,8 @@ export function Bets({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
   const data = useMnemosData()
   const canPlaceBets = data.hasPermission("PLACE_BETS")
-  const { rounds, races, positions, loading, error, refresh } = useBetsData(
-    activeAccount.id,
-    data.refreshAccount,
-  )
+  const { rounds, races, positions, eventHistory, raceHistory, loading, error, refresh } =
+    useBetsData(activeAccount.id, data.refreshAccount)
   const [mode, setMode] = useState<BetMode>("EVENTS")
   const [selectedRound, setSelectedRound] = useState<ScopedSelection | null>(null)
   const [selectedRace, setSelectedRace] = useState<ScopedSelection | null>(null)
@@ -186,6 +185,13 @@ export function Bets({ activeAccount, navigate }: Props) {
   const eventRounds = nextOpenRounds.slice(1)
   const myRounds = roundsWithPending.filter((round) => round.myBet)
   const myRaces = races.filter((race) => positionsByRace.has(race.id))
+  const currentRoundIds = new Set(myRounds.map((round) => round.id))
+  const currentRaceIds = new Set(myRaces.map((race) => race.id))
+  const historicalEventBets = eventHistory.filter(({ round }) => !currentRoundIds.has(round.id))
+  const historicalRacePositions = raceHistory.filter(({ race }) => !currentRaceIds.has(race.id))
+  const currentPositionCount = myRounds.length + myRaces.length
+  const historicalPositionCount = historicalEventBets.length + historicalRacePositions.length
+  const myPositionCount = currentPositionCount + historicalPositionCount
   const numericAmount = Number(amount)
   const selectedHasBet = Boolean(selectedRoundValue?.myBet)
   const amountIsInteger = Number.isInteger(numericAmount)
@@ -415,9 +421,7 @@ export function Bets({ activeAccount, navigate }: Props) {
             onClick={() => setMode(value)}
           >
             <span>{t(`bets.modes.${value}`)}</span>
-            {value === "MY" && myRounds.length + myRaces.length ? (
-              <b>{myRounds.length + myRaces.length}</b>
-            ) : null}
+            {value === "MY" && myPositionCount ? <b>{myPositionCount}</b> : null}
           </button>
         ))}
       </nav>
@@ -507,32 +511,78 @@ export function Bets({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loading && !error && mode === "MY" ? (
-        <section className="bets-rounds">
-          {myRounds.map((round) => (
-            <BetRoundCard
-              key={round.id}
-              round={round}
-              locale={locale}
-              t={t}
-              onClick={() => openRound(round)}
-            />
-          ))}
+        <div className="bets-my">
+          {currentPositionCount ? (
+            <>
+              <header className="bets-section-head">
+                <span>
+                  <small>{t("bets.history.active")}</small>
+                  <strong>{currentPositionCount}</strong>
+                </span>
+              </header>
 
-          {myRaces.map((race) => (
-            <BetRaceCard
-              key={race.id}
-              race={race}
-              position={positionsByRace.get(race.id) ?? null}
-              locale={locale}
-              t={t}
-              onClick={() => openRace(race)}
-            />
-          ))}
+              <section className="bets-rounds">
+                {myRounds.map((round) => (
+                  <BetRoundCard
+                    key={round.id}
+                    round={round}
+                    locale={locale}
+                    t={t}
+                    onClick={() => openRound(round)}
+                  />
+                ))}
 
-          {!myRounds.length && !myRaces.length ? (
+                {myRaces.map((race) => (
+                  <BetRaceCard
+                    key={race.id}
+                    race={race}
+                    position={positionsByRace.get(race.id) ?? null}
+                    locale={locale}
+                    t={t}
+                    onClick={() => openRace(race)}
+                  />
+                ))}
+              </section>
+            </>
+          ) : null}
+
+          {historicalPositionCount ? (
+            <>
+              <header className="bets-section-head bets-section-head--history">
+                <span>
+                  <small>{t("bets.history.previous")}</small>
+                  <strong>{historicalPositionCount}</strong>
+                </span>
+              </header>
+
+              <section className="bets-rounds">
+                {historicalEventBets.map(({ round, bet }) => (
+                  <EventBetHistoryCard
+                    key={bet.id}
+                    round={round}
+                    bet={bet}
+                    locale={locale}
+                    t={t}
+                  />
+                ))}
+
+                {historicalRacePositions.map(({ race, position }) => (
+                  <ItemRaceHistoryCard
+                    key={position.id}
+                    race={race}
+                    position={position}
+                    locale={locale}
+                    t={t}
+                  />
+                ))}
+              </section>
+            </>
+          ) : null}
+
+          {!myPositionCount ? (
             <EmptyBets title={t("bets.empty.myTitle")} note={t("bets.empty.myCopy")} />
           ) : null}
-        </section>
+        </div>
       ) : null}
 
       {!loading && !error && mode === "RACES" ? (
