@@ -1,5 +1,9 @@
 import type { TFunction } from "i18next"
-import type { EventBetOutcome, EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
+import type {
+  EventBetOutcome,
+  EventBetRoundResponse,
+  ItemRaceResponse,
+} from "@/shared/api/betApi"
 import type { BetGlobalEventType, BetItemType } from "../../model"
 
 export type BetAdminSection = "home" | "rounds" | "history" | "round" | "races"
@@ -42,6 +46,17 @@ export function betAdminOutcomeLabel(t: TFunction, outcome: EventBetOutcome) {
   }
 
   return labels[outcome]
+}
+
+export function betAdminRoundStatusLabel(
+  t: TFunction,
+  status: EventBetRoundResponse["status"],
+): string {
+  return t(`bets.roundStatus.${status}`, { defaultValue: status })
+}
+
+export function betAdminRaceStatusLabel(t: TFunction, status: ItemRaceResponse["status"]): string {
+  return t(`bets.raceStatus.${status}`, { defaultValue: status })
 }
 
 export function formatBetAdminDate(value: string, language: string) {

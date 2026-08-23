@@ -6,7 +6,7 @@ import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { BetAdminRoundRow } from "./BetAdminRoundRow"
-import { betAdminEventLabel } from "./betAdminPresentation"
+import { betAdminEventLabel, betAdminRoundStatusLabel } from "./betAdminPresentation"
 
 type Props = {
   title: string
@@ -28,9 +28,9 @@ export function BetAdminRoundList({ title, rounds, loading, navigate, back }: Pr
 
     return rounds.filter((round) => {
       const eventLabel = betAdminEventLabel(t, round.eventType).toLowerCase()
-      const status = round.status.toLowerCase()
+      const statusLabel = betAdminRoundStatusLabel(t, round.status).toLowerCase()
 
-      return eventLabel.includes(normalized) || status.includes(normalized)
+      return eventLabel.includes(normalized) || statusLabel.includes(normalized)
     })
   }, [query, rounds, t])
 

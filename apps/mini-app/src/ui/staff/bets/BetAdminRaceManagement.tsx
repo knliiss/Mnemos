@@ -9,7 +9,7 @@ import type { BetItemType } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
-import { betAdminItemLabel } from "./betAdminPresentation"
+import { betAdminItemLabel, betAdminRaceStatusLabel } from "./betAdminPresentation"
 
 type Props = {
   races: ItemRaceResponse[]
@@ -78,6 +78,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       }
     } finally {
       busyRef.current = false
+
       if (mountedRef.current) {
         setBusy(false)
       }
@@ -94,6 +95,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
 
     try {
       await cancelItemRace(raceId)
+
       if (mountedRef.current) {
         await onChanged()
       }
@@ -103,6 +105,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       }
     } finally {
       busyRef.current = false
+
       if (mountedRef.current) {
         setBusy(false)
       }
@@ -207,7 +210,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                   <small>{betAdminItemLabel(t, race.itemType)}</small>
                   <strong>{race.itemName}</strong>
                   <em>
-                    {race.status} ·{" "}
+                    {betAdminRaceStatusLabel(t, race.status)} ·{" "}
                     {t("betAdmin.participantsShort", { count: race.participants.length })}
                   </em>
                 </span>

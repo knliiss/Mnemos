@@ -1,7 +1,11 @@
 import { useTranslation } from "react-i18next"
 import type { EventBetRoundResponse } from "@/shared/api/betApi"
 import { GlobalEventArt } from "../../components/events/EventArt"
-import { betAdminEventLabel, formatBetAdminDate } from "./betAdminPresentation"
+import {
+  betAdminEventLabel,
+  betAdminRoundStatusLabel,
+  formatBetAdminDate,
+} from "./betAdminPresentation"
 
 type Props = {
   round: EventBetRoundResponse
@@ -18,7 +22,7 @@ export function BetAdminRoundRow({ round, onClick }: Props) {
       </span>
       <span>
         <small>{betAdminEventLabel(t, round.eventType)}</small>
-        <strong>{round.status}</strong>
+        <strong>{betAdminRoundStatusLabel(t, round.status)}</strong>
         <em>{formatBetAdminDate(round.scheduledAt, i18n.language)}</em>
       </span>
       <span>

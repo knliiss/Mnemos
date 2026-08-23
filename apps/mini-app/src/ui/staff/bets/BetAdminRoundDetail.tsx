@@ -10,6 +10,7 @@ import { FeatureLoading } from "../../system/FeatureLoading"
 import {
   betAdminEventLabel,
   betAdminOutcomeLabel,
+  betAdminRoundStatusLabel,
   formatBetAdminDate,
 } from "./betAdminPresentation"
 
@@ -67,8 +68,13 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
 
     try {
       await resolveEventBetRound(round.id, outcome, reason.trim())
+
       if (mountedRef.current) {
         await onResolved()
+      }
+
+      if (mountedRef.current) {
+        back()
       }
     } catch (error) {
       if (mountedRef.current) {
@@ -76,6 +82,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
       }
     } finally {
       busyRef.current = false
+
       if (mountedRef.current) {
         setBusy(false)
       }
@@ -89,7 +96,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
       <section className="bet-admin-round-detail-hero">
         <GlobalEventArt eventType={round.eventType} size={72} />
         <span>
-          <small>{round.status}</small>
+          <small>{betAdminRoundStatusLabel(t, round.status)}</small>
           <strong>{formatBetAdminDate(round.scheduledAt, i18n.language)}</strong>
           <em>
             {t("betAdmin.closing", {
