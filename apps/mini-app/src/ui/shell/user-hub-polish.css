@@ -147,23 +147,17 @@
 }
 
 .user-hub-workspace-grid > button .user-hub-workspace-copy strong {
-  overflow: hidden;
   color: currentColor;
   font-size: 12px;
-  line-height: 1.15;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 .user-hub-workspace-grid > button .user-hub-workspace-copy small {
-  display: -webkit-box;
-  overflow: hidden;
   margin: 0;
   color: #8f9588;
   font-size: 9.5px;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.4;
 }
 
 .user-hub-workspace-grid > button > b {
@@ -179,24 +173,38 @@
   max-height: calc(100dvh - 86px - var(--user-hub-safe-top) - var(--user-hub-safe-bottom));
 }
 
-@media (min-width: 520px) {
+@media (min-width: 700px) {
+  .user-hub {
+    width: min(500px, calc(100% - 36px)) !important;
+  }
+
   .user-hub-workspace-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .user-hub-workspace-grid > button {
-    grid-template-columns: 48px minmax(0, 1fr) 14px;
-    min-height: 84px;
+    grid-template-columns: 52px minmax(0, 1fr) 16px;
+    min-height: 92px;
+    gap: 12px;
+    padding: 12px;
   }
 
   .user-hub-workspace-grid > button > .user-hub-workspace-art {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
   }
 
   .user-hub-workspace-art img {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .user-hub-workspace-grid > button .user-hub-workspace-copy strong {
+    font-size: 13px;
+  }
+
+  .user-hub-workspace-grid > button .user-hub-workspace-copy small {
+    font-size: 10px;
   }
 }
 
