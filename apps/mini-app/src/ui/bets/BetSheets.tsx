@@ -20,6 +20,8 @@ import {
   roundStatusLabel,
 } from "./betPresentation"
 
+const EVENT_BET_MAX = 5_000
+
 type RoundBetSheetProps = {
   round: EventBetRoundResponse
   side: BetSide
@@ -48,6 +50,15 @@ export function RoundBetSheet({
   onSubmit,
 }: RoundBetSheetProps) {
   const { t } = useTranslation()
+  const currentAmount = round.myBet ? betAmount(round.myBet) : 0
+  const remainingAmount = Math.max(EVENT_BET_MAX - currentAmount, 0)
+  const atMaximum = Boolean(round.myBet && remainingAmount === 0)
+  const numericAmount = Number(amount)
+  const exceedsPositionMaximum =
+    Boolean(round.myBet) && Number.isFinite(numericAmount) && numericAmount > remainingAmount
+  const effectiveAmountValid = amountValid && !atMaximum && !exceedsPositionMaximum
+  const effectiveAmountHint =
+    atMaximum || exceedsPositionMaximum ? t("bets.sheet.amountMaximum") : amountHint
 
   return (
     <BottomSheet title={globalEventLabel(t, round.eventType)} onClose={onClose}>
@@ -88,7 +99,7 @@ export function RoundBetSheet({
               <small>{t("bets.sheet.yourPosition")}</small>
               <strong>{round.myBet.side === "YES" ? t("bets.yes") : t("bets.no")}</strong>
             </span>
-            <CurrencyValue currency="COIN" value={betAmount(round.myBet)} compact />
+            <CurrencyValue currency="COIN" value={currentAmount} compact />
           </div>
         )}
 
@@ -98,21 +109,23 @@ export function RoundBetSheet({
             <input
               type="number"
               min={round.myBet ? 1 : 500}
-              max={round.myBet ? undefined : 5000}
+              max={round.myBet ? remainingAmount : EVENT_BET_MAX}
               value={amount}
-              disabled={busy}
-              aria-invalid={Boolean(amountHint)}
+              disabled={busy || atMaximum}
+              aria-invalid={Boolean(effectiveAmountHint)}
               onChange={(event) => onAmountChange(event.target.value)}
             />
           </div>
         </Field>
 
-        {amountHint ? <p className="inline-hint inline-hint--left">{amountHint}</p> : null}
+        {effectiveAmountHint ? (
+          <p className="inline-hint inline-hint--left">{effectiveAmountHint}</p>
+        ) : null}
 
         <button
           type="button"
           className="bets-submit"
-          disabled={!amountValid || round.status !== "OPEN" || busy}
+          disabled={!effectiveAmountValid || round.status !== "OPEN" || busy}
           onClick={onSubmit}
         >
           {busy
