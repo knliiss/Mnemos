@@ -52,7 +52,7 @@ class ApprovePersonalizationServiceTest {
     }
 
     @Test
-    fun `personalization moderator can approve another creators personalization`() {
+    fun `personalization moderator approval publishes another creators personalization`() {
         val personalization = personalizationInReview(UserId.generate())
         val service =
             service(
@@ -70,11 +70,11 @@ class ApprovePersonalizationServiceTest {
                 price = PersonalizationPrice(Currency.COIN, 1_000),
             )
 
-        assertEquals(PersonalizationStatus.APPROVED, result.status)
+        assertEquals(PersonalizationStatus.PUBLISHED, result.status)
     }
 
     @Test
-    fun `administrator can approve own personalization`() {
+    fun `administrator approval publishes own personalization`() {
         val creatorUserId = UserId.generate()
         val personalization = personalizationInReview(creatorUserId)
         val service =
@@ -93,7 +93,7 @@ class ApprovePersonalizationServiceTest {
                 price = PersonalizationPrice(Currency.COIN, 1_000),
             )
 
-        assertEquals(PersonalizationStatus.APPROVED, result.status)
+        assertEquals(PersonalizationStatus.PUBLISHED, result.status)
     }
 
     private fun service(
