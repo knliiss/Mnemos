@@ -20,7 +20,7 @@ export const collectorAdminEn = {
     total: "Credentials",
     enabled: "Enabled",
     disabled: "Disabled",
-    activeObservers: "Observing now",
+    activeObservers: "Active observers",
     directoryTitle: "Collector credentials",
     directoryDescription: "Enable, pause access or revoke an installation permanently.",
     refreshing: "Refreshing…",
