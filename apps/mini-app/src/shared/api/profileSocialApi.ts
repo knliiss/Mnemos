@@ -1,6 +1,6 @@
 import { api } from "@/shared/api/httpClient"
 import type { PageResponse } from "@/shared/api/backendContracts"
-import type { EffectType, FrameStyle } from "@/ui/model"
+import type { EffectType, FrameStyle, VisualLayer } from "@/ui/model"
 
 export type AccountReactionType = "LIKE" | "DISLIKE"
 
@@ -31,6 +31,7 @@ export type ProfileAppearanceResponse = {
     gradientAngleDegrees: number
     textureStrength: number
     glow: ProfileGlowResponse | null
+    layers: VisualLayer[]
   } | null
   avatarFrame: {
     personalizationId: string
@@ -41,6 +42,7 @@ export type ProfileAppearanceResponse = {
     radiusPx: number
     style: FrameStyle
     glow: ProfileGlowResponse | null
+    layers: VisualLayer[]
   } | null
   profileEffect: {
     personalizationId: string
@@ -51,6 +53,7 @@ export type ProfileAppearanceResponse = {
     scale: number
     primaryColor: string
     secondaryColor: string | null
+    layers: VisualLayer[]
   } | null
 }
 
