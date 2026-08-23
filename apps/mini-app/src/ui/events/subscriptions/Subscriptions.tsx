@@ -7,10 +7,7 @@ import type { SubscriptionType } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
-import {
-  sortSubscriptions,
-  type SubscriptionSort,
-} from "./subscriptionPresentation"
+import { sortSubscriptions, type SubscriptionSort } from "./subscriptionPresentation"
 import { SubscriptionCreateSheet } from "./SubscriptionCreateSheet"
 import { SubscriptionRule } from "./SubscriptionRule"
 import { useSubscriptionItemTypes } from "./useSubscriptionItemTypes"
@@ -190,7 +187,9 @@ export function Subscriptions({ back }: { back: () => void }) {
             />
           ))}
 
-          {!data.loadingSubscriptions && !data.subscriptionsError && !visibleSubscriptions.length ? (
+          {!data.loadingSubscriptions &&
+          !data.subscriptionsError &&
+          !visibleSubscriptions.length ? (
             <div className="feature-empty subscription-empty-state">
               <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
               <strong>{t("events.subscriptions.emptyTitle")}</strong>
