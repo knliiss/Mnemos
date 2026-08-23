@@ -1,3 +1,30 @@
+.collector-admin-screen .collector-admin-search {
+  overflow: hidden;
+}
+
+.collector-admin-screen .collector-admin-search > input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  color: #e3e7df;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 10px;
+}
+
+.collector-admin-screen .collector-admin-search > input:focus,
+.collector-admin-screen .collector-admin-search > input:focus-visible {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
 .collector-admin-sort__control {
   position: relative;
   min-width: 0;
