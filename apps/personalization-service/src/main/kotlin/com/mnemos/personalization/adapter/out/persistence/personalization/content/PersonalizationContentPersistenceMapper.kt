@@ -1,6 +1,8 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization.content
 
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.EffectType
+import com.mnemos.personalization.domain.personalization.model.FrameStyle
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -8,6 +10,10 @@ import com.mnemos.personalization.domain.personalization.model.NotificationTempl
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.VisualLayer
+import com.mnemos.personalization.domain.personalization.model.VisualLayerAnimation
+import com.mnemos.personalization.domain.personalization.model.VisualLayerBlendMode
+import java.util.UUID
 
 object PersonalizationContentPersistenceMapper {
     fun PersonalizationContent.toDocument(): Map<String, Any?> =
@@ -22,19 +28,28 @@ object PersonalizationContentPersistenceMapper {
             is PersonalizationContent.ProfileTheme ->
                 mapOf(
                     "background" to background.value,
+                    "backgroundSecondary" to backgroundSecondary.value,
                     "surface" to surface.value,
+                    "surfaceSecondary" to surfaceSecondary.value,
                     "accent" to accent.value,
                     "text" to text.value,
                     "border" to border.value,
+                    "gradientAngleDegrees" to gradientAngleDegrees,
+                    "textureStrength" to textureStrength,
                     "glow" to glow?.toDocument(),
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.AvatarFrame ->
                 mapOf(
                     "borderColor" to borderColor.value,
+                    "secondaryBorderColor" to secondaryBorderColor.value,
                     "borderWidthPx" to borderWidthPx,
+                    "gapPx" to gapPx,
                     "radiusPx" to radiusPx,
+                    "style" to style.name,
                     "glow" to glow?.toDocument(),
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.ProfileEffect ->
@@ -43,6 +58,10 @@ object PersonalizationContentPersistenceMapper {
                     "intensity" to intensity,
                     "primaryColor" to primaryColor.value,
                     "secondaryColor" to secondaryColor?.value,
+                    "speed" to speed,
+                    "density" to density,
+                    "scale" to scale,
+                    "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
             is PersonalizationContent.NotificationPack ->
@@ -74,23 +93,39 @@ object PersonalizationContentPersistenceMapper {
             glow = documentOrNull("glow")?.toGlow(),
         )
 
-    private fun Map<String, Any?>.toProfileTheme(): PersonalizationContent.ProfileTheme =
-        PersonalizationContent.ProfileTheme(
-            background = HexColor(requireString("background")),
-            surface = HexColor(requireString("surface")),
+    private fun Map<String, Any?>.toProfileTheme(): PersonalizationContent.ProfileTheme {
+        val background = HexColor(requireString("background"))
+        val surface = HexColor(requireString("surface"))
+
+        return PersonalizationContent.ProfileTheme(
+            background = background,
+            backgroundSecondary = stringOrNull("backgroundSecondary")?.let(::HexColor) ?: background,
+            surface = surface,
+            surfaceSecondary = stringOrNull("surfaceSecondary")?.let(::HexColor) ?: surface,
             accent = HexColor(requireString("accent")),
             text = HexColor(requireString("text")),
             border = HexColor(requireString("border")),
+            gradientAngleDegrees = numberOrNull("gradientAngleDegrees")?.toInt() ?: 145,
+            textureStrength = numberOrNull("textureStrength")?.toInt() ?: 0,
             glow = documentOrNull("glow")?.toGlow(),
+            layers = visualLayers(),
         )
+    }
 
-    private fun Map<String, Any?>.toAvatarFrame(): PersonalizationContent.AvatarFrame =
-        PersonalizationContent.AvatarFrame(
-            borderColor = HexColor(requireString("borderColor")),
+    private fun Map<String, Any?>.toAvatarFrame(): PersonalizationContent.AvatarFrame {
+        val borderColor = HexColor(requireString("borderColor"))
+
+        return PersonalizationContent.AvatarFrame(
+            borderColor = borderColor,
+            secondaryBorderColor = stringOrNull("secondaryBorderColor")?.let(::HexColor) ?: borderColor,
             borderWidthPx = requireNumber("borderWidthPx").toInt(),
+            gapPx = numberOrNull("gapPx")?.toInt() ?: 0,
             radiusPx = requireNumber("radiusPx").toInt(),
+            style = stringOrNull("style")?.let(FrameStyle::valueOf) ?: FrameStyle.SOLID,
             glow = documentOrNull("glow")?.toGlow(),
+            layers = visualLayers(),
         )
+    }
 
     private fun Map<String, Any?>.toProfileEffect(): PersonalizationContent.ProfileEffect =
         PersonalizationContent.ProfileEffect(
@@ -98,6 +133,10 @@ object PersonalizationContentPersistenceMapper {
             intensity = requireNumber("intensity").toInt(),
             primaryColor = HexColor(requireString("primaryColor")),
             secondaryColor = stringOrNull("secondaryColor")?.let(::HexColor),
+            speed = numberOrNull("speed")?.toInt() ?: 50,
+            density = numberOrNull("density")?.toInt() ?: 50,
+            scale = numberOrNull("scale")?.toInt() ?: 50,
+            layers = visualLayers(),
         )
 
     private fun Map<String, Any?>.toNotificationPack(): PersonalizationContent.NotificationPack {
@@ -122,6 +161,39 @@ object PersonalizationContentPersistenceMapper {
                     }.toMap(),
         )
     }
+
+    private fun Map<String, Any?>.visualLayers(): List<VisualLayer> =
+        optionalList("layers").map { value ->
+            requireDocument(value).toVisualLayer()
+        }
+
+    private fun VisualLayer.toDocument(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "assetId" to assetId.id.toString(),
+            "xPercent" to xPercent,
+            "yPercent" to yPercent,
+            "widthPercent" to widthPercent,
+            "opacity" to opacity,
+            "rotationDegrees" to rotationDegrees,
+            "blendMode" to blendMode.name,
+            "animation" to animation.name,
+            "zIndex" to zIndex,
+        )
+
+    private fun Map<String, Any?>.toVisualLayer(): VisualLayer =
+        VisualLayer(
+            id = requireString("id"),
+            assetId = PersonalizationAssetId(UUID.fromString(requireString("assetId"))),
+            xPercent = requireNumber("xPercent").toInt(),
+            yPercent = requireNumber("yPercent").toInt(),
+            widthPercent = requireNumber("widthPercent").toInt(),
+            opacity = requireNumber("opacity").toInt(),
+            rotationDegrees = requireNumber("rotationDegrees").toInt(),
+            blendMode = VisualLayerBlendMode.valueOf(requireString("blendMode")),
+            animation = VisualLayerAnimation.valueOf(requireString("animation")),
+            zIndex = requireNumber("zIndex").toInt(),
+        )
 
     private fun GradientStop.toDocument(): Map<String, Any?> =
         mapOf(
@@ -174,9 +246,23 @@ object PersonalizationContentPersistenceMapper {
         requireValue(key) as? Number
             ?: throw IllegalArgumentException("Personalization content field $key must be a number")
 
+    private fun Map<String, Any?>.numberOrNull(key: String): Number? =
+        when (val value = this[key]) {
+            null -> null
+            is Number -> value
+            else -> throw IllegalArgumentException("Personalization content field $key must be a number")
+        }
+
     private fun Map<String, Any?>.requireList(key: String): List<*> =
         requireValue(key) as? List<*>
             ?: throw IllegalArgumentException("Personalization content field $key must be a list")
+
+    private fun Map<String, Any?>.optionalList(key: String): List<*> =
+        when (val value = this[key]) {
+            null -> emptyList<Any?>()
+            is List<*> -> value
+            else -> throw IllegalArgumentException("Personalization content field $key must be a list")
+        }
 
     private fun Map<String, Any?>.documentOrNull(key: String): Map<String, Any?>? = this[key]?.let(::requireDocument)
 

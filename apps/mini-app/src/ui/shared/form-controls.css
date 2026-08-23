@@ -1,0 +1,81 @@
+.role-permission-search,
+.staff-search,
+.search-root-input,
+.review-toolbar > label,
+.bets-amount,
+.amount-input,
+.inline-input,
+.field > input,
+.field > textarea,
+.field > select {
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.role-permission-search:focus-within,
+.staff-search:focus-within,
+.search-root-input:focus-within,
+.review-toolbar > label:focus-within,
+.bets-amount:focus-within,
+.amount-input:focus-within,
+.inline-input:focus-within,
+.field > input:focus,
+.field > input:focus-visible,
+.field > textarea:focus,
+.field > textarea:focus-visible,
+.field > select:focus,
+.field > select:focus-visible {
+  border-color: rgba(203, 255, 45, 0.24);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.04);
+}
+
+.role-permission-search > input,
+.staff-search > input,
+.search-root-input > input,
+.review-toolbar > label > input,
+.bets-amount > input,
+.amount-input > input,
+.inline-input > input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  appearance: none;
+}
+
+.role-permission-search > input:focus,
+.role-permission-search > input:focus-visible,
+.staff-search > input:focus,
+.staff-search > input:focus-visible,
+.search-root-input > input:focus,
+.search-root-input > input:focus-visible,
+.review-toolbar > label > input:focus,
+.review-toolbar > label > input:focus-visible,
+.bets-amount > input:focus,
+.bets-amount > input:focus-visible,
+.amount-input > input:focus,
+.amount-input > input:focus-visible,
+.inline-input > input:focus,
+.inline-input > input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-permission-search,
+  .staff-search,
+  .search-root-input,
+  .review-toolbar > label,
+  .bets-amount,
+  .amount-input,
+  .inline-input,
+  .field > input,
+  .field > textarea,
+  .field > select {
+    transition: none;
+  }
+}

@@ -3,6 +3,7 @@ package com.mnemos.wallet.application.transaction.usecase.list
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
 import com.mnemos.wallet.application.account.port.out.AccountPermissionProvider
+import com.mnemos.wallet.application.account.port.out.ActiveAccountProvider
 import com.mnemos.wallet.application.common.pagination.PageResult
 import com.mnemos.wallet.application.security.port.out.CurrentUserProvider
 import com.mnemos.wallet.application.transaction.model.TransactionView
@@ -16,10 +17,17 @@ import org.springframework.transaction.annotation.Transactional
 class ListAccountTransactionsService(
     private val transactionReader: TransactionReader,
     private val currentUserProvider: CurrentUserProvider,
+    private val activeAccountProvider: ActiveAccountProvider,
     private val accountPermissionProvider: AccountPermissionProvider,
 ) : ListAccountTransactionsUseCase {
     override fun execute(query: ListAccountTransactionsQuery): PageResult<TransactionView> {
         val userId = currentUserProvider.requireUserId()
+        val activeAccountId = activeAccountProvider.findActiveAccountId(userId)
+
+        if (activeAccountId != query.accountId) {
+            throw AccountPermissionDeniedException(query.accountId)
+        }
+
         val granted =
             accountPermissionProvider.hasPermission(
                 accountId = query.accountId,
@@ -28,7 +36,10 @@ class ListAccountTransactionsService(
             )
 
         if (!granted) {
-            throw AccountPermissionDeniedException(query.accountId)
+            throw AccountPermissionDeniedException(
+                accountId = query.accountId,
+                requiredPermissions = setOf(RolePermission.VIEW_TRANSACTION_HISTORY.name),
+            )
         }
 
         return transactionReader.findByOwner(

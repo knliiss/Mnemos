@@ -44,7 +44,7 @@ class PurchasePersonalizationServiceTest {
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     @Test
-    fun `account coin purchase requires buy and spend permissions`() {
+    fun `account coin purchase requires account purchase permission`() {
         val creatorUserId = UserId.generate()
         val buyerUserId = UserId.generate()
         val accountId = AccountId.generate()
@@ -54,11 +54,7 @@ class PurchasePersonalizationServiceTest {
                 personalization = personalization,
                 buyerUserId = buyerUserId,
                 accountId = accountId,
-                grantedPermissions =
-                    setOf(
-                        RolePermission.BUY_PERSONALIZATIONS,
-                        RolePermission.SPEND_WALLET_FUNDS,
-                    ),
+                grantedPermissions = setOf(RolePermission.BUY_ACCOUNT_PERSONALIZATIONS),
             )
 
         val result = fixture.service.execute(personalization.id)
@@ -73,23 +69,19 @@ class PurchasePersonalizationServiceTest {
         assertEquals(PurchaseOperationStatus.PENDING, operation.status)
         assertEquals(listOf(operation), fixture.wallet.requestedDebits)
         assertEquals(
-            listOf(
-                RolePermission.BUY_PERSONALIZATIONS,
-                RolePermission.SPEND_WALLET_FUNDS,
-            ),
+            listOf(RolePermission.BUY_ACCOUNT_PERSONALIZATIONS),
             fixture.accountAccess.checkedPermissions,
         )
     }
 
     @Test
-    fun `account coin purchase is denied without spend permission`() {
+    fun `account coin purchase is denied without account purchase permission`() {
         val personalization = publishedNickStyle(UserId.generate())
         val fixture =
             fixture(
                 personalization = personalization,
                 buyerUserId = UserId.generate(),
                 accountId = AccountId.generate(),
-                grantedPermissions = setOf(RolePermission.BUY_PERSONALIZATIONS),
             )
 
         assertThrows(PersonalizationAccessDeniedException::class.java) {
@@ -132,11 +124,7 @@ class PurchasePersonalizationServiceTest {
                 personalization = personalization,
                 buyerUserId = creatorUserId,
                 accountId = AccountId.generate(),
-                grantedPermissions =
-                    setOf(
-                        RolePermission.BUY_PERSONALIZATIONS,
-                        RolePermission.SPEND_WALLET_FUNDS,
-                    ),
+                grantedPermissions = setOf(RolePermission.BUY_ACCOUNT_PERSONALIZATIONS),
             )
 
         assertThrows(PersonalizationNotPurchasableException::class.java) {
@@ -156,11 +144,7 @@ class PurchasePersonalizationServiceTest {
                 personalization = personalization,
                 buyerUserId = UserId.generate(),
                 accountId = AccountId.generate(),
-                grantedPermissions =
-                    setOf(
-                        RolePermission.BUY_PERSONALIZATIONS,
-                        RolePermission.SPEND_WALLET_FUNDS,
-                    ),
+                grantedPermissions = setOf(RolePermission.BUY_ACCOUNT_PERSONALIZATIONS),
                 pendingPurchaseExists = true,
             )
 

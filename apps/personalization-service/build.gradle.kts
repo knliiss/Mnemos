@@ -24,6 +24,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation(libs.uuid.creator)
+    implementation(libs.minio)
 
     runtimeOnly("org.postgresql:postgresql")
 

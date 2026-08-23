@@ -7,4 +7,9 @@ data class ProfileThemeContentResponse(
     val text: String,
     val border: String,
     val glow: GlowStyleResponse?,
+    val backgroundSecondary: String,
+    val surfaceSecondary: String,
+    val gradientAngleDegrees: Int,
+    val textureStrength: Int,
+    val layers: List<VisualLayerResponse>,
 ) : PersonalizationContentResponse

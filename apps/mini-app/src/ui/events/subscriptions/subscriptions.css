@@ -1,0 +1,252 @@
+.subscriptions-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subscription-summary {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 78px !important;
+  padding: 13px !important;
+  border: 1px solid rgba(235, 241, 213, 0.14) !important;
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 7% 25%, rgba(203, 255, 45, 0.1), transparent 36%),
+    linear-gradient(145deg, rgba(255, 249, 232, 0.055), rgba(255, 249, 232, 0.018)) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.045),
+    0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+.subscription-summary__icon {
+  display: grid;
+  place-items: center;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px;
+  color: var(--accent-strong) !important;
+  background: rgba(203, 255, 45, 0.1) !important;
+  box-shadow: 0 0 18px rgba(203, 255, 45, 0.055);
+}
+
+.subscription-summary > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.subscription-summary strong {
+  font-size: 20px !important;
+  font-weight: 720;
+}
+
+.subscription-summary small {
+  color: #92968a !important;
+  font-size: 10px !important;
+}
+
+.subscription-summary > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 38px !important;
+  padding: 0 11px !important;
+  border-radius: 10px;
+  color: #141907 !important;
+  background: linear-gradient(180deg, #dcff62, #c6f22c) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.3);
+  font-size: 10px !important;
+  font-weight: 650;
+}
+
+.subscription-counts {
+  display: flex;
+  gap: 6px !important;
+  overflow-x: auto;
+  margin: 11px -18px 0 !important;
+  padding: 0 18px 4px;
+  scrollbar-width: none;
+}
+
+.subscription-counts::-webkit-scrollbar {
+  display: none;
+}
+
+.subscription-counts span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: max-content;
+  min-height: 36px !important;
+  padding: 0 9px;
+  border: 1px solid rgba(235, 241, 213, 0.11) !important;
+  border-radius: 9px;
+  color: #a8aca0 !important;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9.5px !important;
+}
+
+.subscription-counts b {
+  color: var(--text);
+}
+
+.subscription-rules {
+  margin-top: 19px !important;
+}
+
+.subscription-rules > header {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.subscription-rules h2 {
+  margin: 0;
+  color: #e2e4db;
+  font-size: 14px !important;
+  font-weight: 690;
+}
+
+.subscription-rules header small {
+  color: #8d9185 !important;
+  font-size: 10px !important;
+}
+
+.subscription-rules > div {
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.12) !important;
+  border-radius: 15px;
+  background: rgba(8, 9, 7, 0.5) !important;
+}
+
+.subscription-rule {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 9px;
+  min-height: 62px !important;
+  padding: 8px 10px !important;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.065) !important;
+}
+
+.subscription-rule:last-child {
+  border-bottom: 0 !important;
+}
+
+.subscription-rule__icon {
+  display: grid;
+  place-items: center;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: rgba(255, 249, 232, 0.045);
+}
+
+.subscription-rule.event-row-surface > .event-art {
+  align-self: center;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.subscription-rule.event-row-surface > .event-art .event-art__image {
+  width: 84% !important;
+  height: 84% !important;
+}
+
+.subscription-rule__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.subscription-rule__copy strong {
+  color: #e2e4db;
+  font-size: 11.5px !important;
+  font-weight: 650;
+}
+
+.subscription-rule__copy small {
+  overflow: hidden;
+  color: #909488 !important;
+  font-size: max(9.5px, 0.6rem) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subscription-rule > button {
+  display: grid;
+  place-items: center;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px;
+  color: #8f9589;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.subscription-form .field-suggestions {
+  margin-top: -2px;
+  border-block: 1px solid var(--line);
+}
+
+.subscription-form .field-suggestions > button {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 9px !important;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+  text-align: left;
+}
+
+.subscription-form .field-suggestions > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
+.subscription-form .field-suggestions strong {
+  font-size: 12px;
+  font-weight: 580;
+}
+
+.subscription-form .field-suggestions small {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.subscription-form .token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.subscription-form .token-list button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+@media (max-width: 374px) {
+  .subscription-summary {
+    grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subscription-rule {
+    transition: none !important;
+    transform: none !important;
+  }
+}

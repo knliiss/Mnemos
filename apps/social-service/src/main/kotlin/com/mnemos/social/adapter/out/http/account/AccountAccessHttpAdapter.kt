@@ -1,11 +1,10 @@
 package com.mnemos.social.adapter.out.http.account
 
 import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.social.application.actor.exception.ActiveSocialAccountRequiredException
 import com.mnemos.social.application.actor.model.SocialActor
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @Component
@@ -15,7 +14,7 @@ class AccountAccessHttpAdapter(
     override fun resolveActiveActor(userId: UUID): SocialActor {
         val account =
             client.resolveActiveAccount(userId)
-                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Active account is required")
+                ?: throw ActiveSocialAccountRequiredException()
 
         return SocialActor(
             userId = userId,

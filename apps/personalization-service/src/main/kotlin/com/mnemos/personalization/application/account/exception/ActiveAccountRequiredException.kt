@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus
 
 class ActiveAccountRequiredException :
     AppException(
-        "Active account is required",
-        "ACTIVE_ACCOUNT_REQUIRED",
-        HttpStatus.BAD_REQUEST,
+        message = "Active account is required",
+        code = "ACTIVE_ACCOUNT_REQUIRED",
+        httpStatus = HttpStatus.BAD_REQUEST,
     )

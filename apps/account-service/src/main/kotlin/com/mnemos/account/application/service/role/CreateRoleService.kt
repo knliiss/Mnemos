@@ -10,7 +10,7 @@ import com.mnemos.account.domain.model.account.role.Role
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.core.model.permission.RolePermission.CREATE_ROLES
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ROLES
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,17 +20,6 @@ class CreateRoleService(
     private val accountContextProvider: ActiveAccountContextProvider,
     private val roleAccessGuard: RoleAccessGuard,
 ) {
-    private val basePermissions =
-        setOf(
-            RolePermission.CLAIM_DAILY_REWARD,
-            RolePermission.PUBLISH_COMMENTS,
-            RolePermission.PUBLISH_REACTIONS,
-            RolePermission.VIEW_BETS,
-            RolePermission.VIEW_BET_HISTORY,
-            RolePermission.VIEW_PERSONALIZATIONS,
-            RolePermission.APPLY_PERSONALIZATIONS,
-        )
-
     @Transactional
     fun createRole(
         accountId: AccountId,
@@ -41,29 +30,47 @@ class CreateRoleService(
         val context =
             accountContextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = CREATE_ROLES,
+                permission = MANAGE_ROLES,
             )
-
-        val maxRank = roleRepository.findMaxRank(accountId)
-        val finalPermissions =
-            permissions
-                .ifEmpty { basePermissions }
-                .toMutableSet()
+        val finalPermissions = permissions.toMutableSet()
 
         roleAccessGuard.requireCanGrantPermissions(
             context = context,
             permissions = finalPermissions,
         )
 
+        val hierarchyRank =
+            resolveHierarchyRank(
+                accountId = context.account.id,
+                owner = context.account.isOwner(context.member.id),
+            )
+
         val role =
             Role.create(
                 accountId = context.account.id,
-                hierarchyRank = maxRank + Role.RANK_STEP,
+                hierarchyRank = hierarchyRank,
                 roleColor = HexColor(color),
                 roleName = AccountRoleName(name),
                 permissions = finalPermissions,
             )
 
         return roleRepository.create(role).toView()
+    }
+
+    private fun resolveHierarchyRank(
+        accountId: AccountId,
+        owner: Boolean,
+    ): Long {
+        val roles = roleRepository.findAllByAccountIdOrderByRank(accountId)
+
+        if (roles.isEmpty()) {
+            return Role.RANK_STEP
+        }
+
+        return if (owner) {
+            Math.subtractExact(roles.first().hierarchyRank, Role.RANK_STEP)
+        } else {
+            Math.addExact(roles.last().hierarchyRank, Role.RANK_STEP)
+        }
     }
 }

@@ -1,0 +1,426 @@
+.role-editor-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.role-editor-progress {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  left: 42px;
+  overflow: hidden;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.role-editor-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.18s ease;
+}
+
+.role-identity-panel,
+.role-permissions-panel {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.role-identity-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.role-identity-panel > header,
+.role-permissions-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.role-identity-panel header > span:first-child,
+.role-permissions-panel__head > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.role-identity-panel header small,
+.role-permissions-panel__head small {
+  color: #747b70;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  letter-spacing: 0.11em;
+}
+
+.role-identity-panel header strong,
+.role-permissions-panel__head strong {
+  color: #e7eae1;
+  font-size: 14px;
+}
+
+.role-editor-field {
+  position: relative;
+  display: grid;
+  gap: 6px;
+}
+
+.role-editor-field > span,
+.role-color-editor label > span:first-child {
+  color: #a8ada3;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.role-editor-field input,
+.role-permission-search input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(235, 241, 213, 0.11);
+  border-radius: 12px;
+  outline: none;
+  color: #e5e9df;
+  background: rgba(255, 255, 255, 0.022);
+  font: inherit;
+}
+
+.role-editor-field input:focus,
+.role-permission-search:focus-within {
+  border-color: rgba(212, 255, 66, 0.26);
+  box-shadow: 0 0 0 3px rgba(212, 255, 66, 0.035);
+}
+
+.role-editor-field > small {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  color: #626960;
+  font-size: 9px;
+}
+
+.role-editor-field input:disabled,
+.role-color-input input:disabled {
+  opacity: 0.62;
+}
+
+.role-color-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.role-color-editor > label {
+  display: grid;
+  gap: 6px;
+}
+
+.role-color-input {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  min-height: 44px;
+  border: 1px solid rgba(235, 241, 213, 0.11);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.role-color-input input {
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+}
+
+.role-color-input code {
+  overflow: hidden;
+  padding: 0 10px;
+  color: #b7bcb3;
+  font-family: var(--font-meta);
+  font-size: 10px;
+  text-overflow: ellipsis;
+}
+
+.role-color-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 28px);
+  gap: 7px;
+  padding-bottom: 4px;
+}
+
+.role-color-presets button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.role-color-presets button.is-active {
+  border-color: #edf1e7;
+}
+
+.role-permissions-panel__head {
+  align-items: center;
+}
+
+.role-permissions-panel__head > div {
+  display: flex;
+  gap: 5px;
+}
+
+.role-permissions-panel__head > div button,
+.role-permission-groups > section > header button {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 9px;
+  color: #8b9286;
+  background: rgba(255, 255, 255, 0.018);
+  font-size: 9px;
+}
+
+.role-permission-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 12px;
+  color: #7f867a;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.role-permission-search input {
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none !important;
+}
+
+.role-permission-search > button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #757c71;
+}
+
+.role-permission-groups {
+  display: grid;
+  gap: 9px;
+}
+
+.role-permission-groups > section {
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 14px;
+  background: rgba(7, 9, 7, 0.22);
+}
+
+.role-permission-groups > section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.055);
+}
+
+.role-permission-groups > section > header > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.role-permission-groups > section > header strong {
+  color: #d8ddd4;
+  font-size: 10px;
+}
+
+.role-permission-groups > section > header small {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #7a8176;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.role-permission-groups > section > header button.is-active {
+  color: #cedaa8;
+  border-color: rgba(212, 255, 66, 0.15);
+  background: rgba(178, 218, 46, 0.05);
+}
+
+.role-permission-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 10px 11px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.045);
+  color: #d0d5cb;
+  text-align: left;
+}
+
+.role-permission-row:last-child {
+  border-bottom: 0;
+}
+
+.role-permission-row > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.role-permission-row strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-permission-row small {
+  overflow: hidden;
+  color: #646b62;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-permission-row > i {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  border: 1px solid rgba(235, 241, 213, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: 0.18s ease;
+}
+
+.role-permission-row > i > b {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #81867f;
+  transition: 0.18s ease;
+}
+
+.role-permission-row.is-on > i {
+  border-color: rgba(212, 255, 66, 0.26);
+  background: rgba(178, 218, 46, 0.12);
+}
+
+.role-permission-row.is-on > i > b {
+  left: 19px;
+  background: #d4ff42;
+}
+
+.role-permission-row:disabled {
+  opacity: 0.7;
+}
+
+.role-editor-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.role-editor-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border-radius: 14px;
+  color: #0c1006;
+  background: linear-gradient(180deg, #d7ff48, #b8e529);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.role-editor-save:disabled {
+  color: #73796f;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.role-editor-danger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(211, 103, 110, 0.12);
+  border-radius: 14px;
+  background: rgba(172, 58, 65, 0.025);
+}
+
+.role-editor-danger > span {
+  display: grid;
+  gap: 3px;
+}
+
+.role-editor-danger strong {
+  color: #d8c2c3;
+  font-size: 10px;
+}
+
+.role-editor-danger small {
+  color: #796c6d;
+  font-size: 9px;
+}
+
+.role-editor-danger > button,
+.role-editor-danger > div button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 10px;
+  color: #9a9f96;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 9px;
+}
+
+.role-editor-danger > div {
+  display: flex;
+  gap: 6px;
+}
+
+.role-editor-danger .is-danger {
+  border-color: rgba(222, 105, 112, 0.22);
+  color: #db9da1;
+  background: rgba(188, 61, 68, 0.06);
+}
+
+@media (max-width: 374px) {
+  .role-color-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .role-color-presets {
+    grid-template-columns: repeat(8, 28px);
+  }
+}

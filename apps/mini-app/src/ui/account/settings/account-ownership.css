@@ -1,0 +1,51 @@
+.account-transfer-grid > button {
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+}
+
+.account-transfer-grid > button > span:first-child {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  overflow: hidden;
+}
+
+.account-transfer-user-mark img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.account-transfer-grid > button > b {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #cfff48;
+}
+
+.account-transfer-summary__avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+  overflow: hidden;
+}
+
+.account-transfer-summary__avatar img {
+  display: block;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}

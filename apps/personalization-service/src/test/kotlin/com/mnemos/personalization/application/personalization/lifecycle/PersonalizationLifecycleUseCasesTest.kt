@@ -6,6 +6,7 @@ import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
+import com.mnemos.personalization.application.asset.support.PersonalizationContentAssetValidator
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.ownership.exception.PersonalizationNotOwnedException
@@ -21,6 +22,9 @@ import com.mnemos.personalization.application.security.model.PersonalizationActo
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.configuration.pricing.PersonalizationPricingProperties
 import com.mnemos.personalization.contracts.event.NotificationPackSelectionChangedV1
+import com.mnemos.personalization.domain.asset.model.PersonalizationAsset
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
+import com.mnemos.personalization.domain.asset.repository.PersonalizationAssetRepository
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -225,6 +229,7 @@ class PersonalizationLifecycleUseCasesTest {
                 ownershipRepository = ownershipRepository,
                 selectionEventPublisher = selectionEventPublisher,
             )
+        val assetValidator = PersonalizationContentAssetValidator(EmptyPersonalizationAssetRepository())
 
         return Fixture(
             updateCustomService =
@@ -237,6 +242,7 @@ class PersonalizationLifecycleUseCasesTest {
                 UpdateCreatorPersonalizationService(
                     support = support,
                     pricePolicy = PersonalizationPricePolicy(PersonalizationPricingProperties()),
+                    assetValidator = assetValidator,
                     repository = personalizationRepository,
                     clock = clock,
                 ),
@@ -351,6 +357,19 @@ class PersonalizationLifecycleUseCasesTest {
         }
 
         override fun current(userId: UserId): Long = revision
+    }
+
+    private class EmptyPersonalizationAssetRepository : PersonalizationAssetRepository {
+        override fun save(asset: PersonalizationAsset): PersonalizationAsset = asset
+
+        override fun findById(id: PersonalizationAssetId): PersonalizationAsset? = null
+
+        override fun findByOwnerUserId(ownerUserId: UserId): List<PersonalizationAsset> = emptyList()
+
+        override fun existsByIdAndOwnerUserId(
+            id: PersonalizationAssetId,
+            ownerUserId: UserId,
+        ): Boolean = false
     }
 
     private class FakePersonalizationRepository(

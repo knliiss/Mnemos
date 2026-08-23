@@ -6,6 +6,6 @@ data class BadgeResponse(
     val id: UUID,
     val code: String,
     val name: String,
-    val icon: String,
+    val imageUrl: String,
     val color: String,
 )

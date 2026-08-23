@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class CreateCommentRequest(
     val parentCommentId: UUID?,
+    val replyToCommentId: UUID? = null,
     @field:NotBlank
     @field:Size(max = 500)
     val content: String,

@@ -11,8 +11,7 @@ import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.core.model.permission.RolePermission.EDIT_ROLE_DETAILS
-import com.mnemos.common.core.model.permission.RolePermission.EDIT_ROLE_PERMISSIONS
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ROLES
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -33,7 +32,7 @@ class UpdateRoleService(
         val context =
             accountContextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = EDIT_ROLE_DETAILS,
+                permission = MANAGE_ROLES,
             )
         val role =
             roleAccessGuard.requireCanManageRole(
@@ -67,7 +66,7 @@ class UpdateRoleService(
         val context =
             accountContextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = EDIT_ROLE_PERMISSIONS,
+                permission = MANAGE_ROLES,
             )
         val role =
             roleAccessGuard.requireCanManageRole(

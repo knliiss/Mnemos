@@ -1,6 +1,7 @@
 package com.mnemos.personalization.domain.badge
 
 import com.mnemos.personalization.domain.badge.model.Badge
+import com.mnemos.personalization.domain.badge.model.BadgeId
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -11,17 +12,17 @@ class BadgeTest {
     private val createdAt = Instant.parse("2026-08-15T00:00:00Z")
 
     @Test
-    fun `creates a valid system badge`() {
+    fun `creates a valid system badge with deterministic image object key`() {
         val badge =
             Badge.create(
                 code = "MODERATOR",
                 name = "Moderator",
-                icon = "🛡️",
                 color = HexColor("#8ACBFF"),
                 now = createdAt,
             )
 
         assertEquals("MODERATOR", badge.code)
+        assertEquals("badges/${badge.id.id}.png", badge.imageObjectKey)
         assertEquals(createdAt, badge.createdAt)
     }
 
@@ -31,7 +32,6 @@ class BadgeTest {
             Badge.create(
                 code = "moderator badge",
                 name = "Moderator",
-                icon = "🛡️",
                 color = HexColor("#8ACBFF"),
                 now = createdAt,
             )
@@ -44,7 +44,6 @@ class BadgeTest {
             Badge.create(
                 code = "LONG_NAME",
                 name = "x".repeat(65),
-                icon = "🛡️",
                 color = HexColor("#8ACBFF"),
                 now = createdAt,
             )
@@ -52,14 +51,15 @@ class BadgeTest {
     }
 
     @Test
-    fun `rejects badge icon longer than persistence limit`() {
+    fun `rejects invalid badge image object key`() {
         assertThrows(IllegalArgumentException::class.java) {
-            Badge.create(
-                code = "LONG_ICON",
-                name = "Long icon",
-                icon = "x".repeat(65),
+            Badge(
+                id = BadgeId.generate(),
+                code = "INVALID_IMAGE",
+                name = "Invalid image",
+                imageObjectKey = "../badge.png",
                 color = HexColor("#8ACBFF"),
-                now = createdAt,
+                createdAt = createdAt,
             )
         }
     }

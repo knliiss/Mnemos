@@ -1,6 +1,0 @@
-.notification { position: fixed; z-index: 1000; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 14px; backdrop-filter: blur(18px); background: rgba(20, 22, 26, .94); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 12px 40px rgba(0,0,0,.4); white-space: pre-wrap; }
-.notification--error { border-color: rgba(255, 99, 99, .45); }
-.notification--success { border-color: rgba(110, 255, 164, .35); }
-.notification__message { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.notification__actions { display: flex; gap: 6px; }
-.notification__button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 9px; background: rgba(255,255,255,.08); color: inherit; }

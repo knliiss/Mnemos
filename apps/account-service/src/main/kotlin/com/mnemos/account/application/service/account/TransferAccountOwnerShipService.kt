@@ -8,6 +8,7 @@ import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.common.core.model.id.AccountId
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Service
@@ -16,6 +17,7 @@ class TransferAccountOwnerShipService(
     private val accountRepository: AccountRepository,
     private val accountMemberRepository: AccountMemberRepository,
 ) {
+    @Transactional
     fun transfer(
         newOwnerMemberId: AccountMemberId,
         accountId: AccountId,

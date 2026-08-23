@@ -6,6 +6,7 @@ import com.mnemos.account.application.query.user.UserViewMapper.toCurrentUserVie
 import com.mnemos.account.application.service.user.UserIntegrationEvents.created
 import com.mnemos.account.domain.exception.user.UserIdentityConflictException
 import com.mnemos.account.domain.model.user.User
+import com.mnemos.account.domain.repository.user.UserCreationResult
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.account.integration.keycloak.client.KeycloakAdminClient
 import com.mnemos.account.integration.keycloak.config.KeycloakAdminProperties
@@ -37,21 +38,31 @@ class UserService(
         val principal = currentMnemosUser.get()
         val keycloakId = KeycloakId(principal.keycloakId)
 
-        val user =
-            userRepository.findByKeycloakId(keycloakId)
+        val userCreation =
+            userRepository
+                .findByKeycloakId(keycloakId)
+                ?.let { existingUser ->
+                    UserCreationResult(
+                        user = existingUser,
+                        created = false,
+                    )
+                }
                 ?: createCurrentUser(
                     keycloakId = keycloakId,
                     telegramId = TelegramId(principal.telegramId),
                     username = Username(principal.username),
                 )
 
-        val synchronized = keycloakUserIdentitySynchronizer.synchronize(user)
-        publisher.publish(
-            synchronized.created(),
-            metadata = EventMetadata(actorUserId = synchronized.id.id),
-        )
+        val synchronizedUser = keycloakUserIdentitySynchronizer.synchronize(userCreation.user)
 
-        return user.toCurrentUserView()
+        if (userCreation.created) {
+            publisher.publish(
+                synchronizedUser.created(),
+                metadata = EventMetadata(actorUserId = synchronizedUser.id.id),
+            )
+        }
+
+        return synchronizedUser.toCurrentUserView()
     }
 
     @Transactional(readOnly = true)
@@ -119,7 +130,7 @@ class UserService(
         keycloakId: KeycloakId,
         telegramId: TelegramId,
         username: Username,
-    ): User {
+    ): UserCreationResult {
         validateIdentityAvailability(
             telegramId = telegramId,
             username = username,

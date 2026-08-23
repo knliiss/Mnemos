@@ -26,6 +26,11 @@ class AccountMemberRepositoryAdapter(
                 userId = userId.id,
             )?.toDomain()
 
+    override fun findUserIdsByAccountId(accountId: AccountId): List<UserId> =
+        jpaAccountMemberRepository
+            .findUserIdsByAccountId(accountId.id)
+            .map(::UserId)
+
     override fun existsByAccountIdAndUserId(
         accountId: AccountId,
         userId: UserId,

@@ -1,0 +1,132 @@
+.user-hub-notification-packs {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(203, 255, 45, 0.035), transparent 34%),
+    rgba(255, 255, 255, 0.012);
+}
+
+.user-hub-notification-packs > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.user-hub-notification-packs > header > span,
+.user-hub-notification-packs > header:not(:has(> span)) {
+  min-width: 0;
+}
+
+.user-hub-notification-packs > header > span {
+  display: grid;
+  gap: 2px;
+}
+
+.user-hub-notification-packs > header small {
+  color: #797f74;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.user-hub-notification-packs > header strong {
+  overflow: hidden;
+  color: #dfe4da;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-notification-packs__clear {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 8px;
+  color: #8c9386;
+  background: rgba(255, 255, 255, 0.016);
+  font-size: 8.5px;
+}
+
+.user-hub-notification-packs__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.user-hub-notification-pack-option {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 10px;
+  color: inherit;
+  background: rgba(5, 7, 5, 0.28);
+  text-align: left;
+}
+
+.user-hub-notification-pack-option.is-active {
+  border-color: rgba(203, 255, 45, 0.18);
+  background: rgba(203, 255, 45, 0.035);
+}
+
+.user-hub-notification-pack-option__mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: #899181;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.user-hub-notification-pack-option.is-active .user-hub-notification-pack-option__mark {
+  color: #cbff2d;
+  background: rgba(203, 255, 45, 0.07);
+}
+
+.user-hub-notification-pack-option > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.user-hub-notification-pack-option strong {
+  overflow: hidden;
+  color: #cfd4ca;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-notification-pack-option small {
+  overflow: hidden;
+  color: #70776c;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-notification-pack-option.is-active small {
+  color: #abc957;
+}
+
+.user-hub-notification-packs button:disabled {
+  opacity: 0.46;
+}
+
+@media (max-width: 390px) {
+  .user-hub-notification-packs__grid {
+    grid-template-columns: 1fr;
+  }
+}

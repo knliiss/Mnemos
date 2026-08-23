@@ -5,7 +5,7 @@ import com.mnemos.account.domain.exception.invite.AccountInviteNotFoundException
 import com.mnemos.account.domain.model.account.invite.InviteId
 import com.mnemos.account.domain.repository.invite.AccountInviteRepository
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission.MANAGE_ACCOUNT_INVITES
+import com.mnemos.common.core.model.permission.RolePermission.MANAGE_MEMBERS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -22,7 +22,7 @@ class RevokeAccountInviteService(
     ) {
         contextProvider.requirePermissionForUpdate(
             accountId = accountId,
-            permission = MANAGE_ACCOUNT_INVITES,
+            permission = MANAGE_MEMBERS,
         )
 
         val invite =

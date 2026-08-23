@@ -16,7 +16,7 @@ interface PendingSocialSummaryJpaRepository : JpaRepository<PendingSocialSummary
                 FROM public_profiles profile
                 WHERE profile.account_id = pending.account_id
             )
-            ORDER BY pending.occurred_at ASC
+            ORDER BY pending.occurred_at ASC, pending.account_id ASC
             LIMIT :limit
         """,
         nativeQuery = true,

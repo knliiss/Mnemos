@@ -27,21 +27,14 @@ class WalletTransactionAuthorizationService(
         owner: WalletOwner.Account,
         actorUserId: UUID?,
     ): WalletTransactionFailureReason? {
-        val requiredPermissions = requiredAccountPermissions(request.source)
-
-        if (requiredPermissions.isEmpty()) {
-            return null
-        }
-
+        val requiredPermission = requiredAccountPermission(request.source) ?: return null
         val userId = actorUserId?.let(::UserId) ?: return WalletTransactionFailureReason.PERMISSION_DENIED
         val granted =
-            requiredPermissions.all { permission ->
-                accountPermissionProvider.hasPermission(
-                    accountId = owner.accountId,
-                    userId = userId,
-                    permission = permission,
-                )
-            }
+            accountPermissionProvider.hasPermission(
+                accountId = owner.accountId,
+                userId = userId,
+                permission = requiredPermission,
+            )
 
         return if (granted) null else WalletTransactionFailureReason.PERMISSION_DENIED
     }
@@ -62,21 +55,11 @@ class WalletTransactionAuthorizationService(
         }
     }
 
-    private fun requiredAccountPermissions(source: TransactionSource): Set<RolePermission> =
+    private fun requiredAccountPermission(source: TransactionSource): RolePermission? =
         when (source) {
-            TransactionSource.BET_PLACE ->
-                setOf(
-                    RolePermission.PLACE_BETS,
-                    RolePermission.SPEND_WALLET_FUNDS,
-                )
-
-            TransactionSource.PERSONALIZATION_PURCHASE ->
-                setOf(
-                    RolePermission.BUY_PERSONALIZATIONS,
-                    RolePermission.SPEND_WALLET_FUNDS,
-                )
-
-            else -> emptySet()
+            TransactionSource.BET_PLACE -> RolePermission.PLACE_BETS
+            TransactionSource.PERSONALIZATION_PURCHASE -> RolePermission.BUY_ACCOUNT_PERSONALIZATIONS
+            else -> null
         }
 
     private fun requiresUserOwnership(source: TransactionSource): Boolean =

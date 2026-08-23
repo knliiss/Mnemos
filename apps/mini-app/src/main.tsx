@@ -1,9 +1,24 @@
-import {StrictMode} from "react"
-import {createRoot} from "react-dom/client"
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { App } from "@/app/App"
+import { installGlobalErrorHandlers } from "@/shared/errors/errorHandler"
 import "@/shared/i18n"
-import "@/shared/styles/index.css"
-import {App} from "@/app/App"
-import {installGlobalErrorHandlers} from "@/shared/errors/errorHandler"
+import "@/shared/styles/global.css"
+import { initializeTelegramWebApp } from "@/shared/telegram/telegramWebApp"
+import "@/ui/app.css"
+import "@/ui/system/telegram-safe-area.css"
 
 installGlobalErrorHandlers()
-createRoot(document.getElementById("root")!).render(<StrictMode><App/></StrictMode>)
+initializeTelegramWebApp()
+
+const root = document.getElementById("root")
+
+if (!root) {
+  throw new Error("Mini App root element is missing")
+}
+
+createRoot(root).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)

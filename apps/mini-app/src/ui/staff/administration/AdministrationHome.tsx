@@ -1,0 +1,154 @@
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { listAdminBadges } from "@/shared/api/badgeAdminApi"
+import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
+import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
+import { handleError } from "@/shared/errors/errorHandler"
+import type { Route } from "../../model"
+import { PageHeader } from "../../shared/Primitives"
+
+type AdminStats = {
+  review: number
+  activeRounds: number
+  activeRaces: number
+  badges: number
+}
+
+type AdministrationWorkspaceProps = {
+  illustration: string
+  title: string
+  description: string
+  tone: "users" | "review" | "bets" | "badges"
+  onClick(): void
+}
+
+function AdministrationWorkspace({
+  illustration,
+  title,
+  description,
+  tone,
+  onClick,
+}: AdministrationWorkspaceProps) {
+  return (
+    <button type="button" className={`administration-workspace is-${tone}`} onClick={onClick}>
+      <span className="administration-workspace__art" aria-hidden="true">
+        <img src={illustration} alt="" />
+      </span>
+      <span className="administration-workspace__copy">
+        <strong>{title}</strong>
+        <small>{description}</small>
+      </span>
+      <b>›</b>
+    </button>
+  )
+}
+
+export function AdministrationHome({
+  navigate,
+  back,
+}: {
+  navigate: (route: Route) => void
+  back: () => void
+}) {
+  const { t } = useTranslation()
+  const [stats, setStats] = useState<AdminStats | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const frame = window.requestAnimationFrame(() => {
+      void Promise.all([
+        listPersonalizationReviewQueue(),
+        listEventBetRounds(),
+        listItemRaces(),
+        listAdminBadges(),
+      ])
+        .then(([review, rounds, races, badges]) => {
+          if (!cancelled) {
+            setStats({
+              review: review.length,
+              activeRounds: rounds.filter((round) => round.status !== "SETTLED").length,
+              activeRaces: races.filter(
+                (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
+              ).length,
+              badges: badges.length,
+            })
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            handleError(error)
+          }
+        })
+    })
+
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <div className="screen administration-home-screen">
+      <PageHeader title={t("administration.title")} back={back} />
+
+      <section className="workspace-intro workspace-intro--admin workspace-intro--illustrated">
+        <span className="workspace-intro__art" aria-hidden="true">
+          <img src="/ui-illustrations/workspace-admin.svg" alt="" />
+        </span>
+        <div>
+          <strong>{t("administration.introTitle")}</strong>
+          <small>{t("administration.introDescription")}</small>
+        </div>
+      </section>
+
+      <div className="administration-workspace-grid">
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-users.svg"
+          title={t("administration.users")}
+          description={t("administration.usersDescription")}
+          tone="users"
+          onClick={() => navigate({ id: "moderation" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-review.svg"
+          title={t("administration.personalizations")}
+          description={
+            stats
+              ? t("administration.reviewCount", { count: stats.review })
+              : t("administration.reviewQueue")
+          }
+          tone="review"
+          onClick={() => navigate({ id: "personalization-review" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-bets.svg"
+          title={t("administration.bets")}
+          description={
+            stats
+              ? t("administration.betsStats", {
+                  rounds: stats.activeRounds,
+                  races: stats.activeRaces,
+                })
+              : t("administration.betsFallback")
+          }
+          tone="bets"
+          onClick={() => navigate({ id: "bet-admin" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-badges.svg"
+          title={t("administration.badges")}
+          description={
+            stats
+              ? t("administration.badgesCount", { count: stats.badges })
+              : t("administration.badgesFallback")
+          }
+          tone="badges"
+          onClick={() => navigate({ id: "badge-admin" })}
+        />
+      </div>
+    </div>
+  )
+}

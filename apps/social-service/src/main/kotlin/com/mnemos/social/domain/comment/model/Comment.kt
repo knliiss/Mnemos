@@ -13,6 +13,7 @@ data class Comment(
     val createdAt: Instant,
     var updatedAt: Instant,
     var deletedAt: Instant?,
+    val replyToCommentId: CommentId? = null,
 ) {
     val deleted: Boolean
         get() = deletedAt != null
@@ -41,6 +42,7 @@ data class Comment(
             parentCommentId: CommentId?,
             content: String,
             now: Instant,
+            replyToCommentId: CommentId? = null,
         ): Comment =
             Comment(
                 id = CommentId.generate(),
@@ -52,6 +54,7 @@ data class Comment(
                 createdAt = now,
                 updatedAt = now,
                 deletedAt = null,
+                replyToCommentId = replyToCommentId,
             )
 
         private fun normalizeContent(content: String): String {

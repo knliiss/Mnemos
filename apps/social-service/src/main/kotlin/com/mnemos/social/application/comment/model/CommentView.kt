@@ -15,4 +15,6 @@ data class CommentView(
     val replies: Long,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val authorUserId: UUID? = null,
+    val replyToAuthorAccountId: UUID? = null,
 )

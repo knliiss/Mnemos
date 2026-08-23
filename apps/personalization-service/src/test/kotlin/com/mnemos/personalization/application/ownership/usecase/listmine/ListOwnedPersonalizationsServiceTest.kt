@@ -2,7 +2,6 @@ package com.mnemos.personalization.application.ownership.usecase.listmine
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.exception.ActiveAccountRequiredException
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
 import com.mnemos.personalization.application.common.pagination.PageQuery
@@ -57,13 +56,6 @@ class ListOwnedPersonalizationsServiceTest {
             ),
         )
         whenever(accountAccess.requireActiveAccount(userId)).thenReturn(accountId)
-        whenever(
-            accountAccess.hasPermission(
-                accountId = accountId,
-                userId = userId,
-                permission = RolePermission.VIEW_PERSONALIZATIONS,
-            ),
-        ).thenReturn(true)
         whenever(
             ownershipReader.findOwned(
                 userId = userId,

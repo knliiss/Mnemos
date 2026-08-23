@@ -1,0 +1,94 @@
+.personalization-review-screen .review-queue-card {
+  grid-template-columns: 112px minmax(0, 1fr) auto !important;
+  gap: 16px !important;
+  min-height: 116px !important;
+  padding: 12px 14px 12px 10px !important;
+}
+
+.personalization-review-screen .review-queue-card > .real-preview.is-small {
+  align-self: center;
+  width: 104px !important;
+  min-width: 104px !important;
+  height: 90px !important;
+  min-height: 90px !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}
+
+.personalization-review-screen .review-queue-card__copy {
+  align-self: center;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-queue-card__side {
+  align-self: center;
+}
+
+.personalization-review-screen .review-empty-workbench {
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  min-height: 92px !important;
+  padding: 15px !important;
+}
+
+.personalization-review-screen .review-empty-workbench > svg {
+  display: block;
+  justify-self: center;
+  width: 24px;
+  height: 24px;
+}
+
+.personalization-review-screen .review-empty-workbench > span {
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.personalization-review-screen .review-workbench > .real-preview.is-detail {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 188px !important;
+  min-height: 188px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+
+@media (max-width: 699px) {
+  .personalization-review-screen .review-queue-card {
+    grid-template-columns: 72px minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    min-height: 88px !important;
+    padding: 9px !important;
+  }
+
+  .personalization-review-screen .review-queue-card > .real-preview.is-small {
+    width: 66px !important;
+    min-width: 66px !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    border-radius: 11px !important;
+  }
+
+  .personalization-review-screen .review-workbench > .real-preview.is-detail {
+    height: 156px !important;
+    min-height: 156px !important;
+  }
+}
+
+@media (max-width: 460px) {
+  .personalization-review-screen .review-queue-card {
+    grid-template-columns: 66px minmax(0, 1fr) !important;
+  }
+
+  .personalization-review-screen .review-queue-card > .real-preview.is-small {
+    width: 60px !important;
+    min-width: 60px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+  }
+
+  .personalization-review-screen .review-queue-card__side {
+    grid-column: 2;
+    justify-items: start;
+  }
+}

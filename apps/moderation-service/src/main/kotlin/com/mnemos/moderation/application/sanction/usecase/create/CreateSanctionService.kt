@@ -8,6 +8,7 @@ import com.mnemos.moderation.application.sanction.mapper.SanctionViewMapper.toVi
 import com.mnemos.moderation.application.security.port.out.CurrentModeratorProvider
 import com.mnemos.moderation.application.security.port.out.UserRoleProvider
 import com.mnemos.moderation.domain.sanction.exception.SanctionConflictException
+import com.mnemos.moderation.domain.sanction.exception.SelfSanctionException
 import com.mnemos.moderation.domain.sanction.model.Sanction
 import com.mnemos.moderation.domain.sanction.policy.SanctionPolicy
 import com.mnemos.moderation.domain.sanction.repository.SanctionRepository
@@ -26,6 +27,11 @@ class CreateSanctionService(
 ) : CreateSanctionUseCase {
     override fun execute(command: CreateSanctionCommand): CreateSanctionResult {
         val actor = currentModeratorProvider.current()
+
+        if (actor.userId == command.userId) {
+            throw SelfSanctionException()
+        }
+
         val targetRole = userRoleProvider.highestRole(command.userId)
         val now = clock.instant()
         val expiresAt = command.duration?.let(now::plus)

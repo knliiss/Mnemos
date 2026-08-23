@@ -1,0 +1,149 @@
+import { AnimatePresence } from "framer-motion"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { SUBSCRIPTION_TYPES } from "../../contracts"
+import { useMnemosData } from "../../data/MnemosDataProvider"
+import type { SubscriptionType } from "../../model"
+import { Glyph } from "../../shared/MnemosIcon"
+import { PageHeader } from "../../shared/Primitives"
+import { FeatureLoading } from "../../system/FeatureLoading"
+import { SubscriptionCreateSheet } from "./SubscriptionCreateSheet"
+import { SubscriptionRule } from "./SubscriptionRule"
+import { useSubscriptionItemTypes } from "./useSubscriptionItemTypes"
+
+const subscriptionIcons: Record<
+  SubscriptionType,
+  "item-drop" | "booster" | "dungeon" | "raid" | "global"
+> = {
+  ITEM_DROP: "item-drop",
+  BOOSTER: "booster",
+  DUNGEON: "dungeon",
+  RAID: "raid",
+  GLOBAL: "global",
+}
+
+export function Subscriptions({ back }: { back: () => void }) {
+  const { t } = useTranslation()
+  const data = useMnemosData()
+  const [creating, setCreating] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const mutationLocked = useRef(false)
+  const mountedRef = useRef(true)
+
+  const subscriptions = data.subscriptions
+  const itemTypesByName = useSubscriptionItemTypes(subscriptions)
+  const counts = useMemo(
+    () =>
+      SUBSCRIPTION_TYPES.map((type) => ({
+        type,
+        count: subscriptions.filter((subscription) => subscription.type === type).length,
+      })).filter((entry) => entry.count > 0),
+    [subscriptions],
+  )
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  const remove = async (subscriptionId: string) => {
+    if (mutationLocked.current) {
+      return
+    }
+
+    mutationLocked.current = true
+    setDeletingId(subscriptionId)
+
+    try {
+      await data.removeSubscription(subscriptionId)
+    } finally {
+      mutationLocked.current = false
+
+      if (mountedRef.current) {
+        setDeletingId(null)
+      }
+    }
+  }
+
+  return (
+    <div className="screen subscriptions-screen">
+      <PageHeader title={t("events.subscriptions.title")} back={back} />
+
+      <section className="subscription-summary">
+        <span className="subscription-summary__icon">
+          <Glyph name="bell" size={22} />
+        </span>
+
+        <span>
+          <strong>{subscriptions.length}</strong>
+          <small>{t("events.subscriptions.activeRules")}</small>
+        </span>
+
+        <button type="button" disabled={deletingId !== null} onClick={() => setCreating(true)}>
+          <Glyph name="plus" size={17} />
+          {t("events.subscriptions.new")}
+        </button>
+      </section>
+
+      <div className="subscription-counts">
+        {counts.map((entry) => (
+          <span key={entry.type}>
+            <Glyph name={subscriptionIcons[entry.type]} size={14} />
+            {t(`events.kinds.${entry.type}`)}
+            <b>{entry.count}</b>
+          </span>
+        ))}
+      </div>
+
+      <section className="subscription-rules">
+        <header>
+          <h2>{t("events.subscriptions.rules")}</h2>
+          <small>{t("events.subscriptions.rulesCopy")}</small>
+        </header>
+
+        <div>
+          {data.loadingSubscriptions && !subscriptions.length ? (
+            <FeatureLoading label={t("events.subscriptions.loading")} />
+          ) : null}
+
+          {!data.loadingSubscriptions && data.subscriptionsError ? (
+            <div className="feature-empty">
+              <Glyph name="bell" size={24} />
+              <strong>{t("events.subscriptions.errorTitle")}</strong>
+              <small>{t("events.subscriptions.errorCopy")}</small>
+              <button type="button" onClick={() => void data.refreshSubscriptions()}>
+                {t("events.subscriptions.retry")}
+              </button>
+            </div>
+          ) : null}
+
+          {subscriptions.map((subscription) => (
+            <SubscriptionRule
+              key={subscription.id}
+              subscription={subscription}
+              itemTypesByName={itemTypesByName}
+              deleting={deletingId === subscription.id}
+              disabled={deletingId !== null}
+              onRemove={() => void remove(subscription.id)}
+            />
+          ))}
+
+          {!data.loadingSubscriptions && !data.subscriptionsError && !subscriptions.length ? (
+            <div className="feature-empty">
+              <Glyph name="bell" size={24} />
+              <strong>{t("events.subscriptions.emptyTitle")}</strong>
+              <small>{t("events.subscriptions.emptyCopy")}</small>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <AnimatePresence>
+        {creating ? <SubscriptionCreateSheet onClose={() => setCreating(false)} /> : null}
+      </AnimatePresence>
+    </div>
+  )
+}

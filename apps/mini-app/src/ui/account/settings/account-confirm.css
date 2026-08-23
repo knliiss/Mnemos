@@ -1,0 +1,71 @@
+.account-confirm {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 13px;
+  background: rgba(5, 7, 5, 0.3);
+}
+
+.account-confirm > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #d3a663;
+  background: rgba(255, 179, 79, 0.07);
+}
+
+.account-confirm.is-danger > span:first-child {
+  color: #d47e84;
+  background: rgba(188, 61, 68, 0.07);
+}
+
+.account-confirm > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-confirm strong {
+  color: #d7dcd2;
+  font-size: 10px;
+}
+
+.account-confirm small {
+  color: #777e73;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.account-confirm > div {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.account-confirm > div button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 10px;
+  color: #969d91;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 9px;
+}
+
+.account-confirm > div button:last-child {
+  border-color: rgba(203, 255, 45, 0.15);
+  color: #c7ec59;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.account-confirm.is-danger > div button:last-child {
+  border-color: rgba(222, 105, 112, 0.2);
+  color: #dc9a9f;
+  background: rgba(188, 61, 68, 0.06);
+}

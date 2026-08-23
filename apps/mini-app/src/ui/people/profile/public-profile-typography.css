@@ -1,0 +1,72 @@
+.public-profile-presence,
+.public-profile-identity small,
+.public-profile-section-head small,
+.public-profile-metrics small,
+.public-profile-drop__order,
+.public-profile-comments-sheet__title small {
+  font-size: 10px;
+}
+
+.public-profile-identity > span,
+.public-profile-reactions button b,
+.public-profile-section-head > b,
+.public-profile-drop__copy small,
+.public-profile-drop__copy em,
+.public-profile-comments-preview__copy > small,
+.public-profile-comments-preview__copy > em,
+.public-profile-comments-preview__count,
+.public-profile-comments-sheet__title strong b,
+.public-profile-comment__body header time,
+.public-profile-reply__body header time,
+.public-profile-comment__body footer > button,
+.public-profile-reply__body footer > button,
+.public-profile-thread__toggle,
+.public-profile-comment__like span,
+.public-profile-reply__like span,
+.public-profile-replies__more,
+.public-profile-replies__loading,
+.public-profile-comments-sheet__empty small,
+.public-profile-comments-sheet__loading,
+.public-profile-reply-context {
+  font-size: 11px;
+}
+
+.public-profile-drop__copy strong,
+.public-profile-comments-preview__copy > strong,
+.public-profile-comment__body header strong,
+.public-profile-reply__body header strong,
+.public-profile-comments-sheet__empty strong {
+  font-size: 12px;
+}
+
+.public-profile-comment__body p,
+.public-profile-reply__body p {
+  color: #c1c6bc;
+  font-size: 13px;
+  line-height: 1.46;
+}
+
+.public-profile-composer input {
+  height: 40px;
+  font-size: 13px;
+}
+
+.public-profile-state strong {
+  font-size: 13px;
+}
+
+.public-profile-state small {
+  font-size: 11px;
+}
+
+.public-profile-comments-sheet__header {
+  min-height: 66px;
+}
+
+.public-profile-comment__body {
+  gap: 7px;
+}
+
+.public-profile-reply__body {
+  gap: 5px;
+}

@@ -1,0 +1,243 @@
+name: Stack Smoke
+
+on:
+  pull_request:
+    paths:
+      - "apps/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "keycloak-extensions/**"
+      - "infrastructure/compose/**"
+      - "infrastructure/kafka/**"
+      - "infrastructure/keycloak/**"
+      - "infrastructure/minio-init/**"
+      - "make/**"
+      - "scripts/docker-compose-env.sh"
+      - "scripts/generate-kafka-message-keys.sh"
+      - "scripts/verify-compose-env-isolation.sh"
+      - "scripts/verify-kafka-message-auth.sh"
+      - "scripts/verify-kafka-message-auth-runtime.sh"
+      - "scripts/verify-kafka-service-config.sh"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle/**"
+      - ".github/ci/compose-isolation.override.yml"
+      - ".github/workflows/stack-smoke.yml"
+
+concurrency:
+  group: stack-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Prepare isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .env.example .env.ci
+
+          set_env() {
+            local key="$1"
+            local value="$2"
+
+            sed -i "s|^${key}=.*|${key}=${value}|" .env.ci
+          }
+
+          port_base=$((40000 + GITHUB_RUN_ID % 10000))
+
+          set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
+          set_env APP_POSTGRES_HOST_PORT "$port_base"
+          set_env KEYCLOAK_POSTGRES_HOST_PORT "$((port_base + 1))"
+          set_env KEYCLOAK_HOST_PORT "$((port_base + 2))"
+          set_env KAFKA_HOST_PORT "$((port_base + 3))"
+          set_env REDIS_HOST_PORT "$((port_base + 4))"
+          set_env GATEWAY_HOST_PORT "$((port_base + 5))"
+
+          set_env MNEMOS_FRONTEND_ORIGIN "http://127.0.0.1:$((port_base + 6))"
+          set_env MNEMOS_API_ORIGIN "http://127.0.0.1:$((port_base + 5))"
+          set_env MNEMOS_AUTH_ORIGIN "http://127.0.0.1:$((port_base + 2))"
+          set_env MNEMOS_TELEGRAM_BOT_TOKEN "ci-not-used"
+          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_TOKEN "ci-not-used"
+          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY "ci-not-used"
+
+          scripts/verify-kafka-service-config.sh
+          scripts/generate-kafka-message-keys.sh .env.ci
+          scripts/verify-kafka-message-auth.sh .env.ci
+
+          for key in \
+            SOCIAL_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            PROFILE_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS; do
+            if ! grep -Eq "^${key}=.+" .env.ci; then
+              echo "Generated environment is missing ${key}" >&2
+              exit 1
+            fi
+          done
+
+          compose_command="sh scripts/docker-compose-env.sh .env.ci"
+
+          for file in infrastructure/compose/compose.*.yml infrastructure/compose/apps/compose.*.yml; do
+            compose_command+=" -f ${file}"
+          done
+
+          compose_command+=" -f .github/ci/compose-isolation.override.yml"
+          echo "CI_COMPOSE_COMMAND=${compose_command}" >> "$GITHUB_ENV"
+
+          # Deliberately poison the runner environment. Docker Compose normally gives
+          # exported shell variables precedence over --env-file, which previously
+          # allowed stale Kafka key material to override the generated environment.
+          echo "MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS=account-service=stale-shell-key" >> "$GITHUB_ENV"
+          echo "ACCOUNT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY=stale-shell-private-key" >> "$GITHUB_ENV"
+          echo "KAFKA_ACCOUNT_SERVICE_PASSWORD=stale-shell-password" >> "$GITHUB_ENV"
+
+      - name: Validate Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          $CI_COMPOSE_COMMAND config --quiet
+
+      - name: Build stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" build
+
+      - name: Start clean stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          STARTUP_CHECK_DELAY=45 make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
+          sleep 20
+          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
+          scripts/verify-kafka-message-auth-runtime.sh .env.ci
+
+      - name: Verify MinIO isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minio_init_container="$($CI_COMPOSE_COMMAND ps -aq minio-init)"
+
+          if [ -z "$minio_init_container" ]; then
+            echo "minio-init container is missing" >&2
+            exit 1
+          fi
+
+          minio_init_state="$(docker inspect -f '{{.State.Status}}' "$minio_init_container")"
+          minio_init_exit_code="$(docker inspect -f '{{.State.ExitCode}}' "$minio_init_container")"
+
+          if [ "$minio_init_state" != "exited" ] || [ "$minio_init_exit_code" != "0" ]; then
+            echo "minio-init did not complete successfully" >&2
+            exit 1
+          fi
+
+          if $CI_COMPOSE_COMMAND exec -T personalization-service sh -c \
+            'env | grep -q "^MINIO_ROOT_"'; then
+            echo "personalization-service must not receive MinIO root credentials" >&2
+            exit 1
+          fi
+
+          $CI_COMPOSE_COMMAND exec -T personalization-service sh -ec \
+            'test -n "$MINIO_PERSONALIZATION_ACCESS_KEY" && test -n "$MINIO_PERSONALIZATION_SECRET_KEY"'
+
+      - name: Verify Flyway schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          schemas=(
+            account
+            bet
+            event
+            moderation
+            notification
+            personalization
+            profile
+            realtime
+            reward
+            social
+            wallet
+          )
+
+          for schema in "${schemas[@]}"; do
+            migrations="$($CI_COMPOSE_COMMAND exec -T app-postgres \
+              psql \
+              --username mnemos \
+              --dbname mnemos \
+              --tuples-only \
+              --no-align \
+              --command "SELECT COUNT(*) FROM ${schema}.flyway_schema_history WHERE success = true;")"
+
+            migrations="$(echo "$migrations" | tr -d '[:space:]')"
+
+            if [ -z "$migrations" ] || [ "$migrations" -lt 1 ]; then
+              echo "No successful Flyway migrations found for schema ${schema}" >&2
+              exit 1
+            fi
+
+            echo "${schema}: ${migrations} migrations"
+          done
+
+      - name: Diagnose stack failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+
+          echo "=== Compose state ==="
+          $CI_COMPOSE_COMMAND ps -a
+
+          echo "=== Kafka health ==="
+          kafka_container="$($CI_COMPOSE_COMMAND ps -q kafka)"
+          if [ -n "$kafka_container" ]; then
+            docker inspect \
+              --format '{{json .State.Health}}' \
+              "$kafka_container"
+          fi
+
+          echo "=== Kafka logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=300 kafka
+
+          echo "=== Kafka init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 kafka-init
+
+          echo "=== Keycloak config logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 keycloak-config
+
+          echo "=== MinIO logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 minio
+
+          echo "=== MinIO init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 minio-init
+
+      - name: Cleanup isolated stack
+        if: always()
+        shell: bash
+        run: |
+          set +e
+
+          if [ -n "${CI_COMPOSE_COMMAND:-}" ]; then
+            $CI_COMPOSE_COMMAND down --volumes --remove-orphans
+          fi
+
+          rm -f .env.ci

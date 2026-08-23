@@ -106,7 +106,7 @@ class ActivatePersonalizationServiceTest {
             accountAccess.hasPermission(
                 accountId = accountId,
                 userId = creatorUserId,
-                permission = RolePermission.APPLY_PERSONALIZATIONS,
+                permission = RolePermission.APPLY_ACCOUNT_PERSONALIZATIONS,
             ),
         ).thenReturn(true)
         whenever(ownershipRepository.findForUpdate(owner, personalization.id)).thenReturn(null)

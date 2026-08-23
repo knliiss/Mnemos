@@ -1,0 +1,164 @@
+.route-content-frame {
+  box-sizing: border-box;
+  width: min(100%, 960px);
+  min-height: 100%;
+  margin-inline: auto;
+}
+
+.route-stage {
+  position: relative;
+}
+
+.root-user-access {
+  position: absolute;
+  z-index: 25;
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  right: max(18px, calc((100% - 960px) / 2 + 18px));
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+}
+
+.root-user-access > .global-user-button {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2;
+  flex: 0 0 42px;
+}
+
+.route-stage.has-tabbar {
+  padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+}
+
+.root-navigation.root-navigation--five {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  min-height: 72px;
+  padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+  border: 0 !important;
+  border-top: 1px solid rgba(238, 245, 214, 0.1) !important;
+  border-radius: 0 !important;
+  background: rgba(8, 10, 7, 0.985) !important;
+  box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.24) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none;
+}
+
+.root-navigation.root-navigation--five button {
+  min-height: 56px;
+  border-radius: 10px;
+}
+
+.root-navigation.root-navigation--five button.is-active {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.root-navigation--illustrated .root-navigation__icon--illustrated::before,
+.root-navigation--illustrated button.is-active .root-navigation__icon--illustrated::before {
+  opacity: 0 !important;
+  transform: none !important;
+}
+
+.telegram-mini-app .route-stage.has-tabbar {
+  padding-bottom: calc(
+    86px +
+      max(
+        env(safe-area-inset-bottom, 0px),
+        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+      )
+  );
+}
+
+.telegram-mini-app .root-user-access {
+  top: calc(20px + var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px)));
+  right: max(16px, var(--tg-safe-area-inset-right, env(safe-area-inset-right, 0px)));
+}
+
+.telegram-mini-app .root-navigation.root-navigation--five {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding-bottom: calc(
+    6px +
+      max(
+        env(safe-area-inset-bottom, 0px),
+        var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+      )
+  );
+}
+
+.user-hub {
+  top: calc(72px + env(safe-area-inset-top, 0px)) !important;
+}
+
+.telegram-mini-app .user-hub {
+  top: calc(
+    72px + var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+  ) !important;
+}
+
+@media (min-width: 700px) {
+  .app-shell {
+    width: min(calc(100% - 36px), 1100px);
+  }
+
+  .telegram-mini-app .app-shell {
+    width: 100%;
+  }
+
+  .route-stage.has-tabbar {
+    padding-bottom: calc(102px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .root-navigation.root-navigation--five {
+    min-height: 84px;
+    padding-top: 5px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .telegram-mini-app .route-stage.has-tabbar {
+    padding-bottom: calc(
+      102px +
+        max(
+          env(safe-area-inset-bottom, 0px),
+          var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+        )
+    );
+  }
+
+  .telegram-mini-app .root-navigation.root-navigation--five {
+    padding-bottom: calc(
+      15px +
+        max(
+          env(safe-area-inset-bottom, 0px),
+          var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
+        )
+    );
+  }
+
+  .user-hub {
+    right: max(14px, calc((100% - 960px) / 2 + 18px)) !important;
+  }
+}
+
+@media (max-width: 699px) {
+  .route-content-frame {
+    width: 100%;
+  }
+
+  .root-user-access {
+    right: 16px;
+  }
+
+  .root-navigation.root-navigation--five {
+    padding-inline: 8px;
+  }
+}

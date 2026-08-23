@@ -5,6 +5,7 @@ import com.mnemos.bet.application.itemrace.model.ItemRaceParticipantView
 import com.mnemos.bet.application.itemrace.model.ItemRaceView
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
 import com.mnemos.bet.domain.itemrace.model.ItemRaceId
+import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipantStatus
 import com.mnemos.bet.domain.itemrace.model.ItemRaceStatus
 import com.mnemos.common.core.model.id.AccountId
 import org.springframework.stereotype.Repository
@@ -40,6 +41,25 @@ class ItemRaceReaderAdapter(
                 accountId = accountId.id,
             )?.toView()
 
+    override fun findOngoingParticipants(accountId: AccountId): List<ItemRaceParticipantView> =
+        participantJpaRepository
+            .findAllByAccountIdAndStatusInOrderByIdDesc(
+                accountId = accountId.id,
+                statuses = ongoingParticipantStatuses,
+            ).map { it.toView() }
+
     override fun findHistory(accountId: AccountId): List<ItemRaceParticipantView> =
         participantJpaRepository.findAllByAccountIdOrderByIdDesc(accountId.id).map { it.toView() }
+
+    private companion object {
+        val ongoingParticipantStatuses =
+            listOf(
+                ItemRaceParticipantStatus.PENDING,
+                ItemRaceParticipantStatus.ACTIVE,
+                ItemRaceParticipantStatus.PAYOUT_PENDING,
+                ItemRaceParticipantStatus.PAYOUT_FAILED,
+                ItemRaceParticipantStatus.REFUND_PENDING,
+                ItemRaceParticipantStatus.REFUND_FAILED,
+            )
+    }
 }

@@ -1,7 +1,8 @@
 package com.mnemos.realtime.adapter.inbound.http.sse
 
-import com.mnemos.realtime.adapter.sse.connection.SseConnectionRegistry
-import com.mnemos.realtime.application.broadcast.port.out.DropSpotlightPresentationPreferenceStore
+import com.mnemos.realtime.application.broadcast.usecase.preference.GetDropSpotlightPresentationPreferenceService
+import com.mnemos.realtime.application.broadcast.usecase.preference.UpdateDropSpotlightPresentationPreferenceCommand
+import com.mnemos.realtime.application.broadcast.usecase.preference.UpdateDropSpotlightPresentationPreferenceService
 import com.mnemos.security.CurrentMnemosUser
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,35 +15,29 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/realtime/drop-spotlight/presentation")
 class DropSpotlightPresentationPreferenceController(
     private val currentUser: CurrentMnemosUser,
-    private val preferenceStore: DropSpotlightPresentationPreferenceStore,
-    private val connectionRegistry: SseConnectionRegistry,
+    private val getPreferenceService: GetDropSpotlightPresentationPreferenceService,
+    private val updatePreferenceService: UpdateDropSpotlightPresentationPreferenceService,
 ) {
     @GetMapping
-    fun get(): DropSpotlightPresentationPreferenceResponse {
-        val userId = currentUser.requireUserId()
-
-        return DropSpotlightPresentationPreferenceResponse(
-            mode = preferenceStore.find(userId),
+    fun get(): DropSpotlightPresentationPreferenceResponse =
+        DropSpotlightPresentationPreferenceResponse(
+            mode = getPreferenceService.execute(currentUser.requireUserId()),
         )
-    }
 
     @PutMapping
     fun update(
         @Valid @RequestBody request: UpdateDropSpotlightPresentationPreferenceRequest,
     ): DropSpotlightPresentationPreferenceResponse {
-        val userId = currentUser.requireUserId()
-
-        preferenceStore.save(
-            userId = userId,
-            mode = request.mode,
-        )
-        connectionRegistry.updateDropSpotlightPresentationMode(
-            userId = userId,
-            mode = request.mode,
-        )
+        val mode =
+            updatePreferenceService.execute(
+                UpdateDropSpotlightPresentationPreferenceCommand(
+                    userId = currentUser.requireUserId(),
+                    mode = request.mode,
+                ),
+            )
 
         return DropSpotlightPresentationPreferenceResponse(
-            mode = request.mode,
+            mode = mode,
         )
     }
 }

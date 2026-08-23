@@ -1,0 +1,592 @@
+.bets-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 102px !important;
+}
+
+.bets-title {
+  position: relative !important;
+  min-height: 118px !important;
+  padding-right: 62px !important;
+  padding-bottom: 48px !important;
+}
+
+.bets-title > span {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+}
+
+.bets-title small {
+  color: #7e8576;
+  font-size: 9px;
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: 0.11em;
+}
+
+.bets-title h1 {
+  margin: 1px 0 0;
+  font-size: 31px !important;
+  line-height: 0.96 !important;
+}
+
+.bets-title p {
+  margin: 3px 0 0;
+  color: #8b9183;
+  font-size: 9px;
+  line-height: 1.25 !important;
+}
+
+.bets-wallet {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 126px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(199, 242, 74, 0.16);
+  border-radius: 12px;
+  color: #dfe4d2;
+  background:
+    radial-gradient(circle at 12% 50%, rgba(199, 242, 74, 0.08), transparent 52%),
+    rgba(18, 21, 15, 0.9);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.bets-wallet__label {
+  color: #7f8678;
+  font-size: 9px;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bets-wallet .currency-value {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
+}
+
+.bets-mode {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid rgba(226, 233, 207, 0.105);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.bets-mode button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 11px;
+  color: #767d71;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.bets-mode button.is-active {
+  color: #e7eae2;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.bets-mode b {
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 5px;
+  color: #182004;
+  background: #c7f24a;
+  font-size: 9px;
+}
+
+.bets-feature {
+  --event-accent: #9aa295;
+  position: relative;
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 8px 12px;
+  min-height: 180px;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid rgba(229, 236, 213, 0.12);
+  border-radius: 24px;
+  color: inherit;
+  background:
+    radial-gradient(
+      circle at 18% 35%,
+      color-mix(in srgb, var(--event-accent) 13%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(145deg, rgba(28, 30, 24, 0.985), rgba(10, 11, 9, 0.99));
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.035),
+    0 16px 36px rgba(0, 0, 0, 0.16);
+  text-align: left;
+}
+
+.bets-feature::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 4px;
+  height: 4px;
+  background: var(--event-accent);
+  box-shadow: -10px 9px color-mix(in srgb, var(--event-accent) 45%, transparent);
+  opacity: 0.7;
+}
+
+.bets-feature__art {
+  position: relative;
+  grid-row: 1 / 3;
+  align-self: center;
+  display: grid;
+  place-items: center;
+}
+
+.bets-feature .event-art,
+.bets-card .event-art {
+  --event-art-color: var(--event-accent);
+}
+
+.bets-feature__copy {
+  display: grid;
+  align-self: end;
+  gap: 2px;
+}
+
+.bets-feature__copy small {
+  color: color-mix(in srgb, var(--event-accent) 65%, #7c8275);
+  font-size: 9px;
+  font-weight: 720;
+  letter-spacing: 0.1em;
+}
+
+.bets-feature__copy strong {
+  color: #f0f2eb;
+  font-size: 19px;
+  line-height: 1.08;
+}
+
+.bets-feature__copy em {
+  color: #858b7e;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.bets-feature__odds {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  min-height: 52px;
+  overflow: hidden;
+  border: 1px solid rgba(229, 236, 213, 0.09);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.bets-feature__odds > span {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+}
+
+.bets-feature__odds small {
+  color: #757c70;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.bets-feature__odds strong {
+  color: #edf0e8;
+  font-size: 14px;
+}
+
+.bets-feature__odds > i {
+  width: 1px;
+  height: 28px;
+  background: rgba(229, 236, 213, 0.08);
+}
+
+.bets-feature__mine {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c7f24a;
+  font-size: 9px;
+}
+
+.bets-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 5px;
+  padding: 0 2px;
+}
+
+.bets-section-head > span {
+  display: grid;
+  gap: 2px;
+}
+
+.bets-section-head small {
+  color: #7c8376;
+  font-size: 9px;
+  font-weight: 730;
+  letter-spacing: 0.13em;
+}
+
+.bets-section-head strong {
+  color: #e7eae2;
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.bets-rounds,
+.bets-races {
+  display: grid;
+  gap: 8px;
+}
+
+.bets-card {
+  --event-accent: #9aa295;
+  position: relative;
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 10px;
+  min-height: 86px;
+  overflow: hidden;
+  padding: 8px 10px 8px 8px;
+  border: 1px solid rgba(229, 236, 213, 0.09);
+  border-radius: 18px;
+  color: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--event-accent) 4%, transparent),
+      transparent 30%
+    ),
+    rgba(13, 15, 11, 0.9);
+  text-align: left;
+}
+
+.bets-card.is-locked {
+  opacity: 0.64;
+  filter: saturate(0.7);
+}
+
+.bets-card__art,
+.bets-race__art {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.bets-card__copy,
+.bets-race__copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.bets-card__copy small,
+.bets-race__copy small {
+  color: #7f8579;
+  font-size: 9px;
+}
+
+.bets-card__copy strong {
+  overflow: hidden;
+  color: #e5e8e0;
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bets-card__copy em,
+.bets-race__copy em {
+  color: #747b6f;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.bets-card__odds {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(229, 236, 213, 0.075);
+  border-radius: 10px;
+}
+
+.bets-card__odds b {
+  color: #c9cec3;
+  font-size: 9px;
+  text-align: center;
+}
+
+.bets-card__odds i {
+  width: 1px;
+  height: 18px;
+  background: rgba(229, 236, 213, 0.07);
+}
+
+.bets-card__mine {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #c7f24a;
+  font-size: 9px;
+}
+
+.bets-race {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 92px;
+  padding: 9px 11px 9px 8px;
+  border: 1px solid rgba(229, 236, 213, 0.095);
+  border-radius: 18px;
+  color: inherit;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(199, 242, 74, 0.045), transparent 30%),
+    rgba(13, 15, 11, 0.9);
+  text-align: left;
+}
+
+.bets-race__art::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background:
+    linear-gradient(#89945b, #89945b) left top / 9px 2px no-repeat,
+    linear-gradient(#89945b, #89945b) left top / 2px 9px no-repeat,
+    linear-gradient(#b38b66, #b38b66) right bottom / 9px 2px no-repeat,
+    linear-gradient(#b38b66, #b38b66) right bottom / 2px 9px no-repeat;
+  opacity: 0.6;
+}
+
+.bets-race__copy strong {
+  overflow: hidden;
+  color: #e7eae2;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bets-race__entry {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.bets-race__entry small {
+  color: #72796d;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.bets-race__entry .currency-value {
+  font-size: 9px !important;
+}
+
+.bets-empty {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 150px;
+  border: 1px dashed rgba(226, 233, 207, 0.09);
+  border-radius: 19px;
+  color: #6f766a;
+  background: rgba(255, 255, 255, 0.008);
+  text-align: center;
+}
+
+.bets-empty strong {
+  color: #9ca296;
+  font-size: 11px;
+}
+
+.bets-empty small {
+  font-size: 9px;
+}
+
+.bets-empty > button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(199, 242, 74, 0.18);
+  border-radius: 10px;
+  color: #c7f24a;
+  background: rgba(199, 242, 74, 0.06);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.bets-sheet {
+  display: grid;
+  gap: 12px;
+}
+
+.bets-sheet__event {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(229, 236, 213, 0.1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.bets-sheet__event > span {
+  display: grid;
+  gap: 2px;
+}
+
+.bets-sheet__event small {
+  color: #7d8477;
+  font-size: 9px;
+}
+
+.bets-sheet__event strong {
+  color: #e9ece4;
+  font-size: 11px;
+}
+
+.bets-sheet__event em {
+  color: #747b6f;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.bets-side-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.bets-side-choice button {
+  display: grid;
+  gap: 3px;
+  min-height: 66px;
+  border: 1px solid rgba(229, 236, 213, 0.1);
+  border-radius: 14px;
+  color: #858c7f;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.bets-side-choice button.is-active {
+  border-color: rgba(199, 242, 74, 0.23);
+  color: #e8ece2;
+  background: rgba(199, 242, 74, 0.035);
+}
+
+.bets-side-choice strong {
+  color: #c7f24a;
+  font-size: 14px;
+}
+
+.bets-current-position {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(229, 236, 213, 0.09);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.bets-current-position > span {
+  display: grid;
+  gap: 1px;
+}
+
+.bets-current-position small {
+  color: #777e72;
+  font-size: 9px;
+}
+
+.bets-current-position strong {
+  color: #dfe2da;
+  font-size: 10px;
+}
+
+.bets-amount {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid rgba(229, 236, 213, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.bets-amount input {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.bets-submit {
+  min-height: 43px;
+  border: 1px solid rgba(199, 242, 74, 0.22);
+  border-radius: 12px;
+  color: #172004;
+  background: linear-gradient(180deg, #dcff63, #c4ed35);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bets-submit:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 374px) {
+  .bets-title {
+    min-height: 112px !important;
+    padding-right: 54px !important;
+    padding-bottom: 46px !important;
+  }
+
+  .bets-feature {
+    grid-template-columns: 78px minmax(0, 1fr);
+    padding-inline: 12px;
+  }
+
+  .bets-card {
+    grid-template-columns: 54px minmax(0, 1fr) 64px;
+    gap: 8px;
+  }
+}

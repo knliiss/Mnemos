@@ -1,0 +1,775 @@
+.account-home-screen {
+  padding-bottom: 34px;
+}
+
+.account-home-profile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 122px;
+  overflow: hidden;
+  margin: 4px 0 10px;
+  padding: 15px;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 21px;
+  color: #eef1e8;
+  background:
+    radial-gradient(circle at 18% 35%, rgba(203, 255, 45, 0.075), transparent 38%),
+    radial-gradient(circle at 92% 18%, rgba(206, 145, 210, 0.055), transparent 34%),
+    rgba(255, 255, 255, 0.019);
+  text-align: left;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.account-home-profile__head {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+}
+
+.account-home-profile__copy {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  gap: 5px;
+  padding-right: 78px;
+}
+
+.account-home-profile__copy > small,
+.account-home-reward__copy > small,
+.account-home-feature-copy > small,
+.account-home-panel__head small {
+  color: #7f8679;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.115em;
+}
+
+.account-home-profile__copy > strong {
+  overflow: hidden;
+  color: #f1f3ed;
+  font-size: clamp(22px, 6.5vw, 30px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-profile__pulse {
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  height: 15px;
+  margin-top: 2px;
+}
+
+.account-home-profile__pulse i {
+  display: block;
+  width: 3px;
+  border-radius: 999px;
+  background: #a6c94d;
+  opacity: 0.55;
+}
+
+.account-home-profile__pulse i:nth-child(1) {
+  height: 5px;
+}
+
+.account-home-profile__pulse i:nth-child(2) {
+  height: 9px;
+}
+
+.account-home-profile__pulse i:nth-child(3) {
+  height: 14px;
+  background: #cbff2d;
+  opacity: 0.9;
+}
+
+.account-home-profile__art {
+  position: absolute;
+  z-index: 1;
+  right: -6px;
+  bottom: -9px;
+  width: 108px;
+  height: 108px;
+  object-fit: contain;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.account-home-reward {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 94px;
+  overflow: hidden;
+  margin: 10px 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 179, 79, 0.13);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(255, 179, 79, 0.075), transparent 34%),
+    linear-gradient(145deg, rgba(255, 179, 79, 0.025), rgba(255, 255, 255, 0.012));
+}
+
+.account-home-reward.is-claimed {
+  border-color: rgba(203, 255, 45, 0.1);
+  background:
+    radial-gradient(circle at 8% 50%, rgba(203, 255, 45, 0.055), transparent 34%),
+    rgba(255, 255, 255, 0.012);
+}
+
+.account-home-reward__flame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+}
+
+.account-home-reward__flame::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: rgba(255, 179, 79, 0.07);
+  filter: blur(7px);
+}
+
+.account-home-reward__flame > img {
+  position: relative;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.account-home-reward__flame > i {
+  position: absolute;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 179, 79, 0.16);
+  animation: account-reward-pulse 3.8s ease-in-out infinite;
+}
+
+.account-home-reward__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.account-home-reward__streak {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.account-home-reward__streak strong {
+  color: #f0f2eb;
+  font-size: 25px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-home-reward__streak > span {
+  color: #989e92;
+  font-size: 10px;
+}
+
+.account-home-reward__range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #878d82;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
+}
+
+.account-home-reward__range > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.account-home-reward > button {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(203, 255, 45, 0.17);
+  border-radius: 11px;
+  color: #111507;
+  background: linear-gradient(180deg, #d8ff5a, #b9e52e);
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.account-home-reward > button.is-restore {
+  color: #e3c88d;
+  border-color: rgba(255, 179, 79, 0.18);
+  background: rgba(255, 179, 79, 0.065);
+}
+
+.account-home-reward > button small {
+  font-size: 8px;
+}
+
+.account-home-reward-particles {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  right: 82px;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.reward-particle {
+  --reward-particle-color: #cbff2d;
+  --reward-particle-glow: rgba(203, 255, 45, 0.28);
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--reward-particle-color);
+  box-shadow: 0 0 8px var(--reward-particle-glow);
+}
+
+.reward-particle.is-coin {
+  --reward-particle-color: #e7b14f;
+  --reward-particle-glow: rgba(231, 177, 79, 0.3);
+}
+
+.reward-particle.is-prime {
+  --reward-particle-color: #d396d8;
+  --reward-particle-glow: rgba(211, 150, 216, 0.3);
+}
+
+.reward-particle--spark {
+  width: 3px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.reward-particle--orb {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.reward-particle--shard {
+  width: 5px;
+  height: 9px;
+  clip-path: polygon(50% 0, 100% 45%, 58% 100%, 0 60%);
+}
+
+.reward-particle--coin {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 0 8px var(--reward-particle-glow);
+}
+
+.account-home-reward-result {
+  position: absolute;
+  z-index: 5;
+  inset: 9px 10px 9px auto;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(235, 241, 213, 0.11);
+  border-radius: 13px;
+  background: rgba(10, 12, 9, 0.94);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.account-home-reward-result > span {
+  display: grid;
+  min-width: 82px;
+  gap: 2px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.account-home-reward-result small {
+  color: #777e73;
+  font-size: 8px;
+}
+
+.account-home-reward-result strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #dce1d7;
+  font-size: 10px;
+}
+
+.account-home-reward-result .is-prime strong {
+  color: #dda6e0;
+}
+
+.account-home-reward-result .is-empty strong {
+  color: #888e83;
+}
+
+.account-home-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.account-home-wallet,
+.account-home-personalization {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 132px;
+  overflow: hidden;
+  padding: 13px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 17px;
+  color: #e5e9df;
+  background: rgba(255, 255, 255, 0.016);
+  text-align: left;
+}
+
+.account-home-wallet {
+  border-color: rgba(255, 179, 79, 0.12);
+  background:
+    radial-gradient(circle at 82% 28%, rgba(255, 179, 79, 0.075), transparent 40%),
+    rgba(255, 255, 255, 0.016);
+}
+
+.account-home-personalization {
+  border-color: rgba(206, 145, 210, 0.12);
+  background:
+    radial-gradient(circle at 86% 26%, rgba(206, 145, 210, 0.065), transparent 42%),
+    rgba(255, 255, 255, 0.016);
+}
+
+.account-home-feature-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 5px;
+  max-width: 68%;
+}
+
+.account-home-feature-copy strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  color: #e7ebe2;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-feature-copy > span {
+  color: #7d8479;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.account-home-wallet > img,
+.account-home-personalization > img {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.account-home-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 10px 0 16px;
+}
+
+.account-home-actions > button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 8px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 13px;
+  color: #d9ded5;
+  background: rgba(255, 255, 255, 0.014);
+  text-align: left;
+}
+
+.account-home-actions__icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: #aeb4a8;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.account-home-actions__icon.is-amber {
+  color: #e7b15f;
+  background: rgba(255, 179, 79, 0.07);
+}
+
+.account-home-actions > button > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-home-actions strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-actions small {
+  overflow: hidden;
+  color: #72796e;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-panel {
+  margin: 14px 0;
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.085);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.account-home-panel__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 62px;
+  padding: 11px 13px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.055);
+}
+
+.account-home-panel__head > span:first-child,
+.account-home-members__head > span:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-home-panel__head strong {
+  color: #dfe3da;
+  font-size: 12px;
+}
+
+.account-home-panel__head em {
+  color: #777e73;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
+}
+
+.account-home-members__head > img {
+  position: absolute;
+  right: -5px;
+  bottom: -7px;
+  width: 88px;
+  height: 74px;
+  object-fit: contain;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.account-home-member-list,
+.account-home-drop-list {
+  display: grid;
+}
+
+.account-home-member,
+.account-home-drop {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  min-height: 62px;
+  padding: 9px 11px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.045);
+  color: #d9ded5;
+  text-align: left;
+}
+
+.account-home-member:last-child,
+.account-home-drop:last-child {
+  border-bottom: 0;
+}
+
+.account-home-member {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 9px;
+}
+
+.account-home-member__avatar {
+  --member-sigil: #aeb4a7;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(203, 255, 45, 0.055), transparent 58%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.account-home-member__avatar::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--member-sigil);
+  border-radius: 50%;
+  opacity: 0.72;
+  transition: filter 0.18s ease;
+}
+
+.account-home-member__avatar::after {
+  content: "";
+  position: absolute;
+  bottom: 7px;
+  width: 20px;
+  height: 9px;
+  border: 2px solid var(--member-sigil);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  opacity: 0.62;
+}
+
+.account-home-member__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.account-home-member__name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.account-home-member__name strong {
+  overflow: hidden;
+  color: #e1e5dc;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-owner-crown {
+  width: 17px;
+  height: 13px;
+  object-fit: contain;
+}
+
+.account-home-member__role {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.account-home-member__role > span {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-member__role > small,
+.account-home-member__no-role {
+  color: #747b70;
+  font-family: var(--font-meta);
+  font-size: 9px;
+}
+
+.account-home-member time,
+.account-home-drop time {
+  color: #70776c;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.018em;
+  white-space: nowrap;
+}
+
+.account-home-drops__head {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+}
+
+.account-home-drops__title-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.account-home-drops__title-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.account-home-drops__head > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.account-home-drops__activity-art {
+  width: 66px;
+  height: 46px;
+  object-fit: contain;
+  opacity: 0.72;
+}
+
+.account-home-drop {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 9px;
+}
+
+.account-home-drop__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-home-drop__copy strong {
+  overflow: hidden;
+  color: #dfe3da;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-drop__copy small {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-drop-list > .inline-hint {
+  margin: 0;
+  padding: 20px 13px;
+}
+
+@keyframes account-reward-pulse {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(0.88);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.12);
+  }
+}
+
+@media (max-width: 374px) {
+  .account-home-profile {
+    grid-template-columns: 78px minmax(0, 1fr);
+    min-height: 112px;
+    padding-inline: 11px;
+  }
+
+  .account-home-profile__head {
+    width: 78px;
+    height: 78px;
+  }
+
+  .account-home-profile__copy {
+    padding-right: 58px;
+  }
+
+  .account-home-profile__art {
+    width: 88px;
+    height: 92px;
+  }
+
+  .account-home-reward {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .account-home-reward__flame {
+    width: 44px;
+    height: 44px;
+  }
+
+  .account-home-reward-result {
+    left: 8px;
+    right: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account-home-feature-grid,
+  .account-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .account-home-wallet,
+  .account-home-personalization {
+    min-height: 112px;
+  }
+
+  .account-home-actions > button {
+    min-height: 54px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-home-reward__flame > i {
+    animation: none;
+  }
+}

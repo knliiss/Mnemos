@@ -17,7 +17,6 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationTa
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import com.mnemos.personalization.domain.purchase.model.PurchaseOperation
 import com.mnemos.personalization.domain.purchase.repository.PurchaseOperationRepository
-import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -67,22 +66,12 @@ class PurchasePersonalizationService(
                 PersonalizationTarget.USER -> PersonalizationOwner.User(actor.userId)
                 PersonalizationTarget.ACCOUNT -> {
                     val accountId = accountAccess.requireActiveAccount(actor.userId)
-                    val requiredPermissions =
-                        buildSet {
-                            add(RolePermission.BUY_PERSONALIZATIONS)
-
-                            if (price.currency == Currency.COIN) {
-                                add(RolePermission.SPEND_WALLET_FUNDS)
-                            }
-                        }
                     val granted =
-                        requiredPermissions.all { permission ->
-                            accountAccess.hasPermission(
-                                accountId = accountId,
-                                userId = actor.userId,
-                                permission = permission,
-                            )
-                        }
+                        accountAccess.hasPermission(
+                            accountId = accountId,
+                            userId = actor.userId,
+                            permission = RolePermission.BUY_ACCOUNT_PERSONALIZATIONS,
+                        )
 
                     if (!granted) {
                         throw PersonalizationAccessDeniedException()

@@ -7,7 +7,8 @@ INFRA_COMPOSE := $(sort $(filter-out $(BASE_COMPOSE),$(wildcard $(COMPOSE_DIR)/c
 APP_COMPOSE := $(sort $(wildcard $(COMPOSE_DIR)/apps/compose.*.yml))
 COMPOSE_FILES := $(BASE_COMPOSE) $(INFRA_COMPOSE) $(APP_COMPOSE)
 COMPOSE_ARGS := $(foreach file,$(COMPOSE_FILES),-f $(file))
-DC := docker compose --env-file $(ENV_FILE) $(COMPOSE_ARGS)
+COMPOSE_ENV_WRAPPER := scripts/docker-compose-env.sh
+DC := sh $(COMPOSE_ENV_WRAPPER) "$(ENV_FILE)" $(COMPOSE_ARGS)
 
 APP_SERVICE_NAMES := $(sort $(notdir $(patsubst %/,%,$(wildcard apps/*-service/))))
 APP_NAMES := $(patsubst %-service,%,$(APP_SERVICE_NAMES))
@@ -30,9 +31,9 @@ COMPOSE_SERVICE_NAMES := $(sort $(shell \
 
 INFRA_SERVICE_NAMES := $(filter-out $(APP_SERVICE_NAMES),$(COMPOSE_SERVICE_NAMES))
 
-BUILDABLE_INFRA_SERVICE_NAMES := kafka-init
+BUILDABLE_INFRA_SERVICE_NAMES := kafka-init minio-init
 BUILDABLE_SERVICE_NAMES := $(sort $(APP_SERVICE_NAMES) $(BUILDABLE_INFRA_SERVICE_NAMES))
-ONE_SHOT_SERVICE_NAMES := kafka-init keycloak-config
+ONE_SHOT_SERVICE_NAMES := kafka-init keycloak-config minio-init
 SHELLABLE_SERVICE_NAMES := $(filter-out $(ONE_SHOT_SERVICE_NAMES),$(COMPOSE_SERVICE_NAMES))
 PULLABLE_SERVICE_NAMES := $(filter-out $(BUILDABLE_INFRA_SERVICE_NAMES),$(INFRA_SERVICE_NAMES))
 

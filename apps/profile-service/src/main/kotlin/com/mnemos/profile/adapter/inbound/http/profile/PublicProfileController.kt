@@ -1,14 +1,15 @@
 package com.mnemos.profile.adapter.inbound.http.profile
 
+import com.mnemos.profile.adapter.inbound.http.common.pagination.PageResponse
+import com.mnemos.profile.adapter.inbound.http.profile.PublicProfileApiMapper.toQuery
 import com.mnemos.profile.adapter.inbound.http.profile.PublicProfileApiMapper.toResponse
 import com.mnemos.profile.application.profile.usecase.get.GetPublicProfileUseCase
 import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesUseCase
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -20,15 +21,12 @@ class PublicProfileController(
 ) {
     @GetMapping("/{accountId}")
     fun get(
-        @PathVariable accountId: UUID,
+        @PathVariable
+        accountId: UUID,
     ): PublicProfileResponse = getPublicProfileUseCase.execute(accountId).toResponse()
 
     @GetMapping
     fun search(
-        @RequestParam("q") query: String,
-        pageable: Pageable,
-    ): Page<PublicProfileResponse> =
-        searchPublicProfilesUseCase
-            .execute(query, pageable)
-            .map { profile -> profile.toResponse() }
+        @Valid @ModelAttribute request: SearchPublicProfilesRequest,
+    ): PageResponse<PublicProfileResponse> = searchPublicProfilesUseCase.execute(request.toQuery()).toResponse()
 }

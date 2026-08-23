@@ -14,10 +14,12 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import java.io.IOException
 import java.time.Instant
 import java.util.UUID
 
@@ -87,6 +89,76 @@ class SseConnectionRegistryTest {
 
         assertThrows(RealtimeConnectionLimitExceededException::class.java) {
             register(registry, userId)
+        }
+    }
+
+    @Test
+    fun `replaces existing connection with same client session before applying user limit`() {
+        val leaseStore = FakeSseConnectionLeaseStore()
+        val registry =
+            registry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 10,
+                        maxConnectionsTotal = 10,
+                    ),
+                leaseStore = leaseStore,
+            )
+        val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000031")
+        val clientSessionId = UUID.fromString("019c1129-ef54-7000-8000-000000000032")
+        val firstEmitter = mock<SseEmitter>()
+        val secondEmitter = mock<SseEmitter>()
+        val firstConnectionId =
+            register(
+                registry = registry,
+                userId = userId,
+                emitter = firstEmitter,
+                clientSessionId = clientSessionId,
+            )
+
+        assertDoesNotThrow {
+            register(
+                registry = registry,
+                userId = userId,
+                emitter = secondEmitter,
+                clientSessionId = clientSessionId,
+            )
+        }
+
+        verify(firstEmitter).complete()
+        assertEquals(setOf(firstConnectionId), leaseStore.releasedConnectionIds)
+    }
+
+    @Test
+    fun `heartbeat failure closes connection without async error completion`() {
+        val leaseStore = FakeSseConnectionLeaseStore()
+        val registry =
+            registry(
+                properties =
+                    RealtimeDeliveryProperties(
+                        maxConnectionsPerUser = 1,
+                        maxConnectionsPerClientIp = 1,
+                        maxConnectionsTotal = 1,
+                    ),
+                leaseStore = leaseStore,
+            )
+        val emitter = mock<SseEmitter>()
+        val firstUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000033")
+        val secondUserId = UUID.fromString("019c1129-ef54-7000-8000-000000000034")
+        val connectionId = register(registry, firstUserId, emitter)
+
+        doThrow(IOException("broken pipe"))
+            .whenever(emitter)
+            .send(any<SseEmitter.SseEventBuilder>())
+
+        registry.heartbeat()
+
+        verify(emitter).complete()
+        verify(emitter, never()).completeWithError(any<Throwable>())
+        assertEquals(setOf(connectionId), leaseStore.releasedConnectionIds)
+        assertDoesNotThrow {
+            register(registry, secondUserId)
         }
     }
 
@@ -165,10 +237,12 @@ class SseConnectionRegistryTest {
         registry: SseConnectionRegistry,
         userId: UUID,
         emitter: SseEmitter = mock(),
+        clientSessionId: UUID? = null,
     ): UUID =
         registry.register(
             userId = userId,
             clientIp = CLIENT_IP,
+            clientSessionId = clientSessionId,
             emitter = emitter,
             dropSpotlightPresentationMode = DropSpotlightPresentationMode.FULL,
         )

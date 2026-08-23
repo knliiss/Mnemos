@@ -1,0 +1,496 @@
+.personalization-review-screen {
+  --staff-line: rgba(223, 232, 204, 0.105);
+  --staff-line-strong: rgba(223, 232, 204, 0.17);
+  --staff-surface: rgba(20, 23, 17, 0.86);
+  --staff-surface-raised: rgba(28, 31, 23, 0.92);
+  --staff-muted: #858b7d;
+
+  padding-bottom: 34px;
+}
+
+.personalization-review-screen .page-header {
+  margin-bottom: 14px;
+}
+
+.personalization-review-screen .review-overview {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  margin: 8px 0 14px;
+  padding: 13px;
+  border: 1px solid rgba(206, 145, 210, 0.12);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(206, 145, 210, 0.06), transparent 38%),
+    rgba(255, 255, 255, 0.016);
+}
+
+.personalization-review-screen .review-overview__mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #d49bd7;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.personalization-review-screen .review-overview > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-overview small,
+.personalization-review-screen .review-workbench > header small,
+.personalization-review-screen .review-metadata small,
+.personalization-review-screen .review-queue-card__meta small {
+  color: #7a8175;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+}
+
+.personalization-review-screen .review-overview strong {
+  overflow: hidden;
+  color: #e4e8df;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-overview em {
+  color: #7d8478;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.personalization-review-screen .review-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+
+.personalization-review-screen .review-toolbar > label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--staff-line);
+  border-radius: 11px;
+  color: #7e8579;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.personalization-review-screen .review-toolbar > label:focus-within {
+  border-color: rgba(203, 255, 45, 0.23);
+  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
+}
+
+.personalization-review-screen .review-toolbar > label input {
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 10px;
+}
+
+.personalization-review-screen .review-scope {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--staff-line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.personalization-review-screen .review-scope button {
+  min-height: 34px;
+  padding: 0 9px;
+  border-radius: 8px;
+  color: #7f867a;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-scope button.is-active {
+  color: #e3e8dd;
+  background: rgba(203, 255, 45, 0.065);
+  box-shadow: inset 0 0 0 1px rgba(203, 255, 45, 0.12);
+}
+
+.personalization-review-screen input,
+.personalization-review-screen textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(223, 232, 204, 0.11);
+  border-radius: 12px;
+  outline: none;
+  color: #e6e9df;
+  background: rgba(255, 255, 255, 0.028);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+  font: inherit;
+}
+
+.personalization-review-screen textarea {
+  min-height: 86px;
+  padding: 12px 13px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.personalization-review-screen input:focus,
+.personalization-review-screen textarea:focus {
+  border-color: rgba(203, 255, 45, 0.32);
+  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.045);
+}
+
+.personalization-review-screen .review-queue-grid {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.personalization-review-screen .review-queue-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid rgba(223, 232, 204, 0.085);
+  border-radius: 14px;
+  color: #dfe3da;
+  background: rgba(255, 255, 255, 0.014);
+  text-align: left;
+}
+
+.personalization-review-screen .review-queue-card.is-selected {
+  border-color: rgba(203, 255, 45, 0.18);
+  background:
+    radial-gradient(circle at 88% 50%, rgba(203, 255, 45, 0.045), transparent 34%),
+    rgba(203, 255, 45, 0.025);
+}
+
+.personalization-review-screen .review-queue-card:disabled {
+  cursor: default;
+}
+
+.personalization-review-screen .review-queue-card__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-queue-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-queue-card__meta small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-queue-card__meta i {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #8d9488;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.personalization-review-screen .review-queue-card__meta i.is-user {
+  color: #c8a4cb;
+  background: rgba(206, 145, 210, 0.065);
+}
+
+.personalization-review-screen .review-queue-card__meta i.is-account {
+  color: #c8e367;
+  background: rgba(203, 255, 45, 0.05);
+}
+
+.personalization-review-screen .review-queue-card__copy > strong {
+  overflow: hidden;
+  color: #e2e6dd;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-queue-card__copy > em {
+  overflow: hidden;
+  color: #767d72;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-queue-card__side {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  min-width: 88px;
+}
+
+.personalization-review-screen .review-queue-card__side > b {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .status-in_review {
+  color: #deb66e;
+  background: rgba(255, 179, 79, 0.065);
+}
+
+.personalization-review-screen .status-published {
+  color: #c4e75c;
+  background: rgba(203, 255, 45, 0.05);
+}
+
+.personalization-review-screen .status-unlisted {
+  color: #9ba198;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.personalization-review-screen .status-rejected {
+  color: #d99a9f;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+.personalization-review-screen .review-workbench {
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(223, 232, 204, 0.105) !important;
+  border-radius: 21px !important;
+  background: rgba(14, 17, 12, 0.88);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.16);
+}
+
+.personalization-review-screen .review-workbench > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(223, 232, 204, 0.07) !important;
+}
+
+.personalization-review-screen .review-workbench > header > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-workbench > header strong {
+  overflow: hidden;
+  color: #e4e8df;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-workbench > header em {
+  overflow: hidden;
+  color: #777e73;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-workbench > header > button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #7c8377;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.personalization-review-screen .review-metadata {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.personalization-review-screen .review-metadata > article {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(223, 232, 204, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.personalization-review-screen .review-metadata strong {
+  overflow: hidden;
+  color: #dce0d7;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-review-screen .review-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.personalization-review-screen .review-approve-panel,
+.personalization-review-screen .review-reject-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(223, 232, 204, 0.075);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.personalization-review-screen .review-approve-panel {
+  border-color: rgba(203, 255, 45, 0.1);
+}
+
+.personalization-review-screen .review-reject-panel {
+  border-color: rgba(222, 105, 112, 0.1);
+}
+
+.personalization-review-screen .amount-input {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  min-height: 44px;
+  border: 1px solid rgba(223, 232, 204, 0.1);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.personalization-review-screen .amount-input > span {
+  display: grid;
+  place-items: center;
+}
+
+.personalization-review-screen .amount-input input {
+  min-height: 42px;
+  padding-left: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.personalization-review-screen .review-approve-panel > button,
+.personalization-review-screen .review-reject-panel > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 11px;
+  font-size: 10px;
+  font-weight: 740;
+}
+
+.personalization-review-screen .review-reject-panel > .destructive-action,
+.personalization-review-screen .review-approve-panel > .destructive-action {
+  border: 1px solid rgba(222, 105, 112, 0.18);
+  color: #dda0a5;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+.personalization-review-screen .review-empty-workbench {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 86px;
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px dashed rgba(223, 232, 204, 0.09);
+  border-radius: 15px;
+  color: #777e73;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.personalization-review-screen .review-empty-workbench > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-empty-workbench strong {
+  color: #aeb4a8;
+  font-size: 10px;
+}
+
+.personalization-review-screen .review-empty-workbench small {
+  color: #747b70;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+@media (max-width: 680px) {
+  .personalization-review-screen .review-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-review-screen .review-scope {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .personalization-review-screen .review-scope::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 460px) {
+  .personalization-review-screen .review-queue-card {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .personalization-review-screen .review-queue-card__side {
+    grid-column: 2;
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .personalization-review-screen .review-metadata,
+  .personalization-review-screen .review-decision-grid {
+    grid-template-columns: 1fr;
+  }
+}

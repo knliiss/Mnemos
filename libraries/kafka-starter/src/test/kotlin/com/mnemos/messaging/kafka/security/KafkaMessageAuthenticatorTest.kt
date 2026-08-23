@@ -33,6 +33,80 @@ class KafkaMessageAuthenticatorTest {
     }
 
     @Test
+    fun `shared trusted key set verifies another service command`() {
+        val rewardKeyPair = generateKeyPair()
+        val walletKeyPair = generateKeyPair()
+        val trustedPublicKeys =
+            mapOf(
+                "reward-service" to encodedPublicKey(rewardKeyPair),
+                "wallet-service" to encodedPublicKey(walletKeyPair),
+            )
+        val rewardAuthenticator =
+            authenticator(
+                serviceName = "reward-service",
+                keyPair = rewardKeyPair,
+                trustedPublicKeys = trustedPublicKeys,
+            )
+        val walletAuthenticator =
+            authenticator(
+                serviceName = "wallet-service",
+                keyPair = walletKeyPair,
+                trustedPublicKeys = trustedPublicKeys,
+            )
+        val signature =
+            rewardAuthenticator.sign(
+                producer = "reward-service",
+                topic = "mnemos.wallet.commands.v2",
+                key = "request-1",
+                payload = "{\"amount\":60}",
+            )
+
+        assertTrue(
+            walletAuthenticator.verify(
+                producer = "reward-service",
+                topic = "mnemos.wallet.commands.v2",
+                key = "request-1",
+                payload = "{\"amount\":60}",
+                encodedSignature = signature,
+            ),
+        )
+    }
+
+    @Test
+    fun `rejects local private key that does not match trusted public key`() {
+        val localKeyPair = generateKeyPair()
+        val differentKeyPair = generateKeyPair()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            KafkaMessageAuthenticator.fromEncodedKeys(
+                serviceName = "wallet-service",
+                encodedPrivateKey = encodedPrivateKey(localKeyPair),
+                encodedTrustedPublicKeys =
+                    mapOf(
+                        "wallet-service" to encodedPublicKey(differentKeyPair),
+                    ),
+            )
+        }
+    }
+
+    @Test
+    fun `rejects trusted key set without local service`() {
+        val localKeyPair = generateKeyPair()
+        val differentKeyPair = generateKeyPair()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            KafkaMessageAuthenticator.fromEncodedKeys(
+                serviceName = "wallet-service",
+                encodedPrivateKey = encodedPrivateKey(localKeyPair),
+                encodedTrustedPublicKeys =
+                    mapOf(
+                        "reward-service" to encodedPublicKey(differentKeyPair),
+                    ),
+            )
+        }
+    }
+
+    @Test
     fun `rejects payload tampering`() {
         val keyPair = generateKeyPair()
         val authenticator = authenticator("bet-service", keyPair)
@@ -134,15 +208,22 @@ class KafkaMessageAuthenticatorTest {
     private fun authenticator(
         serviceName: String,
         keyPair: KeyPair,
+        trustedPublicKeys: Map<String, String> =
+            mapOf(
+                serviceName to encodedPublicKey(keyPair),
+            ),
     ): KafkaMessageAuthenticator =
         KafkaMessageAuthenticator.fromEncodedKeys(
             serviceName = serviceName,
-            encodedPrivateKey = Base64.getEncoder().encodeToString(keyPair.private.encoded),
-            encodedTrustedPublicKeys =
-                mapOf(
-                    serviceName to Base64.getEncoder().encodeToString(keyPair.public.encoded),
-                ),
+            encodedPrivateKey = encodedPrivateKey(keyPair),
+            encodedTrustedPublicKeys = trustedPublicKeys,
         )
+
+    private fun encodedPrivateKey(keyPair: KeyPair): String =
+        Base64.getEncoder().encodeToString(keyPair.private.encoded)
+
+    private fun encodedPublicKey(keyPair: KeyPair): String =
+        Base64.getEncoder().encodeToString(keyPair.public.encoded)
 
     private fun generateKeyPair(): KeyPair =
         KeyPairGenerator

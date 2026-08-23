@@ -2,8 +2,6 @@ package com.mnemos.reward.adapter.out.account
 
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
-import com.mnemos.common.core.model.permission.RolePermission
-import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
 import com.mnemos.reward.application.daily.port.out.AccountByNicknameProvider
 import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
@@ -21,30 +19,6 @@ class AccountProviderAdapter(
         val userId = UserId(currentUser.requireUserId())
 
         return resolveActiveAccount(userId)
-    }
-
-    override fun getActiveAccountContext(permission: RolePermission): ActiveAccountContext {
-        val userId = UserId(currentUser.requireUserId())
-        val context = resolveActiveAccount(userId)
-        val granted =
-            client
-                .checkPermission(
-                    accountId = context.accountId.id,
-                    request =
-                        CheckAccountPermissionRequest(
-                            userId = userId.id,
-                            permission = permission,
-                        ),
-                ).granted
-
-        if (!granted) {
-            throw AccountPermissionDeniedException(
-                accountId = context.accountId,
-                requiredPermissions = setOf(permission.name),
-            )
-        }
-
-        return context
     }
 
     override fun findAccountId(nickname: String): AccountId? =

@@ -31,10 +31,14 @@ class ApprovePersonalizationService(
             origin = personalization.origin,
             price = price,
         )
+
+        val now = clock.instant()
+
         personalization.approve(
             moderatedPrice = price,
-            now = clock.instant(),
+            now = now,
         )
+        personalization.publish(now)
 
         return repository.save(personalization)
     }

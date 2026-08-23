@@ -31,9 +31,15 @@ class SseConnectionRegistry(
     fun register(
         userId: UUID,
         clientIp: String,
+        clientSessionId: UUID? = null,
         emitter: SseEmitter,
         dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ): UUID {
+        replaceExistingClientSession(
+            userId = userId,
+            clientSessionId = clientSessionId,
+        )
+
         val existingUserConnections = connectionsByUser[userId]
 
         if ((existingUserConnections?.size ?: 0) >= properties.maxConnectionsPerUser) {
@@ -86,6 +92,7 @@ class SseConnectionRegistry(
                 Connection(
                     emitter = emitter,
                     clientIp = clientIp,
+                    clientSessionId = clientSessionId,
                     deduplicationLimit = properties.deduplicationLimit,
                     dropSpotlightPresentationMode = dropSpotlightPresentationMode,
                 )
@@ -185,8 +192,14 @@ class SseConnectionRegistry(
                     connection.heartbeat()
                 } catch (exception: Exception) {
                     telemetry.recordSseSendFailure()
-                    connection.completeWithError(exception)
+                    log.debug(
+                        "Closing failed SSE connection during heartbeat, userId={}, connectionId={}",
+                        userId,
+                        connectionId,
+                        exception,
+                    )
                     remove(userId, connectionId)
+                    connection.complete()
                 }
             }
         }
@@ -210,14 +223,38 @@ class SseConnectionRegistry(
         } catch (exception: Exception) {
             telemetry.recordSseSendFailure()
             log.debug(
-                "Removing failed SSE connection, userId={}, connectionId={}",
+                "Closing failed SSE connection, userId={}, connectionId={}",
                 userId,
                 connectionId,
                 exception,
             )
-            connection.completeWithError(exception)
             remove(userId, connectionId)
+            connection.complete()
         }
+    }
+
+    @Synchronized
+    private fun replaceExistingClientSession(
+        userId: UUID,
+        clientSessionId: UUID?,
+    ) {
+        if (clientSessionId == null) {
+            return
+        }
+
+        val connections = connectionsByUser[userId] ?: return
+        val existing =
+            connections.entries.firstOrNull { (_, connection) ->
+                connection.clientSessionId == clientSessionId
+            } ?: return
+        val connectionId = existing.key
+        val connection = existing.value
+
+        remove(
+            userId = userId,
+            connectionId = connectionId,
+        )
+        connection.complete()
     }
 
     @Synchronized
@@ -274,6 +311,7 @@ class SseConnectionRegistry(
     private class Connection(
         val emitter: SseEmitter,
         val clientIp: String,
+        val clientSessionId: UUID?,
         private val deduplicationLimit: Int,
         private var dropSpotlightPresentationMode: DropSpotlightPresentationMode,
     ) {
@@ -341,11 +379,11 @@ class SseConnectionRegistry(
             )
         }
 
-        fun completeWithError(exception: Exception) {
+        fun complete() {
             try {
-                emitter.completeWithError(exception)
+                emitter.complete()
             } catch (_: Exception) {
-                // The connection is removed by the registry regardless of emitter state.
+                // The registry has already removed this connection and released its lease.
             }
         }
 

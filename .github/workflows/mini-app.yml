@@ -1,0 +1,119 @@
+name: Mini App Verify
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/mini-app.yml"
+  pull_request:
+    paths:
+      - "apps/mini-app/**"
+      - ".github/workflows/mini-app.yml"
+
+concurrency:
+  group: mini-app-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  verify:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    defaults:
+      run:
+        working-directory: apps/mini-app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm run audit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        id: formatting
+        run: npm run format:check
+
+      - name: Show formatting diff
+        if: failure() && steps.formatting.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm run format >/dev/null
+          git diff -- src
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Check bundle budgets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          oversized_js="$(find dist/assets -type f -name '*.js' -size +500k -print)"
+          if [ -n "$oversized_js" ]; then
+            echo "JavaScript chunks over 500 KiB:"
+            echo "$oversized_js"
+            exit 1
+          fi
+
+          oversized_css="$(find dist/assets -type f -name '*.css' -size +450k -print)"
+          if [ -n "$oversized_css" ]; then
+            echo "CSS chunks over 450 KiB:"
+            echo "$oversized_css"
+            exit 1
+          fi
+
+      - name: Publish verification status
+        if: always() && github.event_name == 'push'
+        working-directory: .
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            state="success"
+          else
+            state="failure"
+          fi
+
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Production Mini App verify: $JOB_STATUS" \
+            --arg context "mini-app/verify" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"

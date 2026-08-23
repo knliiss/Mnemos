@@ -31,7 +31,7 @@ class CreateAccountInviteService(
         val context =
             contextProvider.requirePermissionForUpdate(
                 accountId = accountId,
-                permission = RolePermission.MANAGE_ACCOUNT_INVITES,
+                permission = RolePermission.MANAGE_MEMBERS,
             )
 
         val now = Instant.now()

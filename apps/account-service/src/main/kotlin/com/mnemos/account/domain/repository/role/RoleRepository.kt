@@ -25,20 +25,9 @@ interface RoleRepository {
         accountId: AccountId,
     ): Role?
 
-    fun findMinRank(accountId: AccountId): Long
-
-    fun findMaxRank(accountId: AccountId): Long
-
     fun findAllByAccountIdOrderByRank(accountId: AccountId): List<Role>
 
     fun updateAll(roles: Collection<Role>): List<Role>
-
-    fun findAllByMemberIdAndAccountIdOrderByRank(
-        memberId: AccountMemberId,
-        accountId: AccountId,
-    ): List<Role>
-
-    fun findAllByAccountId(accountId: AccountId): List<Role>
 
     fun findAllByMemberId(
         accountId: AccountId,

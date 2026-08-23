@@ -1,11 +1,24 @@
-.PHONY: kafka-init-build kafka-topics kafka-groups
+.PHONY: kafka-init-build kafka-topics kafka-groups kafka-message-auth-sync kafka-message-auth-verify kafka-message-auth-runtime-verify
 
 KAFKA_ADMIN_CONFIG := /tmp/kafka-health.properties
+KAFKA_MESSAGE_AUTH_SYNC := scripts/generate-kafka-message-keys.sh
+KAFKA_MESSAGE_AUTH_VERIFY := scripts/verify-kafka-message-auth.sh
+KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY := scripts/verify-kafka-message-auth-runtime.sh
 
 kafka-init-build: require-compose
 	$(call title,kafka-init,BUILD)
 	$(call run_step,Image,$(DC) build --quiet kafka-init)
 	$(call success,kafka-init,build complete)
+
+kafka-message-auth-sync:
+	$(call title,kafka-message-auth,SYNC)
+	@$(KAFKA_MESSAGE_AUTH_SYNC) $(ENV_FILE)
+
+kafka-message-auth-verify:
+	@$(KAFKA_MESSAGE_AUTH_VERIFY) $(ENV_FILE)
+
+kafka-message-auth-runtime-verify: kafka-message-auth-verify
+	@$(KAFKA_MESSAGE_AUTH_RUNTIME_VERIFY) $(ENV_FILE)
 
 kafka-topics: require-compose
 	@$(DC) exec kafka /opt/kafka/bin/kafka-topics.sh \

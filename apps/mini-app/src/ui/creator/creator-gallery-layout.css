@@ -1,0 +1,89 @@
+.creator-screen .creator-gallery .creator-card {
+  grid-template-columns: 122px minmax(0, 1fr) auto !important;
+  align-items: center;
+  gap: 16px !important;
+  min-height: 112px !important;
+  padding: 11px 14px 11px 10px !important;
+}
+
+.creator-screen .creator-gallery .creator-card__visual {
+  display: grid;
+  place-items: center;
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 88px !important;
+  min-height: 88px !important;
+  overflow: hidden;
+  background-image: none !important;
+}
+
+.creator-screen .creator-gallery .creator-card__visual > .real-preview.is-small {
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 88px !important;
+  min-height: 88px !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}
+
+.creator-screen .creator-gallery .creator-card__copy {
+  align-self: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.creator-screen .creator-gallery .creator-card__copy small {
+  font-size: 9.5px;
+}
+
+.creator-screen .creator-gallery .creator-card__copy strong {
+  font-size: 14px;
+  line-height: 1.18;
+}
+
+.creator-screen .creator-gallery .creator-card__copy em {
+  font-size: 9.5px;
+}
+
+.creator-screen .creator-gallery .creator-status {
+  align-self: center;
+  margin-top: 0;
+}
+
+@media (max-width: 699px) {
+  .creator-screen .creator-gallery .creator-card {
+    grid-template-columns: 82px minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    min-height: 90px !important;
+    padding: 9px !important;
+  }
+
+  .creator-screen .creator-gallery .creator-card__visual,
+  .creator-screen .creator-gallery .creator-card__visual > .real-preview.is-small {
+    width: 76px !important;
+    min-width: 76px !important;
+    height: 68px !important;
+    min-height: 68px !important;
+    border-radius: 11px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .creator-screen .creator-gallery .creator-card {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .creator-screen .creator-gallery .creator-card__visual,
+  .creator-screen .creator-gallery .creator-card__visual > .real-preview.is-small {
+    width: 66px !important;
+    min-width: 66px !important;
+    height: 62px !important;
+    min-height: 62px !important;
+  }
+
+  .creator-screen .creator-gallery .creator-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

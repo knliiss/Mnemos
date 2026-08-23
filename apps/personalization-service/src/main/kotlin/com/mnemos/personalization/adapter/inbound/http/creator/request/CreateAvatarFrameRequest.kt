@@ -2,6 +2,7 @@ package com.mnemos.personalization.adapter.inbound.http.creator.request
 
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.GlowStyleRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.PersonalizationPriceRequest
+import com.mnemos.personalization.domain.personalization.model.FrameStyle
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -25,4 +26,13 @@ data class CreateAvatarFrameRequest(
     val glow: GlowStyleRequest?,
     @field:Valid
     val price: PersonalizationPriceRequest,
+    @field:Pattern(regexp = "^#[0-9A-Fa-f]{6}$")
+    val secondaryBorderColor: String = borderColor,
+    @field:Min(0)
+    @field:Max(8)
+    val gapPx: Int = 0,
+    val style: FrameStyle = FrameStyle.SOLID,
+    @field:Valid
+    @field:Size(max = 8)
+    val layers: List<VisualLayerRequest> = emptyList(),
 )

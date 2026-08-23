@@ -1,0 +1,374 @@
+.account-settings-screen {
+  padding-bottom: 34px;
+}
+
+.account-settings-hero {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 12px;
+  padding: 14px;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(203, 255, 45, 0.055), transparent 36%),
+    rgba(255, 255, 255, 0.017);
+}
+
+.account-settings-hero__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.account-settings-hero__copy small {
+  color: #7f8579;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+}
+
+.account-settings-hero__copy strong {
+  overflow: hidden;
+  color: #f0f2eb;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-settings-hero__copy em {
+  color: #8d9387;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.account-settings-status,
+.account-lifecycle-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 999px;
+  color: #90978b;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 9px;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.account-settings-status i,
+.account-lifecycle-indicator i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.account-settings-status.is-active,
+.account-lifecycle-indicator.is-active {
+  border-color: rgba(203, 255, 45, 0.15);
+  color: #bee25d;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.account-settings-hero__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(232, 240, 210, 0.075);
+}
+
+.account-settings-hero__stats > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.account-settings-hero__stats small {
+  color: #81877c;
+  font-size: 9px;
+}
+
+.account-settings-hero__stats strong,
+.account-settings-hero__stats .currency-value {
+  color: #e9ece4;
+  font-size: 11px;
+}
+
+.account-settings-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.account-settings-shortcuts > button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 9px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 241, 213, 0.085);
+  border-radius: 14px;
+  color: #d7dcd2;
+  background: rgba(255, 255, 255, 0.016);
+  text-align: left;
+}
+
+.account-settings-shortcuts > button > span:first-child {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.account-settings-shortcuts > button > span.is-lime {
+  color: #cbff2d;
+  background: rgba(203, 255, 45, 0.075);
+}
+
+.account-settings-shortcuts > button > span.is-plum {
+  color: #ce91d2;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.account-settings-shortcuts > button > span.is-amber {
+  color: #ffb34f;
+  background: rgba(255, 179, 79, 0.08);
+}
+
+.account-settings-shortcuts strong {
+  align-self: end;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-settings-shortcuts small {
+  align-self: start;
+  overflow: hidden;
+  color: #767d72;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-settings-shortcuts b {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  color: #666d63;
+  font-size: 17px;
+}
+
+.account-settings-panel {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.account-settings-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-settings-panel > header > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-settings-panel > header small {
+  color: #747b70;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.account-settings-panel > header strong {
+  color: #e3e7de;
+  font-size: 13px;
+}
+
+.account-settings-panel > header em {
+  max-width: 310px;
+  color: #7d8478;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.account-settings-panel > header > b {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.account-settings-panel > header > b.is-saved {
+  color: #b9dd5d;
+  background: rgba(203, 255, 45, 0.05);
+}
+
+.account-settings-panel > header > b.is-unsaved {
+  color: #d8ad6b;
+  background: rgba(255, 179, 79, 0.06);
+}
+
+.account-default-role-grid,
+.account-transfer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.account-default-role-grid > button,
+.account-transfer-grid > button {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  min-height: 66px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 13px;
+  color: #cfd4ca;
+  background: rgba(255, 255, 255, 0.015);
+  text-align: left;
+}
+
+.account-default-role-grid > button strong,
+.account-transfer-grid > button strong {
+  overflow: hidden;
+  color: #d8ddd4;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-default-role-grid > button small,
+.account-transfer-grid > button small {
+  overflow: hidden;
+  color: #72796f;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-default-role-grid > button.is-selected,
+.account-transfer-grid > button.is-selected {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.account-role-summary,
+.account-transfer-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 14px;
+  background: rgba(5, 7, 5, 0.24);
+}
+
+.account-role-summary > span:nth-child(2),
+.account-transfer-summary > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-role-summary small,
+.account-transfer-summary small {
+  color: #72796e;
+  font-size: 9px;
+}
+
+.account-role-summary strong,
+.account-transfer-summary strong {
+  overflow: hidden;
+  color: #dfe3da;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-role-summary em,
+.account-transfer-summary em {
+  overflow: hidden;
+  color: #777e73;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-role-summary > button,
+.account-transfer-summary > button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(203, 255, 45, 0.15);
+  border-radius: 10px;
+  color: #c8ef55;
+  background: rgba(203, 255, 45, 0.045);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+@media (max-width: 374px) {
+  .account-settings-hero {
+    grid-template-columns: 54px minmax(0, 1fr);
+  }
+
+  .account-settings-status {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .account-settings-shortcuts.account-settings-shortcuts--four,
+  .account-default-role-grid,
+  .account-transfer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-role-summary,
+  .account-transfer-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .account-role-summary > button,
+  .account-transfer-summary > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

@@ -3,6 +3,7 @@ package com.mnemos.moderation.adapter.inbound.http.admin.sanction
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.moderation.application.sanction.model.SanctionView
 import com.mnemos.moderation.application.sanction.usecase.create.CreateSanctionCommand
+import com.mnemos.moderation.application.sanction.usecase.list.ListSanctionsQuery
 import com.mnemos.moderation.contracts.shared.SanctionStatus
 import com.mnemos.moderation.contracts.shared.SanctionType
 import com.mnemos.moderation.domain.sanction.model.DomainSanctionStatus
@@ -17,6 +18,11 @@ object SanctionApiMapper {
             reason = reason,
             internalNote = internalNote,
             duration = durationHours?.let(Duration::ofHours),
+        )
+
+    fun ListSanctionsRequest.toQuery(): ListSanctionsQuery =
+        ListSanctionsQuery(
+            userId = UserId(userId),
         )
 
     fun SanctionView.toResponse(): SanctionResponse =

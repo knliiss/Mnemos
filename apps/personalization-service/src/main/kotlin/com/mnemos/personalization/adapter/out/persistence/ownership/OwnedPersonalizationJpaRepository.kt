@@ -130,6 +130,15 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
         pageable: Pageable,
     ): Page<OwnedPersonalizationEntity>
 
+    @Query(
+        """
+        SELECT ownership
+        FROM OwnedPersonalizationEntity ownership
+        WHERE ownership.ownerType = :ownerType
+          AND ownership.ownerId = :ownerId
+        ORDER BY ownership.acquiredAt DESC, ownership.id DESC
+        """,
+    )
     fun findAllByOwnerTypeAndOwnerIdOrderByAcquiredAtDesc(
         ownerType: PersonalizationTarget,
         ownerId: UUID,

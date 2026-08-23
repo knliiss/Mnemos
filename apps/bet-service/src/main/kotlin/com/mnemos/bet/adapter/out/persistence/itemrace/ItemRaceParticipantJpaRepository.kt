@@ -1,5 +1,6 @@
 package com.mnemos.bet.adapter.out.persistence.itemrace
 
+import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipantStatus
 import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
@@ -35,4 +36,9 @@ interface ItemRaceParticipantJpaRepository : JpaRepository<ItemRaceParticipantEn
     fun findAllByRaceIdOrderById(raceId: UUID): List<ItemRaceParticipantEntity>
 
     fun findAllByAccountIdOrderByIdDesc(accountId: UUID): List<ItemRaceParticipantEntity>
+
+    fun findAllByAccountIdAndStatusInOrderByIdDesc(
+        accountId: UUID,
+        statuses: Collection<ItemRaceParticipantStatus>,
+    ): List<ItemRaceParticipantEntity>
 }

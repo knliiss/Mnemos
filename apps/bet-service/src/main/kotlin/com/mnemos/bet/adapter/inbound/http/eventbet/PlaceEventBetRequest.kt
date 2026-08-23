@@ -8,7 +8,7 @@ import java.util.UUID
 data class PlaceEventBetRequest(
     val roundId: UUID,
     val side: BetSide,
-    @field:Min(100)
+    @field:Min(500)
     @field:Max(5000)
     val amount: Long,
 )

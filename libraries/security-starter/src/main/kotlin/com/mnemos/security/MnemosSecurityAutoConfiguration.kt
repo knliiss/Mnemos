@@ -5,24 +5,18 @@ import com.mnemos.security.handler.MnemosAuthenticationEntryPoint
 import com.mnemos.security.handler.SecurityErrorResponseWriter
 import com.mnemos.security.internal.InternalApiKeyAuthenticationFilter
 import com.mnemos.security.internal.InternalApiKeyAuthenticationFilter.Companion.INTERNAL_SERVICE_AUTHORITY
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
-import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.CorsConfigurationSource
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import tools.jackson.databind.ObjectMapper
 
 @AutoConfiguration
@@ -33,39 +27,6 @@ import tools.jackson.databind.ObjectMapper
     Jwt::class
 )
 class MnemosSecurityAutoConfiguration {
-
-    @Bean("mnemosCorsConfigurationSource")
-    @ConditionalOnMissingBean(name = ["mnemosCorsConfigurationSource"])
-    fun corsConfigurationSource(
-        @Value("\${MNEMOS_FRONTEND_ORIGIN:https://app.knalis.rest}")
-        frontendOrigin: String,
-    ): CorsConfigurationSource {
-        val configuration = CorsConfiguration().apply {
-            allowedOrigins = listOf(
-                frontendOrigin
-            )
-            allowedMethods = listOf(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-            )
-            allowedHeaders = listOf(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Last-Event-ID"
-            )
-            maxAge = 3600
-            allowCredentials = true
-        }
-
-        return UrlBasedCorsConfigurationSource().apply {
-            registerCorsConfiguration("/**", configuration)
-        }
-    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -110,7 +71,6 @@ class MnemosSecurityAutoConfiguration {
 
         http
             .securityMatcher("/internal/**")
-            .cors { it.disable() }
             .csrf { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -137,23 +97,14 @@ class MnemosSecurityAutoConfiguration {
         properties: MnemosSecurityProperties,
         jwtAuthenticationConverter: MnemosJwtAuthenticationConverter,
         authenticationEntryPoint: MnemosAuthenticationEntryPoint,
-        accessDeniedHandler: MnemosAccessDeniedHandler,
-        @Qualifier("mnemosCorsConfigurationSource")
-        corsConfigurationSource: CorsConfigurationSource
+        accessDeniedHandler: MnemosAccessDeniedHandler
     ): SecurityFilterChain {
         http
-            .cors {
-                it.configurationSource(corsConfigurationSource)
-            }
             .csrf { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .authorizeHttpRequests { authorization ->
-                authorization
-                    .requestMatchers(HttpMethod.OPTIONS, "/**")
-                    .permitAll()
-
                 properties.publicPaths.forEach { path ->
                     authorization.requestMatchers(path).permitAll()
                 }

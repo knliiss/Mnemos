@@ -7,4 +7,8 @@ data class ProfileEffectContentResponse(
     val intensity: Int,
     val primaryColor: String,
     val secondaryColor: String?,
+    val speed: Int,
+    val density: Int,
+    val scale: Int,
+    val layers: List<VisualLayerResponse>,
 ) : PersonalizationContentResponse

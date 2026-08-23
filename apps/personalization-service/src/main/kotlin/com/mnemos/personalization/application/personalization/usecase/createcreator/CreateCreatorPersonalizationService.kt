@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.personalization.usecase.createcreator
 
+import com.mnemos.personalization.application.asset.support.PersonalizationContentAssetValidator
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
@@ -14,6 +15,7 @@ import java.time.Clock
 class CreateCreatorPersonalizationService(
     private val actorProvider: CurrentPersonalizationActorProvider,
     private val pricePolicy: PersonalizationPricePolicy,
+    private val assetValidator: PersonalizationContentAssetValidator,
     private val repository: PersonalizationRepository,
     private val clock: Clock,
 ) : CreateCreatorPersonalizationUseCase {
@@ -29,6 +31,10 @@ class CreateCreatorPersonalizationService(
             type = command.type,
             origin = PersonalizationOrigin.CREATOR,
             price = command.price,
+        )
+        assetValidator.requireOwnedAssets(
+            ownerUserId = actor.userId,
+            content = command.content,
         )
 
         val personalization =

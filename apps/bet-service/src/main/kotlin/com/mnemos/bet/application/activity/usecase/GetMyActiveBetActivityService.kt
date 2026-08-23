@@ -5,7 +5,6 @@ import com.mnemos.bet.application.activity.model.MyActiveBetActivity
 import com.mnemos.bet.application.eventbet.port.out.EventBetReader
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
 import com.mnemos.bet.domain.wallet.repository.WalletOperationRepository
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,7 +17,7 @@ class GetMyActiveBetActivityService(
     private val walletOperationRepository: WalletOperationRepository,
 ) {
     fun execute(): MyActiveBetActivity {
-        val account = accountProvider.requireActiveAccount(VIEW_BETS)
+        val account = accountProvider.requireActiveAccount()
         val accountId = account.id
         val eventBets =
             eventBetReader

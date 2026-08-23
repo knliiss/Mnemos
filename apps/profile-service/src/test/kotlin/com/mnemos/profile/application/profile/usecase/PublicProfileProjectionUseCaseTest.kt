@@ -1,19 +1,19 @@
 package com.mnemos.profile.application.profile.usecase
 
+import com.mnemos.profile.application.common.pagination.PageResult
 import com.mnemos.profile.application.profile.port.out.PendingSocialSummaryRepository
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
 import com.mnemos.profile.application.profile.support.PendingSocialSummaryCoordinator
 import com.mnemos.profile.application.profile.usecase.applysocialsummary.ApplyAccountSocialSummaryService
 import com.mnemos.profile.application.profile.usecase.projectaccount.ProjectAccountCreatedService
 import com.mnemos.profile.application.profile.usecase.reconcile.ReconcilePendingSocialSummariesService
+import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.application.profile.usecase.sync.SyncPublicProfileService
 import com.mnemos.profile.domain.profile.model.PendingSocialSummary
 import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 import java.time.Instant
 import java.util.UUID
 
@@ -241,10 +241,15 @@ class PublicProfileProjectionUseCaseTest {
 
         override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? = profiles[accountId]
 
-        override fun search(
-            query: String,
-            pageable: Pageable,
-        ): Page<PublicProfile> = Page.empty(pageable)
+        override fun search(query: SearchPublicProfilesQuery): PageResult<PublicProfile> =
+            PageResult(
+                items = emptyList(),
+                page = query.page.page,
+                size = query.page.size,
+                totalItems = 0,
+                totalPages = 0,
+                hasNextPage = false,
+            )
     }
 
     private class FakePendingSocialSummaryRepository(

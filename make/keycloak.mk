@@ -7,6 +7,7 @@ keycloak-import: require-compose
 		--no-deps \
 		--force-recreate \
 		keycloak-config
+	$(call verify_containers,keycloak-config)
 	$(call success,keycloak,configuration imported)
 
 keycloak-restart: require-gradle require-compose

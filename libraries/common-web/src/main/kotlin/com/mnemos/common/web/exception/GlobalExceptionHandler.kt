@@ -20,6 +20,7 @@ import org.springframework.web.bind.MissingRequestHeaderException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.time.Clock
@@ -200,6 +201,11 @@ class GlobalExceptionHandler(
         message = "No endpoint exists for '${request.method} ${request.requestURI}'",
         request = request
     )
+
+    @ExceptionHandler(AsyncRequestNotUsableException::class)
+    fun handleAsyncRequestNotUsable(exception: AsyncRequestNotUsableException) {
+        log.debug("Async response is no longer usable because the client disconnected", exception)
+    }
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpectedException(

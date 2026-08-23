@@ -1,18 +1,15 @@
 package com.mnemos.social.application.accountreaction.usecase.set
 
-import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.social.application.account.exception.SocialAccountNotFoundException
+import com.mnemos.social.application.accountreaction.exception.SelfAccountReactionException
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.port.out.AccountAccessPort
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.reaction.model.AccountReaction
-import com.mnemos.social.domain.reaction.model.AccountReactionType
 import com.mnemos.social.domain.reaction.repository.AccountReactionRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.time.Clock
-import java.util.UUID
 
 @Service
 class SetAccountReactionService(
@@ -23,46 +20,46 @@ class SetAccountReactionService(
     private val clock: Clock,
 ) : SetAccountReactionUseCase {
     @Transactional
-    override fun execute(
-        targetAccountId: UUID,
-        type: AccountReactionType,
-    ) {
-        val actor = actorProvider.requireActor(RolePermission.PUBLISH_REACTIONS)
+    override fun execute(command: SetAccountReactionCommand) {
+        val actor = actorProvider.requireActor()
 
-        if (actor.accountId == targetAccountId) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "An account cannot react to itself")
+        if (actor.accountId == command.targetAccountId) {
+            throw SelfAccountReactionException(command.targetAccountId)
         }
 
-        if (!accountAccessPort.isActiveAccount(targetAccountId)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Target account was not found")
+        if (!accountAccessPort.isActiveAccount(command.targetAccountId)) {
+            throw SocialAccountNotFoundException(command.targetAccountId)
         }
 
         val now = clock.instant()
-        summaryService.lockAccount(targetAccountId, now)
-        val existing = repository.find(actor.accountId, targetAccountId)
+
+        summaryService.lockAccount(command.targetAccountId, now)
+
+        val existing = repository.find(actor.accountId, command.targetAccountId)
         val previous = existing?.type
 
         if (existing == null) {
             repository.save(
                 AccountReaction(
                     actorAccountId = actor.accountId,
-                    targetAccountId = targetAccountId,
-                    type = type,
+                    targetAccountId = command.targetAccountId,
+                    type = command.type,
                     createdAt = now,
                     updatedAt = now,
                 ),
             )
-        } else if (existing.type != type) {
-            existing.type = type
+        } else if (existing.type != command.type) {
+            existing.type = command.type
             existing.updatedAt = now
+
             repository.save(existing)
         }
 
         summaryService.reactionChanged(
-            accountId = targetAccountId,
+            accountId = command.targetAccountId,
             actorUserId = actor.userId,
             previous = previous,
-            current = type,
+            current = command.type,
             now = now,
         )
     }

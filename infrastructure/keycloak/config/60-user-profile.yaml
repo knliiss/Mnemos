@@ -1,5 +1,8 @@
 realm: mnemos
 
+attributes:
+  userProfileEnabled: "true"
+
 userProfile:
   attributes:
     - name: username
@@ -18,8 +21,63 @@ userProfile:
           - admin
       multivalued: false
 
+    - name: email
+      displayName: '${email}'
+      validations:
+        email: {}
+        length:
+          max: 255
+      required:
+        roles:
+          - user
+      permissions:
+        view:
+          - admin
+          - user
+        edit:
+          - admin
+          - user
+      multivalued: false
+
+    - name: firstName
+      displayName: '${firstName}'
+      validations:
+        length:
+          max: 255
+        person-name-prohibited-characters: {}
+      required:
+        roles:
+          - user
+      permissions:
+        view:
+          - admin
+          - user
+        edit:
+          - admin
+          - user
+      multivalued: false
+
+    - name: lastName
+      displayName: '${lastName}'
+      validations:
+        length:
+          max: 255
+        person-name-prohibited-characters: {}
+      required:
+        roles:
+          - user
+      permissions:
+        view:
+          - admin
+          - user
+        edit:
+          - admin
+          - user
+      multivalued: false
+
     - name: telegram_user_id
       displayName: Telegram user ID
+      group: user-metadata
       validations: {}
       annotations: {}
       permissions:
@@ -32,16 +90,16 @@ userProfile:
 
     - name: mnemos_user_id
       displayName: Mnemos user ID
+      group: user-metadata
       validations: {}
       annotations: {}
       permissions:
-        - view:
-            - admin
-            - user
-        - edit:
-            - admin
+        view:
+          - admin
+          - user
+        edit:
+          - admin
       multivalued: false
-
 
   groups:
     - name: user-metadata

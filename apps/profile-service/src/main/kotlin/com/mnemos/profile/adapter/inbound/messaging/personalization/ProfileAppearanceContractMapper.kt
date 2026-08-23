@@ -32,6 +32,11 @@ object ProfileAppearanceContractMapper {
             text = text,
             border = border,
             glow = glow?.toDomain(),
+            backgroundSecondary = backgroundSecondary,
+            surfaceSecondary = surfaceSecondary,
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     private fun ProfileAppearanceChangedV1.AvatarFrame.toDomain(): ProfileAppearance.AvatarFrame =
@@ -41,6 +46,10 @@ object ProfileAppearanceContractMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toDomain(),
+            secondaryBorderColor = secondaryBorderColor,
+            gapPx = gapPx,
+            style = style,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     private fun ProfileAppearanceChangedV1.ProfileEffect.toDomain(): ProfileAppearance.ProfileEffect =
@@ -50,6 +59,24 @@ object ProfileAppearanceContractMapper {
             intensity = intensity,
             primaryColor = primaryColor,
             secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
+            layers = layers.map { layer -> layer.toDomain() },
+        )
+
+    private fun ProfileAppearanceChangedV1.VisualLayer.toDomain(): ProfileAppearance.VisualLayer =
+        ProfileAppearance.VisualLayer(
+            id = id,
+            assetId = assetId,
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
         )
 
     private fun ProfileAppearanceChangedV1.GradientStop.toDomain(): ProfileAppearance.GradientStop =

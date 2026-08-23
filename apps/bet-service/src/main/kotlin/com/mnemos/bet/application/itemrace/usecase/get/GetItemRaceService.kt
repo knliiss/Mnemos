@@ -3,7 +3,6 @@ package com.mnemos.bet.application.itemrace.usecase.get
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
 import com.mnemos.bet.domain.exception.BetNotFoundException
-import com.mnemos.common.core.model.permission.RolePermission.VIEW_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +13,7 @@ class GetItemRaceService(
     private val accountProvider: AccountProvider,
 ) : GetItemRaceUseCase {
     override fun execute(query: GetItemRaceQuery): GetItemRaceResult {
-        accountProvider.requireActiveAccount(VIEW_BETS)
+        accountProvider.requireActiveAccount()
 
         val race =
             reader.find(query.raceId)

@@ -1,0 +1,25 @@
+.feature-empty--error {
+  min-height: 188px;
+  padding: 18px;
+  border-style: solid;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(169, 138, 178, 0.06), transparent 34%),
+    rgba(255, 255, 255, 0.012);
+}
+
+.feature-empty--error .error-mascot {
+  width: 78px;
+  height: 78px;
+  margin-bottom: 1px;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
+}
+
+.feature-empty--error strong {
+  color: #c6cbc1;
+  font-size: 12px;
+}
+
+.feature-empty--error small {
+  max-width: 280px;
+  color: #7f867a;
+}

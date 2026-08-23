@@ -15,12 +15,14 @@ object AccountApiMapper {
     fun AccountSummary.toResponse(): AccountSummaryResponse =
         AccountSummaryResponse(
             id = id.id,
+            cristalixUuid = cristalixUuid,
             cristalixNickname = cristalixNickname,
             currentMemberId = currentMemberId.id,
             memberCount = memberCount,
             maxMembers = maxMembers,
             owner = owner,
             active = active,
+            status = status,
         )
 
     fun AccountDetails.toResponse(): AccountDetailsResponse =
@@ -33,6 +35,8 @@ object AccountApiMapper {
             maxMembers = maxMembers,
             owner = owner,
             active = active,
+            status = status,
+            baseRoleId = baseRoleId?.id,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )

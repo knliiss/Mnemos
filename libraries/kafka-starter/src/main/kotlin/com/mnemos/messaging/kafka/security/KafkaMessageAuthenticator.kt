@@ -64,6 +64,7 @@ class KafkaMessageAuthenticator(
 
     companion object {
         private const val ALGORITHM = "Ed25519"
+        private const val LOCAL_KEY_CHECK_MESSAGE = "mnemos-kafka-message-auth-local-key-check-v1"
 
         fun fromEncodedKeys(
             serviceName: String,
@@ -95,12 +96,39 @@ class KafkaMessageAuthenticator(
                         ),
                     )
                 }
+            val localPublicKey =
+                requireNotNull(publicKeys[serviceName]) {
+                    "Kafka trusted public keys must include local service $serviceName"
+                }
+
+            require(keysMatch(privateKey, localPublicKey)) {
+                "Kafka signing private key does not match trusted public key for local service $serviceName"
+            }
 
             return KafkaMessageAuthenticator(
                 serviceName = serviceName,
                 privateKey = privateKey,
                 trustedPublicKeys = publicKeys,
             )
+        }
+
+        private fun keysMatch(
+            privateKey: PrivateKey,
+            publicKey: PublicKey,
+        ): Boolean {
+            val challenge = LOCAL_KEY_CHECK_MESSAGE.toByteArray(StandardCharsets.UTF_8)
+            val signer = Signature.getInstance(ALGORITHM)
+
+            signer.initSign(privateKey)
+            signer.update(challenge)
+
+            val signature = signer.sign()
+            val verifier = Signature.getInstance(ALGORITHM)
+
+            verifier.initVerify(publicKey)
+            verifier.update(challenge)
+
+            return verifier.verify(signature)
         }
 
         private fun isProducerAllowedForTopic(

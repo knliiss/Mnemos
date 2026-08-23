@@ -63,7 +63,7 @@ services:
         - CMD-SHELL
         - >-
           printf '%s\n' 'security.protocol=SASL_PLAINTEXT' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka_admin" password="${KAFKA_ADMIN_PASSWORD}";' > /tmp/kafka-health.properties &&
-          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:${KAFKA_INTERNAL_PORT} --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
       interval: 2s
       timeout: 3s
       retries: 30

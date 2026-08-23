@@ -3,13 +3,13 @@ package com.mnemos.social.application.comment.usecase.delete
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.core.model.user.UserRole
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.comment.exception.CommentAccessDeniedException
+import com.mnemos.social.application.comment.exception.CommentNotFoundException
 import com.mnemos.social.application.summary.AccountSocialSummaryService
 import com.mnemos.social.domain.comment.model.CommentId
 import com.mnemos.social.domain.comment.repository.CommentRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.time.Clock
 import java.util.UUID
 
@@ -26,7 +26,7 @@ class DeleteCommentService(
         val id = CommentId(commentId)
         val preview =
             repository.findById(id)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
+                ?: throw CommentNotFoundException(id)
         val isAuthor = preview.authorUserId == userId
         val isGlobalAdmin =
             actorProvider.hasAnyUserRole(
@@ -43,21 +43,19 @@ class DeleteCommentService(
                 )
 
         if (!isAuthor && !isGlobalAdmin && !canModerateAccount) {
-            throw ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "Comment moderation permission is required",
-            )
+            throw CommentAccessDeniedException(id)
         }
 
         val comment =
             repository.findByIdForUpdate(id)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
+                ?: throw CommentNotFoundException(id)
 
         if (comment.deleted) {
             return
         }
 
         val now = clock.instant()
+
         comment.delete(now)
         repository.save(comment)
 

@@ -10,9 +10,6 @@ data class CreateBadgeRequest(
     @field:NotBlank
     @field:Size(max = 64)
     val name: String,
-    @field:NotBlank
-    @field:Size(max = 64)
-    val icon: String,
     @field:Pattern(regexp = "^#[0-9A-Fa-f]{6}$")
     val color: String,
 )

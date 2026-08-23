@@ -1,0 +1,26 @@
+.events-feed-empty--illustrated {
+  min-height: 190px;
+}
+
+.events-feed-empty__illustration {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(203, 255, 45, 0.11);
+  border-radius: 22px;
+  color: #8f9788;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(203, 255, 45, 0.08), transparent 66%),
+    rgba(16, 18, 14, 0.72);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.025),
+    0 18px 38px rgba(0, 0, 0, 0.18);
+}
+
+.events-feed-empty__illustration svg {
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.24));
+}

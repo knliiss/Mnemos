@@ -2,19 +2,33 @@ package com.mnemos.event.adapter.inbound.http.feed
 
 import com.mnemos.event.application.feed.model.BoosterFeedItem
 import com.mnemos.event.application.feed.model.EventFeedItem
+import com.mnemos.event.application.feed.model.EventFeedKind
 import com.mnemos.event.application.feed.model.EventFeedPage
+import com.mnemos.event.application.feed.model.EventFeedQuery
 import com.mnemos.event.application.feed.model.GlobalFeedItem
 import com.mnemos.event.application.feed.model.ItemDropFeedItem
 import com.mnemos.event.application.feed.model.RaidFeedItem
+import com.mnemos.event.domain.EventId
 
 object EventFeedApiMapper {
+    fun ListEventFeedRequest.toQuery(): EventFeedQuery =
+        EventFeedQuery(
+            after = after?.let(::EventId),
+            limit = limit,
+            kinds = type.takeIf { values -> values.isNotEmpty() } ?: EventFeedKind.entries.toSet(),
+            search = search,
+            droppedFor = droppedFor,
+            itemRarity = itemRarity,
+            sort = sort,
+        )
+
     fun EventFeedPage.toResponse(): EventFeedResponse =
         EventFeedResponse(
             items = items.map { item -> item.toResponse() },
             cursor = cursor?.id,
         )
 
-    private fun EventFeedItem.toResponse(): EventFeedItemResponse =
+    fun EventFeedItem.toResponse(): EventFeedItemResponse =
         when (this) {
             is ItemDropFeedItem ->
                 ItemDropFeedItemResponse(

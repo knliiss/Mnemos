@@ -1,0 +1,302 @@
+.global-user-button .global-user-button__mnemos-mark {
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: scale(0.74);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+}
+
+.user-hub {
+  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.user-hub::-webkit-scrollbar {
+  display: none;
+}
+
+.user-hub-card__avatar--mnemos {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: visible;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(203, 255, 45, 0.12), transparent 70%),
+    rgba(203, 255, 45, 0.035);
+}
+
+.user-hub-card__avatar--mnemos > img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.user-hub-prime {
+  min-width: 78px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.user-hub-personalization-entry {
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 84px;
+  margin-top: 8px;
+  padding: 8px 10px 8px 7px;
+  overflow: hidden;
+  border: 1px solid rgba(225, 233, 207, 0.085);
+  border-radius: 15px;
+  color: #dfe4da;
+  background:
+    radial-gradient(circle at 9% 50%, rgba(206, 145, 210, 0.055), transparent 30%),
+    rgba(255, 255, 255, 0.014);
+  text-align: left;
+}
+
+.user-hub-personalization-entry__art {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  overflow: visible;
+}
+
+.user-hub-personalization-entry__art img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.28));
+}
+
+.user-hub-personalization-entry > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.user-hub-personalization-entry small {
+  color: #7e8579;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.user-hub-personalization-entry strong {
+  color: #dfe4da;
+  font-size: 11px;
+}
+
+.user-hub-personalization-entry em {
+  overflow: hidden;
+  color: #777e73;
+  font-size: 8.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-hub-personalization-entry > b {
+  justify-self: end;
+  color: #9da694;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.user-hub-localization {
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-height: 0;
+  margin: 10px 0 4px;
+  padding: 10px;
+  border-color: rgba(225, 233, 207, 0.085);
+  background: rgba(255, 255, 255, 0.014);
+  box-shadow: none;
+}
+
+.user-hub-localization__identity {
+  grid-template-columns: 1fr;
+}
+
+.user-hub-localization__mark {
+  display: none;
+}
+
+.user-hub-localization__copy {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.user-hub-localization__copy small {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.user-hub-localization__copy strong {
+  font-size: 11px;
+  font-weight: 650;
+  text-align: right;
+}
+
+.user-hub-localization__choices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  gap: 3px;
+  padding: 3px;
+  border: 0;
+  background: rgba(4, 6, 4, 0.42);
+}
+
+.user-hub-localization__choices button {
+  width: auto;
+  min-width: 0;
+  min-height: 36px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.user-hub-workspace-label {
+  margin-top: 15px;
+  padding: 0 4px 7px;
+  font-size: 9px;
+}
+
+.user-hub-workspace-grid {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.user-hub-workspace-grid > button {
+  grid-template-columns: 54px minmax(0, 1fr) 16px;
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 78px;
+  padding: 10px;
+}
+
+.user-hub-workspace-grid > button > .user-hub-workspace-art {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0;
+  border: 0;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.user-hub-workspace-art img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.user-hub-workspace-grid > button > .user-hub-workspace-copy {
+  display: grid;
+  place-items: initial;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  margin: 0;
+  gap: 4px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy strong {
+  color: currentColor;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.user-hub-workspace-grid > button .user-hub-workspace-copy small {
+  margin: 0;
+  color: #8f9588;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.user-hub-workspace-grid > button > b {
+  position: static;
+  align-self: center;
+  justify-self: end;
+}
+
+.telegram-mini-app .user-hub {
+  --user-hub-safe-top: var(--tg-content-safe-area-inset-top, 0px);
+  --user-hub-safe-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
+
+  max-height: calc(100dvh - 86px - var(--user-hub-safe-top) - var(--user-hub-safe-bottom));
+}
+
+@media (min-width: 700px) {
+  .user-hub {
+    width: min(500px, calc(100% - 36px)) !important;
+  }
+
+  .user-hub-workspace-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .user-hub-workspace-grid > button {
+    grid-template-columns: 52px minmax(0, 1fr) 16px;
+    min-height: 92px;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .user-hub-workspace-grid > button > .user-hub-workspace-art {
+    width: 52px;
+    height: 52px;
+  }
+
+  .user-hub-workspace-art img {
+    width: 46px;
+    height: 46px;
+  }
+
+  .user-hub-workspace-grid > button .user-hub-workspace-copy strong {
+    font-size: 13px;
+  }
+
+  .user-hub-workspace-grid > button .user-hub-workspace-copy small {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .user-hub {
+    right: 10px !important;
+    width: calc(100% - 20px) !important;
+  }
+
+  .user-hub-personalization-entry {
+    grid-template-columns: 56px minmax(0, 1fr) 14px;
+    gap: 9px;
+  }
+
+  .user-hub-personalization-entry__art {
+    width: 56px;
+    height: 56px;
+  }
+
+  .user-hub-personalization-entry__art img {
+    width: 54px;
+    height: 54px;
+  }
+}

@@ -2,6 +2,9 @@ package com.mnemos.social.application.spotlight.usecase.create
 
 import com.mnemos.social.application.actor.SocialActorProvider
 import com.mnemos.social.application.actor.model.SocialActor
+import com.mnemos.social.application.spotlight.exception.ItemDropAlreadySpotlightedException
+import com.mnemos.social.application.spotlight.exception.SpotlightItemDropAccessDeniedException
+import com.mnemos.social.application.spotlight.exception.SpotlightQueueLimitException
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightQueue
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightReservation
 import com.mnemos.social.application.spotlight.port.out.DropSpotlightWallet
@@ -19,8 +22,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -44,7 +45,7 @@ class CreateDropSpotlightServiceTest {
         whenever(fixture.repository.findLatestByBuyerUserId(fixture.actor.userId)).thenReturn(null)
         whenever(fixture.repository.save(any())).thenAnswer { invocation -> invocation.getArgument<DropSpotlight>(0) }
 
-        val result = fixture.service.execute(fixture.itemDrop.id)
+        val result = fixture.service.execute(fixture.createCommand())
 
         assertEquals(12, result.sequence)
         assertEquals(scheduledAt, result.scheduledAt)
@@ -70,12 +71,10 @@ class CreateDropSpotlightServiceTest {
         whenever(fixture.repository.existsNonFailedByItemDropEventId(fixture.itemDrop.id)).thenReturn(false)
         whenever(fixture.repository.findLatestByBuyerUserId(fixture.actor.userId)).thenReturn(null)
 
-        val exception =
-            assertThrows(ResponseStatusException::class.java) {
-                fixture.service.execute(fixture.itemDrop.id)
-            }
+        assertThrows(SpotlightQueueLimitException::class.java) {
+            fixture.service.execute(fixture.createCommand())
+        }
 
-        assertEquals(HttpStatus.CONFLICT, exception.statusCode)
         verify(fixture.wallet, never()).requestDebit(any())
         verify(fixture.repository, never()).save(any())
     }
@@ -93,12 +92,10 @@ class CreateDropSpotlightServiceTest {
             )
         whenever(fixture.repository.existsNonFailedByItemDropEventId(fixture.itemDrop.id)).thenReturn(true)
 
-        val exception =
-            assertThrows(ResponseStatusException::class.java) {
-                fixture.service.execute(fixture.itemDrop.id)
-            }
+        assertThrows(ItemDropAlreadySpotlightedException::class.java) {
+            fixture.service.execute(fixture.createCommand())
+        }
 
-        assertEquals(HttpStatus.CONFLICT, exception.statusCode)
         verify(fixture.queue).reserve(fixture.now)
         verify(fixture.wallet, never()).requestDebit(any())
     }
@@ -107,12 +104,10 @@ class CreateDropSpotlightServiceTest {
     fun `rejects drop owned by another account`() {
         val fixture = Fixture(itemDropOwner = "AnotherPlayer")
 
-        val exception =
-            assertThrows(ResponseStatusException::class.java) {
-                fixture.service.execute(fixture.itemDrop.id)
-            }
+        assertThrows(SpotlightItemDropAccessDeniedException::class.java) {
+            fixture.service.execute(fixture.createCommand())
+        }
 
-        assertEquals(HttpStatus.FORBIDDEN, exception.statusCode)
         verify(fixture.queue, never()).reserve(any())
         verify(fixture.wallet, never()).requestDebit(any())
     }
@@ -167,5 +162,10 @@ class CreateDropSpotlightServiceTest {
             whenever(actorProvider.requireActor()).thenReturn(actor)
             whenever(itemDropLookup.findById(itemDrop.id)).thenReturn(itemDrop)
         }
+
+        fun createCommand(): CreateDropSpotlightCommand =
+            CreateDropSpotlightCommand(
+                itemDropEventId = itemDrop.id,
+            )
     }
 }

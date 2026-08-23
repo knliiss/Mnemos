@@ -5,6 +5,7 @@ import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object ProfileAppearanceContractMapper {
     fun Personalization.toNickStyleSnapshot(): ProfileAppearanceChangedV1.NickStyle {
@@ -33,6 +34,11 @@ object ProfileAppearanceContractMapper {
             text = theme.text.value,
             border = theme.border.value,
             glow = theme.glow?.toContract(),
+            backgroundSecondary = theme.backgroundSecondary.value,
+            surfaceSecondary = theme.surfaceSecondary.value,
+            gradientAngleDegrees = theme.gradientAngleDegrees,
+            textureStrength = theme.textureStrength,
+            layers = theme.layers.map { layer -> layer.toContract() },
         )
     }
 
@@ -47,6 +53,10 @@ object ProfileAppearanceContractMapper {
             borderWidthPx = frame.borderWidthPx,
             radiusPx = frame.radiusPx,
             glow = frame.glow?.toContract(),
+            secondaryBorderColor = frame.secondaryBorderColor.value,
+            gapPx = frame.gapPx,
+            style = frame.style.name,
+            layers = frame.layers.map { layer -> layer.toContract() },
         )
     }
 
@@ -61,8 +71,26 @@ object ProfileAppearanceContractMapper {
             intensity = profileEffect.intensity,
             primaryColor = profileEffect.primaryColor.value,
             secondaryColor = profileEffect.secondaryColor?.value,
+            speed = profileEffect.speed,
+            density = profileEffect.density,
+            scale = profileEffect.scale,
+            layers = profileEffect.layers.map { layer -> layer.toContract() },
         )
     }
+
+    private fun VisualLayer.toContract(): ProfileAppearanceChangedV1.VisualLayer =
+        ProfileAppearanceChangedV1.VisualLayer(
+            id = id,
+            assetId = assetId.id,
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode.name,
+            animation = animation.name,
+            zIndex = zIndex,
+        )
 
     private fun GradientStop.toContract(): ProfileAppearanceChangedV1.GradientStop =
         ProfileAppearanceChangedV1.GradientStop(

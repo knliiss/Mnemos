@@ -1,0 +1,495 @@
+.bet-admin-screen {
+  padding-bottom: 34px;
+}
+
+.bet-admin-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 10px;
+  color: #cbd1c6;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 9px;
+}
+
+.bet-admin-hero,
+.bet-admin-round-detail-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 14px;
+  padding: 13px;
+  border: 1px solid rgba(203, 255, 45, 0.11);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(203, 255, 45, 0.05), transparent 38%),
+    rgba(255, 255, 255, 0.016);
+}
+
+.bet-admin-hero {
+  grid-template-columns: 86px minmax(0, 1fr);
+  min-height: 112px;
+  padding: 11px 15px 11px 9px;
+}
+
+.bet-admin-hero__art {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 82px;
+}
+
+.bet-admin-hero__art img {
+  width: 82px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
+}
+
+.bet-admin-hero > span:last-child,
+.bet-admin-round-detail-hero > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bet-admin-hero small,
+.bet-admin-round-detail-hero small,
+.bet-admin-kpis small,
+.bet-admin-recent > header small,
+.bet-admin-round-row small,
+.bet-admin-race-card__copy small,
+.bet-admin-race-card__money small,
+.bet-admin-form-block > header small {
+  color: #777e73;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+}
+
+.bet-admin-hero strong,
+.bet-admin-round-detail-hero strong {
+  overflow: hidden;
+  color: #e4e8df;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-hero em,
+.bet-admin-round-detail-hero em {
+  color: #7d8478;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.bet-admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 10px 0 14px;
+}
+
+.bet-admin-kpis article {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 78px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.bet-admin-kpis strong {
+  overflow: hidden;
+  color: #e4e8df;
+  font-size: 20px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.bet-admin-kpis em {
+  overflow: hidden;
+  color: #737a6f;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 16px;
+}
+
+.bet-admin-nav-grid > button {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 3px 9px;
+  min-width: 0;
+  min-height: 104px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 14px;
+  color: #dfe3da;
+  background: rgba(255, 255, 255, 0.015);
+  text-align: left;
+}
+
+.bet-admin-nav-grid > button > span:first-child {
+  grid-row: 1 / span 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.bet-admin-nav-grid > button > span.is-lime {
+  color: #cbff2d;
+  background: rgba(203, 255, 45, 0.07);
+}
+
+.bet-admin-nav-grid > button > span.is-plum {
+  color: #d39ad6;
+  background: rgba(206, 145, 210, 0.08);
+}
+
+.bet-admin-nav-grid > button > span.is-amber {
+  color: #ffb34f;
+  background: rgba(255, 179, 79, 0.08);
+}
+
+.bet-admin-nav-grid strong {
+  overflow: hidden;
+  align-self: end;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-nav-grid small {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.bet-admin-nav-grid b {
+  align-self: start;
+  color: #8b9286;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.bet-admin-recent,
+.bet-admin-round-stack,
+.bet-admin-race-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.bet-admin-recent {
+  padding: 13px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.bet-admin-recent > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bet-admin-recent > header > span {
+  display: grid;
+  gap: 2px;
+}
+
+.bet-admin-recent > header strong {
+  color: #dde1d8;
+  font-size: 12px;
+}
+
+.bet-admin-round-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 70px;
+  padding: 9px 10px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 13px;
+  color: #dfe3da;
+  background: rgba(255, 255, 255, 0.014);
+  text-align: left;
+}
+
+.bet-admin-round-row > span:nth-child(2),
+.bet-admin-round-row > span:nth-child(3) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bet-admin-round-row > span:nth-child(3) {
+  justify-items: end;
+  text-align: right;
+}
+
+.bet-admin-round-row strong {
+  overflow: hidden;
+  color: #dfe3da;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-round-row em {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-round-row > b {
+  color: #646b61;
+  font-size: 18px;
+}
+
+.bet-admin-round-detail-hero {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.bet-admin-form-block {
+  display: grid;
+  gap: 11px;
+  margin: 14px 0;
+  padding: 13px;
+  border: 1px solid rgba(223, 232, 204, 0.095);
+  border-radius: 17px;
+  background: rgba(14, 17, 12, 0.88);
+}
+
+.bet-admin-form-block > header {
+  display: grid;
+  gap: 3px;
+}
+
+.bet-admin-form-block > header strong {
+  color: #dfe2da;
+  font-size: 12px;
+}
+
+.bet-admin-form-block .field {
+  margin-top: 2px;
+}
+
+.bet-admin-form-block .field > span:first-child,
+.bet-admin-form-block .field > label {
+  color: #8a9083;
+  font-size: 9px;
+}
+
+.bet-admin-form-block input:not([type="color"]),
+.bet-admin-form-block textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(223, 232, 204, 0.1);
+  border-radius: 11px;
+  outline: none;
+  color: #e3e7de;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bet-admin-form-block textarea {
+  min-height: 92px;
+  padding-block: 11px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.bet-admin-form-block input:focus,
+.bet-admin-form-block textarea:focus {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
+}
+
+.bet-admin-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.bet-admin-choice button {
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  min-height: 52px;
+  padding: 8px;
+  border: 1px solid rgba(229, 236, 213, 0.1);
+  border-radius: 12px;
+  color: #858c7f;
+  background: rgba(255, 255, 255, 0.018);
+  font-size: 10px;
+}
+
+.bet-admin-choice button.is-active {
+  border-color: rgba(199, 242, 74, 0.23);
+  color: #e8ece2;
+  background: rgba(199, 242, 74, 0.04);
+}
+
+.bet-admin-choice strong {
+  color: #c7f24a;
+  font-size: 14px;
+}
+
+.bet-admin-form-block > .primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.bet-admin-race-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.bet-admin-race-card__art {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+
+.bet-admin-race-card__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bet-admin-race-card__copy strong {
+  overflow: hidden;
+  color: #e0e4db;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-race-card__copy em {
+  overflow: hidden;
+  color: #747b70;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-admin-race-card__money {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  min-width: 72px;
+}
+
+.bet-admin-race-card__money .currency-value {
+  color: #d7dcd2;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bet-admin-race-card > button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgba(222, 105, 112, 0.16);
+  border-radius: 10px;
+  color: #d6989d;
+  background: rgba(188, 61, 68, 0.045);
+  font-size: 9px;
+}
+
+@media (max-width: 520px) {
+  .bet-admin-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bet-admin-nav-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bet-admin-nav-grid > button {
+    min-height: 76px;
+  }
+
+  .bet-admin-race-card {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+
+  .bet-admin-race-card > button {
+    grid-column: 2 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 374px) {
+  .bet-admin-hero {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .bet-admin-hero__art {
+    width: 72px;
+  }
+
+  .bet-admin-hero__art img {
+    width: 68px;
+  }
+
+  .bet-admin-choice {
+    grid-template-columns: 1fr;
+  }
+
+  .bet-admin-round-row {
+    grid-template-columns: 48px minmax(0, 1fr) 18px;
+  }
+
+  .bet-admin-round-row > span:nth-child(3) {
+    display: none;
+  }
+}

@@ -1,32 +1,60 @@
 /// <reference types="vite/client" />
+
 interface ImportMetaEnv {
-    readonly VITE_KEYCLOAK_URL: string;
-    readonly VITE_KEYCLOAK_REALM: string;
-    readonly VITE_KEYCLOAK_CLIENT_ID: string;
-    readonly VITE_API_URL: string;
-    readonly VITE_SKIN_URL: string
+  readonly VITE_KEYCLOAK_URL: string
+  readonly VITE_KEYCLOAK_REALM: string
+  readonly VITE_KEYCLOAK_CLIENT_ID: string
+  readonly VITE_API_URL: string
+  readonly VITE_TELEGRAM_INIT_DATA_MAX_AGE_SECONDS?: string
 }
 
 interface ImportMeta {
-    readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv
 }
 
 interface Window {
-    Telegram?: { WebApp: TelegramWebApp }
+  Telegram?: {
+    WebApp: TelegramWebApp
+  }
 }
 
 interface TelegramWebApp {
-    initData: string;
+  initData: string
+  initDataUnsafe?: {
+    user?: {
+      language_code?: string
+    }
+  }
+  colorScheme?: "light" | "dark"
+  platform?: string
 
-    ready(): void;
+  ready(): void
 
-    expand(): void;
+  expand(): void
 
-    setHeaderColor(color: string): void;
+  close(): void
 
-    setBackgroundColor(color: string): void;
+  requestFullscreen?(): void
 
-    colorScheme?: "light" | "dark";
-    BackButton?: { show(): void; hide(): void; onClick(cb: () => void): void; offClick(cb: () => void): void };
-    HapticFeedback?: { impactOccurred(style: "light" | "medium" | "heavy"): void }
+  disableVerticalSwipes?(): void
+
+  setHeaderColor(color: string): void
+
+  setBackgroundColor(color: string): void
+
+  setBottomBarColor?(color: string): void
+
+  isVersionAtLeast?(version: string): boolean
+
+  BackButton?: {
+    show(): void
+    hide(): void
+    onClick(callback: () => void): void
+    offClick(callback: () => void): void
+  }
+
+  HapticFeedback?: {
+    impactOccurred(style: "light" | "medium" | "heavy"): void
+    notificationOccurred(type: "error" | "success" | "warning"): void
+  }
 }

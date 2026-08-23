@@ -8,14 +8,17 @@ import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.moderation.application.security.model.ModeratorActor
 import com.mnemos.moderation.application.security.port.out.CurrentModeratorProvider
 import com.mnemos.moderation.application.security.port.out.UserRoleProvider
+import com.mnemos.moderation.domain.sanction.exception.SelfSanctionException
 import com.mnemos.moderation.domain.sanction.model.DomainSanctionStatus
 import com.mnemos.moderation.domain.sanction.model.DomainSanctionType
 import com.mnemos.moderation.domain.sanction.model.Sanction
 import com.mnemos.moderation.domain.sanction.repository.SanctionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
@@ -24,6 +27,47 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 class CreateSanctionServiceTest {
+    @Test
+    fun `self sanction is rejected before target role lookup`() {
+        val now = Instant.parse("2026-08-13T18:00:00Z")
+        val actorUserId = UserId(UUID.fromString("0198a000-0000-7000-8000-000000000001"))
+        val repository = mock<SanctionRepository>()
+        val currentModeratorProvider = mock<CurrentModeratorProvider>()
+        val userRoleProvider = mock<UserRoleProvider>()
+        val publisher = RecordingIntegrationEventPublisher()
+        val service =
+            CreateSanctionService(
+                sanctionRepository = repository,
+                currentModeratorProvider = currentModeratorProvider,
+                userRoleProvider = userRoleProvider,
+                publisher = publisher,
+                clock = Clock.fixed(now, ZoneOffset.UTC),
+            )
+
+        whenever(currentModeratorProvider.current()).thenReturn(
+            ModeratorActor(
+                userId = actorUserId,
+                role = UserRole.SUPER_ADMIN,
+            ),
+        )
+
+        assertThrows(SelfSanctionException::class.java) {
+            service.execute(
+                CreateSanctionCommand(
+                    userId = actorUserId,
+                    type = DomainSanctionType.BAN,
+                    reason = "Self sanction",
+                    internalNote = null,
+                    duration = null,
+                ),
+            )
+        }
+
+        verifyNoInteractions(userRoleProvider)
+        verifyNoInteractions(repository)
+        assertEquals(0, publisher.events.size)
+    }
+
     @Test
     fun `create expires stale active sanction before creating replacement`() {
         val now = Instant.parse("2026-08-13T18:00:00Z")

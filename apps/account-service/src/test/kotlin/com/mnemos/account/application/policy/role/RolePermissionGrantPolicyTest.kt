@@ -22,7 +22,7 @@ class RolePermissionGrantPolicyTest {
                 requestedPermissions =
                     setOf(
                         RolePermission.ASSIGN_MEMBER_ROLES,
-                        RolePermission.SPEND_WALLET_FUNDS,
+                        RolePermission.PLACE_BETS,
                     ),
             )
         }
@@ -33,7 +33,7 @@ class RolePermissionGrantPolicyTest {
         val permissions =
             setOf(
                 RolePermission.ASSIGN_MEMBER_ROLES,
-                RolePermission.VIEW_BETS,
+                RolePermission.PLACE_BETS,
             )
 
         assertDoesNotThrow {

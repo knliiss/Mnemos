@@ -11,13 +11,19 @@ requiredActions:
 
 authenticationFlows:
   - alias: Telegram Mini App
-    description: Authentication through Telegram Mini App initData
+    description: Restore an existing Keycloak SSO session before authenticating through Telegram Mini App initData
     providerId: basic-flow
     topLevel: true
     builtIn: false
     authenticationExecutions:
-      - authenticator: mnemos-telegram-mini-app
-        requirement: REQUIRED
+      - authenticator: auth-cookie
+        requirement: ALTERNATIVE
         priority: 10
+        userSetupAllowed: false
+        authenticatorFlow: false
+
+      - authenticator: mnemos-telegram-mini-app
+        requirement: ALTERNATIVE
+        priority: 20
         userSetupAllowed: false
         authenticatorFlow: false

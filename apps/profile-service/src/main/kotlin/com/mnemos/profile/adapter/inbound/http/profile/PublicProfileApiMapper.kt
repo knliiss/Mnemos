@@ -1,9 +1,26 @@
 package com.mnemos.profile.adapter.inbound.http.profile
 
+import com.mnemos.profile.adapter.inbound.http.common.pagination.PageResponse
+import com.mnemos.profile.adapter.inbound.http.common.pagination.PageResponseMapper.toPageResponse
+import com.mnemos.profile.application.common.pagination.PageQuery
+import com.mnemos.profile.application.common.pagination.PageResult
+import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import com.mnemos.profile.domain.profile.model.PublicProfile
 
 object PublicProfileApiMapper {
+    fun SearchPublicProfilesRequest.toQuery(): SearchPublicProfilesQuery =
+        SearchPublicProfilesQuery(
+            query = q,
+            page =
+                PageQuery(
+                    page = page,
+                    size = size,
+                ),
+        )
+
+    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> = toPageResponse { profile -> profile.toResponse() }
+
     fun PublicProfile.toResponse(): PublicProfileResponse =
         PublicProfileResponse(
             accountId = accountId,
@@ -41,6 +58,11 @@ object PublicProfileApiMapper {
             text = text,
             border = border,
             glow = glow?.toResponse(),
+            backgroundSecondary = backgroundSecondary,
+            surfaceSecondary = surfaceSecondary,
+            gradientAngleDegrees = gradientAngleDegrees,
+            textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toResponse() },
         )
 
     private fun ProfileAppearance.AvatarFrame.toResponse(): ProfileAppearanceResponse.AvatarFrame =
@@ -50,6 +72,10 @@ object PublicProfileApiMapper {
             borderWidthPx = borderWidthPx,
             radiusPx = radiusPx,
             glow = glow?.toResponse(),
+            secondaryBorderColor = secondaryBorderColor,
+            gapPx = gapPx,
+            style = style,
+            layers = layers.map { layer -> layer.toResponse() },
         )
 
     private fun ProfileAppearance.ProfileEffect.toResponse(): ProfileAppearanceResponse.ProfileEffect =
@@ -59,6 +85,25 @@ object PublicProfileApiMapper {
             intensity = intensity,
             primaryColor = primaryColor,
             secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
+            layers = layers.map { layer -> layer.toResponse() },
+        )
+
+    private fun ProfileAppearance.VisualLayer.toResponse(): ProfileAppearanceResponse.VisualLayer =
+        ProfileAppearanceResponse.VisualLayer(
+            id = id,
+            assetId = assetId,
+            assetUrl = "/api/v1/personalizations/assets/$assetId/content",
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
         )
 
     private fun ProfileAppearance.GradientStop.toResponse(): ProfileAppearanceResponse.GradientStop =

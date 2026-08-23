@@ -1,9 +1,16 @@
 package com.mnemos.account.api.dto.identity
 
 import com.mnemos.account.application.query.identity.IdentityAccount
+import com.mnemos.account.application.query.identity.IdentitySearchQuery
 import com.mnemos.account.application.query.identity.IdentitySearchResult
 
 object IdentitySearchApiMapper {
+    fun IdentitySearchRequest.toQuery(): IdentitySearchQuery =
+        IdentitySearchQuery(
+            query = query,
+            limit = limit,
+        )
+
     fun IdentitySearchResult.toResponse(): IdentitySearchResponse =
         IdentitySearchResponse(
             userId = userId.id,

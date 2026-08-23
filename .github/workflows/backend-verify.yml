@@ -2,29 +2,80 @@ name: Backend Verify
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Verify Make wiring
         run: make make-verify
 
+      - name: Verify Kafka service configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/docker-compose-env.sh
+          sh -n scripts/generate-kafka-message-keys.sh
+          sh -n scripts/verify-compose-env-isolation.sh
+          sh -n scripts/verify-kafka-message-auth.sh
+          sh -n scripts/verify-kafka-message-auth-runtime.sh
+          sh -n scripts/verify-kafka-service-config.sh
+          scripts/verify-kafka-service-config.sh
+
       - name: Verify backend
         run: ./gradlew check --no-daemon
+
+      - name: Publish verification status
+        if: always() && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            STATE="success"
+          else
+            STATE="failure"
+          fi
+
+          PAYLOAD="$(jq -n \
+            --arg state "$STATE" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Backend verify: $JOB_STATUS" \
+            --arg context "backend/verify" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$PAYLOAD" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"

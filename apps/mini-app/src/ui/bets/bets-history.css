@@ -1,0 +1,35 @@
+.bets-my {
+  display: grid;
+  gap: 8px;
+}
+
+.bets-section-head--history {
+  margin-top: 12px;
+}
+
+.bets-history-card {
+  cursor: default;
+}
+
+.bets-history-card__position {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bets-history-card__position small {
+  color: #72796d;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bets-history-card__position .currency-value {
+  font-size: 9px !important;
+}
+
+.bets-history-card .bets-card__copy em,
+.bets-history-card .bets-race__copy em {
+  white-space: normal;
+}

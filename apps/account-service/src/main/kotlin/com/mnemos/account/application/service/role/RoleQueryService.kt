@@ -21,7 +21,7 @@ class RoleQueryService(
         contextProvider.requireActiveContext(accountId)
 
         return roleRepository
-            .findAllByAccountId(accountId)
+            .findAllByAccountIdOrderByRank(accountId)
             .map { it.toView() }
     }
 

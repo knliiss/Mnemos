@@ -1,0 +1,18 @@
+.event-detail-follow__copy small,
+.event-detail-facts small,
+.event-detail-follow__manage {
+  font-size: 9px !important;
+}
+
+.event-detail-follow__copy em {
+  font-size: 9px;
+}
+
+.event-detail-follow > button:not(.event-detail-follow__manage) {
+  min-height: 36px;
+  font-size: 9px;
+}
+
+.event-detail-follow__manage {
+  min-height: 28px;
+}

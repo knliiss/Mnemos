@@ -1,0 +1,184 @@
+import { api } from "@/shared/api/httpClient"
+import type { BetGlobalEventType, BetItemType, BetSide } from "@/ui/model"
+
+export type EventBetStatus =
+  | "ACTIVE"
+  | "SETTLEMENT_PENDING"
+  | "SETTLEMENT_FAILED"
+  | "SETTLED"
+  | "REFUND_PENDING"
+  | "REFUND_FAILED"
+  | "REFUNDED"
+
+export type EventBetRoundStatus =
+  | "OPEN"
+  | "LOCKED"
+  | "AWAITING_RESULT"
+  | "AWAITING_ADMIN_CONFIRMATION"
+  | "SETTLED"
+
+export type EventBetOutcome = "YES" | "NO" | "REFUND"
+
+export type EventBetResponse = {
+  id: string
+  roundId: string
+  side: BetSide
+  confirmedAmount: number
+  pendingAmount: number
+  status: EventBetStatus
+}
+
+export type EventBetRoundResponse = {
+  id: string
+  eventType: BetGlobalEventType
+  scheduledAt: string
+  closesAt: string
+  resolvesAt: string
+  yesOdds: number
+  noOdds: number
+  status: EventBetRoundStatus
+  outcome: EventBetOutcome | null
+  myBet: EventBetResponse | null
+}
+
+export type ItemRaceStatus =
+  | "REGISTRATION"
+  | "ACTIVE"
+  | "SETTLING"
+  | "SETTLED"
+  | "REFUNDING"
+  | "REFUNDED"
+  | "CANCELLED"
+
+export type ItemRaceParticipantStatus =
+  | "PENDING"
+  | "ACTIVE"
+  | "PAYOUT_PENDING"
+  | "PAYOUT_FAILED"
+  | "WON"
+  | "LOST"
+  | "REFUND_PENDING"
+  | "REFUND_FAILED"
+  | "REFUNDED"
+
+export type ItemRaceParticipantResponse = {
+  id: string
+  raceId: string
+  accountId: string
+  accountNickname: string
+  confirmedAmount: number
+  pendingAmount: number
+  status: ItemRaceParticipantStatus
+}
+
+export type ItemRaceResponse = {
+  id: string
+  itemName: string
+  itemType: BetItemType
+  registrationClosesAt: string
+  startsAt: string
+  expiresAt: string
+  entryAmount: number
+  feePercent: number
+  status: ItemRaceStatus
+  winnerAccountId: string | null
+  participants: ItemRaceParticipantResponse[]
+}
+
+export type AcceptedBetOperationResponse = {
+  resourceId: string
+  operationId: string
+}
+
+export type BetOperationStatus = "PENDING" | "COMPLETED" | "FAILED"
+
+export type BetOperationResponse = {
+  operationId: string
+  accountId: string
+  amount: number
+  kind: string
+  status: BetOperationStatus
+  eventBetId: string | null
+  itemRaceParticipantId: string | null
+  walletTransactionId: string | null
+  createdAt: string
+}
+
+export async function listEventBetRounds(): Promise<EventBetRoundResponse[]> {
+  return api<EventBetRoundResponse[]>("/api/v1/bets/event-rounds")
+}
+
+export async function getEventBetRound(roundId: string): Promise<EventBetRoundResponse> {
+  return api<EventBetRoundResponse>(`/api/v1/bets/event-rounds/${roundId}`)
+}
+
+export async function listMyEventBets(): Promise<EventBetResponse[]> {
+  return api<EventBetResponse[]>("/api/v1/bets/event-bets/me")
+}
+
+export async function placeEventBet(
+  roundId: string,
+  side: BetSide,
+  amount: number,
+): Promise<AcceptedBetOperationResponse> {
+  return betWrite("/api/v1/bets/event-bets", "POST", {
+    roundId,
+    side,
+    amount,
+  })
+}
+
+export async function increaseEventBet(
+  roundId: string,
+  amount: number,
+): Promise<AcceptedBetOperationResponse> {
+  return betWrite("/api/v1/bets/event-bets/increase", "PATCH", {
+    roundId,
+    amount,
+  })
+}
+
+export async function getBetOperation(operationId: string): Promise<BetOperationResponse> {
+  return api<BetOperationResponse>(`/api/v1/bets/operations/${operationId}`)
+}
+
+export async function listItemRaces(): Promise<ItemRaceResponse[]> {
+  return api<ItemRaceResponse[]>("/api/v1/bets/item-races")
+}
+
+export async function getItemRace(raceId: string): Promise<ItemRaceResponse> {
+  return api<ItemRaceResponse>(`/api/v1/bets/item-races/${raceId}`)
+}
+
+export async function listMyItemRaceHistory(): Promise<ItemRaceParticipantResponse[]> {
+  return api<ItemRaceParticipantResponse[]>("/api/v1/bets/item-race-participants/me")
+}
+
+export async function joinItemRace(raceId: string): Promise<AcceptedBetOperationResponse> {
+  return betWrite("/api/v1/bets/item-race-participants", "POST", { raceId })
+}
+
+export async function increaseItemRaceBet(
+  raceId: string,
+  amount: number,
+): Promise<AcceptedBetOperationResponse> {
+  return betWrite("/api/v1/bets/item-race-participants/increase", "PATCH", {
+    raceId,
+    amount,
+  })
+}
+
+async function betWrite(
+  path: string,
+  method: "POST" | "PATCH",
+  body: unknown,
+): Promise<AcceptedBetOperationResponse> {
+  return api<AcceptedBetOperationResponse>(path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": crypto.randomUUID(),
+    },
+    body: JSON.stringify(body),
+  })
+}

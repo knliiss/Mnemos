@@ -1,9 +1,8 @@
 package com.mnemos.wallet.application.balance.usecase.get
 
 import com.mnemos.common.core.model.id.AccountId
-import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
-import com.mnemos.wallet.application.account.port.out.AccountPermissionProvider
+import com.mnemos.wallet.application.account.port.out.ActiveAccountProvider
 import com.mnemos.wallet.application.balance.model.BalanceView
 import com.mnemos.wallet.application.balance.port.out.BalanceReader
 import com.mnemos.wallet.application.security.port.out.CurrentUserProvider
@@ -18,18 +17,13 @@ import org.springframework.transaction.annotation.Transactional
 class GetAccountBalancesService(
     private val balanceReader: BalanceReader,
     private val currentUserProvider: CurrentUserProvider,
-    private val accountPermissionProvider: AccountPermissionProvider,
+    private val activeAccountProvider: ActiveAccountProvider,
 ) : GetAccountBalancesUseCase {
     override fun execute(accountId: AccountId): List<BalanceView> {
         val userId = currentUserProvider.requireUserId()
-        val granted =
-            accountPermissionProvider.hasPermission(
-                accountId = accountId,
-                userId = userId,
-                permission = RolePermission.VIEW_WALLET,
-            )
+        val activeAccountId = activeAccountProvider.findActiveAccountId(userId)
 
-        if (!granted) {
+        if (activeAccountId != accountId) {
             throw AccountPermissionDeniedException(accountId)
         }
 

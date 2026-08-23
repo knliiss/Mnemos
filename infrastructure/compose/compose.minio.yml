@@ -1,0 +1,53 @@
+services:
+  minio:
+    image: "quay.io/minio/minio:${MINIO_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-minio"
+    hostname: "minio"
+    restart: unless-stopped
+
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+
+    command:
+      - server
+      - /data
+      - --console-address
+      - ":9001"
+
+    volumes:
+      - "minio-data:/data"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+    networks:
+      - mnemos-network
+
+  minio-init:
+    build:
+      context: ../..
+      dockerfile: infrastructure/minio-init/Dockerfile
+      args:
+        MINIO_MC_VERSION: "${MINIO_MC_VERSION:-RELEASE.2025-08-13T08-35-41Z}"
+    image: "mnemos/minio-init:${MINIO_MC_VERSION:-RELEASE.2025-08-13T08-35-41Z}"
+    container_name: "${COMPOSE_PROJECT_NAME}-minio-init"
+    restart: "no"
+
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+      MINIO_PERSONALIZATION_BUCKET: "${MINIO_PERSONALIZATION_BUCKET:-mnemos-personalization}"
+      MINIO_PERSONALIZATION_ACCESS_KEY: "${MINIO_PERSONALIZATION_ACCESS_KEY:-mnemos-personalization}"
+      MINIO_PERSONALIZATION_SECRET_KEY: "${MINIO_PERSONALIZATION_SECRET_KEY:-mnemos_local_storage_password}"
+
+    depends_on:
+      minio:
+        condition: service_healthy
+
+    networks:
+      - mnemos-network

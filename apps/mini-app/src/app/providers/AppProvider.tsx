@@ -1,83 +1,236 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { useTranslation } from "react-i18next"
-import type { Account, AvailableAccount, ThemeMode, User } from "@/shared/types/domain"
-import {handleError} from "@/shared/errors/errorHandler"
-import { activateAccount, createAccount, getActiveAccount, getAvailableAccounts, initializeUser, leaveActiveAccount, updateLanguage } from "@/entities/account/api/accountService"
+import { getToken } from "@/features/auth/api/auth"
+import { isAuthError } from "@/features/auth/api/authErrors"
+import {
+  createAccount,
+  joinAccount,
+  leaveActiveAccount,
+  selectActiveAccount,
+} from "@/shared/api/accountApi"
+import type { CurrentContextResponse } from "@/shared/api/backendContracts"
+import { isServiceUnavailableError } from "@/shared/api/httpClient"
+import {
+  getCurrentContext,
+  initializeCurrentUser,
+  updateCurrentLanguage,
+} from "@/shared/api/userApi"
+import { handleError } from "@/shared/errors/errorHandler"
+import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
+import type { LocalizationLanguage } from "@/ui/model"
 
-interface AppState {
-  user: User | null
-  account: Account | null
-  availableAccounts: AvailableAccount[]
-  theme: ThemeMode
+type AppState = {
+  context: CurrentContextResponse | null
   loading: boolean
-  refresh(): Promise<void>
-  selectAccount(id: string): Promise<void>
+  refresh(): Promise<CurrentContextResponse>
+  selectAccount(accountId: string): Promise<void>
   registerAccount(nickname: string): Promise<void>
+  joinByCode(inviteCode: string): Promise<void>
   leaveAccount(): Promise<void>
-  setTheme(theme: ThemeMode): void
-  setLanguage(language: User["localizationLanguage"]): Promise<void>
+  setLanguage(language: LocalizationLanguage): Promise<void>
 }
 
+const AUTOMATIC_RETRY_DELAY_MS = 10_000
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
-  const [user, setUser] = useState<User | null>(null)
-  const [account, setAccount] = useState<Account | null>(null)
-  const [availableAccounts, setAvailableAccounts] = useState<AvailableAccount[]>([])
-  const [theme, setThemeState] = useState<ThemeMode>(() => (localStorage.getItem("mnemos-theme") as ThemeMode) || "dark")
+  const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [serviceUnavailable, setServiceUnavailable] = useState(false)
+  const contextRevision = useRef(0)
+  const mountedRef = useRef(true)
+  const bootstrapPromiseRef = useRef<Promise<void> | null>(null)
 
-  useEffect(() => { void refresh().catch(handleError) }, [])
-  useEffect(() => {
-    const resolved = theme === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : theme
-    document.documentElement.dataset.theme = resolved
-  }, [theme])
+  const refresh = useCallback(async () => {
+    const revision = contextRevision.current + 1
 
-  async function refresh() {
+    contextRevision.current = revision
+    const next = await getCurrentContext()
+
+    if (revision === contextRevision.current) {
+      setContext(next)
+    }
+
+    return next
+  }, [])
+
+  const runBootstrap = useCallback(async () => {
     setLoading(true)
+
     try {
-      const currentUser = await initializeUser()
-      setUser(currentUser)
-      await i18n.changeLanguage(currentUser.localizationLanguage.toLowerCase())
-      const [active, available] = await Promise.all([getActiveAccount(), getAvailableAccounts()])
-      setAccount(active)
-      setAvailableAccounts(available)
-    } finally { setLoading(false) }
+      await initializeCurrentUser()
+      await getToken({ forceRefresh: true })
+
+      if (!mountedRef.current) {
+        return
+      }
+
+      const next = await refresh()
+
+      if (!mountedRef.current) {
+        return
+      }
+
+      await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      setServiceUnavailable(false)
+    } catch (error) {
+      if (!mountedRef.current) {
+        return
+      }
+
+      if (isServiceUnavailableError(error) || isAuthError(error, "AUTH_UNAVAILABLE")) {
+        setServiceUnavailable(true)
+        return
+      }
+
+      handleError(error)
+      setServiceUnavailable(true)
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false)
+      }
+    }
+  }, [i18n, refresh])
+
+  const bootstrap = useCallback((): Promise<void> => {
+    if (bootstrapPromiseRef.current) {
+      return bootstrapPromiseRef.current
+    }
+
+    const attempt = runBootstrap()
+    bootstrapPromiseRef.current = attempt
+
+    void attempt.then(
+      () => {
+        if (bootstrapPromiseRef.current === attempt) {
+          bootstrapPromiseRef.current = null
+        }
+      },
+      () => {
+        if (bootstrapPromiseRef.current === attempt) {
+          bootstrapPromiseRef.current = null
+        }
+      },
+    )
+
+    return attempt
+  }, [runBootstrap])
+
+  const selectAccount = useCallback(
+    async (accountId: string) => {
+      await selectActiveAccount(accountId)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const registerAccount = useCallback(
+    async (nickname: string) => {
+      const created = await createAccount(nickname)
+
+      await selectActiveAccount(created.accountId)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const joinByCode = useCallback(
+    async (inviteCode: string) => {
+      const joined = await joinAccount(inviteCode)
+
+      await selectActiveAccount(joined.accountId)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const leaveAccount = useCallback(async () => {
+    await leaveActiveAccount()
+    await refresh()
+  }, [refresh])
+
+  const setLanguage = useCallback(
+    async (language: LocalizationLanguage) => {
+      await updateCurrentLanguage(language)
+      await i18n.changeLanguage(language.toLowerCase())
+      await refresh()
+    },
+    [i18n, refresh],
+  )
+
+  useEffect(() => {
+    mountedRef.current = true
+    const frame = window.requestAnimationFrame(() => {
+      void bootstrap()
+    })
+
+    return () => {
+      contextRevision.current += 1
+      mountedRef.current = false
+      window.cancelAnimationFrame(frame)
+    }
+  }, [bootstrap])
+
+  useEffect(() => {
+    if (!serviceUnavailable) {
+      return
+    }
+
+    const retryTimer = window.setTimeout(() => {
+      void bootstrap()
+    }, AUTOMATIC_RETRY_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(retryTimer)
+    }
+  }, [bootstrap, serviceUnavailable])
+
+  const value = useMemo<AppState>(
+    () => ({
+      context,
+      loading,
+      refresh,
+      selectAccount,
+      registerAccount,
+      joinByCode,
+      leaveAccount,
+      setLanguage,
+    }),
+    [
+      context,
+      loading,
+      refresh,
+      selectAccount,
+      registerAccount,
+      joinByCode,
+      leaveAccount,
+      setLanguage,
+    ],
+  )
+
+  if (serviceUnavailable) {
+    return <ServiceUnavailableScreen reason="service" onRetry={bootstrap} />
   }
 
-  async function selectAccount(id: string) {
-    setAccount(await activateAccount(id))
-  }
-
-  async function registerAccount(nickname: string) {
-    const created = await createAccount(nickname)
-    setAccount(created)
-    setAvailableAccounts(await getAvailableAccounts())
-  }
-
-  async function leaveAccount() {
-    setAvailableAccounts(await leaveActiveAccount())
-    setAccount(null)
-  }
-
-  function setTheme(next: ThemeMode) {
-    localStorage.setItem("mnemos-theme", next)
-    setThemeState(next)
-  }
-
-  async function setLanguage(language: User["localizationLanguage"]) {
-    const updated = await updateLanguage(language)
-    setUser(updated)
-    await i18n.changeLanguage(language.toLowerCase())
-  }
-
-  const value = useMemo(() => ({ user, account, availableAccounts, theme, loading, refresh, selectAccount, registerAccount, leaveAccount, setTheme, setLanguage }), [user, account, availableAccounts, theme, loading])
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
 
 export function useApp() {
   const value = useContext(AppContext)
-  if (!value) throw new Error("AppProvider is missing")
+
+  if (!value) {
+    throw new Error("AppProvider is missing")
+  }
+
   return value
 }

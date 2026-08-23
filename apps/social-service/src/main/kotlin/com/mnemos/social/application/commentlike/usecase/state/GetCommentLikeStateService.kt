@@ -1,13 +1,12 @@
 package com.mnemos.social.application.commentlike.usecase.state
 
 import com.mnemos.social.application.actor.SocialActorProvider
+import com.mnemos.social.application.comment.exception.CommentNotFoundException
 import com.mnemos.social.domain.comment.model.CommentId
 import com.mnemos.social.domain.comment.repository.CommentRepository
 import com.mnemos.social.domain.reaction.repository.CommentLikeRepository
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @Service
@@ -19,9 +18,10 @@ class GetCommentLikeStateService(
     @Transactional(readOnly = true)
     override fun execute(commentId: UUID): Boolean {
         val actor = actorProvider.requireActor()
+        val id = CommentId(commentId)
         val comment =
-            commentRepository.findById(CommentId(commentId))
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Comment was not found")
+            commentRepository.findById(id)
+                ?: throw CommentNotFoundException(id)
 
         if (comment.deleted) {
             return false

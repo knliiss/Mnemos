@@ -1,0 +1,59 @@
+.bets-races .bets-empty {
+  min-height: 220px;
+  padding: 20px;
+  border-color: rgba(199, 242, 74, 0.08);
+  background:
+    radial-gradient(circle at 50% 43%, rgba(199, 242, 74, 0.035), transparent 30%),
+    rgba(255, 255, 255, 0.008);
+}
+
+.bets-races .bets-empty > svg {
+  display: none;
+}
+
+.bets-races .bets-empty::before {
+  content: "";
+  display: block;
+  width: 138px;
+  height: 98px;
+  margin-bottom: 5px;
+  background: url("/ui-illustrations/mnemos-mascot-race.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+.bets-races .bets-empty strong {
+  color: #aeb5a7;
+  font-size: 12px;
+}
+
+.bets-races .bets-empty small {
+  max-width: 260px;
+  color: #747c6f;
+  line-height: 1.45;
+}
+
+.bets-empty__illustration {
+  display: block;
+  width: 138px;
+  height: 98px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.bets-empty--race {
+  min-height: 220px;
+  padding: 20px;
+}
+
+@media (max-width: 420px) {
+  .bets-races .bets-empty {
+    min-height: 190px;
+    padding: 16px;
+  }
+
+  .bets-races .bets-empty::before,
+  .bets-empty__illustration {
+    width: 118px;
+    height: 84px;
+  }
+}

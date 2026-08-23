@@ -12,7 +12,6 @@ import com.mnemos.bet.domain.exception.BetConflictException
 import com.mnemos.bet.domain.exception.BetNotFoundException
 import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
 import com.mnemos.common.core.model.permission.RolePermission.PLACE_BETS
-import com.mnemos.common.core.model.permission.RolePermission.SPEND_WALLET_FUNDS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -31,7 +30,7 @@ class PlaceEventBetService(
     override fun execute(command: PlaceEventBetCommand): PlaceEventBetResult {
         require(command.amount in properties.minimumBet..properties.maximumBet)
 
-        val account = accountProvider.requireActiveAccount(setOf(PLACE_BETS, SPEND_WALLET_FUNDS))
+        val account = accountProvider.requireActiveAccount(PLACE_BETS)
         val actorUserId = currentActorProvider.requireUserId()
         val replay =
             command.idempotencyKey?.let { idempotencyKey ->

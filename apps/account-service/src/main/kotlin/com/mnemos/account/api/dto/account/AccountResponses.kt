@@ -1,5 +1,6 @@
 package com.mnemos.account.api.dto.account
 
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.common.core.model.permission.RolePermission
 import java.time.Instant
 import java.util.UUID
@@ -11,12 +12,14 @@ data class CreateAccountResponse(
 
 data class AccountSummaryResponse(
     val id: UUID,
+    val cristalixUuid: UUID,
     val cristalixNickname: String,
     val currentMemberId: UUID,
     val memberCount: Int,
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val status: AccountStatus,
 )
 
 data class AccountDetailsResponse(
@@ -28,6 +31,8 @@ data class AccountDetailsResponse(
     val maxMembers: Int,
     val owner: Boolean,
     val active: Boolean,
+    val status: AccountStatus,
+    val baseRoleId: UUID?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )

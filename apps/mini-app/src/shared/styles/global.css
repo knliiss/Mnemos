@@ -1,0 +1,122 @@
+@keyframes loader {
+  from {
+    left: -30px;
+  }
+
+  to {
+    left: 90px;
+  }
+}
+
+.splash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 100dvh;
+  padding: 24px;
+  color: #f5f6ef;
+  background: #020302;
+  text-align: center;
+}
+
+.splash p {
+  max-width: 320px;
+  margin: 0;
+  color: #9ca194;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.splash > span {
+  position: relative;
+  width: 90px;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(235, 241, 213, 0.11);
+}
+
+.splash > span::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 100%;
+  background: #cbff2d;
+  animation: loader 1.2s infinite;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(235, 241, 213, 0.16);
+  border-radius: 16px;
+  color: #ddff72;
+  background: rgba(203, 255, 45, 0.055);
+  box-shadow: 0 0 35px rgba(203, 255, 45, 0.08);
+  font-size: 24px;
+  font-weight: 720;
+}
+
+.notification {
+  position: fixed;
+  z-index: 1000;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  left: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 430px;
+  margin-inline: auto;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.12);
+  border-radius: 14px;
+  color: #eef1e9;
+  background: rgba(17, 19, 15, 0.95);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  white-space: pre-wrap;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.notification--error {
+  border-color: rgba(255, 104, 115, 0.4);
+}
+
+.notification--success {
+  border-color: rgba(189, 224, 109, 0.3);
+}
+
+.notification__message {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.notification__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.notification__button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash > span::after {
+    animation: none;
+    left: 31px;
+  }
+}
