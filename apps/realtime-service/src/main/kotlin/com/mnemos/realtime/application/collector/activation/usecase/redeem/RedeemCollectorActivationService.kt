@@ -78,7 +78,10 @@ class RedeemCollectorActivationService(
             deviceName
                 .trim()
                 .replace(WHITESPACE_PATTERN, " ")
-        val activationSuffix = activation.id.id.toString().take(8)
+        val activationSuffix =
+            activation.id.id
+                .toString()
+                .take(8)
 
         return "$normalizedDeviceName-$activationSuffix"
     }
