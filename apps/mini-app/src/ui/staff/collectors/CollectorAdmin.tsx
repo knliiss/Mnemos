@@ -22,11 +22,12 @@ import {
   type CollectorSort,
 } from "./collectorAdminPresentation"
 import { CollectorCredentialList } from "./CollectorCredentialList"
+import { CollectorSortMenu } from "./CollectorSortMenu"
 
 type CredentialMutation = (credentialId: string) => Promise<CollectorCredentialResponse>
 
 const filters: CollectorFilter[] = ["ALL", "ENABLED", "DISABLED", "REVOKED"]
-const sorts: CollectorSort[] = ["STATUS", "RECENT", "NAME"]
+const COPY_FEEDBACK_DURATION_MS = 2_500
 
 export function CollectorAdmin({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
@@ -102,6 +103,20 @@ export function CollectorAdmin({ back }: { back: () => void }) {
       window.cancelAnimationFrame(frame)
     }
   }, [refresh])
+
+  useEffect(() => {
+    if (!copied) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      setCopied(false)
+    }, COPY_FEEDBACK_DURATION_MS)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [copied])
 
   const counts = useMemo(() => {
     const enabled = credentials.filter(
@@ -287,16 +302,7 @@ export function CollectorAdmin({ back }: { back: () => void }) {
             />
           </label>
 
-          <label className="collector-admin-sort">
-            <span>{t("collectorAdmin.sortLabel")}</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value as CollectorSort)}>
-              {sorts.map((option) => (
-                <option key={option} value={option}>
-                  {t(`collectorAdmin.sort.${option.toLowerCase()}`)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <CollectorSortMenu value={sort} onChange={setSort} />
         </div>
 
         <div className="collector-admin-filters" aria-label={t("collectorAdmin.filterAria")}>
