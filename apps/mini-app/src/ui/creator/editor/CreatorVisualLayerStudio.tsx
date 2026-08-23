@@ -1,15 +1,14 @@
 import type { Dispatch, PointerEvent, SetStateAction } from "react"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
-  listCreatorPersonalizationAssets,
   uploadCreatorPersonalizationAsset,
   type PersonalizationAssetResponse,
 } from "@/shared/api/creatorPersonalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { PersonalizationAssetImage } from "../../components/personalization/PersonalizationAssetImage"
 import type { VisualLayerAnimation, VisualLayerBlendMode } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
-import { PersonalizationAssetImage } from "../../components/personalization/PersonalizationAssetImage"
 import type { CreatorEditorForm, CreatorVisualLayerForm } from "./creatorEditorModel"
 import "./creator-layer-studio.css"
 
@@ -22,7 +21,6 @@ type Props = {
 }
 
 const blendModes: VisualLayerBlendMode[] = ["NORMAL", "SCREEN", "MULTIPLY", "OVERLAY", "SOFT_LIGHT"]
-
 const animations: VisualLayerAnimation[] = ["NONE", "FLOAT", "PULSE", "SPIN", "DRIFT"]
 
 function isLayeredType(type: CreatorEditorForm["type"]): type is LayeredType {
@@ -56,7 +54,7 @@ function newLayer(asset: PersonalizationAssetResponse, zIndex: number): CreatorV
     assetUrl: asset.contentUrl,
     xPercent: 50,
     yPercent: 50,
-    widthPercent: 48,
+    widthPercent: 42,
     opacity: 100,
     rotationDegrees: 0,
     blendMode: "NORMAL",
@@ -68,39 +66,12 @@ function newLayer(asset: PersonalizationAssetResponse, zIndex: number): CreatorV
 export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
   const { t } = useTranslation()
   const canvasRef = useRef<HTMLDivElement>(null)
-  const [assets, setAssets] = useState<PersonalizationAssetResponse[]>([])
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null)
-  const [loadingAssets, setLoadingAssets] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [draggingLayerId, setDraggingLayerId] = useState<string | null>(null)
   const layers = currentLayers(form)
   const selectedLayer =
     layers.find((layer) => layer.id === selectedLayerId) ?? layers.at(-1) ?? null
-
-  useEffect(() => {
-    let cancelled = false
-
-    void listCreatorPersonalizationAssets()
-      .then((response) => {
-        if (!cancelled) {
-          setAssets(response)
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          handleError(error)
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoadingAssets(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   if (!isLayeredType(form.type)) {
     return null
@@ -165,6 +136,24 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
     setSelectedLayerId(layer.id)
   }
 
+  const upload = async (file: File | null) => {
+    if (!file || !editable || uploading || layers.length >= 8) {
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      const asset = await uploadCreatorPersonalizationAsset(file)
+
+      addAsset(asset)
+    } catch (error) {
+      handleError(error)
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const duplicateLayer = () => {
     if (!editable || !selectedLayer || layers.length >= 8) {
       return
@@ -204,25 +193,6 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
     })
   }
 
-  const upload = async (file: File | null) => {
-    if (!file || !editable || uploading) {
-      return
-    }
-
-    setUploading(true)
-
-    try {
-      const asset = await uploadCreatorPersonalizationAsset(file)
-
-      setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])
-      addAsset(asset)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setUploading(false)
-    }
-  }
-
   const updatePosition = (event: PointerEvent<HTMLDivElement>) => {
     if (!editable || !draggingLayerId || !canvasRef.current) {
       return
@@ -242,10 +212,24 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
     <section className="creator-layer-studio">
       <header className="creator-layer-studio__header">
         <span>
-          <small>{t("creator.editor.layersEyebrow")}</small>
-          <strong>{t("creator.editor.layersTitle")}</strong>
+          <small>{t("creator.editor.artworkEyebrow")}</small>
+          <strong>{t("creator.editor.artworkTitle")}</strong>
+          <em>{t("creator.editor.artworkHint")}</em>
         </span>
-        <em>{t("creator.editor.layerCount", { count: layers.length })}</em>
+
+        <label className="creator-asset-upload">
+          <input
+            type="file"
+            accept="image/png"
+            disabled={!editable || uploading || layers.length >= 8}
+            onChange={(event) => {
+              void upload(event.target.files?.[0] ?? null)
+              event.currentTarget.value = ""
+            }}
+          />
+          <Glyph name="plus" size={14} />
+          {uploading ? t("creator.editor.assetUploading") : t("creator.editor.artworkUpload")}
+        </label>
       </header>
 
       <div className="creator-layer-studio__workspace">
@@ -303,7 +287,8 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
           {!layers.length ? (
             <span className="creator-layer-canvas__empty">
               <Glyph name="creator" size={22} />
-              {t("creator.editor.emptyCanvas")}
+              <strong>{t("creator.editor.emptyCanvas")}</strong>
+              <small>{t("creator.editor.emptyCanvasHint")}</small>
             </span>
           ) : null}
         </div>
@@ -311,6 +296,31 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
         <aside className="creator-layer-inspector">
           {selectedLayer ? (
             <>
+              <div className="creator-layer-inspector__summary">
+                <span>
+                  <small>{t("creator.editor.selectedArtwork")}</small>
+                  <strong>{t("creator.editor.dragArtwork")}</strong>
+                </span>
+                <em>{layers.length}/8</em>
+              </div>
+
+              <LayerRange
+                label={t("creator.editor.layerSize")}
+                min={5}
+                max={200}
+                value={selectedLayer.widthPercent}
+                disabled={!editable}
+                onChange={(widthPercent) => updateLayer(selectedLayer.id, { widthPercent })}
+              />
+              <LayerRange
+                label={t("creator.editor.layerOpacity")}
+                min={1}
+                max={100}
+                value={selectedLayer.opacity}
+                disabled={!editable}
+                onChange={(opacity) => updateLayer(selectedLayer.id, { opacity })}
+              />
+
               <div className="creator-layer-inspector__actions">
                 <button type="button" disabled={!editable} onClick={() => moveZ(-1)}>
                   {t("creator.editor.layerBack")}
@@ -330,137 +340,85 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
                 </button>
               </div>
 
-              <LayerRange
-                label="X"
-                min={-50}
-                max={150}
-                value={selectedLayer.xPercent}
-                disabled={!editable}
-                onChange={(xPercent) => updateLayer(selectedLayer.id, { xPercent })}
-              />
-              <LayerRange
-                label="Y"
-                min={-50}
-                max={150}
-                value={selectedLayer.yPercent}
-                disabled={!editable}
-                onChange={(yPercent) => updateLayer(selectedLayer.id, { yPercent })}
-              />
-              <LayerRange
-                label={t("creator.editor.layerSize")}
-                min={5}
-                max={200}
-                value={selectedLayer.widthPercent}
-                disabled={!editable}
-                onChange={(widthPercent) => updateLayer(selectedLayer.id, { widthPercent })}
-              />
-              <LayerRange
-                label={t("creator.editor.layerOpacity")}
-                min={1}
-                max={100}
-                value={selectedLayer.opacity}
-                disabled={!editable}
-                onChange={(opacity) => updateLayer(selectedLayer.id, { opacity })}
-              />
-              <LayerRange
-                label={t("creator.editor.layerRotation")}
-                min={-180}
-                max={180}
-                value={selectedLayer.rotationDegrees}
-                disabled={!editable}
-                suffix="°"
-                onChange={(rotationDegrees) => updateLayer(selectedLayer.id, { rotationDegrees })}
-              />
+              <details className="creator-layer-advanced">
+                <summary>{t("creator.editor.layerAdvanced")}</summary>
 
-              <label className="creator-layer-select">
-                <span>{t("creator.editor.layerBlend")}</span>
-                <select
-                  value={selectedLayer.blendMode}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    updateLayer(selectedLayer.id, {
-                      blendMode: event.target.value as VisualLayerBlendMode,
-                    })
-                  }
-                >
-                  {blendModes.map((mode) => (
-                    <option value={mode} key={mode}>
-                      {t(`creator.editor.blendModes.${mode}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <div className="creator-layer-advanced__controls">
+                  <LayerRange
+                    label="X"
+                    min={-50}
+                    max={150}
+                    value={selectedLayer.xPercent}
+                    disabled={!editable}
+                    onChange={(xPercent) => updateLayer(selectedLayer.id, { xPercent })}
+                  />
+                  <LayerRange
+                    label="Y"
+                    min={-50}
+                    max={150}
+                    value={selectedLayer.yPercent}
+                    disabled={!editable}
+                    onChange={(yPercent) => updateLayer(selectedLayer.id, { yPercent })}
+                  />
+                  <LayerRange
+                    label={t("creator.editor.layerRotation")}
+                    min={-180}
+                    max={180}
+                    value={selectedLayer.rotationDegrees}
+                    disabled={!editable}
+                    suffix="°"
+                    onChange={(rotationDegrees) => updateLayer(selectedLayer.id, { rotationDegrees })}
+                  />
 
-              <label className="creator-layer-select">
-                <span>{t("creator.editor.layerAnimation")}</span>
-                <select
-                  value={selectedLayer.animation}
-                  disabled={!editable}
-                  onChange={(event) =>
-                    updateLayer(selectedLayer.id, {
-                      animation: event.target.value as VisualLayerAnimation,
-                    })
-                  }
-                >
-                  {animations.map((animation) => (
-                    <option value={animation} key={animation}>
-                      {t(`creator.editor.layerAnimations.${animation}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className="creator-layer-select">
+                    <span>{t("creator.editor.layerBlend")}</span>
+                    <select
+                      value={selectedLayer.blendMode}
+                      disabled={!editable}
+                      onChange={(event) =>
+                        updateLayer(selectedLayer.id, {
+                          blendMode: event.target.value as VisualLayerBlendMode,
+                        })
+                      }
+                    >
+                      {blendModes.map((mode) => (
+                        <option value={mode} key={mode}>
+                          {t(`creator.editor.blendModes.${mode}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="creator-layer-select">
+                    <span>{t("creator.editor.layerAnimation")}</span>
+                    <select
+                      value={selectedLayer.animation}
+                      disabled={!editable}
+                      onChange={(event) =>
+                        updateLayer(selectedLayer.id, {
+                          animation: event.target.value as VisualLayerAnimation,
+                        })
+                      }
+                    >
+                      {animations.map((animation) => (
+                        <option value={animation} key={animation}>
+                          {t(`creator.editor.layerAnimations.${animation}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </details>
             </>
           ) : (
-            <p>{t("creator.editor.selectLayer")}</p>
+            <div className="creator-layer-inspector__empty">
+              <Glyph name="creator" size={20} />
+              <strong>{t("creator.editor.artworkOptional")}</strong>
+              <small>{t("creator.editor.artworkOptionalHint")}</small>
+            </div>
           )}
         </aside>
       </div>
-
-      <section className="creator-asset-library">
-        <header>
-          <span>
-            <small>{t("creator.editor.assetsEyebrow")}</small>
-            <strong>{t("creator.editor.assetsTitle")}</strong>
-          </span>
-          <label className="creator-asset-upload">
-            <input
-              type="file"
-              accept="image/png"
-              disabled={!editable || uploading}
-              onChange={(event) => {
-                void upload(event.target.files?.[0] ?? null)
-                event.currentTarget.value = ""
-              }}
-            />
-            <Glyph name="plus" size={14} />
-            {uploading ? t("creator.editor.assetUploading") : t("creator.editor.assetUpload")}
-          </label>
-        </header>
-
-        {loadingAssets ? (
-          <p className="creator-asset-library__hint">{t("creator.editor.assetsLoading")}</p>
-        ) : assets.length ? (
-          <div className="creator-asset-library__grid">
-            {assets.map((asset) => (
-              <button
-                type="button"
-                key={asset.id}
-                disabled={!editable || layers.length >= 8}
-                onClick={() => addAsset(asset)}
-              >
-                <span>
-                  <PersonalizationAssetImage src={asset.contentUrl} />
-                </span>
-                <small>
-                  {asset.widthPx}×{asset.heightPx}
-                </small>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="creator-asset-library__hint">{t("creator.editor.assetsEmpty")}</p>
-        )}
-      </section>
     </section>
   )
 }
