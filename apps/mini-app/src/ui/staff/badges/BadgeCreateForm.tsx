@@ -30,19 +30,11 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   const imagePreviewUrl = useMemo(() => (image ? URL.createObjectURL(image) : null), [image])
 
   useEffect(() => {
-    let cancelled = false
-
     if (!image) {
-      setImageValid(false)
-      setCheckingImage(false)
-
-      return () => {
-        cancelled = true
-      }
+      return
     }
 
-    setImageValid(false)
-    setCheckingImage(true)
+    let cancelled = false
 
     void validateBadgeImageFile(image)
       .catch(() => false)
@@ -66,6 +58,12 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
     },
     [imagePreviewUrl],
   )
+
+  const selectImage = (nextImage: File | null) => {
+    setImage(nextImage)
+    setImageValid(false)
+    setCheckingImage(nextImage !== null)
+  }
 
   const create = async () => {
     if (!createValid || !image || busy) {
@@ -117,7 +115,7 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
           <input
             type="file"
             accept="image/png,.png"
-            onChange={(event) => setImage(event.target.files?.[0] ?? null)}
+            onChange={(event) => selectImage(event.target.files?.[0] ?? null)}
           />
 
           <span className="badge-image-picker__preview">
