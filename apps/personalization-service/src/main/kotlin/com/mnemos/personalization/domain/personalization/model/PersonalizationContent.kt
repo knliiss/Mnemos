@@ -26,10 +26,12 @@ sealed interface PersonalizationContent {
         val surfaceSecondary: HexColor = surface,
         val gradientAngleDegrees: Int = 145,
         val textureStrength: Int = 0,
+        val layers: List<VisualLayer> = emptyList(),
     ) : PersonalizationContent {
         init {
             require(gradientAngleDegrees in 0..360) { "Theme gradient angle must be between 0 and 360" }
             require(textureStrength in 0..100) { "Theme texture strength must be between 0 and 100" }
+            validateVisualLayers(layers)
         }
     }
 
@@ -41,11 +43,13 @@ sealed interface PersonalizationContent {
         val secondaryBorderColor: HexColor = borderColor,
         val gapPx: Int = 0,
         val style: FrameStyle = FrameStyle.SOLID,
+        val layers: List<VisualLayer> = emptyList(),
     ) : PersonalizationContent {
         init {
             require(borderWidthPx in 1..8) { "Avatar frame border width must be between 1 and 8" }
             require(radiusPx in 0..32) { "Avatar frame radius must be between 0 and 32" }
             require(gapPx in 0..8) { "Avatar frame gap must be between 0 and 8" }
+            validateVisualLayers(layers)
         }
     }
 
@@ -57,12 +61,14 @@ sealed interface PersonalizationContent {
         val speed: Int = 50,
         val density: Int = 50,
         val scale: Int = 50,
+        val layers: List<VisualLayer> = emptyList(),
     ) : PersonalizationContent {
         init {
             require(intensity in 1..100) { "Profile effect intensity must be between 1 and 100" }
             require(speed in 1..100) { "Profile effect speed must be between 1 and 100" }
             require(density in 1..100) { "Profile effect density must be between 1 and 100" }
             require(scale in 1..100) { "Profile effect scale must be between 1 and 100" }
+            validateVisualLayers(layers)
         }
     }
 
@@ -147,6 +153,13 @@ sealed interface PersonalizationContent {
         private companion object {
             val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)}")
         }
+    }
+}
+
+private fun validateVisualLayers(layers: List<VisualLayer>) {
+    require(layers.size <= 8) { "Personalization can contain at most 8 visual layers" }
+    require(layers.map { layer -> layer.id }.distinct().size == layers.size) {
+        "Personalization visual layer ids must be unique"
     }
 }
 
