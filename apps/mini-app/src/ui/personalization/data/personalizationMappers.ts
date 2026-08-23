@@ -33,8 +33,9 @@ export function toPersonalization(
   currentUsername?: string,
 ): Personalization {
   const target = owned?.ownerType ?? targets[response.type]
+  const createdByCurrentUser = response.creatorUserId === currentUserId
   const creator =
-    response.creatorUserId === currentUserId && currentUsername
+    createdByCurrentUser && currentUsername
       ? `@${currentUsername}`
       : `Creator ${response.creatorUserId.slice(0, 8)}`
 
@@ -44,6 +45,7 @@ export function toPersonalization(
     target,
     name: response.name,
     creator,
+    createdByCurrentUser,
     currency: response.price?.currency ?? "COIN",
     price: response.price?.amount ?? 0,
     status: response.status,
