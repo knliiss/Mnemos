@@ -10,4 +10,5 @@ data class ProfileEffectContentResponse(
     val speed: Int,
     val density: Int,
     val scale: Int,
+    val layers: List<VisualLayerResponse>,
 ) : PersonalizationContentResponse
