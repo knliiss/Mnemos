@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
-import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
+import { getAccountMembers, getAccountRoles, getMemberRoles } from "@/shared/api/accountApi"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
@@ -21,7 +21,10 @@ type AccountData = {
   restoreReward(): Promise<void>
 }
 
-export function useAccountData(accountId: string | undefined): AccountData {
+export function useAccountData(
+  accountId: string | undefined,
+  currentMemberId: string | undefined,
+): AccountData {
   const [members, setMembers] = useState<Member[]>([])
   const [roles, setRoles] = useState<AccountRole[]>([])
   const [dailyReward, setDailyReward] = useState<DailyRewardStateResponse | null>(null)
@@ -34,11 +37,13 @@ export function useAccountData(accountId: string | undefined): AccountData {
   const accountBalanceRevision = useRef(0)
   const userBalanceRevision = useRef(0)
   const activeAccountId = useRef(accountId)
-  const scopeKey = accountId ?? "user"
+  const activeMemberId = useRef(currentMemberId)
+  const scopeKey = accountId ? `${accountId}:${currentMemberId ?? "unknown"}` : "user"
 
   useLayoutEffect(() => {
     activeAccountId.current = accountId
-  }, [accountId])
+    activeMemberId.current = currentMemberId
+  }, [accountId, currentMemberId])
 
   const refreshUserBalance = useCallback(async () => {
     const revision = userBalanceRevision.current + 1
@@ -73,7 +78,10 @@ export function useAccountData(accountId: string | undefined): AccountData {
 
   const refreshAccount = useCallback(async () => {
     const requestedAccountId = accountId
-    const requestedScopeKey = requestedAccountId ?? "user"
+    const requestedMemberId = currentMemberId
+    const requestedScopeKey = requestedAccountId
+      ? `${requestedAccountId}:${requestedMemberId ?? "unknown"}`
+      : "user"
     const revision = requestRevision.current + 1
 
     requestRevision.current = revision
@@ -98,24 +106,42 @@ export function useAccountData(accountId: string | undefined): AccountData {
         return
       }
 
-      const [memberResponses, roleResponses, rewardState] = await Promise.all([
+      const actorRolesPromise = requestedMemberId
+        ? getMemberRoles(requestedAccountId, requestedMemberId)
+        : Promise.resolve([])
+      const [memberResponses, roleResponses, rewardState, actorRoleResponses] = await Promise.all([
         getAccountMembers(requestedAccountId),
         getAccountRoles(requestedAccountId),
         getDailyRewardState(),
+        actorRolesPromise,
         refreshAccountBalance(requestedAccountId),
         userBalancePromise,
       ])
 
-      if (revision !== requestRevision.current || activeAccountId.current !== requestedAccountId) {
+      if (
+        revision !== requestRevision.current ||
+        activeAccountId.current !== requestedAccountId ||
+        activeMemberId.current !== requestedMemberId
+      ) {
         return
       }
 
-      setMembers(memberResponses.map((member) => toMember(member)))
+      const actorRoleIds = actorRoleResponses.map((role) => role.id)
+
+      setMembers(
+        memberResponses.map((member) =>
+          toMember(member, member.id === requestedMemberId ? actorRoleIds : undefined),
+        ),
+      )
       setRoles(roleResponses.map(toRole))
       setDailyReward(rewardState)
       setLoadedScopeKey(requestedScopeKey)
     } catch (error) {
-      if (revision === requestRevision.current && activeAccountId.current === requestedAccountId) {
+      if (
+        revision === requestRevision.current &&
+        activeAccountId.current === requestedAccountId &&
+        activeMemberId.current === requestedMemberId
+      ) {
         setMembers([])
         setRoles([])
         setDailyReward(null)
@@ -125,11 +151,15 @@ export function useAccountData(accountId: string | undefined): AccountData {
         handleError(error)
       }
     } finally {
-      if (revision === requestRevision.current && activeAccountId.current === requestedAccountId) {
+      if (
+        revision === requestRevision.current &&
+        activeAccountId.current === requestedAccountId &&
+        activeMemberId.current === requestedMemberId
+      ) {
         setLoadingAccount(false)
       }
     }
-  }, [accountId, refreshAccountBalance, refreshUserBalance])
+  }, [accountId, currentMemberId, refreshAccountBalance, refreshUserBalance])
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -141,7 +171,7 @@ export function useAccountData(accountId: string | undefined): AccountData {
       accountBalanceRevision.current += 1
       window.cancelAnimationFrame(frame)
     }
-  }, [accountId, refreshAccount])
+  }, [accountId, currentMemberId, refreshAccount])
 
   useEffect(() => {
     const unsubscribe = realtimeEvents.subscribe((event) => {

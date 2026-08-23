@@ -16,6 +16,12 @@ import { RoleEditorActions } from "./role-editor/RoleEditorActions"
 import { RoleEditorHero } from "./role-editor/RoleEditorHero"
 import { RoleIdentityPanel } from "./role-editor/RoleIdentityPanel"
 import { RolePermissionsPanel } from "./role-editor/RolePermissionsPanel"
+import {
+  resolveActorMember,
+  resolveRoleManagementAccess,
+  resolveRolePermissionMutationAccess,
+  roleAccessReasonTranslationKey,
+} from "./roleAccessPolicy"
 
 type Props = {
   params?: Record<string, string>
@@ -33,11 +39,46 @@ function emptyPermissions(): Record<RolePermission, boolean> {
 export function RoleEditor({ params, navigate, back }: Props) {
   const { t } = useTranslation()
   const data = useMnemosData()
-  const accountId = data.activeAccount?.id ?? null
+  const account = data.activeAccount
+  const accountId = account?.id ?? null
   const canManageRoles = data.hasPermission("MANAGE_ROLES")
   const existing = data.roles.find((role) => role.id === params?.roleId) ?? null
   const isNew = params?.roleId === "new"
-  const accessMessage = t("errorNotifications.tones.access.message")
+  const actorMember = account ? resolveActorMember(account, data.members) : null
+  const roleAccessContext = account
+    ? {
+        account,
+        actorMember,
+        roles: data.roles,
+      }
+    : null
+  const managementAccess =
+    existing && roleAccessContext
+      ? resolveRoleManagementAccess(roleAccessContext, canManageRoles, existing)
+      : canManageRoles
+        ? "ALLOWED"
+        : "MISSING_PERMISSION"
+  const permissionMutationAccess =
+    existing && roleAccessContext
+      ? resolveRolePermissionMutationAccess(
+          roleAccessContext,
+          canManageRoles,
+          existing,
+          actorMember?.roleIds ?? [],
+        )
+      : managementAccess
+  const detailsEditable = isNew ? canManageRoles : managementAccess === "ALLOWED"
+  const permissionsEditable = isNew
+    ? canManageRoles
+    : permissionMutationAccess === "ALLOWED"
+  const detailsAccessMessage =
+    managementAccess === "ALLOWED"
+      ? t("errorNotifications.tones.access.message")
+      : t(roleAccessReasonTranslationKey(managementAccess))
+  const permissionsAccessMessage =
+    permissionMutationAccess === "ALLOWED"
+      ? t("errorNotifications.tones.access.message")
+      : t(roleAccessReasonTranslationKey(permissionMutationAccess))
   const initialPermissions = existing
     ? { ...emptyPermissions(), ...existing.permissions }
     : emptyPermissions()
@@ -57,7 +98,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
     }
   }, [])
 
-  const canEnablePermission = (permission: RolePermission) => data.hasPermission(permission)
+  const canEnablePermission = (permission: RolePermission) =>
+    Boolean(account?.owner || data.hasPermission(permission))
   const selectedCount = Object.values(permissions).filter(Boolean).length
   const cleanName = name.trim()
   const detailsChanged = Boolean(
@@ -71,12 +113,12 @@ export function RoleEditor({ params, navigate, back }: Props) {
       ),
   )
   const hasEditableChanges = existing
-    ? (canManageRoles && detailsChanged) || (canManageRoles && permissionsChanged)
+    ? (detailsEditable && detailsChanged) || (permissionsEditable && permissionsChanged)
     : canManageRoles
   const saveDisabled = !accountId || !cleanName || busy || !hasEditableChanges
 
   const togglePermission = (permission: RolePermission) => {
-    if (busyRef.current || !canManageRoles) {
+    if (busyRef.current || !permissionsEditable) {
       return
     }
 
@@ -91,7 +133,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const toggleGroup = (groupPermissions: RolePermission[]) => {
-    if (busyRef.current || !canManageRoles || !groupPermissions.length) {
+    if (busyRef.current || !permissionsEditable || !groupPermissions.length) {
       return
     }
 
@@ -116,7 +158,7 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const setAllPermissions = (checked: boolean) => {
-    if (busyRef.current || !canManageRoles) {
+    if (busyRef.current || !permissionsEditable) {
       return
     }
 
@@ -141,11 +183,11 @@ export function RoleEditor({ params, navigate, back }: Props) {
 
     try {
       if (existing) {
-        if (detailsChanged) {
+        if (detailsEditable && detailsChanged) {
           await updateRoleDetails(accountId, existing.id, cleanName, color)
         }
 
-        if (permissionsChanged) {
+        if (permissionsEditable && permissionsChanged) {
           await updateRolePermissions(accountId, existing.id, permissions)
         }
       } else {
@@ -176,7 +218,12 @@ export function RoleEditor({ params, navigate, back }: Props) {
   }
 
   const remove = async () => {
-    if (!accountId || !existing || !canManageRoles || busyRef.current) {
+    if (
+      !accountId ||
+      !existing ||
+      managementAccess !== "ALLOWED" ||
+      busyRef.current
+    ) {
       return
     }
 
@@ -246,8 +293,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
         name={name}
         color={color}
         busy={busy}
-        editable={canManageRoles}
-        accessMessage={accessMessage}
+        editable={detailsEditable}
+        accessMessage={detailsAccessMessage}
         onNameChange={setName}
         onColorChange={setColor}
       />
@@ -255,8 +302,8 @@ export function RoleEditor({ params, navigate, back }: Props) {
       <RolePermissionsPanel
         permissions={permissions}
         busy={busy}
-        editable={canManageRoles}
-        accessMessage={accessMessage}
+        editable={permissionsEditable}
+        accessMessage={permissionsAccessMessage}
         canEnablePermission={canEnablePermission}
         onTogglePermission={togglePermission}
         onToggleGroup={toggleGroup}
@@ -267,9 +314,9 @@ export function RoleEditor({ params, navigate, back }: Props) {
         existing={Boolean(existing)}
         busy={busy}
         saveDisabled={saveDisabled}
-        canSaveRole={canManageRoles}
-        canDeleteRole={canManageRoles}
-        accessMessage={accessMessage}
+        canSaveRole={isNew ? canManageRoles : detailsEditable || permissionsEditable}
+        canDeleteRole={managementAccess === "ALLOWED"}
+        accessMessage={detailsAccessMessage}
         isNew={isNew}
         onSave={() => void save()}
         onDelete={() => void remove()}

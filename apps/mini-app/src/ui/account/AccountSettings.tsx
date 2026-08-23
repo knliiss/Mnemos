@@ -14,6 +14,11 @@ import { Glyph } from "../shared/MnemosIcon"
 import { CurrencyValue, PageHeader } from "../shared/Primitives"
 import "./account-settings.css"
 import { NO_BASE_ROLE } from "./accountSettingsPresentation"
+import {
+  resolveActorMember,
+  resolveBaseRoleAccess,
+  roleAccessReasonTranslationKey,
+} from "./roleAccessPolicy"
 import { AccountBaseRoleSettings } from "./settings/AccountBaseRoleSettings"
 import { AccountLifecycleSettings } from "./settings/AccountLifecycleSettings"
 import { AccountOwnershipSettings } from "./settings/AccountOwnershipSettings"
@@ -32,6 +37,7 @@ export function AccountSettings({ navigate, back }: Props) {
   const activeAccount = data.activeAccount
   const contextAccount = app.context?.activeAccount ?? null
   const canManageBaseRole = data.hasPermission("MANAGE_BASE_ROLE")
+  const actorMember = activeAccount ? resolveActorMember(activeAccount, data.members) : null
   const availableRoles = useMemo(
     () => [...data.roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [data.roles],
@@ -66,6 +72,30 @@ export function AccountSettings({ navigate, back }: Props) {
     return null
   }
 
+  const roleAccessContext = {
+    account: activeAccount,
+    actorMember,
+    roles: availableRoles,
+  }
+  const getBaseRoleAccessMessage = (role: (typeof availableRoles)[number]) => {
+    const access = resolveBaseRoleAccess(
+      roleAccessContext,
+      canManageBaseRole,
+      role,
+      data.hasPermission,
+    )
+
+    return access === "ALLOWED" ? null : t(roleAccessReasonTranslationKey(access))
+  }
+  const selectedBaseRole = availableRoles.find((role) => role.id === baseRoleId) ?? null
+  const selectedBaseRoleAccess = selectedBaseRole
+    ? resolveBaseRoleAccess(
+        roleAccessContext,
+        canManageBaseRole,
+        selectedBaseRole,
+        data.hasPermission,
+      )
+    : "ALLOWED"
   const selectedTransferId = transferableMembers.some((member) => member.id === transferTo)
     ? transferTo
     : (transferableMembers[0]?.id ?? "")
@@ -76,7 +106,12 @@ export function AccountSettings({ navigate, back }: Props) {
   const saveBaseRole = async () => {
     const requestedAccountId = activeAccount.id
 
-    if (!canManageBaseRole || actionScopeRef.current || !roleChanged) {
+    if (
+      !canManageBaseRole ||
+      selectedBaseRoleAccess !== "ALLOWED" ||
+      actionScopeRef.current ||
+      !roleChanged
+    ) {
       return
     }
 
@@ -281,6 +316,7 @@ export function AccountSettings({ navigate, back }: Props) {
         busy={busy}
         readable
         editable={canManageBaseRole}
+        getRoleAccessMessage={getBaseRoleAccessMessage}
         onBaseRoleChange={setBaseRoleId}
         onSave={() => void saveBaseRole()}
       />

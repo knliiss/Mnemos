@@ -4,6 +4,7 @@ import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Route } from "../../model"
 import { AccountMemberManagement } from "../AccountMemberManagement"
 import { localeForLanguage } from "../accountPresentation"
+import { resolveActorMember } from "../roleAccessPolicy"
 import { useLatestAccountDrops } from "../data/useLatestAccountDrops"
 import "./account-home.css"
 import "./account-home-visuals.css"
@@ -25,8 +26,7 @@ export function AccountHome({ navigate, back, rootUserAccess, initialMemberId }:
   const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
   const showingMemberDetail = Boolean(initialMemberId && selectedMember)
   const locale = localeForLanguage(i18n.resolvedLanguage)
-  const canAssignRoles = data.hasPermission("ASSIGN_MEMBER_ROLES")
-  const canManageMembers = data.hasPermission("MANAGE_MEMBERS")
+  const actorMember = activeAccount ? resolveActorMember(activeAccount, data.members) : null
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !showingMemberDetail)
 
   if (!activeAccount) {
@@ -37,10 +37,10 @@ export function AccountHome({ navigate, back, rootUserAccess, initialMemberId }:
     return (
       <AccountMemberManagement
         member={selectedMember}
+        actorMember={actorMember}
         roles={data.roles}
-        accountId={activeAccount.id}
-        canAssignRoles={canAssignRoles}
-        canKickMembers={canManageMembers}
+        account={activeAccount}
+        hasPermission={data.hasPermission}
         refresh={data.refreshAccount}
         back={back}
       />

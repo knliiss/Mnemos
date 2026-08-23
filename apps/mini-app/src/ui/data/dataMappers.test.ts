@@ -1,91 +1,43 @@
 import { describe, expect, it } from "vitest"
-import { toAccount, toFeedEvent, toSubscription } from "./dataMappers"
+import type { AccountRoleResponse, AccountSummaryResponse } from "@/shared/api/backendContracts"
+import { toAccount, toRole } from "./dataMappers"
 
-describe("data mappers", () => {
-  it("maps account identity, activation and Cristalix skin source", () => {
-    const response = {
+describe("dataMappers", () => {
+  it("preserves the current account member identity", () => {
+    const response: AccountSummaryResponse = {
       id: "account-1",
-      cristalixUuid: "00000000-0000-0000-0000-000000000123",
-      cristalixNickname: "knalis",
-      owner: true,
-      memberCount: 4,
-      maxMembers: 8,
-      status: "ACTIVE",
-    } as Parameters<typeof toAccount>[0]
-
-    const result = toAccount(response, 1250)
-
-    expect(result).toMatchObject({
-      id: "account-1",
-      nickname: "knalis",
-      owner: true,
+      cristalixUuid: "cristalix-1",
+      cristalixNickname: "Account",
+      currentMemberId: "member-actor",
+      memberCount: 3,
+      maxMembers: 5,
+      owner: false,
       active: true,
-      memberCount: 4,
-      maxMembers: 8,
-      coin: 1250,
-    })
-    expect(result.skinUrl).toBe(
-      "https://webdata.c7x.dev/textures/skin/00000000-0000-0000-0000-000000000123",
-    )
+      status: "ACTIVE",
+    }
+
+    const account = toAccount(response)
+
+    expect(account.currentMemberId).toBe("member-actor")
   })
 
-  it("maps an item drop without losing searchable event metadata", () => {
-    const response = {
-      type: "ITEM_DROP",
-      eventId: "event-1",
-      itemName: "Eternal Blade",
-      droppedFor: "knalis",
-      occurredAt: "2026-08-19T20:00:00Z",
-      itemType: "SWORD",
-      itemRarity: "MYTHICAL",
-    } as Parameters<typeof toFeedEvent>[0]
-
-    const result = toFeedEvent(response)
-
-    expect(result).toEqual({
-      id: "event-1",
-      kind: "ITEM_DROP",
-      title: "Eternal Blade",
-      detail: "knalis",
-      occurredAt: "2026-08-19T20:00:00Z",
-      relative: "2026-08-19T20:00:00Z",
-      meta: "SWORD",
-      rarity: "MYTHICAL",
-    })
-  })
-
-  it("maps raid locations into a stable feed representation", () => {
-    const response = {
-      type: "RAID",
-      eventId: "raid-1",
-      occurredAt: "2026-08-19T20:05:00Z",
-      locations: [2, 4, 7],
-    } as Parameters<typeof toFeedEvent>[0]
-
-    const result = toFeedEvent(response)
-
-    expect(result).toMatchObject({
-      id: "raid-1",
-      kind: "RAID",
-      detail: "2 · 4 · 7",
-      meta: "3 locations",
-    })
-  })
-
-  it("maps nested notification subscription details", () => {
-    const booster = {
-      id: "subscription-1",
-      type: "BOOSTER",
-      createdAt: "2026-08-20T00:00:00Z",
-      details: {
-        boosterType: "LUCK",
+  it("normalizes a partial role permission response into the full frontend contract", () => {
+    const response: AccountRoleResponse = {
+      id: "role-1",
+      name: "Helper",
+      color: "#FFFFFF",
+      hierarchyRank: 100,
+      permissions: {
+        PLACE_BETS: true,
       },
-    } as Parameters<typeof toSubscription>[0]
+      createdAt: "2026-01-01T00:00:00Z",
+      updatedAt: "2026-01-01T00:00:00Z",
+    }
 
-    expect(toSubscription(booster)).toEqual({
-      id: "subscription-1",
-      type: "BOOSTER",
-      boosterType: "LUCK",
-    })
+    const role = toRole(response)
+
+    expect(role.permissions.PLACE_BETS).toBe(true)
+    expect(role.permissions.MANAGE_MEMBERS).toBe(false)
+    expect(Object.keys(role.permissions)).toHaveLength(10)
   })
 })

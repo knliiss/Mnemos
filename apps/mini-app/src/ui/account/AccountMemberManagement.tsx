@@ -8,45 +8,59 @@ import {
   revokeMemberRole,
 } from "@/shared/api/accountApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import type { AccountRole, Member } from "../model"
+import type { Account, AccountRole, Member, RolePermission } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { RoleSigil } from "../shared/RoleSigil"
 import "./account-member.css"
 import { formatMemberDate, localeForLanguage } from "./accountPresentation"
+import {
+  resolveKickMemberAccess,
+  resolveRoleAssignmentAccess,
+  roleAccessReasonTranslationKey,
+} from "./roleAccessPolicy"
 
 type AccountMemberManagementProps = {
   member: Member
+  actorMember: Member | null
   roles: AccountRole[]
-  accountId: string
-  canAssignRoles: boolean
-  canKickMembers: boolean
+  account: Account
+  hasPermission(permission: RolePermission): boolean
   refresh(): Promise<void>
   back(): void
 }
 
 export function AccountMemberManagement({
   member,
+  actorMember,
   roles,
-  accountId,
-  canAssignRoles,
-  canKickMembers,
+  account,
+  hasPermission,
   refresh,
   back,
 }: AccountMemberManagementProps) {
   const { t, i18n } = useTranslation()
   const [roleIds, setRoleIds] = useState<string[]>(member.roleIds)
-  const [roleIdsScope, setRoleIdsScope] = useState(`${accountId}:${member.id}`)
+  const [roleIdsScope, setRoleIdsScope] = useState(`${account.id}:${member.id}`)
   const [busyRole, setBusyRole] = useState<{ scope: string; roleId: string } | null>(null)
   const [kickBusyScope, setKickBusyScope] = useState<string | null>(null)
   const busyRoleRef = useRef<{ scope: string; roleId: string } | null>(null)
   const kickBusyScopeRef = useRef<string | null>(null)
-  const scope = `${accountId}:${member.id}`
+  const scope = `${account.id}:${member.id}`
   const scopeRef = useRef(scope)
-  const accessMessage = t("errorNotifications.tones.access.message")
-
+  const canAssignRoles = hasPermission("ASSIGN_MEMBER_ROLES")
+  const canManageMembers = hasPermission("MANAGE_MEMBERS")
   const highestRole = roles.find((role) => role.id === member.highestRoleId) ?? null
   const locale = localeForLanguage(i18n.resolvedLanguage)
+  const kickAccess = resolveKickMemberAccess(
+    {
+      account,
+      actorMember,
+      targetMember: member,
+      roles,
+    },
+    canManageMembers,
+  )
 
   useLayoutEffect(() => {
     scopeRef.current = scope
@@ -55,7 +69,7 @@ export function AccountMemberManagement({
   useEffect(() => {
     let cancelled = false
 
-    void getMemberRoles(accountId, member.id)
+    void getMemberRoles(account.id, member.id)
       .then((memberRoles) => {
         if (!cancelled) {
           setRoleIds(memberRoles.map((role) => role.id))
@@ -71,28 +85,41 @@ export function AccountMemberManagement({
     return () => {
       cancelled = true
     }
-  }, [accountId, member.id, scope])
+  }, [account.id, member.id, scope])
 
   const visibleRoleIds = roleIdsScope === scope ? roleIds : member.roleIds
   const busyRoleId = busyRole?.scope === scope ? busyRole.roleId : null
   const kickBusy = kickBusyScope === scope
 
   const toggleRole = async (role: AccountRole) => {
-    if (!canAssignRoles || member.owner || busyRoleRef.current?.scope === scope) {
+    const assigned = visibleRoleIds.includes(role.id)
+    const access = resolveRoleAssignmentAccess(
+      {
+        account,
+        actorMember,
+        targetMember: member,
+        role,
+        roles,
+        hasPermission,
+      },
+      canAssignRoles,
+      !assigned,
+    )
+
+    if (access !== "ALLOWED" || busyRoleRef.current?.scope === scope) {
       return
     }
 
     const requestedScope = scope
-    const assigned = visibleRoleIds.includes(role.id)
 
     busyRoleRef.current = { scope: requestedScope, roleId: role.id }
     setBusyRole({ scope: requestedScope, roleId: role.id })
 
     try {
       if (assigned) {
-        await revokeMemberRole(accountId, member.id, role.id)
+        await revokeMemberRole(account.id, member.id, role.id)
       } else {
-        await assignMemberRole(accountId, member.id, role.id)
+        await assignMemberRole(account.id, member.id, role.id)
       }
 
       if (scopeRef.current === requestedScope) {
@@ -115,7 +142,7 @@ export function AccountMemberManagement({
   }
 
   const kickMember = async () => {
-    if (!canKickMembers || member.owner || kickBusyScopeRef.current === scope) {
+    if (kickAccess !== "ALLOWED" || kickBusyScopeRef.current === scope) {
       return
     }
 
@@ -125,7 +152,8 @@ export function AccountMemberManagement({
     setKickBusyScope(requestedScope)
 
     try {
-      await kickAccountMember(accountId, member.id)
+      await kickAccountMember(account.id, member.id)
+
       if (scopeRef.current === requestedScope) {
         await refresh()
         back()
@@ -171,7 +199,20 @@ export function AccountMemberManagement({
         <div>
           {roles.map((role) => {
             const assigned = visibleRoleIds.includes(role.id)
-            const locked = member.owner || !canAssignRoles
+            const access = resolveRoleAssignmentAccess(
+              {
+                account,
+                actorMember,
+                targetMember: member,
+                role,
+                roles,
+                hasPermission,
+              },
+              canAssignRoles,
+              !assigned,
+            )
+            const locked = access !== "ALLOWED"
+            const accessMessage = locked ? t(roleAccessReasonTranslationKey(access)) : null
 
             return (
               <motion.button
@@ -179,7 +220,7 @@ export function AccountMemberManagement({
                 key={role.id}
                 className={assigned ? "is-active" : ""}
                 disabled={locked || busyRoleId !== null}
-                title={!canAssignRoles ? accessMessage : undefined}
+                title={accessMessage ?? undefined}
                 whileTap={locked ? undefined : { scale: 0.985 }}
                 onClick={() => void toggleRole(role)}
               >
@@ -187,10 +228,11 @@ export function AccountMemberManagement({
 
                 <span>
                   <strong style={{ color: assigned ? role.color : undefined }}>{role.name}</strong>
-                  <small>
-                    {t("accountMember.permissionCount", {
-                      count: enabledPermissions(role),
-                    })}
+                  <small className={locked ? "is-access-note" : undefined}>
+                    {accessMessage ??
+                      t("accountMember.permissionCount", {
+                        count: enabledPermissions(role),
+                      })}
                   </small>
                 </span>
 
@@ -211,13 +253,21 @@ export function AccountMemberManagement({
 
           <span>
             <strong>{t("accountMember.removeTitle")}</strong>
-            <small>{t("accountMember.removeCopy")}</small>
+            <small>
+              {kickAccess === "ALLOWED"
+                ? t("accountMember.removeCopy")
+                : t(roleAccessReasonTranslationKey(kickAccess))}
+            </small>
           </span>
 
           <button
             type="button"
-            disabled={kickBusy || !canKickMembers}
-            title={!canKickMembers ? accessMessage : undefined}
+            disabled={kickBusy || kickAccess !== "ALLOWED"}
+            title={
+              kickAccess === "ALLOWED"
+                ? undefined
+                : t(roleAccessReasonTranslationKey(kickAccess))
+            }
             onClick={() => void kickMember()}
           >
             {kickBusy ? "…" : t("accountMember.kick")}

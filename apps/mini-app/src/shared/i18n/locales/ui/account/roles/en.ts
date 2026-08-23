@@ -9,6 +9,8 @@ export const accountRolesEn = {
     dragTitle: "Reorder by dragging",
     dragNote:
       "Hold the ⠿ handle on the right. The new order is sent to the backend when dragging ends.",
+    delegatedDragNote:
+      "You can reorder only roles below your highest role. Protected roles stay fixed.",
     emptyTitle: "No roles yet",
     emptyCopy: "Create the first role and configure its permissions.",
     createTitle: "Create a new role",
@@ -52,6 +54,17 @@ export const accountRolesEn = {
     cancel: "Cancel",
     confirmDelete: "Yes, delete",
     delete: "Delete",
+    access: {
+      ALLOWED: "Available",
+      MISSING_PERMISSION: "Your role does not allow this action.",
+      ACTOR_ROLE_UNAVAILABLE: "A role in the hierarchy is required for delegated management.",
+      SELF_MEMBER: "You cannot change your own member access.",
+      TARGET_OWNER: "Another member cannot change the account owner's access.",
+      TARGET_MEMBER_NOT_LOWER: "You can manage only members below your highest role.",
+      ROLE_NOT_LOWER: "You can manage only roles below your highest role.",
+      UNGRANTABLE_PERMISSION: "This role contains permissions you do not have.",
+      ROLE_ASSIGNED_TO_ACTOR: "You cannot change permissions of a role assigned to you.",
+    },
     groups: {
       members: "Members",
       roles: "Roles",

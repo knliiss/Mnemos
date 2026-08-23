@@ -84,6 +84,7 @@ export type Route = { id: RouteId; params?: Record<string, string> }
 
 export type Account = {
   id: string
+  currentMemberId: string | null
   cristalixUuid: string
   nickname: string
   role: "OWNER" | "MEMBER"

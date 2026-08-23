@@ -12,6 +12,7 @@ type Props = {
   busy: boolean
   readable: boolean
   editable: boolean
+  getRoleAccessMessage(role: AccountRole): string | null
   onBaseRoleChange: (roleId: string) => void
   onSave: () => void
 }
@@ -23,6 +24,7 @@ export function AccountBaseRoleSettings({
   busy,
   readable,
   editable,
+  getRoleAccessMessage,
   onBaseRoleChange,
   onSave,
 }: Props) {
@@ -64,15 +66,20 @@ export function AccountBaseRoleSettings({
             <small>{t("accountSettings.permissionsCount", { count: 0 })}</small>
           </button>
 
-          {availableRoles.map((role) => (
-            <RoleOption
-              key={role.id}
-              role={role}
-              selected={role.id === baseRoleId}
-              disabled={!editable || busy}
-              onClick={() => onBaseRoleChange(role.id)}
-            />
-          ))}
+          {availableRoles.map((role) => {
+            const accessMessage = getRoleAccessMessage(role)
+
+            return (
+              <RoleOption
+                key={role.id}
+                role={role}
+                selected={role.id === baseRoleId}
+                disabled={!editable || busy || Boolean(accessMessage)}
+                accessMessage={accessMessage}
+                onClick={() => onBaseRoleChange(role.id)}
+              />
+            )
+          })}
         </div>
       ) : (
         <p className="inline-hint inline-hint--left">
@@ -121,10 +128,11 @@ type RoleOptionProps = {
   role: AccountRole
   selected: boolean
   disabled: boolean
+  accessMessage: string | null
   onClick: () => void
 }
 
-function RoleOption({ role, selected, disabled, onClick }: RoleOptionProps) {
+function RoleOption({ role, selected, disabled, accessMessage, onClick }: RoleOptionProps) {
   const { t } = useTranslation()
 
   return (
@@ -132,14 +140,16 @@ function RoleOption({ role, selected, disabled, onClick }: RoleOptionProps) {
       type="button"
       className={selected ? "is-selected" : ""}
       disabled={disabled}
+      title={accessMessage ?? undefined}
       onClick={onClick}
     >
       <RoleSigil color={role.color} size={40} />
       <strong>{role.name}</strong>
       <small>
-        {t("accountSettings.permissionsCount", {
-          count: countEnabledPermissions(role),
-        })}
+        {accessMessage ??
+          t("accountSettings.permissionsCount", {
+            count: countEnabledPermissions(role),
+          })}
       </small>
     </button>
   )

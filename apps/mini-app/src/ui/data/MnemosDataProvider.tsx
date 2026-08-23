@@ -64,6 +64,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
   const app = useApp()
   const context = app.context
   const activeAccountId = context?.activeAccount?.id
+  const currentMemberId = context?.activeAccount?.currentMemberId
   const permissionSet = useMemo(
     () => new Set<RolePermission>(context?.effectivePermissions ?? []),
     [context?.effectivePermissions],
@@ -84,7 +85,7 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
     refreshAccount,
     claimReward,
     restoreReward,
-  } = useAccountData(activeAccountId)
+  } = useAccountData(activeAccountId, currentMemberId)
 
   const {
     feed,

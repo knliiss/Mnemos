@@ -13,12 +13,14 @@ import type {
   RolePermission,
   Subscription,
 } from "../model"
+import { allRolePermissions } from "../rolePermissions"
 
 const SKIN_BASE_URL = "https://webdata.c7x.dev/textures/skin"
 
 export function toAccount(account: AccountSummaryResponse, coin = 0): Account {
   return {
     id: account.id,
+    currentMemberId: account.currentMemberId,
     cristalixUuid: account.cristalixUuid,
     nickname: account.cristalixNickname,
     role: account.owner ? "OWNER" : "MEMBER",
@@ -44,7 +46,7 @@ export function toMember(member: AccountMemberResponse, roleIds?: string[]): Mem
 
 export function toRole(role: AccountRoleResponse): AccountRole {
   const permissions = Object.fromEntries(
-    Object.entries(role.permissions).map(([permission, enabled]) => [permission, Boolean(enabled)]),
+    allRolePermissions.map((permission) => [permission, role.permissions[permission] === true]),
   ) as Record<RolePermission, boolean>
 
   return {
