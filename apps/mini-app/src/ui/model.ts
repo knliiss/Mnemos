@@ -81,6 +81,7 @@ export type RouteId =
   | "personalization-review"
   | "bet-admin"
   | "badge-admin"
+  | "user-personalization"
   | "user-wallet"
 export type Route = { id: RouteId; params?: Record<string, string> }
 
