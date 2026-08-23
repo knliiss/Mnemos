@@ -232,6 +232,7 @@ export type Personalization = {
   target: PersonalizationTarget
   name: string
   creator: string
+  createdByCurrentUser: boolean
   currency: Currency
   price: number
   status: PersonalizationStatus
