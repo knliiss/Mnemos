@@ -1,6 +1,7 @@
 import { accountUk } from "./account/uk"
 import { betAdminUk } from "./bet-admin/uk"
 import { betsUk } from "./bets/uk"
+import { collectorAdminUk } from "./collector-admin/uk"
 import { creatorUk } from "./creator/uk"
 import { eventsUk } from "./events/uk"
 import { peopleUk } from "./people/uk"
@@ -188,6 +189,7 @@ export const uiUk = {
   },
   ...accountUk,
   ...betsUk,
+  ...collectorAdminUk,
   ...creatorUk,
   ...eventsUk,
   ...peopleUk,

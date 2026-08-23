@@ -7,6 +7,10 @@ import type { SubscriptionType } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import {
+  sortSubscriptions,
+  type SubscriptionSort,
+} from "./subscriptionPresentation"
 import { SubscriptionCreateSheet } from "./SubscriptionCreateSheet"
 import { SubscriptionRule } from "./SubscriptionRule"
 import { useSubscriptionItemTypes } from "./useSubscriptionItemTypes"
@@ -22,11 +26,17 @@ const subscriptionIcons: Record<
   GLOBAL: "global",
 }
 
+const sortOptions: SubscriptionSort[] = ["NEWEST", "OLDEST", "TYPE", "NAME"]
+
+type SubscriptionFilter = "ALL" | SubscriptionType
+
 export function Subscriptions({ back }: { back: () => void }) {
   const { t } = useTranslation()
   const data = useMnemosData()
   const [creating, setCreating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<SubscriptionFilter>("ALL")
+  const [sort, setSort] = useState<SubscriptionSort>("NEWEST")
   const mutationLocked = useRef(false)
   const mountedRef = useRef(true)
 
@@ -40,6 +50,14 @@ export function Subscriptions({ back }: { back: () => void }) {
       })).filter((entry) => entry.count > 0),
     [subscriptions],
   )
+  const visibleSubscriptions = useMemo(() => {
+    const filtered =
+      filter === "ALL"
+        ? subscriptions
+        : subscriptions.filter((subscription) => subscription.type === filter)
+
+    return sortSubscriptions(filtered, sort, t)
+  }, [filter, sort, subscriptions, t])
 
   useEffect(() => {
     mountedRef.current = true
@@ -73,11 +91,17 @@ export function Subscriptions({ back }: { back: () => void }) {
       <PageHeader title={t("events.subscriptions.title")} back={back} />
 
       <section className="subscription-summary">
-        <span className="subscription-summary__icon">
-          <Glyph name="bell" size={22} />
+        <span className="subscription-summary__art" aria-hidden="true">
+          <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
         </span>
 
-        <span>
+        <span className="subscription-summary__copy">
+          <small>{t("events.subscriptions.eyebrow")}</small>
+          <strong>{t("events.subscriptions.mascotTitle")}</strong>
+          <span>{t("events.subscriptions.mascotCopy")}</span>
+        </span>
+
+        <span className="subscription-summary__count">
           <strong>{subscriptions.length}</strong>
           <small>{t("events.subscriptions.activeRules")}</small>
         </span>
@@ -88,20 +112,55 @@ export function Subscriptions({ back }: { back: () => void }) {
         </button>
       </section>
 
-      <div className="subscription-counts">
-        {counts.map((entry) => (
-          <span key={entry.type}>
-            <Glyph name={subscriptionIcons[entry.type]} size={14} />
-            {t(`events.kinds.${entry.type}`)}
-            <b>{entry.count}</b>
-          </span>
-        ))}
+      <div className="subscription-toolbar">
+        <div className="subscription-counts" aria-label={t("events.subscriptions.filterAria")}>
+          <button
+            type="button"
+            className={filter === "ALL" ? "is-active" : undefined}
+            onClick={() => setFilter("ALL")}
+          >
+            <Glyph name="bell" size={14} />
+            {t("events.subscriptions.all")}
+            <b>{subscriptions.length}</b>
+          </button>
+
+          {counts.map((entry) => (
+            <button
+              key={entry.type}
+              type="button"
+              className={filter === entry.type ? "is-active" : undefined}
+              onClick={() => setFilter(entry.type)}
+            >
+              <Glyph name={subscriptionIcons[entry.type]} size={14} />
+              {t(`events.kinds.${entry.type}`)}
+              <b>{entry.count}</b>
+            </button>
+          ))}
+        </div>
+
+        <label className="subscription-sort">
+          <span>{t("events.subscriptions.sortLabel")}</span>
+          <select
+            aria-label={t("events.subscriptions.sortAria")}
+            value={sort}
+            onChange={(event) => setSort(event.target.value as SubscriptionSort)}
+          >
+            {sortOptions.map((option) => (
+              <option key={option} value={option}>
+                {t(`events.subscriptions.sort.${option.toLowerCase()}`)}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <section className="subscription-rules">
         <header>
-          <h2>{t("events.subscriptions.rules")}</h2>
-          <small>{t("events.subscriptions.rulesCopy")}</small>
+          <span>
+            <h2>{t("events.subscriptions.rules")}</h2>
+            <small>{t("events.subscriptions.rulesCopy")}</small>
+          </span>
+          <b>{t("events.subscriptions.shownRules", { count: visibleSubscriptions.length })}</b>
         </header>
 
         <div>
@@ -110,8 +169,8 @@ export function Subscriptions({ back }: { back: () => void }) {
           ) : null}
 
           {!data.loadingSubscriptions && data.subscriptionsError ? (
-            <div className="feature-empty">
-              <Glyph name="bell" size={24} />
+            <div className="feature-empty subscription-empty-state">
+              <img src="/ui-illustrations/mnemos-mascot-404.svg" alt="" aria-hidden="true" />
               <strong>{t("events.subscriptions.errorTitle")}</strong>
               <small>{t("events.subscriptions.errorCopy")}</small>
               <button type="button" onClick={() => void data.refreshSubscriptions()}>
@@ -120,7 +179,7 @@ export function Subscriptions({ back }: { back: () => void }) {
             </div>
           ) : null}
 
-          {subscriptions.map((subscription) => (
+          {visibleSubscriptions.map((subscription) => (
             <SubscriptionRule
               key={subscription.id}
               subscription={subscription}
@@ -131,9 +190,9 @@ export function Subscriptions({ back }: { back: () => void }) {
             />
           ))}
 
-          {!data.loadingSubscriptions && !data.subscriptionsError && !subscriptions.length ? (
-            <div className="feature-empty">
-              <Glyph name="bell" size={24} />
+          {!data.loadingSubscriptions && !data.subscriptionsError && !visibleSubscriptions.length ? (
+            <div className="feature-empty subscription-empty-state">
+              <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
               <strong>{t("events.subscriptions.emptyTitle")}</strong>
               <small>{t("events.subscriptions.emptyCopy")}</small>
             </div>

@@ -1,6 +1,7 @@
 import { accountEn } from "./account/en"
 import { betAdminEn } from "./bet-admin/en"
 import { betsEn } from "./bets/en"
+import { collectorAdminEn } from "./collector-admin/en"
 import { creatorEn } from "./creator/en"
 import { eventsEn } from "./events/en"
 import { peopleEn } from "./people/en"
@@ -189,6 +190,7 @@ export const uiEn = {
   },
   ...accountEn,
   ...betsEn,
+  ...collectorAdminEn,
   ...creatorEn,
   ...eventsEn,
   ...peopleEn,

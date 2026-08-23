@@ -1,6 +1,7 @@
 import { accountRu } from "./account/ru"
 import { betAdminRu } from "./bet-admin/ru"
 import { betsRu } from "./bets/ru"
+import { collectorAdminRu } from "./collector-admin/ru"
 import { creatorRu } from "./creator/ru"
 import { eventsRu } from "./events/ru"
 import { peopleRu } from "./people/ru"
@@ -188,6 +189,7 @@ export const uiRu = {
   },
   ...accountRu,
   ...betsRu,
+  ...collectorAdminRu,
   ...creatorRu,
   ...eventsRu,
   ...peopleRu,

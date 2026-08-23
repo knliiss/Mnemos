@@ -43,6 +43,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
   "personalization-review": { area: "staff" },
   "bet-admin": { area: "staff" },
   "badge-admin": { area: "staff" },
+  "collector-admin": { area: "staff" },
 }
 
 const areaRoots: Record<FeatureArea, RootRoute> = {

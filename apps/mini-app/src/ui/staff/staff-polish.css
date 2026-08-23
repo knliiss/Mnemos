@@ -131,6 +131,11 @@
   color: #d4f77a;
 }
 
+.administration-workspace.is-collectors {
+  border-color: rgba(106, 205, 255, 0.14);
+  color: #93d7f6;
+}
+
 .staff-search-results__avatar--mnemos,
 .internal-user-hero__avatar--mnemos {
   overflow: hidden;

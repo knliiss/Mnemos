@@ -3,6 +3,7 @@ import type { Route } from "../model"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./badges/badge-admin.css"
+import "./collectors/collector-admin.css"
 
 type Props = {
   routeId: Route["id"]
@@ -20,6 +21,12 @@ const BadgeAdmin = lazy(() =>
 const BetAdmin = lazy(() =>
   import("./bets/BetAdmin").then((module) => ({
     default: module.BetAdmin,
+  })),
+)
+
+const CollectorAdmin = lazy(() =>
+  import("./collectors/CollectorAdmin").then((module) => ({
+    default: module.CollectorAdmin,
   })),
 )
 
@@ -48,6 +55,8 @@ export function StaffArea(props: Props) {
     content = <BetAdmin params={props.params} navigate={props.navigate} back={props.back} />
   } else if (props.routeId === "badge-admin") {
     content = <BadgeAdmin back={props.back} />
+  } else if (props.routeId === "collector-admin") {
+    content = <CollectorAdmin back={props.back} />
   } else {
     return (
       <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />

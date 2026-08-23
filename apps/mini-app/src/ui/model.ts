@@ -81,6 +81,7 @@ export type RouteId =
   | "personalization-review"
   | "bet-admin"
   | "badge-admin"
+  | "collector-admin"
   | "user-personalization"
   | "user-wallet"
 export type Route = { id: RouteId; params?: Record<string, string> }
@@ -128,12 +129,19 @@ export type FeedEvent = {
   rarity?: ItemRarity
 }
 
-export type Subscription =
-  | { id: string; type: "ITEM_DROP"; droppedFor?: string; itemName?: string }
-  | { id: string; type: "BOOSTER"; boosterType: BoosterType }
-  | { id: string; type: "DUNGEON"; dungeonType: DungeonType }
-  | { id: string; type: "GLOBAL"; eventType: GlobalEventType }
-  | { id: string; type: "RAID"; locations: number[] }
+type SubscriptionBase = {
+  id: string
+  createdAt: string
+}
+
+export type Subscription = SubscriptionBase &
+  (
+    | { type: "ITEM_DROP"; droppedFor?: string; itemName?: string }
+    | { type: "BOOSTER"; boosterType: BoosterType }
+    | { type: "DUNGEON"; dungeonType: DungeonType }
+    | { type: "GLOBAL"; eventType: GlobalEventType }
+    | { type: "RAID"; locations: number[] }
+  )
 
 export type GradientStop = {
   color: string

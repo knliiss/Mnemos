@@ -110,6 +110,7 @@ export function toSubscription(subscription: SubscriptionResponse): Subscription
   if (subscription.type === "ITEM_DROP") {
     return {
       id: subscription.id,
+      createdAt: subscription.createdAt,
       type: "ITEM_DROP",
       droppedFor: subscription.details.droppedFor ?? undefined,
       itemName: subscription.details.itemName ?? undefined,
@@ -119,6 +120,7 @@ export function toSubscription(subscription: SubscriptionResponse): Subscription
   if (subscription.type === "BOOSTER") {
     return {
       id: subscription.id,
+      createdAt: subscription.createdAt,
       type: "BOOSTER",
       boosterType: subscription.details.boosterType,
     }
@@ -127,6 +129,7 @@ export function toSubscription(subscription: SubscriptionResponse): Subscription
   if (subscription.type === "DUNGEON") {
     return {
       id: subscription.id,
+      createdAt: subscription.createdAt,
       type: "DUNGEON",
       dungeonType: subscription.details.dungeonType,
     }
@@ -135,6 +138,7 @@ export function toSubscription(subscription: SubscriptionResponse): Subscription
   if (subscription.type === "GLOBAL") {
     return {
       id: subscription.id,
+      createdAt: subscription.createdAt,
       type: "GLOBAL",
       eventType: subscription.details.eventType,
     }
@@ -142,6 +146,7 @@ export function toSubscription(subscription: SubscriptionResponse): Subscription
 
   return {
     id: subscription.id,
+    createdAt: subscription.createdAt,
     type: "RAID",
     locations: subscription.details.locations,
   }
