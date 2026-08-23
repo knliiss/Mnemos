@@ -14,6 +14,8 @@ class CollectorCredentialEntity(
     var id: UUID,
     @Column(name = "name", nullable = false, unique = true, length = 64)
     var name: String,
+    @Column(name = "owner_user_id")
+    var ownerUserId: UUID?,
     @Column(name = "secret_hash", nullable = false, length = 64)
     var secretHash: String,
     @Column(name = "enabled", nullable = false)
