@@ -32,18 +32,7 @@ export class NetworkError extends Error {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${runtimeConfig.apiUrl}${path}`
-  let token = await getToken()
-  let response = await sendRequest(url, options, token)
-
-  if (response.status === 401) {
-    token = await getToken({ forceRefresh: true })
-    response = await sendRequest(url, options, token)
-  }
-
-  if (!response.ok) {
-    throw new ApiError(response.status, await readResponseBody(response))
-  }
+  const response = await authenticatedResponse(path, options)
 
   if (response.status === 204) {
     return null as T
@@ -62,8 +51,31 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   }
 }
 
+export async function apiBlob(path: string, options: RequestInit = {}): Promise<Blob> {
+  const response = await authenticatedResponse(path, options)
+
+  return response.blob()
+}
+
 export function isServiceUnavailableError(error: unknown): boolean {
   return error instanceof NetworkError || (error instanceof ApiError && error.status >= 500)
+}
+
+async function authenticatedResponse(path: string, options: RequestInit): Promise<Response> {
+  const url = `${runtimeConfig.apiUrl}${path}`
+  let token = await getToken()
+  let response = await sendRequest(url, options, token)
+
+  if (response.status === 401) {
+    token = await getToken({ forceRefresh: true })
+    response = await sendRequest(url, options, token)
+  }
+
+  if (!response.ok) {
+    throw new ApiError(response.status, await readResponseBody(response))
+  }
+
+  return response
 }
 
 async function sendRequest(url: string, options: RequestInit, token: string): Promise<Response> {
