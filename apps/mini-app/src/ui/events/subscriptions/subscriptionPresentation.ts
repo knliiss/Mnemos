@@ -52,7 +52,7 @@ export function sortSubscriptions(
   sort: SubscriptionSort,
   t: TFunction,
 ): Subscription[] {
-  return subscriptions.toSorted((left, right) => compareSubscriptions(left, right, sort, t))
+  return [...subscriptions].sort((left, right) => compareSubscriptions(left, right, sort, t))
 }
 
 function compareSubscriptions(
