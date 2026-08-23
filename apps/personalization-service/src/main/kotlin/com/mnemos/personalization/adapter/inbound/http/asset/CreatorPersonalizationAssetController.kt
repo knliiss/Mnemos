@@ -20,8 +20,7 @@ class CreatorPersonalizationAssetController(
     private val service: ManagePersonalizationAssetService,
 ) {
     @GetMapping
-    fun listMine(): List<PersonalizationAssetResponse> =
-        service.listMine().map { asset -> asset.toResponse() }
+    fun listMine(): List<PersonalizationAssetResponse> = service.listMine().map { asset -> asset.toResponse() }
 
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
