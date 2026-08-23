@@ -57,7 +57,7 @@ export function PersonalizationDetail({
 
   const pending = Boolean(pendingPurchases[item.id])
   const busy = busyId === item.id
-  const canPurchase = item.target === "USER" || canBuyAccountPersonalizations
+  const canPurchase = !item.createdByCurrentUser && (item.target === "USER" || canBuyAccountPersonalizations)
   const canToggleActive = item.target === "USER" || canApplyAccountPersonalizations
   const accessMessage = t("errorNotifications.tones.access.message")
   const actionClassName = `personalization-detail-purchase__action ${
@@ -87,7 +87,9 @@ export function PersonalizationDetail({
           <small>
             {item.owned
               ? t("personalization.detail.inCollection")
-              : t("personalization.detail.price")}
+              : item.createdByCurrentUser
+                ? t("personalization.detail.yourWork")
+                : t("personalization.detail.price")}
           </small>
 
           {item.owned ? (
@@ -96,6 +98,8 @@ export function PersonalizationDetail({
                 ? t("personalization.detail.active")
                 : t("personalization.detail.purchased")}
             </strong>
+          ) : item.createdByCurrentUser ? (
+            <strong>{t("personalization.detail.selfPurchaseUnavailable")}</strong>
           ) : (
             <CurrencyValue currency={item.currency} value={item.price} />
           )}
@@ -114,6 +118,10 @@ export function PersonalizationDetail({
               : item.active
                 ? t("personalization.detail.disable")
                 : t("personalization.detail.enable")}
+          </button>
+        ) : item.createdByCurrentUser ? (
+          <button type="button" className={actionClassName} disabled>
+            {t("personalization.detail.ownWork")}
           </button>
         ) : (
           <button
