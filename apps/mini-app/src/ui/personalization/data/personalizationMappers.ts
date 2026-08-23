@@ -91,6 +91,7 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
       gradientAngleDegrees: content.gradientAngleDegrees,
       textureStrength: content.textureStrength,
       glow: content.glow,
+      layers: content.layers ?? [],
     } satisfies ProfileThemeContent
   }
 
@@ -106,6 +107,7 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
       radiusPx: content.radiusPx,
       style: content.style,
       glow: content.glow,
+      layers: content.layers ?? [],
     } satisfies AvatarFrameContent
   }
 
@@ -120,5 +122,6 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     scale: content.scale,
     primaryColor: content.primaryColor,
     secondaryColor: content.secondaryColor,
+    layers: content.layers ?? [],
   } satisfies ProfileEffectContent
 }
