@@ -1,0 +1,86 @@
+.personalization-visual-layers {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.personalization-visual-layer {
+  position: absolute;
+  display: block;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.personalization-visual-layer > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.personalization-visual-layer.is-float {
+  animation: personalization-layer-float 4.8s ease-in-out infinite alternate;
+}
+
+.personalization-visual-layer.is-pulse {
+  animation: personalization-layer-pulse 2.8s ease-in-out infinite;
+}
+
+.personalization-visual-layer.is-spin {
+  animation: personalization-layer-spin 12s linear infinite;
+}
+
+.personalization-visual-layer.is-drift {
+  animation: personalization-layer-drift 6.5s ease-in-out infinite alternate;
+}
+
+@keyframes personalization-layer-float {
+  from {
+    margin-top: -2%;
+  }
+
+  to {
+    margin-top: 2%;
+  }
+}
+
+@keyframes personalization-layer-pulse {
+  0%,
+  100% {
+    filter: brightness(0.92);
+  }
+
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes personalization-layer-spin {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes personalization-layer-drift {
+  from {
+    margin-left: -3%;
+  }
+
+  to {
+    margin-left: 3%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .personalization-visual-layer {
+    animation: none !important;
+  }
+}
