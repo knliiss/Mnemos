@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import type { AccountReactionType, PublicProfileResponse } from "@/shared/api/profileSocialApi"
+import { PersonalizationVisualLayers } from "../../../components/personalization/PersonalizationVisualLayers"
 import { CristalixHead } from "../../../components/profile/CristalixHead"
 import { Glyph } from "../../../shared/MnemosIcon"
 import {
@@ -34,6 +35,11 @@ export function PublicProfileSummary({
 }: PublicProfileSummaryProps) {
   const { t } = useTranslation()
   const reputation = profile.likes - profile.dislikes
+  const cardLayers = [
+    ...(profile.appearance.profileTheme?.layers ?? []),
+    ...(profile.appearance.profileEffect?.layers ?? []),
+  ]
+  const frameLayers = profile.appearance.avatarFrame?.layers ?? []
 
   return (
     <motion.section
@@ -42,6 +48,8 @@ export function PublicProfileSummary({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      <PersonalizationVisualLayers layers={cardLayers} className="public-profile-card__layers" />
+
       {profile.appearance.profileEffect ? (
         <span className="public-profile-effect" aria-hidden="true">
           <i />
@@ -56,6 +64,10 @@ export function PublicProfileSummary({
       <div className="public-profile-card__main">
         <div className={profileHeadClassName(profile)} style={profileHeadStyle(profile)}>
           <CristalixHead skinUrl={profileSkinUrl(profile.cristalixUuid)} size={78} />
+          <PersonalizationVisualLayers
+            layers={frameLayers}
+            className="public-profile-head__layers"
+          />
           <span className="public-profile-presence">
             <i />
             CRISTALIX
