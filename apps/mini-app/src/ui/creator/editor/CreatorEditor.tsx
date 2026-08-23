@@ -28,6 +28,7 @@ import {
 } from "../creatorPresentation"
 import { CreatorNotificationPackStudio } from "./CreatorNotificationPackStudio"
 import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
+import { CreatorVisualLayerStudio } from "./CreatorVisualLayerStudio"
 import {
   buildCreatorPreview,
   createDefaultCreatorEditorForm,
@@ -378,7 +379,10 @@ export function CreatorEditor({ params, back }: Props) {
             setForm={setForm}
           />
         ) : (
-          <CreatorPersonalizationControls form={form} editable={editable} setForm={setForm} />
+          <>
+            <CreatorPersonalizationControls form={form} editable={editable} setForm={setForm} />
+            <CreatorVisualLayerStudio form={form} editable={editable} setForm={setForm} />
+          </>
         )}
       </section>
 
