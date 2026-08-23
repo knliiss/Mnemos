@@ -5,12 +5,14 @@ import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNic
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNotificationPackRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileEffectRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileThemeRequest
+import com.mnemos.personalization.adapter.inbound.http.creator.request.VisualLayerRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.GlowStyleRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.GradientStopRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.NotificationTemplateRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.PersonalizationPriceRequest
 import com.mnemos.personalization.application.personalization.usecase.createcreator.CreateCreatorPersonalizationCommand
 import com.mnemos.personalization.application.personalization.usecase.updatecreator.UpdatePersonalizationCommand
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
@@ -20,6 +22,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationCo
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object CreatorPersonalizationApiMapper {
     fun CreateNickStyleRequest.toCreateCommand(): CreateCreatorPersonalizationCommand =
@@ -121,6 +124,7 @@ object CreatorPersonalizationApiMapper {
             surfaceSecondary = HexColor(surfaceSecondary),
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     fun CreateAvatarFrameRequest.toContent(): PersonalizationContent.AvatarFrame =
@@ -132,6 +136,7 @@ object CreatorPersonalizationApiMapper {
             secondaryBorderColor = HexColor(secondaryBorderColor),
             gapPx = gapPx,
             style = style,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     fun CreateProfileEffectRequest.toContent(): PersonalizationContent.ProfileEffect =
@@ -143,6 +148,7 @@ object CreatorPersonalizationApiMapper {
             speed = speed,
             density = density,
             scale = scale,
+            layers = layers.map { layer -> layer.toDomain() },
         )
 
     fun CreateNotificationPackRequest.toContent(): PersonalizationContent.NotificationPack = templates.toContent(mixedAggregateTitle)
@@ -159,6 +165,20 @@ object CreatorPersonalizationApiMapper {
         PersonalizationPrice(
             currency = currency,
             amount = amount,
+        )
+
+    private fun VisualLayerRequest.toDomain(): VisualLayer =
+        VisualLayer(
+            id = id,
+            assetId = PersonalizationAssetId(assetId),
+            xPercent = xPercent,
+            yPercent = yPercent,
+            widthPercent = widthPercent,
+            opacity = opacity,
+            rotationDegrees = rotationDegrees,
+            blendMode = blendMode,
+            animation = animation,
+            zIndex = zIndex,
         )
 
     private fun GradientStopRequest.toDomain(): GradientStop =
