@@ -87,7 +87,7 @@ describe("useAccountData", () => {
     })
 
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      ({ accountId }: { accountId: string }) => useAccountData(accountId, undefined),
       {
         initialProps: { accountId: "account-a" },
       },
@@ -120,7 +120,7 @@ describe("useAccountData", () => {
       .mockRejectedValueOnce(new Error("wallet unavailable"))
 
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      ({ accountId }: { accountId: string }) => useAccountData(accountId, undefined),
       {
         initialProps: { accountId: "account-a" },
       },
@@ -153,7 +153,7 @@ describe("useAccountData", () => {
     vi.mocked(claimDailyReward).mockReturnValue(claim.promise)
 
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      ({ accountId }: { accountId: string }) => useAccountData(accountId, undefined),
       { initialProps: { accountId: "account-a" } },
     )
 
@@ -185,7 +185,7 @@ describe("useAccountData", () => {
     vi.mocked(restoreDailyReward).mockReturnValue(restore.promise)
 
     const { result, rerender } = renderHook(
-      ({ accountId }: { accountId: string }) => useAccountData(accountId),
+      ({ accountId }: { accountId: string }) => useAccountData(accountId, undefined),
       { initialProps: { accountId: "account-a" } },
     )
 
@@ -213,7 +213,7 @@ describe("useAccountData", () => {
       .mockResolvedValueOnce([{ currency: "PRIME", amount: 10 }])
       .mockResolvedValueOnce([{ currency: "PRIME", amount: 35 }])
 
-    const { result } = renderHook(() => useAccountData(undefined))
+    const { result } = renderHook(() => useAccountData(undefined, undefined))
 
     await waitFor(() => expect(result.current.prime).toBe(10))
 
@@ -245,7 +245,7 @@ describe("useAccountData", () => {
       .mockResolvedValueOnce([{ currency: "COIN", amount: 100 }])
       .mockResolvedValueOnce([{ currency: "COIN", amount: 160 }])
 
-    const { result } = renderHook(() => useAccountData("account-a"))
+    const { result } = renderHook(() => useAccountData("account-a", undefined))
 
     await waitFor(() => expect(result.current.accountCoin).toBe(100))
 
@@ -275,7 +275,7 @@ describe("useAccountData", () => {
   it("ignores completed wallet transactions for another account", async () => {
     vi.mocked(getAccountBalances).mockResolvedValue([{ currency: "COIN", amount: 100 }])
 
-    const { result } = renderHook(() => useAccountData("account-a"))
+    const { result } = renderHook(() => useAccountData("account-a", undefined))
 
     await waitFor(() => expect(result.current.accountCoin).toBe(100))
 
