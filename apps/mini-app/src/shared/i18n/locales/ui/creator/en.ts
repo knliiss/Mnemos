@@ -121,10 +121,12 @@ export const creatorEn = {
       },
       artworkEyebrow: "ARTWORK",
       artworkTitle: "Optional artwork",
-      artworkHint: "Upload PNG only when the preset and regular controls are not enough. It is added to the composition immediately.",
+      artworkHint:
+        "Upload PNG only when the preset and regular controls are not enough. It is added to the composition immediately.",
       artworkUpload: "Add PNG artwork",
       artworkOptional: "Artwork is optional",
-      artworkOptionalHint: "Presets, colors and effects already create a complete personalization without uploaded images.",
+      artworkOptionalHint:
+        "Presets, colors and effects already create a complete personalization without uploaded images.",
       selectedArtwork: "SELECTED ARTWORK",
       dragArtwork: "Drag it directly on the preview",
       emptyCanvas: "No uploaded artwork",
