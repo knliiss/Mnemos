@@ -101,33 +101,33 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     OR (event_type = 'GLOBAL' AND :includeGlobal = true)
                     OR (event_type = 'RAID' AND :includeRaid = true)
                 )
-                AND (:eventId IS NULL OR event_id = :eventId)
-                AND (:from IS NULL OR occurred_at >= :from)
-                AND (:to IS NULL OR occurred_at < :to)
+                AND (CAST(:eventId AS uuid) IS NULL OR event_id = CAST(:eventId AS uuid))
+                AND (CAST(:from AS timestamptz) IS NULL OR occurred_at >= CAST(:from AS timestamptz))
+                AND (CAST(:to AS timestamptz) IS NULL OR occurred_at < CAST(:to AS timestamptz))
                 AND (
-                    :searchTerm IS NULL
-                    OR position(:searchTerm in lower(coalesce(item_name, ''))) > 0
-                    OR lower(item_name) % :searchTerm
-                    OR position(:searchTerm in lower(coalesce(dropped_for, ''))) > 0
-                    OR lower(dropped_for) % :searchTerm
-                    OR position(:searchTerm in lower(coalesce(activated_by, ''))) > 0
-                    OR lower(activated_by) % :searchTerm
-                    OR position(:searchTerm in lower(coalesce(booster_type, ''))) > 0
-                    OR position(:searchTerm in lower(coalesce(global_type, ''))) > 0
-                    OR position(:searchTerm in lower(coalesce(raid_locations, ''))) > 0
+                    CAST(:searchTerm AS text) IS NULL
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(item_name, ''))) > 0
+                    OR lower(item_name) % CAST(:searchTerm AS text)
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(dropped_for, ''))) > 0
+                    OR lower(dropped_for) % CAST(:searchTerm AS text)
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(activated_by, ''))) > 0
+                    OR lower(activated_by) % CAST(:searchTerm AS text)
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(booster_type, ''))) > 0
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(global_type, ''))) > 0
+                    OR position(CAST(:searchTerm AS text) in lower(coalesce(raid_locations, ''))) > 0
                 )
                 AND (
-                    :droppedFor IS NULL
-                    OR (event_type = 'ITEM_DROP' AND lower(dropped_for) = :droppedFor)
+                    CAST(:droppedFor AS text) IS NULL
+                    OR (event_type = 'ITEM_DROP' AND lower(dropped_for) = CAST(:droppedFor AS text))
                 )
                 AND (
-                    :itemRarity IS NULL
-                    OR (event_type = 'ITEM_DROP' AND item_rarity = :itemRarity)
+                    CAST(:itemRarity AS text) IS NULL
+                    OR (event_type = 'ITEM_DROP' AND item_rarity = CAST(:itemRarity AS text))
                 )
                 AND (
-                    :after IS NULL
-                    OR (:newest = true AND event_id < :after)
-                    OR (:newest = false AND event_id > :after)
+                    CAST(:after AS uuid) IS NULL
+                    OR (:newest = true AND event_id < CAST(:after AS uuid))
+                    OR (:newest = false AND event_id > CAST(:after AS uuid))
                 )
             ORDER BY
                 CASE WHEN :newest = true THEN event_id END DESC,
