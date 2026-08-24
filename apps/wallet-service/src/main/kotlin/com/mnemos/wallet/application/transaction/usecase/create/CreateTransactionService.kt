@@ -63,11 +63,9 @@ class CreateTransactionService(
                 amount = request.amount,
             )
         ) {
-            return publishFailure(
-                request = storedRequest,
+            return CreateTransactionResult.Failed(
+                requestId = storedRequest.requestId,
                 reason = WalletTransactionFailureReason.IDEMPOTENCY_CONFLICT,
-                occurredAt = now,
-                metadata = metadata,
             )
         }
 
