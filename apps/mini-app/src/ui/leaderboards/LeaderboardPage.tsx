@@ -356,7 +356,10 @@ export function LeaderboardPage({
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
               {effectivePage === 1 ? (
-                <LeaderboardPodium entries={podiumEntries} onSelect={(entry) => void openProfile(entry)} />
+                <LeaderboardPodium
+                  entries={podiumEntries}
+                  onSelect={(entry) => void openProfile(entry)}
+                />
               ) : null}
               <LeaderboardRows entries={rowEntries} onSelect={(entry) => void openProfile(entry)} />
             </motion.div>
