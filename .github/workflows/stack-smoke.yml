@@ -25,6 +25,7 @@ on:
       - "scripts/verify-kafka-message-auth-runtime.sh"
       - "scripts/verify-kafka-service-config.sh"
       - "scripts/verify-kafka-transport-security.sh"
+      - "scripts/verify-minio-policy-reconciliation-runtime.sh"
       - "scripts/verify-postgres-legacy-ownership-migration.sh"
       - "scripts/verify-resource-server-audience.sh"
       - "build.gradle.kts"
@@ -169,6 +170,8 @@ jobs:
 
           $CI_COMPOSE_COMMAND exec -T personalization-service sh -ec \
             'test -n "$MINIO_PERSONALIZATION_ACCESS_KEY" && test -n "$MINIO_PERSONALIZATION_SECRET_KEY"'
+
+          sh scripts/verify-minio-policy-reconciliation-runtime.sh .env.ci
 
       - name: Verify Flyway schemas
         shell: bash
