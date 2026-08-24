@@ -19,8 +19,8 @@ done
 sh "$VALIDATOR" "$VALID_ENV" >/dev/null
 
 awk '
-    /^REDIS_PASSWORD=/ {
-        print "REDIS_PASSWORD=change_me"
+    /^REDIS_ADMIN_PASSWORD=/ {
+        print "REDIS_ADMIN_PASSWORD=change_me"
         next
     }
     { print }
