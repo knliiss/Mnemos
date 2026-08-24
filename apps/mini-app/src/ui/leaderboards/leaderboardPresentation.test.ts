@@ -7,19 +7,18 @@ import {
 
 describe("leaderboard presentation", () => {
   it("formats coin leaderboard entries without changing ranking", () => {
-    const entries =
-      presentCoinEntries(
-        [
-          {
-            rank: 2,
-            accountId: "account-id",
-            nickname: "Alpha",
-            amount: 1234,
-          },
-        ],
-        "en-US",
-        "COIN",
-      )
+    const entries = presentCoinEntries(
+      [
+        {
+          rank: 2,
+          accountId: "account-id",
+          nickname: "Alpha",
+          amount: 1234,
+        },
+      ],
+      "en-US",
+      "COIN",
+    )
 
     expect(entries).toEqual([
       {
@@ -32,29 +31,28 @@ describe("leaderboard presentation", () => {
   })
 
   it("formats predictor win rate and bet detail", () => {
-    const entries =
-      presentPredictorEntries(
-        [
-          {
-            rank: 1,
-            accountId: "account-id",
-            nickname: "Predictor",
-            bets: 8,
-            wins: 5,
-            winRate: 0.625,
-            profit: 240,
-            turnover: 1200,
-          },
-        ],
-        "WIN_RATE",
-        "en-US",
+    const entries = presentPredictorEntries(
+      [
         {
-          bets: "bets",
-          wins: "wins",
-          profit: "COIN",
-          turnover: "COIN",
+          rank: 1,
+          accountId: "account-id",
+          nickname: "Predictor",
+          bets: 8,
+          wins: 5,
+          winRate: 0.625,
+          profit: 240,
+          turnover: 1200,
         },
-      )
+      ],
+      "WIN_RATE",
+      "en-US",
+      {
+        bets: "bets",
+        wins: "wins",
+        profit: "COIN",
+        turnover: "COIN",
+      },
+    )
 
     expect(entries[0]).toMatchObject({
       metric: "62.5%",
@@ -63,27 +61,26 @@ describe("leaderboard presentation", () => {
   })
 
   it("formats drop totals with rarity breakdown", () => {
-    const entries =
-      presentDropEntries(
-        [
-          {
-            rank: 3,
-            nickname: "Dropper",
-            totalDrops: 12,
-            mythicalDrops: 7,
-            secretDrops: 5,
-            lastDropAt: "2026-08-24T10:00:00Z",
-          },
-        ],
-        "TOTAL",
-        "en-US",
+    const entries = presentDropEntries(
+      [
         {
-          total: "drops",
-          mythical: "mythical",
-          secret: "secret",
-          recent: "latest",
+          rank: 3,
+          nickname: "Dropper",
+          totalDrops: 12,
+          mythicalDrops: 7,
+          secretDrops: 5,
+          lastDropAt: "2026-08-24T10:00:00Z",
         },
-      )
+      ],
+      "TOTAL",
+      "en-US",
+      {
+        total: "drops",
+        mythical: "mythical",
+        secret: "secret",
+        recent: "latest",
+      },
+    )
 
     expect(entries[0]).toMatchObject({
       metric: "12 drops",
