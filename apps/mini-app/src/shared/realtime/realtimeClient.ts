@@ -1,6 +1,10 @@
 import { getToken } from "@/features/auth/api/auth"
 import { runtimeConfig } from "@/shared/config/runtimeConfig"
-import { realtimeBroadcasts, realtimeEvents } from "./realtimeEventBus"
+import {
+  realtimeBroadcasts,
+  realtimeConnectionEvents,
+  realtimeEvents,
+} from "./realtimeEventBus"
 import { parseRealtimeBroadcast, parseRealtimeEvent } from "./realtimeEventParser"
 import type { RealtimeBroadcast, RealtimeEvent } from "./realtime.types"
 
@@ -41,6 +45,10 @@ class RealtimeClient {
         if (signal.aborted || isAbortError(error)) {
           return
         }
+      } finally {
+        if (!signal.aborted) {
+          realtimeConnectionEvents.publish("DISCONNECTED")
+        }
       }
 
       await waitForReconnect(withJitter(reconnectDelay), signal)
@@ -71,6 +79,8 @@ class RealtimeClient {
     if (!response.body) {
       throw new Error("Realtime connection did not provide a response stream")
     }
+
+    realtimeConnectionEvents.publish("CONNECTED")
 
     await consumeEventStream(
       response.body,
