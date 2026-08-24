@@ -65,7 +65,9 @@ export function BetAdminRoundList({
         return nickname.includes(normalized) || accountId.includes(normalized)
       })
 
-      return eventLabel.includes(normalized) || statusLabel.includes(normalized) || bettorMatch === true
+      return (
+        eventLabel.includes(normalized) || statusLabel.includes(normalized) || bettorMatch === true
+      )
     })
   }, [hideEmptyRounds, metadataByRound, query, rounds, t])
 
