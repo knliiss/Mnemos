@@ -80,66 +80,69 @@ export function LeaderboardPage({ back }: { back: () => void }) {
     }
 
     let cancelled = false
-    setLoading(true)
-    setLoadError(false)
+    const frame = window.requestAnimationFrame(() => {
+      setLoading(true)
+      setLoadError(false)
 
-    const request =
-      tab === "COINS"
-        ? getCoinLeaderboard(50).then((result) =>
-            presentCoinEntries(result, locale, t("leaderboards.metrics.coins")),
-          )
-        : tab === "PREDICTORS"
-          ? getPredictorLeaderboard({
-              wipeId,
-              sort: predictorSort,
-              minimumSample,
-              limit: 50,
-            }).then((result) =>
-              presentPredictorEntries(result, predictorSort, locale, {
-                bets: t("leaderboards.metrics.bets"),
-                wins: t("leaderboards.metrics.wins"),
-                profit: t("leaderboards.metrics.coins"),
-                turnover: t("leaderboards.metrics.coins"),
-              }),
+      const request =
+        tab === "COINS"
+          ? getCoinLeaderboard(50).then((result) =>
+              presentCoinEntries(result, locale, t("leaderboards.metrics.coins")),
             )
-          : getDropLeaderboard({
-              wipeId,
-              sort: dropSort,
-              itemType: itemType || null,
-              rarity: rarity || null,
-              itemName,
-              nickname,
-              limit: 50,
-            }).then((result) =>
-              presentDropEntries(result, dropSort, locale, {
-                total: t("leaderboards.metrics.drops"),
-                mythical: t("leaderboards.metrics.mythical"),
-                secret: t("leaderboards.metrics.secret"),
-                recent: t("leaderboards.metrics.recent"),
-              }),
-            )
+          : tab === "PREDICTORS"
+            ? getPredictorLeaderboard({
+                wipeId,
+                sort: predictorSort,
+                minimumSample,
+                limit: 50,
+              }).then((result) =>
+                presentPredictorEntries(result, predictorSort, locale, {
+                  bets: t("leaderboards.metrics.bets"),
+                  wins: t("leaderboards.metrics.wins"),
+                  profit: t("leaderboards.metrics.coins"),
+                  turnover: t("leaderboards.metrics.coins"),
+                }),
+              )
+            : getDropLeaderboard({
+                wipeId,
+                sort: dropSort,
+                itemType: itemType || null,
+                rarity: rarity || null,
+                itemName,
+                nickname,
+                limit: 50,
+              }).then((result) =>
+                presentDropEntries(result, dropSort, locale, {
+                  total: t("leaderboards.metrics.drops"),
+                  mythical: t("leaderboards.metrics.mythical"),
+                  secret: t("leaderboards.metrics.secret"),
+                  recent: t("leaderboards.metrics.recent"),
+                }),
+              )
 
-    void request
-      .then((result) => {
-        if (!cancelled) {
-          setEntries(result)
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          handleError(error)
-          setEntries([])
-          setLoadError(true)
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      })
+      void request
+        .then((result) => {
+          if (!cancelled) {
+            setEntries(result)
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            handleError(error)
+            setEntries([])
+            setLoadError(true)
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false)
+          }
+        })
+    })
 
     return () => {
       cancelled = true
+      window.cancelAnimationFrame(frame)
     }
   }, [
     dropSort,

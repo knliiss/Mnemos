@@ -45,7 +45,32 @@ export function WipeAdmin({ back }: { back: () => void }) {
   }
 
   useEffect(() => {
-    void refresh()
+    let cancelled = false
+    const frame = window.requestAnimationFrame(() => {
+      setLoading(true)
+
+      void listWipes()
+        .then((result) => {
+          if (!cancelled) {
+            setWipes(result)
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            handleError(error)
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false)
+          }
+        })
+    })
+
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
   }, [])
 
   async function createWipe() {
