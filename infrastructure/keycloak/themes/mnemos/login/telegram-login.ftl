@@ -55,7 +55,7 @@ section
                     window.history.replaceState(
                         null,
                         document.title,
-                        `${window.location.pathname}${window.location.search}`
+                        window.location.pathname + window.location.search
                     );
                 }
 
