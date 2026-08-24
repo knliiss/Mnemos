@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next"
-import type { DropLeaderboardSort, PredictorLeaderboardSort } from "@/shared/api/leaderboardApi"
+import type {
+  DropLeaderboardDirection,
+  DropLeaderboardSort,
+  PredictorLeaderboardSort,
+} from "@/shared/api/leaderboardApi"
 
 type SortChoiceProps<T extends string> = {
   value: T
@@ -10,7 +14,9 @@ type SortChoiceProps<T extends string> = {
 
 type DropRankingControlsProps = {
   sort: DropLeaderboardSort
+  direction: DropLeaderboardDirection
   onSortChange: (value: DropLeaderboardSort) => void
+  onDirectionChange: (value: DropLeaderboardDirection) => void
 }
 
 type PredictorRankingControlsProps = {
@@ -18,8 +24,9 @@ type PredictorRankingControlsProps = {
   onSortChange: (value: PredictorLeaderboardSort) => void
 }
 
-const dropSorts: DropLeaderboardSort[] = ["TOTAL", "MYTHICAL", "SECRET", "RECENT"]
+const dropSorts: DropLeaderboardSort[] = ["MYTHICAL", "TOTAL", "SECRET"]
 const predictorSorts: PredictorLeaderboardSort[] = ["PROFIT", "WIN_RATE", "WINS", "TURNOVER"]
+const dropDirections: DropLeaderboardDirection[] = ["DESC", "ASC"]
 
 function SortChoice<T extends string>({
   value,
@@ -48,11 +55,49 @@ function SortChoice<T extends string>({
   )
 }
 
-export function DropRankingControls({ sort, onSortChange }: DropRankingControlsProps) {
+function DropDirectionChoice({
+  direction,
+  onChange,
+}: {
+  direction: DropLeaderboardDirection
+  onChange: (value: DropLeaderboardDirection) => void
+}) {
   const { t } = useTranslation()
 
   return (
-    <section className="leaderboard-sortbar">
+    <div className="leaderboard-sortbar__direction" role="group">
+      {dropDirections.map((option) => {
+        const active = option === direction
+        const label = t(`leaderboards.sortDirection.${option.toLowerCase()}`)
+
+        return (
+          <button
+            key={option}
+            type="button"
+            className={active ? "is-active" : ""}
+            aria-label={label}
+            aria-pressed={active}
+            title={label}
+            onClick={() => onChange(option)}
+          >
+            <span aria-hidden="true">{option === "ASC" ? "↑" : "↓"}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export function DropRankingControls({
+  sort,
+  direction,
+  onSortChange,
+  onDirectionChange,
+}: DropRankingControlsProps) {
+  const { t } = useTranslation()
+
+  return (
+    <section className="leaderboard-sortbar leaderboard-sortbar--drops">
       <span>{t("leaderboards.sort")}</span>
       <SortChoice
         value={sort}
@@ -60,6 +105,7 @@ export function DropRankingControls({ sort, onSortChange }: DropRankingControlsP
         optionLabel={(value) => t(`leaderboards.dropSort.${value.toLowerCase()}`)}
         onChange={onSortChange}
       />
+      <DropDirectionChoice direction={direction} onChange={onDirectionChange} />
     </section>
   )
 }
