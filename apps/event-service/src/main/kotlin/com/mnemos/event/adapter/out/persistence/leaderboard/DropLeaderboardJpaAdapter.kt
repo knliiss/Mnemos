@@ -24,6 +24,7 @@ class DropLeaderboardJpaAdapter(
                 itemName = query.itemName,
                 nickname = query.nickname,
                 sort = query.sort.name,
+                direction = query.direction.name,
                 limit = query.limit,
             ).map { projection ->
                 DropLeaderboardEntry(
