@@ -1,6 +1,7 @@
 import { api } from "@/shared/api/httpClient"
 
-export type DropLeaderboardSort = "TOTAL" | "MYTHICAL" | "SECRET" | "RECENT"
+export type DropLeaderboardSort = "TOTAL" | "MYTHICAL" | "SECRET"
+export type DropLeaderboardDirection = "ASC" | "DESC"
 export type PredictorLeaderboardSort = "PROFIT" | "WIN_RATE" | "WINS" | "TURNOVER"
 export type LeaderboardItemType = "SWORD" | "AURA" | "PET" | "BOOK" | "JEWELRY"
 export type LeaderboardItemRarity = "MYTHICAL" | "SECRET"
@@ -39,6 +40,7 @@ export type DropLeaderboardQuery = {
   itemName?: string
   nickname?: string
   sort?: DropLeaderboardSort
+  direction?: DropLeaderboardDirection
   limit?: number
 }
 
@@ -75,6 +77,7 @@ export async function getDropLeaderboard(
   }
 
   params.set("sort", query.sort ?? "TOTAL")
+  params.set("direction", query.direction ?? "DESC")
   params.set("limit", String(query.limit ?? 50))
 
   return api<DropLeaderboardEntry[]>(`/api/v1/events/leaderboards/drops?${params}`)
