@@ -1,10 +1,22 @@
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 
-export function LeaderboardRows({ entries }: { entries: LeaderboardDisplayEntry[] }) {
+export function LeaderboardRows({
+  entries,
+  onSelect,
+}: {
+  entries: LeaderboardDisplayEntry[]
+  onSelect: (entry: LeaderboardDisplayEntry) => void
+}) {
   return (
     <div className="leaderboard-rows">
       {entries.map((entry) => (
-        <article key={`${entry.rank}:${entry.nickname}`} className="leaderboard-row">
+        <button
+          key={`${entry.rank}:${entry.nickname}`}
+          type="button"
+          className="leaderboard-row leaderboard-row--interactive"
+          onClick={() => onSelect(entry)}
+          aria-label={entry.nickname}
+        >
           <span className="leaderboard-row__rank">{entry.rank}</span>
 
           <span className="leaderboard-row__identity">
@@ -15,7 +27,11 @@ export function LeaderboardRows({ entries }: { entries: LeaderboardDisplayEntry[
           <span className="leaderboard-row__metric">
             <b>{entry.metric}</b>
           </span>
-        </article>
+
+          <span className="leaderboard-row__chevron" aria-hidden="true">
+            ›
+          </span>
+        </button>
       ))}
     </div>
   )
