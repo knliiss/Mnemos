@@ -107,7 +107,8 @@ export const eventsRu = {
         expired: "Время истекло",
         previewEyebrow: "ПРЕДПРОСМОТР",
         previewTitle: "Так Spotlight увидят пользователи",
-        previewHint: "Оформление текста и emoji может измениться активным notification pack. Сумма списывается в PRIME после подтверждения.",
+        previewHint:
+          "Оформление текста и emoji может измениться активным notification pack. Сумма списывается в PRIME после подтверждения.",
         status: "СТАТУС",
         scheduled: "ПОКАЗ",
         done: "Готово",

@@ -83,8 +83,10 @@
   border-color: rgba(230, 236, 216, 0.105);
   border-radius: 19px;
   background:
-    linear-gradient(rgba(199, 242, 74, 0.032), rgba(199, 242, 74, 0.032)) 12px 11px / 4px 4px no-repeat,
-    linear-gradient(rgba(199, 242, 74, 0.018), rgba(199, 242, 74, 0.018)) 21px 11px / 3px 3px no-repeat,
+    linear-gradient(rgba(199, 242, 74, 0.032), rgba(199, 242, 74, 0.032)) 12px 11px / 4px 4px
+      no-repeat,
+    linear-gradient(rgba(199, 242, 74, 0.018), rgba(199, 242, 74, 0.018)) 21px 11px / 3px 3px
+      no-repeat,
     radial-gradient(circle at 8% 52%, rgba(199, 242, 74, 0.07), transparent 31%),
     linear-gradient(135deg, rgba(21, 25, 17, 0.96), rgba(11, 13, 10, 0.96));
   box-shadow:
@@ -110,8 +112,10 @@
 .event-detail-follow.is-active {
   border-color: rgba(199, 242, 74, 0.2);
   background:
-    linear-gradient(rgba(199, 242, 74, 0.07), rgba(199, 242, 74, 0.07)) 12px 11px / 4px 4px no-repeat,
-    linear-gradient(rgba(199, 242, 74, 0.035), rgba(199, 242, 74, 0.035)) 21px 11px / 3px 3px no-repeat,
+    linear-gradient(rgba(199, 242, 74, 0.07), rgba(199, 242, 74, 0.07)) 12px 11px / 4px 4px
+      no-repeat,
+    linear-gradient(rgba(199, 242, 74, 0.035), rgba(199, 242, 74, 0.035)) 21px 11px / 3px 3px
+      no-repeat,
     radial-gradient(circle at 8% 52%, rgba(199, 242, 74, 0.11), transparent 32%),
     linear-gradient(135deg, rgba(21, 28, 16, 0.97), rgba(11, 14, 10, 0.97));
 }
@@ -123,8 +127,7 @@
   border-radius: 15px;
   color: #9ca58f;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.024), rgba(255, 255, 255, 0.024)),
-    rgba(9, 12, 8, 0.72);
+    linear-gradient(rgba(255, 255, 255, 0.024), rgba(255, 255, 255, 0.024)), rgba(9, 12, 8, 0.72);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
 }
 
@@ -354,10 +357,8 @@
   display: grid;
   place-items: center;
   overflow-y: auto;
-  padding:
-    max(18px, var(--mnemos-telegram-top-clearance, env(safe-area-inset-top, 0px)))
-    max(14px, env(safe-area-inset-right, 0px))
-    max(24px, env(safe-area-inset-bottom, 0px))
+  padding: max(18px, var(--mnemos-telegram-top-clearance, env(safe-area-inset-top, 0px)))
+    max(14px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px))
     max(14px, env(safe-area-inset-left, 0px));
   background: rgba(2, 4, 2, 0.76);
   backdrop-filter: blur(12px);

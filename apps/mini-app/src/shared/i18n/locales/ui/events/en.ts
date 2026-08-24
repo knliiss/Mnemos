@@ -107,7 +107,8 @@ export const eventsEn = {
         expired: "Time expired",
         previewEyebrow: "PREVIEW",
         previewTitle: "This is how users will see Spotlight",
-        previewHint: "Text styling and emoji may change with the active notification pack. PRIME is charged only after confirmation.",
+        previewHint:
+          "Text styling and emoji may change with the active notification pack. PRIME is charged only after confirmation.",
         status: "STATUS",
         scheduled: "SHOW TIME",
         done: "Done",

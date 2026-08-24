@@ -107,7 +107,8 @@ export const eventsUk = {
         expired: "Час минув",
         previewEyebrow: "ПЕРЕДПЕРЕГЛЯД",
         previewTitle: "Так Spotlight побачать користувачі",
-        previewHint: "Оформлення тексту й emoji може змінитися активним notification pack. PRIME списуються після підтвердження.",
+        previewHint:
+          "Оформлення тексту й emoji може змінитися активним notification pack. PRIME списуються після підтвердження.",
         status: "СТАТУС",
         scheduled: "ПОКАЗ",
         done: "Готово",
