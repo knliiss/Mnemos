@@ -29,10 +29,20 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
               )
             GROUP BY event.dropped_for
             ORDER BY
-                CASE WHEN :sort = 'TOTAL' THEN count(*) END DESC,
-                CASE WHEN :sort = 'MYTHICAL' THEN count(*) FILTER (WHERE item.rarity = 'MYTHICAL') END DESC,
-                CASE WHEN :sort = 'SECRET' THEN count(*) FILTER (WHERE item.rarity = 'SECRET') END DESC,
-                CASE WHEN :sort = 'RECENT' THEN max(event.occurred_at) END DESC,
+                CASE WHEN :sort = 'TOTAL' AND :direction = 'DESC' THEN count(*) END DESC,
+                CASE WHEN :sort = 'TOTAL' AND :direction = 'ASC' THEN count(*) END ASC,
+                CASE WHEN :sort = 'MYTHICAL' AND :direction = 'DESC' THEN
+                    count(*) FILTER (WHERE item.rarity = 'MYTHICAL')
+                END DESC,
+                CASE WHEN :sort = 'MYTHICAL' AND :direction = 'ASC' THEN
+                    count(*) FILTER (WHERE item.rarity = 'MYTHICAL')
+                END ASC,
+                CASE WHEN :sort = 'SECRET' AND :direction = 'DESC' THEN
+                    count(*) FILTER (WHERE item.rarity = 'SECRET')
+                END DESC,
+                CASE WHEN :sort = 'SECRET' AND :direction = 'ASC' THEN
+                    count(*) FILTER (WHERE item.rarity = 'SECRET')
+                END ASC,
                 count(*) DESC,
                 lower(event.dropped_for) ASC
             LIMIT :limit
@@ -47,6 +57,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
         @Param("itemName") itemName: String?,
         @Param("nickname") nickname: String?,
         @Param("sort") sort: String,
+        @Param("direction") direction: String,
         @Param("limit") limit: Int,
     ): List<DropLeaderboardProjection>
 }
