@@ -57,7 +57,8 @@ type StartValidation = "INVALID" | "FUTURE" | "BEFORE_CURRENT" | null
 
 export function WipeAdmin({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
-  const initialStart = useMemo(() => new Date(), [])
+  const [initialStart] = useState(() => new Date())
+  const [validationNow, setValidationNow] = useState(() => initialStart.getTime())
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [name, setName] = useState("")
   const [startDate, setStartDate] = useState(() => localDateValue(initialStart))
@@ -87,7 +88,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
       return "INVALID"
     }
 
-    if (parsedStart.getTime() > Date.now()) {
+    if (parsedStart.getTime() > validationNow) {
       return "FUTURE"
     }
 
@@ -96,7 +97,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
     }
 
     return null
-  }, [current, parsedStart])
+  }, [current, parsedStart, validationNow])
 
   const validationMessage =
     startValidation === "INVALID"
@@ -118,8 +119,19 @@ export function WipeAdmin({ back }: { back: () => void }) {
   function useCurrentTime() {
     const now = new Date()
 
+    setValidationNow(now.getTime())
     setStartDate(localDateValue(now))
     setStartTime(localTimeValue(now))
+  }
+
+  function changeStartDate(value: string) {
+    setValidationNow(Date.now())
+    setStartDate(value)
+  }
+
+  function changeStartTime(value: string) {
+    setValidationNow(Date.now())
+    setStartTime(value)
   }
 
   async function refresh() {
@@ -178,6 +190,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
 
       const now = new Date()
 
+      setValidationNow(now.getTime())
       setName("")
       setStartDate(localDateValue(now))
       setStartTime(localTimeValue(now))
@@ -264,7 +277,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
                 value={startDate}
                 placeholder={t("wipeAdmin.startDatePlaceholder")}
                 aria-invalid={Boolean(startValidation)}
-                onChange={(event) => setStartDate(event.target.value)}
+                onChange={(event) => changeStartDate(event.target.value)}
               />
             </label>
 
@@ -278,7 +291,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
                 value={startTime}
                 placeholder={t("wipeAdmin.startTimePlaceholder")}
                 aria-invalid={Boolean(startValidation)}
-                onChange={(event) => setStartTime(event.target.value)}
+                onChange={(event) => changeStartTime(event.target.value)}
               />
             </label>
           </div>
