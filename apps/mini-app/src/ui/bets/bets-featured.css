@@ -1,3 +1,5 @@
+@import "./bets-market.css";
+
 .bets-feature {
   grid-template-columns: 92px minmax(0, 1fr);
   grid-template-rows: minmax(58px, auto) auto;
