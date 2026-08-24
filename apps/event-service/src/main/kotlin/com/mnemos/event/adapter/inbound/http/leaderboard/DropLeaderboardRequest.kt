@@ -1,5 +1,6 @@
 package com.mnemos.event.adapter.inbound.http.leaderboard
 
+import com.mnemos.event.application.leaderboard.drop.DropLeaderboardDirection
 import com.mnemos.event.application.leaderboard.drop.DropLeaderboardSort
 import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
@@ -17,6 +18,7 @@ data class DropLeaderboardRequest(
     @field:Size(max = 20)
     val nickname: String? = null,
     val sort: DropLeaderboardSort = DropLeaderboardSort.TOTAL,
+    val direction: DropLeaderboardDirection = DropLeaderboardDirection.DESC,
     @field:Min(3)
     @field:Max(100)
     val limit: Int = 50,
