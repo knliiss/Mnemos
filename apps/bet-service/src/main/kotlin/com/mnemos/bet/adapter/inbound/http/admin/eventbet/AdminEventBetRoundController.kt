@@ -1,7 +1,9 @@
 package com.mnemos.bet.adapter.inbound.http.admin.eventbet
 
+import com.mnemos.bet.adapter.inbound.http.admin.eventbet.AdminEventBetApiMapper.toResponse
 import com.mnemos.bet.adapter.inbound.http.eventbet.EventBetApiMapper.toResponse
 import com.mnemos.bet.adapter.inbound.http.eventbet.EventBetRoundResponse
+import com.mnemos.bet.application.eventbet.usecase.adminbets.ListAdminEventBetsUseCase
 import com.mnemos.bet.application.eventbet.usecase.adminlist.ListAdminEventBetRoundsUseCase
 import com.mnemos.bet.application.eventbet.usecase.resolve.ResolveEventBetRoundCommand
 import com.mnemos.bet.application.eventbet.usecase.resolve.ResolveEventBetRoundUseCase
@@ -23,10 +25,20 @@ import java.util.UUID
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class AdminEventBetRoundController(
     private val listAdminEventBetRoundsUseCase: ListAdminEventBetRoundsUseCase,
+    private val listAdminEventBetsUseCase: ListAdminEventBetsUseCase,
     private val resolveEventBetRoundUseCase: ResolveEventBetRoundUseCase,
 ) {
     @GetMapping
     fun list(): List<EventBetRoundResponse> = listAdminEventBetRoundsUseCase.execute().map { it.toResponse() }
+
+    @GetMapping("/{roundId}/bets")
+    fun listBets(
+        @PathVariable
+        roundId: UUID,
+    ): List<AdminEventBetResponse> =
+        listAdminEventBetsUseCase
+            .execute(EventBetRoundId(roundId))
+            .map { bet -> bet.toResponse() }
 
     @PostMapping("/{roundId}/resolution")
     @ResponseStatus(HttpStatus.NO_CONTENT)
