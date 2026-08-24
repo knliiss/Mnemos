@@ -6,6 +6,11 @@ on:
       - feat/wipes-leaderboards
     paths:
       - ".github/workflows/deploy-wipes-leaderboards-to-pages.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/deploy-wipes-leaderboards-to-pages.yml"
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +22,7 @@ permissions:
 
 jobs:
   deploy:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref == 'feat/wipes-leaderboards'
     runs-on: ubuntu-latest
 
     permissions:
@@ -30,8 +36,10 @@ jobs:
       VITE_API_URL: https://api.knalis.rest
 
     steps:
-      - name: Checkout
+      - name: Checkout feature branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: feat/wipes-leaderboards
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
