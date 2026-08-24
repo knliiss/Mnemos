@@ -12,7 +12,7 @@ import {
 import { listWipes, type Wipe } from "@/shared/api/wipeApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Route } from "../model"
-import { Glyph, type GlyphName } from "../shared/MnemosIcon"
+import { Glyph } from "../shared/MnemosIcon"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 import {
   orderDropLeaderboardEntries,
@@ -31,10 +31,10 @@ import "./leaderboard-ranking.css"
 type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
 
 const tabs: LeaderboardTab[] = ["DROPS", "COINS", "PREDICTORS"]
-const tabGlyphs: Record<LeaderboardTab, GlyphName> = {
-  DROPS: "item-drop",
-  COINS: "wallet",
-  PREDICTORS: "bet",
+const tabIllustrations: Record<LeaderboardTab, string> = {
+  DROPS: "/ui-illustrations/leaderboard-tab-drops.svg",
+  COINS: "/ui-illustrations/leaderboard-tab-coins.svg",
+  PREDICTORS: "/ui-illustrations/leaderboard-tab-predictors.svg",
 }
 const pageSize = 10
 const leaderboardLimit = 100
@@ -252,6 +252,13 @@ export function LeaderboardPage({
           <h1>{t("leaderboards.rankBy")}</h1>
           <p>{t("leaderboards.heroDescription")}</p>
         </div>
+
+        <img
+          className="leaderboard-header__art"
+          src="/ui-illustrations/leaderboard-hero.svg"
+          alt=""
+          aria-hidden="true"
+        />
       </header>
 
       <div className="leaderboard-navigation">
@@ -267,8 +274,12 @@ export function LeaderboardPage({
                 aria-pressed={active}
                 onClick={() => changeTab(value)}
               >
-                <Glyph name={tabGlyphs[value]} size={16} />
-                <span>{t(`leaderboards.tabs.${value.toLowerCase()}`)}</span>
+                <span className="leaderboard-tabs__art" aria-hidden="true">
+                  <img src={tabIllustrations[value]} alt="" />
+                </span>
+                <span className="leaderboard-tabs__label">
+                  {t(`leaderboards.tabs.${value.toLowerCase()}`)}
+                </span>
               </button>
             )
           })}

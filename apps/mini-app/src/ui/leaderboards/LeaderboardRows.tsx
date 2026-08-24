@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
+import { LeaderboardPlayerHead } from "./LeaderboardPlayerHead"
 
 export function LeaderboardRows({
   entries,
@@ -19,9 +20,16 @@ export function LeaderboardRows({
           onClick={() => onSelect(entry)}
           aria-label={`#${entry.rank} ${entry.nickname}`}
         >
-          <span className="leaderboard-row__rank">#{entry.rank}</span>
+          <span className="leaderboard-row__head" aria-hidden="true">
+            <LeaderboardPlayerHead
+              entry={entry}
+              size={52}
+              className="leaderboard-row__head-image"
+            />
+          </span>
 
           <span className="leaderboard-row__identity">
+            <span className="leaderboard-row__place">#{entry.rank}</span>
             <strong>{entry.nickname}</strong>
             {entry.detail ? <small>{entry.detail}</small> : null}
           </span>
