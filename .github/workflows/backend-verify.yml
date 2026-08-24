@@ -77,7 +77,7 @@ jobs:
       - name: Scan backend dependencies
         shell: bash
         env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          NVD_API_KEY: ${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}
         run: |
           set -euo pipefail
 
