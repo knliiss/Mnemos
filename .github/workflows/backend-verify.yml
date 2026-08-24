@@ -51,6 +51,7 @@ jobs:
           sh -n scripts/verify-workflow-action-pins.sh
           sh -n scripts/verify-cloudflare-deploy-security.sh
           sh -n scripts/verify-telegram-init-data-transport.sh
+          sh -n scripts/verify-keycloak-session-security.sh
           sh -n scripts/verify-postgres-legacy-ownership-migration.sh
           sh -n scripts/verify-no-insecure-credential-defaults.sh
           sh -n scripts/generate-kafka-message-keys.sh
@@ -66,6 +67,7 @@ jobs:
           sh scripts/verify-workflow-action-pins.sh
           sh scripts/verify-cloudflare-deploy-security.sh
           sh scripts/verify-telegram-init-data-transport.sh
+          sh scripts/verify-keycloak-session-security.sh
           sh scripts/verify-no-insecure-credential-defaults.sh
           sh scripts/verify-kafka-service-config.sh
 
