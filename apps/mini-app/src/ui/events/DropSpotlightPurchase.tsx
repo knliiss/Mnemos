@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   createDropSpotlight,
@@ -29,6 +29,7 @@ export function DropSpotlightPurchase({ event, activeAccount, locale }: Props) {
   const { t } = useTranslation()
   const [offer, setOffer] = useState<DropSpotlightOfferResponse | null>(null)
   const [offerUnavailable, setOfferUnavailable] = useState(false)
+  const [purchaseWindowOpen, setPurchaseWindowOpen] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [purchase, setPurchase] = useState<DropSpotlightResponse | null>(null)
@@ -43,8 +44,14 @@ export function DropSpotlightPurchase({ event, activeAccount, locale }: Props) {
           return
         }
 
+        const occurredAt = Date.parse(event.occurredAt)
+        const withinPurchaseWindow =
+          Number.isFinite(occurredAt) &&
+          occurredAt + response.purchaseWindowSeconds * 1_000 > Date.now()
+
         setOffer(response)
         setOfferUnavailable(false)
+        setPurchaseWindowOpen(withinPurchaseWindow)
       })
       .catch(() => {
         if (!cancelled) {
@@ -55,17 +62,7 @@ export function DropSpotlightPurchase({ event, activeAccount, locale }: Props) {
     return () => {
       cancelled = true
     }
-  }, [])
-
-  const purchaseWindowOpen = useMemo(() => {
-    if (!offer) {
-      return true
-    }
-
-    const occurredAt = Date.parse(event.occurredAt)
-
-    return Number.isFinite(occurredAt) && occurredAt + offer.purchaseWindowSeconds * 1_000 > Date.now()
-  }, [event.occurredAt, offer])
+  }, [event.occurredAt])
 
   const status = purchase?.status ?? null
   const purchased = status === "QUEUED" || status === "PUBLISHED" || status === "PENDING_PAYMENT"
