@@ -6,9 +6,9 @@ import type {
   ItemRaceResponse,
 } from "@/shared/api/betApi"
 
-export type BetMode = "EVENTS" | "MY" | "RACES"
+export type BetMode = "EVENTS" | "MY"
 
-export const betModes: BetMode[] = ["EVENTS", "MY", "RACES"]
+export const betModes: BetMode[] = ["EVENTS", "MY"]
 
 export function betAmount(bet: NonNullable<EventBetRoundResponse["myBet"]>) {
   return bet.confirmedAmount + bet.pendingAmount
