@@ -54,10 +54,13 @@ export const leaderboardsRu = {
       predictors: "Прогнозисты",
     },
     dropSort: {
-      total: "Все дропы",
+      total: "Все",
       mythical: "Мифические",
       secret: "Секретные",
-      recent: "Последние",
+    },
+    sortDirection: {
+      asc: "По возрастанию",
+      desc: "По убыванию",
     },
     predictorSort: {
       profit: "Прибыль",
@@ -80,7 +83,6 @@ export const leaderboardsRu = {
       drops: "дропов",
       mythical: "мифических",
       secret: "секретных",
-      recent: "последний дроп",
       coins: "COIN",
       bets: "ставок",
       wins: "побед",
