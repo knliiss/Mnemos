@@ -1,5 +1,8 @@
 package com.mnemos.bet.adapter.inbound.http.admin.itemrace
 
+import com.mnemos.bet.adapter.inbound.http.itemrace.ItemRaceApiMapper.toResponse
+import com.mnemos.bet.adapter.inbound.http.itemrace.ItemRaceResponse
+import com.mnemos.bet.application.itemrace.usecase.adminlist.ListAdminItemRacesUseCase
 import com.mnemos.bet.application.itemrace.usecase.cancel.CancelItemRaceCommand
 import com.mnemos.bet.application.itemrace.usecase.cancel.CancelItemRaceUseCase
 import com.mnemos.bet.application.itemrace.usecase.create.CreateItemRaceCommand
@@ -10,6 +13,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,9 +26,13 @@ import java.util.UUID
 @RequestMapping("/api/v1/bets/admin/item-races")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class AdminItemRaceController(
+    private val listAdminItemRacesUseCase: ListAdminItemRacesUseCase,
     private val createItemRaceUseCase: CreateItemRaceUseCase,
     private val cancelItemRaceUseCase: CancelItemRaceUseCase,
 ) {
+    @GetMapping
+    fun list(): List<ItemRaceResponse> = listAdminItemRacesUseCase.execute().map { it.toResponse() }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(

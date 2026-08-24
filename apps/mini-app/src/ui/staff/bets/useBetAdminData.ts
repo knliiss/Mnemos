@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  listEventBetRounds,
-  listItemRaces,
-  type EventBetRoundResponse,
-  type ItemRaceResponse,
-} from "@/shared/api/betApi"
+import type { EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
+import { listAdminEventBetRounds, listAdminItemRaces } from "@/shared/api/betAdminApi"
 import { handleError } from "@/shared/errors/errorHandler"
 
 export function useBetAdminData() {
@@ -22,7 +18,10 @@ export function useBetAdminData() {
     setError(false)
 
     try {
-      const [nextRounds, nextRaces] = await Promise.all([listEventBetRounds(), listItemRaces()])
+      const [nextRounds, nextRaces] = await Promise.all([
+        listAdminEventBetRounds(),
+        listAdminItemRaces(),
+      ])
 
       if (revision === requestRevision.current) {
         setRounds(nextRounds)

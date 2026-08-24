@@ -80,6 +80,7 @@
   top: calc(var(--mnemos-telegram-top-clearance, 0px) + 8px);
   right: max(
     16px,
+    calc((100% - 960px) / 2 + 18px),
     var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, 0px)),
     env(safe-area-inset-right, 0px)
   );
@@ -158,6 +159,14 @@
 
   .root-user-access {
     right: 16px;
+  }
+
+  .telegram-mini-app .root-user-access {
+    right: max(
+      16px,
+      var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, 0px)),
+      env(safe-area-inset-right, 0px)
+    );
   }
 
   .root-navigation.root-navigation--five {

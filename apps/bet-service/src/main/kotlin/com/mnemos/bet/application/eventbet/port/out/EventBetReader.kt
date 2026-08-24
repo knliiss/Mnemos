@@ -8,6 +8,8 @@ import com.mnemos.common.core.model.id.AccountId
 interface EventBetReader {
     fun findCurrentRounds(): List<EventBetRoundView>
 
+    fun findAllRounds(): List<EventBetRoundView>
+
     fun findRound(roundId: EventBetRoundId): EventBetRoundView?
 
     fun findBet(

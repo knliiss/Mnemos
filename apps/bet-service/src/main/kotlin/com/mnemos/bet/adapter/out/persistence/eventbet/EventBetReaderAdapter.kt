@@ -21,6 +21,9 @@ class EventBetReaderAdapter(
                 settledStatus = EventBetRoundStatus.SETTLED,
             ).map { it.toView() }
 
+    override fun findAllRounds(): List<EventBetRoundView> =
+        roundRepository.findTop200ByOrderByScheduledAtDescIdDesc().map { it.toView() }
+
     override fun findRound(id: EventBetRoundId): EventBetRoundView? = roundRepository.findByIdOrNull(id.id)?.toView()
 
     override fun findBet(
