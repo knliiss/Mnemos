@@ -4,7 +4,7 @@ import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { realtimeConnectionEvents, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
 
@@ -212,6 +212,18 @@ export function useAccountData(
       unsubscribe()
     }
   }, [refreshAccountBalance, refreshUserBalance])
+
+  useEffect(() => {
+    const unsubscribe = realtimeConnectionEvents.subscribe((state) => {
+      if (state === "CONNECTED") {
+        void reconcileBalances().catch(handleError)
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [reconcileBalances])
 
   useEffect(() => {
     const reconcile = () => {
