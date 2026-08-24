@@ -3,7 +3,8 @@ export const leaderboardsRu = {
     title: "Топы",
     eyebrow: "РЕЙТИНГИ WIPE",
     heroTitle: "Лучшие за выбранный период",
-    heroDescription: "Дропы и прогнозы считаются строго внутри выбранного wipe. Монеты показывают текущий баланс аккаунтов.",
+    heroDescription:
+      "Дропы и прогнозы считаются строго внутри выбранного wipe. Монеты показывают текущий баланс аккаунтов.",
     homeEyebrow: "РЕЙТИНГИ",
     homeTitle: "Топы",
     homeDescription: "Предметы, монеты и лучшие прогнозисты — с podium и фильтрами.",
@@ -11,7 +12,8 @@ export const leaderboardsRu = {
     wipe: "Wipe",
     wipeFallback: "Без названия",
     currentBalance: "Текущий баланс",
-    currentBalanceDescription: "Исторические snapshots монет не хранятся — здесь актуальный COIN balance.",
+    currentBalanceDescription:
+      "Исторические snapshots монет не хранятся — здесь актуальный COIN balance.",
     sort: "Сортировка",
     itemType: "Тип предмета",
     rarity: "Редкость",
@@ -63,7 +65,8 @@ export const leaderboardsRu = {
     workspaceTitle: "Wipe",
     workspaceDescription: "Текущий период, новый wipe и история",
     heroTitle: "Границы рейтингов и событий",
-    heroDescription: "Новый wipe закрывает текущий на одной временной границе. Старые события и рейтинги остаются в истории.",
+    heroDescription:
+      "Новый wipe закрывает текущий на одной временной границе. Старые события и рейтинги остаются в истории.",
     current: "Текущий wipe",
     started: "Начат {{date}}",
     noCurrent: "Активный wipe не найден",
@@ -77,7 +80,8 @@ export const leaderboardsRu = {
     historyCount: "Периодов: {{count}}",
     active: "активный",
     confirmTitle: "Подтвердить новый wipe",
-    confirmDescription: "Это завершит текущий wipe на указанной границе и сразу создаст следующий. История не удаляется.",
+    confirmDescription:
+      "Это завершит текущий wipe на указанной границе и сразу создаст следующий. История не удаляется.",
     saving: "Создаём…",
     confirm: "Подтвердить",
   },

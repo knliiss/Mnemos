@@ -115,8 +115,12 @@ export function WipeAdmin({ back }: { back: () => void }) {
           <strong>{t("common.loading")}</strong>
         ) : current ? (
           <>
-            <strong>#{current.number} {current.name ?? t("leaderboards.wipeFallback")}</strong>
-            <small>{t("wipeAdmin.started", { date: dateTime.format(new Date(current.startedAt)) })}</small>
+            <strong>
+              #{current.number} {current.name ?? t("leaderboards.wipeFallback")}
+            </strong>
+            <small>
+              {t("wipeAdmin.started", { date: dateTime.format(new Date(current.startedAt)) })}
+            </small>
           </>
         ) : (
           <strong>{t("wipeAdmin.noCurrent")}</strong>
@@ -174,7 +178,9 @@ export function WipeAdmin({ back }: { back: () => void }) {
               <strong>{wipe.name ?? t("leaderboards.wipeFallback")}</strong>
               <small>
                 {dateTime.format(new Date(wipe.startedAt))}
-                {wipe.endedAt ? ` — ${dateTime.format(new Date(wipe.endedAt))}` : ` · ${t("wipeAdmin.active")}`}
+                {wipe.endedAt
+                  ? ` — ${dateTime.format(new Date(wipe.endedAt))}`
+                  : ` · ${t("wipeAdmin.active")}`}
               </small>
             </span>
           </article>
@@ -191,7 +197,12 @@ export function WipeAdmin({ back }: { back: () => void }) {
               <button type="button" onClick={() => setConfirming(false)} disabled={saving}>
                 {t("common.cancel")}
               </button>
-              <button type="button" className="is-danger" onClick={() => void createWipe()} disabled={saving}>
+              <button
+                type="button"
+                className="is-danger"
+                onClick={() => void createWipe()}
+                disabled={saving}
+              >
                 {saving ? t("wipeAdmin.saving") : t("wipeAdmin.confirm")}
               </button>
             </div>

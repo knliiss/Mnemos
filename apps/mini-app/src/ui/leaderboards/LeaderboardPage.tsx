@@ -60,7 +60,9 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         }
 
         setWipes(result)
-        setWipeId((current) => current ?? result.find((wipe) => wipe.active)?.id ?? result[0]?.id ?? null)
+        setWipeId(
+          (current) => current ?? result.find((wipe) => wipe.active)?.id ?? result[0]?.id ?? null,
+        )
       })
       .catch((error) => {
         if (!cancelled) {
@@ -166,11 +168,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
 
   return (
     <div className="screen leaderboard-screen">
-      <PageHeader
-        title={t("leaderboards.title")}
-        eyebrow={t("leaderboards.eyebrow")}
-        back={back}
-      />
+      <PageHeader title={t("leaderboards.title")} eyebrow={t("leaderboards.eyebrow")} back={back} />
 
       <section className="leaderboard-hero">
         <img src="/ui-illustrations/leaderboard-hero.svg" alt="" aria-hidden="true" />
@@ -194,7 +192,8 @@ export function LeaderboardPage({ back }: { back: () => void }) {
             <select value={wipeId ?? ""} onChange={(event) => setWipeId(event.target.value)}>
               {wipes.map((wipe) => (
                 <option key={wipe.id} value={wipe.id}>
-                  #{wipe.number} {wipe.name ?? t("leaderboards.wipeFallback")} {wipe.active ? "•" : ""}
+                  #{wipe.number} {wipe.name ?? t("leaderboards.wipeFallback")}{" "}
+                  {wipe.active ? "•" : ""}
                 </option>
               ))}
             </select>
@@ -225,7 +224,10 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         >
           <label>
             <span>{t("leaderboards.sort")}</span>
-            <select value={dropSort} onChange={(event) => setDropSort(event.target.value as DropLeaderboardSort)}>
+            <select
+              value={dropSort}
+              onChange={(event) => setDropSort(event.target.value as DropLeaderboardSort)}
+            >
               {dropSorts.map((value) => (
                 <option key={value} value={value}>
                   {t(`leaderboards.dropSort.${value.toLowerCase()}`)}
@@ -236,7 +238,10 @@ export function LeaderboardPage({ back }: { back: () => void }) {
 
           <label>
             <span>{t("leaderboards.itemType")}</span>
-            <select value={itemType} onChange={(event) => setItemType(event.target.value as LeaderboardItemType | "")}>
+            <select
+              value={itemType}
+              onChange={(event) => setItemType(event.target.value as LeaderboardItemType | "")}
+            >
               <option value="">{t("common.all")}</option>
               {itemTypes.map((value) => (
                 <option key={value} value={value}>
@@ -248,7 +253,10 @@ export function LeaderboardPage({ back }: { back: () => void }) {
 
           <label>
             <span>{t("leaderboards.rarity")}</span>
-            <select value={rarity} onChange={(event) => setRarity(event.target.value as LeaderboardItemRarity | "")}>
+            <select
+              value={rarity}
+              onChange={(event) => setRarity(event.target.value as LeaderboardItemRarity | "")}
+            >
               <option value="">{t("common.all")}</option>
               {rarities.map((value) => (
                 <option key={value} value={value}>
