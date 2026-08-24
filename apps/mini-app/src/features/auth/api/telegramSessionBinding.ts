@@ -3,7 +3,9 @@ import { getTelegramUserId } from "@/features/auth/api/telegramInitData"
 const TELEGRAM_USER_ID_STORAGE_KEY = "mnemos_telegram_user_id"
 const STORAGE_OPERATION_TIMEOUT_MS = 750
 
-export async function resolveTelegramSessionUserId(telegram: TelegramWebApp): Promise<number | null> {
+export async function resolveTelegramSessionUserId(
+  telegram: TelegramWebApp,
+): Promise<number | null> {
   const initDataUserId = getTelegramUserId(telegram.initData)
 
   if (initDataUserId !== null) {
