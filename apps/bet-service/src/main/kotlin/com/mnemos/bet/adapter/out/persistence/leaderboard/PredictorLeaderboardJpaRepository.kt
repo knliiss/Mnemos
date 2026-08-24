@@ -38,7 +38,10 @@ interface PredictorLeaderboardJpaRepository : Repository<EventBetEntity, UUID> {
               AND bet.confirmed_amount > 0
               AND round.effective_outcome IN ('YES', 'NO')
               AND round.scheduled_at >= :from
-              AND (:to IS NULL OR round.scheduled_at < :to)
+              AND (
+                  CAST(:to AS timestamptz) IS NULL
+                  OR round.scheduled_at < CAST(:to AS timestamptz)
+              )
             GROUP BY bet.account_id
             HAVING count(*) >= :minimumSample
             ORDER BY
