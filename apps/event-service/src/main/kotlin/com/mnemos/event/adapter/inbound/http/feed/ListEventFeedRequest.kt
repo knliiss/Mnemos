@@ -18,6 +18,7 @@ data class ListEventFeedRequest(
     @field:Pattern(regexp = "[\\p{L}0-9_]+")
     val droppedFor: String? = null,
     val itemRarity: DomainItemRarity? = null,
+    val wipeId: UUID? = null,
     val sort: EventFeedSort = EventFeedSort.NEWEST,
     @field:Min(1)
     @field:Max(100)

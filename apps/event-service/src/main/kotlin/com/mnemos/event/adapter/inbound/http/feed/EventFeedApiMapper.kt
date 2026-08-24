@@ -9,6 +9,7 @@ import com.mnemos.event.application.feed.model.GlobalFeedItem
 import com.mnemos.event.application.feed.model.ItemDropFeedItem
 import com.mnemos.event.application.feed.model.RaidFeedItem
 import com.mnemos.event.domain.EventId
+import com.mnemos.event.domain.wipe.model.WipeId
 
 object EventFeedApiMapper {
     fun ListEventFeedRequest.toQuery(): EventFeedQuery =
@@ -20,6 +21,7 @@ object EventFeedApiMapper {
             droppedFor = droppedFor,
             itemRarity = itemRarity,
             sort = sort,
+            wipeId = wipeId?.let(::WipeId),
         )
 
     fun EventFeedPage.toResponse(): EventFeedResponse =

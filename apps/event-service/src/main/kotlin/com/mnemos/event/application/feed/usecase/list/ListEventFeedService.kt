@@ -3,6 +3,7 @@ package com.mnemos.event.application.feed.usecase.list
 import com.mnemos.event.application.feed.model.EventFeedPage
 import com.mnemos.event.application.feed.model.EventFeedQuery
 import com.mnemos.event.application.feed.port.out.EventFeedReader
+import com.mnemos.event.application.wipe.ResolveWipeService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -10,13 +11,17 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ListEventFeedService(
     private val eventFeedReader: EventFeedReader,
+    private val resolveWipeService: ResolveWipeService,
 ) {
     fun execute(query: EventFeedQuery): EventFeedPage {
+        val wipe = resolveWipeService.execute(query.wipeId)
         val normalizedQuery =
             query.copy(
                 limit = query.limit.coerceIn(MIN_LIMIT, MAX_LIMIT),
                 search = query.search?.trim()?.takeIf { value -> value.isNotEmpty() },
                 droppedFor = query.droppedFor?.trim()?.takeIf { value -> value.isNotEmpty() },
+                from = wipe.startedAt,
+                to = wipe.endedAt,
             )
 
         val items = eventFeedReader.read(normalizedQuery)

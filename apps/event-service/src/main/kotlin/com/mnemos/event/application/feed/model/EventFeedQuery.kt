@@ -2,6 +2,8 @@ package com.mnemos.event.application.feed.model
 
 import com.mnemos.event.domain.EventId
 import com.mnemos.event.domain.item.model.DomainItemRarity
+import com.mnemos.event.domain.wipe.model.WipeId
+import java.time.Instant
 
 enum class EventFeedKind {
     ITEM_DROP,
@@ -23,4 +25,7 @@ data class EventFeedQuery(
     val droppedFor: String? = null,
     val itemRarity: DomainItemRarity? = null,
     val sort: EventFeedSort = EventFeedSort.NEWEST,
+    val wipeId: WipeId? = null,
+    val from: Instant? = null,
+    val to: Instant? = null,
 )

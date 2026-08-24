@@ -29,6 +29,8 @@ class EventFeedJpaAdapter(
                 searchTerm = searchTerm,
                 droppedFor = droppedFor,
                 itemRarity = query.itemRarity?.name,
+                from = query.from,
+                to = query.to,
                 newest = query.sort == EventFeedSort.NEWEST,
                 limit = query.limit,
             ).map { projection -> projection.toModel() }
@@ -46,6 +48,8 @@ class EventFeedJpaAdapter(
                 searchTerm = null,
                 droppedFor = null,
                 itemRarity = null,
+                from = null,
+                to = null,
                 newest = true,
                 limit = 1,
             ).firstOrNull()

@@ -4,6 +4,7 @@ import com.mnemos.event.adapter.out.persistence.drop.ItemDropEventEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.Instant
 import java.util.UUID
 
 interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
@@ -100,10 +101,9 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     OR (event_type = 'GLOBAL' AND :includeGlobal = true)
                     OR (event_type = 'RAID' AND :includeRaid = true)
                 )
-                AND (
-                    :eventId IS NULL
-                    OR event_id = :eventId
-                )
+                AND (:eventId IS NULL OR event_id = :eventId)
+                AND (:from IS NULL OR occurred_at >= :from)
+                AND (:to IS NULL OR occurred_at < :to)
                 AND (
                     :searchTerm IS NULL
                     OR position(:searchTerm in lower(coalesce(item_name, ''))) > 0
@@ -146,6 +146,8 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
         @Param("searchTerm") searchTerm: String?,
         @Param("droppedFor") droppedFor: String?,
         @Param("itemRarity") itemRarity: String?,
+        @Param("from") from: Instant?,
+        @Param("to") to: Instant?,
         @Param("newest") newest: Boolean,
         @Param("limit") limit: Int,
     ): List<EventFeedProjection>
