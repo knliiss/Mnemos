@@ -20,11 +20,17 @@ concurrency:
 
 permissions:
   contents: read
+  deployments: write
 
 jobs:
   verify:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    env:
+      VITE_KEYCLOAK_URL: https://auth.knalis.rest
+      VITE_KEYCLOAK_REALM: mnemos
+      VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
+      VITE_API_URL: https://api.knalis.rest
     defaults:
       run:
         working-directory: apps/mini-app
@@ -94,6 +100,14 @@ jobs:
             echo "$oversized_css"
             exit 1
           fi
+
+      - name: Deploy feature preview to Cloudflare Pages
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=feat/wipes-leaderboards
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   report:
     if: always() && github.event_name == 'push'
