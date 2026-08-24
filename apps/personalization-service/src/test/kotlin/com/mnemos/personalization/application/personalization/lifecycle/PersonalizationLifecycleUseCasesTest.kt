@@ -388,6 +388,10 @@ class PersonalizationLifecycleUseCasesTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             listOf(personalization).filter { it.status == status }
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 
     private class FakeOwnedPersonalizationRepository(
