@@ -21,6 +21,9 @@ if grep -Fq -- '--requirepass' "$REDIS_COMPOSE"; then
     fail "Redis must not use one shared requirepass credential"
 fi
 
+grep -Fq 'REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD}' "$REDIS_COMPOSE" ||
+    fail "Redis container does not receive its admin credential"
+
 grep -Fq 'user default off' "$REDIS_ENTRYPOINT" ||
     fail "Redis default user must be disabled"
 
@@ -62,7 +65,12 @@ verify_service() {
         fail "$service Redis ACL must not grant all commands"
     fi
 
-grep -Fq "$password_variable: \${$password_variable}" "$REDIS_COMPOSE" ||
+    for blocked_command in flushall flushdb swapdb function script; do
+        printf '%s\n' "$acl_line" | grep -Fq -- "-$blocked_command" ||
+            fail "$service Redis ACL does not block $blocked_command"
+    done
+
+    grep -Fq "$password_variable: \${$password_variable}" "$REDIS_COMPOSE" ||
         fail "Redis container does not receive $password_variable"
 }
 
@@ -87,7 +95,7 @@ verify_service \
     "notification:*" \
     "$REPOSITORY_ROOT/apps/notification-service/src/main/resources/application.properties"
 
-if grep -R -n -F 'REDIS_PASSWORD' \
+if grep -R -n -E '(^|[^A-Z0-9_])REDIS_PASSWORD([^A-Z0-9_]|$)' \
     "$REPOSITORY_ROOT/infrastructure/compose" \
     "$REPOSITORY_ROOT/apps/gateway-service/src/main/resources" \
     "$REPOSITORY_ROOT/apps/realtime-service/src/main/resources" \
