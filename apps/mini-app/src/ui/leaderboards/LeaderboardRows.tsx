@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 
 export function LeaderboardRows({
@@ -10,18 +11,19 @@ export function LeaderboardRows({
   return (
     <div className="leaderboard-rows">
       {entries.map((entry) => (
-        <button
+        <motion.button
           key={`${entry.rank}:${entry.nickname}`}
           type="button"
-          className="leaderboard-row leaderboard-row--interactive"
+          className="leaderboard-row"
+          whileTap={{ scale: 0.992 }}
           onClick={() => onSelect(entry)}
-          aria-label={entry.nickname}
+          aria-label={`#${entry.rank} ${entry.nickname}`}
         >
-          <span className="leaderboard-row__rank">{entry.rank}</span>
+          <span className="leaderboard-row__rank">#{entry.rank}</span>
 
           <span className="leaderboard-row__identity">
             <strong>{entry.nickname}</strong>
-            <small>{entry.detail}</small>
+            {entry.detail ? <small>{entry.detail}</small> : null}
           </span>
 
           <span className="leaderboard-row__metric">
@@ -31,7 +33,7 @@ export function LeaderboardRows({
           <span className="leaderboard-row__chevron" aria-hidden="true">
             ›
           </span>
-        </button>
+        </motion.button>
       ))}
     </div>
   )

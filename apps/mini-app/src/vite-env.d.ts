@@ -49,6 +49,15 @@ interface TelegramSecureStorage {
   ): TelegramSecureStorage
 }
 
+interface TelegramSafeAreaInset {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
+
+type TelegramSafeAreaEvent = "safeAreaChanged" | "contentSafeAreaChanged"
+
 interface TelegramWebApp {
   initData: string
   initDataUnsafe?: {
@@ -58,6 +67,8 @@ interface TelegramWebApp {
   }
   colorScheme?: "light" | "dark"
   platform?: string
+  safeAreaInset?: TelegramSafeAreaInset
+  contentSafeAreaInset?: TelegramSafeAreaInset
   DeviceStorage?: TelegramDeviceStorage
   SecureStorage?: TelegramSecureStorage
 
@@ -78,6 +89,10 @@ interface TelegramWebApp {
   setBottomBarColor?(color: string): void
 
   isVersionAtLeast?(version: string): boolean
+
+  onEvent?(event: TelegramSafeAreaEvent, callback: () => void): void
+
+  offEvent?(event: TelegramSafeAreaEvent, callback: () => void): void
 
   BackButton?: {
     show(): void

@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import type { Wipe } from "@/shared/api/wipeApi"
+import { Glyph } from "../shared/MnemosIcon"
 
 type LeaderboardPeriodSelectorProps = {
   wipes: Wipe[]
@@ -48,14 +49,14 @@ export function LeaderboardPeriodSelector({
         aria-label={t("leaderboards.previousPeriod")}
         onClick={() => previousWipe && onChange(previousWipe.id)}
       >
-        ‹
+        <Glyph name="back" size={16} />
       </button>
 
       <div className="leaderboard-period-switcher__content">
         <span>{t("leaderboards.periodTitle")}</span>
         <strong>
           <b>#{selectedWipe.number}</b>
-          {wipeName(selectedWipe)}
+          <span>{wipeName(selectedWipe)}</span>
           {selectedWipe.active ? <i>{t("leaderboards.activeWipe")}</i> : null}
         </strong>
         <small>
@@ -67,12 +68,12 @@ export function LeaderboardPeriodSelector({
 
       <button
         type="button"
-        className="leaderboard-period-switcher__arrow"
+        className="leaderboard-period-switcher__arrow leaderboard-period-switcher__arrow--next"
         disabled={!nextWipe}
         aria-label={t("leaderboards.nextPeriod")}
         onClick={() => nextWipe && onChange(nextWipe.id)}
       >
-        ›
+        <Glyph name="back" size={16} />
       </button>
     </section>
   )

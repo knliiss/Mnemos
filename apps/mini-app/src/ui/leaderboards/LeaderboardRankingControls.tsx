@@ -4,6 +4,7 @@ import type {
   DropLeaderboardSort,
   PredictorLeaderboardSort,
 } from "@/shared/api/leaderboardApi"
+import { Glyph } from "../shared/MnemosIcon"
 
 type SortChoiceProps<T extends string> = {
   value: T
@@ -26,7 +27,6 @@ type PredictorRankingControlsProps = {
 
 const dropSorts: DropLeaderboardSort[] = ["MYTHICAL", "TOTAL", "SECRET"]
 const predictorSorts: PredictorLeaderboardSort[] = ["PROFIT", "WIN_RATE", "WINS", "TURNOVER"]
-const dropDirections: DropLeaderboardDirection[] = ["DESC", "ASC"]
 
 function SortChoice<T extends string>({
   value,
@@ -55,7 +55,7 @@ function SortChoice<T extends string>({
   )
 }
 
-function DropDirectionChoice({
+function DropDirectionToggle({
   direction,
   onChange,
 }: {
@@ -63,28 +63,21 @@ function DropDirectionChoice({
   onChange: (value: DropLeaderboardDirection) => void
 }) {
   const { t } = useTranslation()
+  const label = t(`leaderboards.sortDirection.${direction.toLowerCase()}`)
+  const nextDirection: DropLeaderboardDirection = direction === "DESC" ? "ASC" : "DESC"
 
   return (
-    <div className="leaderboard-sortbar__direction" role="group">
-      {dropDirections.map((option) => {
-        const active = option === direction
-        const label = t(`leaderboards.sortDirection.${option.toLowerCase()}`)
-
-        return (
-          <button
-            key={option}
-            type="button"
-            className={active ? "is-active" : ""}
-            aria-label={label}
-            aria-pressed={active}
-            title={label}
-            onClick={() => onChange(option)}
-          >
-            <span aria-hidden="true">{option === "ASC" ? "↑" : "↓"}</span>
-          </button>
-        )
-      })}
-    </div>
+    <button
+      type="button"
+      className={`leaderboard-sortbar__direction ${
+        direction === "ASC" ? "is-ascending" : "is-descending"
+      }`}
+      aria-label={label}
+      title={label}
+      onClick={() => onChange(nextDirection)}
+    >
+      <Glyph name="back" size={18} />
+    </button>
   )
 }
 
@@ -98,14 +91,13 @@ export function DropRankingControls({
 
   return (
     <section className="leaderboard-sortbar leaderboard-sortbar--drops">
-      <span>{t("leaderboards.sort")}</span>
       <SortChoice
         value={sort}
         options={dropSorts}
         optionLabel={(value) => t(`leaderboards.dropSort.${value.toLowerCase()}`)}
         onChange={onSortChange}
       />
-      <DropDirectionChoice direction={direction} onChange={onDirectionChange} />
+      <DropDirectionToggle direction={direction} onChange={onDirectionChange} />
     </section>
   )
 }
@@ -114,8 +106,7 @@ export function PredictorRankingControls({ sort, onSortChange }: PredictorRankin
   const { t } = useTranslation()
 
   return (
-    <section className="leaderboard-sortbar">
-      <span>{t("leaderboards.sort")}</span>
+    <section className="leaderboard-sortbar leaderboard-sortbar--predictors">
       <SortChoice
         value={sort}
         options={predictorSorts}

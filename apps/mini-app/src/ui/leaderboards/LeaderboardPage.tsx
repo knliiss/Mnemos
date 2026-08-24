@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   getCoinLeaderboard,
@@ -9,13 +9,13 @@ import {
   type DropLeaderboardSort,
   type PredictorLeaderboardSort,
 } from "@/shared/api/leaderboardApi"
-import { searchPublicProfiles } from "@/shared/api/profileSocialApi"
 import { listWipes, type Wipe } from "@/shared/api/wipeApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { Route } from "../model"
-import { PageHeader, Segmented } from "../shared/Primitives"
+import { Glyph, type GlyphName } from "../shared/MnemosIcon"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 import {
+  orderDropLeaderboardEntries,
   presentCoinEntries,
   presentDropEntries,
   presentPredictorEntries,
@@ -31,6 +31,11 @@ import "./leaderboard-ranking.css"
 type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
 
 const tabs: LeaderboardTab[] = ["DROPS", "COINS", "PREDICTORS"]
+const tabGlyphs: Record<LeaderboardTab, GlyphName> = {
+  DROPS: "item-drop",
+  COINS: "wallet",
+  PREDICTORS: "bet",
+}
 const pageSize = 10
 const leaderboardLimit = 100
 
@@ -42,7 +47,6 @@ export function LeaderboardPage({
   back: () => void
 }) {
   const { t, i18n } = useTranslation()
-  const profileAccountIds = useRef(new Map<string, string>())
   const [tab, setTab] = useState<LeaderboardTab>("DROPS")
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [wipeId, setWipeId] = useState<string | null>(null)
@@ -132,11 +136,16 @@ export function LeaderboardPage({
                 direction: dropDirection,
                 limit: leaderboardLimit,
               }).then((result) =>
-                presentDropEntries(result, dropSort, locale, {
-                  total: t("leaderboards.metrics.drops"),
-                  mythical: t("leaderboards.metrics.mythical"),
-                  secret: t("leaderboards.metrics.secret"),
-                }),
+                presentDropEntries(
+                  orderDropLeaderboardEntries(result, dropSort, dropDirection),
+                  dropSort,
+                  locale,
+                  {
+                    total: t("leaderboards.metrics.drops"),
+                    mythical: t("leaderboards.metrics.mythical"),
+                    secret: t("leaderboards.metrics.secret"),
+                  },
+                ),
               )
 
       void request
@@ -176,12 +185,6 @@ export function LeaderboardPage({
   )
   const podiumEntries = effectivePage === 1 ? pageEntries.slice(0, 3) : []
   const rowEntries = effectivePage === 1 ? pageEntries.slice(3) : pageEntries
-  const resultsTitle =
-    tab === "COINS"
-      ? t("leaderboards.coinRankingTitle")
-      : tab === "PREDICTORS"
-        ? t("leaderboards.predictorRankingTitle")
-        : t("leaderboards.dropRankingTitle")
 
   function changeTab(value: LeaderboardTab) {
     setTab(value)
@@ -214,32 +217,10 @@ export function LeaderboardPage({
     setPage(nextPage)
   }
 
-  async function openProfile(entry: LeaderboardDisplayEntry) {
-    const cacheKey = entry.nickname.toLocaleLowerCase()
-    let accountId = entry.accountId ?? profileAccountIds.current.get(cacheKey)
-
-    if (!accountId) {
-      try {
-        const profiles = await searchPublicProfiles(entry.nickname, 0, 20)
-        const exactProfile = profiles.content.find(
-          (profile) => profile.cristalixNickname.toLocaleLowerCase() === cacheKey,
-        )
-
-        if (!exactProfile) {
-          return
-        }
-
-        accountId = exactProfile.accountId
-        profileAccountIds.current.set(cacheKey, accountId)
-      } catch (error) {
-        handleError(error)
-        return
-      }
-    }
-
+  function openProfile(entry: LeaderboardDisplayEntry) {
     navigate({
       id: "public-profile",
-      params: { accountId },
+      params: entry.accountId ? { accountId: entry.accountId } : { nickname: entry.nickname },
     })
   }
 
@@ -256,26 +237,42 @@ export function LeaderboardPage({
 
   return (
     <div className="screen leaderboard-screen">
-      <PageHeader title={t("leaderboards.title")} eyebrow={t("leaderboards.eyebrow")} back={back} />
+      <header className="leaderboard-header">
+        <button
+          type="button"
+          className="leaderboard-header__back"
+          onClick={back}
+          aria-label={t("common.back")}
+        >
+          <Glyph name="back" size={18} />
+        </button>
 
-      <section className="leaderboard-hero">
-        <img src="/ui-illustrations/leaderboard-hero.svg" alt="" aria-hidden="true" />
-        <div>
-          <span>{t("leaderboards.heroEyebrow")}</span>
-          <strong>{t("leaderboards.heroTitle")}</strong>
-          <small>{t("leaderboards.heroDescription")}</small>
+        <div className="leaderboard-header__copy">
+          <span>{t("leaderboards.eyebrow")}</span>
+          <h1>{t("leaderboards.rankBy")}</h1>
+          <p>{t("leaderboards.heroDescription")}</p>
         </div>
-      </section>
+      </header>
 
       <div className="leaderboard-navigation">
-        <div className="leaderboard-tabs">
-          <Segmented
-            value={tab}
-            options={tabs}
-            onChange={changeTab}
-            label={(value) => t(`leaderboards.tabs.${value.toLowerCase()}`)}
-          />
-        </div>
+        <nav className="leaderboard-tabs" aria-label={t("leaderboards.rankBy")}>
+          {tabs.map((value) => {
+            const active = value === tab
+
+            return (
+              <button
+                key={value}
+                type="button"
+                className={active ? "is-active" : ""}
+                aria-pressed={active}
+                onClick={() => changeTab(value)}
+              >
+                <Glyph name={tabGlyphs[value]} size={16} />
+                <span>{t(`leaderboards.tabs.${value.toLowerCase()}`)}</span>
+              </button>
+            )
+          })}
+        </nav>
 
         {tab !== "COINS" ? (
           <LeaderboardPeriodSelector
@@ -287,7 +284,8 @@ export function LeaderboardPage({
           />
         ) : (
           <span className="leaderboard-current-balance">
-            {t("leaderboards.currentBalanceDescription")}
+            <Glyph name="wallet" size={17} />
+            <span>{t("leaderboards.currentBalanceDescription")}</span>
           </span>
         )}
 
@@ -307,23 +305,8 @@ export function LeaderboardPage({
 
       <section
         className={`leaderboard-results ${loading && entries.length > 0 ? "is-refreshing" : ""}`}
+        aria-busy={loading}
       >
-        <header className="leaderboard-results__header">
-          <div>
-            <span>{t("leaderboards.rankBy")}</span>
-            <strong>{resultsTitle}</strong>
-          </div>
-
-          {!showInitialLoading && !showBlockingError && entries.length > 0 ? (
-            <small>
-              {t("leaderboards.pageOf", {
-                page: effectivePage,
-                total: totalPages,
-              })}
-            </small>
-          ) : null}
-        </header>
-
         {showInitialLoading ? (
           <div className="leaderboard-state">
             <strong>{t("common.loading")}</strong>
@@ -356,12 +339,9 @@ export function LeaderboardPage({
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
               {effectivePage === 1 ? (
-                <LeaderboardPodium
-                  entries={podiumEntries}
-                  onSelect={(entry) => void openProfile(entry)}
-                />
+                <LeaderboardPodium entries={podiumEntries} onSelect={openProfile} />
               ) : null}
-              <LeaderboardRows entries={rowEntries} onSelect={(entry) => void openProfile(entry)} />
+              <LeaderboardRows entries={rowEntries} onSelect={openProfile} />
             </motion.div>
 
             <LeaderboardPagination

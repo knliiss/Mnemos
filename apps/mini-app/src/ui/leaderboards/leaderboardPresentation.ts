@@ -1,5 +1,6 @@
 import type {
   CoinLeaderboardEntry,
+  DropLeaderboardDirection,
   DropLeaderboardEntry,
   DropLeaderboardSort,
   PredictorLeaderboardEntry,
@@ -12,6 +13,47 @@ export type LeaderboardDisplayEntry = {
   nickname: string
   metric: string
   detail: string
+}
+
+function dropMetric(entry: DropLeaderboardEntry, sort: DropLeaderboardSort): number {
+  if (sort === "MYTHICAL") {
+    return entry.mythicalDrops
+  }
+
+  if (sort === "SECRET") {
+    return entry.secretDrops
+  }
+
+  return entry.totalDrops
+}
+
+export function orderDropLeaderboardEntries(
+  entries: DropLeaderboardEntry[],
+  sort: DropLeaderboardSort,
+  direction: DropLeaderboardDirection,
+): DropLeaderboardEntry[] {
+  const directionMultiplier = direction === "ASC" ? 1 : -1
+
+  return [...entries]
+    .sort((left, right) => {
+      const metricDifference = dropMetric(left, sort) - dropMetric(right, sort)
+
+      if (metricDifference !== 0) {
+        return metricDifference * directionMultiplier
+      }
+
+      const totalDifference = right.totalDrops - left.totalDrops
+
+      if (totalDifference !== 0) {
+        return totalDifference
+      }
+
+      return left.nickname.localeCompare(right.nickname, undefined, { sensitivity: "base" })
+    })
+    .map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+    }))
 }
 
 export function presentDropEntries(

@@ -1,43 +1,34 @@
+import { motion } from "framer-motion"
+import { Glyph } from "../shared/MnemosIcon"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 
 const podiumOrder = [2, 1, 3]
 
-function PodiumCrown({ rank, filled }: { rank: number; filled: boolean }) {
+function PodiumCrown() {
   return (
     <span className="leaderboard-podium__crown" aria-hidden="true">
-      <svg viewBox="0 0 64 44" role="presentation">
-        <path d="M7 34 3 10l18 12L32 5l11 17 18-12-4 24H7Z" fill="currentColor" />
-        <path d="M9 36h46v5H9z" fill="currentColor" opacity="0.82" />
-        <circle cx="4" cy="9" r="3" fill="currentColor" />
-        <circle cx="32" cy="4" r="3" fill="currentColor" />
-        <circle cx="60" cy="9" r="3" fill="currentColor" />
-      </svg>
-      <span>{filled ? rank : "?"}</span>
+      <Glyph name="crown" size={34} />
     </span>
   )
 }
 
-function PodiumCardContent({
-  rank,
-  entry,
-}: {
-  rank: number
-  entry: LeaderboardDisplayEntry | undefined
-}) {
+function PodiumCardContent({ entry }: { entry: LeaderboardDisplayEntry | undefined }) {
+  if (!entry) {
+    return <span className="leaderboard-podium__empty-mark">?</span>
+  }
+
   return (
     <>
-      <span className="leaderboard-podium__rank">#{rank}</span>
+      <span className="leaderboard-podium__player-mark" aria-hidden="true">
+        <Glyph name="person" size={20} />
+      </span>
 
-      <div className="leaderboard-podium__identity">
-        <span className="leaderboard-podium__medal" aria-hidden="true">
-          {entry ? rank : "?"}
-        </span>
-        <strong>{entry?.nickname ?? "?"}</strong>
-        <small>{entry?.detail ?? "?"}</small>
-      </div>
+      <span className="leaderboard-podium__identity">
+        <strong>{entry.nickname}</strong>
+        {entry.detail ? <small>{entry.detail}</small> : null}
+      </span>
 
-      <b className="leaderboard-podium__metric">{entry?.metric ?? "?"}</b>
-      <span className="leaderboard-podium__glow" aria-hidden="true" />
+      <b className="leaderboard-podium__metric">{entry.metric}</b>
     </>
   )
 }
@@ -52,26 +43,30 @@ export function LeaderboardPodium({
   const byRank = new Map(entries.map((entry) => [entry.rank, entry]))
 
   return (
-    <section className="leaderboard-podium" aria-label="Top 3">
+    <section className="leaderboard-podium" aria-label="Podium">
       {podiumOrder.map((rank) => {
         const entry = byRank.get(rank)
 
         return (
           <div key={rank} className={`leaderboard-podium__slot is-rank-${rank}`}>
-            <PodiumCrown rank={rank} filled={entry !== undefined} />
+            <PodiumCrown />
 
             {entry ? (
-              <button
+              <motion.button
                 type="button"
                 className="leaderboard-podium__place leaderboard-podium__place--interactive"
+                whileTap={{ scale: 0.985 }}
                 onClick={() => onSelect(entry)}
-                aria-label={entry.nickname}
+                aria-label={`#${rank} ${entry.nickname}`}
               >
-                <PodiumCardContent rank={rank} entry={entry} />
-              </button>
+                <PodiumCardContent entry={entry} />
+              </motion.button>
             ) : (
-              <article className="leaderboard-podium__place leaderboard-podium__place--empty">
-                <PodiumCardContent rank={rank} entry={undefined} />
+              <article
+                className="leaderboard-podium__place leaderboard-podium__place--empty"
+                aria-label={`#${rank}`}
+              >
+                <PodiumCardContent entry={undefined} />
               </article>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  orderDropLeaderboardEntries,
   presentCoinEntries,
   presentDropEntries,
   presentPredictorEntries,
@@ -87,5 +88,48 @@ describe("leaderboard presentation", () => {
       metric: "12 drops",
       detail: "7 mythical · 5 secret",
     })
+  })
+
+  it("orders drop entries locally in both directions and rebuilds display ranks", () => {
+    const source = [
+      {
+        rank: 1,
+        nickname: "Middle",
+        totalDrops: 10,
+        mythicalDrops: 4,
+        secretDrops: 6,
+        lastDropAt: "2026-08-24T10:00:00Z",
+      },
+      {
+        rank: 2,
+        nickname: "High",
+        totalDrops: 13,
+        mythicalDrops: 8,
+        secretDrops: 5,
+        lastDropAt: "2026-08-24T10:01:00Z",
+      },
+      {
+        rank: 3,
+        nickname: "Low",
+        totalDrops: 7,
+        mythicalDrops: 2,
+        secretDrops: 5,
+        lastDropAt: "2026-08-24T10:02:00Z",
+      },
+    ]
+
+    const descending = orderDropLeaderboardEntries(source, "MYTHICAL", "DESC")
+    const ascending = orderDropLeaderboardEntries(source, "MYTHICAL", "ASC")
+
+    expect(descending.map((entry) => [entry.rank, entry.nickname])).toEqual([
+      [1, "High"],
+      [2, "Middle"],
+      [3, "Low"],
+    ])
+    expect(ascending.map((entry) => [entry.rank, entry.nickname])).toEqual([
+      [1, "Low"],
+      [2, "Middle"],
+      [3, "High"],
+    ])
   })
 })

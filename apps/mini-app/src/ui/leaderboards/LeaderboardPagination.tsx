@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Glyph } from "../shared/MnemosIcon"
 
 type LeaderboardPaginationProps = {
   page: number
@@ -21,7 +22,7 @@ export function LeaderboardPagination({ page, totalPages, onChange }: Leaderboar
         aria-label={t("leaderboards.previousPage")}
         onClick={() => onChange(page - 1)}
       >
-        ‹
+        <Glyph name="back" size={16} />
       </button>
 
       <span>
@@ -32,11 +33,12 @@ export function LeaderboardPagination({ page, totalPages, onChange }: Leaderboar
 
       <button
         type="button"
+        className="leaderboard-pagination__next"
         disabled={page >= totalPages}
         aria-label={t("leaderboards.nextPage")}
         onClick={() => onChange(page + 1)}
       >
-        ›
+        <Glyph name="back" size={16} />
       </button>
     </nav>
   )
