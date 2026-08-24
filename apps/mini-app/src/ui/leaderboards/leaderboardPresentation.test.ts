@@ -23,6 +23,7 @@ describe("leaderboard presentation", () => {
     expect(entries).toEqual([
       {
         rank: 2,
+        accountId: "account-id",
         nickname: "Alpha",
         metric: "1,234 COIN",
         detail: "COIN",
@@ -30,7 +31,7 @@ describe("leaderboard presentation", () => {
     ])
   })
 
-  it("formats predictor win rate and bet detail", () => {
+  it("formats predictor win rate and keeps the profile account id", () => {
     const entries = presentPredictorEntries(
       [
         {
@@ -55,6 +56,7 @@ describe("leaderboard presentation", () => {
     )
 
     expect(entries[0]).toMatchObject({
+      accountId: "account-id",
       metric: "62.5%",
       detail: "5/8 bets",
     })
@@ -78,7 +80,6 @@ describe("leaderboard presentation", () => {
         total: "drops",
         mythical: "mythical",
         secret: "secret",
-        recent: "latest",
       },
     )
 
