@@ -33,9 +33,9 @@ mkdir -p "$acl_directory"
 cat > "$acl_file" <<EOF
 user default off
 user redis_admin on #$admin_password_hash ~* &* +@all
-user gateway_service on #$gateway_password_hash resetkeys ~mnemos:gateway:* resetchannels -@all +@read +@write +@scripting +@transaction +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro
-user realtime_service on #$realtime_password_hash resetkeys ~realtime:* resetchannels -@all +@read +@write +@scripting +@transaction +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro
-user notification_service on #$notification_password_hash resetkeys ~notification:* resetchannels -@all +@read +@write +@scripting +@transaction +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro
+user gateway_service on #$gateway_password_hash resetkeys ~mnemos:gateway:* resetchannels -@all +@read +@write +@transaction +eval +evalsha +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro -flushall -flushdb -swapdb -function -script
+user realtime_service on #$realtime_password_hash resetkeys ~realtime:* resetchannels -@all +@read +@write +@transaction +eval +evalsha +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro -flushall -flushdb -swapdb -function -script
+user notification_service on #$notification_password_hash resetkeys ~notification:* resetchannels -@all +@read +@write +@transaction +eval +evalsha +ping +echo +hello +auth +select +command +quit +time +client|setname +client|setinfo +client|getname +client|id -keys -scan -randomkey -dbsize -info -migrate -sort -sort_ro -flushall -flushdb -swapdb -function -script
 EOF
 
 chown redis:redis "$acl_directory" "$acl_file"
