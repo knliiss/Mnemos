@@ -26,8 +26,11 @@ grep -Fq 'createTelegramLoginRedirectUrl' "$MINI_APP_AUTH" ||
 grep -Fq 'window.location.replace(redirectUrl)' "$MINI_APP_AUTH" ||
     fail "Mini App must replace the current location with the protected Telegram login redirect"
 
-grep -Fq 'getTelegramUserId' "$MINI_APP_AUTH" ||
-    fail "Mini App must compare the restored Keycloak session with the current Telegram launch identity"
+grep -Fq 'resolveTelegramSessionUserId' "$MINI_APP_AUTH" ||
+    fail "Mini App must resolve the current Telegram identity before accepting a restored Keycloak session"
+
+grep -Fq 'hasMatchingTelegramIdentity(candidate, telegramUserId)' "$MINI_APP_AUTH" ||
+    fail "Mini App must compare the restored Keycloak session with the resolved Telegram identity"
 
 grep -Fq 'tokenParsed?.telegram_id' "$MINI_APP_AUTH" ||
     fail "Mini App must bind restored Keycloak sessions to the Telegram identity claim"
