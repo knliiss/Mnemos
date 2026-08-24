@@ -35,6 +35,9 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}-realtime-service"
     image: "${COMPOSE_PROJECT_NAME}/realtime-service:${REALTIME_SERVICE_VERSION:-local}"
 
+  redis:
+    ports: !reset []
+
   reward-service:
     container_name: "${COMPOSE_PROJECT_NAME}-reward-service"
     image: "${COMPOSE_PROJECT_NAME}/reward-service:${REWARD_SERVICE_VERSION:-local}"
