@@ -55,7 +55,7 @@ export function AccountArea(props: Props) {
   }
 
   if (props.routeId === "leaderboards") {
-    return <LeaderboardPage back={props.back} />
+    return <LeaderboardPage navigate={props.navigate} back={props.back} />
   }
 
   if (props.routeId === "account-wallet") {
