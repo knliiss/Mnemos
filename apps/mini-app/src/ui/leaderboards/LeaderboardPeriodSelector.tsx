@@ -24,7 +24,8 @@ export function LeaderboardPeriodSelector({
   )
   const selectedIndex = wipes.findIndex((wipe) => wipe.id === wipeId)
   const previousWipe = selectedIndex > 0 ? wipes[selectedIndex - 1] : null
-  const nextWipe = selectedIndex >= 0 && selectedIndex < wipes.length - 1 ? wipes[selectedIndex + 1] : null
+  const nextWipe =
+    selectedIndex >= 0 && selectedIndex < wipes.length - 1 ? wipes[selectedIndex + 1] : null
 
   function wipeName(wipe: Wipe): string {
     if (wipe.name === "Legacy") {
