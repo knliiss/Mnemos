@@ -35,10 +35,10 @@ interface EventInternalClient {
         to: Instant,
     ): FirstItemDropResponse?
 
-    @GetMapping("/api/v1/events/wipes/current")
+    @GetMapping("/internal/v1/wipes/current")
     fun currentWipe(): EventWipeResponse
 
-    @GetMapping("/api/v1/events/wipes/{wipeId}")
+    @GetMapping("/internal/v1/wipes/{wipeId}")
     fun wipe(
         @PathVariable wipeId: UUID,
     ): EventWipeResponse
