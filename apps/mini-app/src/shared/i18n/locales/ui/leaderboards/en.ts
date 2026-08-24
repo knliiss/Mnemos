@@ -54,10 +54,13 @@ export const leaderboardsEn = {
       predictors: "Predictors",
     },
     dropSort: {
-      total: "All drops",
+      total: "All",
       mythical: "Mythical",
       secret: "Secret",
-      recent: "Recent",
+    },
+    sortDirection: {
+      asc: "Ascending",
+      desc: "Descending",
     },
     predictorSort: {
       profit: "Profit",
@@ -80,7 +83,6 @@ export const leaderboardsEn = {
       drops: "drops",
       mythical: "mythical",
       secret: "secret",
-      recent: "latest drop",
       coins: "COIN",
       bets: "bets",
       wins: "wins",
