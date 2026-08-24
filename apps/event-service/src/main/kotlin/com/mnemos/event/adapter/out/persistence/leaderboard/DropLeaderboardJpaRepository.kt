@@ -19,11 +19,14 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
             FROM item_drop_events event
             JOIN items item ON item.id = event.item_id
             WHERE event.occurred_at >= :from
-              AND (:to IS NULL OR event.occurred_at < :to)
-              AND (:rarity IS NULL OR item.rarity = :rarity)
-              AND (:itemType IS NULL OR item.type = :itemType)
-              AND (:itemName IS NULL OR lower(item.name) = lower(:itemName))
-              AND (:nickname IS NULL OR position(lower(:nickname) in lower(event.dropped_for)) > 0)
+              AND (CAST(:to AS timestamptz) IS NULL OR event.occurred_at < CAST(:to AS timestamptz))
+              AND (CAST(:rarity AS text) IS NULL OR item.rarity = CAST(:rarity AS text))
+              AND (CAST(:itemType AS text) IS NULL OR item.type = CAST(:itemType AS text))
+              AND (CAST(:itemName AS text) IS NULL OR lower(item.name) = lower(CAST(:itemName AS text)))
+              AND (
+                  CAST(:nickname AS text) IS NULL
+                  OR position(lower(CAST(:nickname AS text)) in lower(event.dropped_for)) > 0
+              )
             GROUP BY event.dropped_for
             ORDER BY
                 CASE WHEN :sort = 'TOTAL' THEN count(*) END DESC,
