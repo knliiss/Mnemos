@@ -55,7 +55,7 @@ require_contains "$csp" "img-src 'self' data: blob: https://api.knalis.rest http
 require_contains "$csp" "connect-src 'self' https://api.knalis.rest https://auth.knalis.rest" "the production API and Keycloak connection sources"
 require_contains "$csp" "font-src 'self' data: https://fonts.gstatic.com" "the required font sources"
 require_contains "$csp" "frame-src 'self' https://auth.knalis.rest" "the Keycloak silent SSO frame source"
-require_contains "$csp" "frame-ancestors https://telegram.org https://*.telegram.org" "Telegram-only framing"
+require_contains "$csp" "frame-ancestors 'self' https://telegram.org https://*.telegram.org" "same-origin silent SSO and Telegram framing"
 require_contains "$csp" "object-src 'none'" "object blocking"
 require_contains "$csp" "base-uri 'none'" "base URI blocking"
 require_contains "$csp" "form-action 'none'" "form submission blocking"
