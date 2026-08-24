@@ -13,6 +13,7 @@ object DropLeaderboardApiMapper {
             itemName = itemName,
             nickname = nickname,
             sort = sort,
+            direction = direction,
             limit = limit,
         )
 
