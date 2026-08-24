@@ -14,6 +14,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint;
 
 public final class TelegramAuthenticator implements Authenticator {
     private static final Logger LOGGER = Logger.getLogger(TelegramAuthenticator.class);
@@ -43,14 +44,21 @@ public final class TelegramAuthenticator implements Authenticator {
     public void authenticate(AuthenticationFlowContext context) {
         try {
             LOGGER.debugf(
-                    "Telegram authentication challenge started: realm=%s, clientId=%s",
+                    "Telegram authentication started: realm=%s, clientId=%s",
                     context.getRealm().getName(),
                     context.getAuthenticationSession().getClient().getClientId()
             );
 
+            String initData = consumeAuthorizationInitData(context);
+
+            if (initData != null && !initData.isBlank()) {
+                authenticateTelegramUser(context, initData);
+                return;
+            }
+
             context.challenge(context.form().createForm(TELEGRAM_LOGIN_TEMPLATE));
         } catch (Exception exception) {
-            LOGGER.error("Unexpected error while creating Telegram authentication challenge", exception);
+            LOGGER.error("Unexpected error while starting Telegram authentication", exception);
             fail(
                     context,
                     AuthenticationFlowError.INTERNAL_ERROR,
@@ -58,6 +66,19 @@ public final class TelegramAuthenticator implements Authenticator {
                     "Telegram authentication failed"
             );
         }
+    }
+
+    private String consumeAuthorizationInitData(AuthenticationFlowContext context) {
+        String noteName =
+                AuthorizationEndpoint.LOGIN_SESSION_NOTE_ADDITIONAL_REQ_PARAMS_PREFIX
+                        + INIT_DATA_PARAMETER;
+        String initData = context.getAuthenticationSession().getClientNote(noteName);
+
+        if (initData != null) {
+            context.getAuthenticationSession().removeClientNote(noteName);
+        }
+
+        return initData;
     }
 
     private void authenticateTelegramUser(AuthenticationFlowContext context, String rawInitData) {
