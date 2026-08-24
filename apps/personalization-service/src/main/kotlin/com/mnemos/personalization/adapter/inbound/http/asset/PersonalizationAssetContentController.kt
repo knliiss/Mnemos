@@ -21,13 +21,12 @@ class PersonalizationAssetContentController(
     fun content(
         @PathVariable assetId: UUID,
     ): ResponseEntity<ByteArray> {
-        val asset = service.get(PersonalizationAssetId(assetId)) ?: return ResponseEntity.notFound().build()
-        val image = service.load(asset) ?: return ResponseEntity.notFound().build()
+        val image = service.load(PersonalizationAssetId(assetId)) ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity
             .ok()
             .contentType(MediaType.parseMediaType(image.contentType))
-            .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+            .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePrivate())
             .body(image.bytes)
     }
 }
