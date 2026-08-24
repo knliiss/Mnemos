@@ -48,6 +48,16 @@ class EventBetReaderAdapter(
     override fun findRoundBets(roundId: EventBetRoundId): List<EventBetView> =
         betJpaRepository.findAllByRoundIdOrderByIdAsc(roundId.id).map { it.toView() }
 
+    override fun findRoundBets(roundIds: Collection<EventBetRoundId>): List<EventBetView> {
+        if (roundIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return betJpaRepository
+            .findAllByRoundIdInOrderByRoundIdAscIdAsc(roundIds.map { roundId -> roundId.id })
+            .map { entity -> entity.toView() }
+    }
+
     override fun findHistory(accountId: AccountId): List<EventBetView> =
         betJpaRepository.findAllByAccountIdOrderByIdDesc(accountId.id).map { it.toView() }
 }

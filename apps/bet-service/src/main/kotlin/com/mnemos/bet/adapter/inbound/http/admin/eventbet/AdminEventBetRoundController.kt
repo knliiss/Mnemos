@@ -1,10 +1,12 @@
 package com.mnemos.bet.adapter.inbound.http.admin.eventbet
 
 import com.mnemos.bet.adapter.inbound.http.admin.eventbet.AdminEventBetApiMapper.toResponse
+import com.mnemos.bet.adapter.inbound.http.admin.eventbet.AdminEventBetRoundMetadataApiMapper.toResponse
 import com.mnemos.bet.adapter.inbound.http.eventbet.EventBetApiMapper.toResponse
 import com.mnemos.bet.adapter.inbound.http.eventbet.EventBetRoundResponse
 import com.mnemos.bet.application.eventbet.usecase.adminbets.ListAdminEventBetsUseCase
 import com.mnemos.bet.application.eventbet.usecase.adminlist.ListAdminEventBetRoundsUseCase
+import com.mnemos.bet.application.eventbet.usecase.adminmetadata.ListAdminEventBetRoundMetadataUseCase
 import com.mnemos.bet.application.eventbet.usecase.resolve.ResolveEventBetRoundCommand
 import com.mnemos.bet.application.eventbet.usecase.resolve.ResolveEventBetRoundUseCase
 import com.mnemos.bet.domain.eventbet.model.EventBetRoundId
@@ -25,11 +27,16 @@ import java.util.UUID
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class AdminEventBetRoundController(
     private val listAdminEventBetRoundsUseCase: ListAdminEventBetRoundsUseCase,
+    private val listAdminEventBetRoundMetadataUseCase: ListAdminEventBetRoundMetadataUseCase,
     private val listAdminEventBetsUseCase: ListAdminEventBetsUseCase,
     private val resolveEventBetRoundUseCase: ResolveEventBetRoundUseCase,
 ) {
     @GetMapping
     fun list(): List<EventBetRoundResponse> = listAdminEventBetRoundsUseCase.execute().map { it.toResponse() }
+
+    @GetMapping("/metadata")
+    fun listMetadata(): List<AdminEventBetRoundMetadataResponse> =
+        listAdminEventBetRoundMetadataUseCase.execute().map { metadata -> metadata.toResponse() }
 
     @GetMapping("/{roundId}/bets")
     fun listBets(
