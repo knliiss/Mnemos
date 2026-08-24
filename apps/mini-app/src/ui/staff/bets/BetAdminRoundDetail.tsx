@@ -35,7 +35,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
   const [bets, setBets] = useState<AdminEventBetResponse[]>([])
-  const [betsLoading, setBetsLoading] = useState(false)
+  const [betsLoading, setBetsLoading] = useState(true)
   const [betSearch, setBetSearch] = useState("")
   const [sideFilter, setSideFilter] = useState<BetSideFilter>("ALL")
   const [amountSort, setAmountSort] = useState<BetAmountSort>("DESC")
@@ -53,13 +53,10 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
 
   useEffect(() => {
     if (!roundId) {
-      setBets([])
-      setBetsLoading(false)
       return
     }
 
     let cancelled = false
-    setBetsLoading(true)
 
     void listAdminEventBets(roundId)
       .then((result) => {
@@ -244,7 +241,11 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
                 className={sideFilter === value ? "is-active" : ""}
                 onClick={() => setSideFilter(value)}
               >
-                {value === "ALL" ? t("betAdmin.all") : value === "YES" ? t("betAdmin.yes") : t("betAdmin.no")}
+                {value === "ALL"
+                  ? t("betAdmin.all")
+                  : value === "YES"
+                    ? t("betAdmin.yes")
+                    : t("betAdmin.no")}
               </button>
             ))}
           </div>

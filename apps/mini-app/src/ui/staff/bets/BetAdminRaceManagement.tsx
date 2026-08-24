@@ -44,12 +44,6 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
     }
   }, [])
 
-  useEffect(() => {
-    if (selectedRaceId && !races.some((race) => race.id === selectedRaceId)) {
-      setSelectedRaceId(null)
-    }
-  }, [races, selectedRaceId])
-
   const selectedRace = useMemo(
     () => races.find((race) => race.id === selectedRaceId) ?? null,
     [races, selectedRaceId],
@@ -268,7 +262,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
               0,
             )
             const cancellable = race.status === "REGISTRATION" || race.status === "ACTIVE"
-            const expanded = race.id === selectedRaceId
+            const expanded = race.id === selectedRace?.id
             const winner = race.participants.find((participant) => isRaceWinner(race, participant))
 
             return (
