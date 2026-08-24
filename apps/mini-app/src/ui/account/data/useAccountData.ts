@@ -222,10 +222,7 @@ export function useAccountData(
         reconcile()
       }
     }
-    const intervalId = window.setInterval(
-      reconcileWhenVisible,
-      BALANCE_RECONCILIATION_INTERVAL_MS,
-    )
+    const intervalId = window.setInterval(reconcileWhenVisible, BALANCE_RECONCILIATION_INTERVAL_MS)
 
     window.addEventListener("focus", reconcile)
     document.addEventListener("visibilitychange", reconcileWhenVisible)
