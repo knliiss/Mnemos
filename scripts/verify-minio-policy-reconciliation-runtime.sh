@@ -90,7 +90,6 @@ run_root_mc() {
         -c '
             set -eu
             mc alias set root http://127.0.0.1:9000 "$MNEMOS_TEST_ROOT_USER" "$MNEMOS_TEST_ROOT_PASSWORD" >/dev/null
-            shift
             mc "$@"
         ' \
         sh \
@@ -107,7 +106,6 @@ run_application_mc() {
         -c '
             set -eu
             mc alias set application http://127.0.0.1:9000 "$MNEMOS_TEST_ACCESS_KEY" "$MNEMOS_TEST_SECRET_KEY" >/dev/null
-            shift
             mc "$@"
         ' \
         sh \
