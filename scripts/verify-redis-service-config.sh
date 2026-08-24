@@ -5,6 +5,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 REDIS_COMPOSE="$REPOSITORY_ROOT/infrastructure/compose/compose.redis.yml"
 REDIS_ENTRYPOINT="$REPOSITORY_ROOT/infrastructure/redis/redis-entrypoint.sh"
+MAKE_CONFIG="$REPOSITORY_ROOT/make/config.mk"
 
 fail() {
     echo "$1" >&2
@@ -13,6 +14,10 @@ fail() {
 
 [ -f "$REDIS_COMPOSE" ] || fail "Redis Compose file is missing"
 [ -f "$REDIS_ENTRYPOINT" ] || fail "Redis ACL entrypoint is missing"
+[ -f "$MAKE_CONFIG" ] || fail "Make configuration is missing"
+
+grep -Eq '^BUILDABLE_INFRA_SERVICE_NAMES[[:space:]]*:=[[:space:]].*(^|[[:space:]])redis([[:space:]]|$)' "$MAKE_CONFIG" ||
+    fail "Hardened Redis image must be included in the project image build"
 
 grep -Fq -- '--aclfile' "$REDIS_COMPOSE" ||
     fail "Redis must load an ACL file"
