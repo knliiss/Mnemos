@@ -1,10 +1,6 @@
 import { getToken } from "@/features/auth/api/auth"
 import { runtimeConfig } from "@/shared/config/runtimeConfig"
-import {
-  realtimeBroadcasts,
-  realtimeConnectionEvents,
-  realtimeEvents,
-} from "./realtimeEventBus"
+import { realtimeBroadcasts, realtimeConnectionEvents, realtimeEvents } from "./realtimeEventBus"
 import { parseRealtimeBroadcast, parseRealtimeEvent } from "./realtimeEventParser"
 import type { RealtimeBroadcast, RealtimeEvent } from "./realtime.types"
 
