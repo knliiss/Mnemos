@@ -40,6 +40,7 @@ jobs:
           set -euo pipefail
           sh -n infrastructure/postgres/init-service-database-access.sh
           sh -n infrastructure/kafka/init-kafka-tls.sh
+          sh -n infrastructure/redis/redis-entrypoint.sh
           sh -n scripts/docker-compose-env.sh
           sh -n scripts/ensure-kafka-tls-secret.sh
           sh -n scripts/validate-compose-secrets.sh
@@ -59,6 +60,8 @@ jobs:
           sh -n scripts/verify-kafka-message-auth.sh
           sh -n scripts/verify-kafka-message-auth-runtime.sh
           sh -n scripts/verify-kafka-service-config.sh
+          sh -n scripts/verify-redis-service-config.sh
+          sh -n scripts/verify-redis-service-isolation-runtime.sh
           sh scripts/verify-compose-secret-validation.sh
           sh scripts/verify-resource-server-audience.sh
           sh scripts/verify-internal-api-authorization.sh
@@ -70,6 +73,7 @@ jobs:
           sh scripts/verify-keycloak-session-security.sh
           sh scripts/verify-no-insecure-credential-defaults.sh
           sh scripts/verify-kafka-service-config.sh
+          sh scripts/verify-redis-service-config.sh
 
       - name: Scan backend dependencies
         shell: bash
