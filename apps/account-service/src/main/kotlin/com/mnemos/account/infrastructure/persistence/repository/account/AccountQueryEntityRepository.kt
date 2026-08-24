@@ -1,6 +1,7 @@
 package com.mnemos.account.infrastructure.persistence.repository.account
 
 import com.mnemos.account.infrastructure.persistence.projection.account.AccountDetailsProjection
+import com.mnemos.account.infrastructure.persistence.projection.account.AccountLookupSummaryProjection
 import com.mnemos.account.infrastructure.persistence.projection.account.AccountSummaryProjection
 import com.mnemos.account.persistence.entity.account.AccountEntity
 import org.springframework.data.jpa.repository.Query
@@ -36,6 +37,21 @@ interface AccountQueryEntityRepository : Repository<AccountEntity, UUID> {
     fun findSummariesByUserId(
         @Param("userId") userId: UUID,
     ): List<AccountSummaryProjection>
+
+    @Query(
+        """
+        SELECT account.id AS "id",
+            account.cristalix_uuid AS "cristalixUuid",
+            account.cristalix_nickname AS "cristalixNickname"
+        FROM accounts account
+        WHERE account.id IN (:accountIds)
+        ORDER BY lower(account.cristalix_nickname) ASC, account.id ASC
+        """,
+        nativeQuery = true,
+    )
+    fun findLookupSummariesByAccountIds(
+        @Param("accountIds") accountIds: Set<UUID>,
+    ): List<AccountLookupSummaryProjection>
 
     @Query(
         """

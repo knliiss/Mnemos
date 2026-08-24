@@ -20,6 +20,12 @@ data class AccountSummary(
     val status: AccountStatus,
 )
 
+data class AccountLookupSummary(
+    val id: AccountId,
+    val cristalixUuid: UUID,
+    val cristalixNickname: String,
+)
+
 data class AccountDetails(
     val id: AccountId,
     val cristalixUuid: UUID,

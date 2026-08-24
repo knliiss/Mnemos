@@ -1,6 +1,8 @@
 package com.mnemos.wallet.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummariesRequest
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionRequest
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionResponse
 import com.mnemos.wallet.configuration.AccountPermissionFeignConfiguration
@@ -29,4 +31,9 @@ interface AccountPermissionClient {
         @PathVariable accountId: UUID,
         @RequestBody request: CheckAccountPermissionRequest,
     ): CheckAccountPermissionResponse
+
+    @PostMapping("/internal/v1/accounts/summaries")
+    fun summaries(
+        @RequestBody request: InternalAccountSummariesRequest,
+    ): List<InternalAccountSummaryResponse>
 }

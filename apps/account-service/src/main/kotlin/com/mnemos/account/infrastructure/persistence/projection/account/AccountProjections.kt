@@ -14,6 +14,12 @@ interface AccountSummaryProjection {
     val status: String
 }
 
+interface AccountLookupSummaryProjection {
+    val id: UUID
+    val cristalixUuid: UUID
+    val cristalixNickname: String
+}
+
 interface AccountDetailsProjection {
     val id: UUID
     val cristalixUuid: UUID
