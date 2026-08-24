@@ -60,6 +60,7 @@ export type RouteId =
   | RootRoute
   | "event-detail"
   | "subscriptions"
+  | "leaderboards"
   | "member"
   | "roles"
   | "role-editor"
@@ -82,6 +83,7 @@ export type RouteId =
   | "bet-admin"
   | "badge-admin"
   | "collector-admin"
+  | "wipe-admin"
   | "user-personalization"
   | "user-wallet"
 export type Route = { id: RouteId; params?: Record<string, string> }

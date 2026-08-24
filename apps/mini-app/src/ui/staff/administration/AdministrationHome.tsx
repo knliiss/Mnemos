@@ -18,7 +18,7 @@ type AdministrationWorkspaceProps = {
   illustration: string
   title: string
   description: string
-  tone: "users" | "review" | "bets" | "badges" | "collectors"
+  tone: "users" | "review" | "bets" | "badges" | "collectors" | "wipes"
   onClick(): void
 }
 
@@ -147,6 +147,14 @@ export function AdministrationHome({
           }
           tone="badges"
           onClick={() => navigate({ id: "badge-admin" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/wipe-workspace.svg"
+          title={t("wipeAdmin.workspaceTitle")}
+          description={t("wipeAdmin.workspaceDescription")}
+          tone="wipes"
+          onClick={() => navigate({ id: "wipe-admin" })}
         />
 
         <AdministrationWorkspace

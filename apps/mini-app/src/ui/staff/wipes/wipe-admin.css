@@ -1,0 +1,160 @@
+.administration-workspace.is-wipes {
+  border-color: rgba(124, 226, 183, 0.16);
+  color: #9adfbe;
+}
+
+.wipe-admin-screen {
+  gap: 12px;
+  padding-bottom: 70px;
+}
+
+.wipe-admin-hero {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 126px;
+  padding: 10px 16px 10px 8px;
+  border: 1px solid rgba(124, 226, 183, 0.13);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 19% 50%, rgba(124, 226, 183, 0.1), transparent 44%),
+    rgba(255, 255, 255, 0.016);
+}
+
+.wipe-admin-hero img {
+  width: 100px;
+  height: 94px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.wipe-admin-hero div,
+.wipe-admin-current,
+.wipe-admin-form,
+.wipe-admin-form label,
+.wipe-admin-history,
+.wipe-admin-history__copy,
+.wipe-admin-confirm {
+  display: grid;
+  gap: 6px;
+}
+
+.wipe-admin-hero strong,
+.wipe-admin-current strong,
+.wipe-admin-form strong,
+.wipe-admin-history strong {
+  color: #e5eae1;
+}
+
+.wipe-admin-hero small,
+.wipe-admin-current small,
+.wipe-admin-form small,
+.wipe-admin-history small {
+  color: #868d82;
+  line-height: 1.45;
+}
+
+.wipe-admin-current,
+.wipe-admin-form,
+.wipe-admin-history {
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.wipe-admin-current > span,
+.wipe-admin-form label > span {
+  color: #93a08d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wipe-admin-form {
+  gap: 11px;
+}
+
+.wipe-admin-form__head,
+.wipe-admin-history__head {
+  display: grid;
+  gap: 4px;
+}
+
+.wipe-admin-form > button {
+  min-height: 42px;
+  border: 1px solid rgba(203, 255, 45, 0.16);
+  border-radius: 12px;
+  color: #dff894;
+  background: rgba(203, 255, 45, 0.07);
+  font-weight: 800;
+}
+
+.wipe-admin-form > button:disabled {
+  opacity: 0.45;
+}
+
+.wipe-admin-history article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.wipe-admin-history article.is-active {
+  border-color: rgba(124, 226, 183, 0.18);
+  background: rgba(124, 226, 183, 0.035);
+}
+
+.wipe-admin-history__number {
+  color: #9adfbe;
+  font-weight: 900;
+}
+
+.wipe-admin-confirm {
+  justify-items: center;
+  padding: 4px 0 12px;
+  text-align: center;
+}
+
+.wipe-admin-confirm img {
+  width: 116px;
+  height: 92px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.wipe-admin-confirm p {
+  max-width: 340px;
+  color: #989f94;
+  line-height: 1.5;
+}
+
+.wipe-admin-confirm > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.wipe-admin-confirm button {
+  min-height: 42px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 12px;
+  color: #dce1d8;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.wipe-admin-confirm button.is-danger {
+  border-color: rgba(255, 105, 115, 0.18);
+  color: #f0a4aa;
+  background: rgba(255, 105, 115, 0.06);
+}

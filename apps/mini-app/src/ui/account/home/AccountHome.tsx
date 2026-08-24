@@ -12,6 +12,7 @@ import "./account-home-visuals.css"
 import { AccountDropsPanel } from "./AccountDropsPanel"
 import { AccountMembersPanel } from "./AccountMembersPanel"
 import { AccountOverview } from "./AccountOverview"
+import { LeaderboardPromoCard } from "./LeaderboardPromoCard"
 
 type Props = {
   navigate: (route: Route) => void
@@ -63,6 +64,8 @@ export function AccountHome({
         userHubTrigger={rootUserAccess}
         navigate={navigate}
       />
+
+      <LeaderboardPromoCard navigate={navigate} />
 
       <AccountMembersPanel
         members={data.members}

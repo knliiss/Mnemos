@@ -52,6 +52,7 @@ export function routeKey(route: Route) {
 
 export function canRenderWithoutActiveAccount(route: Route) {
   return (
+    route.id === "leaderboards" ||
     route.id === "user-wallet" ||
     route.id === "user-personalization" ||
     route.id === "personalization-store" ||

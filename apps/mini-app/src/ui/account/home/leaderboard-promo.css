@@ -1,0 +1,85 @@
+.account-leaderboard-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 142px;
+  overflow: hidden;
+  padding: 12px 16px 12px 8px;
+  border: 1px solid rgba(203, 255, 45, 0.13);
+  border-radius: 20px;
+  color: #e9eee1;
+  background:
+    radial-gradient(circle at 20% 52%, rgba(203, 255, 45, 0.12), transparent 43%),
+    linear-gradient(120deg, rgba(203, 255, 45, 0.035), rgba(255, 255, 255, 0.015));
+  text-align: left;
+}
+
+.account-leaderboard-card::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  bottom: -42px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: rgba(203, 255, 45, 0.05);
+  filter: blur(14px);
+}
+
+.account-leaderboard-card__art {
+  display: grid;
+  place-items: center;
+}
+
+.account-leaderboard-card__art img {
+  width: 108px;
+  height: 104px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.25));
+}
+
+.account-leaderboard-card__copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.account-leaderboard-card__copy small {
+  color: #b6d65f;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.account-leaderboard-card__copy strong {
+  font-size: 20px;
+  line-height: 1.05;
+}
+
+.account-leaderboard-card__copy span {
+  color: #8c9387;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.account-leaderboard-card > b {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  color: #d8ef91;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 374px) {
+  .account-leaderboard-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .account-leaderboard-card__art img {
+    width: 86px;
+  }
+}

@@ -25,7 +25,7 @@ class InternalAccountSummaryController(
     ): List<InternalAccountSummaryResponse> =
         service
             .execute(request.accountIds)
-            .map(AccountLookupSummary::toResponse)
+            .map { summary -> summary.toResponse() }
 
     private fun AccountLookupSummary.toResponse(): InternalAccountSummaryResponse =
         InternalAccountSummaryResponse(

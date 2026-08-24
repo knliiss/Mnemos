@@ -1,5 +1,6 @@
 import { errorCodesUk } from "./errors/uk"
 import { uiUk } from "./ui/uk"
+import { leaderboardsUk } from "./ui/leaderboards/uk"
 
 export const uk = {
   nav: {
@@ -146,4 +147,5 @@ export const uk = {
     codes: errorCodesUk,
   },
   ...uiUk,
+  ...leaderboardsUk,
 } as const
