@@ -11,5 +11,6 @@ data class DropLeaderboardQuery(
     val itemName: String?,
     val nickname: String?,
     val sort: DropLeaderboardSort,
+    val direction: DropLeaderboardDirection,
     val limit: Int,
 )
