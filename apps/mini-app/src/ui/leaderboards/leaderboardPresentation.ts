@@ -8,6 +8,7 @@ import type {
 
 export type LeaderboardDisplayEntry = {
   rank: number
+  accountId?: string
   nickname: string
   metric: string
   detail: string
@@ -21,16 +22,9 @@ export function presentDropEntries(
     total: string
     mythical: string
     secret: string
-    recent: string
   },
 ): LeaderboardDisplayEntry[] {
   const number = new Intl.NumberFormat(locale)
-  const date = new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
 
   return entries.map((entry) => {
     const metric =
@@ -38,9 +32,7 @@ export function presentDropEntries(
         ? `${number.format(entry.mythicalDrops)} ${labels.mythical}`
         : sort === "SECRET"
           ? `${number.format(entry.secretDrops)} ${labels.secret}`
-          : sort === "RECENT"
-            ? date.format(new Date(entry.lastDropAt))
-            : `${number.format(entry.totalDrops)} ${labels.total}`
+          : `${number.format(entry.totalDrops)} ${labels.total}`
 
     return {
       rank: entry.rank,
@@ -60,6 +52,7 @@ export function presentCoinEntries(
 
   return entries.map((entry) => ({
     rank: entry.rank,
+    accountId: entry.accountId,
     nickname: entry.nickname,
     metric: `${number.format(entry.amount)} ${coinLabel}`,
     detail: coinLabel,
@@ -95,6 +88,7 @@ export function presentPredictorEntries(
 
     return {
       rank: entry.rank,
+      accountId: entry.accountId,
       nickname: entry.nickname,
       metric,
       detail: `${number.format(entry.wins)}/${number.format(entry.bets)} ${labels.bets}`,
