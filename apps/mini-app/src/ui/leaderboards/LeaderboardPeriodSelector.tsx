@@ -22,6 +22,9 @@ export function LeaderboardPeriodSelector({
     () => new Intl.DateTimeFormat(locale, { dateStyle: "medium" }),
     [locale],
   )
+  const selectedIndex = wipes.findIndex((wipe) => wipe.id === wipeId)
+  const previousWipe = selectedIndex > 0 ? wipes[selectedIndex - 1] : null
+  const nextWipe = selectedIndex >= 0 && selectedIndex < wipes.length - 1 ? wipes[selectedIndex + 1] : null
 
   function wipeName(wipe: Wipe): string {
     if (wipe.name === "Legacy") {
@@ -31,50 +34,45 @@ export function LeaderboardPeriodSelector({
     return wipe.name ?? t("leaderboards.wipeFallback")
   }
 
-  return (
-    <section className="leaderboard-period">
-      <div className="leaderboard-section-heading">
-        <div>
-          <span>{t("leaderboards.wipe")}</span>
-          <strong>{t("leaderboards.periodTitle")}</strong>
-        </div>
+  if (wipes.length === 0 || !selectedWipe) {
+    return <span className="leaderboard-period-switcher__empty">{t("leaderboards.noWipes")}</span>
+  }
 
-        {selectedWipe ? (
-          <small>
-            {t("leaderboards.periodStarted", {
-              date: dateFormatter.format(new Date(selectedWipe.startedAt)),
-            })}
-          </small>
-        ) : null}
+  return (
+    <section className="leaderboard-period-switcher" aria-label={t("leaderboards.periodTitle")}>
+      <button
+        type="button"
+        className="leaderboard-period-switcher__arrow"
+        disabled={!previousWipe}
+        aria-label={t("leaderboards.previousPeriod")}
+        onClick={() => previousWipe && onChange(previousWipe.id)}
+      >
+        ‹
+      </button>
+
+      <div className="leaderboard-period-switcher__content">
+        <span>{t("leaderboards.periodTitle")}</span>
+        <strong>
+          <b>#{selectedWipe.number}</b>
+          {wipeName(selectedWipe)}
+          {selectedWipe.active ? <i>{t("leaderboards.activeWipe")}</i> : null}
+        </strong>
+        <small>
+          {t("leaderboards.periodStarted", {
+            date: dateFormatter.format(new Date(selectedWipe.startedAt)),
+          })}
+        </small>
       </div>
 
-      {wipes.length > 0 ? (
-        <div
-          className="leaderboard-choice-row leaderboard-choice-row--wipes"
-          role="group"
-          aria-label={t("leaderboards.periodTitle")}
-        >
-          {wipes.map((wipe) => {
-            const active = wipe.id === wipeId
-
-            return (
-              <button
-                key={wipe.id}
-                type="button"
-                className={active ? "is-active" : ""}
-                aria-pressed={active}
-                onClick={() => onChange(wipe.id)}
-              >
-                <b>#{wipe.number}</b>
-                <span>{wipeName(wipe)}</span>
-                {wipe.active ? <i>{t("leaderboards.activeWipe")}</i> : null}
-              </button>
-            )
-          })}
-        </div>
-      ) : (
-        <small className="leaderboard-period__empty">{t("leaderboards.noWipes")}</small>
-      )}
+      <button
+        type="button"
+        className="leaderboard-period-switcher__arrow"
+        disabled={!nextWipe}
+        aria-label={t("leaderboards.nextPeriod")}
+        onClick={() => nextWipe && onChange(nextWipe.id)}
+      >
+        ›
+      </button>
     </section>
   )
 }
