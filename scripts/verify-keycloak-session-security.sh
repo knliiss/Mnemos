@@ -8,13 +8,14 @@ ROLE_CONFIG="$REPOSITORY_ROOT/infrastructure/keycloak/config/10-roles-groups.yam
 CLIENT_CONFIG="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 MINI_APP_AUTH="$REPOSITORY_ROOT/apps/mini-app/src/features/auth/api/auth.ts"
 SESSION_BINDING="$REPOSITORY_ROOT/apps/mini-app/src/features/auth/api/telegramSessionBinding.ts"
+SESSION_STORAGE="$REPOSITORY_ROOT/apps/mini-app/src/features/auth/api/telegramKeycloakSessionStorage.ts"
 
 fail() {
     echo "$1" >&2
     exit 1
 }
 
-for file in "$REALM_CONFIG" "$ROLE_CONFIG" "$CLIENT_CONFIG" "$MINI_APP_AUTH" "$SESSION_BINDING"; do
+for file in "$REALM_CONFIG" "$ROLE_CONFIG" "$CLIENT_CONFIG" "$MINI_APP_AUTH" "$SESSION_BINDING" "$SESSION_STORAGE"; do
     [ -f "$file" ] || fail "Keycloak session-security file is missing: ${file#"$REPOSITORY_ROOT/"}"
 done
 
@@ -45,11 +46,20 @@ grep -Fq 'const OFFLINE_ACCESS_SCOPE = "offline_access"' "$MINI_APP_AUTH" ||
 grep -Fq 'resolveTelegramSessionUserId' "$MINI_APP_AUTH" ||
     fail "Mini App must bind recovered Keycloak sessions to the Telegram user"
 
-grep -Fq 'DeviceStorage' "$SESSION_BINDING" ||
-    fail "Telegram session recovery must use user-scoped Telegram device storage"
+grep -Fq 'loadTelegramKeycloakSession' "$MINI_APP_AUTH" ||
+    fail "Mini App must restore rotated Keycloak tokens after WebView suspension"
 
-if grep -Eq '(localStorage|sessionStorage).*(token|refresh)' "$MINI_APP_AUTH" "$SESSION_BINDING"; then
+grep -Fq 'persistCurrentKeycloakSession' "$MINI_APP_AUTH" ||
+    fail "Mini App must persist rotated Keycloak tokens after refresh"
+
+grep -Fq 'DeviceStorage' "$SESSION_BINDING" ||
+    fail "Telegram session identity recovery must use user-scoped Telegram device storage"
+
+grep -Fq 'SecureStorage' "$SESSION_STORAGE" ||
+    fail "Sensitive Keycloak session recovery must use Telegram secure storage"
+
+if grep -Eq '(localStorage|sessionStorage).*(token|refresh)' "$MINI_APP_AUTH" "$SESSION_BINDING" "$SESSION_STORAGE"; then
     fail "Mini App must not persist access or refresh tokens in browser storage"
 fi
 
-echo "Keycloak session security verified: bounded offline tokens and Telegram-bound recovery"
+echo "Keycloak session security verified: bounded rotating offline tokens with Telegram-bound recovery"
