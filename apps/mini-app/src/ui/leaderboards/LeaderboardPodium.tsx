@@ -2,7 +2,7 @@ import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 
 const podiumOrder = [2, 1, 3]
 
-function PodiumCrown({ rank }: { rank: number }) {
+function PodiumCrown({ rank, filled }: { rank: number; filled: boolean }) {
   return (
     <span className="leaderboard-podium__crown" aria-hidden="true">
       <svg viewBox="0 0 64 44" role="presentation">
@@ -12,7 +12,7 @@ function PodiumCrown({ rank }: { rank: number }) {
         <circle cx="32" cy="4" r="3" fill="currentColor" />
         <circle cx="60" cy="9" r="3" fill="currentColor" />
       </svg>
-      <span>{rank}</span>
+      <span>{filled ? rank : "?"}</span>
     </span>
   )
 }
@@ -58,7 +58,7 @@ export function LeaderboardPodium({
 
         return (
           <div key={rank} className={`leaderboard-podium__slot is-rank-${rank}`}>
-            <PodiumCrown rank={rank} />
+            <PodiumCrown rank={rank} filled={entry !== undefined} />
 
             {entry ? (
               <button
