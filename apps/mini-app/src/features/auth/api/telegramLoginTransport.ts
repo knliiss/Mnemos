@@ -1,11 +1,46 @@
-const TELEGRAM_INIT_DATA_FRAGMENT_PARAMETER = "telegram_init_data"
+const TELEGRAM_INIT_DATA_PARAMETER = "telegram_init_data"
 
-export function createTelegramLoginRedirectUrl(loginUrl: string, initData: string): string {
+export type TelegramLoginPostRequest = {
+  action: string
+  parameters: URLSearchParams
+}
+
+export function createTelegramLoginPostRequest(
+  loginUrl: string,
+  initData: string,
+): TelegramLoginPostRequest {
   const url = new URL(loginUrl)
-  const fragmentParameters = new URLSearchParams()
+  const parameters = new URLSearchParams(url.search)
 
-  fragmentParameters.set(TELEGRAM_INIT_DATA_FRAGMENT_PARAMETER, initData)
-  url.hash = fragmentParameters.toString()
+  parameters.set(TELEGRAM_INIT_DATA_PARAMETER, initData)
 
-  return url.toString()
+  url.search = ""
+  url.hash = ""
+
+  return {
+    action: url.toString(),
+    parameters,
+  }
+}
+
+export function submitTelegramLoginRequest(loginUrl: string, initData: string): void {
+  const request = createTelegramLoginPostRequest(loginUrl, initData)
+  const form = document.createElement("form")
+
+  form.method = "post"
+  form.action = request.action
+  form.style.display = "none"
+
+  for (const [name, value] of request.parameters) {
+    const input = document.createElement("input")
+
+    input.type = "hidden"
+    input.name = name
+    input.value = value
+
+    form.appendChild(input)
+  }
+
+  document.body.appendChild(form)
+  form.submit()
 }
