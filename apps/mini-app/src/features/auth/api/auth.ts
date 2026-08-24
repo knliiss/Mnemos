@@ -7,7 +7,7 @@ import {
   persistTelegramKeycloakSession,
   type StoredTelegramKeycloakSession,
 } from "@/features/auth/api/telegramKeycloakSessionStorage"
-import { createTelegramLoginRedirectUrl } from "@/features/auth/api/telegramLoginTransport"
+import { submitTelegramLoginRequest } from "@/features/auth/api/telegramLoginTransport"
 import { resolveTelegramSessionUserId } from "@/features/auth/api/telegramSessionBinding"
 
 const keycloakUrl = (import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest").replace(
@@ -247,9 +247,8 @@ async function redirectToTelegramLogin(current: KeycloakClient, initData: string
     scope: OFFLINE_ACCESS_SCOPE,
     prompt: "login",
   })
-  const redirectUrl = createTelegramLoginRedirectUrl(loginUrl, initData)
 
-  window.location.replace(redirectUrl)
+  submitTelegramLoginRequest(loginUrl, initData)
 }
 
 function hasMatchingTelegramIdentity(current: KeycloakClient, telegramUserId: number): boolean {
