@@ -405,7 +405,7 @@ export function Bets({ activeAccount, navigate }: Props) {
         <span>
           <small>{t("bets.eyebrow")}</small>
           <h1>{t("bets.title")}</h1>
-          <p>{activeAccount.nickname}</p>
+          <p>{t("bets.subtitle", { nickname: activeAccount.nickname })}</p>
         </span>
 
         <button
@@ -418,7 +418,24 @@ export function Bets({ activeAccount, navigate }: Props) {
         </button>
       </header>
 
-      <nav className="bets-mode">
+      <div className="bets-overview-strip" aria-label={t("bets.overviewAria")}>
+        <span>
+          <small>{t("bets.availableRounds")}</small>
+          <strong>{nextOpenRounds.length}</strong>
+        </span>
+        <i />
+        <span>
+          <small>{t("bets.activeRaces")}</small>
+          <strong>{races.length}</strong>
+        </span>
+        <i />
+        <span>
+          <small>{t("bets.myPositions")}</small>
+          <strong>{currentPositionCount}</strong>
+        </span>
+      </div>
+
+      <nav className="bets-mode" aria-label={t("bets.modeAria")}>
         {betModes.map((value) => (
           <button
             type="button"
@@ -446,61 +463,63 @@ export function Bets({ activeAccount, navigate }: Props) {
       ) : null}
 
       {!loading && !error && mode === "EVENTS" ? (
-        <>
-          {featured ? (
-            <motion.button
-              type="button"
-              className={`bets-feature event-surface--${globalEventVisualTone(featured.eventType)}`}
-              whileTap={{ scale: 0.992 }}
-              onClick={() => openRound(featured)}
-            >
-              <span className="bets-feature__art">
-                <GlobalEventArt eventType={featured.eventType} size={82} />
-              </span>
-
-              <span className="bets-feature__copy">
-                <small>{t("bets.nextRound")}</small>
-                <strong>{globalEventLabel(t, featured.eventType)}</strong>
-                <em>
-                  {t("bets.closes", {
-                    time: formatBetMoment(featured.closesAt, locale),
-                  })}
-                </em>
-              </span>
-
-              <span className="bets-feature__odds">
-                <span>
-                  <small>{t("bets.yesUpper")}</small>
-                  <strong>{formatOdds(featured.yesOdds, locale)}</strong>
+        <div className="bets-discovery">
+          <section className="bets-discovery__primary">
+            {featured ? (
+              <motion.button
+                type="button"
+                className={`bets-feature event-surface--${globalEventVisualTone(featured.eventType)}`}
+                whileTap={{ scale: 0.992 }}
+                onClick={() => openRound(featured)}
+              >
+                <span className="bets-feature__art">
+                  <GlobalEventArt eventType={featured.eventType} size={82} />
                 </span>
-                <i />
-                <span>
-                  <small>{t("bets.noUpper")}</small>
-                  <strong>{formatOdds(featured.noOdds, locale)}</strong>
-                </span>
-              </span>
 
-              {featured.myBet ? (
-                <span className="bets-feature__mine">
-                  <CurrencyMark currency="COIN" size={13} />
-                  {betAmount(featured.myBet)}
+                <span className="bets-feature__copy">
+                  <small>{t("bets.nextRound")}</small>
+                  <strong>{globalEventLabel(t, featured.eventType)}</strong>
+                  <em>
+                    {t("bets.closes", {
+                      time: formatBetMoment(featured.closesAt, locale),
+                    })}
+                  </em>
                 </span>
-              ) : null}
-            </motion.button>
-          ) : (
-            <EmptyBets title={t("bets.empty.roundsTitle")} note={t("bets.empty.roundsCopy")} />
-          )}
+
+                <span className="bets-feature__odds">
+                  <span>
+                    <small>{t("bets.yesUpper")}</small>
+                    <strong>{formatOdds(featured.yesOdds, locale)}</strong>
+                  </span>
+                  <i />
+                  <span>
+                    <small>{t("bets.noUpper")}</small>
+                    <strong>{formatOdds(featured.noOdds, locale)}</strong>
+                  </span>
+                </span>
+
+                {featured.myBet ? (
+                  <span className="bets-feature__mine">
+                    <CurrencyMark currency="COIN" size={13} />
+                    {betAmount(featured.myBet)}
+                  </span>
+                ) : null}
+              </motion.button>
+            ) : (
+              <EmptyBets title={t("bets.empty.roundsTitle")} note={t("bets.empty.roundsCopy")} />
+            )}
+          </section>
 
           {eventRounds.length ? (
-            <>
+            <section className="bets-market-section">
               <header className="bets-section-head">
                 <span>
                   <small>{t("bets.moreRounds")}</small>
-                  <strong>{eventRounds.length}</strong>
+                  <strong>{t("bets.roundsAvailable", { count: eventRounds.length })}</strong>
                 </span>
               </header>
 
-              <section className="bets-rounds">
+              <div className="bets-rounds">
                 {eventRounds.map((round) => (
                   <BetRoundCard
                     key={round.id}
@@ -510,24 +529,55 @@ export function Bets({ activeAccount, navigate }: Props) {
                     onClick={() => openRound(round)}
                   />
                 ))}
-              </section>
-            </>
+              </div>
+            </section>
           ) : null}
-        </>
+
+          <section className="bets-market-section bets-market-section--races">
+            <header className="bets-section-head">
+              <span>
+                <small>{t("bets.racesEyebrow")}</small>
+                <strong>{t("bets.racesTitle")}</strong>
+              </span>
+              {races.length ? <b>{races.length}</b> : null}
+            </header>
+
+            <div className="bets-races">
+              {races.map((race) => (
+                <BetRaceCard
+                  key={race.id}
+                  race={race}
+                  position={positionsByRace.get(race.id) ?? null}
+                  locale={locale}
+                  t={t}
+                  onClick={() => openRace(race)}
+                />
+              ))}
+
+              {!races.length ? (
+                <EmptyBets
+                  title={t("bets.empty.racesTitle")}
+                  note={t("bets.empty.racesCopy")}
+                  illustration="race"
+                />
+              ) : null}
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {!loading && !error && mode === "MY" ? (
         <div className="bets-my">
           {currentPositionCount ? (
-            <>
+            <section className="bets-market-section">
               <header className="bets-section-head">
                 <span>
                   <small>{t("bets.history.active")}</small>
-                  <strong>{currentPositionCount}</strong>
+                  <strong>{t("bets.positionsCount", { count: currentPositionCount })}</strong>
                 </span>
               </header>
 
-              <section className="bets-rounds">
+              <div className="bets-rounds">
                 {myRounds.map((round) => (
                   <BetRoundCard
                     key={round.id}
@@ -548,20 +598,20 @@ export function Bets({ activeAccount, navigate }: Props) {
                     onClick={() => openRace(race)}
                   />
                 ))}
-              </section>
-            </>
+              </div>
+            </section>
           ) : null}
 
           {historicalPositionCount ? (
-            <>
+            <section className="bets-market-section bets-market-section--history">
               <header className="bets-section-head bets-section-head--history">
                 <span>
                   <small>{t("bets.history.previous")}</small>
-                  <strong>{historicalPositionCount}</strong>
+                  <strong>{t("bets.positionsCount", { count: historicalPositionCount })}</strong>
                 </span>
               </header>
 
-              <section className="bets-rounds">
+              <div className="bets-rounds">
                 {historicalEventBets.map(({ round, bet }) => (
                   <EventBetHistoryCard key={bet.id} round={round} bet={bet} locale={locale} t={t} />
                 ))}
@@ -575,33 +625,14 @@ export function Bets({ activeAccount, navigate }: Props) {
                     t={t}
                   />
                 ))}
-              </section>
-            </>
+              </div>
+            </section>
           ) : null}
 
           {!myPositionCount ? (
             <EmptyBets title={t("bets.empty.myTitle")} note={t("bets.empty.myCopy")} />
           ) : null}
         </div>
-      ) : null}
-
-      {!loading && !error && mode === "RACES" ? (
-        <section className="bets-races">
-          {races.map((race) => (
-            <BetRaceCard
-              key={race.id}
-              race={race}
-              position={positionsByRace.get(race.id) ?? null}
-              locale={locale}
-              t={t}
-              onClick={() => openRace(race)}
-            />
-          ))}
-
-          {!races.length ? (
-            <EmptyBets title={t("bets.empty.racesTitle")} note={t("bets.empty.racesCopy")} />
-          ) : null}
-        </section>
       ) : null}
 
       <AnimatePresence>
