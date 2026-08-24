@@ -18,48 +18,27 @@ type Props = {
   back: () => void
 }
 
-export function PublicProfileRoute({
+type NicknameProfileRouteProps = Omit<Props, "accountId"> & {
+  nickname: string
+}
+
+function NicknameProfileRoute({
   activeAccount,
-  accountId,
   nickname,
   navigate,
   back,
-}: Props) {
+}: NicknameProfileRouteProps) {
   const { t } = useTranslation()
-  const directAccountId = accountId?.trim() || null
-  const normalizedNickname = nickname?.trim() ?? ""
-  const [resolvedAccountId, setResolvedAccountId] = useState<string | null>(directAccountId)
-  const [resolving, setResolving] = useState(!directAccountId && Boolean(normalizedNickname))
-  const [notFound, setNotFound] = useState(!directAccountId && !normalizedNickname)
+  const [resolvedAccountId, setResolvedAccountId] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
   const [resolutionFailed, setResolutionFailed] = useState(false)
   const [revision, setRevision] = useState(0)
 
   useEffect(() => {
-    if (directAccountId) {
-      setResolvedAccountId(directAccountId)
-      setResolving(false)
-      setNotFound(false)
-      setResolutionFailed(false)
-      return
-    }
-
-    if (!normalizedNickname) {
-      setResolvedAccountId(null)
-      setResolving(false)
-      setNotFound(true)
-      setResolutionFailed(false)
-      return
-    }
-
     let cancelled = false
-    const exactNickname = normalizedNickname.toLocaleLowerCase()
+    const exactNickname = nickname.toLocaleLowerCase()
 
-    setResolvedAccountId(null)
-    setResolving(true)
-    setNotFound(false)
-    setResolutionFailed(false)
-
-    void searchPublicProfiles(normalizedNickname, 0, 50)
+    void searchPublicProfiles(nickname, 0, 50)
       .then((profiles) => {
         if (cancelled) {
           return
@@ -82,21 +61,15 @@ export function PublicProfileRoute({
           setResolutionFailed(true)
         }
       })
-      .finally(() => {
-        if (!cancelled) {
-          setResolving(false)
-        }
-      })
 
     return () => {
       cancelled = true
     }
-  }, [directAccountId, normalizedNickname, revision])
+  }, [nickname, revision])
 
   if (resolvedAccountId) {
     return (
       <PublicProfilePage
-        key={resolvedAccountId}
         activeAccount={activeAccount}
         accountId={resolvedAccountId}
         navigate={navigate}
@@ -113,15 +86,59 @@ export function PublicProfileRoute({
     <div className="screen public-profile-screen">
       <PageHeader title={t("people.profile.title")} back={back} />
 
-      {resolving ? (
-        <FeatureLoading label={t("people.profile.loading")} />
-      ) : notFound ? (
+      {notFound ? (
         <section className="public-profile-state">
           <Glyph name="profile-mark" size={24} />
           <strong>{t("people.profile.notFoundTitle")}</strong>
           <small>{t("people.profile.notFoundCopy")}</small>
         </section>
-      ) : null}
+      ) : (
+        <FeatureLoading label={t("people.profile.loading")} />
+      )}
     </div>
+  )
+}
+
+export function PublicProfileRoute({
+  activeAccount,
+  accountId,
+  nickname,
+  navigate,
+  back,
+}: Props) {
+  const directAccountId = accountId?.trim()
+
+  if (directAccountId) {
+    return (
+      <PublicProfilePage
+        activeAccount={activeAccount}
+        accountId={directAccountId}
+        navigate={navigate}
+        back={back}
+      />
+    )
+  }
+
+  const normalizedNickname = nickname?.trim()
+
+  if (normalizedNickname) {
+    return (
+      <NicknameProfileRoute
+        key={normalizedNickname.toLocaleLowerCase()}
+        activeAccount={activeAccount}
+        nickname={normalizedNickname}
+        navigate={navigate}
+        back={back}
+      />
+    )
+  }
+
+  return (
+    <PublicProfilePage
+      activeAccount={activeAccount}
+      accountId=""
+      navigate={navigate}
+      back={back}
+    />
   )
 }
