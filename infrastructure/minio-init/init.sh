@@ -98,15 +98,12 @@ attach_application_policy() {
         >/dev/null
 }
 
-ensure_application_user() {
+recreate_application_user() {
     if mc admin user info "$ROOT_ALIAS" "$MINIO_PERSONALIZATION_ACCESS_KEY" >/dev/null 2>&1; then
-        attach_application_policy || true
-
-        if application_credentials_work; then
-            return
-        fi
-
-        mc admin user rm "$ROOT_ALIAS" "$MINIO_PERSONALIZATION_ACCESS_KEY" >/dev/null
+        mc admin user rm \
+            "$ROOT_ALIAS" \
+            "$MINIO_PERSONALIZATION_ACCESS_KEY" \
+            >/dev/null
     fi
 
     mc admin user add \
@@ -129,7 +126,7 @@ require_environment
 configure_root_alias
 ensure_bucket
 write_application_policy
-ensure_application_user
+recreate_application_user
 verify_application_access
 
 echo "MinIO personalization storage is ready"
