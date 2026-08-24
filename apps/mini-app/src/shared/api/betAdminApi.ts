@@ -18,8 +18,25 @@ export type AdminEventBetResponse = {
   status: EventBetStatus
 }
 
+export type AdminEventBetRoundBettorResponse = {
+  accountId: string
+  accountNickname: string | null
+}
+
+export type AdminEventBetRoundMetadataResponse = {
+  roundId: string
+  betCount: number
+  bettors: AdminEventBetRoundBettorResponse[]
+}
+
 export async function listAdminEventBetRounds(): Promise<EventBetRoundResponse[]> {
   return api<EventBetRoundResponse[]>("/api/v1/bets/admin/event-rounds")
+}
+
+export async function listAdminEventBetRoundMetadata(): Promise<
+  AdminEventBetRoundMetadataResponse[]
+> {
+  return api<AdminEventBetRoundMetadataResponse[]>("/api/v1/bets/admin/event-rounds/metadata")
 }
 
 export async function listAdminEventBets(roundId: string): Promise<AdminEventBetResponse[]> {

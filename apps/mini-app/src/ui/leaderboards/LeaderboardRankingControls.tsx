@@ -5,6 +5,7 @@ import type {
   PredictorLeaderboardSort,
 } from "@/shared/api/leaderboardApi"
 import { Glyph } from "../shared/MnemosIcon"
+import "./leaderboard-layout.css"
 
 type SortChoiceProps<T extends string> = {
   value: T
