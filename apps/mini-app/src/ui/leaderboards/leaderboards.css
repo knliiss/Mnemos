@@ -92,8 +92,7 @@
   border: 1px solid rgba(226, 233, 207, 0.09);
   border-radius: 15px;
   background:
-    linear-gradient(110deg, rgba(255, 255, 255, 0.018), transparent 58%),
-    rgba(12, 14, 10, 0.76);
+    linear-gradient(110deg, rgba(255, 255, 255, 0.018), transparent 58%), rgba(12, 14, 10, 0.76);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.018);
 }
 

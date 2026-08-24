@@ -44,6 +44,8 @@ function NicknameProfileRoute({
           return
         }
 
+        setResolutionFailed(false)
+
         const exactProfile = profiles.content.find(
           (profile) => profile.cristalixNickname.toLocaleLowerCase() === exactNickname,
         )
@@ -53,11 +55,13 @@ function NicknameProfileRoute({
           return
         }
 
+        setNotFound(false)
         setResolvedAccountId(exactProfile.accountId)
       })
       .catch((error) => {
         if (!cancelled) {
           handleError(error)
+          setNotFound(false)
           setResolutionFailed(true)
         }
       })
@@ -99,13 +103,7 @@ function NicknameProfileRoute({
   )
 }
 
-export function PublicProfileRoute({
-  activeAccount,
-  accountId,
-  nickname,
-  navigate,
-  back,
-}: Props) {
+export function PublicProfileRoute({ activeAccount, accountId, nickname, navigate, back }: Props) {
   const directAccountId = accountId?.trim()
 
   if (directAccountId) {
@@ -134,11 +132,6 @@ export function PublicProfileRoute({
   }
 
   return (
-    <PublicProfilePage
-      activeAccount={activeAccount}
-      accountId=""
-      navigate={navigate}
-      back={back}
-    />
+    <PublicProfilePage activeAccount={activeAccount} accountId="" navigate={navigate} back={back} />
   )
 }

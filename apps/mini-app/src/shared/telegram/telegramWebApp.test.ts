@@ -54,16 +54,16 @@ describe("Telegram Web App bootstrap", () => {
 
     expect(document.documentElement.classList.contains("telegram-mini-app")).toBe(true)
     expect(document.documentElement.style.getPropertyValue("--tg-safe-area-inset-top")).toBe("47px")
-    expect(document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-top")).toBe(
-      "96px",
-    )
+    expect(
+      document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-top"),
+    ).toBe("96px")
 
     webApp.contentSafeAreaInset = { top: 112, right: 2, bottom: 38, left: 2 }
     callbacks.get("contentSafeAreaChanged")?.()
 
-    expect(document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-top")).toBe(
-      "112px",
-    )
+    expect(
+      document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-top"),
+    ).toBe("112px")
     expect(
       document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-bottom"),
     ).toBe("38px")
