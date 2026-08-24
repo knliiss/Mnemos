@@ -1,8 +1,4 @@
-import type {
-  EventBetOutcome,
-  EventBetRoundResponse,
-  ItemRaceResponse,
-} from "@/shared/api/betApi"
+import type { EventBetOutcome, EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
 import { api } from "@/shared/api/httpClient"
 import type { BetItemType } from "@/ui/model"
 
