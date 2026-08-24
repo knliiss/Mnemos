@@ -95,6 +95,49 @@ jobs:
             exit 1
           fi
 
+  deploy-feature-to-pages:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/wipes-leaderboards'
+    needs: verify
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      deployments: write
+
+    env:
+      VITE_KEYCLOAK_URL: https://auth.knalis.rest
+      VITE_KEYCLOAK_REALM: mnemos
+      VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
+      VITE_API_URL: https://api.knalis.rest
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: feat/wipes-leaderboards
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Build production Mini App
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Deploy feature build to Pages production
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master
+
   report:
     if: always() && github.event_name == 'push'
     needs: verify
