@@ -35,6 +35,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
   const [tab, setTab] = useState<LeaderboardTab>("DROPS")
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [wipeId, setWipeId] = useState<string | null>(null)
+  const [wipeRevision, setWipeRevision] = useState(0)
   const [dropSort, setDropSort] = useState<DropLeaderboardSort>("TOTAL")
   const [predictorSort, setPredictorSort] = useState<PredictorLeaderboardSort>("PROFIT")
   const [minimumSample, setMinimumSample] = useState(10)
@@ -60,21 +61,32 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         }
 
         setWipes(result)
-        setWipeId(
-          (current) => current ?? result.find((wipe) => wipe.active)?.id ?? result[0]?.id ?? null,
-        )
+        setLoadError(false)
+        setWipeId((current) => {
+          if (current && result.some((wipe) => wipe.id === current)) {
+            return current
+          }
+
+          return result.find((wipe) => wipe.active)?.id ?? result[0]?.id ?? null
+        })
+
+        if (result.length === 0) {
+          setEntries([])
+          setLoading(false)
+        }
       })
       .catch((error) => {
         if (!cancelled) {
           handleError(error)
           setLoadError(true)
+          setLoading(false)
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [wipeRevision])
 
   useEffect(() => {
     if (tab !== "COINS" && !wipeId) {
@@ -165,6 +177,14 @@ export function LeaderboardPage({ back }: { back: () => void }) {
     () => wipes.find((wipe) => wipe.id === wipeId) ?? null,
     [wipeId, wipes],
   )
+
+  function retry() {
+    if (wipes.length === 0) {
+      setWipeRevision((value) => value + 1)
+    }
+
+    setSearchRevision((value) => value + 1)
+  }
 
   return (
     <div className="screen leaderboard-screen">
@@ -335,7 +355,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
           <strong>{t("common.loadErrorTitle")}</strong>
           <small>{t("common.loadErrorCopy")}</small>
-          <button type="button" onClick={() => setSearchRevision((value) => value + 1)}>
+          <button type="button" onClick={retry}>
             {t("common.retry")}
           </button>
         </section>
