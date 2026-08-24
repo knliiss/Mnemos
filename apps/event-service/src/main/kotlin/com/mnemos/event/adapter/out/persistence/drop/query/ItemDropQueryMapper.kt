@@ -2,6 +2,8 @@ package com.mnemos.event.adapter.out.persistence.drop.query
 
 import com.mnemos.event.application.itemdrop.model.ItemDropView
 import com.mnemos.event.domain.EventId
+import com.mnemos.event.domain.item.model.DomainItemRarity
+import com.mnemos.event.domain.item.model.DomainItemType
 import com.mnemos.event.domain.item.model.ItemId
 
 object ItemDropQueryMapper {
@@ -10,8 +12,8 @@ object ItemDropQueryMapper {
             id = EventId(id),
             itemId = ItemId(itemId),
             itemName = itemName,
-            itemRarity = itemRarity,
-            itemType = itemType,
+            itemRarity = DomainItemRarity.valueOf(itemRarity),
+            itemType = DomainItemType.valueOf(itemType),
             droppedFor = droppedFor,
             occurredAt = occurredAt,
         )
