@@ -1,8 +1,5 @@
 import { useTranslation } from "react-i18next"
-import type {
-  DropLeaderboardSort,
-  PredictorLeaderboardSort,
-} from "@/shared/api/leaderboardApi"
+import type { DropLeaderboardSort, PredictorLeaderboardSort } from "@/shared/api/leaderboardApi"
 
 type SortChoiceProps<T extends string> = {
   value: T
