@@ -84,10 +84,6 @@ export function LeaderboardPage({ back }: { back: () => void }) {
   }, [wipeRevision])
 
   useEffect(() => {
-    setPage(1)
-  }, [dropSort, predictorSort, tab, wipeId])
-
-  useEffect(() => {
     if (tab !== "COINS" && !wipeId) {
       return
     }
@@ -160,12 +156,13 @@ export function LeaderboardPage({ back }: { back: () => void }) {
     [wipeId, wipes],
   )
   const totalPages = Math.max(1, Math.ceil(entries.length / pageSize))
+  const effectivePage = Math.min(page, totalPages)
   const pageEntries = useMemo(
-    () => entries.slice((page - 1) * pageSize, page * pageSize),
-    [entries, page],
+    () => entries.slice((effectivePage - 1) * pageSize, effectivePage * pageSize),
+    [effectivePage, entries],
   )
-  const podiumEntries = page === 1 ? pageEntries.slice(0, 3) : []
-  const rowEntries = page === 1 ? pageEntries.slice(3) : pageEntries
+  const podiumEntries = effectivePage === 1 ? pageEntries.slice(0, 3) : []
+  const rowEntries = effectivePage === 1 ? pageEntries.slice(3) : pageEntries
   const resultsTitle =
     tab === "COINS"
       ? t("leaderboards.coinRankingTitle")
@@ -173,11 +170,25 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         ? t("leaderboards.predictorRankingTitle")
         : t("leaderboards.dropRankingTitle")
 
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages)
-    }
-  }, [page, totalPages])
+  function changeTab(value: LeaderboardTab) {
+    setTab(value)
+    setPage(1)
+  }
+
+  function changeWipe(value: string) {
+    setWipeId(value)
+    setPage(1)
+  }
+
+  function changeDropSort(value: DropLeaderboardSort) {
+    setDropSort(value)
+    setPage(1)
+  }
+
+  function changePredictorSort(value: PredictorLeaderboardSort) {
+    setPredictorSort(value)
+    setPage(1)
+  }
 
   function retry() {
     if (wipes.length === 0) {
@@ -204,7 +215,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         <Segmented
           value={tab}
           options={tabs}
-          onChange={setTab}
+          onChange={changeTab}
           label={(value) => t(`leaderboards.tabs.${value.toLowerCase()}`)}
         />
 
@@ -214,18 +225,18 @@ export function LeaderboardPage({ back }: { back: () => void }) {
             wipeId={wipeId}
             selectedWipe={selectedWipe}
             locale={locale}
-            onChange={setWipeId}
+            onChange={changeWipe}
           />
         ) : (
           <span className="leaderboard-current-balance">{t("leaderboards.currentBalanceDescription")}</span>
         )}
 
         {tab === "DROPS" ? (
-          <DropRankingControls sort={dropSort} onSortChange={setDropSort} />
+          <DropRankingControls sort={dropSort} onSortChange={changeDropSort} />
         ) : null}
 
         {tab === "PREDICTORS" ? (
-          <PredictorRankingControls sort={predictorSort} onSortChange={setPredictorSort} />
+          <PredictorRankingControls sort={predictorSort} onSortChange={changePredictorSort} />
         ) : null}
       </div>
 
@@ -239,7 +250,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
           {!loading && !loadError && entries.length > 0 ? (
             <small>
               {t("leaderboards.pageOf", {
-                page,
+                page: effectivePage,
                 total: totalPages,
               })}
             </small>
@@ -272,7 +283,11 @@ export function LeaderboardPage({ back }: { back: () => void }) {
           <>
             {podiumEntries.length > 0 ? <LeaderboardPodium entries={podiumEntries} /> : null}
             <LeaderboardRows entries={rowEntries} />
-            <LeaderboardPagination page={page} totalPages={totalPages} onChange={setPage} />
+            <LeaderboardPagination
+              page={effectivePage}
+              totalPages={totalPages}
+              onChange={setPage}
+            />
           </>
         )}
       </section>
