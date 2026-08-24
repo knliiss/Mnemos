@@ -92,8 +92,7 @@ export const leaderboardsEn = {
     started: "Started {{date}}",
     noCurrent: "No active wipe found",
     newTitle: "Start a new wipe",
-    newDescription:
-      "The start must be after the current wipe and cannot be in the future.",
+    newDescription: "The start must be after the current wipe and cannot be in the future.",
     name: "Name",
     namePlaceholder: "For example, September 2026",
     startedAt: "Start",
