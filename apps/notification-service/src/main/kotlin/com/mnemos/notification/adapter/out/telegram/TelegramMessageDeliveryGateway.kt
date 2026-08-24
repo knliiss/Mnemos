@@ -71,8 +71,9 @@ class TelegramMessageDeliveryGateway(
             return sendResult
         }
 
-        val messageId = sendResponse.message()?.messageId()
-            ?: return DeliveryResult.Retryable()
+        val messageId =
+            sendResponse.message()?.messageId()
+                ?: return DeliveryResult.Retryable()
         val editRequest =
             EditMessageReplyMarkup(telegramId.id, messageId)
                 .replyMarkup(replyMarkup)
