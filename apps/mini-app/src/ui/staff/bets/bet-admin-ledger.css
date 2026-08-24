@@ -172,8 +172,7 @@
 .bet-admin-ledger-row.is-winner {
   border-color: rgba(229, 197, 104, 0.2);
   background:
-    linear-gradient(90deg, rgba(229, 197, 104, 0.045), transparent 38%),
-    rgba(255, 255, 255, 0.014);
+    linear-gradient(90deg, rgba(229, 197, 104, 0.045), transparent 38%), rgba(255, 255, 255, 0.014);
 }
 
 .bet-admin-ledger-row.is-winner::after {
@@ -265,8 +264,7 @@
 .bet-admin-race-entry.is-expanded .bet-admin-race-card {
   border-color: rgba(199, 242, 74, 0.13);
   background:
-    linear-gradient(90deg, rgba(199, 242, 74, 0.022), transparent 34%),
-    rgba(255, 255, 255, 0.016);
+    linear-gradient(90deg, rgba(199, 242, 74, 0.022), transparent 34%), rgba(255, 255, 255, 0.016);
 }
 
 .bet-admin-race-card__winner {

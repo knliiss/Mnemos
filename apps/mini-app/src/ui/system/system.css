@@ -71,220 +71,114 @@
 }
 
 .realtime-spotlight {
-  --spotlight-accent: #c7f24a;
-  --spotlight-accent-soft: rgba(199, 242, 74, 0.13);
-  --spotlight-secondary: rgba(185, 132, 197, 0.1);
   position: fixed;
   z-index: 1900;
-  top: max(14px, env(safe-area-inset-top, 0px));
+  top: max(12px, env(safe-area-inset-top, 0px));
   left: 50%;
   display: grid;
-  grid-template-columns: 90px minmax(0, 1fr) 18px;
+  grid-template-columns: 88px minmax(0, 1fr) 18px;
   align-items: center;
-  gap: 14px;
-  width: min(calc(100vw - 28px), 470px);
-  min-height: 122px;
+  gap: 13px;
+  width: min(calc(100vw - 24px), 430px);
+  min-height: 118px;
   overflow: hidden;
-  padding: 15px 16px 16px 12px;
-  border: 1px solid color-mix(in srgb, var(--spotlight-accent) 25%, rgba(223, 231, 209, 0.08));
+  padding: 14px 15px 14px 11px;
+  border: 1px solid rgba(199, 242, 74, 0.2);
   border-radius: 20px;
-  color: #e9ede4;
+  color: #e8ece2;
   background:
-    linear-gradient(90deg, var(--spotlight-accent-soft), transparent 34%),
-    radial-gradient(circle at 91% 12%, var(--spotlight-secondary), transparent 34%),
-    linear-gradient(145deg, rgba(16, 20, 13, 0.988), rgba(7, 9, 7, 0.99));
+    radial-gradient(circle at 14% 44%, rgba(199, 242, 74, 0.12), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(181, 139, 194, 0.07), transparent 30%),
+    linear-gradient(145deg, rgba(14, 18, 11, 0.985), rgba(8, 10, 8, 0.985));
   box-shadow:
-    0 25px 70px rgba(0, 0, 0, 0.52),
-    0 0 0 1px rgba(0, 0, 0, 0.42),
-    inset 0 1px rgba(255, 255, 255, 0.035);
+    0 24px 64px rgba(0, 0, 0, 0.46),
+    inset 0 1px rgba(255, 255, 255, 0.03);
   pointer-events: none;
-  transform-origin: top center;
-  backdrop-filter: blur(20px);
-}
-
-.realtime-spotlight[data-rarity="mythical"] {
-  --spotlight-accent: #e5c568;
-  --spotlight-accent-soft: rgba(229, 197, 104, 0.14);
-  --spotlight-secondary: rgba(199, 242, 74, 0.08);
-}
-
-.realtime-spotlight[data-rarity="secret"] {
-  --spotlight-accent: #d39ad6;
-  --spotlight-accent-soft: rgba(211, 154, 214, 0.13);
-  --spotlight-secondary: rgba(199, 242, 74, 0.08);
+  transform: translateX(-50%);
+  animation: realtime-spotlight-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(18px);
 }
 
 .realtime-spotlight::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    linear-gradient(90deg, transparent 0 8%, rgba(255, 255, 255, 0.018) 8% 8.4%, transparent 8.4% 100%),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 5px,
-      rgba(255, 255, 255, 0.012) 6px
-    );
   content: "";
-  opacity: 0.62;
-}
-
-.realtime-spotlight::after {
   position: absolute;
-  z-index: 0;
-  right: 34px;
-  bottom: -38px;
-  width: 190px;
-  height: 86px;
+  right: 40px;
+  bottom: -28px;
+  width: 150px;
+  height: 58px;
   border-radius: 50%;
-  background: var(--spotlight-accent-soft);
-  content: "";
-  filter: blur(30px);
-  animation: realtime-spotlight-glow 2.6s ease-in-out infinite;
+  background: rgba(199, 242, 74, 0.055);
+  filter: blur(22px);
 }
 
 .realtime-spotlight.is-compact {
-  grid-template-columns: 50px minmax(0, 1fr) 14px;
+  grid-template-columns: 48px minmax(0, 1fr) 14px;
   gap: 10px;
-  min-height: 70px;
-  padding: 10px 12px;
+  min-height: 66px;
+  padding: 9px 11px;
   border-radius: 16px;
-}
-
-.realtime-spotlight__scan {
-  position: absolute;
-  z-index: 1;
-  top: -35%;
-  bottom: -35%;
-  left: -25%;
-  width: 18%;
-  background: linear-gradient(90deg, transparent, rgba(231, 247, 183, 0.06), transparent);
-  opacity: 0;
-  transform: skewX(-16deg);
-  animation: realtime-spotlight-scan 2.7s ease-in-out 0.18s infinite;
-}
-
-.realtime-spotlight__corners {
-  position: absolute;
-  z-index: 4;
-  inset: 7px;
-  pointer-events: none;
-}
-
-.realtime-spotlight__corners i {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-color: var(--spotlight-accent);
-  border-style: solid;
-  opacity: 0.38;
-}
-
-.realtime-spotlight__corners i:nth-child(1) {
-  top: 0;
-  left: 0;
-  border-width: 1px 0 0 1px;
-}
-
-.realtime-spotlight__corners i:nth-child(2) {
-  top: 0;
-  right: 0;
-  border-width: 1px 1px 0 0;
-}
-
-.realtime-spotlight__corners i:nth-child(3) {
-  right: 0;
-  bottom: 0;
-  border-width: 0 1px 1px 0;
-}
-
-.realtime-spotlight__corners i:nth-child(4) {
-  bottom: 0;
-  left: 0;
-  border-width: 0 0 1px 1px;
 }
 
 .realtime-spotlight__visual {
   position: relative;
-  z-index: 2;
   display: grid;
   place-items: center;
-  width: 90px;
-  height: 90px;
-}
-
-.realtime-spotlight__visual::before,
-.realtime-spotlight__visual::after {
-  position: absolute;
-  border-radius: 17px;
-  content: "";
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
 }
 
 .realtime-spotlight__visual::before {
-  inset: 9px;
-  border: 1px solid color-mix(in srgb, var(--spotlight-accent) 16%, transparent);
-  background:
-    radial-gradient(circle at 50% 45%, var(--spotlight-accent-soft), transparent 66%),
-    rgba(255, 255, 255, 0.014);
-  transform: rotate(45deg) scale(0.76);
-}
-
-.realtime-spotlight__visual::after {
-  inset: 20px;
-  border: 1px dashed color-mix(in srgb, var(--spotlight-accent) 15%, transparent);
-  animation: realtime-spotlight-orbit 8s linear infinite;
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(199, 242, 74, 0.09);
+  border-radius: 50%;
+  background: rgba(199, 242, 74, 0.025);
 }
 
 .realtime-spotlight__visual > * {
   position: relative;
-  z-index: 2;
-  filter: drop-shadow(0 8px 11px rgba(0, 0, 0, 0.34));
+  z-index: 1;
 }
 
 .realtime-spotlight__visual > b {
   position: absolute;
-  z-index: 3;
-  right: 2px;
-  bottom: 4px;
+  z-index: 2;
+  right: 3px;
+  bottom: 5px;
   display: grid;
   place-items: center;
-  min-width: 27px;
-  min-height: 27px;
+  min-width: 26px;
+  min-height: 26px;
   padding: 3px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(9, 12, 8, 0.94);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.28);
+  border-radius: 9px;
+  background: rgba(11, 14, 10, 0.92);
   font-size: 13px;
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__visual {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__visual::before {
-  inset: 4px;
-  border-radius: 12px;
-}
-
-.realtime-spotlight.is-compact .realtime-spotlight__visual::after {
-  inset: 11px;
+  inset: 5px;
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__visual > b {
   right: -1px;
-  bottom: -1px;
+  bottom: 0;
   min-width: 19px;
   min-height: 19px;
-  border-radius: 6px;
+  border-radius: 7px;
   font-size: 10px;
 }
 
 .realtime-spotlight__copy {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   display: grid;
   min-width: 0;
   gap: 3px;
@@ -295,11 +189,11 @@
   align-items: center;
   gap: 6px;
   overflow: hidden;
-  color: color-mix(in srgb, var(--spotlight-accent) 62%, #7f8878);
+  color: #9aaa70;
   font-family: var(--font-meta);
-  font-size: 7.7px;
-  font-weight: 760;
-  letter-spacing: 0.1em;
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.09em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -307,11 +201,9 @@
 .realtime-spotlight__copy > small > i {
   width: 5px;
   height: 5px;
-  border-radius: 1px;
-  background: var(--spotlight-accent);
-  box-shadow: 0 0 11px color-mix(in srgb, var(--spotlight-accent) 52%, transparent);
-  transform: rotate(45deg);
-  animation: realtime-spotlight-beacon 1.05s ease-in-out infinite;
+  border-radius: 50%;
+  background: #c7f24a;
+  box-shadow: 0 0 10px rgba(199, 242, 74, 0.45);
 }
 
 .realtime-spotlight__copy > strong {
@@ -321,8 +213,6 @@
   font-size: 14px;
   font-weight: 760;
   line-height: 1.18;
-  letter-spacing: -0.012em;
-  text-shadow: 0 2px rgba(0, 0, 0, 0.28);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -353,24 +243,23 @@
   align-items: center;
   gap: 7px;
   margin-top: 3px;
-  color: #747c70;
+  color: #7d8578;
   font-size: 8px;
 }
 
 .realtime-spotlight__meta b {
   overflow: hidden;
-  color: #b4bcad;
-  font-weight: 670;
+  color: #aeb5a9;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .realtime-spotlight__meta i {
-  width: 3px;
-  height: 3px;
-  background: var(--spotlight-accent);
-  opacity: 0.42;
-  transform: rotate(45deg);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #697064;
 }
 
 .realtime-spotlight__meta em {
@@ -379,57 +268,29 @@
 
 .realtime-spotlight__signal {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   display: flex;
   align-items: end;
   gap: 2px;
-  height: 24px;
+  height: 22px;
 }
 
 .realtime-spotlight__signal i {
   width: 2px;
   height: 7px;
-  border-radius: 1px;
-  background: var(--spotlight-accent);
-  opacity: 0.34;
+  background: #a9c655;
+  opacity: 0.38;
   animation: realtime-spotlight-pulse 0.9s ease-in-out infinite;
 }
 
 .realtime-spotlight__signal i:nth-child(2) {
-  height: 17px;
+  height: 16px;
   animation-delay: 0.12s;
 }
 
 .realtime-spotlight__signal i:nth-child(3) {
-  height: 11px;
+  height: 10px;
   animation-delay: 0.24s;
-}
-
-.realtime-spotlight__lifetime {
-  position: absolute;
-  z-index: 5;
-  right: 12px;
-  bottom: 0;
-  left: 12px;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 999px 999px 0 0;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.realtime-spotlight__lifetime::after {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, var(--spotlight-accent));
-  box-shadow: 0 0 9px color-mix(in srgb, var(--spotlight-accent) 38%, transparent);
-  content: "";
-  transform-origin: left center;
-  animation: realtime-spotlight-lifetime 7s linear forwards;
-}
-
-.realtime-spotlight.is-compact .realtime-spotlight__lifetime::after {
-  animation-duration: 4.5s;
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__copy > strong {
@@ -438,152 +299,64 @@
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__copy > small {
-  font-size: 7px;
+  font-size: 7.5px;
 }
 
 .realtime-spotlight.is-compact .realtime-spotlight__copy > em {
   font-size: 8.5px;
 }
 
+@keyframes realtime-spotlight-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px) scale(0.982);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 @keyframes realtime-spotlight-pulse {
   0%,
   100% {
-    opacity: 0.25;
-    transform: scaleY(0.68);
+    opacity: 0.28;
+    transform: scaleY(0.72);
   }
 
   50% {
-    opacity: 0.88;
+    opacity: 0.82;
     transform: scaleY(1);
   }
 }
 
-@keyframes realtime-spotlight-beacon {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: rotate(45deg) scale(0.78);
-  }
-
-  50% {
-    opacity: 1;
-    transform: rotate(45deg) scale(1);
-  }
-}
-
-@keyframes realtime-spotlight-glow {
-  0%,
-  100% {
-    opacity: 0.42;
-    transform: scale(0.92);
-  }
-
-  50% {
-    opacity: 0.78;
-    transform: scale(1.08);
-  }
-}
-
-@keyframes realtime-spotlight-scan {
-  0%,
-  22% {
-    left: -25%;
-    opacity: 0;
-  }
-
-  34% {
-    opacity: 0.9;
-  }
-
-  66% {
-    opacity: 0.55;
-  }
-
-  82%,
-  100% {
-    left: 112%;
-    opacity: 0;
-  }
-}
-
-@keyframes realtime-spotlight-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes realtime-spotlight-lifetime {
-  from {
-    transform: scaleX(1);
-  }
-
-  to {
-    transform: scaleX(0);
-  }
-}
-
-@media (max-width: 520px) {
+@media (max-width: 374px) {
   .realtime-spotlight {
-    top: max(10px, env(safe-area-inset-top, 0px));
-    grid-template-columns: 76px minmax(0, 1fr) 15px;
-    gap: 10px;
-    width: calc(100vw - 20px);
-    min-height: 104px;
-    padding: 12px 12px 13px 8px;
-    border-radius: 18px;
+    grid-template-columns: 72px minmax(0, 1fr) 14px;
+    width: calc(100vw - 18px);
+    padding-left: 8px;
   }
 
   .realtime-spotlight__visual {
-    width: 76px;
-    height: 76px;
-  }
-
-  .realtime-spotlight__copy > strong {
-    font-size: 12.5px;
+    width: 72px;
+    height: 72px;
   }
 
   .realtime-spotlight.is-compact {
-    grid-template-columns: 46px minmax(0, 1fr) 12px;
-    width: calc(100vw - 16px);
-    min-height: 64px;
-    padding: 8px 9px;
+    grid-template-columns: 44px minmax(0, 1fr) 12px;
   }
 
   .realtime-spotlight.is-compact .realtime-spotlight__visual {
-    width: 46px;
-    height: 46px;
-  }
-}
-
-@media (max-width: 360px) {
-  .realtime-spotlight {
-    grid-template-columns: 66px minmax(0, 1fr) 12px;
-    width: calc(100vw - 14px);
-    gap: 8px;
-  }
-
-  .realtime-spotlight__visual {
-    width: 66px;
-    height: 66px;
-  }
-
-  .realtime-spotlight__copy > small {
-    font-size: 6.7px;
-  }
-
-  .realtime-spotlight__copy > p {
-    -webkit-line-clamp: 1;
+    width: 44px;
+    height: 44px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .feature-loading i,
-  .realtime-spotlight::after,
-  .realtime-spotlight__scan,
-  .realtime-spotlight__visual::after,
-  .realtime-spotlight__copy > small > i,
-  .realtime-spotlight__signal i,
-  .realtime-spotlight__lifetime::after {
+  .realtime-spotlight,
+  .realtime-spotlight__signal i {
     animation: none;
   }
 }

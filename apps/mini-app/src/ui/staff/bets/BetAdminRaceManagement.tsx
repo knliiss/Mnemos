@@ -266,7 +266,10 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
             const winner = race.participants.find((participant) => isRaceWinner(race, participant))
 
             return (
-              <div key={race.id} className={`bet-admin-race-entry ${expanded ? "is-expanded" : ""}`}>
+              <div
+                key={race.id}
+                className={`bet-admin-race-entry ${expanded ? "is-expanded" : ""}`}
+              >
                 <article className="bet-admin-race-card">
                   <span className="bet-admin-race-card__art">
                     <ItemTypeArt itemType={race.itemType} size={52} />
@@ -289,7 +292,11 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                     <small>{t("betAdmin.bank")}</small>
                   </span>
                   <span className="bet-admin-race-card__actions">
-                    <button type="button" className="is-details" onClick={() => toggleRace(race.id)}>
+                    <button
+                      type="button"
+                      className="is-details"
+                      onClick={() => toggleRace(race.id)}
+                    >
                       {expanded ? t("betAdmin.hideParticipants") : t("betAdmin.viewParticipants")}
                     </button>
                     {cancellable ? (
@@ -368,7 +375,9 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                                 <small>{participant.accountId}</small>
                               </span>
                               {won ? (
-                                <span className="bet-admin-winner-badge">{t("betAdmin.winner")}</span>
+                                <span className="bet-admin-winner-badge">
+                                  {t("betAdmin.winner")}
+                                </span>
                               ) : (
                                 <span className="bet-admin-ledger-row__status">
                                   {t(`bets.raceParticipantStatus.${participant.status}`, {
