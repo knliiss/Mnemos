@@ -4,5 +4,4 @@ enum class DropLeaderboardSort {
     TOTAL,
     MYTHICAL,
     SECRET,
-    RECENT,
 }
