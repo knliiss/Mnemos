@@ -5,8 +5,11 @@ import type {
   RealtimeEventListener,
 } from "./realtime.types"
 
+export type RealtimeConnectionState = "CONNECTED" | "DISCONNECTED"
+
 const eventListeners = new Set<RealtimeEventListener>()
 const broadcastListeners = new Set<RealtimeBroadcastListener>()
+const connectionListeners = new Set<(state: RealtimeConnectionState) => void>()
 
 export const realtimeEvents = {
   publish(event: RealtimeEvent) {
@@ -32,6 +35,20 @@ export const realtimeBroadcasts = {
 
     return () => {
       broadcastListeners.delete(listener)
+    }
+  },
+}
+
+export const realtimeConnectionEvents = {
+  publish(state: RealtimeConnectionState) {
+    connectionListeners.forEach((listener) => listener(state))
+  },
+
+  subscribe(listener: (state: RealtimeConnectionState) => void) {
+    connectionListeners.add(listener)
+
+    return () => {
+      connectionListeners.delete(listener)
     }
   },
 }
