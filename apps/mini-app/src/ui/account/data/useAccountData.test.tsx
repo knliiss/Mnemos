@@ -6,7 +6,7 @@ import type { BalanceResponse, DailyRewardStateResponse } from "@/shared/api/bac
 import { getAccountMembers, getAccountRoles } from "@/shared/api/accountApi"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
-import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { realtimeConnectionEvents, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { useAccountData } from "./useAccountData"
 
 vi.mock("@/shared/api/accountApi", () => ({
@@ -289,6 +289,34 @@ describe("useAccountData", () => {
 
     act(() => {
       window.dispatchEvent(new Event("focus"))
+    })
+
+    await waitFor(() => {
+      expect(result.current.prime).toBe(35)
+      expect(result.current.accountCoin).toBe(160)
+    })
+
+    expect(getCurrentUserBalances).toHaveBeenCalledTimes(2)
+    expect(getAccountBalances).toHaveBeenCalledTimes(2)
+  })
+
+  it("reconciles wallet balances when realtime reconnects", async () => {
+    vi.mocked(getCurrentUserBalances)
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 10 }])
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 35 }])
+    vi.mocked(getAccountBalances)
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 100 }])
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 160 }])
+
+    const { result } = renderHook(() => useAccountData("account-a", undefined))
+
+    await waitFor(() => {
+      expect(result.current.prime).toBe(10)
+      expect(result.current.accountCoin).toBe(100)
+    })
+
+    act(() => {
+      realtimeConnectionEvents.publish("CONNECTED")
     })
 
     await waitFor(() => {
