@@ -132,8 +132,7 @@ async function initialize(): Promise<void> {
   const initDataUserId = await resolveTelegramSessionUserId(telegram)
   const storedSession = await loadTelegramKeycloakSession(telegram)
   const telegramUserId = initDataUserId ?? storedSession?.telegramUserId ?? null
-  const resumableSession =
-    storedSession?.telegramUserId === telegramUserId ? storedSession : null
+  const resumableSession = storedSession?.telegramUserId === telegramUserId ? storedSession : null
 
   if (storedSession && !resumableSession) {
     await clearTelegramKeycloakSession(telegram)
