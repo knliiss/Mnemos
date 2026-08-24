@@ -6,11 +6,7 @@ type LeaderboardPaginationProps = {
   onChange: (page: number) => void
 }
 
-export function LeaderboardPagination({
-  page,
-  totalPages,
-  onChange,
-}: LeaderboardPaginationProps) {
+export function LeaderboardPagination({ page, totalPages, onChange }: LeaderboardPaginationProps) {
   const { t } = useTranslation()
 
   if (totalPages <= 1) {
