@@ -3,10 +3,12 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+extra["tomcat.version"] = "11.0.24"
+
 dependencyManagement {
     imports {
         mavenBom(
-            "org.springframework.boot:spring-boot-dependencies:4.1.0",
+            "org.springframework.boot:spring-boot-dependencies:4.1.1",
         )
     }
 }

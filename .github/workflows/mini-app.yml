@@ -6,10 +6,12 @@ on:
       - master
     paths:
       - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
       - ".github/workflows/mini-app.yml"
   pull_request:
     paths:
       - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
@@ -18,7 +20,6 @@ concurrency:
 
 permissions:
   contents: read
-  statuses: write
 
 jobs:
   verify:
@@ -30,10 +31,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: apps/mini-app/.node-version
           cache: npm
@@ -67,6 +68,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify browser security headers
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/verify-mini-app-security-headers.sh
+          sh scripts/verify-mini-app-security-headers.sh
+
       - name: Check bundle budgets
         shell: bash
         run: |
@@ -86,18 +95,25 @@ jobs:
             exit 1
           fi
 
+  report:
+    if: always() && github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+
+    permissions:
+      statuses: write
+
+    steps:
       - name: Publish verification status
-        if: always() && github.event_name == 'push'
-        working-directory: .
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          JOB_STATUS: ${{ job.status }}
+          VERIFY_STATUS: ${{ needs.verify.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
-          if [ "$JOB_STATUS" = "success" ]; then
+          if [ "$VERIFY_STATUS" = "success" ]; then
             state="success"
           else
             state="failure"
@@ -106,7 +122,7 @@ jobs:
           payload="$(jq -n \
             --arg state "$state" \
             --arg target_url "$RUN_URL" \
-            --arg description "Production Mini App verify: $JOB_STATUS" \
+            --arg description "Production Mini App verify: $VERIFY_STATUS" \
             --arg context "mini-app/verify" \
             '{state:$state,target_url:$target_url,description:$description,context:$context}')"
 

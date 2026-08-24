@@ -8,7 +8,11 @@ import com.mnemos.notification.application.notification.delivery.model.RenderedM
 import com.mnemos.notification.application.notification.delivery.port.out.MessageDeliveryGateway
 import com.mnemos.notification.configuration.telegram.TelegramBotProperties
 import com.pengrad.telegrambot.TelegramBot
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup
+import com.pengrad.telegrambot.model.request.ReplyKeyboardRemove
+import com.pengrad.telegrambot.request.EditMessageReplyMarkup
 import com.pengrad.telegrambot.request.SendMessage
+import com.pengrad.telegrambot.response.BaseResponse
 import com.pengrad.telegrambot.response.SendResponse
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -34,33 +38,69 @@ class TelegramMessageDeliveryGateway(
                 request.parseMode(it)
             }
 
-            message.toReplyMarkup(properties.miniAppUrl)?.let {
-                request.replyMarkup(it)
-            }
+            val replyMarkup = message.toReplyMarkup(properties.miniAppUrl)
 
-            val response: SendResponse = bot.execute(request)
+            if (replyMarkup is InlineKeyboardMarkup) {
+                deliverWithLegacyReplyKeyboardRemoval(
+                    telegramId = telegramId,
+                    request = request,
+                    replyMarkup = replyMarkup,
+                )
+            } else {
+                replyMarkup?.let {
+                    request.replyMarkup(it)
+                }
 
-            when {
-                response.isOk() ->
-                    DeliveryResult.Delivered
-
-                response.errorCode() == 403 ->
-                    DeliveryResult.PermanentFailure(
-                        "TELEGRAM_BLOCKED",
-                    )
-
-                response.errorCode() == 429 ->
-                    DeliveryResult.Retryable()
-
-                response.errorCode() >= 500 ->
-                    DeliveryResult.Retryable()
-
-                else ->
-                    DeliveryResult.PermanentFailure(
-                        response.description() ?: "Telegram delivery failed",
-                    )
+                bot.execute(request).toDeliveryResult()
             }
         } catch (_: Exception) {
             DeliveryResult.Retryable()
+        }
+
+    private fun deliverWithLegacyReplyKeyboardRemoval(
+        telegramId: TelegramId,
+        request: SendMessage,
+        replyMarkup: InlineKeyboardMarkup,
+    ): DeliveryResult {
+        request.replyMarkup(ReplyKeyboardRemove())
+
+        val sendResponse: SendResponse = bot.execute(request)
+        val sendResult = sendResponse.toDeliveryResult()
+
+        if (sendResult != DeliveryResult.Delivered) {
+            return sendResult
+        }
+
+        val messageId =
+            sendResponse.message()?.messageId()
+                ?: return DeliveryResult.Retryable()
+        val editRequest =
+            EditMessageReplyMarkup(telegramId.id, messageId)
+                .replyMarkup(replyMarkup)
+        val editResponse: BaseResponse = bot.execute(editRequest)
+
+        return editResponse.toDeliveryResult()
+    }
+
+    private fun BaseResponse.toDeliveryResult(): DeliveryResult =
+        when {
+            isOk() ->
+                DeliveryResult.Delivered
+
+            errorCode() == 403 ->
+                DeliveryResult.PermanentFailure(
+                    "TELEGRAM_BLOCKED",
+                )
+
+            errorCode() == 429 ->
+                DeliveryResult.Retryable()
+
+            errorCode() >= 500 ->
+                DeliveryResult.Retryable()
+
+            else ->
+                DeliveryResult.PermanentFailure(
+                    description() ?: "Telegram delivery failed",
+                )
         }
 }

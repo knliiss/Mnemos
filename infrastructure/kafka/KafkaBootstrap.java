@@ -2,10 +2,11 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
+import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
-import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 
 import java.util.ArrayList;
@@ -18,6 +19,21 @@ import java.util.Set;
 public final class KafkaBootstrap {
     private static final short REPLICATION_FACTOR = 1;
 
+    private static final Set<String> MANAGED_SERVICE_PRINCIPALS = Set.of(
+            "User:account_service",
+            "User:wallet_service",
+            "User:event_service",
+            "User:notification_service",
+            "User:reward_service",
+            "User:bet_service",
+            "User:moderation_service",
+            "User:gateway_service",
+            "User:realtime_service",
+            "User:personalization_service",
+            "User:social_service",
+            "User:profile_service"
+    );
+
     private KafkaBootstrap() {
     }
 
@@ -26,7 +42,7 @@ public final class KafkaBootstrap {
 
         try (Admin admin = Admin.create(properties)) {
             createTopics(admin);
-            createAcls(admin);
+            reconcileAcls(admin);
         }
 
         System.out.println("Kafka topics and ACLs are configured.");
@@ -35,11 +51,13 @@ public final class KafkaBootstrap {
     private static Properties adminProperties() {
         String bootstrapServer = requiredEnvironment("KAFKA_BOOTSTRAP_SERVER");
         String adminPassword = requiredEnvironment("KAFKA_ADMIN_PASSWORD");
+        String tlsStorePassword = requiredEnvironment("KAFKA_TLS_STORE_PASSWORD");
+        String tlsTruststoreLocation = requiredEnvironment("KAFKA_TLS_TRUSTSTORE_LOCATION");
 
         Properties properties = new Properties();
 
         properties.put("bootstrap.servers", bootstrapServer);
-        properties.put("security.protocol", "SASL_PLAINTEXT");
+        properties.put("security.protocol", "SASL_SSL");
         properties.put("sasl.mechanism", "PLAIN");
         properties.put(
                 "sasl.jaas.config",
@@ -47,6 +65,9 @@ public final class KafkaBootstrap {
                         + "username=\"kafka_admin\" "
                         + "password=\"" + adminPassword + "\";"
         );
+        properties.put("ssl.truststore.location", tlsTruststoreLocation);
+        properties.put("ssl.truststore.password", tlsStorePassword);
+        properties.put("ssl.truststore.type", "PKCS12");
 
         properties.put("client.id", "mnemos-kafka-bootstrap");
         properties.put("request.timeout.ms", "30000");
@@ -159,7 +180,64 @@ public final class KafkaBootstrap {
         ).configs(configs);
     }
 
-    private static void createAcls(Admin admin) throws Exception {
+    private static void reconcileAcls(Admin admin) throws Exception {
+        Set<AclBinding> desiredAcls = desiredAcls();
+        Set<AclBinding> existingAcls = new LinkedHashSet<>(
+                admin
+                        .describeAcls(AclBindingFilter.ANY)
+                        .values()
+                        .get()
+        );
+
+        List<AclBinding> staleManagedAcls = existingAcls
+                .stream()
+                .filter(KafkaBootstrap::isManagedServiceAllowAcl)
+                .filter(acl -> !desiredAcls.contains(acl))
+                .toList();
+
+        if (!staleManagedAcls.isEmpty()) {
+            admin
+                    .deleteAcls(
+                            staleManagedAcls
+                                    .stream()
+                                    .map(AclBinding::toFilter)
+                                    .toList()
+                    )
+                    .all()
+                    .get();
+        }
+
+        List<AclBinding> missingAcls = desiredAcls
+                .stream()
+                .filter(acl -> !existingAcls.contains(acl))
+                .toList();
+
+        if (!missingAcls.isEmpty()) {
+            admin
+                    .createAcls(missingAcls)
+                    .all()
+                    .get();
+        }
+
+        System.out.println(
+                "Kafka ACLs reconciled: "
+                        + desiredAcls.size()
+                        + " desired, "
+                        + staleManagedAcls.size()
+                        + " stale managed ACLs removed, "
+                        + missingAcls.size()
+                        + " missing ACLs created."
+        );
+    }
+
+    private static boolean isManagedServiceAllowAcl(AclBinding acl) {
+        AccessControlEntry entry = acl.entry();
+
+        return entry.permissionType() == AclPermissionType.ALLOW
+                && MANAGED_SERVICE_PRINCIPALS.contains(entry.principal());
+    }
+
+    private static Set<AclBinding> desiredAcls() {
         Set<AclBinding> acls = new LinkedHashSet<>();
 
         allowTopicWrite(
@@ -377,12 +455,7 @@ public final class KafkaBootstrap {
                 "mnemos.personalization.events.v1"
         );
 
-        admin
-                .createAcls(acls)
-                .all()
-                .get();
-
-        System.out.println("Configured " + acls.size() + " Kafka ACLs.");
+        return acls;
     }
 
     private static void allowConsumer(

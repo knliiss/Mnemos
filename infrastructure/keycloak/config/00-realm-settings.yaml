@@ -22,10 +22,14 @@ minimumQuickLoginWaitSeconds: 60
 quickLoginCheckMilliSeconds: 1000
 maxDeltaTimeSeconds: 43200
 
+revokeRefreshToken: true
+refreshTokenMaxReuse: 0
 accessTokenLifespan: 600
 ssoSessionIdleTimeout: 86400
 ssoSessionMaxLifespan: 604800
 offlineSessionIdleTimeout: 2592000
+offlineSessionMaxLifespanEnabled: true
+offlineSessionMaxLifespan: 5184000
 
 passwordPolicy: "length(10) and maxLength(128) and notUsername(undefined)"
 

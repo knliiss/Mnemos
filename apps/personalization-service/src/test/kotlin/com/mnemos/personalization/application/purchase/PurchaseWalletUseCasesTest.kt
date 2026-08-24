@@ -12,6 +12,7 @@ import com.mnemos.personalization.application.purchase.usecase.failwallet.FailPu
 import com.mnemos.personalization.application.wallet.model.WalletResultContext
 import com.mnemos.personalization.contracts.event.PersonalizationPurchaseCompletedV1
 import com.mnemos.personalization.contracts.shared.PersonalizationPurchaseStatus
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -344,6 +345,10 @@ class PurchaseWalletUseCasesTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {

@@ -8,6 +8,8 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+extra["tomcat.version"] = "11.0.24"
+
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")

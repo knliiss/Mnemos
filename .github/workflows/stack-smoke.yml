@@ -11,13 +11,26 @@ on:
       - "infrastructure/kafka/**"
       - "infrastructure/keycloak/**"
       - "infrastructure/minio-init/**"
+      - "infrastructure/postgres/**"
+      - "infrastructure/redis/**"
       - "make/**"
       - "scripts/docker-compose-env.sh"
+      - "scripts/ensure-kafka-tls-secret.sh"
+      - "scripts/validate-compose-secrets.sh"
       - "scripts/generate-kafka-message-keys.sh"
       - "scripts/verify-compose-env-isolation.sh"
+      - "scripts/verify-compose-secret-validation.sh"
+      - "scripts/verify-internal-api-authorization.sh"
+      - "scripts/verify-kafka-acl-reconciliation-runtime.sh"
       - "scripts/verify-kafka-message-auth.sh"
       - "scripts/verify-kafka-message-auth-runtime.sh"
       - "scripts/verify-kafka-service-config.sh"
+      - "scripts/verify-kafka-transport-security.sh"
+      - "scripts/verify-minio-policy-reconciliation-runtime.sh"
+      - "scripts/verify-postgres-legacy-ownership-migration.sh"
+      - "scripts/verify-redis-service-config.sh"
+      - "scripts/verify-redis-service-isolation-runtime.sh"
+      - "scripts/verify-resource-server-audience.sh"
       - "build.gradle.kts"
       - "settings.gradle.kts"
       - "gradle/**"
@@ -38,16 +51,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
 
       - name: Prepare isolated environment
         shell: bash
@@ -63,6 +76,10 @@ jobs:
             sed -i "s|^${key}=.*|${key}=${value}|" .env.ci
           }
 
+          for key in $(sh scripts/validate-compose-secrets.sh --list-required); do
+            set_env "$key" "ci-${GITHUB_RUN_ID}-${key}-secure-value"
+          done
+
           port_base=$((40000 + GITHUB_RUN_ID % 10000))
 
           set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
@@ -76,13 +93,13 @@ jobs:
           set_env MNEMOS_FRONTEND_ORIGIN "http://127.0.0.1:$((port_base + 6))"
           set_env MNEMOS_API_ORIGIN "http://127.0.0.1:$((port_base + 5))"
           set_env MNEMOS_AUTH_ORIGIN "http://127.0.0.1:$((port_base + 2))"
-          set_env MNEMOS_TELEGRAM_BOT_TOKEN "ci-not-used"
-          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_TOKEN "ci-not-used"
-          set_env CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY "ci-not-used"
 
-          scripts/verify-kafka-service-config.sh
-          scripts/generate-kafka-message-keys.sh .env.ci
-          scripts/verify-kafka-message-auth.sh .env.ci
+          sh scripts/validate-compose-secrets.sh .env.ci
+          sh scripts/verify-kafka-service-config.sh
+          sh scripts/verify-kafka-transport-security.sh
+          sh scripts/verify-redis-service-config.sh
+          sh scripts/generate-kafka-message-keys.sh .env.ci
+          sh scripts/verify-kafka-message-auth.sh .env.ci
 
           for key in \
             SOCIAL_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
@@ -103,9 +120,6 @@ jobs:
           compose_command+=" -f .github/ci/compose-isolation.override.yml"
           echo "CI_COMPOSE_COMMAND=${compose_command}" >> "$GITHUB_ENV"
 
-          # Deliberately poison the runner environment. Docker Compose normally gives
-          # exported shell variables precedence over --env-file, which previously
-          # allowed stale Kafka key material to override the generated environment.
           echo "MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS=account-service=stale-shell-key" >> "$GITHUB_ENV"
           echo "ACCOUNT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY=stale-shell-private-key" >> "$GITHUB_ENV"
           echo "KAFKA_ACCOUNT_SERVICE_PASSWORD=stale-shell-password" >> "$GITHUB_ENV"
@@ -129,7 +143,14 @@ jobs:
           STARTUP_CHECK_DELAY=45 make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
           sleep 20
           make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
-          scripts/verify-kafka-message-auth-runtime.sh .env.ci
+          sh scripts/verify-kafka-message-auth-runtime.sh .env.ci
+          sh scripts/verify-kafka-acl-reconciliation-runtime.sh .env.ci
+
+      - name: Verify Redis service isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/verify-redis-service-isolation-runtime.sh .env.ci
 
       - name: Verify MinIO isolation
         shell: bash
@@ -159,6 +180,8 @@ jobs:
 
           $CI_COMPOSE_COMMAND exec -T personalization-service sh -ec \
             'test -n "$MINIO_PERSONALIZATION_ACCESS_KEY" && test -n "$MINIO_PERSONALIZATION_SECRET_KEY"'
+
+          sh scripts/verify-minio-policy-reconciliation-runtime.sh .env.ci
 
       - name: Verify Flyway schemas
         shell: bash
@@ -198,14 +221,129 @@ jobs:
             echo "${schema}: ${migrations} migrations"
           done
 
+      - name: Verify PostgreSQL service isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          read_env() {
+            local key="$1"
+
+            awk -F= -v key="$key" '
+              $1 == key {
+                print substr($0, length(key) + 2)
+                exit
+              }
+            ' .env.ci
+          }
+
+          admin_user="$(read_env APP_POSTGRES_USER)"
+          database="$(read_env APP_POSTGRES_DB)"
+          schemas=(account wallet event notification reward bet moderation realtime personalization social profile)
+          mappings=""
+
+          for schema in "${schemas[@]}"; do
+            role_key="$(printf '%s_POSTGRES_USER' "$schema" | tr '[:lower:]' '[:upper:]')"
+            role="$(read_env "$role_key")"
+
+            if [ -z "$role" ]; then
+              echo "Missing PostgreSQL role for ${schema}" >&2
+              exit 1
+            fi
+
+            if [ -n "$mappings" ]; then
+              mappings+=","
+            fi
+
+            mappings+="('${role}','${schema}')"
+          done
+
+          query_count() {
+            local query="$1"
+
+            $CI_COMPOSE_COMMAND exec -T app-postgres \
+              psql \
+              --username "$admin_user" \
+              --dbname "$database" \
+              --tuples-only \
+              --no-align \
+              --command "$query" |
+              tr -d '[:space:]'
+          }
+
+          unsafe_roles="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles service
+            JOIN pg_roles role ON role.rolname = service.role_name
+            WHERE role.rolsuper
+               OR role.rolcreatedb
+               OR role.rolcreaterole
+               OR role.rolbypassrls;
+          ")"
+
+          wrong_owners="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles service
+            JOIN pg_namespace namespace ON namespace.nspname = service.own_schema
+            JOIN pg_roles owner ON owner.oid = namespace.nspowner
+            WHERE owner.rolname <> service.role_name;
+          ")"
+
+          cross_schema_access="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles caller
+            CROSS JOIN service_roles target
+            WHERE caller.role_name <> target.role_name
+              AND has_schema_privilege(caller.role_name, target.own_schema, 'USAGE');
+          ")"
+
+          if [ "$unsafe_roles" != "0" ]; then
+            echo "One or more service database roles have elevated PostgreSQL privileges" >&2
+            exit 1
+          fi
+
+          if [ "$wrong_owners" != "0" ]; then
+            echo "One or more service schemas have the wrong PostgreSQL owner" >&2
+            exit 1
+          fi
+
+          if [ "$cross_schema_access" != "0" ]; then
+            echo "One or more service roles can access another service schema" >&2
+            exit 1
+          fi
+
+          echo "PostgreSQL service isolation verified"
+
+      - name: Verify PostgreSQL legacy ownership migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/verify-postgres-legacy-ownership-migration.sh \
+            .env.ci \
+            .github/ci/compose-isolation.override.yml
+
       - name: Diagnose stack failure
         if: failure()
         shell: bash
         run: |
           set +e
 
+          if [ -z "${CI_COMPOSE_COMMAND:-}" ]; then
+            echo "Compose command was not initialized; failure happened during environment preparation."
+            exit 0
+          fi
+
           echo "=== Compose state ==="
           $CI_COMPOSE_COMMAND ps -a
+
+          echo "=== PostgreSQL security init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 app-postgres-security-init
+
+          echo "=== Kafka TLS init logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 kafka-tls-init
 
           echo "=== Kafka health ==="
           kafka_container="$($CI_COMPOSE_COMMAND ps -q kafka)"
@@ -220,6 +358,9 @@ jobs:
 
           echo "=== Kafka init logs ==="
           $CI_COMPOSE_COMMAND logs --no-color --tail=200 kafka-init
+
+          echo "=== Redis logs ==="
+          $CI_COMPOSE_COMMAND logs --no-color --tail=200 redis
 
           echo "=== Keycloak config logs ==="
           $CI_COMPOSE_COMMAND logs --no-color --tail=200 keycloak-config

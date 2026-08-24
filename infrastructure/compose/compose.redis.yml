@@ -1,12 +1,21 @@
 services:
   redis:
-    image: "redis:${REDIS_VERSION}"
+    build:
+      context: ../..
+      dockerfile: infrastructure/redis/Dockerfile
+      args:
+        REDIS_VERSION: ${REDIS_VERSION}
+
+    image: "${COMPOSE_PROJECT_NAME}-redis:${REDIS_VERSION}"
     container_name: "${COMPOSE_PROJECT_NAME}-redis"
     hostname: "redis"
     restart: unless-stopped
 
     environment:
-      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD}
+      REDIS_GATEWAY_PASSWORD: ${REDIS_GATEWAY_PASSWORD}
+      REDIS_REALTIME_PASSWORD: ${REDIS_REALTIME_PASSWORD}
+      REDIS_NOTIFICATION_PASSWORD: ${REDIS_NOTIFICATION_PASSWORD}
 
     command:
       - redis-server
@@ -18,17 +27,20 @@ services:
       - "${REDIS_MAXMEMORY}"
       - --maxmemory-policy
       - noeviction
-      - --requirepass
-      - "${REDIS_PASSWORD}"
+      - --aclfile
+      - /run/mnemos-redis/users.acl
 
     ports:
-      - "${REDIS_HOST_PORT}:6379"
+      - "${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${REDIS_HOST_PORT}:6379"
 
     volumes:
       - "redis-data:/data"
 
     healthcheck:
-      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      test:
+        - CMD-SHELL
+        - >-
+          REDISCLI_AUTH="$$REDIS_ADMIN_PASSWORD" redis-cli --user redis_admin ping | grep -q PONG
       interval: 5s
       timeout: 5s
       retries: 10

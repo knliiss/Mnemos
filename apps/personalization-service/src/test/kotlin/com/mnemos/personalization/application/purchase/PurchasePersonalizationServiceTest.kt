@@ -11,6 +11,7 @@ import com.mnemos.personalization.application.purchase.port.out.PersonalizationW
 import com.mnemos.personalization.application.purchase.usecase.purchase.PurchasePersonalizationService
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -305,6 +306,10 @@ class PurchasePersonalizationServiceTest {
         override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> = emptyList()
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = emptyList()
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {

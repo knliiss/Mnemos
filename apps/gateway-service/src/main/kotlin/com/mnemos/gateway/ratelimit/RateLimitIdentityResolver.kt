@@ -1,14 +1,15 @@
 package com.mnemos.gateway.ratelimit
 
+import com.mnemos.gateway.clientip.GatewayClientIpResolver
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
-import java.net.InetSocketAddress
 
 @Component
 class RateLimitIdentityResolver(
     private val userRoleResolver: JwtUserRoleResolver,
+    private val clientIpResolver: GatewayClientIpResolver,
 ) {
     fun resolve(exchange: ServerWebExchange): Mono<RateLimitIdentity> =
         exchange
@@ -29,20 +30,14 @@ class RateLimitIdentityResolver(
             }.switchIfEmpty(
                 Mono.fromSupplier {
                     RateLimitIdentity(
-                        key = "ip:${resolveAddress(exchange.request.remoteAddress)}",
+                        key = "ip:${clientIpResolver.resolve(exchange.request)}",
                         role = null,
                     )
                 },
             )
 
-    private fun resolveAddress(remoteAddress: InetSocketAddress?): String =
-        remoteAddress?.address?.hostAddress
-            ?: remoteAddress?.hostString
-            ?: UNKNOWN_ADDRESS
-
     private companion object {
         const val MNEMOS_USER_ID_CLAIM = "mnemos_user_id"
         const val REALM_ACCESS_CLAIM = "realm_access"
-        const val UNKNOWN_ADDRESS = "unknown"
     }
 }

@@ -86,4 +86,39 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
         creatorUserId: UUID,
         pageable: Pageable,
     ): Page<PersonalizationEntity>
+
+    @Query(
+        value =
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM personalizations personalization
+                WHERE personalization.status IN ('PUBLISHED', 'UNLISTED')
+                  AND personalization.visibility = 'PUBLIC'
+                  AND (personalization.content -> 'layers') @>
+                      jsonb_build_array(
+                          jsonb_build_object('assetId', CAST(:assetId AS text))
+                      )
+            )
+            """,
+        nativeQuery = true,
+    )
+    fun existsPublicAssetReference(assetId: UUID): Boolean
+
+    @Query(
+        value =
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM personalizations personalization
+                WHERE personalization.status IN ('IN_REVIEW', 'APPROVED')
+                  AND (personalization.content -> 'layers') @>
+                      jsonb_build_array(
+                          jsonb_build_object('assetId', CAST(:assetId AS text))
+                      )
+            )
+            """,
+        nativeQuery = true,
+    )
+    fun existsReviewableAssetReference(assetId: UUID): Boolean
 }

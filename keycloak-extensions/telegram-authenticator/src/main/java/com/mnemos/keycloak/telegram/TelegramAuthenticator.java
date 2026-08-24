@@ -42,24 +42,15 @@ public final class TelegramAuthenticator implements Authenticator {
     @Override
     public void authenticate(AuthenticationFlowContext context) {
         try {
-            String initData = context.getHttpRequest().getUri().getQueryParameters().getFirst(INIT_DATA_PARAMETER);
             LOGGER.debugf(
-                    "Telegram authentication started: realm=%s, clientId=%s, hasInitData=%s, initDataLength=%d",
+                    "Telegram authentication challenge started: realm=%s, clientId=%s",
                     context.getRealm().getName(),
-                    context.getAuthenticationSession().getClient().getClientId(),
-                    initData != null && !initData.isBlank(),
-                    initData != null ? initData.length() : 0
+                    context.getAuthenticationSession().getClient().getClientId()
             );
 
-            if (initData == null || initData.isBlank()) {
-                LOGGER.debug("Telegram authentication requires a challenge because initData is not present");
-                context.challenge(context.form().createForm(TELEGRAM_LOGIN_TEMPLATE));
-                return;
-            }
-
-            authenticateTelegramUser(context, initData);
+            context.challenge(context.form().createForm(TELEGRAM_LOGIN_TEMPLATE));
         } catch (Exception exception) {
-            LOGGER.error("Unexpected error while reading Telegram authentication request", exception);
+            LOGGER.error("Unexpected error while creating Telegram authentication challenge", exception);
             fail(
                     context,
                     AuthenticationFlowError.INTERNAL_ERROR,

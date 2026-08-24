@@ -1,0 +1,8 @@
+ARG KAFKA_VERSION
+FROM apache/kafka:${KAFKA_VERSION}
+
+USER root
+
+COPY --chmod=0755 infrastructure/kafka/init-kafka-tls.sh /opt/mnemos/init-kafka-tls.sh
+
+ENTRYPOINT ["/opt/mnemos/init-kafka-tls.sh"]

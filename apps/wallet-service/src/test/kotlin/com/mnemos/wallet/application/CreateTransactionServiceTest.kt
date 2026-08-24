@@ -128,7 +128,7 @@ class CreateTransactionServiceTest {
     }
 
     @Test
-    fun `same request id with another payload is rejected`() {
+    fun `same request id with another payload preserves completed terminal event`() {
         val owner = WalletOwner.Account(AccountId.generate())
         val original = request(owner = owner, currency = Currency.COIN, type = TransactionType.CREDIT, amount = 100)
         val conflicting = original.copy(amount = 200)
@@ -142,6 +142,47 @@ class CreateTransactionServiceTest {
         )
         assertEquals(100, balances.get(owner, Currency.COIN).amount.value)
         assertEquals(1, transactions.values.size)
+        assertEquals(1, eventPublisher.events.size)
+        assertInstanceOf(
+            WalletTransactionCompletedEvent::class.java,
+            eventPublisher.events
+                .single()
+                .event.payload,
+        )
+    }
+
+    @Test
+    fun `same request id with another payload preserves failed terminal event`() {
+        val owner = WalletOwner.Account(AccountId.generate())
+        val original = request(owner = owner, currency = Currency.COIN, type = TransactionType.DEBIT, amount = 50)
+        val conflicting = original.copy(amount = 75)
+
+        val first = service.create(original, EventMetadata())
+        val conflictingResult = service.create(conflicting, EventMetadata())
+
+        assertEquals(
+            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
+            (first as CreateTransactionResult.Failed).reason,
+        )
+        assertEquals(
+            WalletTransactionFailureReason.IDEMPOTENCY_CONFLICT,
+            (conflictingResult as CreateTransactionResult.Failed).reason,
+        )
+        assertEquals(0, transactions.values.size)
+        assertEquals(1, eventPublisher.events.size)
+
+        val publishedFailure =
+            assertInstanceOf(
+                WalletTransactionFailedEvent::class.java,
+                eventPublisher.events
+                    .single()
+                    .event.payload,
+            )
+
+        assertEquals(
+            WalletTransactionFailureReason.INSUFFICIENT_BALANCE,
+            publishedFailure.reason,
+        )
     }
 
     @Test

@@ -17,6 +17,12 @@ volumes:
   kafka-data:
     name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-data
 
+  kafka-server-tls:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-server-tls
+
+  kafka-client-tls:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-client-tls
+
   redis-data:
     name: ${COMPOSE_PROJECT_NAME:-mnemos}-redis-data
 

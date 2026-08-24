@@ -7,6 +7,7 @@ import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.configuration.pricing.PersonalizationPricingProperties
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -192,6 +193,10 @@ class CreateCustomNotificationPackServiceTest {
             personalizations.filter { it.creatorUserId == creatorUserId }
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> = personalizations.filter { it.status == status }
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 
     private class FakeOwnedPersonalizationRepository : OwnedPersonalizationRepository {

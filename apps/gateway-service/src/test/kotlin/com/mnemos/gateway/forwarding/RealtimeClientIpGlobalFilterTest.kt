@@ -1,5 +1,6 @@
 package com.mnemos.gateway.forwarding
 
+import com.mnemos.gateway.clientip.GatewayClientIpResolver
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -10,14 +11,19 @@ import reactor.core.publisher.Mono
 import java.net.InetSocketAddress
 
 class RealtimeClientIpGlobalFilterTest {
-    private val filter = RealtimeClientIpGlobalFilter(TEST_FORWARDING_TOKEN)
+    private val filter =
+        RealtimeClientIpGlobalFilter(
+            clientIpResolver = GatewayClientIpResolver(),
+            forwardingToken = TEST_FORWARDING_TOKEN,
+        )
 
     @Test
-    fun `realtime request replaces spoofed forwarding headers`() {
+    fun `realtime request forwards Cloudflare visitor address and replaces spoofed internal headers`() {
         val request =
             MockServerHttpRequest
                 .get("/api/v1/realtime/events")
-                .remoteAddress(InetSocketAddress("203.0.113.10", 443))
+                .remoteAddress(InetSocketAddress("192.0.2.10", 443))
+                .header(CLOUDFLARE_CONNECTING_IP_HEADER, "203.0.113.10")
                 .header(INTERNAL_CLIENT_IP_HEADER, "198.51.100.99")
                 .header(INTERNAL_FORWARDING_TOKEN_HEADER, "spoofed")
                 .build()
@@ -63,6 +69,7 @@ class RealtimeClientIpGlobalFilterTest {
     }
 
     private companion object {
+        const val CLOUDFLARE_CONNECTING_IP_HEADER = "CF-Connecting-IP"
         const val INTERNAL_CLIENT_IP_HEADER = "X-Mnemos-Client-IP"
         const val INTERNAL_FORWARDING_TOKEN_HEADER = "X-Mnemos-Forwarding-Token"
         const val TEST_FORWARDING_TOKEN = "test-realtime-forwarding-token"

@@ -1,6 +1,14 @@
 import Keycloak from "keycloak-js"
 import { AuthError } from "@/features/auth/api/authErrors"
 import { getTelegramInitDataState } from "@/features/auth/api/telegramInitData"
+import {
+  clearTelegramKeycloakSession,
+  loadTelegramKeycloakSession,
+  persistTelegramKeycloakSession,
+  type StoredTelegramKeycloakSession,
+} from "@/features/auth/api/telegramKeycloakSessionStorage"
+import { createTelegramLoginRedirectUrl } from "@/features/auth/api/telegramLoginTransport"
+import { resolveTelegramSessionUserId } from "@/features/auth/api/telegramSessionBinding"
 
 const keycloakUrl = (import.meta.env.VITE_KEYCLOAK_URL ?? "https://auth.knalis.rest").replace(
   /\/+$/,
@@ -69,6 +77,7 @@ export async function retryAuth(): Promise<void> {
       await current.updateToken(-1)
 
       if (current.token) {
+        await persistCurrentKeycloakSession(current)
         publishAuthRuntimeState("ready")
         startSessionMaintenance(current)
         return
@@ -114,11 +123,21 @@ export function subscribeAuthRuntimeState(listener: AuthRuntimeListener): () => 
 async function initialize(): Promise<void> {
   const telegram = window.Telegram?.WebApp
 
-  if (!telegram?.initData) {
+  if (!telegram) {
     throw new AuthError("TELEGRAM_REQUIRED")
   }
 
   configureTelegram(telegram)
+
+  const initDataUserId = await resolveTelegramSessionUserId(telegram)
+  const storedSession = await loadTelegramKeycloakSession(telegram)
+  const telegramUserId = initDataUserId ?? storedSession?.telegramUserId ?? null
+  const resumableSession = storedSession?.telegramUserId === telegramUserId ? storedSession : null
+
+  if (storedSession && !resumableSession) {
+    await clearTelegramKeycloakSession(telegram)
+  }
+
   await ensureAuthServiceAvailable()
 
   const candidate = createKeycloakClient()
@@ -135,6 +154,8 @@ async function initialize(): Promise<void> {
       flow: "standard",
       scope: OFFLINE_ACCESS_SCOPE,
       messageReceiveTimeout: AUTH_AVAILABILITY_TIMEOUT_MS,
+      token: resumableSession?.token,
+      refreshToken: resumableSession?.refreshToken,
     })
   } catch (error) {
     if (keycloak === candidate) {
@@ -157,30 +178,20 @@ async function initialize(): Promise<void> {
       throw new AuthError("TOKEN_MISSING")
     }
 
-    publishAuthRuntimeState("ready")
-    startSessionMaintenance(candidate)
-    return
-  }
-
-  if (getTelegramInitDataState(telegram.initData) !== "fresh") {
-    if (keycloak === candidate) {
-      keycloak = null
+    if (telegramUserId !== null && hasMatchingTelegramIdentity(candidate, telegramUserId)) {
+      await persistCurrentKeycloakSession(candidate)
+      publishAuthRuntimeState("ready")
+      startSessionMaintenance(candidate)
+      return
     }
 
-    publishAuthRuntimeState("session-expired")
-    throw new AuthError("TELEGRAM_SESSION_EXPIRED")
+    await clearTelegramKeycloakSession(telegram)
   }
 
+  requireFreshTelegramAuthentication(telegram, telegramUserId, candidate)
+
   await ensureAuthServiceAvailable()
-
-  const loginUrl = await candidate.createLoginUrl({
-    redirectUri: window.location.origin,
-    scope: OFFLINE_ACCESS_SCOPE,
-  })
-  const url = new URL(loginUrl)
-
-  url.searchParams.set("telegram_init_data", telegram.initData)
-  window.location.replace(url)
+  await redirectToTelegramLogin(candidate, telegram.initData)
 
   return new Promise<void>(() => undefined)
 }
@@ -201,9 +212,92 @@ function createKeycloakClient(): KeycloakClient {
   return candidate
 }
 
+function requireFreshTelegramAuthentication(
+  telegram: TelegramWebApp,
+  telegramUserId: number | null,
+  current: KeycloakClient,
+): void {
+  if (getTelegramInitDataState(telegram.initData) === "fresh" && telegramUserId !== null) {
+    return
+  }
+
+  if (keycloak === current) {
+    keycloak = null
+  }
+
+  if (!isTelegramRuntime(telegram)) {
+    throw new AuthError("TELEGRAM_REQUIRED")
+  }
+
+  publishAuthRuntimeState("session-expired")
+  throw new AuthError("TELEGRAM_SESSION_EXPIRED")
+}
+
+function isTelegramRuntime(telegram: TelegramWebApp): boolean {
+  return (
+    typeof telegram.platform === "string" &&
+    telegram.platform.length > 0 &&
+    telegram.platform !== "unknown"
+  )
+}
+
+async function redirectToTelegramLogin(current: KeycloakClient, initData: string): Promise<void> {
+  const loginUrl = await current.createLoginUrl({
+    redirectUri: window.location.origin,
+    scope: OFFLINE_ACCESS_SCOPE,
+    prompt: "login",
+  })
+  const redirectUrl = createTelegramLoginRedirectUrl(loginUrl, initData)
+
+  window.location.replace(redirectUrl)
+}
+
+function hasMatchingTelegramIdentity(current: KeycloakClient, telegramUserId: number): boolean {
+  const tokenTelegramUserId = getTokenTelegramUserId(current)
+
+  return tokenTelegramUserId === telegramUserId
+}
+
+function getTokenTelegramUserId(current: KeycloakClient): number | null {
+  const claim = current.tokenParsed?.telegram_id
+
+  if (typeof claim === "number") {
+    return Number.isSafeInteger(claim) && claim > 0 ? claim : null
+  }
+
+  if (typeof claim !== "string" || !/^\d+$/.test(claim)) {
+    return null
+  }
+
+  const parsed = Number(claim)
+
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+async function persistCurrentKeycloakSession(current: KeycloakClient): Promise<void> {
+  const telegram = window.Telegram?.WebApp
+  const telegramUserId = getTokenTelegramUserId(current)
+
+  if (!telegram || telegramUserId === null || !current.token || !current.refreshToken) {
+    return
+  }
+
+  const session: StoredTelegramKeycloakSession = {
+    telegramUserId,
+    token: current.token,
+    refreshToken: current.refreshToken,
+  }
+
+  await persistTelegramKeycloakSession(telegram, session)
+}
+
 async function refreshAccessToken(current: KeycloakClient, forceRefresh: boolean): Promise<string> {
   try {
-    await current.updateToken(forceRefresh ? -1 : TOKEN_MINIMUM_VALIDITY_SECONDS)
+    const refreshed = await current.updateToken(forceRefresh ? -1 : TOKEN_MINIMUM_VALIDITY_SECONDS)
+
+    if (refreshed) {
+      await persistCurrentKeycloakSession(current)
+    }
   } catch (error) {
     if (!forceRefresh && current.token && !current.isTokenExpired(0)) {
       return current.token
@@ -310,7 +404,12 @@ async function refreshSessionInBackground(): Promise<void> {
   }
 
   try {
-    await current.updateToken(SESSION_REFRESH_MINIMUM_VALIDITY_SECONDS)
+    const refreshed = await current.updateToken(SESSION_REFRESH_MINIMUM_VALIDITY_SECONDS)
+
+    if (refreshed) {
+      await persistCurrentKeycloakSession(current)
+    }
+
     publishAuthRuntimeState("ready")
   } catch (error) {
     if (current.token && !current.isTokenExpired(0)) {
@@ -323,7 +422,7 @@ async function refreshSessionInBackground(): Promise<void> {
       if (recoveryError instanceof AuthError) {
         if (recoveryError.code === "AUTH_UNAVAILABLE") {
           publishAuthRuntimeState("unavailable")
-        } else if (recoveryError.code === "TELEGRAM_SESSION_EXPIRED") {
+        } else {
           publishAuthRuntimeState("session-expired")
         }
 
@@ -335,7 +434,7 @@ async function refreshSessionInBackground(): Promise<void> {
   }
 }
 
-function configureTelegram(telegram: NonNullable<Window["Telegram"]>["WebApp"]): void {
+function configureTelegram(telegram: TelegramWebApp): void {
   telegram.ready()
   telegram.expand()
   telegram.setHeaderColor("#070a0d")

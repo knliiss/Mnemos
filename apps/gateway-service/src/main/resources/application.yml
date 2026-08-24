@@ -6,6 +6,7 @@ spring:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
+      username: ${SPRING_DATA_REDIS_USERNAME:}
       password: ${SPRING_DATA_REDIS_PASSWORD:}
 
   security:
@@ -14,6 +15,8 @@ spring:
         jwt:
           issuer-uri: ${MNEMOS_AUTH_ORIGIN:http://localhost:8080}/realms/mnemos
           jwk-set-uri: ${MNEMOS_KEYCLOAK_INTERNAL_URL:http://localhost:8080}/realms/mnemos/protocol/openid-connect/certs
+          audiences:
+            - mnemos-api
 
   cloud:
     gateway:

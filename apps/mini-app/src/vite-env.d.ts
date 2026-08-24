@@ -18,6 +18,37 @@ interface Window {
   }
 }
 
+interface TelegramDeviceStorage {
+  setItem(
+    key: string,
+    value: string,
+    callback?: (error: string | null, stored?: boolean) => void,
+  ): TelegramDeviceStorage
+
+  getItem(
+    key: string,
+    callback: (error: string | null, value?: string | null) => void,
+  ): TelegramDeviceStorage
+}
+
+interface TelegramSecureStorage {
+  setItem(
+    key: string,
+    value: string,
+    callback?: (error: string | null, stored?: boolean) => void,
+  ): TelegramSecureStorage
+
+  getItem(
+    key: string,
+    callback: (error: string | null, value?: string | null, canRestore?: boolean) => void,
+  ): TelegramSecureStorage
+
+  removeItem(
+    key: string,
+    callback?: (error: string | null, removed?: boolean) => void,
+  ): TelegramSecureStorage
+}
+
 interface TelegramWebApp {
   initData: string
   initDataUnsafe?: {
@@ -27,6 +58,8 @@ interface TelegramWebApp {
   }
   colorScheme?: "light" | "dark"
   platform?: string
+  DeviceStorage?: TelegramDeviceStorage
+  SecureStorage?: TelegramSecureStorage
 
   ready(): void
 

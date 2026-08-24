@@ -29,8 +29,6 @@ section
             </noscript>
         </form>
 
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
         <script>
             (() => {
                 const form =
@@ -42,23 +40,28 @@ section
                 const statusElement =
                     document.getElementById("telegram-status");
 
-                const telegram =
-                    window.Telegram?.WebApp;
+                const fragment =
+                    window.location.hash.startsWith("#")
+                        ? window.location.hash.slice(1)
+                        : window.location.hash;
 
-                if (!telegram) {
-                    statusElement.textContent =
-                        "Telegram WebApp API is unavailable. Open Mnemos through Telegram.";
-                    return;
+                const fragmentParameters =
+                    new URLSearchParams(fragment);
+
+                const initData =
+                    fragmentParameters.get("telegram_init_data");
+
+                if (initData) {
+                    window.history.replaceState(
+                        null,
+                        document.title,
+                        `${window.location.pathname}${window.location.search}`
+                    );
                 }
-
-                telegram.ready();
-                telegram.expand();
-
-                const initData = telegram.initData;
 
                 if (!initData) {
                     statusElement.textContent =
-                        "Telegram initData is empty. Open Mnemos through the bot.";
+                        "Telegram authentication data is unavailable. Return to Mnemos and try again.";
                     return;
                 }
 

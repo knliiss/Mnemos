@@ -8,6 +8,7 @@ import com.mnemos.event.application.itemdrop.usecase.get.GetItemDropUseCase
 import com.mnemos.event.domain.EventId
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,6 +18,10 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/internal/v1/item-drops")
+@PreAuthorize(
+    "authentication.name == 'bet-service' or " +
+        "authentication.name == 'social-service'",
+)
 class InternalItemDropController(
     private val findFirstItemDropUseCase: FindFirstItemDropUseCase,
     private val getItemDropUseCase: GetItemDropUseCase,

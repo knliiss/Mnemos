@@ -5,6 +5,7 @@ import com.mnemos.account.api.controller.internal.InternalAccountApiMapper.toQue
 import com.mnemos.account.application.service.account.InternalAccountQueryService
 import com.mnemos.contracts.account.internal.v1.InternalAccountBootstrapResponse
 import jakarta.validation.Valid
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/internal/v1/accounts/bootstrap")
+@PreAuthorize("authentication.name == 'profile-service'")
 class InternalAccountBootstrapController(
     private val queryService: InternalAccountQueryService,
 ) {

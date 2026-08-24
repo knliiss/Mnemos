@@ -5,6 +5,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.revenue.port.out.CreatorRevenueWallet
 import com.mnemos.personalization.application.revenue.usecase.schedule.ScheduleCreatorRevenueService
 import com.mnemos.personalization.configuration.revenue.CreatorRevenueProperties
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
@@ -192,6 +193,10 @@ class ScheduleCreatorRevenueServiceTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             listOf(personalization).filter { it.status == status }
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 
     private class FakeCreatorRevenueOperationRepository : CreatorRevenueOperationRepository {

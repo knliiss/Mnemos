@@ -8,6 +8,7 @@ import com.mnemos.personalization.application.pricing.PersonalizationPricePolicy
 import com.mnemos.personalization.application.security.model.PersonalizationActor
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.configuration.pricing.PersonalizationPricingProperties
+import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import com.mnemos.personalization.domain.personalization.model.Personalization
@@ -166,5 +167,9 @@ class ApprovePersonalizationServiceTest {
 
         override fun findByStatus(status: PersonalizationStatus): List<Personalization> =
             listOf(personalization).filter { it.status == status }
+
+        override fun isAssetReferencedByPublicPersonalization(assetId: PersonalizationAssetId): Boolean = false
+
+        override fun isAssetReferencedByReviewablePersonalization(assetId: PersonalizationAssetId): Boolean = false
     }
 }

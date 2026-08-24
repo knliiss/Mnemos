@@ -1,0 +1,48 @@
+x-app-security: &app-security
+  user: "10001:10001"
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  environment:
+    HOME: /tmp
+
+services:
+  account-service:
+    <<: *app-security
+
+  wallet-service:
+    <<: *app-security
+
+  event-service:
+    <<: *app-security
+
+  notification-service:
+    <<: *app-security
+
+  reward-service:
+    <<: *app-security
+
+  bet-service:
+    <<: *app-security
+
+  moderation-service:
+    <<: *app-security
+
+  gateway-service:
+    <<: *app-security
+
+  realtime-service:
+    <<: *app-security
+
+  personalization-service:
+    <<: *app-security
+
+  social-service:
+    <<: *app-security
+
+  profile-service:
+    <<: *app-security

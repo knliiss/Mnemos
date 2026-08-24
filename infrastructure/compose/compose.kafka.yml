@@ -1,4 +1,22 @@
 services:
+  kafka-tls-init:
+    build:
+      context: ../..
+      dockerfile: infrastructure/kafka/Dockerfile.tls-init
+      args:
+        KAFKA_VERSION: ${KAFKA_VERSION}
+
+    image: "${COMPOSE_PROJECT_NAME}-kafka-tls-init:${KAFKA_VERSION}"
+    container_name: "${COMPOSE_PROJECT_NAME}-kafka-tls-init"
+    restart: "no"
+
+    environment:
+      KAFKA_TLS_STORE_PASSWORD: ${KAFKA_TLS_STORE_PASSWORD}
+
+    volumes:
+      - "kafka-server-tls:/var/lib/kafka/server-tls"
+      - "kafka-client-tls:/var/lib/kafka/client-tls"
+
   kafka:
     image: "apache/kafka:${KAFKA_VERSION}"
     container_name: "${COMPOSE_PROJECT_NAME}-kafka"
@@ -15,11 +33,12 @@ services:
       - "KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:${KAFKA_CONTROLLER_PORT}"
       - "KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER"
       - "KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL"
-      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT"
+      - "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SASL_SSL,EXTERNAL:SASL_PLAINTEXT,CONTROLLER:SASL_SSL"
       - "KAFKA_LISTENERS=INTERNAL://0.0.0.0:${KAFKA_INTERNAL_PORT},EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:${KAFKA_CONTROLLER_PORT}"
       - "KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:${KAFKA_INTERNAL_PORT},EXTERNAL://localhost:${KAFKA_HOST_PORT}"
       - "KAFKA_SASL_ENABLED_MECHANISMS=PLAIN"
       - "KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN"
+      - "KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL=PLAIN"
       - >-
         KAFKA_LISTENER_NAME_INTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required
         username="broker"
@@ -43,9 +62,23 @@ services:
         username="broker"
         password="${KAFKA_BROKER_PASSWORD}"
         user_kafka_admin="${KAFKA_ADMIN_PASSWORD}";
+      - >-
+        KAFKA_LISTENER_NAME_CONTROLLER_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="broker"
+        password="${KAFKA_BROKER_PASSWORD}"
+        user_broker="${KAFKA_BROKER_PASSWORD}";
+      - "KAFKA_LISTENER_NAME_CONTROLLER_SASL_ENABLED_MECHANISMS=PLAIN"
+      - "KAFKA_SSL_KEYSTORE_LOCATION=/etc/kafka/server-tls/kafka.keystore.p12"
+      - "KAFKA_SSL_KEYSTORE_PASSWORD=${KAFKA_TLS_STORE_PASSWORD}"
+      - "KAFKA_SSL_KEY_PASSWORD=${KAFKA_TLS_STORE_PASSWORD}"
+      - "KAFKA_SSL_KEYSTORE_TYPE=PKCS12"
+      - "KAFKA_SSL_TRUSTSTORE_LOCATION=/etc/kafka/client-tls/kafka.truststore.p12"
+      - "KAFKA_SSL_TRUSTSTORE_PASSWORD=${KAFKA_TLS_STORE_PASSWORD}"
+      - "KAFKA_SSL_TRUSTSTORE_TYPE=PKCS12"
+      - "KAFKA_SSL_CLIENT_AUTH=none"
       - "KAFKA_AUTHORIZER_CLASS_NAME=org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       - "KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND=false"
-      - "KAFKA_SUPER_USERS=User:broker;User:kafka_admin;User:ANONYMOUS"
+      - "KAFKA_SUPER_USERS=User:broker;User:kafka_admin"
       - "KAFKA_EARLY_START_LISTENERS=CONTROLLER"
       - "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1"
       - "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1"
@@ -57,12 +90,18 @@ services:
 
     volumes:
       - "kafka-data:/var/lib/kafka/data"
+      - "kafka-server-tls:/etc/kafka/server-tls:ro"
+      - "kafka-client-tls:/etc/kafka/client-tls:ro"
+
+    depends_on:
+      kafka-tls-init:
+        condition: service_completed_successfully
 
     healthcheck:
       test:
         - CMD-SHELL
         - >-
-          printf '%s\n' 'security.protocol=SASL_PLAINTEXT' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka_admin" password="${KAFKA_ADMIN_PASSWORD}";' > /tmp/kafka-health.properties &&
+          printf '%s\n' 'security.protocol=SASL_SSL' 'sasl.mechanism=PLAIN' 'sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="kafka_admin" password="${KAFKA_ADMIN_PASSWORD}";' 'ssl.truststore.location=/etc/kafka/client-tls/kafka.truststore.p12' 'ssl.truststore.password=${KAFKA_TLS_STORE_PASSWORD}' 'ssl.truststore.type=PKCS12' > /tmp/kafka-health.properties &&
           /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:${KAFKA_INTERNAL_PORT} --command-config /tmp/kafka-health.properties --list >/dev/null 2>&1
       interval: 2s
       timeout: 3s
@@ -86,6 +125,11 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVER: kafka:${KAFKA_INTERNAL_PORT}
       KAFKA_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD}
+      KAFKA_TLS_STORE_PASSWORD: ${KAFKA_TLS_STORE_PASSWORD}
+      KAFKA_TLS_TRUSTSTORE_LOCATION: /etc/kafka/client-tls/kafka.truststore.p12
+
+    volumes:
+      - "kafka-client-tls:/etc/kafka/client-tls:ro"
 
     depends_on:
       kafka:
