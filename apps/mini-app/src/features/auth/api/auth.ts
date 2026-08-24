@@ -234,10 +234,13 @@ function requireFreshTelegramAuthentication(
   throw new AuthError("TELEGRAM_SESSION_EXPIRED")
 }
 
-function isTelegramRuntime(telegram: TelegramWebApp): boolean =
-  typeof telegram.platform === "string" &&
-  telegram.platform.length > 0 &&
-  telegram.platform !== "unknown"
+function isTelegramRuntime(telegram: TelegramWebApp): boolean {
+  return (
+    typeof telegram.platform === "string" &&
+    telegram.platform.length > 0 &&
+    telegram.platform !== "unknown"
+  )
+}
 
 async function redirectToTelegramLogin(current: KeycloakClient, initData: string): Promise<void> {
   const loginUrl = await current.createLoginUrl({
