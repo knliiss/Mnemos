@@ -20,10 +20,7 @@ import {
 } from "./leaderboardPresentation"
 import { LeaderboardPeriodSelector } from "./LeaderboardPeriodSelector"
 import { LeaderboardPodium } from "./LeaderboardPodium"
-import {
-  DropRankingControls,
-  PredictorRankingControls,
-} from "./LeaderboardRankingControls"
+import { DropRankingControls, PredictorRankingControls } from "./LeaderboardRankingControls"
 import { LeaderboardRows } from "./LeaderboardRows"
 import "./leaderboards.css"
 
