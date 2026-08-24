@@ -18,17 +18,18 @@ import {
   presentDropEntries,
   presentPredictorEntries,
 } from "./leaderboardPresentation"
+import { LeaderboardPeriodSelector } from "./LeaderboardPeriodSelector"
 import { LeaderboardPodium } from "./LeaderboardPodium"
+import {
+  DropRankingControls,
+  PredictorRankingControls,
+} from "./LeaderboardRankingControls"
 import { LeaderboardRows } from "./LeaderboardRows"
 import "./leaderboards.css"
 
 type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
 
 const tabs: LeaderboardTab[] = ["DROPS", "COINS", "PREDICTORS"]
-const dropSorts: DropLeaderboardSort[] = ["TOTAL", "MYTHICAL", "SECRET", "RECENT"]
-const predictorSorts: PredictorLeaderboardSort[] = ["PROFIT", "WIN_RATE", "WINS", "TURNOVER"]
-const itemTypes: LeaderboardItemType[] = ["SWORD", "AURA", "PET", "BOOK", "JEWELRY"]
-const rarities: LeaderboardItemRarity[] = ["MYTHICAL", "SECRET"]
 
 export function LeaderboardPage({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
@@ -36,14 +37,19 @@ export function LeaderboardPage({ back }: { back: () => void }) {
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [wipeId, setWipeId] = useState<string | null>(null)
   const [wipeRevision, setWipeRevision] = useState(0)
+  const [requestRevision, setRequestRevision] = useState(0)
+
   const [dropSort, setDropSort] = useState<DropLeaderboardSort>("TOTAL")
-  const [predictorSort, setPredictorSort] = useState<PredictorLeaderboardSort>("PROFIT")
-  const [minimumSample, setMinimumSample] = useState(10)
   const [itemType, setItemType] = useState<LeaderboardItemType | "">("")
   const [rarity, setRarity] = useState<LeaderboardItemRarity | "">("")
-  const [itemName, setItemName] = useState("")
+  const [nicknameDraft, setNicknameDraft] = useState("")
+  const [itemNameDraft, setItemNameDraft] = useState("")
   const [nickname, setNickname] = useState("")
-  const [searchRevision, setSearchRevision] = useState(0)
+  const [itemName, setItemName] = useState("")
+
+  const [predictorSort, setPredictorSort] = useState<PredictorLeaderboardSort>("PROFIT")
+  const [minimumSample, setMinimumSample] = useState(10)
+
   const [entries, setEntries] = useState<LeaderboardDisplayEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -167,7 +173,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
     nickname,
     predictorSort,
     rarity,
-    searchRevision,
+    requestRevision,
     t,
     tab,
     wipeId,
@@ -178,12 +184,28 @@ export function LeaderboardPage({ back }: { back: () => void }) {
     [wipeId, wipes],
   )
 
+  function applyDropSearch() {
+    setNickname(nicknameDraft.trim())
+    setItemName(itemNameDraft.trim())
+    setRequestRevision((value) => value + 1)
+  }
+
+  function resetDropFilters() {
+    setItemType("")
+    setRarity("")
+    setNicknameDraft("")
+    setItemNameDraft("")
+    setNickname("")
+    setItemName("")
+    setRequestRevision((value) => value + 1)
+  }
+
   function retry() {
     if (wipes.length === 0) {
       setWipeRevision((value) => value + 1)
     }
 
-    setSearchRevision((value) => value + 1)
+    setRequestRevision((value) => value + 1)
   }
 
   return (
@@ -193,6 +215,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
       <section className="leaderboard-hero">
         <img src="/ui-illustrations/leaderboard-hero.svg" alt="" aria-hidden="true" />
         <div>
+          <span>{t("leaderboards.heroEyebrow")}</span>
           <strong>{t("leaderboards.heroTitle")}</strong>
           <small>{t("leaderboards.heroDescription")}</small>
         </div>
@@ -205,142 +228,48 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         label={(value) => t(`leaderboards.tabs.${value.toLowerCase()}`)}
       />
 
-      <section className="leaderboard-toolbar">
-        {tab !== "COINS" ? (
-          <label>
-            <span>{t("leaderboards.wipe")}</span>
-            <select value={wipeId ?? ""} onChange={(event) => setWipeId(event.target.value)}>
-              {wipes.map((wipe) => (
-                <option key={wipe.id} value={wipe.id}>
-                  #{wipe.number} {wipe.name ?? t("leaderboards.wipeFallback")}{" "}
-                  {wipe.active ? "•" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <div className="leaderboard-toolbar__note">
+      {tab !== "COINS" ? (
+        <LeaderboardPeriodSelector
+          wipes={wipes}
+          wipeId={wipeId}
+          selectedWipe={selectedWipe}
+          locale={locale}
+          onChange={setWipeId}
+        />
+      ) : (
+        <section className="leaderboard-balance-note">
+          <div>
             <span>{t("leaderboards.currentBalance")}</span>
-            <small>{t("leaderboards.currentBalanceDescription")}</small>
+            <strong>{t("leaderboards.coinRankingTitle")}</strong>
           </div>
-        )}
-
-        {selectedWipe && tab !== "COINS" ? (
-          <small className="leaderboard-toolbar__boundary">
-            {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
-              new Date(selectedWipe.startedAt),
-            )}
-          </small>
-        ) : null}
-      </section>
+          <small>{t("leaderboards.currentBalanceDescription")}</small>
+        </section>
+      )}
 
       {tab === "DROPS" ? (
-        <form
-          className="leaderboard-filters"
-          onSubmit={(event) => {
-            event.preventDefault()
-            setSearchRevision((value) => value + 1)
-          }}
-        >
-          <label>
-            <span>{t("leaderboards.sort")}</span>
-            <select
-              value={dropSort}
-              onChange={(event) => setDropSort(event.target.value as DropLeaderboardSort)}
-            >
-              {dropSorts.map((value) => (
-                <option key={value} value={value}>
-                  {t(`leaderboards.dropSort.${value.toLowerCase()}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>{t("leaderboards.itemType")}</span>
-            <select
-              value={itemType}
-              onChange={(event) => setItemType(event.target.value as LeaderboardItemType | "")}
-            >
-              <option value="">{t("common.all")}</option>
-              {itemTypes.map((value) => (
-                <option key={value} value={value}>
-                  {t(`leaderboards.itemTypes.${value.toLowerCase()}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>{t("leaderboards.rarity")}</span>
-            <select
-              value={rarity}
-              onChange={(event) => setRarity(event.target.value as LeaderboardItemRarity | "")}
-            >
-              <option value="">{t("common.all")}</option>
-              {rarities.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="leaderboard-filters__search">
-            <span>{t("leaderboards.nickname")}</span>
-            <input
-              value={nickname}
-              maxLength={20}
-              placeholder={t("leaderboards.nicknamePlaceholder")}
-              onChange={(event) => setNickname(event.target.value)}
-            />
-          </label>
-
-          <label className="leaderboard-filters__search">
-            <span>{t("leaderboards.item")}</span>
-            <input
-              value={itemName}
-              maxLength={24}
-              placeholder={t("leaderboards.itemPlaceholder")}
-              onChange={(event) => setItemName(event.target.value)}
-            />
-          </label>
-
-          <button type="submit" className="leaderboard-filters__apply">
-            {t("leaderboards.apply")}
-          </button>
-        </form>
+        <DropRankingControls
+          sort={dropSort}
+          itemType={itemType}
+          rarity={rarity}
+          nickname={nicknameDraft}
+          itemName={itemNameDraft}
+          onSortChange={setDropSort}
+          onItemTypeChange={setItemType}
+          onRarityChange={setRarity}
+          onNicknameChange={setNicknameDraft}
+          onItemNameChange={setItemNameDraft}
+          onApply={applyDropSearch}
+          onReset={resetDropFilters}
+        />
       ) : null}
 
       {tab === "PREDICTORS" ? (
-        <div className="leaderboard-filters leaderboard-filters--predictor">
-          <label>
-            <span>{t("leaderboards.sort")}</span>
-            <select
-              value={predictorSort}
-              onChange={(event) => setPredictorSort(event.target.value as PredictorLeaderboardSort)}
-            >
-              {predictorSorts.map((value) => (
-                <option key={value} value={value}>
-                  {t(`leaderboards.predictorSort.${value.toLowerCase()}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {predictorSort === "WIN_RATE" ? (
-            <label>
-              <span>{t("leaderboards.minimumSample")}</span>
-              <input
-                type="number"
-                min={1}
-                max={1000}
-                value={minimumSample}
-                onChange={(event) => setMinimumSample(Number(event.target.value) || 1)}
-              />
-            </label>
-          ) : null}
-        </div>
+        <PredictorRankingControls
+          sort={predictorSort}
+          minimumSample={minimumSample}
+          onSortChange={setPredictorSort}
+          onMinimumSampleChange={setMinimumSample}
+        />
       ) : null}
 
       {loading ? (
