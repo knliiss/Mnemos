@@ -303,9 +303,21 @@ export function WipeAdmin({ back }: { back: () => void }) {
           ) : null}
         </div>
 
-        <button type="submit" disabled={Boolean(startValidation) || saving}>
-          {t("wipeAdmin.start")}
-        </button>
+        <div className="wipe-admin-form__action">
+          <span>
+            <small>{t("wipeAdmin.actionHint")}</small>
+            <strong>
+              {parsedStart && !startValidation
+                ? dateTime.format(parsedStart)
+                : t("wipeAdmin.actionUnavailable")}
+            </strong>
+          </span>
+
+          <button type="submit" disabled={Boolean(startValidation) || saving}>
+            {t("wipeAdmin.review")}
+            <i aria-hidden="true">→</i>
+          </button>
+        </div>
       </form>
 
       <section className="wipe-admin-history">
