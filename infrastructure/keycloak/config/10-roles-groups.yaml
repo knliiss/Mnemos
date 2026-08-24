@@ -17,6 +17,7 @@ groups:
 - name: users
   realmRoles:
   - USER
+  - offline_access
 - name: personalization-creators
   realmRoles:
   - PERSONALIZATION_CREATOR

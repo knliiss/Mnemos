@@ -18,6 +18,19 @@ interface Window {
   }
 }
 
+interface TelegramDeviceStorage {
+  setItem(
+    key: string,
+    value: string,
+    callback?: (error: string | null, stored?: boolean) => void,
+  ): TelegramDeviceStorage
+
+  getItem(
+    key: string,
+    callback: (error: string | null, value?: string | null) => void,
+  ): TelegramDeviceStorage
+}
+
 interface TelegramWebApp {
   initData: string
   initDataUnsafe?: {
@@ -27,6 +40,7 @@ interface TelegramWebApp {
   }
   colorScheme?: "light" | "dark"
   platform?: string
+  DeviceStorage?: TelegramDeviceStorage
 
   ready(): void
 
