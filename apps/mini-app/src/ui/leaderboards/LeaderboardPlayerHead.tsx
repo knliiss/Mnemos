@@ -125,7 +125,5 @@ export function LeaderboardPlayerHead({
 
   const skinUrl = resolved.identityKey === identityKey ? resolved.skinUrl : null
 
-  return (
-    <CristalixHead skinUrl={skinUrl ?? FALLBACK_SKIN_URL} size={size} className={className} />
-  )
+  return <CristalixHead skinUrl={skinUrl ?? FALLBACK_SKIN_URL} size={size} className={className} />
 }
