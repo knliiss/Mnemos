@@ -17,8 +17,7 @@ class WipeController(
     private val resolveWipeService: ResolveWipeService,
 ) {
     @GetMapping
-    fun list(): List<WipeResponse> =
-        listWipesService.execute().map { wipe -> wipe.toResponse() }
+    fun list(): List<WipeResponse> = listWipesService.execute().map { wipe -> wipe.toResponse() }
 
     @GetMapping("/current")
     fun current(): WipeResponse = resolveWipeService.execute(null).toResponse()

@@ -11,18 +11,13 @@ import org.springframework.stereotype.Repository
 class WipeRepositoryAdapter(
     private val repository: WipeJpaRepository,
 ) : WipeRepository {
-    override fun findCurrent(): Wipe? =
-        repository.findFirstByEndedAtIsNullOrderByStartedAtDesc()?.toDomain()
+    override fun findCurrent(): Wipe? = repository.findFirstByEndedAtIsNullOrderByStartedAtDesc()?.toDomain()
 
-    override fun findCurrentForUpdate(): Wipe? =
-        repository.findCurrentForUpdate().firstOrNull()?.toDomain()
+    override fun findCurrentForUpdate(): Wipe? = repository.findCurrentForUpdate().firstOrNull()?.toDomain()
 
-    override fun findById(id: WipeId): Wipe? =
-        repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: WipeId): Wipe? = repository.findById(id.id).orElse(null)?.toDomain()
 
-    override fun findAll(): List<Wipe> =
-        repository.findAllByOrderByStartedAtDesc().map { entity -> entity.toDomain() }
+    override fun findAll(): List<Wipe> = repository.findAllByOrderByStartedAtDesc().map { entity -> entity.toDomain() }
 
-    override fun save(wipe: Wipe): Wipe =
-        repository.save(wipe.toEntity()).toDomain()
+    override fun save(wipe: Wipe): Wipe = repository.save(wipe.toEntity()).toDomain()
 }

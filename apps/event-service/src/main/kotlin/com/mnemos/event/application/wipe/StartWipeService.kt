@@ -27,8 +27,9 @@ class StartWipeService(
             throw WipeValidationException("Wipe cannot start in the future")
         }
 
-        val current = repository.findCurrentForUpdate()
-            ?: throw WipeNotFoundException("Active wipe was not found")
+        val current =
+            repository.findCurrentForUpdate()
+                ?: throw WipeNotFoundException("Active wipe was not found")
 
         if (!startedAt.isAfter(current.startedAt)) {
             throw WipeValidationException("New wipe must start after the current wipe")

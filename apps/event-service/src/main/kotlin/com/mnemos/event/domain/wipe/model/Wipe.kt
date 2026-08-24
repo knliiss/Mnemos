@@ -22,6 +22,5 @@ data class Wipe(
         return copy(endedAt = at)
     }
 
-    fun contains(timestamp: Instant): Boolean =
-        !timestamp.isBefore(startedAt) && (endedAt == null || timestamp.isBefore(endedAt))
+    fun contains(timestamp: Instant): Boolean = !timestamp.isBefore(startedAt) && (endedAt == null || timestamp.isBefore(endedAt))
 }
