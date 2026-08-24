@@ -1,9 +1,29 @@
-import type { EventBetOutcome, EventBetRoundResponse, ItemRaceResponse } from "@/shared/api/betApi"
+import type {
+  EventBetOutcome,
+  EventBetRoundResponse,
+  EventBetStatus,
+  ItemRaceResponse,
+} from "@/shared/api/betApi"
 import { api } from "@/shared/api/httpClient"
-import type { BetItemType } from "@/ui/model"
+import type { BetItemType, BetSide } from "@/ui/model"
+
+export type AdminEventBetResponse = {
+  id: string
+  roundId: string
+  accountId: string
+  accountNickname: string | null
+  side: BetSide
+  confirmedAmount: number
+  pendingAmount: number
+  status: EventBetStatus
+}
 
 export async function listAdminEventBetRounds(): Promise<EventBetRoundResponse[]> {
   return api<EventBetRoundResponse[]>("/api/v1/bets/admin/event-rounds")
+}
+
+export async function listAdminEventBets(roundId: string): Promise<AdminEventBetResponse[]> {
+  return api<AdminEventBetResponse[]>(`/api/v1/bets/admin/event-rounds/${roundId}/bets`)
 }
 
 export async function resolveEventBetRound(

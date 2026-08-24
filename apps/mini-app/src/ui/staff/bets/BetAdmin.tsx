@@ -8,6 +8,7 @@ import { BetAdminRoundList } from "./BetAdminRoundList"
 import { activeBetRounds, normalizeBetAdminSection, settledBetRounds } from "./betAdminPresentation"
 import { useBetAdminData } from "./useBetAdminData"
 import "./bet-admin.css"
+import "./bet-admin-ledger.css"
 
 type Props = {
   params?: Record<string, string>

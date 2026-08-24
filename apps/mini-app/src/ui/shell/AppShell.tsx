@@ -136,7 +136,10 @@ export function AppShell() {
     />
   ) : null
   const accountUserHubTrigger = rootRoute === "account" ? userHubTrigger : null
-  const floatingUserHubTrigger = activeAccount && rootRoute !== "account" ? userHubTrigger : null
+  const floatingUserHubTrigger =
+    activeAccount && rootRoute && rootRoute !== "account" && rootRoute !== "search"
+      ? userHubTrigger
+      : null
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>

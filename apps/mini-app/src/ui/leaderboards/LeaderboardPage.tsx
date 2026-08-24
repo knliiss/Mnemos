@@ -27,6 +27,7 @@ import { DropRankingControls, PredictorRankingControls } from "./LeaderboardRank
 import { LeaderboardRows } from "./LeaderboardRows"
 import "./leaderboards.css"
 import "./leaderboard-ranking.css"
+import "./leaderboard-polish.css"
 
 type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
 

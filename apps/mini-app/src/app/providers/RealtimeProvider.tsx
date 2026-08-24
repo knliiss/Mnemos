@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { errorEvents } from "@/shared/errors/errorEventBus"
@@ -128,7 +129,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      {spotlight ? <DropSpotlightAlert spotlight={spotlight} /> : null}
+      <AnimatePresence mode="wait">
+        {spotlight ? <DropSpotlightAlert key={spotlight.id} spotlight={spotlight} /> : null}
+      </AnimatePresence>
     </>
   )
 }
@@ -152,24 +155,42 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
   const itemType = resolveSpotlightItemType(spotlight.payload.itemType)
 
   return (
-    <aside
+    <motion.aside
       className={`realtime-spotlight ${compact ? "is-compact" : "is-full"}`}
+      data-rarity={spotlight.payload.itemRarity.toLowerCase()}
       role="status"
       aria-live="polite"
       aria-atomic="true"
+      initial={{ opacity: 0, y: -24, scale: 0.955, filter: "blur(10px)" }}
+      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -13, scale: 0.985, filter: "blur(6px)" }}
+      transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
     >
-      <span className="realtime-spotlight__visual" aria-hidden="true">
+      <span className="realtime-spotlight__scan" aria-hidden="true" />
+      <span className="realtime-spotlight__corners" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </span>
+
+      <motion.span
+        className="realtime-spotlight__visual"
+        aria-hidden="true"
+        animate={{ y: [0, -3, 0], rotate: [0, -0.7, 0.7, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+      >
         {itemType ? (
           <ItemTypeArt itemType={itemType} size={compact ? 40 : 78} />
         ) : (
           <Glyph name="item-drop" size={compact ? 20 : 32} />
         )}
         {template?.emoji ? <b>{template.emoji}</b> : null}
-      </span>
+      </motion.span>
 
       <span className="realtime-spotlight__copy">
         <small>
-          <i /> SPOTLIGHT · {spotlight.payload.itemRarity}
+          <i /> MNEMOS SPOTLIGHT · {spotlight.payload.itemRarity}
         </small>
         <strong>{title}</strong>
         {compact ? <em>{body}</em> : <p>{body}</p>}
@@ -187,7 +208,8 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
         <i />
         <i />
       </span>
-    </aside>
+      <span className="realtime-spotlight__lifetime" aria-hidden="true" />
+    </motion.aside>
   )
 }
 
