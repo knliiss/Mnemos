@@ -6,10 +6,12 @@ on:
       - master
     paths:
       - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
       - ".github/workflows/mini-app.yml"
   pull_request:
     paths:
       - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
@@ -66,6 +68,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Verify browser security headers
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh -n scripts/verify-mini-app-security-headers.sh
+          sh scripts/verify-mini-app-security-headers.sh
 
       - name: Check bundle budgets
         shell: bash
