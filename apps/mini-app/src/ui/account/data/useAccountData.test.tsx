@@ -272,6 +272,34 @@ describe("useAccountData", () => {
     expect(getAccountBalances).toHaveBeenCalledTimes(2)
   })
 
+  it("reconciles wallet balances when the Mini App regains focus", async () => {
+    vi.mocked(getCurrentUserBalances)
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 10 }])
+      .mockResolvedValueOnce([{ currency: "PRIME", amount: 35 }])
+    vi.mocked(getAccountBalances)
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 100 }])
+      .mockResolvedValueOnce([{ currency: "COIN", amount: 160 }])
+
+    const { result } = renderHook(() => useAccountData("account-a", undefined))
+
+    await waitFor(() => {
+      expect(result.current.prime).toBe(10)
+      expect(result.current.accountCoin).toBe(100)
+    })
+
+    act(() => {
+      window.dispatchEvent(new Event("focus"))
+    })
+
+    await waitFor(() => {
+      expect(result.current.prime).toBe(35)
+      expect(result.current.accountCoin).toBe(160)
+    })
+
+    expect(getCurrentUserBalances).toHaveBeenCalledTimes(2)
+    expect(getAccountBalances).toHaveBeenCalledTimes(2)
+  })
+
   it("ignores completed wallet transactions for another account", async () => {
     vi.mocked(getAccountBalances).mockResolvedValue([{ currency: "COIN", amount: 100 }])
 
