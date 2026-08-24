@@ -5,8 +5,6 @@ import {
   getDropLeaderboard,
   getPredictorLeaderboard,
   type DropLeaderboardSort,
-  type LeaderboardItemRarity,
-  type LeaderboardItemType,
   type PredictorLeaderboardSort,
 } from "@/shared/api/leaderboardApi"
 import { listWipes, type Wipe } from "@/shared/api/wipeApi"
@@ -18,6 +16,7 @@ import {
   presentDropEntries,
   presentPredictorEntries,
 } from "./leaderboardPresentation"
+import { LeaderboardPagination } from "./LeaderboardPagination"
 import { LeaderboardPeriodSelector } from "./LeaderboardPeriodSelector"
 import { LeaderboardPodium } from "./LeaderboardPodium"
 import { DropRankingControls, PredictorRankingControls } from "./LeaderboardRankingControls"
@@ -27,6 +26,8 @@ import "./leaderboards.css"
 type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
 
 const tabs: LeaderboardTab[] = ["DROPS", "COINS", "PREDICTORS"]
+const pageSize = 10
+const leaderboardLimit = 100
 
 export function LeaderboardPage({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
@@ -35,19 +36,10 @@ export function LeaderboardPage({ back }: { back: () => void }) {
   const [wipeId, setWipeId] = useState<string | null>(null)
   const [wipeRevision, setWipeRevision] = useState(0)
   const [requestRevision, setRequestRevision] = useState(0)
-
   const [dropSort, setDropSort] = useState<DropLeaderboardSort>("TOTAL")
-  const [itemType, setItemType] = useState<LeaderboardItemType | "">("")
-  const [rarity, setRarity] = useState<LeaderboardItemRarity | "">("")
-  const [nicknameDraft, setNicknameDraft] = useState("")
-  const [itemNameDraft, setItemNameDraft] = useState("")
-  const [nickname, setNickname] = useState("")
-  const [itemName, setItemName] = useState("")
-
   const [predictorSort, setPredictorSort] = useState<PredictorLeaderboardSort>("PROFIT")
-  const [minimumSample, setMinimumSample] = useState(10)
-
   const [entries, setEntries] = useState<LeaderboardDisplayEntry[]>([])
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
@@ -92,6 +84,10 @@ export function LeaderboardPage({ back }: { back: () => void }) {
   }, [wipeRevision])
 
   useEffect(() => {
+    setPage(1)
+  }, [dropSort, predictorSort, tab, wipeId])
+
+  useEffect(() => {
     if (tab !== "COINS" && !wipeId) {
       return
     }
@@ -103,15 +99,15 @@ export function LeaderboardPage({ back }: { back: () => void }) {
 
       const request =
         tab === "COINS"
-          ? getCoinLeaderboard(50).then((result) =>
+          ? getCoinLeaderboard(leaderboardLimit).then((result) =>
               presentCoinEntries(result, locale, t("leaderboards.metrics.coins")),
             )
           : tab === "PREDICTORS"
             ? getPredictorLeaderboard({
                 wipeId,
                 sort: predictorSort,
-                minimumSample,
-                limit: 50,
+                minimumSample: 10,
+                limit: leaderboardLimit,
               }).then((result) =>
                 presentPredictorEntries(result, predictorSort, locale, {
                   bets: t("leaderboards.metrics.bets"),
@@ -123,11 +119,7 @@ export function LeaderboardPage({ back }: { back: () => void }) {
             : getDropLeaderboard({
                 wipeId,
                 sort: dropSort,
-                itemType: itemType || null,
-                rarity: rarity || null,
-                itemName,
-                nickname,
-                limit: 50,
+                limit: leaderboardLimit,
               }).then((result) =>
                 presentDropEntries(result, dropSort, locale, {
                   total: t("leaderboards.metrics.drops"),
@@ -161,41 +153,31 @@ export function LeaderboardPage({ back }: { back: () => void }) {
       cancelled = true
       window.cancelAnimationFrame(frame)
     }
-  }, [
-    dropSort,
-    itemName,
-    itemType,
-    locale,
-    minimumSample,
-    nickname,
-    predictorSort,
-    rarity,
-    requestRevision,
-    t,
-    tab,
-    wipeId,
-  ])
+  }, [dropSort, locale, predictorSort, requestRevision, t, tab, wipeId])
 
   const selectedWipe = useMemo(
     () => wipes.find((wipe) => wipe.id === wipeId) ?? null,
     [wipeId, wipes],
   )
+  const totalPages = Math.max(1, Math.ceil(entries.length / pageSize))
+  const pageEntries = useMemo(
+    () => entries.slice((page - 1) * pageSize, page * pageSize),
+    [entries, page],
+  )
+  const podiumEntries = page === 1 ? pageEntries.slice(0, 3) : []
+  const rowEntries = page === 1 ? pageEntries.slice(3) : pageEntries
+  const resultsTitle =
+    tab === "COINS"
+      ? t("leaderboards.coinRankingTitle")
+      : tab === "PREDICTORS"
+        ? t("leaderboards.predictorRankingTitle")
+        : t("leaderboards.dropRankingTitle")
 
-  function applyDropSearch() {
-    setNickname(nicknameDraft.trim())
-    setItemName(itemNameDraft.trim())
-    setRequestRevision((value) => value + 1)
-  }
-
-  function resetDropFilters() {
-    setItemType("")
-    setRarity("")
-    setNicknameDraft("")
-    setItemNameDraft("")
-    setNickname("")
-    setItemName("")
-    setRequestRevision((value) => value + 1)
-  }
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [page, totalPages])
 
   function retry() {
     if (wipes.length === 0) {
@@ -218,85 +200,82 @@ export function LeaderboardPage({ back }: { back: () => void }) {
         </div>
       </section>
 
-      <Segmented
-        value={tab}
-        options={tabs}
-        onChange={setTab}
-        label={(value) => t(`leaderboards.tabs.${value.toLowerCase()}`)}
-      />
-
-      {tab !== "COINS" ? (
-        <LeaderboardPeriodSelector
-          wipes={wipes}
-          wipeId={wipeId}
-          selectedWipe={selectedWipe}
-          locale={locale}
-          onChange={setWipeId}
+      <div className="leaderboard-navigation">
+        <Segmented
+          value={tab}
+          options={tabs}
+          onChange={setTab}
+          label={(value) => t(`leaderboards.tabs.${value.toLowerCase()}`)}
         />
-      ) : (
-        <section className="leaderboard-balance-note">
+
+        {tab !== "COINS" ? (
+          <LeaderboardPeriodSelector
+            wipes={wipes}
+            wipeId={wipeId}
+            selectedWipe={selectedWipe}
+            locale={locale}
+            onChange={setWipeId}
+          />
+        ) : (
+          <span className="leaderboard-current-balance">{t("leaderboards.currentBalanceDescription")}</span>
+        )}
+
+        {tab === "DROPS" ? (
+          <DropRankingControls sort={dropSort} onSortChange={setDropSort} />
+        ) : null}
+
+        {tab === "PREDICTORS" ? (
+          <PredictorRankingControls sort={predictorSort} onSortChange={setPredictorSort} />
+        ) : null}
+      </div>
+
+      <section className="leaderboard-results">
+        <header className="leaderboard-results__header">
           <div>
-            <span>{t("leaderboards.currentBalance")}</span>
-            <strong>{t("leaderboards.coinRankingTitle")}</strong>
+            <span>{t("leaderboards.rankBy")}</span>
+            <strong>{resultsTitle}</strong>
           </div>
-          <small>{t("leaderboards.currentBalanceDescription")}</small>
-        </section>
-      )}
 
-      {tab === "DROPS" ? (
-        <DropRankingControls
-          sort={dropSort}
-          itemType={itemType}
-          rarity={rarity}
-          nickname={nicknameDraft}
-          itemName={itemNameDraft}
-          onSortChange={setDropSort}
-          onItemTypeChange={setItemType}
-          onRarityChange={setRarity}
-          onNicknameChange={setNicknameDraft}
-          onItemNameChange={setItemNameDraft}
-          onApply={applyDropSearch}
-          onReset={resetDropFilters}
-        />
-      ) : null}
+          {!loading && !loadError && entries.length > 0 ? (
+            <small>
+              {t("leaderboards.pageOf", {
+                page,
+                total: totalPages,
+              })}
+            </small>
+          ) : null}
+        </header>
 
-      {tab === "PREDICTORS" ? (
-        <PredictorRankingControls
-          sort={predictorSort}
-          minimumSample={minimumSample}
-          onSortChange={setPredictorSort}
-          onMinimumSampleChange={setMinimumSample}
-        />
-      ) : null}
-
-      {loading ? (
-        <section className="leaderboard-state">
-          <strong>{t("common.loading")}</strong>
-          <span className="leaderboard-state__skeleton" />
-          <span className="leaderboard-state__skeleton" />
-          <span className="leaderboard-state__skeleton" />
-        </section>
-      ) : loadError ? (
-        <section className="leaderboard-state">
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
-          <strong>{t("common.loadErrorTitle")}</strong>
-          <small>{t("common.loadErrorCopy")}</small>
-          <button type="button" onClick={retry}>
-            {t("common.retry")}
-          </button>
-        </section>
-      ) : entries.length === 0 ? (
-        <section className="leaderboard-state">
-          <img src="/ui-illustrations/leaderboard-hero.svg" alt="" aria-hidden="true" />
-          <strong>{t("leaderboards.emptyTitle")}</strong>
-          <small>{t("leaderboards.emptyDescription")}</small>
-        </section>
-      ) : (
-        <>
-          <LeaderboardPodium entries={entries} />
-          <LeaderboardRows entries={entries} />
-        </>
-      )}
+        {loading ? (
+          <div className="leaderboard-state">
+            <strong>{t("common.loading")}</strong>
+            <span className="leaderboard-state__skeleton" />
+            <span className="leaderboard-state__skeleton" />
+            <span className="leaderboard-state__skeleton" />
+          </div>
+        ) : loadError ? (
+          <div className="leaderboard-state">
+            <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
+            <strong>{t("common.loadErrorTitle")}</strong>
+            <small>{t("common.loadErrorCopy")}</small>
+            <button type="button" onClick={retry}>
+              {t("common.retry")}
+            </button>
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="leaderboard-state">
+            <img src="/ui-illustrations/leaderboard-hero.svg" alt="" aria-hidden="true" />
+            <strong>{t("leaderboards.emptyTitle")}</strong>
+            <small>{t("leaderboards.emptyDescription")}</small>
+          </div>
+        ) : (
+          <>
+            {podiumEntries.length > 0 ? <LeaderboardPodium entries={podiumEntries} /> : null}
+            <LeaderboardRows entries={rowEntries} />
+            <LeaderboardPagination page={page} totalPages={totalPages} onChange={setPage} />
+          </>
+        )}
+      </section>
     </div>
   )
 }
