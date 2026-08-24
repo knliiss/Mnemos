@@ -228,7 +228,9 @@ export function LeaderboardPage({ back }: { back: () => void }) {
             onChange={changeWipe}
           />
         ) : (
-          <span className="leaderboard-current-balance">{t("leaderboards.currentBalanceDescription")}</span>
+          <span className="leaderboard-current-balance">
+            {t("leaderboards.currentBalanceDescription")}
+          </span>
         )}
 
         {tab === "DROPS" ? (
