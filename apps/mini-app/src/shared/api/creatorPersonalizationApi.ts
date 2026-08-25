@@ -2,6 +2,8 @@ import type {
   Currency,
   EffectType,
   FrameStyle,
+  NotificationPackValueKey,
+  NotificationPackVariantField,
   NotificationTemplateKey,
   PersonalizationType,
   VisualLayerAnimation,
@@ -12,6 +14,7 @@ import type {
   GlowStyleResponse,
   GradientStopResponse,
   NotificationTemplateResponse,
+  NotificationValueFormsResponse,
   PersonalizationResponse,
 } from "@/shared/api/personalizationApi"
 
@@ -23,6 +26,7 @@ export type PersonalizationPriceRequest = {
 export type GlowStyleRequest = GlowStyleResponse
 export type GradientStopRequest = GradientStopResponse
 export type NotificationTemplateRequest = NotificationTemplateResponse
+export type NotificationValueFormsRequest = NotificationValueFormsResponse
 
 export type VisualLayerRequest = {
   id: string
@@ -101,6 +105,9 @@ export type CreateNotificationPackRequest = {
   name: string
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplateRequest>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsRequest>>
+  >
   price: PersonalizationPriceRequest
 }
 
@@ -123,10 +130,26 @@ export type NotificationPackEditorDescriptorResponse = {
     variables: Array<{
       key: string
       sampleValue: string
+      forms: Array<{
+        key: string
+        placeholder: string
+        sampleValue: string
+      }>
     }>
     sampleValues: Record<string, string>
-    defaults: NotificationTemplateResponse
+    conditionFields: Array<{
+      field: NotificationPackVariantField
+      placeholder: string
+      values: Array<{
+        value: string
+        sampleValue: string
+      }>
+    }>
+    defaults: Omit<NotificationTemplateResponse, "variants">
   }>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
+  >
 }
 
 export type CreatorRequestByType = {

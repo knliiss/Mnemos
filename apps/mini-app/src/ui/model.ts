@@ -33,6 +33,18 @@ export type FrameStyle = "SOLID" | "DOUBLE" | "SEGMENTED"
 export type VisualLayerBlendMode = "NORMAL" | "SCREEN" | "MULTIPLY" | "OVERLAY" | "SOFT_LIGHT"
 export type VisualLayerAnimation = "NONE" | "FLOAT" | "PULSE" | "SPIN" | "DRIFT"
 export type NotificationTemplateKey = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAID" | "GLOBAL"
+export type NotificationPackVariantField =
+  | "ITEM_RARITY"
+  | "ITEM_TYPE"
+  | "BOOSTER"
+  | "DUNGEON"
+  | "GLOBAL_EVENT"
+export type NotificationPackValueKey =
+  | "ITEM_RARITY"
+  | "ITEM_TYPE"
+  | "BOOSTER"
+  | "DUNGEON"
+  | "GLOBAL_EVENT"
 export type RolePermission =
   | "MANAGE_MEMBERS"
   | "ASSIGN_MEMBER_ROLES"
@@ -169,7 +181,14 @@ export type VisualLayer = {
   zIndex: number
 }
 
-export type NotificationTemplate = {
+export type NotificationTemplateCondition = {
+  field: NotificationPackVariantField
+  value: string
+}
+
+export type NotificationTemplateVariant = {
+  id: string
+  conditions: NotificationTemplateCondition[]
   emoji: string | null
   soloTitle: string
   soloBody: string
@@ -177,10 +196,27 @@ export type NotificationTemplate = {
   aggregateTitle: string
 }
 
+export type NotificationTemplate = {
+  emoji: string | null
+  soloTitle: string
+  soloBody: string
+  compact: string
+  aggregateTitle: string
+  variants: NotificationTemplateVariant[]
+}
+
+export type NotificationValueForms = {
+  default: string
+  forms: Record<string, string>
+}
+
 export type NotificationPackContent = {
   kind: "NOTIFICATION_PACK"
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplate>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueForms>>
+  >
 }
 
 export type NickStyleContent = {

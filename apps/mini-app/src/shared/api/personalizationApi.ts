@@ -4,6 +4,8 @@ import type {
   Currency,
   EffectType,
   FrameStyle,
+  NotificationPackValueKey,
+  NotificationPackVariantField,
   NotificationTemplateKey,
   PersonalizationStatus,
   PersonalizationTarget,
@@ -36,7 +38,14 @@ export type VisualLayerResponse = {
   zIndex: number
 }
 
-export type NotificationTemplateResponse = {
+export type NotificationTemplateConditionResponse = {
+  field: NotificationPackVariantField
+  value: string
+}
+
+export type NotificationTemplateVariantResponse = {
+  id: string
+  conditions: NotificationTemplateConditionResponse[]
   emoji: string | null
   soloTitle: string
   soloBody: string
@@ -44,9 +53,26 @@ export type NotificationTemplateResponse = {
   aggregateTitle: string
 }
 
+export type NotificationTemplateResponse = {
+  emoji: string | null
+  soloTitle: string
+  soloBody: string
+  compact: string
+  aggregateTitle: string
+  variants: NotificationTemplateVariantResponse[]
+}
+
+export type NotificationValueFormsResponse = {
+  default: string
+  forms: Record<string, string>
+}
+
 export type NotificationPackContentResponse = {
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplateResponse>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
+  >
 }
 
 export type NickStyleContentResponse = {
@@ -100,9 +126,10 @@ export type PersonalizationContentResponse =
 
 export type PersonalizationResponse = {
   id: string
-  creatorUserId: string
+  creatorUserId: string | null
+  catalogKey: string | null
   type: PersonalizationType
-  origin: string
+  origin: "SYSTEM" | "CREATOR" | "CUSTOM"
   visibility: string
   name: string
   content: PersonalizationContentResponse

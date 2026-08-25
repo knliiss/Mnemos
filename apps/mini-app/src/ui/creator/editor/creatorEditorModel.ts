@@ -11,6 +11,7 @@ import type {
   NickStyleContentResponse,
   NotificationPackContentResponse,
   NotificationTemplateResponse,
+  NotificationValueFormsResponse,
   PersonalizationResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
@@ -20,6 +21,7 @@ import type {
   EffectType,
   FrameStyle,
   GradientStop,
+  NotificationPackValueKey,
   NotificationTemplateKey,
   Personalization,
   PersonalizationContent,
@@ -81,6 +83,9 @@ export type ProfileEffectEditorForm = {
 export type NotificationPackEditorForm = {
   mixedAggregateTitle: string
   templates: Record<string, NotificationTemplateResponse>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
+  >
 }
 
 export type CreatorEditorForm = {
@@ -148,14 +153,22 @@ function notificationPackDefaults(
     return {
       mixedAggregateTitle: "",
       templates: {},
+      valueMappings: {},
     }
   }
 
   return {
     mixedAggregateTitle: descriptor.mixedAggregateTitleDefault,
     templates: Object.fromEntries(
-      descriptor.templates.map((template) => [template.type, { ...template.defaults }]),
+      descriptor.templates.map((template) => [
+        template.type,
+        {
+          ...template.defaults,
+          variants: [],
+        },
+      ]),
     ),
+    valueMappings: structuredClone(descriptor.valueMappings),
   }
 }
 
@@ -268,6 +281,7 @@ export async function saveCreatorForm(
     name,
     mixedAggregateTitle: form.notificationPack.mixedAggregateTitle.trim(),
     templates: completeNotificationTemplates(form, descriptor),
+    valueMappings: form.notificationPack.valueMappings,
     price,
   }
 
@@ -442,6 +456,7 @@ export function creatorResponseToEditorForm(
     notificationPack: {
       mixedAggregateTitle: value.mixedAggregateTitle,
       templates: { ...value.templates },
+      valueMappings: value.valueMappings ?? structuredClone(descriptor.valueMappings),
     },
   }
 }
@@ -507,6 +522,7 @@ export function buildCreatorPreview(
       kind: "NOTIFICATION_PACK",
       mixedAggregateTitle: form.notificationPack.mixedAggregateTitle,
       templates: completeNotificationTemplates(form, descriptor),
+      valueMappings: form.notificationPack.valueMappings,
     }
   }
 

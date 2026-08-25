@@ -6,7 +6,7 @@ import { CURRENCIES } from "../../contracts"
 import type { Account, Currency, Personalization, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented } from "../../shared/Primitives"
-import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
+import { NotificationPackContextPreview } from "../components/NotificationPackContextPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { PersonalizationPager } from "../components/PersonalizationPager"
@@ -99,21 +99,35 @@ export function PersonalizationStoreCategory({
       ) : (
         <div className="personalization-category-list">
           {pageItems.map((item) => (
-            <motion.button
-              type="button"
+            <motion.article
               key={item.id}
               className="personalization-category-card personalization-category-card--featured"
               whileTap={{ scale: 0.992 }}
+              role="button"
+              tabIndex={0}
               onClick={() =>
                 navigate({
                   id: "personalization-detail",
                   params: { personalizationId: item.id },
                 })
               }
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault()
+                  navigate({
+                    id: "personalization-detail",
+                    params: { personalizationId: item.id },
+                  })
+                }
+              }}
             >
-              <span className="personalization-category-visual">
+              <span
+                className="personalization-category-visual"
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+              >
                 {item.type === "NOTIFICATION_PACK" ? (
-                  <NotificationPackSpotlightPreview item={item} size="CARD" />
+                  <NotificationPackContextPreview item={item} size="CARD" />
                 ) : (
                   <PersonalizationVisual item={item} />
                 )}
@@ -137,7 +151,7 @@ export function PersonalizationStoreCategory({
                   <CurrencyValue currency={item.currency} value={item.price} compact />
                 )}
               </span>
-            </motion.button>
+            </motion.article>
           ))}
 
           {!pageItems.length ? (

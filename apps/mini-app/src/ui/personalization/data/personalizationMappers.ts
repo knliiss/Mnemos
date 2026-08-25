@@ -33,11 +33,10 @@ export function toPersonalization(
   currentUsername?: string,
 ): Personalization {
   const target = owned?.ownerType ?? targets[response.type]
-  const createdByCurrentUser = response.creatorUserId === currentUserId
-  const creator =
-    createdByCurrentUser && currentUsername
-      ? `@${currentUsername}`
-      : `Creator ${response.creatorUserId.slice(0, 8)}`
+  const createdByCurrentUser = Boolean(
+    response.creatorUserId && response.creatorUserId === currentUserId,
+  )
+  const creator = resolveCreator(response, createdByCurrentUser, currentUsername)
 
   return {
     id: response.id,
@@ -56,6 +55,22 @@ export function toPersonalization(
   }
 }
 
+function resolveCreator(
+  response: PersonalizationResponse,
+  createdByCurrentUser: boolean,
+  currentUsername?: string,
+): string {
+  if (response.origin === "SYSTEM") {
+    return "Mnemos"
+  }
+
+  if (createdByCurrentUser && currentUsername) {
+    return `@${currentUsername}`
+  }
+
+  return response.creatorUserId ? `Creator ${response.creatorUserId.slice(0, 8)}` : "Mnemos"
+}
+
 function toPersonalizationContent(response: PersonalizationResponse): PersonalizationContent {
   if (response.type === "NOTIFICATION_PACK") {
     const content = response.content as NotificationPackContentResponse
@@ -64,6 +79,7 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
       kind: "NOTIFICATION_PACK",
       mixedAggregateTitle: content.mixedAggregateTitle,
       templates: content.templates,
+      valueMappings: content.valueMappings ?? {},
     } satisfies NotificationPackContent
   }
 
