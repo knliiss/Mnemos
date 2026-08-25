@@ -3,10 +3,7 @@ import type { Dispatch, SetStateAction } from "react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { NotificationPackEditorDescriptorResponse } from "@/shared/api/creatorPersonalizationApi"
-import type {
-  NotificationPackValueKey,
-  NotificationValueForms,
-} from "../../model"
+import type { NotificationPackValueKey, NotificationValueForms } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import type { CreatorEditorForm } from "./creatorEditorModel"
 
@@ -48,7 +45,8 @@ export function CreatorNotificationValueFormsEditor({
   const availableKeys = useMemo(
     () =>
       valueKeyOrder.filter((key) => {
-        const mappings = form.notificationPack.valueMappings?.[key] ?? descriptor.valueMappings?.[key]
+        const mappings =
+          form.notificationPack.valueMappings?.[key] ?? descriptor.valueMappings?.[key]
 
         return Boolean(mappings && Object.keys(mappings).length)
       }),
@@ -66,10 +64,7 @@ export function CreatorNotificationValueFormsEditor({
   const mappings =
     form.notificationPack.valueMappings?.[activeKey] ?? descriptor.valueMappings?.[activeKey] ?? {}
 
-  const updateForms = (
-    rawValue: string,
-    next: NotificationValueForms,
-  ) => {
+  const updateForms = (rawValue: string, next: NotificationValueForms) => {
     setForm((current) => ({
       ...current,
       notificationPack: {
@@ -97,7 +92,10 @@ export function CreatorNotificationValueFormsEditor({
         <em>{t("creator.editor.wordForms.hint")}</em>
       </header>
 
-      <nav className="notification-word-forms__tabs" aria-label={t("creator.editor.wordForms.title")}>
+      <nav
+        className="notification-word-forms__tabs"
+        aria-label={t("creator.editor.wordForms.title")}
+      >
         {availableKeys.map((key) => (
           <button
             type="button"
@@ -227,11 +225,7 @@ function formEntries(forms: NotificationValueForms): FormEntry[] {
   ]
 }
 
-function valueLabel(
-  t: TFunction,
-  valueKey: NotificationPackValueKey,
-  rawValue: string,
-): string {
+function valueLabel(t: TFunction, valueKey: NotificationPackValueKey, rawValue: string): string {
   if (valueKey === "ITEM_RARITY") {
     return t(`events.rarities.${rawValue}`)
   }
