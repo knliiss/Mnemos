@@ -5,7 +5,7 @@ import {
 } from "../../components/personalization/PersonalizationPreview"
 import type { Account, Personalization, Route } from "../../model"
 import { CurrencyValue, PageHeader } from "../../shared/Primitives"
-import { NotificationPackContextPreview } from "../components/NotificationPackContextPreview"
+import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
 import { NotificationPackTelegramPreview } from "../components/NotificationPackTelegramPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
@@ -90,8 +90,8 @@ export function PersonalizationDetail({
           <em>{item.creator}</em>
         </span>
 
-        {item.type === "NOTIFICATION_PACK" ? (
-          <NotificationPackContextPreview item={item} size="DETAIL" />
+        {notificationPackContent ? (
+          <NotificationPackSpotlightPreview item={item} size="DETAIL" />
         ) : (
           <PersonalizationVisual item={item} detail />
         )}
