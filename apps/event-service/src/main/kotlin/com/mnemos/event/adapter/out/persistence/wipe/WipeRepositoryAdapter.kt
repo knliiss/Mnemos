@@ -19,5 +19,5 @@ class WipeRepositoryAdapter(
 
     override fun findAll(): List<Wipe> = repository.findAllByOrderByStartedAtDesc().map { entity -> entity.toDomain() }
 
-    override fun save(wipe: Wipe): Wipe = repository.save(wipe.toEntity()).toDomain()
+    override fun save(wipe: Wipe): Wipe = repository.saveAndFlush(wipe.toEntity()).toDomain()
 }
