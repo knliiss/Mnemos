@@ -117,10 +117,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }, visibleDuration)
     }
 
-    const enqueueSpotlight = (
-      event: DropSpotlightBroadcast,
-      requiresAcknowledgement: boolean,
-    ) => {
+    const enqueueSpotlight = (event: DropSpotlightBroadcast, requiresAcknowledgement: boolean) => {
       if (seenIds.has(event.id) || Date.parse(event.expiresAt) <= Date.now()) {
         return
       }

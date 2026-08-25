@@ -4,10 +4,7 @@ import { listAdminBadges } from "@/shared/api/badgeAdminApi"
 import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import {
-  createSpotlightPreview,
-  spotlightPreviews,
-} from "@/shared/realtime/spotlightPreviewBus"
+import { createSpotlightPreview, spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 
