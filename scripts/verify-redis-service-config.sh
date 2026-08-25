@@ -5,6 +5,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 REDIS_COMPOSE="$REPOSITORY_ROOT/infrastructure/compose/compose.redis.yml"
 REDIS_ENTRYPOINT="$REPOSITORY_ROOT/infrastructure/redis/redis-entrypoint.sh"
+REALTIME_LEASE_STORE="$REPOSITORY_ROOT/apps/realtime-service/src/main/kotlin/com/mnemos/realtime/adapter/sse/connection/RedisSseConnectionLeaseStore.kt"
 MAKE_CONFIG="$REPOSITORY_ROOT/make/config.mk"
 
 fail() {
@@ -14,6 +15,7 @@ fail() {
 
 [ -f "$REDIS_COMPOSE" ] || fail "Redis Compose file is missing"
 [ -f "$REDIS_ENTRYPOINT" ] || fail "Redis ACL entrypoint is missing"
+[ -f "$REALTIME_LEASE_STORE" ] || fail "Realtime SSE lease store is missing"
 [ -f "$MAKE_CONFIG" ] || fail "Make configuration is missing"
 
 grep -Eq '^BUILDABLE_INFRA_SERVICE_NAMES[[:space:]]*:=[[:space:]].*(^|[[:space:]])redis([[:space:]]|$)' "$MAKE_CONFIG" ||
@@ -99,6 +101,9 @@ verify_service \
     "REDIS_NOTIFICATION_PASSWORD" \
     "notification:*" \
     "$REPOSITORY_ROOT/apps/notification-service/src/main/resources/application.properties"
+
+grep -Fq 'const val KEY_PREFIX = "realtime:sse:leases"' "$REALTIME_LEASE_STORE" ||
+    fail "Realtime SSE lease keys must stay inside the realtime:* Redis ACL namespace"
 
 if grep -R -n -E '(^|[^A-Z0-9_])REDIS_PASSWORD([^A-Z0-9_]|$)' \
     "$REPOSITORY_ROOT/infrastructure/compose" \

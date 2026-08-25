@@ -58,7 +58,7 @@ require_contains "$csp" "frame-src 'self' https://auth.knalis.rest" "the Keycloa
 require_contains "$csp" "frame-ancestors 'self' https://telegram.org https://*.telegram.org" "same-origin silent SSO and Telegram framing"
 require_contains "$csp" "object-src 'none'" "object blocking"
 require_contains "$csp" "base-uri 'none'" "base URI blocking"
-require_contains "$csp" "form-action https://auth.knalis.rest" "the production Keycloak form target"
+require_contains "$csp" "form-action 'self' https://auth.knalis.rest" "the Mini App and production Keycloak form targets"
 require_contains "$csp" "upgrade-insecure-requests" "insecure-request upgrading"
 
 required_headers="

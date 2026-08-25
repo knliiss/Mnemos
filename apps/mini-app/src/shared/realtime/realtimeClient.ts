@@ -1,6 +1,6 @@
 import { getToken } from "@/features/auth/api/auth"
 import { runtimeConfig } from "@/shared/config/runtimeConfig"
-import { realtimeBroadcasts, realtimeEvents } from "./realtimeEventBus"
+import { realtimeBroadcasts, realtimeConnectionEvents, realtimeEvents } from "./realtimeEventBus"
 import { parseRealtimeBroadcast, parseRealtimeEvent } from "./realtimeEventParser"
 import type { RealtimeBroadcast, RealtimeEvent } from "./realtime.types"
 
@@ -25,6 +25,24 @@ class RealtimeClient {
     return () => this.stop()
   }
 
+  async acknowledgeBroadcast(sequence: number): Promise<void> {
+    const token = await getToken()
+    const response = await fetch(
+      `${runtimeConfig.apiUrl}/api/v1/realtime/broadcasts/${sequence}/ack`,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error(`Realtime broadcast acknowledgement failed with HTTP ${response.status}`)
+    }
+  }
+
   private stop() {
     this.abortController?.abort()
     this.abortController = null
@@ -40,6 +58,10 @@ class RealtimeClient {
       } catch (error) {
         if (signal.aborted || isAbortError(error)) {
           return
+        }
+      } finally {
+        if (!signal.aborted) {
+          realtimeConnectionEvents.publish("DISCONNECTED")
         }
       }
 
@@ -71,6 +93,8 @@ class RealtimeClient {
     if (!response.body) {
       throw new Error("Realtime connection did not provide a response stream")
     }
+
+    realtimeConnectionEvents.publish("CONNECTED")
 
     await consumeEventStream(
       response.body,

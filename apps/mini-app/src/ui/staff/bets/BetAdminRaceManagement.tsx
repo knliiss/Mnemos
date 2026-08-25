@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ItemRaceResponse } from "@/shared/api/betApi"
+import type { ItemRaceParticipantResponse, ItemRaceResponse } from "@/shared/api/betApi"
 import { cancelItemRace, createItemRace } from "@/shared/api/betAdminApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { ItemTypeArt } from "../../components/events/EventArt"
@@ -18,6 +18,9 @@ type Props = {
   onChanged: () => Promise<void>
 }
 
+type ParticipantFilter = "ALL" | "WINNER" | "ACTIVE" | "FINISHED"
+type ParticipantSort = "DESC" | "ASC"
+
 export function BetAdminRaceManagement({ races, loading, back, onChanged }: Props) {
   const { t } = useTranslation()
   const [formOpen, setFormOpen] = useState(false)
@@ -26,6 +29,10 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
   const [durationHours, setDurationHours] = useState("24")
   const [entryAmount, setEntryAmount] = useState("1000")
   const [busy, setBusy] = useState(false)
+  const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null)
+  const [participantSearch, setParticipantSearch] = useState("")
+  const [participantFilter, setParticipantFilter] = useState<ParticipantFilter>("ALL")
+  const [participantSort, setParticipantSort] = useState<ParticipantSort>("DESC")
   const busyRef = useRef(false)
   const mountedRef = useRef(true)
 
@@ -36,6 +43,54 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       mountedRef.current = false
     }
   }, [])
+
+  const selectedRace = useMemo(
+    () => races.find((race) => race.id === selectedRaceId) ?? null,
+    [races, selectedRaceId],
+  )
+
+  const visibleParticipants = useMemo(() => {
+    if (!selectedRace) {
+      return []
+    }
+
+    const query = participantSearch.trim().toLocaleLowerCase()
+
+    return selectedRace.participants
+      .filter((participant) => {
+        if (query) {
+          const matchesSearch =
+            participant.accountNickname.toLocaleLowerCase().includes(query) ||
+            participant.accountId.toLocaleLowerCase().includes(query)
+
+          if (!matchesSearch) {
+            return false
+          }
+        }
+
+        if (participantFilter === "WINNER") {
+          return isRaceWinner(selectedRace, participant)
+        }
+
+        if (participantFilter === "ACTIVE") {
+          return ["PENDING", "ACTIVE", "PAYOUT_PENDING", "PAYOUT_FAILED"].includes(
+            participant.status,
+          )
+        }
+
+        if (participantFilter === "FINISHED") {
+          return ["WON", "LOST", "REFUNDED"].includes(participant.status)
+        }
+
+        return true
+      })
+      .sort((left, right) => {
+        const leftAmount = left.confirmedAmount + left.pendingAmount
+        const rightAmount = right.confirmedAmount + right.pendingAmount
+
+        return participantSort === "DESC" ? rightAmount - leftAmount : leftAmount - rightAmount
+      })
+  }, [participantFilter, participantSearch, participantSort, selectedRace])
 
   const duration = Number(durationHours)
   const entry = Number(entryAmount)
@@ -110,6 +165,13 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
         setBusy(false)
       }
     }
+  }
+
+  const toggleRace = (raceId: string) => {
+    setSelectedRaceId((current) => (current === raceId ? null : raceId))
+    setParticipantSearch("")
+    setParticipantFilter("ALL")
+    setParticipantSort("DESC")
   }
 
   return (
@@ -200,30 +262,151 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
               0,
             )
             const cancellable = race.status === "REGISTRATION" || race.status === "ACTIVE"
+            const expanded = race.id === selectedRace?.id
+            const winner = race.participants.find((participant) => isRaceWinner(race, participant))
 
             return (
-              <article key={race.id} className="bet-admin-race-card">
-                <span className="bet-admin-race-card__art">
-                  <ItemTypeArt itemType={race.itemType} size={52} />
-                </span>
-                <span className="bet-admin-race-card__copy">
-                  <small>{betAdminItemLabel(t, race.itemType)}</small>
-                  <strong>{race.itemName}</strong>
-                  <em>
-                    {betAdminRaceStatusLabel(t, race.status)} ·{" "}
-                    {t("betAdmin.participantsShort", { count: race.participants.length })}
-                  </em>
-                </span>
-                <span className="bet-admin-race-card__money">
-                  <CurrencyValue currency="COIN" value={pool} compact />
-                  <small>{t("betAdmin.bank")}</small>
-                </span>
-                {cancellable ? (
-                  <button type="button" disabled={busy} onClick={() => void cancel(race.id)}>
-                    {t("betAdmin.cancel")}
-                  </button>
+              <div
+                key={race.id}
+                className={`bet-admin-race-entry ${expanded ? "is-expanded" : ""}`}
+              >
+                <article className="bet-admin-race-card">
+                  <span className="bet-admin-race-card__art">
+                    <ItemTypeArt itemType={race.itemType} size={52} />
+                  </span>
+                  <span className="bet-admin-race-card__copy">
+                    <small>{betAdminItemLabel(t, race.itemType)}</small>
+                    <strong>{race.itemName}</strong>
+                    <em>
+                      {betAdminRaceStatusLabel(t, race.status)} ·{" "}
+                      {t("betAdmin.participantsShort", { count: race.participants.length })}
+                    </em>
+                    {winner ? (
+                      <b className="bet-admin-race-card__winner">
+                        {t("betAdmin.winner")}: {winner.accountNickname}
+                      </b>
+                    ) : null}
+                  </span>
+                  <span className="bet-admin-race-card__money">
+                    <CurrencyValue currency="COIN" value={pool} compact />
+                    <small>{t("betAdmin.bank")}</small>
+                  </span>
+                  <span className="bet-admin-race-card__actions">
+                    <button
+                      type="button"
+                      className="is-details"
+                      onClick={() => toggleRace(race.id)}
+                    >
+                      {expanded ? t("betAdmin.hideParticipants") : t("betAdmin.viewParticipants")}
+                    </button>
+                    {cancellable ? (
+                      <button
+                        type="button"
+                        className="is-cancel"
+                        disabled={busy}
+                        onClick={() => void cancel(race.id)}
+                      >
+                        {t("betAdmin.cancel")}
+                      </button>
+                    ) : null}
+                  </span>
+                </article>
+
+                {expanded ? (
+                  <section className="bet-admin-ledger bet-admin-race-ledger">
+                    <header className="bet-admin-ledger__header">
+                      <span>
+                        <small>{t("betAdmin.raceParticipantsEyebrow")}</small>
+                        <strong>{t("betAdmin.raceParticipants")}</strong>
+                        <em>
+                          {winner
+                            ? t("betAdmin.raceWinner", { player: winner.accountNickname })
+                            : t("betAdmin.raceWinnerPending")}
+                        </em>
+                      </span>
+                      <CurrencyValue currency="COIN" value={pool} compact />
+                    </header>
+
+                    <div className="bet-admin-ledger__filters">
+                      <input
+                        value={participantSearch}
+                        onChange={(event) => setParticipantSearch(event.target.value)}
+                        placeholder={t("betAdmin.playerSearchPlaceholder")}
+                        aria-label={t("betAdmin.playerSearchPlaceholder")}
+                      />
+
+                      <div className="bet-admin-ledger__filter-choices" role="group">
+                        {(["ALL", "WINNER", "ACTIVE", "FINISHED"] as const).map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            className={participantFilter === value ? "is-active" : ""}
+                            onClick={() => setParticipantFilter(value)}
+                          >
+                            {t(`betAdmin.participantFilter${value}`)}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="bet-admin-ledger__sort"
+                        onClick={() =>
+                          setParticipantSort((value) => (value === "DESC" ? "ASC" : "DESC"))
+                        }
+                      >
+                        {t("betAdmin.amount")} {participantSort === "DESC" ? "↓" : "↑"}
+                      </button>
+                    </div>
+
+                    {visibleParticipants.length ? (
+                      <div className="bet-admin-ledger__rows">
+                        {visibleParticipants.map((participant) => {
+                          const amount = participant.confirmedAmount + participant.pendingAmount
+                          const won = isRaceWinner(race, participant)
+
+                          return (
+                            <article
+                              key={participant.id}
+                              className={`bet-admin-ledger-row ${won ? "is-winner" : ""}`}
+                            >
+                              <span className="bet-admin-ledger-row__identity">
+                                <strong>{participant.accountNickname}</strong>
+                                <small>{participant.accountId}</small>
+                              </span>
+                              {won ? (
+                                <span className="bet-admin-winner-badge">
+                                  {t("betAdmin.winner")}
+                                </span>
+                              ) : (
+                                <span className="bet-admin-ledger-row__status">
+                                  {t(`bets.raceParticipantStatus.${participant.status}`, {
+                                    defaultValue: participant.status,
+                                  })}
+                                </span>
+                              )}
+                              <span className="bet-admin-ledger-row__amount">
+                                <CurrencyValue currency="COIN" value={amount} compact />
+                                {participant.pendingAmount > 0 ? (
+                                  <small>
+                                    {t("betAdmin.pendingAmount", {
+                                      amount: participant.pendingAmount,
+                                    })}
+                                  </small>
+                                ) : null}
+                              </span>
+                            </article>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="inline-hint inline-hint--left">
+                        {t("betAdmin.noMatchingParticipants")}
+                      </p>
+                    )}
+                  </section>
                 ) : null}
-              </article>
+              </div>
             )
           })}
 
@@ -232,4 +415,8 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       )}
     </div>
   )
+}
+
+function isRaceWinner(race: ItemRaceResponse, participant: ItemRaceParticipantResponse): boolean {
+  return participant.status === "WON" || race.winnerAccountId === participant.accountId
 }

@@ -6,11 +6,6 @@ object RaidSubscriptionPersistenceMapper {
     fun RaidSubscription.toEntity(): RaidSubscriptionEntity =
         RaidSubscriptionEntity(
             subscriptionId = id.id,
-            locations = locations,
+            locations = locations.toMutableSet(),
         )
-
-    fun RaidSubscription.toEquivalenceKey(): String =
-        locations
-            .sorted()
-            .joinToString(",")
 }

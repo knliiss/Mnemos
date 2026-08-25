@@ -6,6 +6,7 @@ import type { Account, Route } from "../../model"
 import { CurrencyMark } from "../../shared/MnemosIcon"
 import { RoleSigil } from "../../shared/RoleSigil"
 import { AccountDailyReward } from "../AccountDailyReward"
+import { LeaderboardPromoCard } from "./LeaderboardPromoCard"
 
 type AccountOverviewProps = {
   account: Account
@@ -92,6 +93,8 @@ export function AccountOverview({
           <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
         </motion.button>
       </section>
+
+      <LeaderboardPromoCard navigate={navigate} />
 
       <nav className="account-home-actions" aria-label={t("accountHome.managementAria")}>
         <motion.button

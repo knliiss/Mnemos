@@ -5,7 +5,9 @@ import com.mnemos.notification.domain.raid.model.RaidSubscription
 import com.mnemos.notification.domain.subscription.model.SubscriptionId
 
 interface RaidSubscriptionRepository {
-    fun createOrGetId(subscription: RaidSubscription): SubscriptionId
+    fun addLocations(subscription: RaidSubscription): SubscriptionId
+
+    fun replaceLocations(subscription: RaidSubscription): SubscriptionId
 
     fun findAllLocationsSubscriberUserIds(): Set<UserId>
 

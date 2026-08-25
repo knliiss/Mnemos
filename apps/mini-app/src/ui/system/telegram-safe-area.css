@@ -1,22 +1,41 @@
-html.telegram-mini-app .service-unavailable {
-  padding-top: max(
-    24px,
+html.telegram-mini-app {
+  --mnemos-telegram-top-clearance: max(
     env(safe-area-inset-top, 0px),
-    var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
+    var(--tg-safe-area-inset-top, 0px),
+    var(--tg-content-safe-area-inset-top, 0px)
   );
-  padding-right: max(18px, var(--tg-safe-area-inset-right, env(safe-area-inset-right, 0px)));
+}
+
+html.telegram-mini-app .service-unavailable {
+  padding-top: max(24px, var(--mnemos-telegram-top-clearance));
+  padding-right: max(
+    18px,
+    var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, 0px)),
+    env(safe-area-inset-right, 0px)
+  );
   padding-bottom: max(
     28px,
     env(safe-area-inset-bottom, 0px),
     var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px))
   );
-  padding-left: max(18px, var(--tg-safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  padding-left: max(
+    18px,
+    var(--tg-content-safe-area-inset-left, var(--tg-safe-area-inset-left, 0px)),
+    env(safe-area-inset-left, 0px)
+  );
 }
 
 html.telegram-mini-app .realtime-spotlight {
-  top: max(
-    12px,
-    env(safe-area-inset-top, 0px),
-    var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px))
-  );
+  top: max(12px, var(--mnemos-telegram-top-clearance));
+}
+
+@media (max-width: 699px) {
+  html.telegram-mini-app {
+    --mnemos-telegram-top-clearance: max(
+      92px,
+      var(--tg-content-safe-area-inset-top, 0px),
+      calc(var(--tg-safe-area-inset-top, 0px) + 52px),
+      calc(env(safe-area-inset-top, 0px) + 52px)
+    );
+  }
 }

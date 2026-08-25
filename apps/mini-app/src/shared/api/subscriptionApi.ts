@@ -38,6 +38,14 @@ export async function createRaidSubscription(locations: number[]): Promise<void>
   await postJson("/api/v1/subscriptions/raids", { locations })
 }
 
+export async function updateRaidSubscription(locations: number[]): Promise<void> {
+  await api<unknown>("/api/v1/subscriptions/raids", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ locations }),
+  })
+}
+
 export async function deleteSubscription(subscriptionId: string): Promise<void> {
   await api<void>(`/api/v1/subscriptions/${subscriptionId}`, { method: "DELETE" })
 }

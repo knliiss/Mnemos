@@ -22,6 +22,42 @@ export type IdentitySearchResponse = {
   accounts: IdentityAccountResponse[]
 }
 
+export type IdentityDirectoryOrder = "NEWEST" | "OLDEST"
+
+export type IdentityDirectoryPage<T> = {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export type UserIdentityDirectoryResponse = {
+  userId: string
+  username: string
+  telegramId: number
+  activeAccountId: string | null
+  accountCount: number
+  createdAt: string
+}
+
+export type AccountIdentityDirectoryResponse = {
+  accountId: string
+  cristalixUuid: string
+  cristalixNickname: string
+  status: "ACTIVE" | "DEACTIVATED"
+  ownerUserId: string
+  ownerUsername: string
+  createdAt: string
+}
+
+export type IdentityDirectoryQuery = {
+  query: string
+  page: number
+  size?: number
+  order: IdentityDirectoryOrder
+}
+
 export type SanctionResponse = {
   id: string
   userId: string
@@ -86,6 +122,38 @@ export async function searchIdentities(
   return api<IdentitySearchResponse[]>(`/api/v1/admin/identities?${params}`)
 }
 
+export async function searchUserDirectory(
+  query: IdentityDirectoryQuery,
+): Promise<IdentityDirectoryPage<UserIdentityDirectoryResponse>> {
+  const params = createIdentityDirectoryParams(query)
+
+  return api<IdentityDirectoryPage<UserIdentityDirectoryResponse>>(
+    `/api/v1/admin/identities/users?${params}`,
+  )
+}
+
+export async function searchAccountDirectory(
+  query: IdentityDirectoryQuery,
+): Promise<IdentityDirectoryPage<AccountIdentityDirectoryResponse>> {
+  const params = createIdentityDirectoryParams(query)
+
+  return api<IdentityDirectoryPage<AccountIdentityDirectoryResponse>>(
+    `/api/v1/admin/identities/accounts?${params}`,
+  )
+}
+
+export async function reactivateAccount(accountId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/reactivate`, {
+    method: "POST",
+  })
+}
+
+export async function deactivateAccount(accountId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/deactivate`, {
+    method: "POST",
+  })
+}
+
 export async function listSanctions(userId: string): Promise<SanctionResponse[]> {
   const params = new URLSearchParams({ userId })
   return api<SanctionResponse[]>(`/api/v1/moderation/sanctions?${params}`)
@@ -136,4 +204,19 @@ export async function createWalletAdjustment(
 
 export async function getWalletAdjustment(operationId: string): Promise<WalletAdjustmentResponse> {
   return api<WalletAdjustmentResponse>(`/api/v1/moderation/wallet-adjustments/${operationId}`)
+}
+
+function createIdentityDirectoryParams(query: IdentityDirectoryQuery): URLSearchParams {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    size: String(query.size ?? 20),
+    order: query.order,
+  })
+  const normalizedQuery = query.query.trim()
+
+  if (normalizedQuery) {
+    params.set("query", normalizedQuery)
+  }
+
+  return params
 }

@@ -4,9 +4,11 @@ import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/shared/api/rewardApi"
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { realtimeConnectionEvents, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
+
+const BALANCE_RECONCILIATION_INTERVAL_MS = 30_000
 
 type AccountData = {
   members: Member[]
@@ -75,6 +77,17 @@ export function useAccountData(
 
     setAccountCoin(balances.find((balance) => balance.currency === "COIN")?.amount ?? 0)
   }, [])
+
+  const reconcileBalances = useCallback(async () => {
+    const currentAccountId = activeAccountId.current
+    const requests: Promise<void>[] = [refreshUserBalance()]
+
+    if (currentAccountId) {
+      requests.push(refreshAccountBalance(currentAccountId))
+    }
+
+    await Promise.all(requests)
+  }, [refreshAccountBalance, refreshUserBalance])
 
   const refreshAccount = useCallback(async () => {
     const requestedAccountId = accountId
@@ -199,6 +212,39 @@ export function useAccountData(
       unsubscribe()
     }
   }, [refreshAccountBalance, refreshUserBalance])
+
+  useEffect(() => {
+    const unsubscribe = realtimeConnectionEvents.subscribe((state) => {
+      if (state === "CONNECTED") {
+        void reconcileBalances().catch(handleError)
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [reconcileBalances])
+
+  useEffect(() => {
+    const reconcile = () => {
+      void reconcileBalances().catch(handleError)
+    }
+    const reconcileWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        reconcile()
+      }
+    }
+    const intervalId = window.setInterval(reconcileWhenVisible, BALANCE_RECONCILIATION_INTERVAL_MS)
+
+    window.addEventListener("focus", reconcile)
+    document.addEventListener("visibilitychange", reconcileWhenVisible)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener("focus", reconcile)
+      document.removeEventListener("visibilitychange", reconcileWhenVisible)
+    }
+  }, [reconcileBalances])
 
   const claimReward = useCallback(async () => {
     const requestedAccountId = accountId

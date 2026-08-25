@@ -14,6 +14,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
   subscriptions: { area: "events" },
 
   account: { area: "account", root: true },
+  leaderboards: { area: "account" },
   member: { area: "account" },
   roles: { area: "account" },
   "role-editor": { area: "account" },
@@ -44,6 +45,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
   "bet-admin": { area: "staff" },
   "badge-admin": { area: "staff" },
   "collector-admin": { area: "staff" },
+  "wipe-admin": { area: "staff" },
 }
 
 const areaRoots: Record<FeatureArea, RootRoute> = {

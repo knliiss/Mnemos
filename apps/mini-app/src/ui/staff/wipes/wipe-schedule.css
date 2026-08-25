@@ -1,0 +1,59 @@
+.wipe-admin-current__planned {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border: 1px solid rgba(124, 226, 183, 0.12);
+  border-radius: 11px;
+  background: rgba(124, 226, 183, 0.025);
+}
+
+.wipe-admin-current__planned > span {
+  color: #8fb7a1;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wipe-admin-current__planned strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wipe-admin-current__planned small {
+  justify-self: end;
+  color: #8b988f;
+  font-size: 8px;
+}
+
+.wipe-admin-history article.is-planned {
+  border-color: rgba(124, 226, 183, 0.12);
+  background:
+    linear-gradient(90deg, rgba(124, 226, 183, 0.025), transparent 64%), rgba(255, 255, 255, 0.012);
+}
+
+.wipe-admin-history article.is-planned .wipe-admin-history__number {
+  color: #bed8c9;
+}
+
+.wipe-admin-form input:disabled,
+.wipe-admin-start__head button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+@media (max-width: 430px) {
+  .wipe-admin-current__planned {
+    grid-template-columns: 1fr auto;
+  }
+
+  .wipe-admin-current__planned > span {
+    grid-column: 1 / -1;
+  }
+}

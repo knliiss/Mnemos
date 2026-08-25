@@ -1,0 +1,184 @@
+.leaderboard-screen .leaderboard-header {
+  position: relative;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: start;
+  min-height: 88px;
+  padding-right: 112px;
+}
+
+.leaderboard-screen .leaderboard-header__art {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 96px;
+  height: 76px;
+  justify-self: auto;
+  transform: translateY(-50%);
+}
+
+.leaderboard-screen .leaderboard-sortbar--drops {
+  grid-template-columns: 42px minmax(0, 360px) 42px;
+  justify-content: center;
+  width: 100%;
+}
+
+.leaderboard-screen .leaderboard-sortbar--drops::before {
+  grid-column: 1;
+  width: 42px;
+  height: 42px;
+}
+
+.leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  padding: 1px;
+}
+
+.leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices button {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__direction {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.leaderboard-screen .leaderboard-podium__slot.is-rank-1 .leaderboard-podium__crown {
+  --crown-main: #d8af42;
+  --crown-light: #ffe59a;
+  --crown-shadow: #8b5d22;
+  --crown-jewel: #c7f24a;
+}
+
+.leaderboard-screen .leaderboard-podium__slot.is-rank-2 .leaderboard-podium__crown {
+  --crown-main: #aebbb9;
+  --crown-light: #e8f0ec;
+  --crown-shadow: #66716f;
+  --crown-jewel: #b99ad0;
+}
+
+.leaderboard-screen .leaderboard-podium__slot.is-rank-3 .leaderboard-podium__crown {
+  --crown-main: #b87449;
+  --crown-light: #e2a273;
+  --crown-shadow: #70442e;
+  --crown-jewel: #d98774;
+}
+
+.leaderboard-screen .leaderboard-podium__crown-art .crown-main {
+  fill: var(--crown-main);
+}
+
+.leaderboard-screen .leaderboard-podium__crown-art .crown-light {
+  fill: var(--crown-light);
+}
+
+.leaderboard-screen .leaderboard-podium__crown-art .crown-shadow {
+  fill: var(--crown-shadow);
+}
+
+.leaderboard-screen .leaderboard-podium__crown-art .crown-jewel {
+  fill: var(--crown-jewel);
+}
+
+@media (max-width: 620px) {
+  .leaderboard-screen .leaderboard-header {
+    grid-template-columns: 36px minmax(0, 1fr);
+    min-height: 82px;
+    padding-right: 88px;
+  }
+
+  .leaderboard-screen .leaderboard-header__art {
+    right: 0;
+    width: 78px;
+    height: 62px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops {
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    gap: 5px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops::before {
+    width: 40px;
+    height: 40px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices {
+    gap: 4px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices button {
+    min-height: 38px;
+    padding-inline: 5px;
+    font-size: 8px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__direction {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 430px) {
+  .leaderboard-screen .leaderboard-header {
+    min-height: 76px;
+    padding-right: 70px;
+  }
+
+  .leaderboard-screen .leaderboard-header__art {
+    width: 62px;
+    height: 54px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 4px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops::before {
+    width: 36px;
+    height: 36px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices {
+    gap: 3px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices button {
+    min-height: 36px;
+    padding-inline: 3px;
+    border-radius: 10px;
+    font-size: 7.2px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__direction {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 350px) {
+  .leaderboard-screen .leaderboard-header {
+    padding-right: 58px;
+  }
+
+  .leaderboard-screen .leaderboard-header__art {
+    width: 52px;
+    height: 46px;
+  }
+
+  .leaderboard-screen .leaderboard-sortbar--drops .leaderboard-sortbar__choices button {
+    font-size: 6.8px;
+  }
+}

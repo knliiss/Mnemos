@@ -8,6 +8,8 @@ import { BetAdminRoundList } from "./BetAdminRoundList"
 import { activeBetRounds, normalizeBetAdminSection, settledBetRounds } from "./betAdminPresentation"
 import { useBetAdminData } from "./useBetAdminData"
 import "./bet-admin.css"
+import "./bet-admin-ledger.css"
+import "./bet-admin-round-filters.css"
 
 type Props = {
   params?: Record<string, string>
@@ -17,7 +19,7 @@ type Props = {
 
 export function BetAdmin({ params, navigate, back }: Props) {
   const { t } = useTranslation()
-  const { rounds, races, loading, error, refresh } = useBetAdminData()
+  const { rounds, roundMetadata, races, loading, error, refresh } = useBetAdminData()
   const section = normalizeBetAdminSection(params?.section)
 
   if (error && !rounds.length && !races.length) {
@@ -43,6 +45,7 @@ export function BetAdmin({ params, navigate, back }: Props) {
       <BetAdminRoundList
         title={t("betAdmin.currentRounds")}
         rounds={activeBetRounds(rounds)}
+        roundMetadata={roundMetadata}
         loading={loading}
         navigate={navigate}
         back={back}
@@ -55,6 +58,7 @@ export function BetAdmin({ params, navigate, back }: Props) {
       <BetAdminRoundList
         title={t("betAdmin.historyTitle")}
         rounds={settledBetRounds(rounds)}
+        roundMetadata={roundMetadata}
         loading={loading}
         navigate={navigate}
         back={back}

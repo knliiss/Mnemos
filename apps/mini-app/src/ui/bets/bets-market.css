@@ -1,0 +1,268 @@
+.bets-overview-strip {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  align-items: center;
+  min-height: 66px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 207, 0.075);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(199, 242, 74, 0.055), transparent 35%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006));
+}
+
+.bets-overview-strip > span {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 8px;
+}
+
+.bets-overview-strip small {
+  overflow: hidden;
+  max-width: 100%;
+  color: #727a6d;
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bets-overview-strip strong {
+  color: #e9ede5;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.bets-overview-strip > i {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(transparent, rgba(226, 233, 207, 0.11), transparent);
+}
+
+.bets-title {
+  overflow: hidden;
+  min-height: 132px !important;
+  padding: 17px 17px 52px !important;
+  border: 1px solid rgba(199, 242, 74, 0.1);
+  border-radius: 21px;
+  background:
+    radial-gradient(circle at 86% 15%, rgba(199, 242, 74, 0.08), transparent 31%),
+    radial-gradient(circle at 15% 84%, rgba(206, 145, 210, 0.035), transparent 33%),
+    linear-gradient(145deg, rgba(24, 27, 19, 0.98), rgba(8, 10, 7, 0.99));
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.035),
+    0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.bets-title::after {
+  content: "";
+  position: absolute;
+  top: -42px;
+  right: -28px;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: rgba(199, 242, 74, 0.05);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.bets-title h1 {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.bets-title p {
+  max-width: 250px;
+  color: #8a9184;
+}
+
+.bets-mode {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 330px);
+  padding: 3px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.009);
+}
+
+.bets-mode button {
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.bets-mode button.is-active {
+  color: #edf1e8;
+  background:
+    linear-gradient(180deg, rgba(199, 242, 74, 0.075), rgba(199, 242, 74, 0.025)),
+    rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 0 0 1px rgba(199, 242, 74, 0.08);
+}
+
+.bets-wallet {
+  right: 12px;
+  bottom: 11px;
+  left: 12px;
+  justify-content: space-between;
+  min-height: 34px;
+  border-color: rgba(231, 177, 79, 0.12);
+  background:
+    radial-gradient(circle at 88% 50%, rgba(231, 177, 79, 0.07), transparent 38%),
+    rgba(10, 12, 8, 0.8);
+}
+
+.bets-discovery,
+.bets-my {
+  display: grid;
+  gap: 18px;
+}
+
+.bets-discovery__primary {
+  position: relative;
+}
+
+.bets-discovery__primary::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: 12%;
+  bottom: -10px;
+  left: 12%;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(199, 242, 74, 0.035);
+  filter: blur(18px);
+}
+
+.bets-market-section {
+  display: grid;
+  gap: 9px;
+}
+
+.bets-market-section--races {
+  padding-top: 4px;
+}
+
+.bets-market-section--history {
+  padding-top: 3px;
+  border-top: 1px solid rgba(226, 233, 207, 0.055);
+}
+
+.bets-section-head {
+  min-height: 38px;
+  margin: 0;
+  padding: 0 3px;
+}
+
+.bets-section-head > span {
+  gap: 3px;
+}
+
+.bets-section-head small {
+  color: #78816f;
+  font-size: 8px;
+  letter-spacing: 0.11em;
+}
+
+.bets-section-head strong {
+  color: #dfe5d9;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.bets-section-head > b {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(199, 242, 74, 0.11);
+  border-radius: 9px;
+  color: #b9d967;
+  background: rgba(199, 242, 74, 0.035);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bets-rounds,
+.bets-races {
+  gap: 7px;
+}
+
+.bets-card,
+.bets-race {
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.bets-card:hover,
+.bets-race:hover {
+  border-color: rgba(199, 242, 74, 0.13);
+}
+
+.bets-race {
+  min-height: 98px;
+  background:
+    radial-gradient(circle at 10% 48%, rgba(199, 242, 74, 0.06), transparent 32%),
+    linear-gradient(110deg, rgba(25, 28, 20, 0.94), rgba(11, 13, 9, 0.95));
+}
+
+.bets-feature {
+  border-color: color-mix(in srgb, var(--event-accent) 21%, rgba(229, 236, 213, 0.08));
+  background:
+    radial-gradient(
+      circle at 14% 36%,
+      color-mix(in srgb, var(--event-accent) 19%, transparent),
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 92% 12%,
+      color-mix(in srgb, var(--event-accent) 8%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(145deg, rgba(26, 29, 22, 0.99), rgba(8, 10, 7, 0.99));
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.04),
+    0 18px 46px rgba(0, 0, 0, 0.2);
+}
+
+.bets-feature__copy strong {
+  font-size: 21px;
+}
+
+.bets-feature__odds strong {
+  color: #f1f4ec;
+  font-size: 16px;
+}
+
+.bets-empty {
+  min-height: 132px;
+  border-color: rgba(226, 233, 207, 0.065);
+  background:
+    radial-gradient(circle at 50% 25%, rgba(199, 242, 74, 0.025), transparent 42%),
+    rgba(255, 255, 255, 0.005);
+}
+
+@media (max-width: 374px) {
+  .bets-title {
+    padding-inline: 14px !important;
+  }
+
+  .bets-overview-strip small {
+    font-size: 7px;
+  }
+
+  .bets-overview-strip strong {
+    font-size: 15px;
+  }
+
+  .bets-mode {
+    width: 100%;
+  }
+}

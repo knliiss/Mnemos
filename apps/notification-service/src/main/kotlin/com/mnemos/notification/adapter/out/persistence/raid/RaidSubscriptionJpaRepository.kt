@@ -1,11 +1,25 @@
 package com.mnemos.notification.adapter.out.persistence.raid
 
+import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface RaidSubscriptionJpaRepository : JpaRepository<RaidSubscriptionEntity, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(
+        """
+            SELECT subscription
+            FROM RaidSubscriptionEntity subscription
+            WHERE subscription.subscriptionId = :subscriptionId
+        """,
+    )
+    fun findBySubscriptionIdForUpdate(
+        @Param("subscriptionId") subscriptionId: UUID,
+    ): RaidSubscriptionEntity?
+
     @Query(
         """
             SELECT DISTINCT s.user_id
@@ -15,7 +29,7 @@ interface RaidSubscriptionJpaRepository : JpaRepository<RaidSubscriptionEntity, 
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM raid_subscription_locations rsl
-                WHERE rsl.subscription_id = rs.id
+                WHERE rsl.subscription_id = rs.subscription_id
             )
         """,
         nativeQuery = true,

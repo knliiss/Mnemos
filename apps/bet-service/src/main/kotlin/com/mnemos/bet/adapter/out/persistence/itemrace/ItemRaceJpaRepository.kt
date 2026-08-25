@@ -36,4 +36,6 @@ interface ItemRaceJpaRepository : JpaRepository<ItemRaceEntity, UUID> {
     fun findCurrent(
         @Param("currentStatuses") currentStatuses: Collection<ItemRaceStatus>,
     ): List<ItemRaceEntity>
+
+    fun findTop200ByOrderByStartsAtDescIdDesc(): List<ItemRaceEntity>
 }

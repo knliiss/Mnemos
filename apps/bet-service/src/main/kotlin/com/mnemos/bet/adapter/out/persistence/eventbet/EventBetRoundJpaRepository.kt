@@ -46,4 +46,6 @@ interface EventBetRoundJpaRepository : JpaRepository<EventBetRoundEntity, UUID> 
     fun findCurrent(
         @Param("settledStatus") settledStatus: EventBetRoundStatus,
     ): List<EventBetRoundEntity>
+
+    fun findTop200ByOrderByScheduledAtDescIdDesc(): List<EventBetRoundEntity>
 }

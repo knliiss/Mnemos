@@ -42,6 +42,12 @@ const PersonalizationReview = lazy(() =>
   })),
 )
 
+const WipeAdmin = lazy(() =>
+  import("./wipes/WipeAdmin").then((module) => ({
+    default: module.WipeAdmin,
+  })),
+)
+
 export function StaffArea(props: Props) {
   let content
 
@@ -57,6 +63,8 @@ export function StaffArea(props: Props) {
     content = <BadgeAdmin back={props.back} />
   } else if (props.routeId === "collector-admin") {
     content = <CollectorAdmin back={props.back} />
+  } else if (props.routeId === "wipe-admin") {
+    content = <WipeAdmin back={props.back} />
   } else {
     return (
       <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />

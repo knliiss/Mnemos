@@ -9,6 +9,8 @@ interface AccountQueryRepository {
         activeAccountId: AccountId?,
     ): List<AccountSummary>
 
+    fun findLookupSummariesByAccountIds(accountIds: Set<AccountId>): List<AccountLookupSummary>
+
     fun findDetailsByAccountIdAndUserId(
         accountId: AccountId,
         userId: UserId,

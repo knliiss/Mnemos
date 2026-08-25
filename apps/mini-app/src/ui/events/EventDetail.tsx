@@ -7,10 +7,12 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt, OwnerCrown } from "../components/events/EventArt"
 import { toFeedEvent } from "../data/dataMappers"
 import { useMnemosData } from "../data/MnemosDataProvider"
+import { eventVisualTone } from "../eventVisualTone"
 import type { Account, FeedEvent, Route } from "../model"
 import { Glyph } from "../shared/MnemosIcon"
 import { PageHeader } from "../shared/Primitives"
 import { formatOccurredAt } from "../timePresentation"
+import { DropSpotlightPurchase } from "./DropSpotlightPurchase"
 import {
   belongsToAccount,
   eventDetailDescription,
@@ -157,6 +159,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   }
 
   const ownEvent = belongsToAccount(event, activeAccount)
+  const visualTone = eventVisualTone(event)
 
   const toggleFollow = async () => {
     if (followBusyRef.current === actionScope) {
@@ -185,7 +188,9 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
   }
 
   return (
-    <div className={`screen event-detail-screen event-detail-screen--${event.kind.toLowerCase()}`}>
+    <div
+      className={`screen event-detail-screen event-detail-screen--${event.kind.toLowerCase()} event-surface--${visualTone}`}
+    >
       <PageHeader
         title={eventTitle(t, event)}
         eyebrow={eventKindLabel(t, event.kind)}
@@ -232,8 +237,7 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
 
       <section className={`event-detail-follow ${matchingSubscription ? "is-active" : ""}`}>
         <span className="event-detail-follow__mark" aria-hidden="true">
-          <Glyph name="bell" size={18} />
-          <i />
+          <span className="event-detail-follow__pixel-bell" />
         </span>
 
         <span className="event-detail-follow__copy">
@@ -266,8 +270,13 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
           onClick={() => navigate({ id: "subscriptions" })}
         >
           {t("events.detail.allRules")}
+          <span aria-hidden="true">›</span>
         </button>
       </section>
+
+      {ownEvent && event.kind === "ITEM_DROP" ? (
+        <DropSpotlightPurchase event={event} activeAccount={activeAccount} locale={locale} />
+      ) : null}
 
       <section className="event-detail-facts" aria-label={t("events.detail.dataAria")}>
         <article className="is-wide">

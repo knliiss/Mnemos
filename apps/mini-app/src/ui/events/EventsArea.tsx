@@ -8,6 +8,7 @@ import "./events.css"
 import "./feed/events-feed-visuals.css"
 import "./feed/feed.css"
 import "./subscriptions/subscriptions.css"
+import "./event-polish.css"
 
 type Props = {
   routeId: Route["id"]

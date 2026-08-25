@@ -8,9 +8,13 @@ import com.mnemos.common.core.model.id.AccountId
 interface ItemRaceReader {
     fun findCurrent(): List<ItemRaceView>
 
+    fun findAllForAdministration(): List<ItemRaceView>
+
     fun find(raceId: ItemRaceId): ItemRaceView?
 
     fun findParticipants(raceId: ItemRaceId): List<ItemRaceParticipantView>
+
+    fun findParticipants(raceIds: Collection<ItemRaceId>): List<ItemRaceParticipantView>
 
     fun findParticipant(
         raceId: ItemRaceId,

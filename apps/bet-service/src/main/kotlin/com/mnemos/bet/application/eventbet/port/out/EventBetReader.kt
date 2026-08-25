@@ -8,6 +8,8 @@ import com.mnemos.common.core.model.id.AccountId
 interface EventBetReader {
     fun findCurrentRounds(): List<EventBetRoundView>
 
+    fun findAllRounds(): List<EventBetRoundView>
+
     fun findRound(roundId: EventBetRoundId): EventBetRoundView?
 
     fun findBet(
@@ -19,6 +21,16 @@ interface EventBetReader {
         roundIds: Collection<EventBetRoundId>,
         accountId: AccountId,
     ): List<EventBetView>
+
+    fun findRoundBets(roundId: EventBetRoundId): List<EventBetView>
+
+    fun findRoundBets(roundIds: Collection<EventBetRoundId>): List<EventBetView> {
+        if (roundIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return roundIds.flatMap { roundId -> findRoundBets(roundId) }
+    }
 
     fun findHistory(accountId: AccountId): List<EventBetView>
 }

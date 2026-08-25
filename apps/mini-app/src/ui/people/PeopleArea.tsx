@@ -3,7 +3,7 @@ import type { Account, Route } from "../model"
 import type { UserBadgesController } from "../shell/badges/useUserBadges"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { UserPersonalizationSettings } from "./personalization/UserPersonalizationSettings"
-import { PublicProfilePage } from "./profile/PublicProfilePage"
+import { PublicProfileRoute } from "./profile/PublicProfileRoute"
 import { SearchPage } from "./profile/SearchPage"
 
 type Props = {
@@ -36,10 +36,10 @@ export function PeopleArea(props: Props) {
 
   if (props.routeId === "public-profile" && props.activeAccount) {
     return (
-      <PublicProfilePage
-        key={props.params?.accountId ?? "missing"}
+      <PublicProfileRoute
         activeAccount={props.activeAccount}
-        accountId={props.params?.accountId ?? ""}
+        accountId={props.params?.accountId}
+        nickname={props.params?.nickname}
         navigate={props.navigate}
         back={props.back}
       />

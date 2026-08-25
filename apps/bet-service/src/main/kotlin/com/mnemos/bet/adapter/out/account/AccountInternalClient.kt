@@ -1,6 +1,8 @@
 package com.mnemos.bet.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummariesRequest
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -27,4 +29,9 @@ interface AccountInternalClient {
         @PathVariable accountId: UUID,
         @RequestBody request: CheckAccountPermissionRequest,
     ): CheckAccountPermissionResponse
+
+    @PostMapping("/internal/v1/accounts/summaries")
+    fun summaries(
+        @RequestBody request: InternalAccountSummariesRequest,
+    ): List<InternalAccountSummaryResponse>
 }

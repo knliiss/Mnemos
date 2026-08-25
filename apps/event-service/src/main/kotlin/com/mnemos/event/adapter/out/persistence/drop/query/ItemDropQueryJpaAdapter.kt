@@ -20,7 +20,7 @@ class ItemDropQueryJpaAdapter(
             itemDropEventJpaRepository.findViews(
                 droppedFor = query.droppedFor,
                 itemName = query.itemName,
-                itemRarity = query.itemRarity,
+                itemRarity = query.itemRarity?.name,
                 pageable = PageRequest.of(query.page.page, query.page.size),
             )
 

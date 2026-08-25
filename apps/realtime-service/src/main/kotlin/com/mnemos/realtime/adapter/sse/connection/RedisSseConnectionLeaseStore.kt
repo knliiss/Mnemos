@@ -106,7 +106,7 @@ class RedisSseConnectionLeaseStore(
             .coerceAtLeast(1)
 
     private companion object {
-        const val KEY_PREFIX = "mnemos:realtime:sse:leases"
+        const val KEY_PREFIX = "realtime:sse:leases"
 
         val ACQUIRE_SCRIPT =
             DefaultRedisScript(

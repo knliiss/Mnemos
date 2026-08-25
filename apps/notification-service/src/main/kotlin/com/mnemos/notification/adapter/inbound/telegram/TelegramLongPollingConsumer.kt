@@ -1,14 +1,18 @@
 package com.mnemos.notification.adapter.inbound.telegram
 
 import com.mnemos.notification.application.notification.delivery.model.DeliveryResult
+import com.mnemos.notification.application.telegram.help.HandleTelegramHelpService
+import com.mnemos.notification.application.telegram.help.TelegramHelpSection
 import com.mnemos.notification.application.telegram.start.HandleTelegramStartService
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
 import com.pengrad.telegrambot.ExceptionHandler
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.TelegramException
 import com.pengrad.telegrambot.UpdatesListener
+import com.pengrad.telegrambot.model.CallbackQuery
 import com.pengrad.telegrambot.model.Chat
 import com.pengrad.telegrambot.model.Update
+import com.pengrad.telegrambot.request.AnswerCallbackQuery
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.boot.ApplicationArguments
@@ -22,6 +26,7 @@ import java.net.SocketTimeoutException
 class TelegramLongPollingConsumer(
     private val bot: TelegramBot,
     private val startService: HandleTelegramStartService,
+    private val helpService: HandleTelegramHelpService,
 ) : ApplicationRunner,
     DisposableBean {
     override fun run(args: ApplicationArguments) {
@@ -52,23 +57,65 @@ class TelegramLongPollingConsumer(
     }
 
     internal fun handle(update: Update): DeliveryResult {
+        val callbackQuery = update.callbackQuery()
+
+        if (callbackQuery != null) {
+            acknowledgeCallback(callbackQuery)
+            return handleCallback(callbackQuery)
+        }
+
         val message = update.message() ?: return DeliveryResult.Delivered
         val text = message.text()?.trim() ?: return DeliveryResult.Delivered
-        if (message.chat().type() != Chat.Type.Private) return DeliveryResult.Delivered
 
-        val command = text.substringBefore(' ')
-        if (command != "/start" && !command.startsWith("/start@")) {
+        if (message.chat().type() != Chat.Type.Private) {
             return DeliveryResult.Delivered
         }
 
-        return startService.handle(
-            TelegramStartContext(
-                telegramId = message.chat().id(),
-                firstName = message.from()?.firstName(),
-                username = message.from()?.username(),
-                parameter = text.substringAfter(' ', "").trim().takeIf(String::isNotEmpty),
-            ),
+        val command = text.substringBefore(' ')
+
+        if (command == "/start" || command.startsWith("/start@")) {
+            return startService.handle(
+                TelegramStartContext(
+                    telegramId = message.chat().id(),
+                    firstName = message.from()?.firstName(),
+                    username = message.from()?.username(),
+                    parameter = text.substringAfter(' ', "").trim().takeIf(String::isNotEmpty),
+                ),
+            )
+        }
+
+        if (command == "/help" || command.startsWith("/help@")) {
+            return helpService.send(message.chat().id())
+        }
+
+        return DeliveryResult.Delivered
+    }
+
+    private fun handleCallback(callbackQuery: CallbackQuery): DeliveryResult {
+        val section =
+            callbackQuery
+                .data()
+                ?.let(TelegramHelpSection::fromCallbackData)
+                ?: return DeliveryResult.Delivered
+        val message = callbackQuery.message() ?: return DeliveryResult.Delivered
+
+        if (message.chat().type() != Chat.Type.Private) {
+            return DeliveryResult.Delivered
+        }
+
+        return helpService.switchSection(
+            telegramId = message.chat().id(),
+            messageId = message.messageId(),
+            section = section,
         )
+    }
+
+    private fun acknowledgeCallback(callbackQuery: CallbackQuery) {
+        try {
+            bot.execute(AnswerCallbackQuery(callbackQuery.id()))
+        } catch (exception: RuntimeException) {
+            log.debug("Failed to acknowledge Telegram callback query", exception)
+        }
     }
 
     private fun handlePollingException(exception: TelegramException) {

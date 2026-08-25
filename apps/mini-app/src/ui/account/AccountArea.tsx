@@ -3,6 +3,7 @@ import type { Badge } from "@/shared/api/badgeApi"
 import "../events/event-surfaces.css"
 import type { Route } from "../model"
 import { useMnemosData } from "../data/MnemosDataProvider"
+import { LeaderboardPage } from "../leaderboards/LeaderboardPage"
 import { FeatureError } from "../system/FeatureError"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountSettings } from "./AccountSettings"
@@ -10,6 +11,7 @@ import "./role-shared.css"
 import "./role-editor/role-editor.css"
 import "./roles-overview.css"
 import { AccountHome } from "./home/AccountHome"
+import "./home/leaderboard-promo.css"
 import { AccountInvites } from "./invites/AccountInvites"
 import { AccountCreate } from "./onboarding/AccountCreate"
 import { AccountJoin } from "./onboarding/AccountJoin"
@@ -50,6 +52,10 @@ export function AccountArea(props: Props) {
         initialMemberId={props.routeId === "member" ? (props.params?.memberId ?? null) : null}
       />
     )
+  }
+
+  if (props.routeId === "leaderboards") {
+    return <LeaderboardPage navigate={props.navigate} back={props.back} />
   }
 
   if (props.routeId === "account-wallet") {

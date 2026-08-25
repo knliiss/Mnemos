@@ -11,6 +11,8 @@ import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDro
 import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDropSubscriptionUseCase
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionCommand
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionUseCase
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionCommand
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionUseCase
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
 import com.mnemos.notification.domain.global.model.DomainGlobalEventType
@@ -55,6 +57,9 @@ class SubscriptionIntegrationTest {
 
     @Autowired
     private lateinit var raidSubscriptionUseCase: CreateRaidSubscriptionUseCase
+
+    @Autowired
+    private lateinit var updateRaidSubscriptionUseCase: UpdateRaidSubscriptionUseCase
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
@@ -282,7 +287,7 @@ class SubscriptionIntegrationTest {
     }
 
     @Test
-    fun `raid locations are compared as a set`() {
+    fun `raid creates merge locations into one stable subscription`() {
         val userId = userId()
 
         val first =
@@ -293,33 +298,57 @@ class SubscriptionIntegrationTest {
                 ),
             )
 
-        val reordered =
+        val merged =
             raidSubscriptionUseCase.execute(
                 CreateRaidSubscriptionCommand(
                     userId = userId,
-                    locations = setOf(5, 1, 3),
+                    locations = setOf(2, 3),
                 ),
             )
 
-        val subset =
-            raidSubscriptionUseCase.execute(
-                CreateRaidSubscriptionCommand(
-                    userId = userId,
-                    locations = setOf(1, 3),
-                ),
-            )
-
-        assertEquals(first.subscriptionId, reordered.subscriptionId)
-        assertNotEquals(first.subscriptionId, subset.subscriptionId)
-
-        assertEquals(2L, subscriptionCount(userId, "RAID"))
-        assertEquals(2L, tableCount("raid_subscriptions"))
-        assertEquals(5L, tableCount("raid_subscription_locations"))
+        assertEquals(first.subscriptionId, merged.subscriptionId)
+        assertEquals(1L, subscriptionCount(userId, "RAID"))
+        assertEquals(1L, tableCount("raid_subscriptions"))
+        assertEquals(setOf(1, 2, 3, 5), raidLocations(first.subscriptionId.id))
     }
 
     @Test
-    fun `empty raid locations mean all locations and are equivalent only to empty set`() {
+    fun `raid update patches locations without replacing subscription`() {
         val userId = userId()
+
+        val created =
+            raidSubscriptionUseCase.execute(
+                CreateRaidSubscriptionCommand(
+                    userId = userId,
+                    locations = setOf(1, 3, 5),
+                ),
+            )
+
+        val updated =
+            updateRaidSubscriptionUseCase.execute(
+                UpdateRaidSubscriptionCommand(
+                    userId = userId,
+                    locations = setOf(1, 5),
+                ),
+            )
+
+        assertEquals(created.subscriptionId, updated.subscriptionId)
+        assertEquals(1L, subscriptionCount(userId, "RAID"))
+        assertEquals(1L, tableCount("raid_subscriptions"))
+        assertEquals(setOf(1, 5), raidLocations(created.subscriptionId.id))
+    }
+
+    @Test
+    fun `empty raid locations keep all locations semantics on stable subscription`() {
+        val userId = userId()
+
+        val specific =
+            raidSubscriptionUseCase.execute(
+                CreateRaidSubscriptionCommand(
+                    userId = userId,
+                    locations = setOf(1),
+                ),
+            )
 
         val allLocations =
             raidSubscriptionUseCase.execute(
@@ -329,28 +358,10 @@ class SubscriptionIntegrationTest {
                 ),
             )
 
-        val equivalent =
-            raidSubscriptionUseCase.execute(
-                CreateRaidSubscriptionCommand(
-                    userId = userId,
-                    locations = emptySet(),
-                ),
-            )
-
-        val specificLocation =
-            raidSubscriptionUseCase.execute(
-                CreateRaidSubscriptionCommand(
-                    userId = userId,
-                    locations = setOf(1),
-                ),
-            )
-
-        assertEquals(allLocations.subscriptionId, equivalent.subscriptionId)
-        assertNotEquals(allLocations.subscriptionId, specificLocation.subscriptionId)
-
-        assertEquals(2L, subscriptionCount(userId, "RAID"))
-        assertEquals(2L, tableCount("raid_subscriptions"))
-        assertEquals(1L, tableCount("raid_subscription_locations"))
+        assertEquals(specific.subscriptionId, allLocations.subscriptionId)
+        assertEquals(1L, subscriptionCount(userId, "RAID"))
+        assertEquals(1L, tableCount("raid_subscriptions"))
+        assertEquals(emptySet<Int>(), raidLocations(specific.subscriptionId.id))
     }
 
     @Test
@@ -522,8 +533,6 @@ class SubscriptionIntegrationTest {
 
                 insertSubtype(subscriptionId)
 
-                // FK у нас DEFERRABLE INITIALLY DEFERRED.
-                // Примусово перевіряємо його зараз, а не в момент commit.
                 jdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE")
             }
         }
@@ -544,6 +553,20 @@ class SubscriptionIntegrationTest {
             userId.id,
             type,
         ) ?: 0L
+
+    private fun raidLocations(subscriptionId: UUID): Set<Int> =
+        jdbcTemplate
+            .queryForList(
+                """
+                SELECT location
+                FROM raid_subscription_locations
+                WHERE subscription_id = ?
+                ORDER BY location
+                """.trimIndent(),
+                Int::class.javaObjectType,
+                subscriptionId,
+            ).filterNotNull()
+            .toSet()
 
     private fun tableCount(table: String): Long =
         jdbcTemplate.queryForObject(

@@ -3,8 +3,10 @@ package com.mnemos.bet.adapter.out.event
 import com.mnemos.bet.contracts.shared.BetItemType
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import java.time.Instant
+import java.util.UUID
 
 @FeignClient(
     name = "betEventInternalClient",
@@ -32,4 +34,12 @@ interface EventInternalClient {
         @RequestParam
         to: Instant,
     ): FirstItemDropResponse?
+
+    @GetMapping("/internal/v1/wipes/current")
+    fun currentWipe(): EventWipeResponse
+
+    @GetMapping("/internal/v1/wipes/{wipeId}")
+    fun wipe(
+        @PathVariable wipeId: UUID,
+    ): EventWipeResponse
 }

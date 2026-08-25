@@ -17,6 +17,8 @@ class CreateRaidSubscriptionService(
                 locations = command.locations,
             )
 
-        return CreateRaidSubscriptionResult(repository.createOrGetId(subscription))
+        return CreateRaidSubscriptionResult(
+            subscriptionId = repository.addLocations(subscription),
+        )
     }
 }

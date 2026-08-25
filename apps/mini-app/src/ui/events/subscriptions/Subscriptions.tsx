@@ -1,193 +1,383 @@
 import { AnimatePresence } from "framer-motion"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { SUBSCRIPTION_TYPES } from "../../contracts"
+import {
+  createBoosterSubscription,
+  createDungeonSubscription,
+  createGlobalSubscription,
+  deleteSubscription,
+  updateRaidSubscription,
+} from "@/shared/api/subscriptionApi"
+import { BoosterArt, DungeonArt, GlobalEventArt, RaidArt } from "../../components/events/EventArt"
+import { BOOSTER_TYPES, DUNGEON_TYPES, GLOBAL_EVENT_TYPES } from "../../contracts"
 import { useMnemosData } from "../../data/MnemosDataProvider"
-import type { SubscriptionType } from "../../model"
+import type { BoosterType, DungeonType, GlobalEventType, Subscription } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
-import { sortSubscriptions, type SubscriptionSort } from "./subscriptionPresentation"
 import { SubscriptionCreateSheet } from "./SubscriptionCreateSheet"
 import { SubscriptionRule } from "./SubscriptionRule"
-import { SubscriptionSortMenu } from "./SubscriptionSortMenu"
 import { useSubscriptionItemTypes } from "./useSubscriptionItemTypes"
+import "./notification-settings.css"
 
-const subscriptionIcons: Record<
-  SubscriptionType,
-  "item-drop" | "booster" | "dungeon" | "raid" | "global"
-> = {
-  ITEM_DROP: "item-drop",
-  BOOSTER: "booster",
-  DUNGEON: "dungeon",
-  RAID: "raid",
-  GLOBAL: "global",
-}
-
-type SubscriptionFilter = "ALL" | SubscriptionType
+const raidLocations = Array.from({ length: 28 }, (_, index) => index + 1)
 
 export function Subscriptions({ back }: { back: () => void }) {
   const { t } = useTranslation()
   const data = useMnemosData()
-  const [creating, setCreating] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<SubscriptionFilter>("ALL")
-  const [sort, setSort] = useState<SubscriptionSort>("NEWEST")
+  const [creatingDrop, setCreatingDrop] = useState(false)
+  const [busyKey, setBusyKey] = useState<string | null>(null)
   const mutationLocked = useRef(false)
-  const mountedRef = useRef(true)
 
   const subscriptions = data.subscriptions
   const itemTypesByName = useSubscriptionItemTypes(subscriptions)
-  const counts = useMemo(
-    () =>
-      SUBSCRIPTION_TYPES.map((type) => ({
-        type,
-        count: subscriptions.filter((subscription) => subscription.type === type).length,
-      })).filter((entry) => entry.count > 0),
+  const dropRules = useMemo(
+    () => subscriptions.filter((subscription) => subscription.type === "ITEM_DROP"),
     [subscriptions],
   )
-  const visibleSubscriptions = useMemo(() => {
-    const filtered =
-      filter === "ALL"
-        ? subscriptions
-        : subscriptions.filter((subscription) => subscription.type === filter)
-
-    return sortSubscriptions(filtered, sort, t)
-  }, [filter, sort, subscriptions, t])
-
-  useEffect(() => {
-    mountedRef.current = true
-
-    return () => {
-      mountedRef.current = false
+  const raidRules = useMemo(
+    () => subscriptions.filter((subscription) => subscription.type === "RAID"),
+    [subscriptions],
+  )
+  const raidActiveLocations = useMemo(() => {
+    if (raidRules.some((subscription) => subscription.locations.length === 0)) {
+      return new Set(raidLocations)
     }
-  }, [])
 
-  const remove = async (subscriptionId: string) => {
+    return new Set(raidRules.flatMap((subscription) => subscription.locations))
+  }, [raidRules])
+
+  async function mutate(key: string, mutation: () => Promise<void>) {
     if (mutationLocked.current) {
       return
     }
 
     mutationLocked.current = true
-    setDeletingId(subscriptionId)
+    setBusyKey(key)
 
     try {
-      await data.removeSubscription(subscriptionId)
+      await data.mutateSubscriptions(mutation)
     } finally {
       mutationLocked.current = false
-
-      if (mountedRef.current) {
-        setDeletingId(null)
-      }
+      setBusyKey(null)
     }
   }
 
+  async function toggleBooster(value: BoosterType) {
+    const matches = subscriptions.filter(
+      (subscription) => subscription.type === "BOOSTER" && subscription.boosterType === value,
+    )
+
+    await mutate(`BOOSTER:${value}`, async () => {
+      if (matches.length > 0) {
+        for (const subscription of matches) {
+          await deleteSubscription(subscription.id)
+        }
+        return
+      }
+
+      await createBoosterSubscription(value)
+    })
+  }
+
+  async function toggleDungeon(value: DungeonType) {
+    const matches = subscriptions.filter(
+      (subscription) => subscription.type === "DUNGEON" && subscription.dungeonType === value,
+    )
+
+    await mutate(`DUNGEON:${value}`, async () => {
+      if (matches.length > 0) {
+        for (const subscription of matches) {
+          await deleteSubscription(subscription.id)
+        }
+        return
+      }
+
+      await createDungeonSubscription(value)
+    })
+  }
+
+  async function toggleGlobal(value: GlobalEventType) {
+    const matches = subscriptions.filter(
+      (subscription) => subscription.type === "GLOBAL" && subscription.eventType === value,
+    )
+
+    await mutate(`GLOBAL:${value}`, async () => {
+      if (matches.length > 0) {
+        for (const subscription of matches) {
+          await deleteSubscription(subscription.id)
+        }
+        return
+      }
+
+      await createGlobalSubscription(value)
+    })
+  }
+
+  async function toggleRaidLocation(location: number) {
+    const nextLocations = new Set(raidActiveLocations)
+
+    if (nextLocations.has(location)) {
+      nextLocations.delete(location)
+    } else {
+      nextLocations.add(location)
+    }
+
+    await mutate(`RAID:${location}`, async () => {
+      if (nextLocations.size === 0) {
+        const subscription = raidRules[0]
+
+        if (subscription) {
+          await deleteSubscription(subscription.id)
+        }
+
+        return
+      }
+
+      await updateRaidSubscription([...nextLocations].sort((left, right) => left - right))
+    })
+  }
+
+  async function removeDrop(subscription: Subscription) {
+    if (subscription.type !== "ITEM_DROP") {
+      return
+    }
+
+    await mutate(`DROP:${subscription.id}`, () => deleteSubscription(subscription.id))
+  }
+
+  if (data.loadingSubscriptions && subscriptions.length === 0) {
+    return (
+      <div className="screen notification-settings-screen">
+        <PageHeader title={t("settings.notifications")} back={back} />
+        <FeatureLoading label={t("events.subscriptions.loading")} />
+      </div>
+    )
+  }
+
   return (
-    <div className="screen subscriptions-screen">
-      <PageHeader title={t("events.subscriptions.title")} back={back} />
+    <div className="screen notification-settings-screen">
+      <PageHeader title={t("settings.notifications")} back={back} />
 
-      <section className="subscription-summary">
-        <span className="subscription-summary__art" aria-hidden="true">
-          <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
-        </span>
-
-        <span className="subscription-summary__copy">
+      <section className="notification-settings-intro">
+        <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" aria-hidden="true" />
+        <span>
           <small>{t("events.subscriptions.eyebrow")}</small>
           <strong>{t("events.subscriptions.mascotTitle")}</strong>
-          <span>{t("events.subscriptions.mascotCopy")}</span>
+          <p>{t("events.subscriptions.mascotCopy")}</p>
         </span>
-
-        <span className="subscription-summary__count">
-          <strong>{subscriptions.length}</strong>
-          <small>{t("events.subscriptions.activeRules")}</small>
-        </span>
-
-        <button type="button" disabled={deletingId !== null} onClick={() => setCreating(true)}>
-          <Glyph name="plus" size={17} />
-          {t("events.subscriptions.new")}
-        </button>
       </section>
 
-      <div className="subscription-toolbar">
-        <div className="subscription-counts" aria-label={t("events.subscriptions.filterAria")}>
-          <button
-            type="button"
-            className={filter === "ALL" ? "is-active" : undefined}
-            onClick={() => setFilter("ALL")}
-          >
-            <Glyph name="bell" size={14} />
-            {t("events.subscriptions.all")}
-            <b>{subscriptions.length}</b>
+      {data.subscriptionsError ? (
+        <section className="feature-empty notification-settings-error">
+          <strong>{t("events.subscriptions.errorTitle")}</strong>
+          <small>{t("events.subscriptions.errorCopy")}</small>
+          <button type="button" onClick={() => void data.refreshSubscriptions()}>
+            {t("events.subscriptions.retry")}
           </button>
+        </section>
+      ) : (
+        <>
+          <NotificationGroup title={t("events.kinds.GLOBAL")} tone="global">
+            {GLOBAL_EVENT_TYPES.map((value) => {
+              const enabled = subscriptions.some(
+                (subscription) =>
+                  subscription.type === "GLOBAL" && subscription.eventType === value,
+              )
 
-          {counts.map((entry) => (
-            <button
-              key={entry.type}
-              type="button"
-              className={filter === entry.type ? "is-active" : undefined}
-              onClick={() => setFilter(entry.type)}
-            >
-              <Glyph name={subscriptionIcons[entry.type]} size={14} />
-              {t(`events.kinds.${entry.type}`)}
-              <b>{entry.count}</b>
-            </button>
-          ))}
-        </div>
+              return (
+                <NotificationToggle
+                  key={value}
+                  label={t(`events.globals.${value}`)}
+                  enabled={enabled}
+                  busy={busyKey === `GLOBAL:${value}`}
+                  disabled={busyKey !== null}
+                  art={<GlobalEventArt eventType={value} size={39} />}
+                  onToggle={() => void toggleGlobal(value)}
+                />
+              )
+            })}
+          </NotificationGroup>
 
-        <SubscriptionSortMenu value={sort} onChange={setSort} />
-      </div>
+          <NotificationGroup title={t("events.kinds.BOOSTER")} tone="booster">
+            {BOOSTER_TYPES.map((value) => {
+              const enabled = subscriptions.some(
+                (subscription) =>
+                  subscription.type === "BOOSTER" && subscription.boosterType === value,
+              )
 
-      <section className="subscription-rules">
-        <header>
-          <span>
-            <h2>{t("events.subscriptions.rules")}</h2>
-            <small>{t("events.subscriptions.rulesCopy")}</small>
-          </span>
-          <b>{t("events.subscriptions.shownRules", { count: visibleSubscriptions.length })}</b>
-        </header>
+              return (
+                <NotificationToggle
+                  key={value}
+                  label={t(`events.boosters.${value}`)}
+                  enabled={enabled}
+                  busy={busyKey === `BOOSTER:${value}`}
+                  disabled={busyKey !== null}
+                  art={<BoosterArt boosterType={value} size={39} />}
+                  onToggle={() => void toggleBooster(value)}
+                />
+              )
+            })}
+          </NotificationGroup>
 
-        <div>
-          {data.loadingSubscriptions && !subscriptions.length ? (
-            <FeatureLoading label={t("events.subscriptions.loading")} />
-          ) : null}
+          <NotificationGroup title={t("events.kinds.DUNGEON")} tone="dungeon">
+            {DUNGEON_TYPES.map((value) => {
+              const enabled = subscriptions.some(
+                (subscription) =>
+                  subscription.type === "DUNGEON" && subscription.dungeonType === value,
+              )
 
-          {!data.loadingSubscriptions && data.subscriptionsError ? (
-            <div className="feature-empty subscription-empty-state">
-              <img src="/ui-illustrations/mnemos-mascot-404.svg" alt="" aria-hidden="true" />
-              <strong>{t("events.subscriptions.errorTitle")}</strong>
-              <small>{t("events.subscriptions.errorCopy")}</small>
-              <button type="button" onClick={() => void data.refreshSubscriptions()}>
-                {t("events.subscriptions.retry")}
+              return (
+                <NotificationToggle
+                  key={value}
+                  label={t(`events.dungeons.${value}`)}
+                  enabled={enabled}
+                  busy={busyKey === `DUNGEON:${value}`}
+                  disabled={busyKey !== null}
+                  art={<DungeonArt size={39} />}
+                  onToggle={() => void toggleDungeon(value)}
+                />
+              )
+            })}
+          </NotificationGroup>
+
+          <section className="notification-settings-group notification-settings-raid">
+            <header>
+              <span className="notification-settings-group__art">
+                <RaidArt size={42} />
+              </span>
+              <span>
+                <small>{t("events.kinds.RAID")}</small>
+                <strong>{t("events.subscriptions.locations")}</strong>
+              </span>
+              <b>{raidActiveLocations.size}/28</b>
+            </header>
+
+            <div className="notification-settings-locations">
+              {raidLocations.map((location) => {
+                const enabled = raidActiveLocations.has(location)
+
+                return (
+                  <button
+                    type="button"
+                    key={location}
+                    className={enabled ? "is-active" : undefined}
+                    aria-pressed={enabled}
+                    disabled={busyKey !== null}
+                    onClick={() => void toggleRaidLocation(location)}
+                  >
+                    <span>{location}</span>
+                    <i />
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          <section className="notification-settings-group notification-settings-drops">
+            <header>
+              <span>
+                <small>{t("events.kinds.ITEM_DROP")}</small>
+                <strong>{t("events.subscriptions.rules")}</strong>
+                <p>{t("events.subscriptions.rulesCopy")}</p>
+              </span>
+              <button
+                type="button"
+                className="notification-settings-drops__add"
+                disabled={busyKey !== null}
+                onClick={() => setCreatingDrop(true)}
+              >
+                <Glyph name="plus" size={16} />
+                {t("events.subscriptions.new")}
               </button>
-            </div>
-          ) : null}
+            </header>
 
-          {visibleSubscriptions.map((subscription) => (
-            <SubscriptionRule
-              key={subscription.id}
-              subscription={subscription}
-              itemTypesByName={itemTypesByName}
-              deleting={deletingId === subscription.id}
-              disabled={deletingId !== null}
-              onRemove={() => void remove(subscription.id)}
-            />
-          ))}
+            <div className="notification-settings-drop-rules">
+              {dropRules.map((subscription) => (
+                <SubscriptionRule
+                  key={subscription.id}
+                  subscription={subscription}
+                  itemTypesByName={itemTypesByName}
+                  deleting={busyKey === `DROP:${subscription.id}`}
+                  disabled={busyKey !== null}
+                  onRemove={() => void removeDrop(subscription)}
+                />
+              ))}
 
-          {!data.loadingSubscriptions &&
-          !data.subscriptionsError &&
-          !visibleSubscriptions.length ? (
-            <div className="feature-empty subscription-empty-state">
-              <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
-              <strong>{t("events.subscriptions.emptyTitle")}</strong>
-              <small>{t("events.subscriptions.emptyCopy")}</small>
+              {dropRules.length === 0 ? (
+                <button
+                  type="button"
+                  className="notification-settings-drop-empty"
+                  onClick={() => setCreatingDrop(true)}
+                >
+                  <Glyph name="plus" size={16} />
+                  <span>{t("events.subscriptions.emptyCopy")}</span>
+                </button>
+              ) : null}
             </div>
-          ) : null}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
 
       <AnimatePresence>
-        {creating ? <SubscriptionCreateSheet onClose={() => setCreating(false)} /> : null}
+        {creatingDrop ? (
+          <SubscriptionCreateSheet fixedType="ITEM_DROP" onClose={() => setCreatingDrop(false)} />
+        ) : null}
       </AnimatePresence>
     </div>
+  )
+}
+
+function NotificationGroup({
+  title,
+  tone,
+  children,
+}: {
+  title: string
+  tone: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className={`notification-settings-group is-${tone}`}>
+      <header>
+        <span>
+          <small>{title}</small>
+          <strong>{title}</strong>
+        </span>
+      </header>
+      <div className="notification-settings-options">{children}</div>
+    </section>
+  )
+}
+
+function NotificationToggle({
+  label,
+  enabled,
+  busy,
+  disabled,
+  art,
+  onToggle,
+}: {
+  label: string
+  enabled: boolean
+  busy: boolean
+  disabled: boolean
+  art: React.ReactNode
+  onToggle(): void
+}) {
+  return (
+    <button
+      type="button"
+      className={`notification-settings-toggle ${enabled ? "is-active" : ""}`}
+      aria-pressed={enabled}
+      disabled={disabled}
+      onClick={onToggle}
+    >
+      <span className="notification-settings-toggle__art">{art}</span>
+      <strong>{label}</strong>
+      <span className="notification-settings-switch" aria-hidden="true">
+        <i className={busy ? "is-busy" : undefined} />
+      </span>
+    </button>
   )
 }

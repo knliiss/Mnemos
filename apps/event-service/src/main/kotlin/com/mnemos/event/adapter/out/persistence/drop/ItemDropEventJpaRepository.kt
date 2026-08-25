@@ -2,7 +2,6 @@ package com.mnemos.event.adapter.out.persistence.drop
 
 import com.mnemos.event.adapter.out.persistence.drop.query.FirstItemDropProjection
 import com.mnemos.event.adapter.out.persistence.drop.query.ItemDropViewProjection
-import com.mnemos.event.domain.item.model.DomainItemRarity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -42,7 +41,7 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
     fun findViews(
         @Param("droppedFor") droppedFor: String?,
         @Param("itemName") itemName: String?,
-        @Param("itemRarity") itemRarity: DomainItemRarity?,
+        @Param("itemRarity") itemRarity: String?,
         pageable: Pageable,
     ): Page<ItemDropViewProjection>
 

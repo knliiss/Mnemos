@@ -1,9 +1,11 @@
 package com.mnemos.wallet.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummariesRequest
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionRequest
 import com.mnemos.wallet.adapter.out.account.dto.CheckAccountPermissionResponse
-import com.mnemos.wallet.configuration.AccountPermissionFeignConfiguration
+import com.mnemos.wallet.configuration.AccountInternalFeignConfiguration
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @FeignClient(
-    name = "wallet-account-permission-client",
+    name = "wallet-account-internal-client",
     url = "\${mnemos.clients.account-service.url}",
-    configuration = [AccountPermissionFeignConfiguration::class],
+    configuration = [AccountInternalFeignConfiguration::class],
     dismiss404 = true,
 )
-interface AccountPermissionClient {
+interface AccountInternalClient {
     @GetMapping("/internal/v1/accounts/resolve")
     fun resolve(
         @RequestParam userId: UUID,
@@ -29,4 +31,9 @@ interface AccountPermissionClient {
         @PathVariable accountId: UUID,
         @RequestBody request: CheckAccountPermissionRequest,
     ): CheckAccountPermissionResponse
+
+    @PostMapping("/internal/v1/accounts/summaries")
+    fun summaries(
+        @RequestBody request: InternalAccountSummariesRequest,
+    ): List<InternalAccountSummaryResponse>
 }

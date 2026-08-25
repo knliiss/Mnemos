@@ -3,6 +3,7 @@ package com.mnemos.wallet.adapter.out.persistence.balance
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import jakarta.persistence.LockModeType
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Modifying
@@ -61,5 +62,20 @@ interface BalanceJpaRepository : JpaRepository<BalanceEntity, BalanceEntityId> {
     fun findAllByOwner(
         @Param("ownerType") ownerType: WalletOwnerType,
         @Param("ownerId") ownerId: UUID,
+    ): List<BalanceEntity>
+
+    @Query(
+        """
+        SELECT balance
+        FROM BalanceEntity balance
+        WHERE balance.id.ownerType = :ownerType
+          AND balance.id.currency = :currency
+        ORDER BY balance.amount DESC, balance.id.ownerId ASC
+        """,
+    )
+    fun findLeaderboard(
+        @Param("ownerType") ownerType: WalletOwnerType,
+        @Param("currency") currency: Currency,
+        pageable: Pageable,
     ): List<BalanceEntity>
 }

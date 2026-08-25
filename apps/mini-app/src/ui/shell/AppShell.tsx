@@ -128,16 +128,18 @@ export function AppShell() {
     setAccountPickerOpen(false)
   }
 
-  const userHubTrigger =
-    rootRoute && activeAccount ? (
-      <UserHubTrigger
-        open={userHubOpen}
-        activeBadge={userBadges.activeBadge?.badge ?? null}
-        onToggle={toggleUserHub}
-      />
-    ) : null
+  const userHubTrigger = activeAccount ? (
+    <UserHubTrigger
+      open={userHubOpen}
+      activeBadge={userBadges.activeBadge?.badge ?? null}
+      onToggle={toggleUserHub}
+    />
+  ) : null
   const accountUserHubTrigger = rootRoute === "account" ? userHubTrigger : null
-  const rootHeaderUserHubTrigger = rootRoute && rootRoute !== "account" ? userHubTrigger : null
+  const floatingUserHubTrigger =
+    activeAccount && rootRoute && rootRoute !== "account" && rootRoute !== "search"
+      ? userHubTrigger
+      : null
 
   return (
     <MotionConfig transition={{ duration: 0.19, ease: [0.22, 1, 0.36, 1] }}>
@@ -154,8 +156,8 @@ export function AppShell() {
               initial={false}
               animate={{ opacity: 1 }}
             >
-              {rootHeaderUserHubTrigger ? (
-                <div className="root-user-access">{rootHeaderUserHubTrigger}</div>
+              {floatingUserHubTrigger ? (
+                <div className="root-user-access">{floatingUserHubTrigger}</div>
               ) : null}
 
               <div className="route-content-frame">
@@ -173,27 +175,28 @@ export function AppShell() {
               </div>
             </motion.div>
 
+            {activeAccount ? (
+              <UserHubOverlay
+                open={userHubOpen}
+                accountPickerOpen={accountPickerOpen}
+                activeAccount={activeAccount}
+                accounts={data.accounts}
+                switchingAccountId={switchingAccountId}
+                localization={data.user.language}
+                username={data.user.username}
+                prime={data.user.prime}
+                systemRoles={data.user.systemRoles}
+                activeBadge={userBadges.activeBadge?.badge ?? null}
+                onLocalizationChange={(language) => void data.setLanguage(language)}
+                onClose={closeUserHub}
+                onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
+                onSelectAccount={(account) => void selectAccount(account)}
+                navigate={navigate}
+              />
+            ) : null}
+
             {rootRoute && activeAccount ? (
-              <>
-                <UserHubOverlay
-                  open={userHubOpen}
-                  accountPickerOpen={accountPickerOpen}
-                  activeAccount={activeAccount}
-                  accounts={data.accounts}
-                  switchingAccountId={switchingAccountId}
-                  localization={data.user.language}
-                  username={data.user.username}
-                  prime={data.user.prime}
-                  systemRoles={data.user.systemRoles}
-                  activeBadge={userBadges.activeBadge?.badge ?? null}
-                  onLocalizationChange={(language) => void data.setLanguage(language)}
-                  onClose={closeUserHub}
-                  onToggleAccounts={() => setAccountPickerOpen((value) => !value)}
-                  onSelectAccount={(account) => void selectAccount(account)}
-                  navigate={navigate}
-                />
-                <RootNavigation current={rootRoute} onChange={switchRoot} />
-              </>
+              <RootNavigation current={rootRoute} onChange={switchRoot} />
             ) : null}
           </section>
         </main>

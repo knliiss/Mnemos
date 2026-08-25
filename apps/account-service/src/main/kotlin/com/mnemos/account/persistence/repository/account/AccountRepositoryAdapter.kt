@@ -38,6 +38,11 @@ class AccountRepositoryAdapter(
 
     override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
 
+    override fun findByCristalixUuidForUpdate(cristalixUuid: CristalixUuid): Account? =
+        jpaAccountRepository
+            .findByCristalixUuidForUpdate(cristalixUuid.id)
+            ?.toDomain()
+
     override fun findAllAvailableForUser(userId: UserId): List<Account> =
         jpaAccountRepository
             .findAllAvailableForUser(userId.id)

@@ -22,16 +22,40 @@ object TelegramMessageMapper {
             return null
         }
 
-        val buttons =
-            actions
-                .map { action ->
-                    when (action) {
-                        is MessageAction.OpenMiniApp ->
-                            InlineKeyboardButton(action.label)
-                                .webApp(WebAppInfo(miniAppUrl))
-                    }
-                }.toTypedArray()
+        val rows = buildRows(miniAppUrl)
+        val markup = InlineKeyboardMarkup(*rows.first())
 
-        return InlineKeyboardMarkup(*buttons)
+        rows.drop(1).forEach { row ->
+            markup.addRow(*row)
+        }
+
+        return markup
     }
+
+    private fun RenderedMessage.buildRows(miniAppUrl: String): List<Array<InlineKeyboardButton>> {
+        val miniAppRows =
+            actions
+                .filterIsInstance<MessageAction.OpenMiniApp>()
+                .map { action ->
+                    arrayOf(
+                        InlineKeyboardButton(action.label)
+                            .webApp(WebAppInfo(miniAppUrl)),
+                    )
+                }
+        val callbackRows =
+            actions
+                .filterIsInstance<MessageAction.Callback>()
+                .chunked(CALLBACK_BUTTONS_PER_ROW)
+                .map { actions ->
+                    actions
+                        .map { action ->
+                            InlineKeyboardButton(action.label)
+                                .callbackData(action.data)
+                        }.toTypedArray()
+                }
+
+        return miniAppRows + callbackRows
+    }
+
+    private const val CALLBACK_BUTTONS_PER_ROW = 2
 }

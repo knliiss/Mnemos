@@ -8,6 +8,7 @@ import com.mnemos.realtime.configuration.delivery.RealtimeDeliveryProperties
 import com.mnemos.security.CurrentMnemosUser
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -88,10 +89,27 @@ class SseController(
     }
 
     @ExceptionHandler(AppException::class)
-    fun handleAppException(exception: AppException): ResponseEntity<Void> =
-        ResponseEntity
+    fun handleAppException(exception: AppException): ResponseEntity<Void> {
+        if (exception.httpStatus.value() >= 500) {
+            log.error(
+                "SSE request failed with application error. code={}, status={}",
+                exception.code,
+                exception.httpStatus.value(),
+                exception,
+            )
+        } else {
+            log.debug(
+                "SSE request rejected. code={}, status={}",
+                exception.code,
+                exception.httpStatus.value(),
+                exception,
+            )
+        }
+
+        return ResponseEntity
             .status(exception.httpStatus)
             .build()
+    }
 
     private fun parseUuid(value: String?): UUID? =
         try {
@@ -103,5 +121,7 @@ class SseController(
     private companion object {
         const val LAST_EVENT_ID_HEADER = "Last-Event-ID"
         const val REALTIME_SESSION_HEADER = "X-Mnemos-Realtime-Session"
+
+        val log = LoggerFactory.getLogger(SseController::class.java)
     }
 }

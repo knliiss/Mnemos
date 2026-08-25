@@ -26,10 +26,23 @@ class ItemRaceReaderAdapter(
                     ),
             ).map { it.toView() }
 
+    override fun findAllForAdministration(): List<ItemRaceView> =
+        raceJpaRepository.findTop200ByOrderByStartsAtDescIdDesc().map { it.toView() }
+
     override fun find(raceId: ItemRaceId): ItemRaceView? = raceJpaRepository.findById(raceId.id).orElse(null)?.toView()
 
     override fun findParticipants(raceId: ItemRaceId): List<ItemRaceParticipantView> =
         participantJpaRepository.findAllByRaceIdOrderById(raceId.id).map { it.toView() }
+
+    override fun findParticipants(raceIds: Collection<ItemRaceId>): List<ItemRaceParticipantView> {
+        if (raceIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return participantJpaRepository
+            .findAllByRaceIdInOrderByRaceIdAscIdAsc(raceIds.map { it.id })
+            .map { it.toView() }
+    }
 
     override fun findParticipant(
         raceId: ItemRaceId,

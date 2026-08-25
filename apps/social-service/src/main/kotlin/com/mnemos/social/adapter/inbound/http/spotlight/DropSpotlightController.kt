@@ -5,6 +5,7 @@ import com.mnemos.social.adapter.inbound.http.spotlight.DropSpotlightApiMapper.t
 import com.mnemos.social.adapter.inbound.http.spotlight.DropSpotlightApiMapper.toResponse
 import com.mnemos.social.application.spotlight.usecase.create.CreateDropSpotlightUseCase
 import com.mnemos.social.application.spotlight.usecase.get.GetDropSpotlightService
+import com.mnemos.social.configuration.spotlight.DropSpotlightProperties
 import com.mnemos.social.domain.spotlight.model.DropSpotlightId
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,7 +22,16 @@ import java.util.UUID
 class DropSpotlightController(
     private val createDropSpotlightUseCase: CreateDropSpotlightUseCase,
     private val getDropSpotlightService: GetDropSpotlightService,
+    private val properties: DropSpotlightProperties,
 ) {
+    @GetMapping("/offer")
+    fun offer(): DropSpotlightOfferResponse =
+        DropSpotlightOfferResponse(
+            pricePrime = properties.pricePrime,
+            purchaseWindowSeconds = properties.dropMaxAge.seconds,
+            buyerCooldownSeconds = properties.buyerCooldown.seconds,
+        )
+
     @PostMapping("/{itemDropEventId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun create(

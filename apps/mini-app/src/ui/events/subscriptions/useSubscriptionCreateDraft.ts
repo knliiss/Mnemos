@@ -12,10 +12,13 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { BoosterType, DungeonType, GlobalEventType, SubscriptionType } from "../../model"
 
-export function useSubscriptionCreateDraft(onSaved: () => void) {
+export function useSubscriptionCreateDraft(
+  onSaved: () => void,
+  initialType: SubscriptionType = "ITEM_DROP",
+) {
   const data = useMnemosData()
   const [busy, setBusy] = useState(false)
-  const [type, setType] = useState<SubscriptionType>("ITEM_DROP")
+  const [type, setType] = useState<SubscriptionType>(initialType)
   const [droppedFor, setDroppedFor] = useState("")
   const [itemName, setItemName] = useState("")
   const [boosterType, setBoosterType] = useState<BoosterType>("LUCK")
@@ -43,7 +46,9 @@ export function useSubscriptionCreateDraft(onSaved: () => void) {
   const itemNameValid = !cleanItemName || cleanItemName.length <= 24
   const itemDropValid =
     droppedForValid && itemNameValid && Boolean(cleanDroppedFor || cleanItemName)
-  const raidInputValid = !cleanRaidInput || (Number.isInteger(raidInputValue) && raidInputValue > 0)
+  const raidInputValid =
+    !cleanRaidInput ||
+    (Number.isInteger(raidInputValue) && raidInputValue >= 1 && raidInputValue <= 28)
   const createValid = (type !== "ITEM_DROP" || itemDropValid) && (type !== "RAID" || raidInputValid)
   const itemSuggestions = itemSearch.query === cleanItemName ? itemSearch.items : []
 
@@ -92,7 +97,9 @@ export function useSubscriptionCreateDraft(onSaved: () => void) {
     }
 
     if (!raidLocations.includes(raidInputValue)) {
-      setRaidLocations((current) => [...current, raidInputValue])
+      setRaidLocations((current) =>
+        [...current, raidInputValue].sort((left, right) => left - right),
+      )
     }
 
     setRaidInput("")
@@ -113,7 +120,9 @@ export function useSubscriptionCreateDraft(onSaved: () => void) {
     try {
       const submittedRaidLocations =
         cleanRaidInput && raidInputValid
-          ? Array.from(new Set([...raidLocations, raidInputValue]))
+          ? Array.from(new Set([...raidLocations, raidInputValue])).sort(
+              (left, right) => left - right,
+            )
           : raidLocations
 
       const saved = await data.mutateSubscriptions(async () => {

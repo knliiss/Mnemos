@@ -97,6 +97,11 @@ export const uiEn = {
     badges: "Badges",
     badgesFallback: "Create and assign",
     badgesCount: "{{count}} in the system",
+    spotlightPreviewTitle: "Spotlight preview",
+    spotlightPreviewDescription:
+      "Show a Spotlight only on this device. Nothing is broadcast to other users.",
+    spotlightPreviewItem: "Admin preview blade",
+    spotlightPreviewPlayer: "Local admin preview",
   },
   moderation: {
     title: "Moderation",

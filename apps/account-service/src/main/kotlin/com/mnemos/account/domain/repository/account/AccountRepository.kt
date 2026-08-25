@@ -18,6 +18,8 @@ interface AccountRepository {
 
     fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean
 
+    fun findByCristalixUuidForUpdate(cristalixUuid: CristalixUuid): Account?
+
     fun findAllAvailableForUser(userId: UserId): List<Account>
 
     fun findBootstrapBatch(

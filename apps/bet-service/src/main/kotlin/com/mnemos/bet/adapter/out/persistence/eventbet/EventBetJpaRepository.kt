@@ -37,5 +37,9 @@ interface EventBetJpaRepository : JpaRepository<EventBetEntity, UUID> {
         accountId: UUID,
     ): List<EventBetEntity>
 
+    fun findAllByRoundIdOrderByIdAsc(roundId: UUID): List<EventBetEntity>
+
+    fun findAllByRoundIdInOrderByRoundIdAscIdAsc(roundIds: Collection<UUID>): List<EventBetEntity>
+
     fun findAllByAccountIdOrderByIdDesc(accountId: UUID): List<EventBetEntity>
 }

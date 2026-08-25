@@ -35,6 +35,8 @@ interface ItemRaceParticipantJpaRepository : JpaRepository<ItemRaceParticipantEn
 
     fun findAllByRaceIdOrderById(raceId: UUID): List<ItemRaceParticipantEntity>
 
+    fun findAllByRaceIdInOrderByRaceIdAscIdAsc(raceIds: Collection<UUID>): List<ItemRaceParticipantEntity>
+
     fun findAllByAccountIdOrderByIdDesc(accountId: UUID): List<ItemRaceParticipantEntity>
 
     fun findAllByAccountIdAndStatusInOrderByIdDesc(

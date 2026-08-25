@@ -50,6 +50,18 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
         @Param("id") id: UUID,
     ): AccountEntity?
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(
+        """
+            SELECT account
+            FROM AccountEntity account
+            WHERE account.cristalixUuid = :cristalixUuid
+        """,
+    )
+    fun findByCristalixUuidForUpdate(
+        @Param("cristalixUuid") cristalixUuid: UUID,
+    ): AccountEntity?
+
     @Query(
         """
             SELECT account

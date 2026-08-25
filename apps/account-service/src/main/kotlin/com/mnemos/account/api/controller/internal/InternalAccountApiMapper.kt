@@ -1,5 +1,6 @@
 package com.mnemos.account.api.controller.internal
 
+import com.mnemos.account.application.query.account.AccountLookupSummary
 import com.mnemos.account.application.query.account.InternalAccountBootstrapQuery
 import com.mnemos.account.application.query.account.ResolveInternalAccountQuery
 import com.mnemos.account.domain.model.account.Account
@@ -7,6 +8,7 @@ import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.contracts.account.internal.v1.InternalAccountBootstrapResponse
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
 
 object InternalAccountApiMapper {
     fun ResolveInternalAccountRequest.toQuery(): ResolveInternalAccountQuery =
@@ -38,5 +40,12 @@ object InternalAccountApiMapper {
             cristalixUuid = cristalixUuid.id,
             cristalixNickname = cristalixNickname.value,
             createdAt = createdAt,
+        )
+
+    fun AccountLookupSummary.toSummaryResponse(): InternalAccountSummaryResponse =
+        InternalAccountSummaryResponse(
+            accountId = id.id,
+            cristalixUuid = cristalixUuid,
+            cristalixNickname = cristalixNickname,
         )
 }

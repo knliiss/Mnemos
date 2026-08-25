@@ -36,10 +36,11 @@ export function SubscriptionRaidFields({
         <input
           type="number"
           min="1"
+          max="28"
           step="1"
           value={raidInput}
           onChange={(event) => onRaidInputChange(event.target.value)}
-          placeholder="№"
+          placeholder="1–28"
         />
         <button
           type="button"
