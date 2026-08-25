@@ -26,11 +26,12 @@ export function PersonalizationBalanceBar({
         type="button"
         className="personalization-balance personalization-balance--coin"
         disabled={!activeAccount}
+        title={activeAccount ? `${activeAccount.nickname} · COIN` : "COIN"}
         onClick={() => navigate({ id: "account-wallet" })}
       >
         <CurrencyMark currency="COIN" size={compact ? 15 : 17} />
         <span>
-          <small>{activeAccount?.nickname ?? "COIN"}</small>
+          <small>COIN</small>
           <strong>{activeAccount ? activeAccount.coin.toLocaleString(locale) : "—"}</strong>
         </span>
       </button>

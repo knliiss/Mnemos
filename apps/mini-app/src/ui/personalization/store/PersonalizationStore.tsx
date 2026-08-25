@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { PERSONALIZATION_TYPES } from "../../contracts"
 import type { Account, Personalization, Route } from "../../model"
-import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import {
@@ -66,12 +65,20 @@ export function PersonalizationStore({
             const typeItems = published.filter((item) => item.type === type)
             const ownedCount = items.filter((item) => item.type === type && item.owned).length
             const sample = typeItems[0] ?? items.find((item) => item.type === type && item.owned)
+            const showTrailingPreview = type !== "NOTIFICATION_PACK"
+            const cardClassName = [
+              "personalization-store-category-card",
+              `personalization-store-category-card--${type.toLowerCase()}`,
+              showTrailingPreview ? "" : "is-copy-only",
+            ]
+              .filter(Boolean)
+              .join(" ")
 
             return (
               <motion.button
                 type="button"
                 key={type}
-                className={`personalization-store-category-card personalization-store-category-card--${type.toLowerCase()}`}
+                className={cardClassName}
                 whileTap={{ scale: 0.988 }}
                 onClick={() =>
                   navigate({
@@ -96,22 +103,20 @@ export function PersonalizationStore({
                   </span>
                 </span>
 
-                <span className="personalization-store-category-card__preview">
-                  {sample ? (
-                    sample.type === "NOTIFICATION_PACK" ? (
-                      <NotificationPackSpotlightPreview item={sample} size="THUMBNAIL" />
-                    ) : (
+                {showTrailingPreview ? (
+                  <span className="personalization-store-category-card__preview">
+                    {sample ? (
                       <PersonalizationVisual item={sample} small />
-                    )
-                  ) : (
-                    <img
-                      className="personalization-store-category-card__fallback-art"
-                      src={personalizationIllustrations[type]}
-                      alt=""
-                      aria-hidden="true"
-                    />
-                  )}
-                </span>
+                    ) : (
+                      <img
+                        className="personalization-store-category-card__fallback-art"
+                        src={personalizationIllustrations[type]}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    )}
+                  </span>
+                ) : null}
               </motion.button>
             )
           })}

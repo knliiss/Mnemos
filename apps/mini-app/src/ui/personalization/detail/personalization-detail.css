@@ -6,9 +6,9 @@
   position: relative;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 156px auto;
+  grid-template-rows: 180px auto;
   gap: 12px;
-  min-height: 230px;
+  min-height: 254px;
   overflow: hidden;
   margin: 8px 0 14px;
   padding: 12px;
@@ -57,13 +57,14 @@
   white-space: nowrap;
 }
 
-.personalization-detail-hero > .real-preview.is-detail {
+.personalization-detail-hero > .real-preview.is-detail,
+.personalization-detail-hero > .drop-spotlight-preview {
   position: relative;
   z-index: 1;
   grid-row: 1;
   width: 100%;
   min-width: 0;
-  height: 156px;
+  height: 180px;
   min-height: 0;
   margin: 0;
   overflow: hidden;
@@ -153,12 +154,13 @@
 
 @media (max-width: 380px) {
   .personalization-detail-hero {
-    grid-template-rows: 138px auto;
-    min-height: 210px;
+    grid-template-rows: 152px auto;
+    min-height: 226px;
   }
 
-  .personalization-detail-hero > .real-preview.is-detail {
-    height: 138px;
+  .personalization-detail-hero > .real-preview.is-detail,
+  .personalization-detail-hero > .drop-spotlight-preview {
+    height: 152px;
   }
 
   .personalization-detail-purchase {

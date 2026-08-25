@@ -16,13 +16,13 @@
 }
 
 .drop-spotlight-preview--card {
-  --spotlight-preview-scale: 0.56;
-  min-height: 112px;
+  --spotlight-preview-scale: 0.88;
+  min-height: 150px;
 }
 
 .drop-spotlight-preview--detail {
-  --spotlight-preview-scale: 0.84;
-  min-height: 164px;
+  --spotlight-preview-scale: 1.08;
+  min-height: 172px;
 }
 
 .drop-spotlight-preview--studio {
@@ -75,12 +75,12 @@
 
 @media (max-width: 420px) {
   .drop-spotlight-preview--card {
-    --spotlight-preview-scale: 0.5;
+    --spotlight-preview-scale: 0.66;
   }
 
   .drop-spotlight-preview--detail {
-    --spotlight-preview-scale: 0.68;
-    min-height: 140px;
+    --spotlight-preview-scale: 0.72;
+    min-height: 150px;
   }
 
   .drop-spotlight-preview--studio {
