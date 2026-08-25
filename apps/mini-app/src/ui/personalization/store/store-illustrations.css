@@ -120,9 +120,7 @@
   height: 150px !important;
 }
 
-.personalization-store-category
-  .personalization-category-visual
-  > .drop-spotlight-preview--card {
+.personalization-store-category .personalization-category-visual > .drop-spotlight-preview--card {
   --spotlight-preview-scale: 1;
 }
 
@@ -181,9 +179,7 @@
     height: 132px !important;
   }
 
-  .personalization-store-category
-    .personalization-category-visual
-    > .drop-spotlight-preview--card {
+  .personalization-store-category .personalization-category-visual > .drop-spotlight-preview--card {
     --spotlight-preview-scale: 0.66;
   }
 }
