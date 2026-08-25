@@ -109,7 +109,12 @@ sealed interface PersonalizationContent {
             require(template.variants.size <= MAX_VARIANTS_PER_TEMPLATE) {
                 "Notification template $key can contain at most $MAX_VARIANTS_PER_TEMPLATE variants"
             }
-            require(template.variants.map(NotificationTemplateVariant::id).distinct().size == template.variants.size) {
+            require(
+                template.variants
+                    .map(NotificationTemplateVariant::id)
+                    .distinct()
+                    .size == template.variants.size,
+            ) {
                 "Notification template $key variant ids must be unique"
             }
 
