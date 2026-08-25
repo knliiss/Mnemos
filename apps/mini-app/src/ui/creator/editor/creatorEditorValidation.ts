@@ -2,10 +2,7 @@ import type {
   NotificationPackEditorDescriptorResponse,
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
-import type {
-  NotificationTemplate,
-  NotificationTemplateVariant,
-} from "../../model"
+import type { NotificationTemplate, NotificationTemplateVariant } from "../../model"
 import type { CreatorEditorForm, CreatorGlowForm } from "./creatorEditorModel"
 
 const PLACEHOLDER = /\{([a-zA-Z][a-zA-Z0-9_]*)(?:\.([a-zA-Z][a-zA-Z0-9_]*))?}/g
@@ -64,10 +61,7 @@ function fieldValue(
   return template.aggregateTitle
 }
 
-function referenceValid(
-  reference: PlaceholderReference,
-  descriptor: TemplateDescriptor,
-): boolean {
+function referenceValid(reference: PlaceholderReference, descriptor: TemplateDescriptor): boolean {
   const variable = descriptor.variables.find((candidate) => candidate.key === reference.key)
 
   if (!variable) {

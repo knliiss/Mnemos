@@ -34,7 +34,8 @@ type EditableMessageFields = Pick<
   NotificationTemplate,
   "emoji" | "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
 >
-type VariableDescriptor = NotificationPackEditorDescriptorResponse["templates"][number]["variables"][number]
+type VariableDescriptor =
+  NotificationPackEditorDescriptorResponse["templates"][number]["variables"][number]
 type VariableFormDescriptor = NonNullable<VariableDescriptor["forms"]>[number]
 
 type Props = {
@@ -409,9 +410,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             </header>
 
             {selectedVariant.conditions.map((condition, index) => {
-              const field = conditionFields.find(
-                (candidate) => candidate.field === condition.field,
-              )
+              const field = conditionFields.find((candidate) => candidate.field === condition.field)
               const usedByOtherConditions = new Set(
                 selectedVariant.conditions
                   .filter((_, conditionIndex) => conditionIndex !== index)

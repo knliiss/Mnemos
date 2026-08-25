@@ -83,9 +83,7 @@ export type ProfileEffectEditorForm = {
 export type NotificationPackEditorForm = {
   mixedAggregateTitle: string
   templates: Record<string, NotificationTemplate>
-  valueMappings?: Partial<
-    Record<NotificationPackValueKey, Record<string, NotificationValueForms>>
-  >
+  valueMappings?: Partial<Record<NotificationPackValueKey, Record<string, NotificationValueForms>>>
 }
 
 export type CreatorEditorForm = {
