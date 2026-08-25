@@ -9,4 +9,5 @@ data class NotificationPackTemplateV1(
     val soloBody: String,
     val compact: String,
     val aggregateTitle: String,
+    val variants: List<NotificationPackTemplateVariantV1> = emptyList(),
 )

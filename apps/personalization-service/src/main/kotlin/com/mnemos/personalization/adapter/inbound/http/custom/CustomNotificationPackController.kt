@@ -56,7 +56,11 @@ class CustomNotificationPackController(
             createCustomNotificationPackUseCase.execute(
                 CreateCustomNotificationPackCommand(
                     name = request.name,
-                    content = request.templates.toContent(request.mixedAggregateTitle),
+                    content =
+                        request.templates.toContent(
+                            mixedAggregateTitle = request.mixedAggregateTitle,
+                            valueMappings = request.valueMappings,
+                        ),
                 ),
             )
 
@@ -78,7 +82,11 @@ class CustomNotificationPackController(
                 UpdateCustomNotificationPackCommand(
                     personalizationId = PersonalizationId(personalizationId),
                     name = request.name,
-                    content = request.templates.toContent(request.mixedAggregateTitle),
+                    content =
+                        request.templates.toContent(
+                            mixedAggregateTitle = request.mixedAggregateTitle,
+                            valueMappings = request.valueMappings,
+                        ),
                 ),
             ).toResponse()
 }

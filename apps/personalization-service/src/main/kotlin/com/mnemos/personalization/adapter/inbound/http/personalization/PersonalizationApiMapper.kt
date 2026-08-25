@@ -6,7 +6,10 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.content.G
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.GradientStopResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NickStyleContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationPackContentResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateConditionResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateVariantResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationValueFormsResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileEffectContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileThemeContentResponse
@@ -15,6 +18,9 @@ import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateCondition
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateVariant
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
@@ -107,6 +113,10 @@ object PersonalizationApiMapper {
                         templates.mapValues { (_, template) ->
                             template.toResponse()
                         },
+                    valueMappings =
+                        valueMappings.mapValues { (_, mappings) ->
+                            mappings.mapValues { (_, forms) -> forms.toResponse() }
+                        },
                 )
         }
 
@@ -144,5 +154,29 @@ object PersonalizationApiMapper {
             soloBody = soloBody,
             compact = compact,
             aggregateTitle = aggregateTitle,
+            variants = variants.map { variant -> variant.toResponse() },
+        )
+
+    private fun NotificationTemplateVariant.toResponse(): NotificationTemplateVariantResponse =
+        NotificationTemplateVariantResponse(
+            id = id,
+            conditions = conditions.map { condition -> condition.toResponse() },
+            emoji = emoji,
+            soloTitle = soloTitle,
+            soloBody = soloBody,
+            compact = compact,
+            aggregateTitle = aggregateTitle,
+        )
+
+    private fun NotificationTemplateCondition.toResponse(): NotificationTemplateConditionResponse =
+        NotificationTemplateConditionResponse(
+            field = field,
+            value = value,
+        )
+
+    private fun NotificationValueForms.toResponse(): NotificationValueFormsResponse =
+        NotificationValueFormsResponse(
+            default = default,
+            forms = forms,
         )
 }

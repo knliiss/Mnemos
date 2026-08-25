@@ -1,5 +1,7 @@
 package com.mnemos.personalization.adapter.out.persistence.personalization.content
 
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.EffectType
 import com.mnemos.personalization.domain.personalization.model.FrameStyle
@@ -7,7 +9,10 @@ import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.HexColor
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateCondition
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateVariant
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
@@ -71,6 +76,7 @@ object PersonalizationContentPersistenceMapper {
                         templates
                             .mapKeys { (key, _) -> key.name }
                             .mapValues { (_, template) -> template.toDocument() },
+                    "valueMappings" to valueMappings.toDocument(),
                 )
         }
 
@@ -147,20 +153,101 @@ object PersonalizationContentPersistenceMapper {
             templates =
                 templates
                     .map { (rawKey, rawTemplate) ->
-                        val key = NotificationTemplateKey.valueOf(rawKey)
-                        val template = requireDocument(rawTemplate)
-
-                        key to
-                            NotificationTemplate(
-                                emoji = template.stringOrNull("emoji"),
-                                soloTitle = template.requireString("soloTitle"),
-                                soloBody = template.requireString("soloBody"),
-                                compact = template.requireString("compact"),
-                                aggregateTitle = template.requireString("aggregateTitle"),
-                            )
+                        NotificationTemplateKey.valueOf(rawKey) to requireDocument(rawTemplate).toNotificationTemplate()
                     }.toMap(),
+            valueMappings = optionalDocument("valueMappings").toValueMappings(),
         )
     }
+
+    private fun Map<String, Any?>.toNotificationTemplate(): NotificationTemplate =
+        NotificationTemplate(
+            emoji = stringOrNull("emoji"),
+            soloTitle = requireString("soloTitle"),
+            soloBody = requireString("soloBody"),
+            compact = requireString("compact"),
+            aggregateTitle = requireString("aggregateTitle"),
+            variants =
+                optionalList("variants").map { rawVariant ->
+                    requireDocument(rawVariant).toNotificationVariant()
+                },
+        )
+
+    private fun Map<String, Any?>.toNotificationVariant(): NotificationTemplateVariant =
+        NotificationTemplateVariant(
+            id = requireString("id"),
+            conditions =
+                requireList("conditions").map { rawCondition ->
+                    requireDocument(rawCondition).toNotificationCondition()
+                },
+            emoji = stringOrNull("emoji"),
+            soloTitle = requireString("soloTitle"),
+            soloBody = requireString("soloBody"),
+            compact = requireString("compact"),
+            aggregateTitle = requireString("aggregateTitle"),
+        )
+
+    private fun Map<String, Any?>.toNotificationCondition(): NotificationTemplateCondition =
+        NotificationTemplateCondition(
+            field = NotificationPackVariantField.valueOf(requireString("field")),
+            value = requireString("value"),
+        )
+
+    private fun Map<String, Any?>.toValueMappings(): Map<NotificationPackValueKey, Map<String, NotificationValueForms>> =
+        map { (rawKey, rawMappings) ->
+            NotificationPackValueKey.valueOf(rawKey) to
+                requireDocument(rawMappings).mapValues { (_, rawForms) ->
+                    requireDocument(rawForms).toNotificationValueForms()
+                }
+        }.toMap()
+
+    private fun Map<String, Any?>.toNotificationValueForms(): NotificationValueForms =
+        NotificationValueForms(
+            default = requireString("default"),
+            forms =
+                optionalDocument("forms").mapValues { (name, rawValue) ->
+                    rawValue as? String
+                        ?: throw IllegalArgumentException("Notification value form $name must be a string")
+                },
+        )
+
+    private fun Map<NotificationPackValueKey, Map<String, NotificationValueForms>>.toDocument(): Map<String, Any?> =
+        mapKeys { (key, _) -> key.name }
+            .mapValues { (_, mappings) ->
+                mappings.mapValues { (_, forms) -> forms.toDocument() }
+            }
+
+    private fun NotificationValueForms.toDocument(): Map<String, Any?> =
+        mapOf(
+            "default" to default,
+            "forms" to forms,
+        )
+
+    private fun NotificationTemplate.toDocument(): Map<String, Any?> =
+        mapOf(
+            "emoji" to emoji,
+            "soloTitle" to soloTitle,
+            "soloBody" to soloBody,
+            "compact" to compact,
+            "aggregateTitle" to aggregateTitle,
+            "variants" to variants.map { variant -> variant.toDocument() },
+        )
+
+    private fun NotificationTemplateVariant.toDocument(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "conditions" to conditions.map { condition -> condition.toDocument() },
+            "emoji" to emoji,
+            "soloTitle" to soloTitle,
+            "soloBody" to soloBody,
+            "compact" to compact,
+            "aggregateTitle" to aggregateTitle,
+        )
+
+    private fun NotificationTemplateCondition.toDocument(): Map<String, Any?> =
+        mapOf(
+            "field" to field.name,
+            "value" to value,
+        )
 
     private fun Map<String, Any?>.visualLayers(): List<VisualLayer> =
         optionalList("layers").map { value ->
@@ -219,15 +306,6 @@ object PersonalizationContentPersistenceMapper {
             strength = requireNumber("strength").toInt(),
         )
 
-    private fun NotificationTemplate.toDocument(): Map<String, Any?> =
-        mapOf(
-            "emoji" to emoji,
-            "soloTitle" to soloTitle,
-            "soloBody" to soloBody,
-            "compact" to compact,
-            "aggregateTitle" to aggregateTitle,
-        )
-
     private fun Map<String, Any?>.requireValue(key: String): Any =
         requireNotNull(this[key]) { "Missing personalization content field: $key" }
 
@@ -265,6 +343,12 @@ object PersonalizationContentPersistenceMapper {
         }
 
     private fun Map<String, Any?>.documentOrNull(key: String): Map<String, Any?>? = this[key]?.let(::requireDocument)
+
+    private fun Map<String, Any?>.optionalDocument(key: String): Map<String, Any?> =
+        when (val value = this[key]) {
+            null -> emptyMap()
+            else -> requireDocument(value)
+        }
 
     @Suppress("UNCHECKED_CAST")
     private fun requireDocument(value: Any?): Map<String, Any?> =

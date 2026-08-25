@@ -1,6 +1,6 @@
 package com.mnemos.personalization.domain.personalization.model
 
-import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
 
 sealed interface PersonalizationContent {
     data class NickStyle(
@@ -75,6 +75,7 @@ sealed interface PersonalizationContent {
     data class NotificationPack(
         val mixedAggregateTitle: String,
         val templates: Map<NotificationTemplateKey, NotificationTemplate>,
+        val valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = emptyMap(),
     ) : PersonalizationContent {
         init {
             require(templates.keys == NotificationTemplateKey.entries.toSet()) {
@@ -82,30 +83,151 @@ sealed interface PersonalizationContent {
             }
 
             validateStaticText(mixedAggregateTitle, "mixed aggregate title")
+            validateValueMappings()
 
             templates.forEach { (key, template) ->
-                template.emoji?.let { emoji ->
-                    validateEmoji(emoji, key)
-                }
-
-                validateTemplate(key, template.soloTitle)
-                validateTemplate(key, template.soloBody)
-                validateTemplate(key, template.compact)
-                validateStaticText(template.aggregateTitle, "$key aggregate title")
+                validateTemplate(
+                    key = key,
+                    template = template,
+                )
             }
         }
 
         private fun validateTemplate(
             key: NotificationTemplateKey,
+            template: NotificationTemplate,
+        ) {
+            validateMessageFields(
+                key = key,
+                emoji = template.emoji,
+                soloTitle = template.soloTitle,
+                soloBody = template.soloBody,
+                compact = template.compact,
+                aggregateTitle = template.aggregateTitle,
+            )
+
+            require(template.variants.size <= MAX_VARIANTS_PER_TEMPLATE) {
+                "Notification template $key can contain at most $MAX_VARIANTS_PER_TEMPLATE variants"
+            }
+            require(template.variants.map(NotificationTemplateVariant::id).distinct().size == template.variants.size) {
+                "Notification template $key variant ids must be unique"
+            }
+
+            template.variants.forEach { variant ->
+                variant.conditions.forEach { condition ->
+                    require(condition.field.templateType == key.contractType) {
+                        "Notification variant condition ${condition.field} cannot be used for template $key"
+                    }
+                }
+
+                validateMessageFields(
+                    key = key,
+                    emoji = variant.emoji,
+                    soloTitle = variant.soloTitle,
+                    soloBody = variant.soloBody,
+                    compact = variant.compact,
+                    aggregateTitle = variant.aggregateTitle,
+                )
+            }
+
+            validateVariantAmbiguity(
+                key = key,
+                variants = template.variants,
+            )
+        }
+
+        private fun validateMessageFields(
+            key: NotificationTemplateKey,
+            emoji: String?,
+            soloTitle: String,
+            soloBody: String,
+            compact: String,
+            aggregateTitle: String,
+        ) {
+            emoji?.let { value -> validateEmoji(value, key) }
+
+            validateTemplateText(key, soloTitle)
+            validateTemplateText(key, soloBody)
+            validateTemplateText(key, compact)
+            validateStaticText(aggregateTitle, "$key aggregate title")
+        }
+
+        private fun validateTemplateText(
+            key: NotificationTemplateKey,
             template: String,
         ) {
             validateText(template, "Notification template")
 
-            val placeholders = placeholders(template)
+            val placeholders = placeholderMatches(template)
 
-            require(placeholders.all { it in key.allowedPlaceholders }) {
+            require(placeholders.all { placeholder -> placeholder.name in key.allowedPlaceholders }) {
                 "Template $key contains unsupported placeholders"
             }
+
+            placeholders
+                .filter { placeholder -> placeholder.form != null && placeholder.form != DEFAULT_FORM }
+                .forEach { placeholder ->
+                    validateNamedForm(placeholder)
+                }
+        }
+
+        private fun validateNamedForm(placeholder: Placeholder) {
+            val valueKey =
+                requireNotNull(NotificationPackValueKey.forPlaceholder(placeholder.name)) {
+                    "Placeholder {${placeholder.name}.${placeholder.form}} does not support named forms"
+                }
+            val mappings =
+                requireNotNull(valueMappings[valueKey]) {
+                    "Notification value mappings for $valueKey are required by named placeholder form ${placeholder.form}"
+                }
+
+            valueKey.allowedValues.forEach { rawValue ->
+                val forms =
+                    requireNotNull(mappings[rawValue]) {
+                        "Notification value mapping for $valueKey/$rawValue is required by named placeholder form ${placeholder.form}"
+                    }
+
+                require(forms.resolve(placeholder.form) != null) {
+                    "Notification value mapping for $valueKey/$rawValue does not define form ${placeholder.form}"
+                }
+            }
+        }
+
+        private fun validateValueMappings() {
+            valueMappings.forEach { (valueKey, mappings) ->
+                require(mappings.keys.all { rawValue -> rawValue in valueKey.allowedValues }) {
+                    "Notification value mappings for $valueKey contain unsupported raw values"
+                }
+            }
+        }
+
+        private fun validateVariantAmbiguity(
+            key: NotificationTemplateKey,
+            variants: List<NotificationTemplateVariant>,
+        ) {
+            variants
+                .groupBy { variant -> variant.conditions.size }
+                .values
+                .forEach { sameSpecificity ->
+                    sameSpecificity.forEachIndexed { index, left ->
+                        sameSpecificity.drop(index + 1).forEach { right ->
+                            require(!canMatchSameEvent(left, right)) {
+                                "Notification template $key variants ${left.id} and ${right.id} are ambiguous"
+                            }
+                        }
+                    }
+                }
+        }
+
+        private fun canMatchSameEvent(
+            left: NotificationTemplateVariant,
+            right: NotificationTemplateVariant,
+        ): Boolean {
+            val leftConditions = left.conditions.associate { condition -> condition.field to condition.value }
+            val rightConditions = right.conditions.associate { condition -> condition.field to condition.value }
+            val sharedFields = leftConditions.keys.intersect(rightConditions.keys)
+
+            return sharedFields.all { field -> leftConditions[field] == rightConditions[field] }
         }
 
         private fun validateEmoji(
@@ -122,7 +244,7 @@ sealed interface PersonalizationContent {
         ) {
             validateText(value, "Notification $description")
 
-            require(placeholders(value).isEmpty()) {
+            require(placeholderMatches(value).isEmpty()) {
                 "Notification $description cannot contain placeholders"
             }
         }
@@ -132,7 +254,7 @@ sealed interface PersonalizationContent {
             description: String,
         ) {
             require(value.isNotBlank()) { "$description cannot be blank" }
-            require(value.length <= 512) { "$description is too long" }
+            require(value.length <= MAX_TEXT_LENGTH) { "$description is too long" }
             require('<' !in value && '>' !in value) {
                 "$description cannot contain raw Telegram HTML"
             }
@@ -144,14 +266,27 @@ sealed interface PersonalizationContent {
             }
         }
 
-        private fun placeholders(value: String): Set<String> =
+        private fun placeholderMatches(value: String): List<Placeholder> =
             PLACEHOLDER
                 .findAll(value)
-                .map { it.groupValues[1] }
-                .toSet()
+                .map { match ->
+                    Placeholder(
+                        name = match.groupValues[1],
+                        form = match.groupValues[2].ifBlank { null },
+                    )
+                }.toList()
+
+        private data class Placeholder(
+            val name: String,
+            val form: String?,
+        )
 
         private companion object {
-            val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)}")
+            const val MAX_TEXT_LENGTH = 512
+            const val MAX_VARIANTS_PER_TEMPLATE = 16
+            const val DEFAULT_FORM = "default"
+
+            val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)(?:\\.([a-zA-Z][a-zA-Z0-9_]*))?}")
         }
     }
 }
@@ -192,24 +327,4 @@ enum class FrameStyle {
     SOLID,
     DOUBLE,
     SEGMENTED,
-}
-
-data class NotificationTemplate(
-    val emoji: String?,
-    val soloTitle: String,
-    val soloBody: String,
-    val compact: String,
-    val aggregateTitle: String,
-)
-
-enum class NotificationTemplateKey {
-    ITEM_DROP,
-    BOOSTER,
-    DUNGEON,
-    RAID,
-    GLOBAL,
-    ;
-
-    val allowedPlaceholders: Set<String>
-        get() = NotificationPackTemplateType.valueOf(name).allowedPlaceholders
 }

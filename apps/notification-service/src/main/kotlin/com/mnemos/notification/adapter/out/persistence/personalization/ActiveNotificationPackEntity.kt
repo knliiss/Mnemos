@@ -22,6 +22,9 @@ class ActiveNotificationPackEntity(
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "templates", columnDefinition = "jsonb")
     var templates: Map<String, Any?>?,
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "value_mappings", columnDefinition = "jsonb")
+    var valueMappings: Map<String, Any?>? = null,
     @Column(name = "last_revision", nullable = false)
     var lastRevision: Long,
     @Column(name = "last_event_id", nullable = false)
@@ -35,6 +38,7 @@ class ActiveNotificationPackEntity(
         personalizationId: UUID,
         mixedAggregateTitle: String,
         templates: Map<String, Any?>,
+        valueMappings: Map<String, Any?> = emptyMap(),
         selectionRevision: Long,
         eventId: UUID,
         occurredAt: Instant,
@@ -42,6 +46,7 @@ class ActiveNotificationPackEntity(
         this.personalizationId = personalizationId
         this.mixedAggregateTitle = mixedAggregateTitle
         this.templates = templates
+        this.valueMappings = valueMappings
         lastRevision = selectionRevision
         lastEventId = eventId
         lastEventAt = occurredAt
@@ -55,6 +60,7 @@ class ActiveNotificationPackEntity(
         personalizationId = null
         mixedAggregateTitle = null
         templates = null
+        valueMappings = null
         lastRevision = selectionRevision
         lastEventId = eventId
         lastEventAt = occurredAt

@@ -3,6 +3,7 @@ package com.mnemos.notification.adapter.out.persistence.personalization
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.adapter.out.persistence.personalization.ActiveNotificationPackPersistenceMapper.toDomainOrNull
 import com.mnemos.notification.adapter.out.persistence.personalization.ActiveNotificationPackPersistenceMapper.toTemplateDocuments
+import com.mnemos.notification.adapter.out.persistence.personalization.ActiveNotificationPackPersistenceMapper.toValueMappingDocuments
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
 import org.springframework.stereotype.Repository
@@ -48,6 +49,7 @@ class ActiveNotificationPackRepositoryAdapter(
                 personalizationId = pack.personalizationId,
                 mixedAggregateTitle = pack.mixedAggregateTitle,
                 templates = pack.toTemplateDocuments(),
+                valueMappings = pack.toValueMappingDocuments(),
                 selectionRevision = selectionRevision,
                 eventId = eventId,
                 occurredAt = occurredAt,
