@@ -34,9 +34,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
+  display: grid;
+  place-items: center;
   width: 470px;
-  transform: translate(-50%, -50%) scale(var(--spotlight-preview-scale));
-  transform-origin: center;
+  height: 122px;
+  transform: translate(-50%, -50%);
 }
 
 .realtime-spotlight.is-embedded {
@@ -53,6 +55,11 @@
   pointer-events: none;
   transform: none;
   animation: none;
+}
+
+.drop-spotlight-preview__stage > .realtime-spotlight.is-embedded {
+  transform: scale(var(--spotlight-preview-scale));
+  transform-origin: center;
 }
 
 .realtime-spotlight.is-embedded .realtime-spotlight__visual {
