@@ -10,6 +10,7 @@ import { realtimeBroadcasts, realtimeConnectionEvents } from "@/shared/realtime/
 import { GlobalEventArt } from "@/ui/components/events/EventArt"
 import type { Route } from "@/ui/model"
 import "./current-global-events-state.css"
+import { formatGlobalEventRemainingTime } from "./globalEventCountdown"
 
 type CurrentGlobalEventsPanelProps = {
   navigate: (route: Route) => void
@@ -93,7 +94,6 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
       return
     }
 
-    setNow(Date.now())
     const timer = window.setInterval(() => setNow(Date.now()), 1_000)
 
     return () => window.clearInterval(timer)
@@ -166,7 +166,7 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
         className={`account-home-global-events__grid account-home-global-events__grid--${events.length}`}
       >
         {events.map((event) => {
-          const remaining = formatRemainingTime(event.endsAt, now)
+          const remaining = formatGlobalEventRemainingTime(event.endsAt, now)
 
           return (
             <motion.button
@@ -201,17 +201,4 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
       </div>
     </section>
   )
-}
-
-export function formatRemainingTime(endsAt: string, now: number): string {
-  const remainingSeconds = Math.max(0, Math.ceil((Date.parse(endsAt) - now) / 1_000))
-  const hours = Math.floor(remainingSeconds / 3_600)
-  const minutes = Math.floor((remainingSeconds % 3_600) / 60)
-  const seconds = remainingSeconds % 60
-
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-  }
-
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 }
