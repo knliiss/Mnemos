@@ -3,9 +3,11 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { CURRENCIES } from "../../contracts"
-import type { Currency, Personalization, Route } from "../../model"
+import type { Account, Currency, Personalization, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented } from "../../shared/Primitives"
+import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
+import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { PersonalizationPager } from "../components/PersonalizationPager"
 import {
@@ -21,6 +23,8 @@ type PersonalizationStoreCategoryProps = {
   params?: Record<string, string>
   items: Personalization[]
   loading: boolean
+  activeAccount: Account | null
+  prime: number
   navigate: (route: Route) => void
   back: () => void
 }
@@ -31,6 +35,8 @@ export function PersonalizationStoreCategory({
   params,
   items,
   loading,
+  activeAccount,
+  prime,
   navigate,
   back,
 }: PersonalizationStoreCategoryProps) {
@@ -57,6 +63,12 @@ export function PersonalizationStoreCategory({
   return (
     <div className="screen personalization-store-category">
       <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
+
+      <PersonalizationBalanceBar
+        activeAccount={activeAccount}
+        prime={prime}
+        navigate={navigate}
+      />
 
       <section className="personalization-category-intro">
         <span className="personalization-category-icon personalization-category-icon--illustrated">
@@ -104,7 +116,11 @@ export function PersonalizationStoreCategory({
               }
             >
               <span className="personalization-category-visual">
-                <PersonalizationVisual item={item} />
+                {item.type === "NOTIFICATION_PACK" ? (
+                  <NotificationPackSpotlightPreview item={item} size="CARD" />
+                ) : (
+                  <PersonalizationVisual item={item} />
+                )}
               </span>
 
               <span className="personalization-category-copy">
