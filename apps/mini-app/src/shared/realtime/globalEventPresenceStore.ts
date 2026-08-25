@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react"
 import type { GlobalEventType } from "@/ui/model"
 import type { GameEventBroadcast } from "./realtime.types"
 
-const GLOBAL_EVENT_LIFETIME_MS = 5 * 60 * 1_000
+export const GLOBAL_EVENT_LIFETIME_MS = 5 * 60 * 1_000
 const MAX_SIMULTANEOUS_GLOBAL_EVENTS = 3
 const supportedGlobalEventTypes: GlobalEventType[] = ["DARKNESS", "MOON", "ECLIPSE", "EXPLOSION"]
 
@@ -30,20 +30,40 @@ export function ingestGlobalEventBroadcast(broadcast: GameEventBroadcast) {
     return
   }
 
-  const startedAtMs = Date.parse(broadcast.payload.occurredAt)
+  const nextEvent = createActiveGlobalEvent(
+    broadcast.payload.eventId,
+    global.type,
+    broadcast.payload.occurredAt,
+  )
 
-  if (!Number.isFinite(startedAtMs)) {
+  if (!nextEvent) {
     return
   }
 
-  const nextEvent: ActiveGlobalEvent = {
-    eventId: broadcast.payload.eventId,
-    type: global.type,
-    startedAt: broadcast.payload.occurredAt,
-    expiresAt: new Date(startedAtMs + GLOBAL_EVENT_LIFETIME_MS).toISOString(),
+  setActiveEvents(mergeActiveGlobalEvents(activeEvents, [nextEvent], Date.now()))
+}
+
+export function hydrateGlobalEventPresence(events: ActiveGlobalEvent[]) {
+  setActiveEvents(mergeActiveGlobalEvents(activeEvents, events, Date.now()))
+}
+
+export function createActiveGlobalEvent(
+  eventId: string,
+  type: GlobalEventType,
+  startedAt: string,
+): ActiveGlobalEvent | null {
+  const startedAtMs = Date.parse(startedAt)
+
+  if (!Number.isFinite(startedAtMs)) {
+    return null
   }
 
-  setActiveEvents(reduceActiveGlobalEvents(activeEvents, nextEvent, Date.now()))
+  return {
+    eventId,
+    type,
+    startedAt,
+    expiresAt: new Date(startedAtMs + GLOBAL_EVENT_LIFETIME_MS).toISOString(),
+  }
 }
 
 export function useActiveGlobalEvents(): ActiveGlobalEvent[] {
@@ -55,15 +75,29 @@ export function reduceActiveGlobalEvents(
   nextEvent: ActiveGlobalEvent,
   now: number,
 ): ActiveGlobalEvent[] {
-  const stillActive = current.filter(
-    (event) => Date.parse(event.expiresAt) > now && event.type !== nextEvent.type,
-  )
+  return mergeActiveGlobalEvents(current, [nextEvent], now)
+}
 
-  if (Date.parse(nextEvent.expiresAt) <= now) {
-    return stillActive
+export function mergeActiveGlobalEvents(
+  current: ActiveGlobalEvent[],
+  incoming: ActiveGlobalEvent[],
+  now: number,
+): ActiveGlobalEvent[] {
+  const newestByType = new Map<GlobalEventType, ActiveGlobalEvent>()
+
+  for (const event of [...current, ...incoming]) {
+    if (Date.parse(event.expiresAt) <= now) {
+      continue
+    }
+
+    const existing = newestByType.get(event.type)
+
+    if (!existing || Date.parse(event.startedAt) > Date.parse(existing.startedAt)) {
+      newestByType.set(event.type, event)
+    }
   }
 
-  return [...stillActive, nextEvent]
+  return [...newestByType.values()]
     .sort((left, right) => Date.parse(right.startedAt) - Date.parse(left.startedAt))
     .slice(0, MAX_SIMULTANEOUS_GLOBAL_EVENTS)
 }
@@ -108,6 +142,7 @@ function scheduleExpiry() {
   expiryTimer = window.setTimeout(() => {
     expiryTimer = null
     const currentTime = Date.now()
+
     setActiveEvents(activeEvents.filter((event) => Date.parse(event.expiresAt) > currentTime))
   }, delay)
 }
