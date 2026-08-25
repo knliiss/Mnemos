@@ -212,7 +212,8 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
             <small>{t("personalization.review.detailEyebrow")}</small>
             <strong>{item.name}</strong>
             <em>
-              {t(`personalization.types.${item.type}.title`)} · {t(`personalization.target.${item.target}`)}
+              {t(`personalization.types.${item.type}.title`)} ·{" "}
+              {t(`personalization.target.${item.target}`)}
             </em>
           </span>
         </header>
