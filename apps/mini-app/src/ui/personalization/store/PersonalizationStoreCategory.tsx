@@ -89,12 +89,22 @@ export function PersonalizationStoreCategory({
         const leftRank = left.active ? 2 : left.owned ? 1 : 0
         const rightRank = right.active ? 2 : right.owned ? 1 : 0
 
-        return rightRank - leftRank || left.price - right.price || left.name.localeCompare(right.name)
+        return (
+          rightRank - leftRank || left.price - right.price || left.name.localeCompare(right.name)
+        )
       }
 
       return 0
     })
-  }, [currency, i18n.resolvedLanguage, items, notificationPackCategory, notificationSort, query, type])
+  }, [
+    currency,
+    i18n.resolvedLanguage,
+    items,
+    notificationPackCategory,
+    notificationSort,
+    query,
+    type,
+  ])
 
   const pageCount = notificationPackCategory
     ? 1
@@ -135,17 +145,16 @@ export function PersonalizationStoreCategory({
               placeholder={t("personalization.category.searchPlaceholder")}
             />
             {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                aria-label={t("common.clear")}
-              >
+              <button type="button" onClick={() => setQuery("")} aria-label={t("common.clear")}>
                 <Glyph name="close" size={13} />
               </button>
             ) : null}
           </label>
 
-          <div className="notification-pack-catalog-sort" aria-label={t("personalization.category.sortTitle")}>
+          <div
+            className="notification-pack-catalog-sort"
+            aria-label={t("personalization.category.sortTitle")}
+          >
             {notificationPackSorts.map((sort) => (
               <button
                 type="button"
@@ -200,7 +209,9 @@ export function PersonalizationStoreCategory({
               <span className="notification-pack-catalog-tile__footer">
                 <strong>{item.name}</strong>
                 {item.owned ? (
-                  <span className={`notification-pack-catalog-state${item.active ? " is-active" : ""}`}>
+                  <span
+                    className={`notification-pack-catalog-state${item.active ? " is-active" : ""}`}
+                  >
                     <Glyph name="check" size={11} />
                     {item.active
                       ? t("personalization.category.active")
