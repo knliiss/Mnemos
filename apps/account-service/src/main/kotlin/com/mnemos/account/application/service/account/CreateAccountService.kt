@@ -9,10 +9,12 @@ import com.mnemos.account.domain.exception.account.cristalix.CristalixPlayerNotF
 import com.mnemos.account.domain.model.account.Account
 import com.mnemos.account.domain.model.account.AccountMember
 import com.mnemos.account.domain.model.account.AccountMemberId
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.domain.model.account.CristalixNickname
 import com.mnemos.account.domain.model.account.role.AccountRoleName
 import com.mnemos.account.domain.model.account.role.HexColor
 import com.mnemos.account.domain.model.account.role.Role
+import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.role.RoleRepository
@@ -54,11 +56,59 @@ class CreateAccountService(
 
     private fun createFromPlayer(player: CristalixPlayer): CreateAccountResult {
         val owner = currentUserProvider.get()
+        val existingAccount = accountRepository.findByCristalixUuidForUpdate(player.uuid)
 
-        if (accountRepository.existsByCristalixUuid(player.uuid)) {
+        if (existingAccount != null) {
+            return reactivateOwnedAccount(
+                account = existingAccount,
+                owner = owner,
+                player = player,
+            )
+        }
+
+        return createNewAccount(
+            owner = owner,
+            player = player,
+        )
+    }
+
+    private fun reactivateOwnedAccount(
+        account: Account,
+        owner: User,
+        player: CristalixPlayer,
+    ): CreateAccountResult {
+        if (account.status != AccountStatus.DEACTIVATED) {
             throw AccountIdentityConflictException(player.uuid)
         }
 
+        val ownerMember =
+            accountMemberRepository.findByIdAndAccountId(
+                memberId = account.ownerMemberId,
+                accountId = account.id,
+            )
+
+        if (ownerMember == null || ownerMember.userId != owner.id) {
+            throw AccountIdentityConflictException(player.uuid)
+        }
+
+        account.updateCristalixNickname(player.nickname)
+        account.reactivate()
+
+        val reactivatedAccount = accountRepository.update(account)
+
+        owner.changeActiveAccount(reactivatedAccount.id)
+        userRepository.update(owner)
+
+        return CreateAccountResult(
+            accountId = reactivatedAccount.id,
+            memberId = ownerMember.id,
+        )
+    }
+
+    private fun createNewAccount(
+        owner: User,
+        player: CristalixPlayer,
+    ): CreateAccountResult {
         val accountId = AccountId.generate()
         val ownerMemberId = AccountMemberId.generate()
 
