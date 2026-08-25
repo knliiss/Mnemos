@@ -23,12 +23,34 @@ object NotificationPackEditorDescriptorApiMapper {
             type = type,
             variables = variables.map { variable -> variable.toResponse() },
             sampleValues = sampleValues,
+            conditionFields = conditionFields.map { field -> field.toResponse() },
             defaults = defaults.toResponse(),
         )
 
     private fun NotificationPackEditorDescriptor.Variable.toResponse(): NotificationPackEditorDescriptorResponse.Variable =
         NotificationPackEditorDescriptorResponse.Variable(
             key = key,
+            sampleValue = sampleValue,
+            forms = forms.map { form -> form.toResponse() },
+        )
+
+    private fun NotificationPackEditorDescriptor.VariableForm.toResponse(): NotificationPackEditorDescriptorResponse.VariableForm =
+        NotificationPackEditorDescriptorResponse.VariableForm(
+            key = key,
+            placeholder = placeholder,
+            sampleValue = sampleValue,
+        )
+
+    private fun NotificationPackEditorDescriptor.ConditionField.toResponse(): NotificationPackEditorDescriptorResponse.ConditionField =
+        NotificationPackEditorDescriptorResponse.ConditionField(
+            field = field,
+            placeholder = placeholder,
+            values = values.map { value -> value.toResponse() },
+        )
+
+    private fun NotificationPackEditorDescriptor.ConditionValue.toResponse(): NotificationPackEditorDescriptorResponse.ConditionValue =
+        NotificationPackEditorDescriptorResponse.ConditionValue(
+            value = value,
             sampleValue = sampleValue,
         )
 

@@ -1,6 +1,10 @@
 package com.mnemos.personalization.application.personalization.usecase.getnotificationpackdescriptor
 
+import com.mnemos.personalization.application.personalization.builtin.RussianNotificationValues
 import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 import org.springframework.stereotype.Service
 
 @Service
@@ -41,15 +45,80 @@ class GetNotificationPackEditorDescriptorUseCase {
             type = type,
             variables =
                 type.allowedPlaceholders.map { key ->
-                    NotificationPackEditorDescriptor.Variable(
+                    variable(
                         key = key,
                         sampleValue = sampleValues.getValue(key),
                     )
                 },
             sampleValues = sampleValues,
+            conditionFields = conditionFields(type),
             defaults = defaults(type),
         )
     }
+
+    private fun variable(
+        key: String,
+        sampleValue: String,
+    ): NotificationPackEditorDescriptor.Variable {
+        val valueKey = NotificationPackValueKey.forPlaceholder(key)
+        val sampleForms = valueKey?.let(::sampleForms)
+        val forms =
+            buildList {
+                add(
+                    NotificationPackEditorDescriptor.VariableForm(
+                        key = DEFAULT_FORM,
+                        placeholder = "{$key}",
+                        sampleValue = sampleForms?.default ?: sampleValue,
+                    ),
+                )
+
+                sampleForms?.forms?.forEach { (form, value) ->
+                    add(
+                        NotificationPackEditorDescriptor.VariableForm(
+                            key = form,
+                            placeholder = "{$key.$form}",
+                            sampleValue = value,
+                        ),
+                    )
+                }
+            }
+
+        return NotificationPackEditorDescriptor.Variable(
+            key = key,
+            sampleValue = sampleValue,
+            forms = forms,
+        )
+    }
+
+    private fun conditionFields(type: NotificationPackTemplateType): List<NotificationPackEditorDescriptor.ConditionField> =
+        NotificationPackVariantField.entries
+            .filter { field -> field.templateType == type }
+            .map { field ->
+                NotificationPackEditorDescriptor.ConditionField(
+                    field = field,
+                    placeholder = field.valueKey.placeholder,
+                    values =
+                        field.allowedValues
+                            .sorted()
+                            .map { rawValue ->
+                                NotificationPackEditorDescriptor.ConditionValue(
+                                    value = rawValue,
+                                    sampleValue = displayValue(field.valueKey, rawValue),
+                                )
+                            },
+                )
+            }
+
+    private fun sampleForms(valueKey: NotificationPackValueKey): NotificationValueForms? {
+        val rawValue = sampleRawValues[valueKey] ?: return null
+
+        return RussianNotificationValues.all[valueKey]?.get(rawValue)
+    }
+
+    private fun displayValue(
+        valueKey: NotificationPackValueKey,
+        rawValue: String,
+    ): String = RussianNotificationValues.all[valueKey]?.get(rawValue)?.default ?: rawValue
 
     private fun sampleValues(type: NotificationPackTemplateType): Map<String, String> =
         when (type) {
@@ -57,19 +126,19 @@ class GetNotificationPackEditorDescriptorUseCase {
                 linkedMapOf(
                     "player" to "north",
                     "item" to "Вечный клинок",
-                    "rarity" to "mythical",
-                    "itemType" to "sword",
+                    "rarity" to displayValue(NotificationPackValueKey.ITEM_RARITY, "MYTHICAL"),
+                    "itemType" to displayValue(NotificationPackValueKey.ITEM_TYPE, "SWORD"),
                 )
 
             NotificationPackTemplateType.BOOSTER ->
                 linkedMapOf(
                     "player" to "vex",
-                    "booster" to "luck",
+                    "booster" to displayValue(NotificationPackValueKey.BOOSTER, "LUCK"),
                 )
 
             NotificationPackTemplateType.DUNGEON ->
                 linkedMapOf(
-                    "dungeon" to "expert",
+                    "dungeon" to displayValue(NotificationPackValueKey.DUNGEON, "EXPERT"),
                 )
 
             NotificationPackTemplateType.RAID ->
@@ -79,7 +148,7 @@ class GetNotificationPackEditorDescriptorUseCase {
 
             NotificationPackTemplateType.GLOBAL ->
                 linkedMapOf(
-                    "event" to "eclipse",
+                    "event" to displayValue(NotificationPackValueKey.GLOBAL_EVENT, "ECLIPSE"),
                 )
         }
 
@@ -98,7 +167,7 @@ class GetNotificationPackEditorDescriptorUseCase {
                 NotificationPackEditorDescriptor.Defaults(
                     emoji = "⚡",
                     soloTitle = "Бустер активирован",
-                    soloBody = "{player} активировал {booster}.",
+                    soloBody = "{player} активировал {booster.accusative}.",
                     compact = "{booster} — {player}",
                     aggregateTitle = "Активированы бустеры",
                 )
@@ -134,5 +203,15 @@ class GetNotificationPackEditorDescriptorUseCase {
     private companion object {
         const val MAX_TEXT_LENGTH = 512
         const val MAX_EMOJI_LENGTH = 16
+        const val DEFAULT_FORM = "default"
+
+        val sampleRawValues =
+            mapOf(
+                NotificationPackValueKey.ITEM_RARITY to "MYTHICAL",
+                NotificationPackValueKey.ITEM_TYPE to "SWORD",
+                NotificationPackValueKey.BOOSTER to "LUCK",
+                NotificationPackValueKey.DUNGEON to "EXPERT",
+                NotificationPackValueKey.GLOBAL_EVENT to "ECLIPSE",
+            )
     }
 }
