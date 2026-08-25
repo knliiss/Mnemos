@@ -32,7 +32,7 @@ object IdentityDirectoryPersistenceMapper {
             createdAt = getCreatedAt(),
         )
 
-    fun <T, R> Page<T>.toDirectoryPage(mapper: (T) -> R): IdentityDirectoryPage<R> =
+    fun <T : Any, R> Page<T>.toDirectoryPage(mapper: (T) -> R): IdentityDirectoryPage<R> =
         IdentityDirectoryPage(
             content = content.map(mapper),
             page = number,
