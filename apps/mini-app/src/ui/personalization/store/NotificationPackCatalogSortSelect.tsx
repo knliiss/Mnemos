@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect } from "react"
+import { CurrencyMark } from "../../shared/MnemosIcon"
 
 type SortOption<TValue extends string> = {
   value: TValue
@@ -15,92 +16,47 @@ type NotificationPackCatalogSortSelectProps<TValue extends string> = {
 export function NotificationPackCatalogSortSelect<TValue extends string>({
   value,
   options,
-  label,
   onChange,
 }: NotificationPackCatalogSortSelectProps<TValue>) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const menuId = useId()
-  const selected = options.find((option) => option.value === value) ?? options[0]
+  const ascending = options.find((option) => option.value === "PRICE_ASC")
+  const descending = options.find((option) => option.value === "PRICE_DESC")
+  const priceAscending = value !== descending?.value
 
   useEffect(() => {
-    if (!open) {
+    if (value === ascending?.value || value === descending?.value || !ascending) {
       return
     }
 
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target
+    onChange(ascending.value)
+  }, [ascending, descending, onChange, value])
 
-      if (!(target instanceof Node) || rootRef.current?.contains(target)) {
-        return
-      }
-
-      setOpen(false)
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false)
-      }
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown)
-    document.addEventListener("keydown", handleKeyDown)
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown)
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [open])
-
-  const select = (nextValue: TValue) => {
-    onChange(nextValue)
-    setOpen(false)
-  }
+  const next = priceAscending ? descending : ascending
 
   return (
-    <div ref={rootRef} className={`notification-pack-catalog-sort-select${open ? " is-open" : ""}`}>
-      <button
-        type="button"
-        className="notification-pack-catalog-sort-select__trigger"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((current) => !current)}
+    <button
+      type="button"
+      className="notification-pack-catalog-price-sort"
+      aria-label={next?.label}
+      title={next?.label}
+      disabled={!next}
+      onClick={() => {
+        if (next) {
+          onChange(next.value)
+        }
+      }}
+    >
+      <CurrencyMark currency="PRIME" size={15} />
+      <svg
+        className="notification-pack-catalog-price-sort__direction"
+        viewBox="0 0 16 16"
+        aria-hidden="true"
       >
-        <span>
-          <small>{label}</small>
-          <strong>{selected?.label ?? "—"}</strong>
-        </span>
-        <i aria-hidden="true" />
-      </button>
-
-      {open ? (
-        <div
-          id={menuId}
-          className="notification-pack-catalog-sort-select__menu"
-          role="menu"
-          aria-label={label}
-        >
-          {options.map((option) => {
-            const active = option.value === value
-
-            return (
-              <button
-                type="button"
-                key={option.value}
-                role="menuitemradio"
-                aria-checked={active}
-                className={active ? "is-active" : undefined}
-                onClick={() => select(option.value)}
-              >
-                <span>{option.label}</span>
-                {active ? <i aria-hidden="true">✓</i> : null}
-              </button>
-            )
-          })}
-        </div>
-      ) : null}
-    </div>
+        {priceAscending ? (
+          <path d="M8 13V3m-3 3 3-3 3 3" />
+        ) : (
+          <path d="M8 3v10m-3-3 3 3 3-3" />
+        )}
+      </svg>
+    </button>
   )
 }
