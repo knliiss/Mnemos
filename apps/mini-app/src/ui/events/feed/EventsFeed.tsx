@@ -74,18 +74,18 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   const [sort, setSort] = useState<FeedSort>("NEWEST")
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [wipeId, setWipeId] = useState<string | null>(null)
+  const [referenceNow, setReferenceNow] = useState(() => Date.now())
 
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const selectableWipes = useMemo(() => {
-    const now = Date.now()
     const current = wipes.find((wipe) => wipe.active) ?? null
     const previous =
       wipes
-        .filter((wipe) => !wipe.active && wipeStartedAt(wipe) <= now)
+        .filter((wipe) => !wipe.active && wipeStartedAt(wipe) <= referenceNow)
         .sort((left, right) => wipeStartedAt(right) - wipeStartedAt(left))[0] ?? null
 
     return [current, previous].filter((wipe): wipe is Wipe => wipe !== null)
-  }, [wipes])
+  }, [referenceNow, wipes])
 
   const feedQuery = useMemo<EventFeedQuery>(
     () => ({
@@ -102,6 +102,14 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
     }),
     [boosterType, filter, globalType, itemType, query, raidLocation, rarity, sort, wipeId],
   )
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setReferenceNow(Date.now())
+    }, 30_000)
+
+    return () => window.clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     let cancelled = false

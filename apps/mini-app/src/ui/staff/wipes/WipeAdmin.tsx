@@ -58,6 +58,7 @@ type StartValidation = "INVALID" | "BEFORE_CURRENT" | null
 export function WipeAdmin({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
   const [initialStart] = useState(() => new Date())
+  const [referenceNow, setReferenceNow] = useState(() => initialStart.getTime())
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [name, setName] = useState("")
   const [startDate, setStartDate] = useState(() => localDateValue(initialStart))
@@ -77,10 +78,9 @@ export function WipeAdmin({ back }: { back: () => void }) {
     [locale],
   )
   const current = wipes.find((wipe) => wipe.active) ?? null
-  const now = Date.now()
   const planned =
     wipes
-      .filter((wipe) => !wipe.active && new Date(wipe.startedAt).getTime() > now)
+      .filter((wipe) => !wipe.active && new Date(wipe.startedAt).getTime() > referenceNow)
       .sort(
         (left, right) =>
           new Date(left.startedAt).getTime() - new Date(right.startedAt).getTime(),
@@ -121,6 +121,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
   function useCurrentTime() {
     const currentTime = new Date()
 
+    setReferenceNow(currentTime.getTime())
     setStartDate(localDateValue(currentTime))
     setStartTime(localTimeValue(currentTime))
   }
@@ -129,13 +130,24 @@ export function WipeAdmin({ back }: { back: () => void }) {
     setLoading(true)
 
     try {
-      setWipes(await listWipes())
+      const result = await listWipes()
+
+      setReferenceNow(Date.now())
+      setWipes(result)
     } catch (error) {
       handleError(error)
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setReferenceNow(Date.now())
+    }, 30_000)
+
+    return () => window.clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -145,6 +157,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
       void listWipes()
         .then((result) => {
           if (!cancelled) {
+            setReferenceNow(Date.now())
             setWipes(result)
           }
         })
@@ -181,6 +194,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
 
       const currentTime = new Date()
 
+      setReferenceNow(currentTime.getTime())
       setName("")
       setStartDate(localDateValue(currentTime))
       setStartTime(localTimeValue(currentTime))
@@ -332,7 +346,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
         </div>
 
         {wipes.map((wipe) => {
-          const startsInFuture = new Date(wipe.startedAt).getTime() > Date.now()
+          const startsInFuture = new Date(wipe.startedAt).getTime() > referenceNow
 
           return (
             <article key={wipe.id} className={wipe.active ? "is-active" : startsInFuture ? "is-planned" : ""}>
