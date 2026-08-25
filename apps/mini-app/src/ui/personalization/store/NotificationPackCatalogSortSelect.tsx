@@ -59,10 +59,7 @@ export function NotificationPackCatalogSortSelect<TValue extends string>({
   }
 
   return (
-    <div
-      ref={rootRef}
-      className={`notification-pack-catalog-sort-select${open ? " is-open" : ""}`}
-    >
+    <div ref={rootRef} className={`notification-pack-catalog-sort-select${open ? " is-open" : ""}`}>
       <button
         type="button"
         className="notification-pack-catalog-sort-select__trigger"
