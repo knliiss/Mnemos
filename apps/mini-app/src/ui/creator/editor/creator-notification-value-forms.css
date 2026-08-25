@@ -156,7 +156,18 @@
   font-size: 8px;
 }
 
-.notification-word-form-card[open] .notification-word-form-card__count svg {
+.notification-word-form-card__chevron {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1;
+  transition: transform 0.14s ease;
+}
+
+.notification-word-form-card[open] .notification-word-form-card__chevron {
   transform: rotate(180deg);
 }
 
