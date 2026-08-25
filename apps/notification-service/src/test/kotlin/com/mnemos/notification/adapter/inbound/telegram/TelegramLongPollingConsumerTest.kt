@@ -1,15 +1,19 @@
 package com.mnemos.notification.adapter.inbound.telegram
 
 import com.mnemos.notification.application.notification.delivery.model.DeliveryResult
+import com.mnemos.notification.application.telegram.help.HandleTelegramHelpService
+import com.mnemos.notification.application.telegram.help.TelegramHelpSection
 import com.mnemos.notification.application.telegram.start.HandleTelegramStartService
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
 import com.pengrad.telegrambot.ExceptionHandler
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.UpdatesListener
+import com.pengrad.telegrambot.model.CallbackQuery
 import com.pengrad.telegrambot.model.Chat
 import com.pengrad.telegrambot.model.Message
 import com.pengrad.telegrambot.model.Update
 import com.pengrad.telegrambot.model.User
+import com.pengrad.telegrambot.request.AnswerCallbackQuery
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -23,7 +27,8 @@ import org.springframework.boot.ApplicationArguments
 class TelegramLongPollingConsumerTest {
     private val bot = mock<TelegramBot>()
     private val startService = mock<HandleTelegramStartService>()
-    private val consumer = TelegramLongPollingConsumer(bot, startService)
+    private val helpService = mock<HandleTelegramHelpService>()
+    private val consumer = TelegramLongPollingConsumer(bot, startService, helpService)
 
     @Test
     fun `run delegates long polling lifecycle to telegram library`() {
@@ -34,10 +39,11 @@ class TelegramLongPollingConsumerTest {
 
     @Test
     fun `non message update is confirmed and ignored`() {
-        val update = update(id = 10, message = null)
+        val update = update(id = 10)
 
         assertEquals(10, consumer.processUpdates(listOf(update)))
         verify(startService, never()).handle(any())
+        verify(helpService, never()).send(any(), any())
     }
 
     @Test
@@ -54,6 +60,7 @@ class TelegramLongPollingConsumerTest {
 
         assertEquals(12, consumer.processUpdates(listOf(update)))
         verify(startService, never()).handle(any())
+        verify(helpService, never()).send(any(), any())
     }
 
     @Test
@@ -85,17 +92,62 @@ class TelegramLongPollingConsumerTest {
     }
 
     @Test
-    fun `start command addressed to bot is accepted`() {
-        val update = update(id = 14, message = message(text = "/start@MnemosBot"))
-        whenever(startService.handle(any())).thenReturn(DeliveryResult.Delivered)
+    fun `help command opens overview section`() {
+        val update = update(id = 14, message = message(text = "/help", telegramId = 777L))
+        whenever(helpService.send(any(), any())).thenReturn(DeliveryResult.Delivered)
 
         assertEquals(14, consumer.processUpdates(listOf(update)))
+        verify(helpService).send(
+            telegramId = 777L,
+            section = TelegramHelpSection.OVERVIEW,
+        )
+    }
+
+    @Test
+    fun `help callback edits existing message and is acknowledged`() {
+        val callbackMessage =
+            message(
+                text = "help",
+                telegramId = 777L,
+                messageId = 321,
+            )
+        val callbackQuery =
+            mock<CallbackQuery> {
+                on { id() }.thenReturn("callback-1")
+                on { data() }.thenReturn(TelegramHelpSection.ACCOUNTS.callbackData)
+                on { message() }.thenReturn(callbackMessage)
+            }
+        val update = update(id = 15, callbackQuery = callbackQuery)
+
+        whenever(
+            helpService.switchSection(
+                telegramId = 777L,
+                messageId = 321,
+                section = TelegramHelpSection.ACCOUNTS,
+            ),
+        ).thenReturn(DeliveryResult.Delivered)
+
+        assertEquals(15, consumer.processUpdates(listOf(update)))
+        verify(helpService).switchSection(
+            telegramId = 777L,
+            messageId = 321,
+            section = TelegramHelpSection.ACCOUNTS,
+        )
+        verify(bot).execute(any<AnswerCallbackQuery>())
+    }
+
+    @Test
+    fun `start command addressed to bot is accepted`() {
+        val update = update(id = 16, message = message(text = "/start@MnemosBot"))
+        whenever(startService.handle(any())).thenReturn(DeliveryResult.Delivered)
+
+        assertEquals(16, consumer.processUpdates(listOf(update)))
         verify(startService).handle(any())
     }
 
     @Test
     fun `retryable result leaves current update unconfirmed`() {
-        val update = update(id = 15, message = message(text = "/start"))
+        val update = update(id = 17, message = message(text = "/start"))
         whenever(startService.handle(any())).thenReturn(DeliveryResult.Retryable())
 
         assertEquals(UpdatesListener.CONFIRMED_UPDATES_NONE, consumer.processUpdates(listOf(update)))
@@ -127,17 +179,20 @@ class TelegramLongPollingConsumerTest {
 
     private fun update(
         id: Int,
-        message: Message?,
+        message: Message? = null,
+        callbackQuery: CallbackQuery? = null,
     ): Update =
         mock<Update> {
             on { updateId() }.thenReturn(id)
-            on { message() }.thenReturn(message)
+            on { this.message() }.thenReturn(message)
+            on { this.callbackQuery() }.thenReturn(callbackQuery)
         }
 
     private fun message(
         text: String,
         chatType: Chat.Type = Chat.Type.Private,
         telegramId: Long = 100L,
+        messageId: Int = 1,
         firstName: String? = null,
         username: String? = null,
     ): Message {
@@ -155,6 +210,7 @@ class TelegramLongPollingConsumerTest {
         return mock {
             on { this.text() }.thenReturn(text)
             on { this.chat() }.thenReturn(chat)
+            on { this.messageId() }.thenReturn(messageId)
             on { from() }.thenReturn(user)
         }
     }

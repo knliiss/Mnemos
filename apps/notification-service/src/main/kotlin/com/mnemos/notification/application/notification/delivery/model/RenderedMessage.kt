@@ -25,4 +25,15 @@ sealed interface MessageAction {
             require(label.isNotBlank())
         }
     }
+
+    data class Callback(
+        val label: String,
+        val data: String,
+    ) : MessageAction {
+        init {
+            require(label.isNotBlank())
+            require(data.isNotBlank())
+            require(data.toByteArray().size <= 64)
+        }
+    }
 }

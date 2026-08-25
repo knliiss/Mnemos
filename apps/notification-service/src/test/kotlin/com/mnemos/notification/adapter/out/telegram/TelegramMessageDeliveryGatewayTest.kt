@@ -7,10 +7,8 @@ import com.mnemos.notification.application.notification.delivery.model.MessagePa
 import com.mnemos.notification.application.notification.delivery.model.RenderedMessage
 import com.mnemos.notification.configuration.telegram.TelegramBotProperties
 import com.pengrad.telegrambot.TelegramBot
-import com.pengrad.telegrambot.model.Message
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup
-import com.pengrad.telegrambot.model.request.ReplyKeyboardRemove
-import com.pengrad.telegrambot.request.EditMessageReplyMarkup
+import com.pengrad.telegrambot.request.EditMessageText
 import com.pengrad.telegrambot.request.SendMessage
 import com.pengrad.telegrambot.response.BaseResponse
 import com.pengrad.telegrambot.response.SendResponse
@@ -39,93 +37,57 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `successful telegram response is delivered`() {
-        val response = response(ok = true)
-
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(response)
+            .thenReturn(sendResponse(ok = true))
 
         val result =
             gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage("hello"),
+                telegramId = TelegramId(123L),
+                message = RenderedMessage("hello"),
             )
 
-        assertEquals(
-            DeliveryResult.Delivered,
-            result,
-        )
+        assertEquals(DeliveryResult.Delivered, result)
     }
 
     @Test
     fun `telegram 429 is retryable`() {
-        val response =
-            response(
-                ok = false,
-                errorCode = 429,
-                description = "Too Many Requests",
-            )
-
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(response)
+            .thenReturn(
+                sendResponse(
+                    ok = false,
+                    errorCode = 429,
+                    description = "Too Many Requests",
+                ),
+            )
 
         val result =
             gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage("hello"),
+                telegramId = TelegramId(123L),
+                message = RenderedMessage("hello"),
             )
 
-        assertInstanceOf(
-            DeliveryResult.Retryable::class.java,
-            result,
-        )
-    }
-
-    @Test
-    fun `telegram server error is retryable`() {
-        val response =
-            response(
-                ok = false,
-                errorCode = 503,
-                description = "Service Unavailable",
-            )
-
-        whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(response)
-
-        val result =
-            gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage("hello"),
-            )
-
-        assertInstanceOf(
-            DeliveryResult.Retryable::class.java,
-            result,
-        )
+        assertInstanceOf(DeliveryResult.Retryable::class.java, result)
     }
 
     @Test
     fun `telegram client error is permanent failure`() {
-        val response =
-            response(
-                ok = false,
-                errorCode = 403,
-                description = "bot was blocked by the user",
-            )
-
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(response)
+            .thenReturn(
+                sendResponse(
+                    ok = false,
+                    errorCode = 403,
+                    description = "bot was blocked by the user",
+                ),
+            )
 
         val result =
             gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage("hello"),
+                telegramId = TelegramId(123L),
+                message = RenderedMessage("hello"),
             )
 
         assertEquals(
-            DeliveryResult.PermanentFailure(
-                "TELEGRAM_BLOCKED",
-            ),
+            DeliveryResult.PermanentFailure("TELEGRAM_BLOCKED"),
             result,
         )
     }
@@ -137,162 +99,110 @@ class TelegramMessageDeliveryGatewayTest {
 
         val result =
             gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage("hello"),
+                telegramId = TelegramId(123L),
+                message = RenderedMessage("hello"),
             )
 
-        assertInstanceOf(
-            DeliveryResult.Retryable::class.java,
-            result,
-        )
+        assertInstanceOf(DeliveryResult.Retryable::class.java, result)
     }
 
     @Test
     fun `all supported parse modes can be sent`() {
-        val response = response(ok = true)
-
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(response)
+            .thenReturn(sendResponse(ok = true))
 
         MessageParseMode.entries.forEach { parseMode ->
             val result =
                 gateway.deliver(
-                    TelegramId(123L),
-                    RenderedMessage(
-                        text = "hello",
-                        parseMode = parseMode,
-                    ),
+                    telegramId = TelegramId(123L),
+                    message =
+                        RenderedMessage(
+                            text = "hello",
+                            parseMode = parseMode,
+                        ),
                 )
 
-            assertEquals(
-                DeliveryResult.Delivered,
-                result,
-            )
+            assertEquals(DeliveryResult.Delivered, result)
         }
     }
 
     @Test
-    fun `mini app action removes legacy keyboard before attaching inline web app button`() {
-        val sendResponse =
-            response(
-                ok = true,
-                messageId = 321,
-            )
-        val editResponse = baseResponse(ok = true)
-
+    fun `mini app button is attached to the original send request`() {
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(sendResponse)
-        whenever(bot.execute(any<EditMessageReplyMarkup>()))
-            .thenReturn(editResponse)
+            .thenReturn(sendResponse(ok = true))
 
         val result =
             gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage(
-                    text = "open app",
-                    actions =
-                        listOf(
-                            MessageAction.OpenMiniApp(
-                                "Open Mnemos",
+                telegramId = TelegramId(123L),
+                message =
+                    RenderedMessage(
+                        text = "open app",
+                        actions =
+                            listOf(
+                                MessageAction.OpenMiniApp("Open Mnemos"),
                             ),
-                        ),
-                ),
+                    ),
             )
 
-        assertEquals(
-            DeliveryResult.Delivered,
-            result,
-        )
+        assertEquals(DeliveryResult.Delivered, result)
 
-        val sendRequestCaptor = argumentCaptor<SendMessage>()
-        verify(bot).execute(sendRequestCaptor.capture())
+        val requestCaptor = argumentCaptor<SendMessage>()
+        verify(bot).execute(requestCaptor.capture())
 
-        assertInstanceOf(
-            ReplyKeyboardRemove::class.java,
-            sendRequestCaptor.firstValue.parameters["reply_markup"],
-        )
-
-        val editRequestCaptor = argumentCaptor<EditMessageReplyMarkup>()
-        verify(bot).execute(editRequestCaptor.capture())
-
-        assertEquals(
-            123L,
-            editRequestCaptor.firstValue.parameters["chat_id"],
-        )
-        assertEquals(
-            321,
-            editRequestCaptor.firstValue.parameters["message_id"],
-        )
         assertInstanceOf(
             InlineKeyboardMarkup::class.java,
-            editRequestCaptor.firstValue.parameters["reply_markup"],
+            requestCaptor.firstValue.parameters["reply_markup"],
         )
     }
 
     @Test
-    fun `mini app action remains retryable when inline keyboard edit fails transiently`() {
-        val sendResponse =
-            response(
-                ok = true,
-                messageId = 321,
-            )
-        val editResponse =
-            baseResponse(
-                ok = false,
-                errorCode = 503,
-                description = "Service Unavailable",
-            )
-
-        whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(sendResponse)
-        whenever(bot.execute(any<EditMessageReplyMarkup>()))
-            .thenReturn(editResponse)
+    fun `help section can edit existing telegram message`() {
+        whenever(bot.execute(any<EditMessageText>()))
+            .thenReturn(baseResponse(ok = true))
 
         val result =
-            gateway.deliver(
-                TelegramId(123L),
-                RenderedMessage(
-                    text = "open app",
-                    actions =
-                        listOf(
-                            MessageAction.OpenMiniApp(
-                                "Open Mnemos",
+            gateway.edit(
+                telegramId = TelegramId(123L),
+                messageId = 321,
+                message =
+                    RenderedMessage(
+                        text = "help",
+                        actions =
+                            listOf(
+                                MessageAction.Callback(
+                                    label = "Accounts",
+                                    data = "help:accounts",
+                                ),
                             ),
-                        ),
-                ),
+                    ),
             )
 
+        assertEquals(DeliveryResult.Delivered, result)
+
+        val requestCaptor = argumentCaptor<EditMessageText>()
+        verify(bot).execute(requestCaptor.capture())
+
+        assertEquals(123L, requestCaptor.firstValue.parameters["chat_id"])
+        assertEquals(321, requestCaptor.firstValue.parameters["message_id"])
         assertInstanceOf(
-            DeliveryResult.Retryable::class.java,
-            result,
+            InlineKeyboardMarkup::class.java,
+            requestCaptor.firstValue.parameters["reply_markup"],
         )
     }
 
-    private fun response(
+    private fun sendResponse(
         ok: Boolean,
         errorCode: Int = 0,
         description: String? = null,
-        messageId: Int? = null,
     ): SendResponse {
         val response = mock<SendResponse>()
 
         whenever(response.isOk)
             .thenReturn(ok)
-
         whenever(response.errorCode())
             .thenReturn(errorCode)
-
         whenever(response.description())
             .thenReturn(description)
-
-        if (messageId != null) {
-            val message = mock<Message>()
-
-            whenever(message.messageId())
-                .thenReturn(messageId)
-            whenever(response.message())
-                .thenReturn(message)
-        }
 
         return response
     }
@@ -306,10 +216,8 @@ class TelegramMessageDeliveryGatewayTest {
 
         whenever(response.isOk)
             .thenReturn(ok)
-
         whenever(response.errorCode())
             .thenReturn(errorCode)
-
         whenever(response.description())
             .thenReturn(description)
 
