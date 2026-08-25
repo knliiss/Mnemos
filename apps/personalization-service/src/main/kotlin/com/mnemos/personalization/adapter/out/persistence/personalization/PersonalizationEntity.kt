@@ -22,8 +22,10 @@ class PersonalizationEntity(
     @Id
     @Column(name = "id", nullable = false)
     var id: UUID,
-    @Column(name = "creator_user_id", nullable = false)
-    var creatorUserId: UUID,
+    @Column(name = "creator_user_id")
+    var creatorUserId: UUID?,
+    @Column(name = "catalog_key", length = 96)
+    var catalogKey: String?,
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 32)
     var type: PersonalizationType,

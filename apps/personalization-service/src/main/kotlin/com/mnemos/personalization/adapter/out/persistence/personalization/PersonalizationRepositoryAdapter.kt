@@ -5,6 +5,7 @@ import com.mnemos.personalization.adapter.out.persistence.personalization.Person
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationPersistenceMapper.toEntity
 import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.Personalization
+import com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
@@ -19,6 +20,9 @@ class PersonalizationRepositoryAdapter(
     override fun findById(id: PersonalizationId): Personalization? = repository.findById(id.id).orElse(null)?.toDomain()
 
     override fun findByIdForUpdate(id: PersonalizationId): Personalization? = repository.findByIdForUpdate(id.id)?.toDomain()
+
+    override fun findByCatalogKeyForUpdate(catalogKey: PersonalizationCatalogKey): Personalization? =
+        repository.findByCatalogKeyForUpdate(catalogKey.value)?.toDomain()
 
     override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
         repository.findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId.id).map { it.toDomain() }

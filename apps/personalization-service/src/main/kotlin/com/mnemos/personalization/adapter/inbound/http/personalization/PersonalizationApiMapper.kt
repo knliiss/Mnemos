@@ -39,7 +39,8 @@ object PersonalizationApiMapper {
     fun Personalization.toResponse(): PersonalizationResponse =
         PersonalizationResponse(
             id = id.id,
-            creatorUserId = creatorUserId.id,
+            creatorUserId = creatorUserId?.id,
+            catalogKey = catalogKey?.value,
             type = type,
             origin = origin,
             visibility = visibility,

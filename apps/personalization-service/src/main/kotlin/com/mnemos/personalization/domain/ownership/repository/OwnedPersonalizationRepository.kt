@@ -36,6 +36,8 @@ interface OwnedPersonalizationRepository {
 
     fun findAll(owner: PersonalizationOwner): List<OwnedPersonalization>
 
+    fun findActiveOwners(personalizationId: PersonalizationId): List<PersonalizationOwner>
+
     fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId>
 
     fun deactivateActive(

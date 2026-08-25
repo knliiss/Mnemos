@@ -30,7 +30,7 @@ class ProfileAppearanceEventPublisher(
 ) {
     fun publish(
         accountId: AccountId,
-        actorUserId: UserId,
+        actorUserId: UserId?,
     ) {
         val owner = PersonalizationOwner.Account(accountId)
         val occurredAt = clock.instant()
@@ -57,7 +57,7 @@ class ProfileAppearanceEventPublisher(
                             occurredAt = occurredAt,
                         ),
                 ),
-            metadata = EventMetadata(actorUserId = actorUserId.id),
+            metadata = EventMetadata(actorUserId = actorUserId?.id),
         )
     }
 

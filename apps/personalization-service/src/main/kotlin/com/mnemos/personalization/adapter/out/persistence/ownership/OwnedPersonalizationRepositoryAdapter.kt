@@ -97,6 +97,11 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerId = owner.id,
             ).map { it.toDomain() }
 
+    override fun findActiveOwners(personalizationId: PersonalizationId): List<PersonalizationOwner> =
+        repository
+            .findAllActiveByPersonalizationId(personalizationId.id)
+            .map { entity -> entity.toDomain().owner }
+
     override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> =
         repository
             .findActiveAccountIds(types)
