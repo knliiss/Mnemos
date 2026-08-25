@@ -15,7 +15,9 @@
   border-radius: 13px;
   color: #7f8679;
   background: rgba(11, 13, 9, 0.96);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .notification-pack-catalog-search:focus-within {
