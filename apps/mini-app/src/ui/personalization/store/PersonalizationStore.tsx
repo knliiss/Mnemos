@@ -7,7 +7,6 @@ import { NotificationPackSpotlightPreview } from "../components/NotificationPack
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import {
-  localeForLanguage,
   personalizationIllustrations,
   personalizationTargets,
   personalizationTypeNote,
@@ -29,9 +28,8 @@ export function PersonalizationStore({
   prime,
   navigate,
 }: PersonalizationStoreProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const published = items.filter((item) => item.status === "PUBLISHED")
-  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   return (
     <div className="screen personalization-store-screen root-screen">
@@ -115,8 +113,7 @@ export function PersonalizationStore({
                   )}
                 </span>
               </motion.button>
-            )
-          })}
+            )}
         </section>
       )}
     </div>
