@@ -21,5 +21,5 @@ class RaidSubscriptionEntity(
         joinColumns = [JoinColumn(name = "subscription_id")],
     )
     @Column(name = "location", nullable = false)
-    var locations: Set<Int>,
+    var locations: MutableSet<Int>,
 )

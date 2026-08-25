@@ -37,8 +37,10 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `successful telegram response is delivered`() {
+        val response = sendResponse(ok = true)
+
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(sendResponse(ok = true))
+            .thenReturn(response)
 
         val result =
             gateway.deliver(
@@ -51,14 +53,15 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `telegram 429 is retryable`() {
-        whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(
-                sendResponse(
-                    ok = false,
-                    errorCode = 429,
-                    description = "Too Many Requests",
-                ),
+        val response =
+            sendResponse(
+                ok = false,
+                errorCode = 429,
+                description = "Too Many Requests",
             )
+
+        whenever(bot.execute(any<SendMessage>()))
+            .thenReturn(response)
 
         val result =
             gateway.deliver(
@@ -71,14 +74,15 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `telegram client error is permanent failure`() {
-        whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(
-                sendResponse(
-                    ok = false,
-                    errorCode = 403,
-                    description = "bot was blocked by the user",
-                ),
+        val response =
+            sendResponse(
+                ok = false,
+                errorCode = 403,
+                description = "bot was blocked by the user",
             )
+
+        whenever(bot.execute(any<SendMessage>()))
+            .thenReturn(response)
 
         val result =
             gateway.deliver(
@@ -108,8 +112,10 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `all supported parse modes can be sent`() {
+        val response = sendResponse(ok = true)
+
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(sendResponse(ok = true))
+            .thenReturn(response)
 
         MessageParseMode.entries.forEach { parseMode ->
             val result =
@@ -128,8 +134,10 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `mini app button is attached to the original send request`() {
+        val response = sendResponse(ok = true)
+
         whenever(bot.execute(any<SendMessage>()))
-            .thenReturn(sendResponse(ok = true))
+            .thenReturn(response)
 
         val result =
             gateway.deliver(
@@ -157,8 +165,10 @@ class TelegramMessageDeliveryGatewayTest {
 
     @Test
     fun `help section can edit existing telegram message`() {
+        val response = baseResponse(ok = true)
+
         whenever(bot.execute(any<EditMessageText>()))
-            .thenReturn(baseResponse(ok = true))
+            .thenReturn(response)
 
         val result =
             gateway.edit(

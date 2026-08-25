@@ -19,7 +19,7 @@ class RaidSubscriptionRepositoryAdapter(
         val mergedLocations = mergeLocations(entity.locations, subscription.locations)
 
         if (entity.locations != mergedLocations) {
-            entity.locations = mergedLocations
+            entity.locations = mergedLocations.toMutableSet()
             jpaRepository.save(entity)
         }
 
@@ -29,7 +29,7 @@ class RaidSubscriptionRepositoryAdapter(
     override fun replaceLocations(subscription: RaidSubscription): SubscriptionId {
         val subscriptionId = createOrGetStableId(subscription)
         val entity = findForUpdate(subscriptionId)
-        val replacementLocations = subscription.locations.toSet()
+        val replacementLocations = subscription.locations.toMutableSet()
 
         if (entity.locations != replacementLocations) {
             entity.locations = replacementLocations
