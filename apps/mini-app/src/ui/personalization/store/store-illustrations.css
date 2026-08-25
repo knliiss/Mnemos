@@ -96,28 +96,34 @@
 }
 
 .personalization-store-category .personalization-category-list {
-  min-height: 258px;
+  min-height: 236px;
 }
 
 .personalization-store-category .personalization-category-card--featured {
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 172px auto;
+  grid-template-rows: 150px auto;
   gap: 12px 14px;
-  min-height: 246px;
+  min-height: 224px;
   padding: 12px;
 }
 
 .personalization-store-category .personalization-category-visual {
   grid-column: 1 / -1;
   width: 100%;
-  height: 172px;
+  height: 150px;
   border-radius: 16px;
 }
 
 .personalization-store-category .personalization-category-visual > .real-preview,
 .personalization-store-category .personalization-category-visual > .drop-spotlight-preview {
   width: 100% !important;
-  height: 172px !important;
+  height: 150px !important;
+}
+
+.personalization-store-category
+  .personalization-category-visual
+  > .drop-spotlight-preview--card {
+  --spotlight-preview-scale: 1;
 }
 
 .personalization-store-category .personalization-category-copy {
@@ -163,15 +169,21 @@
 
   .personalization-store-category .personalization-category-card--featured {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 146px auto;
+    grid-template-rows: 132px auto;
     gap: 10px 12px;
-    min-height: 222px;
+    min-height: 208px;
   }
 
   .personalization-store-category .personalization-category-visual,
   .personalization-store-category .personalization-category-visual > .real-preview,
   .personalization-store-category .personalization-category-visual > .drop-spotlight-preview {
     width: 100% !important;
-    height: 146px !important;
+    height: 132px !important;
+  }
+
+  .personalization-store-category
+    .personalization-category-visual
+    > .drop-spotlight-preview--card {
+    --spotlight-preview-scale: 0.66;
   }
 }
