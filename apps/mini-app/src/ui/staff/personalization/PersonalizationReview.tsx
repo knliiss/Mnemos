@@ -15,7 +15,7 @@ import {
 } from "../../components/personalization/PersonalizationPreview"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Personalization, PersonalizationTarget } from "../../model"
-import { NotificationPackSpotlightPreview } from "../../personalization/components/NotificationPackSpotlightPreview"
+import { NotificationPackContextPreview } from "../../personalization/components/NotificationPackContextPreview"
 import { NotificationPackTelegramPreview } from "../../personalization/components/NotificationPackTelegramPreview"
 import { toPersonalization } from "../../personalization/data/personalizationMappers"
 import { personalizationIllustrations } from "../../personalization/personalizationPresentation"
@@ -361,7 +361,7 @@ export function PersonalizationReview({ back }: { back: () => void }) {
           {selected.content?.kind === "NOTIFICATION_PACK" ? (
             <>
               <div className="review-workbench__spotlight">
-                <NotificationPackSpotlightPreview item={selected} size="DETAIL" />
+                <NotificationPackContextPreview item={selected} size="DETAIL" />
               </div>
               <NotificationPackTelegramPreview content={selected.content} />
             </>
