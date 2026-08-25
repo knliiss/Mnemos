@@ -82,6 +82,78 @@
   min-width: 0;
 }
 
+.notification-pack-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.notification-pack-catalog-grid > .inline-hint {
+  grid-column: 1 / -1;
+}
+
+.notification-pack-catalog-tile {
+  display: grid;
+  grid-template-rows: minmax(118px, 1fr) auto;
+  gap: 9px;
+  min-width: 0;
+  min-height: 164px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 205, 0.1);
+  border-radius: 18px;
+  color: inherit;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.035), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.notification-pack-catalog-tile:hover,
+.notification-pack-catalog-tile:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  outline: 0;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.06), transparent 42%),
+    rgba(15, 18, 12, 0.98);
+}
+
+.notification-pack-catalog-tile__art {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 118px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 205, 0.065);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(203, 255, 45, 0.045), transparent 56%),
+    rgba(4, 6, 4, 0.32);
+}
+
+.notification-pack-catalog-tile__art > img {
+  display: block;
+  width: min(74%, 104px);
+  height: min(74%, 104px);
+  object-fit: contain;
+  filter: saturate(0.92) brightness(0.96);
+}
+
+.notification-pack-catalog-tile > strong {
+  overflow: hidden;
+  padding: 0 2px 2px;
+  color: #eef0e9;
+  font-size: 13px;
+  font-weight: 670;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .personalization-category-list,
 .account-personalization-category-list {
   display: flex;
@@ -182,7 +254,33 @@
   margin-top: 2px;
 }
 
+@media (min-width: 720px) {
+  .notification-pack-catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 380px) {
+  .notification-pack-catalog-grid {
+    gap: 7px;
+  }
+
+  .notification-pack-catalog-tile {
+    grid-template-rows: minmax(100px, 1fr) auto;
+    min-height: 146px;
+    padding: 8px;
+    border-radius: 15px;
+  }
+
+  .notification-pack-catalog-tile__art {
+    min-height: 100px;
+    border-radius: 12px;
+  }
+
+  .notification-pack-catalog-tile > strong {
+    font-size: 11.5px;
+  }
+
   .personalization-category-card,
   .account-personalization-category-list > button {
     grid-template-columns: 80px minmax(0, 1fr);

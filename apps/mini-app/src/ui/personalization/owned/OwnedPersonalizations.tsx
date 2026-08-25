@@ -8,6 +8,7 @@ import { PersonalizationLoadingState } from "../components/PersonalizationLoadin
 import { PersonalizationTypeGlyph } from "../components/PersonalizationTypeGlyph"
 import {
   accountPersonalizationTypes,
+  personalizationIllustrations,
   personalizationTargets,
   personalizationTypeImpact,
   personalizationTypeNote,
@@ -179,6 +180,8 @@ export function OwnedPersonalizations({
   }
 
   const visibleItems = items.filter((item) => item.owned && (!target || item.target === target))
+  const notificationPacksOnly =
+    visibleItems.length > 0 && visibleItems.every((item) => item.type === "NOTIFICATION_PACK")
 
   return (
     <div className="screen personalization-owned-screen">
@@ -193,6 +196,28 @@ export function OwnedPersonalizations({
 
       {loading ? (
         <PersonalizationLoadingState />
+      ) : notificationPacksOnly ? (
+        <section className="notification-pack-catalog-grid notification-pack-owned-grid">
+          {visibleItems.map((item) => (
+            <motion.button
+              type="button"
+              key={item.id}
+              className={`notification-pack-catalog-tile${item.active ? " is-active" : ""}`}
+              whileTap={{ scale: 0.985 }}
+              onClick={() =>
+                navigate({
+                  id: "personalization-detail",
+                  params: { personalizationId: item.id },
+                })
+              }
+            >
+              <span className="notification-pack-catalog-tile__art" aria-hidden="true">
+                <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
+              </span>
+              <strong>{item.name}</strong>
+            </motion.button>
+          ))}
+        </section>
       ) : (
         <section className="personalization-owned-list">
           {visibleItems.map((item) => (

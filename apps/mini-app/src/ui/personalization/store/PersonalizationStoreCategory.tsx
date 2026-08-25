@@ -6,7 +6,6 @@ import { CURRENCIES } from "../../contracts"
 import type { Account, Currency, Personalization, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented } from "../../shared/Primitives"
-import { NotificationPackContextPreview } from "../components/NotificationPackContextPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { PersonalizationPager } from "../components/PersonalizationPager"
@@ -42,6 +41,7 @@ export function PersonalizationStoreCategory({
 }: PersonalizationStoreCategoryProps) {
   const { t } = useTranslation()
   const type = readPersonalizationType(params?.type) ?? "PROFILE_THEME"
+  const notificationPackCategory = type === "NOTIFICATION_PACK"
   const [currency, setCurrency] = useState<"ALL" | Currency>("ALL")
   const [page, setPage] = useState(0)
 
@@ -51,14 +51,18 @@ export function PersonalizationStoreCategory({
         (item) =>
           item.status === "PUBLISHED" &&
           item.type === type &&
-          (currency === "ALL" || item.currency === currency),
+          (notificationPackCategory || currency === "ALL" || item.currency === currency),
       ),
-    [currency, items, type],
+    [currency, items, notificationPackCategory, type],
   )
 
-  const pageCount = Math.max(1, Math.ceil(visibleItems.length / pageSize))
+  const pageCount = notificationPackCategory
+    ? 1
+    : Math.max(1, Math.ceil(visibleItems.length / pageSize))
   const safePage = Math.min(page, pageCount - 1)
-  const pageItems = visibleItems.slice(safePage * pageSize, safePage * pageSize + pageSize)
+  const pageItems = notificationPackCategory
+    ? visibleItems
+    : visibleItems.slice(safePage * pageSize, safePage * pageSize + pageSize)
 
   return (
     <div className="screen personalization-store-category">
@@ -83,19 +87,48 @@ export function PersonalizationStoreCategory({
 
       <div className="personalization-category-toolbar">
         <span>{t("personalization.category.positions", { count: visibleItems.length })}</span>
-        <Segmented
-          value={currency}
-          options={["ALL", ...CURRENCIES] as const}
-          onChange={(value) => {
-            setCurrency(value)
-            setPage(0)
-          }}
-          label={(value) => (value === "ALL" ? t("personalization.category.all") : value)}
-        />
+
+        {!notificationPackCategory ? (
+          <Segmented
+            value={currency}
+            options={["ALL", ...CURRENCIES] as const}
+            onChange={(value) => {
+              setCurrency(value)
+              setPage(0)
+            }}
+            label={(value) => (value === "ALL" ? t("personalization.category.all") : value)}
+          />
+        ) : null}
       </div>
 
       {loading ? (
         <PersonalizationLoadingState />
+      ) : notificationPackCategory ? (
+        <div className="notification-pack-catalog-grid">
+          {pageItems.map((item) => (
+            <motion.button
+              type="button"
+              key={item.id}
+              className="notification-pack-catalog-tile"
+              whileTap={{ scale: 0.985 }}
+              onClick={() =>
+                navigate({
+                  id: "personalization-detail",
+                  params: { personalizationId: item.id },
+                })
+              }
+            >
+              <span className="notification-pack-catalog-tile__art" aria-hidden="true">
+                <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
+              </span>
+              <strong>{item.name}</strong>
+            </motion.button>
+          ))}
+
+          {!pageItems.length ? (
+            <p className="inline-hint">{t("personalization.category.empty")}</p>
+          ) : null}
+        </div>
       ) : (
         <div className="personalization-category-list">
           {pageItems.map((item) => (
@@ -121,16 +154,8 @@ export function PersonalizationStoreCategory({
                 }
               }}
             >
-              <span
-                className="personalization-category-visual"
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
-              >
-                {item.type === "NOTIFICATION_PACK" ? (
-                  <NotificationPackContextPreview item={item} size="CARD" />
-                ) : (
-                  <PersonalizationVisual item={item} />
-                )}
+              <span className="personalization-category-visual">
+                <PersonalizationVisual item={item} />
               </span>
 
               <span className="personalization-category-copy">
@@ -160,7 +185,7 @@ export function PersonalizationStoreCategory({
         </div>
       )}
 
-      {pageCount > 1 ? (
+      {!notificationPackCategory && pageCount > 1 ? (
         <PersonalizationPager page={safePage} pageCount={pageCount} onChange={setPage} />
       ) : null}
     </div>

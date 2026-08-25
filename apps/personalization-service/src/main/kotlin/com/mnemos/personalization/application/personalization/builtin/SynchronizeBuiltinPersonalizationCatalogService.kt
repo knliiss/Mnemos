@@ -12,6 +12,7 @@ import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -32,6 +33,11 @@ class SynchronizeBuiltinPersonalizationCatalogService(
         val state = stateRepository.findForUpdate()
 
         if (state.revision > CATALOG_REVISION) {
+            logger.info(
+                "Skipping built-in personalization catalog synchronization because database revision {} is newer than application revision {}",
+                state.revision,
+                CATALOG_REVISION,
+            )
             return
         }
 
@@ -52,6 +58,13 @@ class SynchronizeBuiltinPersonalizationCatalogService(
                 updatedAt = now,
             )
         }
+
+        logger.info(
+            "Built-in personalization catalog synchronized: revision={}, definitions={}, changed={}",
+            CATALOG_REVISION,
+            definitions.size,
+            changedPersonalizations.size,
+        )
     }
 
     private fun synchronizeDefinition(
@@ -137,8 +150,10 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     }
 
     private companion object {
-        const val CATALOG_REVISION = 1
+        val logger = LoggerFactory.getLogger(SynchronizeBuiltinPersonalizationCatalogService::class.java)
 
-        val definitions = BuiltinNotificationPacksCore.definitions
+        const val CATALOG_REVISION = 2
+
+        val definitions = BuiltinNotificationPackCatalog.definitions
     }
 }

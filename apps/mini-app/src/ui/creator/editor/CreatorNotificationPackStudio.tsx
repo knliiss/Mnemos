@@ -14,6 +14,7 @@ import {
 } from "../../components/events/EventArt"
 import type {
   NotificationPackContent,
+  NotificationPackVariantField,
   NotificationTemplate,
   NotificationTemplateKey,
   NotificationTemplateVariant,
@@ -21,10 +22,11 @@ import type {
 import {
   renderNotificationTemplate,
   valuesForVariant,
-  variantLabel,
   withNotificationEmoji,
 } from "../../personalization/components/notificationPackPreview"
+import { Glyph } from "../../shared/MnemosIcon"
 import { Field } from "../../shared/Primitives"
+import { CreatorNotificationConditionSelect } from "./CreatorNotificationConditionSelect"
 import type { CreatorEditorForm } from "./creatorEditorModel"
 
 type EditorMode = "SOLO" | "AGGREGATE"
@@ -34,6 +36,7 @@ type EditableMessageFields = Pick<
   NotificationTemplate,
   "emoji" | "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
 >
+
 type VariableDescriptor =
   NotificationPackEditorDescriptorResponse["templates"][number]["variables"][number]
 type VariableFormDescriptor = NonNullable<VariableDescriptor["forms"]>[number]
@@ -98,6 +101,59 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     valueMappings: form.notificationPack.valueMappings ?? {},
   } satisfies NotificationPackContent
   const previewValues = valuesForVariant(templateDescriptor.type, selectedVariant)
+
+  const conditionFieldLabel = (field: NotificationPackVariantField): string => {
+    if (field === "ITEM_RARITY") {
+      return t("events.detail.rarity")
+    }
+
+    if (field === "ITEM_TYPE") {
+      return t("events.detail.category")
+    }
+
+    if (field === "BOOSTER") {
+      return t("events.subscriptions.boosterType")
+    }
+
+    if (field === "DUNGEON") {
+      return t("events.subscriptions.difficulty")
+    }
+
+    return t("events.subscriptions.event")
+  }
+
+  const conditionValueLabel = (field: NotificationPackVariantField, value: string): string => {
+    if (field === "ITEM_RARITY") {
+      return t(`events.rarities.${value}`)
+    }
+
+    if (field === "ITEM_TYPE") {
+      return t(`events.itemTypes.${value}`)
+    }
+
+    if (field === "BOOSTER") {
+      return t(`events.boosters.${value}`)
+    }
+
+    if (field === "DUNGEON") {
+      return t(`events.dungeons.${value}`)
+    }
+
+    return t(`events.globals.${value}`)
+  }
+
+  const variantDisplayLabel = (variant: NotificationTemplateVariant): string =>
+    variant.conditions
+      .map((condition) => conditionValueLabel(condition.field, condition.value))
+      .join(" · ")
+
+  const variantConditionSummary = (variant: NotificationTemplateVariant): string =>
+    variant.conditions
+      .map(
+        (condition) =>
+          `${conditionFieldLabel(condition.field)}: ${conditionValueLabel(condition.field, condition.value)}`,
+      )
+      .join(" + ")
 
   const updateTemplate = (next: Partial<NotificationTemplate>) => {
     setForm((current) => ({
@@ -362,40 +418,67 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             <strong>{t("creator.editor.variantsTitle")}</strong>
           </span>
 
-          {conditionFields.length ? (
+          {conditionFields.length && variants.length ? (
             <button type="button" disabled={!editable} onClick={addVariant}>
+              <Glyph name="plus" size={13} />
               {t("creator.editor.addVariant")}
             </button>
           ) : null}
         </header>
 
-        {variants.length ? (
-          <nav
-            className="notification-variant-switch"
-            aria-label={t("creator.editor.variantsTitle")}
+        <div className="notification-template-choice-grid">
+          <button
+            type="button"
+            className={`notification-base-template-card${selectedVariant === null ? " is-active" : ""}`}
+            onClick={() => setSelectedVariantId(null)}
           >
+            <span className="notification-template-choice-card__mark">
+              <Glyph name={selectedVariant === null ? "check" : "spark"} size={14} />
+            </span>
+            <span>
+              <small>{t("creator.editor.defaultVariant")}</small>
+              <strong>{messageTitle(template)}</strong>
+            </span>
+          </button>
+
+          {variants.map((variant) => (
             <button
               type="button"
-              className={selectedVariant === null ? "is-active" : ""}
-              onClick={() => setSelectedVariantId(null)}
+              key={variant.id}
+              className={`notification-variant-card${selectedVariant?.id === variant.id ? " is-active" : ""}`}
+              onClick={() => setSelectedVariantId(variant.id)}
             >
-              {t("creator.editor.defaultVariant")}
+              <span>
+                <small>{t("creator.editor.conditionsEyebrow")}</small>
+                <strong>{variantDisplayLabel(variant)}</strong>
+                <em>{variantConditionSummary(variant)}</em>
+              </span>
+              {selectedVariant?.id === variant.id ? <Glyph name="check" size={14} /> : null}
             </button>
+          ))}
+        </div>
 
-            {variants.map((variant) => (
-              <button
-                type="button"
-                key={variant.id}
-                className={selectedVariant?.id === variant.id ? "is-active" : ""}
-                onClick={() => setSelectedVariantId(variant.id)}
-              >
-                {variantLabel(variant)}
-              </button>
-            ))}
-          </nav>
-        ) : (
-          <p>{t("creator.editor.noVariants")}</p>
-        )}
+        {!variants.length && conditionFields.length ? (
+          <div className="notification-variant-empty">
+            <span>
+              <strong>{t("creator.editor.noVariants")}</strong>
+              <small>{t("creator.editor.conditionsTitle")}</small>
+            </span>
+            <button type="button" disabled={!editable} onClick={addVariant}>
+              <Glyph name="plus" size={14} />
+              {t("creator.editor.addVariant")}
+            </button>
+          </div>
+        ) : null}
+
+        {!conditionFields.length ? (
+          <div className="notification-variant-empty is-unavailable">
+            <span>
+              <strong>{t("creator.editor.serverDriven")}</strong>
+              <small>{t("creator.editor.noVariants")}</small>
+            </span>
+          </div>
+        ) : null}
 
         {selectedVariant ? (
           <div className="notification-variant-conditions">
@@ -409,55 +492,71 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
               </button>
             </header>
 
-            {selectedVariant.conditions.map((condition, index) => {
-              const field = conditionFields.find((candidate) => candidate.field === condition.field)
-              const usedByOtherConditions = new Set(
-                selectedVariant.conditions
-                  .filter((_, conditionIndex) => conditionIndex !== index)
-                  .map((candidate) => candidate.field),
-              )
+            <div className="notification-condition-list">
+              {selectedVariant.conditions.map((condition, index) => {
+                const field = conditionFields.find(
+                  (candidate) => candidate.field === condition.field,
+                )
+                const usedByOtherConditions = new Set(
+                  selectedVariant.conditions
+                    .filter((_, conditionIndex) => conditionIndex !== index)
+                    .map((candidate) => candidate.field),
+                )
+                const fieldOptions = conditionFields
+                  .filter(
+                    (candidate) =>
+                      candidate.field === condition.field ||
+                      !usedByOtherConditions.has(candidate.field),
+                  )
+                  .map((candidate) => ({
+                    value: candidate.field,
+                    label: conditionFieldLabel(candidate.field),
+                  }))
+                const valueOptions =
+                  field?.values.map((candidate) => ({
+                    value: candidate.value,
+                    label: conditionValueLabel(condition.field, candidate.value),
+                  })) ?? []
 
-              return (
-                <div className="notification-condition-row" key={`${condition.field}-${index}`}>
-                  <select
-                    value={condition.field}
-                    disabled={!editable}
-                    onChange={(event) => updateConditionField(index, event.target.value)}
-                  >
-                    {conditionFields.map((candidate) => (
-                      <option
-                        key={candidate.field}
-                        value={candidate.field}
-                        disabled={usedByOtherConditions.has(candidate.field)}
-                      >
-                        {candidate.placeholder}
-                      </option>
-                    ))}
-                  </select>
+                return (
+                  <div className="notification-condition-card" key={`${condition.field}-${index}`}>
+                    <span className="notification-condition-card__if">
+                      {t("creator.editor.conditionsEyebrow")}
+                    </span>
 
-                  <select
-                    value={condition.value}
-                    disabled={!editable}
-                    onChange={(event) => updateConditionValue(index, event.target.value)}
-                  >
-                    {field?.values.map((candidate) => (
-                      <option key={candidate.value} value={candidate.value}>
-                        {candidate.sampleValue}
-                      </option>
-                    ))}
-                  </select>
+                    <CreatorNotificationConditionSelect
+                      value={condition.field}
+                      options={fieldOptions}
+                      disabled={!editable}
+                      ariaLabel={conditionFieldLabel(condition.field)}
+                      onChange={(value) => updateConditionField(index, value)}
+                    />
 
-                  <button
-                    type="button"
-                    disabled={!editable || selectedVariant.conditions.length === 1}
-                    onClick={() => removeCondition(index)}
-                    aria-label={t("creator.editor.removeCondition")}
-                  >
-                    ×
-                  </button>
-                </div>
-              )
-            })}
+                    <span className="notification-condition-card__arrow" aria-hidden="true">
+                      →
+                    </span>
+
+                    <CreatorNotificationConditionSelect
+                      value={condition.value}
+                      options={valueOptions}
+                      disabled={!editable}
+                      ariaLabel={conditionValueLabel(condition.field, condition.value)}
+                      onChange={(value) => updateConditionValue(index, value)}
+                    />
+
+                    <button
+                      type="button"
+                      className="notification-condition-card__remove"
+                      disabled={!editable || selectedVariant.conditions.length === 1}
+                      onClick={() => removeCondition(index)}
+                      aria-label={t("creator.editor.removeCondition")}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
 
             {canAddCondition ? (
               <button
@@ -466,6 +565,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                 disabled={!editable}
                 onClick={addCondition}
               >
+                <Glyph name="plus" size={13} />
                 {t("creator.editor.addCondition")}
               </button>
             ) : null}
@@ -491,6 +591,19 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
 
       <div className="notification-pack-workspace">
         <div className="notification-pack-fields">
+          <header className="notification-message-editor-heading">
+            <span>
+              <small>
+                {selectedVariant
+                  ? t("creator.editor.conditionsEyebrow")
+                  : t("creator.editor.defaultVariant")}
+              </small>
+              <strong>
+                {selectedVariant ? variantDisplayLabel(selectedVariant) : messageTitle(template)}
+              </strong>
+            </span>
+          </header>
+
           <div className="notification-pack-fields__top">
             <Field label={t("creator.editor.emoji")}>
               <input
@@ -681,22 +794,26 @@ function variableForms(variable: VariableDescriptor): VariableFormDescriptor[] {
   ]
 }
 
+function messageTitle(template: NotificationTemplate): string {
+  return template.soloTitle || "—"
+}
+
 function eventArt(type: NotificationTemplateKey): ReactElement {
   if (type === "ITEM_DROP") {
-    return <ItemTypeArt itemType="SWORD" size={42} />
+    return <ItemTypeArt itemType="SWORD" size={38} />
   }
 
   if (type === "BOOSTER") {
-    return <BoosterArt boosterType="LUCK" size={42} />
+    return <BoosterArt boosterType="LUCK" size={38} />
   }
 
   if (type === "DUNGEON") {
-    return <DungeonArt size={42} />
+    return <DungeonArt size={38} />
   }
 
   if (type === "RAID") {
-    return <RaidArt size={42} />
+    return <RaidArt size={38} />
   }
 
-  return <GlobalEventArt eventType="ECLIPSE" size={42} />
+  return <GlobalEventArt eventType="ECLIPSE" size={38} />
 }

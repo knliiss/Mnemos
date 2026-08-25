@@ -16,7 +16,6 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Currency } from "../../model"
-import { NotificationPackContextPreview } from "../../personalization/components/NotificationPackContextPreview"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { Field, PageHeader } from "../../shared/Primitives"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
@@ -28,6 +27,7 @@ import {
   creatorTypeOrder,
 } from "../creatorPresentation"
 import { CreatorDesignPresets } from "./CreatorDesignPresets"
+import { CreatorNotificationPackSpotlightPreview } from "./CreatorNotificationPackSpotlightPreview"
 import { CreatorNotificationPackStudio } from "./CreatorNotificationPackStudio"
 import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
 import { CreatorVisualLayerStudio } from "./CreatorVisualLayerStudio"
@@ -320,7 +320,7 @@ export function CreatorEditor({ params, back }: Props) {
         </header>
 
         {preview.type === "NOTIFICATION_PACK" ? (
-          <NotificationPackContextPreview item={preview} size="STUDIO" />
+          <CreatorNotificationPackSpotlightPreview item={preview} />
         ) : (
           <PersonalizationVisual item={preview} detail />
         )}
