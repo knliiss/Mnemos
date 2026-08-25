@@ -77,11 +77,7 @@ export function PersonalizationDetail({
     <div className="screen personalization-detail-screen">
       <PageHeader title={item.name} back={back} />
 
-      <PersonalizationBalanceBar
-        activeAccount={activeAccount}
-        prime={prime}
-        navigate={navigate}
-      />
+      <PersonalizationBalanceBar activeAccount={activeAccount} prime={prime} navigate={navigate} />
 
       <section className="personalization-detail-hero">
         <span className="personalization-detail-hero__copy">

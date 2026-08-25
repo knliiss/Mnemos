@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  normalizeActiveGlobalEvents,
-  type ActiveGlobalEvent,
-} from "./globalEventPresenceStore"
+import { normalizeActiveGlobalEvents, type ActiveGlobalEvent } from "./globalEventPresenceStore"
 
 const NOW = Date.parse("2026-08-25T16:00:00.000Z")
 

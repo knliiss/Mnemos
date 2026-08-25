@@ -76,8 +76,7 @@ class ListActiveGlobalEventsServiceTest {
     ) : GlobalEventReader {
         var startedAfter: Instant? = null
 
-        override fun find(query: ListGlobalEventQuery): PageResult<GlobalEventView> =
-            error("Paged lookup is not used by this test")
+        override fun find(query: ListGlobalEventQuery): PageResult<GlobalEventView> = error("Paged lookup is not used by this test")
 
         override fun findStartedAfter(startedAfter: Instant): List<GlobalEventView> {
             this.startedAfter = startedAfter

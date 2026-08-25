@@ -64,11 +64,7 @@ export function PersonalizationStoreCategory({
     <div className="screen personalization-store-category">
       <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
 
-      <PersonalizationBalanceBar
-        activeAccount={activeAccount}
-        prime={prime}
-        navigate={navigate}
-      />
+      <PersonalizationBalanceBar activeAccount={activeAccount} prime={prime} navigate={navigate} />
 
       <section className="personalization-category-intro">
         <span className="personalization-category-icon personalization-category-icon--illustrated">

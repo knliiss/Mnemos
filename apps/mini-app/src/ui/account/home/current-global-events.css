@@ -143,7 +143,11 @@
   border-radius: 15px;
   color: #dfe4da;
   background:
-    radial-gradient(circle at 13% 50%, color-mix(in srgb, var(--global-event-accent) 9%, transparent), transparent 46%),
+    radial-gradient(
+      circle at 13% 50%,
+      color-mix(in srgb, var(--global-event-accent) 9%, transparent),
+      transparent 46%
+    ),
     rgba(7, 9, 7, 0.64);
   text-align: left;
 }

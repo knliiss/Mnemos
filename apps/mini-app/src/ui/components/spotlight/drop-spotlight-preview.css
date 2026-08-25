@@ -6,8 +6,7 @@
   overflow: hidden;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 50% 34%, rgba(203, 255, 45, 0.035), transparent 46%),
-    #090b08;
+    radial-gradient(circle at 50% 34%, rgba(203, 255, 45, 0.035), transparent 46%), #090b08;
 }
 
 .drop-spotlight-preview--thumbnail {
