@@ -1,7 +1,9 @@
 package com.mnemos.personalization.application.personalization.usecase.getnotificationpackdescriptor
 
 import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
 import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 
 data class NotificationPackEditorDescriptor(
     val mixedAggregateTitleDefault: String,
@@ -9,6 +11,7 @@ data class NotificationPackEditorDescriptor(
     val maxEmojiLength: Int,
     val fields: List<Field>,
     val templates: List<Template>,
+    val valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>>,
 ) {
     data class Field(
         val key: FieldKey,

@@ -1,6 +1,7 @@
 package com.mnemos.personalization.adapter.inbound.http.creator
 
 import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
 import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 
 data class NotificationPackEditorDescriptorResponse(
@@ -9,6 +10,7 @@ data class NotificationPackEditorDescriptorResponse(
     val maxEmojiLength: Int,
     val fields: List<Field>,
     val templates: List<Template>,
+    val valueMappings: Map<NotificationPackValueKey, Map<String, ValueForms>>,
 ) {
     data class Field(
         val key: String,
@@ -44,6 +46,11 @@ data class NotificationPackEditorDescriptorResponse(
     data class ConditionValue(
         val value: String,
         val sampleValue: String,
+    )
+
+    data class ValueForms(
+        val default: String,
+        val forms: Map<String, String>,
     )
 
     data class Defaults(

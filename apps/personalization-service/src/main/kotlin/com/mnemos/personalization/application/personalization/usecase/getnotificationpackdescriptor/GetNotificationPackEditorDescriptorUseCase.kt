@@ -16,6 +16,7 @@ class GetNotificationPackEditorDescriptorUseCase {
             maxEmojiLength = MAX_EMOJI_LENGTH,
             fields = fields(),
             templates = NotificationPackTemplateType.entries.map(::template),
+            valueMappings = RussianNotificationValues.all,
         )
 
     private fun fields(): List<NotificationPackEditorDescriptor.Field> =

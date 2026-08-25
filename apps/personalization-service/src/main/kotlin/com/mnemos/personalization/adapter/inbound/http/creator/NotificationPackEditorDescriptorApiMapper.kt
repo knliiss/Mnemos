@@ -1,6 +1,7 @@
 package com.mnemos.personalization.adapter.inbound.http.creator
 
 import com.mnemos.personalization.application.personalization.usecase.getnotificationpackdescriptor.NotificationPackEditorDescriptor
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 
 object NotificationPackEditorDescriptorApiMapper {
     fun NotificationPackEditorDescriptor.toResponse(): NotificationPackEditorDescriptorResponse =
@@ -10,6 +11,10 @@ object NotificationPackEditorDescriptorApiMapper {
             maxEmojiLength = maxEmojiLength,
             fields = fields.map { field -> field.toResponse() },
             templates = templates.map { template -> template.toResponse() },
+            valueMappings =
+                valueMappings.mapValues { (_, mappings) ->
+                    mappings.mapValues { (_, forms) -> forms.toResponse() }
+                },
         )
 
     private fun NotificationPackEditorDescriptor.Field.toResponse(): NotificationPackEditorDescriptorResponse.Field =
@@ -52,6 +57,12 @@ object NotificationPackEditorDescriptorApiMapper {
         NotificationPackEditorDescriptorResponse.ConditionValue(
             value = value,
             sampleValue = sampleValue,
+        )
+
+    private fun NotificationValueForms.toResponse(): NotificationPackEditorDescriptorResponse.ValueForms =
+        NotificationPackEditorDescriptorResponse.ValueForms(
+            default = default,
+            forms = forms,
         )
 
     private fun NotificationPackEditorDescriptor.Defaults.toResponse(): NotificationPackEditorDescriptorResponse.Defaults =
