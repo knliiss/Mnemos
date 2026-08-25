@@ -152,8 +152,8 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     private companion object {
         val logger = LoggerFactory.getLogger(SynchronizeBuiltinPersonalizationCatalogService::class.java)
 
-        const val CATALOG_REVISION = 2
+        const val CATALOG_REVISION = 3
 
-        val definitions = BuiltinNotificationPackCatalog.definitions
+        val definitions = BuiltinPersonalizationCatalog.definitions
     }
 }
