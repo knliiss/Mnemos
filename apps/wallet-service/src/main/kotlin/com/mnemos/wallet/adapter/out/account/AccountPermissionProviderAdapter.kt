@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class AccountPermissionProviderAdapter(
-    private val accountPermissionClient: AccountPermissionClient,
+    private val client: AccountInternalClient,
 ) : AccountPermissionProvider,
     ActiveAccountProvider {
     override fun findActiveAccountId(userId: UserId): AccountId? =
-        accountPermissionClient
+        client
             .resolve(userId = userId.id)
             ?.accountId
             ?.let(::AccountId)
@@ -24,7 +24,7 @@ class AccountPermissionProviderAdapter(
         userId: UserId,
         permission: RolePermission,
     ): Boolean =
-        accountPermissionClient
+        client
             .checkPermission(
                 accountId = accountId.id,
                 request =

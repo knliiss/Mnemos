@@ -1,6 +1,6 @@
 package com.mnemos.account.api.controller.internal
 
-import com.mnemos.account.application.query.account.AccountLookupSummary
+import com.mnemos.account.api.controller.internal.InternalAccountApiMapper.toSummaryResponse
 import com.mnemos.account.application.service.account.GetInternalAccountSummariesService
 import com.mnemos.contracts.account.internal.v1.InternalAccountSummariesRequest
 import com.mnemos.contracts.account.internal.v1.InternalAccountSummaryResponse
@@ -25,12 +25,5 @@ class InternalAccountSummaryController(
     ): List<InternalAccountSummaryResponse> =
         service
             .execute(request.accountIds)
-            .map { summary -> summary.toResponse() }
-
-    private fun AccountLookupSummary.toResponse(): InternalAccountSummaryResponse =
-        InternalAccountSummaryResponse(
-            accountId = id.id,
-            cristalixUuid = cristalixUuid,
-            cristalixNickname = cristalixNickname,
-        )
+            .map { summary -> summary.toSummaryResponse() }
 }

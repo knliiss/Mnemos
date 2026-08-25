@@ -4,7 +4,7 @@ import feign.RequestInterceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 
-class AccountPermissionFeignConfiguration {
+class AccountInternalFeignConfiguration {
     @Bean
     fun internalApiKeyInterceptor(
         @Value("\${spring.application.name}") serviceName: String,

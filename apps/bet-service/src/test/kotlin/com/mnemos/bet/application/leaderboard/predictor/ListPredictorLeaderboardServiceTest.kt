@@ -1,12 +1,9 @@
 package com.mnemos.bet.application.leaderboard.predictor
 
-import com.mnemos.bet.adapter.out.event.CollectorCoverageResponse
-import com.mnemos.bet.adapter.out.event.EventInternalClient
-import com.mnemos.bet.adapter.out.event.EventWipeResponse
-import com.mnemos.bet.adapter.out.event.FirstItemDropResponse
 import com.mnemos.bet.application.account.model.AccountSummary
 import com.mnemos.bet.application.account.port.out.AccountSummaryProvider
-import com.mnemos.bet.contracts.shared.BetItemType
+import com.mnemos.bet.application.event.model.WipeWindow
+import com.mnemos.bet.application.event.port.out.WipeProvider
 import com.mnemos.common.core.model.id.AccountId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -19,10 +16,9 @@ class ListPredictorLeaderboardServiceTest {
     @Test
     fun `win rate leaderboard uses selected wipe and configured minimum sample`() {
         val accountId = AccountId.generate()
-        val selectedWipeId = UUID.randomUUID()
+        val selectedWipeId = UUID.fromString("019c1e23-5000-7000-8000-000000000101")
         val selectedWipe =
-            EventWipeResponse(
-                id = selectedWipeId,
+            WipeWindow(
                 startedAt = Instant.parse("2026-08-01T00:00:00Z"),
                 endedAt = Instant.parse("2026-08-15T00:00:00Z"),
             )
@@ -40,10 +36,21 @@ class ListPredictorLeaderboardServiceTest {
             )
         val accountSummaryProvider =
             FakeAccountSummaryProvider(
-                mapOf(accountId to AccountSummary(accountId = accountId, nickname = "Predictor")),
+                mapOf(
+                    accountId to
+                        AccountSummary(
+                            accountId = accountId,
+                            nickname = "Predictor",
+                        ),
+                ),
             )
-        val eventClient = FakeEventInternalClient(selectedWipe)
-        val service = ListPredictorLeaderboardService(reader, accountSummaryProvider, eventClient)
+        val wipeProvider = FakeWipeProvider(selectedWipe)
+        val service =
+            ListPredictorLeaderboardService(
+                reader = reader,
+                accountSummaryProvider = accountSummaryProvider,
+                wipeProvider = wipeProvider,
+            )
 
         val result =
             service.execute(
@@ -55,7 +62,7 @@ class ListPredictorLeaderboardServiceTest {
                 ),
             )
 
-        assertEquals(selectedWipeId, eventClient.requestedWipeId)
+        assertEquals(selectedWipeId, wipeProvider.requestedWipeId)
         assertEquals(
             ReadInvocation(
                 from = selectedWipe.startedAt,
@@ -83,18 +90,17 @@ class ListPredictorLeaderboardServiceTest {
     @Test
     fun `non win rate sorting uses current wipe and ignores custom sample threshold`() {
         val currentWipe =
-            EventWipeResponse(
-                id = UUID.randomUUID(),
+            WipeWindow(
                 startedAt = Instant.parse("2026-08-15T00:00:00Z"),
                 endedAt = null,
             )
         val reader = FakePredictorLeaderboardReader(emptyList())
-        val eventClient = FakeEventInternalClient(currentWipe)
+        val wipeProvider = FakeWipeProvider(currentWipe)
         val service =
             ListPredictorLeaderboardService(
                 reader = reader,
                 accountSummaryProvider = FakeAccountSummaryProvider(emptyMap()),
-                eventInternalClient = eventClient,
+                wipeProvider = wipeProvider,
             )
 
         service.execute(
@@ -106,7 +112,7 @@ class ListPredictorLeaderboardServiceTest {
             ),
         )
 
-        assertEquals(1, eventClient.currentWipeCalls)
+        assertEquals(1, wipeProvider.currentWipeCalls)
         assertEquals(
             ReadInvocation(
                 from = currentWipe.startedAt,
@@ -120,11 +126,10 @@ class ListPredictorLeaderboardServiceTest {
     }
 
     @Test
-    fun `leaderboard validates public limits before service calls`() {
-        val eventClient =
-            FakeEventInternalClient(
-                EventWipeResponse(
-                    id = UUID.randomUUID(),
+    fun `leaderboard validates public limits before wipe lookup`() {
+        val wipeProvider =
+            FakeWipeProvider(
+                WipeWindow(
                     startedAt = Instant.EPOCH,
                     endedAt = null,
                 ),
@@ -133,7 +138,7 @@ class ListPredictorLeaderboardServiceTest {
             ListPredictorLeaderboardService(
                 reader = FakePredictorLeaderboardReader(emptyList()),
                 accountSummaryProvider = FakeAccountSummaryProvider(emptyMap()),
-                eventInternalClient = eventClient,
+                wipeProvider = wipeProvider,
             )
 
         assertThrows(IllegalArgumentException::class.java) {
@@ -158,7 +163,7 @@ class ListPredictorLeaderboardServiceTest {
             )
         }
 
-        assertEquals(0, eventClient.currentWipeCalls)
+        assertEquals(0, wipeProvider.currentWipeCalls)
     }
 
     private data class ReadInvocation(
@@ -197,37 +202,26 @@ class ListPredictorLeaderboardServiceTest {
     private class FakeAccountSummaryProvider(
         private val summaries: Map<AccountId, AccountSummary>,
     ) : AccountSummaryProvider {
-        override fun getByIds(accountIds: Set<AccountId>): Map<AccountId, AccountSummary> = summaries.filterKeys(accountIds::contains)
+        override fun getByIds(accountIds: Set<AccountId>): Map<AccountId, AccountSummary> =
+            summaries.filterKeys(accountIds::contains)
     }
 
-    private class FakeEventInternalClient(
-        private val currentWipe: EventWipeResponse,
-    ) : EventInternalClient {
+    private class FakeWipeProvider(
+        private val wipe: WipeWindow,
+    ) : WipeProvider {
         var currentWipeCalls = 0
         var requestedWipeId: UUID? = null
 
-        override fun collectorCoverage(
-            from: Instant,
-            to: Instant,
-        ): CollectorCoverageResponse = error("Not used in leaderboard tests")
-
-        override fun firstItemDrop(
-            itemName: String,
-            itemType: BetItemType,
-            from: Instant,
-            to: Instant,
-        ): FirstItemDropResponse? = error("Not used in leaderboard tests")
-
-        override fun currentWipe(): EventWipeResponse {
+        override fun current(): WipeWindow {
             currentWipeCalls += 1
 
-            return currentWipe
+            return wipe
         }
 
-        override fun wipe(wipeId: UUID): EventWipeResponse {
+        override fun get(wipeId: UUID): WipeWindow {
             requestedWipeId = wipeId
 
-            return currentWipe.copy(id = wipeId)
+            return wipe
         }
     }
 }

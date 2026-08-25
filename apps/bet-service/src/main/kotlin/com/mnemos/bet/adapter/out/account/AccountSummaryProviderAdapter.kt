@@ -15,12 +15,15 @@ class AccountSummaryProviderAdapter(
             return emptyMap()
         }
 
-        return client
-            .summaries(
-                InternalAccountSummariesRequest(
-                    accountIds = accountIds.mapTo(linkedSetOf()) { it.id },
-                ),
-            ).associate { response ->
+        return accountIds
+            .chunked(MAX_BATCH_SIZE)
+            .flatMap { batch ->
+                client.summaries(
+                    InternalAccountSummariesRequest(
+                        accountIds = batch.mapTo(linkedSetOf()) { it.id },
+                    ),
+                )
+            }.associate { response ->
                 val accountId = AccountId(response.accountId)
 
                 accountId to
@@ -29,5 +32,9 @@ class AccountSummaryProviderAdapter(
                         nickname = response.cristalixNickname,
                     )
             }
+    }
+
+    private companion object {
+        const val MAX_BATCH_SIZE = 100
     }
 }

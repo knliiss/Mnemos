@@ -11,9 +11,6 @@ data class Wipe(
     val createdBy: String,
     val createdAt: Instant,
 ) {
-    val active: Boolean
-        get() = endedAt == null
-
     fun finish(at: Instant): Wipe {
         require(at.isAfter(startedAt)) {
             "Wipe end must be after its start"
@@ -22,5 +19,7 @@ data class Wipe(
         return copy(endedAt = at)
     }
 
-    fun contains(timestamp: Instant): Boolean = !timestamp.isBefore(startedAt) && (endedAt == null || timestamp.isBefore(endedAt))
+    fun contains(timestamp: Instant): Boolean =
+        !timestamp.isBefore(startedAt) &&
+            (endedAt == null || timestamp.isBefore(endedAt))
 }

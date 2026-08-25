@@ -1,7 +1,7 @@
 package com.mnemos.bet.application.leaderboard.predictor
 
-import com.mnemos.bet.adapter.out.event.EventInternalClient
 import com.mnemos.bet.application.account.port.out.AccountSummaryProvider
+import com.mnemos.bet.application.event.port.out.WipeProvider
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -12,7 +12,7 @@ import java.math.RoundingMode
 class ListPredictorLeaderboardService(
     private val reader: PredictorLeaderboardReader,
     private val accountSummaryProvider: AccountSummaryProvider,
-    private val eventInternalClient: EventInternalClient,
+    private val wipeProvider: WipeProvider,
 ) {
     fun execute(query: PredictorLeaderboardQuery): List<PredictorLeaderboardEntry> {
         require(query.limit in MIN_LIMIT..MAX_LIMIT) {
@@ -22,7 +22,7 @@ class ListPredictorLeaderboardService(
             "Predictor minimum sample must be between $MIN_SAMPLE and $MAX_SAMPLE"
         }
 
-        val wipe = query.wipeId?.let(eventInternalClient::wipe) ?: eventInternalClient.currentWipe()
+        val wipe = query.wipeId?.let(wipeProvider::get) ?: wipeProvider.current()
         val effectiveMinimumSample =
             if (query.sort == PredictorLeaderboardSort.WIN_RATE) {
                 query.minimumSample

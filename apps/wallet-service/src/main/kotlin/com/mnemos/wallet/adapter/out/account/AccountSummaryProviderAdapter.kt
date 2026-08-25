@@ -8,19 +8,22 @@ import org.springframework.stereotype.Component
 
 @Component
 class AccountSummaryProviderAdapter(
-    private val client: AccountPermissionClient,
+    private val client: AccountInternalClient,
 ) : AccountSummaryProvider {
     override fun getByIds(accountIds: Set<AccountId>): Map<AccountId, AccountSummary> {
         if (accountIds.isEmpty()) {
             return emptyMap()
         }
 
-        return client
-            .summaries(
-                InternalAccountSummariesRequest(
-                    accountIds = accountIds.mapTo(linkedSetOf()) { it.id },
-                ),
-            ).associate { response ->
+        return accountIds
+            .chunked(MAX_BATCH_SIZE)
+            .flatMap { batch ->
+                client.summaries(
+                    InternalAccountSummariesRequest(
+                        accountIds = batch.mapTo(linkedSetOf()) { it.id },
+                    ),
+                )
+            }.associate { response ->
                 val accountId = AccountId(response.accountId)
 
                 accountId to
@@ -30,5 +33,9 @@ class AccountSummaryProviderAdapter(
                         cristalixNickname = response.cristalixNickname,
                     )
             }
+    }
+
+    private companion object {
+        const val MAX_BATCH_SIZE = 100
     }
 }
