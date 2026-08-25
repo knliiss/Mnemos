@@ -5,6 +5,9 @@ import com.mnemos.account.application.query.identity.IdentityDirectoryPage
 import com.mnemos.account.application.query.identity.IdentityDirectoryQuery
 import com.mnemos.account.application.query.identity.UserIdentityDirectoryEntry
 
+private typealias UserDirectoryPageResponse = IdentityDirectoryPageResponse<UserIdentityDirectoryResponse>
+private typealias AccountDirectoryPageResponse = IdentityDirectoryPageResponse<AccountIdentityDirectoryResponse>
+
 object IdentityDirectoryApiMapper {
     fun IdentityDirectoryRequest.toQuery(): IdentityDirectoryQuery =
         IdentityDirectoryQuery(
@@ -14,8 +17,7 @@ object IdentityDirectoryApiMapper {
             order = order,
         )
 
-    fun IdentityDirectoryPage<UserIdentityDirectoryEntry>.toUserResponse():
-        IdentityDirectoryPageResponse<UserIdentityDirectoryResponse> =
+    fun IdentityDirectoryPage<UserIdentityDirectoryEntry>.toUserResponse(): UserDirectoryPageResponse =
         IdentityDirectoryPageResponse(
             content =
                 content.map { entry ->
@@ -34,8 +36,7 @@ object IdentityDirectoryApiMapper {
             totalPages = totalPages,
         )
 
-    fun IdentityDirectoryPage<AccountIdentityDirectoryEntry>.toAccountResponse():
-        IdentityDirectoryPageResponse<AccountIdentityDirectoryResponse> =
+    fun IdentityDirectoryPage<AccountIdentityDirectoryEntry>.toAccountResponse(): AccountDirectoryPageResponse =
         IdentityDirectoryPageResponse(
             content =
                 content.map { entry ->
