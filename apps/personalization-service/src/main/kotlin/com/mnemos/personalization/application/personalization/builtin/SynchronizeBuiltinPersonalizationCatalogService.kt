@@ -5,8 +5,9 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
 import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationCatalogStateRepository
+import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationLookup
+import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationOwnershipReader
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
-import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationTarget
@@ -20,7 +21,8 @@ import java.time.Instant
 class SynchronizeBuiltinPersonalizationCatalogService(
     private val stateRepository: BuiltinPersonalizationCatalogStateRepository,
     private val personalizationRepository: PersonalizationRepository,
-    private val ownershipRepository: OwnedPersonalizationRepository,
+    private val builtinPersonalizationLookup: BuiltinPersonalizationLookup,
+    private val ownershipReader: BuiltinPersonalizationOwnershipReader,
     private val notificationPackSelectionEventPublisher: NotificationPackSelectionEventPublisher,
     private val profileAppearanceEventPublisher: ProfileAppearanceEventPublisher,
     private val clock: Clock,
@@ -56,7 +58,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
         definition: BuiltinPersonalizationDefinition,
         now: Instant,
     ): Personalization? {
-        val existing = personalizationRepository.findByCatalogKeyForUpdate(definition.catalogKey)
+        val existing = builtinPersonalizationLookup.findByCatalogKeyForUpdate(definition.catalogKey)
 
         if (existing == null) {
             return personalizationRepository.save(
@@ -96,7 +98,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     }
 
     private fun republishActiveSnapshots(personalization: Personalization) {
-        ownershipRepository
+        ownershipReader
             .findActiveOwners(personalization.id)
             .forEach { owner ->
                 when (owner) {

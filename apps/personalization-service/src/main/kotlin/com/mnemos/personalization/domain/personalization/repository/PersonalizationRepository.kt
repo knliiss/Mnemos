@@ -3,7 +3,6 @@ package com.mnemos.personalization.domain.personalization.repository
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.Personalization
-import com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 
@@ -13,8 +12,6 @@ interface PersonalizationRepository {
     fun findById(id: PersonalizationId): Personalization?
 
     fun findByIdForUpdate(id: PersonalizationId): Personalization? = findById(id)
-
-    fun findByCatalogKeyForUpdate(catalogKey: PersonalizationCatalogKey): Personalization?
 
     fun findByCreatorUserId(creatorUserId: UserId): List<Personalization>
 
