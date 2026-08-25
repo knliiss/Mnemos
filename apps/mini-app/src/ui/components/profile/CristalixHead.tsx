@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { Glyph } from "../../shared/MnemosIcon"
+import { resolveMinecraftSkinTextureScale } from "./minecraftSkinTexture"
 import "./cristalix-head.css"
 
 type CristalixHeadProps = {
@@ -11,7 +12,6 @@ type CristalixHeadProps = {
 }
 
 const HEAD_TEXTURE_SIZE = 8
-const SKIN_REFERENCE_SIZE = 64
 
 const STEVE_FACE = [
   ["#6f4b32", "#704a31", "#62402d", "#5a3928", "#5b3a29", "#68452f", "#745039", "#76513a"],
@@ -57,13 +57,12 @@ export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadP
     }
 
     image.onload = () => {
-      const textureScale = image.naturalWidth / SKIN_REFERENCE_SIZE
+      const textureScale = resolveMinecraftSkinTextureScale(
+        image.naturalWidth,
+        image.naturalHeight,
+      )
 
-      if (
-        !Number.isInteger(textureScale) ||
-        textureScale < 1 ||
-        image.naturalHeight < SKIN_REFERENCE_SIZE * textureScale
-      ) {
+      if (textureScale === null) {
         renderSteveFallback()
         return
       }

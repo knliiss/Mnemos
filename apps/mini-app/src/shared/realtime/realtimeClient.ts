@@ -25,6 +25,24 @@ class RealtimeClient {
     return () => this.stop()
   }
 
+  async acknowledgeBroadcast(sequence: number): Promise<void> {
+    const token = await getToken()
+    const response = await fetch(
+      `${runtimeConfig.apiUrl}/api/v1/realtime/broadcasts/${sequence}/ack`,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error(`Realtime broadcast acknowledgement failed with HTTP ${response.status}`)
+    }
+  }
+
   private stop() {
     this.abortController?.abort()
     this.abortController = null

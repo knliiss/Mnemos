@@ -1,0 +1,33 @@
+.realtime-spotlight-host {
+  position: fixed;
+  z-index: 1900;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 14px;
+  pointer-events: none;
+  transform-origin: top center;
+}
+
+.realtime-spotlight-host .realtime-spotlight {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: min(100%, 470px);
+  max-width: 470px;
+}
+
+@media (max-width: 520px) {
+  .realtime-spotlight-host {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    padding: 0 10px;
+  }
+
+  .realtime-spotlight-host .realtime-spotlight,
+  .realtime-spotlight-host .realtime-spotlight.is-compact {
+    width: 100%;
+    max-width: 470px;
+  }
+}

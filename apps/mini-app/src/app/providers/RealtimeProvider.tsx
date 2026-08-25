@@ -10,6 +10,7 @@ import { ItemTypeArt } from "@/ui/components/events/EventArt"
 import type { BetItemType } from "@/ui/model"
 import { Glyph } from "@/ui/shared/MnemosIcon"
 import "@/ui/system/system.css"
+import "@/ui/system/spotlight-position.css"
 
 const FULL_SPOTLIGHT_DURATION_MS = 7_000
 const COMPACT_SPOTLIGHT_DURATION_MS = 4_500
@@ -46,6 +47,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     let hideTimer: number | null = null
     let disposed = false
 
+    const acknowledge = (broadcast: DropSpotlightBroadcast) => {
+      void realtimeClient.acknowledgeBroadcast(broadcast.sequence).catch(() => {
+        // Replay remains safe: the in-memory set suppresses duplicates for this open session,
+        // while a later reconnect can retry acknowledgement for the same broadcast.
+      })
+    }
+
     const presentNext = () => {
       if (disposed || currentSpotlight || gapTimer !== null) {
         return
@@ -80,6 +88,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       queue.shift()
       currentSpotlight = next
       lastPresentedAt = now
+
+      acknowledge(next)
       setSpotlight(next)
 
       const requestedDuration =
@@ -155,61 +165,65 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
   const itemType = resolveSpotlightItemType(spotlight.payload.itemType)
 
   return (
-    <motion.aside
-      className={`realtime-spotlight ${compact ? "is-compact" : "is-full"}`}
-      data-rarity={spotlight.payload.itemRarity.toLowerCase()}
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
+    <motion.div
+      className="realtime-spotlight-host"
       initial={{ opacity: 0, y: -24, scale: 0.955, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
       exit={{ opacity: 0, y: -13, scale: 0.985, filter: "blur(6px)" }}
       transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
     >
-      <span className="realtime-spotlight__scan" aria-hidden="true" />
-      <span className="realtime-spotlight__corners" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
-      </span>
-
-      <motion.span
-        className="realtime-spotlight__visual"
-        aria-hidden="true"
-        animate={{ y: [0, -3, 0], rotate: [0, -0.7, 0.7, 0] }}
-        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+      <aside
+        className={`realtime-spotlight ${compact ? "is-compact" : "is-full"}`}
+        data-rarity={spotlight.payload.itemRarity.toLowerCase()}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
       >
-        {itemType ? (
-          <ItemTypeArt itemType={itemType} size={compact ? 40 : 78} />
-        ) : (
-          <Glyph name="item-drop" size={compact ? 20 : 32} />
-        )}
-        {template?.emoji ? <b>{template.emoji}</b> : null}
-      </motion.span>
+        <span className="realtime-spotlight__scan" aria-hidden="true" />
+        <span className="realtime-spotlight__corners" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
 
-      <span className="realtime-spotlight__copy">
-        <small>
-          <i /> MNEMOS SPOTLIGHT · {spotlight.payload.itemRarity}
-        </small>
-        <strong>{title}</strong>
-        {compact ? <em>{body}</em> : <p>{body}</p>}
-        {!compact ? (
-          <span className="realtime-spotlight__meta">
-            <b>{spotlight.payload.droppedFor}</b>
-            <i />
-            <em>{spotlight.payload.itemType}</em>
-          </span>
-        ) : null}
-      </span>
+        <motion.span
+          className="realtime-spotlight__visual"
+          aria-hidden="true"
+          animate={{ y: [0, -3, 0], rotate: [0, -0.7, 0.7, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {itemType ? (
+            <ItemTypeArt itemType={itemType} size={compact ? 40 : 78} />
+          ) : (
+            <Glyph name="item-drop" size={compact ? 20 : 32} />
+          )}
+          {template?.emoji ? <b>{template.emoji}</b> : null}
+        </motion.span>
 
-      <span className="realtime-spotlight__signal" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-      <span className="realtime-spotlight__lifetime" aria-hidden="true" />
-    </motion.aside>
+        <span className="realtime-spotlight__copy">
+          <small>
+            <i /> MNEMOS SPOTLIGHT · {spotlight.payload.itemRarity}
+          </small>
+          <strong>{title}</strong>
+          {compact ? <em>{body}</em> : <p>{body}</p>}
+          {!compact ? (
+            <span className="realtime-spotlight__meta">
+              <b>{spotlight.payload.droppedFor}</b>
+              <i />
+              <em>{spotlight.payload.itemType}</em>
+            </span>
+          ) : null}
+        </span>
+
+        <span className="realtime-spotlight__signal" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className="realtime-spotlight__lifetime" aria-hidden="true" />
+      </aside>
+    </motion.div>
   )
 }
 
