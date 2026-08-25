@@ -24,7 +24,7 @@ export function PersonalizationBalanceBar({
     <div className={`personalization-balance-bar ${compact ? "is-compact" : ""}`.trim()}>
       <button
         type="button"
-        className="personalization-balance personalisation-balance--coin"
+        className="personalization-balance personalization-balance--coin"
         disabled={!activeAccount}
         onClick={() => navigate({ id: "account-wallet" })}
       >
