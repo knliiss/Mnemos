@@ -62,10 +62,7 @@ export function CreatorNotificationConditionSelect({
   }
 
   return (
-    <div
-      ref={rootRef}
-      className={`creator-condition-select${open ? " is-open" : ""}`}
-    >
+    <div ref={rootRef} className={`creator-condition-select${open ? " is-open" : ""}`}>
       <button
         type="button"
         className="creator-condition-select__trigger"
