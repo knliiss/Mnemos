@@ -86,12 +86,15 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
   const selectedVariant =
     selectedVariantId === null
       ? null
-      : variants.find((variant) => variant.id === selectedVariantId) ?? null
+      : (variants.find((variant) => variant.id === selectedVariantId) ?? null)
   const message: EditableMessageFields = selectedVariant ?? template
   const previewContent = {
     kind: "NOTIFICATION_PACK",
     mixedAggregateTitle: form.notificationPack.mixedAggregateTitle,
-    templates: form.notificationPack.templates as Record<NotificationTemplateKey, NotificationTemplate>,
+    templates: form.notificationPack.templates as Record<
+      NotificationTemplateKey,
+      NotificationTemplate
+    >,
     valueMappings: form.notificationPack.valueMappings,
   } satisfies NotificationPackContent
   const previewValues = valuesForVariant(
@@ -248,7 +251,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     }
 
     updateVariant({
-      conditions: selectedVariant.conditions.filter((_, conditionIndex) => conditionIndex !== index),
+      conditions: selectedVariant.conditions.filter(
+        (_, conditionIndex) => conditionIndex !== index,
+      ),
     })
   }
 
@@ -324,7 +329,8 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
         ? sameTypeAggregateText
         : mixedAggregateText
   const canAddCondition = Boolean(
-    selectedVariant && selectedVariant.conditions.length < templateDescriptor.conditionFields.length,
+    selectedVariant &&
+      selectedVariant.conditions.length < templateDescriptor.conditionFields.length,
   )
 
   return (
@@ -372,7 +378,10 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
         </header>
 
         {variants.length ? (
-          <nav className="notification-variant-switch" aria-label={t("creator.editor.variantsTitle")}>
+          <nav
+            className="notification-variant-switch"
+            aria-label={t("creator.editor.variantsTitle")}
+          >
             <button
               type="button"
               className={selectedVariant === null ? "is-active" : ""}
@@ -498,9 +507,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                 value={message.emoji ?? ""}
                 maxLength={descriptor.maxEmojiLength}
                 disabled={!editable}
-                onChange={(event) =>
-                  updateSelectedMessage({ emoji: event.target.value || null })
-                }
+                onChange={(event) => updateSelectedMessage({ emoji: event.target.value || null })}
                 placeholder="🎁"
               />
             </Field>

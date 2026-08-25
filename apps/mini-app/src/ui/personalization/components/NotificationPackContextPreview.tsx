@@ -46,7 +46,7 @@ export function NotificationPackContextPreview({
   const selectedVariant =
     selectedVariantId === null
       ? null
-      : variants.find((variant) => variant.id === selectedVariantId) ?? null
+      : (variants.find((variant) => variant.id === selectedVariantId) ?? null)
   const message = selectedNotificationTemplate(template, selectedVariant?.id ?? null)
   const values = valuesForVariant(selectedType, selectedVariant)
   const title = withNotificationEmoji(

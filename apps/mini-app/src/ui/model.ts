@@ -214,9 +214,7 @@ export type NotificationPackContent = {
   kind: "NOTIFICATION_PACK"
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplate>
-  valueMappings: Partial<
-    Record<NotificationPackValueKey, Record<string, NotificationValueForms>>
-  >
+  valueMappings: Partial<Record<NotificationPackValueKey, Record<string, NotificationValueForms>>>
 }
 
 export type NickStyleContent = {

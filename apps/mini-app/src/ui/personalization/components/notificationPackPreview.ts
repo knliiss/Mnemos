@@ -31,9 +31,7 @@ const placeholderByConditionField: Record<NotificationPackVariantField, string> 
   GLOBAL_EVENT: "event",
 }
 
-const fallbackValueLabels: Partial<
-  Record<NotificationPackValueKey, Record<string, string>>
-> = {
+const fallbackValueLabels: Partial<Record<NotificationPackValueKey, Record<string, string>>> = {
   ITEM_RARITY: {
     MYTHICAL: "Мифический",
     SECRET: "Секретный",
@@ -65,9 +63,7 @@ const fallbackValueLabels: Partial<
   },
 }
 
-export function notificationPreviewValues(
-  type: NotificationTemplateKey,
-): Record<string, string> {
+export function notificationPreviewValues(type: NotificationTemplateKey): Record<string, string> {
   if (type === "ITEM_DROP") {
     return {
       player: "north",
@@ -181,7 +177,7 @@ export function variantLabel(variant: NotificationTemplateVariant): string {
     .map((condition) => {
       const valueKey = valueKeyByPlaceholder[placeholderByConditionField[condition.field]]
       const value = valueKey
-        ? fallbackValueLabels[valueKey]?.[condition.value] ?? condition.value
+        ? (fallbackValueLabels[valueKey]?.[condition.value] ?? condition.value)
         : condition.value
 
       return value

@@ -194,7 +194,9 @@
   font-size: 8.5px;
 }
 
-.notification-pack-context-preview--thumbnail .notification-pack-context-preview__variants > button {
+.notification-pack-context-preview--thumbnail
+  .notification-pack-context-preview__variants
+  > button {
   min-height: 22px;
   padding: 3px 6px;
   font-size: 7px;
