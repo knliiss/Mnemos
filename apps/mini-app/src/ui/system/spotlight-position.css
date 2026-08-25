@@ -17,6 +17,8 @@
   left: auto;
   width: min(100%, 470px);
   max-width: 470px;
+  transform: none;
+  animation: none;
 }
 
 @media (max-width: 520px) {
