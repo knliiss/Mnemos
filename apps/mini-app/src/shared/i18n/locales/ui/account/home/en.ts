@@ -1,6 +1,13 @@
 export const accountHomeEn = {
   accountHome: {
     activeAccount: "ACTIVE ACCOUNT",
+    globalEventsEyebrow: "GLOBAL EVENTS",
+    globalEventsActiveTitle: "Happening right now",
+    globalEventsEmptyTitle: "No event right now",
+    globalEventsEmptyCopy: "Mnemos will show a global event here as soon as it starts in the game.",
+    globalEventsCount: "{{count}} active",
+    globalEventLive: "LIVE",
+    globalEventStartedAt: "Started at {{time}}",
     dailyReward: "DAILY REWARD",
     streakDays: "days in a row",
     primeChance: "{{chance}}% chance",
