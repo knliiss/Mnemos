@@ -1,6 +1,12 @@
 import { motion } from "framer-motion"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { useActiveGlobalEvents } from "@/shared/realtime/globalEventPresenceStore"
+import { getEventFeed } from "@/shared/api/eventApi"
+import {
+  createActiveGlobalEvent,
+  hydrateGlobalEventPresence,
+  useActiveGlobalEvents,
+} from "@/shared/realtime/globalEventPresenceStore"
 import { GlobalEventArt } from "@/ui/components/events/EventArt"
 import type { Route } from "@/ui/model"
 import { localeForLanguage } from "../accountPresentation"
@@ -13,6 +19,40 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
   const { t, i18n } = useTranslation()
   const events = useActiveGlobalEvents()
   const locale = localeForLanguage(i18n.resolvedLanguage)
+
+  useEffect(() => {
+    let cancelled = false
+
+    void getEventFeed({
+      types: ["GLOBAL"],
+      sort: "NEWEST",
+      limit: 12,
+    })
+      .then((response) => {
+        if (cancelled) {
+          return
+        }
+
+        const history = response.items.flatMap((item) => {
+          if (item.type !== "GLOBAL") {
+            return []
+          }
+
+          const event = createActiveGlobalEvent(item.eventId, item.globalType, item.occurredAt)
+
+          return event ? [event] : []
+        })
+
+        hydrateGlobalEventPresence(history)
+      })
+      .catch(() => {
+        // Realtime updates remain authoritative while the feed is temporarily unavailable.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (!events.length) {
     return (
