@@ -12,8 +12,6 @@ import "./account-home-visuals.css"
 import { AccountDropsPanel } from "./AccountDropsPanel"
 import { AccountMembersPanel } from "./AccountMembersPanel"
 import { AccountOverview } from "./AccountOverview"
-import { CurrentGlobalEventsPanel } from "./CurrentGlobalEventsPanel"
-import "./current-global-events.css"
 
 type Props = {
   navigate: (route: Route) => void
@@ -65,8 +63,6 @@ export function AccountHome({
         userHubTrigger={rootUserAccess}
         navigate={navigate}
       />
-
-      <CurrentGlobalEventsPanel navigate={navigate} />
 
       <AccountMembersPanel
         members={data.members}
