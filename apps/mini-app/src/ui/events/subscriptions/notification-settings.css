@@ -60,8 +60,7 @@
   border: 1px solid rgba(228, 235, 213, 0.075);
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.012), transparent 48%),
-    rgba(10, 12, 9, 0.72);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.012), transparent 48%), rgba(10, 12, 9, 0.72);
 }
 
 .notification-settings-group > header {
@@ -129,8 +128,7 @@
 .notification-settings-toggle.is-active {
   border-color: rgba(199, 242, 74, 0.16);
   background:
-    linear-gradient(90deg, rgba(199, 242, 74, 0.035), transparent 62%),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(90deg, rgba(199, 242, 74, 0.035), transparent 62%), rgba(255, 255, 255, 0.012);
 }
 
 .notification-settings-toggle:disabled {

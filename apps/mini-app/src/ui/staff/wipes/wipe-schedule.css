@@ -35,8 +35,7 @@
 .wipe-admin-history article.is-planned {
   border-color: rgba(124, 226, 183, 0.12);
   background:
-    linear-gradient(90deg, rgba(124, 226, 183, 0.025), transparent 64%),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(90deg, rgba(124, 226, 183, 0.025), transparent 64%), rgba(255, 255, 255, 0.012);
 }
 
 .wipe-admin-history article.is-planned .wipe-admin-history__number {

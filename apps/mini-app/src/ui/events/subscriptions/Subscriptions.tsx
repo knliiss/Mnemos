@@ -8,20 +8,10 @@ import {
   createRaidSubscription,
   deleteSubscription,
 } from "@/shared/api/subscriptionApi"
-import {
-  BoosterArt,
-  DungeonArt,
-  GlobalEventArt,
-  RaidArt,
-} from "../../components/events/EventArt"
+import { BoosterArt, DungeonArt, GlobalEventArt, RaidArt } from "../../components/events/EventArt"
 import { BOOSTER_TYPES, DUNGEON_TYPES, GLOBAL_EVENT_TYPES } from "../../contracts"
 import { useMnemosData } from "../../data/MnemosDataProvider"
-import type {
-  BoosterType,
-  DungeonType,
-  GlobalEventType,
-  Subscription,
-} from "../../model"
+import type { BoosterType, DungeonType, GlobalEventType, Subscription } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
@@ -187,7 +177,8 @@ export function Subscriptions({ back }: { back: () => void }) {
           <NotificationGroup title={t("events.kinds.GLOBAL")} tone="global">
             {GLOBAL_EVENT_TYPES.map((value) => {
               const enabled = subscriptions.some(
-                (subscription) => subscription.type === "GLOBAL" && subscription.eventType === value,
+                (subscription) =>
+                  subscription.type === "GLOBAL" && subscription.eventType === value,
               )
 
               return (

@@ -97,7 +97,9 @@ export function useSubscriptionCreateDraft(
     }
 
     if (!raidLocations.includes(raidInputValue)) {
-      setRaidLocations((current) => [...current, raidInputValue].sort((left, right) => left - right))
+      setRaidLocations((current) =>
+        [...current, raidInputValue].sort((left, right) => left - right),
+      )
     }
 
     setRaidInput("")
@@ -118,7 +120,9 @@ export function useSubscriptionCreateDraft(
     try {
       const submittedRaidLocations =
         cleanRaidInput && raidInputValid
-          ? Array.from(new Set([...raidLocations, raidInputValue])).sort((left, right) => left - right)
+          ? Array.from(new Set([...raidLocations, raidInputValue])).sort(
+              (left, right) => left - right,
+            )
           : raidLocations
 
       const saved = await data.mutateSubscriptions(async () => {

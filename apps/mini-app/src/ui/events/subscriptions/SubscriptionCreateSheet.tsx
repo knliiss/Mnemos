@@ -16,10 +16,7 @@ type SubscriptionCreateSheetProps = {
   fixedType?: SubscriptionType
 }
 
-export function SubscriptionCreateSheet({
-  onClose,
-  fixedType,
-}: SubscriptionCreateSheetProps) {
+export function SubscriptionCreateSheet({ onClose, fixedType }: SubscriptionCreateSheetProps) {
   const { t } = useTranslation()
   const draft = useSubscriptionCreateDraft(onClose, fixedType)
 
@@ -38,7 +35,9 @@ export function SubscriptionCreateSheet({
 
   return (
     <BottomSheet
-      title={fixedType === "ITEM_DROP" ? t("events.kinds.ITEM_DROP") : t("events.subscriptions.newTitle")}
+      title={
+        fixedType === "ITEM_DROP" ? t("events.kinds.ITEM_DROP") : t("events.subscriptions.newTitle")
+      }
       onClose={() => !draft.busy && onClose()}
     >
       <div className="form-stack subscription-form">

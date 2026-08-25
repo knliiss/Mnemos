@@ -1,10 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  type EventFeedQuery,
-  type EventItemType,
-} from "@/shared/api/eventApi"
+import { type EventFeedQuery, type EventItemType } from "@/shared/api/eventApi"
 import { listWipes, type Wipe } from "@/shared/api/wipeApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
@@ -205,7 +202,10 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </section>
       ) : null}
 
-      <section className="events-feed-filters events-feed-kind-filters" aria-label={t("events.feed.filterAria")}>
+      <section
+        className="events-feed-filters events-feed-kind-filters"
+        aria-label={t("events.feed.filterAria")}
+      >
         <button
           type="button"
           className={filter === "ALL" ? "is-active" : ""}
@@ -317,7 +317,10 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
       ) : null}
 
       {filter === "RAID" ? (
-        <section className="events-feed-location-filter" aria-label={t("events.subscriptions.locations")}>
+        <section
+          className="events-feed-location-filter"
+          aria-label={t("events.subscriptions.locations")}
+        >
           <button
             type="button"
             className={raidLocation === null ? "is-active" : undefined}

@@ -82,8 +82,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
     wipes
       .filter((wipe) => !wipe.active && new Date(wipe.startedAt).getTime() > referenceNow)
       .sort(
-        (left, right) =>
-          new Date(left.startedAt).getTime() - new Date(right.startedAt).getTime(),
+        (left, right) => new Date(left.startedAt).getTime() - new Date(right.startedAt).getTime(),
       )[0] ?? null
   const parsedStart = useMemo(
     () => parseLocalDateTime(startDate, startTime),
@@ -349,7 +348,10 @@ export function WipeAdmin({ back }: { back: () => void }) {
           const startsInFuture = new Date(wipe.startedAt).getTime() > referenceNow
 
           return (
-            <article key={wipe.id} className={wipe.active ? "is-active" : startsInFuture ? "is-planned" : ""}>
+            <article
+              key={wipe.id}
+              className={wipe.active ? "is-active" : startsInFuture ? "is-planned" : ""}
+            >
               <span className="wipe-admin-history__number">#{wipe.number}</span>
               <span className="wipe-admin-history__copy">
                 <strong>{wipeName(wipe)}</strong>
