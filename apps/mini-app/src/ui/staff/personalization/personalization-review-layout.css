@@ -69,21 +69,26 @@
   border-radius: 17px !important;
 }
 
-.personalization-review-screen .review-workbench__spotlight {
+.personalization-review-screen .review-workbench__notification-art {
   display: grid;
   place-items: center;
   width: 100%;
   min-width: 0;
-  height: 180px;
+  height: 132px;
   overflow: hidden;
+  border: 1px solid rgba(223, 232, 204, 0.08);
   border-radius: 17px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(203, 255, 45, 0.07), transparent 54%),
+    rgba(8, 11, 7, 0.92);
 }
 
-.personalization-review-screen .review-workbench__spotlight > .drop-spotlight-preview {
-  width: 100%;
-  height: 180px;
-  min-height: 180px;
-  border-radius: inherit;
+.personalization-review-screen .review-workbench__notification-art img {
+  width: 132px;
+  max-width: 42%;
+  height: 96px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.24));
 }
 
 .personalization-review-screen .review-workbench > .notification-pack-telegram-preview {
@@ -112,11 +117,18 @@
     height: 48px;
   }
 
-  .personalization-review-screen .review-workbench > .real-preview.is-detail,
-  .personalization-review-screen .review-workbench__spotlight,
-  .personalization-review-screen .review-workbench__spotlight > .drop-spotlight-preview {
+  .personalization-review-screen .review-workbench > .real-preview.is-detail {
     height: 152px !important;
     min-height: 152px !important;
+  }
+
+  .personalization-review-screen .review-workbench__notification-art {
+    height: 112px;
+  }
+
+  .personalization-review-screen .review-workbench__notification-art img {
+    width: 104px;
+    height: 78px;
   }
 }
 
