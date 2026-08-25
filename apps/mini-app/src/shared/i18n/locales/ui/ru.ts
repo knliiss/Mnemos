@@ -96,6 +96,11 @@ export const uiRu = {
     badges: "Бейджи",
     badgesFallback: "Создание и выдача",
     badgesCount: "В системе: {{count}}",
+    spotlightPreviewTitle: "Тест спотлайта",
+    spotlightPreviewDescription:
+      "Показывает спотлайт только на этом устройстве. Другим пользователям ничего не отправляется.",
+    spotlightPreviewItem: "Тестовый клинок",
+    spotlightPreviewPlayer: "Локальный тест админа",
   },
   moderation: {
     title: "Модерация",

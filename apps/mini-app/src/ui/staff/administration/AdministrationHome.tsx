@@ -4,6 +4,10 @@ import { listAdminBadges } from "@/shared/api/badgeAdminApi"
 import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import {
+  createSpotlightPreview,
+  spotlightPreviews,
+} from "@/shared/realtime/spotlightPreviewBus"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 
@@ -18,7 +22,8 @@ type AdministrationWorkspaceProps = {
   illustration: string
   title: string
   description: string
-  tone: "users" | "review" | "bets" | "badges" | "collectors" | "wipes"
+  tone: "users" | "review" | "bets" | "badges" | "collectors" | "wipes" | "spotlight"
+  indicator?: string
   onClick(): void
 }
 
@@ -27,6 +32,7 @@ function AdministrationWorkspace({
   title,
   description,
   tone,
+  indicator = "›",
   onClick,
 }: AdministrationWorkspaceProps) {
   return (
@@ -38,7 +44,7 @@ function AdministrationWorkspace({
         <strong>{title}</strong>
         <small>{description}</small>
       </span>
-      <b>›</b>
+      <b aria-hidden="true">{indicator}</b>
     </button>
   )
 }
@@ -86,6 +92,15 @@ export function AdministrationHome({
       window.cancelAnimationFrame(frame)
     }
   }, [])
+
+  const launchSpotlightPreview = () => {
+    const preview = createSpotlightPreview({
+      itemName: t("administration.spotlightPreviewItem"),
+      droppedFor: t("administration.spotlightPreviewPlayer"),
+    })
+
+    spotlightPreviews.publish(preview)
+  }
 
   return (
     <div className="screen administration-home-screen">
@@ -147,6 +162,15 @@ export function AdministrationHome({
           }
           tone="badges"
           onClick={() => navigate({ id: "badge-admin" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-review.svg"
+          title={t("administration.spotlightPreviewTitle")}
+          description={t("administration.spotlightPreviewDescription")}
+          tone="spotlight"
+          indicator="▶"
+          onClick={launchSpotlightPreview}
         />
 
         <AdministrationWorkspace

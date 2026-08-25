@@ -96,6 +96,11 @@ export const uiUk = {
     badges: "Бейджі",
     badgesFallback: "Створення та видача",
     badgesCount: "{{count}} у системі",
+    spotlightPreviewTitle: "Тест спотлайта",
+    spotlightPreviewDescription:
+      "Показує спотлайт тільки на цьому пристрої. Іншим користувачам нічого не надсилається.",
+    spotlightPreviewItem: "Тестовий клинок",
+    spotlightPreviewPlayer: "Локальний тест адміністратора",
   },
   moderation: {
     title: "Модерація",

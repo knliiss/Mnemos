@@ -5,6 +5,7 @@ import { errorEvents } from "@/shared/errors/errorEventBus"
 import { notifications } from "@/shared/notifications/notificationCenter"
 import { realtimeClient } from "@/shared/realtime/realtimeClient"
 import { realtimeBroadcasts, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
 import type { DropSpotlightBroadcast, RealtimeEvent } from "@/shared/realtime/realtime.types"
 import { ItemTypeArt } from "@/ui/components/events/EventArt"
 import type { BetItemType } from "@/ui/model"
@@ -15,6 +16,11 @@ import "@/ui/system/spotlight-position.css"
 const FULL_SPOTLIGHT_DURATION_MS = 7_000
 const COMPACT_SPOTLIGHT_DURATION_MS = 4_500
 const supportedSpotlightItemTypes: BetItemType[] = ["SWORD", "AURA", "PET", "BOOK", "JEWELRY"]
+
+type QueuedSpotlight = {
+  spotlight: DropSpotlightBroadcast
+  requiresAcknowledgement: boolean
+}
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -39,7 +45,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   }, [t])
 
   useEffect(() => {
-    const queue: DropSpotlightBroadcast[] = []
+    const queue: QueuedSpotlight[] = []
     const seenIds = new Set<string>()
     let currentSpotlight: DropSpotlightBroadcast | null = null
     let lastPresentedAt = 0
@@ -61,16 +67,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
       const now = Date.now()
 
-      while (queue.length > 0 && Date.parse(queue[0].expiresAt) <= now) {
+      while (queue.length > 0 && Date.parse(queue[0].spotlight.expiresAt) <= now) {
         queue.shift()
       }
 
-      const next = queue[0]
+      const nextQueued = queue[0]
 
-      if (!next) {
+      if (!nextQueued) {
         return
       }
 
+      const next = nextQueued.spotlight
       const expiresAt = Date.parse(next.expiresAt)
       const minimumGapMs = next.payload.minimumPresentationGapSeconds * 1_000
       const earliestPresentationAt = lastPresentedAt + minimumGapMs
@@ -89,7 +96,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       currentSpotlight = next
       lastPresentedAt = now
 
-      acknowledge(next)
+      if (nextQueued.requiresAcknowledgement) {
+        acknowledge(next)
+      }
+
       setSpotlight(next)
 
       const requestedDuration =
@@ -107,24 +117,39 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }, visibleDuration)
     }
 
-    const unsubscribe = realtimeBroadcasts.subscribe((event) => {
-      if (
-        event.type !== "drop-spotlight" ||
-        seenIds.has(event.id) ||
-        Date.parse(event.expiresAt) <= Date.now()
-      ) {
+    const enqueueSpotlight = (
+      event: DropSpotlightBroadcast,
+      requiresAcknowledgement: boolean,
+    ) => {
+      if (seenIds.has(event.id) || Date.parse(event.expiresAt) <= Date.now()) {
         return
       }
 
       seenIds.add(event.id)
-      queue.push(event)
-      queue.sort((left, right) => left.sequence - right.sequence)
+      queue.push({
+        spotlight: event,
+        requiresAcknowledgement,
+      })
+      queue.sort((left, right) => left.spotlight.sequence - right.spotlight.sequence)
       presentNext()
+    }
+
+    const unsubscribeBroadcasts = realtimeBroadcasts.subscribe((event) => {
+      if (event.type !== "drop-spotlight") {
+        return
+      }
+
+      enqueueSpotlight(event, true)
+    })
+
+    const unsubscribePreviews = spotlightPreviews.subscribe((event) => {
+      enqueueSpotlight(event, false)
     })
 
     return () => {
       disposed = true
-      unsubscribe()
+      unsubscribeBroadcasts()
+      unsubscribePreviews()
 
       if (gapTimer !== null) {
         window.clearTimeout(gapTimer)

@@ -131,6 +131,14 @@
   color: #d4f77a;
 }
 
+.administration-workspace.is-spotlight {
+  border-color: rgba(199, 242, 74, 0.18);
+  color: #c7f24a;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(199, 242, 74, 0.1), transparent 34%),
+    rgba(199, 242, 74, 0.02);
+}
+
 .administration-workspace.is-collectors {
   border-color: rgba(106, 205, 255, 0.14);
   color: #93d7f6;
