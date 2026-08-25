@@ -3,13 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { getActiveGlobalEvents } from "@/shared/api/eventApi"
 import {
-  replaceGlobalEventPresence,
+  reconcileGlobalEventPresence,
   useActiveGlobalEvents,
 } from "@/shared/realtime/globalEventPresenceStore"
 import { realtimeBroadcasts, realtimeConnectionEvents } from "@/shared/realtime/realtimeEventBus"
 import { GlobalEventArt } from "@/ui/components/events/EventArt"
 import type { Route } from "@/ui/model"
-import { localeForLanguage } from "../accountPresentation"
 import "./current-global-events-state.css"
 
 type CurrentGlobalEventsPanelProps = {
@@ -19,10 +18,10 @@ type CurrentGlobalEventsPanelProps = {
 type PresenceSyncState = "LOADING" | "READY" | "ERROR"
 
 export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const events = useActiveGlobalEvents()
-  const locale = localeForLanguage(i18n.resolvedLanguage)
   const [syncState, setSyncState] = useState<PresenceSyncState>("LOADING")
+  const [now, setNow] = useState(() => Date.now())
   const requestRevision = useRef(0)
 
   const refresh = useCallback(async () => {
@@ -37,7 +36,7 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
         return
       }
 
-      replaceGlobalEventPresence(
+      reconcileGlobalEventPresence(
         response.map((event) => ({
           eventId: event.id,
           type: event.type,
@@ -88,6 +87,17 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
       window.removeEventListener("focus", refreshOnFocus)
     }
   }, [refresh])
+
+  useEffect(() => {
+    if (!events.length) {
+      return
+    }
+
+    setNow(Date.now())
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000)
+
+    return () => window.clearInterval(timer)
+  }, [events.length])
 
   if (!events.length && syncState === "LOADING") {
     return (
@@ -156,10 +166,7 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
         className={`account-home-global-events__grid account-home-global-events__grid--${events.length}`}
       >
         {events.map((event) => {
-          const startedAt = new Date(event.startedAt).toLocaleTimeString(locale, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+          const remaining = formatRemainingTime(event.endsAt, now)
 
           return (
             <motion.button
@@ -184,7 +191,9 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
                   <i /> {t("accountHome.globalEventLive")}
                 </small>
                 <strong>{t(`events.globals.${event.type}`)}</strong>
-                <em>{t("accountHome.globalEventStartedAt", { time: startedAt })}</em>
+                <em className="account-home-global-event__remaining">
+                  {t("accountHome.globalEventRemaining", { time: remaining })}
+                </em>
               </span>
             </motion.button>
           )
@@ -192,4 +201,17 @@ export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelP
       </div>
     </section>
   )
+}
+
+export function formatRemainingTime(endsAt: string, now: number): string {
+  const remainingSeconds = Math.max(0, Math.ceil((Date.parse(endsAt) - now) / 1_000))
+  const hours = Math.floor(remainingSeconds / 3_600)
+  const minutes = Math.floor((remainingSeconds % 3_600) / 60)
+  const seconds = remainingSeconds % 60
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 }

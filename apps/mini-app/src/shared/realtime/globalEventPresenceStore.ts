@@ -20,8 +20,29 @@ export function replaceGlobalEventPresence(events: ActiveGlobalEvent[]) {
   setActiveEvents(normalizeActiveGlobalEvents(events, Date.now()))
 }
 
+export function reconcileGlobalEventPresence(events: ActiveGlobalEvent[]) {
+  setActiveEvents(reconcileActiveGlobalEvents(events, activeEvents, Date.now()))
+}
+
 export function useActiveGlobalEvents(): ActiveGlobalEvent[] {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+}
+
+export function reconcileActiveGlobalEvents(
+  serverEvents: ActiveGlobalEvent[],
+  currentEvents: ActiveGlobalEvent[],
+  now: number,
+): ActiveGlobalEvent[] {
+  const normalizedServerEvents = normalizeActiveGlobalEvents(serverEvents, now)
+  const serverTypes = new Set(normalizedServerEvents.map((event) => event.type))
+  const unexpiredLocalEvents = normalizeActiveGlobalEvents(currentEvents, now).filter(
+    (event) => !serverTypes.has(event.type),
+  )
+
+  return normalizeActiveGlobalEvents(
+    [...normalizedServerEvents, ...unexpiredLocalEvents],
+    now,
+  )
 }
 
 export function normalizeActiveGlobalEvents(
