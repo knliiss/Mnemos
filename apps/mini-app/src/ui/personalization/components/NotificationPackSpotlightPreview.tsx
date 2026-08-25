@@ -1,9 +1,6 @@
 import { DropSpotlightPreview } from "../../components/spotlight/DropSpotlightPresentation"
 import type { Personalization } from "../../model"
-import {
-  renderNotificationTemplate,
-  valuesForVariant,
-} from "./notificationPackPreview"
+import { renderNotificationTemplate, valuesForVariant } from "./notificationPackPreview"
 
 type Props = {
   item: Personalization
