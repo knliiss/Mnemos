@@ -16,12 +16,10 @@ export function useIdentityDirectory() {
   const [query, setQueryState] = useState("")
   const [order, setOrderState] = useState<IdentityDirectoryOrder>("NEWEST")
   const [page, setPage] = useState(0)
-  const [userPage, setUserPage] = useState<IdentityDirectoryPage<UserIdentityDirectoryResponse> | null>(
-    null,
-  )
-  const [accountPage, setAccountPage] = useState<IdentityDirectoryPage<AccountIdentityDirectoryResponse> | null>(
-    null,
-  )
+  const [userPage, setUserPage] =
+    useState<IdentityDirectoryPage<UserIdentityDirectoryResponse> | null>(null)
+  const [accountPage, setAccountPage] =
+    useState<IdentityDirectoryPage<AccountIdentityDirectoryResponse> | null>(null)
   const [loadedKey, setLoadedKey] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -30,47 +28,50 @@ export function useIdentityDirectory() {
 
   useEffect(() => {
     let cancelled = false
-    const timer = window.setTimeout(() => {
-      setLoading(true)
-      setError(false)
+    const timer = window.setTimeout(
+      () => {
+        setLoading(true)
+        setError(false)
 
-      const request = {
-        query: normalizedQuery,
-        page,
-        order,
-      }
-      const promise =
-        mode === "USERS" ? searchUserDirectory(request) : searchAccountDirectory(request)
+        const request = {
+          query: normalizedQuery,
+          page,
+          order,
+        }
+        const promise =
+          mode === "USERS" ? searchUserDirectory(request) : searchAccountDirectory(request)
 
-      void promise
-        .then((response) => {
-          if (cancelled) {
-            return
-          }
+        void promise
+          .then((response) => {
+            if (cancelled) {
+              return
+            }
 
-          if (mode === "USERS") {
-            setUserPage(response as IdentityDirectoryPage<UserIdentityDirectoryResponse>)
-          } else {
-            setAccountPage(response as IdentityDirectoryPage<AccountIdentityDirectoryResponse>)
-          }
+            if (mode === "USERS") {
+              setUserPage(response as IdentityDirectoryPage<UserIdentityDirectoryResponse>)
+            } else {
+              setAccountPage(response as IdentityDirectoryPage<AccountIdentityDirectoryResponse>)
+            }
 
-          setLoadedKey(requestKey)
-        })
-        .catch((requestError) => {
-          if (cancelled) {
-            return
-          }
+            setLoadedKey(requestKey)
+          })
+          .catch((requestError) => {
+            if (cancelled) {
+              return
+            }
 
-          setLoadedKey(requestKey)
-          setError(true)
-          handleError(requestError)
-        })
-        .finally(() => {
-          if (!cancelled) {
-            setLoading(false)
-          }
-        })
-    }, normalizedQuery ? 220 : 0)
+            setLoadedKey(requestKey)
+            setError(true)
+            handleError(requestError)
+          })
+          .finally(() => {
+            if (!cancelled) {
+              setLoading(false)
+            }
+          })
+      },
+      normalizedQuery ? 220 : 0,
+    )
 
     return () => {
       cancelled = true

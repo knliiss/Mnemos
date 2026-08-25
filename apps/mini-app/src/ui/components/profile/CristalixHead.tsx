@@ -57,10 +57,7 @@ export function CristalixHead({ skinUrl, size = 112, className }: CristalixHeadP
     }
 
     image.onload = () => {
-      const textureScale = resolveMinecraftSkinTextureScale(
-        image.naturalWidth,
-        image.naturalHeight,
-      )
+      const textureScale = resolveMinecraftSkinTextureScale(image.naturalWidth, image.naturalHeight)
 
       if (textureScale === null) {
         renderSteveFallback()

@@ -71,9 +71,7 @@ export function ModerationHome({ navigate, back }: Props) {
           maxLength={64}
           onChange={(event) => directory.setQuery(event.target.value)}
           placeholder={
-            directory.mode === "USERS"
-              ? copy.userSearchPlaceholder
-              : copy.accountSearchPlaceholder
+            directory.mode === "USERS" ? copy.userSearchPlaceholder : copy.accountSearchPlaceholder
           }
         />
         {directory.query ? (
@@ -145,9 +143,7 @@ export function ModerationHome({ navigate, back }: Props) {
           >
             ‹ {copy.previous}
           </button>
-          <span>
-            {copy.pageOf(directory.pagination.page + 1, directory.pagination.totalPages)}
-          </span>
+          <span>{copy.pageOf(directory.pagination.page + 1, directory.pagination.totalPages)}</span>
           <button
             type="button"
             disabled={!directory.pagination.canGoNext}

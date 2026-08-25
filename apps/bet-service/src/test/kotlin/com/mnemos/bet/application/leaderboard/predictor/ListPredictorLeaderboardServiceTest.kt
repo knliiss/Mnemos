@@ -202,8 +202,7 @@ class ListPredictorLeaderboardServiceTest {
     private class FakeAccountSummaryProvider(
         private val summaries: Map<AccountId, AccountSummary>,
     ) : AccountSummaryProvider {
-        override fun getByIds(accountIds: Set<AccountId>): Map<AccountId, AccountSummary> =
-            summaries.filterKeys(accountIds::contains)
+        override fun getByIds(accountIds: Set<AccountId>): Map<AccountId, AccountSummary> = summaries.filterKeys(accountIds::contains)
     }
 
     private class FakeWipeProvider(

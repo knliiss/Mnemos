@@ -14,7 +14,8 @@ object IdentityDirectoryApiMapper {
             order = order,
         )
 
-    fun IdentityDirectoryPage<UserIdentityDirectoryEntry>.toUserResponse(): IdentityDirectoryPageResponse<UserIdentityDirectoryResponse> =
+    fun IdentityDirectoryPage<UserIdentityDirectoryEntry>.toUserResponse():
+        IdentityDirectoryPageResponse<UserIdentityDirectoryResponse> =
         IdentityDirectoryPageResponse(
             content =
                 content.map { entry ->
@@ -33,7 +34,8 @@ object IdentityDirectoryApiMapper {
             totalPages = totalPages,
         )
 
-    fun IdentityDirectoryPage<AccountIdentityDirectoryEntry>.toAccountResponse(): IdentityDirectoryPageResponse<AccountIdentityDirectoryResponse> =
+    fun IdentityDirectoryPage<AccountIdentityDirectoryEntry>.toAccountResponse():
+        IdentityDirectoryPageResponse<AccountIdentityDirectoryResponse> =
         IdentityDirectoryPageResponse(
             content =
                 content.map { entry ->
