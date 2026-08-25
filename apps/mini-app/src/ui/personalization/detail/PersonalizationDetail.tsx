@@ -5,11 +5,13 @@ import {
 } from "../../components/personalization/PersonalizationPreview"
 import type { Account, Personalization, Route } from "../../model"
 import { CurrencyValue, PageHeader } from "../../shared/Primitives"
-import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
 import { NotificationPackTelegramPreview } from "../components/NotificationPackTelegramPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
-import { personalizationTypeTitle } from "../personalizationPresentation"
+import {
+  personalizationIllustrations,
+  personalizationTypeTitle,
+} from "../personalizationPresentation"
 import "./personalization-detail.css"
 
 type PersonalizationDetailProps = {
@@ -74,6 +76,9 @@ export function PersonalizationDetail({
     item.owned && item.active ? "is-active" : ""
   }`.trim()
   const notificationPackContent = item.content?.kind === "NOTIFICATION_PACK" ? item.content : null
+  const heroClassName = `personalization-detail-hero${
+    notificationPackContent ? " personalization-detail-hero--notification-pack" : ""
+  }`
 
   return (
     <div className="screen personalization-detail-screen">
@@ -81,7 +86,7 @@ export function PersonalizationDetail({
 
       <PersonalizationBalanceBar activeAccount={activeAccount} prime={prime} navigate={navigate} />
 
-      <section className="personalization-detail-hero">
+      <section className={heroClassName}>
         <span className="personalization-detail-hero__copy">
           <small>
             {personalizationTypeTitle(t, item.type)} · {t(`personalization.target.${item.target}`)}
@@ -91,7 +96,9 @@ export function PersonalizationDetail({
         </span>
 
         {notificationPackContent ? (
-          <NotificationPackSpotlightPreview item={item} size="DETAIL" />
+          <span className="personalization-detail-hero__notification-art" aria-hidden="true">
+            <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
+          </span>
         ) : (
           <PersonalizationVisual item={item} detail />
         )}
