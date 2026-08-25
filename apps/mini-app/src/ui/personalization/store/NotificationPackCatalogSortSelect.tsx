@@ -51,11 +51,7 @@ export function NotificationPackCatalogSortSelect<TValue extends string>({
         viewBox="0 0 16 16"
         aria-hidden="true"
       >
-        {priceAscending ? (
-          <path d="M8 13V3m-3 3 3-3 3 3" />
-        ) : (
-          <path d="M8 3v10m-3-3 3 3 3-3" />
-        )}
+        {priceAscending ? <path d="M8 13V3m-3 3 3-3 3 3" /> : <path d="M8 3v10m-3-3 3 3 3-3" />}
       </svg>
     </button>
   )
