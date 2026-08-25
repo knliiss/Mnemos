@@ -113,7 +113,8 @@ export function PersonalizationStore({
                   )}
                 </span>
               </motion.button>
-            )}
+            )
+          })}
         </section>
       )}
     </div>
