@@ -161,7 +161,8 @@ export const en = {
         title: "How values appear in text",
         hint: "Set the forms once, then insert the exact placeholder you need into a message.",
         guideTitle: "Grammar forms are shown as human labels",
-        guideCopy: "Pick a value, open its forms, and use the description and example placeholder. These forms primarily support localized pack text.",
+        guideCopy:
+          "Pick a value, open its forms, and use the description and example placeholder. These forms primarily support localized pack text.",
         formsCount: "{{count}} forms",
         preview: "{{placeholder}} → {{value}}",
         valueKeys: {
@@ -206,11 +207,13 @@ export const en = {
     },
     review: {
       ...uiEn.personalization.review,
-      listDescription: "Choose a work to open its dedicated review page. Details and actions stay out of the selection list.",
+      listDescription:
+        "Choose a work to open its dedicated review page. Details and actions stay out of the selection list.",
       detailTitle: "Personalization review",
       detailEyebrow: "REVIEW",
       notFound: "This personalization is no longer available",
-      notFoundCopy: "Its status may already have changed. Return to the list and refresh the queue.",
+      notFoundCopy:
+        "Its status may already have changed. Return to the list and refresh the queue.",
     },
   },
   ...leaderboardsEn,
