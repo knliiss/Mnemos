@@ -29,6 +29,7 @@ import {
 import { CreatorDesignPresets } from "./CreatorDesignPresets"
 import { CreatorNotificationPackSpotlightPreview } from "./CreatorNotificationPackSpotlightPreview"
 import { CreatorNotificationPackStudio } from "./CreatorNotificationPackStudio"
+import { CreatorNotificationValueFormsEditor } from "./CreatorNotificationValueFormsEditor"
 import { CreatorPersonalizationControls } from "./CreatorPersonalizationControls"
 import { CreatorVisualLayerStudio } from "./CreatorVisualLayerStudio"
 import {
@@ -39,6 +40,7 @@ import {
 } from "./creatorEditorModel"
 import { isCreatorVisualFormValid, isNotificationPackFormValid } from "./creatorEditorValidation"
 import "./creator-notification-studio.css"
+import "./creator-notification-value-forms.css"
 import "./creator-visual-editor.css"
 import {
   isCreatorPriceValid,
@@ -378,12 +380,20 @@ export function CreatorEditor({ params, back }: Props) {
         </Field>
 
         {form.type === "NOTIFICATION_PACK" ? (
-          <CreatorNotificationPackStudio
-            form={form}
-            descriptor={descriptor}
-            editable={editable}
-            setForm={setForm}
-          />
+          <>
+            <CreatorNotificationPackStudio
+              form={form}
+              descriptor={descriptor}
+              editable={editable}
+              setForm={setForm}
+            />
+            <CreatorNotificationValueFormsEditor
+              form={form}
+              descriptor={descriptor}
+              editable={editable}
+              setForm={setForm}
+            />
+          </>
         ) : (
           <>
             <CreatorDesignPresets form={form} editable={editable} setForm={setForm} />
