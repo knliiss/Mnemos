@@ -58,7 +58,7 @@ class ListActiveGlobalEventsServiceTest {
 
         val result = service.execute()
 
-        assertEquals(emptyList<GlobalEventView>(), result)
+        assertEquals(0, result.size)
     }
 
     private fun event(
