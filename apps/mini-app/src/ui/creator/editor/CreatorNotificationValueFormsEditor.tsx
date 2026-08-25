@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next"
 import type { Dispatch, SetStateAction } from "react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -177,7 +178,9 @@ function ValueFormsCard({
         </span>
         <span className="notification-word-form-card__count">
           {t("creator.editor.wordForms.formsCount", { count: entries.length })}
-          <Glyph name="chevron-down" size={13} />
+          <i className="notification-word-form-card__chevron" aria-hidden="true">
+            ⌄
+          </i>
         </span>
       </summary>
 
@@ -225,7 +228,7 @@ function formEntries(forms: NotificationValueForms): FormEntry[] {
 }
 
 function valueLabel(
-  t: ReturnType<typeof useTranslation>["t"],
+  t: TFunction,
   valueKey: NotificationPackValueKey,
   rawValue: string,
 ): string {
@@ -248,19 +251,13 @@ function valueLabel(
   return t(`events.globals.${rawValue}`)
 }
 
-function formName(
-  t: ReturnType<typeof useTranslation>["t"],
-  formKey: string,
-): string {
+function formName(t: TFunction, formKey: string): string {
   return t(`creator.editor.wordForms.formNames.${formKey}`, {
     defaultValue: formKey,
   })
 }
 
-function formQuestion(
-  t: ReturnType<typeof useTranslation>["t"],
-  formKey: string,
-): string {
+function formQuestion(t: TFunction, formKey: string): string {
   return t(`creator.editor.wordForms.formQuestions.${formKey}`, {
     defaultValue: "",
   })
