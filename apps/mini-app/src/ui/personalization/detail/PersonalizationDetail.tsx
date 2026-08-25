@@ -73,8 +73,7 @@ export function PersonalizationDetail({
   const actionClassName = `personalization-detail-purchase__action ${
     item.owned && item.active ? "is-active" : ""
   }`.trim()
-  const notificationPackContent =
-    item.content?.kind === "NOTIFICATION_PACK" ? item.content : null
+  const notificationPackContent = item.content?.kind === "NOTIFICATION_PACK" ? item.content : null
 
   return (
     <div className="screen personalization-detail-screen">
