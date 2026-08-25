@@ -2,11 +2,11 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import { PERSONALIZATION_TYPES } from "../../contracts"
-import type { Personalization, Route } from "../../model"
-import { CurrencyMark } from "../../shared/MnemosIcon"
+import type { Account, Personalization, Route } from "../../model"
+import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
+import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import {
-  localeForLanguage,
   personalizationIllustrations,
   personalizationTargets,
   personalizationTypeNote,
@@ -16,6 +16,7 @@ import {
 type PersonalizationStoreProps = {
   items: Personalization[]
   loading: boolean
+  activeAccount: Account | null
   prime: number
   navigate: (route: Route) => void
 }
@@ -23,12 +24,12 @@ type PersonalizationStoreProps = {
 export function PersonalizationStore({
   items,
   loading,
+  activeAccount,
   prime,
   navigate,
 }: PersonalizationStoreProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const published = items.filter((item) => item.status === "PUBLISHED")
-  const locale = localeForLanguage(i18n.resolvedLanguage)
 
   return (
     <div className="screen personalization-store-screen root-screen">
@@ -39,14 +40,12 @@ export function PersonalizationStore({
           <p>{t("personalization.store.description")}</p>
         </span>
 
-        <button
-          type="button"
-          className="store-prime-pill"
-          onClick={() => navigate({ id: "user-wallet" })}
-        >
-          <CurrencyMark currency="PRIME" size={17} />
-          <strong>{prime.toLocaleString(locale)}</strong>
-        </button>
+        <PersonalizationBalanceBar
+          activeAccount={activeAccount}
+          prime={prime}
+          navigate={navigate}
+          compact
+        />
       </header>
 
       <section className="personalization-store-hero">
@@ -99,7 +98,11 @@ export function PersonalizationStore({
 
                 <span className="personalization-store-category-card__preview">
                   {sample ? (
-                    <PersonalizationVisual item={sample} small />
+                    sample.type === "NOTIFICATION_PACK" ? (
+                      <NotificationPackSpotlightPreview item={sample} size="THUMBNAIL" />
+                    ) : (
+                      <PersonalizationVisual item={sample} small />
+                    )
                   ) : (
                     <img
                       className="personalization-store-category-card__fallback-art"

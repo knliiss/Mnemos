@@ -1,0 +1,90 @@
+.drop-spotlight-preview {
+  --spotlight-preview-scale: 0.58;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(203, 255, 45, 0.035), transparent 46%), #090b08;
+}
+
+.drop-spotlight-preview--thumbnail {
+  --spotlight-preview-scale: 0.31;
+  height: 100%;
+  min-height: 68px;
+}
+
+.drop-spotlight-preview--card {
+  --spotlight-preview-scale: 0.56;
+  min-height: 112px;
+}
+
+.drop-spotlight-preview--detail {
+  --spotlight-preview-scale: 0.84;
+  min-height: 164px;
+}
+
+.drop-spotlight-preview--studio {
+  --spotlight-preview-scale: 0.66;
+  min-height: 144px;
+}
+
+.drop-spotlight-preview__stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 470px;
+  transform: translate(-50%, -50%) scale(var(--spotlight-preview-scale));
+  transform-origin: center;
+}
+
+.realtime-spotlight.is-embedded {
+  position: relative;
+  z-index: 1;
+  top: auto;
+  left: auto;
+  grid-template-columns: 90px minmax(0, 1fr) 18px;
+  gap: 14px;
+  width: 470px;
+  min-height: 122px;
+  padding: 15px 16px 16px 12px;
+  border-radius: 20px;
+  pointer-events: none;
+  transform: none;
+  animation: none;
+}
+
+.realtime-spotlight.is-embedded .realtime-spotlight__visual {
+  width: 90px;
+  height: 90px;
+}
+
+.realtime-spotlight.is-embedded.is-compact {
+  grid-template-columns: 50px minmax(0, 1fr) 14px;
+  gap: 10px;
+  min-height: 70px;
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.realtime-spotlight.is-embedded.is-compact .realtime-spotlight__visual {
+  width: 50px;
+  height: 50px;
+}
+
+@media (max-width: 420px) {
+  .drop-spotlight-preview--card {
+    --spotlight-preview-scale: 0.5;
+  }
+
+  .drop-spotlight-preview--detail {
+    --spotlight-preview-scale: 0.68;
+    min-height: 140px;
+  }
+
+  .drop-spotlight-preview--studio {
+    --spotlight-preview-scale: 0.58;
+    min-height: 130px;
+  }
+}

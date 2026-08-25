@@ -3,8 +3,10 @@ import {
   PersonalizationDetails,
   PersonalizationVisual,
 } from "../../components/personalization/PersonalizationPreview"
-import type { Personalization } from "../../model"
+import type { Account, Personalization, Route } from "../../model"
 import { CurrencyValue, PageHeader } from "../../shared/Primitives"
+import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
+import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { personalizationTypeTitle } from "../personalizationPresentation"
 import "./personalization-detail.css"
@@ -15,10 +17,13 @@ type PersonalizationDetailProps = {
   loading: boolean
   busyId: string | null
   pendingPurchases: Record<string, string>
+  activeAccount: Account | null
+  prime: number
   canBuyAccountPersonalizations: boolean
   canApplyAccountPersonalizations: boolean
   onPurchase: (item: Personalization) => Promise<void>
   onToggleActive: (item: Personalization) => Promise<void>
+  navigate: (route: Route) => void
   back: () => void
 }
 
@@ -28,10 +33,13 @@ export function PersonalizationDetail({
   loading,
   busyId,
   pendingPurchases,
+  activeAccount,
+  prime,
   canBuyAccountPersonalizations,
   canApplyAccountPersonalizations,
   onPurchase,
   onToggleActive,
+  navigate,
   back,
 }: PersonalizationDetailProps) {
   const { t } = useTranslation()
@@ -69,6 +77,8 @@ export function PersonalizationDetail({
     <div className="screen personalization-detail-screen">
       <PageHeader title={item.name} back={back} />
 
+      <PersonalizationBalanceBar activeAccount={activeAccount} prime={prime} navigate={navigate} />
+
       <section className="personalization-detail-hero">
         <span className="personalization-detail-hero__copy">
           <small>
@@ -78,7 +88,11 @@ export function PersonalizationDetail({
           <em>{item.creator}</em>
         </span>
 
-        <PersonalizationVisual item={item} detail />
+        {item.type === "NOTIFICATION_PACK" ? (
+          <NotificationPackSpotlightPreview item={item} size="DETAIL" />
+        ) : (
+          <PersonalizationVisual item={item} detail />
+        )}
       </section>
 
       <PersonalizationDetails item={item} />

@@ -13,6 +13,7 @@ import {
   ItemTypeArt,
   RaidArt,
 } from "../../components/events/EventArt"
+import { DropSpotlightPreview } from "../../components/spotlight/DropSpotlightPresentation"
 import type { NotificationTemplateKey } from "../../model"
 import { Field } from "../../shared/Primitives"
 import type { CreatorEditorForm } from "./creatorEditorModel"
@@ -358,20 +359,32 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
               <strong>{t(`creator.editor.notificationTypes.${templateDescriptor.type}`)}</strong>
             </header>
 
-            <div>
-              <span>{eventArt(templateDescriptor.type)}</span>
-              <span>
-                <small>
-                  {withEmoji(
-                    template.emoji,
-                    renderTemplate(template.soloTitle, templateDescriptor.sampleValues),
-                  )}
-                </small>
-                <strong>
-                  {renderTemplate(template.soloBody, templateDescriptor.sampleValues)}
-                </strong>
-              </span>
-            </div>
+            {templateDescriptor.type === "ITEM_DROP" ? (
+              <DropSpotlightPreview
+                size="STUDIO"
+                presentationMode={mode === "SOLO" ? "FULL" : "COMPACT"}
+                itemName={templateDescriptor.sampleValues.item ?? "Item"}
+                droppedFor={templateDescriptor.sampleValues.player ?? "north"}
+                itemRarity={templateDescriptor.sampleValues.rarity ?? "MYTHICAL"}
+                itemType={templateDescriptor.sampleValues.itemType ?? "SWORD"}
+                template={template}
+              />
+            ) : (
+              <div>
+                <span>{eventArt(templateDescriptor.type)}</span>
+                <span>
+                  <small>
+                    {withEmoji(
+                      template.emoji,
+                      renderTemplate(template.soloTitle, templateDescriptor.sampleValues),
+                    )}
+                  </small>
+                  <strong>
+                    {renderTemplate(template.soloBody, templateDescriptor.sampleValues)}
+                  </strong>
+                </span>
+              </div>
+            )}
           </section>
         </div>
       </div>

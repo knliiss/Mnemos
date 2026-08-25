@@ -1,6 +1,13 @@
 export const accountHomeUk = {
   accountHome: {
     activeAccount: "АКТИВНИЙ АККАУНТ",
+    globalEventsEyebrow: "ГЛОБАЛЬНІ ПОДІЇ",
+    globalEventsActiveTitle: "Зараз у грі",
+    globalEventsEmptyTitle: "Зараз подій немає",
+    globalEventsEmptyCopy: "Mnemos покаже глобальну подію тут одразу після її початку в грі.",
+    globalEventsCount: "Активно: {{count}}",
+    globalEventLive: "ТРИВАЄ",
+    globalEventStartedAt: "Почалося о {{time}}",
     dailyReward: "ЩОДЕННА НАГОРОДА",
     streakDays: "днів поспіль",
     primeChance: "{{chance}}% шанс",

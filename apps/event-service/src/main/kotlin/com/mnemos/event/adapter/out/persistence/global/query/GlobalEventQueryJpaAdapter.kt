@@ -9,6 +9,7 @@ import com.mnemos.event.application.global.port.out.GlobalEventReader
 import com.mnemos.event.application.global.usecase.list.ListGlobalEventQuery
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
+import java.time.Instant
 
 @Repository
 class GlobalEventQueryJpaAdapter(
@@ -33,4 +34,9 @@ class GlobalEventQueryJpaAdapter(
 
         return page.toPageResult { it.toView() }
     }
+
+    override fun findStartedAfter(startedAfter: Instant): List<GlobalEventView> =
+        eventJpaRepository
+            .findViewsStartedAfter(startedAfter)
+            .map { projection -> projection.toView() }
 }

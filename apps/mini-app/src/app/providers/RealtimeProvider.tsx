@@ -7,15 +7,12 @@ import { realtimeClient } from "@/shared/realtime/realtimeClient"
 import { realtimeBroadcasts, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
 import type { DropSpotlightBroadcast, RealtimeEvent } from "@/shared/realtime/realtime.types"
-import { ItemTypeArt } from "@/ui/components/events/EventArt"
-import type { BetItemType } from "@/ui/model"
-import { Glyph } from "@/ui/shared/MnemosIcon"
+import { DropSpotlightPresentation } from "@/ui/components/spotlight/DropSpotlightPresentation"
 import "@/ui/system/system.css"
 import "@/ui/system/spotlight-position.css"
 
 const FULL_SPOTLIGHT_DURATION_MS = 7_000
 const COMPACT_SPOTLIGHT_DURATION_MS = 4_500
-const supportedSpotlightItemTypes: BetItemType[] = ["SWORD", "AURA", "PET", "BOOK", "JEWELRY"]
 
 type QueuedSpotlight = {
   spotlight: DropSpotlightBroadcast
@@ -172,19 +169,6 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
   const template = spotlight.payload.notificationPack?.templates.find(
     (candidate) => candidate.type === "ITEM_DROP",
   )
-  const values = {
-    player: spotlight.payload.droppedFor,
-    item: spotlight.payload.itemName,
-    rarity: spotlight.payload.itemRarity,
-    itemType: spotlight.payload.itemType,
-  }
-  const fallbackBody = `${spotlight.payload.droppedFor} · ${spotlight.payload.itemRarity} · ${spotlight.payload.itemType}`
-  const title = renderedTemplate(template?.soloTitle, values) || spotlight.payload.itemName
-  const bodyTemplate =
-    spotlight.presentationMode === "COMPACT" ? template?.compact : template?.soloBody
-  const body = renderedTemplate(bodyTemplate, values) || fallbackBody
-  const compact = spotlight.presentationMode === "COMPACT"
-  const itemType = resolveSpotlightItemType(spotlight.payload.itemType)
 
   return (
     <motion.div
@@ -194,73 +178,16 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
       exit={{ opacity: 0, y: -13, scale: 0.985, filter: "blur(6px)" }}
       transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
     >
-      <aside
-        className={`realtime-spotlight ${compact ? "is-compact" : "is-full"}`}
-        data-rarity={spotlight.payload.itemRarity.toLowerCase()}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <span className="realtime-spotlight__scan" aria-hidden="true" />
-        <span className="realtime-spotlight__corners" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
-
-        <motion.span
-          className="realtime-spotlight__visual"
-          aria-hidden="true"
-          animate={{ y: [0, -3, 0], rotate: [0, -0.7, 0.7, 0] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {itemType ? (
-            <ItemTypeArt itemType={itemType} size={compact ? 40 : 78} />
-          ) : (
-            <Glyph name="item-drop" size={compact ? 20 : 32} />
-          )}
-          {template?.emoji ? <b>{template.emoji}</b> : null}
-        </motion.span>
-
-        <span className="realtime-spotlight__copy">
-          <small>
-            <i /> MNEMOS SPOTLIGHT · {spotlight.payload.itemRarity}
-          </small>
-          <strong>{title}</strong>
-          {compact ? <em>{body}</em> : <p>{body}</p>}
-          {!compact ? (
-            <span className="realtime-spotlight__meta">
-              <b>{spotlight.payload.droppedFor}</b>
-              <i />
-              <em>{spotlight.payload.itemType}</em>
-            </span>
-          ) : null}
-        </span>
-
-        <span className="realtime-spotlight__signal" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="realtime-spotlight__lifetime" aria-hidden="true" />
-      </aside>
+      <DropSpotlightPresentation
+        presentationMode={spotlight.presentationMode}
+        itemName={spotlight.payload.itemName}
+        droppedFor={spotlight.payload.droppedFor}
+        itemRarity={spotlight.payload.itemRarity}
+        itemType={spotlight.payload.itemType}
+        template={template}
+      />
     </motion.div>
   )
-}
-
-function resolveSpotlightItemType(value: string): BetItemType | null {
-  return supportedSpotlightItemTypes.includes(value as BetItemType) ? (value as BetItemType) : null
-}
-
-function renderedTemplate(template: string | undefined, values: Record<string, string>): string {
-  if (!template) {
-    return ""
-  }
-
-  return template
-    .replace(/\{([a-zA-Z][a-zA-Z0-9_]*)}/g, (_, key: string) => values[key] ?? `{${key}}`)
-    .trim()
 }
 
 function notifyAboutOperation(event: RealtimeEvent, translate: (key: string) => string) {

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.Instant
 import java.util.UUID
 
 interface GlobalEventJpaRepository : JpaRepository<GlobalEventEntity, UUID> {
@@ -15,7 +16,7 @@ interface GlobalEventJpaRepository : JpaRepository<GlobalEventEntity, UUID> {
         SELECT
             e.id AS id,
             e.type AS type,
-            e.startedAt AS occurredAt
+            e.startedAt AS startedAt
         FROM GlobalEventEntity e
         ORDER BY e.startedAt DESC, e.id DESC
         """,
@@ -24,10 +25,10 @@ interface GlobalEventJpaRepository : JpaRepository<GlobalEventEntity, UUID> {
 
     @Query(
         """
-            SELECT 
-                e.id as id,
-                e.type as type,
-                e.startedAt as startedAt
+            SELECT
+                e.id AS id,
+                e.type AS type,
+                e.startedAt AS startedAt
             FROM GlobalEventEntity e
             WHERE e.type IN :types
             ORDER BY e.startedAt DESC, e.id DESC
@@ -37,4 +38,19 @@ interface GlobalEventJpaRepository : JpaRepository<GlobalEventEntity, UUID> {
         @Param("types") types: Collection<DomainGlobalEventType>,
         pageable: Pageable,
     ): Page<GlobalEventViewProjection>
+
+    @Query(
+        """
+            SELECT
+                e.id AS id,
+                e.type AS type,
+                e.startedAt AS startedAt
+            FROM GlobalEventEntity e
+            WHERE e.startedAt > :startedAfter
+            ORDER BY e.startedAt DESC, e.id DESC
+        """,
+    )
+    fun findViewsStartedAfter(
+        @Param("startedAfter") startedAfter: Instant,
+    ): List<GlobalEventViewProjection>
 }

@@ -6,7 +6,9 @@ import type { Account, Route } from "../../model"
 import { CurrencyMark } from "../../shared/MnemosIcon"
 import { RoleSigil } from "../../shared/RoleSigil"
 import { AccountDailyReward } from "../AccountDailyReward"
+import { CurrentGlobalEventsPanel } from "./CurrentGlobalEventsPanel"
 import { LeaderboardPromoCard } from "./LeaderboardPromoCard"
+import "./current-global-events.css"
 
 type AccountOverviewProps = {
   account: Account
@@ -58,6 +60,8 @@ export function AccountOverview({
           <div className="account-home-profile__user-access">{userHubTrigger}</div>
         ) : null}
       </section>
+
+      <CurrentGlobalEventsPanel navigate={navigate} />
 
       <AccountDailyReward />
 

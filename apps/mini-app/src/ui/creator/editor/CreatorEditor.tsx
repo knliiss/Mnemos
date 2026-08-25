@@ -18,6 +18,7 @@ import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Currency } from "../../model"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { Field, PageHeader } from "../../shared/Primitives"
+import { NotificationPackSpotlightPreview } from "../../personalization/components/NotificationPackSpotlightPreview"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
 import { CreatorLoadingState } from "../CreatorLoadingState"
 import {
@@ -318,7 +319,11 @@ export function CreatorEditor({ params, back }: Props) {
           <small>{creatorTypeLabel(t, form.type)}</small>
         </header>
 
-        <PersonalizationVisual item={preview} detail />
+        {preview.type === "NOTIFICATION_PACK" ? (
+          <NotificationPackSpotlightPreview item={preview} size="STUDIO" />
+        ) : (
+          <PersonalizationVisual item={preview} detail />
+        )}
       </section>
 
       {currentSource?.rejectionReason ? (
