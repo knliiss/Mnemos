@@ -26,7 +26,6 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationSt
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -45,7 +44,10 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         fixture.service.execute()
 
         val definitions = BuiltinNotificationPacksCore.definitions
-        val personalizations = fixture.personalizationStore.byCatalogKey.values.toList()
+        val personalizations =
+            fixture.personalizationStore.byCatalogKey
+                .values
+                .toList()
 
         assertEquals(definitions.size, personalizations.size)
         assertEquals(definitions.size, fixture.personalizationStore.saveCalls)
@@ -103,7 +105,10 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         fixture.service.execute()
 
         val updated = fixture.personalizationStore.byCatalogKey.getValue(firstDefinition.catalogKey)
-        val payload = fixture.publisher.events.single().payload as NotificationPackSelectionChangedV1
+        val payload =
+            fixture.publisher.events
+                .single()
+                .payload as NotificationPackSelectionChangedV1
 
         assertEquals(existingId, updated.id)
         assertEquals(firstDefinition.name, updated.name)
