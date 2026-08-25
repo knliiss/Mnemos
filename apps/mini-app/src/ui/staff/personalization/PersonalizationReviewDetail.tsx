@@ -15,9 +15,9 @@ import {
 } from "../../components/personalization/PersonalizationPreview"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Personalization } from "../../model"
-import { NotificationPackSpotlightPreview } from "../../personalization/components/NotificationPackSpotlightPreview"
 import { NotificationPackTelegramPreview } from "../../personalization/components/NotificationPackTelegramPreview"
 import { toPersonalization } from "../../personalization/data/personalizationMappers"
+import { personalizationIllustrations } from "../../personalization/personalizationPresentation"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { Field, PageHeader } from "../../shared/Primitives"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
@@ -35,6 +35,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
   const { t } = useTranslation()
   const data = useMnemosData()
   const [item, setItem] = useState<Personalization | null>(null)
+  const [systemManaged, setSystemManaged] = useState(false)
   const [price, setPrice] = useState("")
   const [reason, setReason] = useState("")
   const [loading, setLoading] = useState(true)
@@ -62,6 +63,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
       }
 
       setItem(next)
+      setSystemManaged(response?.origin === "SYSTEM")
       setPrice(next ? String(next.price) : "")
       setReason("")
     } catch (error) {
@@ -130,7 +132,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
   }
 
   const changeListing = async () => {
-    if (!item || busyRef.current) {
+    if (!item || systemManaged || busyRef.current) {
       return
     }
 
@@ -220,8 +222,8 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
 
         {item.content?.kind === "NOTIFICATION_PACK" ? (
           <>
-            <div className="review-workbench__spotlight">
-              <NotificationPackSpotlightPreview item={item} size="DETAIL" />
+            <div className="review-workbench__notification-art" aria-hidden="true">
+              <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
             </div>
             <NotificationPackTelegramPreview content={item.content} />
           </>
@@ -304,7 +306,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
               </button>
             </section>
           </div>
-        ) : (
+        ) : systemManaged ? null : (
           <section className="review-approve-panel">
             <button
               type="button"
