@@ -27,7 +27,8 @@ class ListActiveGlobalEventsService(
                     startedAt = event.startedAt,
                     endsAt = event.startedAt.plus(properties.activeDuration),
                 )
-            }.filter { event -> event.endsAt.isAfter(now) }
+            }
+            .filter { event -> event.endsAt.isAfter(now) }
             .sortedByDescending { event -> event.startedAt }
             .distinctBy { event -> event.type }
             .take(properties.maximumSimultaneousEvents)
