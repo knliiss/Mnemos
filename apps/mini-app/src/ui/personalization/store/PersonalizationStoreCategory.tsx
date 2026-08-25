@@ -17,6 +17,7 @@ import {
   personalizationTypeTitle,
   readPersonalizationType,
 } from "../personalizationPresentation"
+import { NotificationPackCatalogSortSelect } from "./NotificationPackCatalogSortSelect"
 
 type PersonalizationStoreCategoryProps = {
   params?: Record<string, string>
@@ -113,6 +114,10 @@ export function PersonalizationStoreCategory({
   const pageItems = notificationPackCategory
     ? visibleItems
     : visibleItems.slice(safePage * pageSize, safePage * pageSize + pageSize)
+  const notificationSortOptions = notificationPackSorts.map((sort) => ({
+    value: sort,
+    label: t(`personalization.category.sort.${sort}`),
+  }))
 
   return (
     <div className="screen personalization-store-category">
@@ -151,21 +156,12 @@ export function PersonalizationStoreCategory({
             ) : null}
           </label>
 
-          <div
-            className="notification-pack-catalog-sort"
-            aria-label={t("personalization.category.sortTitle")}
-          >
-            {notificationPackSorts.map((sort) => (
-              <button
-                type="button"
-                key={sort}
-                className={notificationSort === sort ? "is-active" : ""}
-                onClick={() => setNotificationSort(sort)}
-              >
-                {t(`personalization.category.sort.${sort}`)}
-              </button>
-            ))}
-          </div>
+          <NotificationPackCatalogSortSelect
+            value={notificationSort}
+            options={notificationSortOptions}
+            label={t("personalization.category.sortTitle")}
+            onChange={setNotificationSort}
+          />
         </section>
       ) : null}
 
