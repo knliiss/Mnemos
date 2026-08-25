@@ -39,10 +39,7 @@ export function reconcileActiveGlobalEvents(
     (event) => !serverTypes.has(event.type),
   )
 
-  return normalizeActiveGlobalEvents(
-    [...normalizedServerEvents, ...unexpiredLocalEvents],
-    now,
-  )
+  return normalizeActiveGlobalEvents([...normalizedServerEvents, ...unexpiredLocalEvents], now)
 }
 
 export function normalizeActiveGlobalEvents(
