@@ -4,7 +4,7 @@ import type { Personalization } from "@/ui/model"
 
 type NotificationPackSpotlightPreviewProps = {
   item: Personalization
-  size: "THUMBNAIL" | "CARD" | "DETAIL"
+  size: "THUMBNAIL" | "CARD" | "DETAIL" | "STUDIO"
 }
 
 export function NotificationPackSpotlightPreview({
