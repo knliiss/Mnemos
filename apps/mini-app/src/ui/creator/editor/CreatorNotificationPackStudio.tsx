@@ -5,10 +5,6 @@ import type {
   NotificationPackEditorDescriptorResponse,
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
-import type {
-  NotificationTemplateResponse,
-  NotificationTemplateVariantResponse,
-} from "@/shared/api/personalizationApi"
 import {
   BoosterArt,
   DungeonArt,
@@ -35,9 +31,11 @@ type EditorMode = "SOLO" | "AGGREGATE"
 type AggregatePreviewMode = "SAME_TYPE" | "MIXED"
 type EditableTemplateField = "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
 type EditableMessageFields = Pick<
-  NotificationTemplateResponse,
+  NotificationTemplate,
   "emoji" | "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
 >
+type VariableDescriptor = NotificationPackEditorDescriptorResponse["templates"][number]["variables"][number]
+type VariableFormDescriptor = NonNullable<VariableDescriptor["forms"]>[number]
 
 type Props = {
   form: CreatorEditorForm
@@ -82,7 +80,8 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     return null
   }
 
-  const variants = template.variants ?? []
+  const conditionFields = templateDescriptor.conditionFields ?? []
+  const variants = template.variants
   const selectedVariant =
     selectedVariantId === null
       ? null
@@ -95,14 +94,11 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
       NotificationTemplateKey,
       NotificationTemplate
     >,
-    valueMappings: form.notificationPack.valueMappings,
+    valueMappings: form.notificationPack.valueMappings ?? {},
   } satisfies NotificationPackContent
-  const previewValues = valuesForVariant(
-    templateDescriptor.type,
-    selectedVariant as NotificationTemplateVariant | null,
-  )
+  const previewValues = valuesForVariant(templateDescriptor.type, selectedVariant)
 
-  const updateTemplate = (next: Partial<NotificationTemplateResponse>) => {
+  const updateTemplate = (next: Partial<NotificationTemplate>) => {
     setForm((current) => ({
       ...current,
       notificationPack: {
@@ -131,7 +127,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     })
   }
 
-  const updateVariant = (next: Partial<NotificationTemplateVariantResponse>) => {
+  const updateVariant = (next: Partial<NotificationTemplateVariant>) => {
     if (!selectedVariant) {
       return
     }
@@ -144,14 +140,14 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
   }
 
   const addVariant = () => {
-    const firstField = templateDescriptor.conditionFields[0]
+    const firstField = conditionFields[0]
     const firstValue = firstField?.values[0]
 
     if (!editable || !firstField || !firstValue) {
       return
     }
 
-    const variant: NotificationTemplateVariantResponse = {
+    const variant: NotificationTemplateVariant = {
       id: `variant_${Date.now().toString(36)}_${variants.length + 1}`,
       conditions: [
         {
@@ -187,9 +183,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     }
 
     const usedFields = new Set(selectedVariant.conditions.map((condition) => condition.field))
-    const nextField = templateDescriptor.conditionFields.find(
-      (field) => !usedFields.has(field.field),
-    )
+    const nextField = conditionFields.find((field) => !usedFields.has(field.field))
     const nextValue = nextField?.values[0]
 
     if (!nextField || !nextValue) {
@@ -212,9 +206,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
       return
     }
 
-    const field = templateDescriptor.conditionFields.find(
-      (candidate) => candidate.field === fieldName,
-    )
+    const field = conditionFields.find((candidate) => candidate.field === fieldName)
     const value = field?.values[0]
 
     if (!field || !value) {
@@ -329,8 +321,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
         ? sameTypeAggregateText
         : mixedAggregateText
   const canAddCondition = Boolean(
-    selectedVariant &&
-      selectedVariant.conditions.length < templateDescriptor.conditionFields.length,
+    selectedVariant && selectedVariant.conditions.length < conditionFields.length,
   )
 
   return (
@@ -370,7 +361,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             <strong>{t("creator.editor.variantsTitle")}</strong>
           </span>
 
-          {templateDescriptor.conditionFields.length ? (
+          {conditionFields.length ? (
             <button type="button" disabled={!editable} onClick={addVariant}>
               {t("creator.editor.addVariant")}
             </button>
@@ -397,7 +388,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                 className={selectedVariant?.id === variant.id ? "is-active" : ""}
                 onClick={() => setSelectedVariantId(variant.id)}
               >
-                {variantLabel(variant as NotificationTemplateVariant)}
+                {variantLabel(variant)}
               </button>
             ))}
           </nav>
@@ -418,7 +409,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             </header>
 
             {selectedVariant.conditions.map((condition, index) => {
-              const field = templateDescriptor.conditionFields.find(
+              const field = conditionFields.find(
                 (candidate) => candidate.field === condition.field,
               )
               const usedByOtherConditions = new Set(
@@ -434,7 +425,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                     disabled={!editable}
                     onChange={(event) => updateConditionField(index, event.target.value)}
                   >
-                    {templateDescriptor.conditionFields.map((candidate) => (
+                    {conditionFields.map((candidate) => (
                       <option
                         key={candidate.field}
                         value={candidate.field}
@@ -592,7 +583,7 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                   <section key={variable.key}>
                     <strong>{variable.key}</strong>
                     <div>
-                      {variable.forms.map((variableForm) => (
+                      {variableForms(variable).map((variableForm) => (
                         <button
                           type="button"
                           key={variableForm.placeholder}
@@ -675,6 +666,20 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
       </div>
     </section>
   )
+}
+
+function variableForms(variable: VariableDescriptor): VariableFormDescriptor[] {
+  if (variable.forms?.length) {
+    return variable.forms
+  }
+
+  return [
+    {
+      key: "default",
+      placeholder: `{${variable.key}}`,
+      sampleValue: variable.sampleValue,
+    },
+  ]
 }
 
 function eventArt(type: NotificationTemplateKey): ReactElement {

@@ -10,8 +10,6 @@ import type {
   AvatarFrameContentResponse,
   NickStyleContentResponse,
   NotificationPackContentResponse,
-  NotificationTemplateResponse,
-  NotificationValueFormsResponse,
   PersonalizationResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
@@ -22,7 +20,9 @@ import type {
   FrameStyle,
   GradientStop,
   NotificationPackValueKey,
+  NotificationTemplate,
   NotificationTemplateKey,
+  NotificationValueForms,
   Personalization,
   PersonalizationContent,
   PersonalizationStatus,
@@ -82,9 +82,9 @@ export type ProfileEffectEditorForm = {
 
 export type NotificationPackEditorForm = {
   mixedAggregateTitle: string
-  templates: Record<string, NotificationTemplateResponse>
-  valueMappings: Partial<
-    Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
+  templates: Record<string, NotificationTemplate>
+  valueMappings?: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueForms>>
   >
 }
 
@@ -168,14 +168,14 @@ function notificationPackDefaults(
         },
       ]),
     ),
-    valueMappings: structuredClone(descriptor.valueMappings),
+    valueMappings: structuredClone(descriptor.valueMappings ?? {}),
   }
 }
 
 function completeNotificationTemplates(
   form: CreatorEditorForm,
   descriptor: NotificationPackEditorDescriptorResponse,
-): Record<NotificationTemplateKey, NotificationTemplateResponse> {
+): Record<NotificationTemplateKey, NotificationTemplate> {
   return Object.fromEntries(
     descriptor.templates.map((templateDescriptor) => {
       const template = form.notificationPack.templates[templateDescriptor.type]
@@ -186,7 +186,21 @@ function completeNotificationTemplates(
 
       return [templateDescriptor.type, template]
     }),
-  ) as Record<NotificationTemplateKey, NotificationTemplateResponse>
+  ) as Record<NotificationTemplateKey, NotificationTemplate>
+}
+
+function normalizeNotificationTemplates(
+  content: NotificationPackContentResponse,
+): Record<string, NotificationTemplate> {
+  return Object.fromEntries(
+    Object.entries(content.templates).map(([key, template]) => [
+      key,
+      {
+        ...template,
+        variants: template.variants ?? [],
+      },
+    ]),
+  )
 }
 
 export async function saveCreatorForm(
@@ -281,7 +295,8 @@ export async function saveCreatorForm(
     name,
     mixedAggregateTitle: form.notificationPack.mixedAggregateTitle.trim(),
     templates: completeNotificationTemplates(form, descriptor),
-    valueMappings: form.notificationPack.valueMappings,
+    valueMappings:
+      form.notificationPack.valueMappings ?? structuredClone(descriptor.valueMappings ?? {}),
     price,
   }
 
@@ -455,8 +470,8 @@ export function creatorResponseToEditorForm(
     currency: "PRIME",
     notificationPack: {
       mixedAggregateTitle: value.mixedAggregateTitle,
-      templates: { ...value.templates },
-      valueMappings: value.valueMappings ?? structuredClone(descriptor.valueMappings),
+      templates: normalizeNotificationTemplates(value),
+      valueMappings: value.valueMappings ?? structuredClone(descriptor.valueMappings ?? {}),
     },
   }
 }
@@ -522,7 +537,7 @@ export function buildCreatorPreview(
       kind: "NOTIFICATION_PACK",
       mixedAggregateTitle: form.notificationPack.mixedAggregateTitle,
       templates: completeNotificationTemplates(form, descriptor),
-      valueMappings: form.notificationPack.valueMappings,
+      valueMappings: form.notificationPack.valueMappings ?? {},
     }
   }
 

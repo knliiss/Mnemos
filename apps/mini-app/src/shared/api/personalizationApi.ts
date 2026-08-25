@@ -59,7 +59,7 @@ export type NotificationTemplateResponse = {
   soloBody: string
   compact: string
   aggregateTitle: string
-  variants: NotificationTemplateVariantResponse[]
+  variants?: NotificationTemplateVariantResponse[]
 }
 
 export type NotificationValueFormsResponse = {
@@ -70,7 +70,7 @@ export type NotificationValueFormsResponse = {
 export type NotificationPackContentResponse = {
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplateResponse>
-  valueMappings: Partial<
+  valueMappings?: Partial<
     Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
   >
 }
@@ -127,9 +127,9 @@ export type PersonalizationContentResponse =
 export type PersonalizationResponse = {
   id: string
   creatorUserId: string | null
-  catalogKey: string | null
+  catalogKey?: string | null
   type: PersonalizationType
-  origin: "SYSTEM" | "CREATOR" | "CUSTOM"
+  origin: "SYSTEM" | "CREATOR" | "CUSTOM" | "MARKETPLACE"
   visibility: string
   name: string
   content: PersonalizationContentResponse

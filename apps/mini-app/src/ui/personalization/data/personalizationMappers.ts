@@ -74,11 +74,20 @@ function resolveCreator(
 function toPersonalizationContent(response: PersonalizationResponse): PersonalizationContent {
   if (response.type === "NOTIFICATION_PACK") {
     const content = response.content as NotificationPackContentResponse
+    const templates = Object.fromEntries(
+      Object.entries(content.templates).map(([key, template]) => [
+        key,
+        {
+          ...template,
+          variants: template.variants ?? [],
+        },
+      ]),
+    ) as NotificationPackContent["templates"]
 
     return {
       kind: "NOTIFICATION_PACK",
       mixedAggregateTitle: content.mixedAggregateTitle,
-      templates: content.templates,
+      templates,
       valueMappings: content.valueMappings ?? {},
     } satisfies NotificationPackContent
   }

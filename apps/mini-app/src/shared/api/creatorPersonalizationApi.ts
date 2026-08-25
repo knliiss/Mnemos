@@ -130,14 +130,14 @@ export type NotificationPackEditorDescriptorResponse = {
     variables: Array<{
       key: string
       sampleValue: string
-      forms: Array<{
+      forms?: Array<{
         key: string
         placeholder: string
         sampleValue: string
       }>
     }>
     sampleValues: Record<string, string>
-    conditionFields: Array<{
+    conditionFields?: Array<{
       field: NotificationPackVariantField
       placeholder: string
       values: Array<{
@@ -147,7 +147,7 @@ export type NotificationPackEditorDescriptorResponse = {
     }>
     defaults: Omit<NotificationTemplateResponse, "variants">
   }>
-  valueMappings: Partial<
+  valueMappings?: Partial<
     Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
   >
 }
