@@ -1,5 +1,7 @@
 .notification-pack-catalog-controls {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.34fr);
+  align-items: stretch;
   gap: 8px;
   margin: 10px 0 4px;
 }
@@ -9,7 +11,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 11px;
   border: 1px solid rgba(226, 233, 205, 0.1);
   border-radius: 13px;
@@ -51,34 +53,115 @@
   background: rgba(255, 255, 255, 0.025);
 }
 
-.notification-pack-catalog-sort {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
+.notification-pack-catalog-sort-select {
+  position: relative;
+  min-width: 0;
 }
 
-.notification-pack-catalog-sort::-webkit-scrollbar {
-  display: none;
+.notification-pack-catalog-sort-select__trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 11px;
+  border: 1px solid rgba(226, 233, 205, 0.1);
+  border-radius: 13px;
+  color: #dde2d6;
+  background: rgba(11, 13, 9, 0.96);
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
-.notification-pack-catalog-sort > button {
-  flex: 0 0 auto;
-  min-height: 30px;
-  padding: 5px 9px;
-  border: 1px solid rgba(226, 233, 205, 0.08);
-  border-radius: 9px;
-  color: #7e8578;
-  background: rgba(255, 255, 255, 0.018);
-  font-size: 8.5px;
-  font-weight: 620;
+.notification-pack-catalog-sort-select.is-open .notification-pack-catalog-sort-select__trigger {
+  border-color: rgba(203, 255, 45, 0.22);
+  background: rgba(14, 17, 10, 0.99);
 }
 
-.notification-pack-catalog-sort > button.is-active {
-  border-color: rgba(203, 255, 45, 0.2);
+.notification-pack-catalog-sort-select__trigger > span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.notification-pack-catalog-sort-select__trigger small {
+  color: #697064;
+  font-family: var(--font-meta);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.notification-pack-catalog-sort-select__trigger strong {
+  overflow: hidden;
+  color: #dfe4d8;
+  font-size: 9.5px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-pack-catalog-sort-select__trigger > i {
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid #7d8578;
+  border-bottom: 1px solid #7d8578;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.14s ease;
+}
+
+.notification-pack-catalog-sort-select.is-open .notification-pack-catalog-sort-select__trigger > i {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.notification-pack-catalog-sort-select__menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  width: min(260px, calc(100vw - 32px));
+  padding: 5px;
+  border: 1px solid rgba(226, 233, 205, 0.11);
+  border-radius: 12px;
+  background: rgba(10, 12, 8, 0.995);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
+}
+
+.notification-pack-catalog-sort-select__menu > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 8px;
+  color: #858d80;
+  background: transparent;
+  font-size: 9px;
+  text-align: left;
+}
+
+.notification-pack-catalog-sort-select__menu > button:hover,
+.notification-pack-catalog-sort-select__menu > button.is-active {
+  color: #dce4c8;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.notification-pack-catalog-sort-select__menu > button.is-active {
   color: #d9f782;
-  background: rgba(203, 255, 45, 0.05);
+}
+
+.notification-pack-catalog-sort-select__menu > button > i {
+  color: #cfee65;
+  font-size: 11px;
+  font-style: normal;
+  text-align: center;
 }
 
 .notification-pack-catalog-tile__footer {
@@ -182,6 +265,18 @@
   background:
     radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.075), transparent 42%),
     rgba(15, 18, 12, 0.98);
+}
+
+@media (max-width: 520px) {
+  .notification-pack-catalog-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .notification-pack-catalog-sort-select__menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
 }
 
 @media (max-width: 380px) {
