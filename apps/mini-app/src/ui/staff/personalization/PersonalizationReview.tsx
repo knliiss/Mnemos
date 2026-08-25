@@ -35,21 +35,11 @@ export function PersonalizationReview({ params, navigate, back }: Props) {
 
   if (detailId) {
     return (
-      <PersonalizationReviewDetail
-        personalizationId={detailId}
-        view={detailView}
-        back={back}
-      />
+      <PersonalizationReviewDetail personalizationId={detailId} view={detailView} back={back} />
     )
   }
 
-  return (
-    <PersonalizationReviewList
-      initialView={detailView}
-      navigate={navigate}
-      back={back}
-    />
-  )
+  return <PersonalizationReviewList initialView={detailView} navigate={navigate} back={back} />
 }
 
 function PersonalizationReviewList({
