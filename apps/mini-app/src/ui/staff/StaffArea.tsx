@@ -57,11 +57,7 @@ export function StaffArea(props: Props) {
     content = <ModerationUser key={userId} params={props.params} back={props.back} />
   } else if (props.routeId === "personalization-review") {
     content = (
-      <PersonalizationReview
-        params={props.params}
-        navigate={props.navigate}
-        back={props.back}
-      />
+      <PersonalizationReview params={props.params} navigate={props.navigate} back={props.back} />
     )
   } else if (props.routeId === "bet-admin") {
     content = <BetAdmin params={props.params} navigate={props.navigate} back={props.back} />
