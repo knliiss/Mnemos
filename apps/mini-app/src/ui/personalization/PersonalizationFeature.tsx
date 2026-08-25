@@ -59,6 +59,8 @@ export function PersonalizationFeature({
         params={params}
         items={personalization.items}
         loading={personalization.loading}
+        activeAccount={product.activeAccount}
+        prime={product.user.prime}
         navigate={navigate}
         back={back}
       />
@@ -73,10 +75,13 @@ export function PersonalizationFeature({
         loading={personalization.loading}
         busyId={personalization.busyId}
         pendingPurchases={personalization.pendingPurchases}
+        activeAccount={product.activeAccount}
+        prime={product.user.prime}
         canBuyAccountPersonalizations={canBuyAccountPersonalizations}
         canApplyAccountPersonalizations={canApplyAccountPersonalizations}
         onPurchase={personalization.purchase}
         onToggleActive={personalization.toggleActive}
+        navigate={navigate}
         back={back}
       />
     )
@@ -86,6 +91,7 @@ export function PersonalizationFeature({
     <PersonalizationStore
       items={personalization.items}
       loading={personalization.loading}
+      activeAccount={product.activeAccount}
       prime={product.user.prime}
       navigate={navigate}
     />
