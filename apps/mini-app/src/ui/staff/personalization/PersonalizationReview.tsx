@@ -15,7 +15,10 @@ import {
 } from "../../components/personalization/PersonalizationPreview"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Personalization, PersonalizationTarget } from "../../model"
+import { NotificationPackSpotlightPreview } from "../../personalization/components/NotificationPackSpotlightPreview"
+import { NotificationPackTelegramPreview } from "../../personalization/components/NotificationPackTelegramPreview"
 import { toPersonalization } from "../../personalization/data/personalizationMappers"
+import { personalizationIllustrations } from "../../personalization/personalizationPresentation"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, Field, PageHeader } from "../../shared/Primitives"
 import { FeatureEmpty } from "../../system/FeatureEmpty"
@@ -298,7 +301,14 @@ export function PersonalizationReview({ back }: { back: () => void }) {
               }
               onClick={() => setSelectedId(item.id)}
             >
-              <PersonalizationVisual item={item} small />
+              {item.type === "NOTIFICATION_PACK" ? (
+                <span className="review-queue-card__illustration" aria-hidden="true">
+                  <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
+                </span>
+              ) : (
+                <PersonalizationVisual item={item} small />
+              )}
+
               <span className="review-queue-card__copy">
                 <span className="review-queue-card__meta">
                   <small>{t(`personalization.types.${item.type}.title`)}</small>
@@ -348,8 +358,19 @@ export function PersonalizationReview({ back }: { back: () => void }) {
             </button>
           </header>
 
-          <PersonalizationVisual item={selected} detail />
-          <PersonalizationDetails item={selected} />
+          {selected.content?.kind === "NOTIFICATION_PACK" ? (
+            <>
+              <div className="review-workbench__spotlight">
+                <NotificationPackSpotlightPreview item={selected} size="DETAIL" />
+              </div>
+              <NotificationPackTelegramPreview content={selected.content} />
+            </>
+          ) : (
+            <>
+              <PersonalizationVisual item={selected} detail />
+              <PersonalizationDetails item={selected} />
+            </>
+          )}
 
           <div className="review-metadata">
             <article>

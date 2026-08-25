@@ -6,6 +6,7 @@ import {
 import type { Account, Personalization, Route } from "../../model"
 import { CurrencyValue, PageHeader } from "../../shared/Primitives"
 import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
+import { NotificationPackTelegramPreview } from "../components/NotificationPackTelegramPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import { personalizationTypeTitle } from "../personalizationPresentation"
@@ -72,6 +73,7 @@ export function PersonalizationDetail({
   const actionClassName = `personalization-detail-purchase__action ${
     item.owned && item.active ? "is-active" : ""
   }`.trim()
+  const notificationPackContent = item.content?.kind === "NOTIFICATION_PACK" ? item.content : null
 
   return (
     <div className="screen personalization-detail-screen">
@@ -95,7 +97,11 @@ export function PersonalizationDetail({
         )}
       </section>
 
-      <PersonalizationDetails item={item} />
+      {notificationPackContent ? (
+        <NotificationPackTelegramPreview content={notificationPackContent} />
+      ) : (
+        <PersonalizationDetails item={item} />
+      )}
 
       <section className="personalization-detail-purchase">
         <span className="personalization-detail-purchase__summary">
