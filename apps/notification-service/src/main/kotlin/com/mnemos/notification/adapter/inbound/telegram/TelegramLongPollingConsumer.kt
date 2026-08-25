@@ -93,7 +93,8 @@ class TelegramLongPollingConsumer(
 
     private fun handleCallback(callbackQuery: CallbackQuery): DeliveryResult {
         val section =
-            callbackQuery.data()
+            callbackQuery
+                .data()
                 ?.let(TelegramHelpSection::fromCallbackData)
                 ?: return DeliveryResult.Delivered
         val message = callbackQuery.message() ?: return DeliveryResult.Delivered
