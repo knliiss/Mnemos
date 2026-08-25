@@ -565,7 +565,8 @@ class SubscriptionIntegrationTest {
                 """.trimIndent(),
                 Int::class.javaObjectType,
                 subscriptionId,
-            ).toSet()
+            ).filterNotNull()
+            .toSet()
 
     private fun tableCount(table: String): Long =
         jdbcTemplate.queryForObject(
