@@ -301,20 +301,20 @@ object BuiltinVisualPersonalizationCatalog {
         )
 
     private fun stop(
-        color: String,
+        colorValue: String,
         position: Int,
     ): GradientStop =
         GradientStop(
-            color = color(color),
+            color = color(colorValue),
             position = position,
         )
 
     private fun glow(
-        color: String,
+        colorValue: String,
         strength: Int,
     ): GlowStyle =
         GlowStyle(
-            color = color(color),
+            color = color(colorValue),
             strength = strength,
         )
 
