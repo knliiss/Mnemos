@@ -24,6 +24,13 @@ export type EventFeedQuery = {
   limit?: number
 }
 
+export type ActiveGlobalEventResponse = {
+  id: string
+  type: GlobalEventType
+  startedAt: string
+  endsAt: string
+}
+
 export async function getEventFeed(query: EventFeedQuery = {}): Promise<EventFeedResponse> {
   const params = new URLSearchParams()
 
@@ -73,6 +80,10 @@ export async function getEventFeed(query: EventFeedQuery = {}): Promise<EventFee
 
 export async function getEventFeedItem(eventId: string): Promise<EventFeedItemResponse> {
   return api<EventFeedItemResponse>(`/api/v1/events/feed/${eventId}`)
+}
+
+export async function getActiveGlobalEvents(): Promise<ActiveGlobalEventResponse[]> {
+  return api<ActiveGlobalEventResponse[]>("/api/v1/global-events/active")
 }
 
 export async function searchItemCatalog(search: string, limit = 8): Promise<ItemCatalogResponse[]> {

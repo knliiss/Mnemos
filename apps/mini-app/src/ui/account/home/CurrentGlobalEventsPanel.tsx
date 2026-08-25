@@ -1,58 +1,129 @@
 import { motion } from "framer-motion"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { getEventFeed } from "@/shared/api/eventApi"
+import { getActiveGlobalEvents } from "@/shared/api/eventApi"
 import {
-  createActiveGlobalEvent,
-  hydrateGlobalEventPresence,
+  replaceGlobalEventPresence,
   useActiveGlobalEvents,
 } from "@/shared/realtime/globalEventPresenceStore"
+import { realtimeBroadcasts, realtimeConnectionEvents } from "@/shared/realtime/realtimeEventBus"
 import { GlobalEventArt } from "@/ui/components/events/EventArt"
 import type { Route } from "@/ui/model"
 import { localeForLanguage } from "../accountPresentation"
+import "./current-global-events-state.css"
 
 type CurrentGlobalEventsPanelProps = {
   navigate: (route: Route) => void
 }
 
+type PresenceSyncState = "LOADING" | "READY" | "ERROR"
+
 export function CurrentGlobalEventsPanel({ navigate }: CurrentGlobalEventsPanelProps) {
   const { t, i18n } = useTranslation()
   const events = useActiveGlobalEvents()
   const locale = localeForLanguage(i18n.resolvedLanguage)
+  const [syncState, setSyncState] = useState<PresenceSyncState>("LOADING")
+  const requestRevision = useRef(0)
 
-  useEffect(() => {
-    let cancelled = false
+  const refresh = useCallback(async () => {
+    const revision = requestRevision.current + 1
 
-    void getEventFeed({
-      types: ["GLOBAL"],
-      sort: "NEWEST",
-      limit: 12,
-    })
-      .then((response) => {
-        if (cancelled) {
-          return
-        }
+    requestRevision.current = revision
 
-        const history = response.items.flatMap((item) => {
-          if (item.type !== "GLOBAL") {
-            return []
-          }
+    try {
+      const response = await getActiveGlobalEvents()
 
-          const event = createActiveGlobalEvent(item.eventId, item.globalType, item.occurredAt)
+      if (revision !== requestRevision.current) {
+        return
+      }
 
-          return event ? [event] : []
-        })
-
-        hydrateGlobalEventPresence(history)
-      })
-      .catch(() => {
-        // Realtime updates remain authoritative while the feed is temporarily unavailable.
-      })
-
-    return () => {
-      cancelled = true
+      replaceGlobalEventPresence(
+        response.map((event) => ({
+          eventId: event.id,
+          type: event.type,
+          startedAt: event.startedAt,
+          endsAt: event.endsAt,
+        })),
+      )
+      setSyncState("READY")
+    } catch {
+      if (revision === requestRevision.current) {
+        setSyncState("ERROR")
+      }
     }
   }, [])
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void refresh()
+    })
+    const unsubscribeConnection = realtimeConnectionEvents.subscribe((state) => {
+      if (state === "CONNECTED") {
+        void refresh()
+      }
+    })
+    const unsubscribeBroadcasts = realtimeBroadcasts.subscribe((event) => {
+      if (event.type === "game-event" && event.payload.eventType === "GLOBAL_STARTED") {
+        void refresh()
+      }
+    })
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        void refresh()
+      }
+    }
+    const refreshOnFocus = () => {
+      void refresh()
+    }
+
+    document.addEventListener("visibilitychange", refreshWhenVisible)
+    window.addEventListener("focus", refreshOnFocus)
+
+    return () => {
+      requestRevision.current += 1
+      window.cancelAnimationFrame(frame)
+      unsubscribeConnection()
+      unsubscribeBroadcasts()
+      document.removeEventListener("visibilitychange", refreshWhenVisible)
+      window.removeEventListener("focus", refreshOnFocus)
+    }
+  }, [refresh])
+
+  if (!events.length && syncState === "LOADING") {
+    return (
+      <section className="account-home-global-events is-loading" aria-busy="true">
+        <span className="account-home-global-events__loading-art" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className="account-home-global-events__loading-copy" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+      </section>
+    )
+  }
+
+  if (!events.length && syncState === "ERROR") {
+    return (
+      <section className="account-home-global-events is-empty is-error">
+        <span className="account-home-global-events__mascot" aria-hidden="true">
+          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+        </span>
+
+        <span className="account-home-global-events__empty-copy">
+          <small>{t("accountHome.globalEventsEyebrow")}</small>
+          <strong>{t("common.loadErrorTitle")}</strong>
+          <em>{t("common.loadErrorCopy")}</em>
+          <button type="button" onClick={() => void refresh()}>
+            {t("common.retry")}
+          </button>
+        </span>
+      </section>
+    )
+  }
 
   if (!events.length) {
     return (

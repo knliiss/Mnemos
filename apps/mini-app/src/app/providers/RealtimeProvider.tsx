@@ -3,7 +3,6 @@ import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { errorEvents } from "@/shared/errors/errorEventBus"
 import { notifications } from "@/shared/notifications/notificationCenter"
-import { ingestGlobalEventBroadcast } from "@/shared/realtime/globalEventPresenceStore"
 import { realtimeClient } from "@/shared/realtime/realtimeClient"
 import { realtimeBroadcasts, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
@@ -130,8 +129,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     }
 
     const unsubscribeBroadcasts = realtimeBroadcasts.subscribe((event) => {
-      if (event.type === "game-event") {
-        ingestGlobalEventBroadcast(event)
+      if (event.type !== "drop-spotlight") {
         return
       }
 

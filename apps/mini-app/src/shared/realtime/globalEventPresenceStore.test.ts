@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-  createActiveGlobalEvent,
-  GLOBAL_EVENT_LIFETIME_MS,
-  mergeActiveGlobalEvents,
+  normalizeActiveGlobalEvents,
   type ActiveGlobalEvent,
 } from "./globalEventPresenceStore"
 
@@ -12,21 +10,19 @@ function activeEvent(
   eventId: string,
   type: ActiveGlobalEvent["type"],
   startedAtOffsetMs: number,
+  endsAtOffsetMs = 120_000,
 ): ActiveGlobalEvent {
-  const startedAt = new Date(NOW + startedAtOffsetMs).toISOString()
-
   return {
     eventId,
     type,
-    startedAt,
-    expiresAt: new Date(NOW + startedAtOffsetMs + GLOBAL_EVENT_LIFETIME_MS).toISOString(),
+    startedAt: new Date(NOW + startedAtOffsetMs).toISOString(),
+    endsAt: new Date(NOW + endsAtOffsetMs).toISOString(),
   }
 }
 
 describe("global event presence", () => {
   it("keeps at most three simultaneous events ordered by newest start", () => {
-    const events = mergeActiveGlobalEvents(
-      [],
+    const events = normalizeActiveGlobalEvents(
       [
         activeEvent("darkness", "DARKNESS", -60_000),
         activeEvent("moon", "MOON", -50_000),
@@ -39,28 +35,29 @@ describe("global event presence", () => {
     expect(events.map((event) => event.eventId)).toEqual(["explosion", "eclipse", "moon"])
   })
 
-  it("does not let older feed hydration replace a newer realtime event of the same type", () => {
-    const realtimeEvent = activeEvent("new-moon", "MOON", -20_000)
-    const olderFeedEvent = activeEvent("old-moon", "MOON", -70_000)
+  it("keeps the newest event when a snapshot contains the same type more than once", () => {
+    const oldMoon = activeEvent("old-moon", "MOON", -70_000)
+    const newMoon = activeEvent("new-moon", "MOON", -20_000)
 
-    const events = mergeActiveGlobalEvents([realtimeEvent], [olderFeedEvent], NOW)
+    const events = normalizeActiveGlobalEvents([oldMoon, newMoon], NOW)
 
-    expect(events).toEqual([realtimeEvent])
+    expect(events).toEqual([newMoon])
   })
 
-  it("removes events whose active lifetime has already ended", () => {
-    const expired = activeEvent("expired", "DARKNESS", -GLOBAL_EVENT_LIFETIME_MS)
-    const active = activeEvent("active", "ECLIPSE", -30_000)
+  it("removes events whose server supplied end time has passed", () => {
+    const expired = activeEvent("expired", "DARKNESS", -60_000, 0)
+    const active = activeEvent("active", "ECLIPSE", -30_000, 90_000)
 
-    const events = mergeActiveGlobalEvents([expired, active], [], NOW)
+    const events = normalizeActiveGlobalEvents([expired, active], NOW)
 
     expect(events).toEqual([active])
   })
 
-  it("derives the same five minute lifetime used by realtime game event broadcasts", () => {
-    const startedAt = "2026-08-25T15:59:30.000Z"
-    const event = createActiveGlobalEvent("moon", "MOON", startedAt)
+  it("preserves the authoritative server end time without deriving a client lifetime", () => {
+    const event = activeEvent("moon", "MOON", -30_000, 173_000)
 
-    expect(event?.expiresAt).toBe("2026-08-25T16:04:30.000Z")
+    const events = normalizeActiveGlobalEvents([event], NOW)
+
+    expect(events[0]?.endsAt).toBe(new Date(NOW + 173_000).toISOString())
   })
 })
