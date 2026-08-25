@@ -5,13 +5,13 @@ import com.mnemos.account.application.query.identity.IdentityDirectoryPage
 import com.mnemos.account.application.query.identity.IdentityDirectoryQuery
 import com.mnemos.account.application.query.identity.IdentityDirectoryRepository
 import com.mnemos.account.application.query.identity.UserIdentityDirectoryEntry
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import kotlin.test.assertEquals
 
 class IdentityDirectoryServiceTest {
     @Test

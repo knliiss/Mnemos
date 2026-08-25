@@ -8,7 +8,7 @@ class AccountPermissionFeignConfigurationTest {
     @Test
     fun `internal interceptor adds service identity and api key headers`() {
         val interceptor =
-            AccountPermissionFeignConfiguration().internalApiKeyInterceptor(
+            AccountInternalFeignConfiguration().internalApiKeyInterceptor(
                 serviceName = "wallet-service",
                 apiKey = "test-api-key",
             )

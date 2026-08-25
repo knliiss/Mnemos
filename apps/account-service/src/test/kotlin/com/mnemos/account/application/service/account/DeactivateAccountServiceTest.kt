@@ -8,6 +8,7 @@ import com.mnemos.account.domain.model.account.CristalixUuid
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.common.core.model.id.AccountId
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -15,7 +16,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
-import kotlin.test.assertEquals
 
 class DeactivateAccountServiceTest {
     @Test

@@ -21,6 +21,7 @@ import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.common.core.model.user.Username
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -34,7 +35,6 @@ import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
-import kotlin.test.assertEquals
 
 class CreateAccountServiceTest {
     @Test
