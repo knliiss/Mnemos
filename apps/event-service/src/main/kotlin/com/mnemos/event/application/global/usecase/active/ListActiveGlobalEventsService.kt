@@ -17,10 +17,9 @@ class ListActiveGlobalEventsService(
     override fun execute(): List<ActiveGlobalEventView> {
         val now = clock.instant()
         val startedAfter = now.minus(properties.activeDuration)
-
-        return eventReader
-            .findStartedAfter(startedAfter)
-            .map { event ->
+        val recentEvents = eventReader.findStartedAfter(startedAfter)
+        val projectedEvents =
+            recentEvents.map { event ->
                 ActiveGlobalEventView(
                     id = event.id,
                     type = event.type,
@@ -28,9 +27,10 @@ class ListActiveGlobalEventsService(
                     endsAt = event.startedAt.plus(properties.activeDuration),
                 )
             }
-            .filter { event -> event.endsAt.isAfter(now) }
-            .sortedByDescending { event -> event.startedAt }
-            .distinctBy { event -> event.type }
-            .take(properties.maximumSimultaneousEvents)
+        val activeEvents = projectedEvents.filter { event -> event.endsAt.isAfter(now) }
+        val newestEvents = activeEvents.sortedByDescending { event -> event.startedAt }
+        val newestEventsByType = newestEvents.distinctBy { event -> event.type }
+
+        return newestEventsByType.take(properties.maximumSimultaneousEvents)
     }
 }

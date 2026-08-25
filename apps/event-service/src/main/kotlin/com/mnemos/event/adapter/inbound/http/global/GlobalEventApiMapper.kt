@@ -21,8 +21,7 @@ object GlobalEventApiMapper {
 
     fun PageResult<GlobalEventView>.toResponse(): PageResponse<GlobalEventResponse> = toPageResponse { it.toResponse() }
 
-    fun List<ActiveGlobalEventView>.toActiveResponses(): List<ActiveGlobalEventResponse> =
-        map { event -> event.toActiveResponse() }
+    fun List<ActiveGlobalEventView>.toActiveResponses(): List<ActiveGlobalEventResponse> = map { event -> event.toActiveResponse() }
 
     private fun GlobalEventView.toResponse(): GlobalEventResponse =
         GlobalEventResponse(
