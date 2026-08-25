@@ -5,8 +5,8 @@ import {
   createBoosterSubscription,
   createDungeonSubscription,
   createGlobalSubscription,
-  createRaidSubscription,
   deleteSubscription,
+  updateRaidSubscription,
 } from "@/shared/api/subscriptionApi"
 import { BoosterArt, DungeonArt, GlobalEventArt, RaidArt } from "../../components/events/EventArt"
 import { BOOSTER_TYPES, DUNGEON_TYPES, GLOBAL_EVENT_TYPES } from "../../contracts"
@@ -124,13 +124,17 @@ export function Subscriptions({ back }: { back: () => void }) {
     }
 
     await mutate(`RAID:${location}`, async () => {
-      for (const subscription of raidRules) {
-        await deleteSubscription(subscription.id)
+      if (nextLocations.size === 0) {
+        const subscription = raidRules[0]
+
+        if (subscription) {
+          await deleteSubscription(subscription.id)
+        }
+
+        return
       }
 
-      if (nextLocations.size > 0) {
-        await createRaidSubscription([...nextLocations].sort((left, right) => left - right))
-      }
+      await updateRaidSubscription([...nextLocations].sort((left, right) => left - right))
     })
   }
 

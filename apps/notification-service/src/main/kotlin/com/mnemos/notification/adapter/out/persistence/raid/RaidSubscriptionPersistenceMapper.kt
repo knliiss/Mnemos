@@ -8,9 +8,4 @@ object RaidSubscriptionPersistenceMapper {
             subscriptionId = id.id,
             locations = locations,
         )
-
-    fun RaidSubscription.toEquivalenceKey(): String =
-        locations
-            .sorted()
-            .joinToString(",")
 }
