@@ -111,11 +111,61 @@ export function DropSpotlightPresentation({
 }
 
 export function DropSpotlightPreview({ size, ...presentation }: DropSpotlightPreviewProps) {
+  if (size === "STUDIO") {
+    return <ItemDropStudioPreview {...presentation} />
+  }
+
   return (
     <div className={`drop-spotlight-preview drop-spotlight-preview--${size.toLowerCase()}`}>
       <div className="drop-spotlight-preview__stage">
         <DropSpotlightPresentation {...presentation} embedded />
       </div>
+    </div>
+  )
+}
+
+function ItemDropStudioPreview({
+  presentationMode,
+  itemName,
+  droppedFor,
+  itemRarity,
+  itemType,
+  template,
+}: DropSpotlightPresentationProps) {
+  const values = {
+    player: droppedFor,
+    item: itemName,
+    rarity: itemRarity,
+    itemType,
+  }
+  const title = renderedTemplate(template?.soloTitle, values) || itemName
+  const bodyTemplate = presentationMode === "COMPACT" ? template?.compact : template?.soloBody
+  const body =
+    renderedTemplate(bodyTemplate, values) || `${droppedFor} · ${itemRarity} · ${itemType}`
+  const resolvedItemType = resolveSpotlightItemType(itemType)
+
+  return (
+    <div className="item-drop-studio-preview" data-rarity={itemRarity.toLowerCase()}>
+      <span className="item-drop-studio-preview__art" aria-hidden="true">
+        {resolvedItemType ? (
+          <ItemTypeArt itemType={resolvedItemType} size={42} />
+        ) : (
+          <Glyph name="item-drop" size={22} />
+        )}
+      </span>
+
+      <span className="item-drop-studio-preview__copy">
+        <small>{droppedFor}</small>
+        <strong>
+          {template?.emoji ? <b>{template.emoji}</b> : null}
+          {title}
+        </strong>
+        <em>{body}</em>
+      </span>
+
+      <i className="item-drop-studio-preview__meta">
+        {itemRarity} · {itemType}
+      </i>
     </div>
   )
 }
