@@ -3,10 +3,11 @@ name: Cloudflare Pages Deploy
 on:
   push:
     branches:
-      - feat/personalization-store-polish
+      - master
     paths:
       - "apps/mini-app/**"
       - ".github/workflows/cloudflare-pages.yml"
+  workflow_dispatch:
 
 concurrency:
   group: cloudflare-pages-production
@@ -16,7 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     env:
@@ -44,10 +46,337 @@ jobs:
         working-directory: apps/mini-app
         run: npm run build
 
-      - name: Deploy to Cloudflare Pages production
+      - name: Upload production artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: mini-app-production
+          path: apps/mini-app/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      deployments: write
+
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_PROJECT_NAME: mnemos-mini-app
+      CLOUDFLARE_PRODUCTION_BRANCH: master
+      CLOUDFLARE_ZONE_NAME: knalis.rest
+      CLOUDFLARE_CUSTOM_DOMAIN: app.knalis.rest
+
+    steps:
+      - name: Download production artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: mini-app-production
+          path: apps/mini-app/dist
+
+      - name: Validate Cloudflare credentials
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID is missing. Add it as an Actions variable or secret."
+            exit 1
+          fi
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "CLOUDFLARE_API_TOKEN is missing. Add it as an Actions secret."
+            exit 1
+          fi
+
+      - name: Ensure Cloudflare Pages project
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          api="https://api.cloudflare.com/client/v4"
+          project_url="$api/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME"
+
+          project_response="$(curl --silent --show-error \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$project_url")"
+
+          if jq -e '.success == true and .result != null' >/dev/null <<<"$project_response"; then
+            echo "Pages project already exists."
+          else
+            create_payload="$(jq -n \
+              --arg name "$CLOUDFLARE_PROJECT_NAME" \
+              --arg production_branch "$CLOUDFLARE_PRODUCTION_BRANCH" \
+              '{name:$name,production_branch:$production_branch}')"
+
+            project_response="$(curl --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data "$create_payload" \
+              "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects")"
+
+            if ! jq -e '.success == true and .result != null' >/dev/null <<<"$project_response"; then
+              echo "Failed to create Cloudflare Pages project:"
+              jq . <<<"$project_response"
+              exit 1
+            fi
+
+            echo "Created Pages project $CLOUDFLARE_PROJECT_NAME."
+          fi
+
+          current_branch="$(jq -r '.result.production_branch // empty' <<<"$project_response")"
+
+          if [ "$current_branch" != "$CLOUDFLARE_PRODUCTION_BRANCH" ]; then
+            update_payload="$(jq -n \
+              --arg production_branch "$CLOUDFLARE_PRODUCTION_BRANCH" \
+              '{production_branch:$production_branch}')"
+
+            update_response="$(curl --silent --show-error \
+              --request PATCH \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data "$update_payload" \
+              "$project_url")"
+
+            if ! jq -e '.success == true' >/dev/null <<<"$update_response"; then
+              echo "Failed to set the Pages production branch:"
+              jq . <<<"$update_response"
+              exit 1
+            fi
+
+            project_response="$update_response"
+            echo "Set Pages production branch to $CLOUDFLARE_PRODUCTION_BRANCH."
+          fi
+
+          pages_host="$(jq -r '.result.subdomain // empty' <<<"$project_response")"
+          pages_host="${pages_host#https://}"
+          pages_host="${pages_host%/}"
+
+          if [ -z "$pages_host" ]; then
+            echo "Cloudflare did not return a Pages subdomain."
+            exit 1
+          fi
+
+          echo "CLOUDFLARE_PAGES_HOST=$pages_host" >> "$GITHUB_ENV"
+          echo "Pages host: $pages_host"
+
+      - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure Pages custom domain
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          api="https://api.cloudflare.com/client/v4"
+          domain_url="$api/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/domains/$CLOUDFLARE_CUSTOM_DOMAIN"
+
+          domain_response="$(curl --silent --show-error \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$domain_url")"
+
+          if jq -e '.success == true and .result != null' >/dev/null <<<"$domain_response"; then
+            echo "Custom domain is already associated with Pages."
+          else
+            domain_payload="$(jq -n --arg name "$CLOUDFLARE_CUSTOM_DOMAIN" '{name:$name}')"
+
+            domain_response="$(curl --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data "$domain_payload" \
+              "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/domains")"
+
+            if ! jq -e '.success == true and .result != null' >/dev/null <<<"$domain_response"; then
+              echo "Failed to associate the Pages custom domain:"
+              jq . <<<"$domain_response"
+              exit 1
+            fi
+
+            echo "Associated $CLOUDFLARE_CUSTOM_DOMAIN with Pages."
+          fi
+
+          domain_status="$(jq -r '.result.status // empty' <<<"$domain_response")"
+          echo "Pages custom-domain status: ${domain_status:-unknown}"
+
+      - name: Ensure Cloudflare DNS record
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          api="https://api.cloudflare.com/client/v4"
+
+          zone_response="$(curl --silent --show-error --get \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --data-urlencode "name=$CLOUDFLARE_ZONE_NAME" \
+            --data-urlencode "account.id=$CLOUDFLARE_ACCOUNT_ID" \
+            "$api/zones")"
+
+          if ! jq -e '.success == true' >/dev/null <<<"$zone_response"; then
+            echo "Failed to read the Cloudflare zone:"
+            jq . <<<"$zone_response"
+            exit 1
+          fi
+
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$zone_response")"
+
+          if [ -z "$zone_id" ]; then
+            echo "Cloudflare zone $CLOUDFLARE_ZONE_NAME was not found in this account."
+            exit 1
+          fi
+
+          records_response="$(curl --silent --show-error --get \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --data-urlencode "name=$CLOUDFLARE_CUSTOM_DOMAIN" \
+            "$api/zones/$zone_id/dns_records")"
+
+          if ! jq -e '.success == true' >/dev/null <<<"$records_response"; then
+            echo "Failed to read DNS records for $CLOUDFLARE_CUSTOM_DOMAIN:"
+            jq . <<<"$records_response"
+            exit 1
+          fi
+
+          record_count="$(jq '.result | length' <<<"$records_response")"
+
+          if [ "$record_count" -eq 0 ]; then
+            dns_payload="$(jq -n \
+              --arg name "$CLOUDFLARE_CUSTOM_DOMAIN" \
+              --arg content "$CLOUDFLARE_PAGES_HOST" \
+              '{type:"CNAME",name:$name,content:$content,ttl:1,proxied:true}')"
+
+            dns_response="$(curl --silent --show-error \
+              --request POST \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --header "Content-Type: application/json" \
+              --data "$dns_payload" \
+              "$api/zones/$zone_id/dns_records")"
+
+            if ! jq -e '.success == true' >/dev/null <<<"$dns_response"; then
+              echo "Failed to create the Pages CNAME record:"
+              jq . <<<"$dns_response"
+              exit 1
+            fi
+
+            echo "Created CNAME $CLOUDFLARE_CUSTOM_DOMAIN -> $CLOUDFLARE_PAGES_HOST."
+            exit 0
+          fi
+
+          cname_count="$(jq '[.result[] | select(.type == "CNAME")] | length' <<<"$records_response")"
+
+          if [ "$record_count" -ne 1 ] || [ "$cname_count" -ne 1 ]; then
+            echo "Refusing to replace conflicting DNS records for $CLOUDFLARE_CUSTOM_DOMAIN."
+            jq '.result | map({id,type,name,content,proxied})' <<<"$records_response"
+            exit 1
+          fi
+
+          record_id="$(jq -r '.result[0].id' <<<"$records_response")"
+          record_content="$(jq -r '.result[0].content' <<<"$records_response")"
+          record_proxied="$(jq -r '.result[0].proxied' <<<"$records_response")"
+
+          if [ "$record_content" = "$CLOUDFLARE_PAGES_HOST" ] && [ "$record_proxied" = "true" ]; then
+            echo "DNS is already correct."
+            exit 0
+          fi
+
+          dns_payload="$(jq -n \
+            --arg name "$CLOUDFLARE_CUSTOM_DOMAIN" \
+            --arg content "$CLOUDFLARE_PAGES_HOST" \
+            '{type:"CNAME",name:$name,content:$content,ttl:1,proxied:true}')"
+
+          dns_response="$(curl --silent --show-error \
+            --request PATCH \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data "$dns_payload" \
+            "$api/zones/$zone_id/dns_records/$record_id")"
+
+          if ! jq -e '.success == true' >/dev/null <<<"$dns_response"; then
+            echo "Failed to update the Pages CNAME record:"
+            jq . <<<"$dns_response"
+            exit 1
+          fi
+
+          echo "Updated CNAME $CLOUDFLARE_CUSTOM_DOMAIN -> $CLOUDFLARE_PAGES_HOST."
+
+      - name: Report custom-domain state
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          api="https://api.cloudflare.com/client/v4"
+          domain_url="$api/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/domains/$CLOUDFLARE_CUSTOM_DOMAIN"
+
+          domain_response="$(curl --silent --show-error \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$domain_url")"
+
+          if ! jq -e '.success == true and .result != null' >/dev/null <<<"$domain_response"; then
+            echo "Failed to read final Pages custom-domain state:"
+            jq . <<<"$domain_response"
+            exit 1
+          fi
+
+          jq '{name:.result.name,status:.result.status,verification_status:.result.verification_data.status}' <<<"$domain_response"
+
+  report:
+    if: always() && github.ref == 'refs/heads/master'
+    needs:
+      - build
+      - deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      statuses: write
+
+    steps:
+      - name: Publish deployment status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_STATUS: ${{ needs.build.result }}
+          DEPLOY_STATUS: ${{ needs.deploy.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$BUILD_STATUS" = "success" ] && [ "$DEPLOY_STATUS" = "success" ]; then
+            state="success"
+            description="Cloudflare Pages production deploy: success"
+          else
+            state="failure"
+            description="Cloudflare Pages production deploy: build=$BUILD_STATUS deploy=$DEPLOY_STATUS"
+          fi
+
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$RUN_URL" \
+            --arg description "$description" \
+            --arg context "cloudflare-pages/deploy" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"

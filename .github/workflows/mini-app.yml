@@ -3,20 +3,27 @@ name: Mini App Verify
 on:
   push:
     branches:
-      - feat/personalization-store-polish
+      - master
     paths:
       - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
+      - ".github/workflows/mini-app.yml"
+  pull_request:
+    paths:
+      - "apps/mini-app/**"
+      - "scripts/verify-mini-app-security-headers.sh"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
-  group: mini-app-production-preview
+  group: mini-app-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  verify-and-deploy:
+  verify:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     defaults:
       run:
@@ -43,17 +50,22 @@ jobs:
         run: npm run lint
 
       - name: Check formatting
+        id: formatting
         run: npm run format:check
+
+      - name: Show formatting diff
+        if: failure() && steps.formatting.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm run format >/dev/null
+          git diff -- src
 
       - name: Test
         run: npm test
 
-      - name: Build production Mini App
-        env:
-          VITE_KEYCLOAK_URL: https://auth.knalis.rest
-          VITE_KEYCLOAK_REALM: mnemos
-          VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
-          VITE_API_URL: https://api.knalis.rest
+      - name: Build
         run: npm run build
 
       - name: Verify browser security headers
@@ -83,10 +95,41 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy to Cloudflare Pages production
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+  report:
+    if: always() && github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+
+    permissions:
+      statuses: write
+
+    steps:
+      - name: Publish verification status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_STATUS: ${{ needs.verify.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$VERIFY_STATUS" = "success" ]; then
+            state="success"
+          else
+            state="failure"
+          fi
+
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$RUN_URL" \
+            --arg description "Production Mini App verify: $VERIFY_STATUS" \
+            --arg context "mini-app/verify" \
+            '{state:$state,target_url:$target_url,description:$description,context:$context}')"
+
+          curl --fail-with-body \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/statuses/${{ github.sha }}"
