@@ -18,12 +18,10 @@
 }
 
 .drop-spotlight-preview--card {
-  --spotlight-preview-scale: 0.88;
   min-height: 150px;
 }
 
 .drop-spotlight-preview--detail {
-  --spotlight-preview-scale: 1.08;
   min-height: 172px;
 }
 
@@ -35,6 +33,7 @@
 .drop-spotlight-preview__stage {
   display: grid;
   place-items: center;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   min-height: inherit;
@@ -44,6 +43,7 @@
   position: relative;
   z-index: 1;
   inset: auto;
+  box-sizing: border-box;
   grid-template-columns: 90px minmax(0, 1fr) 18px;
   gap: 14px;
   width: 470px;
@@ -57,7 +57,19 @@
   animation: none;
 }
 
-.drop-spotlight-preview__stage > .realtime-spotlight.is-embedded {
+.drop-spotlight-preview--card .drop-spotlight-preview__stage,
+.drop-spotlight-preview--detail .drop-spotlight-preview__stage {
+  padding: 12px;
+}
+
+.drop-spotlight-preview--card .realtime-spotlight.is-embedded,
+.drop-spotlight-preview--detail .realtime-spotlight.is-embedded {
+  width: min(470px, 100%);
+  transform: none;
+}
+
+.drop-spotlight-preview--thumbnail .realtime-spotlight.is-embedded,
+.drop-spotlight-preview--studio .realtime-spotlight.is-embedded {
   transform: scale(var(--spotlight-preview-scale));
 }
 
@@ -80,17 +92,32 @@
 }
 
 @media (max-width: 420px) {
-  .drop-spotlight-preview--card {
-    --spotlight-preview-scale: 0.66;
+  .drop-spotlight-preview--card .drop-spotlight-preview__stage,
+  .drop-spotlight-preview--detail .drop-spotlight-preview__stage {
+    padding: 8px;
   }
 
   .drop-spotlight-preview--detail {
-    --spotlight-preview-scale: 0.72;
     min-height: 150px;
   }
 
   .drop-spotlight-preview--studio {
     --spotlight-preview-scale: 0.58;
     min-height: 130px;
+  }
+
+  .drop-spotlight-preview--card .realtime-spotlight.is-embedded,
+  .drop-spotlight-preview--detail .realtime-spotlight.is-embedded {
+    grid-template-columns: 72px minmax(0, 1fr) 14px;
+    gap: 10px;
+    min-height: 112px;
+    padding: 11px 12px 12px 8px;
+    border-radius: 18px;
+  }
+
+  .drop-spotlight-preview--card .realtime-spotlight.is-embedded .realtime-spotlight__visual,
+  .drop-spotlight-preview--detail .realtime-spotlight.is-embedded .realtime-spotlight__visual {
+    width: 72px;
+    height: 72px;
   }
 }
