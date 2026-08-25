@@ -13,11 +13,15 @@ import { useSubscriptionCreateDraft } from "./useSubscriptionCreateDraft"
 
 type SubscriptionCreateSheetProps = {
   onClose(): void
+  fixedType?: SubscriptionType
 }
 
-export function SubscriptionCreateSheet({ onClose }: SubscriptionCreateSheetProps) {
+export function SubscriptionCreateSheet({
+  onClose,
+  fixedType,
+}: SubscriptionCreateSheetProps) {
   const { t } = useTranslation()
-  const draft = useSubscriptionCreateDraft(onClose)
+  const draft = useSubscriptionCreateDraft(onClose, fixedType)
 
   const subscriptionLabels = Object.fromEntries(
     SUBSCRIPTION_TYPES.map((value) => [value, t(`events.kinds.${value}`)]),
@@ -34,18 +38,20 @@ export function SubscriptionCreateSheet({ onClose }: SubscriptionCreateSheetProp
 
   return (
     <BottomSheet
-      title={t("events.subscriptions.newTitle")}
+      title={fixedType === "ITEM_DROP" ? t("events.kinds.ITEM_DROP") : t("events.subscriptions.newTitle")}
       onClose={() => !draft.busy && onClose()}
     >
       <div className="form-stack subscription-form">
-        <Field label={t("events.subscriptions.track")}>
-          <ChoiceGrid
-            value={draft.type}
-            options={SUBSCRIPTION_TYPES}
-            onChange={draft.setType}
-            labels={subscriptionLabels}
-          />
-        </Field>
+        {!fixedType ? (
+          <Field label={t("events.subscriptions.track")}>
+            <ChoiceGrid
+              value={draft.type}
+              options={SUBSCRIPTION_TYPES}
+              onChange={draft.setType}
+              labels={subscriptionLabels}
+            />
+          </Field>
+        ) : null}
 
         {draft.type === "ITEM_DROP" ? (
           <SubscriptionItemDropFields

@@ -1,23 +1,37 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { EventFeedQuery } from "@/shared/api/eventApi"
+import {
+  type EventFeedQuery,
+  type EventItemType,
+} from "@/shared/api/eventApi"
+import { listWipes, type Wipe } from "@/shared/api/wipeApi"
+import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt, OwnerCrown } from "../../components/events/EventArt"
 import { RootNavIllustration } from "../../components/navigation/RootNavIllustration"
+import { BET_ITEM_TYPES, BOOSTER_TYPES, GLOBAL_EVENT_TYPES } from "../../contracts"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { eventVisualTone } from "../../eventVisualTone"
-import type { Account, EventKind, ItemRarity, Route } from "../../model"
+import type {
+  Account,
+  BoosterType,
+  EventKind,
+  GlobalEventType,
+  ItemRarity,
+  Route,
+} from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { formatOccurredAt } from "../../timePresentation"
 import {
   belongsToAccount,
   eventFeedDescription,
-  eventGlyph,
   eventKindLabel,
   eventTitle,
   localeForLanguage,
 } from "../eventPresentation"
+import { EventKindMicroArt } from "./EventKindMicroArt"
+import "./feed-controls.css"
 
 type Props = {
   activeAccount: Account
@@ -27,9 +41,17 @@ type Props = {
 type EventFilter = "ALL" | EventKind
 type FeedSort = "NEWEST" | "OLDEST"
 type ItemRarityFilter = "ALL" | ItemRarity
+type ItemTypeFilter = "ALL" | EventItemType
+type BoosterFilter = "ALL" | BoosterType
+type GlobalFilter = "ALL" | GlobalEventType
 
 const filters: EventKind[] = ["ITEM_DROP", "BOOSTER", "GLOBAL", "RAID"]
 const rarityFilters: ItemRarity[] = ["MYTHICAL", "SECRET"]
+const raidLocations = Array.from({ length: 28 }, (_, index) => index + 1)
+
+function wipeStartedAt(wipe: Wipe): number {
+  return new Date(wipe.startedAt).getTime()
+}
 
 export function EventsFeed({ activeAccount, navigate }: Props) {
   const { t, i18n } = useTranslation()
@@ -44,20 +66,65 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   } = useMnemosData()
   const [filter, setFilter] = useState<EventFilter>("ALL")
   const [rarity, setRarity] = useState<ItemRarityFilter>("ALL")
+  const [itemType, setItemType] = useState<ItemTypeFilter>("ALL")
+  const [boosterType, setBoosterType] = useState<BoosterFilter>("ALL")
+  const [globalType, setGlobalType] = useState<GlobalFilter>("ALL")
+  const [raidLocation, setRaidLocation] = useState<number | null>(null)
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<FeedSort>("NEWEST")
+  const [wipes, setWipes] = useState<Wipe[]>([])
+  const [wipeId, setWipeId] = useState<string | null>(null)
 
   const locale = localeForLanguage(i18n.resolvedLanguage)
+  const selectableWipes = useMemo(() => {
+    const now = Date.now()
+    const current = wipes.find((wipe) => wipe.active) ?? null
+    const previous =
+      wipes
+        .filter((wipe) => !wipe.active && wipeStartedAt(wipe) <= now)
+        .sort((left, right) => wipeStartedAt(right) - wipeStartedAt(left))[0] ?? null
+
+    return [current, previous].filter((wipe): wipe is Wipe => wipe !== null)
+  }, [wipes])
+
   const feedQuery = useMemo<EventFeedQuery>(
     () => ({
       types: filter === "ALL" ? undefined : [filter],
       search: query,
-      itemRarity: rarity === "ALL" ? undefined : rarity,
+      itemRarity: filter === "ITEM_DROP" && rarity !== "ALL" ? rarity : undefined,
+      itemType: filter === "ITEM_DROP" && itemType !== "ALL" ? itemType : undefined,
+      boosterType: filter === "BOOSTER" && boosterType !== "ALL" ? boosterType : undefined,
+      globalType: filter === "GLOBAL" && globalType !== "ALL" ? globalType : undefined,
+      raidLocation: filter === "RAID" && raidLocation !== null ? raidLocation : undefined,
+      wipeId: wipeId ?? undefined,
       sort,
       limit: 60,
     }),
-    [filter, query, rarity, sort],
+    [boosterType, filter, globalType, itemType, query, raidLocation, rarity, sort, wipeId],
   )
+
+  useEffect(() => {
+    let cancelled = false
+
+    void listWipes()
+      .then((result) => {
+        if (cancelled) {
+          return
+        }
+
+        setWipes(result)
+        setWipeId(result.find((wipe) => wipe.active)?.id ?? null)
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          handleError(error)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const timeout = window.setTimeout(
@@ -74,12 +141,21 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
   const rest = feed.slice(1)
   const sortLabel = sort === "NEWEST" ? t("events.feed.newest") : t("events.feed.oldest")
 
-  const selectFilter = (nextFilter: EventFilter) => {
-    setFilter(nextFilter)
-
-    if (nextFilter !== "ITEM_DROP") {
-      setRarity("ALL")
+  function wipeName(wipe: Wipe): string {
+    if (wipe.name === "Legacy") {
+      return t("leaderboards.legacyWipe")
     }
+
+    return wipe.name ?? t("leaderboards.wipeFallback")
+  }
+
+  function selectFilter(nextFilter: EventFilter) {
+    setFilter(nextFilter)
+    setRarity("ALL")
+    setItemType("ALL")
+    setBoosterType("ALL")
+    setGlobalType("ALL")
+    setRaidLocation(null)
   }
 
   return (
@@ -104,14 +180,31 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
         </button>
       </header>
 
-      <section className="events-feed-filters" aria-label={t("events.feed.filterAria")}>
+      {selectableWipes.length > 0 ? (
+        <section className="events-feed-wipes" aria-label={t("leaderboards.periodAria")}>
+          {selectableWipes.map((wipe) => (
+            <button
+              type="button"
+              key={wipe.id}
+              className={wipeId === wipe.id ? "is-active" : undefined}
+              onClick={() => setWipeId(wipe.id)}
+            >
+              <small>#{wipe.number}</small>
+              <strong>{wipeName(wipe)}</strong>
+              {wipe.active ? <i>{t("wipeAdmin.active")}</i> : null}
+            </button>
+          ))}
+        </section>
+      ) : null}
+
+      <section className="events-feed-filters events-feed-kind-filters" aria-label={t("events.feed.filterAria")}>
         <button
           type="button"
           className={filter === "ALL" ? "is-active" : ""}
           onClick={() => selectFilter("ALL")}
         >
-          <span className="events-feed-filter-dot" />
-          {t("events.feed.all")}
+          <EventKindMicroArt kind="ALL" />
+          <span>{t("events.feed.all")}</span>
         </button>
 
         {filters.map((kind) => (
@@ -121,35 +214,121 @@ export function EventsFeed({ activeAccount, navigate }: Props) {
             className={filter === kind ? "is-active" : ""}
             onClick={() => selectFilter(kind)}
           >
-            <Glyph name={eventGlyph(kind)} size={15} />
-            {eventKindLabel(t, kind)}
+            <EventKindMicroArt kind={kind} />
+            <span>{eventKindLabel(t, kind)}</span>
           </button>
         ))}
       </section>
 
       {filter === "ITEM_DROP" ? (
-        <section
-          className="events-feed-filters events-feed-rarity-filters"
-          aria-label={t("events.feed.rarityFilterAria")}
-        >
-          <button
-            type="button"
-            className={rarity === "ALL" ? "is-active" : ""}
-            onClick={() => setRarity("ALL")}
-          >
-            {t("events.feed.allRarities")}
-          </button>
-
-          {rarityFilters.map((itemRarity) => (
+        <section className="events-feed-context-filters">
+          <div className="events-feed-context-filters__row">
             <button
               type="button"
-              key={itemRarity}
-              className={rarity === itemRarity ? "is-active" : ""}
-              onClick={() => setRarity(itemRarity)}
+              className={itemType === "ALL" ? "is-active" : undefined}
+              onClick={() => setItemType("ALL")}
             >
-              {t(`events.rarities.${itemRarity}`)}
+              {t("events.feed.all")}
+            </button>
+            {BET_ITEM_TYPES.map((value) => (
+              <button
+                type="button"
+                key={value}
+                className={itemType === value ? "is-active" : undefined}
+                onClick={() => setItemType(value)}
+              >
+                {t(`events.itemTypes.${value}`)}
+              </button>
+            ))}
+          </div>
+
+          <div className="events-feed-context-filters__row is-compact">
+            <button
+              type="button"
+              className={rarity === "ALL" ? "is-active" : undefined}
+              onClick={() => setRarity("ALL")}
+            >
+              {t("events.feed.allRarities")}
+            </button>
+            {rarityFilters.map((value) => (
+              <button
+                type="button"
+                key={value}
+                className={rarity === value ? "is-active" : undefined}
+                onClick={() => setRarity(value)}
+              >
+                {t(`events.rarities.${value}`)}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {filter === "BOOSTER" ? (
+        <section className="events-feed-context-filters__row">
+          <button
+            type="button"
+            className={boosterType === "ALL" ? "is-active" : undefined}
+            onClick={() => setBoosterType("ALL")}
+          >
+            {t("events.feed.all")}
+          </button>
+          {BOOSTER_TYPES.map((value) => (
+            <button
+              type="button"
+              key={value}
+              className={boosterType === value ? "is-active" : undefined}
+              onClick={() => setBoosterType(value)}
+            >
+              {t(`events.boosters.${value}`)}
             </button>
           ))}
+        </section>
+      ) : null}
+
+      {filter === "GLOBAL" ? (
+        <section className="events-feed-context-filters__row">
+          <button
+            type="button"
+            className={globalType === "ALL" ? "is-active" : undefined}
+            onClick={() => setGlobalType("ALL")}
+          >
+            {t("events.feed.all")}
+          </button>
+          {GLOBAL_EVENT_TYPES.map((value) => (
+            <button
+              type="button"
+              key={value}
+              className={globalType === value ? "is-active" : undefined}
+              onClick={() => setGlobalType(value)}
+            >
+              {t(`events.globals.${value}`)}
+            </button>
+          ))}
+        </section>
+      ) : null}
+
+      {filter === "RAID" ? (
+        <section className="events-feed-location-filter" aria-label={t("events.subscriptions.locations")}>
+          <button
+            type="button"
+            className={raidLocation === null ? "is-active" : undefined}
+            onClick={() => setRaidLocation(null)}
+          >
+            {t("events.subscriptions.allLocations")}
+          </button>
+          <div>
+            {raidLocations.map((location) => (
+              <button
+                type="button"
+                key={location}
+                className={raidLocation === location ? "is-active" : undefined}
+                onClick={() => setRaidLocation(location)}
+              >
+                {location}
+              </button>
+            ))}
+          </div>
         </section>
       ) : null}
 

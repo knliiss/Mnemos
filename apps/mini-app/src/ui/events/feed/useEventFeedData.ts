@@ -15,6 +15,22 @@ type EventFeedData = {
   loadMoreEvents(query?: EventFeedQuery): Promise<void>
 }
 
+function queryKey(query: EventFeedQuery): string {
+  return JSON.stringify({
+    types: query.types ?? null,
+    search: query.search?.trim() ?? "",
+    droppedFor: query.droppedFor?.trim() ?? "",
+    itemRarity: query.itemRarity ?? null,
+    itemType: query.itemType ?? null,
+    boosterType: query.boosterType ?? null,
+    globalType: query.globalType ?? null,
+    raidLocation: query.raidLocation ?? null,
+    wipeId: query.wipeId ?? null,
+    sort: query.sort ?? "NEWEST",
+    limit: query.limit ?? 50,
+  })
+}
+
 export function useEventFeedData(): EventFeedData {
   const [feed, setFeed] = useState<FeedEvent[]>([])
   const [eventCursor, setEventCursor] = useState<string | null>(null)
@@ -28,14 +44,7 @@ export function useEventFeedData(): EventFeedData {
 
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
     const revision = requestRevision.current + 1
-    const queryKey = JSON.stringify({
-      types: query.types ?? null,
-      search: query.search?.trim() ?? "",
-      droppedFor: query.droppedFor?.trim() ?? "",
-      itemRarity: query.itemRarity ?? null,
-      sort: query.sort ?? "NEWEST",
-      limit: query.limit ?? 50,
-    })
+    const nextQueryKey = queryKey(query)
 
     requestRevision.current = revision
     activeQueryRef.current = query
@@ -43,8 +52,8 @@ export function useEventFeedData(): EventFeedData {
     setLoadingEvents(true)
     setEventsError(false)
 
-    if (queryKeyRef.current !== queryKey) {
-      queryKeyRef.current = queryKey
+    if (queryKeyRef.current !== nextQueryKey) {
+      queryKeyRef.current = nextQueryKey
       setFeed([])
       setEventCursor(null)
       setEventsHasMore(true)

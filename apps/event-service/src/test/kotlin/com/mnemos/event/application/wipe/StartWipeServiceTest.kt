@@ -18,7 +18,7 @@ class StartWipeServiceTest {
     @Test
     fun `starting wipe closes current wipe on the same boundary`() {
         val current = wipe(number = 4, startedAt = Instant.parse("2026-08-01T00:00:00Z"))
-        val repository = FakeWipeRepository(current)
+        val repository = FakeWipeRepository(current = current)
         val service = StartWipeService(repository, clock)
         val boundary = Instant.parse("2026-08-20T08:30:00Z")
 
@@ -30,6 +30,7 @@ class StartWipeServiceTest {
             )
 
         assertEquals(1, repository.findCurrentForUpdateCalls)
+        assertEquals(1, repository.findLatestForUpdateCalls)
         assertEquals(2, repository.saved.size)
         assertEquals(boundary, repository.saved[0].endedAt)
         assertEquals(5, created.number)
@@ -41,27 +42,52 @@ class StartWipeServiceTest {
     }
 
     @Test
-    fun `starting wipe in the future is rejected without persistence`() {
+    fun `future wipe is scheduled and current wipe stays effective until boundary`() {
         val current = wipe(number = 1, startedAt = Instant.parse("2026-08-01T00:00:00Z"))
-        val repository = FakeWipeRepository(current)
+        val repository = FakeWipeRepository(current = current)
+        val service = StartWipeService(repository, clock)
+        val boundary = now.plusSeconds(3_600)
+
+        val scheduled =
+            service.execute(
+                name = "Evening wipe",
+                startedAt = boundary,
+                createdBy = "admin-user",
+            )
+
+        assertEquals(boundary, repository.saved[0].endedAt)
+        assertEquals(boundary, scheduled.startedAt)
+        assertEquals(null, scheduled.endedAt)
+        assertEquals(current.id, repository.findCurrent(now)?.id)
+        assertEquals(scheduled.id, repository.findCurrent(boundary)?.id)
+    }
+
+    @Test
+    fun `second future wipe is rejected while one is already scheduled`() {
+        val current = wipe(number = 2, startedAt = Instant.parse("2026-08-01T00:00:00Z"))
+        val scheduled = wipe(number = 3, startedAt = now.plusSeconds(3_600))
+        val repository =
+            FakeWipeRepository(
+                current = current.copy(endedAt = scheduled.startedAt),
+                latest = scheduled,
+            )
         val service = StartWipeService(repository, clock)
 
         assertThrows(WipeValidationException::class.java) {
             service.execute(
-                name = null,
-                startedAt = now.plusSeconds(1),
+                name = "Another",
+                startedAt = now.plusSeconds(7_200),
                 createdBy = "admin-user",
             )
         }
 
-        assertEquals(0, repository.findCurrentForUpdateCalls)
         assertEquals(emptyList<Wipe>(), repository.saved)
     }
 
     @Test
     fun `starting wipe before current boundary is rejected`() {
         val currentStart = Instant.parse("2026-08-10T00:00:00Z")
-        val repository = FakeWipeRepository(wipe(number = 2, startedAt = currentStart))
+        val repository = FakeWipeRepository(current = wipe(number = 2, startedAt = currentStart))
         val service = StartWipeService(repository, clock)
 
         assertThrows(WipeValidationException::class.java) {
@@ -92,30 +118,52 @@ class StartWipeServiceTest {
 
     private class FakeWipeRepository(
         private var current: Wipe?,
+        private var latest: Wipe? = current,
     ) : WipeRepository {
         val saved = mutableListOf<Wipe>()
         var findCurrentForUpdateCalls = 0
+        var findLatestForUpdateCalls = 0
 
-        override fun findCurrent(): Wipe? = current
+        override fun findCurrent(at: Instant): Wipe? {
+            val candidates = listOfNotNull(current, latest).plus(saved)
 
-        override fun findCurrentForUpdate(): Wipe? {
+            return candidates
+                .distinctBy { wipe -> wipe.id }
+                .filter { wipe -> wipe.contains(at) }
+                .maxByOrNull { wipe -> wipe.startedAt }
+        }
+
+        override fun findCurrentForUpdate(at: Instant): Wipe? {
             findCurrentForUpdateCalls += 1
 
-            return current
+            return findCurrent(at)
+        }
+
+        override fun findLatestForUpdate(): Wipe? {
+            findLatestForUpdateCalls += 1
+
+            return listOfNotNull(current, latest)
+                .plus(saved)
+                .distinctBy { wipe -> wipe.id }
+                .maxByOrNull { wipe -> wipe.startedAt }
         }
 
         override fun findById(id: WipeId): Wipe? =
-            listOfNotNull(current)
+            listOfNotNull(current, latest)
                 .plus(saved)
                 .firstOrNull { wipe -> wipe.id == id }
 
-        override fun findAll(): List<Wipe> = listOfNotNull(current).plus(saved)
+        override fun findAll(): List<Wipe> = listOfNotNull(current, latest).plus(saved).distinctBy { wipe -> wipe.id }
 
         override fun save(wipe: Wipe): Wipe {
             saved += wipe
 
-            if (wipe.active) {
+            if (current?.id == wipe.id) {
                 current = wipe
+            }
+
+            if (latest == null || !wipe.startedAt.isBefore(latest!!.startedAt)) {
+                latest = wipe
             }
 
             return wipe

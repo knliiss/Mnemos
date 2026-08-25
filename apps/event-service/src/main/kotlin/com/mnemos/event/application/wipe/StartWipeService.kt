@@ -22,14 +22,14 @@ class StartWipeService(
         createdBy: String,
     ): Wipe {
         val now = clock.instant()
-
-        if (startedAt.isAfter(now)) {
-            throw WipeValidationException("Wipe cannot start in the future")
-        }
-
         val current =
-            repository.findCurrentForUpdate()
+            repository.findCurrentForUpdate(now)
                 ?: throw WipeNotFoundException("Active wipe was not found")
+        val latest = repository.findLatestForUpdate() ?: current
+
+        if (latest.id != current.id && latest.startedAt.isAfter(now)) {
+            throw WipeValidationException("A future wipe is already scheduled")
+        }
 
         if (!startedAt.isAfter(current.startedAt)) {
             throw WipeValidationException("New wipe must start after the current wipe")
@@ -41,7 +41,7 @@ class StartWipeService(
         val wipe =
             Wipe(
                 id = WipeId.generate(),
-                number = current.number + 1,
+                number = latest.number + 1,
                 name = normalizedName,
                 startedAt = startedAt,
                 endedAt = null,

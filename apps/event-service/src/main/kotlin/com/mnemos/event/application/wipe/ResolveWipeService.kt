@@ -6,15 +6,17 @@ import com.mnemos.event.domain.wipe.model.WipeId
 import com.mnemos.event.domain.wipe.repository.WipeRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
 
 @Service
 @Transactional(readOnly = true)
 class ResolveWipeService(
     private val repository: WipeRepository,
+    private val clock: Clock,
 ) {
     fun execute(wipeId: WipeId?): Wipe {
         if (wipeId == null) {
-            return repository.findCurrent()
+            return repository.findCurrent(clock.instant())
                 ?: throw WipeNotFoundException("Active wipe was not found")
         }
 

@@ -20,6 +20,10 @@ object EventFeedApiMapper {
             search = search,
             droppedFor = droppedFor,
             itemRarity = itemRarity,
+            itemType = itemType,
+            boosterType = boosterType,
+            globalType = globalType,
+            raidLocation = raidLocation,
             sort = sort,
             wipeId = wipeId?.let(::WipeId),
         )

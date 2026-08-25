@@ -53,12 +53,11 @@ function parseLocalDateTime(dateValue: string, timeValue: string): Date | null {
   return result
 }
 
-type StartValidation = "INVALID" | "FUTURE" | "BEFORE_CURRENT" | null
+type StartValidation = "INVALID" | "BEFORE_CURRENT" | null
 
 export function WipeAdmin({ back }: { back: () => void }) {
   const { t, i18n } = useTranslation()
   const [initialStart] = useState(() => new Date())
-  const [validationNow, setValidationNow] = useState(() => initialStart.getTime())
   const [wipes, setWipes] = useState<Wipe[]>([])
   const [name, setName] = useState("")
   const [startDate, setStartDate] = useState(() => localDateValue(initialStart))
@@ -78,18 +77,23 @@ export function WipeAdmin({ back }: { back: () => void }) {
     [locale],
   )
   const current = wipes.find((wipe) => wipe.active) ?? null
+  const now = Date.now()
+  const planned =
+    wipes
+      .filter((wipe) => !wipe.active && new Date(wipe.startedAt).getTime() > now)
+      .sort(
+        (left, right) =>
+          new Date(left.startedAt).getTime() - new Date(right.startedAt).getTime(),
+      )[0] ?? null
   const parsedStart = useMemo(
     () => parseLocalDateTime(startDate, startTime),
     [startDate, startTime],
   )
+  const formLocked = planned !== null
 
   const startValidation = useMemo<StartValidation>(() => {
     if (!parsedStart) {
       return "INVALID"
-    }
-
-    if (parsedStart.getTime() > validationNow) {
-      return "FUTURE"
     }
 
     if (current && parsedStart.getTime() <= new Date(current.startedAt).getTime()) {
@@ -97,16 +101,14 @@ export function WipeAdmin({ back }: { back: () => void }) {
     }
 
     return null
-  }, [current, parsedStart, validationNow])
+  }, [current, parsedStart])
 
   const validationMessage =
     startValidation === "INVALID"
       ? t("wipeAdmin.invalidStart")
-      : startValidation === "FUTURE"
-        ? t("wipeAdmin.futureStart")
-        : startValidation === "BEFORE_CURRENT"
-          ? t("wipeAdmin.beforeCurrentStart")
-          : null
+      : startValidation === "BEFORE_CURRENT"
+        ? t("wipeAdmin.beforeCurrentStart")
+        : null
 
   function wipeName(wipe: Wipe): string {
     if (wipe.name === "Legacy") {
@@ -117,21 +119,10 @@ export function WipeAdmin({ back }: { back: () => void }) {
   }
 
   function useCurrentTime() {
-    const now = new Date()
+    const currentTime = new Date()
 
-    setValidationNow(now.getTime())
-    setStartDate(localDateValue(now))
-    setStartTime(localTimeValue(now))
-  }
-
-  function changeStartDate(value: string) {
-    setValidationNow(Date.now())
-    setStartDate(value)
-  }
-
-  function changeStartTime(value: string) {
-    setValidationNow(Date.now())
-    setStartTime(value)
+    setStartDate(localDateValue(currentTime))
+    setStartTime(localTimeValue(currentTime))
   }
 
   async function refresh() {
@@ -176,7 +167,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
   }, [])
 
   async function createWipe() {
-    if (!parsedStart || startValidation || saving) {
+    if (!parsedStart || startValidation || formLocked || saving) {
       return
     }
 
@@ -188,12 +179,11 @@ export function WipeAdmin({ back }: { back: () => void }) {
         startedAt: parsedStart.toISOString(),
       })
 
-      const now = new Date()
+      const currentTime = new Date()
 
-      setValidationNow(now.getTime())
       setName("")
-      setStartDate(localDateValue(now))
-      setStartTime(localTimeValue(now))
+      setStartDate(localDateValue(currentTime))
+      setStartTime(localTimeValue(currentTime))
       setConfirming(false)
       await refresh()
     } catch (error) {
@@ -231,6 +221,16 @@ export function WipeAdmin({ back }: { back: () => void }) {
         ) : (
           <strong>{t("wipeAdmin.noCurrent")}</strong>
         )}
+
+        {planned ? (
+          <div className="wipe-admin-current__planned">
+            <span>{t("leaderboards.nextPeriod")}</span>
+            <strong>
+              #{planned.number} {wipeName(planned)}
+            </strong>
+            <small>{dateTime.format(new Date(planned.startedAt))}</small>
+          </div>
+        ) : null}
       </section>
 
       <form
@@ -238,14 +238,14 @@ export function WipeAdmin({ back }: { back: () => void }) {
         onSubmit={(event) => {
           event.preventDefault()
 
-          if (!startValidation) {
+          if (!startValidation && !formLocked) {
             setConfirming(true)
           }
         }}
       >
         <div className="wipe-admin-form__head">
           <strong>{t("wipeAdmin.newTitle")}</strong>
-          <small>{t("wipeAdmin.newDescription")}</small>
+          <small>{t("wipeAdmin.confirmDescription")}</small>
         </div>
 
         <label>
@@ -254,6 +254,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
             value={name}
             maxLength={64}
             placeholder={t("wipeAdmin.namePlaceholder")}
+            disabled={formLocked}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
@@ -261,7 +262,7 @@ export function WipeAdmin({ back }: { back: () => void }) {
         <div className="wipe-admin-start">
           <div className="wipe-admin-start__head">
             <span>{t("wipeAdmin.startedAt")}</span>
-            <button type="button" onClick={useCurrentTime}>
+            <button type="button" disabled={formLocked} onClick={useCurrentTime}>
               {t("wipeAdmin.useNow")}
             </button>
           </div>
@@ -277,7 +278,8 @@ export function WipeAdmin({ back }: { back: () => void }) {
                 value={startDate}
                 placeholder={t("wipeAdmin.startDatePlaceholder")}
                 aria-invalid={Boolean(startValidation)}
-                onChange={(event) => changeStartDate(event.target.value)}
+                disabled={formLocked}
+                onChange={(event) => setStartDate(event.target.value)}
               />
             </label>
 
@@ -291,14 +293,15 @@ export function WipeAdmin({ back }: { back: () => void }) {
                 value={startTime}
                 placeholder={t("wipeAdmin.startTimePlaceholder")}
                 aria-invalid={Boolean(startValidation)}
-                onChange={(event) => changeStartTime(event.target.value)}
+                disabled={formLocked}
+                onChange={(event) => setStartTime(event.target.value)}
               />
             </label>
           </div>
 
           {validationMessage ? (
             <small className="wipe-admin-start__validation">{validationMessage}</small>
-          ) : parsedStart ? (
+          ) : parsedStart && !formLocked ? (
             <small className="wipe-admin-start__preview">{dateTime.format(parsedStart)}</small>
           ) : null}
         </div>
@@ -307,13 +310,15 @@ export function WipeAdmin({ back }: { back: () => void }) {
           <span>
             <small>{t("wipeAdmin.actionHint")}</small>
             <strong>
-              {parsedStart && !startValidation
-                ? dateTime.format(parsedStart)
-                : t("wipeAdmin.actionUnavailable")}
+              {formLocked
+                ? t("leaderboards.nextPeriod")
+                : parsedStart && !startValidation
+                  ? dateTime.format(parsedStart)
+                  : t("wipeAdmin.actionUnavailable")}
             </strong>
           </span>
 
-          <button type="submit" disabled={Boolean(startValidation) || saving}>
+          <button type="submit" disabled={formLocked || Boolean(startValidation) || saving}>
             {t("wipeAdmin.review")}
             <i aria-hidden="true">→</i>
           </button>
@@ -326,20 +331,25 @@ export function WipeAdmin({ back }: { back: () => void }) {
           <small>{t("wipeAdmin.historyCount", { count: wipes.length })}</small>
         </div>
 
-        {wipes.map((wipe) => (
-          <article key={wipe.id} className={wipe.active ? "is-active" : ""}>
-            <span className="wipe-admin-history__number">#{wipe.number}</span>
-            <span className="wipe-admin-history__copy">
-              <strong>{wipeName(wipe)}</strong>
-              <small>
-                {dateTime.format(new Date(wipe.startedAt))}
-                {wipe.endedAt
-                  ? ` — ${dateTime.format(new Date(wipe.endedAt))}`
-                  : ` · ${t("wipeAdmin.active")}`}
-              </small>
-            </span>
-          </article>
-        ))}
+        {wipes.map((wipe) => {
+          const startsInFuture = new Date(wipe.startedAt).getTime() > Date.now()
+
+          return (
+            <article key={wipe.id} className={wipe.active ? "is-active" : startsInFuture ? "is-planned" : ""}>
+              <span className="wipe-admin-history__number">#{wipe.number}</span>
+              <span className="wipe-admin-history__copy">
+                <strong>{wipeName(wipe)}</strong>
+                <small>
+                  {startsInFuture
+                    ? `${t("leaderboards.nextPeriod")} · ${dateTime.format(new Date(wipe.startedAt))}`
+                    : wipe.endedAt
+                      ? `${dateTime.format(new Date(wipe.startedAt))} — ${dateTime.format(new Date(wipe.endedAt))}`
+                      : `${dateTime.format(new Date(wipe.startedAt))} · ${t("wipeAdmin.active")}`}
+                </small>
+              </span>
+            </article>
+          )
+        })}
       </section>
 
       {confirming && parsedStart ? (

@@ -125,6 +125,25 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     OR (event_type = 'ITEM_DROP' AND item_rarity = CAST(:itemRarity AS text))
                 )
                 AND (
+                    CAST(:itemType AS text) IS NULL
+                    OR (event_type = 'ITEM_DROP' AND item_type = CAST(:itemType AS text))
+                )
+                AND (
+                    CAST(:boosterType AS text) IS NULL
+                    OR (event_type = 'BOOSTER' AND booster_type = CAST(:boosterType AS text))
+                )
+                AND (
+                    CAST(:globalType AS text) IS NULL
+                    OR (event_type = 'GLOBAL' AND global_type = CAST(:globalType AS text))
+                )
+                AND (
+                    CAST(:raidLocation AS integer) IS NULL
+                    OR (
+                        event_type = 'RAID'
+                        AND CAST(:raidLocation AS text) = ANY(string_to_array(coalesce(raid_locations, ''), ','))
+                    )
+                )
+                AND (
                     CAST(:after AS uuid) IS NULL
                     OR (:newest = true AND event_id < CAST(:after AS uuid))
                     OR (:newest = false AND event_id > CAST(:after AS uuid))
@@ -146,6 +165,10 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
         @Param("searchTerm") searchTerm: String?,
         @Param("droppedFor") droppedFor: String?,
         @Param("itemRarity") itemRarity: String?,
+        @Param("itemType") itemType: String?,
+        @Param("boosterType") boosterType: String?,
+        @Param("globalType") globalType: String?,
+        @Param("raidLocation") raidLocation: Int?,
         @Param("from") from: Instant?,
         @Param("to") to: Instant?,
         @Param("newest") newest: Boolean,

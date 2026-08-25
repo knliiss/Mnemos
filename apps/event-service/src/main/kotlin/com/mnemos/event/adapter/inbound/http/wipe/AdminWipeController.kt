@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.time.Clock
 
 @RestController
 @RequestMapping("/api/v1/events/admin/wipes")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class AdminWipeController(
     private val startWipeService: StartWipeService,
+    private val clock: Clock,
 ) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -31,5 +33,5 @@ class AdminWipeController(
                 name = request.name,
                 startedAt = request.startedAt,
                 createdBy = authentication.name,
-            ).toResponse()
+            ).toResponse(clock.instant())
 }
