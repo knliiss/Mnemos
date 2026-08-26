@@ -69,15 +69,7 @@ export function PersonalizationStoreCategory({
 
       return priceDifference || left.name.localeCompare(right.name, i18n.resolvedLanguage)
     })
-  }, [
-    currency,
-    i18n.resolvedLanguage,
-    items,
-    notificationPackCategory,
-    priceSort,
-    query,
-    type,
-  ])
+  }, [currency, i18n.resolvedLanguage, items, notificationPackCategory, priceSort, query, type])
 
   const priceSortOptions = catalogPriceSorts.map((sort) => ({
     value: sort,
@@ -175,7 +167,9 @@ export function PersonalizationStoreCategory({
               <span className="personalization-catalog-tile__footer">
                 <strong>{item.name}</strong>
                 {item.owned ? (
-                  <span className={`personalization-catalog-state${item.active ? " is-active" : ""}`}>
+                  <span
+                    className={`personalization-catalog-state${item.active ? " is-active" : ""}`}
+                  >
                     <Glyph name="check" size={11} />
                     {item.active
                       ? t("personalization.category.active")
