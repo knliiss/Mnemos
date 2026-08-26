@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 import type { PersonalizationPricingResponse } from "@/shared/api/personalizationApi"
-import type { CreatorEditorForm } from "./creatorEditorModel"
+import {
+  createDefaultCreatorEditorForm,
+  type CreatorEditorForm,
+} from "./creatorEditorModel"
 import {
   isCreatorPriceValid,
   normalizeCreatorPrice,
@@ -35,67 +38,8 @@ const pricing: PersonalizationPricingResponse = {
 
 function form(overrides: Partial<CreatorEditorForm> = {}): CreatorEditorForm {
   return {
-    type: "NICK_STYLE",
+    ...createDefaultCreatorEditorForm(),
     name: "Example",
-    currency: "PRIME",
-    price: "25",
-    nickStyle: {
-      colors: [
-        { color: "#CBFF2D", position: 0 },
-        { color: "#B98DC2", position: 100 },
-      ],
-      angleDegrees: 45,
-      glow: {
-        enabled: true,
-        color: "#CBFF2D",
-        strength: 48,
-      },
-    },
-    profileTheme: {
-      background: "#080B08",
-      backgroundSecondary: "#151B0E",
-      surface: "#151812",
-      surfaceSecondary: "#20251A",
-      accent: "#CBFF2D",
-      text: "#F3F5EC",
-      border: "#343B2E",
-      gradientAngleDegrees: 145,
-      textureStrength: 24,
-      glow: {
-        enabled: true,
-        color: "#CBFF2D",
-        strength: 28,
-      },
-      layers: [],
-    },
-    avatarFrame: {
-      borderColor: "#CBFF2D",
-      secondaryBorderColor: "#B98DC2",
-      borderWidthPx: 3,
-      gapPx: 2,
-      radiusPx: 14,
-      style: "DOUBLE",
-      glow: {
-        enabled: true,
-        color: "#CBFF2D",
-        strength: 42,
-      },
-      layers: [],
-    },
-    profileEffect: {
-      effect: "AURORA",
-      intensity: 58,
-      speed: 42,
-      density: 48,
-      scale: 60,
-      primaryColor: "#CBFF2D",
-      secondaryColor: "#B98DC2",
-      layers: [],
-    },
-    notificationPack: {
-      mixedAggregateTitle: "Several events",
-      templates: {},
-    },
     ...overrides,
   }
 }
