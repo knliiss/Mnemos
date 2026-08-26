@@ -27,6 +27,10 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}-personalization-service"
     image: "${COMPOSE_PROJECT_NAME}/personalization-service:${PERSONALIZATION_SERVICE_VERSION:-local}"
 
+  player-directory-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-player-directory-service"
+    image: "${COMPOSE_PROJECT_NAME}/player-directory-service:${PLAYER_DIRECTORY_SERVICE_VERSION:-local}"
+
   profile-service:
     container_name: "${COMPOSE_PROJECT_NAME}-profile-service"
     image: "${COMPOSE_PROJECT_NAME}/profile-service:${PROFILE_SERVICE_VERSION:-local}"

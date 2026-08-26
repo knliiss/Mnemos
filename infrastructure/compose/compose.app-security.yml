@@ -46,3 +46,6 @@ services:
 
   profile-service:
     <<: *app-security
+
+  player-directory-service:
+    <<: *app-security
