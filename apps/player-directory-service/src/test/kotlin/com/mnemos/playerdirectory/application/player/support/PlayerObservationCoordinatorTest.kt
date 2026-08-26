@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.application.player.support
 
+import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
@@ -11,9 +12,11 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameOwnership
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresence
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
+import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -26,12 +29,7 @@ class PlayerObservationCoordinatorTest {
         val playerRepository = InMemoryPlayerRepository()
         val ownershipRepository = InMemoryNicknameOwnershipRepository()
         val historyRepository = InMemoryNicknameHistoryRepository()
-        val coordinator =
-            PlayerObservationCoordinator(
-                playerRepository = playerRepository,
-                nicknameOwnershipRepository = ownershipRepository,
-                nicknameHistoryRepository = historyRepository,
-            )
+        val coordinator = coordinator(playerRepository, ownershipRepository, historyRepository)
 
         coordinator.apply(observation(firstPlayerId, "SharedName", 1, "2026-08-27T00:00:00Z"))
         coordinator.apply(observation(secondPlayerId, "SecondName", 1, "2026-08-27T00:01:00Z"))
@@ -53,12 +51,7 @@ class PlayerObservationCoordinatorTest {
         val playerRepository = InMemoryPlayerRepository()
         val ownershipRepository = InMemoryNicknameOwnershipRepository()
         val historyRepository = InMemoryNicknameHistoryRepository()
-        val coordinator =
-            PlayerObservationCoordinator(
-                playerRepository = playerRepository,
-                nicknameOwnershipRepository = ownershipRepository,
-                nicknameHistoryRepository = historyRepository,
-            )
+        val coordinator = coordinator(playerRepository, ownershipRepository, historyRepository)
 
         coordinator.apply(observation(firstPlayerId, "CurrentName", 10, "2026-08-27T00:10:00Z"))
         coordinator.apply(observation(firstPlayerId, "StaleName", 9, "2026-08-27T00:11:00Z"))
@@ -66,6 +59,19 @@ class PlayerObservationCoordinatorTest {
         assertEquals(firstPlayerId, ownershipRepository.findByNickname(PlayerNickname.of("CurrentName"))?.playerId)
         assertNull(ownershipRepository.findByNickname(PlayerNickname.of("StaleName")))
     }
+
+    private fun coordinator(
+        playerRepository: PlayerRepository,
+        ownershipRepository: PlayerNicknameOwnershipRepository,
+        historyRepository: PlayerNicknameHistoryRepository,
+    ): PlayerObservationCoordinator =
+        PlayerObservationCoordinator(
+            playerRepository = playerRepository,
+            nicknameOwnershipRepository = ownershipRepository,
+            nicknameHistoryRepository = historyRepository,
+            transitionPolicy = PlayerPresenceTransitionPolicy(Duration.ofSeconds(10), 2),
+            eventPublisher = NoOpPlayerIntegrationEventPublisher,
+        )
 
     private fun observation(
         playerId: CristalixPlayerId,
@@ -92,13 +98,17 @@ class PlayerObservationCoordinatorTest {
     private class InMemoryPlayerRepository : PlayerRepository {
         private val players = mutableMapOf<CristalixPlayerId, Player>()
 
-        override fun ensureState(player: Player) {
-            players.putIfAbsent(player.id, player)
+        override fun ensureState(player: Player): Boolean {
+            if (players.containsKey(player.id)) {
+                return false
+            }
+
+            players[player.id] = player
+            return true
         }
 
         override fun save(player: Player): Player {
             players[player.id] = player
-
             return player
         }
 
@@ -122,7 +132,6 @@ class PlayerObservationCoordinatorTest {
             }
 
             ownerships[ownership.nickname.normalized()] = ownership
-
             return ownership
         }
 
@@ -133,9 +142,7 @@ class PlayerObservationCoordinatorTest {
         override fun findByNickname(nickname: PlayerNickname): PlayerNicknameOwnership? = ownerships[nickname.normalized()]
 
         override fun findByNormalizedNicknamesForUpdate(normalizedNicknames: Set<String>): List<PlayerNicknameOwnership> =
-            normalizedNicknames
-                .sorted()
-                .mapNotNull(ownerships::get)
+            normalizedNicknames.sorted().mapNotNull(ownerships::get)
     }
 
     private class InMemoryNicknameHistoryRepository : PlayerNicknameHistoryRepository {
@@ -143,7 +150,6 @@ class PlayerObservationCoordinatorTest {
 
         override fun save(entry: PlayerNicknameHistoryEntry): PlayerNicknameHistoryEntry {
             entries[entry.id.id] = entry
-
             return entry
         }
 
@@ -154,5 +160,18 @@ class PlayerObservationCoordinatorTest {
             entries.values
                 .filter { entry -> entry.playerId == playerId }
                 .sortedBy(PlayerNicknameHistoryEntry::validFrom)
+    }
+
+    private object NoOpPlayerIntegrationEventPublisher : PlayerIntegrationEventPublisher {
+        override fun publishInitial(
+            player: Player,
+            observedAt: Instant,
+        ) = Unit
+
+        override fun publishChanges(
+            previous: Player,
+            current: Player,
+            observedAt: Instant,
+        ) = Unit
     }
 }

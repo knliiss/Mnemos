@@ -1,6 +1,7 @@
 package com.mnemos.profile.adapter.out.persistence.profile
 
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
+import com.mnemos.profile.domain.profile.model.ProfilePlayerState
 import com.mnemos.profile.domain.profile.model.PublicProfile
 
 object PublicProfilePersistenceMapper {
@@ -34,4 +35,6 @@ object PublicProfilePersistenceMapper {
         copy(
             appearance = appearance ?: ProfileAppearance.empty(accountId),
         )
+
+    fun PublicProfile.withPlayerState(playerState: ProfilePlayerState?): PublicProfile = copy(playerState = playerState)
 }

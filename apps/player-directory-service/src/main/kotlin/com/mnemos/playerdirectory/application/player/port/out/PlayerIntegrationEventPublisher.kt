@@ -3,7 +3,12 @@ package com.mnemos.playerdirectory.application.player.port.out
 import com.mnemos.playerdirectory.domain.player.model.Player
 import java.time.Instant
 
-fun interface PlayerIntegrationEventPublisher {
+interface PlayerIntegrationEventPublisher {
+    fun publishInitial(
+        player: Player,
+        observedAt: Instant,
+    )
+
     fun publishChanges(
         previous: Player,
         current: Player,

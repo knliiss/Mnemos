@@ -6,10 +6,13 @@ import java.util.UUID
 data class PlayerPresenceChangedV1(
     val playerId: UUID,
     val nickname: String,
+    val externalVersion: Long,
     val previousStatus: PlayerPresenceStatusV1,
     val status: PlayerPresenceStatusV1,
     val previousRealm: String?,
     val realm: String?,
+    val realmType: String?,
+    val privacyHidden: Boolean,
     val lastSeenOnline: Instant?,
     val observedAt: Instant,
 )

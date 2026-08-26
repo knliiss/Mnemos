@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 class PlayerRepositoryAdapter(
     private val repository: PlayerJpaRepository,
 ) : PlayerRepository {
-    override fun ensureState(player: Player) {
+    override fun ensureState(player: Player): Boolean =
         repository.insertIfAbsent(
             playerId = player.id.id,
             currentNickname = player.nickname.value,
@@ -19,33 +19,21 @@ class PlayerRepositoryAdapter(
             externalVersion = player.externalVersion,
             externalUpdatedAt = player.externalUpdatedAt,
             presenceStatus = player.presence.status.name,
-            lastVerifiedPresenceStatus = player.lastVerifiedPresenceStatus?.name,
             realm = player.presence.realm,
             realmType = player.presence.realmType,
             privacyHidden = player.presence.privacyHidden,
             lastSeenOnline = player.presence.lastSeenOnline,
             presenceObservedAt = player.presence.observedAt,
+            lastVerifiedPresenceStatus = player.lastVerifiedPresenceStatus?.name,
             offlineCandidateSince = player.offlineCandidateSince,
             offlineCandidateCount = player.offlineCandidateCount,
             createdAt = player.createdAt,
             updatedAt = player.updatedAt,
-        )
-    }
+        ) > 0
 
     override fun save(player: Player): Player = repository.save(player.toEntity()).toDomain()
 
     override fun findById(playerId: CristalixPlayerId): Player? = repository.findById(playerId.id).orElse(null)?.toDomain()
-
-    override fun findByIds(playerIds: Collection<CristalixPlayerId>): Map<CristalixPlayerId, Player> {
-        if (playerIds.isEmpty()) {
-            return emptyMap()
-        }
-
-        return repository
-            .findAllById(playerIds.map(CristalixPlayerId::id))
-            .map(PlayerPersistenceMapper::toDomain)
-            .associateBy(Player::id)
-    }
 
     override fun findByIdForUpdate(playerId: CristalixPlayerId): Player? = repository.findByPlayerIdForUpdate(playerId.id)?.toDomain()
 }

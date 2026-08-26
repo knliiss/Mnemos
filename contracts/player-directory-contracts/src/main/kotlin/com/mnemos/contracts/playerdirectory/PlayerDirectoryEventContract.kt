@@ -6,6 +6,7 @@ object PlayerDirectoryEventContract {
 }
 
 object PlayerDirectoryEventType {
+    const val PLAYER_OBSERVED = "player.observed"
     const val PRESENCE_CHANGED = "player.presence.changed"
     const val WENT_OFFLINE = "player.went-offline"
     const val NICKNAME_CHANGED = "player.nickname.changed"

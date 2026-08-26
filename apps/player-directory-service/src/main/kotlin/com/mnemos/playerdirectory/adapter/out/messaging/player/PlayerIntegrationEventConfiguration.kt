@@ -14,6 +14,7 @@ class PlayerIntegrationEventConfiguration {
     fun playerDirectoryIntegrationEventRouteResolver(): IntegrationEventRouteResolver =
         IntegrationEventRouteResolver { event ->
             when (event.type) {
+                PlayerDirectoryEventType.PLAYER_OBSERVED,
                 PlayerDirectoryEventType.PRESENCE_CHANGED,
                 PlayerDirectoryEventType.WENT_OFFLINE,
                 PlayerDirectoryEventType.NICKNAME_CHANGED,

@@ -14,4 +14,5 @@ data class PublicProfile(
     val createdAt: Instant,
     val updatedAt: Instant,
     val appearance: ProfileAppearance = ProfileAppearance.empty(accountId),
+    val playerState: ProfilePlayerState? = null,
 )

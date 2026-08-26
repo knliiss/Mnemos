@@ -25,7 +25,8 @@ class PlayerObservationCoordinator(
 ) {
     @Transactional
     fun apply(observation: PlayerObservation): Player {
-        playerRepository.ensureState(Player.fromObservation(observation))
+        val initialPlayer = Player.fromObservation(observation)
+        val inserted = playerRepository.ensureState(initialPlayer)
 
         val current =
             requireNotNull(playerRepository.findByIdForUpdate(observation.playerId)) {
@@ -40,6 +41,15 @@ class PlayerObservationCoordinator(
             current = current,
             observation = observation,
         )
+
+        if (inserted) {
+            eventPublisher.publishInitial(
+                player = current,
+                observedAt = observation.presence.observedAt,
+            )
+
+            return current
+        }
 
         val player = current.applyObservation(observation, transitionPolicy)
 
@@ -71,19 +81,13 @@ class PlayerObservationCoordinator(
             )
         val lockedOwnerships =
             nicknameOwnershipRepository.findByNormalizedNicknamesForUpdate(normalizedNicknames)
-        val currentOwnership =
-            lockedOwnerships.firstOrNull { ownership ->
-                ownership.playerId == current.id
-            }
+        val currentOwnership = lockedOwnerships.firstOrNull { ownership -> ownership.playerId == current.id }
         val observedNicknameOwner =
             lockedOwnerships.firstOrNull { ownership ->
                 ownership.nickname.normalized() == observedNickname.normalized()
             }
 
-        if (
-            observedNicknameOwner != null &&
-            observedNicknameOwner.playerId != current.id
-        ) {
+        if (observedNicknameOwner != null && observedNicknameOwner.playerId != current.id) {
             closeOpenHistory(
                 playerId = observedNicknameOwner.playerId,
                 expectedNickname = observedNicknameOwner.nickname,
@@ -91,10 +95,7 @@ class PlayerObservationCoordinator(
             )
         }
 
-        if (
-            currentOwnership != null &&
-            currentOwnership.nickname.normalized() != observedNickname.normalized()
-        ) {
+        if (currentOwnership != null && currentOwnership.nickname.normalized() != observedNickname.normalized()) {
             nicknameOwnershipRepository.delete(currentOwnership)
         }
 

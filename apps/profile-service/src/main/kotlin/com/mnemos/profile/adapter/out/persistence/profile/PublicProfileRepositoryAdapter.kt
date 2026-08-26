@@ -4,8 +4,10 @@ import com.mnemos.profile.adapter.out.persistence.common.pagination.PagePersiste
 import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.toDomain
 import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.toEntity
 import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.withAppearance
+import com.mnemos.profile.adapter.out.persistence.profile.PublicProfilePersistenceMapper.withPlayerState
 import com.mnemos.profile.application.common.pagination.PageResult
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceRepository
+import com.mnemos.profile.application.profile.port.out.ProfilePlayerStateRepository
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
 import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.PublicProfile
@@ -18,6 +20,7 @@ import java.util.UUID
 class PublicProfileRepositoryAdapter(
     private val repository: PublicProfileJpaRepository,
     private val appearanceRepository: ProfileAppearanceRepository,
+    private val playerStateRepository: ProfilePlayerStateRepository,
 ) : PublicProfileRepository {
     override fun ensureExists(
         accountId: UUID,
@@ -36,19 +39,19 @@ class PublicProfileRepositoryAdapter(
     override fun save(profile: PublicProfile): PublicProfile {
         val saved = repository.save(profile.toEntity()).toDomain()
 
-        return saved.withAppearance(appearanceRepository.findByAccountId(saved.accountId))
+        return enrich(saved)
     }
 
     override fun findByAccountId(accountId: UUID): PublicProfile? {
         val profile = repository.findById(accountId).orElse(null)?.toDomain() ?: return null
 
-        return profile.withAppearance(appearanceRepository.findByAccountId(accountId))
+        return enrich(profile)
     }
 
     override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? {
         val profile = repository.findForUpdate(accountId)?.toDomain() ?: return null
 
-        return profile.withAppearance(appearanceRepository.findByAccountId(accountId))
+        return enrich(profile)
     }
 
     override fun search(query: SearchPublicProfilesQuery): PageResult<PublicProfile> {
@@ -61,11 +64,21 @@ class PublicProfileRepositoryAdapter(
             appearanceRepository.findByAccountIds(
                 profiles.content.map(PublicProfileEntity::accountId),
             )
+        val playerStates =
+            playerStateRepository.findByPlayerIds(
+                profiles.content.map(PublicProfileEntity::cristalixUuid),
+            )
 
         return profiles.toPageResult { entity ->
             entity
                 .toDomain()
                 .withAppearance(appearances[entity.accountId])
+                .withPlayerState(playerStates[entity.cristalixUuid])
         }
     }
+
+    private fun enrich(profile: PublicProfile): PublicProfile =
+        profile
+            .withAppearance(appearanceRepository.findByAccountId(profile.accountId))
+            .withPlayerState(playerStateRepository.findByPlayerId(profile.cristalixUuid))
 }
