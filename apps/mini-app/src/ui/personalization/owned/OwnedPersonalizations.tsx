@@ -157,7 +157,10 @@ export function OwnedPersonalizations({
                     </span>
                   </span>
 
-                  <span className="account-personalization-overview-category__art" aria-hidden="true">
+                  <span
+                    className="account-personalization-overview-category__art"
+                    aria-hidden="true"
+                  >
                     <img src={personalizationIllustrations[itemType]} alt="" />
 
                     {selected ? (

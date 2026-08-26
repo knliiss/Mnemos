@@ -115,8 +115,7 @@
   border: 1px solid rgba(226, 233, 205, 0.11);
   border-radius: 21px;
   color: inherit;
-  background:
-    linear-gradient(125deg, rgba(17, 19, 14, 0.985), rgba(10, 12, 9, 0.96));
+  background: linear-gradient(125deg, rgba(17, 19, 14, 0.985), rgba(10, 12, 9, 0.96));
   text-align: left;
 }
 
