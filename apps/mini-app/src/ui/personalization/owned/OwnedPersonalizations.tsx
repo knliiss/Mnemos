@@ -2,10 +2,8 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import type { Personalization, Route } from "../../model"
-import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
-import { PersonalizationTypeGlyph } from "../components/PersonalizationTypeGlyph"
 import {
   accountPersonalizationTypes,
   personalizationIllustrations,
@@ -51,9 +49,9 @@ export function OwnedPersonalizations({
       <div className="screen account-personalization-category">
         <PageHeader title={personalizationTypeTitle(t, type)} back={back} />
 
-        <section className="personalization-category-intro">
-          <span className="personalization-category-icon">
-            <PersonalizationTypeGlyph type={type} />
+        <section className="personalization-category-intro account-personalization-category-intro">
+          <span className="account-personalization-category-intro__art" aria-hidden="true">
+            <img src={personalizationIllustrations[type]} alt="" />
           </span>
           <span>
             <small>{t("personalization.owned.accountEyebrow")}</small>
@@ -150,10 +148,6 @@ export function OwnedPersonalizations({
                     })
                   }
                 >
-                  <span className="account-personalization-overview-category__icon">
-                    <PersonalizationTypeGlyph type={itemType} />
-                  </span>
-
                   <span className="account-personalization-overview-category__copy">
                     <small>{personalizationTypeTitle(t, itemType)}</small>
                     <strong>{selected?.name ?? t("personalization.owned.notSelected")}</strong>
@@ -163,12 +157,14 @@ export function OwnedPersonalizations({
                     </span>
                   </span>
 
-                  <span className="account-personalization-overview-category__preview">
+                  <span className="account-personalization-overview-category__art" aria-hidden="true">
+                    <img src={personalizationIllustrations[itemType]} alt="" />
+
                     {selected ? (
-                      <PersonalizationVisual item={selected} small />
-                    ) : (
-                      <Glyph name="spark" size={18} />
-                    )}
+                      <span className="account-personalization-overview-category__active-preview">
+                        <PersonalizationVisual item={selected} small />
+                      </span>
+                    ) : null}
                   </span>
                 </motion.button>
               )
