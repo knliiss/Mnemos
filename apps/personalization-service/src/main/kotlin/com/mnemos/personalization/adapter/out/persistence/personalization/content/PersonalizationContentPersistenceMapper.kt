@@ -85,6 +85,7 @@ object PersonalizationContentPersistenceMapper {
             PersonalizationType.NOTIFICATION_PACK -> toNotificationPack()
             PersonalizationType.NICK_STYLE -> toNickStyle()
             PersonalizationType.PROFILE_THEME -> toProfileTheme()
+            PersonalizationType.PROFILE_BACKGROUND -> toProfileEffect()
             PersonalizationType.AVATAR_FRAME -> toAvatarFrame()
             PersonalizationType.PROFILE_EFFECT -> toProfileEffect()
         }

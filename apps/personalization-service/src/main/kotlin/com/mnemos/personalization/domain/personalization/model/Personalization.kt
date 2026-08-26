@@ -238,6 +238,7 @@ class Personalization(
                 PersonalizationType.NOTIFICATION_PACK -> content is PersonalizationContent.NotificationPack
                 PersonalizationType.NICK_STYLE -> content is PersonalizationContent.NickStyle
                 PersonalizationType.PROFILE_THEME -> content is PersonalizationContent.ProfileTheme
+                PersonalizationType.PROFILE_BACKGROUND -> content is PersonalizationContent.ProfileEffect
                 PersonalizationType.AVATAR_FRAME -> content is PersonalizationContent.AvatarFrame
                 PersonalizationType.PROFILE_EFFECT -> content is PersonalizationContent.ProfileEffect
             }

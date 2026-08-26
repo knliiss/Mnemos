@@ -26,6 +26,8 @@ class ProfileAppearanceSnapshotResolver(
             profileTheme = activePersonalization(owner, PersonalizationType.PROFILE_THEME)?.toProfileThemeSnapshot(),
             avatarFrame = activePersonalization(owner, PersonalizationType.AVATAR_FRAME)?.toAvatarFrameSnapshot(),
             profileEffect = activePersonalization(owner, PersonalizationType.PROFILE_EFFECT)?.toProfileEffectSnapshot(),
+            profileBackground =
+                activePersonalization(owner, PersonalizationType.PROFILE_BACKGROUND)?.toProfileEffectSnapshot(),
         )
     }
 

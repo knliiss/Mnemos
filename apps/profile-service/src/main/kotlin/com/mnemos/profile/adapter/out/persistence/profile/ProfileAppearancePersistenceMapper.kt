@@ -14,6 +14,7 @@ object ProfileAppearancePersistenceMapper {
                     profileTheme = profileTheme?.toDocument(),
                     avatarFrame = avatarFrame?.toDocument(),
                     profileEffect = profileEffect?.toDocument(),
+                    profileBackground = profileBackground?.toDocument(),
                 ),
             updatedAt = updatedAt,
         )
@@ -27,6 +28,7 @@ object ProfileAppearancePersistenceMapper {
             avatarFrame = appearance.avatarFrame?.toDomain(),
             profileEffect = appearance.profileEffect?.toDomain(),
             updatedAt = updatedAt,
+            profileBackground = appearance.profileBackground?.toDomain(),
         )
 
     private fun ProfileAppearance.NickStyle.toDocument(): ProfileAppearanceDocument.NickStyle =

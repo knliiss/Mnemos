@@ -26,6 +26,15 @@ type ProfileCardStyle = CSSProperties & {
   "--profile-effect-scale"?: string
 }
 
+type ProfileScreenStyle = CSSProperties & {
+  "--profile-background-primary"?: string
+  "--profile-background-secondary"?: string
+  "--profile-background-opacity"?: string
+  "--profile-background-duration"?: string
+  "--profile-background-density"?: string
+  "--profile-background-scale"?: string
+}
+
 type ProfileHeadStyle = CSSProperties & {
   "--profile-frame-color"?: string
   "--profile-frame-secondary"?: string
@@ -59,6 +68,41 @@ export function nicknameStyleForAppearance(
       ? `0 0 ${Math.max(2, Math.round(style.glow.strength / 10))}px ${style.glow.color}`
       : undefined,
   }
+}
+
+export function profileScreenStyle(profile: PublicProfileResponse): ProfileScreenStyle | undefined {
+  const background = profile.appearance.profileBackground
+
+  if (!background) {
+    return undefined
+  }
+
+  const opacity = 0.12 + (background.intensity / 100) * 0.3
+  const durationSeconds = 18 - (background.speed / 100) * 13
+  const scale = 0.85 + (background.scale / 100) * 0.55
+
+  return {
+    "--profile-background-primary": background.primaryColor,
+    "--profile-background-secondary": background.secondaryColor ?? background.primaryColor,
+    "--profile-background-opacity": opacity.toFixed(3),
+    "--profile-background-duration": `${durationSeconds.toFixed(2)}s`,
+    "--profile-background-density": `${background.density}%`,
+    "--profile-background-scale": scale.toFixed(3),
+  }
+}
+
+export function profileScreenClassName(profile: PublicProfileResponse): string {
+  const classes = ["screen", "public-profile-screen"]
+  const background = profile.appearance.profileBackground
+
+  if (background) {
+    classes.push(
+      "has-profile-background",
+      `profile-background--${background.effect.toLowerCase()}`,
+    )
+  }
+
+  return classes.join(" ")
 }
 
 export function profileCardStyle(profile: PublicProfileResponse): ProfileCardStyle | undefined {

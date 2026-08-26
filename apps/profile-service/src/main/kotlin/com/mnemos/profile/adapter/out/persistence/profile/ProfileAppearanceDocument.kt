@@ -6,6 +6,7 @@ object ProfileAppearanceDocument {
         val profileTheme: ProfileTheme?,
         val avatarFrame: AvatarFrame?,
         val profileEffect: ProfileEffect?,
+        val profileBackground: ProfileEffect? = null,
     )
 
     data class NickStyle(

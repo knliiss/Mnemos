@@ -39,6 +39,7 @@ object PublicProfileApiMapper {
             profileTheme = profileTheme?.toResponse(),
             avatarFrame = avatarFrame?.toResponse(),
             profileEffect = profileEffect?.toResponse(),
+            profileBackground = profileBackground?.toResponse(),
         )
 
     private fun ProfileAppearance.NickStyle.toResponse(): ProfileAppearanceResponse.NickStyle =

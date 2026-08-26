@@ -13,6 +13,7 @@ object ProfileAppearanceContractMapper {
             avatarFrame = appearance.avatarFrame?.toDomain(),
             profileEffect = appearance.profileEffect?.toDomain(),
             updatedAt = occurredAt,
+            profileBackground = appearance.profileBackground?.toDomain(),
         )
 
     private fun ProfileAppearanceChangedV1.NickStyle.toDomain(): ProfileAppearance.NickStyle =

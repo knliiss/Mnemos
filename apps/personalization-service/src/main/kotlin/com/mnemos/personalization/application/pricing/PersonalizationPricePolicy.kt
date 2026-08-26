@@ -39,6 +39,7 @@ class PersonalizationPricePolicy(
             listOf(
                 PersonalizationType.NICK_STYLE,
                 PersonalizationType.PROFILE_THEME,
+                PersonalizationType.PROFILE_BACKGROUND,
                 PersonalizationType.AVATAR_FRAME,
                 PersonalizationType.PROFILE_EFFECT,
             ).forEach { type ->
@@ -73,16 +74,18 @@ class PersonalizationPricePolicy(
                         Currency.PRIME -> properties.profileThemePrime
                     }
 
+                PersonalizationType.PROFILE_BACKGROUND,
+                PersonalizationType.PROFILE_EFFECT,
+                ->
+                    when (currency) {
+                        Currency.COIN -> properties.profileEffectCoin
+                        Currency.PRIME -> properties.profileEffectPrime
+                    }
+
                 PersonalizationType.AVATAR_FRAME ->
                     when (currency) {
                         Currency.COIN -> properties.avatarFrameCoin
                         Currency.PRIME -> properties.avatarFramePrime
-                    }
-
-                PersonalizationType.PROFILE_EFFECT ->
-                    when (currency) {
-                        Currency.COIN -> properties.profileEffectCoin
-                        Currency.PRIME -> properties.profileEffectPrime
                     }
             }
 

@@ -22,6 +22,7 @@ const targets: Record<Personalization["type"], PersonalizationTarget> = {
   NOTIFICATION_PACK: "USER",
   NICK_STYLE: "ACCOUNT",
   PROFILE_THEME: "ACCOUNT",
+  PROFILE_BACKGROUND: "ACCOUNT",
   AVATAR_FRAME: "ACCOUNT",
   PROFILE_EFFECT: "ACCOUNT",
 }
@@ -138,17 +139,21 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     } satisfies AvatarFrameContent
   }
 
-  const content = response.content as ProfileEffectContentResponse
+  if (response.type === "PROFILE_EFFECT" || response.type === "PROFILE_BACKGROUND") {
+    const content = response.content as ProfileEffectContentResponse
 
-  return {
-    kind: "PROFILE_EFFECT",
-    effect: content.effect,
-    intensity: content.intensity,
-    speed: content.speed,
-    density: content.density,
-    scale: content.scale,
-    primaryColor: content.primaryColor,
-    secondaryColor: content.secondaryColor,
-    layers: content.layers ?? [],
-  } satisfies ProfileEffectContent
+    return {
+      kind: "PROFILE_EFFECT",
+      effect: content.effect,
+      intensity: content.intensity,
+      speed: content.speed,
+      density: content.density,
+      scale: content.scale,
+      primaryColor: content.primaryColor,
+      secondaryColor: content.secondaryColor,
+      layers: content.layers ?? [],
+    } satisfies ProfileEffectContent
+  }
+
+  throw new Error(`Unsupported personalization type: ${response.type}`)
 }

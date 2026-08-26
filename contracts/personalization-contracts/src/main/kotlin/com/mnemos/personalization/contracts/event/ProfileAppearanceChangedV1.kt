@@ -14,6 +14,7 @@ data class ProfileAppearanceChangedV1(
         val profileTheme: ProfileTheme?,
         val avatarFrame: AvatarFrame?,
         val profileEffect: ProfileEffect?,
+        val profileBackground: ProfileEffect? = null,
     )
 
     data class NickStyle(

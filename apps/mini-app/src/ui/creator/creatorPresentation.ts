@@ -17,6 +17,7 @@ export const creatorTypeGlyph: Record<
 > = {
   NICK_STYLE: "spark",
   PROFILE_THEME: "creator",
+  PROFILE_BACKGROUND: "creator",
   AVATAR_FRAME: "profile-mark",
   PROFILE_EFFECT: "events",
   NOTIFICATION_PACK: "bell",

@@ -17,6 +17,7 @@ export type PersonalizationType =
   | "NOTIFICATION_PACK"
   | "NICK_STYLE"
   | "PROFILE_THEME"
+  | "PROFILE_BACKGROUND"
   | "AVATAR_FRAME"
   | "PROFILE_EFFECT"
 export type PersonalizationTarget = "USER" | "ACCOUNT"

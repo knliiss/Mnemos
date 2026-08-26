@@ -59,6 +59,7 @@ export const PERSONALIZATION_TYPES = [
   "NOTIFICATION_PACK",
   "NICK_STYLE",
   "PROFILE_THEME",
+  "PROFILE_BACKGROUND",
   "AVATAR_FRAME",
   "PROFILE_EFFECT",
 ] as const satisfies readonly PersonalizationType[]

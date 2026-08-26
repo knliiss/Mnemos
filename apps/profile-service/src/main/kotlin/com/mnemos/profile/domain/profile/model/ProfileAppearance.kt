@@ -11,6 +11,7 @@ data class ProfileAppearance(
     val avatarFrame: AvatarFrame?,
     val profileEffect: ProfileEffect?,
     val updatedAt: Instant,
+    val profileBackground: ProfileEffect? = null,
 ) {
     data class NickStyle(
         val personalizationId: UUID,

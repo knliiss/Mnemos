@@ -152,7 +152,7 @@ class SynchronizeBuiltinPersonalizationCatalogService(
     private companion object {
         val logger = LoggerFactory.getLogger(SynchronizeBuiltinPersonalizationCatalogService::class.java)
 
-        const val CATALOG_REVISION = 4
+        const val CATALOG_REVISION = 5
 
         val definitions = BuiltinPersonalizationCatalog.definitions
     }

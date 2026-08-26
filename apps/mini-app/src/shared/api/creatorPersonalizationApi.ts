@@ -18,6 +18,8 @@ import type {
   PersonalizationResponse,
 } from "@/shared/api/personalizationApi"
 
+export type CreatorPersonalizationType = Exclude<PersonalizationType, "PROFILE_BACKGROUND">
+
 export type PersonalizationPriceRequest = {
   currency: Currency
   amount: number
@@ -180,7 +182,7 @@ export type CreatorRevenueOperationResponse = {
   createdAt: string
 }
 
-const createPaths: Record<PersonalizationType, string> = {
+const createPaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-styles",
   PROFILE_THEME: "profile-themes",
   AVATAR_FRAME: "avatar-frames",
@@ -188,7 +190,7 @@ const createPaths: Record<PersonalizationType, string> = {
   NOTIFICATION_PACK: "notification-packs",
 }
 
-const updatePaths: Record<PersonalizationType, string> = {
+const updatePaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-style",
   PROFILE_THEME: "profile-theme",
   AVATAR_FRAME: "avatar-frame",
@@ -229,7 +231,7 @@ export async function getNotificationPackEditorDescriptor(): Promise<Notificatio
   )
 }
 
-export async function createCreatorPersonalization<TType extends PersonalizationType>(
+export async function createCreatorPersonalization<TType extends CreatorPersonalizationType>(
   type: TType,
   request: CreatorRequestByType[TType],
 ): Promise<PersonalizationResponse> {
@@ -240,7 +242,7 @@ export async function createCreatorPersonalization<TType extends Personalization
   })
 }
 
-export async function updateCreatorPersonalization<TType extends PersonalizationType>(
+export async function updateCreatorPersonalization<TType extends CreatorPersonalizationType>(
   personalizationId: string,
   type: TType,
   request: CreatorRequestByType[TType],

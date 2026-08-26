@@ -116,20 +116,45 @@ object BuiltinVisualPersonalizationSupport {
         currency: Currency,
         amount: Long,
     ): BuiltinPersonalizationDefinition =
-        definition(
+        effectDefinition(
             key = key,
-            type = PersonalizationType.PROFILE_EFFECT,
+            personalizationType = PersonalizationType.PROFILE_EFFECT,
             name = name,
-            content =
-                PersonalizationContent.ProfileEffect(
-                    effect = type,
-                    intensity = intensity,
-                    primaryColor = color(primary),
-                    secondaryColor = secondary?.let(::color),
-                    speed = speed,
-                    density = density,
-                    scale = scale,
-                ),
+            type = type,
+            intensity = intensity,
+            primary = primary,
+            secondary = secondary,
+            speed = speed,
+            density = density,
+            scale = scale,
+            currency = currency,
+            amount = amount,
+        )
+
+    fun profileBackground(
+        key: String,
+        name: String,
+        type: EffectType,
+        intensity: Int,
+        primary: String,
+        secondary: String?,
+        speed: Int,
+        density: Int,
+        scale: Int,
+        currency: Currency,
+        amount: Long,
+    ): BuiltinPersonalizationDefinition =
+        effectDefinition(
+            key = key,
+            personalizationType = PersonalizationType.PROFILE_BACKGROUND,
+            name = name,
+            type = type,
+            intensity = intensity,
+            primary = primary,
+            secondary = secondary,
+            speed = speed,
+            density = density,
+            scale = scale,
             currency = currency,
             amount = amount,
         )
@@ -150,6 +175,38 @@ object BuiltinVisualPersonalizationSupport {
         GlowStyle(
             color = color(colorValue),
             strength = strength,
+        )
+
+    private fun effectDefinition(
+        key: String,
+        personalizationType: PersonalizationType,
+        name: String,
+        type: EffectType,
+        intensity: Int,
+        primary: String,
+        secondary: String?,
+        speed: Int,
+        density: Int,
+        scale: Int,
+        currency: Currency,
+        amount: Long,
+    ): BuiltinPersonalizationDefinition =
+        definition(
+            key = key,
+            type = personalizationType,
+            name = name,
+            content =
+                PersonalizationContent.ProfileEffect(
+                    effect = type,
+                    intensity = intensity,
+                    primaryColor = color(primary),
+                    secondaryColor = secondary?.let(::color),
+                    speed = speed,
+                    density = density,
+                    scale = scale,
+                ),
+            currency = currency,
+            amount = amount,
         )
 
     private fun definition(

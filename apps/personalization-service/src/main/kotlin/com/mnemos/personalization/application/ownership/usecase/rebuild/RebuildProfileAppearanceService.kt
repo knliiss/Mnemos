@@ -42,6 +42,7 @@ class RebuildProfileAppearanceService(
             setOf(
                 PersonalizationType.NICK_STYLE,
                 PersonalizationType.PROFILE_THEME,
+                PersonalizationType.PROFILE_BACKGROUND,
                 PersonalizationType.AVATAR_FRAME,
                 PersonalizationType.PROFILE_EFFECT,
             )

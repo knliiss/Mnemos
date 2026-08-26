@@ -9,6 +9,18 @@ export type ProfileGlowResponse = {
   strength: number
 }
 
+type ProfileEffectAppearanceResponse = {
+  personalizationId: string
+  effect: EffectType
+  intensity: number
+  speed: number
+  density: number
+  scale: number
+  primaryColor: string
+  secondaryColor: string | null
+  layers: VisualLayer[]
+}
+
 export type ProfileAppearanceResponse = {
   nickStyle: {
     personalizationId: string
@@ -44,17 +56,8 @@ export type ProfileAppearanceResponse = {
     glow: ProfileGlowResponse | null
     layers: VisualLayer[]
   } | null
-  profileEffect: {
-    personalizationId: string
-    effect: EffectType
-    intensity: number
-    speed: number
-    density: number
-    scale: number
-    primaryColor: string
-    secondaryColor: string | null
-    layers: VisualLayer[]
-  } | null
+  profileEffect: ProfileEffectAppearanceResponse | null
+  profileBackground: ProfileEffectAppearanceResponse | null
 }
 
 export type PublicProfileResponse = {

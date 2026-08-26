@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { PersonalizationVisual } from "../../components/personalization/PersonalizationPreview"
 import type { Personalization, Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
+import { PersonalizationCategorySwatch } from "../components/PersonalizationCategorySwatch"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
 import {
   accountPersonalizationTypes,
@@ -165,7 +166,7 @@ export function OwnedPersonalizations({
 
                     {selected ? (
                       <span className="account-personalization-overview-category__active-preview">
-                        <PersonalizationVisual item={selected} small />
+                        <PersonalizationCategorySwatch item={selected} />
                       </span>
                     ) : null}
                   </span>
