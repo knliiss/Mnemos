@@ -41,6 +41,7 @@ include(
     ":contracts:realtime-contracts",
     ":contracts:personalization-contracts",
     ":contracts:social-contracts",
+    ":contracts:player-directory-contracts",
 
     ":keycloak-extensions:telegram-authenticator",
 
@@ -56,4 +57,5 @@ include(
     ":apps:personalization-service",
     ":apps:social-service",
     ":apps:profile-service",
+    ":apps:player-directory-service",
 )
