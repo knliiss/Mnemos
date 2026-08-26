@@ -1,6 +1,8 @@
 package com.mnemos.playerdirectory.application.subscription.usecase.create
 
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerGateway
+import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.application.subscription.exception.PlayerPresenceNotObservableException
@@ -10,6 +12,8 @@ import com.mnemos.playerdirectory.application.subscription.support.PresenceSubsc
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.Player
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
+import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameHistoryEntry
+import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameOwnership
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresence
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
@@ -79,9 +83,16 @@ class CreatePresenceSubscriptionServiceTest {
 
     private fun fixture(status: PlayerPresenceStatus): Fixture {
         val playerRepository = InMemoryPlayerRepository()
+        val nicknameOwnershipRepository = InMemoryNicknameOwnershipRepository()
+        val nicknameHistoryRepository = InMemoryNicknameHistoryRepository()
         val subscriptionRepository = InMemoryPresenceSubscriptionRepository()
         val gateway = FakeCristalixPlayerGateway(observation(status))
-        val observationCoordinator = PlayerObservationCoordinator(playerRepository)
+        val observationCoordinator =
+            PlayerObservationCoordinator(
+                playerRepository = playerRepository,
+                nicknameOwnershipRepository = nicknameOwnershipRepository,
+                nicknameHistoryRepository = nicknameHistoryRepository,
+            )
         val subscriptionCoordinator = PresenceSubscriptionCoordinator(subscriptionRepository)
 
         return Fixture(
@@ -131,6 +142,10 @@ class CreatePresenceSubscriptionServiceTest {
     private class InMemoryPlayerRepository : PlayerRepository {
         private val players = mutableMapOf<CristalixPlayerId, Player>()
 
+        override fun ensureState(player: Player) {
+            players.putIfAbsent(player.id, player)
+        }
+
         override fun save(player: Player): Player {
             players[player.id] = player
 
@@ -140,9 +155,38 @@ class CreatePresenceSubscriptionServiceTest {
         override fun findById(playerId: CristalixPlayerId): Player? = players[playerId]
 
         override fun findByIdForUpdate(playerId: CristalixPlayerId): Player? = players[playerId]
+    }
 
-        override fun findByCurrentNickname(nickname: PlayerNickname): Player? =
-            players.values.firstOrNull { player -> player.nickname.normalized() == nickname.normalized() }
+    private class InMemoryNicknameOwnershipRepository : PlayerNicknameOwnershipRepository {
+        private val ownerships = mutableMapOf<String, PlayerNicknameOwnership>()
+
+        override fun save(ownership: PlayerNicknameOwnership): PlayerNicknameOwnership {
+            ownerships[ownership.nickname.normalized()] = ownership
+
+            return ownership
+        }
+
+        override fun delete(ownership: PlayerNicknameOwnership) {
+            ownerships.remove(ownership.nickname.normalized())
+        }
+
+        override fun findByNickname(nickname: PlayerNickname): PlayerNicknameOwnership? = ownerships[nickname.normalized()]
+
+        override fun findByNormalizedNicknamesForUpdate(normalizedNicknames: Set<String>): List<PlayerNicknameOwnership> =
+            normalizedNicknames.mapNotNull(ownerships::get)
+    }
+
+    private class InMemoryNicknameHistoryRepository : PlayerNicknameHistoryRepository {
+        private val entries = mutableMapOf<UUID, PlayerNicknameHistoryEntry>()
+
+        override fun save(entry: PlayerNicknameHistoryEntry): PlayerNicknameHistoryEntry {
+            entries[entry.id.id] = entry
+
+            return entry
+        }
+
+        override fun findOpenByPlayerIdForUpdate(playerId: CristalixPlayerId): PlayerNicknameHistoryEntry? =
+            entries.values.firstOrNull { entry -> entry.playerId == playerId && entry.validUntil == null }
     }
 
     private class InMemoryPresenceSubscriptionRepository : PresenceSubscriptionRepository {
