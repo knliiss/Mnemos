@@ -10,6 +10,8 @@ object PlayerDirectoryEventType {
     const val PRESENCE_CHANGED = "player.presence.changed"
     const val WENT_OFFLINE = "player.went-offline"
     const val NICKNAME_CHANGED = "player.nickname.changed"
+    const val PRESENCE_SUBSCRIPTION_CREATED = "player.presence-subscription.created"
+    const val PRESENCE_SUBSCRIPTION_DELETED = "player.presence-subscription.deleted"
 }
 
 object PlayerDirectoryEventAggregateType {

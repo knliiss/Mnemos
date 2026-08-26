@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.application.subscription.support
 
+import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionRepository
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingSchedulePolicy
 import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
@@ -16,6 +17,7 @@ class PresenceSubscriptionCoordinator(
     private val repository: PresenceSubscriptionRepository,
     private val trackingRepository: PlayerTrackingRepository,
     private val trackingSchedulePolicy: PlayerTrackingSchedulePolicy,
+    private val eventPublisher: PresenceSubscriptionIntegrationEventPublisher,
 ) {
     @Transactional
     fun createIfAbsent(
@@ -49,6 +51,11 @@ class PresenceSubscriptionCoordinator(
                 nextPollAt = nextPollAt,
                 createdAt = createdAt,
             ),
+        )
+
+        eventPublisher.publishCreated(
+            subscription = subscription,
+            occurredAt = createdAt,
         )
 
         return subscription

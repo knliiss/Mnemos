@@ -18,6 +18,8 @@ class PlayerIntegrationEventConfiguration {
                 PlayerDirectoryEventType.PRESENCE_CHANGED,
                 PlayerDirectoryEventType.WENT_OFFLINE,
                 PlayerDirectoryEventType.NICKNAME_CHANGED,
+                PlayerDirectoryEventType.PRESENCE_SUBSCRIPTION_CREATED,
+                PlayerDirectoryEventType.PRESENCE_SUBSCRIPTION_DELETED,
                 -> route()
 
                 else -> error("Unsupported player-directory integration event type: ${event.type}")
