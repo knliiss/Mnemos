@@ -7,12 +7,10 @@ services:
       dockerfile: apps/account-service/Dockerfile
 
     image: mnemos/account-service:${ACCOUNT_SERVICE_VERSION:-local}
-
     restart: unless-stopped
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
-
       SERVER_PORT: 8081
 
       SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=account
@@ -45,9 +43,8 @@ services:
       MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${ACCOUNT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
       MNEMOS_KAFKA_MESSAGEAUTH_TRUSTEDPUBLICKEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
 
-      CRISTALIX_API_URL: ${CRISTALIX_API_URL}
-      CRISTALIX_PROJECT_TOKEN: ${CRISTALIX_ACCOUNT_SERVICE_PROJECT_TOKEN}
-      CRISTALIX_PROJECT_KEY: ${CRISTALIX_ACCOUNT_SERVICE_PROJECT_KEY}
+      PLAYER_DIRECTORY_SERVICE_URL: http://player-directory-service:8092
+      ACCOUNT_SERVICE_PLAYER_DIRECTORY_API_KEY: ${ACCOUNT_SERVICE_PLAYER_DIRECTORY_API_KEY}
 
       WALLET_SERVICE_ACCOUNT_API_KEY: ${WALLET_SERVICE_ACCOUNT_API_KEY}
       EVENT_SERVICE_ACCOUNT_API_KEY: ${EVENT_SERVICE_ACCOUNT_API_KEY}
@@ -68,6 +65,8 @@ services:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
+      player-directory-service:
+        condition: service_started
 
     networks:
       - mnemos-network

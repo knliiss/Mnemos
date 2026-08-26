@@ -3,6 +3,8 @@ package com.mnemos.account.application.service.account
 import com.mnemos.account.api.dto.account.CreateAccountRequest
 import com.mnemos.account.application.context.CurrentUserProvider
 import com.mnemos.account.application.event.account.AccountIntegrationEvents
+import com.mnemos.account.application.model.account.ResolvedPlayerIdentity
+import com.mnemos.account.application.port.out.PlayerIdentityProvider
 import com.mnemos.account.application.result.account.CreateAccountResult
 import com.mnemos.account.domain.exception.account.AccountIdentityConflictException
 import com.mnemos.account.domain.exception.account.cristalix.CristalixPlayerNotFoundException
@@ -19,8 +21,6 @@ import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.account.domain.repository.user.UserRepository
-import com.mnemos.account.integration.cristalix.CristalixIdentityProvider
-import com.mnemos.account.integration.cristalix.model.CristalixPlayer
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
@@ -33,7 +33,7 @@ class CreateAccountService(
     private val accountMemberRepository: AccountMemberRepository,
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
-    private val cristalixIdentityProvider: CristalixIdentityProvider,
+    private val playerIdentityProvider: PlayerIdentityProvider,
     private val currentUserProvider: CurrentUserProvider,
     private val integrationEventPublisher: IntegrationEventPublisher,
     private val transactionTemplate: TransactionTemplate,
@@ -42,7 +42,7 @@ class CreateAccountService(
         val nickname = CristalixNickname(request.cristalixNickname)
 
         val player =
-            cristalixIdentityProvider.findByNickname(nickname)
+            playerIdentityProvider.resolveByNickname(nickname)
                 ?: throw CristalixPlayerNotFoundException(nickname)
 
         return requireNotNull(
@@ -54,7 +54,7 @@ class CreateAccountService(
         }
     }
 
-    private fun createFromPlayer(player: CristalixPlayer): CreateAccountResult {
+    private fun createFromPlayer(player: ResolvedPlayerIdentity): CreateAccountResult {
         val owner = currentUserProvider.get()
         val existingAccount = accountRepository.findByCristalixUuidForUpdate(player.uuid)
 
@@ -75,7 +75,7 @@ class CreateAccountService(
     private fun reactivateOwnedAccount(
         account: Account,
         owner: User,
-        player: CristalixPlayer,
+        player: ResolvedPlayerIdentity,
     ): CreateAccountResult {
         if (account.status != AccountStatus.DEACTIVATED) {
             throw AccountIdentityConflictException(player.uuid)
@@ -107,7 +107,7 @@ class CreateAccountService(
 
     private fun createNewAccount(
         owner: User,
-        player: CristalixPlayer,
+        player: ResolvedPlayerIdentity,
     ): CreateAccountResult {
         val accountId = AccountId.generate()
         val ownerMemberId = AccountMemberId.generate()
