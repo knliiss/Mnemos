@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react"
-import {
-  getPublicProfile,
-  type ProfileAppearanceResponse,
-} from "@/shared/api/profileSocialApi"
+import { getPublicProfile, type ProfileAppearanceResponse } from "@/shared/api/profileSocialApi"
 
 type AppearanceState = {
   accountId: string
