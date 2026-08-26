@@ -12,14 +12,8 @@
 }
 
 .account-personalization-overview-categories > button {
-  grid-template-columns: 42px minmax(0, 1fr) 92px;
   min-width: 0;
-  min-height: 118px;
-}
-
-.account-personalization-overview-category__preview {
-  width: 92px;
-  height: 82px;
+  min-height: 126px;
 }
 
 .account-personalization-category-list,
@@ -62,25 +56,11 @@
   }
 
   .account-personalization-overview-categories > button {
-    grid-template-columns: 42px minmax(0, 1fr) 96px;
-    min-height: 106px;
-  }
-
-  .account-personalization-overview-category__preview {
-    width: 96px;
-    height: 76px;
+    min-height: 116px;
   }
 }
 
 @media (max-width: 380px) {
-  .account-personalization-overview-categories > button {
-    grid-template-columns: 40px minmax(0, 1fr) 78px;
-  }
-
-  .account-personalization-overview-category__preview {
-    width: 78px;
-  }
-
   .account-personalization-category-list > button {
     grid-template-columns: 74px minmax(0, 1fr);
   }

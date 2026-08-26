@@ -1,41 +1,38 @@
 .user-personalization-settings {
   display: grid;
   gap: 14px;
-  max-width: 920px;
+  width: min(100%, 920px);
   margin: 0 auto;
+  padding-bottom: 36px;
 }
 
-.user-personalization-settings__intro {
+.user-personalization-settings__hero {
+  position: relative;
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid rgba(225, 233, 207, 0.1);
-  border-radius: 20px;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  align-items: stretch;
+  min-height: 174px;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid rgba(225, 233, 207, 0.11);
+  border-radius: 24px;
   background:
-    radial-gradient(circle at 12% 20%, rgba(206, 145, 210, 0.08), transparent 38%),
-    rgba(255, 255, 255, 0.014);
+    radial-gradient(circle at 84% 20%, rgba(203, 255, 45, 0.075), transparent 35%),
+    radial-gradient(circle at 8% 112%, rgba(206, 145, 210, 0.07), transparent 43%),
+    linear-gradient(145deg, rgba(22, 25, 18, 0.985), rgba(10, 12, 9, 0.985));
 }
 
-.user-personalization-settings__mark {
+.user-personalization-settings__hero-copy {
+  position: relative;
+  z-index: 2;
   display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 15px;
-  color: #d8a6da;
-  background: rgba(206, 145, 210, 0.08);
-}
-
-.user-personalization-settings__intro > span:last-child {
-  display: grid;
+  align-content: center;
   min-width: 0;
-  gap: 4px;
+  max-width: 560px;
 }
 
-.user-personalization-settings__intro small,
-.user-personalization-settings__summary small {
+.user-personalization-settings__hero-copy > small,
+.user-personalization-settings__active-row small {
   color: #7d8478;
   font-family: var(--font-meta);
   font-size: 9px;
@@ -44,60 +41,246 @@
   text-transform: uppercase;
 }
 
-.user-personalization-settings__intro strong {
-  color: #e5e9e0;
-  font-size: 15px;
+.user-personalization-settings__hero-copy > strong {
+  margin-top: 5px;
+  color: #edf0e8;
+  font-size: 19px;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
-.user-personalization-settings__intro p {
-  max-width: 640px;
-  margin: 0;
-  color: #858c80;
+.user-personalization-settings__hero-copy > p {
+  max-width: 500px;
+  margin: 6px 0 0;
+  color: #8b9286;
   font-size: 10px;
-  line-height: 1.5;
+  line-height: 1.52;
 }
 
-.user-personalization-settings__summary {
+.user-personalization-settings__active-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
+  margin-top: 15px;
 }
 
-.user-personalization-settings__summary article {
+.user-personalization-settings__active-row > span {
   display: grid;
-  gap: 4px;
-  padding: 12px 14px;
+  min-width: 0;
+  gap: 3px;
+  padding: 9px 10px;
   border: 1px solid rgba(225, 233, 207, 0.075);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.012);
+  border-radius: 12px;
+  background: rgba(4, 6, 4, 0.34);
 }
 
-.user-personalization-settings__summary strong {
+.user-personalization-settings__active-row b {
   overflow: hidden;
   color: #dce1d7;
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.user-personalization-settings__hero-art {
+  position: relative;
+  min-height: 132px;
+}
+
+.user-personalization-settings__hero-art > span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(225, 233, 207, 0.08);
+  border-radius: 20px;
+  background: rgba(5, 7, 5, 0.42);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+}
+
+.user-personalization-settings__hero-art > span.is-badge {
+  top: 4px;
+  right: 78px;
+  width: 126px;
+  height: 106px;
+  transform: rotate(-4deg);
+}
+
+.user-personalization-settings__hero-art > span.is-pack {
+  right: 4px;
+  bottom: 2px;
+  width: 132px;
+  height: 112px;
+  border-color: rgba(203, 255, 45, 0.12);
+  transform: rotate(3deg);
+}
+
+.user-personalization-settings__hero-art img {
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.user-personalization-settings__sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+
 .user-personalization-settings .user-hub-badges,
 .user-personalization-settings .user-hub-notification-packs {
+  min-width: 0;
+  margin: 0;
   padding: 14px;
-  border-radius: 18px;
+  border: 1px solid rgba(225, 233, 207, 0.09);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 94% 7%, rgba(203, 255, 45, 0.035), transparent 35%),
+    rgba(13, 15, 11, 0.92);
+}
+
+.user-personalization-settings .user-hub-badges > header,
+.user-personalization-settings .user-hub-notification-packs > header {
+  min-height: 38px;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.user-personalization-settings .user-hub-badges header small,
+.user-personalization-settings .user-hub-notification-packs > header small {
+  font-size: 9px;
+}
+
+.user-personalization-settings .user-hub-badges header strong,
+.user-personalization-settings .user-hub-notification-packs > header strong {
+  color: #e3e7de;
+  font-size: 11px;
 }
 
 .user-personalization-settings .user-hub-badges__grid,
 .user-personalization-settings .user-hub-notification-packs__grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.user-personalization-settings .user-hub-badge-option,
+.user-personalization-settings .user-hub-notification-pack-option {
+  min-height: 58px;
+  border-radius: 13px;
+  background: rgba(4, 6, 4, 0.28);
+}
+
+.user-personalization-settings .user-hub-badge-option {
+  grid-template-columns: 38px minmax(0, 1fr);
+  padding: 8px 9px;
+}
+
+.user-personalization-settings .user-hub-badge-option .user-badge-mark--compact {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.user-personalization-settings .user-hub-badge-option strong,
+.user-personalization-settings .user-hub-notification-pack-option strong {
+  color: #d9ded4;
+  font-size: 10px;
+}
+
+.user-personalization-settings .user-hub-badge-option small,
+.user-personalization-settings .user-hub-notification-pack-option small {
+  font-size: 8.5px;
+}
+
+.user-personalization-settings .user-hub-badge-option.is-active,
+.user-personalization-settings .user-hub-notification-pack-option.is-active {
+  border-color: rgba(203, 255, 45, 0.22);
+  background:
+    radial-gradient(circle at 96% 15%, rgba(203, 255, 45, 0.055), transparent 42%),
+    rgba(203, 255, 45, 0.026);
+}
+
+.user-personalization-settings .user-hub-badges__clear,
+.user-personalization-settings .user-hub-notification-packs__clear {
+  min-height: 30px;
+  padding-inline: 9px;
+  border-radius: 9px;
+}
+
+@media (max-width: 760px) {
+  .user-personalization-settings__hero {
+    grid-template-columns: minmax(0, 1fr) 190px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-badge {
+    right: 58px;
+    width: 108px;
+    height: 92px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-pack {
+    width: 112px;
+    height: 96px;
+  }
 }
 
 @media (max-width: 680px) {
-  .user-personalization-settings__summary {
+  .user-personalization-settings__hero {
+    grid-template-columns: 1fr;
+    min-height: 250px;
+    padding: 16px;
+  }
+
+  .user-personalization-settings__hero-copy {
+    max-width: none;
+  }
+
+  .user-personalization-settings__hero-art {
+    min-height: 106px;
+    margin-top: 4px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-badge {
+    top: 6px;
+    right: 104px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-pack {
+    right: 12px;
+  }
+
+  .user-personalization-settings__sections {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .user-personalization-settings__active-row {
     grid-template-columns: 1fr;
   }
 
-  .user-personalization-settings .user-hub-badges__grid,
-  .user-personalization-settings .user-hub-notification-packs__grid {
-    grid-template-columns: 1fr;
+  .user-personalization-settings__hero {
+    min-height: 288px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-badge {
+    right: 84px;
+    width: 94px;
+    height: 82px;
+  }
+
+  .user-personalization-settings__hero-art > span.is-pack {
+    width: 100px;
+    height: 86px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-personalization-settings__hero-art > span {
+    transform: none;
   }
 }
