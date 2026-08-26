@@ -5,9 +5,6 @@ import com.mnemos.contracts.playerdirectory.internal.v1.InternalResolvePlayerReq
 import com.mnemos.playerdirectory.adapter.inbound.http.internal.InternalPlayerApiMapper.toResponse
 import com.mnemos.playerdirectory.application.player.usecase.resolve.ResolvePlayerByNicknameUseCase
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
-import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Size
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,17 +19,9 @@ class InternalPlayerController(
     @PostMapping("/resolve")
     @PreAuthorize("authentication.name == 'account-service'")
     fun resolve(
-        @Valid @RequestBody request: ResolvePlayerRequest,
+        @RequestBody request: InternalResolvePlayerRequest,
     ): InternalPlayerResponse =
         resolvePlayerByNicknameUseCase
             .execute(PlayerNickname.of(request.nickname))
             .toResponse()
-
-    data class ResolvePlayerRequest(
-        @field:NotBlank
-        @field:Size(max = 64)
-        val nickname: String,
-    ) {
-        fun toContract(): InternalResolvePlayerRequest = InternalResolvePlayerRequest(nickname = nickname)
-    }
 }
