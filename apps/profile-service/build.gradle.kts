@@ -23,6 +23,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.flywaydb:flyway-database-postgresql")
+    implementation(libs.jackson.kotlin)
     implementation(libs.uuid.creator)
 
     runtimeOnly("org.postgresql:postgresql")
