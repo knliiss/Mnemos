@@ -9,6 +9,8 @@ dependencies {
     implementation(project(":libraries:common-core"))
     implementation(project(":libraries:common-web"))
     implementation(project(":libraries:security-starter"))
+    implementation(project(":libraries:outbox-starter"))
+    implementation(project(":libraries:kafka-starter"))
     implementation(project(":contracts:player-directory-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")

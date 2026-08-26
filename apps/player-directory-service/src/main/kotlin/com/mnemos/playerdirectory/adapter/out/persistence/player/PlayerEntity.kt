@@ -15,7 +15,7 @@ class PlayerEntity(
     var playerId: UUID,
     @Column(name = "current_nickname", nullable = false, length = 64)
     var currentNickname: String,
-    @Column(name = "normalized_nickname", nullable = false, length = 64, unique = true)
+    @Column(name = "normalized_nickname", nullable = false, length = 64)
     var normalizedNickname: String,
     @Column(name = "external_version", nullable = false)
     var externalVersion: Long,
@@ -23,6 +23,8 @@ class PlayerEntity(
     var externalUpdatedAt: Instant?,
     @Column(name = "presence_status", nullable = false, length = 16)
     var presenceStatus: String,
+    @Column(name = "last_verified_presence_status", length = 16)
+    var lastVerifiedPresenceStatus: String?,
     @Column(name = "realm", length = 64)
     var realm: String?,
     @Column(name = "realm_type", length = 64)
@@ -33,6 +35,10 @@ class PlayerEntity(
     var lastSeenOnline: Instant?,
     @Column(name = "presence_observed_at", nullable = false)
     var presenceObservedAt: Instant,
+    @Column(name = "offline_candidate_since")
+    var offlineCandidateSince: Instant?,
+    @Column(name = "offline_candidate_count", nullable = false)
+    var offlineCandidateCount: Int,
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
     @Column(name = "updated_at", nullable = false)

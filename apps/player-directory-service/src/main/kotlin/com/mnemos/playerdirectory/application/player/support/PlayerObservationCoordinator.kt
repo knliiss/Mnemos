@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.application.player.support
 
+import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
@@ -9,6 +10,7 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameHistoryEntry
 import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameOwnership
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
+import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -18,6 +20,8 @@ class PlayerObservationCoordinator(
     private val playerRepository: PlayerRepository,
     private val nicknameOwnershipRepository: PlayerNicknameOwnershipRepository,
     private val nicknameHistoryRepository: PlayerNicknameHistoryRepository,
+    private val transitionPolicy: PlayerPresenceTransitionPolicy,
+    private val eventPublisher: PlayerIntegrationEventPublisher,
 ) {
     @Transactional
     fun apply(observation: PlayerObservation): Player {
@@ -37,13 +41,21 @@ class PlayerObservationCoordinator(
             observation = observation,
         )
 
-        val player = current.applyObservation(observation)
+        val player = current.applyObservation(observation, transitionPolicy)
 
         if (player == current) {
             return player
         }
 
-        return playerRepository.save(player)
+        val saved = playerRepository.save(player)
+
+        eventPublisher.publishChanges(
+            previous = current,
+            current = saved,
+            observedAt = observation.presence.observedAt,
+        )
+
+        return saved
     }
 
     private fun synchronizeNicknameOwnership(
