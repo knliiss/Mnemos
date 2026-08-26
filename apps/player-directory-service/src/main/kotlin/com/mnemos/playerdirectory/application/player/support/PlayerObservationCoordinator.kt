@@ -16,7 +16,7 @@ class PlayerObservationCoordinator(
         val player = current?.applyObservation(observation) ?: Player.fromObservation(observation)
 
         if (player == current) {
-            return current
+            return player
         }
 
         return playerRepository.save(player)
