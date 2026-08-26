@@ -37,6 +37,7 @@ object PublicProfileApiMapper {
         ProfileAppearanceResponse(
             nickStyle = nickStyle?.toResponse(),
             profileTheme = profileTheme?.toResponse(),
+            profileBackground = profileBackground?.toResponse(),
             avatarFrame = avatarFrame?.toResponse(),
             profileEffect = profileEffect?.toResponse(),
         )
@@ -62,6 +63,19 @@ object PublicProfileApiMapper {
             surfaceSecondary = surfaceSecondary,
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toResponse() },
+        )
+
+    private fun ProfileAppearance.ProfileBackground.toResponse(): ProfileAppearanceResponse.ProfileBackground =
+        ProfileAppearanceResponse.ProfileBackground(
+            personalizationId = personalizationId,
+            effect = effect,
+            intensity = intensity,
+            primaryColor = primaryColor,
+            secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
             layers = layers.map { layer -> layer.toResponse() },
         )
 

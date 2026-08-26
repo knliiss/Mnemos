@@ -17,6 +17,7 @@ export const uk = {
     back: "Назад",
     save: "Зберегти",
     cancel: "Скасувати",
+    clear: "Очистити",
     soon: "Незабаром",
     unavailable: "Тимчасово недоступно",
     loadErrorTitle: "Не вдалося завантажити дані",
@@ -147,5 +148,72 @@ export const uk = {
     codes: errorCodesUk,
   },
   ...uiUk,
+  accountHome: {
+    ...uiUk.accountHome,
+    globalEventRemaining: "Залишилось {{time}}",
+  },
+  creator: {
+    ...uiUk.creator,
+    editor: {
+      ...uiUk.creator.editor,
+      wordForms: {
+        eyebrow: "СЛОВА Й ФОРМИ",
+        title: "Як значення звучать у тексті",
+        hint: "Налаштуй форми один раз, а потім вставляй у повідомлення готовий placeholder потрібної форми.",
+        guideTitle: "Не потрібно памʼятати genitive чи accusative",
+        guideCopy:
+          "Обери значення, відкрий його форми та орієнтуйся на українську назву відмінка й питання. Праворуч показаний точний placeholder для тексту.",
+        formsCount: "Форм: {{count}}",
+        preview: "{{placeholder}} → {{value}}",
+        valueKeys: {
+          BOOSTER: "Бустери",
+          DUNGEON: "Підземелля",
+          ITEM_TYPE: "Типи предметів",
+          ITEM_RARITY: "Рідкості",
+          GLOBAL_EVENT: "Події світу",
+        },
+        formNames: {
+          default: "Основна форма",
+          genitive: "Родовий",
+          dative: "Давальний",
+          accusative: "Знахідний",
+          instrumental: "Орудний",
+          prepositional: "Місцевий",
+        },
+        formQuestions: {
+          default: "як називається саме значення",
+          genitive: "кого? чого?",
+          dative: "кому? чому?",
+          accusative: "кого? що?",
+          instrumental: "ким? чим?",
+          prepositional: "на кому? на чому?",
+        },
+      },
+    },
+  },
+  personalization: {
+    ...uiUk.personalization,
+    category: {
+      ...uiUk.personalization.category,
+      searchPlaceholder: "Пошук за назвою",
+      sortTitle: "Сортування",
+      sort: {
+        DEFAULT: "За замовчуванням",
+        PRICE_ASC: "Спочатку дешевші",
+        PRICE_DESC: "Спочатку дорожчі",
+        NAME: "За назвою",
+        OWNED_FIRST: "Спочатку придбані",
+      },
+    },
+    review: {
+      ...uiUk.personalization.review,
+      listDescription:
+        "Обери роботу, щоб відкрити окрему сторінку перевірки. Деталі й дії не заважають списку.",
+      detailTitle: "Перевірка персоналізації",
+      detailEyebrow: "ПЕРЕВІРКА",
+      notFound: "Персоналізація більше недоступна",
+      notFoundCopy: "Її статус уже міг змінитися. Повернися до списку та онови чергу.",
+    },
+  },
   ...leaderboardsUk,
 } as const

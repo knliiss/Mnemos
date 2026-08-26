@@ -3,8 +3,10 @@ package com.mnemos.personalization.adapter.out.persistence.personalization
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationPersistenceMapper.toDomain
 import com.mnemos.personalization.adapter.out.persistence.personalization.PersonalizationPersistenceMapper.toEntity
+import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationLookup
 import com.mnemos.personalization.domain.asset.model.PersonalizationAssetId
 import com.mnemos.personalization.domain.personalization.model.Personalization
+import com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationStatus
 import com.mnemos.personalization.domain.personalization.repository.PersonalizationRepository
@@ -13,12 +15,16 @@ import org.springframework.stereotype.Component
 @Component
 class PersonalizationRepositoryAdapter(
     private val repository: PersonalizationJpaRepository,
-) : PersonalizationRepository {
+) : PersonalizationRepository,
+    BuiltinPersonalizationLookup {
     override fun save(personalization: Personalization): Personalization = repository.save(personalization.toEntity()).toDomain()
 
     override fun findById(id: PersonalizationId): Personalization? = repository.findById(id.id).orElse(null)?.toDomain()
 
     override fun findByIdForUpdate(id: PersonalizationId): Personalization? = repository.findByIdForUpdate(id.id)?.toDomain()
+
+    override fun findByCatalogKeyForUpdate(catalogKey: PersonalizationCatalogKey): Personalization? =
+        repository.findByCatalogKeyForUpdate(catalogKey.value)?.toDomain()
 
     override fun findByCreatorUserId(creatorUserId: UserId): List<Personalization> =
         repository.findAllByCreatorUserIdOrderByCreatedAtDesc(creatorUserId.id).map { it.toDomain() }

@@ -1,6 +1,8 @@
 package com.mnemos.personalization.adapter.inbound.http.custom
 
 import com.mnemos.personalization.adapter.inbound.http.personalization.request.NotificationTemplateRequest
+import com.mnemos.personalization.adapter.inbound.http.personalization.request.NotificationValueFormsRequest
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -16,4 +18,6 @@ data class CreateCustomNotificationPackRequest(
     @field:Valid
     @field:Size(min = 5, max = 5)
     val templates: Map<NotificationTemplateKey, NotificationTemplateRequest>,
+    @field:Valid
+    val valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueFormsRequest>> = emptyMap(),
 )

@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react"
 import { useTranslation } from "react-i18next"
-import type { CreatorEditorForm } from "./creatorEditorModel"
+import type { CreatorEditorForm, ProfileVisualEffectEditorForm } from "./creatorEditorModel"
 import "./creator-design-presets.css"
 
 type Props = {
@@ -23,6 +23,49 @@ const presets: Preset[] = [
   { id: "EMBER", accent: "#FFB34F", secondary: "#FF6B55" },
   { id: "FROST", accent: "#8FE9FF", secondary: "#D9F7FF" },
 ]
+
+function profileVisualEffectPreset(
+  preset: PresetId,
+): Omit<ProfileVisualEffectEditorForm, "layers"> {
+  return {
+    MNEMOS: {
+      effect: "PULSE" as const,
+      intensity: 42,
+      speed: 38,
+      density: 44,
+      scale: 58,
+      primaryColor: "#CBFF2D",
+      secondaryColor: "#7C9B26",
+    },
+    VOID: {
+      effect: "AURORA" as const,
+      intensity: 58,
+      speed: 34,
+      density: 48,
+      scale: 64,
+      primaryColor: "#D59AD8",
+      secondaryColor: "#765CFF",
+    },
+    EMBER: {
+      effect: "PARTICLES" as const,
+      intensity: 52,
+      speed: 46,
+      density: 62,
+      scale: 56,
+      primaryColor: "#FFB34F",
+      secondaryColor: "#FF5D67",
+    },
+    FROST: {
+      effect: "SHIMMER" as const,
+      intensity: 44,
+      speed: 30,
+      density: 36,
+      scale: 60,
+      primaryColor: "#8FE9FF",
+      secondaryColor: "#D9F7FF",
+    },
+  }[preset]
+}
 
 function applyPreset(form: CreatorEditorForm, preset: PresetId): CreatorEditorForm {
   if (form.type === "NICK_STYLE") {
@@ -131,6 +174,16 @@ function applyPreset(form: CreatorEditorForm, preset: PresetId): CreatorEditorFo
     }
   }
 
+  if (form.type === "PROFILE_BACKGROUND") {
+    return {
+      ...form,
+      profileBackground: {
+        ...form.profileBackground,
+        ...profileVisualEffectPreset(preset),
+      },
+    }
+  }
+
   if (form.type === "AVATAR_FRAME") {
     const next = {
       MNEMOS: {
@@ -181,50 +234,11 @@ function applyPreset(form: CreatorEditorForm, preset: PresetId): CreatorEditorFo
   }
 
   if (form.type === "PROFILE_EFFECT") {
-    const next = {
-      MNEMOS: {
-        effect: "PULSE" as const,
-        intensity: 42,
-        speed: 38,
-        density: 44,
-        scale: 58,
-        primaryColor: "#CBFF2D",
-        secondaryColor: "#7C9B26",
-      },
-      VOID: {
-        effect: "AURORA" as const,
-        intensity: 58,
-        speed: 34,
-        density: 48,
-        scale: 64,
-        primaryColor: "#D59AD8",
-        secondaryColor: "#765CFF",
-      },
-      EMBER: {
-        effect: "PARTICLES" as const,
-        intensity: 52,
-        speed: 46,
-        density: 62,
-        scale: 56,
-        primaryColor: "#FFB34F",
-        secondaryColor: "#FF5D67",
-      },
-      FROST: {
-        effect: "SHIMMER" as const,
-        intensity: 44,
-        speed: 30,
-        density: 36,
-        scale: 60,
-        primaryColor: "#8FE9FF",
-        secondaryColor: "#D9F7FF",
-      },
-    }[preset]
-
     return {
       ...form,
       profileEffect: {
         ...form.profileEffect,
-        ...next,
+        ...profileVisualEffectPreset(preset),
       },
     }
   }

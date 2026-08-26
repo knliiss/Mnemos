@@ -6,8 +6,12 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.content.G
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.GradientStopResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NickStyleContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationPackContentResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateConditionResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateVariantResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationValueFormsResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationContentResponse
+import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileBackgroundContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileEffectContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileThemeContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.VisualLayerResponse
@@ -15,8 +19,13 @@ import com.mnemos.personalization.application.common.pagination.PageResult
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplate
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateCondition
+import com.mnemos.personalization.domain.personalization.model.NotificationTemplateVariant
+import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object PersonalizationApiMapper {
@@ -33,19 +42,14 @@ object PersonalizationApiMapper {
     fun Personalization.toResponse(): PersonalizationResponse =
         PersonalizationResponse(
             id = id.id,
-            creatorUserId = creatorUserId.id,
+            creatorUserId = creatorUserId?.id,
+            catalogKey = catalogKey?.value,
             type = type,
             origin = origin,
             visibility = visibility,
             name = name,
             content = content.toResponse(),
-            price =
-                price?.let { value ->
-                    PersonalizationPriceResponse(
-                        currency = value.currency,
-                        amount = value.amount,
-                    )
-                },
+            price = price?.toResponse(),
             status = status,
             rejectionReason = rejectionReason,
             createdAt = createdAt,
@@ -64,27 +68,39 @@ object PersonalizationApiMapper {
             is PersonalizationContent.ProfileTheme ->
                 ProfileThemeContentResponse(
                     background = background.value,
+                    backgroundSecondary = backgroundSecondary.value,
                     surface = surface.value,
+                    surfaceSecondary = surfaceSecondary.value,
                     accent = accent.value,
                     text = text.value,
                     border = border.value,
-                    glow = glow?.toResponse(),
-                    backgroundSecondary = backgroundSecondary.value,
-                    surfaceSecondary = surfaceSecondary.value,
                     gradientAngleDegrees = gradientAngleDegrees,
                     textureStrength = textureStrength,
+                    glow = glow?.toResponse(),
+                    layers = layers.map { layer -> layer.toResponse() },
+                )
+
+            is ProfileBackgroundContent ->
+                ProfileBackgroundContentResponse(
+                    effect = effect,
+                    intensity = intensity,
+                    primaryColor = primaryColor.value,
+                    secondaryColor = secondaryColor?.value,
+                    speed = speed,
+                    density = density,
+                    scale = scale,
                     layers = layers.map { layer -> layer.toResponse() },
                 )
 
             is PersonalizationContent.AvatarFrame ->
                 AvatarFrameContentResponse(
                     borderColor = borderColor.value,
-                    borderWidthPx = borderWidthPx,
-                    radiusPx = radiusPx,
-                    glow = glow?.toResponse(),
                     secondaryBorderColor = secondaryBorderColor.value,
+                    borderWidthPx = borderWidthPx,
                     gapPx = gapPx,
+                    radiusPx = radiusPx,
                     style = style,
+                    glow = glow?.toResponse(),
                     layers = layers.map { layer -> layer.toResponse() },
                 )
 
@@ -103,12 +119,52 @@ object PersonalizationApiMapper {
             is PersonalizationContent.NotificationPack ->
                 NotificationPackContentResponse(
                     mixedAggregateTitle = mixedAggregateTitle,
-                    templates =
-                        templates.mapValues { (_, template) ->
-                            template.toResponse()
+                    templates = templates.mapValues { (_, template) -> template.toResponse() },
+                    valueMappings =
+                        valueMappings.mapValues { (_, mappings) ->
+                            mappings.mapValues { (_, forms) -> forms.toResponse() }
                         },
                 )
         }
+
+    private fun NotificationTemplate.toResponse(): NotificationTemplateResponse =
+        NotificationTemplateResponse(
+            emoji = emoji,
+            soloTitle = soloTitle,
+            soloBody = soloBody,
+            compact = compact,
+            aggregateTitle = aggregateTitle,
+            variants = variants.map { variant -> variant.toResponse() },
+        )
+
+    private fun NotificationTemplateVariant.toResponse(): NotificationTemplateVariantResponse =
+        NotificationTemplateVariantResponse(
+            id = id,
+            conditions = conditions.map { condition -> condition.toResponse() },
+            emoji = emoji,
+            soloTitle = soloTitle,
+            soloBody = soloBody,
+            compact = compact,
+            aggregateTitle = aggregateTitle,
+        )
+
+    private fun NotificationTemplateCondition.toResponse(): NotificationTemplateConditionResponse =
+        NotificationTemplateConditionResponse(
+            field = field,
+            value = value,
+        )
+
+    private fun NotificationValueForms.toResponse(): NotificationValueFormsResponse =
+        NotificationValueFormsResponse(
+            default = default,
+            forms = forms,
+        )
+
+    private fun PersonalizationPrice.toResponse(): PersonalizationPriceResponse =
+        PersonalizationPriceResponse(
+            currency = currency,
+            amount = amount,
+        )
 
     private fun VisualLayer.toResponse(): VisualLayerResponse =
         VisualLayerResponse(
@@ -135,14 +191,5 @@ object PersonalizationApiMapper {
         GlowStyleResponse(
             color = color.value,
             strength = strength,
-        )
-
-    private fun NotificationTemplate.toResponse(): NotificationTemplateResponse =
-        NotificationTemplateResponse(
-            emoji = emoji,
-            soloTitle = soloTitle,
-            soloBody = soloBody,
-            compact = compact,
-            aggregateTitle = aggregateTitle,
         )
 }

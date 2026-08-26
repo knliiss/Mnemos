@@ -6,10 +6,8 @@ import { CURRENCIES } from "../../contracts"
 import type { Account, Currency, Personalization, Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue, PageHeader, Segmented } from "../../shared/Primitives"
-import { NotificationPackSpotlightPreview } from "../components/NotificationPackSpotlightPreview"
 import { PersonalizationBalanceBar } from "../components/PersonalizationBalanceBar"
 import { PersonalizationLoadingState } from "../components/PersonalizationLoadingState"
-import { PersonalizationPager } from "../components/PersonalizationPager"
 import {
   personalizationIllustrations,
   personalizationTargets,
@@ -18,6 +16,7 @@ import {
   personalizationTypeTitle,
   readPersonalizationType,
 } from "../personalizationPresentation"
+import { NotificationPackCatalogSortSelect } from "./NotificationPackCatalogSortSelect"
 
 type PersonalizationStoreCategoryProps = {
   params?: Record<string, string>
@@ -29,7 +28,9 @@ type PersonalizationStoreCategoryProps = {
   back: () => void
 }
 
-const pageSize = 1
+type CatalogPriceSort = "PRICE_ASC" | "PRICE_DESC"
+
+const catalogPriceSorts: CatalogPriceSort[] = ["PRICE_ASC", "PRICE_DESC"]
 
 export function PersonalizationStoreCategory({
   params,
@@ -40,25 +41,40 @@ export function PersonalizationStoreCategory({
   navigate,
   back,
 }: PersonalizationStoreCategoryProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const type = readPersonalizationType(params?.type) ?? "PROFILE_THEME"
+  const notificationPackCategory = type === "NOTIFICATION_PACK"
   const [currency, setCurrency] = useState<"ALL" | Currency>("ALL")
-  const [page, setPage] = useState(0)
+  const [query, setQuery] = useState("")
+  const [priceSort, setPriceSort] = useState<CatalogPriceSort>("PRICE_ASC")
 
-  const visibleItems = useMemo(
-    () =>
-      items.filter(
-        (item) =>
-          item.status === "PUBLISHED" &&
-          item.type === type &&
-          (currency === "ALL" || item.currency === currency),
-      ),
-    [currency, items, type],
-  )
+  const visibleItems = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase(i18n.resolvedLanguage)
+    const filtered = items.filter(
+      (item) =>
+        item.status === "PUBLISHED" &&
+        item.type === type &&
+        (notificationPackCategory || currency === "ALL" || item.currency === currency) &&
+        (!normalizedQuery ||
+          item.name.toLocaleLowerCase(i18n.resolvedLanguage).includes(normalizedQuery)),
+    )
 
-  const pageCount = Math.max(1, Math.ceil(visibleItems.length / pageSize))
-  const safePage = Math.min(page, pageCount - 1)
-  const pageItems = visibleItems.slice(safePage * pageSize, safePage * pageSize + pageSize)
+    if (!notificationPackCategory) {
+      return filtered
+    }
+
+    return [...filtered].sort((left, right) => {
+      const priceDifference =
+        priceSort === "PRICE_ASC" ? left.price - right.price : right.price - left.price
+
+      return priceDifference || left.name.localeCompare(right.name, i18n.resolvedLanguage)
+    })
+  }, [currency, i18n.resolvedLanguage, items, notificationPackCategory, priceSort, query, type])
+
+  const priceSortOptions = catalogPriceSorts.map((sort) => ({
+    value: sort,
+    label: t(`personalization.category.sort.${sort}`),
+  }))
 
   return (
     <div className="screen personalization-store-category">
@@ -81,29 +97,58 @@ export function PersonalizationStoreCategory({
         </span>
       </section>
 
+      <section
+        className={`personalization-catalog-controls${
+          notificationPackCategory ? " has-price-sort" : ""
+        }`}
+      >
+        <label className="personalization-catalog-search">
+          <Glyph name="search" size={15} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("personalization.category.searchPlaceholder")}
+          />
+          {query ? (
+            <button type="button" onClick={() => setQuery("")} aria-label={t("common.clear")}>
+              <Glyph name="close" size={13} />
+            </button>
+          ) : null}
+        </label>
+
+        {notificationPackCategory ? (
+          <NotificationPackCatalogSortSelect
+            value={priceSort}
+            options={priceSortOptions}
+            label={t("personalization.category.sortTitle")}
+            onChange={setPriceSort}
+          />
+        ) : null}
+      </section>
+
       <div className="personalization-category-toolbar">
         <span>{t("personalization.category.positions", { count: visibleItems.length })}</span>
-        <Segmented
-          value={currency}
-          options={["ALL", ...CURRENCIES] as const}
-          onChange={(value) => {
-            setCurrency(value)
-            setPage(0)
-          }}
-          label={(value) => (value === "ALL" ? t("personalization.category.all") : value)}
-        />
+
+        {!notificationPackCategory ? (
+          <Segmented
+            value={currency}
+            options={["ALL", ...CURRENCIES] as const}
+            onChange={setCurrency}
+            label={(value) => (value === "ALL" ? t("personalization.category.all") : value)}
+          />
+        ) : null}
       </div>
 
       {loading ? (
         <PersonalizationLoadingState />
       ) : (
-        <div className="personalization-category-list">
-          {pageItems.map((item) => (
+        <div className="personalization-catalog-grid">
+          {visibleItems.map((item) => (
             <motion.button
               type="button"
               key={item.id}
-              className="personalization-category-card personalization-category-card--featured"
-              whileTap={{ scale: 0.992 }}
+              className={`personalization-catalog-tile ${catalogTileClass(item)}`}
+              whileTap={{ scale: 0.985 }}
               onClick={() =>
                 navigate({
                   id: "personalization-detail",
@@ -111,24 +156,21 @@ export function PersonalizationStoreCategory({
                 })
               }
             >
-              <span className="personalization-category-visual">
+              <span className="personalization-catalog-tile__art" aria-hidden="true">
                 {item.type === "NOTIFICATION_PACK" ? (
-                  <NotificationPackSpotlightPreview item={item} size="CARD" />
+                  <img src={personalizationIllustrations.NOTIFICATION_PACK} alt="" />
                 ) : (
                   <PersonalizationVisual item={item} />
                 )}
               </span>
 
-              <span className="personalization-category-copy">
-                <small>{personalizationTypeTitle(t, item.type)}</small>
+              <span className="personalization-catalog-tile__footer">
                 <strong>{item.name}</strong>
-                <em>{item.creator}</em>
-              </span>
-
-              <span className="personalization-category-price">
                 {item.owned ? (
-                  <span className="catalog-state">
-                    <Glyph name="check" size={13} />
+                  <span
+                    className={`personalization-catalog-state${item.active ? " is-active" : ""}`}
+                  >
+                    <Glyph name="check" size={11} />
                     {item.active
                       ? t("personalization.category.active")
                       : t("personalization.category.owned")}
@@ -140,15 +182,51 @@ export function PersonalizationStoreCategory({
             </motion.button>
           ))}
 
-          {!pageItems.length ? (
+          {!visibleItems.length ? (
             <p className="inline-hint">{t("personalization.category.empty")}</p>
           ) : null}
         </div>
       )}
-
-      {pageCount > 1 ? (
-        <PersonalizationPager page={safePage} pageCount={pageCount} onChange={setPage} />
-      ) : null}
     </div>
   )
+}
+
+function catalogTileClass(item: Personalization): string {
+  if (item.active) {
+    return "is-active"
+  }
+
+  if (item.owned) {
+    return "is-owned"
+  }
+
+  if (item.currency === "COIN") {
+    if (item.price <= 1_500) {
+      return "price-entry"
+    }
+
+    if (item.price <= 4_000) {
+      return "price-standard"
+    }
+
+    if (item.price <= 10_000) {
+      return "price-elevated"
+    }
+
+    return "price-premium"
+  }
+
+  if (item.price <= 15) {
+    return "price-entry"
+  }
+
+  if (item.price <= 30) {
+    return "price-standard"
+  }
+
+  if (item.price <= 75) {
+    return "price-elevated"
+  }
+
+  return "price-premium"
 }

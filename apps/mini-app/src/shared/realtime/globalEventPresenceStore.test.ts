@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { normalizeActiveGlobalEvents, type ActiveGlobalEvent } from "./globalEventPresenceStore"
+import {
+  normalizeActiveGlobalEvents,
+  reconcileActiveGlobalEvents,
+  type ActiveGlobalEvent,
+} from "./globalEventPresenceStore"
 
 const NOW = Date.parse("2026-08-25T16:00:00.000Z")
 
@@ -56,5 +60,22 @@ describe("global event presence", () => {
     const events = normalizeActiveGlobalEvents([event], NOW)
 
     expect(events[0]?.endsAt).toBe(new Date(NOW + 173_000).toISOString())
+  })
+
+  it("does not clear a known unexpired event when a refresh temporarily omits it", () => {
+    const darkness = activeEvent("darkness", "DARKNESS", -120_000, 480_000)
+
+    const events = reconcileActiveGlobalEvents([], [darkness], NOW)
+
+    expect(events).toEqual([darkness])
+  })
+
+  it("replaces a local event when the server supplies the same event type", () => {
+    const localDarkness = activeEvent("old-darkness", "DARKNESS", -180_000, 300_000)
+    const serverDarkness = activeEvent("new-darkness", "DARKNESS", -30_000, 870_000)
+
+    const events = reconcileActiveGlobalEvents([serverDarkness], [localDarkness], NOW)
+
+    expect(events).toEqual([serverDarkness])
   })
 })

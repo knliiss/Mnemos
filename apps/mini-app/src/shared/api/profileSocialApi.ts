@@ -33,6 +33,17 @@ export type ProfileAppearanceResponse = {
     glow: ProfileGlowResponse | null
     layers: VisualLayer[]
   } | null
+  profileBackground?: {
+    personalizationId: string
+    effect: EffectType
+    intensity: number
+    speed: number
+    density: number
+    scale: number
+    primaryColor: string
+    secondaryColor: string | null
+    layers: VisualLayer[]
+  } | null
   avatarFrame: {
     personalizationId: string
     borderColor: string

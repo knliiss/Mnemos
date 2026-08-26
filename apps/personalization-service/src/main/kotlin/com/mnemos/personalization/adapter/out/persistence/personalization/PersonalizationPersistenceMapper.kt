@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDocument
 import com.mnemos.personalization.adapter.out.persistence.personalization.content.PersonalizationContentPersistenceMapper.toDomain
 import com.mnemos.personalization.domain.personalization.model.Personalization
+import com.mnemos.personalization.domain.personalization.model.PersonalizationCatalogKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 
@@ -11,7 +12,8 @@ object PersonalizationPersistenceMapper {
     fun Personalization.toEntity(): PersonalizationEntity =
         PersonalizationEntity(
             id = id.id,
-            creatorUserId = creatorUserId.id,
+            creatorUserId = creatorUserId?.id,
+            catalogKey = catalogKey?.value,
             type = type,
             origin = origin,
             visibility = visibility,
@@ -29,7 +31,8 @@ object PersonalizationPersistenceMapper {
         try {
             Personalization(
                 id = PersonalizationId(id),
-                creatorUserId = UserId(creatorUserId),
+                creatorUserId = creatorUserId?.let(::UserId),
+                catalogKey = catalogKey?.let(::PersonalizationCatalogKey),
                 type = type,
                 origin = origin,
                 visibility = visibility,

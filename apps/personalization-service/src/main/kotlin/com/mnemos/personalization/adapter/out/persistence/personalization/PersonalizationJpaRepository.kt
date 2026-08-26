@@ -16,6 +16,10 @@ interface PersonalizationJpaRepository : JpaRepository<PersonalizationEntity, UU
     @Query("SELECT personalization FROM PersonalizationEntity personalization WHERE personalization.id = :id")
     fun findByIdForUpdate(id: UUID): PersonalizationEntity?
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT personalization FROM PersonalizationEntity personalization WHERE personalization.catalogKey = :catalogKey")
+    fun findByCatalogKeyForUpdate(catalogKey: String): PersonalizationEntity?
+
     @Query(
         """
         SELECT personalization

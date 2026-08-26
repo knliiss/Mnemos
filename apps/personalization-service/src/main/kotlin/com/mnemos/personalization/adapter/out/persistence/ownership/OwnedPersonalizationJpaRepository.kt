@@ -64,6 +64,17 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
     ): OwnedPersonalizationEntity?
 
     @Query(
+        """
+        SELECT ownership
+        FROM OwnedPersonalizationEntity ownership
+        WHERE ownership.personalizationId = :personalizationId
+          AND ownership.active = true
+        ORDER BY ownership.ownerType, ownership.ownerId
+        """,
+    )
+    fun findAllActiveByPersonalizationId(personalizationId: UUID): List<OwnedPersonalizationEntity>
+
+    @Query(
         value =
             """
             SELECT ownership

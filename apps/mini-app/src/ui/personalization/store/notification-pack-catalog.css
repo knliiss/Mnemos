@@ -1,0 +1,223 @@
+.personalization-catalog-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+
+.personalization-catalog-controls.has-price-sort {
+  grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+.personalization-catalog-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid rgba(226, 233, 205, 0.1);
+  border-radius: 13px;
+  color: #7f8679;
+  background: rgba(11, 13, 9, 0.96);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.personalization-catalog-search:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(14, 17, 10, 0.98);
+}
+
+.personalization-catalog-search > input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #edf0e7;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+}
+
+.personalization-catalog-search > input::placeholder {
+  color: #666d61;
+}
+
+.personalization-catalog-search > button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: #7f8679;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.notification-pack-catalog-price-sort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(226, 233, 205, 0.1);
+  border-radius: 13px;
+  color: #b7c0ac;
+  background: rgba(11, 13, 9, 0.96);
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.notification-pack-catalog-price-sort:hover,
+.notification-pack-catalog-price-sort:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  color: #dcff73;
+  background: rgba(16, 19, 11, 0.99);
+  outline: none;
+}
+
+.notification-pack-catalog-price-sort:active {
+  transform: scale(0.96);
+}
+
+.notification-pack-catalog-price-sort:disabled {
+  cursor: default;
+  opacity: 0.45;
+  transform: none;
+}
+
+.notification-pack-catalog-price-sort .currency-glyph {
+  color: #d8a8ef;
+}
+
+.notification-pack-catalog-price-sort__direction {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.personalization-catalog-tile__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 2px 2px;
+}
+
+.personalization-catalog-tile__footer > strong {
+  overflow: hidden;
+  min-width: 0;
+  color: #eef0e9;
+  font-size: 13px;
+  font-weight: 670;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personalization-catalog-tile__footer > .currency-value {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.personalization-catalog-state {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  min-height: 23px;
+  padding: 3px 7px;
+  border: 1px solid rgba(164, 193, 91, 0.14);
+  border-radius: 999px;
+  color: #b8cb89;
+  background: rgba(164, 193, 91, 0.045);
+  font-family: var(--font-meta);
+  font-size: 7.5px;
+  font-weight: 720;
+}
+
+.personalization-catalog-state.is-active {
+  border-color: rgba(203, 255, 45, 0.22);
+  color: #d9ff68;
+  background: rgba(203, 255, 45, 0.07);
+}
+
+.personalization-catalog-tile.price-entry {
+  border-color: rgba(116, 154, 107, 0.16);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(116, 154, 107, 0.055), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+}
+
+.personalization-catalog-tile.price-entry .currency-value {
+  color: #b7ceb0;
+}
+
+.personalization-catalog-tile.price-standard {
+  border-color: rgba(103, 159, 176, 0.17);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(103, 159, 176, 0.055), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+}
+
+.personalization-catalog-tile.price-standard .currency-value {
+  color: #a9d3df;
+}
+
+.personalization-catalog-tile.price-elevated {
+  border-color: rgba(184, 137, 194, 0.19);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(184, 137, 194, 0.065), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+}
+
+.personalization-catalog-tile.price-elevated .currency-value {
+  color: #d0aad7;
+}
+
+.personalization-catalog-tile.price-premium {
+  border-color: rgba(224, 184, 91, 0.2);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(224, 184, 91, 0.075), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+}
+
+.personalization-catalog-tile.price-premium .currency-value {
+  color: #e5c873;
+}
+
+.personalization-catalog-tile.is-owned {
+  border-color: rgba(164, 193, 91, 0.16);
+}
+
+.personalization-catalog-tile.is-active {
+  border-color: rgba(203, 255, 45, 0.28);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.075), transparent 42%),
+    rgba(15, 18, 12, 0.98);
+}
+
+@media (max-width: 380px) {
+  .personalization-catalog-tile__footer > strong {
+    font-size: 11.5px;
+  }
+
+  .personalization-catalog-tile__footer > .currency-value {
+    font-size: 10px;
+  }
+}

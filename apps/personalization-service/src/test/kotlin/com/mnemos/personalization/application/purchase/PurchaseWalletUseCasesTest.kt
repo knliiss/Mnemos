@@ -217,7 +217,7 @@ class PurchaseWalletUseCasesTest {
     }
 
     private fun purchaseOperation(personalization: Personalization): PurchaseOperation {
-        val buyerUserId = personalization.creatorUserId
+        val buyerUserId = requireNotNull(personalization.creatorUserId)
 
         return PurchaseOperation.create(
             personalizationId = personalization.id,

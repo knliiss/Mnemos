@@ -2,6 +2,8 @@ import type {
   Currency,
   EffectType,
   FrameStyle,
+  NotificationPackValueKey,
+  NotificationPackVariantField,
   NotificationTemplateKey,
   PersonalizationType,
   VisualLayerAnimation,
@@ -12,8 +14,11 @@ import type {
   GlowStyleResponse,
   GradientStopResponse,
   NotificationTemplateResponse,
+  NotificationValueFormsResponse,
   PersonalizationResponse,
 } from "@/shared/api/personalizationApi"
+
+export type CreatorPersonalizationType = PersonalizationType
 
 export type PersonalizationPriceRequest = {
   currency: Currency
@@ -23,6 +28,7 @@ export type PersonalizationPriceRequest = {
 export type GlowStyleRequest = GlowStyleResponse
 export type GradientStopRequest = GradientStopResponse
 export type NotificationTemplateRequest = NotificationTemplateResponse
+export type NotificationValueFormsRequest = NotificationValueFormsResponse
 
 export type VisualLayerRequest = {
   id: string
@@ -71,6 +77,21 @@ export type CreateProfileThemeRequest = {
   price: PersonalizationPriceRequest
 }
 
+type CreateProfileVisualEffectRequest = {
+  name: string
+  effect: EffectType
+  intensity: number
+  speed: number
+  density: number
+  scale: number
+  primaryColor: string
+  secondaryColor: string | null
+  layers: VisualLayerRequest[]
+  price: PersonalizationPriceRequest
+}
+
+export type CreateProfileBackgroundRequest = CreateProfileVisualEffectRequest
+
 export type CreateAvatarFrameRequest = {
   name: string
   borderColor: string
@@ -84,23 +105,15 @@ export type CreateAvatarFrameRequest = {
   price: PersonalizationPriceRequest
 }
 
-export type CreateProfileEffectRequest = {
-  name: string
-  effect: EffectType
-  intensity: number
-  speed: number
-  density: number
-  scale: number
-  primaryColor: string
-  secondaryColor: string | null
-  layers: VisualLayerRequest[]
-  price: PersonalizationPriceRequest
-}
+export type CreateProfileEffectRequest = CreateProfileVisualEffectRequest
 
 export type CreateNotificationPackRequest = {
   name: string
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplateRequest>
+  valueMappings: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsRequest>>
+  >
   price: PersonalizationPriceRequest
 }
 
@@ -123,15 +136,32 @@ export type NotificationPackEditorDescriptorResponse = {
     variables: Array<{
       key: string
       sampleValue: string
+      forms?: Array<{
+        key: string
+        placeholder: string
+        sampleValue: string
+      }>
     }>
     sampleValues: Record<string, string>
-    defaults: NotificationTemplateResponse
+    conditionFields?: Array<{
+      field: NotificationPackVariantField
+      placeholder: string
+      values: Array<{
+        value: string
+        sampleValue: string
+      }>
+    }>
+    defaults: Omit<NotificationTemplateResponse, "variants">
   }>
+  valueMappings?: Partial<
+    Record<NotificationPackValueKey, Record<string, NotificationValueFormsResponse>>
+  >
 }
 
 export type CreatorRequestByType = {
   NICK_STYLE: CreateNickStyleRequest
   PROFILE_THEME: CreateProfileThemeRequest
+  PROFILE_BACKGROUND: CreateProfileBackgroundRequest
   AVATAR_FRAME: CreateAvatarFrameRequest
   PROFILE_EFFECT: CreateProfileEffectRequest
   NOTIFICATION_PACK: CreateNotificationPackRequest
@@ -157,17 +187,19 @@ export type CreatorRevenueOperationResponse = {
   createdAt: string
 }
 
-const createPaths: Record<PersonalizationType, string> = {
+const createPaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-styles",
   PROFILE_THEME: "profile-themes",
+  PROFILE_BACKGROUND: "profile-backgrounds",
   AVATAR_FRAME: "avatar-frames",
   PROFILE_EFFECT: "profile-effects",
   NOTIFICATION_PACK: "notification-packs",
 }
 
-const updatePaths: Record<PersonalizationType, string> = {
+const updatePaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-style",
   PROFILE_THEME: "profile-theme",
+  PROFILE_BACKGROUND: "profile-background",
   AVATAR_FRAME: "avatar-frame",
   PROFILE_EFFECT: "profile-effect",
   NOTIFICATION_PACK: "notification-pack",
@@ -206,7 +238,7 @@ export async function getNotificationPackEditorDescriptor(): Promise<Notificatio
   )
 }
 
-export async function createCreatorPersonalization<TType extends PersonalizationType>(
+export async function createCreatorPersonalization<TType extends CreatorPersonalizationType>(
   type: TType,
   request: CreatorRequestByType[TType],
 ): Promise<PersonalizationResponse> {
@@ -217,7 +249,7 @@ export async function createCreatorPersonalization<TType extends Personalization
   })
 }
 
-export async function updateCreatorPersonalization<TType extends PersonalizationType>(
+export async function updateCreatorPersonalization<TType extends CreatorPersonalizationType>(
   personalizationId: string,
   type: TType,
   request: CreatorRequestByType[TType],

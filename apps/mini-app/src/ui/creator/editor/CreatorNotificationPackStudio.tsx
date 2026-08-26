@@ -5,7 +5,6 @@ import type {
   NotificationPackEditorDescriptorResponse,
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
-import type { NotificationTemplateResponse } from "@/shared/api/personalizationApi"
 import {
   BoosterArt,
   DungeonArt,
@@ -13,14 +12,34 @@ import {
   ItemTypeArt,
   RaidArt,
 } from "../../components/events/EventArt"
-import { DropSpotlightPreview } from "../../components/spotlight/DropSpotlightPresentation"
-import type { NotificationTemplateKey } from "../../model"
+import type {
+  NotificationPackContent,
+  NotificationPackVariantField,
+  NotificationTemplate,
+  NotificationTemplateKey,
+  NotificationTemplateVariant,
+} from "../../model"
+import {
+  renderNotificationTemplate,
+  valuesForVariant,
+  withNotificationEmoji,
+} from "../../personalization/components/notificationPackPreview"
+import { Glyph } from "../../shared/MnemosIcon"
 import { Field } from "../../shared/Primitives"
+import { CreatorNotificationConditionSelect } from "./CreatorNotificationConditionSelect"
 import type { CreatorEditorForm } from "./creatorEditorModel"
 
 type EditorMode = "SOLO" | "AGGREGATE"
 type AggregatePreviewMode = "SAME_TYPE" | "MIXED"
 type EditableTemplateField = "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
+type EditableMessageFields = Pick<
+  NotificationTemplate,
+  "emoji" | "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
+>
+
+type VariableDescriptor =
+  NotificationPackEditorDescriptorResponse["templates"][number]["variables"][number]
+type VariableFormDescriptor = NonNullable<VariableDescriptor["forms"]>[number]
 
 type Props = {
   form: CreatorEditorForm
@@ -36,42 +55,12 @@ const fieldContractKey: Record<EditableTemplateField, NotificationPackEditorFiel
   aggregateTitle: "AGGREGATE_TITLE",
 }
 
-function eventArt(type: NotificationTemplateKey): ReactElement {
-  if (type === "ITEM_DROP") {
-    return <ItemTypeArt itemType="SWORD" size={42} />
-  }
-
-  if (type === "BOOSTER") {
-    return <BoosterArt boosterType="LUCK" size={42} />
-  }
-
-  if (type === "DUNGEON") {
-    return <DungeonArt size={42} />
-  }
-
-  if (type === "RAID") {
-    return <RaidArt size={42} />
-  }
-
-  return <GlobalEventArt eventType="ECLIPSE" size={42} />
-}
-
-function renderTemplate(template: string, values: Record<string, string>): string {
-  return template.replace(
-    /\{([a-zA-Z][a-zA-Z0-9_]*)}/g,
-    (_, key: string) => values[key] ?? `{${key}}`,
-  )
-}
-
-function withEmoji(emoji: string | null, value: string): string {
-  return emoji?.trim() ? `${emoji.trim()} ${value}` : value
-}
-
 export function CreatorNotificationPackStudio({ form, descriptor, editable, setForm }: Props) {
   const { t } = useTranslation()
   const [selectedType, setSelectedType] = useState<NotificationTemplateKey>(
     descriptor.templates[0]?.type ?? "ITEM_DROP",
   )
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [mode, setMode] = useState<EditorMode>("SOLO")
   const [aggregatePreviewMode, setAggregatePreviewMode] =
     useState<AggregatePreviewMode>("SAME_TYPE")
@@ -95,7 +84,78 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     return null
   }
 
-  const updateTemplate = (next: Partial<NotificationTemplateResponse>) => {
+  const conditionFields = templateDescriptor.conditionFields ?? []
+  const variants = template.variants
+  const selectedVariant =
+    selectedVariantId === null
+      ? null
+      : (variants.find((variant) => variant.id === selectedVariantId) ?? null)
+  const message: EditableMessageFields = selectedVariant ?? template
+  const previewContent = {
+    kind: "NOTIFICATION_PACK",
+    mixedAggregateTitle: form.notificationPack.mixedAggregateTitle,
+    templates: form.notificationPack.templates as Record<
+      NotificationTemplateKey,
+      NotificationTemplate
+    >,
+    valueMappings: form.notificationPack.valueMappings ?? {},
+  } satisfies NotificationPackContent
+  const previewValues = valuesForVariant(templateDescriptor.type, selectedVariant)
+
+  const conditionFieldLabel = (field: NotificationPackVariantField): string => {
+    if (field === "ITEM_RARITY") {
+      return t("events.detail.rarity")
+    }
+
+    if (field === "ITEM_TYPE") {
+      return t("events.detail.category")
+    }
+
+    if (field === "BOOSTER") {
+      return t("events.subscriptions.boosterType")
+    }
+
+    if (field === "DUNGEON") {
+      return t("events.subscriptions.difficulty")
+    }
+
+    return t("events.subscriptions.event")
+  }
+
+  const conditionValueLabel = (field: NotificationPackVariantField, value: string): string => {
+    if (field === "ITEM_RARITY") {
+      return t(`events.rarities.${value}`)
+    }
+
+    if (field === "ITEM_TYPE") {
+      return t(`events.itemTypes.${value}`)
+    }
+
+    if (field === "BOOSTER") {
+      return t(`events.boosters.${value}`)
+    }
+
+    if (field === "DUNGEON") {
+      return t(`events.dungeons.${value}`)
+    }
+
+    return t(`events.globals.${value}`)
+  }
+
+  const variantDisplayLabel = (variant: NotificationTemplateVariant): string =>
+    variant.conditions
+      .map((condition) => conditionValueLabel(condition.field, condition.value))
+      .join(" · ")
+
+  const variantConditionSummary = (variant: NotificationTemplateVariant): string =>
+    variant.conditions
+      .map(
+        (condition) =>
+          `${conditionFieldLabel(condition.field)}: ${conditionValueLabel(condition.field, condition.value)}`,
+      )
+      .join(" + ")
+
+  const updateTemplate = (next: Partial<NotificationTemplate>) => {
     setForm((current) => ({
       ...current,
       notificationPack: {
@@ -111,6 +171,141 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     }))
   }
 
+  const updateSelectedMessage = (next: Partial<EditableMessageFields>) => {
+    if (!selectedVariant) {
+      updateTemplate(next)
+      return
+    }
+
+    updateTemplate({
+      variants: variants.map((variant) =>
+        variant.id === selectedVariant.id ? { ...variant, ...next } : variant,
+      ),
+    })
+  }
+
+  const updateVariant = (next: Partial<NotificationTemplateVariant>) => {
+    if (!selectedVariant) {
+      return
+    }
+
+    updateTemplate({
+      variants: variants.map((variant) =>
+        variant.id === selectedVariant.id ? { ...variant, ...next } : variant,
+      ),
+    })
+  }
+
+  const addVariant = () => {
+    const firstField = conditionFields[0]
+    const firstValue = firstField?.values[0]
+
+    if (!editable || !firstField || !firstValue) {
+      return
+    }
+
+    const variant: NotificationTemplateVariant = {
+      id: `variant_${Date.now().toString(36)}_${variants.length + 1}`,
+      conditions: [
+        {
+          field: firstField.field,
+          value: firstValue.value,
+        },
+      ],
+      emoji: template.emoji,
+      soloTitle: template.soloTitle,
+      soloBody: template.soloBody,
+      compact: template.compact,
+      aggregateTitle: template.aggregateTitle,
+    }
+
+    updateTemplate({ variants: [...variants, variant] })
+    setSelectedVariantId(variant.id)
+  }
+
+  const removeVariant = () => {
+    if (!editable || !selectedVariant) {
+      return
+    }
+
+    updateTemplate({
+      variants: variants.filter((variant) => variant.id !== selectedVariant.id),
+    })
+    setSelectedVariantId(null)
+  }
+
+  const addCondition = () => {
+    if (!selectedVariant) {
+      return
+    }
+
+    const usedFields = new Set(selectedVariant.conditions.map((condition) => condition.field))
+    const nextField = conditionFields.find((field) => !usedFields.has(field.field))
+    const nextValue = nextField?.values[0]
+
+    if (!nextField || !nextValue) {
+      return
+    }
+
+    updateVariant({
+      conditions: [
+        ...selectedVariant.conditions,
+        {
+          field: nextField.field,
+          value: nextValue.value,
+        },
+      ],
+    })
+  }
+
+  const updateConditionField = (index: number, fieldName: string) => {
+    if (!selectedVariant) {
+      return
+    }
+
+    const field = conditionFields.find((candidate) => candidate.field === fieldName)
+    const value = field?.values[0]
+
+    if (!field || !value) {
+      return
+    }
+
+    updateVariant({
+      conditions: selectedVariant.conditions.map((condition, conditionIndex) =>
+        conditionIndex === index
+          ? {
+              field: field.field,
+              value: value.value,
+            }
+          : condition,
+      ),
+    })
+  }
+
+  const updateConditionValue = (index: number, value: string) => {
+    if (!selectedVariant) {
+      return
+    }
+
+    updateVariant({
+      conditions: selectedVariant.conditions.map((condition, conditionIndex) =>
+        conditionIndex === index ? { ...condition, value } : condition,
+      ),
+    })
+  }
+
+  const removeCondition = (index: number) => {
+    if (!selectedVariant || selectedVariant.conditions.length === 1) {
+      return
+    }
+
+    updateVariant({
+      conditions: selectedVariant.conditions.filter(
+        (_, conditionIndex) => conditionIndex !== index,
+      ),
+    })
+  }
+
   const updateMixedAggregateTitle = (mixedAggregateTitle: string) => {
     setForm((current) => ({
       ...current,
@@ -121,29 +316,38 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
     }))
   }
 
-  const insertVariable = (key: string) => {
+  const insertVariable = (placeholder: string) => {
     const contractKey = fieldContractKey[activeField]
 
     if (!editable || !variableFields.has(contractKey)) {
       return
     }
 
-    const currentValue = template[activeField]
+    const currentValue = message[activeField]
     const spacer = currentValue && !currentValue.endsWith(" ") ? " " : ""
 
-    updateTemplate({
-      [activeField]: `${currentValue}${spacer}{${key}}`,
+    updateSelectedMessage({
+      [activeField]: `${currentValue}${spacer}${placeholder}`,
     })
   }
 
   const soloText = [
-    withEmoji(template.emoji, renderTemplate(template.soloTitle, templateDescriptor.sampleValues)),
-    renderTemplate(template.soloBody, templateDescriptor.sampleValues),
+    withNotificationEmoji(
+      message.emoji,
+      renderNotificationTemplate(previewContent, message.soloTitle, previewValues),
+    ),
+    renderNotificationTemplate(previewContent, message.soloBody, previewValues),
   ].join("\n")
   const sameTypeAggregateText = [
-    withEmoji(template.emoji, template.aggregateTitle),
-    withEmoji(template.emoji, renderTemplate(template.compact, templateDescriptor.sampleValues)),
-    withEmoji(template.emoji, renderTemplate(template.compact, templateDescriptor.sampleValues)),
+    withNotificationEmoji(message.emoji, message.aggregateTitle),
+    withNotificationEmoji(
+      message.emoji,
+      renderNotificationTemplate(previewContent, message.compact, previewValues),
+    ),
+    withNotificationEmoji(
+      message.emoji,
+      renderNotificationTemplate(previewContent, message.compact, previewValues),
+    ),
   ].join("\n\n")
   const mixedTemplates = descriptor.templates.slice(0, Math.min(3, descriptor.templates.length))
   const mixedAggregateText = [
@@ -155,9 +359,13 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
         return ""
       }
 
-      return withEmoji(
+      return withNotificationEmoji(
         candidateTemplate.emoji,
-        renderTemplate(candidateTemplate.compact, candidate.sampleValues),
+        renderNotificationTemplate(
+          previewContent,
+          candidateTemplate.compact,
+          valuesForVariant(candidate.type, null),
+        ),
       )
     }),
   ]
@@ -169,6 +377,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
       : aggregatePreviewMode === "SAME_TYPE"
         ? sameTypeAggregateText
         : mixedAggregateText
+  const canAddCondition = Boolean(
+    selectedVariant && selectedVariant.conditions.length < conditionFields.length,
+  )
 
   return (
     <section className="notification-pack-studio">
@@ -189,13 +400,178 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             type="button"
             key={candidate.type}
             className={candidate.type === templateDescriptor.type ? "is-active" : ""}
-            onClick={() => setSelectedType(candidate.type)}
+            onClick={() => {
+              setSelectedType(candidate.type)
+              setSelectedVariantId(null)
+            }}
           >
             <span>{eventArt(candidate.type)}</span>
             <b>{t(`creator.editor.notificationTypes.${candidate.type}`)}</b>
           </button>
         ))}
       </nav>
+
+      <section className="notification-variant-workspace">
+        <header>
+          <span>
+            <small>{t("creator.editor.variantsEyebrow")}</small>
+            <strong>{t("creator.editor.variantsTitle")}</strong>
+          </span>
+
+          {conditionFields.length && variants.length ? (
+            <button type="button" disabled={!editable} onClick={addVariant}>
+              <Glyph name="plus" size={13} />
+              {t("creator.editor.addVariant")}
+            </button>
+          ) : null}
+        </header>
+
+        <div className="notification-template-choice-grid">
+          <button
+            type="button"
+            className={`notification-base-template-card${selectedVariant === null ? " is-active" : ""}`}
+            onClick={() => setSelectedVariantId(null)}
+          >
+            <span className="notification-template-choice-card__mark">
+              <Glyph name={selectedVariant === null ? "check" : "spark"} size={14} />
+            </span>
+            <span>
+              <small>{t("creator.editor.defaultVariant")}</small>
+              <strong>{messageTitle(template)}</strong>
+            </span>
+          </button>
+
+          {variants.map((variant) => (
+            <button
+              type="button"
+              key={variant.id}
+              className={`notification-variant-card${selectedVariant?.id === variant.id ? " is-active" : ""}`}
+              onClick={() => setSelectedVariantId(variant.id)}
+            >
+              <span>
+                <small>{t("creator.editor.conditionsEyebrow")}</small>
+                <strong>{variantDisplayLabel(variant)}</strong>
+                <em>{variantConditionSummary(variant)}</em>
+              </span>
+              {selectedVariant?.id === variant.id ? <Glyph name="check" size={14} /> : null}
+            </button>
+          ))}
+        </div>
+
+        {!variants.length && conditionFields.length ? (
+          <div className="notification-variant-empty">
+            <span>
+              <strong>{t("creator.editor.noVariants")}</strong>
+              <small>{t("creator.editor.conditionsTitle")}</small>
+            </span>
+            <button type="button" disabled={!editable} onClick={addVariant}>
+              <Glyph name="plus" size={14} />
+              {t("creator.editor.addVariant")}
+            </button>
+          </div>
+        ) : null}
+
+        {!conditionFields.length ? (
+          <div className="notification-variant-empty is-unavailable">
+            <span>
+              <strong>{t("creator.editor.serverDriven")}</strong>
+              <small>{t("creator.editor.noVariants")}</small>
+            </span>
+          </div>
+        ) : null}
+
+        {selectedVariant ? (
+          <div className="notification-variant-conditions">
+            <header>
+              <span>
+                <small>{t("creator.editor.conditionsEyebrow")}</small>
+                <strong>{t("creator.editor.conditionsTitle")}</strong>
+              </span>
+              <button type="button" disabled={!editable} onClick={removeVariant}>
+                {t("creator.editor.removeVariant")}
+              </button>
+            </header>
+
+            <div className="notification-condition-list">
+              {selectedVariant.conditions.map((condition, index) => {
+                const field = conditionFields.find(
+                  (candidate) => candidate.field === condition.field,
+                )
+                const usedByOtherConditions = new Set(
+                  selectedVariant.conditions
+                    .filter((_, conditionIndex) => conditionIndex !== index)
+                    .map((candidate) => candidate.field),
+                )
+                const fieldOptions = conditionFields
+                  .filter(
+                    (candidate) =>
+                      candidate.field === condition.field ||
+                      !usedByOtherConditions.has(candidate.field),
+                  )
+                  .map((candidate) => ({
+                    value: candidate.field,
+                    label: conditionFieldLabel(candidate.field),
+                  }))
+                const valueOptions =
+                  field?.values.map((candidate) => ({
+                    value: candidate.value,
+                    label: conditionValueLabel(condition.field, candidate.value),
+                  })) ?? []
+
+                return (
+                  <div className="notification-condition-card" key={`${condition.field}-${index}`}>
+                    <span className="notification-condition-card__if">
+                      {t("creator.editor.conditionsEyebrow")}
+                    </span>
+
+                    <CreatorNotificationConditionSelect
+                      value={condition.field}
+                      options={fieldOptions}
+                      disabled={!editable}
+                      ariaLabel={conditionFieldLabel(condition.field)}
+                      onChange={(value) => updateConditionField(index, value)}
+                    />
+
+                    <span className="notification-condition-card__arrow" aria-hidden="true">
+                      →
+                    </span>
+
+                    <CreatorNotificationConditionSelect
+                      value={condition.value}
+                      options={valueOptions}
+                      disabled={!editable}
+                      ariaLabel={conditionValueLabel(condition.field, condition.value)}
+                      onChange={(value) => updateConditionValue(index, value)}
+                    />
+
+                    <button
+                      type="button"
+                      className="notification-condition-card__remove"
+                      disabled={!editable || selectedVariant.conditions.length === 1}
+                      onClick={() => removeCondition(index)}
+                      aria-label={t("creator.editor.removeCondition")}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {canAddCondition ? (
+              <button
+                type="button"
+                className="notification-add-condition"
+                disabled={!editable}
+                onClick={addCondition}
+              >
+                <Glyph name="plus" size={13} />
+                {t("creator.editor.addCondition")}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
 
       <div className="notification-pack-mode-switch">
         {(["SOLO", "AGGREGATE"] as EditorMode[]).map((value) => (
@@ -215,13 +591,26 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
 
       <div className="notification-pack-workspace">
         <div className="notification-pack-fields">
+          <header className="notification-message-editor-heading">
+            <span>
+              <small>
+                {selectedVariant
+                  ? t("creator.editor.conditionsEyebrow")
+                  : t("creator.editor.defaultVariant")}
+              </small>
+              <strong>
+                {selectedVariant ? variantDisplayLabel(selectedVariant) : messageTitle(template)}
+              </strong>
+            </span>
+          </header>
+
           <div className="notification-pack-fields__top">
             <Field label={t("creator.editor.emoji")}>
               <input
-                value={template.emoji ?? ""}
+                value={message.emoji ?? ""}
                 maxLength={descriptor.maxEmojiLength}
                 disabled={!editable}
-                onChange={(event) => updateTemplate({ emoji: event.target.value || null })}
+                onChange={(event) => updateSelectedMessage({ emoji: event.target.value || null })}
                 placeholder="🎁"
               />
             </Field>
@@ -235,21 +624,21 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             <>
               <Field label={t("creator.editor.soloTitle")}>
                 <input
-                  value={template.soloTitle}
+                  value={message.soloTitle}
                   maxLength={descriptor.maxTextLength}
                   disabled={!editable}
                   onFocus={() => setActiveField("soloTitle")}
-                  onChange={(event) => updateTemplate({ soloTitle: event.target.value })}
+                  onChange={(event) => updateSelectedMessage({ soloTitle: event.target.value })}
                 />
               </Field>
 
               <Field label={t("creator.editor.soloBody")}>
                 <textarea
-                  value={template.soloBody}
+                  value={message.soloBody}
                   maxLength={descriptor.maxTextLength}
                   disabled={!editable}
                   onFocus={() => setActiveField("soloBody")}
-                  onChange={(event) => updateTemplate({ soloBody: event.target.value })}
+                  onChange={(event) => updateSelectedMessage({ soloBody: event.target.value })}
                 />
               </Field>
             </>
@@ -257,32 +646,36 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             <>
               <Field label={t("creator.editor.aggregateTitle")}>
                 <input
-                  value={template.aggregateTitle}
+                  value={message.aggregateTitle}
                   maxLength={descriptor.maxTextLength}
                   disabled={!editable}
                   onFocus={() => setActiveField("aggregateTitle")}
-                  onChange={(event) => updateTemplate({ aggregateTitle: event.target.value })}
+                  onChange={(event) =>
+                    updateSelectedMessage({ aggregateTitle: event.target.value })
+                  }
                 />
               </Field>
 
               <Field label={t("creator.editor.compactMessage")}>
                 <textarea
-                  value={template.compact}
+                  value={message.compact}
                   maxLength={descriptor.maxTextLength}
                   disabled={!editable}
                   onFocus={() => setActiveField("compact")}
-                  onChange={(event) => updateTemplate({ compact: event.target.value })}
+                  onChange={(event) => updateSelectedMessage({ compact: event.target.value })}
                 />
               </Field>
 
-              <Field label={t("creator.editor.mixedAggregateTitle")}>
-                <input
-                  value={form.notificationPack.mixedAggregateTitle}
-                  maxLength={descriptor.maxTextLength}
-                  disabled={!editable}
-                  onChange={(event) => updateMixedAggregateTitle(event.target.value)}
-                />
-              </Field>
+              {selectedVariant === null ? (
+                <Field label={t("creator.editor.mixedAggregateTitle")}>
+                  <input
+                    value={form.notificationPack.mixedAggregateTitle}
+                    maxLength={descriptor.maxTextLength}
+                    disabled={!editable}
+                    onChange={(event) => updateMixedAggregateTitle(event.target.value)}
+                  />
+                </Field>
+              ) : null}
             </>
           )}
 
@@ -297,17 +690,24 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
                 <em>{t("creator.editor.insertIntoActiveField")}</em>
               </header>
 
-              <div>
+              <div className="notification-variable-groups">
                 {templateDescriptor.variables.map((variable) => (
-                  <button
-                    type="button"
-                    key={variable.key}
-                    disabled={!editable}
-                    onClick={() => insertVariable(variable.key)}
-                  >
-                    <code>{`{${variable.key}}`}</code>
-                    <small>{variable.sampleValue}</small>
-                  </button>
+                  <section key={variable.key}>
+                    <strong>{variable.key}</strong>
+                    <div>
+                      {variableForms(variable).map((variableForm) => (
+                        <button
+                          type="button"
+                          key={variableForm.placeholder}
+                          disabled={!editable}
+                          onClick={() => insertVariable(variableForm.placeholder)}
+                        >
+                          <code>{variableForm.placeholder}</code>
+                          <small>{variableForm.sampleValue}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             </section>
@@ -359,35 +759,61 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
               <strong>{t(`creator.editor.notificationTypes.${templateDescriptor.type}`)}</strong>
             </header>
 
-            {templateDescriptor.type === "ITEM_DROP" ? (
-              <DropSpotlightPreview
-                size="STUDIO"
-                presentationMode={mode === "SOLO" ? "FULL" : "COMPACT"}
-                itemName={templateDescriptor.sampleValues.item ?? "Item"}
-                droppedFor={templateDescriptor.sampleValues.player ?? "north"}
-                itemRarity={templateDescriptor.sampleValues.rarity ?? "MYTHICAL"}
-                itemType={templateDescriptor.sampleValues.itemType ?? "SWORD"}
-                template={template}
-              />
-            ) : (
-              <div>
-                <span>{eventArt(templateDescriptor.type)}</span>
-                <span>
-                  <small>
-                    {withEmoji(
-                      template.emoji,
-                      renderTemplate(template.soloTitle, templateDescriptor.sampleValues),
-                    )}
-                  </small>
-                  <strong>
-                    {renderTemplate(template.soloBody, templateDescriptor.sampleValues)}
-                  </strong>
-                </span>
-              </div>
-            )}
+            <div>
+              <span>{eventArt(templateDescriptor.type)}</span>
+              <span>
+                <small>
+                  {withNotificationEmoji(
+                    message.emoji,
+                    renderNotificationTemplate(previewContent, message.soloTitle, previewValues),
+                  )}
+                </small>
+                <strong>
+                  {renderNotificationTemplate(previewContent, message.soloBody, previewValues)}
+                </strong>
+              </span>
+            </div>
           </section>
         </div>
       </div>
     </section>
   )
+}
+
+function variableForms(variable: VariableDescriptor): VariableFormDescriptor[] {
+  if (variable.forms?.length) {
+    return variable.forms
+  }
+
+  return [
+    {
+      key: "default",
+      placeholder: `{${variable.key}}`,
+      sampleValue: variable.sampleValue,
+    },
+  ]
+}
+
+function messageTitle(template: NotificationTemplate): string {
+  return template.soloTitle || "—"
+}
+
+function eventArt(type: NotificationTemplateKey): ReactElement {
+  if (type === "ITEM_DROP") {
+    return <ItemTypeArt itemType="SWORD" size={38} />
+  }
+
+  if (type === "BOOSTER") {
+    return <BoosterArt boosterType="LUCK" size={38} />
+  }
+
+  if (type === "DUNGEON") {
+    return <DungeonArt size={38} />
+  }
+
+  if (type === "RAID") {
+    return <RaidArt size={38} />
+  }
+
+  return <GlobalEventArt eventType="ECLIPSE" size={38} />
 }

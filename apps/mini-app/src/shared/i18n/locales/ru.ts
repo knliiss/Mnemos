@@ -17,6 +17,7 @@ export const ru = {
     back: "Назад",
     save: "Сохранить",
     cancel: "Отмена",
+    clear: "Очистить",
     soon: "Скоро",
     unavailable: "Временно недоступно",
     loadErrorTitle: "Не удалось загрузить данные",
@@ -147,5 +148,72 @@ export const ru = {
     codes: errorCodesRu,
   },
   ...uiRu,
+  accountHome: {
+    ...uiRu.accountHome,
+    globalEventRemaining: "Осталось {{time}}",
+  },
+  creator: {
+    ...uiRu.creator,
+    editor: {
+      ...uiRu.creator.editor,
+      wordForms: {
+        eyebrow: "СЛОВА И ФОРМЫ",
+        title: "Как значения звучат в тексте",
+        hint: "Настрой формы один раз, затем вставляй их в сообщения готовыми кнопками-плейсхолдерами.",
+        guideTitle: "Не нужно помнить genitive и accusative",
+        guideCopy:
+          "Выбери значение, открой его формы и ориентируйся на русское название падежа и вопрос. Справа показан точный placeholder для текста.",
+        formsCount: "Форм: {{count}}",
+        preview: "{{placeholder}} → {{value}}",
+        valueKeys: {
+          BOOSTER: "Бустеры",
+          DUNGEON: "Подземелья",
+          ITEM_TYPE: "Типы предметов",
+          ITEM_RARITY: "Редкости",
+          GLOBAL_EVENT: "События мира",
+        },
+        formNames: {
+          default: "Основная форма",
+          genitive: "Родительный",
+          dative: "Дательный",
+          accusative: "Винительный",
+          instrumental: "Творительный",
+          prepositional: "Предложный",
+        },
+        formQuestions: {
+          default: "как называется само значение",
+          genitive: "кого? чего?",
+          dative: "кому? чему?",
+          accusative: "кого? что?",
+          instrumental: "кем? чем?",
+          prepositional: "о ком? о чём?",
+        },
+      },
+    },
+  },
+  personalization: {
+    ...uiRu.personalization,
+    category: {
+      ...uiRu.personalization.category,
+      searchPlaceholder: "Поиск по названию",
+      sortTitle: "Сортировка",
+      sort: {
+        DEFAULT: "По умолчанию",
+        PRICE_ASC: "Сначала дешевле",
+        PRICE_DESC: "Сначала дороже",
+        NAME: "По названию",
+        OWNED_FIRST: "Сначала купленные",
+      },
+    },
+    review: {
+      ...uiRu.personalization.review,
+      listDescription:
+        "Выбери работу, чтобы открыть отдельную страницу проверки. Детали и действия не мешают списку.",
+      detailTitle: "Проверка персонализации",
+      detailEyebrow: "ПРОВЕРКА",
+      notFound: "Персонализация больше не доступна",
+      notFoundCopy: "Её статус мог уже измениться. Вернись к списку и обнови очередь.",
+    },
+  },
   ...leaderboardsRu,
 } as const

@@ -1,19 +1,20 @@
 package com.mnemos.personalization.application.ownership.event
 
-import com.mnemos.personalization.contracts.event.ProfileAppearanceChangedV1
+import com.mnemos.personalization.contracts.shared.ProfileAppearanceSnapshotV1
 import com.mnemos.personalization.domain.personalization.model.GlowStyle
 import com.mnemos.personalization.domain.personalization.model.GradientStop
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object ProfileAppearanceContractMapper {
-    fun Personalization.toNickStyleSnapshot(): ProfileAppearanceChangedV1.NickStyle {
+    fun Personalization.toNickStyleSnapshot(): ProfileAppearanceSnapshotV1.NickStyle {
         val style =
             content as? PersonalizationContent.NickStyle
                 ?: error("Nick style personalization must contain nick style content")
 
-        return ProfileAppearanceChangedV1.NickStyle(
+        return ProfileAppearanceSnapshotV1.NickStyle(
             personalizationId = id.id,
             colors = style.colors.map { stop -> stop.toContract() },
             angleDegrees = style.angleDegrees,
@@ -21,12 +22,12 @@ object ProfileAppearanceContractMapper {
         )
     }
 
-    fun Personalization.toProfileThemeSnapshot(): ProfileAppearanceChangedV1.ProfileTheme {
+    fun Personalization.toProfileThemeSnapshot(): ProfileAppearanceSnapshotV1.ProfileTheme {
         val theme =
             content as? PersonalizationContent.ProfileTheme
                 ?: error("Profile theme personalization must contain profile theme content")
 
-        return ProfileAppearanceChangedV1.ProfileTheme(
+        return ProfileAppearanceSnapshotV1.ProfileTheme(
             personalizationId = id.id,
             background = theme.background.value,
             surface = theme.surface.value,
@@ -42,12 +43,30 @@ object ProfileAppearanceContractMapper {
         )
     }
 
-    fun Personalization.toAvatarFrameSnapshot(): ProfileAppearanceChangedV1.AvatarFrame {
+    fun Personalization.toProfileBackgroundSnapshot(): ProfileAppearanceSnapshotV1.ProfileBackground {
+        val background =
+            content as? ProfileBackgroundContent
+                ?: error("Profile background personalization must contain profile background content")
+
+        return ProfileAppearanceSnapshotV1.ProfileBackground(
+            personalizationId = id.id,
+            effect = background.effect.name,
+            intensity = background.intensity,
+            primaryColor = background.primaryColor.value,
+            secondaryColor = background.secondaryColor?.value,
+            speed = background.speed,
+            density = background.density,
+            scale = background.scale,
+            layers = background.layers.map { layer -> layer.toContract() },
+        )
+    }
+
+    fun Personalization.toAvatarFrameSnapshot(): ProfileAppearanceSnapshotV1.AvatarFrame {
         val frame =
             content as? PersonalizationContent.AvatarFrame
                 ?: error("Avatar frame personalization must contain avatar frame content")
 
-        return ProfileAppearanceChangedV1.AvatarFrame(
+        return ProfileAppearanceSnapshotV1.AvatarFrame(
             personalizationId = id.id,
             borderColor = frame.borderColor.value,
             borderWidthPx = frame.borderWidthPx,
@@ -60,12 +79,12 @@ object ProfileAppearanceContractMapper {
         )
     }
 
-    fun Personalization.toProfileEffectSnapshot(): ProfileAppearanceChangedV1.ProfileEffect {
+    fun Personalization.toProfileEffectSnapshot(): ProfileAppearanceSnapshotV1.ProfileEffect {
         val profileEffect =
             content as? PersonalizationContent.ProfileEffect
                 ?: error("Profile effect personalization must contain profile effect content")
 
-        return ProfileAppearanceChangedV1.ProfileEffect(
+        return ProfileAppearanceSnapshotV1.ProfileEffect(
             personalizationId = id.id,
             effect = profileEffect.effect.name,
             intensity = profileEffect.intensity,
@@ -78,8 +97,8 @@ object ProfileAppearanceContractMapper {
         )
     }
 
-    private fun VisualLayer.toContract(): ProfileAppearanceChangedV1.VisualLayer =
-        ProfileAppearanceChangedV1.VisualLayer(
+    private fun VisualLayer.toContract(): ProfileAppearanceSnapshotV1.VisualLayer =
+        ProfileAppearanceSnapshotV1.VisualLayer(
             id = id,
             assetId = assetId.id,
             xPercent = xPercent,
@@ -92,14 +111,14 @@ object ProfileAppearanceContractMapper {
             zIndex = zIndex,
         )
 
-    private fun GradientStop.toContract(): ProfileAppearanceChangedV1.GradientStop =
-        ProfileAppearanceChangedV1.GradientStop(
+    private fun GradientStop.toContract(): ProfileAppearanceSnapshotV1.GradientStop =
+        ProfileAppearanceSnapshotV1.GradientStop(
             color = color.value,
             position = position,
         )
 
-    private fun GlowStyle.toContract(): ProfileAppearanceChangedV1.Glow =
-        ProfileAppearanceChangedV1.Glow(
+    private fun GlowStyle.toContract(): ProfileAppearanceSnapshotV1.Glow =
+        ProfileAppearanceSnapshotV1.Glow(
             color = color.value,
             strength = strength,
         )

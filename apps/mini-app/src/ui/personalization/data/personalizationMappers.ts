@@ -4,6 +4,7 @@ import type {
   NotificationPackContentResponse,
   OwnedPersonalizationResponse,
   PersonalizationResponse,
+  ProfileBackgroundContentResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
 } from "@/shared/api/personalizationApi"
@@ -14,6 +15,7 @@ import type {
   Personalization,
   PersonalizationContent,
   PersonalizationTarget,
+  ProfileBackgroundContent,
   ProfileEffectContent,
   ProfileThemeContent,
 } from "../../model"
@@ -22,6 +24,7 @@ const targets: Record<Personalization["type"], PersonalizationTarget> = {
   NOTIFICATION_PACK: "USER",
   NICK_STYLE: "ACCOUNT",
   PROFILE_THEME: "ACCOUNT",
+  PROFILE_BACKGROUND: "ACCOUNT",
   AVATAR_FRAME: "ACCOUNT",
   PROFILE_EFFECT: "ACCOUNT",
 }
@@ -33,11 +36,10 @@ export function toPersonalization(
   currentUsername?: string,
 ): Personalization {
   const target = owned?.ownerType ?? targets[response.type]
-  const createdByCurrentUser = response.creatorUserId === currentUserId
-  const creator =
-    createdByCurrentUser && currentUsername
-      ? `@${currentUsername}`
-      : `Creator ${response.creatorUserId.slice(0, 8)}`
+  const createdByCurrentUser = Boolean(
+    response.creatorUserId && response.creatorUserId === currentUserId,
+  )
+  const creator = resolveCreator(response, createdByCurrentUser, currentUsername)
 
   return {
     id: response.id,
@@ -56,14 +58,40 @@ export function toPersonalization(
   }
 }
 
+function resolveCreator(
+  response: PersonalizationResponse,
+  createdByCurrentUser: boolean,
+  currentUsername?: string,
+): string {
+  if (response.origin === "SYSTEM") {
+    return "Mnemos"
+  }
+
+  if (createdByCurrentUser && currentUsername) {
+    return `@${currentUsername}`
+  }
+
+  return response.creatorUserId ? `Creator ${response.creatorUserId.slice(0, 8)}` : "Mnemos"
+}
+
 function toPersonalizationContent(response: PersonalizationResponse): PersonalizationContent {
   if (response.type === "NOTIFICATION_PACK") {
     const content = response.content as NotificationPackContentResponse
+    const templates = Object.fromEntries(
+      Object.entries(content.templates).map(([key, template]) => [
+        key,
+        {
+          ...template,
+          variants: template.variants ?? [],
+        },
+      ]),
+    ) as NotificationPackContent["templates"]
 
     return {
       kind: "NOTIFICATION_PACK",
       mixedAggregateTitle: content.mixedAggregateTitle,
-      templates: content.templates,
+      templates,
+      valueMappings: content.valueMappings ?? {},
     } satisfies NotificationPackContent
   }
 
@@ -97,6 +125,22 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     } satisfies ProfileThemeContent
   }
 
+  if (response.type === "PROFILE_BACKGROUND") {
+    const content = response.content as ProfileBackgroundContentResponse
+
+    return {
+      kind: "PROFILE_BACKGROUND",
+      effect: content.effect,
+      intensity: content.intensity,
+      speed: content.speed,
+      density: content.density,
+      scale: content.scale,
+      primaryColor: content.primaryColor,
+      secondaryColor: content.secondaryColor,
+      layers: content.layers ?? [],
+    } satisfies ProfileBackgroundContent
+  }
+
   if (response.type === "AVATAR_FRAME") {
     const content = response.content as AvatarFrameContentResponse
 
@@ -113,17 +157,21 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     } satisfies AvatarFrameContent
   }
 
-  const content = response.content as ProfileEffectContentResponse
+  if (response.type === "PROFILE_EFFECT") {
+    const content = response.content as ProfileEffectContentResponse
 
-  return {
-    kind: "PROFILE_EFFECT",
-    effect: content.effect,
-    intensity: content.intensity,
-    speed: content.speed,
-    density: content.density,
-    scale: content.scale,
-    primaryColor: content.primaryColor,
-    secondaryColor: content.secondaryColor,
-    layers: content.layers ?? [],
-  } satisfies ProfileEffectContent
+    return {
+      kind: "PROFILE_EFFECT",
+      effect: content.effect,
+      intensity: content.intensity,
+      speed: content.speed,
+      density: content.density,
+      scale: content.scale,
+      primaryColor: content.primaryColor,
+      secondaryColor: content.secondaryColor,
+      layers: content.layers ?? [],
+    } satisfies ProfileEffectContent
+  }
+
+  throw new Error(`Unsupported personalization type: ${response.type}`)
 }

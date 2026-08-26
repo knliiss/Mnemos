@@ -6,7 +6,8 @@ import java.time.Instant
 
 class Personalization(
     val id: PersonalizationId,
-    val creatorUserId: UserId,
+    val creatorUserId: UserId?,
+    val catalogKey: PersonalizationCatalogKey? = null,
     val type: PersonalizationType,
     val origin: PersonalizationOrigin,
     visibility: PersonalizationVisibility,
@@ -34,6 +35,7 @@ class Personalization(
         private set
 
     init {
+        requireIdentity()
         requireName(name)
         requireContentMatchesType(type, content)
         requirePrice(type, origin, visibility, price)
@@ -72,6 +74,49 @@ class Personalization(
         updatedAt = now
     }
 
+    fun synchronizeSystem(
+        name: String,
+        content: PersonalizationContent,
+        price: PersonalizationPrice,
+        desiredStatus: PersonalizationStatus,
+        now: Instant,
+    ): Boolean {
+        require(origin == PersonalizationOrigin.SYSTEM) {
+            "Only system personalization can be synchronized from the built-in catalog"
+        }
+        require(desiredStatus == PersonalizationStatus.PUBLISHED || desiredStatus == PersonalizationStatus.UNLISTED) {
+            "System personalization must be published or unlisted"
+        }
+
+        requireName(name)
+        requireContentMatchesType(type, content)
+        requirePrice(type, origin, PersonalizationVisibility.PUBLIC, price)
+
+        val changed =
+            this.name != name ||
+                this.content != content ||
+                this.price != price ||
+                visibility != PersonalizationVisibility.PUBLIC ||
+                status != desiredStatus ||
+                rejectionReason != null
+
+        if (!changed) {
+            return false
+        }
+
+        this.name = name
+        this.content = content
+        this.price = price
+        visibility = PersonalizationVisibility.PUBLIC
+        status = desiredStatus
+        rejectionReason = null
+        updatedAt = now
+
+        requireLifecycleState()
+
+        return true
+    }
+
     fun submitForReview(now: Instant) {
         val allowed =
             status == PersonalizationStatus.DRAFT ||
@@ -79,6 +124,7 @@ class Personalization(
                 status == PersonalizationStatus.PRIVATE
 
         require(allowed) { "Personalization cannot be submitted from status $status" }
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization does not use moderation lifecycle" }
 
         if (origin == PersonalizationOrigin.CUSTOM) {
             require(type == PersonalizationType.NOTIFICATION_PACK) {
@@ -95,6 +141,7 @@ class Personalization(
         moderatedPrice: PersonalizationPrice,
         now: Instant,
     ) {
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization does not use moderation lifecycle" }
         require(status == PersonalizationStatus.IN_REVIEW) { "Personalization is not in review" }
         requirePrice(type, origin, PersonalizationVisibility.PUBLIC, moderatedPrice)
 
@@ -109,6 +156,7 @@ class Personalization(
         reason: String,
         now: Instant,
     ) {
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization does not use moderation lifecycle" }
         require(status == PersonalizationStatus.IN_REVIEW) { "Personalization is not in review" }
         require(reason.isNotBlank()) { "Rejection reason cannot be blank" }
         require(reason.length <= MAX_REJECTION_REASON_LENGTH) { "Rejection reason is too long" }
@@ -119,6 +167,7 @@ class Personalization(
     }
 
     fun publish(now: Instant) {
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization is managed by the built-in catalog" }
         require(status == PersonalizationStatus.APPROVED) { "Only approved personalization can be published" }
         require(visibility == PersonalizationVisibility.PUBLIC) { "Only public personalization can be published" }
         require(price != null) { "Published personalization requires a price" }
@@ -128,6 +177,7 @@ class Personalization(
     }
 
     fun unlist(now: Instant) {
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization is managed by the built-in catalog" }
         require(status == PersonalizationStatus.PUBLISHED) { "Only published personalization can be unlisted" }
 
         status = PersonalizationStatus.UNLISTED
@@ -135,6 +185,7 @@ class Personalization(
     }
 
     fun relist(now: Instant) {
+        require(origin != PersonalizationOrigin.SYSTEM) { "System personalization is managed by the built-in catalog" }
         require(status == PersonalizationStatus.UNLISTED) { "Only unlisted personalization can be relisted" }
 
         status = PersonalizationStatus.PUBLISHED
@@ -157,6 +208,22 @@ class Personalization(
             price != null
     }
 
+    private fun requireIdentity() {
+        when (origin) {
+            PersonalizationOrigin.SYSTEM -> {
+                require(creatorUserId == null) { "System personalization cannot have a creator user" }
+                require(catalogKey != null) { "System personalization requires a catalog key" }
+            }
+
+            PersonalizationOrigin.CREATOR,
+            PersonalizationOrigin.CUSTOM,
+            -> {
+                require(creatorUserId != null) { "$origin personalization requires a creator user" }
+                require(catalogKey == null) { "$origin personalization cannot have a system catalog key" }
+            }
+        }
+    }
+
     private fun requireName(name: String) {
         require(name.isNotBlank()) { "Personalization name cannot be blank" }
         require(name.length in 3..64) { "Personalization name length must be between 3 and 64" }
@@ -171,6 +238,7 @@ class Personalization(
                 PersonalizationType.NOTIFICATION_PACK -> content is PersonalizationContent.NotificationPack
                 PersonalizationType.NICK_STYLE -> content is PersonalizationContent.NickStyle
                 PersonalizationType.PROFILE_THEME -> content is PersonalizationContent.ProfileTheme
+                PersonalizationType.PROFILE_BACKGROUND -> content is ProfileBackgroundContent
                 PersonalizationType.AVATAR_FRAME -> content is PersonalizationContent.AvatarFrame
                 PersonalizationType.PROFILE_EFFECT -> content is PersonalizationContent.ProfileEffect
             }
@@ -205,6 +273,23 @@ class Personalization(
             require(type == PersonalizationType.NOTIFICATION_PACK) {
                 "Only notification packs can use custom origin"
             }
+        }
+
+        if (origin == PersonalizationOrigin.SYSTEM) {
+            require(status == PersonalizationStatus.PUBLISHED || status == PersonalizationStatus.UNLISTED) {
+                "System personalization must be published or unlisted"
+            }
+            require(visibility == PersonalizationVisibility.PUBLIC) {
+                "System personalization must be public"
+            }
+            require(price != null) {
+                "System personalization requires a price"
+            }
+            require(rejectionReason == null) {
+                "System personalization cannot have a rejection reason"
+            }
+
+            return
         }
 
         when (status) {
@@ -319,6 +404,31 @@ class Personalization(
                 content = content,
                 price = price,
                 status = PersonalizationStatus.PRIVATE,
+                rejectionReason = null,
+                createdAt = now,
+                updatedAt = now,
+            )
+
+        fun createSystem(
+            catalogKey: PersonalizationCatalogKey,
+            type: PersonalizationType,
+            name: String,
+            content: PersonalizationContent,
+            price: PersonalizationPrice,
+            status: PersonalizationStatus,
+            now: Instant,
+        ): Personalization =
+            Personalization(
+                id = PersonalizationId.generate(),
+                creatorUserId = null,
+                catalogKey = catalogKey,
+                type = type,
+                origin = PersonalizationOrigin.SYSTEM,
+                visibility = PersonalizationVisibility.PUBLIC,
+                name = name,
+                content = content,
+                price = price,
+                status = status,
                 rejectionReason = null,
                 createdAt = now,
                 updatedAt = now,

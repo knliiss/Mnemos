@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.ownership.usecase.rebuild
 
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
 import com.mnemos.personalization.application.security.port.out.CurrentPersonalizationActorProvider
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -16,12 +17,20 @@ class RebuildProfileAppearanceService(
     @Transactional
     fun execute(): Int {
         val actor = actorProvider.requireActor()
+
+        return rebuild(actor.userId)
+    }
+
+    @Transactional
+    fun executeSystem(): Int = rebuild(actorUserId = null)
+
+    private fun rebuild(actorUserId: UserId?): Int {
         val accountIds = ownershipRepository.findActiveAccountIds(APPEARANCE_TYPES)
 
         accountIds.forEach { accountId ->
             profileAppearanceEventPublisher.publish(
                 accountId = accountId,
-                actorUserId = actor.userId,
+                actorUserId = actorUserId,
             )
         }
 
@@ -33,6 +42,7 @@ class RebuildProfileAppearanceService(
             setOf(
                 PersonalizationType.NICK_STYLE,
                 PersonalizationType.PROFILE_THEME,
+                PersonalizationType.PROFILE_BACKGROUND,
                 PersonalizationType.AVATAR_FRAME,
                 PersonalizationType.PROFILE_EFFECT,
             )

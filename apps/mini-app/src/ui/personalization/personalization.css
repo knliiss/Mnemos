@@ -82,6 +82,76 @@
   min-width: 0;
 }
 
+.personalization-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.personalization-catalog-grid > .inline-hint {
+  grid-column: 1 / -1;
+}
+
+.personalization-catalog-tile {
+  display: grid;
+  grid-template-rows: minmax(118px, 1fr) auto;
+  gap: 9px;
+  min-width: 0;
+  min-height: 164px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 205, 0.1);
+  border-radius: 18px;
+  color: inherit;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.035), transparent 42%),
+    rgba(14, 16, 12, 0.96);
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.personalization-catalog-tile:hover,
+.personalization-catalog-tile:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  outline: 0;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.06), transparent 42%),
+    rgba(15, 18, 12, 0.98);
+}
+
+.personalization-catalog-tile__art {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 118px;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 205, 0.065);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(203, 255, 45, 0.045), transparent 56%),
+    rgba(4, 6, 4, 0.32);
+}
+
+.personalization-catalog-tile__art > img {
+  display: block;
+  width: min(74%, 104px);
+  height: min(74%, 104px);
+  object-fit: contain;
+  filter: saturate(0.92) brightness(0.96);
+}
+
+.personalization-catalog-tile__art > .real-preview {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 118px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
 .personalization-category-list,
 .account-personalization-category-list {
   display: flex;
@@ -182,7 +252,30 @@
   margin-top: 2px;
 }
 
+@media (min-width: 720px) {
+  .personalization-catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 380px) {
+  .personalization-catalog-grid {
+    gap: 7px;
+  }
+
+  .personalization-catalog-tile {
+    grid-template-rows: minmax(100px, 1fr) auto;
+    min-height: 146px;
+    padding: 8px;
+    border-radius: 15px;
+  }
+
+  .personalization-catalog-tile__art,
+  .personalization-catalog-tile__art > .real-preview {
+    min-height: 100px !important;
+    border-radius: 12px;
+  }
+
   .personalization-category-card,
   .account-personalization-category-list > button {
     grid-template-columns: 80px minmax(0, 1fr);

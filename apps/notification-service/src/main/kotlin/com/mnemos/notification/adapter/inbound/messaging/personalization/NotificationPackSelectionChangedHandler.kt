@@ -9,6 +9,9 @@ import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
+import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplateCondition
+import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplateVariant
+import com.mnemos.notification.application.notification.personalization.model.NotificationPackValueForms
 import com.mnemos.notification.application.notification.personalization.usecase.UpdateNotificationPackSelectionCommand
 import com.mnemos.notification.application.notification.personalization.usecase.UpdateNotificationPackSelectionService
 import com.mnemos.personalization.contracts.PersonalizationAggregateType
@@ -76,6 +79,18 @@ class NotificationPackSelectionChangedHandler(
                         "Notification pack selection must define every notification type exactly once",
                     )
                 }
+
+                snapshot.templates.forEach { template ->
+                    template.variants.forEach { variant ->
+                        variant.conditions.forEach { condition ->
+                            if (condition.field.templateType != template.type || condition.value !in condition.field.allowedValues) {
+                                throw KafkaMessageProtocolException(
+                                    "Notification pack selection contains an invalid template variant condition",
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -101,7 +116,34 @@ class NotificationPackSelectionChangedHandler(
                                     soloBody = template.soloBody,
                                     compact = template.compact,
                                     aggregateTitle = template.aggregateTitle,
+                                    variants =
+                                        template.variants.map { variant ->
+                                            NotificationPackTemplateVariant(
+                                                id = variant.id,
+                                                conditions =
+                                                    variant.conditions.map { condition ->
+                                                        NotificationPackTemplateCondition(
+                                                            field = condition.field,
+                                                            value = condition.value,
+                                                        )
+                                                    },
+                                                emoji = variant.emoji,
+                                                soloTitle = variant.soloTitle,
+                                                soloBody = variant.soloBody,
+                                                compact = variant.compact,
+                                                aggregateTitle = variant.aggregateTitle,
+                                            )
+                                        },
                                 )
+                        },
+                    valueMappings =
+                        snapshot.valueMappings.mapValues { (_, mappings) ->
+                            mappings.mapValues { (_, forms) ->
+                                NotificationPackValueForms(
+                                    default = forms.default,
+                                    forms = forms.forms,
+                                )
+                            }
                         },
                 )
             }

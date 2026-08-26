@@ -12,6 +12,7 @@ object ProfileAppearancePersistenceMapper {
                 ProfileAppearanceDocument.Appearance(
                     nickStyle = nickStyle?.toDocument(),
                     profileTheme = profileTheme?.toDocument(),
+                    profileBackground = profileBackground?.toDocument(),
                     avatarFrame = avatarFrame?.toDocument(),
                     profileEffect = profileEffect?.toDocument(),
                 ),
@@ -24,6 +25,7 @@ object ProfileAppearancePersistenceMapper {
             revision = revision,
             nickStyle = appearance.nickStyle?.toDomain(),
             profileTheme = appearance.profileTheme?.toDomain(),
+            profileBackground = appearance.profileBackground?.toDomain(),
             avatarFrame = appearance.avatarFrame?.toDomain(),
             profileEffect = appearance.profileEffect?.toDomain(),
             updatedAt = updatedAt,
@@ -74,6 +76,32 @@ object ProfileAppearancePersistenceMapper {
             surfaceSecondary = surfaceSecondary,
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDomain() },
+        )
+
+    private fun ProfileAppearance.ProfileBackground.toDocument(): ProfileAppearanceDocument.ProfileBackground =
+        ProfileAppearanceDocument.ProfileBackground(
+            personalizationId = personalizationId.toString(),
+            effect = effect,
+            intensity = intensity,
+            primaryColor = primaryColor,
+            secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
+            layers = layers.map { layer -> layer.toDocument() },
+        )
+
+    private fun ProfileAppearanceDocument.ProfileBackground.toDomain(): ProfileAppearance.ProfileBackground =
+        ProfileAppearance.ProfileBackground(
+            personalizationId = UUID.fromString(personalizationId),
+            effect = effect,
+            intensity = intensity,
+            primaryColor = primaryColor,
+            secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
             layers = layers.map { layer -> layer.toDomain() },
         )
 

@@ -6,6 +6,7 @@ import com.mnemos.personalization.adapter.inbound.http.creator.NotificationPackE
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateAvatarFrameRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNickStyleRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNotificationPackRequest
+import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileBackgroundRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileEffectRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileThemeRequest
 import com.mnemos.personalization.adapter.inbound.http.personalization.PersonalizationApiMapper.toResponse
@@ -75,6 +76,14 @@ class CreatorPersonalizationController(
         request: CreateProfileThemeRequest,
     ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
 
+    @PostMapping("/profile-backgrounds")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createProfileBackground(
+        @RequestBody
+        @Valid
+        request: CreateProfileBackgroundRequest,
+    ): PersonalizationResponse = createCreatorPersonalizationUseCase.execute(request.toCreateCommand()).toResponse()
+
     @PostMapping("/avatar-frames")
     @ResponseStatus(HttpStatus.CREATED)
     fun createAvatarFrame(
@@ -116,6 +125,17 @@ class CreatorPersonalizationController(
         @RequestBody
         @Valid
         request: CreateProfileThemeRequest,
+    ): PersonalizationResponse =
+        updateCreatorPersonalizationUseCase
+            .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))
+            .toResponse()
+
+    @PutMapping("/{personalizationId}/profile-background")
+    fun updateProfileBackground(
+        @PathVariable personalizationId: UUID,
+        @RequestBody
+        @Valid
+        request: CreateProfileBackgroundRequest,
     ): PersonalizationResponse =
         updateCreatorPersonalizationUseCase
             .execute(request.toUpdateCommand(PersonalizationId(personalizationId)))

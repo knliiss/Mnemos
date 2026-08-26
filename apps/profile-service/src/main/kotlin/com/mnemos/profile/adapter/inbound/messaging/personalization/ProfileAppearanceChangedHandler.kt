@@ -8,7 +8,7 @@ import com.mnemos.personalization.contracts.PersonalizationAggregateType
 import com.mnemos.personalization.contracts.PersonalizationEventContract
 import com.mnemos.personalization.contracts.PersonalizationEventType
 import com.mnemos.personalization.contracts.event.ProfileAppearanceChangedV1
-import com.mnemos.profile.adapter.inbound.messaging.personalization.ProfileAppearanceContractMapper.toDomain
+import com.mnemos.profile.adapter.personalization.ProfileAppearanceSnapshotMapper.toDomain
 import com.mnemos.profile.application.profile.usecase.applyappearance.ApplyProfileAppearanceUseCase
 import org.springframework.stereotype.Component
 
@@ -35,7 +35,15 @@ class ProfileAppearanceChangedHandler(
     override val consumer = "profile-service.profile-appearance-changed"
 
     override fun handle(message: ConsumedMessage<ProfileAppearanceChangedV1>) {
-        applyProfileAppearanceUseCase.execute(message.payload.toDomain())
+        val payload = message.payload
+        val appearance =
+            payload.appearance.toDomain(
+                accountId = payload.accountId,
+                revision = payload.revision,
+                updatedAt = payload.occurredAt,
+            )
+
+        applyProfileAppearanceUseCase.execute(appearance)
     }
 
     private companion object {

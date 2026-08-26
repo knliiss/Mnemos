@@ -3,6 +3,7 @@ package com.mnemos.personalization.adapter.out.persistence.ownership
 import com.github.f4b6a3.uuid.UuidCreator
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.personalization.adapter.out.persistence.ownership.OwnedPersonalizationPersistenceMapper.toDomain
+import com.mnemos.personalization.application.personalization.builtin.port.out.BuiltinPersonalizationOwnershipReader
 import com.mnemos.personalization.domain.ownership.model.OwnedPersonalization
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class OwnedPersonalizationRepositoryAdapter(
     private val repository: OwnedPersonalizationJpaRepository,
-) : OwnedPersonalizationRepository {
+) : OwnedPersonalizationRepository,
+    BuiltinPersonalizationOwnershipReader {
     override fun save(ownership: OwnedPersonalization): OwnedPersonalization {
         val existing =
             repository.findByOwnerTypeAndOwnerIdAndPersonalizationId(
@@ -96,6 +98,11 @@ class OwnedPersonalizationRepositoryAdapter(
                 ownerType = owner.target,
                 ownerId = owner.id,
             ).map { it.toDomain() }
+
+    override fun findActiveOwners(personalizationId: PersonalizationId): List<PersonalizationOwner> =
+        repository
+            .findAllActiveByPersonalizationId(personalizationId.id)
+            .map { entity -> entity.toDomain().owner }
 
     override fun findActiveAccountIds(types: Set<PersonalizationType>): List<AccountId> =
         repository

@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next"
 import type { UserNotificationPack } from "./useUserNotificationPacks"
-import { Glyph } from "../../shared/MnemosIcon"
 import "./user-notification-packs.css"
 
 type UserNotificationPackSelectorProps = {
@@ -77,8 +76,8 @@ export function UserNotificationPackSelector({
                   }
                 }}
               >
-                <span className="user-hub-notification-pack-option__mark">
-                  <Glyph name="bell" size={16} />
+                <span className="user-hub-notification-pack-option__mark" aria-hidden="true">
+                  <img src="/ui-illustrations/creator-notification.svg" alt="" />
                 </span>
                 <span>
                   <strong>{pack.name}</strong>

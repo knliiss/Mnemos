@@ -9,6 +9,7 @@ import "./owned/owned-layout.css"
 import "./personalization.css"
 import { PersonalizationStore } from "./store/PersonalizationStore"
 import { PersonalizationStoreCategory } from "./store/PersonalizationStoreCategory"
+import "./store/notification-pack-catalog.css"
 import "./store/store.css"
 import "./store/store-illustrations.css"
 

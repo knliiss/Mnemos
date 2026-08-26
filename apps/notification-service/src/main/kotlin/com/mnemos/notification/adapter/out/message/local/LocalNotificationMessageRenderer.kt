@@ -240,10 +240,17 @@ class LocalNotificationMessageRenderer(
         val types = notifications.map { it.type }.toSet()
 
         if (pack != null) {
-            return if (types.size > 1) {
-                TelegramHtmlEscaper.escape(pack.mixedAggregateTitle)
+            if (types.size > 1) {
+                return TelegramHtmlEscaper.escape(pack.mixedAggregateTitle)
+            }
+
+            val variantIds = notifications.map { notification -> notification.variantId }.toSet()
+            val first = notifications.first()
+
+            return if (variantIds.size == 1) {
+                requireNotNull(first.aggregateTitle)
             } else {
-                requireNotNull(notifications.first().aggregateTitle)
+                requireNotNull(first.defaultAggregateTitle)
             }
         }
 

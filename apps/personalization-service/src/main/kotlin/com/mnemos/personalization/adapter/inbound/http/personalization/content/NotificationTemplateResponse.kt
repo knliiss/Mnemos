@@ -6,4 +6,5 @@ data class NotificationTemplateResponse(
     val soloBody: String,
     val compact: String,
     val aggregateTitle: String,
+    val variants: List<NotificationTemplateVariantResponse> = emptyList(),
 )

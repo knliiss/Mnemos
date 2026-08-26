@@ -8,6 +8,7 @@ import type {
   NotificationPackContent,
   NotificationTemplateKey,
   Personalization,
+  ProfileBackgroundContent,
   ProfileEffectContent,
   ProfileThemeContent,
 } from "../../model"
@@ -36,6 +37,8 @@ type EffectPreviewStyle = CSSProperties & {
   "--effect-density": string
   "--effect-scale": string
 }
+
+type ProfileVisualEffectContent = ProfileBackgroundContent | ProfileEffectContent
 
 export function PersonalizationVisual({ item, small = false, detail = false }: PreviewProps) {
   const content = item.content
@@ -353,7 +356,7 @@ function EffectPreview({
   content,
   className,
 }: {
-  content: ProfileEffectContent
+  content: ProfileVisualEffectContent
   className: string
 }) {
   const { t } = useTranslation()

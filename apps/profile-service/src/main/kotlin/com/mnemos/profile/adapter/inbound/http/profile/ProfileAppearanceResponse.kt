@@ -7,6 +7,7 @@ data class ProfileAppearanceResponse(
     val profileTheme: ProfileTheme?,
     val avatarFrame: AvatarFrame?,
     val profileEffect: ProfileEffect?,
+    val profileBackground: ProfileBackground? = null,
 ) {
     data class NickStyle(
         val personalizationId: UUID,
@@ -43,6 +44,18 @@ data class ProfileAppearanceResponse(
     )
 
     data class ProfileEffect(
+        val personalizationId: UUID,
+        val effect: String,
+        val intensity: Int,
+        val primaryColor: String,
+        val secondaryColor: String?,
+        val speed: Int,
+        val density: Int,
+        val scale: Int,
+        val layers: List<VisualLayer>,
+    )
+
+    data class ProfileBackground(
         val personalizationId: UUID,
         val effect: String,
         val intensity: Int,

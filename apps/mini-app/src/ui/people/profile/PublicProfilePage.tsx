@@ -10,8 +10,13 @@ import { ProfileCommentsSheet } from "./comments/ProfileCommentsSheet"
 import { useProfileComments } from "./comments/useProfileComments"
 import { usePublicProfileData } from "./data/usePublicProfileData"
 import "./profile-state.css"
-import { localeForLanguage } from "./profilePresentation"
+import {
+  localeForLanguage,
+  profileScreenClassName,
+  profileScreenStyle,
+} from "./profilePresentation"
 import "./public-profile.css"
+import "./public-profile-background.css"
 import "./public-profile-typography.css"
 import { PublicProfileCommentsPreview } from "./sections/PublicProfileCommentsPreview"
 import { PublicProfileDropsSection } from "./sections/PublicProfileDropsSection"
@@ -75,7 +80,7 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
   }
 
   return (
-    <div className="screen public-profile-screen">
+    <div className={profileScreenClassName(profile)} style={profileScreenStyle(profile)}>
       <PageHeader title={t("people.profile.title")} back={back} />
 
       <PublicProfileSummary

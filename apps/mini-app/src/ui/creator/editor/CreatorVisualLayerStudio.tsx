@@ -12,7 +12,7 @@ import { Glyph } from "../../shared/MnemosIcon"
 import type { CreatorEditorForm, CreatorVisualLayerForm } from "./creatorEditorModel"
 import "./creator-layer-studio.css"
 
-type LayeredType = "PROFILE_THEME" | "AVATAR_FRAME" | "PROFILE_EFFECT"
+type LayeredType = "PROFILE_THEME" | "PROFILE_BACKGROUND" | "AVATAR_FRAME" | "PROFILE_EFFECT"
 
 type Props = {
   form: CreatorEditorForm
@@ -24,12 +24,16 @@ const blendModes: VisualLayerBlendMode[] = ["NORMAL", "SCREEN", "MULTIPLY", "OVE
 const animations: VisualLayerAnimation[] = ["NONE", "FLOAT", "PULSE", "SPIN", "DRIFT"]
 
 function isLayeredType(type: CreatorEditorForm["type"]): type is LayeredType {
-  return ["PROFILE_THEME", "AVATAR_FRAME", "PROFILE_EFFECT"].includes(type)
+  return ["PROFILE_THEME", "PROFILE_BACKGROUND", "AVATAR_FRAME", "PROFILE_EFFECT"].includes(type)
 }
 
 function currentLayers(form: CreatorEditorForm): CreatorVisualLayerForm[] {
   if (form.type === "PROFILE_THEME") {
     return form.profileTheme.layers
+  }
+
+  if (form.type === "PROFILE_BACKGROUND") {
+    return form.profileBackground.layers
   }
 
   if (form.type === "AVATAR_FRAME") {
@@ -86,6 +90,16 @@ export function CreatorVisualLayerStudio({ form, editable, setForm }: Props) {
           ...current,
           profileTheme: {
             ...current.profileTheme,
+            layers: nextLayers,
+          },
+        }
+      }
+
+      if (type === "PROFILE_BACKGROUND") {
+        return {
+          ...current,
+          profileBackground: {
+            ...current.profileBackground,
             layers: nextLayers,
           },
         }

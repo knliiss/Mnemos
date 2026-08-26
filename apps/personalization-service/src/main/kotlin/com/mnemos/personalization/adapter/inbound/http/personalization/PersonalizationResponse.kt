@@ -10,7 +10,8 @@ import java.util.UUID
 
 data class PersonalizationResponse(
     val id: UUID,
-    val creatorUserId: UUID,
+    val creatorUserId: UUID?,
+    val catalogKey: String?,
     val type: PersonalizationType,
     val origin: PersonalizationOrigin,
     val visibility: PersonalizationVisibility,

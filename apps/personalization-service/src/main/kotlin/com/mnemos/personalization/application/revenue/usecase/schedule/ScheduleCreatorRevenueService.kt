@@ -37,15 +37,16 @@ class ScheduleCreatorRevenueService(
             requireNotNull(personalizationRepository.findById(purchase.personalizationId)) {
                 "Purchased personalization ${purchase.personalizationId} no longer exists"
             }
+        val creatorUserId = personalization.creatorUserId ?: return
 
-        if (personalization.creatorUserId == purchase.buyerUserId) {
+        if (creatorUserId == purchase.buyerUserId) {
             return
         }
 
         val operation =
             CreatorRevenueOperation.create(
                 purchaseOperationId = purchase.id,
-                creatorUserId = personalization.creatorUserId,
+                creatorUserId = creatorUserId,
                 amountPrime = revenuePolicy.calculatePrime(purchase),
                 now = clock.instant(),
             )

@@ -23,19 +23,36 @@ vi.mock("@/shared/api/personalizationApi", () => ({
   listOwnedPersonalizations: vi.fn(),
 }))
 
+const notificationTemplate = {
+  emoji: null,
+  soloTitle: "Event",
+  soloBody: "Description",
+  compact: "Compact event",
+  aggregateTitle: "Events",
+  variants: [],
+}
+
 const publicPack: PersonalizationResponse = {
   id: "pack-public",
   creatorUserId: "creator",
   type: "NOTIFICATION_PACK",
-  origin: "MARKETPLACE",
+  origin: "CREATOR",
   visibility: "PUBLIC",
   name: "Quiet Pack",
   content: {
-    colors: [{ color: "#CBFF2D", position: 0 }],
-    angleDegrees: 0,
-    glow: null,
+    mixedAggregateTitle: "Several events",
+    templates: {
+      ITEM_DROP: notificationTemplate,
+      BOOSTER: notificationTemplate,
+      DUNGEON: notificationTemplate,
+      RAID: notificationTemplate,
+      GLOBAL: notificationTemplate,
+    },
   },
-  price: null,
+  price: {
+    currency: "PRIME",
+    amount: 25,
+  },
   status: "PUBLISHED",
   rejectionReason: null,
   createdAt: "2026-08-23T00:00:00Z",
@@ -46,6 +63,7 @@ const privatePack: PersonalizationResponse = {
   ...publicPack,
   id: "pack-private",
   name: "Creator Pack",
+  visibility: "PRIVATE",
   status: "PRIVATE",
 }
 

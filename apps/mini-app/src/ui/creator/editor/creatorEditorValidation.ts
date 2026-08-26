@@ -2,10 +2,20 @@ import type {
   NotificationPackEditorDescriptorResponse,
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
-import type { NotificationTemplateResponse } from "@/shared/api/personalizationApi"
-import type { CreatorEditorForm, CreatorGlowForm } from "./creatorEditorModel"
+import type { NotificationTemplate, NotificationTemplateVariant } from "../../model"
+import type {
+  CreatorEditorForm,
+  CreatorGlowForm,
+  ProfileVisualEffectEditorForm,
+} from "./creatorEditorModel"
 
-const PLACEHOLDER = /\{([a-zA-Z][a-zA-Z0-9_]*)}/g
+const PLACEHOLDER = /\{([a-zA-Z][a-zA-Z0-9_]*)(?:\.([a-zA-Z][a-zA-Z0-9_]*))?}/g
+
+type TemplateDescriptor = NotificationPackEditorDescriptorResponse["templates"][number]
+type PlaceholderReference = {
+  key: string
+  form: string | null
+}
 
 function inRange(value: number, min: number, max: number): boolean {
   return Number.isInteger(value) && value >= min && value <= max
@@ -15,8 +25,20 @@ function glowValid(glow: CreatorGlowForm): boolean {
   return !glow.enabled || inRange(glow.strength, 1, 100)
 }
 
-function placeholders(value: string): string[] {
-  return [...value.matchAll(PLACEHOLDER)].map((match) => match[1])
+function profileVisualEffectValid(effect: ProfileVisualEffectEditorForm): boolean {
+  return (
+    inRange(effect.intensity, 1, 100) &&
+    inRange(effect.speed, 1, 100) &&
+    inRange(effect.density, 1, 100) &&
+    inRange(effect.scale, 1, 100)
+  )
+}
+
+function placeholderReferences(value: string): PlaceholderReference[] {
+  return [...value.matchAll(PLACEHOLDER)].map((match) => ({
+    key: match[1],
+    form: match[2] ?? null,
+  }))
 }
 
 function textStructureValid(value: string, maxLength: number): boolean {
@@ -30,11 +52,11 @@ function textStructureValid(value: string, maxLength: number): boolean {
 }
 
 function staticTextValid(value: string, maxLength: number): boolean {
-  return textStructureValid(value, maxLength) && placeholders(value).length === 0
+  return textStructureValid(value, maxLength) && placeholderReferences(value).length === 0
 }
 
 function fieldValue(
-  template: NotificationTemplateResponse,
+  template: Pick<NotificationTemplate, "soloTitle" | "soloBody" | "compact" | "aggregateTitle">,
   field: NotificationPackEditorFieldKey,
 ): string {
   if (field === "SOLO_TITLE") {
@@ -50,6 +72,94 @@ function fieldValue(
   }
 
   return template.aggregateTitle
+}
+
+function referenceValid(reference: PlaceholderReference, descriptor: TemplateDescriptor): boolean {
+  const variable = descriptor.variables.find((candidate) => candidate.key === reference.key)
+
+  if (!variable) {
+    return false
+  }
+
+  if (!reference.form) {
+    return true
+  }
+
+  return (variable.forms ?? []).some((form) => form.key === reference.form)
+}
+
+function messageFieldsValid(
+  template: Pick<
+    NotificationTemplate,
+    "emoji" | "soloTitle" | "soloBody" | "compact" | "aggregateTitle"
+  >,
+  descriptor: TemplateDescriptor,
+  editorDescriptor: NotificationPackEditorDescriptorResponse,
+): boolean {
+  if (
+    template.emoji !== null &&
+    (!staticTextValid(template.emoji, editorDescriptor.maxEmojiLength) ||
+      template.emoji.length > editorDescriptor.maxEmojiLength)
+  ) {
+    return false
+  }
+
+  return editorDescriptor.fields.every((field) => {
+    const value = fieldValue(template, field.key)
+
+    if (!textStructureValid(value, editorDescriptor.maxTextLength)) {
+      return false
+    }
+
+    const references = placeholderReferences(value)
+
+    if (!field.variablesAllowed) {
+      return references.length === 0
+    }
+
+    return references.every((reference) => referenceValid(reference, descriptor))
+  })
+}
+
+function variantConditionsValid(
+  variant: NotificationTemplateVariant,
+  descriptor: TemplateDescriptor,
+): boolean {
+  const conditionFields = descriptor.conditionFields ?? []
+
+  if (!variant.conditions.length || !conditionFields.length) {
+    return false
+  }
+
+  const uniqueFields = new Set(variant.conditions.map((condition) => condition.field))
+
+  if (uniqueFields.size !== variant.conditions.length) {
+    return false
+  }
+
+  return variant.conditions.every((condition) => {
+    const field = conditionFields.find((candidate) => candidate.field === condition.field)
+
+    return Boolean(field?.values.some((value) => value.value === condition.value))
+  })
+}
+
+function variantsValid(
+  template: NotificationTemplate,
+  descriptor: TemplateDescriptor,
+  editorDescriptor: NotificationPackEditorDescriptorResponse,
+): boolean {
+  const ids = new Set(template.variants.map((variant) => variant.id))
+
+  if (ids.size !== template.variants.length) {
+    return false
+  }
+
+  return template.variants.every(
+    (variant) =>
+      variantConditionsValid(variant, descriptor) &&
+      messageFieldsValid(variant, descriptor, editorDescriptor),
+  )
 }
 
 export function isCreatorVisualFormValid(form: CreatorEditorForm): boolean {
@@ -74,6 +184,10 @@ export function isCreatorVisualFormValid(form: CreatorEditorForm): boolean {
     )
   }
 
+  if (form.type === "PROFILE_BACKGROUND") {
+    return profileVisualEffectValid(form.profileBackground)
+  }
+
   if (form.type === "AVATAR_FRAME") {
     return (
       inRange(form.avatarFrame.borderWidthPx, 1, 8) &&
@@ -84,12 +198,7 @@ export function isCreatorVisualFormValid(form: CreatorEditorForm): boolean {
   }
 
   if (form.type === "PROFILE_EFFECT") {
-    return (
-      inRange(form.profileEffect.intensity, 1, 100) &&
-      inRange(form.profileEffect.speed, 1, 100) &&
-      inRange(form.profileEffect.density, 1, 100) &&
-      inRange(form.profileEffect.scale, 1, 100)
-    )
+    return profileVisualEffectValid(form.profileEffect)
   }
 
   return true
@@ -114,34 +223,10 @@ export function isNotificationPackFormValid(
   return descriptor.templates.every((templateDescriptor) => {
     const template = form.notificationPack.templates[templateDescriptor.type]
 
-    if (!template) {
-      return false
-    }
-
-    if (
-      template.emoji !== null &&
-      (!staticTextValid(template.emoji, descriptor.maxEmojiLength) ||
-        template.emoji.length > descriptor.maxEmojiLength)
-    ) {
-      return false
-    }
-
-    const allowedVariables = new Set(templateDescriptor.variables.map((variable) => variable.key))
-
-    return descriptor.fields.every((field) => {
-      const value = fieldValue(template, field.key)
-
-      if (!textStructureValid(value, descriptor.maxTextLength)) {
-        return false
-      }
-
-      const valuePlaceholders = placeholders(value)
-
-      if (!field.variablesAllowed) {
-        return valuePlaceholders.length === 0
-      }
-
-      return valuePlaceholders.every((placeholder) => allowedVariables.has(placeholder))
-    })
+    return Boolean(
+      template &&
+        messageFieldsValid(template, templateDescriptor, descriptor) &&
+        variantsValid(template, templateDescriptor, descriptor),
+    )
   })
 }

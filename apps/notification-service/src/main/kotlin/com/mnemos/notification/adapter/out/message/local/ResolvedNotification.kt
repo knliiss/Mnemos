@@ -8,4 +8,6 @@ data class ResolvedNotification(
     val soloBody: String,
     val compact: String,
     val aggregateTitle: String? = null,
+    val defaultAggregateTitle: String? = null,
+    val variantId: String? = null,
 )

@@ -1,6 +1,9 @@
 import type { CSSProperties } from "react"
 import type { TFunction } from "i18next"
-import type { PublicProfileResponse } from "@/shared/api/profileSocialApi"
+import type {
+  ProfileAppearanceResponse,
+  PublicProfileResponse,
+} from "@/shared/api/profileSocialApi"
 
 const SKIN_BASE_URL = "https://webdata.c7x.dev/textures/skin"
 
@@ -23,6 +26,20 @@ type ProfileCardStyle = CSSProperties & {
   "--profile-effect-scale"?: string
 }
 
+type ProfileScreenStyle = CSSProperties & {
+  "--profile-background-primary"?: string
+  "--profile-background-secondary"?: string
+  "--profile-background-opacity"?: string
+  "--profile-background-secondary-opacity"?: string
+  "--profile-background-duration"?: string
+  "--profile-background-drift-duration"?: string
+  "--profile-background-breathe-duration"?: string
+  "--profile-background-density"?: string
+  "--profile-background-scale"?: string
+  "--profile-background-scale-low"?: string
+  "--profile-background-scale-high"?: string
+}
+
 type ProfileHeadStyle = CSSProperties & {
   "--profile-frame-color"?: string
   "--profile-frame-secondary"?: string
@@ -33,7 +50,13 @@ type ProfileHeadStyle = CSSProperties & {
 }
 
 export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | undefined {
-  const style = profile.appearance.nickStyle
+  return nicknameStyleForAppearance(profile.appearance)
+}
+
+export function nicknameStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): CSSProperties | undefined {
+  const style = appearance.nickStyle
 
   if (!style || !style.colors.length) {
     return undefined
@@ -52,9 +75,52 @@ export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | u
   }
 }
 
+export function profileScreenStyle(profile: PublicProfileResponse): ProfileScreenStyle | undefined {
+  const background = profile.appearance.profileBackground
+
+  if (!background) {
+    return undefined
+  }
+
+  const opacity = 0.12 + (background.intensity / 100) * 0.3
+  const durationSeconds = 18 - (background.speed / 100) * 13
+  const scale = 0.85 + (background.scale / 100) * 0.55
+
+  return {
+    "--profile-background-primary": background.primaryColor,
+    "--profile-background-secondary": background.secondaryColor ?? background.primaryColor,
+    "--profile-background-opacity": opacity.toFixed(3),
+    "--profile-background-secondary-opacity": (opacity * 0.55).toFixed(3),
+    "--profile-background-duration": `${durationSeconds.toFixed(2)}s`,
+    "--profile-background-drift-duration": `${(durationSeconds * 1.35).toFixed(2)}s`,
+    "--profile-background-breathe-duration": `${(durationSeconds * 0.8).toFixed(2)}s`,
+    "--profile-background-density": `${background.density}%`,
+    "--profile-background-scale": scale.toFixed(3),
+    "--profile-background-scale-low": (scale * 0.92).toFixed(3),
+    "--profile-background-scale-high": (scale * 1.08).toFixed(3),
+  }
+}
+
+export function profileScreenClassName(profile: PublicProfileResponse): string {
+  const classes = ["screen", "public-profile-screen"]
+  const background = profile.appearance.profileBackground
+
+  if (background) {
+    classes.push("has-profile-background", `profile-background--${background.effect.toLowerCase()}`)
+  }
+
+  return classes.join(" ")
+}
+
 export function profileCardStyle(profile: PublicProfileResponse): ProfileCardStyle | undefined {
-  const theme = profile.appearance.profileTheme
-  const effect = profile.appearance.profileEffect
+  return profileCardStyleForAppearance(profile.appearance)
+}
+
+export function profileCardStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): ProfileCardStyle | undefined {
+  const theme = appearance.profileTheme
+  const effect = appearance.profileEffect
 
   if (!theme && !effect) {
     return undefined
@@ -123,7 +189,13 @@ export function profileHeadClassName(profile: PublicProfileResponse): string {
 }
 
 export function profileHeadStyle(profile: PublicProfileResponse): ProfileHeadStyle | undefined {
-  const frame = profile.appearance.avatarFrame
+  return profileHeadStyleForAppearance(profile.appearance)
+}
+
+export function profileHeadStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): ProfileHeadStyle | undefined {
+  const frame = appearance.avatarFrame
 
   if (!frame) {
     return undefined

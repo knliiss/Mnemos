@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next"
 import type { EffectType, FrameStyle, GradientStop } from "../../model"
 import { Field } from "../../shared/Primitives"
 import { RangeControl } from "../../shared/RangeControl"
-import type { CreatorEditorForm, CreatorGlowForm } from "./creatorEditorModel"
+import type {
+  CreatorEditorForm,
+  CreatorGlowForm,
+  ProfileVisualEffectEditorForm,
+} from "./creatorEditorModel"
 
 const frameStyles: FrameStyle[] = ["SOLID", "DOUBLE", "SEGMENTED"]
 const effectTypes: EffectType[] = ["AURORA", "PULSE", "SHIMMER", "PARTICLES"]
@@ -417,15 +421,29 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
     )
   }
 
-  if (form.type === "PROFILE_EFFECT") {
-    const updateEffect = (next: Partial<CreatorEditorForm["profileEffect"]>) => {
-      setForm((current) => ({
-        ...current,
-        profileEffect: {
-          ...current.profileEffect,
-          ...next,
-        },
-      }))
+  if (form.type === "PROFILE_BACKGROUND" || form.type === "PROFILE_EFFECT") {
+    const type = form.type
+    const effect = type === "PROFILE_BACKGROUND" ? form.profileBackground : form.profileEffect
+    const updateEffect = (next: Partial<ProfileVisualEffectEditorForm>) => {
+      setForm((current) => {
+        if (type === "PROFILE_BACKGROUND") {
+          return {
+            ...current,
+            profileBackground: {
+              ...current.profileBackground,
+              ...next,
+            },
+          }
+        }
+
+        return {
+          ...current,
+          profileEffect: {
+            ...current.profileEffect,
+            ...next,
+          },
+        }
+      })
     }
 
     return (
@@ -439,15 +457,15 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
           </header>
 
           <div className="creator-segmented-control creator-segmented-control--four">
-            {effectTypes.map((effect) => (
+            {effectTypes.map((value) => (
               <button
                 type="button"
-                key={effect}
-                className={form.profileEffect.effect === effect ? "is-active" : ""}
+                key={value}
+                className={effect.effect === value ? "is-active" : ""}
                 disabled={!editable}
-                onClick={() => updateEffect({ effect })}
+                onClick={() => updateEffect({ effect: value })}
               >
-                {t(`creator.editor.effects.${effect}`)}
+                {t(`creator.editor.effects.${value}`)}
               </button>
             ))}
           </div>
@@ -455,13 +473,13 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
           <div className="creator-parameter-grid creator-parameter-grid--compact">
             <ColorField
               label={t("creator.editor.primary")}
-              value={form.profileEffect.primaryColor}
+              value={effect.primaryColor}
               disabled={!editable}
               onChange={(primaryColor) => updateEffect({ primaryColor })}
             />
             <ColorField
               label={t("creator.editor.secondary")}
-              value={form.profileEffect.secondaryColor}
+              value={effect.secondaryColor}
               disabled={!editable}
               onChange={(secondaryColor) => updateEffect({ secondaryColor })}
             />
@@ -470,7 +488,7 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
           <div className="creator-parameter-grid creator-parameter-grid--compact">
             <RangeField
               label={t("creator.editor.intensity")}
-              value={form.profileEffect.intensity}
+              value={effect.intensity}
               min={1}
               max={100}
               disabled={!editable}
@@ -478,7 +496,7 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
             />
             <RangeField
               label={t("creator.editor.speed")}
-              value={form.profileEffect.speed}
+              value={effect.speed}
               min={1}
               max={100}
               disabled={!editable}
@@ -486,7 +504,7 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
             />
             <RangeField
               label={t("creator.editor.density")}
-              value={form.profileEffect.density}
+              value={effect.density}
               min={1}
               max={100}
               disabled={!editable}
@@ -494,7 +512,7 @@ export function CreatorPersonalizationControls({ form, editable, setForm }: Prop
             />
             <RangeField
               label={t("creator.editor.scale")}
-              value={form.profileEffect.scale}
+              value={effect.scale}
               min={1}
               max={100}
               disabled={!editable}
