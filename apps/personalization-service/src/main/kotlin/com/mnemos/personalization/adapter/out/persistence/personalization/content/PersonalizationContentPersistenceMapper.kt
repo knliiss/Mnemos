@@ -15,6 +15,7 @@ import com.mnemos.personalization.domain.personalization.model.NotificationTempl
 import com.mnemos.personalization.domain.personalization.model.NotificationValueForms
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
 import com.mnemos.personalization.domain.personalization.model.VisualLayerAnimation
 import com.mnemos.personalization.domain.personalization.model.VisualLayerBlendMode
@@ -42,6 +43,18 @@ object PersonalizationContentPersistenceMapper {
                     "gradientAngleDegrees" to gradientAngleDegrees,
                     "textureStrength" to textureStrength,
                     "glow" to glow?.toDocument(),
+                    "layers" to layers.map { layer -> layer.toDocument() },
+                )
+
+            is ProfileBackgroundContent ->
+                mapOf(
+                    "effect" to effect.name,
+                    "intensity" to intensity,
+                    "primaryColor" to primaryColor.value,
+                    "secondaryColor" to secondaryColor?.value,
+                    "speed" to speed,
+                    "density" to density,
+                    "scale" to scale,
                     "layers" to layers.map { layer -> layer.toDocument() },
                 )
 
@@ -85,7 +98,7 @@ object PersonalizationContentPersistenceMapper {
             PersonalizationType.NOTIFICATION_PACK -> toNotificationPack()
             PersonalizationType.NICK_STYLE -> toNickStyle()
             PersonalizationType.PROFILE_THEME -> toProfileTheme()
-            PersonalizationType.PROFILE_BACKGROUND -> toProfileEffect()
+            PersonalizationType.PROFILE_BACKGROUND -> toProfileBackground()
             PersonalizationType.AVATAR_FRAME -> toAvatarFrame()
             PersonalizationType.PROFILE_EFFECT -> toProfileEffect()
         }
@@ -118,6 +131,18 @@ object PersonalizationContentPersistenceMapper {
             layers = visualLayers(),
         )
     }
+
+    private fun Map<String, Any?>.toProfileBackground(): ProfileBackgroundContent =
+        ProfileBackgroundContent(
+            effect = EffectType.valueOf(requireString("effect")),
+            intensity = requireNumber("intensity").toInt(),
+            primaryColor = HexColor(requireString("primaryColor")),
+            secondaryColor = stringOrNull("secondaryColor")?.let(::HexColor),
+            speed = numberOrNull("speed")?.toInt() ?: 50,
+            density = numberOrNull("density")?.toInt() ?: 50,
+            scale = numberOrNull("scale")?.toInt() ?: 50,
+            layers = visualLayers(),
+        )
 
     private fun Map<String, Any?>.toAvatarFrame(): PersonalizationContent.AvatarFrame {
         val borderColor = HexColor(requireString("borderColor"))

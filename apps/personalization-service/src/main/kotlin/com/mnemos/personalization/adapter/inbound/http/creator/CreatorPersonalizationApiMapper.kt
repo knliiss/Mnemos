@@ -3,6 +3,7 @@ package com.mnemos.personalization.adapter.inbound.http.creator
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateAvatarFrameRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNickStyleRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateNotificationPackRequest
+import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileBackgroundRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileEffectRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.CreateProfileThemeRequest
 import com.mnemos.personalization.adapter.inbound.http.creator.request.VisualLayerRequest
@@ -29,6 +30,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationCo
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
 
 object CreatorPersonalizationApiMapper {
@@ -43,6 +45,14 @@ object CreatorPersonalizationApiMapper {
     fun CreateProfileThemeRequest.toCreateCommand(): CreateCreatorPersonalizationCommand =
         CreateCreatorPersonalizationCommand(
             type = PersonalizationType.PROFILE_THEME,
+            name = name,
+            content = toContent(),
+            price = price.toDomain(),
+        )
+
+    fun CreateProfileBackgroundRequest.toCreateCommand(): CreateCreatorPersonalizationCommand =
+        CreateCreatorPersonalizationCommand(
+            type = PersonalizationType.PROFILE_BACKGROUND,
             name = name,
             content = toContent(),
             price = price.toDomain(),
@@ -85,6 +95,14 @@ object CreatorPersonalizationApiMapper {
         )
 
     fun CreateProfileThemeRequest.toUpdateCommand(id: PersonalizationId): UpdatePersonalizationCommand =
+        UpdatePersonalizationCommand(
+            personalizationId = id,
+            name = name,
+            content = toContent(),
+            price = price.toDomain(),
+        )
+
+    fun CreateProfileBackgroundRequest.toUpdateCommand(id: PersonalizationId): UpdatePersonalizationCommand =
         UpdatePersonalizationCommand(
             personalizationId = id,
             name = name,
@@ -139,6 +157,18 @@ object CreatorPersonalizationApiMapper {
             surfaceSecondary = HexColor(surfaceSecondary),
             gradientAngleDegrees = gradientAngleDegrees,
             textureStrength = textureStrength,
+            layers = layers.map { layer -> layer.toDomain() },
+        )
+
+    fun CreateProfileBackgroundRequest.toContent(): ProfileBackgroundContent =
+        ProfileBackgroundContent(
+            effect = effect,
+            intensity = intensity,
+            primaryColor = HexColor(primaryColor),
+            secondaryColor = secondaryColor?.let(::HexColor),
+            speed = speed,
+            density = density,
+            scale = scale,
             layers = layers.map { layer -> layer.toDomain() },
         )
 

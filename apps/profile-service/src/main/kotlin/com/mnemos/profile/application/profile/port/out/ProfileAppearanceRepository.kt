@@ -4,6 +4,8 @@ import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import java.util.UUID
 
 interface ProfileAppearanceRepository {
+    fun ensureState(accountId: UUID)
+
     fun save(appearance: ProfileAppearance): ProfileAppearance
 
     fun findByAccountId(accountId: UUID): ProfileAppearance?

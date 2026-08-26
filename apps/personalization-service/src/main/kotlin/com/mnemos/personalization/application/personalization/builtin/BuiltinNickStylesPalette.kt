@@ -5,7 +5,7 @@ import com.mnemos.personalization.application.personalization.builtin.BuiltinVis
 import com.mnemos.personalization.application.personalization.builtin.BuiltinVisualPersonalizationSupport.stop
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
-object BuiltinNickStylesExpansion {
+object BuiltinNickStylesPalette {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
             nickStyle(

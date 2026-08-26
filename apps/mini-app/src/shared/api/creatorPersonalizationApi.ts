@@ -18,7 +18,7 @@ import type {
   PersonalizationResponse,
 } from "@/shared/api/personalizationApi"
 
-export type CreatorPersonalizationType = Exclude<PersonalizationType, "PROFILE_BACKGROUND">
+export type CreatorPersonalizationType = PersonalizationType
 
 export type PersonalizationPriceRequest = {
   currency: Currency
@@ -77,6 +77,21 @@ export type CreateProfileThemeRequest = {
   price: PersonalizationPriceRequest
 }
 
+type CreateProfileVisualEffectRequest = {
+  name: string
+  effect: EffectType
+  intensity: number
+  speed: number
+  density: number
+  scale: number
+  primaryColor: string
+  secondaryColor: string | null
+  layers: VisualLayerRequest[]
+  price: PersonalizationPriceRequest
+}
+
+export type CreateProfileBackgroundRequest = CreateProfileVisualEffectRequest
+
 export type CreateAvatarFrameRequest = {
   name: string
   borderColor: string
@@ -90,18 +105,7 @@ export type CreateAvatarFrameRequest = {
   price: PersonalizationPriceRequest
 }
 
-export type CreateProfileEffectRequest = {
-  name: string
-  effect: EffectType
-  intensity: number
-  speed: number
-  density: number
-  scale: number
-  primaryColor: string
-  secondaryColor: string | null
-  layers: VisualLayerRequest[]
-  price: PersonalizationPriceRequest
-}
+export type CreateProfileEffectRequest = CreateProfileVisualEffectRequest
 
 export type CreateNotificationPackRequest = {
   name: string
@@ -157,6 +161,7 @@ export type NotificationPackEditorDescriptorResponse = {
 export type CreatorRequestByType = {
   NICK_STYLE: CreateNickStyleRequest
   PROFILE_THEME: CreateProfileThemeRequest
+  PROFILE_BACKGROUND: CreateProfileBackgroundRequest
   AVATAR_FRAME: CreateAvatarFrameRequest
   PROFILE_EFFECT: CreateProfileEffectRequest
   NOTIFICATION_PACK: CreateNotificationPackRequest
@@ -185,6 +190,7 @@ export type CreatorRevenueOperationResponse = {
 const createPaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-styles",
   PROFILE_THEME: "profile-themes",
+  PROFILE_BACKGROUND: "profile-backgrounds",
   AVATAR_FRAME: "avatar-frames",
   PROFILE_EFFECT: "profile-effects",
   NOTIFICATION_PACK: "notification-packs",
@@ -193,6 +199,7 @@ const createPaths: Record<CreatorPersonalizationType, string> = {
 const updatePaths: Record<CreatorPersonalizationType, string> = {
   NICK_STYLE: "nick-style",
   PROFILE_THEME: "profile-theme",
+  PROFILE_BACKGROUND: "profile-background",
   AVATAR_FRAME: "avatar-frame",
   PROFILE_EFFECT: "profile-effect",
   NOTIFICATION_PACK: "notification-pack",

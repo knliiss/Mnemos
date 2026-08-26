@@ -68,6 +68,10 @@ class ApplyProfileAppearanceServiceTest {
     private class InMemoryProfileAppearanceRepository : ProfileAppearanceRepository {
         private val appearances = mutableMapOf<UUID, ProfileAppearance>()
 
+        override fun ensureState(accountId: UUID) {
+            appearances.putIfAbsent(accountId, ProfileAppearance.empty(accountId))
+        }
+
         override fun save(appearance: ProfileAppearance): ProfileAppearance {
             appearances[appearance.accountId] = appearance
 

@@ -1,22 +1,28 @@
-package com.mnemos.profile.adapter.inbound.messaging.personalization
+package com.mnemos.profile.adapter.personalization
 
-import com.mnemos.personalization.contracts.event.ProfileAppearanceChangedV1
+import com.mnemos.personalization.contracts.shared.ProfileAppearanceSnapshotV1
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
+import java.time.Instant
+import java.util.UUID
 
-object ProfileAppearanceContractMapper {
-    fun ProfileAppearanceChangedV1.toDomain(): ProfileAppearance =
+object ProfileAppearanceSnapshotMapper {
+    fun ProfileAppearanceSnapshotV1.toDomain(
+        accountId: UUID,
+        revision: Long,
+        updatedAt: Instant,
+    ): ProfileAppearance =
         ProfileAppearance(
             accountId = accountId,
             revision = revision,
-            nickStyle = appearance.nickStyle?.toDomain(),
-            profileTheme = appearance.profileTheme?.toDomain(),
-            avatarFrame = appearance.avatarFrame?.toDomain(),
-            profileEffect = appearance.profileEffect?.toDomain(),
-            updatedAt = occurredAt,
-            profileBackground = appearance.profileBackground?.toDomain(),
+            nickStyle = nickStyle?.toDomain(),
+            profileTheme = profileTheme?.toDomain(),
+            profileBackground = profileBackground?.toDomain(),
+            avatarFrame = avatarFrame?.toDomain(),
+            profileEffect = profileEffect?.toDomain(),
+            updatedAt = updatedAt,
         )
 
-    private fun ProfileAppearanceChangedV1.NickStyle.toDomain(): ProfileAppearance.NickStyle =
+    private fun ProfileAppearanceSnapshotV1.NickStyle.toDomain(): ProfileAppearance.NickStyle =
         ProfileAppearance.NickStyle(
             personalizationId = personalizationId,
             colors = colors.map { stop -> stop.toDomain() },
@@ -24,7 +30,7 @@ object ProfileAppearanceContractMapper {
             glow = glow?.toDomain(),
         )
 
-    private fun ProfileAppearanceChangedV1.ProfileTheme.toDomain(): ProfileAppearance.ProfileTheme =
+    private fun ProfileAppearanceSnapshotV1.ProfileTheme.toDomain(): ProfileAppearance.ProfileTheme =
         ProfileAppearance.ProfileTheme(
             personalizationId = personalizationId,
             background = background,
@@ -40,7 +46,20 @@ object ProfileAppearanceContractMapper {
             layers = layers.map { layer -> layer.toDomain() },
         )
 
-    private fun ProfileAppearanceChangedV1.AvatarFrame.toDomain(): ProfileAppearance.AvatarFrame =
+    private fun ProfileAppearanceSnapshotV1.ProfileBackground.toDomain(): ProfileAppearance.ProfileBackground =
+        ProfileAppearance.ProfileBackground(
+            personalizationId = personalizationId,
+            effect = effect,
+            intensity = intensity,
+            primaryColor = primaryColor,
+            secondaryColor = secondaryColor,
+            speed = speed,
+            density = density,
+            scale = scale,
+            layers = layers.map { layer -> layer.toDomain() },
+        )
+
+    private fun ProfileAppearanceSnapshotV1.AvatarFrame.toDomain(): ProfileAppearance.AvatarFrame =
         ProfileAppearance.AvatarFrame(
             personalizationId = personalizationId,
             borderColor = borderColor,
@@ -53,7 +72,7 @@ object ProfileAppearanceContractMapper {
             layers = layers.map { layer -> layer.toDomain() },
         )
 
-    private fun ProfileAppearanceChangedV1.ProfileEffect.toDomain(): ProfileAppearance.ProfileEffect =
+    private fun ProfileAppearanceSnapshotV1.ProfileEffect.toDomain(): ProfileAppearance.ProfileEffect =
         ProfileAppearance.ProfileEffect(
             personalizationId = personalizationId,
             effect = effect,
@@ -66,7 +85,7 @@ object ProfileAppearanceContractMapper {
             layers = layers.map { layer -> layer.toDomain() },
         )
 
-    private fun ProfileAppearanceChangedV1.VisualLayer.toDomain(): ProfileAppearance.VisualLayer =
+    private fun ProfileAppearanceSnapshotV1.VisualLayer.toDomain(): ProfileAppearance.VisualLayer =
         ProfileAppearance.VisualLayer(
             id = id,
             assetId = assetId,
@@ -80,13 +99,13 @@ object ProfileAppearanceContractMapper {
             zIndex = zIndex,
         )
 
-    private fun ProfileAppearanceChangedV1.GradientStop.toDomain(): ProfileAppearance.GradientStop =
+    private fun ProfileAppearanceSnapshotV1.GradientStop.toDomain(): ProfileAppearance.GradientStop =
         ProfileAppearance.GradientStop(
             color = color,
             position = position,
         )
 
-    private fun ProfileAppearanceChangedV1.Glow.toDomain(): ProfileAppearance.Glow =
+    private fun ProfileAppearanceSnapshotV1.Glow.toDomain(): ProfileAppearance.Glow =
         ProfileAppearance.Glow(
             color = color,
             strength = strength,

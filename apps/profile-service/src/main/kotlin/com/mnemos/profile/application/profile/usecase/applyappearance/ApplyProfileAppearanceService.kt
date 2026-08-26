@@ -11,9 +11,14 @@ class ApplyProfileAppearanceService(
 ) : ApplyProfileAppearanceUseCase {
     @Transactional
     override fun execute(appearance: ProfileAppearance) {
-        val current = repository.findByAccountIdForUpdate(appearance.accountId)
+        repository.ensureState(appearance.accountId)
 
-        if (current != null && current.revision >= appearance.revision) {
+        val current =
+            requireNotNull(repository.findByAccountIdForUpdate(appearance.accountId)) {
+                "Profile appearance projection state was not created"
+            }
+
+        if (current.revision >= appearance.revision) {
             return
         }
 

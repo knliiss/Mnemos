@@ -11,6 +11,7 @@ import type {
   NickStyleContentResponse,
   NotificationPackContentResponse,
   PersonalizationResponse,
+  ProfileBackgroundContentResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
 } from "@/shared/api/personalizationApi"
@@ -27,6 +28,7 @@ import type {
   PersonalizationContent,
   PersonalizationStatus,
   PersonalizationType,
+  ProfileBackgroundContent,
   VisualLayer,
 } from "../../model"
 
@@ -69,7 +71,7 @@ export type AvatarFrameEditorForm = {
   layers: CreatorVisualLayerForm[]
 }
 
-export type ProfileEffectEditorForm = {
+export type ProfileVisualEffectEditorForm = {
   effect: EffectType
   intensity: number
   speed: number
@@ -93,8 +95,9 @@ export type CreatorEditorForm = {
   price: string
   nickStyle: NickStyleEditorForm
   profileTheme: ProfileThemeEditorForm
+  profileBackground: ProfileVisualEffectEditorForm
   avatarFrame: AvatarFrameEditorForm
-  profileEffect: ProfileEffectEditorForm
+  profileEffect: ProfileVisualEffectEditorForm
   notificationPack: NotificationPackEditorForm
 }
 
@@ -202,6 +205,41 @@ function normalizeNotificationTemplates(
   )
 }
 
+function profileVisualEffectRequest(
+  name: string,
+  effect: ProfileVisualEffectEditorForm,
+  price: { currency: Currency; amount: number },
+) {
+  return {
+    name,
+    effect: effect.effect,
+    intensity: effect.intensity,
+    speed: effect.speed,
+    density: effect.density,
+    scale: effect.scale,
+    primaryColor: effect.primaryColor,
+    secondaryColor: effect.secondaryColor,
+    layers: effect.layers.map(layerRequest),
+    price,
+  }
+}
+
+function profileVisualEffectForm(
+  value: ProfileBackgroundContentResponse | ProfileEffectContentResponse,
+  defaults: ProfileVisualEffectEditorForm,
+): ProfileVisualEffectEditorForm {
+  return {
+    effect: value.effect,
+    intensity: value.intensity,
+    speed: value.speed ?? defaults.speed,
+    density: value.density ?? defaults.density,
+    scale: value.scale ?? defaults.scale,
+    primaryColor: value.primaryColor,
+    secondaryColor: value.secondaryColor ?? defaults.secondaryColor,
+    layers: value.layers ?? [],
+  }
+}
+
 export async function saveCreatorForm(
   id: string | null,
   form: CreatorEditorForm,
@@ -250,6 +288,14 @@ export async function saveCreatorForm(
       : createCreatorPersonalization("PROFILE_THEME", request)
   }
 
+  if (form.type === "PROFILE_BACKGROUND") {
+    const request = profileVisualEffectRequest(name, form.profileBackground, price)
+
+    return id
+      ? updateCreatorPersonalization(id, "PROFILE_BACKGROUND", request)
+      : createCreatorPersonalization("PROFILE_BACKGROUND", request)
+  }
+
   if (form.type === "AVATAR_FRAME") {
     const frame = form.avatarFrame
     const request = {
@@ -271,19 +317,7 @@ export async function saveCreatorForm(
   }
 
   if (form.type === "PROFILE_EFFECT") {
-    const effect = form.profileEffect
-    const request = {
-      name,
-      effect: effect.effect,
-      intensity: effect.intensity,
-      speed: effect.speed,
-      density: effect.density,
-      scale: effect.scale,
-      primaryColor: effect.primaryColor,
-      secondaryColor: effect.secondaryColor,
-      layers: effect.layers.map(layerRequest),
-      price,
-    }
+    const request = profileVisualEffectRequest(name, form.profileEffect, price)
 
     return id
       ? updateCreatorPersonalization(id, "PROFILE_EFFECT", request)
@@ -340,6 +374,16 @@ export function createDefaultCreatorEditorForm(
         color: "#CBFF2D",
         strength: 28,
       },
+      layers: [],
+    },
+    profileBackground: {
+      effect: "AURORA",
+      intensity: 42,
+      speed: 32,
+      density: 48,
+      scale: 78,
+      primaryColor: "#182B10",
+      secondaryColor: "#315B1E",
       layers: [],
     },
     avatarFrame: {
@@ -422,6 +466,15 @@ export function creatorResponseToEditorForm(
     }
   }
 
+  if (response.type === "PROFILE_BACKGROUND") {
+    const value = response.content as ProfileBackgroundContentResponse
+
+    return {
+      ...base,
+      profileBackground: profileVisualEffectForm(value, defaults.profileBackground),
+    }
+  }
+
   if (response.type === "AVATAR_FRAME") {
     const value = response.content as AvatarFrameContentResponse
 
@@ -449,16 +502,7 @@ export function creatorResponseToEditorForm(
 
     return {
       ...base,
-      profileEffect: {
-        effect: value.effect,
-        intensity: value.intensity,
-        speed: value.speed ?? defaults.profileEffect.speed,
-        density: value.density ?? defaults.profileEffect.density,
-        scale: value.scale ?? defaults.profileEffect.scale,
-        primaryColor: value.primaryColor,
-        secondaryColor: value.secondaryColor ?? defaults.profileEffect.secondaryColor,
-        layers: value.layers ?? [],
-      },
+      profileEffect: profileVisualEffectForm(value, defaults.profileEffect),
     }
   }
 
@@ -507,6 +551,11 @@ export function buildCreatorPreview(
       glow: glowRequest(form.profileTheme.glow),
       layers: form.profileTheme.layers,
     }
+  } else if (form.type === "PROFILE_BACKGROUND") {
+    content = {
+      kind: "PROFILE_BACKGROUND",
+      ...form.profileBackground,
+    } satisfies ProfileBackgroundContent
   } else if (form.type === "AVATAR_FRAME") {
     content = {
       kind: "AVATAR_FRAME",
@@ -522,14 +571,7 @@ export function buildCreatorPreview(
   } else if (form.type === "PROFILE_EFFECT") {
     content = {
       kind: "PROFILE_EFFECT",
-      effect: form.profileEffect.effect,
-      intensity: form.profileEffect.intensity,
-      speed: form.profileEffect.speed,
-      density: form.profileEffect.density,
-      scale: form.profileEffect.scale,
-      primaryColor: form.profileEffect.primaryColor,
-      secondaryColor: form.profileEffect.secondaryColor,
-      layers: form.profileEffect.layers,
+      ...form.profileEffect,
     }
   } else {
     content = {

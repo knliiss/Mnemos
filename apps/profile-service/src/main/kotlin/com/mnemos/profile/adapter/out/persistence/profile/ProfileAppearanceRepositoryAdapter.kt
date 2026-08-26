@@ -11,6 +11,10 @@ import java.util.UUID
 class ProfileAppearanceRepositoryAdapter(
     private val repository: ProfileAppearanceJpaRepository,
 ) : ProfileAppearanceRepository {
+    override fun ensureState(accountId: UUID) {
+        repository.ensureState(accountId)
+    }
+
     override fun save(appearance: ProfileAppearance): ProfileAppearance = repository.save(appearance.toEntity()).toDomain()
 
     override fun findByAccountId(accountId: UUID): ProfileAppearance? = repository.findById(accountId).orElse(null)?.toDomain()

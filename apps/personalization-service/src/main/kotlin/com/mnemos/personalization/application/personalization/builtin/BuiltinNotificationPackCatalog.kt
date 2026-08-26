@@ -6,6 +6,6 @@ object BuiltinNotificationPackCatalog {
             addAll(BuiltinNotificationPacksCore.definitions)
             addAll(BuiltinNotificationPacksCulture.definitions)
             addAll(BuiltinNotificationPacksAtmosphere.definitions)
-            addAll(BuiltinNotificationPacksExpansion.definitions)
+            addAll(BuiltinNotificationPacksThemes.definitions)
         }
 }

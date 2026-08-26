@@ -4,6 +4,7 @@ import type {
   NotificationPackContentResponse,
   OwnedPersonalizationResponse,
   PersonalizationResponse,
+  ProfileBackgroundContentResponse,
   ProfileEffectContentResponse,
   ProfileThemeContentResponse,
 } from "@/shared/api/personalizationApi"
@@ -14,6 +15,7 @@ import type {
   Personalization,
   PersonalizationContent,
   PersonalizationTarget,
+  ProfileBackgroundContent,
   ProfileEffectContent,
   ProfileThemeContent,
 } from "../../model"
@@ -123,6 +125,22 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     } satisfies ProfileThemeContent
   }
 
+  if (response.type === "PROFILE_BACKGROUND") {
+    const content = response.content as ProfileBackgroundContentResponse
+
+    return {
+      kind: "PROFILE_BACKGROUND",
+      effect: content.effect,
+      intensity: content.intensity,
+      speed: content.speed,
+      density: content.density,
+      scale: content.scale,
+      primaryColor: content.primaryColor,
+      secondaryColor: content.secondaryColor,
+      layers: content.layers ?? [],
+    } satisfies ProfileBackgroundContent
+  }
+
   if (response.type === "AVATAR_FRAME") {
     const content = response.content as AvatarFrameContentResponse
 
@@ -139,7 +157,7 @@ function toPersonalizationContent(response: PersonalizationResponse): Personaliz
     } satisfies AvatarFrameContent
   }
 
-  if (response.type === "PROFILE_EFFECT" || response.type === "PROFILE_BACKGROUND") {
+  if (response.type === "PROFILE_EFFECT") {
     const content = response.content as ProfileEffectContentResponse
 
     return {

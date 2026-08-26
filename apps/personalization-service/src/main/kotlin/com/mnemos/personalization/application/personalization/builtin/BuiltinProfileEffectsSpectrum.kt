@@ -4,7 +4,7 @@ import com.mnemos.personalization.application.personalization.builtin.BuiltinVis
 import com.mnemos.personalization.domain.personalization.model.EffectType
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
-object BuiltinProfileEffectsExpansion {
+object BuiltinProfileEffectsSpectrum {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
             effect("lime-dust", "Лаймовая пыль", EffectType.PARTICLES, 52, "#CBFF2D", "#75FF8A", 44, 68, 48, 2_600),

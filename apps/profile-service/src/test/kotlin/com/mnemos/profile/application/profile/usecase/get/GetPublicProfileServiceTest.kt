@@ -4,6 +4,7 @@ import com.mnemos.profile.application.common.pagination.PageResult
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceRepository
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceSource
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
+import com.mnemos.profile.application.profile.usecase.applyappearance.ApplyProfileAppearanceService
 import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import com.mnemos.profile.domain.profile.model.PublicProfile
@@ -68,18 +69,39 @@ class GetPublicProfileServiceTest {
         assertEquals(null, fixture.appearances.saved)
     }
 
+    @Test
+    fun `reconciliation cannot replace a newer concurrent projection`() {
+        val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000104")
+        val cachedAppearance = appearance(accountId, revision = 4, updatedAt = NOW.minusSeconds(90))
+        val staleAuthoritative = appearance(accountId, revision = 5, updatedAt = NOW.minusSeconds(5))
+        val newerProjection = appearance(accountId, revision = 6, updatedAt = NOW)
+        val fixture = Fixture(profile(accountId, cachedAppearance))
+
+        fixture.source.result = staleAuthoritative
+        fixture.source.beforeReturn = {
+            fixture.appearances.saved = newerProjection
+        }
+
+        val result = fixture.service.execute(accountId)
+
+        assertSame(newerProjection, result.appearance)
+        assertSame(newerProjection, fixture.appearances.saved)
+    }
+
     private class Fixture(
         initialProfile: PublicProfile,
     ) {
         val profiles = FakePublicProfileRepository(initialProfile)
         val appearances = FakeProfileAppearanceRepository()
         val source = FakeProfileAppearanceSource()
+        private val applyAppearance = ApplyProfileAppearanceService(appearances)
 
         val service =
             GetPublicProfileService(
                 repository = profiles,
                 appearanceRepository = appearances,
                 appearanceSource = source,
+                applyProfileAppearanceUseCase = applyAppearance,
                 clock = Clock.fixed(NOW, ZoneOffset.UTC),
                 appearanceReconciliationMaxAge = Duration.ofSeconds(30),
             )
@@ -88,9 +110,11 @@ class GetPublicProfileServiceTest {
     private class FakeProfileAppearanceSource : ProfileAppearanceSource {
         var calls = 0
         var result: ProfileAppearance? = null
+        var beforeReturn: () -> Unit = {}
 
         override fun fetch(accountId: UUID): ProfileAppearance? {
             calls += 1
+            beforeReturn()
 
             return result
         }
@@ -99,18 +123,28 @@ class GetPublicProfileServiceTest {
     private class FakeProfileAppearanceRepository : ProfileAppearanceRepository {
         var saved: ProfileAppearance? = null
 
+        override fun ensureState(accountId: UUID) {
+            if (saved == null) {
+                saved = ProfileAppearance.empty(accountId)
+            }
+        }
+
         override fun save(appearance: ProfileAppearance): ProfileAppearance {
             saved = appearance
 
             return appearance
         }
 
-        override fun findByAccountId(accountId: UUID): ProfileAppearance? = saved
+        override fun findByAccountId(accountId: UUID): ProfileAppearance? =
+            saved?.takeIf { appearance -> appearance.accountId == accountId }
 
-        override fun findByAccountIdForUpdate(accountId: UUID): ProfileAppearance? = saved
+        override fun findByAccountIdForUpdate(accountId: UUID): ProfileAppearance? = findByAccountId(accountId)
 
         override fun findByAccountIds(accountIds: Collection<UUID>): Map<UUID, ProfileAppearance> =
-            saved?.let { appearance -> mapOf(appearance.accountId to appearance) } ?: emptyMap()
+            saved
+                ?.takeIf { appearance -> appearance.accountId in accountIds }
+                ?.let { appearance -> mapOf(appearance.accountId to appearance) }
+                ?: emptyMap()
     }
 
     private class FakePublicProfileRepository(

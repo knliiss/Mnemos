@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
 import com.mnemos.personalization.domain.asset.repository.PersonalizationAssetRepository
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.personalization.domain.personalization.model.VisualLayer
 import org.springframework.stereotype.Component
 
@@ -25,6 +26,7 @@ class PersonalizationContentAssetValidator(
     private fun PersonalizationContent.visualLayers(): List<VisualLayer> =
         when (this) {
             is PersonalizationContent.ProfileTheme -> layers
+            is ProfileBackgroundContent -> layers
             is PersonalizationContent.AvatarFrame -> layers
             is PersonalizationContent.ProfileEffect -> layers
             is PersonalizationContent.NickStyle,

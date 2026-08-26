@@ -1,7 +1,6 @@
 package com.mnemos.profile.adapter.out.http.personalization
 
-import com.mnemos.personalization.contracts.event.ProfileAppearanceChangedV1
-import com.mnemos.profile.adapter.inbound.messaging.personalization.ProfileAppearanceContractMapper.toDomain
+import com.mnemos.profile.adapter.personalization.ProfileAppearanceSnapshotMapper.toDomain
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceSource
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import feign.FeignException
@@ -17,12 +16,11 @@ class ProfileAppearanceSourceAdapter(
         try {
             val response = client.getProfileAppearance(accountId)
 
-            ProfileAppearanceChangedV1(
+            response.appearance.toDomain(
                 accountId = response.accountId,
-                appearance = response.appearance,
                 revision = response.revision,
-                occurredAt = response.observedAt,
-            ).toDomain()
+                updatedAt = response.observedAt,
+            )
         } catch (exception: FeignException) {
             logger.warn(
                 "Failed to reconcile profile appearance from personalization-service: accountId={}, status={}",

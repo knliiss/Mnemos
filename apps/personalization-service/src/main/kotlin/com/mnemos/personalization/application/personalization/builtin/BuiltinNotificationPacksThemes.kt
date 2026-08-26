@@ -3,7 +3,7 @@ package com.mnemos.personalization.application.personalization.builtin
 import com.mnemos.personalization.application.personalization.builtin.BuiltinNotificationPackSupport.definition
 import com.mnemos.personalization.application.personalization.builtin.BuiltinNotificationPackSupport.template
 
-object BuiltinNotificationPacksExpansion {
+object BuiltinNotificationPacksThemes {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
             pack(

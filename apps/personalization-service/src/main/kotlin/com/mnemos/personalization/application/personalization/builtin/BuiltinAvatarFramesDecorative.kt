@@ -5,7 +5,7 @@ import com.mnemos.personalization.application.personalization.builtin.BuiltinVis
 import com.mnemos.personalization.domain.personalization.model.FrameStyle
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
-object BuiltinAvatarFramesExpansion {
+object BuiltinAvatarFramesDecorative {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
             avatarFrame(

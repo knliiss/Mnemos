@@ -6,6 +6,7 @@ export type StudioFilter = "ALL" | "DRAFT" | "REVIEW" | "PUBLISHED"
 export const creatorTypeOrder: PersonalizationType[] = [
   "NICK_STYLE",
   "PROFILE_THEME",
+  "PROFILE_BACKGROUND",
   "AVATAR_FRAME",
   "PROFILE_EFFECT",
   "NOTIFICATION_PACK",

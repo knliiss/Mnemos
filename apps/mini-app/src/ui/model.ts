@@ -252,8 +252,7 @@ export type AvatarFrameContent = {
   layers: VisualLayer[]
 }
 
-export type ProfileEffectContent = {
-  kind: "PROFILE_EFFECT"
+type ProfileVisualEffectContent = {
   effect: EffectType
   intensity: number
   speed: number
@@ -264,10 +263,19 @@ export type ProfileEffectContent = {
   layers: VisualLayer[]
 }
 
+export type ProfileBackgroundContent = ProfileVisualEffectContent & {
+  kind: "PROFILE_BACKGROUND"
+}
+
+export type ProfileEffectContent = ProfileVisualEffectContent & {
+  kind: "PROFILE_EFFECT"
+}
+
 export type PersonalizationContent =
   | NotificationPackContent
   | NickStyleContent
   | ProfileThemeContent
+  | ProfileBackgroundContent
   | AvatarFrameContent
   | ProfileEffectContent
 

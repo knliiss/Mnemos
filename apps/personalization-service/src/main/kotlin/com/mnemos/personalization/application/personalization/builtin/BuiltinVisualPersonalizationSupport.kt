@@ -9,6 +9,7 @@ import com.mnemos.personalization.domain.personalization.model.PersonalizationCa
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationPrice
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
 object BuiltinVisualPersonalizationSupport {
@@ -116,17 +117,20 @@ object BuiltinVisualPersonalizationSupport {
         currency: Currency,
         amount: Long,
     ): BuiltinPersonalizationDefinition =
-        effectDefinition(
+        definition(
             key = key,
-            personalizationType = PersonalizationType.PROFILE_EFFECT,
+            type = PersonalizationType.PROFILE_EFFECT,
             name = name,
-            type = type,
-            intensity = intensity,
-            primary = primary,
-            secondary = secondary,
-            speed = speed,
-            density = density,
-            scale = scale,
+            content =
+                PersonalizationContent.ProfileEffect(
+                    effect = type,
+                    intensity = intensity,
+                    primaryColor = color(primary),
+                    secondaryColor = secondary?.let(::color),
+                    speed = speed,
+                    density = density,
+                    scale = scale,
+                ),
             currency = currency,
             amount = amount,
         )
@@ -144,17 +148,20 @@ object BuiltinVisualPersonalizationSupport {
         currency: Currency,
         amount: Long,
     ): BuiltinPersonalizationDefinition =
-        effectDefinition(
+        definition(
             key = key,
-            personalizationType = PersonalizationType.PROFILE_BACKGROUND,
+            type = PersonalizationType.PROFILE_BACKGROUND,
             name = name,
-            type = type,
-            intensity = intensity,
-            primary = primary,
-            secondary = secondary,
-            speed = speed,
-            density = density,
-            scale = scale,
+            content =
+                ProfileBackgroundContent(
+                    effect = type,
+                    intensity = intensity,
+                    primaryColor = color(primary),
+                    secondaryColor = secondary?.let(::color),
+                    speed = speed,
+                    density = density,
+                    scale = scale,
+                ),
             currency = currency,
             amount = amount,
         )
@@ -175,38 +182,6 @@ object BuiltinVisualPersonalizationSupport {
         GlowStyle(
             color = color(colorValue),
             strength = strength,
-        )
-
-    private fun effectDefinition(
-        key: String,
-        personalizationType: PersonalizationType,
-        name: String,
-        type: EffectType,
-        intensity: Int,
-        primary: String,
-        secondary: String?,
-        speed: Int,
-        density: Int,
-        scale: Int,
-        currency: Currency,
-        amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        definition(
-            key = key,
-            type = personalizationType,
-            name = name,
-            content =
-                PersonalizationContent.ProfileEffect(
-                    effect = type,
-                    intensity = intensity,
-                    primaryColor = color(primary),
-                    secondaryColor = secondary?.let(::color),
-                    speed = speed,
-                    density = density,
-                    scale = scale,
-                ),
-            currency = currency,
-            amount = amount,
         )
 
     private fun definition(

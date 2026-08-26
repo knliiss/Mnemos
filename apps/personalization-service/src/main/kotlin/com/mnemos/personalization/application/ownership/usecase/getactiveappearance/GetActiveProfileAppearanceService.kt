@@ -15,11 +15,26 @@ class GetActiveProfileAppearanceService(
     private val clock: Clock,
 ) : GetActiveProfileAppearanceUseCase {
     @Transactional(readOnly = true)
-    override fun execute(accountId: AccountId): ActiveProfileAppearanceSnapshot =
-        ActiveProfileAppearanceSnapshot(
-            accountId = accountId,
-            revision = revisionStore.current(accountId),
-            appearance = snapshotResolver.resolve(accountId),
-            observedAt = clock.instant(),
-        )
+    override fun execute(accountId: AccountId): ActiveProfileAppearanceSnapshot {
+        repeat(MAX_STABLE_READ_ATTEMPTS) {
+            val revisionBefore = revisionStore.current(accountId)
+            val appearance = snapshotResolver.resolve(accountId)
+            val revisionAfter = revisionStore.current(accountId)
+
+            if (revisionBefore == revisionAfter) {
+                return ActiveProfileAppearanceSnapshot(
+                    accountId = accountId,
+                    revision = revisionAfter,
+                    appearance = appearance,
+                    observedAt = clock.instant(),
+                )
+            }
+        }
+
+        error("Profile appearance changed repeatedly while reading account ${accountId.id}")
+    }
+
+    private companion object {
+        const val MAX_STABLE_READ_ATTEMPTS = 3
+    }
 }

@@ -10,6 +10,7 @@ import com.mnemos.personalization.domain.personalization.model.NotificationTempl
 import com.mnemos.personalization.domain.personalization.model.NotificationTemplateKey
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
+import com.mnemos.personalization.domain.personalization.model.ProfileBackgroundContent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -59,6 +60,21 @@ class PersonalizationContentPersistenceMapperTest {
             )
 
         val restored = content.toDocument().toDomain(PersonalizationType.PROFILE_THEME)
+
+        assertEquals(content, restored)
+    }
+
+    @Test
+    fun `profile background survives document round trip`() {
+        val content =
+            ProfileBackgroundContent(
+                effect = EffectType.AURORA,
+                intensity = 55,
+                primaryColor = HexColor("#101D0A"),
+                secondaryColor = HexColor("#203D12"),
+            )
+
+        val restored = content.toDocument().toDomain(PersonalizationType.PROFILE_BACKGROUND)
 
         assertEquals(content, restored)
     }

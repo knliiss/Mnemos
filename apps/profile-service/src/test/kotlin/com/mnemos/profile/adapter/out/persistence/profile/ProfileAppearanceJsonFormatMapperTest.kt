@@ -71,6 +71,18 @@ class ProfileAppearanceJsonFormatMapperTest {
                         scale = 45,
                         layers = emptyList(),
                     ),
+                profileBackground =
+                    ProfileAppearanceDocument.ProfileBackground(
+                        personalizationId = "0198f6ce-e934-7000-8000-000000000005",
+                        effect = "AURORA",
+                        intensity = 48,
+                        primaryColor = "#101D0A",
+                        secondaryColor = "#203D12",
+                        speed = 35,
+                        density = 50,
+                        scale = 80,
+                        layers = emptyList(),
+                    ),
             )
 
         val json = mapper.toString(appearance, ProfileAppearanceDocument.Appearance::class.java)
@@ -139,5 +151,6 @@ class ProfileAppearanceJsonFormatMapperTest {
         assertEquals(50, effect.density)
         assertEquals(50, effect.scale)
         assertEquals(emptyList<ProfileAppearanceDocument.VisualLayer>(), effect.layers)
+        assertEquals(null, restored.profileBackground)
     }
 }

@@ -75,7 +75,7 @@ export function PersonalizationCategorySwatch({ item }: { item: Personalization 
     "--swatch-primary": content.primaryColor,
     "--swatch-secondary": content.secondaryColor ?? content.primaryColor,
   }
-  const scope = item.type === "PROFILE_BACKGROUND" ? "background" : "effect"
+  const scope = content.kind === "PROFILE_BACKGROUND" ? "background" : "effect"
 
   return (
     <span

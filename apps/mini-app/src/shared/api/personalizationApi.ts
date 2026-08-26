@@ -106,7 +106,7 @@ export type AvatarFrameContentResponse = {
   layers: VisualLayerResponse[]
 }
 
-export type ProfileEffectContentResponse = {
+type ProfileVisualEffectContentResponse = {
   effect: EffectType
   intensity: number
   speed: number
@@ -117,10 +117,14 @@ export type ProfileEffectContentResponse = {
   layers: VisualLayerResponse[]
 }
 
+export type ProfileBackgroundContentResponse = ProfileVisualEffectContentResponse
+export type ProfileEffectContentResponse = ProfileVisualEffectContentResponse
+
 export type PersonalizationContentResponse =
   | NotificationPackContentResponse
   | NickStyleContentResponse
   | ProfileThemeContentResponse
+  | ProfileBackgroundContentResponse
   | AvatarFrameContentResponse
   | ProfileEffectContentResponse
 
@@ -129,7 +133,7 @@ export type PersonalizationResponse = {
   creatorUserId: string | null
   catalogKey?: string | null
   type: PersonalizationType
-  origin: "SYSTEM" | "CREATOR" | "CUSTOM" | "MARKETPLACE"
+  origin: "SYSTEM" | "CREATOR" | "CUSTOM"
   visibility: string
   name: string
   content: PersonalizationContentResponse

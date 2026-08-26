@@ -4,7 +4,7 @@ import com.mnemos.personalization.application.personalization.builtin.BuiltinVis
 import com.mnemos.personalization.application.personalization.builtin.BuiltinVisualPersonalizationSupport.profileTheme
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
-object BuiltinProfileThemesExpansion {
+object BuiltinProfileThemesPalette {
     val definitions: List<BuiltinPersonalizationDefinition> =
         listOf(
             profileTheme(

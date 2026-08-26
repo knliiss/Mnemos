@@ -6,7 +6,7 @@ object ProfileAppearanceDocument {
         val profileTheme: ProfileTheme?,
         val avatarFrame: AvatarFrame?,
         val profileEffect: ProfileEffect?,
-        val profileBackground: ProfileEffect? = null,
+        val profileBackground: ProfileBackground? = null,
     )
 
     data class NickStyle(
@@ -44,6 +44,18 @@ object ProfileAppearanceDocument {
     )
 
     data class ProfileEffect(
+        val personalizationId: String,
+        val effect: String,
+        val intensity: Int,
+        val primaryColor: String,
+        val secondaryColor: String?,
+        val speed: Int = 50,
+        val density: Int = 50,
+        val scale: Int = 50,
+        val layers: List<VisualLayer> = emptyList(),
+    )
+
+    data class ProfileBackground(
         val personalizationId: String,
         val effect: String,
         val intensity: Int,

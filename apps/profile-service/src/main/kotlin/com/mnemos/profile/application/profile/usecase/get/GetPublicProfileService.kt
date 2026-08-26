@@ -4,11 +4,11 @@ import com.mnemos.profile.application.profile.exception.PublicProfileNotFoundExc
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceRepository
 import com.mnemos.profile.application.profile.port.out.ProfileAppearanceSource
 import com.mnemos.profile.application.profile.port.out.PublicProfileRepository
+import com.mnemos.profile.application.profile.usecase.applyappearance.ApplyProfileAppearanceUseCase
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
 import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -19,11 +19,11 @@ class GetPublicProfileService(
     private val repository: PublicProfileRepository,
     private val appearanceRepository: ProfileAppearanceRepository,
     private val appearanceSource: ProfileAppearanceSource,
+    private val applyProfileAppearanceUseCase: ApplyProfileAppearanceUseCase,
     private val clock: Clock,
     @Value("\${mnemos.profile.appearance-reconciliation-max-age:30s}")
     private val appearanceReconciliationMaxAge: Duration,
 ) : GetPublicProfileUseCase {
-    @Transactional
     override fun execute(accountId: UUID): PublicProfile {
         val profile =
             repository.findByAccountId(accountId)
@@ -35,9 +35,11 @@ class GetPublicProfileService(
 
         val authoritativeAppearance = appearanceSource.fetch(accountId) ?: return profile
 
-        appearanceRepository.save(authoritativeAppearance)
+        applyProfileAppearanceUseCase.execute(authoritativeAppearance)
 
-        return profile.copy(appearance = authoritativeAppearance)
+        val reconciledAppearance = appearanceRepository.findByAccountId(accountId) ?: return profile
+
+        return profile.copy(appearance = reconciledAppearance)
     }
 
     private fun ProfileAppearance.requiresReconciliation(): Boolean {

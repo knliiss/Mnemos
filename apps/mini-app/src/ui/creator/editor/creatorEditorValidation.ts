@@ -3,7 +3,11 @@ import type {
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
 import type { NotificationTemplate, NotificationTemplateVariant } from "../../model"
-import type { CreatorEditorForm, CreatorGlowForm } from "./creatorEditorModel"
+import type {
+  CreatorEditorForm,
+  CreatorGlowForm,
+  ProfileVisualEffectEditorForm,
+} from "./creatorEditorModel"
 
 const PLACEHOLDER = /\{([a-zA-Z][a-zA-Z0-9_]*)(?:\.([a-zA-Z][a-zA-Z0-9_]*))?}/g
 
@@ -19,6 +23,15 @@ function inRange(value: number, min: number, max: number): boolean {
 
 function glowValid(glow: CreatorGlowForm): boolean {
   return !glow.enabled || inRange(glow.strength, 1, 100)
+}
+
+function profileVisualEffectValid(effect: ProfileVisualEffectEditorForm): boolean {
+  return (
+    inRange(effect.intensity, 1, 100) &&
+    inRange(effect.speed, 1, 100) &&
+    inRange(effect.density, 1, 100) &&
+    inRange(effect.scale, 1, 100)
+  )
 }
 
 function placeholderReferences(value: string): PlaceholderReference[] {
@@ -171,6 +184,10 @@ export function isCreatorVisualFormValid(form: CreatorEditorForm): boolean {
     )
   }
 
+  if (form.type === "PROFILE_BACKGROUND") {
+    return profileVisualEffectValid(form.profileBackground)
+  }
+
   if (form.type === "AVATAR_FRAME") {
     return (
       inRange(form.avatarFrame.borderWidthPx, 1, 8) &&
@@ -181,12 +198,7 @@ export function isCreatorVisualFormValid(form: CreatorEditorForm): boolean {
   }
 
   if (form.type === "PROFILE_EFFECT") {
-    return (
-      inRange(form.profileEffect.intensity, 1, 100) &&
-      inRange(form.profileEffect.speed, 1, 100) &&
-      inRange(form.profileEffect.density, 1, 100) &&
-      inRange(form.profileEffect.scale, 1, 100)
-    )
+    return profileVisualEffectValid(form.profileEffect)
   }
 
   return true
