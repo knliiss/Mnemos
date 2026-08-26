@@ -82,7 +82,8 @@
   border-radius: 50%;
   background: var(--profile-effect-primary);
   box-shadow: 0 0 18px color-mix(in srgb, var(--profile-effect-secondary) 65%, transparent);
-  animation: account-home-profile-effect var(--profile-effect-duration) ease-in-out infinite alternate;
+  animation: account-home-profile-effect var(--profile-effect-duration) ease-in-out infinite
+    alternate;
 }
 
 .account-home-profile__effect i:nth-child(1) {
