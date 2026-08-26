@@ -97,6 +97,7 @@ enum class NotificationTemplateKey {
     DUNGEON,
     RAID,
     GLOBAL,
+    PLAYER_OFFLINE,
     ;
 
     val contractType: NotificationPackTemplateType
