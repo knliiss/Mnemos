@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.adapter.out.http.cristalix
 
+import com.mnemos.playerdirectory.application.player.model.PlayerObservationBatch
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
@@ -40,4 +41,10 @@ object CristalixPlayerApiMapper {
                 ),
         )
     }
+
+    fun CristalixPlayerBatchResponse.toObservationBatch(observedAt: Instant): PlayerObservationBatch =
+        PlayerObservationBatch(
+            observations = items.map { player -> player.toObservation(observedAt) },
+            notFound = notFound.mapTo(mutableSetOf()) { playerId -> CristalixPlayerId(playerId) },
+        )
 }

@@ -1,6 +1,8 @@
 package com.mnemos.playerdirectory.adapter.out.http.cristalix
 
 import com.mnemos.playerdirectory.adapter.out.http.cristalix.CristalixPlayerApiMapper.toObservation
+import com.mnemos.playerdirectory.adapter.out.http.cristalix.CristalixPlayerApiMapper.toObservationBatch
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -58,6 +60,23 @@ class CristalixPlayerApiMapperTest {
         val observation = response.toObservation(observedAt)
 
         assertEquals(PlayerPresenceStatus.UNKNOWN, observation.presence.status)
+    }
+
+    @Test
+    fun `batch response keeps found observations and missing player ids separate`() {
+        val missingPlayerId = UUID.fromString("0198f6ce-e934-7000-8000-000000000099")
+        val batch =
+            CristalixPlayerBatchResponse(
+                requested = 2,
+                found = 1,
+                notFound = listOf(missingPlayerId),
+                items = listOf(response(online = true)),
+            )
+
+        val result = batch.toObservationBatch(observedAt)
+
+        assertEquals(1, result.observations.size)
+        assertEquals(setOf(CristalixPlayerId(missingPlayerId)), result.notFound)
     }
 
     private fun response(
