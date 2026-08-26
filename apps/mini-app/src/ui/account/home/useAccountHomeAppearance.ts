@@ -9,25 +9,23 @@ export function useAccountHomeAppearance(accountId: string): ProfileAppearanceRe
 
   useEffect(() => {
     let active = true
-    const controller = new AbortController()
 
     setAppearance(null)
 
     void getPublicProfile(accountId)
       .then((profile) => {
-        if (active && !controller.signal.aborted) {
+        if (active) {
           setAppearance(profile.appearance)
         }
       })
       .catch(() => {
-        if (active && !controller.signal.aborted) {
+        if (active) {
           setAppearance(null)
         }
       })
 
     return () => {
       active = false
-      controller.abort()
     }
   }, [accountId])
 
