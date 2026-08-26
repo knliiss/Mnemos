@@ -1,6 +1,9 @@
 import type { CSSProperties } from "react"
 import type { TFunction } from "i18next"
-import type { PublicProfileResponse } from "@/shared/api/profileSocialApi"
+import type {
+  ProfileAppearanceResponse,
+  PublicProfileResponse,
+} from "@/shared/api/profileSocialApi"
 
 const SKIN_BASE_URL = "https://webdata.c7x.dev/textures/skin"
 
@@ -33,7 +36,13 @@ type ProfileHeadStyle = CSSProperties & {
 }
 
 export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | undefined {
-  const style = profile.appearance.nickStyle
+  return nicknameStyleForAppearance(profile.appearance)
+}
+
+export function nicknameStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): CSSProperties | undefined {
+  const style = appearance.nickStyle
 
   if (!style || !style.colors.length) {
     return undefined
@@ -53,8 +62,14 @@ export function nicknameStyle(profile: PublicProfileResponse): CSSProperties | u
 }
 
 export function profileCardStyle(profile: PublicProfileResponse): ProfileCardStyle | undefined {
-  const theme = profile.appearance.profileTheme
-  const effect = profile.appearance.profileEffect
+  return profileCardStyleForAppearance(profile.appearance)
+}
+
+export function profileCardStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): ProfileCardStyle | undefined {
+  const theme = appearance.profileTheme
+  const effect = appearance.profileEffect
 
   if (!theme && !effect) {
     return undefined
@@ -123,7 +138,13 @@ export function profileHeadClassName(profile: PublicProfileResponse): string {
 }
 
 export function profileHeadStyle(profile: PublicProfileResponse): ProfileHeadStyle | undefined {
-  const frame = profile.appearance.avatarFrame
+  return profileHeadStyleForAppearance(profile.appearance)
+}
+
+export function profileHeadStyleForAppearance(
+  appearance: ProfileAppearanceResponse,
+): ProfileHeadStyle | undefined {
+  const frame = appearance.avatarFrame
 
   if (!frame) {
     return undefined
