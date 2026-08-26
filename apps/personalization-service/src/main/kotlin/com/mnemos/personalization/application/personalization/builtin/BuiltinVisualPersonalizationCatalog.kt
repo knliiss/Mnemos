@@ -356,7 +356,7 @@ object BuiltinVisualPersonalizationCatalog {
             profileEffect(
                 key = "builtin.profile-effect.cold-dust",
                 name = "Холодная пыль",
-                content = effect(EffectType.AURORA, 72, "#D9FAFF", "#68CFFF", 18, 76, 110),
+                content = effect(EffectType.AURORA, 72, "#D9FAFF", "#68CFFF", 18, 76, 95),
                 currency = Currency.PRIME,
                 amount = 42,
             ),
