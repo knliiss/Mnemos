@@ -1,0 +1,213 @@
+.account-home-profile.has-profile-theme {
+  border-color: var(--profile-theme-border);
+  color: var(--profile-theme-text);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--profile-theme-text) var(--profile-theme-texture), transparent) 0 1px,
+      transparent 1px 7px
+    ),
+    linear-gradient(
+      var(--profile-theme-angle),
+      var(--profile-theme-background),
+      var(--profile-theme-background-secondary)
+    );
+  box-shadow:
+    var(--profile-theme-glow),
+    inset 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.account-home-profile.has-profile-theme .account-home-profile__copy > strong {
+  color: var(--profile-theme-text);
+}
+
+.account-home-profile.has-profile-theme .account-home-profile__pulse i {
+  background: var(--profile-theme-accent);
+}
+
+.account-home-profile__appearance-layers,
+.account-home-profile__frame-layers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.account-home-profile__appearance-layers {
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.account-home-profile__frame-layers {
+  z-index: 4;
+  overflow: visible;
+}
+
+.account-home-profile__head.has-avatar-frame::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: 3px;
+  border: var(--profile-frame-width) solid var(--profile-frame-color);
+  border-radius: var(--profile-frame-radius);
+  box-shadow: var(--profile-frame-glow);
+  pointer-events: none;
+}
+
+.account-home-profile__head.account-home-frame--double::after {
+  outline: var(--profile-frame-width) solid var(--profile-frame-secondary);
+  outline-offset: var(--profile-frame-gap);
+}
+
+.account-home-profile__head.account-home-frame--segmented::after {
+  border-color: var(--profile-frame-color) var(--profile-frame-secondary);
+  border-style: dashed;
+}
+
+.account-home-profile__effect {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: var(--profile-effect-opacity);
+  pointer-events: none;
+}
+
+.account-home-profile__effect i {
+  position: absolute;
+  display: block;
+  width: calc(8px * var(--profile-effect-scale));
+  height: calc(8px * var(--profile-effect-scale));
+  border-radius: 50%;
+  background: var(--profile-effect-primary);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--profile-effect-secondary) 65%, transparent);
+  animation: account-home-profile-effect var(--profile-effect-duration) ease-in-out infinite alternate;
+}
+
+.account-home-profile__effect i:nth-child(1) {
+  top: 17%;
+  left: 9%;
+}
+
+.account-home-profile__effect i:nth-child(2) {
+  top: 68%;
+  left: 21%;
+  animation-delay: -1.2s;
+}
+
+.account-home-profile__effect i:nth-child(3) {
+  top: 29%;
+  left: 48%;
+  animation-delay: -2.4s;
+}
+
+.account-home-profile__effect i:nth-child(4) {
+  top: 74%;
+  left: 61%;
+  animation-delay: -3.1s;
+}
+
+.account-home-profile__effect i:nth-child(5) {
+  top: 18%;
+  left: 78%;
+  animation-delay: -4.2s;
+}
+
+.account-home-profile__effect i:nth-child(6) {
+  top: 59%;
+  left: 89%;
+  animation-delay: -5.1s;
+}
+
+.account-home-profile.account-home-effect--pulse .account-home-profile__effect i {
+  animation-name: account-home-profile-pulse;
+}
+
+.account-home-profile.account-home-effect--shimmer .account-home-profile__effect i {
+  width: calc(26px * var(--profile-effect-scale));
+  height: 2px;
+  border-radius: 999px;
+  transform: rotate(-18deg);
+  animation-name: account-home-profile-shimmer;
+}
+
+.account-home-profile.account-home-effect--aurora .account-home-profile__effect i {
+  width: calc(42px * var(--profile-effect-scale));
+  height: calc(24px * var(--profile-effect-scale));
+  border-radius: 50%;
+  filter: blur(10px);
+  animation-name: account-home-profile-aurora;
+}
+
+.account-home-profile.account-home-effect--particles .account-home-profile__effect i {
+  width: calc(5px * var(--profile-effect-scale));
+  height: calc(5px * var(--profile-effect-scale));
+  animation-name: account-home-profile-particles;
+}
+
+@keyframes account-home-profile-effect {
+  from {
+    transform: translate3d(-4px, 5px, 0) scale(0.85);
+    opacity: 0.45;
+  }
+
+  to {
+    transform: translate3d(7px, -6px, 0) scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes account-home-profile-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.25;
+  }
+
+  to {
+    transform: scale(1.8);
+    opacity: 1;
+  }
+}
+
+@keyframes account-home-profile-shimmer {
+  from {
+    transform: translateX(-16px) rotate(-18deg);
+    opacity: 0.25;
+  }
+
+  to {
+    transform: translateX(22px) rotate(-18deg);
+    opacity: 1;
+  }
+}
+
+@keyframes account-home-profile-aurora {
+  from {
+    transform: translate3d(-12px, 8px, 0) scale(0.8);
+    opacity: 0.35;
+  }
+
+  to {
+    transform: translate3d(18px, -7px, 0) scale(1.25);
+    opacity: 0.9;
+  }
+}
+
+@keyframes account-home-profile-particles {
+  from {
+    transform: translateY(12px) scale(0.7);
+    opacity: 0.2;
+  }
+
+  to {
+    transform: translateY(-16px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-home-profile__effect i {
+    animation: none;
+  }
+}
