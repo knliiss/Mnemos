@@ -20,6 +20,30 @@
   transform: translate(-50%, -50%);
 }
 
+.personalization-category-swatch--notification {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #171d14, #0b0e0a);
+}
+
+.personalization-category-swatch--notification i {
+  width: 24px;
+  height: 20px;
+  border: 2px solid #c7f24a;
+  border-radius: 8px 8px 5px 5px;
+  background: #252c21;
+}
+
+.personalization-category-swatch--notification b {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: #b98dc2;
+}
+
 .personalization-category-swatch--nick {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }

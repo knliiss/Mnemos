@@ -30,9 +30,14 @@ type ProfileScreenStyle = CSSProperties & {
   "--profile-background-primary"?: string
   "--profile-background-secondary"?: string
   "--profile-background-opacity"?: string
+  "--profile-background-secondary-opacity"?: string
   "--profile-background-duration"?: string
+  "--profile-background-drift-duration"?: string
+  "--profile-background-breathe-duration"?: string
   "--profile-background-density"?: string
   "--profile-background-scale"?: string
+  "--profile-background-scale-low"?: string
+  "--profile-background-scale-high"?: string
 }
 
 type ProfileHeadStyle = CSSProperties & {
@@ -85,9 +90,14 @@ export function profileScreenStyle(profile: PublicProfileResponse): ProfileScree
     "--profile-background-primary": background.primaryColor,
     "--profile-background-secondary": background.secondaryColor ?? background.primaryColor,
     "--profile-background-opacity": opacity.toFixed(3),
+    "--profile-background-secondary-opacity": (opacity * 0.55).toFixed(3),
     "--profile-background-duration": `${durationSeconds.toFixed(2)}s`,
+    "--profile-background-drift-duration": `${(durationSeconds * 1.35).toFixed(2)}s`,
+    "--profile-background-breathe-duration": `${(durationSeconds * 0.8).toFixed(2)}s`,
     "--profile-background-density": `${background.density}%`,
     "--profile-background-scale": scale.toFixed(3),
+    "--profile-background-scale-low": (scale * 0.92).toFixed(3),
+    "--profile-background-scale-high": (scale * 1.08).toFixed(3),
   }
 }
 

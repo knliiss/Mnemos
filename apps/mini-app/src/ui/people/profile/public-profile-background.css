@@ -24,7 +24,7 @@
 }
 
 .public-profile-screen.has-profile-background::after {
-  opacity: calc(var(--profile-background-opacity, 0.2) * 0.55);
+  opacity: var(--profile-background-secondary-opacity, 0.11);
 }
 
 .public-profile-screen.profile-background--aurora::before {
@@ -47,8 +47,7 @@
     color-mix(in srgb, var(--profile-background-secondary) 17%, transparent) 63%,
     transparent 88%
   );
-  animation: profile-background-drift calc(var(--profile-background-duration, 11s) * 1.35) linear
-    infinite;
+  animation: profile-background-drift var(--profile-background-drift-duration, 15s) linear infinite;
 }
 
 .public-profile-screen.profile-background--pulse::before {
@@ -76,8 +75,8 @@
     color-mix(in srgb, var(--profile-background-secondary) 22%, transparent),
     transparent 52%
   );
-  animation: profile-background-breathe calc(var(--profile-background-duration, 8s) * 0.8)
-    ease-in-out infinite alternate;
+  animation: profile-background-breathe var(--profile-background-breathe-duration, 6.4s) ease-in-out
+    infinite alternate;
 }
 
 .public-profile-screen.profile-background--shimmer::before {
@@ -137,7 +136,7 @@
   }
 
   to {
-    transform: translate3d(5%, 4%, 0) scale(calc(var(--profile-background-scale, 1) * 1.08));
+    transform: translate3d(5%, 4%, 0) scale(var(--profile-background-scale-high, 1.08));
   }
 }
 
@@ -154,12 +153,12 @@
 @keyframes profile-background-pulse {
   0%,
   100% {
-    transform: scale(calc(var(--profile-background-scale, 1) * 0.92));
+    transform: scale(var(--profile-background-scale-low, 0.92));
     opacity: 0.55;
   }
 
   50% {
-    transform: scale(calc(var(--profile-background-scale, 1) * 1.08));
+    transform: scale(var(--profile-background-scale-high, 1.08));
     opacity: 1;
   }
 }

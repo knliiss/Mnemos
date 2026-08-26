@@ -17,6 +17,15 @@ export function PersonalizationCategorySwatch({ item }: { item: Personalization 
     )
   }
 
+  if (content.kind === "NOTIFICATION_PACK") {
+    return (
+      <span className="personalization-category-swatch personalization-category-swatch--notification">
+        <i />
+        <b />
+      </span>
+    )
+  }
+
   if (content.kind === "NICK_STYLE") {
     const gradient = content.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
 
