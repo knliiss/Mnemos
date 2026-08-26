@@ -34,11 +34,12 @@ class GetPublicProfileServiceTest {
     @Test
     fun `keeps fresh projection without calling source`() {
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000102")
-        val cachedAppearance = appearance(
-            accountId = accountId,
-            revision = 4,
-            updatedAt = NOW.minusSeconds(10),
-        )
+        val cachedAppearance =
+            appearance(
+                accountId = accountId,
+                revision = 4,
+                updatedAt = NOW.minusSeconds(10),
+            )
         val fixture = Fixture(profile(accountId, cachedAppearance))
 
         val result = fixture.service.execute(accountId)
@@ -51,11 +52,12 @@ class GetPublicProfileServiceTest {
     @Test
     fun `keeps stale projection when authoritative source is unavailable`() {
         val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000103")
-        val cachedAppearance = appearance(
-            accountId = accountId,
-            revision = 3,
-            updatedAt = NOW.minusSeconds(90),
-        )
+        val cachedAppearance =
+            appearance(
+                accountId = accountId,
+                revision = 3,
+                updatedAt = NOW.minusSeconds(90),
+            )
         val fixture = Fixture(profile(accountId, cachedAppearance))
         fixture.source.result = null
 
@@ -66,7 +68,9 @@ class GetPublicProfileServiceTest {
         assertEquals(null, fixture.appearances.saved)
     }
 
-    private class Fixture(initialProfile: PublicProfile) {
+    private class Fixture(
+        initialProfile: PublicProfile,
+    ) {
         val profiles = FakePublicProfileRepository(initialProfile)
         val appearances = FakeProfileAppearanceRepository()
         val source = FakeProfileAppearanceSource()
@@ -125,8 +129,7 @@ class GetPublicProfileServiceTest {
             return profile
         }
 
-        override fun findByAccountId(accountId: UUID): PublicProfile? =
-            profile.takeIf { current -> current.accountId == accountId }
+        override fun findByAccountId(accountId: UUID): PublicProfile? = profile.takeIf { current -> current.accountId == accountId }
 
         override fun findByAccountIdForUpdate(accountId: UUID): PublicProfile? = findByAccountId(accountId)
 
