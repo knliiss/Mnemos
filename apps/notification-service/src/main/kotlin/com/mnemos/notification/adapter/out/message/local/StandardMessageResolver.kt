@@ -7,6 +7,7 @@ import com.mnemos.notification.application.notification.model.ItemDropNotificati
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationItemRarity
 import com.mnemos.notification.application.notification.model.NotificationItemType
+import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
@@ -22,6 +23,7 @@ class StandardMessageResolver {
             is DungeonNotificationPayload -> resolve(payload)
             is RaidNotificationPayload -> resolve(payload)
             is GlobalNotificationPayload -> resolve(payload)
+            is PlayerOfflineNotificationPayload -> resolve(payload)
         }
 
     private fun resolve(payload: ItemDropNotificationPayload): ResolvedNotification {
@@ -191,6 +193,22 @@ class StandardMessageResolver {
         )
     }
 
+    private fun resolve(payload: PlayerOfflineNotificationPayload): ResolvedNotification {
+        val player = payload.player.escapeHtml()
+        val realmSuffix =
+            payload.previousRealm
+                ?.escapeHtml()
+                ?.let { realm -> " Последний реалм — <b>$realm</b>." }
+                .orEmpty()
+
+        return ResolvedNotification(
+            type = payload.type,
+            soloTitle = "🌙 <b>Игрок вышел из игры</b>",
+            soloBody = "<b>$player</b> больше не в сети.$realmSuffix",
+            compact = "🌙 <b>$player</b> вышел из игры",
+        )
+    }
+
     private fun resolveItem(
         type: NotificationItemType,
         rarity: NotificationItemRarity,
@@ -276,9 +294,7 @@ class StandardMessageResolver {
                     compact = "мифическое украшение",
                 )
 
-            else -> {
-                throw IllegalArgumentException("Unknown notification item: $type")
-            }
+            else -> throw IllegalArgumentException("Unknown notification item: $type")
         }
 
     private fun String.escapeHtml(): String =

@@ -37,6 +37,7 @@ class NotificationDeliveryConfiguration {
                 NotificationType.DUNGEON to properties.dungeon.toPolicy(),
                 NotificationType.RAID to properties.raid.toPolicy(),
                 NotificationType.GLOBAL to properties.global.toPolicy(),
+                NotificationType.PLAYER_OFFLINE to properties.playerOffline.toPolicy(),
             ),
         )
 
