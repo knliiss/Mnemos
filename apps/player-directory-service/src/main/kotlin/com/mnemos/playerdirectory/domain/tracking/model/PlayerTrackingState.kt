@@ -35,17 +35,23 @@ data class PlayerTrackingState(
             updatedAt = now,
         )
 
-    fun recordDrop(
+    fun recordDrops(
+        dropCount: Long,
         occurredAt: Instant,
         nextActiveUntil: Instant,
-    ): PlayerTrackingState =
-        copy(
+    ): PlayerTrackingState {
+        require(dropCount > 0) {
+            "Recorded drop count must be positive"
+        }
+
+        return copy(
             activeUntil = maxInstant(activeUntil, nextActiveUntil),
             nextPollAt = minOf(nextPollAt, occurredAt),
-            observedDropCount = observedDropCount + 1,
+            observedDropCount = observedDropCount + dropCount,
             lastDropAt = maxInstant(lastDropAt, occurredAt),
             updatedAt = maxOf(updatedAt, occurredAt),
         )
+    }
 
     fun recordSaoOnline(
         observedAt: Instant,

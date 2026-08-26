@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.configuration
 
+import com.mnemos.playerdirectory.application.activity.policy.PendingPlayerResolutionPolicy
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingActivityPolicy
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingExecutionPolicy
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingSchedulePolicy
@@ -12,6 +13,7 @@ import java.time.Clock
 @Configuration
 @EnableConfigurationProperties(
     PlayerPresenceProperties::class,
+    PlayerResolutionProperties::class,
     PlayerTrackingProperties::class,
 )
 class PlayerDirectoryConfiguration {
@@ -23,6 +25,15 @@ class PlayerDirectoryConfiguration {
         PlayerPresenceTransitionPolicy(
             offlineConfirmationDelay = properties.offlineConfirmationDelay,
             requiredOfflineObservations = properties.requiredOfflineObservations,
+        )
+
+    @Bean
+    fun pendingPlayerResolutionPolicy(properties: PlayerResolutionProperties): PendingPlayerResolutionPolicy =
+        PendingPlayerResolutionPolicy(
+            batchSize = properties.batchSize,
+            leaseDuration = properties.leaseDuration,
+            retryBackoff = properties.retryBackoff,
+            maximumRetryBackoff = properties.maximumRetryBackoff,
         )
 
     @Bean

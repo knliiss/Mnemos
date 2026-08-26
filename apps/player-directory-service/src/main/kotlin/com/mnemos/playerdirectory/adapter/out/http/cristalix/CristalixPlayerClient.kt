@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @FeignClient(
-    name = "cristalix-player-directory",
+    name = "player-directory-cristalix-player-client",
     url = "\${mnemos.player-directory.cristalix-api.url}",
     configuration = [CristalixFeignConfiguration::class],
 )
@@ -24,7 +24,7 @@ interface CristalixPlayerClient {
         @RequestParam fields: String,
     ): CristalixPlayerResponse
 
-    @GetMapping("/v1/api/players/by-name/{nickname}")
+    @GetMapping("/v1/api/players/names/{nickname}")
     fun findByNickname(
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @RequestHeader("X-Project-Key") projectKey: String,
@@ -39,4 +39,12 @@ interface CristalixPlayerClient {
         @RequestParam fields: String,
         @RequestBody request: CristalixPlayerBatchRequest,
     ): CristalixPlayerBatchResponse
+
+    @PostMapping("/v1/api/players/batch/names")
+    fun findByNames(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
+        @RequestHeader("X-Project-Key") projectKey: String,
+        @RequestParam fields: String,
+        @RequestBody request: CristalixPlayerNameBatchRequest,
+    ): CristalixPlayerNameBatchResponse
 }
