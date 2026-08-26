@@ -56,7 +56,8 @@ services:
         user_realtime_service="${KAFKA_REALTIME_SERVICE_PASSWORD}"
         user_personalization_service="${KAFKA_PERSONALIZATION_SERVICE_PASSWORD}"
         user_social_service="${KAFKA_SOCIAL_SERVICE_PASSWORD}"
-        user_profile_service="${KAFKA_PROFILE_SERVICE_PASSWORD}";
+        user_profile_service="${KAFKA_PROFILE_SERVICE_PASSWORD}"
+        user_player_directory_service="${KAFKA_PLAYER_DIRECTORY_SERVICE_PASSWORD}";
       - >-
         KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required
         username="broker"
