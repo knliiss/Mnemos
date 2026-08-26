@@ -4,23 +4,32 @@ import {
   type ProfileAppearanceResponse,
 } from "@/shared/api/profileSocialApi"
 
+type AppearanceState = {
+  accountId: string
+  appearance: ProfileAppearanceResponse | null
+}
+
 export function useAccountHomeAppearance(accountId: string): ProfileAppearanceResponse | null {
-  const [appearance, setAppearance] = useState<ProfileAppearanceResponse | null>(null)
+  const [state, setState] = useState<AppearanceState | null>(null)
 
   useEffect(() => {
     let active = true
 
-    setAppearance(null)
-
     void getPublicProfile(accountId)
       .then((profile) => {
         if (active) {
-          setAppearance(profile.appearance)
+          setState({
+            accountId,
+            appearance: profile.appearance,
+          })
         }
       })
       .catch(() => {
         if (active) {
-          setAppearance(null)
+          setState({
+            accountId,
+            appearance: null,
+          })
         }
       })
 
@@ -29,5 +38,5 @@ export function useAccountHomeAppearance(accountId: string): ProfileAppearanceRe
     }
   }, [accountId])
 
-  return appearance
+  return state?.accountId === accountId ? state.appearance : null
 }
