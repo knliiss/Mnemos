@@ -24,7 +24,9 @@ const presets: Preset[] = [
   { id: "FROST", accent: "#8FE9FF", secondary: "#D9F7FF" },
 ]
 
-function profileVisualEffectPreset(preset: PresetId): Omit<ProfileVisualEffectEditorForm, "layers"> {
+function profileVisualEffectPreset(
+  preset: PresetId,
+): Omit<ProfileVisualEffectEditorForm, "layers"> {
   return {
     MNEMOS: {
       effect: "PULSE" as const,
