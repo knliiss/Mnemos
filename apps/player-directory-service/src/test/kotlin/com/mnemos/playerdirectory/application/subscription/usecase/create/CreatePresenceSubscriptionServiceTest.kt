@@ -9,6 +9,8 @@ import com.mnemos.playerdirectory.application.subscription.exception.PlayerPrese
 import com.mnemos.playerdirectory.application.subscription.exception.PlayerPresenceVerificationUnavailableException
 import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionRepository
 import com.mnemos.playerdirectory.application.subscription.support.PresenceSubscriptionCoordinator
+import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingSchedulePolicy
+import com.mnemos.playerdirectory.application.tracking.port.out.PlayerTrackingRepository
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.Player
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
@@ -18,11 +20,13 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresence
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
 import com.mnemos.playerdirectory.domain.subscription.model.PresenceSubscription
+import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -40,6 +44,7 @@ class CreatePresenceSubscriptionServiceTest {
         assertEquals(playerId, subscription.playerId)
         assertNotNull(fixture.playerRepository.findById(playerId))
         assertNotNull(fixture.subscriptionRepository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId))
+        assertNotNull(fixture.trackingRepository.findByIdForUpdate(playerId))
     }
 
     @Test
@@ -49,6 +54,7 @@ class CreatePresenceSubscriptionServiceTest {
         fixture.service.execute(command())
 
         assertNotNull(fixture.subscriptionRepository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId))
+        assertNotNull(fixture.trackingRepository.findByIdForUpdate(playerId))
     }
 
     @Test
@@ -61,6 +67,7 @@ class CreatePresenceSubscriptionServiceTest {
 
         assertNull(fixture.playerRepository.findById(playerId))
         assertNull(fixture.subscriptionRepository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId))
+        assertNull(fixture.trackingRepository.findByIdForUpdate(playerId))
     }
 
     @Test
@@ -73,6 +80,7 @@ class CreatePresenceSubscriptionServiceTest {
 
         assertNull(fixture.playerRepository.findById(playerId))
         assertNull(fixture.subscriptionRepository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId))
+        assertNull(fixture.trackingRepository.findByIdForUpdate(playerId))
     }
 
     private fun command(): CreatePresenceSubscriptionCommand =
@@ -86,6 +94,7 @@ class CreatePresenceSubscriptionServiceTest {
         val nicknameOwnershipRepository = InMemoryNicknameOwnershipRepository()
         val nicknameHistoryRepository = InMemoryNicknameHistoryRepository()
         val subscriptionRepository = InMemoryPresenceSubscriptionRepository()
+        val trackingRepository = InMemoryPlayerTrackingRepository()
         val gateway = FakeCristalixPlayerGateway(observation(status))
         val observationCoordinator =
             PlayerObservationCoordinator(
@@ -93,7 +102,19 @@ class CreatePresenceSubscriptionServiceTest {
                 nicknameOwnershipRepository = nicknameOwnershipRepository,
                 nicknameHistoryRepository = nicknameHistoryRepository,
             )
-        val subscriptionCoordinator = PresenceSubscriptionCoordinator(subscriptionRepository)
+        val trackingSchedulePolicy =
+            PlayerTrackingSchedulePolicy(
+                subscriptionPollInterval = Duration.ofSeconds(20),
+                unverifiablePollInterval = Duration.ofMinutes(2),
+                failureBackoff = Duration.ofSeconds(30),
+                maximumFailureBackoff = Duration.ofMinutes(10),
+            )
+        val subscriptionCoordinator =
+            PresenceSubscriptionCoordinator(
+                repository = subscriptionRepository,
+                trackingRepository = trackingRepository,
+                trackingSchedulePolicy = trackingSchedulePolicy,
+            )
 
         return Fixture(
             service =
@@ -105,6 +126,7 @@ class CreatePresenceSubscriptionServiceTest {
                 ),
             playerRepository = playerRepository,
             subscriptionRepository = subscriptionRepository,
+            trackingRepository = trackingRepository,
         )
     }
 
@@ -129,6 +151,7 @@ class CreatePresenceSubscriptionServiceTest {
         val service: CreatePresenceSubscriptionService,
         val playerRepository: InMemoryPlayerRepository,
         val subscriptionRepository: InMemoryPresenceSubscriptionRepository,
+        val trackingRepository: InMemoryPlayerTrackingRepository,
     )
 
     private class FakeCristalixPlayerGateway(
@@ -206,5 +229,36 @@ class CreatePresenceSubscriptionServiceTest {
             subscriptions.firstOrNull { subscription ->
                 subscription.subscriberUserId == subscriberUserId && subscription.playerId == playerId
             }
+    }
+
+    private class InMemoryPlayerTrackingRepository : PlayerTrackingRepository {
+        private val states = mutableMapOf<CristalixPlayerId, PlayerTrackingState>()
+
+        override fun ensureState(state: PlayerTrackingState) {
+            val current = states[state.playerId]
+
+            states[state.playerId] =
+                if (current == null || state.nextPollAt.isBefore(current.nextPollAt)) {
+                    state
+                } else {
+                    current
+                }
+        }
+
+        override fun save(state: PlayerTrackingState): PlayerTrackingState {
+            states[state.playerId] = state
+
+            return state
+        }
+
+        override fun findByIdForUpdate(playerId: CristalixPlayerId): PlayerTrackingState? = states[playerId]
+
+        override fun findDueForUpdate(
+            now: Instant,
+            limit: Int,
+        ): List<PlayerTrackingState> =
+            states.values
+                .filter { state -> !state.nextPollAt.isAfter(now) }
+                .take(limit)
     }
 }
