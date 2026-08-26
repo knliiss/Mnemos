@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import "../account/onboarding/account-onboarding.css"
 import "../account/onboarding/account-onboarding-layout.css"
+import "../account/onboarding/account-access-landing.css"
 import { AccountArea } from "../account/AccountArea"
 import type { Route } from "../model"
 
@@ -53,7 +54,9 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate({ id: "account-create" })}
         >
-          <span aria-hidden="true">+</span>
+          <span className="account-access-landing__action-art" aria-hidden="true">
+            <img src="/ui-illustrations/account-create.svg" alt="" />
+          </span>
           <div>
             <strong>{t("appShell.onboarding.newAccount")}</strong>
             <small>{t("appShell.onboarding.findNickname")}</small>
@@ -65,7 +68,9 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate({ id: "account-join" })}
         >
-          <span aria-hidden="true">→</span>
+          <span className="account-access-landing__action-art" aria-hidden="true">
+            <img src="/ui-illustrations/account-join.svg" alt="" />
+          </span>
           <div>
             <strong>{t("appShell.onboarding.joinByCode")}</strong>
             <small>{t("appShell.onboarding.joinTeam")}</small>

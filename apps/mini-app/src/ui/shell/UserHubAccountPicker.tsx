@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { CristalixHead } from "../components/profile/CristalixHead"
 import type { Account, Route } from "../model"
-import { Glyph } from "../shared/MnemosIcon"
+import "./account-picker-illustrations.css"
 
 type UserHubAccountPickerProps = {
   open: boolean
@@ -33,6 +33,7 @@ export function UserHubAccountPicker({
           exit={{ opacity: 0, height: 0 }}
         >
           {accounts.map((account) => {
+            const active = account.id === activeAccount.id
             const inactive = account.active === false
             const switching = switchingAccountId === account.id
 
@@ -40,7 +41,8 @@ export function UserHubAccountPicker({
               <button
                 type="button"
                 key={account.id}
-                className={account.id === activeAccount.id ? "is-active" : ""}
+                className={active ? "is-active" : ""}
+                aria-current={active ? "true" : undefined}
                 aria-disabled={inactive}
                 disabled={inactive || switchingAccountId !== null}
                 onClick={() => onSelectAccount(account)}
@@ -58,7 +60,14 @@ export function UserHubAccountPicker({
                       ? t("appShell.userMenu.inactive")
                       : t(account.role === "OWNER" ? "account.owner" : "account.participant")}
                 </small>
-                {account.id === activeAccount.id ? <Glyph name="check" size={14} /> : null}
+                {active ? (
+                  <span className="user-hub-account-picker__active-mark" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                ) : null}
               </button>
             )
           })}
@@ -69,8 +78,10 @@ export function UserHubAccountPicker({
               disabled={switchingAccountId !== null}
               onClick={() => navigate({ id: "account-create" })}
             >
-              <Glyph name="plus" size={15} />
-              {t("appShell.userMenu.create")}
+              <span className="user-hub-account-picker__action-art" aria-hidden="true">
+                <img src="/ui-illustrations/account-create.svg" alt="" />
+              </span>
+              <span>{t("appShell.userMenu.create")}</span>
             </button>
 
             <button
@@ -78,8 +89,10 @@ export function UserHubAccountPicker({
               disabled={switchingAccountId !== null}
               onClick={() => navigate({ id: "account-join" })}
             >
-              <Glyph name="invite" size={15} />
-              {t("appShell.userMenu.joinCode")}
+              <span className="user-hub-account-picker__action-art" aria-hidden="true">
+                <img src="/ui-illustrations/account-join.svg" alt="" />
+              </span>
+              <span>{t("appShell.userMenu.joinCode")}</span>
             </button>
           </footer>
         </motion.div>
