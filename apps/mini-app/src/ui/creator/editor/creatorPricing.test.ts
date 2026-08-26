@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { PersonalizationPricingResponse } from "@/shared/api/personalizationApi"
-import {
-  createDefaultCreatorEditorForm,
-  type CreatorEditorForm,
-} from "./creatorEditorModel"
+import { createDefaultCreatorEditorForm, type CreatorEditorForm } from "./creatorEditorModel"
 import {
   isCreatorPriceValid,
   normalizeCreatorPrice,
