@@ -8,6 +8,7 @@ import com.mnemos.personalization.application.security.port.out.CurrentPersonali
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -29,7 +30,7 @@ class RebuildProfileAppearanceServiceTest {
         val firstAccountId = AccountId(UUID.fromString("019c1c70-0000-7000-8000-000000000001"))
         val secondAccountId = AccountId(UUID.fromString("019c1c70-0000-7000-8000-000000000002"))
 
-        whenever(ownershipRepository.findActiveAccountIds(anyAppearanceTypes()))
+        whenever(ownershipRepository.findActiveAccountIds(any()))
             .thenReturn(listOf(firstAccountId, secondAccountId))
 
         val rebuiltAccounts = service.executeSystem()
@@ -57,7 +58,7 @@ class RebuildProfileAppearanceServiceTest {
                     roles = emptySet(),
                 ),
             )
-        whenever(ownershipRepository.findActiveAccountIds(anyAppearanceTypes()))
+        whenever(ownershipRepository.findActiveAccountIds(any()))
             .thenReturn(listOf(accountId))
 
         val rebuiltAccounts = service.execute()
@@ -68,7 +69,4 @@ class RebuildProfileAppearanceServiceTest {
             actorUserId = userId,
         )
     }
-
-    private fun anyAppearanceTypes() =
-        org.mockito.kotlin.any<Set<com.mnemos.personalization.domain.personalization.model.PersonalizationType>>()
 }
