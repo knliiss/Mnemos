@@ -31,7 +31,8 @@ public final class KafkaBootstrap {
             "User:realtime_service",
             "User:personalization_service",
             "User:social_service",
-            "User:profile_service"
+            "User:profile_service",
+            "User:player_directory_service"
     );
 
     private KafkaBootstrap() {
@@ -108,6 +109,9 @@ public final class KafkaBootstrap {
 
         topics.add(topic("mnemos.event.events.v1", 3));
         topics.add(topic("mnemos.event.events.v1.dlt", 3));
+
+        topics.add(topic("mnemos.player-directory.events.v1", 3));
+        topics.add(topic("mnemos.player-directory.events.v1.dlt", 3));
 
         topics.add(topic("mnemos.wallet.commands.v2", 3));
         topics.add(topic("mnemos.wallet.commands.v2.dlt", 3));
@@ -274,6 +278,18 @@ public final class KafkaBootstrap {
                 acls,
                 "event_service",
                 "mnemos.event.events.v1"
+        );
+
+        allowConsumer(
+                acls,
+                "player_directory_service",
+                "player-directory-service",
+                "mnemos.event.events.v1"
+        );
+        allowTopicWrite(
+                acls,
+                "player_directory_service",
+                "mnemos.player-directory.events.v1"
         );
 
         allowConsumer(
