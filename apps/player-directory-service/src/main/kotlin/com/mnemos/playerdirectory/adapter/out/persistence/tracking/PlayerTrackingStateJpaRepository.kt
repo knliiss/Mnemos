@@ -21,6 +21,9 @@ interface PlayerTrackingStateJpaRepository : JpaRepository<PlayerTrackingStateEn
                 lease_until,
                 last_poll_at,
                 consecutive_failures,
+                observed_drop_count,
+                last_drop_at,
+                last_sao_online_at,
                 created_at,
                 updated_at
             ) VALUES (
@@ -30,12 +33,19 @@ interface PlayerTrackingStateJpaRepository : JpaRepository<PlayerTrackingStateEn
                 NULL,
                 NULL,
                 0,
+                :observedDropCount,
+                :lastDropAt,
+                :lastSaoOnlineAt,
                 :createdAt,
                 :updatedAt
             )
             ON CONFLICT (player_id) DO UPDATE
             SET next_poll_at = LEAST(player_tracking_state.next_poll_at, EXCLUDED.next_poll_at),
-                active_until = GREATEST(player_tracking_state.active_until, EXCLUDED.active_until),
+                active_until = CASE
+                    WHEN player_tracking_state.active_until IS NULL THEN EXCLUDED.active_until
+                    WHEN EXCLUDED.active_until IS NULL THEN player_tracking_state.active_until
+                    ELSE GREATEST(player_tracking_state.active_until, EXCLUDED.active_until)
+                END,
                 updated_at = GREATEST(player_tracking_state.updated_at, EXCLUDED.updated_at)
             """,
         nativeQuery = true,
@@ -44,6 +54,9 @@ interface PlayerTrackingStateJpaRepository : JpaRepository<PlayerTrackingStateEn
         @Param("playerId") playerId: UUID,
         @Param("activeUntil") activeUntil: Instant?,
         @Param("nextPollAt") nextPollAt: Instant,
+        @Param("observedDropCount") observedDropCount: Long,
+        @Param("lastDropAt") lastDropAt: Instant?,
+        @Param("lastSaoOnlineAt") lastSaoOnlineAt: Instant?,
         @Param("createdAt") createdAt: Instant,
         @Param("updatedAt") updatedAt: Instant,
     ): Int

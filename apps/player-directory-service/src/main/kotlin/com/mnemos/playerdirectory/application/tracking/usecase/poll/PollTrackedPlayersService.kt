@@ -49,11 +49,15 @@ class PollTrackedPlayersService(
                 playerObservationCoordinator.apply(observation)
                 trackingCompletionCoordinator.completeSuccess(
                     lease = lease,
-                    presenceStatus = observation.presence.status,
+                    observation = observation,
                 )
             } catch (exception: RuntimeException) {
                 trackingCompletionCoordinator.completeFailure(lease)
-                logger.log(Level.WARNING, "Failed to apply tracked player observation for ${lease.playerId.id}", exception)
+                logger.log(
+                    Level.WARNING,
+                    "Failed to apply tracked player observation for ${lease.playerId.id}",
+                    exception,
+                )
             }
         }
     }

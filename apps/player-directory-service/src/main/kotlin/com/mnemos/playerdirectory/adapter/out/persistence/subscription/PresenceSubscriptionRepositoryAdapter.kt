@@ -18,4 +18,6 @@ class PresenceSubscriptionRepositoryAdapter(
         subscriberUserId: UUID,
         playerId: CristalixPlayerId,
     ): PresenceSubscription? = repository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId.id)?.toDomain()
+
+    override fun existsByPlayerId(playerId: CristalixPlayerId): Boolean = repository.existsByPlayerId(playerId.id)
 }

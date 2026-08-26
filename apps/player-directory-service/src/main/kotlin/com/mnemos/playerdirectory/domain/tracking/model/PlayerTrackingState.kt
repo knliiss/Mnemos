@@ -11,11 +11,19 @@ data class PlayerTrackingState(
     val leaseUntil: Instant?,
     val lastPollAt: Instant?,
     val consecutiveFailures: Int,
+    val observedDropCount: Long = 0,
+    val lastDropAt: Instant? = null,
+    val lastSaoOnlineAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {
     init {
-        require(consecutiveFailures >= 0) { "Tracking failure count cannot be negative" }
+        require(consecutiveFailures >= 0) {
+            "Tracking failure count cannot be negative"
+        }
+        require(observedDropCount >= 0) {
+            "Observed drop count cannot be negative"
+        }
     }
 
     fun claim(
@@ -25,6 +33,28 @@ data class PlayerTrackingState(
         copy(
             leaseUntil = now.plus(leaseDuration),
             updatedAt = now,
+        )
+
+    fun recordDrop(
+        occurredAt: Instant,
+        nextActiveUntil: Instant,
+    ): PlayerTrackingState =
+        copy(
+            activeUntil = maxInstant(activeUntil, nextActiveUntil),
+            nextPollAt = minOf(nextPollAt, occurredAt),
+            observedDropCount = observedDropCount + 1,
+            lastDropAt = maxInstant(lastDropAt, occurredAt),
+            updatedAt = maxOf(updatedAt, occurredAt),
+        )
+
+    fun recordSaoOnline(
+        observedAt: Instant,
+        nextActiveUntil: Instant,
+    ): PlayerTrackingState =
+        copy(
+            activeUntil = maxInstant(activeUntil, nextActiveUntil),
+            lastSaoOnlineAt = maxInstant(lastSaoOnlineAt, observedAt),
+            updatedAt = maxOf(updatedAt, observedAt),
         )
 
     fun completeSuccess(
@@ -63,6 +93,11 @@ data class PlayerTrackingState(
         )
     }
 
+    private fun maxInstant(
+        current: Instant?,
+        candidate: Instant,
+    ): Instant = current?.let { maxOf(it, candidate) } ?: candidate
+
     companion object {
         fun create(
             playerId: CristalixPlayerId,
@@ -77,6 +112,9 @@ data class PlayerTrackingState(
                 leaseUntil = null,
                 lastPollAt = null,
                 consecutiveFailures = 0,
+                observedDropCount = 0,
+                lastDropAt = null,
+                lastSaoOnlineAt = null,
                 createdAt = createdAt,
                 updatedAt = createdAt,
             )

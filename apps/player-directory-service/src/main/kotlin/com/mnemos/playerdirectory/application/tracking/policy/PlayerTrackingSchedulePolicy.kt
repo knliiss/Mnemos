@@ -7,6 +7,9 @@ import kotlin.math.min
 
 class PlayerTrackingSchedulePolicy(
     private val subscriptionPollInterval: Duration,
+    private val saoOnlinePollInterval: Duration,
+    private val highActivityPollInterval: Duration,
+    private val lowActivityPollInterval: Duration,
     private val unverifiablePollInterval: Duration,
     private val failureBackoff: Duration,
     private val maximumFailureBackoff: Duration,
@@ -15,17 +18,22 @@ class PlayerTrackingSchedulePolicy(
 
     fun nextAfterObservation(
         status: PlayerPresenceStatus,
+        saoOnline: Boolean,
+        hasSubscription: Boolean,
+        highActivity: Boolean,
         completedAt: Instant,
-    ): Instant =
-        when (status) {
-            PlayerPresenceStatus.ONLINE,
-            PlayerPresenceStatus.OFFLINE,
-            -> completedAt.plus(subscriptionPollInterval)
+    ): Instant {
+        val interval =
+            when {
+                hasSubscription -> subscriptionPollInterval
+                status == PlayerPresenceStatus.UNKNOWN || status == PlayerPresenceStatus.HIDDEN -> unverifiablePollInterval
+                saoOnline -> saoOnlinePollInterval
+                highActivity -> highActivityPollInterval
+                else -> lowActivityPollInterval
+            }
 
-            PlayerPresenceStatus.UNKNOWN,
-            PlayerPresenceStatus.HIDDEN,
-            -> completedAt.plus(unverifiablePollInterval)
-        }
+        return completedAt.plus(interval)
+    }
 
     fun nextAfterFailure(
         currentFailureCount: Int,

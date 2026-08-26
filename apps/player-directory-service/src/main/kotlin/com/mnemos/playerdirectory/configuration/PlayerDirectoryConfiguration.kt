@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.configuration
 
+import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingActivityPolicy
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingExecutionPolicy
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingSchedulePolicy
 import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
@@ -32,9 +33,20 @@ class PlayerDirectoryConfiguration {
         )
 
     @Bean
+    fun playerTrackingActivityPolicy(properties: PlayerTrackingProperties): PlayerTrackingActivityPolicy =
+        PlayerTrackingActivityPolicy(
+            lowActivityDropThreshold = properties.lowActivityDropThreshold,
+            lowActivityRetention = properties.lowActivityRetention,
+            highActivityRetention = properties.highActivityRetention,
+        )
+
+    @Bean
     fun playerTrackingSchedulePolicy(properties: PlayerTrackingProperties): PlayerTrackingSchedulePolicy =
         PlayerTrackingSchedulePolicy(
             subscriptionPollInterval = properties.subscriptionPollInterval,
+            saoOnlinePollInterval = properties.saoOnlinePollInterval,
+            highActivityPollInterval = properties.highActivityPollInterval,
+            lowActivityPollInterval = properties.lowActivityPollInterval,
             unverifiablePollInterval = properties.unverifiablePollInterval,
             failureBackoff = properties.failureBackoff,
             maximumFailureBackoff = properties.maximumFailureBackoff,

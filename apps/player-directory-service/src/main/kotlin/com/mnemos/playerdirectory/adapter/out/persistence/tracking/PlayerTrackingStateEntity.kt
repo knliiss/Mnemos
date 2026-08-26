@@ -23,6 +23,12 @@ class PlayerTrackingStateEntity(
     var lastPollAt: Instant?,
     @Column(name = "consecutive_failures", nullable = false)
     var consecutiveFailures: Int,
+    @Column(name = "observed_drop_count", nullable = false)
+    var observedDropCount: Long,
+    @Column(name = "last_drop_at")
+    var lastDropAt: Instant?,
+    @Column(name = "last_sao_online_at")
+    var lastSaoOnlineAt: Instant?,
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,
     @Column(name = "updated_at", nullable = false)

@@ -12,6 +12,9 @@ object PlayerTrackingStatePersistenceMapper {
             leaseUntil = leaseUntil,
             lastPollAt = lastPollAt,
             consecutiveFailures = consecutiveFailures,
+            observedDropCount = observedDropCount,
+            lastDropAt = lastDropAt,
+            lastSaoOnlineAt = lastSaoOnlineAt,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
@@ -24,6 +27,9 @@ object PlayerTrackingStatePersistenceMapper {
             leaseUntil = leaseUntil,
             lastPollAt = lastPollAt,
             consecutiveFailures = consecutiveFailures,
+            observedDropCount = observedDropCount,
+            lastDropAt = lastDropAt,
+            lastSaoOnlineAt = lastSaoOnlineAt,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )

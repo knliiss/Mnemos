@@ -11,4 +11,6 @@ interface PresenceSubscriptionRepository {
         subscriberUserId: UUID,
         playerId: CristalixPlayerId,
     ): PresenceSubscription?
+
+    fun existsByPlayerId(playerId: CristalixPlayerId): Boolean
 }

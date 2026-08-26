@@ -8,4 +8,6 @@ interface PresenceSubscriptionJpaRepository : JpaRepository<PresenceSubscription
         subscriberUserId: UUID,
         playerId: UUID,
     ): PresenceSubscriptionEntity?
+
+    fun existsByPlayerId(playerId: UUID): Boolean
 }

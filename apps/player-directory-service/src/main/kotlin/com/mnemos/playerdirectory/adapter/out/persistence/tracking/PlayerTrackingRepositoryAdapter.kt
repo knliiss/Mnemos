@@ -17,6 +17,9 @@ class PlayerTrackingRepositoryAdapter(
             playerId = state.playerId.id,
             activeUntil = state.activeUntil,
             nextPollAt = state.nextPollAt,
+            observedDropCount = state.observedDropCount,
+            lastDropAt = state.lastDropAt,
+            lastSaoOnlineAt = state.lastSaoOnlineAt,
             createdAt = state.createdAt,
             updatedAt = state.updatedAt,
         )
