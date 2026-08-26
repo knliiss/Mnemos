@@ -1,12 +1,16 @@
-.notification-pack-catalog-controls {
+.personalization-catalog-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   gap: 8px;
   margin: 10px 0 4px;
 }
 
-.notification-pack-catalog-search {
+.personalization-catalog-controls.has-price-sort {
+  grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+.personalization-catalog-search {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -22,12 +26,12 @@
     background 0.15s ease;
 }
 
-.notification-pack-catalog-search:focus-within {
+.personalization-catalog-search:focus-within {
   border-color: rgba(203, 255, 45, 0.2);
   background: rgba(14, 17, 10, 0.98);
 }
 
-.notification-pack-catalog-search > input {
+.personalization-catalog-search > input {
   min-width: 0;
   border: 0;
   outline: 0;
@@ -37,11 +41,11 @@
   font-size: 11px;
 }
 
-.notification-pack-catalog-search > input::placeholder {
+.personalization-catalog-search > input::placeholder {
   color: #666d61;
 }
 
-.notification-pack-catalog-search > button {
+.personalization-catalog-search > button {
   display: grid;
   place-items: center;
   width: 26px;
@@ -105,7 +109,7 @@
   stroke-linejoin: round;
 }
 
-.notification-pack-catalog-tile__footer {
+.personalization-catalog-tile__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -114,7 +118,7 @@
   padding: 0 2px 2px;
 }
 
-.notification-pack-catalog-tile__footer > strong {
+.personalization-catalog-tile__footer > strong {
   overflow: hidden;
   min-width: 0;
   color: #eef0e9;
@@ -125,13 +129,13 @@
   white-space: nowrap;
 }
 
-.notification-pack-catalog-tile__footer > .currency-value {
+.personalization-catalog-tile__footer > .currency-value {
   flex: 0 0 auto;
   font-size: 11px;
   font-weight: 760;
 }
 
-.notification-pack-catalog-state {
+.personalization-catalog-state {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -147,61 +151,61 @@
   font-weight: 720;
 }
 
-.notification-pack-catalog-state.is-active {
+.personalization-catalog-state.is-active {
   border-color: rgba(203, 255, 45, 0.22);
   color: #d9ff68;
   background: rgba(203, 255, 45, 0.07);
 }
 
-.notification-pack-catalog-tile.price-entry {
+.personalization-catalog-tile.price-entry {
   border-color: rgba(116, 154, 107, 0.16);
   background:
     radial-gradient(circle at 78% 12%, rgba(116, 154, 107, 0.055), transparent 42%),
     rgba(14, 16, 12, 0.96);
 }
 
-.notification-pack-catalog-tile.price-entry .currency-value {
+.personalization-catalog-tile.price-entry .currency-value {
   color: #b7ceb0;
 }
 
-.notification-pack-catalog-tile.price-standard {
+.personalization-catalog-tile.price-standard {
   border-color: rgba(103, 159, 176, 0.17);
   background:
     radial-gradient(circle at 78% 12%, rgba(103, 159, 176, 0.055), transparent 42%),
     rgba(14, 16, 12, 0.96);
 }
 
-.notification-pack-catalog-tile.price-standard .currency-value {
+.personalization-catalog-tile.price-standard .currency-value {
   color: #a9d3df;
 }
 
-.notification-pack-catalog-tile.price-elevated {
+.personalization-catalog-tile.price-elevated {
   border-color: rgba(184, 137, 194, 0.19);
   background:
     radial-gradient(circle at 78% 12%, rgba(184, 137, 194, 0.065), transparent 42%),
     rgba(14, 16, 12, 0.96);
 }
 
-.notification-pack-catalog-tile.price-elevated .currency-value {
+.personalization-catalog-tile.price-elevated .currency-value {
   color: #d0aad7;
 }
 
-.notification-pack-catalog-tile.price-premium {
+.personalization-catalog-tile.price-premium {
   border-color: rgba(224, 184, 91, 0.2);
   background:
     radial-gradient(circle at 78% 12%, rgba(224, 184, 91, 0.075), transparent 42%),
     rgba(14, 16, 12, 0.96);
 }
 
-.notification-pack-catalog-tile.price-premium .currency-value {
+.personalization-catalog-tile.price-premium .currency-value {
   color: #e5c873;
 }
 
-.notification-pack-catalog-tile.is-owned {
+.personalization-catalog-tile.is-owned {
   border-color: rgba(164, 193, 91, 0.16);
 }
 
-.notification-pack-catalog-tile.is-active {
+.personalization-catalog-tile.is-active {
   border-color: rgba(203, 255, 45, 0.28);
   background:
     radial-gradient(circle at 78% 12%, rgba(203, 255, 45, 0.075), transparent 42%),
@@ -209,11 +213,11 @@
 }
 
 @media (max-width: 380px) {
-  .notification-pack-catalog-tile__footer > strong {
+  .personalization-catalog-tile__footer > strong {
     font-size: 11.5px;
   }
 
-  .notification-pack-catalog-tile__footer > .currency-value {
+  .personalization-catalog-tile__footer > .currency-value {
     font-size: 10px;
   }
 }
