@@ -7,6 +7,7 @@ import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import com.mnemos.personalization.application.ownership.event.NotificationPackSelectionEventPublisher
 import com.mnemos.personalization.application.ownership.event.ProfileAppearanceEventPublisher
+import com.mnemos.personalization.application.ownership.event.ProfileAppearanceSnapshotResolver
 import com.mnemos.personalization.application.ownership.event.port.out.NotificationPackSelectionRevisionStore
 import com.mnemos.personalization.application.ownership.event.port.out.ProfileAppearanceRevisionStore
 import com.mnemos.personalization.application.personalization.builtin.model.BuiltinPersonalizationCatalogState
@@ -152,6 +153,12 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         val ownershipReader = FakeBuiltinPersonalizationOwnershipReader(activeOwners)
         val publisher = RecordingIntegrationEventPublisher()
         val selectionRevisionStore = IncrementingNotificationPackSelectionRevisionStore()
+        val profileAppearanceRevisionStore = IncrementingProfileAppearanceRevisionStore()
+        val profileAppearanceSnapshotResolver =
+            ProfileAppearanceSnapshotResolver(
+                ownershipRepository = EmptyOwnedPersonalizationRepository(),
+                personalizationRepository = personalizationStore,
+            )
         val notificationPackSelectionEventPublisher =
             NotificationPackSelectionEventPublisher(
                 publisher = publisher,
@@ -161,9 +168,8 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         val profileAppearanceEventPublisher =
             ProfileAppearanceEventPublisher(
                 publisher = publisher,
-                ownershipRepository = EmptyOwnedPersonalizationRepository(),
-                personalizationRepository = personalizationStore,
-                revisionStore = IncrementingProfileAppearanceRevisionStore(),
+                snapshotResolver = profileAppearanceSnapshotResolver,
+                revisionStore = profileAppearanceRevisionStore,
                 clock = clock,
             )
         val service =
@@ -288,6 +294,8 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
 
             return revision
         }
+
+        override fun current(accountId: AccountId): Long = revisions[accountId] ?: 0L
     }
 
     private class EmptyOwnedPersonalizationRepository : OwnedPersonalizationRepository {
