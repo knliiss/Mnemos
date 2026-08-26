@@ -20,8 +20,8 @@ object BuiltinVisualPersonalizationSupport {
         glow: GlowStyle?,
         currency: Currency,
         amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        definition(
+    ): BuiltinPersonalizationDefinition {
+        return definition(
             key = key,
             type = PersonalizationType.NICK_STYLE,
             name = name,
@@ -34,6 +34,7 @@ object BuiltinVisualPersonalizationSupport {
             currency = currency,
             amount = amount,
         )
+    }
 
     fun profileTheme(
         key: String,
@@ -50,8 +51,8 @@ object BuiltinVisualPersonalizationSupport {
         texture: Int,
         currency: Currency,
         amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        definition(
+    ): BuiltinPersonalizationDefinition {
+        return definition(
             key = key,
             type = PersonalizationType.PROFILE_THEME,
             name = name,
@@ -71,6 +72,7 @@ object BuiltinVisualPersonalizationSupport {
             currency = currency,
             amount = amount,
         )
+    }
 
     fun avatarFrame(
         key: String,
@@ -84,8 +86,8 @@ object BuiltinVisualPersonalizationSupport {
         glow: GlowStyle?,
         currency: Currency,
         amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        definition(
+    ): BuiltinPersonalizationDefinition {
+        return definition(
             key = key,
             type = PersonalizationType.AVATAR_FRAME,
             name = name,
@@ -102,6 +104,7 @@ object BuiltinVisualPersonalizationSupport {
             currency = currency,
             amount = amount,
         )
+    }
 
     fun profileEffect(
         key: String,
@@ -115,8 +118,8 @@ object BuiltinVisualPersonalizationSupport {
         scale: Int,
         currency: Currency,
         amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        definition(
+    ): BuiltinPersonalizationDefinition {
+        return definition(
             key = key,
             type = PersonalizationType.PROFILE_EFFECT,
             name = name,
@@ -133,24 +136,27 @@ object BuiltinVisualPersonalizationSupport {
             currency = currency,
             amount = amount,
         )
+    }
 
     fun stop(
         colorValue: String,
         position: Int,
-    ): GradientStop =
-        GradientStop(
+    ): GradientStop {
+        return GradientStop(
             color = color(colorValue),
             position = position,
         )
+    }
 
     fun glow(
         colorValue: String,
         strength: Int,
-    ): GlowStyle =
-        GlowStyle(
+    ): GlowStyle {
+        return GlowStyle(
             color = color(colorValue),
             strength = strength,
         )
+    }
 
     private fun definition(
         key: String,
@@ -159,8 +165,8 @@ object BuiltinVisualPersonalizationSupport {
         content: PersonalizationContent,
         currency: Currency,
         amount: Long,
-    ): BuiltinPersonalizationDefinition =
-        BuiltinPersonalizationDefinition(
+    ): BuiltinPersonalizationDefinition {
+        return BuiltinPersonalizationDefinition(
             catalogKey = PersonalizationCatalogKey(key),
             type = type,
             name = name,
@@ -171,6 +177,7 @@ object BuiltinVisualPersonalizationSupport {
                     amount = amount,
                 ),
         )
+    }
 
     private fun color(value: String): HexColor = HexColor(value)
 }
