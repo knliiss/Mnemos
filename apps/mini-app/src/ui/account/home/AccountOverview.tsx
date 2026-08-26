@@ -15,6 +15,7 @@ import { AccountDailyReward } from "../AccountDailyReward"
 import { CurrentGlobalEventsPanel } from "./CurrentGlobalEventsPanel"
 import { LeaderboardPromoCard } from "./LeaderboardPromoCard"
 import { useAccountHomeAppearance } from "./useAccountHomeAppearance"
+import "./account-home-personalization.css"
 import "./current-global-events.css"
 
 type AccountOverviewProps = {
