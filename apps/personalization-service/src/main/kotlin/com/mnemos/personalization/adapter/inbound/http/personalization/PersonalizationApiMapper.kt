@@ -10,7 +10,6 @@ import com.mnemos.personalization.adapter.inbound.http.personalization.content.N
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationTemplateVariantResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.NotificationValueFormsResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationContentResponse
-import com.mnemos.personalization.adapter.inbound.http.personalization.content.PersonalizationPriceResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileBackgroundContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileEffectContentResponse
 import com.mnemos.personalization.adapter.inbound.http.personalization.content.ProfileThemeContentResponse
