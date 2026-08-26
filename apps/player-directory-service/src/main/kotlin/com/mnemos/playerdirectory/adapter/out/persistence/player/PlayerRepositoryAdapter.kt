@@ -36,5 +36,16 @@ class PlayerRepositoryAdapter(
 
     override fun findById(playerId: CristalixPlayerId): Player? = repository.findById(playerId.id).orElse(null)?.toDomain()
 
+    override fun findByIds(playerIds: Collection<CristalixPlayerId>): Map<CristalixPlayerId, Player> {
+        if (playerIds.isEmpty()) {
+            return emptyMap()
+        }
+
+        return repository
+            .findAllById(playerIds.map(CristalixPlayerId::id))
+            .map(PlayerPersistenceMapper::toDomain)
+            .associateBy(Player::id)
+    }
+
     override fun findByIdForUpdate(playerId: CristalixPlayerId): Player? = repository.findByPlayerIdForUpdate(playerId.id)?.toDomain()
 }

@@ -14,10 +14,19 @@ class PresenceSubscriptionRepositoryAdapter(
 ) : PresenceSubscriptionRepository {
     override fun save(subscription: PresenceSubscription): PresenceSubscription = repository.save(subscription.toEntity()).toDomain()
 
+    override fun delete(subscription: PresenceSubscription) {
+        repository.deleteById(subscription.id.id)
+    }
+
     override fun findBySubscriberUserIdAndPlayerId(
         subscriberUserId: UUID,
         playerId: CristalixPlayerId,
     ): PresenceSubscription? = repository.findBySubscriberUserIdAndPlayerId(subscriberUserId, playerId.id)?.toDomain()
+
+    override fun findAllBySubscriberUserId(subscriberUserId: UUID): List<PresenceSubscription> =
+        repository
+            .findAllBySubscriberUserIdOrderByCreatedAtDesc(subscriberUserId)
+            .map { subscription -> subscription.toDomain() }
 
     override fun existsByPlayerId(playerId: CristalixPlayerId): Boolean = repository.existsByPlayerId(playerId.id)
 }

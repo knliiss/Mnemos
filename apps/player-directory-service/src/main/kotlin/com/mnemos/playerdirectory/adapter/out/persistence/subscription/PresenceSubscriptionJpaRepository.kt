@@ -9,5 +9,7 @@ interface PresenceSubscriptionJpaRepository : JpaRepository<PresenceSubscription
         playerId: UUID,
     ): PresenceSubscriptionEntity?
 
+    fun findAllBySubscriberUserIdOrderByCreatedAtDesc(subscriberUserId: UUID): List<PresenceSubscriptionEntity>
+
     fun existsByPlayerId(playerId: UUID): Boolean
 }

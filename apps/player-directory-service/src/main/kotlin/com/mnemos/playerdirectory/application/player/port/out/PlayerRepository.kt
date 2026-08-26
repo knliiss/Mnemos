@@ -10,5 +10,7 @@ interface PlayerRepository {
 
     fun findById(playerId: CristalixPlayerId): Player?
 
+    fun findByIds(playerIds: Collection<CristalixPlayerId>): Map<CristalixPlayerId, Player>
+
     fun findByIdForUpdate(playerId: CristalixPlayerId): Player?
 }
