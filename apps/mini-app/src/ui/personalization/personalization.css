@@ -82,17 +82,17 @@
   min-width: 0;
 }
 
-.notification-pack-catalog-grid {
+.personalization-catalog-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
 }
 
-.notification-pack-catalog-grid > .inline-hint {
+.personalization-catalog-grid > .inline-hint {
   grid-column: 1 / -1;
 }
 
-.notification-pack-catalog-tile {
+.personalization-catalog-tile {
   display: grid;
   grid-template-rows: minmax(118px, 1fr) auto;
   gap: 9px;
@@ -113,8 +113,8 @@
     transform 0.15s ease;
 }
 
-.notification-pack-catalog-tile:hover,
-.notification-pack-catalog-tile:focus-visible {
+.personalization-catalog-tile:hover,
+.personalization-catalog-tile:focus-visible {
   border-color: rgba(203, 255, 45, 0.2);
   outline: 0;
   background:
@@ -122,7 +122,7 @@
     rgba(15, 18, 12, 0.98);
 }
 
-.notification-pack-catalog-tile__art {
+.personalization-catalog-tile__art {
   display: grid;
   place-items: center;
   min-width: 0;
@@ -135,7 +135,7 @@
     rgba(4, 6, 4, 0.32);
 }
 
-.notification-pack-catalog-tile__art > img {
+.personalization-catalog-tile__art > img {
   display: block;
   width: min(74%, 104px);
   height: min(74%, 104px);
@@ -143,15 +143,13 @@
   filter: saturate(0.92) brightness(0.96);
 }
 
-.notification-pack-catalog-tile > strong {
-  overflow: hidden;
-  padding: 0 2px 2px;
-  color: #eef0e9;
-  font-size: 13px;
-  font-weight: 670;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.personalization-catalog-tile__art > .real-preview {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 118px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
 }
 
 .personalization-category-list,
@@ -255,30 +253,27 @@
 }
 
 @media (min-width: 720px) {
-  .notification-pack-catalog-grid {
+  .personalization-catalog-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 380px) {
-  .notification-pack-catalog-grid {
+  .personalization-catalog-grid {
     gap: 7px;
   }
 
-  .notification-pack-catalog-tile {
+  .personalization-catalog-tile {
     grid-template-rows: minmax(100px, 1fr) auto;
     min-height: 146px;
     padding: 8px;
     border-radius: 15px;
   }
 
-  .notification-pack-catalog-tile__art {
-    min-height: 100px;
+  .personalization-catalog-tile__art,
+  .personalization-catalog-tile__art > .real-preview {
+    min-height: 100px !important;
     border-radius: 12px;
-  }
-
-  .notification-pack-catalog-tile > strong {
-    font-size: 11.5px;
   }
 
   .personalization-category-card,
