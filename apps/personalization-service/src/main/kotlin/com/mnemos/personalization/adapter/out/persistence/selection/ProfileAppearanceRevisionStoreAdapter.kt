@@ -19,6 +19,5 @@ class ProfileAppearanceRevisionStoreAdapter(
         return state.increment()
     }
 
-    override fun current(accountId: AccountId): Long =
-        repository.findById(accountId.id).orElse(null)?.revision ?: 0L
+    override fun current(accountId: AccountId): Long = repository.findById(accountId.id).orElse(null)?.revision ?: 0L
 }

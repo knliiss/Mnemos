@@ -20,6 +20,5 @@ class InternalProfileAppearanceController(
     @GetMapping
     fun get(
         @PathVariable accountId: UUID,
-    ): InternalProfileAppearanceResponse =
-        getActiveProfileAppearanceUseCase.execute(AccountId(accountId)).toResponse()
+    ): InternalProfileAppearanceResponse = getActiveProfileAppearanceUseCase.execute(AccountId(accountId)).toResponse()
 }
