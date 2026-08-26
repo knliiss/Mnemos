@@ -96,10 +96,7 @@ export function profileScreenClassName(profile: PublicProfileResponse): string {
   const background = profile.appearance.profileBackground
 
   if (background) {
-    classes.push(
-      "has-profile-background",
-      `profile-background--${background.effect.toLowerCase()}`,
-    )
+    classes.push("has-profile-background", `profile-background--${background.effect.toLowerCase()}`)
   }
 
   return classes.join(" ")

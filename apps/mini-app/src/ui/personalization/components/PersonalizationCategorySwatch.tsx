@@ -12,13 +12,13 @@ export function PersonalizationCategorySwatch({ item }: { item: Personalization 
   const content = item.content
 
   if (!content) {
-    return <span className="personalization-category-swatch personalization-category-swatch--empty" />
+    return (
+      <span className="personalization-category-swatch personalization-category-swatch--empty" />
+    )
   }
 
   if (content.kind === "NICK_STYLE") {
-    const gradient = content.colors
-      .map((stop) => `${stop.color} ${stop.position}%`)
-      .join(", ")
+    const gradient = content.colors.map((stop) => `${stop.color} ${stop.position}%`).join(", ")
 
     return (
       <span

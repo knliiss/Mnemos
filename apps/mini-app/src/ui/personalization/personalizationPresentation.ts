@@ -26,7 +26,8 @@ export const accountPersonalizationTypes = PERSONALIZATION_TYPES.filter(
 const profileBackgroundFallback = {
   title: "Фон профиля",
   note: "Живая сцена за содержимым профиля",
-  impact: "Добавляет отдельный анимированный фон публичной страницы профиля, не меняя тему карточек.",
+  impact:
+    "Добавляет отдельный анимированный фон публичной страницы профиля, не меняя тему карточек.",
 }
 
 export function personalizationTypeTitle(

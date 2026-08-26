@@ -35,7 +35,8 @@
     radial-gradient(circle at 54% 82%, var(--profile-background-primary) 0 6%, transparent 31%);
   filter: blur(42px) saturate(1.12);
   transform: scale(var(--profile-background-scale, 1));
-  animation: profile-background-aurora var(--profile-background-duration, 11s) ease-in-out infinite alternate;
+  animation: profile-background-aurora var(--profile-background-duration, 11s) ease-in-out infinite
+    alternate;
 }
 
 .public-profile-screen.profile-background--aurora::after {
@@ -46,13 +47,25 @@
     color-mix(in srgb, var(--profile-background-secondary) 17%, transparent) 63%,
     transparent 88%
   );
-  animation: profile-background-drift calc(var(--profile-background-duration, 11s) * 1.35) linear infinite;
+  animation: profile-background-drift calc(var(--profile-background-duration, 11s) * 1.35) linear
+    infinite;
 }
 
 .public-profile-screen.profile-background--pulse::before {
   background:
-    radial-gradient(circle at 50% 34%, transparent 0 12%, var(--profile-background-primary) 12.4% 13%, transparent 13.6% 26%, var(--profile-background-secondary) 26.4% 27%, transparent 27.6%),
-    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--profile-background-primary) 24%, transparent), transparent 48%);
+    radial-gradient(
+      circle at 50% 34%,
+      transparent 0 12%,
+      var(--profile-background-primary) 12.4% 13%,
+      transparent 13.6% 26%,
+      var(--profile-background-secondary) 26.4% 27%,
+      transparent 27.6%
+    ),
+    radial-gradient(
+      circle at 50% 34%,
+      color-mix(in srgb, var(--profile-background-primary) 24%, transparent),
+      transparent 48%
+    );
   transform: scale(var(--profile-background-scale, 1));
   animation: profile-background-pulse var(--profile-background-duration, 8s) ease-in-out infinite;
 }
@@ -63,7 +76,8 @@
     color-mix(in srgb, var(--profile-background-secondary) 22%, transparent),
     transparent 52%
   );
-  animation: profile-background-breathe calc(var(--profile-background-duration, 8s) * 0.8) ease-in-out infinite alternate;
+  animation: profile-background-breathe calc(var(--profile-background-duration, 8s) * 0.8)
+    ease-in-out infinite alternate;
 }
 
 .public-profile-screen.profile-background--shimmer::before {
@@ -104,8 +118,16 @@
 
 .public-profile-screen.profile-background--particles::after {
   background:
-    radial-gradient(circle at 15% 35%, color-mix(in srgb, var(--profile-background-primary) 20%, transparent), transparent 32%),
-    radial-gradient(circle at 85% 68%, color-mix(in srgb, var(--profile-background-secondary) 18%, transparent), transparent 30%);
+    radial-gradient(
+      circle at 15% 35%,
+      color-mix(in srgb, var(--profile-background-primary) 20%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 85% 68%,
+      color-mix(in srgb, var(--profile-background-secondary) 18%, transparent),
+      transparent 30%
+    );
   filter: blur(30px);
 }
 
