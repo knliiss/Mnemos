@@ -1,5 +1,6 @@
 package com.mnemos.payment.application.stars
 
+import com.mnemos.payment.domain.stars.model.StarPrimePurchase
 import com.mnemos.payment.domain.stars.repository.StarPrimePurchaseRepository
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionCompletedEvent
 import com.mnemos.wallet.contracts.wallet.event.WalletTransactionFailedEvent
@@ -10,6 +11,7 @@ import com.mnemos.wallet.contracts.wallet.shared.WalletOwnerType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.util.UUID
 
 @Service
 class CompleteStarPrimeWalletService(
@@ -59,12 +61,12 @@ class CompleteStarPrimeWalletService(
     }
 
     private fun requireWalletResult(
-        userId: java.util.UUID,
+        userId: UUID,
         ownerType: WalletOwnerType,
         currency: Currency,
         type: TransactionType,
         amount: Long,
-        purchase: com.mnemos.payment.domain.stars.model.StarPrimePurchase,
+        purchase: StarPrimePurchase,
     ) {
         require(ownerType == WalletOwnerType.USER) {
             "PRIME purchase wallet result must target a user wallet"
