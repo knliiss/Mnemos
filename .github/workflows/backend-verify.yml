@@ -67,6 +67,9 @@ jobs:
           sh -n scripts/production-infra.sh
           sh -n scripts/render-production-app-stack.sh
           sh -n scripts/sync-production-kafka-truststore.sh
+          sh -n scripts/sync-production-cloudflare-tunnel-secret.sh
+          sh -n scripts/set-production-cloudflare-tunnel-token.sh
+          sh -n scripts/prune-production-cloudflare-tunnel-secrets.sh
           sh -n scripts/wait-production-stack.sh
           sh -n scripts/verify-production-infra.sh
           sh -n scripts/deploy-production-apps.sh
