@@ -16,7 +16,7 @@ import "./coin-purchase.css"
 type Props = {
   accountId: string
   accountNickname: string
-  onPurchased: () => Promise<void>
+  onPurchased: () => void | Promise<void>
 }
 
 export function CoinPurchasePanel({ accountId, accountNickname, onPurchased }: Props) {
