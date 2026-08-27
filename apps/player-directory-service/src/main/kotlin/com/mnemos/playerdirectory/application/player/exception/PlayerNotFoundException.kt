@@ -8,5 +8,8 @@ class PlayerNotFoundException private constructor(
 ) : RuntimeException(message) {
     constructor(playerId: CristalixPlayerId) : this("Cristalix player ${playerId.id} was not found")
 
-    constructor(nickname: PlayerNickname) : this("Cristalix player $nickname was not found")
+    companion object {
+        fun forNickname(nickname: PlayerNickname): PlayerNotFoundException =
+            PlayerNotFoundException("Cristalix player ${nickname.value} was not found")
+    }
 }

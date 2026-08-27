@@ -13,7 +13,9 @@ class ResolvePlayerByNicknameService(
     private val observationCoordinator: PlayerObservationCoordinator,
 ) : ResolvePlayerByNicknameUseCase {
     override fun execute(nickname: PlayerNickname): Player {
-        val observation = cristalixPlayerGateway.findByNickname(nickname) ?: throw PlayerNotFoundException(nickname)
+        val observation =
+            cristalixPlayerGateway.findByNickname(nickname)
+                ?: throw PlayerNotFoundException.forNickname(nickname)
 
         return observationCoordinator.apply(observation)
     }
