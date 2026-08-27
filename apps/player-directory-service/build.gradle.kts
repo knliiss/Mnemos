@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":libraries:outbox-starter"))
     implementation(project(":libraries:kafka-starter"))
 
+    implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:player-directory-contracts"))
 
