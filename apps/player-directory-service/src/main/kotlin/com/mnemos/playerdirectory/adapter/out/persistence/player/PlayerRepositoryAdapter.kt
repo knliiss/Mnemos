@@ -35,5 +35,11 @@ class PlayerRepositoryAdapter(
 
     override fun findById(playerId: CristalixPlayerId): Player? = repository.findById(playerId.id).orElse(null)?.toDomain()
 
+    override fun findByIds(playerIds: Set<CristalixPlayerId>): Map<CristalixPlayerId, Player> =
+        repository
+            .findAllById(playerIds.map { playerId -> playerId.id })
+            .map { entity -> entity.toDomain() }
+            .associateBy { player -> player.id }
+
     override fun findByIdForUpdate(playerId: CristalixPlayerId): Player? = repository.findByPlayerIdForUpdate(playerId.id)?.toDomain()
 }

@@ -10,5 +10,11 @@ interface PlayerRepository {
 
     fun findById(playerId: CristalixPlayerId): Player?
 
+    fun findByIds(playerIds: Set<CristalixPlayerId>): Map<CristalixPlayerId, Player> =
+        playerIds
+            .mapNotNull { playerId ->
+                findById(playerId)?.let { player -> playerId to player }
+            }.toMap()
+
     fun findByIdForUpdate(playerId: CristalixPlayerId): Player?
 }

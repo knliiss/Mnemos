@@ -15,10 +15,10 @@ data class PendingPlayerActivity(
     val updatedAt: Instant,
 ) {
     init {
-        require(pendingDropCount >= 0) {
+        require(pendingDropCount >= 0L) {
             "Pending drop count cannot be negative"
         }
-        require((pendingDropCount == 0) == (lastDropAt == null)) {
+        require((pendingDropCount == 0L) == (lastDropAt == null)) {
             "Pending drop timestamp must be present exactly when pending drops exist"
         }
         require(consecutiveFailures >= 0) {
@@ -61,13 +61,13 @@ data class PendingPlayerActivity(
             return null
         }
 
-        require(resolvedDropCount >= 0) {
+        require(resolvedDropCount >= 0L) {
             "Resolved drop count cannot be negative"
         }
 
         val remaining = pendingDropCount - resolvedDropCount
 
-        require(remaining > 0) {
+        require(remaining > 0L) {
             "Partial success requires pending activity to remain"
         }
 

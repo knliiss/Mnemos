@@ -15,7 +15,8 @@ class ListPresenceSubscriptionsService(
     @Transactional(readOnly = true)
     override fun execute(subscriberUserId: UUID): List<PresenceSubscriptionView> {
         val subscriptions = subscriptionRepository.findAllBySubscriberUserId(subscriberUserId)
-        val players = playerRepository.findByIds(subscriptions.map { subscription -> subscription.playerId })
+        val playerIds = subscriptions.mapTo(HashSet()) { subscription -> subscription.playerId }
+        val players = playerRepository.findByIds(playerIds)
 
         return subscriptions.mapNotNull { subscription ->
             val player = players[subscription.playerId] ?: return@mapNotNull null
