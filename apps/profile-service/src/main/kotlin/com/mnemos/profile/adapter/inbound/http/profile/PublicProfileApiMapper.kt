@@ -49,21 +49,31 @@ object PublicProfileApiMapper {
             )
         }
 
-        val status = PublicProfilePresenceResponse.Status.valueOf(presenceStatus.name)
+        val hidden = presenceStatus == ProfilePlayerState.PresenceStatus.HIDDEN || privacyHidden
+        val status =
+            if (hidden) {
+                PublicProfilePresenceResponse.Status.HIDDEN
+            } else {
+                PublicProfilePresenceResponse.Status.valueOf(presenceStatus.name)
+            }
         val online =
-            when (presenceStatus) {
-                ProfilePlayerState.PresenceStatus.ONLINE -> true
-                ProfilePlayerState.PresenceStatus.OFFLINE -> false
-                ProfilePlayerState.PresenceStatus.UNKNOWN,
-                ProfilePlayerState.PresenceStatus.HIDDEN,
-                -> null
+            if (hidden) {
+                null
+            } else {
+                when (presenceStatus) {
+                    ProfilePlayerState.PresenceStatus.ONLINE -> true
+                    ProfilePlayerState.PresenceStatus.OFFLINE -> false
+                    ProfilePlayerState.PresenceStatus.UNKNOWN,
+                    ProfilePlayerState.PresenceStatus.HIDDEN,
+                    -> null
+                }
             }
 
         return PublicProfilePresenceResponse(
             status = status,
             online = online,
-            realm = realm,
-            lastSeenOnline = lastSeenOnline,
+            realm = realm.takeUnless { hidden },
+            lastSeenOnline = lastSeenOnline.takeUnless { hidden },
             observedAt = presenceObservedAt,
         )
     }

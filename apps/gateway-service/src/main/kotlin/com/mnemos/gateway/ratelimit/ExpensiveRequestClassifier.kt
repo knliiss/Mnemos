@@ -8,12 +8,22 @@ import org.springframework.web.server.ServerWebExchange
 class ExpensiveRequestClassifier {
     fun isExpensive(exchange: ServerWebExchange): Boolean {
         val method = exchange.request.method
+        val path = exchange.request.path.value()
+
+        if (method == HttpMethod.GET && path == PLAYER_RESOLVE_PATH) {
+            return true
+        }
+
+        if (
+            method == HttpMethod.POST &&
+            (path == PRESENCE_SUBSCRIPTIONS_PATH || path == PRIME_PURCHASES_PATH)
+        ) {
+            return true
+        }
 
         if (method == HttpMethod.GET || method == HttpMethod.HEAD || method == HttpMethod.OPTIONS) {
             return false
         }
-
-        val path = exchange.request.path.value()
 
         return path.startsWith(BET_API_PREFIX) ||
             path.startsWith(MODERATION_API_PREFIX) ||
@@ -21,6 +31,9 @@ class ExpensiveRequestClassifier {
     }
 
     private companion object {
+        const val PLAYER_RESOLVE_PATH = "/api/v1/players/resolve"
+        const val PRESENCE_SUBSCRIPTIONS_PATH = "/api/v1/player-presence-subscriptions"
+        const val PRIME_PURCHASES_PATH = "/api/v1/payments/stars/prime/purchases"
         const val BET_API_PREFIX = "/api/v1/bets/"
         const val MODERATION_API_PREFIX = "/api/v1/moderation/"
         const val PERSONALIZATIONS_API_PREFIX = "/api/v1/personalizations/"

@@ -20,29 +20,34 @@ class HandleTelegramStarPaymentUpdateService(
     private val paymentServiceClient: PaymentServiceClient,
 ) {
     fun handlePreCheckout(query: PreCheckoutQuery): DeliveryResult {
-        val decision =
+        val answer =
             try {
-                paymentServiceClient.validateStarPreCheckout(
-                    ValidateStarPreCheckoutRequest(
-                        telegramId = query.from().id(),
-                        invoicePayload = query.invoicePayload(),
-                        currency = query.currency(),
-                        totalAmount = query.totalAmount(),
-                    ),
-                )
+                val decision =
+                    paymentServiceClient.validateStarPreCheckout(
+                        ValidateStarPreCheckoutRequest(
+                            telegramId = query.from().id(),
+                            invoicePayload = query.invoicePayload(),
+                            currency = query.currency(),
+                            totalAmount = query.totalAmount(),
+                        ),
+                    )
+
+                if (decision.approved) {
+                    AnswerPreCheckoutQuery(query.id())
+                } else {
+                    AnswerPreCheckoutQuery(
+                        query.id(),
+                        decision.errorMessage ?: DEFAULT_REJECTION_MESSAGE,
+                    )
+                }
             } catch (exception: FeignException) {
                 log.warn("Payment service failed while validating Telegram Stars pre-checkout", exception)
-                return DeliveryResult.Retryable()
-            }
 
-        val answer =
-            if (decision.approved) {
-                AnswerPreCheckoutQuery(query.id())
-            } else {
-                AnswerPreCheckoutQuery(
-                    query.id(),
-                    decision.errorMessage ?: DEFAULT_REJECTION_MESSAGE,
-                )
+                if (!PaymentServiceFailurePolicy.isPermanent(exception.status())) {
+                    return DeliveryResult.Retryable()
+                }
+
+                AnswerPreCheckoutQuery(query.id(), DEFAULT_REJECTION_MESSAGE)
             }
 
         val response =
@@ -86,7 +91,12 @@ class HandleTelegramStarPaymentUpdateService(
             DeliveryResult.Delivered
         } catch (exception: FeignException) {
             log.warn("Payment service failed while recording successful Telegram Stars payment", exception)
-            DeliveryResult.Retryable()
+
+            if (PaymentServiceFailurePolicy.isPermanent(exception.status())) {
+                DeliveryResult.PermanentFailure("Payment service rejected Telegram Stars payment")
+            } else {
+                DeliveryResult.Retryable()
+            }
         }
     }
 
