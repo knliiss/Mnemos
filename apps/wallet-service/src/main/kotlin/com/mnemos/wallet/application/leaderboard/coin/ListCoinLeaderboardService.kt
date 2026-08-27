@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ListCoinLeaderboardService(
     private val reader: CoinLeaderboardReader,
+    private val cache: CoinLeaderboardCache,
     private val accountSummaryProvider: AccountSummaryProvider,
 ) {
     fun execute(limit: Int): List<CoinLeaderboardEntry> {
@@ -15,18 +16,25 @@ class ListCoinLeaderboardService(
             "Coin leaderboard limit must be between $MIN_LIMIT and $MAX_LIMIT"
         }
 
+        cache.get(limit)?.let { return it }
+
         val candidates = reader.read(limit)
         val summaries = accountSummaryProvider.getByIds(candidates.mapTo(linkedSetOf()) { it.accountId })
+        val entries =
+            candidates.mapNotNull { candidate ->
+                val summary = summaries[candidate.accountId] ?: return@mapNotNull null
 
-        return candidates.mapNotNull { candidate ->
-            val summary = summaries[candidate.accountId] ?: return@mapNotNull null
+                CoinLeaderboardEntry(
+                    accountId = candidate.accountId,
+                    playerId = summary.cristalixUuid,
+                    nickname = summary.cristalixNickname,
+                    amount = candidate.amount,
+                )
+            }
 
-            CoinLeaderboardEntry(
-                accountId = candidate.accountId,
-                nickname = summary.cristalixNickname,
-                amount = candidate.amount,
-            )
-        }
+        cache.put(limit, entries)
+
+        return entries
     }
 
     private companion object {

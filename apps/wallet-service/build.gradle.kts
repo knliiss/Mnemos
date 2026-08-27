@@ -11,11 +11,11 @@ dependencies {
 
     implementation(project(":libraries:outbox-starter"))
     implementation(project(":libraries:kafka-starter"))
-
     implementation(project(":libraries:inbox-starter"))
 
     implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:wallet-contracts"))
+    implementation(project(":contracts:moderation-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
