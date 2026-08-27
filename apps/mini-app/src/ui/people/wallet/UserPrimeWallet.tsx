@@ -4,6 +4,7 @@ import type { Route } from "../../model"
 import { CurrencyMark, Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import "./people-wallet.css"
+import { PrimeTopUpPanel } from "./PrimeTopUpPanel"
 import { PrimeWalletHistory } from "./PrimeWalletHistory"
 import { useUserPrimeTransactions } from "./useUserPrimeTransactions"
 
@@ -75,21 +76,7 @@ export function UserPrimeWallet({ navigate, back }: Props) {
         </button>
       </nav>
 
-      <section className="prime-topup-panel">
-        <header>
-          <span>
-            <small>{t("userWallet.topup.eyebrow")}</small>
-            <strong>{t("userWallet.topup.title")}</strong>
-            <em>{t("userWallet.topup.copy")}</em>
-          </span>
-          <span className="prime-topup-status">{t("userWallet.topup.soon")}</span>
-        </header>
-
-        <button type="button" className="prime-topup-disabled" disabled>
-          <Glyph name="clock" size={16} />
-          {t("userWallet.topup.unavailable")}
-        </button>
-      </section>
+      <PrimeTopUpPanel onPurchased={reload} />
 
       <PrimeWalletHistory
         transactions={transactions}
