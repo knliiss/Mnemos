@@ -74,14 +74,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          KEYCLOAK_VERSION="$(sed -n 's/^KEYCLOAK_VERSION=//p' .env.example)"
+          read_env_value() {
+            key="$1"
+            value="$(sed -n "s/^${key}=//p" .env.example)"
 
-          if [ -z "$KEYCLOAK_VERSION" ]; then
-            echo "KEYCLOAK_VERSION is missing from .env.example" >&2
-            exit 1
-          fi
+            if [ -z "$value" ]; then
+              echo "${key} is missing from .env.example" >&2
+              exit 1
+            fi
+
+            printf '%s' "$value"
+          }
+
+          KEYCLOAK_VERSION="$(read_env_value KEYCLOAK_VERSION)"
+          KAFKA_VERSION="$(read_env_value KAFKA_VERSION)"
+          REDIS_VERSION="$(read_env_value REDIS_VERSION)"
+          MINIO_MC_VERSION="$(read_env_value MINIO_MC_VERSION)"
 
           export KEYCLOAK_VERSION
+          export KAFKA_VERSION
+          export REDIS_VERSION
+          export MINIO_MC_VERSION
 
           sh scripts/publish-production-images.sh
 
