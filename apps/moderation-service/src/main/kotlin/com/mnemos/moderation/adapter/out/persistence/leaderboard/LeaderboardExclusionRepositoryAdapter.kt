@@ -14,11 +14,9 @@ import java.util.UUID
 class LeaderboardExclusionRepositoryAdapter(
     private val repository: LeaderboardExclusionJpaRepository,
 ) : LeaderboardExclusionRepository {
-    override fun save(exclusion: LeaderboardExclusion): LeaderboardExclusion =
-        repository.save(exclusion.toEntity()).toDomain()
+    override fun save(exclusion: LeaderboardExclusion): LeaderboardExclusion = repository.save(exclusion.toEntity()).toDomain()
 
-    override fun findById(id: LeaderboardExclusionId): LeaderboardExclusion? =
-        repository.findById(id.id).orElse(null)?.toDomain()
+    override fun findById(id: LeaderboardExclusionId): LeaderboardExclusion? = repository.findById(id.id).orElse(null)?.toDomain()
 
     override fun findBySubjectAndScope(
         subjectType: LeaderboardExclusionSubjectType,
@@ -32,8 +30,7 @@ class LeaderboardExclusionRepositoryAdapter(
                 scope = scope,
             )?.toDomain()
 
-    override fun findAll(): List<LeaderboardExclusion> =
-        repository.findAllByOrderByCreatedAtDesc().map { entity -> entity.toDomain() }
+    override fun findAll(): List<LeaderboardExclusion> = repository.findAllByOrderByCreatedAtDesc().map { entity -> entity.toDomain() }
 
     override fun delete(exclusion: LeaderboardExclusion) {
         repository.deleteById(exclusion.id.id)

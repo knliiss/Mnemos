@@ -11,7 +11,7 @@ interface PlayerIdentityProjectionJpaRepository : JpaRepository<PlayerIdentityPr
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "SELECT projection FROM PlayerIdentityProjectionEntity projection " +
-            "WHERE projection.playerId = :playerId"
+            "WHERE projection.playerId = :playerId",
     )
     fun findByPlayerIdForUpdate(
         @Param("playerId") playerId: UUID,

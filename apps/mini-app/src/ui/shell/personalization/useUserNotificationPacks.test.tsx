@@ -47,6 +47,7 @@ const publicPack: PersonalizationResponse = {
       DUNGEON: notificationTemplate,
       RAID: notificationTemplate,
       GLOBAL: notificationTemplate,
+      PLAYER_OFFLINE: notificationTemplate,
     },
   },
   price: {

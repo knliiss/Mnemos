@@ -36,8 +36,7 @@ class AdminLeaderboardExclusionController(
     ): LeaderboardExclusionResponse = createUseCase.execute(request.toCommand()).toResponse()
 
     @GetMapping
-    fun list(): List<LeaderboardExclusionResponse> =
-        listUseCase.execute().map { exclusion -> exclusion.toResponse() }
+    fun list(): List<LeaderboardExclusionResponse> = listUseCase.execute().map { exclusion -> exclusion.toResponse() }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -69,6 +69,5 @@ class PlayerIdentityProjectionRepositoryAdapter(
             ?.playerId
             ?.let(::CristalixPlayerId)
 
-    override fun findCurrentNickname(playerId: CristalixPlayerId): String? =
-        playerRepository.findById(playerId.id).orElse(null)?.nickname
+    override fun findCurrentNickname(playerId: CristalixPlayerId): String? = playerRepository.findById(playerId.id).orElse(null)?.nickname
 }

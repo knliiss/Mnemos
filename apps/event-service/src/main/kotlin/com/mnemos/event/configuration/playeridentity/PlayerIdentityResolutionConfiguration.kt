@@ -9,9 +9,7 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(PlayerIdentityResolutionProperties::class)
 class PlayerIdentityResolutionConfiguration {
     @Bean
-    fun playerIdentityResolutionPolicy(
-        properties: PlayerIdentityResolutionProperties,
-    ): PlayerIdentityResolutionPolicy =
+    fun playerIdentityResolutionPolicy(properties: PlayerIdentityResolutionProperties): PlayerIdentityResolutionPolicy =
         PlayerIdentityResolutionPolicy(
             maxAge = properties.maxAge,
         )
