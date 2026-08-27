@@ -58,11 +58,10 @@ export function CoinPurchasePanel({ accountId, accountNickname, onPurchased }: P
     setBusy(true)
 
     try {
-      const result =
-        await purchaseCoin(accountId, {
-          requestId: crypto.randomUUID(),
-          primeAmount: selectedOption.primeAmount,
-        })
+      const result = await purchaseCoin(accountId, {
+        requestId: crypto.randomUUID(),
+        primeAmount: selectedOption.primeAmount,
+      })
 
       await Promise.all([data.refreshAccount(), onPurchased()])
       setSelectedOption(null)
@@ -103,7 +102,11 @@ export function CoinPurchasePanel({ accountId, accountNickname, onPurchased }: P
         {loading ? (
           <div className="coin-purchase-panel__state">{t("accountWallet.purchase.loading")}</div>
         ) : loadError || !catalog ? (
-          <button type="button" className="coin-purchase-panel__retry" onClick={() => void loadCatalog()}>
+          <button
+            type="button"
+            className="coin-purchase-panel__retry"
+            onClick={() => void loadCatalog()}
+          >
             {t("accountWallet.purchase.retry")}
           </button>
         ) : (
