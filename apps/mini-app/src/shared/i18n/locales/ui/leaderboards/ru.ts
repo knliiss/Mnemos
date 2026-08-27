@@ -5,10 +5,10 @@ export const leaderboardsRu = {
     heroEyebrow: "ЛИДЕРБОРД",
     heroTitle: "Лучшие игроки",
     heroDescription:
-      "Дропы и прогнозы считаются внутри выбранного вайпа. Монеты показывают текущий баланс аккаунтов.",
+      "Дропы и бустеры считаются внутри выбранного вайпа. Монеты показывают текущий баланс аккаунтов.",
     homeEyebrow: "РЕЙТИНГИ",
     homeTitle: "Топы",
-    homeDescription: "Дропы, монеты и лучшие прогнозисты в одном месте.",
+    homeDescription: "Дропы, монеты и самые щедрые игроки в одном месте.",
     open: "Открыть",
     wipe: "Вайп",
     wipeFallback: "Без названия",
@@ -26,8 +26,6 @@ export const leaderboardsRu = {
     rankBy: "Рейтинг",
     dropRankingTitle: "Топ по дропам",
     dropRankingDescription: "Выберите показатель, который определяет место игрока в рейтинге.",
-    predictorRankingTitle: "Топ прогнозистов",
-    predictorRankingDescription: "Сравнивайте игроков по результативности их завершённых ставок.",
     filtersEyebrow: "ФИЛЬТРЫ",
     filtersTitle: "Уточнить топ",
     sort: "Сортировка",
@@ -39,9 +37,6 @@ export const leaderboardsRu = {
     itemPlaceholder: "Название предмета",
     apply: "Показать результаты",
     reset: "Сбросить",
-    minimumSample: "Минимум ставок",
-    minimumSampleDescription:
-      "В рейтинг по проценту побед попадут только игроки с таким количеством завершённых ставок.",
     emptyTitle: "Рейтинг пока пуст",
     emptyDescription: "Для выбранного периода пока нет данных.",
     pagination: "Страницы рейтинга",
@@ -51,7 +46,7 @@ export const leaderboardsRu = {
     tabs: {
       drops: "Дропы",
       coins: "Монеты",
-      predictors: "Прогнозисты",
+      boosters: "Бустеры",
     },
     dropSort: {
       total: "Все",
@@ -61,12 +56,6 @@ export const leaderboardsRu = {
     sortDirection: {
       asc: "По возрастанию",
       desc: "По убыванию",
-    },
-    predictorSort: {
-      profit: "Прибыль",
-      win_rate: "Процент побед",
-      wins: "Победы",
-      turnover: "Оборот",
     },
     itemTypes: {
       sword: "Мечи",
@@ -84,8 +73,7 @@ export const leaderboardsRu = {
       mythical: "мифических",
       secret: "секретных",
       coins: "COIN",
-      bets: "ставок",
-      wins: "побед",
+      boosters: "бустеров",
     },
   },
   wipeAdmin: {

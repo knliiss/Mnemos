@@ -5,10 +5,10 @@ export const leaderboardsEn = {
     heroEyebrow: "LEADERBOARD",
     heroTitle: "Top players",
     heroDescription:
-      "Drops and predictions are calculated inside the selected wipe. Coins show current account balances.",
+      "Drops and boosters are calculated inside the selected wipe. Coins show current account balances.",
     homeEyebrow: "LEADERBOARDS",
     homeTitle: "Tops",
-    homeDescription: "Drops, coins and the best predictors in one place.",
+    homeDescription: "Drops, coins and the most generous booster users in one place.",
     open: "Open",
     wipe: "Wipe",
     wipeFallback: "Untitled",
@@ -26,8 +26,6 @@ export const leaderboardsEn = {
     rankBy: "Ranking",
     dropRankingTitle: "Drop leaderboard",
     dropRankingDescription: "Choose the metric that determines each player's place in the ranking.",
-    predictorRankingTitle: "Predictor leaderboard",
-    predictorRankingDescription: "Compare players by the results of their settled bets.",
     filtersEyebrow: "FILTERS",
     filtersTitle: "Narrow the ranking",
     sort: "Sort",
@@ -39,9 +37,6 @@ export const leaderboardsEn = {
     itemPlaceholder: "Item name",
     apply: "Show results",
     reset: "Reset",
-    minimumSample: "Minimum bets",
-    minimumSampleDescription:
-      "Only players with at least this many settled bets appear in the win-rate ranking.",
     emptyTitle: "No ranking data yet",
     emptyDescription: "There is no ranking data for the selected period yet.",
     pagination: "Leaderboard pages",
@@ -51,7 +46,7 @@ export const leaderboardsEn = {
     tabs: {
       drops: "Drops",
       coins: "Coins",
-      predictors: "Predictors",
+      boosters: "Boosters",
     },
     dropSort: {
       total: "All",
@@ -61,12 +56,6 @@ export const leaderboardsEn = {
     sortDirection: {
       asc: "Ascending",
       desc: "Descending",
-    },
-    predictorSort: {
-      profit: "Profit",
-      win_rate: "Win rate",
-      wins: "Wins",
-      turnover: "Turnover",
     },
     itemTypes: {
       sword: "Swords",
@@ -84,8 +73,7 @@ export const leaderboardsEn = {
       mythical: "mythical",
       secret: "secret",
       coins: "COIN",
-      bets: "bets",
-      wins: "wins",
+      boosters: "boosters",
     },
   },
   wipeAdmin: {

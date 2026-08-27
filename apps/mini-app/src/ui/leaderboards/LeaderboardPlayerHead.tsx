@@ -23,7 +23,7 @@ function accountKey(accountId: string): string {
   return `account:${accountId}`
 }
 
-function playerKey(accountId: string | undefined, nickname: string): string {
+function fallbackIdentityKey(accountId: string | undefined, nickname: string): string {
   return accountId ? accountKey(accountId) : `nickname:${nicknameKey(nickname)}`
 }
 
@@ -50,7 +50,7 @@ function resolveLeaderboardProfile(
   accountId: string | undefined,
   nickname: string,
 ): Promise<ResolvedLeaderboardProfile | null> {
-  const key = playerKey(accountId, nickname)
+  const key = fallbackIdentityKey(accountId, nickname)
   const cached = profileRequests.get(key)
 
   if (cached) {
@@ -92,8 +92,9 @@ export function LeaderboardPlayerHead({
   size: number
   className?: string
 }) {
+  const directSkinUrl = entry.playerId ? `${SKIN_BASE_URL}/${entry.playerId}` : null
   const identityKey = useMemo(
-    () => playerKey(entry.accountId, entry.nickname),
+    () => fallbackIdentityKey(entry.accountId, entry.nickname),
     [entry.accountId, entry.nickname],
   )
   const [resolved, setResolved] = useState<{
@@ -105,6 +106,10 @@ export function LeaderboardPlayerHead({
   })
 
   useEffect(() => {
+    if (directSkinUrl) {
+      return
+    }
+
     let cancelled = false
 
     void resolveLeaderboardProfile(entry.accountId, entry.nickname).then((profile) => {
@@ -121,9 +126,10 @@ export function LeaderboardPlayerHead({
     return () => {
       cancelled = true
     }
-  }, [entry.accountId, entry.nickname, identityKey])
+  }, [directSkinUrl, entry.accountId, entry.nickname, identityKey])
 
-  const skinUrl = resolved.identityKey === identityKey ? resolved.skinUrl : null
+  const resolvedSkinUrl = resolved.identityKey === identityKey ? resolved.skinUrl : null
+  const skinUrl = directSkinUrl ?? resolvedSkinUrl ?? FALLBACK_SKIN_URL
 
-  return <CristalixHead skinUrl={skinUrl ?? FALLBACK_SKIN_URL} size={size} className={className} />
+  return <CristalixHead skinUrl={skinUrl} size={size} className={className} />
 }

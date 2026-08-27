@@ -5,10 +5,10 @@ export const leaderboardsUk = {
     heroEyebrow: "ЛІДЕРБОРД",
     heroTitle: "Найкращі гравці",
     heroDescription:
-      "Дропи та прогнози рахуються в межах вибраного вайпа. Монети показують поточний баланс акаунтів.",
+      "Дропи та бустери рахуються в межах вибраного вайпа. Монети показують поточний баланс акаунтів.",
     homeEyebrow: "РЕЙТИНГИ",
     homeTitle: "Топи",
-    homeDescription: "Дропи, монети та найкращі прогнозисти в одному місці.",
+    homeDescription: "Дропи, монети та найщедріші гравці в одному місці.",
     open: "Відкрити",
     wipe: "Вайп",
     wipeFallback: "Без назви",
@@ -26,8 +26,6 @@ export const leaderboardsUk = {
     rankBy: "Рейтинг",
     dropRankingTitle: "Топ за дропами",
     dropRankingDescription: "Оберіть показник, який визначає місце гравця в рейтингу.",
-    predictorRankingTitle: "Топ прогнозистів",
-    predictorRankingDescription: "Порівнюйте гравців за результативністю їхніх завершених ставок.",
     filtersEyebrow: "ФІЛЬТРИ",
     filtersTitle: "Уточнити топ",
     sort: "Сортування",
@@ -39,9 +37,6 @@ export const leaderboardsUk = {
     itemPlaceholder: "Назва предмета",
     apply: "Показати результати",
     reset: "Скинути",
-    minimumSample: "Мінімум ставок",
-    minimumSampleDescription:
-      "До рейтингу за відсотком перемог потраплять лише гравці з такою кількістю завершених ставок.",
     emptyTitle: "Рейтинг поки порожній",
     emptyDescription: "Для вибраного періоду поки немає даних.",
     pagination: "Сторінки рейтингу",
@@ -51,7 +46,7 @@ export const leaderboardsUk = {
     tabs: {
       drops: "Дропи",
       coins: "Монети",
-      predictors: "Прогнозисти",
+      boosters: "Бустери",
     },
     dropSort: {
       total: "Усі",
@@ -61,12 +56,6 @@ export const leaderboardsUk = {
     sortDirection: {
       asc: "За зростанням",
       desc: "За спаданням",
-    },
-    predictorSort: {
-      profit: "Прибуток",
-      win_rate: "Відсоток перемог",
-      wins: "Перемоги",
-      turnover: "Оборот",
     },
     itemTypes: {
       sword: "Мечі",
@@ -84,8 +73,7 @@ export const leaderboardsUk = {
       mythical: "міфічних",
       secret: "секретних",
       coins: "COIN",
-      bets: "ставок",
-      wins: "перемог",
+      boosters: "бустерів",
     },
   },
   wipeAdmin: {

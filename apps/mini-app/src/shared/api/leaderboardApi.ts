@@ -8,6 +8,7 @@ export type LeaderboardItemRarity = "MYTHICAL" | "SECRET"
 
 export type DropLeaderboardEntry = {
   rank: number
+  playerId: string
   nickname: string
   totalDrops: number
   mythicalDrops: number
@@ -20,6 +21,14 @@ export type CoinLeaderboardEntry = {
   accountId: string
   nickname: string
   amount: number
+}
+
+export type BoosterLeaderboardEntry = {
+  rank: number
+  playerId: string
+  nickname: string
+  totalBoosters: number
+  lastActivatedAt: string
 }
 
 export type PredictorLeaderboardEntry = {
@@ -41,6 +50,11 @@ export type DropLeaderboardQuery = {
   nickname?: string
   sort?: DropLeaderboardSort
   direction?: DropLeaderboardDirection
+  limit?: number
+}
+
+export type BoosterLeaderboardQuery = {
+  wipeId?: string | null
   limit?: number
 }
 
@@ -87,6 +101,18 @@ export async function getCoinLeaderboard(limit = 50): Promise<CoinLeaderboardEnt
   const params = new URLSearchParams({ limit: String(limit) })
 
   return api<CoinLeaderboardEntry[]>(`/api/v1/wallet/leaderboards/coins?${params}`)
+}
+
+export async function getBoosterLeaderboard(
+  query: BoosterLeaderboardQuery,
+): Promise<BoosterLeaderboardEntry[]> {
+  const params = new URLSearchParams({ limit: String(query.limit ?? 50) })
+
+  if (query.wipeId) {
+    params.set("wipeId", query.wipeId)
+  }
+
+  return api<BoosterLeaderboardEntry[]>(`/api/v1/events/leaderboards/boosters?${params}`)
 }
 
 export async function getPredictorLeaderboard(
