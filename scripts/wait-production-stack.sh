@@ -73,6 +73,16 @@ service_is_ready() {
             ;;
     esac
 
+    service_name="$(
+        docker service inspect \
+            --format '{{ .Spec.Name }}' \
+            "$service_id"
+    )"
+
+    if [ "$service_name" = "${STACK_NAME}_cloudflared" ]; then
+        return 0
+    fi
+
     image="$(
         docker service inspect \
             --format '{{ .Spec.TaskTemplate.ContainerSpec.Image }}' \
