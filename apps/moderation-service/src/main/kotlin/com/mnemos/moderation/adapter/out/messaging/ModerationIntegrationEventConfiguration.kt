@@ -24,6 +24,13 @@ class ModerationIntegrationEventConfiguration {
                         aggregateType = ModerationEventContract.AGGREGATE_TYPE,
                     )
 
+                ModerationEventType.LEADERBOARD_EXCLUSION_CHANGED ->
+                    IntegrationEventRoute(
+                        topic = ModerationEventContract.TOPIC,
+                        version = ModerationEventContract.VERSION,
+                        aggregateType = ModerationEventContract.LEADERBOARD_EXCLUSION_AGGREGATE_TYPE,
+                    )
+
                 WalletCommandType.CREATE_TRANSACTION ->
                     IntegrationEventRoute(
                         topic = WalletCommandContract.TOPIC,
