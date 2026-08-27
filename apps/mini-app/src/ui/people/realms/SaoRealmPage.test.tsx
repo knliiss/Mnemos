@@ -89,9 +89,7 @@ describe("SaoRealmPage", () => {
   it("accepts search input and clears the current query", () => {
     render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
 
-    const input = screen.getByPlaceholderText(
-      "people.realms.searchPlaceholder",
-    ) as HTMLInputElement
+    const input = screen.getByPlaceholderText("people.realms.searchPlaceholder") as HTMLInputElement
 
     fireEvent.input(input, { target: { value: "Crafter" } })
 
