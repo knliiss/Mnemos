@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/internal/v1/accounts/bootstrap")
-@PreAuthorize("authentication.name == 'profile-service'")
+@PreAuthorize(
+    "authentication.name == 'profile-service' || " +
+        "authentication.name == 'player-directory-service'",
+)
 class InternalAccountBootstrapController(
     private val queryService: InternalAccountQueryService,
 ) {
