@@ -11,6 +11,7 @@ import { notifications } from "@/shared/notifications/notificationCenter"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { CurrencyMark } from "../../shared/MnemosIcon"
 import { WalletPurchaseSheet } from "../../shared/WalletPurchaseSheet"
+import "./prime-topup.css"
 
 type Props = {
   onPurchased: () => Promise<void>
