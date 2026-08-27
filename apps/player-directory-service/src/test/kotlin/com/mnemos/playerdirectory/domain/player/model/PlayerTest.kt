@@ -1,19 +1,26 @@
 package com.mnemos.playerdirectory.domain.player.model
 
+import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
 class PlayerTest {
     private val playerId = CristalixPlayerId(UUID.fromString("ea0a316c-ec21-11ea-acca-1cb72caa35fd"))
+    private val transitionPolicy =
+        PlayerPresenceTransitionPolicy(
+            offlineConfirmationDelay = Duration.ZERO,
+            requiredOfflineObservations = 2,
+        )
 
     @Test
     fun `older external version cannot roll player identity backward`() {
         val current = Player.fromObservation(observation(version = 12, nickname = "CurrentName", observedAt = "2026-08-27T00:00:00Z"))
         val stale = observation(version = 11, nickname = "OldName", observedAt = "2026-08-27T00:01:00Z")
 
-        val result = current.applyObservation(stale)
+        val result = current.applyObservation(stale, transitionPolicy)
 
         assertEquals(current, result)
     }
@@ -23,7 +30,7 @@ class PlayerTest {
         val current = Player.fromObservation(observation(version = 12, nickname = "OldName", observedAt = "2026-08-27T00:00:00Z"))
         val currentObservation = observation(version = 13, nickname = "CurrentName", observedAt = "2026-08-27T00:01:00Z")
 
-        val result = current.applyObservation(currentObservation)
+        val result = current.applyObservation(currentObservation, transitionPolicy)
 
         assertEquals("CurrentName", result.nickname.value)
         assertEquals(13, result.externalVersion)
