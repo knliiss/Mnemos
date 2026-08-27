@@ -26,6 +26,7 @@ import com.mnemos.messaging.core.event.EventMetadata
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Instant
 
 @Service
 class CreateAccountService(
@@ -91,8 +92,13 @@ class CreateAccountService(
             throw AccountIdentityConflictException(player.uuid)
         }
 
-        account.updateCristalixNickname(player.nickname)
-        account.reactivate()
+        val now = Instant.now()
+
+        account.updateCristalixNickname(
+            newCristalixNickname = player.nickname,
+            now = now,
+        )
+        account.reactivate(now)
 
         val reactivatedAccount = accountRepository.update(account)
 

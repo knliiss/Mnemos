@@ -104,11 +104,15 @@ class Account private constructor(
         return true
     }
 
-    fun updateCristalixNickname(newCristalixNickname: CristalixNickname) {
-        if (newCristalixNickname == cristalixNickname) return
+    fun updateCristalixNickname(
+        newCristalixNickname: CristalixNickname,
+        now: Instant,
+    ): Boolean {
+        if (newCristalixNickname == cristalixNickname) return false
 
         cristalixNickname = newCristalixNickname
-        updatedAt = Instant.now()
+        updatedAt = now
+        return true
     }
 
     fun deactivate(now: Instant = Instant.now()) {

@@ -249,6 +249,12 @@ public final class KafkaBootstrap {
                 "account_service",
                 "mnemos.account.events.v1"
         );
+        allowConsumer(
+                acls,
+                "account_service",
+                "account-service",
+                "mnemos.player-directory.events.v1"
+        );
 
         allowConsumer(
                 acls,
