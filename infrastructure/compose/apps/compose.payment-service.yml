@@ -1,0 +1,48 @@
+services:
+  payment-service:
+    container_name: mnemos-payment-service
+    build:
+      context: ../..
+      dockerfile: apps/payment-service/Dockerfile
+    image: mnemos/payment-service:${PAYMENT_SERVICE_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-postgres:5432/${APP_POSTGRES_DB}?currentSchema=payment
+      SPRING_DATASOURCE_USERNAME: ${PAYMENT_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PAYMENT_POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${APP_DATASOURCE_MAX_POOL_SIZE:-5}
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${APP_DATASOURCE_MIN_IDLE:-1}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${MNEMOS_AUTH_ORIGIN}/realms/mnemos
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/mnemos/protocol/openid-connect/certs
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL: SASL_SSL
+      SPRING_KAFKA_PROPERTIES_SASL_MECHANISM: PLAIN
+      SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"payment_service\" password=\"${KAFKA_PAYMENT_SERVICE_PASSWORD}\";"
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION: /etc/mnemos/kafka/kafka.truststore.p12
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD: ${KAFKA_TLS_STORE_PASSWORD}
+      SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_TYPE: PKCS12
+      MNEMOS_KAFKA_MANAGE_TOPICS: "false"
+      MNEMOS_KAFKA_MESSAGEAUTH_ENABLED: "true"
+      MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${PAYMENT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
+      MNEMOS_KAFKA_MESSAGEAUTH_TRUSTEDPUBLICKEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      NOTIFICATION_SERVICE_URL: http://notification-service:8084
+      PAYMENT_SERVICE_NOTIFICATION_API_KEY: ${PAYMENT_SERVICE_NOTIFICATION_API_KEY}
+      NOTIFICATION_SERVICE_PAYMENT_API_KEY: ${NOTIFICATION_SERVICE_PAYMENT_API_KEY}
+      MNEMOS_PAYMENT_STAR_PACKAGES: ${MNEMOS_PAYMENT_STAR_PACKAGES:-25:25,50:50,100:100,250:250}
+      MNEMOS_PAYMENT_STAR_INVOICE_LIFETIME: ${MNEMOS_PAYMENT_STAR_INVOICE_LIFETIME:-15m}
+      MNEMOS_PAYMENT_STAR_INVOICE_PHOTO_URL: ${MNEMOS_PAYMENT_STAR_INVOICE_PHOTO_URL:-https://app.knalis.rest/ui-illustrations/prime-cache.png}
+    volumes:
+      - "kafka-client-tls:/etc/mnemos/kafka:ro"
+    depends_on:
+      app-postgres-security-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+      notification-service:
+        condition: service_started
+    networks:
+      - mnemos-network
