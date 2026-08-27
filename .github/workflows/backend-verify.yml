@@ -62,6 +62,11 @@ jobs:
           sh -n scripts/verify-kafka-service-config.sh
           sh -n scripts/verify-redis-service-config.sh
           sh -n scripts/verify-redis-service-isolation-runtime.sh
+          sh -n scripts/publish-production-images.sh
+          sh -n scripts/production-infra.sh
+          sh -n scripts/render-production-app-stack.sh
+          python3 -m py_compile scripts/render-production-stack.py
+          python3 -m py_compile scripts/verify-production-stack-renderer.py
           sh scripts/verify-compose-secret-validation.sh
           sh scripts/verify-resource-server-audience.sh
           sh scripts/verify-internal-api-authorization.sh
@@ -75,6 +80,7 @@ jobs:
           sh scripts/verify-no-insecure-credential-defaults.sh
           sh scripts/verify-kafka-service-config.sh
           sh scripts/verify-redis-service-config.sh
+          python3 scripts/verify-production-stack-renderer.py
 
       - name: Scan backend dependencies
         shell: bash
