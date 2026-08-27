@@ -1,0 +1,34 @@
+services:
+  app-postgres:
+    ports: !reset []
+
+  keycloak-postgres:
+    ports: !reset []
+
+  redis:
+    build: !reset null
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-redis:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+    ports: !reset []
+
+  kafka-tls-init:
+    build: !reset null
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-kafka-tls-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+
+  kafka:
+    ports: !reset []
+
+  kafka-init:
+    build: !reset null
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-kafka-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+
+  minio-init:
+    build: !reset null
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-minio-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+
+  keycloak:
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-keycloak:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+    command:
+      - start
+      - --optimized
+    volumes: !reset []
+    ports: !reset []
