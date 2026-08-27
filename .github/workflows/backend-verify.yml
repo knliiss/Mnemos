@@ -51,6 +51,7 @@ jobs:
           sh -n scripts/verify-workflow-action-pins.sh
           sh -n scripts/verify-cloudflare-deploy-security.sh
           sh -n scripts/verify-ci-workflow-security.sh
+          sh -n scripts/verify-production-release-security.sh
           sh -n scripts/verify-telegram-init-data-transport.sh
           sh -n scripts/verify-keycloak-session-security.sh
           sh -n scripts/verify-postgres-legacy-ownership-migration.sh
@@ -65,6 +66,13 @@ jobs:
           sh -n scripts/publish-production-images.sh
           sh -n scripts/production-infra.sh
           sh -n scripts/render-production-app-stack.sh
+          sh -n scripts/sync-production-kafka-truststore.sh
+          sh -n scripts/wait-production-stack.sh
+          sh -n scripts/verify-production-infra.sh
+          sh -n scripts/deploy-production-apps.sh
+          sh -n scripts/bootstrap-production-env.sh
+          sh -n scripts/set-production-external-value.sh
+          sh -n scripts/validate-production-env.sh
           python3 -m py_compile scripts/render-production-stack.py
           python3 -m py_compile scripts/verify-production-stack-renderer.py
           sh scripts/verify-compose-secret-validation.sh
@@ -75,6 +83,7 @@ jobs:
           sh scripts/verify-workflow-action-pins.sh
           sh scripts/verify-cloudflare-deploy-security.sh
           sh scripts/verify-ci-workflow-security.sh
+          sh scripts/verify-production-release-security.sh
           sh scripts/verify-telegram-init-data-transport.sh
           sh scripts/verify-keycloak-session-security.sh
           sh scripts/verify-no-insecure-credential-defaults.sh
