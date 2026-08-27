@@ -11,10 +11,7 @@ import { notifications } from "@/shared/notifications/notificationCenter"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { Glyph } from "../../shared/MnemosIcon"
 import { CurrencyValue } from "../../shared/Primitives"
-import {
-  WalletPurchaseSheet,
-  type WalletPurchaseMessage,
-} from "../../shared/WalletPurchaseSheet"
+import { WalletPurchaseSheet, type WalletPurchaseMessage } from "../../shared/WalletPurchaseSheet"
 import "./prime-topup.css"
 
 type Props = {
@@ -221,11 +218,7 @@ export function PrimeTopUpPanel({ onPurchased }: Props) {
                       setSheetMessage(null)
                     }}
                   >
-                    <img
-                      src="/ui-illustrations/prime-package.png"
-                      alt=""
-                      aria-hidden="true"
-                    />
+                    <img src="/ui-illustrations/prime-package.png" alt="" aria-hidden="true" />
                     <span>
                       <small>{item.starsAmount.toLocaleString(locale)} STARS</small>
                       <strong>{item.primeAmount.toLocaleString(locale)} PRIME</strong>
