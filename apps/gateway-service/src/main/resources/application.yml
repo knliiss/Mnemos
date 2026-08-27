@@ -26,7 +26,7 @@ spring:
             - id: wallet-api
               uri: ${WALLET_SERVICE_URL:http://localhost:8082}
               predicates:
-                - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**,/api/v1/users/me/balances/**,/api/v1/users/me/transactions/**,/api/v1/wallet/leaderboards/**
+                - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**,/api/v1/accounts/*/coin-purchases/**,/api/v1/users/me/balances/**,/api/v1/users/me/transactions/**,/api/v1/wallet/leaderboards/**
 
             - id: social-api
               uri: ${SOCIAL_SERVICE_URL:http://localhost:8090}
@@ -97,6 +97,11 @@ spring:
               uri: ${PLAYER_DIRECTORY_SERVICE_URL:http://localhost:8092}
               predicates:
                 - Path=/api/v1/players/**,/api/v1/realms/**,/api/v1/player-presence-subscriptions,/api/v1/player-presence-subscriptions/**
+
+            - id: payment-api
+              uri: ${PAYMENT_SERVICE_URL:http://localhost:8093}
+              predicates:
+                - Path=/api/v1/payments/**
 
             - id: collector-websocket
               uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
