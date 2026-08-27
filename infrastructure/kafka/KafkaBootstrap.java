@@ -32,7 +32,8 @@ public final class KafkaBootstrap {
             "User:personalization_service",
             "User:social_service",
             "User:profile_service",
-            "User:player_directory_service"
+            "User:player_directory_service",
+            "User:payment_service"
     );
 
     private KafkaBootstrap() {
@@ -511,6 +512,18 @@ public final class KafkaBootstrap {
                 "profile_service",
                 "profile-service",
                 "mnemos.player-directory.events.v1"
+        );
+
+        allowTopicWrite(
+                acls,
+                "payment_service",
+                "mnemos.wallet.commands.v2"
+        );
+        allowConsumer(
+                acls,
+                "payment_service",
+                "payment-service",
+                "mnemos.wallet.events.v2"
         );
 
         return acls;
