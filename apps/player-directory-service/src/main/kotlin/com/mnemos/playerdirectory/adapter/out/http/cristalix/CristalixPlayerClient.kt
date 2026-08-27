@@ -36,7 +36,6 @@ interface CristalixPlayerClient {
     fun findByIds(
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @RequestHeader("X-Project-Key") projectKey: String,
-        @RequestParam fields: String,
         @RequestBody request: CristalixPlayerBatchRequest,
     ): CristalixPlayerBatchResponse
 
