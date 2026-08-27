@@ -5,6 +5,7 @@ import com.mnemos.event.domain.EventId
 import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
 import com.mnemos.event.domain.item.model.ItemId
+import com.mnemos.event.domain.player.model.CristalixPlayerId
 
 object ItemDropQueryMapper {
     fun ItemDropViewProjection.toView(): ItemDropView =
@@ -14,6 +15,7 @@ object ItemDropQueryMapper {
             itemName = itemName,
             itemRarity = DomainItemRarity.valueOf(itemRarity),
             itemType = DomainItemType.valueOf(itemType),
+            playerId = playerId?.let(::CristalixPlayerId),
             droppedFor = droppedFor,
             occurredAt = occurredAt,
         )

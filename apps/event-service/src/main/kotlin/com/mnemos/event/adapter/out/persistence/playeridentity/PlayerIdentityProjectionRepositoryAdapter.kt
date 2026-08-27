@@ -3,9 +3,9 @@ package com.mnemos.event.adapter.out.persistence.playeridentity
 import com.mnemos.event.application.playeridentity.model.PlayerIdentityObservation
 import com.mnemos.event.application.playeridentity.model.normalizeNickname
 import com.mnemos.event.application.playeridentity.port.out.PlayerIdentityProjectionRepository
+import com.mnemos.event.domain.player.model.CristalixPlayerId
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Repository
 class PlayerIdentityProjectionRepositoryAdapter(
@@ -13,11 +13,11 @@ class PlayerIdentityProjectionRepositoryAdapter(
     private val ownerRepository: CurrentNicknameOwnerJpaRepository,
 ) : PlayerIdentityProjectionRepository {
     @Transactional
-    override fun apply(observation: PlayerIdentityObservation) {
+    override fun apply(observation: PlayerIdentityObservation): Boolean {
         val current = playerRepository.findByPlayerIdForUpdate(observation.playerId)
 
         if (current?.isNewerThan(observation.externalVersion, observation.observedAt) == true) {
-            return
+            return false
         }
 
         val previousNormalizedNickname = current?.normalizedNickname
@@ -58,11 +58,17 @@ class PlayerIdentityProjectionRepositoryAdapter(
             externalVersion = observation.externalVersion,
             observedAt = observation.observedAt,
         )
+
+        return true
     }
 
-    override fun findCurrentOwnerId(nickname: String): UUID? =
-        ownerRepository.findById(normalizeNickname(nickname)).orElse(null)?.playerId
+    override fun findCurrentOwnerId(nickname: String): CristalixPlayerId? =
+        ownerRepository
+            .findById(normalizeNickname(nickname))
+            .orElse(null)
+            ?.playerId
+            ?.let(::CristalixPlayerId)
 
-    override fun findCurrentNickname(playerId: UUID): String? =
-        playerRepository.findById(playerId).orElse(null)?.nickname
+    override fun findCurrentNickname(playerId: CristalixPlayerId): String? =
+        playerRepository.findById(playerId.id).orElse(null)?.nickname
 }

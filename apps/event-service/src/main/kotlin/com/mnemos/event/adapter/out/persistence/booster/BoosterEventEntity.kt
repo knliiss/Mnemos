@@ -18,8 +18,14 @@ class BoosterEventEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     var type: DomainBoosterType,
+    @Column(name = "player_id")
+    var playerId: UUID?,
     @Column(name = "activated_by", nullable = false)
     var activatedBy: String,
     @Column(name = "activated_at", nullable = false)
     var activatedAt: Instant,
+    @Column(name = "identity_resolution_pending", nullable = false)
+    var identityResolutionPending: Boolean,
+    @Column(name = "identity_resolution_requested_at")
+    var identityResolutionRequestedAt: Instant?,
 )

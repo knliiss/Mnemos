@@ -5,6 +5,7 @@ import com.mnemos.event.adapter.out.persistence.drop.query.ItemDropViewProjectio
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.Instant
@@ -19,11 +20,12 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
             i.name AS item_name,
             i.type AS item_type,
             i.rarity AS item_rarity,
+            e.player_id,
             e.dropped_for,
             e.occurred_at
         FROM item_drop_events e
         JOIN items i ON i.id = e.item_id
-        WHERE (:droppedFor IS NULL OR e.dropped_for = :droppedFor)
+        WHERE (:playerId IS NULL OR e.player_id = :playerId)
           AND (:itemName IS NULL OR :itemName <% i.name)
           AND (:itemRarity IS NULL OR i.rarity = :itemRarity)
         ORDER BY e.occurred_at DESC, e.id DESC
@@ -32,14 +34,14 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
         SELECT count(*)
         FROM item_drop_events e
         JOIN items i ON i.id = e.item_id
-        WHERE (:droppedFor IS NULL OR e.dropped_for = :droppedFor)
+        WHERE (:playerId IS NULL OR e.player_id = :playerId)
           AND (:itemName IS NULL OR :itemName <% i.name)
           AND (:itemRarity IS NULL OR i.rarity = :itemRarity)
     """,
         nativeQuery = true,
     )
     fun findViews(
-        @Param("droppedFor") droppedFor: String?,
+        @Param("playerId") playerId: UUID?,
         @Param("itemName") itemName: String?,
         @Param("itemRarity") itemRarity: String?,
         pageable: Pageable,
@@ -53,6 +55,7 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
             i.name AS item_name,
             i.type AS item_type,
             i.rarity AS item_rarity,
+            e.player_id,
             e.dropped_for,
             e.occurred_at
         FROM item_drop_events e
@@ -87,4 +90,40 @@ interface ItemDropEventJpaRepository : JpaRepository<ItemDropEventEntity, UUID> 
         @Param("from") from: Instant,
         @Param("to") to: Instant,
     ): FirstItemDropProjection?
+
+    @Modifying
+    @Query(
+        value = """
+        UPDATE item_drop_events
+        SET identity_resolution_pending = FALSE,
+            identity_resolution_requested_at = NULL
+        WHERE identity_resolution_pending = TRUE
+          AND LOWER(dropped_for) = :normalizedNickname
+          AND identity_resolution_requested_at < :cutoff
+        """,
+        nativeQuery = true,
+    )
+    fun expirePendingIdentity(
+        @Param("normalizedNickname") normalizedNickname: String,
+        @Param("cutoff") cutoff: Instant,
+    ): Int
+
+    @Modifying
+    @Query(
+        value = """
+        UPDATE item_drop_events
+        SET player_id = :playerId,
+            identity_resolution_pending = FALSE,
+            identity_resolution_requested_at = NULL
+        WHERE identity_resolution_pending = TRUE
+          AND LOWER(dropped_for) = :normalizedNickname
+          AND identity_resolution_requested_at >= :cutoff
+        """,
+        nativeQuery = true,
+    )
+    fun resolvePendingIdentity(
+        @Param("normalizedNickname") normalizedNickname: String,
+        @Param("playerId") playerId: UUID,
+        @Param("cutoff") cutoff: Instant,
+    ): Int
 }

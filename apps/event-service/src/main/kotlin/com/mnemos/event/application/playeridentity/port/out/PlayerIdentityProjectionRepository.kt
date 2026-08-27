@@ -1,12 +1,12 @@
 package com.mnemos.event.application.playeridentity.port.out
 
 import com.mnemos.event.application.playeridentity.model.PlayerIdentityObservation
-import java.util.UUID
+import com.mnemos.event.domain.player.model.CristalixPlayerId
 
 interface PlayerIdentityProjectionRepository {
-    fun apply(observation: PlayerIdentityObservation)
+    fun apply(observation: PlayerIdentityObservation): Boolean
 
-    fun findCurrentOwnerId(nickname: String): UUID?
+    fun findCurrentOwnerId(nickname: String): CristalixPlayerId?
 
-    fun findCurrentNickname(playerId: UUID): String?
+    fun findCurrentNickname(playerId: CristalixPlayerId): String?
 }

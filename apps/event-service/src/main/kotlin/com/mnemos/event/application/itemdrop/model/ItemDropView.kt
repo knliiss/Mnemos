@@ -4,6 +4,7 @@ import com.mnemos.event.domain.EventId
 import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
 import com.mnemos.event.domain.item.model.ItemId
+import com.mnemos.event.domain.player.model.CristalixPlayerId
 import java.time.Instant
 
 data class ItemDropView(
@@ -12,6 +13,7 @@ data class ItemDropView(
     val itemName: String,
     val itemRarity: DomainItemRarity,
     val itemType: DomainItemType,
+    val playerId: CristalixPlayerId?,
     val droppedFor: String,
     val occurredAt: Instant,
 )

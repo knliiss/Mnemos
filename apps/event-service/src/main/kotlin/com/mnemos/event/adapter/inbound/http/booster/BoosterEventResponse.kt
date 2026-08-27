@@ -7,6 +7,7 @@ import java.util.UUID
 data class BoosterEventResponse(
     val id: UUID,
     val type: DomainBoosterType,
+    val playerId: UUID?,
     val activatedBy: String,
     val activatedAt: Instant,
 )

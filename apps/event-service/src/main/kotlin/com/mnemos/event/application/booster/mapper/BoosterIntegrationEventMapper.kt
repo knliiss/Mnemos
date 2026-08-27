@@ -10,13 +10,14 @@ import com.mnemos.messaging.core.event.IntegrationEvent
 object BoosterIntegrationEventMapper {
     fun BoosterEvent.toIntegrationEvent(): IntegrationEvent<BoosterActivatedV1> =
         IntegrationEvent(
-            type = EventEventType.RAID_STARTED,
+            type = EventEventType.BOOSTER_ACTIVATED,
             aggregateId = id.id,
             occurredAt = activatedAt,
             payload =
                 BoosterActivatedV1(
                     activatedBy = activatedBy,
                     type = type.toContract(),
+                    playerId = playerId?.id,
                 ),
         )
 

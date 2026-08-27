@@ -5,6 +5,7 @@ import com.mnemos.playerdirectory.application.activity.port.out.PendingPlayerAct
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityCommand
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityUseCase
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import org.springframework.stereotype.Service
 import java.time.Clock
@@ -18,17 +19,18 @@ class ObservePlayerEventActivityService(
     private val clock: Clock,
 ) : ObservePlayerEventActivityUseCase {
     override fun execute(
+        playerId: CristalixPlayerId?,
         nickname: PlayerNickname,
         occurredAt: Instant,
         type: PlayerEventActivityType,
     ) {
-        val ownership = nicknameOwnershipRepository.findByNickname(nickname)
+        val resolvedPlayerId = playerId ?: nicknameOwnershipRepository.findByNickname(nickname)?.playerId
 
-        if (ownership != null) {
+        if (resolvedPlayerId != null) {
             if (type == PlayerEventActivityType.DROP) {
                 recordPlayerDropActivityUseCase.execute(
                     RecordPlayerDropActivityCommand(
-                        playerId = ownership.playerId,
+                        playerId = resolvedPlayerId,
                         occurredAt = occurredAt,
                     ),
                 )

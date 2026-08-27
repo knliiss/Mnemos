@@ -10,6 +10,7 @@ import com.mnemos.messaging.kafka.consumer.KafkaMessageProtocolException
 import com.mnemos.messaging.kafka.consumer.kafkaMessageDefinition
 import com.mnemos.playerdirectory.application.activity.model.PlayerEventActivityType
 import com.mnemos.playerdirectory.application.activity.usecase.observe.ObservePlayerEventActivityUseCase
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import org.springframework.stereotype.Component
 
@@ -33,6 +34,7 @@ class ItemDroppedActivityHandler(
 
     override fun handle(message: ConsumedMessage<ItemDroppedV1>) {
         observePlayerEventActivityUseCase.execute(
+            playerId = message.payload.playerId?.let(::CristalixPlayerId),
             nickname = PlayerNickname.of(message.payload.droppedFor),
             occurredAt = message.occurredAt,
             type = PlayerEventActivityType.DROP,
