@@ -63,7 +63,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertTrue(personalizations.all { it.origin == PersonalizationOrigin.SYSTEM })
         assertTrue(personalizations.all { it.status == PersonalizationStatus.PUBLISHED })
         assertTrue(personalizations.all { it.creatorUserId == null })
-        assertEquals(5, fixture.stateRepository.state.revision)
+        assertEquals(6, fixture.stateRepository.state.revision)
         assertEquals(now, fixture.stateRepository.state.updatedAt)
         assertEquals(1, fixture.stateRepository.updateCalls)
         assertTrue(fixture.publisher.events.isEmpty())
@@ -102,7 +102,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         val ownerUserId = UserId.generate()
         val fixture =
             fixture(
-                initialRevision = 4,
+                initialRevision = 5,
                 initialPersonalizations = existing,
                 activeOwners =
                     mapOf(
@@ -124,7 +124,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
         assertEquals(firstDefinition.price, updated.price)
         assertEquals(1, fixture.personalizationStore.saveCalls)
         assertEquals(1, fixture.stateRepository.updateCalls)
-        assertEquals(5, fixture.stateRepository.state.revision)
+        assertEquals(6, fixture.stateRepository.state.revision)
         assertEquals(ownerUserId.id, payload.userId)
         assertEquals(existingId.id, payload.personalizationId)
         assertEquals(1L, payload.selectionRevision)
@@ -133,14 +133,14 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
 
     @Test
     fun `does not let an older application instance downgrade newer catalog revision`() {
-        val fixture = fixture(initialRevision = 6)
+        val fixture = fixture(initialRevision = 7)
 
         fixture.service.execute()
 
         assertEquals(0, fixture.personalizationStore.lookupCalls)
         assertEquals(0, fixture.personalizationStore.saveCalls)
         assertEquals(0, fixture.stateRepository.updateCalls)
-        assertEquals(6, fixture.stateRepository.state.revision)
+        assertEquals(7, fixture.stateRepository.state.revision)
         assertTrue(fixture.publisher.events.isEmpty())
     }
 

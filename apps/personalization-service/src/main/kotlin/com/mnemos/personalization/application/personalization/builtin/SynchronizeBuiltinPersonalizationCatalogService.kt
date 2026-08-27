@@ -154,6 +154,6 @@ class SynchronizeBuiltinPersonalizationCatalogService(
 
         const val CATALOG_REVISION = 6
 
-        val definitions = BuiltinNotificationPackCatalog.definitions
+        val definitions = BuiltinPersonalizationCatalog.definitions
     }
 }
