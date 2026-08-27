@@ -108,7 +108,7 @@
 
 .sao-realms-search {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 34px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   min-height: 48px;
@@ -118,9 +118,21 @@
   border-radius: 14px;
   color: #747c71;
   background: rgba(255, 255, 255, 0.014);
+  cursor: text;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.sao-realms-search:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(203, 255, 45, 0.025);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
 }
 
 .sao-realms-search input {
+  width: 100%;
   min-width: 0;
   min-height: 46px;
   padding: 0;
@@ -129,6 +141,18 @@
   color: #e1e5dc;
   background: transparent;
   font-size: 12px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.sao-realms-search input:focus-visible {
+  outline: none;
+}
+
+.sao-realms-search input::-webkit-search-cancel-button {
+  display: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .sao-realms-search button {
@@ -136,7 +160,13 @@
   place-items: center;
   width: 34px;
   height: 34px;
+  border-radius: 50%;
   color: #747c71;
+}
+
+.sao-realms-search button:hover {
+  color: #c3caaf;
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .sao-realms-meta {
