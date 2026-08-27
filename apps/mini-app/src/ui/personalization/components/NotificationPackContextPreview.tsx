@@ -70,10 +70,7 @@ export function NotificationPackContextPreview({
             title={t(`creator.editor.notificationTypes.${type}`)}
             aria-label={t(`creator.editor.notificationTypes.${type}`)}
           >
-            <NotificationTemplateArt
-              templateKey={type}
-              size={size === "THUMBNAIL" ? 22 : 28}
-            />
+            <NotificationTemplateArt templateKey={type} size={size === "THUMBNAIL" ? 22 : 28} />
           </button>
         ))}
       </nav>
@@ -83,10 +80,7 @@ export function NotificationPackContextPreview({
         data-template={selectedType.toLowerCase()}
       >
         <span className="notification-pack-context-preview__art" aria-hidden="true">
-          <NotificationTemplateArt
-            templateKey={selectedType}
-            size={size === "DETAIL" ? 46 : 38}
-          />
+          <NotificationTemplateArt templateKey={selectedType} size={size === "DETAIL" ? 46 : 38} />
         </span>
 
         <span className="notification-pack-context-preview__copy">

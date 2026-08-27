@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  getSaoRealmSnapshot,
-  type SaoRealmSnapshotResponse,
-} from "@/shared/api/playerDirectoryApi"
+import { getSaoRealmSnapshot, type SaoRealmSnapshotResponse } from "@/shared/api/playerDirectoryApi"
 
 const REFRESH_INTERVAL_MS = 15_000
 

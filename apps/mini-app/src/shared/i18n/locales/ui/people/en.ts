@@ -19,7 +19,8 @@ export const peopleEn = {
       entryCopy: "See every currently observed SAO realm and the players Mnemos is tracking there.",
       title: "SAO online",
       heroTitle: "Observed SAO realms",
-      heroCopy: "Mnemos shows fresh presence for known players. This is not the full server population.",
+      heroCopy:
+        "Mnemos shows fresh presence for known players. This is not the full server population.",
       realm: "REALM",
       searchPlaceholder: "Search players online",
       loading: "Loading SAO realms",
@@ -29,7 +30,8 @@ export const peopleEn = {
       morePlayers: "+{{count}} more",
       collapse: "Collapse",
       emptyTitle: "No observed SAO realms right now",
-      emptyCopy: "Tracked players will appear here as soon as Mnemos observes fresh online presence.",
+      emptyCopy:
+        "Tracked players will appear here as soon as Mnemos observes fresh online presence.",
       noSearchResults: "No online player matches the search",
       noSearchCopy: "Try another current nickname.",
     },
@@ -48,7 +50,8 @@ export const peopleEn = {
       subscribe: "Notify when offline",
       unsubscribe: "Stop tracking",
       saving: "Saving…",
-      hiddenSubscription: "Cristalix hides this player's presence, so Mnemos cannot create an offline subscription.",
+      hiddenSubscription:
+        "Cristalix hides this player's presence, so Mnemos cannot create an offline subscription.",
       unverifiedSubscription:
         "Mnemos can create the subscription only when Cristalix immediately confirms online or offline status.",
     },

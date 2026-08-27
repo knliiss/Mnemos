@@ -19,7 +19,8 @@ export const peopleUk = {
       entryCopy: "Усі актуальні SAO-реалми та відомі Mnemos гравці на них в одному місці.",
       title: "SAO онлайн",
       heroTitle: "Спостережувані SAO-реалми",
-      heroCopy: "Mnemos показує свіжий статус відомих гравців. Це не повна кількість людей на серверах.",
+      heroCopy:
+        "Mnemos показує свіжий статус відомих гравців. Це не повна кількість людей на серверах.",
       realm: "РЕАЛМ",
       searchPlaceholder: "Пошук серед гравців онлайн",
       loading: "Завантажуємо SAO-реалми",
@@ -48,7 +49,8 @@ export const peopleUk = {
       subscribe: "Повідомити при виході",
       unsubscribe: "Не відстежувати",
       saving: "Зберігаємо…",
-      hiddenSubscription: "Cristalix приховує статус цього гравця, тому Mnemos не може створити підписку.",
+      hiddenSubscription:
+        "Cristalix приховує статус цього гравця, тому Mnemos не може створити підписку.",
       unverifiedSubscription:
         "Підписка створюється лише коли Cristalix прямо зараз однозначно підтверджує онлайн або офлайн.",
     },

@@ -1,11 +1,5 @@
 import type { NotificationTemplateKey } from "../../model"
-import {
-  BoosterArt,
-  DungeonArt,
-  GlobalEventArt,
-  ItemTypeArt,
-  RaidArt,
-} from "../events/EventArt"
+import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "../events/EventArt"
 import { PlayerOfflineArt } from "../people/PlayerOfflineArt"
 
 type Props = {

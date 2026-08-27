@@ -100,12 +100,12 @@ export function SaoRealmPage({ navigate, back }: Props) {
       {directory.snapshot && !realms.length ? (
         <section className="sao-realms-state">
           <img src="/ui-illustrations/mnemos-mascot-realms.svg" alt="" aria-hidden="true" />
-          <strong>{
-            normalizedQuery ? t("people.realms.noSearchResults") : t("people.realms.emptyTitle")
-          }</strong>
-          <small>{
-            normalizedQuery ? t("people.realms.noSearchCopy") : t("people.realms.emptyCopy")
-          }</small>
+          <strong>
+            {normalizedQuery ? t("people.realms.noSearchResults") : t("people.realms.emptyTitle")}
+          </strong>
+          <small>
+            {normalizedQuery ? t("people.realms.noSearchCopy") : t("people.realms.emptyCopy")}
+          </small>
         </section>
       ) : null}
 

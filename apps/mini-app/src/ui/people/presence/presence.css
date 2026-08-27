@@ -41,7 +41,9 @@
 
 .player-presence-status--online i {
   background: #cbff2d;
-  box-shadow: 0 0 0 4px rgba(203, 255, 45, 0.09), 0 0 18px rgba(203, 255, 45, 0.26);
+  box-shadow:
+    0 0 0 4px rgba(203, 255, 45, 0.09),
+    0 0 18px rgba(203, 255, 45, 0.26);
 }
 
 .player-presence-status--offline i {

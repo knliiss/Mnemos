@@ -61,11 +61,11 @@ export function PublicProfilePresencePanel({ profile }: Props) {
       </div>
 
       {!canSubscribe ? (
-        <p>{
-          presence.status === "HIDDEN"
+        <p>
+          {presence.status === "HIDDEN"
             ? t("people.presence.hiddenSubscription")
-            : t("people.presence.unverifiedSubscription")
-        }</p>
+            : t("people.presence.unverifiedSubscription")}
+        </p>
       ) : null}
     </section>
   )

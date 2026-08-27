@@ -240,10 +240,7 @@ function NotificationPackPreview({
       className={`${className} notification-real-preview ${detail ? "notification-real-preview--detail" : ""}`.trim()}
     >
       <span className="notification-real-preview__event">
-        <NotificationTemplateArt
-          templateKey="ITEM_DROP"
-          size={small ? 26 : detail ? 46 : 34}
-        />
+        <NotificationTemplateArt templateKey="ITEM_DROP" size={small ? 26 : detail ? 46 : 34} />
       </span>
       <span className="notification-real-preview__copy">
         <small>{t("personalization.preview.itemDrop")}</small>

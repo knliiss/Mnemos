@@ -86,7 +86,10 @@ export function LeaderboardExclusionAdmin({ back }: { back(): void }) {
 
         <label>
           <span>{t("leaderboardExclusions.scope")}</span>
-          <select value={scope} onChange={(event) => setScope(event.target.value as LeaderboardExclusionScope)}>
+          <select
+            value={scope}
+            onChange={(event) => setScope(event.target.value as LeaderboardExclusionScope)}
+          >
             {scopes
               .filter((value) => {
                 if (subjectType === "ACCOUNT") {
@@ -125,9 +128,7 @@ export function LeaderboardExclusionAdmin({ back }: { back(): void }) {
           disabled={!target.trim() || exclusions.busy}
           onClick={() => void submit()}
         >
-          {exclusions.busy
-            ? t("leaderboardExclusions.saving")
-            : t("leaderboardExclusions.create")}
+          {exclusions.busy ? t("leaderboardExclusions.saving") : t("leaderboardExclusions.create")}
         </button>
       </section>
 
