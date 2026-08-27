@@ -48,7 +48,8 @@ class CreateTelegramStarInvoiceService(
             )
         }
 
-        return response.result()
+        return response
+            .result()
             ?.takeIf(String::isNotBlank)
             ?: throw AppException(
                 message = "Telegram returned an empty Stars invoice URL",
