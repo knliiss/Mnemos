@@ -1,0 +1,5 @@
+ARG POSTGRES_VERSION
+
+FROM postgres:${POSTGRES_VERSION}
+
+COPY --chmod=0555 infrastructure/postgres/init-service-database-access.sh /usr/local/bin/init-service-database-access.sh
