@@ -151,6 +151,13 @@ class GetNotificationPackEditorDescriptorUseCase {
                 linkedMapOf(
                     "event" to displayValue(NotificationPackValueKey.GLOBAL_EVENT, "ECLIPSE"),
                 )
+
+            NotificationPackTemplateType.PLAYER_OFFLINE ->
+                linkedMapOf(
+                    "player" to "KoTuK_PvP",
+                    "realm" to "SAO-4",
+                    "lastSeen" to "00:37",
+                )
         }
 
     private fun defaults(type: NotificationPackTemplateType): NotificationPackEditorDescriptor.Defaults =
@@ -198,6 +205,15 @@ class GetNotificationPackEditorDescriptorUseCase {
                     soloBody = "Началось событие {event}.",
                     compact = "{event}",
                     aggregateTitle = "События мира",
+                )
+
+            NotificationPackTemplateType.PLAYER_OFFLINE ->
+                NotificationPackEditorDescriptor.Defaults(
+                    emoji = "🌙",
+                    soloTitle = "Игрок вышел",
+                    soloBody = "{player} вышел из сети. Последний реалм: {realm}.",
+                    compact = "{player} вышел из сети",
+                    aggregateTitle = "Игроки вышли из сети",
                 )
         }
 
