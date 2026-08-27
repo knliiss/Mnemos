@@ -1,0 +1,30 @@
+name: ${COMPOSE_PROJECT_NAME:-mnemos}
+
+services: {}
+
+networks:
+  mnemos-network:
+    name: ${MNEMOS_SWARM_NETWORK:-mnemos-production-network}
+    external: true
+
+volumes:
+  app-postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-app-postgres-data
+
+  keycloak-postgres-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-keycloak-postgres-data
+
+  kafka-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-data
+
+  kafka-server-tls:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-server-tls
+
+  kafka-client-tls:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-kafka-client-tls
+
+  redis-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-redis-data
+
+  minio-data:
+    name: ${COMPOSE_PROJECT_NAME:-mnemos}-minio-data
