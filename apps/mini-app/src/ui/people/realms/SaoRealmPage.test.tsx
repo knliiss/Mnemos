@@ -61,13 +61,13 @@ describe("SaoRealmPage", () => {
     cleanup()
   })
 
-  it("uses the current Mnemos cat artwork in the hero and empty state", () => {
+  it("uses the current Mnemos cat artwork without the legacy realm mascot", () => {
     const { container } = render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
     const catArtwork = container.querySelectorAll(
       'img[src="/ui-illustrations/mnemos-mascot-cat.svg"]',
     )
 
-    expect(catArtwork).toHaveLength(2)
+    expect(catArtwork).toHaveLength(1)
     expect(
       container.querySelector('img[src="/ui-illustrations/mnemos-mascot-realms.svg"]'),
     ).toBeNull()
