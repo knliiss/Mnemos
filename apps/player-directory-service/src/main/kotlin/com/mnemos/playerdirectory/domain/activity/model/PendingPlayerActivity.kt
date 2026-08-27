@@ -7,7 +7,7 @@ import java.time.Instant
 data class PendingPlayerActivity(
     val nickname: PlayerNickname,
     val pendingDropCount: Long,
-    val lastDropAt: Instant,
+    val lastDropAt: Instant?,
     val nextAttemptAt: Instant,
     val leaseUntil: Instant?,
     val consecutiveFailures: Int,
@@ -15,8 +15,11 @@ data class PendingPlayerActivity(
     val updatedAt: Instant,
 ) {
     init {
-        require(pendingDropCount > 0) {
-            "Pending drop count must be positive"
+        require(pendingDropCount >= 0) {
+            "Pending drop count cannot be negative"
+        }
+        require((pendingDropCount == 0) == (lastDropAt == null)) {
+            "Pending drop timestamp must be present exactly when pending drops exist"
         }
         require(consecutiveFailures >= 0) {
             "Pending player resolution failure count cannot be negative"
@@ -56,6 +59,10 @@ data class PendingPlayerActivity(
     ): PendingPlayerActivity? {
         if (leaseUntil != expectedLeaseUntil) {
             return null
+        }
+
+        require(resolvedDropCount >= 0) {
+            "Resolved drop count cannot be negative"
         }
 
         val remaining = pendingDropCount - resolvedDropCount

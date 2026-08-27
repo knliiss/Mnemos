@@ -1,5 +1,6 @@
 package com.mnemos.playerdirectory.application.activity.usecase.observe
 
+import com.mnemos.playerdirectory.application.activity.model.PlayerEventActivityType
 import com.mnemos.playerdirectory.application.activity.port.out.PendingPlayerActivityRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityCommand
@@ -10,33 +11,47 @@ import java.time.Clock
 import java.time.Instant
 
 @Service
-class ObserveItemDropActivityService(
+class ObservePlayerEventActivityService(
     private val nicknameOwnershipRepository: PlayerNicknameOwnershipRepository,
     private val pendingPlayerActivityRepository: PendingPlayerActivityRepository,
     private val recordPlayerDropActivityUseCase: RecordPlayerDropActivityUseCase,
     private val clock: Clock,
-) : ObserveItemDropActivityUseCase {
+) : ObservePlayerEventActivityUseCase {
     override fun execute(
         nickname: PlayerNickname,
         occurredAt: Instant,
+        type: PlayerEventActivityType,
     ) {
         val ownership = nicknameOwnershipRepository.findByNickname(nickname)
 
         if (ownership != null) {
-            recordPlayerDropActivityUseCase.execute(
-                RecordPlayerDropActivityCommand(
-                    playerId = ownership.playerId,
-                    occurredAt = occurredAt,
-                ),
-            )
+            if (type == PlayerEventActivityType.DROP) {
+                recordPlayerDropActivityUseCase.execute(
+                    RecordPlayerDropActivityCommand(
+                        playerId = ownership.playerId,
+                        occurredAt = occurredAt,
+                    ),
+                )
+            }
 
             return
         }
 
-        pendingPlayerActivityRepository.enqueueDrop(
-            nickname = nickname,
-            occurredAt = occurredAt,
-            recordedAt = Instant.now(clock),
-        )
+        val recordedAt = Instant.now(clock)
+
+        when (type) {
+            PlayerEventActivityType.DROP ->
+                pendingPlayerActivityRepository.enqueueDrop(
+                    nickname = nickname,
+                    occurredAt = occurredAt,
+                    recordedAt = recordedAt,
+                )
+
+            PlayerEventActivityType.BOOSTER ->
+                pendingPlayerActivityRepository.enqueueIdentityDemand(
+                    nickname = nickname,
+                    recordedAt = recordedAt,
+                )
+        }
     }
 }

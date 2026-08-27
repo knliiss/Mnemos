@@ -11,6 +11,11 @@ interface PendingPlayerActivityRepository {
         recordedAt: Instant,
     )
 
+    fun enqueueIdentityDemand(
+        nickname: PlayerNickname,
+        recordedAt: Instant,
+    )
+
     fun save(activity: PendingPlayerActivity): PendingPlayerActivity
 
     fun delete(activity: PendingPlayerActivity)

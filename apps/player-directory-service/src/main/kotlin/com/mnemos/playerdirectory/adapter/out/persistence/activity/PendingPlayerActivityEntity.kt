@@ -16,8 +16,8 @@ class PendingPlayerActivityEntity(
     var nickname: String,
     @Column(name = "pending_drop_count", nullable = false)
     var pendingDropCount: Long,
-    @Column(name = "last_drop_at", nullable = false)
-    var lastDropAt: Instant,
+    @Column(name = "last_drop_at")
+    var lastDropAt: Instant?,
     @Column(name = "next_attempt_at", nullable = false)
     var nextAttemptAt: Instant,
     @Column(name = "lease_until")

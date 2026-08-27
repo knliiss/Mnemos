@@ -25,6 +25,17 @@ class PendingPlayerActivityRepositoryAdapter(
         )
     }
 
+    override fun enqueueIdentityDemand(
+        nickname: PlayerNickname,
+        recordedAt: Instant,
+    ) {
+        repository.enqueueIdentityDemand(
+            normalizedNickname = nickname.normalized(),
+            nickname = nickname.value,
+            recordedAt = recordedAt,
+        )
+    }
+
     override fun save(activity: PendingPlayerActivity): PendingPlayerActivity =
         repository.save(activity.toEntity()).toDomain()
 

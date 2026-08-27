@@ -6,6 +6,6 @@ import java.time.Instant
 data class PendingPlayerActivityLease(
     val nickname: PlayerNickname,
     val pendingDropCount: Long,
-    val lastDropAt: Instant,
+    val lastDropAt: Instant?,
     val leaseUntil: Instant,
 )

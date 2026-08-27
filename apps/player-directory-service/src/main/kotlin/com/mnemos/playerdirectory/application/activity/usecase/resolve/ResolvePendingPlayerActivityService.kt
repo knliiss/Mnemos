@@ -1,12 +1,15 @@
 package com.mnemos.playerdirectory.application.activity.usecase.resolve
 
+import com.mnemos.playerdirectory.application.activity.model.PendingPlayerActivityLease
 import com.mnemos.playerdirectory.application.activity.support.PendingPlayerActivityCompletionCoordinator
 import com.mnemos.playerdirectory.application.activity.usecase.claim.ClaimPendingPlayerActivityUseCase
 import com.mnemos.playerdirectory.application.player.exception.PlayerDirectoryUpstreamUnavailableException
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerNameBatchGateway
+import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
 import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityCommand
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityUseCase
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import org.springframework.stereotype.Service
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -14,6 +17,7 @@ import java.util.logging.Logger
 @Service
 class ResolvePendingPlayerActivityService(
     private val claimPendingPlayerActivityUseCase: ClaimPendingPlayerActivityUseCase,
+    private val nicknameOwnershipRepository: PlayerNicknameOwnershipRepository,
     private val cristalixPlayerNameBatchGateway: CristalixPlayerNameBatchGateway,
     private val observationCoordinator: PlayerObservationCoordinator,
     private val recordPlayerDropActivityUseCase: RecordPlayerDropActivityUseCase,
@@ -27,17 +31,36 @@ class ResolvePendingPlayerActivityService(
             return
         }
 
+        val unresolved =
+            leases.filterNot { lease ->
+                val ownership = nicknameOwnershipRepository.findByNickname(lease.nickname)
+
+                if (ownership == null) {
+                    false
+                } else {
+                    completeResolved(
+                        lease = lease,
+                        playerId = ownership.playerId,
+                    )
+                    true
+                }
+            }
+
+        if (unresolved.isEmpty()) {
+            return
+        }
+
         val batch =
             try {
-                cristalixPlayerNameBatchGateway.findByNicknames(leases.map { lease -> lease.nickname })
+                cristalixPlayerNameBatchGateway.findByNicknames(unresolved.map { lease -> lease.nickname })
             } catch (exception: PlayerDirectoryUpstreamUnavailableException) {
-                leases.forEach(completionCoordinator::completeFailure)
+                unresolved.forEach(completionCoordinator::completeFailure)
                 logger.log(Level.WARNING, "Cristalix pending player batch resolution failed", exception)
 
                 return
             }
 
-        leases.forEach { lease ->
+        unresolved.forEach { lease ->
             val observation = batch.observationsByNormalizedNickname[lease.nickname.normalized()]
 
             if (observation == null) {
@@ -48,14 +71,10 @@ class ResolvePendingPlayerActivityService(
             try {
                 val player = observationCoordinator.apply(observation)
 
-                recordPlayerDropActivityUseCase.execute(
-                    RecordPlayerDropActivityCommand(
-                        playerId = player.id,
-                        occurredAt = lease.lastDropAt,
-                        dropCount = lease.pendingDropCount,
-                    ),
+                completeResolved(
+                    lease = lease,
+                    playerId = player.id,
                 )
-                completionCoordinator.completeSuccess(lease)
             } catch (exception: RuntimeException) {
                 completionCoordinator.completeFailure(lease)
                 logger.log(
@@ -65,5 +84,22 @@ class ResolvePendingPlayerActivityService(
                 )
             }
         }
+    }
+
+    private fun completeResolved(
+        lease: PendingPlayerActivityLease,
+        playerId: CristalixPlayerId,
+    ) {
+        if (lease.pendingDropCount > 0) {
+            recordPlayerDropActivityUseCase.execute(
+                RecordPlayerDropActivityCommand(
+                    playerId = playerId,
+                    occurredAt = requireNotNull(lease.lastDropAt),
+                    dropCount = lease.pendingDropCount,
+                ),
+            )
+        }
+
+        completionCoordinator.completeSuccess(lease)
     }
 }

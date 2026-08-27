@@ -37,7 +37,10 @@ interface PendingPlayerActivityJpaRepository : JpaRepository<PendingPlayerActivi
             ON CONFLICT (normalized_nickname) DO UPDATE
             SET nickname = EXCLUDED.nickname,
                 pending_drop_count = pending_player_activity.pending_drop_count + 1,
-                last_drop_at = GREATEST(pending_player_activity.last_drop_at, EXCLUDED.last_drop_at),
+                last_drop_at = CASE
+                    WHEN pending_player_activity.last_drop_at IS NULL THEN EXCLUDED.last_drop_at
+                    ELSE GREATEST(pending_player_activity.last_drop_at, EXCLUDED.last_drop_at)
+                END,
                 next_attempt_at = LEAST(pending_player_activity.next_attempt_at, EXCLUDED.next_attempt_at),
                 updated_at = GREATEST(pending_player_activity.updated_at, EXCLUDED.updated_at)
             """,
@@ -47,6 +50,44 @@ interface PendingPlayerActivityJpaRepository : JpaRepository<PendingPlayerActivi
         @Param("normalizedNickname") normalizedNickname: String,
         @Param("nickname") nickname: String,
         @Param("occurredAt") occurredAt: Instant,
+        @Param("recordedAt") recordedAt: Instant,
+    ): Int
+
+    @Modifying
+    @Query(
+        value =
+            """
+            INSERT INTO pending_player_activity (
+                normalized_nickname,
+                nickname,
+                pending_drop_count,
+                last_drop_at,
+                next_attempt_at,
+                lease_until,
+                consecutive_failures,
+                created_at,
+                updated_at
+            ) VALUES (
+                :normalizedNickname,
+                :nickname,
+                0,
+                NULL,
+                :recordedAt,
+                NULL,
+                0,
+                :recordedAt,
+                :recordedAt
+            )
+            ON CONFLICT (normalized_nickname) DO UPDATE
+            SET nickname = EXCLUDED.nickname,
+                next_attempt_at = LEAST(pending_player_activity.next_attempt_at, EXCLUDED.next_attempt_at),
+                updated_at = GREATEST(pending_player_activity.updated_at, EXCLUDED.updated_at)
+            """,
+        nativeQuery = true,
+    )
+    fun enqueueIdentityDemand(
+        @Param("normalizedNickname") normalizedNickname: String,
+        @Param("nickname") nickname: String,
         @Param("recordedAt") recordedAt: Instant,
     ): Int
 
