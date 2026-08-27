@@ -61,19 +61,45 @@ describe("SaoRealmPage", () => {
     cleanup()
   })
 
-  it("uses the Mnemos cat hero and an accessible icon-only refresh control", () => {
+  it("uses the current Mnemos cat artwork in the hero and empty state", () => {
     const { container } = render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
+    const catArtwork = container.querySelectorAll(
+      'img[src="/ui-illustrations/mnemos-mascot-cat.svg"]',
+    )
+
+    expect(catArtwork).toHaveLength(2)
+    expect(
+      container.querySelector('img[src="/ui-illustrations/mnemos-mascot-realms.svg"]'),
+    ).toBeNull()
+  })
+
+  it("keeps refresh icon-only and invokes refresh", () => {
+    render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
+
     const refresh = screen.getByRole("button", { name: "people.realms.refresh" })
 
     expect(refresh.textContent).toBe("")
     expect(refresh.getAttribute("title")).toBe("people.realms.refresh")
-    expect(
-      container.querySelector('img[src="/ui-illustrations/mnemos-mascot-cat.svg"]'),
-    ).not.toBeNull()
 
     fireEvent.click(refresh)
 
     expect(state.refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it("accepts search input and clears the current query", () => {
+    render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
+
+    const input = screen.getByPlaceholderText(
+      "people.realms.searchPlaceholder",
+    ) as HTMLInputElement
+
+    fireEvent.input(input, { target: { value: "Crafter" } })
+
+    expect(input.value).toBe("Crafter")
+
+    fireEvent.click(screen.getByRole("button", { name: "common.clear" }))
+
+    expect(input.value).toBe("")
   })
 
   it("disables and marks the refresh icon while refreshing", () => {
