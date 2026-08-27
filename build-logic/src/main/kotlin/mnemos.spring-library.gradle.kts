@@ -3,7 +3,7 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-extra["tomcat.version"] = "11.0.24"
+extra["tomcat.version"] = "11.0.25"
 
 dependencyManagement {
     imports {
