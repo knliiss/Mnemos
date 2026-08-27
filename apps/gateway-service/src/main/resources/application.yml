@@ -93,6 +93,11 @@ spring:
               predicates:
                 - Path=/api/v1/profiles/**
 
+            - id: player-directory-api
+              uri: ${PLAYER_DIRECTORY_SERVICE_URL:http://localhost:8092}
+              predicates:
+                - Path=/api/v1/players/**,/api/v1/realms/**,/api/v1/player-presence-subscriptions,/api/v1/player-presence-subscriptions/**
+
             - id: collector-websocket
               uri: ws://${REALTIME_SERVICE_HOST:localhost}:8088
               predicates:

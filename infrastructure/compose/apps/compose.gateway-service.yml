@@ -24,6 +24,7 @@ services:
       PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
       SOCIAL_SERVICE_URL: http://social-service:8090
       PROFILE_SERVICE_URL: http://profile-service:8091
+      PLAYER_DIRECTORY_SERVICE_URL: http://player-directory-service:8092
       GATEWAY_MODERATION_API_KEY: ${GATEWAY_MODERATION_API_KEY}
       MNEMOS_REALTIME_FORWARDING_TOKEN: ${MNEMOS_REALTIME_FORWARDING_TOKEN}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
@@ -73,6 +74,8 @@ services:
       social-service:
         condition: service_started
       profile-service:
+        condition: service_started
+      player-directory-service:
         condition: service_started
     networks:
       - mnemos-network

@@ -274,12 +274,24 @@ public final class KafkaBootstrap {
                 "event-service",
                 "mnemos.collector.ingress.v2"
         );
+        allowConsumer(
+                acls,
+                "event_service",
+                "event-service",
+                "mnemos.player-directory.events.v1"
+        );
         allowTopicWrite(
                 acls,
                 "event_service",
                 "mnemos.event.events.v1"
         );
 
+        allowConsumer(
+                acls,
+                "player_directory_service",
+                "player-directory-service",
+                "mnemos.account.events.v1"
+        );
         allowConsumer(
                 acls,
                 "player_directory_service",
@@ -375,6 +387,12 @@ public final class KafkaBootstrap {
                 "notification-service",
                 "mnemos.personalization.events.v1"
         );
+        allowConsumer(
+                acls,
+                "notification_service",
+                "notification-service",
+                "mnemos.player-directory.events.v1"
+        );
 
         allowTopicWrite(
                 acls,
@@ -469,6 +487,12 @@ public final class KafkaBootstrap {
                 "profile_service",
                 "profile-service",
                 "mnemos.personalization.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "profile_service",
+                "profile-service",
+                "mnemos.player-directory.events.v1"
         );
 
         return acls;
