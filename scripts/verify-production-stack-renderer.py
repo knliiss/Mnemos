@@ -34,7 +34,12 @@ REPLICA_SAFE_SERVICES = {
     "account-service",
     "event-service",
     "gateway-service",
+    "moderation-service",
+    "notification-service",
     "payment-service",
+    "personalization-service",
+    "realtime-service",
+    "reward-service",
     "wallet-service",
 }
 
