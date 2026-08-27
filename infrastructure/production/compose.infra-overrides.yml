@@ -2,6 +2,10 @@ services:
   app-postgres:
     ports: !reset []
 
+  app-postgres-security-init:
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-postgres-security-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+    volumes: !reset []
+
   keycloak-postgres:
     ports: !reset []
 
@@ -32,3 +36,7 @@ services:
       - --optimized
     volumes: !reset []
     ports: !reset []
+
+  keycloak-config:
+    image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-keycloak-config:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+    volumes: !reset []
