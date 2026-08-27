@@ -27,6 +27,13 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
               AND (CAST(:itemType AS text) IS NULL OR item.type = CAST(:itemType AS text))
               AND (CAST(:itemName AS text) IS NULL OR lower(item.name) = lower(CAST(:itemName AS text)))
               AND (CAST(:playerId AS uuid) IS NULL OR event.player_id = CAST(:playerId AS uuid))
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard_exclusion_projection exclusion
+                  WHERE exclusion.subject_type = 'PLAYER'
+                    AND exclusion.subject_id = event.player_id
+                    AND exclusion.scope IN ('ALL', 'DROPS')
+              )
             GROUP BY event.player_id, identity.nickname
             ORDER BY
                 CASE WHEN :sort = 'TOTAL' AND :direction = 'DESC' THEN count(*) END DESC,

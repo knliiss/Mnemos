@@ -20,6 +20,13 @@ interface BoosterLeaderboardJpaRepository : Repository<BoosterEventEntity, UUID>
             WHERE event.player_id IS NOT NULL
               AND event.activated_at >= :from
               AND (CAST(:to AS timestamptz) IS NULL OR event.activated_at < CAST(:to AS timestamptz))
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard_exclusion_projection exclusion
+                  WHERE exclusion.subject_type = 'PLAYER'
+                    AND exclusion.subject_id = event.player_id
+                    AND exclusion.scope IN ('ALL', 'BOOSTERS')
+              )
             GROUP BY event.player_id, identity.nickname
             ORDER BY count(*) DESC, max(event.activated_at) DESC, lower(identity.nickname) ASC
             LIMIT :limit
