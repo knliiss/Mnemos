@@ -73,13 +73,15 @@ describe("SaoRealmPage", () => {
     ).toBeNull()
   })
 
-  it("keeps refresh icon-only and invokes refresh", () => {
+  it("uses a circular-arrow refresh icon and invokes refresh", () => {
     render(<SaoRealmPage navigate={vi.fn()} back={vi.fn()} />)
 
     const refresh = screen.getByRole("button", { name: "people.realms.refresh" })
 
     expect(refresh.textContent).toBe("")
     expect(refresh.getAttribute("title")).toBe("people.realms.refresh")
+    expect(refresh.querySelector(".sao-realms-refresh__icon")).not.toBeNull()
+    expect(refresh.querySelector(".glyph")).toBeNull()
 
     fireEvent.click(refresh)
 
