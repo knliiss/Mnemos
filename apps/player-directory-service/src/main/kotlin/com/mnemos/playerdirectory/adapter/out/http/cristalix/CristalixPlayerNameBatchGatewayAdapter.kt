@@ -33,7 +33,6 @@ class CristalixPlayerNameBatchGatewayAdapter(
                     client.findByNames(
                         authorization = bearerToken(credential.projectToken),
                         projectKey = credential.projectKey.trim(),
-                        fields = PLAYER_FIELDS,
                         request = CristalixPlayerNameBatchRequest(names = nicknames.map(PlayerNickname::value)),
                     )
                 }
@@ -69,8 +68,4 @@ class CristalixPlayerNameBatchGatewayAdapter(
     }
 
     private fun bearerToken(projectToken: String): String = "Bearer ${projectToken.trim()}"
-
-    companion object {
-        private const val PLAYER_FIELDS = "playerId,name"
-    }
 }
