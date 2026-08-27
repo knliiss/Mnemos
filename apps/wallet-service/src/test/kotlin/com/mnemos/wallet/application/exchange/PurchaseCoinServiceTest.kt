@@ -16,8 +16,10 @@ import com.mnemos.wallet.domain.wallet.model.WalletOwner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
@@ -48,7 +50,7 @@ class PurchaseCoinServiceTest {
 
         whenever(currentUserProvider.requireUserId()).thenReturn(userId)
         whenever(activeAccountProvider.findActiveAccountId(userId)).thenReturn(accountId)
-        whenever(createTransactionService.create(any(), any(), any())).thenReturn(completed)
+        whenever(createTransactionService.create(any(), any(), anyOrNull())).thenReturn(completed)
 
         val result =
             service.purchase(
@@ -58,7 +60,7 @@ class PurchaseCoinServiceTest {
             )
 
         val requests = argumentCaptor<CreateTransactionRequest>()
-        verify(createTransactionService, org.mockito.kotlin.times(2)).create(requests.capture(), any(), any())
+        verify(createTransactionService, times(2)).create(requests.capture(), any(), anyOrNull())
 
         val primeDebit = requests.allValues[0]
         val coinCredit = requests.allValues[1]
