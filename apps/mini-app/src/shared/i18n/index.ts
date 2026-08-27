@@ -12,6 +12,13 @@ import { uk } from "./locales/uk"
 const enTranslation = {
   ...en,
   ...systemEn,
+  events: {
+    ...en.events,
+    subscriptions: {
+      ...en.events.subscriptions,
+      ...playerDirectoryEn.events.subscriptions,
+    },
+  },
   creator: {
     ...en.creator,
     editor: {
@@ -27,6 +34,13 @@ const enTranslation = {
 const ruTranslation = {
   ...ru,
   ...systemRu,
+  events: {
+    ...ru.events,
+    subscriptions: {
+      ...ru.events.subscriptions,
+      ...playerDirectoryRu.events.subscriptions,
+    },
+  },
   creator: {
     ...ru.creator,
     editor: {
@@ -42,6 +56,13 @@ const ruTranslation = {
 const ukTranslation = {
   ...uk,
   ...systemUk,
+  events: {
+    ...uk.events,
+    subscriptions: {
+      ...uk.events.subscriptions,
+      ...playerDirectoryUk.events.subscriptions,
+    },
+  },
   creator: {
     ...uk.creator,
     editor: {
