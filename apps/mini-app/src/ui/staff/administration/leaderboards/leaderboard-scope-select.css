@@ -1,0 +1,117 @@
+.leaderboard-scope-field {
+  display: grid;
+  gap: 6px;
+  color: #9aa193;
+  font-size: 11px;
+}
+
+.leaderboard-scope-select {
+  position: relative;
+}
+
+.leaderboard-scope-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 241, 213, 0.1);
+  border-radius: 12px;
+  color: #e0e5dc;
+  background: rgba(8, 11, 8, 0.78);
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.leaderboard-scope-select.is-open .leaderboard-scope-select__trigger {
+  border-color: rgba(203, 255, 45, 0.18);
+  background: rgba(12, 15, 10, 0.94);
+}
+
+.leaderboard-scope-select__chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  color: #7c8575;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 150ms ease;
+}
+
+.leaderboard-scope-select.is-open .leaderboard-scope-select__chevron {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+.leaderboard-scope-select__listbox {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid rgba(235, 241, 213, 0.11);
+  border-radius: 13px;
+  background: rgba(10, 13, 9, 0.98);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(20px);
+}
+
+.leaderboard-scope-select__listbox button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #929b8c;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  text-align: left;
+}
+
+.leaderboard-scope-select__listbox button:hover,
+.leaderboard-scope-select__listbox button:focus-visible {
+  outline: 0;
+  border-color: rgba(235, 241, 213, 0.08);
+  color: #c8cec2;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.leaderboard-scope-select__listbox button.is-selected {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #dff78f;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.leaderboard-scope-select__listbox button .glyph {
+  justify-self: end;
+}
+
+@media (max-width: 430px) {
+  .leaderboard-scope-select__listbox {
+    position: fixed;
+    z-index: 90;
+    top: auto;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 12px;
+    padding: 7px;
+    border-radius: 16px;
+  }
+
+  .leaderboard-scope-select__listbox button {
+    min-height: 44px;
+    padding-inline: 11px;
+  }
+}

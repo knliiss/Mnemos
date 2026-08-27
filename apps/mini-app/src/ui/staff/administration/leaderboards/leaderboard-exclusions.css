@@ -101,7 +101,6 @@
 }
 
 .leaderboard-exclusion-form input,
-.leaderboard-exclusion-form select,
 .leaderboard-exclusion-form textarea {
   width: 100%;
   min-height: 44px;

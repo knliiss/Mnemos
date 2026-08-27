@@ -6,11 +6,11 @@ import type {
 } from "@/shared/api/leaderboardExclusionApi"
 import { PageHeader } from "../../../shared/Primitives"
 import { FeatureLoading } from "../../../system/FeatureLoading"
+import { LeaderboardScopeSelect } from "./LeaderboardScopeSelect"
 import { useLeaderboardExclusions } from "./useLeaderboardExclusions"
 import "./leaderboard-exclusions.css"
 
 const subjectTypes: LeaderboardExclusionSubjectType[] = ["ACCOUNT", "PLAYER"]
-const scopes: LeaderboardExclusionScope[] = ["ALL", "COINS", "DROPS", "BOOSTERS"]
 
 export function LeaderboardExclusionAdmin({ back }: { back(): void }) {
   const { t } = useTranslation()
@@ -84,27 +84,7 @@ export function LeaderboardExclusionAdmin({ back }: { back(): void }) {
           <small>{t(`leaderboardExclusions.targetHint.${subjectType}`)}</small>
         </label>
 
-        <label>
-          <span>{t("leaderboardExclusions.scope")}</span>
-          <select
-            value={scope}
-            onChange={(event) => setScope(event.target.value as LeaderboardExclusionScope)}
-          >
-            {scopes
-              .filter((value) => {
-                if (subjectType === "ACCOUNT") {
-                  return value === "ALL" || value === "COINS"
-                }
-
-                return value === "ALL" || value === "DROPS" || value === "BOOSTERS"
-              })
-              .map((value) => (
-                <option key={value} value={value}>
-                  {t(`leaderboardExclusions.scopes.${value}`)}
-                </option>
-              ))}
-          </select>
-        </label>
+        <LeaderboardScopeSelect subjectType={subjectType} value={scope} onChange={setScope} />
 
         <label>
           <span>{t("leaderboardExclusions.reason")}</span>
