@@ -1,0 +1,62 @@
+name: Temporary Verified Feature Pages Deploy
+
+on:
+  push:
+    branches:
+      - feat/player-directory-presence
+    paths:
+      - ".github/workflows/temporary-feature-pages-deploy.yml"
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
+
+env:
+  VERIFIED_SHA: 1389185199cfcf152466c930ff7be6720bcd2ab9
+  VITE_KEYCLOAK_URL: https://auth.knalis.rest
+  VITE_KEYCLOAK_REALM: mnemos
+  VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
+  VITE_API_URL: https://api.knalis.rest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout exact verified SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.VERIFIED_SHA }}
+
+      - name: Verify checkout SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VERIFIED_SHA"
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 25.9.0
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mini-app
+        run: npm ci
+
+      - name: Build production Mini App
+        working-directory: apps/mini-app
+        run: npm run build
+
+      - name: Deploy exact verified build to Cloudflare Pages production
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
