@@ -7,7 +7,7 @@ import java.time.Duration
 @Component
 @ConfigurationProperties("mnemos.payment.stars")
 class StarPrimePurchaseProperties {
-    var packages: String = "25:25,50:50,100:100,250:250"
+    var packages: String = "25:25,50:50,100:100,250:250,500:500,1000:1000"
     var invoiceLifetime: Duration = Duration.ofMinutes(15)
     var invoicePhotoUrl: String? = "https://app.knalis.rest/ui-illustrations/prime-cache.png"
 }
