@@ -8,12 +8,13 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
 import feign.FeignException
 import org.springframework.stereotype.Component
-import java.time.Instant
+import java.time.Clock
 
 @Component
 class CristalixPlayerGatewayAdapter(
     private val client: CristalixPlayerClient,
     private val requestExecutor: CristalixRequestExecutor,
+    private val clock: Clock,
 ) : CristalixPlayerGateway {
     override fun findById(playerId: CristalixPlayerId): PlayerObservation? =
         executeLookup {
@@ -43,7 +44,7 @@ class CristalixPlayerGatewayAdapter(
                 .execute(
                     lane = CristalixCredentialLane.INTERACTIVE,
                     request = request,
-                ).toObservation(Instant.now())
+                ).toObservation(clock.instant())
         } catch (_: FeignException.NotFound) {
             null
         } catch (exception: FeignException.Forbidden) {
