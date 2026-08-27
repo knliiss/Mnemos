@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("mnemos.wallet.coin-purchase")
 class CoinPurchaseProperties {
     var coinPerPrime: Long = 100
-    var primeAmounts: List<Long> = listOf(5, 10, 25, 50)
+    var primeAmounts: List<Long> = listOf(5, 10, 25, 50, 100, 250)
 
     fun normalizedPrimeAmounts(): List<Long> =
         primeAmounts
