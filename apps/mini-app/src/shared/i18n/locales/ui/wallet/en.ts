@@ -22,7 +22,8 @@ export const walletEn = {
       success: "Payment confirmed. PRIME has been credited to your balance.",
       fulfillmentDelayed:
         "Telegram confirmed the payment, but PRIME crediting is delayed. Do not pay for the package again — Mnemos has saved the purchase.",
-      processing: "Payment accepted. Mnemos is finishing the PRIME credit and the balance will update automatically.",
+      processing:
+        "Payment accepted. Mnemos is finishing the PRIME credit and the balance will update automatically.",
       confirm: {
         eyebrow: "PURCHASE CONFIRMATION",
         title: "Buy PRIME with Stars?",
