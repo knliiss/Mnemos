@@ -94,7 +94,7 @@ export function SaoRealmPage({ navigate, back }: Props) {
           onClick={directory.refresh}
           disabled={directory.refreshing}
         >
-          <Glyph name="swap" size={15} />
+          <RefreshIcon />
         </button>
       </div>
 
@@ -138,5 +138,27 @@ export function SaoRealmPage({ navigate, back }: Props) {
         </section>
       ) : null}
     </div>
+  )
+}
+
+function RefreshIcon() {
+  return (
+    <svg
+      className="sao-realms-refresh__icon"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 0 0-15.9-5.7L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M3 12a9 9 0 0 0 15.9 5.7L21 16" />
+      <path d="M21 21v-5h-5" />
+    </svg>
   )
 }
