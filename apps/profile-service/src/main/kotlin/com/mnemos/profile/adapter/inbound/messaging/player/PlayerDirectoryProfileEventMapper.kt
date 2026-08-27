@@ -19,6 +19,5 @@ object PlayerDirectoryProfileEventMapper {
             updatedAt = observedAt,
         )
 
-    fun PlayerPresenceStatusV1.toDomain(): ProfilePlayerState.PresenceStatus =
-        ProfilePlayerState.PresenceStatus.valueOf(name)
+    fun PlayerPresenceStatusV1.toDomain(): ProfilePlayerState.PresenceStatus = ProfilePlayerState.PresenceStatus.valueOf(name)
 }
