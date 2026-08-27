@@ -6,6 +6,7 @@ import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import { PublicProfilePresencePanel } from "../presence/PublicProfilePresencePanel"
 import { ProfileCommentsSheet } from "./comments/ProfileCommentsSheet"
 import { useProfileComments } from "./comments/useProfileComments"
 import { usePublicProfileData } from "./data/usePublicProfileData"
@@ -92,6 +93,8 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
         onToggleReaction={toggleReaction}
         onOpenComments={() => setCommentsOpen(true)}
       />
+
+      <PublicProfilePresencePanel profile={profile} />
 
       <PublicProfileDropsSection drops={drops} locale={locale} navigate={navigate} />
 
