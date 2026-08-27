@@ -1,0 +1,100 @@
+name: Production Images
+
+on:
+  workflow_run:
+    workflows:
+      - Backend Verify
+    types:
+      - completed
+
+concurrency:
+  group: production-images-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout verified revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Assemble production artifacts
+        run: ./gradlew assemble --no-daemon
+
+      - name: Configure Docker Buildx
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker buildx create \
+            --driver docker-container \
+            --name mnemos-production-builder \
+            --use
+
+          docker buildx inspect --bootstrap
+
+      - name: Authenticate to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Publish immutable images
+        shell: bash
+        env:
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          MNEMOS_IMAGE_PUSH: "true"
+        run: |
+          set -euo pipefail
+
+          KEYCLOAK_VERSION="$(sed -n 's/^KEYCLOAK_VERSION=//p' .env.example)"
+
+          if [ -z "$KEYCLOAK_VERSION" ]; then
+            echo "KEYCLOAK_VERSION is missing from .env.example" >&2
+            exit 1
+          fi
+
+          export KEYCLOAK_VERSION
+
+          sh scripts/publish-production-images.sh
+
+      - name: Publish image summary
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          REGISTRY: ghcr.io/${{ github.repository_owner }}
+        run: |
+          {
+            echo "## Production images"
+            echo
+            echo "Immutable release tag: \`$RELEASE_SHA\`"
+            echo
+            echo "Registry: \`$REGISTRY\`"
+          } >> "$GITHUB_STEP_SUMMARY"
