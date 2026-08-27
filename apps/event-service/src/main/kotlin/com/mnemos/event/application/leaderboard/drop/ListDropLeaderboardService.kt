@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ListDropLeaderboardService(
     private val reader: DropLeaderboardReader,
+    private val cache: DropLeaderboardCache,
     private val resolveWipeService: ResolveWipeService,
 ) {
     fun execute(query: DropLeaderboardQuery): List<DropLeaderboardEntry> {
@@ -18,12 +19,24 @@ class ListDropLeaderboardService(
                 nickname = query.nickname?.trim()?.takeIf(String::isNotEmpty),
                 limit = query.limit.coerceIn(MIN_LIMIT, MAX_LIMIT),
             )
+        val cacheKey =
+            DropLeaderboardCache.Key(
+                wipeId = wipe.id,
+                query = normalizedQuery.copy(wipeId = wipe.id),
+            )
 
-        return reader.read(
-            from = wipe.startedAt,
-            to = wipe.endedAt,
-            query = normalizedQuery,
-        )
+        cache.get(cacheKey)?.let { return it }
+
+        val entries =
+            reader.read(
+                from = wipe.startedAt,
+                to = wipe.endedAt,
+                query = normalizedQuery,
+            )
+
+        cache.put(cacheKey, entries)
+
+        return entries
     }
 
     private companion object {

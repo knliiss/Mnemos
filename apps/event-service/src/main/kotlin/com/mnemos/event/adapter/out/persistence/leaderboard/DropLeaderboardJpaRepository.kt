@@ -11,23 +11,23 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
     @Query(
         value = """
             SELECT
-                event.dropped_for AS "nickname",
+                event.player_id AS "playerId",
+                identity.nickname AS "nickname",
                 count(*) AS "totalDrops",
                 count(*) FILTER (WHERE item.rarity = 'MYTHICAL') AS "mythicalDrops",
                 count(*) FILTER (WHERE item.rarity = 'SECRET') AS "secretDrops",
                 max(event.occurred_at) AS "lastDropAt"
             FROM item_drop_events event
             JOIN items item ON item.id = event.item_id
-            WHERE event.occurred_at >= :from
+            JOIN player_identity_projection identity ON identity.player_id = event.player_id
+            WHERE event.player_id IS NOT NULL
+              AND event.occurred_at >= :from
               AND (CAST(:to AS timestamptz) IS NULL OR event.occurred_at < CAST(:to AS timestamptz))
               AND (CAST(:rarity AS text) IS NULL OR item.rarity = CAST(:rarity AS text))
               AND (CAST(:itemType AS text) IS NULL OR item.type = CAST(:itemType AS text))
               AND (CAST(:itemName AS text) IS NULL OR lower(item.name) = lower(CAST(:itemName AS text)))
-              AND (
-                  CAST(:nickname AS text) IS NULL
-                  OR position(lower(CAST(:nickname AS text)) in lower(event.dropped_for)) > 0
-              )
-            GROUP BY event.dropped_for
+              AND (CAST(:playerId AS uuid) IS NULL OR event.player_id = CAST(:playerId AS uuid))
+            GROUP BY event.player_id, identity.nickname
             ORDER BY
                 CASE WHEN :sort = 'TOTAL' AND :direction = 'DESC' THEN count(*) END DESC,
                 CASE WHEN :sort = 'TOTAL' AND :direction = 'ASC' THEN count(*) END ASC,
@@ -44,7 +44,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
                     count(*) FILTER (WHERE item.rarity = 'SECRET')
                 END ASC,
                 count(*) DESC,
-                lower(event.dropped_for) ASC
+                lower(identity.nickname) ASC
             LIMIT :limit
         """,
         nativeQuery = true,
@@ -55,7 +55,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
         @Param("rarity") rarity: String?,
         @Param("itemType") itemType: String?,
         @Param("itemName") itemName: String?,
-        @Param("nickname") nickname: String?,
+        @Param("playerId") playerId: UUID?,
         @Param("sort") sort: String,
         @Param("direction") direction: String,
         @Param("limit") limit: Int,
