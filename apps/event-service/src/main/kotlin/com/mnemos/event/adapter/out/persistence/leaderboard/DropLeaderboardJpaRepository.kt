@@ -12,14 +12,13 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
         value = """
             SELECT
                 event.player_id AS "playerId",
-                identity.nickname AS "nickname",
+                (array_agg(event.dropped_for ORDER BY event.occurred_at DESC, event.id DESC))[1] AS "nickname",
                 count(*) AS "totalDrops",
                 count(*) FILTER (WHERE item.rarity = 'MYTHICAL') AS "mythicalDrops",
                 count(*) FILTER (WHERE item.rarity = 'SECRET') AS "secretDrops",
                 max(event.occurred_at) AS "lastDropAt"
             FROM item_drop_events event
             JOIN items item ON item.id = event.item_id
-            JOIN player_identity_projection identity ON identity.player_id = event.player_id
             WHERE event.player_id IS NOT NULL
               AND event.occurred_at >= :from
               AND (CAST(:to AS timestamptz) IS NULL OR event.occurred_at < CAST(:to AS timestamptz))
@@ -34,7 +33,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
                     AND exclusion.subject_id = event.player_id
                     AND exclusion.scope IN ('ALL', 'DROPS')
               )
-            GROUP BY event.player_id, identity.nickname
+            GROUP BY event.player_id
             ORDER BY
                 CASE WHEN :sort = 'TOTAL' AND :direction = 'DESC' THEN count(*) END DESC,
                 CASE WHEN :sort = 'TOTAL' AND :direction = 'ASC' THEN count(*) END ASC,
@@ -51,7 +50,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
                     count(*) FILTER (WHERE item.rarity = 'SECRET')
                 END ASC,
                 count(*) DESC,
-                lower(identity.nickname) ASC
+                lower((array_agg(event.dropped_for ORDER BY event.occurred_at DESC, event.id DESC))[1]) ASC
             LIMIT :limit
         """,
         nativeQuery = true,

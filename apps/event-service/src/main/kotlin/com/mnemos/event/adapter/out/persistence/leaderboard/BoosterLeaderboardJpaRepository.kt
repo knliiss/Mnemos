@@ -12,11 +12,10 @@ interface BoosterLeaderboardJpaRepository : Repository<BoosterEventEntity, UUID>
         value = """
             SELECT
                 event.player_id AS "playerId",
-                identity.nickname AS "nickname",
+                (array_agg(event.activated_by ORDER BY event.activated_at DESC, event.id DESC))[1] AS "nickname",
                 count(*) AS "totalBoosters",
                 max(event.activated_at) AS "lastActivatedAt"
             FROM booster_events event
-            JOIN player_identity_projection identity ON identity.player_id = event.player_id
             WHERE event.player_id IS NOT NULL
               AND event.activated_at >= :from
               AND (CAST(:to AS timestamptz) IS NULL OR event.activated_at < CAST(:to AS timestamptz))
@@ -27,8 +26,11 @@ interface BoosterLeaderboardJpaRepository : Repository<BoosterEventEntity, UUID>
                     AND exclusion.subject_id = event.player_id
                     AND exclusion.scope IN ('ALL', 'BOOSTERS')
               )
-            GROUP BY event.player_id, identity.nickname
-            ORDER BY count(*) DESC, max(event.activated_at) DESC, lower(identity.nickname) ASC
+            GROUP BY event.player_id
+            ORDER BY
+                count(*) DESC,
+                max(event.activated_at) DESC,
+                lower((array_agg(event.activated_by ORDER BY event.activated_at DESC, event.id DESC))[1]) ASC
             LIMIT :limit
         """,
         nativeQuery = true,

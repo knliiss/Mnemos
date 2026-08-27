@@ -36,9 +36,12 @@ class DropLeaderboardJpaAdapter(
                 direction = query.direction.name,
                 limit = query.limit,
             ).map { projection ->
+                val projectionPlayerId = CristalixPlayerId(projection.getPlayerId())
+                val currentNickname = playerIdentityRepository.findCurrentNickname(projectionPlayerId)
+
                 DropLeaderboardEntry(
-                    playerId = CristalixPlayerId(projection.getPlayerId()),
-                    nickname = projection.getNickname(),
+                    playerId = projectionPlayerId,
+                    nickname = currentNickname ?: projection.getNickname(),
                     totalDrops = projection.getTotalDrops(),
                     mythicalDrops = projection.getMythicalDrops(),
                     secretDrops = projection.getSecretDrops(),
