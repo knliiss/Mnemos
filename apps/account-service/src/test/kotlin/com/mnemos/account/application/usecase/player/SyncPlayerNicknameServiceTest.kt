@@ -10,6 +10,7 @@ import com.mnemos.common.core.model.id.AccountId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -29,10 +30,10 @@ class SyncPlayerNicknameServiceTest {
         whenever(accountRepository.findByCristalixUuidForUpdate(PLAYER_ID)).thenReturn(account)
         whenever(
             revisionStore.advanceIfNewer(
-                playerId = PLAYER_ID,
-                nickname = CristalixNickname("NewNick"),
-                externalVersion = 7,
-                observedAt = OBSERVED_AT,
+                playerId = eq(PLAYER_ID),
+                nickname = eq(CristalixNickname("NewNick")),
+                externalVersion = eq(7),
+                observedAt = eq(OBSERVED_AT),
                 recordedAt = any(),
             ),
         ).thenReturn(true)
@@ -67,10 +68,10 @@ class SyncPlayerNicknameServiceTest {
         whenever(accountRepository.findByCristalixUuidForUpdate(PLAYER_ID)).thenReturn(account)
         whenever(
             revisionStore.advanceIfNewer(
-                playerId = PLAYER_ID,
-                nickname = CristalixNickname("InactiveNick"),
-                externalVersion = 8,
-                observedAt = OBSERVED_AT,
+                playerId = eq(PLAYER_ID),
+                nickname = eq(CristalixNickname("InactiveNick")),
+                externalVersion = eq(8),
+                observedAt = eq(OBSERVED_AT),
                 recordedAt = any(),
             ),
         ).thenReturn(true)
@@ -92,10 +93,10 @@ class SyncPlayerNicknameServiceTest {
         whenever(accountRepository.findByCristalixUuidForUpdate(PLAYER_ID)).thenReturn(null)
         whenever(
             revisionStore.advanceIfNewer(
-                playerId = PLAYER_ID,
-                nickname = CristalixNickname("FutureNick"),
-                externalVersion = 9,
-                observedAt = OBSERVED_AT,
+                playerId = eq(PLAYER_ID),
+                nickname = eq(CristalixNickname("FutureNick")),
+                externalVersion = eq(9),
+                observedAt = eq(OBSERVED_AT),
                 recordedAt = any(),
             ),
         ).thenReturn(true)
@@ -103,10 +104,10 @@ class SyncPlayerNicknameServiceTest {
         service.execute(command)
 
         verify(revisionStore).advanceIfNewer(
-            playerId = PLAYER_ID,
-            nickname = CristalixNickname("FutureNick"),
-            externalVersion = 9,
-            observedAt = OBSERVED_AT,
+            playerId = eq(PLAYER_ID),
+            nickname = eq(CristalixNickname("FutureNick")),
+            externalVersion = eq(9),
+            observedAt = eq(OBSERVED_AT),
             recordedAt = any(),
         )
         verify(accountRepository, never()).update(any())
@@ -122,10 +123,10 @@ class SyncPlayerNicknameServiceTest {
         whenever(accountRepository.findByCristalixUuidForUpdate(PLAYER_ID)).thenReturn(account)
         whenever(
             revisionStore.advanceIfNewer(
-                playerId = PLAYER_ID,
-                nickname = CristalixNickname("OldNick"),
-                externalVersion = externalVersion,
-                observedAt = OBSERVED_AT,
+                playerId = eq(PLAYER_ID),
+                nickname = eq(CristalixNickname("OldNick")),
+                externalVersion = eq(externalVersion),
+                observedAt = eq(OBSERVED_AT),
                 recordedAt = any(),
             ),
         ).thenReturn(false)
