@@ -1,6 +1,12 @@
 ENV_FILE ?= .env
 GRADLEW ?= ./gradlew
 
+MINI_APP_DIR := apps/mini-app
+MINI_APP_NODE_VERSION_FILE := $(MINI_APP_DIR)/.node-version
+MINI_APP_ENV_FILE ?= $(MINI_APP_DIR)/.env.local
+MINI_APP_DEV_HOST ?= 127.0.0.1
+MINI_APP_DEV_PORT ?= 5173
+
 COMPOSE_DIR := infrastructure/compose
 BASE_COMPOSE := $(COMPOSE_DIR)/compose.base.yml
 INFRA_COMPOSE := $(sort $(filter-out $(BASE_COMPOSE),$(wildcard $(COMPOSE_DIR)/compose.*.yml)))
