@@ -39,7 +39,31 @@ export function useSaoRealmDirectory() {
   }, [])
 
   useEffect(() => {
-    void load()
+    let active = true
+
+    requestInFlight.current = true
+
+    void getSaoRealmSnapshot()
+      .then((nextSnapshot) => {
+        if (!active) {
+          return
+        }
+
+        setSnapshot(nextSnapshot)
+        setError(false)
+      })
+      .catch(() => {
+        if (active) {
+          setError(true)
+        }
+      })
+      .finally(() => {
+        requestInFlight.current = false
+
+        if (active) {
+          setLoading(false)
+        }
+      })
 
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -47,7 +71,10 @@ export function useSaoRealmDirectory() {
       }
     }, REFRESH_INTERVAL_MS)
 
-    return () => window.clearInterval(interval)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
   }, [load])
 
   return {

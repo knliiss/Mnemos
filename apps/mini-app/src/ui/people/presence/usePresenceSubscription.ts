@@ -25,8 +25,31 @@ export function usePresenceSubscription(playerId: string) {
   }, [playerId])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    void listPresenceSubscriptions()
+      .then((subscriptions) => {
+        if (!active) {
+          return
+        }
+
+        setSubscribed(subscriptions.some((subscription) => subscription.playerId === playerId))
+      })
+      .catch((error) => {
+        if (active) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [playerId])
 
   const toggle = useCallback(async () => {
     if (busy) {

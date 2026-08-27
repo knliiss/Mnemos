@@ -36,8 +36,29 @@ export function useLeaderboardExclusions() {
   }, [])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    void listLeaderboardExclusions()
+      .then((exclusions) => {
+        if (active) {
+          setItems(exclusions)
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const create = useCallback(async (form: CreateLeaderboardExclusionForm): Promise<boolean> => {
     if (busy) {
