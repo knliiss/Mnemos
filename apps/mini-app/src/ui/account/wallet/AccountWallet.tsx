@@ -59,6 +59,8 @@ export function AccountWallet({ back }: { back: () => void }) {
       <CoinPurchasePanel
         accountId={activeAccount.id}
         accountNickname={activeAccount.nickname}
+        coinBalance={activeAccount.coin}
+        locale={locale}
         onPurchased={retry}
       />
 
