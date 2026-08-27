@@ -10,10 +10,7 @@ import { notifications } from "@/shared/notifications/notificationCenter"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { CurrencyMark } from "../../shared/MnemosIcon"
 import { CurrencyValue } from "../../shared/Primitives"
-import {
-  WalletPurchaseSheet,
-  type WalletPurchaseMessage,
-} from "../../shared/WalletPurchaseSheet"
+import { WalletPurchaseSheet, type WalletPurchaseMessage } from "../../shared/WalletPurchaseSheet"
 import "./coin-purchase.css"
 
 type Props = {
@@ -167,7 +164,11 @@ export function CoinPurchasePanel({
         {loading ? (
           <div className="coin-buy-panel__state">{t("accountWallet.purchase.loading")}</div>
         ) : loadError || !catalog ? (
-          <button type="button" className="coin-buy-panel__retry" onClick={() => void loadCatalog()}>
+          <button
+            type="button"
+            className="coin-buy-panel__retry"
+            onClick={() => void loadCatalog()}
+          >
             {t("accountWallet.purchase.retry")}
           </button>
         ) : (
@@ -190,9 +191,7 @@ export function CoinPurchasePanel({
                       <CurrencyMark currency="COIN" size={21} />
                     </span>
                     <span className="coin-pack-grid__copy">
-                      <small>
-                        1 PRIME = {catalog.coinPerPrime.toLocaleString(locale)} COIN
-                      </small>
+                      <small>1 PRIME = {catalog.coinPerPrime.toLocaleString(locale)} COIN</small>
                       <strong>{option.coinAmount.toLocaleString(locale)} COIN</strong>
                       <em>{option.primeAmount.toLocaleString(locale)} PRIME</em>
                     </span>
@@ -206,13 +205,15 @@ export function CoinPurchasePanel({
                 <div>
                   <small>{t("accountWallet.purchase.afterCoin")}</small>
                   <strong>
-                    {coinBalance.toLocaleString(locale)} → {coinAfterPurchase.toLocaleString(locale)}
+                    {coinBalance.toLocaleString(locale)} →{" "}
+                    {coinAfterPurchase.toLocaleString(locale)}
                   </strong>
                 </div>
                 <div>
                   <small>{t("accountWallet.purchase.afterPrime")}</small>
                   <strong>
-                    {data.user.prime.toLocaleString(locale)} → {primeAfterPurchase.toLocaleString(locale)}
+                    {data.user.prime.toLocaleString(locale)} →{" "}
+                    {primeAfterPurchase.toLocaleString(locale)}
                   </strong>
                 </div>
               </div>
