@@ -11,11 +11,9 @@ import java.util.UUID
 class StarPrimePurchaseRepositoryAdapter(
     private val repository: StarPrimePurchaseJpaRepository,
 ) : StarPrimePurchaseRepository {
-    override fun save(purchase: StarPrimePurchase): StarPrimePurchase =
-        repository.save(purchase.toEntity()).toDomain()
+    override fun save(purchase: StarPrimePurchase): StarPrimePurchase = repository.save(purchase.toEntity()).toDomain()
 
-    override fun findById(id: UUID): StarPrimePurchase? =
-        repository.findById(id).orElse(null)?.toDomain()
+    override fun findById(id: UUID): StarPrimePurchase? = repository.findById(id).orElse(null)?.toDomain()
 
     override fun findByInvoicePayload(invoicePayload: String): StarPrimePurchase? =
         repository.findByInvoicePayloadForUpdate(invoicePayload)?.toDomain()
