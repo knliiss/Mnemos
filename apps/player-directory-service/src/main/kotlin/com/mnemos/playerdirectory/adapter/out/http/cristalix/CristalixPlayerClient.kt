@@ -24,7 +24,7 @@ interface CristalixPlayerClient {
         @RequestParam fields: String,
     ): CristalixPlayerResponse
 
-    @GetMapping("/v1/api/players/names/{nickname}")
+    @GetMapping("/v1/api/players/by-name/{nickname}")
     fun findByNickname(
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @RequestHeader("X-Project-Key") projectKey: String,

@@ -1,22 +1,20 @@
 package com.mnemos.playerdirectory.adapter.out.http.cristalix
 
-import com.mnemos.playerdirectory.adapter.out.http.cristalix.CristalixPlayerApiMapper.toObservation
 import com.mnemos.playerdirectory.application.player.exception.PlayerDirectoryUpstreamUnavailableException
-import com.mnemos.playerdirectory.application.player.model.PlayerNicknameObservationBatch
+import com.mnemos.playerdirectory.application.player.model.PlayerNicknameIdentityBatch
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerNameBatchGateway
+import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import feign.FeignException
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class CristalixPlayerNameBatchGatewayAdapter(
     private val client: CristalixPlayerClient,
     private val requestExecutor: CristalixRequestExecutor,
     private val metrics: CristalixApiMetrics,
-    private val clock: Clock,
 ) : CristalixPlayerNameBatchGateway {
-    override fun findByNicknames(nicknames: List<PlayerNickname>): PlayerNicknameObservationBatch {
+    override fun findByNicknames(nicknames: List<PlayerNickname>): PlayerNicknameIdentityBatch {
         require(nicknames.isNotEmpty()) {
             "Cristalix player nickname batch cannot be empty"
         }
@@ -29,8 +27,6 @@ class CristalixPlayerNameBatchGatewayAdapter(
             size = nicknames.size,
         )
 
-        val observedAt = clock.instant()
-
         return try {
             val response =
                 requestExecutor.execute(CristalixCredentialLane.MONITORING) { credential ->
@@ -41,11 +37,12 @@ class CristalixPlayerNameBatchGatewayAdapter(
                         request = CristalixPlayerNameBatchRequest(names = nicknames.map(PlayerNickname::value)),
                     )
                 }
-            val observations = response.items.map { player -> player.toObservation(observedAt) }
 
-            PlayerNicknameObservationBatch(
-                observationsByNormalizedNickname =
-                    observations.associateBy { observation -> observation.nickname.normalized() },
+            PlayerNicknameIdentityBatch(
+                playerIdsByNormalizedNickname =
+                    response.items.associate { player ->
+                        PlayerNickname.of(player.name).normalized() to CristalixPlayerId(player.playerId)
+                    },
                 notFoundNormalizedNicknames =
                     response.notFound.mapTo(mutableSetOf()) { nickname ->
                         PlayerNickname.of(nickname).normalized()
@@ -74,8 +71,6 @@ class CristalixPlayerNameBatchGatewayAdapter(
     private fun bearerToken(projectToken: String): String = "Bearer ${projectToken.trim()}"
 
     companion object {
-        private const val PLAYER_FIELDS =
-            "playerId,name,version,updatedAt,social.lastSeenOnline,status.online,status.realm," +
-                "status.realmType,status.privacyHidden,customization.settings"
+        private const val PLAYER_FIELDS = "playerId,name"
     }
 }

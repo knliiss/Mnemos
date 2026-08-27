@@ -6,7 +6,6 @@ import com.mnemos.playerdirectory.application.activity.usecase.claim.ClaimPendin
 import com.mnemos.playerdirectory.application.player.exception.PlayerDirectoryUpstreamUnavailableException
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerNameBatchGateway
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
-import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityCommand
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityUseCase
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
@@ -19,7 +18,6 @@ class ResolvePendingPlayerActivityService(
     private val claimPendingPlayerActivityUseCase: ClaimPendingPlayerActivityUseCase,
     private val nicknameOwnershipRepository: PlayerNicknameOwnershipRepository,
     private val cristalixPlayerNameBatchGateway: CristalixPlayerNameBatchGateway,
-    private val observationCoordinator: PlayerObservationCoordinator,
     private val recordPlayerDropActivityUseCase: RecordPlayerDropActivityUseCase,
     private val completionCoordinator: PendingPlayerActivityCompletionCoordinator,
     private val logger: Logger = Logger.getLogger(ResolvePendingPlayerActivityService::class.java.name),
@@ -61,19 +59,17 @@ class ResolvePendingPlayerActivityService(
             }
 
         unresolved.forEach { lease ->
-            val observation = batch.observationsByNormalizedNickname[lease.nickname.normalized()]
+            val playerId = batch.playerIdsByNormalizedNickname[lease.nickname.normalized()]
 
-            if (observation == null) {
+            if (playerId == null) {
                 completionCoordinator.completeFailure(lease)
                 return@forEach
             }
 
             try {
-                val player = observationCoordinator.apply(observation)
-
                 completeResolved(
                     lease = lease,
-                    playerId = player.id,
+                    playerId = playerId,
                 )
             } catch (exception: RuntimeException) {
                 completionCoordinator.completeFailure(lease)
