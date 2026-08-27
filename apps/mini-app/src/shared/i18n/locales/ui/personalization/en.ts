@@ -3,6 +3,7 @@ export const personalizationEn = {
     loading: "Loading",
     pages: "Catalog pages",
     purchaseFailed: "The purchase could not be completed.",
+    insufficientBalance: "There are not enough funds on your balance for this purchase.",
     target: {
       ACCOUNT: "ACCOUNT",
       USER: "USER",
