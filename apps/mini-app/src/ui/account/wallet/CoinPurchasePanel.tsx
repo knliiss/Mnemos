@@ -5,7 +5,6 @@ import {
   getCoinPurchaseCatalog,
   purchaseCoin,
   type CoinPurchaseCatalogResponse,
-  type CoinPurchaseOptionResponse,
 } from "@/shared/api/walletApi"
 import { notifications } from "@/shared/notifications/notificationCenter"
 import { useMnemosData } from "../../data/MnemosDataProvider"
