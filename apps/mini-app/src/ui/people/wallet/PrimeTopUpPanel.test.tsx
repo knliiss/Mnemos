@@ -82,7 +82,7 @@ describe("PrimeTopUpPanel", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Перейти до оплати" }))
 
     await waitFor(() => {
-      expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      expect(within(dialog).getByRole("alert").textContent).toBe(
         "Оплата Telegram Stars доступна лише всередині Telegram.",
       )
     })
