@@ -57,11 +57,15 @@ export function SaoRealmPage({ navigate, back }: Props) {
       <label className="sao-realms-search">
         <Glyph name="search" size={18} />
         <input
+          type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onInput={(event) => setQuery(event.currentTarget.value)}
           placeholder={t("people.realms.searchPlaceholder")}
           autoCapitalize="off"
+          autoComplete="off"
           autoCorrect="off"
+          spellCheck={false}
+          enterKeyHint="search"
         />
         {query ? (
           <button type="button" onClick={() => setQuery("")} aria-label={t("common.clear")}>
@@ -100,7 +104,7 @@ export function SaoRealmPage({ navigate, back }: Props) {
 
       {directory.error && !directory.snapshot ? (
         <section className="sao-realms-state">
-          <img src="/ui-illustrations/mnemos-mascot-realms.svg" alt="" aria-hidden="true" />
+          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
           <strong>{t("common.loadErrorTitle")}</strong>
           <small>{t("common.loadErrorCopy")}</small>
           <button type="button" onClick={directory.retry}>
@@ -111,7 +115,7 @@ export function SaoRealmPage({ navigate, back }: Props) {
 
       {directory.snapshot && !realms.length ? (
         <section className="sao-realms-state">
-          <img src="/ui-illustrations/mnemos-mascot-realms.svg" alt="" aria-hidden="true" />
+          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
           <strong>
             {normalizedQuery ? t("people.realms.noSearchResults") : t("people.realms.emptyTitle")}
           </strong>
