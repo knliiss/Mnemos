@@ -96,9 +96,7 @@ class ValidateStarPreCheckoutServiceTest {
         assertFalse(result.approved)
     }
 
-    private fun purchase(
-        expiresAt: Instant = NOW.plusSeconds(600),
-    ): StarPrimePurchase =
+    private fun purchase(expiresAt: Instant = NOW.plusSeconds(600)): StarPrimePurchase =
         StarPrimePurchase.create(
             id = UUID.fromString("019c113f-b116-7000-8000-000000000101"),
             userId = UUID.fromString("019c113f-b116-7000-8000-000000000102"),
