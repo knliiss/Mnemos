@@ -44,7 +44,11 @@ export function PrimeTopUpPanel({ onPurchased }: Props) {
   }, [])
 
   useEffect(() => {
-    void loadPackages()
+    const frame = window.requestAnimationFrame(() => {
+      void loadPackages()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [loadPackages])
 
   const confirmPurchase = async () => {
