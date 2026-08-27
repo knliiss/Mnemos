@@ -86,12 +86,16 @@ jobs:
             printf '%s' "$value"
           }
 
+          POSTGRES_VERSION="$(read_env_value POSTGRES_VERSION)"
           KEYCLOAK_VERSION="$(read_env_value KEYCLOAK_VERSION)"
+          KEYCLOAK_CONFIG_CLI_VERSION="$(read_env_value KEYCLOAK_CONFIG_CLI_VERSION)"
           KAFKA_VERSION="$(read_env_value KAFKA_VERSION)"
           REDIS_VERSION="$(read_env_value REDIS_VERSION)"
           MINIO_MC_VERSION="$(read_env_value MINIO_MC_VERSION)"
 
+          export POSTGRES_VERSION
           export KEYCLOAK_VERSION
+          export KEYCLOAK_CONFIG_CLI_VERSION
           export KAFKA_VERSION
           export REDIS_VERSION
           export MINIO_MC_VERSION
