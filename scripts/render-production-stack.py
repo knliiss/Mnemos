@@ -46,6 +46,10 @@ SERVICE_MEMORY_LIMITS = {
 
 DEFAULT_MEMORY_LIMIT = "1280M"
 DEFAULT_MEMORY_RESERVATION = "256M"
+DEFAULT_CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
+CLOUDFLARED_MEMORY_LIMIT = "256M"
+CLOUDFLARED_MEMORY_RESERVATION = "64M"
+CLOUDFLARED_SECRET_TARGET = "/run/secrets/cloudflare_tunnel_token"
 KAFKA_TRUSTSTORE_TARGET = "/etc/mnemos/kafka/kafka.truststore.p12"
 KAFKA_TLS_VOLUME_TARGET = "/etc/mnemos/kafka"
 
@@ -225,17 +229,15 @@ def configure_healthcheck(
     }
 
 
-def configure_deployment(
+def application_deployment_policy(
     service_name: str,
-    service: dict[str, Any],
-) -> None:
+) -> dict[str, Any]:
     replica_safe = service_name in REPLICA_SAFE_SERVICES
     replicas = 2 if replica_safe else 1
     update_order = "start-first" if replica_safe else "stop-first"
     memory_limit = SERVICE_MEMORY_LIMITS.get(service_name, DEFAULT_MEMORY_LIMIT)
 
-    service["stop_grace_period"] = "35s"
-    service["deploy"] = {
+    return {
         "mode": "replicated",
         "replicas": replicas,
         "endpoint_mode": "vip",
@@ -267,6 +269,14 @@ def configure_deployment(
             },
         },
     }
+
+
+def configure_deployment(
+    service_name: str,
+    service: dict[str, Any],
+) -> None:
+    service["stop_grace_period"] = "35s"
+    service["deploy"] = application_deployment_policy(service_name)
 
 
 def sanitize_service(
@@ -314,6 +324,67 @@ def sanitize_service(
     return service
 
 
+def cloudflared_service(
+    image: str,
+) -> dict[str, Any]:
+    return {
+        "image": image,
+        "command": [
+            "tunnel",
+            "run",
+            "--token-file",
+            CLOUDFLARED_SECRET_TARGET,
+        ],
+        "user": "65532:65532",
+        "read_only": True,
+        "cap_drop": ["ALL"],
+        "security_opt": ["no-new-privileges:true"],
+        "stop_grace_period": "20s",
+        "networks": ["mnemos-network"],
+        "secrets": [
+            {
+                "source": "cloudflare_tunnel_token",
+                "target": CLOUDFLARED_SECRET_TARGET,
+                "uid": "65532",
+                "gid": "65532",
+                "mode": 0o400,
+            }
+        ],
+        "deploy": {
+            "mode": "replicated",
+            "replicas": 2,
+            "endpoint_mode": "vip",
+            "update_config": {
+                "parallelism": 1,
+                "delay": "5s",
+                "monitor": "30s",
+                "failure_action": "rollback",
+                "order": "start-first",
+            },
+            "rollback_config": {
+                "parallelism": 1,
+                "delay": "5s",
+                "monitor": "30s",
+                "failure_action": "pause",
+                "order": "start-first",
+            },
+            "restart_policy": {
+                "condition": "any",
+                "delay": "5s",
+                "window": "60s",
+            },
+            "resources": {
+                "limits": {
+                    "memory": CLOUDFLARED_MEMORY_LIMIT,
+                },
+                "reservations": {
+                    "memory": CLOUDFLARED_MEMORY_RESERVATION,
+                },
+            },
+        },
+    }
+
+
 def render_stack(model: dict[str, Any]) -> dict[str, Any]:
     registry = required_environment("MNEMOS_IMAGE_REGISTRY")
     release_tag = required_environment("MNEMOS_RELEASE_TAG")
@@ -322,6 +393,14 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
         "mnemos-production-network",
     ).strip()
     truststore_config = required_environment("MNEMOS_KAFKA_TRUSTSTORE_CONFIG")
+    cloudflare_tunnel_secret = required_environment("MNEMOS_CLOUDFLARE_TUNNEL_SECRET")
+    cloudflared_image = os.environ.get(
+        "MNEMOS_CLOUDFLARED_IMAGE",
+        DEFAULT_CLOUDFLARED_IMAGE,
+    ).strip()
+
+    if not cloudflared_image:
+        raise StackRenderError("MNEMOS_CLOUDFLARED_IMAGE must not be empty")
 
     source_services = model["services"]
     missing_services = [
@@ -345,6 +424,7 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
         )
         for service_name in APPLICATION_SERVICES
     }
+    rendered_services["cloudflared"] = cloudflared_service(cloudflared_image)
 
     return {
         "version": "3.8",
@@ -359,6 +439,12 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
             "kafka_truststore": {
                 "external": True,
                 "name": truststore_config,
+            }
+        },
+        "secrets": {
+            "cloudflare_tunnel_token": {
+                "external": True,
+                "name": cloudflare_tunnel_secret,
             }
         },
     }
