@@ -23,7 +23,7 @@ class StarPrimePurchaseController(
     private val getPurchaseService: GetStarPrimePurchaseService,
 ) {
     @GetMapping("/catalog")
-    fun catalog(): List<StarPrimePackageResponse> = packageCatalog.all().map(StarPrimePackage::toResponse)
+    fun catalog(): List<StarPrimePackageResponse> = packageCatalog.all().map { it.toResponse() }
 
     @PostMapping("/purchases")
     fun create(
