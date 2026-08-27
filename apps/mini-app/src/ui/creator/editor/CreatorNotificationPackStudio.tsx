@@ -1,17 +1,11 @@
-import type { Dispatch, ReactElement, SetStateAction } from "react"
+import type { Dispatch, SetStateAction } from "react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
   NotificationPackEditorDescriptorResponse,
   NotificationPackEditorFieldKey,
 } from "@/shared/api/creatorPersonalizationApi"
-import {
-  BoosterArt,
-  DungeonArt,
-  GlobalEventArt,
-  ItemTypeArt,
-  RaidArt,
-} from "../../components/events/EventArt"
+import { NotificationTemplateArt } from "../../components/personalization/NotificationTemplateArt"
 import type {
   NotificationPackContent,
   NotificationPackVariantField,
@@ -405,7 +399,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
               setSelectedVariantId(null)
             }}
           >
-            <span>{eventArt(candidate.type)}</span>
+            <span>
+              <NotificationTemplateArt templateKey={candidate.type} size={38} />
+            </span>
             <b>{t(`creator.editor.notificationTypes.${candidate.type}`)}</b>
           </button>
         ))}
@@ -760,7 +756,9 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
             </header>
 
             <div>
-              <span>{eventArt(templateDescriptor.type)}</span>
+              <span>
+                <NotificationTemplateArt templateKey={templateDescriptor.type} size={38} />
+              </span>
               <span>
                 <small>
                   {withNotificationEmoji(
@@ -796,24 +794,4 @@ function variableForms(variable: VariableDescriptor): VariableFormDescriptor[] {
 
 function messageTitle(template: NotificationTemplate): string {
   return template.soloTitle || "—"
-}
-
-function eventArt(type: NotificationTemplateKey): ReactElement {
-  if (type === "ITEM_DROP") {
-    return <ItemTypeArt itemType="SWORD" size={38} />
-  }
-
-  if (type === "BOOSTER") {
-    return <BoosterArt boosterType="LUCK" size={38} />
-  }
-
-  if (type === "DUNGEON") {
-    return <DungeonArt size={38} />
-  }
-
-  if (type === "RAID") {
-    return <RaidArt size={38} />
-  }
-
-  return <GlobalEventArt eventType="ECLIPSE" size={38} />
 }
