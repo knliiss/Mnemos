@@ -3,6 +3,7 @@ package com.mnemos.playerdirectory.application.player.support
 import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerPresenceTelemetry
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.Player
@@ -10,9 +11,11 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameHistoryEntry
 import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameOwnership
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
+import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
 import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 import java.time.Instant
 
 @Service
@@ -22,6 +25,7 @@ class PlayerObservationCoordinator(
     private val nicknameHistoryRepository: PlayerNicknameHistoryRepository,
     private val transitionPolicy: PlayerPresenceTransitionPolicy,
     private val eventPublisher: PlayerIntegrationEventPublisher,
+    private val presenceTelemetry: PlayerPresenceTelemetry,
 ) {
     @Transactional
     fun apply(observation: PlayerObservation): Player {
@@ -65,7 +69,32 @@ class PlayerObservationCoordinator(
             observedAt = observation.presence.observedAt,
         )
 
+        recordPresenceTelemetry(
+            previous = current,
+            current = saved,
+            observedAt = observation.presence.observedAt,
+        )
+
         return saved
+    }
+
+    private fun recordPresenceTelemetry(
+        previous: Player,
+        current: Player,
+        observedAt: Instant,
+    ) {
+        val candidateSince = previous.offlineCandidateSince ?: return
+        val offlineConfirmed =
+            previous.lastVerifiedPresenceStatus == PlayerPresenceStatus.ONLINE &&
+                current.lastVerifiedPresenceStatus == PlayerPresenceStatus.OFFLINE
+
+        if (!offlineConfirmed) {
+            return
+        }
+
+        presenceTelemetry.recordOfflineDetectionLatency(
+            Duration.between(candidateSince, observedAt),
+        )
     }
 
     private fun synchronizeNicknameOwnership(

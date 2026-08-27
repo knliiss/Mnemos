@@ -3,6 +3,7 @@ package com.mnemos.playerdirectory.application.player.support
 import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerPresenceTelemetry
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.Player
@@ -60,10 +61,55 @@ class PlayerObservationCoordinatorTest {
         assertNull(ownershipRepository.findByNickname(PlayerNickname.of("StaleName")))
     }
 
+    @Test
+    fun `confirmed offline transition records detection latency`() {
+        val playerRepository = InMemoryPlayerRepository()
+        val ownershipRepository = InMemoryNicknameOwnershipRepository()
+        val historyRepository = InMemoryNicknameHistoryRepository()
+        val telemetry = RecordingPlayerPresenceTelemetry()
+        val coordinator =
+            coordinator(
+                playerRepository = playerRepository,
+                ownershipRepository = ownershipRepository,
+                historyRepository = historyRepository,
+                presenceTelemetry = telemetry,
+            )
+
+        coordinator.apply(
+            observation(
+                playerId = firstPlayerId,
+                nickname = "TrackedPlayer",
+                version = 1,
+                observedAt = "2026-08-27T00:00:00Z",
+            ),
+        )
+        coordinator.apply(
+            observation(
+                playerId = firstPlayerId,
+                nickname = "TrackedPlayer",
+                version = 2,
+                observedAt = "2026-08-27T00:00:01Z",
+                status = PlayerPresenceStatus.OFFLINE,
+            ),
+        )
+        coordinator.apply(
+            observation(
+                playerId = firstPlayerId,
+                nickname = "TrackedPlayer",
+                version = 3,
+                observedAt = "2026-08-27T00:00:11Z",
+                status = PlayerPresenceStatus.OFFLINE,
+            ),
+        )
+
+        assertEquals(listOf(Duration.ofSeconds(10)), telemetry.offlineDetectionLatencies)
+    }
+
     private fun coordinator(
         playerRepository: PlayerRepository,
         ownershipRepository: PlayerNicknameOwnershipRepository,
         historyRepository: PlayerNicknameHistoryRepository,
+        presenceTelemetry: PlayerPresenceTelemetry = NoOpPlayerPresenceTelemetry,
     ): PlayerObservationCoordinator =
         PlayerObservationCoordinator(
             playerRepository = playerRepository,
@@ -71,6 +117,7 @@ class PlayerObservationCoordinatorTest {
             nicknameHistoryRepository = historyRepository,
             transitionPolicy = PlayerPresenceTransitionPolicy(Duration.ofSeconds(10), 2),
             eventPublisher = NoOpPlayerIntegrationEventPublisher,
+            presenceTelemetry = presenceTelemetry,
         )
 
     private fun observation(
@@ -78,22 +125,26 @@ class PlayerObservationCoordinatorTest {
         nickname: String,
         version: Long,
         observedAt: String,
-    ): PlayerObservation =
-        PlayerObservation(
+        status: PlayerPresenceStatus = PlayerPresenceStatus.ONLINE,
+    ): PlayerObservation {
+        val online = status == PlayerPresenceStatus.ONLINE
+
+        return PlayerObservation(
             playerId = playerId,
             nickname = PlayerNickname.of(nickname),
             externalVersion = version,
             externalUpdatedAt = Instant.parse(observedAt),
             presence =
                 PlayerPresence(
-                    status = PlayerPresenceStatus.ONLINE,
-                    realm = "SAO-1",
-                    realmType = "SAO",
+                    status = status,
+                    realm = if (online) "SAO-1" else null,
+                    realmType = if (online) "SAO" else null,
                     privacyHidden = false,
                     lastSeenOnline = null,
                     observedAt = Instant.parse(observedAt),
                 ),
         )
+    }
 
     private class InMemoryPlayerRepository : PlayerRepository {
         private val players = mutableMapOf<CristalixPlayerId, Player>()
@@ -160,6 +211,18 @@ class PlayerObservationCoordinatorTest {
             entries.values
                 .filter { entry -> entry.playerId == playerId }
                 .sortedBy(PlayerNicknameHistoryEntry::validFrom)
+    }
+
+    private class RecordingPlayerPresenceTelemetry : PlayerPresenceTelemetry {
+        val offlineDetectionLatencies = mutableListOf<Duration>()
+
+        override fun recordOfflineDetectionLatency(latency: Duration) {
+            offlineDetectionLatencies += latency
+        }
+    }
+
+    private object NoOpPlayerPresenceTelemetry : PlayerPresenceTelemetry {
+        override fun recordOfflineDetectionLatency(latency: Duration) = Unit
     }
 
     private object NoOpPlayerIntegrationEventPublisher : PlayerIntegrationEventPublisher {
