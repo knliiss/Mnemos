@@ -63,7 +63,9 @@ describe("SaoRealmPage", () => {
 
     expect(refresh.textContent).toBe("")
     expect(refresh.getAttribute("title")).toBe("people.realms.refresh")
-    expect(container.querySelector('img[src="/ui-illustrations/mnemos-mascot-cat.svg"]')).not.toBeNull()
+    expect(
+      container.querySelector('img[src="/ui-illustrations/mnemos-mascot-cat.svg"]'),
+    ).not.toBeNull()
 
     fireEvent.click(refresh)
 
