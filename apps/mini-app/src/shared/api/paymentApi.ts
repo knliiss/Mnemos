@@ -47,8 +47,6 @@ export async function createStarPrimePurchase(
   })
 }
 
-export async function getStarPrimePurchase(
-  purchaseId: string,
-): Promise<StarPrimePurchaseResponse> {
+export async function getStarPrimePurchase(purchaseId: string): Promise<StarPrimePurchaseResponse> {
   return api<StarPrimePurchaseResponse>(`/api/v1/payments/stars/prime/purchases/${purchaseId}`)
 }
