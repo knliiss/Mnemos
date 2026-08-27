@@ -1,6 +1,7 @@
 import { api } from "@/shared/api/httpClient"
 import type { PageResponse } from "@/shared/api/backendContracts"
 import type { EffectType, FrameStyle, VisualLayer } from "@/ui/model"
+import type { PlayerPresenceStatus } from "@/shared/api/playerDirectoryApi"
 
 export type AccountReactionType = "LIKE" | "DISLIKE"
 
@@ -68,6 +69,14 @@ export type ProfileAppearanceResponse = {
   } | null
 }
 
+export type PublicProfilePresenceResponse = {
+  status: PlayerPresenceStatus
+  online: boolean | null
+  realm: string | null
+  lastSeenOnline: string | null
+  observedAt: string | null
+}
+
 export type PublicProfileResponse = {
   accountId: string
   cristalixUuid: string
@@ -76,6 +85,7 @@ export type PublicProfileResponse = {
   dislikes: number
   comments: number
   appearance: ProfileAppearanceResponse
+  presence: PublicProfilePresenceResponse
   createdAt: string
 }
 
