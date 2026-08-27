@@ -23,6 +23,10 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}-notification-service"
     image: "${COMPOSE_PROJECT_NAME}/notification-service:${NOTIFICATION_SERVICE_VERSION:-local}"
 
+  payment-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-payment-service"
+    image: "${COMPOSE_PROJECT_NAME}/payment-service:${PAYMENT_SERVICE_VERSION:-local}"
+
   personalization-service:
     container_name: "${COMPOSE_PROJECT_NAME}-personalization-service"
     image: "${COMPOSE_PROJECT_NAME}/personalization-service:${PERSONALIZATION_SERVICE_VERSION:-local}"
