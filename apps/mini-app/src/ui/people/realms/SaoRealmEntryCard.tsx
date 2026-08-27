@@ -15,7 +15,7 @@ export function SaoRealmEntryCard({ navigate }: Props) {
       className="sao-realm-entry-card"
       onClick={() => navigate({ id: "sao-realms" })}
     >
-      <img src="/ui-illustrations/mnemos-mascot-realms.svg" alt="" aria-hidden="true" />
+      <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" aria-hidden="true" />
       <span>
         <small>{t("people.realms.eyebrow")}</small>
         <strong>{t("people.realms.entryTitle")}</strong>
