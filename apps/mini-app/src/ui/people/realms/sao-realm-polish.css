@@ -64,7 +64,7 @@
   margin-left: auto;
   padding: 0;
   border: 1px solid rgba(235, 241, 213, 0.08);
-  border-radius: 50%;
+  border-radius: 9px;
   color: #9daa87;
   background: rgba(255, 255, 255, 0.012);
   transition:
@@ -85,7 +85,7 @@
   opacity: 0.62;
 }
 
-.sao-realms-refresh.is-refreshing .glyph {
+.sao-realms-refresh.is-refreshing .sao-realms-refresh__icon {
   animation: sao-realms-refresh-spin 700ms linear infinite;
 }
 
@@ -96,7 +96,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sao-realms-refresh.is-refreshing .glyph {
+  .sao-realms-refresh.is-refreshing .sao-realms-refresh__icon {
     animation: none;
   }
 }
