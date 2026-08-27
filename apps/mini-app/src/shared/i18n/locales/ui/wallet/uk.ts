@@ -22,7 +22,8 @@ export const walletUk = {
       success: "Оплату підтверджено. PRIME нараховані на твій баланс.",
       fulfillmentDelayed:
         "Telegram підтвердив оплату, але нарахування PRIME затрималося. Не оплачуй пакет повторно — Mnemos збереже покупку.",
-      processing: "Оплату прийнято. Mnemos завершує нарахування PRIME — баланс оновиться автоматично.",
+      processing:
+        "Оплату прийнято. Mnemos завершує нарахування PRIME — баланс оновиться автоматично.",
       confirm: {
         eyebrow: "ПІДТВЕРДЖЕННЯ ПОКУПКИ",
         title: "Купити PRIME за Stars?",
