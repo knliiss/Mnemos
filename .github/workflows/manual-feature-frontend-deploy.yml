@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
 
     env:
       VITE_KEYCLOAK_URL: https://auth.knalis.rest
