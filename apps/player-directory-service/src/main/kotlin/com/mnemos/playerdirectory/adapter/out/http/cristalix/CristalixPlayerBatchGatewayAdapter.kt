@@ -7,18 +7,25 @@ import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerBat
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import feign.FeignException
 import org.springframework.stereotype.Component
-import java.time.Instant
+import java.time.Clock
 
 @Component
 class CristalixPlayerBatchGatewayAdapter(
     private val client: CristalixPlayerClient,
     private val requestExecutor: CristalixRequestExecutor,
+    private val metrics: CristalixApiMetrics,
+    private val clock: Clock,
 ) : CristalixPlayerBatchGateway {
     override fun findByIds(playerIds: List<CristalixPlayerId>): PlayerObservationBatch {
         require(playerIds.isNotEmpty()) { "Cristalix player batch cannot be empty" }
         require(playerIds.distinct().size == playerIds.size) { "Cristalix player batch cannot contain duplicate ids" }
 
-        val observedAt = Instant.now()
+        metrics.recordBatchSize(
+            operation = "by_id",
+            size = playerIds.size,
+        )
+
+        val observedAt = clock.instant()
 
         return try {
             requestExecutor
