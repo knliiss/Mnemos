@@ -2,6 +2,17 @@ import { api } from "@/shared/api/httpClient"
 
 export type PlayerPresenceStatus = "ONLINE" | "OFFLINE" | "UNKNOWN" | "HIDDEN"
 
+export type PlayerResponse = {
+  playerId: string
+  nickname: string
+  presenceStatus: PlayerPresenceStatus
+  realm: string | null
+  realmType: string | null
+  privacyHidden: boolean
+  lastSeenOnline: string | null
+  observedAt: string
+}
+
 export type PresenceSubscriptionResponse = {
   id: string
   playerId: string
@@ -30,6 +41,12 @@ export type SaoRealmSnapshotResponse = {
   generatedAt: string
   trackedOnline: number
   realms: SaoRealmResponse[]
+}
+
+export async function resolvePlayerByNickname(nickname: string): Promise<PlayerResponse> {
+  const params = new URLSearchParams({ nickname: nickname.trim() })
+
+  return api<PlayerResponse>(`/api/v1/players/resolve?${params}`)
 }
 
 export async function getSaoRealmSnapshot(): Promise<SaoRealmSnapshotResponse> {

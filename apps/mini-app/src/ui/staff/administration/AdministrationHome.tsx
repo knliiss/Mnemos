@@ -2,24 +2,35 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { listAdminBadges } from "@/shared/api/badgeAdminApi"
 import { listEventBetRounds, listItemRaces } from "@/shared/api/betApi"
+import { listLeaderboardExclusions } from "@/shared/api/leaderboardExclusionApi"
 import { listPersonalizationReviewQueue } from "@/shared/api/personalizationModerationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { createSpotlightPreview, spotlightPreviews } from "@/shared/realtime/spotlightPreviewBus"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
+import { LeaderboardExclusionAdmin } from "./leaderboards/LeaderboardExclusionAdmin"
 
 type AdminStats = {
   review: number
   activeRounds: number
   activeRaces: number
   badges: number
+  leaderboardExclusions: number
 }
 
 type AdministrationWorkspaceProps = {
   illustration: string
   title: string
   description: string
-  tone: "users" | "review" | "bets" | "badges" | "collectors" | "wipes" | "spotlight"
+  tone:
+    | "users"
+    | "review"
+    | "bets"
+    | "badges"
+    | "collectors"
+    | "wipes"
+    | "spotlight"
+    | "leaderboards"
   indicator?: string
   onClick(): void
 }
@@ -55,6 +66,7 @@ export function AdministrationHome({
 }) {
   const { t } = useTranslation()
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [leaderboardExclusionsOpen, setLeaderboardExclusionsOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -64,8 +76,9 @@ export function AdministrationHome({
         listEventBetRounds(),
         listItemRaces(),
         listAdminBadges(),
+        listLeaderboardExclusions(),
       ])
-        .then(([review, rounds, races, badges]) => {
+        .then(([review, rounds, races, badges, exclusions]) => {
           if (!cancelled) {
             setStats({
               review: review.length,
@@ -74,6 +87,7 @@ export function AdministrationHome({
                 (race) => !["SETTLED", "REFUNDED", "CANCELLED"].includes(race.status),
               ).length,
               badges: badges.length,
+              leaderboardExclusions: exclusions.length,
             })
           }
         })
@@ -89,6 +103,10 @@ export function AdministrationHome({
       window.cancelAnimationFrame(frame)
     }
   }, [])
+
+  if (leaderboardExclusionsOpen) {
+    return <LeaderboardExclusionAdmin back={() => setLeaderboardExclusionsOpen(false)} />
+  }
 
   const launchSpotlightPreview = () => {
     const preview = createSpotlightPreview({
@@ -159,6 +177,20 @@ export function AdministrationHome({
           }
           tone="badges"
           onClick={() => navigate({ id: "badge-admin" })}
+        />
+
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/admin-leaderboards.svg"
+          title={t("leaderboardExclusions.workspaceTitle")}
+          description={
+            stats
+              ? t("leaderboardExclusions.workspaceCount", {
+                  count: stats.leaderboardExclusions,
+                })
+              : t("leaderboardExclusions.workspaceDescription")
+          }
+          tone="leaderboards"
+          onClick={() => setLeaderboardExclusionsOpen(true)}
         />
 
         <AdministrationWorkspace
