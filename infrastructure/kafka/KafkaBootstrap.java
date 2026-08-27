@@ -266,6 +266,12 @@ public final class KafkaBootstrap {
                 acls,
                 "wallet_service",
                 "wallet-service",
+                "mnemos.moderation.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "wallet_service",
+                "wallet-service",
                 "mnemos.wallet.commands.v2"
         );
         allowTopicWrite(
@@ -285,6 +291,12 @@ public final class KafkaBootstrap {
                 "event_service",
                 "event-service",
                 "mnemos.player-directory.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "event_service",
+                "event-service",
+                "mnemos.moderation.events.v1"
         );
         allowTopicWrite(
                 acls,
