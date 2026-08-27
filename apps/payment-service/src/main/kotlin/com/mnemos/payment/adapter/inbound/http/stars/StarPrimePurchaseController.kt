@@ -23,20 +23,17 @@ class StarPrimePurchaseController(
     private val getPurchaseService: GetStarPrimePurchaseService,
 ) {
     @GetMapping("/catalog")
-    fun catalog(): List<StarPrimePackageResponse> =
-        packageCatalog.all().map(StarPrimePackage::toResponse)
+    fun catalog(): List<StarPrimePackageResponse> = packageCatalog.all().map(StarPrimePackage::toResponse)
 
     @PostMapping("/purchases")
     fun create(
         @Valid @RequestBody request: CreateStarPrimePurchaseRequest,
-    ): CreatedStarPrimePurchaseResponse =
-        createPurchaseService.execute(request.packageId).toResponse()
+    ): CreatedStarPrimePurchaseResponse = createPurchaseService.execute(request.packageId).toResponse()
 
     @GetMapping("/purchases/{purchaseId}")
     fun get(
         @PathVariable purchaseId: UUID,
-    ): StarPrimePurchaseResponse =
-        getPurchaseService.execute(purchaseId).toResponse()
+    ): StarPrimePurchaseResponse = getPurchaseService.execute(purchaseId).toResponse()
 
     private fun StarPrimePackage.toResponse(): StarPrimePackageResponse =
         StarPrimePackageResponse(
