@@ -73,6 +73,7 @@ jobs:
           sh -n scripts/bootstrap-production-env.sh
           sh -n scripts/set-production-external-value.sh
           sh -n scripts/validate-production-env.sh
+          sh -n scripts/verify-production-infra-compose.sh
           python3 -m py_compile scripts/render-production-stack.py
           python3 -m py_compile scripts/verify-production-stack-renderer.py
           sh scripts/verify-compose-secret-validation.sh
@@ -89,6 +90,7 @@ jobs:
           sh scripts/verify-no-insecure-credential-defaults.sh
           sh scripts/verify-kafka-service-config.sh
           sh scripts/verify-redis-service-config.sh
+          sh scripts/verify-production-infra-compose.sh
           python3 scripts/verify-production-stack-renderer.py
 
       - name: Scan backend dependencies
