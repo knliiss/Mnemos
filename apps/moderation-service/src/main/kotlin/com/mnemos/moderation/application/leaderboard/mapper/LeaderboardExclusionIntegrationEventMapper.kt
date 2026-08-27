@@ -1,7 +1,6 @@
 package com.mnemos.moderation.application.leaderboard.mapper
 
 import com.mnemos.messaging.core.event.IntegrationEvent
-import com.mnemos.moderation.contracts.ModerationEventContract
 import com.mnemos.moderation.contracts.ModerationEventType
 import com.mnemos.moderation.contracts.event.LeaderboardExclusionChangedV1
 import com.mnemos.moderation.domain.leaderboard.model.LeaderboardExclusion
@@ -15,7 +14,6 @@ object LeaderboardExclusionIntegrationEventMapper {
         IntegrationEvent(
             type = ModerationEventType.LEADERBOARD_EXCLUSION_CHANGED,
             aggregateId = id.id,
-            aggregateType = ModerationEventContract.LEADERBOARD_EXCLUSION_AGGREGATE_TYPE,
             occurredAt = occurredAt,
             payload =
                 LeaderboardExclusionChangedV1(
