@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { SaoRealmPage } from "./SaoRealmPage"
 
 const state = vi.hoisted(() => ({
@@ -55,6 +55,10 @@ describe("SaoRealmPage", () => {
     state.refresh.mockReset()
     state.retry.mockReset()
     state.refreshing = false
+  })
+
+  afterEach(() => {
+    cleanup()
   })
 
   it("uses the Mnemos cat hero and an accessible icon-only refresh control", () => {
