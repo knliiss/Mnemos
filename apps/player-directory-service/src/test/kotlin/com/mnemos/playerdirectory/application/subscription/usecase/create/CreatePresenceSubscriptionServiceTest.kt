@@ -1,12 +1,15 @@
 package com.mnemos.playerdirectory.application.subscription.usecase.create
 
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerGateway
+import com.mnemos.playerdirectory.application.player.port.out.PlayerIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameHistoryRepository
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
+import com.mnemos.playerdirectory.application.player.port.out.PlayerPresenceTelemetry
 import com.mnemos.playerdirectory.application.player.port.out.PlayerRepository
 import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.application.subscription.exception.PlayerPresenceNotObservableException
 import com.mnemos.playerdirectory.application.subscription.exception.PlayerPresenceVerificationUnavailableException
+import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionIntegrationEventPublisher
 import com.mnemos.playerdirectory.application.subscription.port.out.PresenceSubscriptionRepository
 import com.mnemos.playerdirectory.application.subscription.support.PresenceSubscriptionCoordinator
 import com.mnemos.playerdirectory.application.tracking.policy.PlayerTrackingSchedulePolicy
@@ -19,6 +22,7 @@ import com.mnemos.playerdirectory.domain.player.model.PlayerNicknameOwnership
 import com.mnemos.playerdirectory.domain.player.model.PlayerObservation
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresence
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
+import com.mnemos.playerdirectory.domain.player.policy.PlayerPresenceTransitionPolicy
 import com.mnemos.playerdirectory.domain.subscription.model.PresenceSubscription
 import com.mnemos.playerdirectory.domain.tracking.model.PlayerTrackingState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -101,10 +105,20 @@ class CreatePresenceSubscriptionServiceTest {
                 playerRepository = playerRepository,
                 nicknameOwnershipRepository = nicknameOwnershipRepository,
                 nicknameHistoryRepository = nicknameHistoryRepository,
+                transitionPolicy =
+                    PlayerPresenceTransitionPolicy(
+                        offlineConfirmationDelay = Duration.ofSeconds(20),
+                        requiredOfflineObservations = 2,
+                    ),
+                eventPublisher = NoOpPlayerIntegrationEventPublisher,
+                presenceTelemetry = PlayerPresenceTelemetry { },
             )
         val trackingSchedulePolicy =
             PlayerTrackingSchedulePolicy(
                 subscriptionPollInterval = Duration.ofSeconds(20),
+                saoOnlinePollInterval = Duration.ofSeconds(30),
+                highActivityPollInterval = Duration.ofMinutes(1),
+                lowActivityPollInterval = Duration.ofMinutes(5),
                 unverifiablePollInterval = Duration.ofMinutes(2),
                 failureBackoff = Duration.ofSeconds(30),
                 maximumFailureBackoff = Duration.ofMinutes(10),
@@ -114,6 +128,7 @@ class CreatePresenceSubscriptionServiceTest {
                 repository = subscriptionRepository,
                 trackingRepository = trackingRepository,
                 trackingSchedulePolicy = trackingSchedulePolicy,
+                eventPublisher = NoOpPresenceSubscriptionIntegrationEventPublisher,
             )
 
         return Fixture(
@@ -165,8 +180,14 @@ class CreatePresenceSubscriptionServiceTest {
     private class InMemoryPlayerRepository : PlayerRepository {
         private val players = mutableMapOf<CristalixPlayerId, Player>()
 
-        override fun ensureState(player: Player) {
-            players.putIfAbsent(player.id, player)
+        override fun ensureState(player: Player): Boolean {
+            if (players.containsKey(player.id)) {
+                return false
+            }
+
+            players[player.id] = player
+
+            return true
         }
 
         override fun save(player: Player): Player {
@@ -222,6 +243,10 @@ class CreatePresenceSubscriptionServiceTest {
             return subscription
         }
 
+        override fun delete(subscription: PresenceSubscription) {
+            subscriptions.removeIf { current -> current.id == subscription.id }
+        }
+
         override fun findBySubscriberUserIdAndPlayerId(
             subscriberUserId: UUID,
             playerId: CristalixPlayerId,
@@ -229,6 +254,12 @@ class CreatePresenceSubscriptionServiceTest {
             subscriptions.firstOrNull { subscription ->
                 subscription.subscriberUserId == subscriberUserId && subscription.playerId == playerId
             }
+
+        override fun findAllBySubscriberUserId(subscriberUserId: UUID): List<PresenceSubscription> =
+            subscriptions.filter { subscription -> subscription.subscriberUserId == subscriberUserId }
+
+        override fun existsByPlayerId(playerId: CristalixPlayerId): Boolean =
+            subscriptions.any { subscription -> subscription.playerId == playerId }
     }
 
     private class InMemoryPlayerTrackingRepository : PlayerTrackingRepository {
@@ -260,5 +291,30 @@ class CreatePresenceSubscriptionServiceTest {
             states.values
                 .filter { state -> !state.nextPollAt.isAfter(now) }
                 .take(limit)
+    }
+
+    private object NoOpPlayerIntegrationEventPublisher : PlayerIntegrationEventPublisher {
+        override fun publishInitial(
+            player: Player,
+            observedAt: Instant,
+        ) = Unit
+
+        override fun publishChanges(
+            previous: Player,
+            current: Player,
+            observedAt: Instant,
+        ) = Unit
+    }
+
+    private object NoOpPresenceSubscriptionIntegrationEventPublisher : PresenceSubscriptionIntegrationEventPublisher {
+        override fun publishCreated(
+            subscription: PresenceSubscription,
+            occurredAt: Instant,
+        ) = Unit
+
+        override fun publishDeleted(
+            subscription: PresenceSubscription,
+            occurredAt: Instant,
+        ) = Unit
     }
 }
