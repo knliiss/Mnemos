@@ -3,6 +3,11 @@ import { createPortal } from "react-dom"
 import { CurrencyMark } from "./MnemosIcon"
 import "./wallet-purchase-sheet.css"
 
+export type WalletPurchaseMessage = {
+  tone: "error" | "info" | "warning"
+  text: string
+}
+
 type Props = {
   eyebrow: string
   title: string
@@ -14,6 +19,7 @@ type Props = {
   payAmount: string
   payCurrency: "COIN" | "PRIME" | "STARS"
   note: ReactNode
+  message?: WalletPurchaseMessage | null
   confirmLabel: string
   cancelLabel: string
   busyLabel?: string
@@ -33,6 +39,7 @@ export function WalletPurchaseSheet({
   payAmount,
   payCurrency,
   note,
+  message,
   confirmLabel,
   cancelLabel,
   busyLabel,
@@ -68,6 +75,7 @@ export function WalletPurchaseSheet({
         aria-labelledby="wallet-purchase-title"
       >
         <div className="wallet-purchase-sheet__glow" aria-hidden="true" />
+        <div className="wallet-purchase-sheet__grip" aria-hidden="true" />
 
         <header className="wallet-purchase-sheet__header">
           <span>{eyebrow}</span>
@@ -104,6 +112,17 @@ export function WalletPurchaseSheet({
         </div>
 
         <div className="wallet-purchase-sheet__note">{note}</div>
+
+        {message ? (
+          <div
+            className={`wallet-purchase-sheet__message is-${message.tone}`}
+            role={message.tone === "error" ? "alert" : "status"}
+            aria-live="polite"
+          >
+            <span className="wallet-purchase-sheet__message-mark" aria-hidden="true" />
+            <span>{message.text}</span>
+          </div>
+        ) : null}
 
         <footer className="wallet-purchase-sheet__actions">
           <button type="button" className="is-secondary" onClick={onCancel} disabled={busy}>
