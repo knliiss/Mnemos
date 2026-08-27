@@ -10,7 +10,8 @@ import java.util.UUID
 
 class ItemDropQueryMapperTest {
     @Test
-    fun `maps native scalar item values into domain enums`() {
+    fun `maps native scalar item values and player identity into domain view`() {
+        val playerId = UUID.fromString("019c1129-ef54-7000-8000-000000000092")
         val projection =
             ItemDropViewProjection(
                 id = UUID.fromString("019c1129-ef54-7000-8000-000000000090"),
@@ -18,6 +19,7 @@ class ItemDropQueryMapperTest {
                 itemName = "Frozen Reaper",
                 itemType = "SWORD",
                 itemRarity = "MYTHICAL",
+                playerId = playerId,
                 droppedFor = "knaliz",
                 occurredAt = Instant.parse("2026-08-24T22:00:00Z"),
             )
@@ -27,6 +29,7 @@ class ItemDropQueryMapperTest {
         assertEquals(DomainItemType.SWORD, view.itemType)
         assertEquals(DomainItemRarity.MYTHICAL, view.itemRarity)
         assertEquals("Frozen Reaper", view.itemName)
+        assertEquals(playerId, view.playerId?.id)
         assertEquals("knaliz", view.droppedFor)
     }
 }
