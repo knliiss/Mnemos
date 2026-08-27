@@ -38,6 +38,9 @@ REPLICA_SAFE_SERVICES = {
     "wallet-service",
 }
 
+CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
+CLOUDFLARE_SECRET_NAME = "mnemos-cloudflare-tunnel-token-deadbeef"
+
 
 def fail(message: str) -> None:
     raise AssertionError(message)
@@ -111,6 +114,7 @@ def render() -> dict[str, object]:
             "MNEMOS_RELEASE_TAG": "0123456789abcdef",
             "MNEMOS_SWARM_NETWORK": "mnemos-production-network",
             "MNEMOS_KAFKA_TRUSTSTORE_CONFIG": "mnemos-kafka-truststore-deadbeef",
+            "MNEMOS_CLOUDFLARE_TUNNEL_SECRET": CLOUDFLARE_SECRET_NAME,
         }
     )
 
@@ -149,7 +153,7 @@ def render() -> dict[str, object]:
         return json.loads(output_path.read_text(encoding="utf-8"))
 
 
-def verify_service(
+def verify_application_service(
     service_name: str,
     service: dict[str, object],
 ) -> None:
@@ -243,6 +247,71 @@ def verify_service(
         fail(f"{service_name} does not automatically roll back failed updates")
 
 
+def verify_cloudflared(service: dict[str, object]) -> None:
+    if service.get("image") != CLOUDFLARED_IMAGE:
+        fail("cloudflared does not use the pinned production image")
+
+    if service.get("user") != "65532:65532":
+        fail("cloudflared must run as the distroless non-root user")
+
+    if service.get("read_only") is not True:
+        fail("cloudflared must use a read-only root filesystem")
+
+    if service.get("cap_drop") != ["ALL"]:
+        fail("cloudflared must drop all Linux capabilities")
+
+    if "ports" in service:
+        fail("cloudflared must not publish host ports")
+
+    command = service.get("command")
+
+    if not isinstance(command, list):
+        fail("cloudflared command must use exec form")
+
+    if command != [
+        "tunnel",
+        "run",
+        "--token-file",
+        "/run/secrets/cloudflare_tunnel_token",
+    ]:
+        fail("cloudflared must read the tunnel token only from the Swarm secret file")
+
+    secrets = service.get("secrets")
+
+    if not isinstance(secrets, list) or len(secrets) != 1:
+        fail("cloudflared must mount exactly one tunnel secret")
+
+    secret = secrets[0]
+
+    if not isinstance(secret, dict):
+        fail("cloudflared tunnel secret mapping is invalid")
+
+    if secret.get("source") != "cloudflare_tunnel_token":
+        fail("cloudflared tunnel secret source is invalid")
+
+    if secret.get("target") != "/run/secrets/cloudflare_tunnel_token":
+        fail("cloudflared tunnel secret target is invalid")
+
+    if secret.get("uid") != "65532" or secret.get("gid") != "65532":
+        fail("cloudflared tunnel secret ownership is invalid")
+
+    if secret.get("mode") != 0o400:
+        fail("cloudflared tunnel secret must be owner-readable only")
+
+    deploy = service.get("deploy")
+
+    if not isinstance(deploy, dict):
+        fail("cloudflared does not define Swarm deploy policy")
+
+    if deploy.get("replicas") != 2:
+        fail("cloudflared must run with two replicas")
+
+    update_config = deploy.get("update_config")
+
+    if not isinstance(update_config, dict) or update_config.get("order") != "start-first":
+        fail("cloudflared must use start-first rolling updates")
+
+
 def main() -> int:
     stack = render()
 
@@ -251,17 +320,28 @@ def main() -> int:
     if not isinstance(services, dict):
         fail("Rendered stack does not contain services")
 
-    if set(services) != set(APPLICATION_PORTS):
-        fail("Rendered stack service set does not match Mnemos applications")
+    expected_services = set(APPLICATION_PORTS) | {"cloudflared"}
 
-    for service_name, service in services.items():
+    if set(services) != expected_services:
+        fail("Rendered stack service set does not match Mnemos production services")
+
+    for service_name in APPLICATION_PORTS:
+        service = services.get(service_name)
+
         if not isinstance(service, dict):
             fail(f"{service_name} is not a service object")
 
-        verify_service(
+        verify_application_service(
             service_name=service_name,
             service=service,
         )
+
+    cloudflared = services.get("cloudflared")
+
+    if not isinstance(cloudflared, dict):
+        fail("cloudflared is not a service object")
+
+    verify_cloudflared(cloudflared)
 
     network = stack.get("networks", {}).get("mnemos-network", {})
 
@@ -275,6 +355,19 @@ def main() -> int:
 
     if config.get("name") != "mnemos-kafka-truststore-deadbeef":
         fail("Kafka truststore must reference the immutable external Swarm config")
+
+    tunnel_secret = stack.get("secrets", {}).get("cloudflare_tunnel_token", {})
+
+    if tunnel_secret.get("external") is not True:
+        fail("Cloudflare Tunnel token must be an external Swarm secret")
+
+    if tunnel_secret.get("name") != CLOUDFLARE_SECRET_NAME:
+        fail("Cloudflare Tunnel secret name is unexpected")
+
+    serialized = json.dumps(stack)
+
+    if "TUNNEL_TOKEN" in serialized:
+        fail("Rendered stack must not expose a Cloudflare Tunnel token environment variable")
 
     print("Production Swarm stack renderer verified")
     return 0
