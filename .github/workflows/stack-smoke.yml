@@ -194,7 +194,9 @@ jobs:
             event
             moderation
             notification
+            payment
             personalization
+            player_directory
             profile
             realtime
             reward
@@ -239,7 +241,21 @@ jobs:
 
           admin_user="$(read_env APP_POSTGRES_USER)"
           database="$(read_env APP_POSTGRES_DB)"
-          schemas=(account wallet event notification reward bet moderation realtime personalization social profile)
+          schemas=(
+            account
+            wallet
+            event
+            notification
+            reward
+            bet
+            moderation
+            realtime
+            personalization
+            social
+            profile
+            player_directory
+            payment
+          )
           mappings=""
 
           for schema in "${schemas[@]}"; do
