@@ -227,5 +227,6 @@ configure_service_role "personalization" "$PERSONALIZATION_POSTGRES_USER" "$PERS
 configure_service_role "social" "$SOCIAL_POSTGRES_USER" "$SOCIAL_POSTGRES_PASSWORD"
 configure_service_role "profile" "$PROFILE_POSTGRES_USER" "$PROFILE_POSTGRES_PASSWORD"
 configure_service_role "player_directory" "$PLAYER_DIRECTORY_POSTGRES_USER" "$PLAYER_DIRECTORY_POSTGRES_PASSWORD"
+configure_service_role "payment" "$PAYMENT_POSTGRES_USER" "$PAYMENT_POSTGRES_PASSWORD"
 
 echo "Application PostgreSQL service roles and schema ownership are configured."
