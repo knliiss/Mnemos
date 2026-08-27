@@ -8,6 +8,7 @@ import {
   ItemTypeArt,
   RaidArt,
 } from "@/ui/components/events/EventArt"
+import { PlayerOfflineArt } from "@/ui/components/people/PlayerOfflineArt"
 import type {
   NotificationTemplateKey,
   NotificationTemplateVariant,
@@ -141,6 +142,10 @@ function eventArt(type: NotificationTemplateKey, size: number): ReactElement {
 
   if (type === "RAID") {
     return <RaidArt size={size} />
+  }
+
+  if (type === "PLAYER_OFFLINE") {
+    return <PlayerOfflineArt size={size} />
   }
 
   return <GlobalEventArt eventType="ECLIPSE" size={size} />
