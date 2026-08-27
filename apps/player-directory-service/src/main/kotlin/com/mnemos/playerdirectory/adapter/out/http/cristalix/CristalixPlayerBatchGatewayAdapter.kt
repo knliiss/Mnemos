@@ -33,7 +33,6 @@ class CristalixPlayerBatchGatewayAdapter(
                     client.findByIds(
                         authorization = bearerToken(credential.projectToken),
                         projectKey = credential.projectKey.trim(),
-                        fields = PLAYER_FIELDS,
                         request = CristalixPlayerBatchRequest(ids = playerIds.map(CristalixPlayerId::id)),
                     )
                 }.toObservationBatch(observedAt)
@@ -58,10 +57,4 @@ class CristalixPlayerBatchGatewayAdapter(
     }
 
     private fun bearerToken(projectToken: String): String = "Bearer ${projectToken.trim()}"
-
-    companion object {
-        private const val PLAYER_FIELDS =
-            "playerId,name,version,updatedAt,social.lastSeenOnline,status.online,status.realm," +
-                "status.realmType,status.privacyHidden,customization.settings"
-    }
 }
