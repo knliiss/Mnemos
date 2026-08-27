@@ -2,12 +2,11 @@ import { motion } from "framer-motion"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
+  getBoosterLeaderboard,
   getCoinLeaderboard,
   getDropLeaderboard,
-  getPredictorLeaderboard,
   type DropLeaderboardDirection,
   type DropLeaderboardSort,
-  type PredictorLeaderboardSort,
 } from "@/shared/api/leaderboardApi"
 import { listWipes, type Wipe } from "@/shared/api/wipeApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -16,26 +15,26 @@ import { Glyph } from "../shared/MnemosIcon"
 import type { LeaderboardDisplayEntry } from "./leaderboardPresentation"
 import {
   orderDropLeaderboardEntries,
+  presentBoosterEntries,
   presentCoinEntries,
   presentDropEntries,
-  presentPredictorEntries,
 } from "./leaderboardPresentation"
 import { LeaderboardPagination } from "./LeaderboardPagination"
 import { LeaderboardPeriodSelector } from "./LeaderboardPeriodSelector"
 import { LeaderboardPodium } from "./LeaderboardPodium"
-import { DropRankingControls, PredictorRankingControls } from "./LeaderboardRankingControls"
+import { DropRankingControls } from "./LeaderboardRankingControls"
 import { LeaderboardRows } from "./LeaderboardRows"
 import "./leaderboards.css"
 import "./leaderboard-ranking.css"
 import "./leaderboard-polish.css"
 
-type LeaderboardTab = "DROPS" | "COINS" | "PREDICTORS"
+type LeaderboardTab = "DROPS" | "COINS" | "BOOSTERS"
 
-const tabs: LeaderboardTab[] = ["DROPS", "COINS", "PREDICTORS"]
+const tabs: LeaderboardTab[] = ["DROPS", "COINS", "BOOSTERS"]
 const tabIllustrations: Record<LeaderboardTab, string> = {
   DROPS: "/ui-illustrations/leaderboard-tab-drops.svg",
   COINS: "/ui-illustrations/leaderboard-tab-coins.svg",
-  PREDICTORS: "/ui-illustrations/leaderboard-tab-predictors.svg",
+  BOOSTERS: "/ui-illustrations/leaderboard-tab-boosters.svg",
 }
 const pageSize = 10
 const leaderboardLimit = 100
@@ -55,7 +54,6 @@ export function LeaderboardPage({
   const [requestRevision, setRequestRevision] = useState(0)
   const [dropSort, setDropSort] = useState<DropLeaderboardSort>("TOTAL")
   const [dropDirection, setDropDirection] = useState<DropLeaderboardDirection>("DESC")
-  const [predictorSort, setPredictorSort] = useState<PredictorLeaderboardSort>("PROFIT")
   const [entries, setEntries] = useState<LeaderboardDisplayEntry[]>([])
   const [page, setPage] = useState(1)
   const [pageMotionDirection, setPageMotionDirection] = useState(1)
@@ -117,19 +115,12 @@ export function LeaderboardPage({
           ? getCoinLeaderboard(leaderboardLimit).then((result) =>
               presentCoinEntries(result, locale, t("leaderboards.metrics.coins")),
             )
-          : tab === "PREDICTORS"
-            ? getPredictorLeaderboard({
+          : tab === "BOOSTERS"
+            ? getBoosterLeaderboard({
                 wipeId,
-                sort: predictorSort,
-                minimumSample: 10,
                 limit: leaderboardLimit,
               }).then((result) =>
-                presentPredictorEntries(result, predictorSort, locale, {
-                  bets: t("leaderboards.metrics.bets"),
-                  wins: t("leaderboards.metrics.wins"),
-                  profit: t("leaderboards.metrics.coins"),
-                  turnover: t("leaderboards.metrics.coins"),
-                }),
+                presentBoosterEntries(result, locale, t("leaderboards.metrics.boosters")),
               )
             : getDropLeaderboard({
                 wipeId,
@@ -172,7 +163,7 @@ export function LeaderboardPage({
       cancelled = true
       window.cancelAnimationFrame(frame)
     }
-  }, [dropDirection, dropSort, locale, predictorSort, requestRevision, t, tab, wipeId])
+  }, [dropDirection, dropSort, locale, requestRevision, t, tab, wipeId])
 
   const selectedWipe = useMemo(
     () => wipes.find((wipe) => wipe.id === wipeId) ?? null,
@@ -205,11 +196,6 @@ export function LeaderboardPage({
 
   function changeDropDirection(value: DropLeaderboardDirection) {
     setDropDirection(value)
-    setPage(1)
-  }
-
-  function changePredictorSort(value: PredictorLeaderboardSort) {
-    setPredictorSort(value)
     setPage(1)
   }
 
@@ -308,10 +294,6 @@ export function LeaderboardPage({
             onSortChange={changeDropSort}
             onDirectionChange={changeDropDirection}
           />
-        ) : null}
-
-        {tab === "PREDICTORS" ? (
-          <PredictorRankingControls sort={predictorSort} onSortChange={changePredictorSort} />
         ) : null}
       </div>
 

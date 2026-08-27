@@ -13,6 +13,7 @@ import "@/ui/system/spotlight-position.css"
 
 const FULL_SPOTLIGHT_DURATION_MS = 7_000
 const COMPACT_SPOTLIGHT_DURATION_MS = 4_500
+const FEATURE_HANDLED_WALLET_FAILURE_SOURCES = new Set(["BET_PLACE", "PERSONALIZATION_PURCHASE"])
 
 type QueuedSpotlight = {
   spotlight: DropSpotlightBroadcast
@@ -192,7 +193,7 @@ function DropSpotlightAlert({ spotlight }: { spotlight: DropSpotlightBroadcast }
 
 function notifyAboutOperation(event: RealtimeEvent, translate: (key: string) => string) {
   if (event.type === "wallet.transaction.failed") {
-    if (event.payload.source !== "BET_PLACE") {
+    if (!FEATURE_HANDLED_WALLET_FAILURE_SOURCES.has(event.payload.source)) {
       errorEvents.publish({
         code: "WALLET_TRANSACTION_FAILED",
         message: translate("realtime.transactionFailed"),

@@ -1,0 +1,302 @@
+.wallet-purchase-backdrop {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom))
+    max(14px, env(safe-area-inset-left));
+  background: rgba(3, 4, 3, 0.76);
+  backdrop-filter: blur(12px);
+  animation: wallet-purchase-backdrop-in 0.18s ease-out;
+}
+
+.wallet-purchase-sheet {
+  position: relative;
+  width: min(100%, 430px);
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.1);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 4%, rgba(169, 93, 189, 0.12), transparent 34%),
+    radial-gradient(circle at 24% 112%, rgba(212, 255, 66, 0.06), transparent 46%),
+    rgba(13, 15, 12, 0.99);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.54),
+    inset 0 1px rgba(255, 255, 255, 0.025);
+  animation: wallet-purchase-sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.wallet-purchase-sheet__glow {
+  position: absolute;
+  top: -72px;
+  right: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(206, 145, 210, 0.12), transparent 68%);
+  pointer-events: none;
+}
+
+.wallet-purchase-sheet__grip {
+  position: relative;
+  z-index: 1;
+  width: 34px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  background: rgba(235, 241, 213, 0.12);
+}
+
+.wallet-purchase-sheet__header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.wallet-purchase-sheet__header > span {
+  color: #a77daa;
+  font-family: var(--font-meta);
+  font-size: 8px;
+  letter-spacing: 0.13em;
+}
+
+.wallet-purchase-sheet__header > strong {
+  color: #e7eae1;
+  font-size: 16px;
+  line-height: 1.18;
+}
+
+.wallet-purchase-sheet__header > p {
+  max-width: 350px;
+  margin: 0;
+  color: #80867c;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.wallet-purchase-sheet__exchange {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.wallet-purchase-sheet__exchange > article {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  min-height: 82px;
+  padding: 11px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 13px;
+  background: rgba(7, 9, 7, 0.34);
+}
+
+.wallet-purchase-sheet__exchange > article:first-child {
+  border-color: rgba(212, 255, 66, 0.13);
+  background: rgba(212, 255, 66, 0.025);
+}
+
+.wallet-purchase-sheet__exchange > article:last-child {
+  border-color: rgba(221, 159, 236, 0.14);
+  background: rgba(183, 104, 196, 0.035);
+}
+
+.wallet-purchase-sheet__exchange small {
+  color: #747b70;
+  font-family: var(--font-meta);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.wallet-purchase-sheet__exchange article > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wallet-purchase-sheet__exchange strong {
+  overflow: hidden;
+  color: #e8ebe4;
+  font-size: 18px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+
+.wallet-purchase-sheet__exchange em {
+  color: #777d73;
+  font-family: var(--font-meta);
+  font-size: 7.5px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.wallet-purchase-sheet__exchange > i {
+  display: grid;
+  place-items: center;
+  color: #6f756b;
+  font-size: 14px;
+  font-style: normal;
+}
+
+.wallet-purchase-sheet__star {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 7px;
+  color: #f0c96e;
+  background: rgba(240, 201, 110, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wallet-purchase-sheet__note,
+.wallet-purchase-sheet__message {
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 13px;
+  color: #858b80;
+  background: rgba(7, 9, 7, 0.34);
+  font-size: 8.5px;
+  line-height: 1.48;
+}
+
+.wallet-purchase-sheet__message {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.wallet-purchase-sheet__message-mark {
+  width: 7px;
+  height: 7px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.wallet-purchase-sheet__message.is-error {
+  border-color: rgba(216, 117, 123, 0.16);
+  color: #d99095;
+  background: rgba(176, 68, 74, 0.055);
+}
+
+.wallet-purchase-sheet__message.is-warning {
+  border-color: rgba(240, 201, 110, 0.15);
+  color: #cbb276;
+  background: rgba(240, 201, 110, 0.04);
+}
+
+.wallet-purchase-sheet__message.is-info {
+  border-color: rgba(221, 159, 236, 0.14);
+  color: #b991c1;
+  background: rgba(183, 104, 196, 0.04);
+}
+
+.wallet-purchase-sheet__actions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.wallet-purchase-sheet__actions button {
+  min-height: 46px;
+  padding: 0 13px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 800;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.wallet-purchase-sheet__actions button:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+.wallet-purchase-sheet__actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.wallet-purchase-sheet__actions .is-secondary {
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  color: #959b90;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.wallet-purchase-sheet__actions .is-primary {
+  border: 1px solid rgba(221, 159, 236, 0.2);
+  color: #ead9eb;
+  background:
+    linear-gradient(180deg, rgba(183, 104, 196, 0.13), rgba(183, 104, 196, 0.075)),
+    rgba(255, 255, 255, 0.012);
+}
+
+@keyframes wallet-purchase-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wallet-purchase-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 360px) {
+  .wallet-purchase-sheet {
+    padding: 13px;
+    border-radius: 20px;
+  }
+
+  .wallet-purchase-sheet__exchange {
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-purchase-sheet__exchange > i {
+    height: 18px;
+    transform: rotate(-90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallet-purchase-backdrop,
+  .wallet-purchase-sheet {
+    animation: none;
+  }
+
+  .wallet-purchase-sheet__actions button {
+    transition: none;
+  }
+}

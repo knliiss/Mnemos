@@ -5,6 +5,16 @@ import type {
 } from "@/shared/api/backendContracts"
 import { api } from "@/shared/api/httpClient"
 
+export type CoinPurchaseOptionResponse = {
+  primeAmount: number
+  coinAmount: number
+}
+
+export type CoinPurchaseCatalogResponse = {
+  coinPerPrime: number
+  options: CoinPurchaseOptionResponse[]
+}
+
 export async function getAccountBalances(accountId: string): Promise<BalanceResponse[]> {
   return api<BalanceResponse[]>(`/api/v1/accounts/${accountId}/balances`)
 }
@@ -23,4 +33,26 @@ export async function getAccountTransactions(
   return api<PageResponse<WalletTransactionResponse>>(
     `/api/v1/accounts/${accountId}/transactions?${params}`,
   )
+}
+
+export async function getCoinPurchaseCatalog(
+  accountId: string,
+): Promise<CoinPurchaseCatalogResponse> {
+  return api<CoinPurchaseCatalogResponse>(`/api/v1/accounts/${accountId}/coin-purchases/catalog`)
+}
+
+export async function purchaseCoin(
+  accountId: string,
+  request: {
+    requestId: string
+    primeAmount: number
+  },
+): Promise<CoinPurchaseOptionResponse> {
+  return api<CoinPurchaseOptionResponse>(`/api/v1/accounts/${accountId}/coin-purchases`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  })
 }

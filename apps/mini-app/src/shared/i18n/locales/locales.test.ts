@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { en } from "./en"
+import { playerDirectoryEn, playerDirectoryRu, playerDirectoryUk } from "./playerDirectory"
 import { ru } from "./ru"
 import { uk } from "./uk"
 
@@ -18,6 +19,15 @@ describe("locales", () => {
     const ukKeys = leafKeys(uk).sort()
     const ruKeys = leafKeys(ru).sort()
     const enKeys = leafKeys(en).sort()
+
+    expect(ruKeys).toEqual(ukKeys)
+    expect(enKeys).toEqual(ukKeys)
+  })
+
+  it("keeps player directory translations in sync", () => {
+    const ukKeys = leafKeys(playerDirectoryUk).sort()
+    const ruKeys = leafKeys(playerDirectoryRu).sort()
+    const enKeys = leafKeys(playerDirectoryEn).sort()
 
     expect(ruKeys).toEqual(ukKeys)
     expect(enKeys).toEqual(ukKeys)

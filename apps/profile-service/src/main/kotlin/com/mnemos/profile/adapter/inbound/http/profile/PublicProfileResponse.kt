@@ -11,5 +11,6 @@ data class PublicProfileResponse(
     val dislikes: Long,
     val comments: Long,
     val appearance: ProfileAppearanceResponse,
+    val presence: PublicProfilePresenceResponse,
     val createdAt: Instant,
 )

@@ -23,6 +23,7 @@ object ItemDropIntegrationEventMapper {
                     itemType = item.type.toContract(),
                     itemRarity = item.rarity.toContract(),
                     droppedFor = droppedFor,
+                    playerId = playerId?.id,
                 ),
         )
 

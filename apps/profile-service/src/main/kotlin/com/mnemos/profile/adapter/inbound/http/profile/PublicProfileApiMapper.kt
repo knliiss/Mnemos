@@ -6,6 +6,7 @@ import com.mnemos.profile.application.common.pagination.PageQuery
 import com.mnemos.profile.application.common.pagination.PageResult
 import com.mnemos.profile.application.profile.usecase.search.SearchPublicProfilesQuery
 import com.mnemos.profile.domain.profile.model.ProfileAppearance
+import com.mnemos.profile.domain.profile.model.ProfilePlayerState
 import com.mnemos.profile.domain.profile.model.PublicProfile
 
 object PublicProfileApiMapper {
@@ -19,19 +20,63 @@ object PublicProfileApiMapper {
                 ),
         )
 
-    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> = toPageResponse { profile -> profile.toResponse() }
+    fun PageResult<PublicProfile>.toResponse(): PageResponse<PublicProfileResponse> =
+        toPageResponse { profile ->
+            profile.toResponse()
+        }
 
     fun PublicProfile.toResponse(): PublicProfileResponse =
         PublicProfileResponse(
             accountId = accountId,
             cristalixUuid = cristalixUuid,
-            cristalixNickname = cristalixNickname,
+            cristalixNickname = playerState?.nickname ?: cristalixNickname,
             likes = likes,
             dislikes = dislikes,
             comments = comments,
             appearance = appearance.toResponse(),
+            presence = playerState.toPresenceResponse(),
             createdAt = createdAt,
         )
+
+    private fun ProfilePlayerState?.toPresenceResponse(): PublicProfilePresenceResponse {
+        if (this == null) {
+            return PublicProfilePresenceResponse(
+                status = PublicProfilePresenceResponse.Status.UNKNOWN,
+                online = null,
+                realm = null,
+                lastSeenOnline = null,
+                observedAt = null,
+            )
+        }
+
+        val hidden = presenceStatus == ProfilePlayerState.PresenceStatus.HIDDEN || privacyHidden
+        val status =
+            if (hidden) {
+                PublicProfilePresenceResponse.Status.HIDDEN
+            } else {
+                PublicProfilePresenceResponse.Status.valueOf(presenceStatus.name)
+            }
+        val online =
+            if (hidden) {
+                null
+            } else {
+                when (presenceStatus) {
+                    ProfilePlayerState.PresenceStatus.ONLINE -> true
+                    ProfilePlayerState.PresenceStatus.OFFLINE -> false
+                    ProfilePlayerState.PresenceStatus.UNKNOWN,
+                    ProfilePlayerState.PresenceStatus.HIDDEN,
+                    -> null
+                }
+            }
+
+        return PublicProfilePresenceResponse(
+            status = status,
+            online = online,
+            realm = realm.takeUnless { hidden },
+            lastSeenOnline = lastSeenOnline.takeUnless { hidden },
+            observedAt = presenceObservedAt,
+        )
+    }
 
     private fun ProfileAppearance.toResponse(): ProfileAppearanceResponse =
         ProfileAppearanceResponse(

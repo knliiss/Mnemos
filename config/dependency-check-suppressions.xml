@@ -21,15 +21,4 @@
         <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-reflect@.*$</packageUrl>
         <cve>CVE-2026-53914</cve>
     </suppress>
-
-    <suppress until="2026-09-30Z">
-        <notes><![CDATA[
-            CVE-2026-66299 is confined to Tomcat's WebSocket chat example application.
-            Mnemos uses embedded Tomcat and does not package or deploy Tomcat's examples
-            web application, so the vulnerable unbounded example message buffer is absent.
-            Remove this suppression after upgrading to Tomcat 11.0.25 or later.
-        ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-(core|websocket)@11\.0\.24$</packageUrl>
-        <cve>CVE-2026-66299</cve>
-    </suppress>
 </suppressions>

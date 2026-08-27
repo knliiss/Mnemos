@@ -3,6 +3,7 @@ package com.mnemos.notification.adapter.inbound.telegram
 import com.mnemos.notification.application.notification.delivery.model.DeliveryResult
 import com.mnemos.notification.application.telegram.help.HandleTelegramHelpService
 import com.mnemos.notification.application.telegram.help.TelegramHelpSection
+import com.mnemos.notification.application.telegram.payment.HandleTelegramStarPaymentUpdateService
 import com.mnemos.notification.application.telegram.start.HandleTelegramStartService
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
 import com.pengrad.telegrambot.ExceptionHandler
@@ -28,7 +29,14 @@ class TelegramLongPollingConsumerTest {
     private val bot = mock<TelegramBot>()
     private val startService = mock<HandleTelegramStartService>()
     private val helpService = mock<HandleTelegramHelpService>()
-    private val consumer = TelegramLongPollingConsumer(bot, startService, helpService)
+    private val starPaymentService = mock<HandleTelegramStarPaymentUpdateService>()
+    private val consumer =
+        TelegramLongPollingConsumer(
+            bot = bot,
+            startService = startService,
+            helpService = helpService,
+            starPaymentService = starPaymentService,
+        )
 
     @Test
     fun `run delegates long polling lifecycle to telegram library`() {

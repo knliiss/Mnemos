@@ -3,6 +3,7 @@ import { CristalixHead } from "../../components/profile/CristalixHead"
 import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import { SaoRealmEntryCard } from "../realms/SaoRealmEntryCard"
 import { useProfileSearch } from "./data/useProfileSearch"
 import { nicknameStyle, profileSkinUrl } from "./profilePresentation"
 import "./search.css"
@@ -21,6 +22,8 @@ export function SearchPage({ navigate }: Props) {
         <h1>{t("people.search.title")}</h1>
         <p>{t("people.search.description")}</p>
       </header>
+
+      <SaoRealmEntryCard navigate={navigate} />
 
       <label className="search-root-input">
         <Glyph name="search" size={20} />

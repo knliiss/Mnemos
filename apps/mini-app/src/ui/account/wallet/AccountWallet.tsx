@@ -3,6 +3,7 @@ import { useMnemosData } from "../../data/MnemosDataProvider"
 import { CurrencyMark } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import "./account-wallet.css"
+import { CoinPurchasePanel } from "./CoinPurchasePanel"
 import { useAccountWalletTransactions } from "./useAccountWalletTransactions"
 import { WalletHistoryPanel } from "./WalletHistoryPanel"
 
@@ -54,6 +55,14 @@ export function AccountWallet({ back }: { back: () => void }) {
           </span>
         </div>
       </section>
+
+      <CoinPurchasePanel
+        accountId={activeAccount.id}
+        accountNickname={activeAccount.nickname}
+        coinBalance={activeAccount.coin}
+        locale={locale}
+        onPurchased={retry}
+      />
 
       <WalletHistoryPanel
         canViewHistory={canViewHistory}

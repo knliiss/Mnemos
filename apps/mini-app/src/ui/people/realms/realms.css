@@ -1,0 +1,336 @@
+.sao-realm-entry-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 104px;
+  margin: 0 0 14px;
+  padding: 10px 12px 10px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(203, 255, 45, 0.1);
+  border-radius: 18px;
+  color: #dce1d6;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(203, 255, 45, 0.1), transparent 38%),
+    linear-gradient(135deg, rgba(29, 37, 21, 0.94), rgba(12, 15, 11, 0.96));
+  text-align: left;
+}
+
+.sao-realm-entry-card img {
+  width: 86px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.sao-realm-entry-card > span {
+  display: grid;
+  gap: 4px;
+}
+
+.sao-realm-entry-card small,
+.sao-realms-hero small {
+  color: #a8c84d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.sao-realm-entry-card strong {
+  font-size: 15px;
+}
+
+.sao-realm-entry-card em {
+  color: #7f8779;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.sao-realm-entry-card > b {
+  color: #8c947f;
+  font-size: 22px;
+}
+
+.sao-realms-screen {
+  padding-bottom: 34px;
+}
+
+.sao-realms-hero {
+  display: grid;
+  grid-template-columns: 98px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 126px;
+  padding: 12px;
+  border: 1px solid rgba(203, 255, 45, 0.1);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 8% 40%, rgba(203, 255, 45, 0.1), transparent 34%),
+    rgba(255, 255, 255, 0.018);
+}
+
+.sao-realms-hero img {
+  width: 98px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.sao-realms-hero > span {
+  display: grid;
+  gap: 5px;
+}
+
+.sao-realms-hero strong {
+  color: #e2e7dc;
+  font-size: 16px;
+}
+
+.sao-realms-hero p {
+  margin: 0;
+  color: #7b8277;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.sao-realms-hero > b {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 8px;
+  border-radius: 14px;
+  color: #cbff2d;
+  background: rgba(203, 255, 45, 0.055);
+  font-size: 17px;
+}
+
+.sao-realms-search {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 14px;
+  color: #747c71;
+  background: rgba(255, 255, 255, 0.014);
+  cursor: text;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.sao-realms-search:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(203, 255, 45, 0.025);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.sao-realms-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: #e1e5dc;
+  background: transparent;
+  font-size: 12px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.sao-realms-search input:focus-visible {
+  outline: none;
+}
+
+.sao-realms-search input::-webkit-search-cancel-button {
+  display: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.sao-realms-search button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #747c71;
+}
+
+.sao-realms-search button:hover {
+  color: #c3caaf;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sao-realms-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  color: #71786e;
+  font-size: 9px;
+}
+
+.sao-realms-meta i {
+  color: #9fb44f;
+  font-style: normal;
+}
+
+.sao-realms-meta button {
+  margin-left: auto;
+  color: #9daa87;
+  font-size: 9px;
+}
+
+.sao-realm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sao-realm-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.sao-realm-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 8px 9px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.045);
+}
+
+.sao-realm-card > header span {
+  display: grid;
+  gap: 1px;
+}
+
+.sao-realm-card > header small {
+  color: #72796f;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.sao-realm-card > header strong {
+  color: #dce1d7;
+  font-size: 13px;
+}
+
+.sao-realm-card > header b {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 26px;
+  padding: 0 5px;
+  border-radius: 9px;
+  color: #c4e45d;
+  background: rgba(203, 255, 45, 0.05);
+  font-size: 10px;
+}
+
+.sao-realm-card__players {
+  display: grid;
+}
+
+.sao-realm-player {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 43px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.035);
+  color: #c9cec5;
+  text-align: left;
+}
+
+.sao-realm-player.is-external {
+  opacity: 0.88;
+}
+
+.sao-realm-player strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sao-realm-player > span:last-child {
+  color: #62695f;
+  font-size: 15px;
+}
+
+.sao-realm-card__expand {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 8px;
+  color: #98aa66;
+  font-size: 9px;
+}
+
+.sao-realms-state {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  margin-top: 24px;
+  padding: 20px;
+  color: #7b8277;
+  text-align: center;
+}
+
+.sao-realms-state img {
+  width: 118px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.sao-realms-state strong {
+  color: #b7beb2;
+  font-size: 13px;
+}
+
+.sao-realms-state small {
+  max-width: 260px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.sao-realms-state button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(203, 255, 45, 0.12);
+  border-radius: 10px;
+  color: #c8eb61;
+  background: rgba(203, 255, 45, 0.04);
+  font-size: 10px;
+}
+
+@media (min-width: 720px) {
+  .sao-realm-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 359px) {
+  .sao-realm-grid {
+    gap: 7px;
+  }
+
+  .sao-realm-card > header,
+  .sao-realm-player {
+    padding-inline: 6px;
+  }
+}

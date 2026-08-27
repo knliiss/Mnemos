@@ -31,6 +31,7 @@ object ItemDropApiMapper {
             itemName = itemName,
             itemRarity = itemRarity,
             itemType = itemType.name,
+            playerId = playerId?.id,
             droppedFor = droppedFor,
             occurredAt = occurredAt,
         )

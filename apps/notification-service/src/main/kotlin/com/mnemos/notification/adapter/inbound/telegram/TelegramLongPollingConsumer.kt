@@ -3,6 +3,7 @@ package com.mnemos.notification.adapter.inbound.telegram
 import com.mnemos.notification.application.notification.delivery.model.DeliveryResult
 import com.mnemos.notification.application.telegram.help.HandleTelegramHelpService
 import com.mnemos.notification.application.telegram.help.TelegramHelpSection
+import com.mnemos.notification.application.telegram.payment.HandleTelegramStarPaymentUpdateService
 import com.mnemos.notification.application.telegram.start.HandleTelegramStartService
 import com.mnemos.notification.application.telegram.start.TelegramStartContext
 import com.pengrad.telegrambot.ExceptionHandler
@@ -27,6 +28,7 @@ class TelegramLongPollingConsumer(
     private val bot: TelegramBot,
     private val startService: HandleTelegramStartService,
     private val helpService: HandleTelegramHelpService,
+    private val starPaymentService: HandleTelegramStarPaymentUpdateService,
 ) : ApplicationRunner,
     DisposableBean {
     override fun run(args: ApplicationArguments) {
@@ -57,6 +59,12 @@ class TelegramLongPollingConsumer(
     }
 
     internal fun handle(update: Update): DeliveryResult {
+        val preCheckoutQuery = update.preCheckoutQuery()
+
+        if (preCheckoutQuery != null) {
+            return starPaymentService.handlePreCheckout(preCheckoutQuery)
+        }
+
         val callbackQuery = update.callbackQuery()
 
         if (callbackQuery != null) {
@@ -65,6 +73,11 @@ class TelegramLongPollingConsumer(
         }
 
         val message = update.message() ?: return DeliveryResult.Delivered
+
+        if (message.successfulPayment() != null) {
+            return starPaymentService.handleSuccessfulPayment(message)
+        }
+
         val text = message.text()?.trim() ?: return DeliveryResult.Delivered
 
         if (message.chat().type() != Chat.Type.Private) {

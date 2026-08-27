@@ -5,6 +5,7 @@ import { FeatureLoading } from "../system/FeatureLoading"
 import { UserPersonalizationSettings } from "./personalization/UserPersonalizationSettings"
 import { PublicProfileRoute } from "./profile/PublicProfileRoute"
 import { SearchPage } from "./profile/SearchPage"
+import { SaoRealmPage } from "./realms/SaoRealmPage"
 
 type Props = {
   routeId: Route["id"]
@@ -32,6 +33,10 @@ export function PeopleArea(props: Props) {
         <UserPrimeWallet navigate={props.navigate} back={props.back} />
       </Suspense>
     )
+  }
+
+  if (props.routeId === "sao-realms") {
+    return <SaoRealmPage navigate={props.navigate} back={props.back} />
   }
 
   if (props.routeId === "public-profile" && props.activeAccount) {

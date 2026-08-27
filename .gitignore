@@ -48,6 +48,7 @@ bin/
 
 ### Project specific ###
 /.env
+/apps/mini-app/.env.local
 /.secrets/
 
 **/node_modules/

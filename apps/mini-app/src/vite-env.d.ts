@@ -57,6 +57,7 @@ interface TelegramSafeAreaInset {
 }
 
 type TelegramSafeAreaEvent = "safeAreaChanged" | "contentSafeAreaChanged"
+type TelegramInvoiceStatus = "paid" | "cancelled" | "failed" | "pending"
 
 interface TelegramWebApp {
   initData: string
@@ -87,6 +88,8 @@ interface TelegramWebApp {
   setBackgroundColor(color: string): void
 
   setBottomBarColor?(color: string): void
+
+  openInvoice?(url: string, callback?: (status: TelegramInvoiceStatus) => void): void
 
   isVersionAtLeast?(version: string): boolean
 

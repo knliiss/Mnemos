@@ -20,6 +20,7 @@ object DropLeaderboardApiMapper {
     fun DropLeaderboardEntry.toResponse(rank: Int): DropLeaderboardResponse =
         DropLeaderboardResponse(
             rank = rank,
+            playerId = playerId.id,
             nickname = nickname,
             totalDrops = totalDrops,
             mythicalDrops = mythicalDrops,

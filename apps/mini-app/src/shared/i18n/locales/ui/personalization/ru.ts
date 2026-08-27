@@ -3,6 +3,7 @@ export const personalizationRu = {
     loading: "Загрузка",
     pages: "Страницы каталога",
     purchaseFailed: "Покупка не завершена.",
+    insufficientBalance: "На балансе недостаточно средств для этой покупки.",
     target: {
       ACCOUNT: "ACCOUNT",
       USER: "USER",

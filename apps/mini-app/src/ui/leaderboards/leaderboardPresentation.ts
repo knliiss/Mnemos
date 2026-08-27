@@ -1,4 +1,5 @@
 import type {
+  BoosterLeaderboardEntry,
   CoinLeaderboardEntry,
   DropLeaderboardDirection,
   DropLeaderboardEntry,
@@ -9,6 +10,7 @@ import type {
 
 export type LeaderboardDisplayEntry = {
   rank: number
+  playerId?: string
   accountId?: string
   nickname: string
   metric: string
@@ -78,6 +80,7 @@ export function presentDropEntries(
 
     return {
       rank: entry.rank,
+      playerId: entry.playerId,
       nickname: entry.nickname,
       metric,
       detail: `${number.format(entry.mythicalDrops)} ${labels.mythical} · ${number.format(entry.secretDrops)} ${labels.secret}`,
@@ -98,6 +101,22 @@ export function presentCoinEntries(
     nickname: entry.nickname,
     metric: `${number.format(entry.amount)} ${coinLabel}`,
     detail: coinLabel,
+  }))
+}
+
+export function presentBoosterEntries(
+  entries: BoosterLeaderboardEntry[],
+  locale: string,
+  boosterLabel: string,
+): LeaderboardDisplayEntry[] {
+  const number = new Intl.NumberFormat(locale)
+
+  return entries.map((entry) => ({
+    rank: entry.rank,
+    playerId: entry.playerId,
+    nickname: entry.nickname,
+    metric: `${number.format(entry.totalBoosters)} ${boosterLabel}`,
+    detail: boosterLabel,
   }))
 }
 

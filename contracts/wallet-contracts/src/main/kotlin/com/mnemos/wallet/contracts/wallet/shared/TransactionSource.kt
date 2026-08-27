@@ -14,6 +14,7 @@ enum class TransactionSource {
     SPOTLIGHT_PURCHASE,
 
     PRIME_PURCHASE,
+    COIN_PURCHASE,
 
     ADMIN_ADJUSTMENT,
 }

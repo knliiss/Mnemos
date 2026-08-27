@@ -227,6 +227,44 @@ describe("usePersonalizations", () => {
     expect(showBackendError).not.toHaveBeenCalled()
   })
 
+  it("presents insufficient balance as one clear feature-level purchase error", async () => {
+    vi.mocked(purchasePersonalization).mockResolvedValueOnce({
+      personalizationId: accountItem.id,
+      operationId: "operation-insufficient-balance",
+    })
+
+    const { result } = renderHook(() => usePersonalizations())
+
+    await act(async () => {
+      await result.current.purchase(accountItem)
+    })
+
+    await act(async () => {
+      realtimeEvents.publish({
+        id: "event-insufficient-balance",
+        type: "personalization.purchase.completed",
+        occurredAt: "2026-08-20T00:00:00Z",
+        operationId: "operation-insufficient-balance",
+        payload: {
+          personalizationId: accountItem.id,
+          status: "FAILED",
+          walletTransactionId: null,
+          failureReason: "INSUFFICIENT_BALANCE",
+        },
+      })
+      await Promise.resolve()
+    })
+
+    expect(showBackendError).toHaveBeenCalledTimes(1)
+
+    const payload = showBackendError.mock.calls[0][0]
+
+    expect(payload.code).toBe("INSUFFICIENT_BALANCE")
+    expect(payload.statusCode).toBe(409)
+    expect(payload.message).toEqual(expect.any(String))
+    expect(payload.message).not.toContain("INSUFFICIENT_BALANCE")
+  })
+
   it("keeps a user purchase busy across account switches before the operation id arrives", async () => {
     const purchaseOperation = createDeferred<PurchasePersonalizationResponse>()
 

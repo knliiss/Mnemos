@@ -68,6 +68,7 @@ describe("leaderboard presentation", () => {
       [
         {
           rank: 3,
+          playerId: "player-dropper",
           nickname: "Dropper",
           totalDrops: 12,
           mythicalDrops: 7,
@@ -94,6 +95,7 @@ describe("leaderboard presentation", () => {
     const source = [
       {
         rank: 1,
+        playerId: "player-middle",
         nickname: "Middle",
         totalDrops: 10,
         mythicalDrops: 4,
@@ -102,6 +104,7 @@ describe("leaderboard presentation", () => {
       },
       {
         rank: 2,
+        playerId: "player-high",
         nickname: "High",
         totalDrops: 13,
         mythicalDrops: 8,
@@ -110,6 +113,7 @@ describe("leaderboard presentation", () => {
       },
       {
         rank: 3,
+        playerId: "player-low",
         nickname: "Low",
         totalDrops: 7,
         mythicalDrops: 2,

@@ -9,6 +9,7 @@ data class ItemDropViewProjection(
     val itemName: String,
     val itemType: String,
     val itemRarity: String,
+    val playerId: UUID?,
     val droppedFor: String,
     val occurredAt: Instant,
 )

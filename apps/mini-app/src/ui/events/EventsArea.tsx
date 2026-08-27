@@ -36,9 +36,9 @@ const EventsFeed = lazy(() =>
   })),
 )
 
-const Subscriptions = lazy(() =>
-  import("./subscriptions/Subscriptions").then((module) => ({
-    default: module.Subscriptions,
+const NotificationSettingsPage = lazy(() =>
+  import("./subscriptions/NotificationSettingsPage").then((module) => ({
+    default: module.NotificationSettingsPage,
   })),
 )
 
@@ -60,7 +60,7 @@ export function EventsArea(props: Props) {
       />
     )
   } else if (props.routeId === "subscriptions") {
-    content = <Subscriptions back={props.back} />
+    content = <NotificationSettingsPage back={props.back} />
   } else {
     return (
       <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "events" })} />

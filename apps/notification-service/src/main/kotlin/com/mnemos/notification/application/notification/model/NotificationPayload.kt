@@ -3,6 +3,8 @@ package com.mnemos.notification.application.notification.model
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
 import com.mnemos.notification.domain.global.model.DomainGlobalEventType
+import java.time.Instant
+import java.util.UUID
 
 sealed interface NotificationPayload {
     val type: NotificationType
@@ -40,6 +42,15 @@ data class GlobalNotificationPayload(
     val eventType: DomainGlobalEventType,
 ) : NotificationPayload {
     override val type = NotificationType.GLOBAL
+}
+
+data class PlayerOfflineNotificationPayload(
+    val playerId: UUID,
+    val player: String,
+    val previousRealm: String?,
+    val lastSeenOnline: Instant?,
+) : NotificationPayload {
+    override val type = NotificationType.PLAYER_OFFLINE
 }
 
 enum class NotificationItemType {

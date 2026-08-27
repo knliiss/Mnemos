@@ -10,6 +10,7 @@ data class ItemDropResponse(
     val itemName: String,
     val itemRarity: DomainItemRarity,
     val itemType: String,
+    val playerId: UUID?,
     val droppedFor: String,
     val occurredAt: Instant,
 )

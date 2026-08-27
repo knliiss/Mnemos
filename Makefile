@@ -10,6 +10,7 @@ include $(MAKE_DIR)/ui.mk
 include $(MAKE_DIR)/validation.mk
 include $(MAKE_DIR)/project.mk
 include $(MAKE_DIR)/compose.mk
+include $(MAKE_DIR)/testing.mk
 include $(MAKE_DIR)/kafka.mk
 include $(MAKE_DIR)/postgres.mk
 include $(MAKE_DIR)/keycloak.mk

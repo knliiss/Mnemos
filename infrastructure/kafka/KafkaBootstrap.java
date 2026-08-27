@@ -31,7 +31,9 @@ public final class KafkaBootstrap {
             "User:realtime_service",
             "User:personalization_service",
             "User:social_service",
-            "User:profile_service"
+            "User:profile_service",
+            "User:player_directory_service",
+            "User:payment_service"
     );
 
     private KafkaBootstrap() {
@@ -108,6 +110,9 @@ public final class KafkaBootstrap {
 
         topics.add(topic("mnemos.event.events.v1", 3));
         topics.add(topic("mnemos.event.events.v1.dlt", 3));
+
+        topics.add(topic("mnemos.player-directory.events.v1", 3));
+        topics.add(topic("mnemos.player-directory.events.v1.dlt", 3));
 
         topics.add(topic("mnemos.wallet.commands.v2", 3));
         topics.add(topic("mnemos.wallet.commands.v2.dlt", 3));
@@ -245,12 +250,24 @@ public final class KafkaBootstrap {
                 "account_service",
                 "mnemos.account.events.v1"
         );
+        allowConsumer(
+                acls,
+                "account_service",
+                "account-service",
+                "mnemos.player-directory.events.v1"
+        );
 
         allowConsumer(
                 acls,
                 "wallet_service",
                 "wallet-service",
                 "mnemos.account.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "wallet_service",
+                "wallet-service",
+                "mnemos.moderation.events.v1"
         );
         allowConsumer(
                 acls,
@@ -270,10 +287,40 @@ public final class KafkaBootstrap {
                 "event-service",
                 "mnemos.collector.ingress.v2"
         );
+        allowConsumer(
+                acls,
+                "event_service",
+                "event-service",
+                "mnemos.player-directory.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "event_service",
+                "event-service",
+                "mnemos.moderation.events.v1"
+        );
         allowTopicWrite(
                 acls,
                 "event_service",
                 "mnemos.event.events.v1"
+        );
+
+        allowConsumer(
+                acls,
+                "player_directory_service",
+                "player-directory-service",
+                "mnemos.account.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "player_directory_service",
+                "player-directory-service",
+                "mnemos.event.events.v1"
+        );
+        allowTopicWrite(
+                acls,
+                "player_directory_service",
+                "mnemos.player-directory.events.v1"
         );
 
         allowConsumer(
@@ -358,6 +405,12 @@ public final class KafkaBootstrap {
                 "notification_service",
                 "notification-service",
                 "mnemos.personalization.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "notification_service",
+                "notification-service",
+                "mnemos.player-directory.events.v1"
         );
 
         allowTopicWrite(
@@ -453,6 +506,24 @@ public final class KafkaBootstrap {
                 "profile_service",
                 "profile-service",
                 "mnemos.personalization.events.v1"
+        );
+        allowConsumer(
+                acls,
+                "profile_service",
+                "profile-service",
+                "mnemos.player-directory.events.v1"
+        );
+
+        allowTopicWrite(
+                acls,
+                "payment_service",
+                "mnemos.wallet.commands.v2"
+        );
+        allowConsumer(
+                acls,
+                "payment_service",
+                "payment-service",
+                "mnemos.wallet.events.v2"
         );
 
         return acls;

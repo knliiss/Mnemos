@@ -24,6 +24,7 @@ object BuiltinNotificationPackSupport {
         dungeon: NotificationTemplate,
         raid: NotificationTemplate,
         global: NotificationTemplate,
+        playerOffline: NotificationTemplate = defaultPlayerOfflineTemplate(),
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
     ): BuiltinPersonalizationDefinition =
         BuiltinPersonalizationDefinition(
@@ -40,6 +41,7 @@ object BuiltinNotificationPackSupport {
                             NotificationTemplateKey.DUNGEON to dungeon,
                             NotificationTemplateKey.RAID to raid,
                             NotificationTemplateKey.GLOBAL to global,
+                            NotificationTemplateKey.PLAYER_OFFLINE to playerOffline,
                         ),
                     valueMappings = valueMappings,
                 ),
@@ -93,6 +95,15 @@ object BuiltinNotificationPackSupport {
         NotificationTemplateCondition(
             field = field,
             value = value,
+        )
+
+    fun defaultPlayerOfflineTemplate(): NotificationTemplate =
+        NotificationTemplate(
+            emoji = "🌙",
+            soloTitle = "Игрок вышел из игры",
+            soloBody = "{player} больше не в сети.",
+            compact = "{player} вышел из игры",
+            aggregateTitle = "Игроки вышли из игры",
         )
 }
 

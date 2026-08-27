@@ -26,6 +26,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
 
   search: { area: "people", root: true },
   "public-profile": { area: "people" },
+  "sao-realms": { area: "people" },
   "user-personalization": { area: "people" },
   "user-wallet": { area: "people" },
 

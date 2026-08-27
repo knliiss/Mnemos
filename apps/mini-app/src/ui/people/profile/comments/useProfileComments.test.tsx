@@ -36,6 +36,13 @@ const profile: PublicProfileResponse = {
     avatarFrame: null,
     profileEffect: null,
   },
+  presence: {
+    status: "UNKNOWN",
+    online: null,
+    realm: null,
+    lastSeenOnline: null,
+    observedAt: null,
+  },
   createdAt: "2026-08-20T00:00:00Z",
 }
 

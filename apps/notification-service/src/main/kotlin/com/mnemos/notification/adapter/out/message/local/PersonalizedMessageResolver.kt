@@ -6,6 +6,7 @@ import com.mnemos.notification.application.notification.model.GlobalNotification
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationPayload
+import com.mnemos.notification.application.notification.model.PlayerOfflineNotificationPayload
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
@@ -60,21 +61,17 @@ class PersonalizedMessageResolver {
                 )
 
             is BoosterNotificationPayload ->
-                mapOf(
-                    NotificationPackVariantField.BOOSTER to payload.boosterType.name,
-                )
+                mapOf(NotificationPackVariantField.BOOSTER to payload.boosterType.name)
 
             is DungeonNotificationPayload ->
-                mapOf(
-                    NotificationPackVariantField.DUNGEON to payload.dungeonType.name,
-                )
+                mapOf(NotificationPackVariantField.DUNGEON to payload.dungeonType.name)
 
             is RaidNotificationPayload -> emptyMap()
 
             is GlobalNotificationPayload ->
-                mapOf(
-                    NotificationPackVariantField.GLOBAL_EVENT to payload.eventType.name,
-                )
+                mapOf(NotificationPackVariantField.GLOBAL_EVENT to payload.eventType.name)
+
+            is PlayerOfflineNotificationPayload -> emptyMap()
         }
 
     private fun values(payload: NotificationPayload): Map<String, String> =
@@ -93,19 +90,17 @@ class PersonalizedMessageResolver {
                     "booster" to payload.boosterType.name,
                 )
 
-            is DungeonNotificationPayload ->
-                mapOf(
-                    "dungeon" to payload.dungeonType.name,
-                )
+            is DungeonNotificationPayload -> mapOf("dungeon" to payload.dungeonType.name)
 
-            is RaidNotificationPayload ->
-                mapOf(
-                    "locations" to payload.locations.sorted().joinToString(", "),
-                )
+            is RaidNotificationPayload -> mapOf("locations" to payload.locations.sorted().joinToString(", "))
 
-            is GlobalNotificationPayload ->
+            is GlobalNotificationPayload -> mapOf("event" to payload.eventType.name)
+
+            is PlayerOfflineNotificationPayload ->
                 mapOf(
-                    "event" to payload.eventType.name,
+                    "player" to payload.player,
+                    "realm" to (payload.previousRealm ?: "—"),
+                    "lastSeen" to (payload.lastSeenOnline?.toString() ?: "—"),
                 )
         }
 

@@ -20,6 +20,8 @@ class ListActiveGlobalEventsServiceTest {
     private val properties =
         GlobalEventActivityProperties(
             activeDuration = Duration.ofMinutes(5),
+            moonActiveDuration = Duration.ofMinutes(7),
+            eclipseActiveDuration = Duration.ofMinutes(9),
             maximumSimultaneousEvents = 3,
         )
 
@@ -46,14 +48,49 @@ class ListActiveGlobalEventsServiceTest {
             ),
             result.map { event -> event.type },
         )
-        assertEquals(now.plusSeconds(280), result[1].endsAt)
-        assertEquals(now.minus(properties.activeDuration), reader.startedAfter)
+        assertEquals(
+            now.minusSeconds(20).plus(properties.moonActiveDuration),
+            result.first { event -> event.type == DomainGlobalEventType.MOON }.endsAt,
+        )
+        assertEquals(
+            now.minusSeconds(40).plus(properties.eclipseActiveDuration),
+            result.first { event -> event.type == DomainGlobalEventType.ECLIPSE }.endsAt,
+        )
+        assertEquals(now.minus(properties.maximumActiveDuration), reader.startedAfter)
+    }
+
+    @Test
+    fun `keeps moon and eclipse active longer than default duration`() {
+        val events =
+            listOf(
+                event(DomainGlobalEventType.DARKNESS, now.minus(Duration.ofMinutes(6))),
+                event(DomainGlobalEventType.MOON, now.minus(Duration.ofMinutes(6))),
+                event(DomainGlobalEventType.ECLIPSE, now.minus(Duration.ofMinutes(8))),
+            )
+        val reader = FakeGlobalEventReader(events)
+        val service = ListActiveGlobalEventsService(reader, properties, clock)
+
+        val result = service.execute()
+
+        assertEquals(
+            listOf(
+                DomainGlobalEventType.MOON,
+                DomainGlobalEventType.ECLIPSE,
+            ),
+            result.map { event -> event.type },
+        )
     }
 
     @Test
     fun `does not return event that ends on current instant`() {
-        val boundaryEvent = event(DomainGlobalEventType.DARKNESS, now.minus(properties.activeDuration))
-        val reader = FakeGlobalEventReader(listOf(boundaryEvent))
+        val events =
+            listOf(
+                event(DomainGlobalEventType.DARKNESS, now.minus(properties.activeDuration)),
+                event(DomainGlobalEventType.MOON, now.minus(properties.moonActiveDuration)),
+                event(DomainGlobalEventType.ECLIPSE, now.minus(properties.eclipseActiveDuration)),
+                event(DomainGlobalEventType.EXPLOSION, now.minus(properties.activeDuration)),
+            )
+        val reader = FakeGlobalEventReader(events)
         val service = ListActiveGlobalEventsService(reader, properties, clock)
 
         val result = service.execute()

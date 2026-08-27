@@ -1,13 +1,6 @@
-import type { ReactElement } from "react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  BoosterArt,
-  DungeonArt,
-  GlobalEventArt,
-  ItemTypeArt,
-  RaidArt,
-} from "@/ui/components/events/EventArt"
+import { NotificationTemplateArt } from "@/ui/components/personalization/NotificationTemplateArt"
 import type {
   NotificationTemplateKey,
   NotificationTemplateVariant,
@@ -77,7 +70,7 @@ export function NotificationPackContextPreview({
             title={t(`creator.editor.notificationTypes.${type}`)}
             aria-label={t(`creator.editor.notificationTypes.${type}`)}
           >
-            {eventArt(type, size === "THUMBNAIL" ? 22 : 28)}
+            <NotificationTemplateArt templateKey={type} size={size === "THUMBNAIL" ? 22 : 28} />
           </button>
         ))}
       </nav>
@@ -87,7 +80,7 @@ export function NotificationPackContextPreview({
         data-template={selectedType.toLowerCase()}
       >
         <span className="notification-pack-context-preview__art" aria-hidden="true">
-          {eventArt(selectedType, size === "DETAIL" ? 46 : 38)}
+          <NotificationTemplateArt templateKey={selectedType} size={size === "DETAIL" ? 46 : 38} />
         </span>
 
         <span className="notification-pack-context-preview__copy">
@@ -124,24 +117,4 @@ export function NotificationPackContextPreview({
       ) : null}
     </section>
   )
-}
-
-function eventArt(type: NotificationTemplateKey, size: number): ReactElement {
-  if (type === "ITEM_DROP") {
-    return <ItemTypeArt itemType="SWORD" size={size} />
-  }
-
-  if (type === "BOOSTER") {
-    return <BoosterArt boosterType="LUCK" size={size} />
-  }
-
-  if (type === "DUNGEON") {
-    return <DungeonArt size={size} />
-  }
-
-  if (type === "RAID") {
-    return <RaidArt size={size} />
-  }
-
-  return <GlobalEventArt eventType="ECLIPSE" size={size} />
 }

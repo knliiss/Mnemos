@@ -219,10 +219,15 @@ export function usePersonalizations(): PersonalizationData {
       }
 
       if (pending.target === "USER" || pending.scopeKey === scopeKeyRef.current) {
+        const normalizedFailureReason = failureReason?.trim().toUpperCase()
+        const insufficientBalance = normalizedFailureReason === "INSUFFICIENT_BALANCE"
+
         errors.showBackendError({
-          code: "PERSONALIZATION_PURCHASE_FAILED",
+          code: insufficientBalance ? "INSUFFICIENT_BALANCE" : "PERSONALIZATION_PURCHASE_FAILED",
           statusCode: 409,
-          message: failureReason ?? t("personalization.purchaseFailed"),
+          message: insufficientBalance
+            ? t("personalization.insufficientBalance")
+            : t("personalization.purchaseFailed"),
         })
       }
     },

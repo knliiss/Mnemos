@@ -65,17 +65,21 @@ interface BalanceJpaRepository : JpaRepository<BalanceEntity, BalanceEntityId> {
     ): List<BalanceEntity>
 
     @Query(
-        """
-        SELECT balance
-        FROM BalanceEntity balance
-        WHERE balance.id.ownerType = :ownerType
-          AND balance.id.currency = :currency
-        ORDER BY balance.amount DESC, balance.id.ownerId ASC
+        value = """
+            SELECT balance.*
+            FROM balances balance
+            WHERE balance.owner_type = 'ACCOUNT'
+              AND balance.currency = 'COIN'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard_exclusion_projection exclusion
+                  WHERE exclusion.subject_type = 'ACCOUNT'
+                    AND exclusion.subject_id = balance.owner_id
+                    AND exclusion.scope IN ('ALL', 'COINS')
+              )
+            ORDER BY balance.amount DESC, balance.owner_id ASC
         """,
+        nativeQuery = true,
     )
-    fun findLeaderboard(
-        @Param("ownerType") ownerType: WalletOwnerType,
-        @Param("currency") currency: Currency,
-        pageable: Pageable,
-    ): List<BalanceEntity>
+    fun findCoinLeaderboard(pageable: Pageable): List<BalanceEntity>
 }

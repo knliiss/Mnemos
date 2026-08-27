@@ -1,7 +1,6 @@
 import type { TFunction } from "i18next"
-import type { CSSProperties, ReactElement } from "react"
+import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
-import { BoosterArt, DungeonArt, GlobalEventArt, ItemTypeArt, RaidArt } from "../events/EventArt"
 import type {
   AvatarFrameContent,
   NickStyleContent,
@@ -13,6 +12,7 @@ import type {
   ProfileThemeContent,
 } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
+import { NotificationTemplateArt } from "./NotificationTemplateArt"
 import { PersonalizationVisualLayers } from "./PersonalizationVisualLayers"
 import "./personalization-preview.css"
 
@@ -24,9 +24,7 @@ type PreviewProps = {
 
 type TemplateSample = {
   key: NotificationTemplateKey
-  label: string
   values: Record<string, string>
-  art: ReactElement
 }
 
 type EffectPreviewStyle = CSSProperties & {
@@ -187,10 +185,12 @@ function NotificationPackShowcase({ content }: { content: NotificationPackConten
 
           return (
             <article className="notification-pack-template" key={sample.key}>
-              <span className="notification-pack-template__art">{sample.art}</span>
+              <span className="notification-pack-template__art">
+                <NotificationTemplateArt templateKey={sample.key} size={38} />
+              </span>
               <span className="notification-pack-template__copy">
                 <span className="notification-pack-template__eyebrow">
-                  <b>{sample.label}</b>
+                  <b>{t(`creator.editor.notificationTypes.${sample.key}`)}</b>
                   <i>{template.emoji ?? t("personalization.preview.noEmoji")}</i>
                 </span>
                 <strong>{renderTemplate(template.soloTitle, sample.values)}</strong>
@@ -240,7 +240,7 @@ function NotificationPackPreview({
       className={`${className} notification-real-preview ${detail ? "notification-real-preview--detail" : ""}`.trim()}
     >
       <span className="notification-real-preview__event">
-        <ItemTypeArt itemType="SWORD" size={small ? 26 : detail ? 46 : 34} />
+        <NotificationTemplateArt templateKey="ITEM_DROP" size={small ? 26 : detail ? 46 : 34} />
       </span>
       <span className="notification-real-preview__copy">
         <small>{t("personalization.preview.itemDrop")}</small>
@@ -400,47 +400,45 @@ function createTemplateSamples(t: TFunction): TemplateSample[] {
   return [
     {
       key: "ITEM_DROP",
-      label: t("personalization.preview.samples.ITEM_DROP"),
       values: {
         player: "north",
         item: t("personalization.preview.samples.item"),
         rarity: t("personalization.preview.samples.mythical"),
         itemType: t("personalization.preview.samples.sword"),
       },
-      art: <ItemTypeArt itemType="SWORD" size={38} />,
     },
     {
       key: "BOOSTER",
-      label: t("personalization.preview.samples.BOOSTER"),
       values: {
         player: "vex",
         booster: t("personalization.preview.samples.luck"),
       },
-      art: <BoosterArt boosterType="LUCK" size={38} />,
     },
     {
       key: "DUNGEON",
-      label: t("personalization.preview.samples.DUNGEON"),
       values: {
         dungeon: t("personalization.preview.samples.expert"),
       },
-      art: <DungeonArt size={38} />,
     },
     {
       key: "RAID",
-      label: t("personalization.preview.samples.RAID"),
       values: {
         locations: "2 · 4 · 7",
       },
-      art: <RaidArt size={38} />,
     },
     {
       key: "GLOBAL",
-      label: t("personalization.preview.samples.GLOBAL"),
       values: {
         event: t("personalization.preview.samples.eclipse"),
       },
-      art: <GlobalEventArt eventType="ECLIPSE" size={38} />,
+    },
+    {
+      key: "PLAYER_OFFLINE",
+      values: {
+        player: "KoTuK_PvP",
+        realm: "SAO-4",
+        lastSeen: "00:37",
+      },
     },
   ]
 }

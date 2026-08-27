@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":libraries:security-starter"))
 
     implementation(project(":contracts:account-contracts"))
+    implementation(project(":contracts:player-directory-contracts"))
     implementation(project(":libraries:outbox-starter"))
     implementation(project(":libraries:kafka-starter"))
 
@@ -18,7 +19,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.github.resilience4j:resilience4j-ratelimiter")
 
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.flywaydb:flyway-database-postgresql:12.4.0")

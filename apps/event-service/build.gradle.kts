@@ -14,6 +14,8 @@ dependencies {
 
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:realtime-contracts"))
+    implementation(project(":contracts:player-directory-contracts"))
+    implementation(project(":contracts:moderation-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")

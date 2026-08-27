@@ -1,0 +1,8 @@
+package com.mnemos.playerdirectory.configuration
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+@EnableConfigurationProperties(PlayerDirectoryObservabilityProperties::class)
+class PlayerDirectoryObservabilityConfiguration

@@ -25,6 +25,7 @@ object BoosterEventApiMapper {
         BoosterEventResponse(
             id = id.id,
             type = type,
+            playerId = playerId?.id,
             activatedBy = activatedBy,
             activatedAt = activatedAt,
         )
