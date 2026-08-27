@@ -43,7 +43,11 @@ export function CoinPurchasePanel({ accountId, accountNickname, onPurchased }: P
   }, [accountId])
 
   useEffect(() => {
-    void loadCatalog()
+    const frame = window.requestAnimationFrame(() => {
+      void loadCatalog()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
   }, [loadCatalog])
 
   const confirmPurchase = async () => {
