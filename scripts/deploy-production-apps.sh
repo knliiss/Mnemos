@@ -46,10 +46,15 @@ KAFKA_TRUSTSTORE_CONFIG="$(
     sh "$REPOSITORY_ROOT/scripts/sync-production-kafka-truststore.sh"
 )"
 
+CLOUDFLARE_TUNNEL_SECRET="$(
+    sh "$REPOSITORY_ROOT/scripts/sync-production-cloudflare-tunnel-secret.sh"
+)"
+
 export MNEMOS_IMAGE_REGISTRY="$IMAGE_REGISTRY"
 export MNEMOS_RELEASE_TAG="$RELEASE_TAG"
 export MNEMOS_SWARM_NETWORK="$SWARM_NETWORK"
 export MNEMOS_KAFKA_TRUSTSTORE_CONFIG="$KAFKA_TRUSTSTORE_CONFIG"
+export MNEMOS_CLOUDFLARE_TUNNEL_SECRET="$CLOUDFLARE_TUNNEL_SECRET"
 export MNEMOS_PRODUCTION_ENV_FILE="$ENV_FILE"
 
 umask 077
@@ -81,6 +86,9 @@ if ! sh "$REPOSITORY_ROOT/scripts/wait-production-stack.sh" \
     echo "Release ${RELEASE_TAG} did not converge. Swarm update policies will retain or roll back services according to their deployment state." >&2
     exit 1
 fi
+
+sh "$REPOSITORY_ROOT/scripts/prune-production-cloudflare-tunnel-secrets.sh" \
+    "$CLOUDFLARE_TUNNEL_SECRET"
 
 mkdir -p "$DEPLOY_STATE_DIR"
 printf '%s\n' "$RELEASE_TAG" > "$DEPLOY_STATE_DIR/current-release"
