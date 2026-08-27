@@ -7,6 +7,7 @@ import { FeatureLoading } from "../../system/FeatureLoading"
 import { SaoRealmCard } from "./SaoRealmCard"
 import { useSaoRealmDirectory } from "./data/useSaoRealmDirectory"
 import "./realms.css"
+import "./sao-realm-polish.css"
 
 type Props = {
   navigate: (route: Route) => void
@@ -39,7 +40,12 @@ export function SaoRealmPage({ navigate, back }: Props) {
       <PageHeader title={t("people.realms.title")} back={back} />
 
       <section className="sao-realms-hero">
-        <img src="/ui-illustrations/mnemos-mascot-realms.svg" alt="" aria-hidden="true" />
+        <div className="sao-realms-hero__mascot" aria-hidden="true">
+          <span className="sao-realms-hero__orbit sao-realms-hero__orbit--outer" />
+          <span className="sao-realms-hero__orbit sao-realms-hero__orbit--inner" />
+          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          <i>SAO</i>
+        </div>
         <span>
           <small>{t("people.realms.eyebrow")}</small>
           <strong>{t("people.realms.heroTitle")}</strong>
@@ -76,9 +82,15 @@ export function SaoRealmPage({ navigate, back }: Props) {
               })
             : t("people.realms.loading")}
         </span>
-        {directory.refreshing ? <i>{t("people.realms.refreshing")}</i> : null}
-        <button type="button" onClick={directory.refresh} disabled={directory.refreshing}>
-          {t("people.realms.refresh")}
+        <button
+          type="button"
+          className={`sao-realms-refresh ${directory.refreshing ? "is-refreshing" : ""}`}
+          aria-label={t("people.realms.refresh")}
+          title={t("people.realms.refresh")}
+          onClick={directory.refresh}
+          disabled={directory.refreshing}
+        >
+          <Glyph name="swap" size={15} />
         </button>
       </div>
 
