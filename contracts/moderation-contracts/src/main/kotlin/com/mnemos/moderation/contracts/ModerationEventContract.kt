@@ -4,4 +4,5 @@ object ModerationEventContract {
     const val TOPIC = "mnemos.moderation.events.v1"
     const val VERSION = 1
     const val AGGREGATE_TYPE = "MODERATION_SANCTION"
+    const val LEADERBOARD_EXCLUSION_AGGREGATE_TYPE = "LEADERBOARD_EXCLUSION"
 }
