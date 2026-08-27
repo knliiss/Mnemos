@@ -41,7 +41,7 @@ class CoinPurchaseController(
     private fun CoinPurchaseCatalog.toResponse(): CoinPurchaseCatalogResponse =
         CoinPurchaseCatalogResponse(
             coinPerPrime = coinPerPrime,
-            options = options.map(CoinPurchaseOption::toResponse),
+            options = options.map { it.toResponse() },
         )
 
     private fun CoinPurchaseOption.toResponse(): CoinPurchaseOptionResponse =
