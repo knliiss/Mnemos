@@ -2,6 +2,8 @@ package com.mnemos.account.application.service.account
 
 import com.mnemos.account.api.dto.account.CreateAccountRequest
 import com.mnemos.account.application.context.CurrentUserProvider
+import com.mnemos.account.application.model.account.ResolvedPlayerIdentity
+import com.mnemos.account.application.port.out.PlayerIdentityProvider
 import com.mnemos.account.domain.exception.account.AccountIdentityConflictException
 import com.mnemos.account.domain.model.account.Account
 import com.mnemos.account.domain.model.account.AccountMember
@@ -14,8 +16,6 @@ import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.role.RoleRepository
 import com.mnemos.account.domain.repository.user.UserRepository
-import com.mnemos.account.integration.cristalix.CristalixIdentityProvider
-import com.mnemos.account.integration.cristalix.model.CristalixPlayer
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
@@ -62,11 +62,11 @@ class CreateAccountServiceTest {
         val accountMemberRepository = mock<AccountMemberRepository>()
         val roleRepository = mock<RoleRepository>()
         val userRepository = mock<UserRepository>()
-        val cristalixIdentityProvider = mock<CristalixIdentityProvider>()
+        val playerIdentityProvider = mock<PlayerIdentityProvider>()
         val currentUserProvider = mock<CurrentUserProvider>()
         val integrationEventPublisher = mock<IntegrationEventPublisher>()
 
-        whenever(cristalixIdentityProvider.findByNickname(player.nickname)).thenReturn(player)
+        whenever(playerIdentityProvider.resolveByNickname(player.nickname)).thenReturn(player)
         whenever(currentUserProvider.get()).thenReturn(owner)
         whenever(accountRepository.findByCristalixUuidForUpdate(player.uuid)).thenReturn(account)
         whenever(
@@ -84,7 +84,7 @@ class CreateAccountServiceTest {
                 accountMemberRepository = accountMemberRepository,
                 roleRepository = roleRepository,
                 userRepository = userRepository,
-                cristalixIdentityProvider = cristalixIdentityProvider,
+                playerIdentityProvider = playerIdentityProvider,
                 currentUserProvider = currentUserProvider,
                 integrationEventPublisher = integrationEventPublisher,
                 transactionTemplate = transactionTemplate(),
@@ -138,11 +138,11 @@ class CreateAccountServiceTest {
         val accountMemberRepository = mock<AccountMemberRepository>()
         val roleRepository = mock<RoleRepository>()
         val userRepository = mock<UserRepository>()
-        val cristalixIdentityProvider = mock<CristalixIdentityProvider>()
+        val playerIdentityProvider = mock<PlayerIdentityProvider>()
         val currentUserProvider = mock<CurrentUserProvider>()
         val integrationEventPublisher = mock<IntegrationEventPublisher>()
 
-        whenever(cristalixIdentityProvider.findByNickname(player.nickname)).thenReturn(player)
+        whenever(playerIdentityProvider.resolveByNickname(player.nickname)).thenReturn(player)
         whenever(currentUserProvider.get()).thenReturn(currentUser)
         whenever(accountRepository.findByCristalixUuidForUpdate(player.uuid)).thenReturn(account)
         whenever(
@@ -158,7 +158,7 @@ class CreateAccountServiceTest {
                 accountMemberRepository = accountMemberRepository,
                 roleRepository = roleRepository,
                 userRepository = userRepository,
-                cristalixIdentityProvider = cristalixIdentityProvider,
+                playerIdentityProvider = playerIdentityProvider,
                 currentUserProvider = currentUserProvider,
                 integrationEventPublisher = integrationEventPublisher,
                 transactionTemplate = transactionTemplate(),
@@ -175,8 +175,8 @@ class CreateAccountServiceTest {
         verifyNoInteractions(roleRepository, userRepository, integrationEventPublisher)
     }
 
-    private fun createPlayer(): CristalixPlayer =
-        CristalixPlayer(
+    private fun createPlayer(): ResolvedPlayerIdentity =
+        ResolvedPlayerIdentity(
             uuid = CristalixUuid(UUID.fromString("11111111-1111-1111-1111-111111111111")),
             nickname = CristalixNickname("knaliz"),
         )
