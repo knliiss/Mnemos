@@ -13,6 +13,7 @@ export const notificationTemplateKeys: NotificationTemplateKey[] = [
   "DUNGEON",
   "RAID",
   "GLOBAL",
+  "PLAYER_OFFLINE",
 ]
 
 const valueKeyByPlaceholder: Partial<Record<string, NotificationPackValueKey>> = {
@@ -89,6 +90,14 @@ export function notificationPreviewValues(type: NotificationTemplateKey): Record
   if (type === "RAID") {
     return {
       locations: "2 · 4 · 7",
+    }
+  }
+
+  if (type === "PLAYER_OFFLINE") {
+    return {
+      player: "KoTuK_PvP",
+      realm: "SAO-4",
+      lastSeen: "00:37",
     }
   }
 
