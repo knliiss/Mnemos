@@ -26,6 +26,16 @@ class ExpensiveRequestClassifierTest {
     }
 
     @Test
+    fun `coin purchase is expensive`() {
+        assertTrue(
+            isExpensive(
+                HttpMethod.POST,
+                "/api/v1/accounts/01a02e75-540d-7371-8c3d-318c1fc50e0d/coin-purchases",
+            ),
+        )
+    }
+
+    @Test
     fun `read only payment catalog remains a normal request`() {
         assertFalse(isExpensive(HttpMethod.GET, "/api/v1/payments/stars/prime/catalog"))
     }

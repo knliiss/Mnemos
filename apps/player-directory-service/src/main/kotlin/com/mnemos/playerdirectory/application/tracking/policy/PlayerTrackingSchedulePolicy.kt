@@ -25,8 +25,8 @@ class PlayerTrackingSchedulePolicy(
     ): Instant {
         val interval =
             when {
-                hasSubscription -> subscriptionPollInterval
                 status == PlayerPresenceStatus.UNKNOWN || status == PlayerPresenceStatus.HIDDEN -> unverifiablePollInterval
+                hasSubscription -> subscriptionPollInterval
                 saoOnline -> saoOnlinePollInterval
                 highActivity -> highActivityPollInterval
                 else -> lowActivityPollInterval
