@@ -1,4 +1,4 @@
-name: Production Images
+name: Production Release
 
 on:
   workflow_run:
@@ -8,40 +8,76 @@ on:
       - completed
 
 concurrency:
-  group: production-images-${{ github.event.workflow_run.head_sha }}
+  group: production-release
   cancel-in-progress: false
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   publish:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'master'
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      current_release: ${{ steps.release_guard.outputs.current_release }}
 
     steps:
       - name: Checkout verified revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+
+      - name: Reject stale verified revisions
+        id: release_guard
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch \
+            --no-tags \
+            --depth=1 \
+            origin \
+            master
+
+          CURRENT_MASTER="$(git rev-parse FETCH_HEAD)"
+
+          if [ "$CURRENT_MASTER" = "$RELEASE_SHA" ]; then
+            echo "current_release=true" >> "$GITHUB_OUTPUT"
+            echo "Verified revision is the current master: $RELEASE_SHA"
+          else
+            echo "current_release=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping stale verified revision $RELEASE_SHA; current master is $CURRENT_MASTER"
+          fi
 
       - name: Set up Java
+        if: steps.release_guard.outputs.current_release == 'true'
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
+        if: steps.release_guard.outputs.current_release == 'true'
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
 
       - name: Assemble production artifacts
+        if: steps.release_guard.outputs.current_release == 'true'
         run: ./gradlew assemble --no-daemon
 
       - name: Configure Docker Buildx
+        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -54,6 +90,7 @@ jobs:
           docker buildx inspect --bootstrap
 
       - name: Authenticate to GHCR
+        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
           GHCR_TOKEN: ${{ github.token }}
@@ -66,6 +103,7 @@ jobs:
               --password-stdin
 
       - name: Publish immutable images
+        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
           MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
@@ -103,15 +141,77 @@ jobs:
           sh scripts/publish-production-images.sh
 
       - name: Publish image summary
+        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
           RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
           REGISTRY: ghcr.io/${{ github.repository_owner }}
         run: |
           {
-            echo "## Production images"
+            echo "## Production release"
             echo
             echo "Immutable release tag: \`$RELEASE_SHA\`"
             echo
             echo "Registry: \`$REGISTRY\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs:
+      - publish
+    if: >-
+      needs.publish.result == 'success' &&
+      needs.publish.outputs.current_release == 'true' &&
+      vars.MNEMOS_PRODUCTION_DEPLOY_ENABLED == 'true'
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    permissions:
+      contents: read
+      packages: read
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout verified production revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+
+      - name: Authenticate production Docker to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Deploy production application stack
+        shell: bash
+        env:
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_RELEASE_TAG: ${{ github.event.workflow_run.head_sha }}
+          MNEMOS_PRODUCTION_ENV_FILE: /etc/mnemos/mnemos.env
+          MNEMOS_SWARM_NETWORK: mnemos-production-network
+          MNEMOS_SWARM_STACK_NAME: mnemos
+        run: |
+          set -euo pipefail
+
+          cleanup() {
+            sudo -n docker logout ghcr.io >/dev/null 2>&1 || true
+          }
+
+          trap cleanup EXIT
+
+          sudo -n env \
+            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
+            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
+            MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
+            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
+            MNEMOS_SWARM_STACK_NAME="$MNEMOS_SWARM_STACK_NAME" \
+            sh scripts/deploy-production-apps.sh
