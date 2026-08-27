@@ -8,6 +8,7 @@ import com.mnemos.event.domain.player.model.CristalixPlayerId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.time.Instant
@@ -31,11 +32,11 @@ class DropLeaderboardJpaAdapterTest {
         whenever(
             repository.read(
                 from = any(),
-                to = any(),
-                rarity = any(),
-                itemType = any(),
-                itemName = any(),
-                playerId = any(),
+                to = anyOrNull(),
+                rarity = anyOrNull(),
+                itemType = anyOrNull(),
+                itemName = anyOrNull(),
+                playerId = anyOrNull(),
                 sort = any(),
                 direction = any(),
                 limit = any(),
@@ -69,11 +70,11 @@ class DropLeaderboardJpaAdapterTest {
         whenever(
             repository.read(
                 from = any(),
-                to = any(),
-                rarity = any(),
-                itemType = any(),
-                itemName = any(),
-                playerId = any(),
+                to = anyOrNull(),
+                rarity = anyOrNull(),
+                itemType = anyOrNull(),
+                itemName = anyOrNull(),
+                playerId = anyOrNull(),
                 sort = any(),
                 direction = any(),
                 limit = any(),
