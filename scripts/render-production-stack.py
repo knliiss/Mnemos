@@ -33,7 +33,12 @@ REPLICA_SAFE_SERVICES = frozenset(
         "account-service",
         "event-service",
         "gateway-service",
+        "moderation-service",
+        "notification-service",
         "payment-service",
+        "personalization-service",
+        "realtime-service",
+        "reward-service",
         "wallet-service",
     }
 )
@@ -46,7 +51,7 @@ SERVICE_MEMORY_LIMITS = {
 
 DEFAULT_MEMORY_LIMIT = "1280M"
 DEFAULT_MEMORY_RESERVATION = "256M"
-DEFAULT_CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
+CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
 CLOUDFLARED_MEMORY_LIMIT = "256M"
 CLOUDFLARED_MEMORY_RESERVATION = "64M"
 CLOUDFLARED_SECRET_TARGET = "/run/secrets/cloudflare_tunnel_token"
@@ -164,9 +169,7 @@ def remove_kafka_tls_volume(service: dict[str, Any]) -> None:
         service.pop("volumes", None)
 
 
-def configure_kafka_truststore(
-    service: dict[str, Any],
-) -> None:
+def configure_kafka_truststore(service: dict[str, Any]) -> None:
     remove_kafka_tls_volume(service)
 
     configs = service.get("configs")
@@ -229,9 +232,7 @@ def configure_healthcheck(
     }
 
 
-def application_deployment_policy(
-    service_name: str,
-) -> dict[str, Any]:
+def application_deployment_policy(service_name: str) -> dict[str, Any]:
     replica_safe = service_name in REPLICA_SAFE_SERVICES
     replicas = 2 if replica_safe else 1
     update_order = "start-first" if replica_safe else "stop-first"
@@ -324,11 +325,9 @@ def sanitize_service(
     return service
 
 
-def cloudflared_service(
-    image: str,
-) -> dict[str, Any]:
+def cloudflared_service() -> dict[str, Any]:
     return {
-        "image": image,
+        "image": CLOUDFLARED_IMAGE,
         "command": [
             "tunnel",
             "run",
@@ -394,13 +393,6 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
     ).strip()
     truststore_config = required_environment("MNEMOS_KAFKA_TRUSTSTORE_CONFIG")
     cloudflare_tunnel_secret = required_environment("MNEMOS_CLOUDFLARE_TUNNEL_SECRET")
-    cloudflared_image = os.environ.get(
-        "MNEMOS_CLOUDFLARED_IMAGE",
-        DEFAULT_CLOUDFLARED_IMAGE,
-    ).strip()
-
-    if not cloudflared_image:
-        raise StackRenderError("MNEMOS_CLOUDFLARED_IMAGE must not be empty")
 
     source_services = model["services"]
     missing_services = [
@@ -424,7 +416,7 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
         )
         for service_name in APPLICATION_SERVICES
     }
-    rendered_services["cloudflared"] = cloudflared_service(cloudflared_image)
+    rendered_services["cloudflared"] = cloudflared_service()
 
     return {
         "version": "3.8",
