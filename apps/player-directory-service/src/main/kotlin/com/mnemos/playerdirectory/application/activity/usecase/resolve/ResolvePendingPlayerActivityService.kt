@@ -4,8 +4,10 @@ import com.mnemos.playerdirectory.application.activity.model.PendingPlayerActivi
 import com.mnemos.playerdirectory.application.activity.support.PendingPlayerActivityCompletionCoordinator
 import com.mnemos.playerdirectory.application.activity.usecase.claim.ClaimPendingPlayerActivityUseCase
 import com.mnemos.playerdirectory.application.player.exception.PlayerDirectoryUpstreamUnavailableException
+import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerBatchGateway
 import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerNameBatchGateway
 import com.mnemos.playerdirectory.application.player.port.out.PlayerNicknameOwnershipRepository
+import com.mnemos.playerdirectory.application.player.support.PlayerObservationCoordinator
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityCommand
 import com.mnemos.playerdirectory.application.tracking.usecase.activity.RecordPlayerDropActivityUseCase
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
@@ -18,6 +20,8 @@ class ResolvePendingPlayerActivityService(
     private val claimPendingPlayerActivityUseCase: ClaimPendingPlayerActivityUseCase,
     private val nicknameOwnershipRepository: PlayerNicknameOwnershipRepository,
     private val cristalixPlayerNameBatchGateway: CristalixPlayerNameBatchGateway,
+    private val cristalixPlayerBatchGateway: CristalixPlayerBatchGateway,
+    private val playerObservationCoordinator: PlayerObservationCoordinator,
     private val recordPlayerDropActivityUseCase: RecordPlayerDropActivityUseCase,
     private val completionCoordinator: PendingPlayerActivityCompletionCoordinator,
     private val logger: Logger = Logger.getLogger(ResolvePendingPlayerActivityService::class.java.name),
@@ -48,7 +52,7 @@ class ResolvePendingPlayerActivityService(
             return
         }
 
-        val batch =
+        val identityBatch =
             try {
                 cristalixPlayerNameBatchGateway.findByNicknames(unresolved.map { lease -> lease.nickname })
             } catch (exception: PlayerDirectoryUpstreamUnavailableException) {
@@ -58,24 +62,62 @@ class ResolvePendingPlayerActivityService(
                 return
             }
 
-        unresolved.forEach { lease ->
-            val playerId = batch.playerIdsByNormalizedNickname[lease.nickname.normalized()]
+        val resolvedActivities =
+            unresolved.mapNotNull { lease ->
+                val playerId = identityBatch.playerIdsByNormalizedNickname[lease.nickname.normalized()]
 
-            if (playerId == null) {
-                completionCoordinator.completeFailure(lease)
+                if (playerId == null) {
+                    completionCoordinator.completeFailure(lease)
+                    null
+                } else {
+                    ResolvedPendingPlayerActivity(
+                        lease = lease,
+                        playerId = playerId,
+                    )
+                }
+            }
+
+        if (resolvedActivities.isEmpty()) {
+            return
+        }
+
+        val observationBatch =
+            try {
+                cristalixPlayerBatchGateway.findByIds(
+                    resolvedActivities
+                        .map(ResolvedPendingPlayerActivity::playerId)
+                        .distinct(),
+                )
+            } catch (exception: PlayerDirectoryUpstreamUnavailableException) {
+                resolvedActivities.forEach { resolved ->
+                    completionCoordinator.completeFailure(resolved.lease)
+                }
+                logger.log(Level.WARNING, "Cristalix pending player observation batch failed", exception)
+
+                return
+            }
+
+        val observationsByPlayerId = observationBatch.observations.associateBy { observation -> observation.playerId }
+
+        resolvedActivities.forEach { resolved ->
+            val observation = observationsByPlayerId[resolved.playerId]
+
+            if (observation == null) {
+                completionCoordinator.completeFailure(resolved.lease)
                 return@forEach
             }
 
             try {
+                playerObservationCoordinator.apply(observation)
                 completeResolved(
-                    lease = lease,
-                    playerId = playerId,
+                    lease = resolved.lease,
+                    playerId = resolved.playerId,
                 )
             } catch (exception: RuntimeException) {
-                completionCoordinator.completeFailure(lease)
+                completionCoordinator.completeFailure(resolved.lease)
                 logger.log(
                     Level.WARNING,
-                    "Failed to resolve pending activity for ${lease.nickname.value}",
+                    "Failed to resolve pending activity for ${resolved.lease.nickname.value}",
                     exception,
                 )
             }
@@ -98,4 +140,9 @@ class ResolvePendingPlayerActivityService(
 
         completionCoordinator.completeSuccess(lease)
     }
+
+    private data class ResolvedPendingPlayerActivity(
+        val lease: PendingPlayerActivityLease,
+        val playerId: CristalixPlayerId,
+    )
 }
