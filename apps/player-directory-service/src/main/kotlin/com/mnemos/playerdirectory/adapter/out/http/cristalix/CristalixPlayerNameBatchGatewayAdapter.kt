@@ -7,12 +7,14 @@ import com.mnemos.playerdirectory.application.player.port.out.CristalixPlayerNam
 import com.mnemos.playerdirectory.domain.player.model.PlayerNickname
 import feign.FeignException
 import org.springframework.stereotype.Component
-import java.time.Instant
+import java.time.Clock
 
 @Component
 class CristalixPlayerNameBatchGatewayAdapter(
     private val client: CristalixPlayerClient,
     private val requestExecutor: CristalixRequestExecutor,
+    private val metrics: CristalixApiMetrics,
+    private val clock: Clock,
 ) : CristalixPlayerNameBatchGateway {
     override fun findByNicknames(nicknames: List<PlayerNickname>): PlayerNicknameObservationBatch {
         require(nicknames.isNotEmpty()) {
@@ -22,7 +24,12 @@ class CristalixPlayerNameBatchGatewayAdapter(
             "Cristalix player nickname batch cannot contain duplicate names"
         }
 
-        val observedAt = Instant.now()
+        metrics.recordBatchSize(
+            operation = "by_nickname",
+            size = nicknames.size,
+        )
+
+        val observedAt = clock.instant()
 
         return try {
             val response =
