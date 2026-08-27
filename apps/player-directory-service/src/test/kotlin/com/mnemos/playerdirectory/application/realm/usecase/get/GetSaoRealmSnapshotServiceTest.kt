@@ -43,7 +43,13 @@ class GetSaoRealmSnapshotServiceTest {
         assertEquals(now.minusSeconds(60), reader.lastCutoff)
         assertEquals(3, snapshot.trackedOnline)
         assertEquals(listOf("SAO-2", "SAO-10"), snapshot.realms.map { realm -> realm.name.value })
-        assertEquals(listOf("alpha", "Beta"), snapshot.realms.first().players.map(SaoRealmPlayer::nickname))
+        assertEquals(
+            listOf("alpha", "Beta"),
+            snapshot.realms
+                .first()
+                .players
+                .map(SaoRealmPlayer::nickname),
+        )
     }
 
     private fun player(

@@ -19,7 +19,7 @@ data class Player(
         require(
             lastVerifiedPresenceStatus == null ||
                 lastVerifiedPresenceStatus == PlayerPresenceStatus.ONLINE ||
-                lastVerifiedPresenceStatus == PlayerPresenceStatus.OFFLINE
+                lastVerifiedPresenceStatus == PlayerPresenceStatus.OFFLINE,
         ) {
             "Last verified presence status must be ONLINE, OFFLINE or null"
         }

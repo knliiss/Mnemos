@@ -36,9 +36,7 @@ class CristalixPlayerGatewayAdapter(
             )
         }
 
-    private fun executeLookup(
-        request: (CristalixApiProperties.Credential) -> CristalixPlayerResponse,
-    ): PlayerObservation? =
+    private fun executeLookup(request: (CristalixApiProperties.Credential) -> CristalixPlayerResponse): PlayerObservation? =
         try {
             requestExecutor
                 .execute(

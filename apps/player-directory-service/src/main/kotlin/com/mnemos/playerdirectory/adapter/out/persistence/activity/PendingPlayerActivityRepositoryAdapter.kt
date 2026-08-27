@@ -36,8 +36,7 @@ class PendingPlayerActivityRepositoryAdapter(
         )
     }
 
-    override fun save(activity: PendingPlayerActivity): PendingPlayerActivity =
-        repository.save(activity.toEntity()).toDomain()
+    override fun save(activity: PendingPlayerActivity): PendingPlayerActivity = repository.save(activity.toEntity()).toDomain()
 
     override fun delete(activity: PendingPlayerActivity) {
         repository.delete(activity.toEntity())

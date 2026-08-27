@@ -94,7 +94,7 @@ interface PendingPlayerActivityJpaRepository : JpaRepository<PendingPlayerActivi
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "SELECT activity FROM PendingPlayerActivityEntity activity " +
-            "WHERE activity.normalizedNickname = :normalizedNickname"
+            "WHERE activity.normalizedNickname = :normalizedNickname",
     )
     fun findByNormalizedNicknameForUpdate(
         @Param("normalizedNickname") normalizedNickname: String,
