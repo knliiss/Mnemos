@@ -64,6 +64,18 @@ build_image \
     --build-arg "KEYCLOAK_VERSION=${KEYCLOAK_VERSION:?KEYCLOAK_VERSION is required}"
 
 build_image \
+    "mnemos-keycloak-config" \
+    "infrastructure/keycloak-config/Dockerfile" \
+    "." \
+    --build-arg "KEYCLOAK_CONFIG_CLI_VERSION=${KEYCLOAK_CONFIG_CLI_VERSION:?KEYCLOAK_CONFIG_CLI_VERSION is required}"
+
+build_image \
+    "mnemos-postgres-security-init" \
+    "infrastructure/postgres/Dockerfile.security-init" \
+    "." \
+    --build-arg "POSTGRES_VERSION=${POSTGRES_VERSION:?POSTGRES_VERSION is required}"
+
+build_image \
     "mnemos-redis" \
     "infrastructure/redis/Dockerfile" \
     "." \
