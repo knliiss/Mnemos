@@ -22,7 +22,7 @@ enum class NotificationPackValueKey(
     ),
     GLOBAL_EVENT(
         placeholder = "event",
-        allowedValues = setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION"),
+        allowedValues = setOf("DARKNESS", "MOON", "ECLIPSE", "EXPLOSION", "COMET_CHAOS"),
     ),
     ;
 
