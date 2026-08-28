@@ -4,6 +4,7 @@ set -eu
 
 REPOSITORY_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 COMPOSE_DIR="$REPOSITORY_ROOT/infrastructure/compose"
+PRODUCTION_APP_OVERRIDE="$REPOSITORY_ROOT/infrastructure/production/compose.app-overrides.yml"
 ENV_FILE="${MNEMOS_PRODUCTION_ENV_FILE:-/etc/mnemos/mnemos.env}"
 OUTPUT_FILE="${1:-}"
 
@@ -35,6 +36,8 @@ done
 for compose_file in "$COMPOSE_DIR"/apps/compose.*.yml; do
     set -- "$@" -f "$compose_file"
 done
+
+set -- "$@" -f "$PRODUCTION_APP_OVERRIDE"
 
 sh "$REPOSITORY_ROOT/scripts/docker-compose-env.sh" \
     "$ENV_FILE" \
