@@ -145,3 +145,5 @@ if network.get("name") != "mnemos-production-network":
 
 print("Production infrastructure Compose overlay verified")
 PY
+
+sh "$SCRIPT_DIR/verify-production-app-compose.sh"
