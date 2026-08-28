@@ -1,6 +1,7 @@
 package com.mnemos.notification.adapter.out.message.local
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.notification.application.notification.model.BoosterNotificationPayload
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationItemRarity
@@ -9,6 +10,7 @@ import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackTemplate
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
+import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -59,6 +61,22 @@ class LocalNotificationMessageRendererTest {
             """.trimIndent(),
             message.text,
         )
+    }
+
+    @Test
+    fun `exact duplicate booster payload is rendered once`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = activePack(userId)
+        val items =
+            listOf(
+                booster(now, "Knalis", DomainBoosterType.MONEY),
+                booster(now.plusMillis(200), "Knalis", DomainBoosterType.MONEY),
+            )
+
+        val message = renderer.renderNotification(userId, items)
+
+        assertEquals("BOOSTER\nEvent", message.text)
     }
 
     @Test
@@ -149,6 +167,22 @@ class LocalNotificationMessageRendererTest {
                     itemName = item,
                     itemType = NotificationItemType.SWORD,
                     itemRarity = rarity,
+                ),
+            occurredAt = now,
+            expiresAt = now.plusSeconds(60),
+        )
+
+    private fun booster(
+        now: Instant,
+        player: String,
+        type: DomainBoosterType,
+    ): NotificationItem =
+        NotificationItem(
+            sourceId = UUID.randomUUID(),
+            payload =
+                BoosterNotificationPayload(
+                    boosterType = type,
+                    activatedBy = player,
                 ),
             occurredAt = now,
             expiresAt = now.plusSeconds(60),
