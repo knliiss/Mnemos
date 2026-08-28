@@ -4,6 +4,7 @@ import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.application.notification.delivery.model.MessageAction
 import com.mnemos.notification.application.notification.delivery.model.RenderedMessage
 import com.mnemos.notification.application.notification.delivery.port.out.NotificationMessageRenderer
+import com.mnemos.notification.application.notification.model.BoosterNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationType
 import com.mnemos.notification.application.notification.personalization.model.ActiveNotificationPack
@@ -32,8 +33,9 @@ class LocalNotificationMessageRenderer(
     ): RenderedMessage {
         require(items.isNotEmpty())
 
+        val deduplicatedItems = deduplicateBoosterItems(items)
         val activePack = activeNotificationPackRepository.find(userId)
-        val resolution = resolveNotifications(userId, items, activePack)
+        val resolution = resolveNotifications(userId, deduplicatedItems, activePack)
 
         return RenderedMessage(
             text =
@@ -176,6 +178,16 @@ class LocalNotificationMessageRenderer(
                 )
             }
         }
+
+    private fun deduplicateBoosterItems(items: List<NotificationItem>): List<NotificationItem> {
+        val seenBoosters = mutableSetOf<BoosterNotificationPayload>()
+
+        return items.filter { item ->
+            val payload = item.payload
+
+            payload !is BoosterNotificationPayload || seenBoosters.add(payload)
+        }
+    }
 
     private fun resolveNotifications(
         userId: UserId,
