@@ -1,10 +1,10 @@
 package com.mnemos.playerdirectory.adapter.out.http.cristalix
 
+import com.mnemos.playerdirectory.adapter.out.http.cristalix.quota.CristalixDistributedQuotaCoordinator
+import com.mnemos.playerdirectory.adapter.out.http.cristalix.quota.CristalixQuotaDecision
+import com.mnemos.playerdirectory.adapter.out.http.cristalix.quota.CristalixQuotaDecisionStatus
 import com.mnemos.playerdirectory.application.player.exception.PlayerDirectoryUpstreamUnavailableException
 import feign.FeignException
-import io.github.resilience4j.ratelimiter.RateLimiter
-import io.github.resilience4j.ratelimiter.RateLimiterConfig
-import io.github.resilience4j.ratelimiter.RequestNotPermitted
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.springframework.stereotype.Component
@@ -13,42 +13,50 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.LockSupport
+import kotlin.math.min
 
 @Component
 class CristalixRequestExecutor(
     properties: CristalixApiProperties,
+    private val quotaCoordinator: CristalixDistributedQuotaCoordinator,
     private val meterRegistry: MeterRegistry,
     private val clock: Clock,
 ) {
-    private val laneStates =
+    private val credentials =
         mapOf(
-            CristalixCredentialLane.INTERACTIVE to createLaneState("interactive", properties.credentials.interactive),
-            CristalixCredentialLane.MONITORING to createLaneState("monitoring", properties.credentials.monitoring),
-            CristalixCredentialLane.RESERVE to createLaneState("reserve", properties.credentials.reserve),
+            CristalixCredentialLane.INTERACTIVE to properties.credentials.interactive,
+            CristalixCredentialLane.MONITORING to properties.credentials.monitoring,
+            CristalixCredentialLane.RESERVE to properties.credentials.reserve,
         )
 
     fun <T> execute(
         lane: CristalixCredentialLane,
         request: (CristalixApiProperties.Credential) -> T,
     ): T {
-        val state = state(lane)
+        val credential = credential(lane)
+        val quotaDecision = awaitQuotaPermit(lane, credential)
 
-        if (isCoolingDown(state)) {
+        if (quotaDecision.status == CristalixQuotaDecisionStatus.COOLING_DOWN) {
             recordCooldownSkip(lane)
             return executeReserve(primaryLane = lane, request = request)
         }
 
+        if (quotaDecision.status == CristalixQuotaDecisionStatus.QUOTA_EXHAUSTED) {
+            recordQuotaRejection(lane)
+            throw quotaUnavailable(lane)
+        }
+
         return try {
-            executeWithState(
+            executeRequest(
                 lane = lane,
-                state = state,
+                credential = credential,
                 request = request,
             )
         } catch (exception: FeignException.TooManyRequests) {
             applyUpstreamCooldown(
                 lane = lane,
-                state = state,
+                credential = credential,
                 exception = exception,
             )
             executeReserve(primaryLane = lane, request = request)
@@ -65,13 +73,20 @@ class CristalixRequestExecutor(
             )
         }
 
-        val reserve = state(CristalixCredentialLane.RESERVE)
+        val lane = CristalixCredentialLane.RESERVE
+        val credential = credential(lane)
+        val quotaDecision = awaitQuotaPermit(lane, credential)
 
-        if (isCoolingDown(reserve)) {
-            recordCooldownSkip(CristalixCredentialLane.RESERVE)
+        if (quotaDecision.status == CristalixQuotaDecisionStatus.COOLING_DOWN) {
+            recordCooldownSkip(lane)
             throw PlayerDirectoryUpstreamUnavailableException(
                 message = "Cristalix primary and reserve credentials are temporarily unavailable",
             )
+        }
+
+        if (quotaDecision.status == CristalixQuotaDecisionStatus.QUOTA_EXHAUSTED) {
+            recordQuotaRejection(lane)
+            throw quotaUnavailable(lane)
         }
 
         meterRegistry
@@ -82,15 +97,15 @@ class CristalixRequestExecutor(
             ).increment()
 
         return try {
-            executeWithState(
-                lane = CristalixCredentialLane.RESERVE,
-                state = reserve,
+            executeRequest(
+                lane = lane,
+                credential = credential,
                 request = request,
             )
         } catch (exception: FeignException.TooManyRequests) {
             applyUpstreamCooldown(
-                lane = CristalixCredentialLane.RESERVE,
-                state = reserve,
+                lane = lane,
+                credential = credential,
                 exception = exception,
             )
             throw PlayerDirectoryUpstreamUnavailableException(
@@ -100,34 +115,58 @@ class CristalixRequestExecutor(
         }
     }
 
-    private fun <T> executeWithState(
+    private fun awaitQuotaPermit(
         lane: CristalixCredentialLane,
-        state: LaneState,
+        credential: CristalixApiProperties.Credential,
+    ): CristalixQuotaDecision {
+        val timeoutNanos = credential.rateLimit.timeout.toNanos()
+        val deadlineNanos = System.nanoTime() + timeoutNanos
+
+        while (true) {
+            val decision =
+                quotaCoordinator.tryAcquire(
+                    lane = lane,
+                    rateLimit = credential.rateLimit,
+                    now = clock.instant(),
+                )
+
+            if (decision.status != CristalixQuotaDecisionStatus.QUOTA_EXHAUSTED) {
+                return decision
+            }
+
+            val remainingNanos = deadlineNanos - System.nanoTime()
+
+            if (timeoutNanos == 0L || remainingNanos <= 0L) {
+                return decision
+            }
+
+            val retryAfterNanos = decision.retryAfter?.toNanos() ?: remainingNanos
+            val waitNanos = min(remainingNanos, retryAfterNanos)
+
+            if (waitNanos <= 0L) {
+                return decision
+            }
+
+            LockSupport.parkNanos(waitNanos)
+
+            if (Thread.currentThread().isInterrupted) {
+                return decision
+            }
+        }
+    }
+
+    private fun <T> executeRequest(
+        lane: CristalixCredentialLane,
+        credential: CristalixApiProperties.Credential,
         request: (CristalixApiProperties.Credential) -> T,
     ): T {
         val sample = Timer.start(meterRegistry)
 
-        try {
-            val result =
-                state.rateLimiter.executeSupplier {
-                    request(state.credential)
-                }
+        return try {
+            val result = request(credential)
 
             recordRequest(lane = lane, outcome = "success", sample = sample)
-            return result
-        } catch (exception: RequestNotPermitted) {
-            recordRequest(lane = lane, outcome = "local_quota_rejected", sample = sample)
-            meterRegistry
-                .counter(
-                    "mnemos.player_directory.cristalix.quota_rejections",
-                    "lane",
-                    lane.metricValue,
-                ).increment()
-
-            throw PlayerDirectoryUpstreamUnavailableException(
-                message = "Cristalix API quota is temporarily unavailable for $lane requests",
-                cause = exception,
-            )
+            result
         } catch (exception: FeignException.TooManyRequests) {
             recordRequest(lane = lane, outcome = "upstream_429", sample = sample)
             meterRegistry
@@ -145,16 +184,19 @@ class CristalixRequestExecutor(
 
     private fun applyUpstreamCooldown(
         lane: CristalixCredentialLane,
-        state: LaneState,
+        credential: CristalixApiProperties.Credential,
         exception: FeignException.TooManyRequests,
     ) {
         val now = clock.instant()
         val requestedUntil = retryAfter(exception, now) ?: now.plus(DEFAULT_UPSTREAM_COOLDOWN)
         val cooldownUntil = if (requestedUntil.isAfter(now)) requestedUntil else now.plus(DEFAULT_UPSTREAM_COOLDOWN)
 
-        state.cooldownUntil.updateAndGet { current ->
-            if (current == null || cooldownUntil.isAfter(current)) cooldownUntil else current
-        }
+        quotaCoordinator.applyCooldown(
+            lane = lane,
+            rateLimit = credential.rateLimit,
+            cooldownUntil = cooldownUntil,
+            now = now,
+        )
 
         meterRegistry
             .counter(
@@ -190,16 +232,21 @@ class CristalixRequestExecutor(
         }.getOrNull()
     }
 
-    private fun isCoolingDown(state: LaneState): Boolean {
-        val until = state.cooldownUntil.get() ?: return false
-        val now = clock.instant()
-
-        if (until.isAfter(now)) {
-            return true
-        }
-
-        state.cooldownUntil.compareAndSet(until, null)
-        return false
+    private fun recordQuotaRejection(lane: CristalixCredentialLane) {
+        meterRegistry
+            .counter(
+                "mnemos.player_directory.cristalix.requests",
+                "lane",
+                lane.metricValue,
+                "outcome",
+                "local_quota_rejected",
+            ).increment()
+        meterRegistry
+            .counter(
+                "mnemos.player_directory.cristalix.quota_rejections",
+                "lane",
+                lane.metricValue,
+            ).increment()
     }
 
     private fun recordCooldownSkip(lane: CristalixCredentialLane) {
@@ -236,35 +283,15 @@ class CristalixRequestExecutor(
         )
     }
 
-    private fun state(lane: CristalixCredentialLane): LaneState =
-        requireNotNull(laneStates[lane]) {
+    private fun credential(lane: CristalixCredentialLane): CristalixApiProperties.Credential =
+        requireNotNull(credentials[lane]) {
             "Cristalix credential lane $lane is not configured"
         }
 
-    private fun createLaneState(
-        name: String,
-        credential: CristalixApiProperties.Credential,
-    ): LaneState {
-        val rateLimit = credential.rateLimit
-        val config =
-            RateLimiterConfig
-                .custom()
-                .limitForPeriod(rateLimit.permits)
-                .limitRefreshPeriod(rateLimit.refreshPeriod)
-                .timeoutDuration(rateLimit.timeout)
-                .build()
-
-        return LaneState(
-            credential = credential,
-            rateLimiter = RateLimiter.of("cristalix-$name", config),
+    private fun quotaUnavailable(lane: CristalixCredentialLane): PlayerDirectoryUpstreamUnavailableException =
+        PlayerDirectoryUpstreamUnavailableException(
+            message = "Cristalix API quota is temporarily unavailable for $lane requests",
         )
-    }
-
-    private data class LaneState(
-        val credential: CristalixApiProperties.Credential,
-        val rateLimiter: RateLimiter,
-        val cooldownUntil: AtomicReference<Instant?> = AtomicReference(null),
-    )
 
     private val CristalixCredentialLane.metricValue: String
         get() = name.lowercase()
