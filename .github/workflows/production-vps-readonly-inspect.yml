@@ -1,0 +1,54 @@
+name: Production VPS Read-only Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-vps-readonly-inspect.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+
+    steps:
+      - name: Inspect production host without mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== host ==='
+          date -u
+          uname -a
+          free -h
+          swapon --show || true
+          df -h /
+
+          echo '=== docker ==='
+          docker --version
+          docker info --format 'Swarm={{.Swarm.LocalNodeState}} LoggingDriver={{.Driver}} LiveRestore={{.LiveRestoreEnabled}}'
+          docker node ls
+          docker stack ls
+          docker ps -a --format '{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'
+
+          echo '=== protected paths ==='
+          stat -c '%a %U:%G %n' /etc/mnemos /etc/mnemos/mnemos.env
+          test -e /opt/mnemos/runtime/.production-deployed && echo 'deployment_marker=present' || echo 'deployment_marker=absent'
+
+          echo '=== backup and monitoring ==='
+          restic version
+          systemctl is-enabled mnemos-production-health.timer || true
+          systemctl is-active mnemos-production-health.timer || true
+          systemctl show mnemos-production-health.service -p Result -p ExecMainStatus
+          systemctl is-enabled mnemos-production-backup.timer || true
+          systemctl is-active mnemos-production-backup.timer || true
+          systemctl show mnemos-production-backup.service -p Result -p ExecMainStatus || true
+
+          echo '=== protected legacy volumes (names only) ==='
+          docker volume ls --format '{{.Name}}' | grep -E '^(base-project-vps|trajecta|trajectav3|trajectav4)$' || true
