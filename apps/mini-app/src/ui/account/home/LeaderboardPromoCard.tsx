@@ -19,7 +19,7 @@ export function LeaderboardPromoCard({ navigate }: { navigate: (route: Route) =>
         <span className="account-leaderboard-card__categories" aria-hidden="true">
           <i>{t("leaderboards.tabs.drops")}</i>
           <i>{t("leaderboards.tabs.coins")}</i>
-          <i>{t("leaderboards.tabs.predictors")}</i>
+          <i>{t("leaderboards.tabs.boosters")}</i>
         </span>
       </span>
 
