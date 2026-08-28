@@ -1,0 +1,43 @@
+name: Production Runner Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-runner-inspect.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+    steps:
+      - name: Inspect production host read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "host=$(hostname)"
+          uname -sr
+          free -h
+          df -h /
+          swapon --show || true
+          docker --version
+          echo "swarm=$(docker info --format '{{.Swarm.LocalNodeState}}')"
+          docker node inspect self --format 'node={{.Status.State}} availability={{.Spec.Availability}} manager={{.ManagerStatus.Leader}}'
+          echo "stacks=$(docker stack ls --format '{{.Name}}' | wc -l)"
+          echo "containers=$(docker ps -a --format '{{.ID}}' | wc -l)"
+          test ! -e /var/lib/mnemos-deploy/current-release && echo 'deploy_state=absent' || echo 'deploy_state=present'
+          systemctl is-enabled mnemos-production-health.timer || true
+          systemctl is-active mnemos-production-health.timer || true
+          systemctl show mnemos-production-health.service -p Result --value || true
+          systemctl is-enabled mnemos-production-backup.timer || true
+          systemctl is-active mnemos-production-backup.timer || true
+          stat -c '/etc/mnemos=%a:%U:%G' /etc/mnemos || true
+          stat -c '/etc/mnemos/mnemos.env=%a:%U:%G' /etc/mnemos/mnemos.env || true
+          restic version || true
