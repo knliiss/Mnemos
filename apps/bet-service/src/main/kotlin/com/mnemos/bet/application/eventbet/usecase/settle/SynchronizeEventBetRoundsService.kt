@@ -28,7 +28,15 @@ class SynchronizeEventBetRoundsService(
 
         repository
             .findRoundsRequiringSynchronization(now)
-            .forEach { round -> synchronize(round, now) }
+            .forEach { candidate ->
+                val round = repository.findRoundByIdForUpdate(candidate.id) ?: return@forEach
+
+                if (round.status == EventBetRoundStatus.SETTLED) {
+                    return@forEach
+                }
+
+                synchronize(round, now)
+            }
     }
 
     private fun synchronize(
