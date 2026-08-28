@@ -7,6 +7,7 @@ BACKUP_SCRIPT="$SCRIPT_DIR/backup-production.sh"
 OFFSITE_SCRIPT="$SCRIPT_DIR/backup-production-offsite.sh"
 PRUNE_SCRIPT="$SCRIPT_DIR/prune-production-local-backups.sh"
 RUN_SCRIPT="$SCRIPT_DIR/run-production-backup.sh"
+ENABLE_SCRIPT="$SCRIPT_DIR/enable-production-backups.sh"
 HEALTH_SCRIPT="$SCRIPT_DIR/check-production-health.sh"
 RESTORE_CORE_SCRIPT="$SCRIPT_DIR/restore-production-core.sh"
 RESTORE_REDIS_SCRIPT="$SCRIPT_DIR/restore-production-redis.sh"
@@ -22,6 +23,7 @@ for script in \
     "$OFFSITE_SCRIPT" \
     "$PRUNE_SCRIPT" \
     "$RUN_SCRIPT" \
+    "$ENABLE_SCRIPT" \
     "$HEALTH_SCRIPT" \
     "$RESTORE_CORE_SCRIPT" \
     "$RESTORE_REDIS_SCRIPT" \
@@ -65,6 +67,12 @@ grep -Fq 'latest-successful' "$RUN_SCRIPT" ||
 
 grep -Fq 'latest-successful' "$HEALTH_SCRIPT" ||
     fail "Production monitoring must use the fully successful backup marker"
+
+grep -Fq 'RESTIC_PASSWORD_FILE' "$ENABLE_SCRIPT" ||
+    fail "Backup enablement must require a Restic password file"
+
+grep -Fq 'restic check' "$ENABLE_SCRIPT" ||
+    fail "Backup enablement must validate repository integrity before enabling the timer"
 
 offsite_line="$(grep -n 'backup-production-offsite.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
 prune_line="$(grep -n 'prune-production-local-backups.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"

@@ -40,7 +40,21 @@ if [ -z "${RESTIC_REPOSITORY:-}" ] || [ -z "${RESTIC_PASSWORD_FILE:-}" ]; then
     exit 1
 fi
 
+if [ ! -f "$RESTIC_PASSWORD_FILE" ]; then
+    echo "Restic password file does not exist: $RESTIC_PASSWORD_FILE" >&2
+    exit 1
+fi
+
+password_owner="$(stat -c '%U:%G' "$RESTIC_PASSWORD_FILE")"
+password_mode="$(stat -c '%a' "$RESTIC_PASSWORD_FILE")"
+
+if [ "$password_owner" != "root:root" ] || [ "$password_mode" != "600" ]; then
+    echo "Restic password file must be root:root with mode 600" >&2
+    exit 1
+fi
+
 restic snapshots >/dev/null
+restic check
 
 install -o root -g root -m 0644 \
     "$SERVICE_SOURCE" \
