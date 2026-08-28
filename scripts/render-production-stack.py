@@ -28,32 +28,19 @@ APPLICATION_SERVICES = (
     "wallet-service",
 )
 
-REPLICA_SAFE_SERVICES = frozenset(
-    {
-        "account-service",
-        "bet-service",
-        "event-service",
-        "gateway-service",
-        "moderation-service",
-        "notification-service",
-        "payment-service",
-        "personalization-service",
-        "profile-service",
-        "realtime-service",
-        "reward-service",
-        "social-service",
-        "wallet-service",
-    }
-)
+REPLICA_SAFE_SERVICES = frozenset(APPLICATION_SERVICES)
 
 SERVICE_MEMORY_LIMITS = {
-    "gateway-service": "1G",
-    "player-directory-service": "1536M",
-    "realtime-service": "1536M",
+    "event-service": "768M",
+    "gateway-service": "512M",
+    "notification-service": "768M",
+    "personalization-service": "768M",
+    "player-directory-service": "768M",
+    "realtime-service": "768M",
 }
 
-DEFAULT_MEMORY_LIMIT = "1280M"
-DEFAULT_MEMORY_RESERVATION = "256M"
+DEFAULT_MEMORY_LIMIT = "640M"
+DEFAULT_MEMORY_RESERVATION = "192M"
 CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
 CLOUDFLARED_MEMORY_LIMIT = "256M"
 CLOUDFLARED_MEMORY_RESERVATION = "64M"
@@ -204,7 +191,7 @@ def configure_runtime_environment(
 
     environment.setdefault(
         "JAVA_TOOL_OPTIONS",
-        "-XX:MaxRAMPercentage=70.0 -XX:InitialRAMPercentage=20.0 -XX:+ExitOnOutOfMemoryError",
+        "-XX:MaxRAMPercentage=60.0 -XX:InitialRAMPercentage=15.0 -XX:+ExitOnOutOfMemoryError",
     )
     environment["SERVER_SHUTDOWN"] = "graceful"
     environment["SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE"] = "30s"
