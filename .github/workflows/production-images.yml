@@ -143,11 +143,19 @@ jobs:
         if: steps.release_guard.outputs.current_release == 'true'
         run: ./gradlew assemble --no-daemon
 
-      - name: Configure Docker Buildx
+      - name: Configure isolated Docker publishing
         if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
         run: |
           set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install \
+            --directory \
+            --mode=0700 \
+            "$DOCKER_CONFIG"
 
           docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
 
@@ -157,18 +165,6 @@ jobs:
             --use
 
           docker buildx inspect --bootstrap
-
-      - name: Prepare isolated publish registry credentials
-        if: steps.release_guard.outputs.current_release == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          rm -rf "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
-          install \
-            --directory \
-            --mode=0700 \
-            "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
 
       - name: Authenticate to GHCR
         if: steps.release_guard.outputs.current_release == 'true'
@@ -241,11 +237,13 @@ jobs:
       - name: Remove publish registry credentials and builder
         if: always()
         shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
         run: |
           set +e
 
           docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
-          rm -rf "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
+          rm -rf "$DOCKER_CONFIG"
 
   deploy:
     needs:
