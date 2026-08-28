@@ -53,6 +53,8 @@ jobs:
           sh -n scripts/verify-ci-workflow-security.sh
           sh -n scripts/verify-production-release-security.sh
           sh -n scripts/verify-production-backup-tooling.sh
+          sh -n scripts/verify-production-monitoring-tooling.sh
+          sh -n scripts/check-production-health.sh
           sh -n scripts/verify-telegram-init-data-transport.sh
           sh -n scripts/verify-keycloak-session-security.sh
           sh -n scripts/verify-postgres-legacy-ownership-migration.sh
@@ -97,6 +99,7 @@ jobs:
           sh scripts/verify-ci-workflow-security.sh
           sh scripts/verify-production-release-security.sh
           sh scripts/verify-production-backup-tooling.sh
+          sh scripts/verify-production-monitoring-tooling.sh
           sh scripts/verify-telegram-init-data-transport.sh
           sh scripts/verify-keycloak-session-security.sh
           sh scripts/verify-no-insecure-credential-defaults.sh
