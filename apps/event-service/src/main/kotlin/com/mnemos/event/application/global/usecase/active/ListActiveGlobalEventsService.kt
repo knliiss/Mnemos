@@ -42,5 +42,6 @@ class ListActiveGlobalEventsService(
             DomainGlobalEventType.MOON -> properties.moonActiveDuration
             DomainGlobalEventType.ECLIPSE -> properties.eclipseActiveDuration
             DomainGlobalEventType.EXPLOSION -> properties.activeDuration
+            DomainGlobalEventType.COMET_CHAOS -> properties.activeDuration
         }
 }
