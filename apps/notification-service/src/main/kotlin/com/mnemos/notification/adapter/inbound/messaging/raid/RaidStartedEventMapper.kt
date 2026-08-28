@@ -7,7 +7,7 @@ import com.mnemos.notification.application.raid.usecase.process.ProcessRaidEvent
 object RaidStartedEventMapper {
     fun ConsumedMessage<RaidStartedV1>.toCommand(): ProcessRaidEventCommand =
         ProcessRaidEventCommand(
-            messageId = messageId,
+            messageId = aggregateId,
             occurredAt = occurredAt,
             locations = payload.locations,
         )
