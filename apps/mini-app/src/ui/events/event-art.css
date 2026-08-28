@@ -118,6 +118,10 @@
   --event-art-color: #f49a24 !important;
 }
 
+.event-art--global-comet-chaos {
+  --event-art-color: #78aaff !important;
+}
+
 button:active .event-art__image {
   transform: translateY(1px) scale(0.98) !important;
 }
