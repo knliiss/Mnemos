@@ -46,6 +46,20 @@ def require_no_field(service_name: str, field: str) -> None:
         fail(f"{service_name} unexpectedly contains {field}")
 
 
+def require_command_setting(service_name: str, setting: str) -> None:
+    command = services[service_name].get("command", [])
+
+    if setting not in command:
+        fail(f"{service_name} is missing PostgreSQL setting {setting}")
+
+
+def require_memory_limit(service_name: str, minimum_bytes: int, maximum_bytes: int) -> None:
+    memory = services[service_name].get("mem_limit")
+
+    if not isinstance(memory, int) or not minimum_bytes <= memory <= maximum_bytes:
+        fail(f"{service_name} has unexpected memory limit: {memory}")
+
+
 for service_name in (
     "app-postgres",
     "keycloak-postgres",
@@ -83,6 +97,43 @@ expected_images = {
 for service_name, expected_image in expected_images.items():
     if services[service_name].get("image") != expected_image:
         fail(f"{service_name} does not use the expected immutable GHCR image")
+
+for setting in (
+    "max_connections=120",
+    "shared_buffers=1GB",
+    "effective_cache_size=8GB",
+    "work_mem=4MB",
+    "maintenance_work_mem=256MB",
+):
+    require_command_setting("app-postgres", setting)
+
+for setting in (
+    "max_connections=40",
+    "shared_buffers=256MB",
+    "effective_cache_size=1GB",
+    "work_mem=4MB",
+    "maintenance_work_mem=128MB",
+):
+    require_command_setting("keycloak-postgres", setting)
+
+require_memory_limit(
+    service_name="app-postgres",
+    minimum_bytes=3_000_000_000,
+    maximum_bytes=3_300_000_000,
+)
+require_memory_limit(
+    service_name="keycloak-postgres",
+    minimum_bytes=1_500_000_000,
+    maximum_bytes=1_700_000_000,
+)
+
+keycloak_environment = services["keycloak"].get("environment", {})
+
+if keycloak_environment.get("KC_DB_POOL_MAX_SIZE") != "20":
+    fail("Keycloak production database pool must be capped at 20 connections")
+
+if keycloak_environment.get("KC_DB_POOL_MIN_SIZE") != "2":
+    fail("Keycloak production database pool minimum must be 2 connections")
 
 network = config.get("networks", {}).get("mnemos-network", {})
 
