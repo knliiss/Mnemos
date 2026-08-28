@@ -8,11 +8,14 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 STACK_NAME="${MNEMOS_SWARM_STACK_NAME:-mnemos}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-mnemos}"
+RUNTIME_ROOT="${MNEMOS_RUNTIME_CURRENT_LINK:-/opt/mnemos/current}"
 DISK_USAGE_LIMIT_PERCENT="${MNEMOS_MONITOR_DISK_USAGE_LIMIT_PERCENT:-90}"
 MEMORY_AVAILABLE_MIN_PERCENT="${MNEMOS_MONITOR_MEMORY_AVAILABLE_MIN_PERCENT:-10}"
 BACKUP_MAX_AGE_SECONDS="${MNEMOS_MONITOR_BACKUP_MAX_AGE_SECONDS:-129600}"
 BACKUP_SUCCESSFUL_LATEST_FILE="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}/latest-successful"
 DEPLOY_RELEASE_FILE="${MNEMOS_DEPLOY_STATE_DIR:-/var/lib/mnemos-deploy}/current-release"
+VERIFY_INFRA_SCRIPT="$RUNTIME_ROOT/scripts/verify-production-infra.sh"
 
 fail() {
     echo "Production health check failed: $*" >&2
@@ -96,7 +99,21 @@ elif [ -f "$DEPLOY_RELEASE_FILE" ]; then
     fail "deployment state exists but Swarm stack $STACK_NAME is missing"
 fi
 
+if [ -f "$DEPLOY_RELEASE_FILE" ]; then
+    if [ ! -f "$VERIFY_INFRA_SCRIPT" ]; then
+        fail "production infrastructure verifier is missing: $VERIFY_INFRA_SCRIPT"
+    fi
+
+    if ! COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" sh "$VERIFY_INFRA_SCRIPT"; then
+        fail "production infrastructure containers are not healthy"
+    fi
+fi
+
 if systemctl is-enabled --quiet mnemos-production-backup.timer 2>/dev/null; then
+    if systemctl is-failed --quiet mnemos-production-backup.service 2>/dev/null; then
+        fail "latest scheduled production backup service execution failed"
+    fi
+
     if [ ! -s "$BACKUP_SUCCESSFUL_LATEST_FILE" ]; then
         fail "backup timer is enabled but no fully successful backup pipeline state exists"
     fi

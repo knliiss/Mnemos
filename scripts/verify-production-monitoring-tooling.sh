@@ -51,6 +51,12 @@ grep -Fq "docker node inspect self" "$HEALTH_SCRIPT" \
 grep -Fq "docker stack services" "$HEALTH_SCRIPT" \
     || fail "health check does not verify replica convergence"
 
+grep -Fq 'verify-production-infra.sh' "$HEALTH_SCRIPT" \
+    || fail "health check does not verify stateful production infrastructure after deployment"
+
+grep -Fq 'systemctl is-failed --quiet mnemos-production-backup.service' "$HEALTH_SCRIPT" \
+    || fail "health check does not fail immediately after a failed scheduled backup"
+
 grep -Fq "mnemos-production-backup.timer" "$HEALTH_SCRIPT" \
     || fail "health check does not verify backup freshness when backups are enabled"
 
