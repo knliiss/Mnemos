@@ -24,6 +24,7 @@ export const eventsRu = {
       MOON: "Луна",
       ECLIPSE: "Затмение",
       EXPLOSION: "Взрыв",
+      COMET_CHAOS: "Кометный хаос",
     },
     itemTypes: {
       SWORD: "Меч",
