@@ -1,0 +1,37 @@
+name: Production Monitoring Refresh
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-monitoring-refresh.yml
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+    steps:
+      - name: Check out production branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/production-deployment
+          persist-credentials: false
+
+      - name: Install hardened monitoring runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          revision="$(git rev-parse HEAD)"
+          sudo -n sh scripts/install-production-runtime.sh "$revision"
+          sudo -n env MNEMOS_ENABLE_PRODUCTION_MONITORING=true sh scripts/install-production-monitoring.sh
+          sudo -n systemctl is-enabled --quiet mnemos-production-health.timer
+          sudo -n systemctl is-active --quiet mnemos-production-health.timer
+          sudo -n systemctl start mnemos-production-health.service
+          sudo -n systemctl show mnemos-production-health.service -p Result --value
