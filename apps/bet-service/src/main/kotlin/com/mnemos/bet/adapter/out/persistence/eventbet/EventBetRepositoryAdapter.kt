@@ -20,7 +20,32 @@ class EventBetRepositoryAdapter(
     private val betJpaRepository: EventBetJpaRepository,
     private val resolutionJpaRepository: EventBetResolutionJpaRepository,
 ) : EventBetRepository {
-    override fun createRound(round: EventBetRound): EventBetRound = roundJpaRepository.save(round.toEntity()).toDomain()
+    override fun createRound(round: EventBetRound): EventBetRound {
+        val inserted =
+            roundJpaRepository.insertIfAbsent(
+                id = round.id.id,
+                eventType = round.eventType.name,
+                scheduledAt = round.scheduledAt,
+                closesAt = round.closesAt,
+                resolvesAt = round.resolvesAt,
+                yesOdds = round.yesOdds,
+                noOdds = round.noOdds,
+                status = round.status.name,
+            )
+
+        if (inserted > 0) {
+            return round
+        }
+
+        return checkNotNull(
+            roundJpaRepository.findByEventAndScheduleForUpdate(
+                eventType = round.eventType,
+                scheduledAt = round.scheduledAt,
+            ),
+        ) {
+            "Scheduled event bet round disappeared after an insert conflict"
+        }.toDomain()
+    }
 
     override fun saveRound(round: EventBetRound): EventBetRound = roundJpaRepository.save(round.toEntity()).toDomain()
 
