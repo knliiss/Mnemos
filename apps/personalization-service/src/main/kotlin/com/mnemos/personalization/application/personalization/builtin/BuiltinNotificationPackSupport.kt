@@ -26,8 +26,22 @@ object BuiltinNotificationPackSupport {
         global: NotificationTemplate,
         playerOffline: NotificationTemplate = defaultPlayerOfflineTemplate(),
         valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>> = RussianNotificationValues.all,
-    ): BuiltinPersonalizationDefinition =
-        BuiltinPersonalizationDefinition(
+    ): BuiltinPersonalizationDefinition {
+        val cometCopy = BuiltinCometChaosNotificationVariants.forPack(key)
+        val cometVariant =
+            variant(
+                id = "comet-chaos",
+                conditions = listOf(condition(NotificationPackVariantField.GLOBAL_EVENT, COMET_CHAOS)),
+                emoji = cometCopy.emoji,
+                title = cometCopy.title,
+                body = cometCopy.body,
+                compact = cometCopy.compact,
+                aggregateTitle = cometCopy.aggregateTitle,
+            )
+        val globalTemplate = global.copy(variants = global.variants + cometVariant)
+        val normalizedValueMappings = withCometChaosValue(key, valueMappings)
+
+        return BuiltinPersonalizationDefinition(
             catalogKey = PersonalizationCatalogKey(key),
             type = PersonalizationType.NOTIFICATION_PACK,
             name = name,
@@ -40,10 +54,10 @@ object BuiltinNotificationPackSupport {
                             NotificationTemplateKey.BOOSTER to booster,
                             NotificationTemplateKey.DUNGEON to dungeon,
                             NotificationTemplateKey.RAID to raid,
-                            NotificationTemplateKey.GLOBAL to global,
+                            NotificationTemplateKey.GLOBAL to globalTemplate,
                             NotificationTemplateKey.PLAYER_OFFLINE to playerOffline,
                         ),
-                    valueMappings = valueMappings,
+                    valueMappings = normalizedValueMappings,
                 ),
             price =
                 PersonalizationPrice(
@@ -51,6 +65,7 @@ object BuiltinNotificationPackSupport {
                     amount = pricePrime,
                 ),
         )
+    }
 
     fun template(
         emoji: String?,
@@ -105,6 +120,25 @@ object BuiltinNotificationPackSupport {
             compact = "{player} вышел из игры",
             aggregateTitle = "Игроки вышли из игры",
         )
+
+    private fun withCometChaosValue(
+        key: String,
+        valueMappings: Map<NotificationPackValueKey, Map<String, NotificationValueForms>>,
+    ): Map<NotificationPackValueKey, Map<String, NotificationValueForms>> {
+        val eventValues = valueMappings[NotificationPackValueKey.GLOBAL_EVENT].orEmpty()
+        val cometValue =
+            if (key == PROTOCOL_PACK_KEY) {
+                NotificationValueForms("COMET CHAOS")
+            } else {
+                NotificationValueForms("Кометный хаос")
+            }
+
+        return valueMappings +
+            (NotificationPackValueKey.GLOBAL_EVENT to (eventValues + (COMET_CHAOS to cometValue)))
+    }
+
+    private const val COMET_CHAOS = "COMET_CHAOS"
+    private const val PROTOCOL_PACK_KEY = "notification.protocol"
 }
 
 object RussianNotificationValues {
@@ -130,6 +164,7 @@ object RussianNotificationValues {
                     "MOON" to forms("Кровавая луна"),
                     "ECLIPSE" to forms("Затмение"),
                     "EXPLOSION" to forms("Взрыв"),
+                    "COMET_CHAOS" to forms("Кометный хаос"),
                 ),
             NotificationPackValueKey.ITEM_RARITY to
                 mapOf(
