@@ -44,10 +44,6 @@ export function NotificationPackTelegramPreview({ content }: { content: Notifica
       message.emoji,
       renderNotificationTemplate(content, message.compact, values),
     ),
-    withNotificationEmoji(
-      message.emoji,
-      renderNotificationTemplate(content, message.compact, values),
-    ),
   ].join("\n\n")
 
   return (

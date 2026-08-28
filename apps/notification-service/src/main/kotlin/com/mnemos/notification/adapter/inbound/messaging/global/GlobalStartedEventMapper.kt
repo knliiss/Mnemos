@@ -9,7 +9,7 @@ import com.mnemos.notification.domain.global.model.DomainGlobalEventType
 object GlobalStartedEventMapper {
     fun ConsumedMessage<GlobalStartedV1>.toCommand(): ProcessGlobalEventCommand =
         ProcessGlobalEventCommand(
-            messageId = messageId,
+            messageId = aggregateId,
             occurredAt = occurredAt,
             eventType = payload.type.toDomain(),
         )

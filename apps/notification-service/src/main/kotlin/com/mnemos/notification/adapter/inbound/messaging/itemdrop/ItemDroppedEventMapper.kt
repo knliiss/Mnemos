@@ -11,7 +11,7 @@ import com.mnemos.notification.application.notification.model.NotificationItemTy
 object ItemDroppedEventMapper {
     fun ConsumedMessage<ItemDroppedV1>.toCommand(): ProcessItemDropEventCommand =
         ProcessItemDropEventCommand(
-            messageId = messageId,
+            messageId = aggregateId,
             occurredAt = occurredAt,
             droppedFor = payload.droppedFor,
             itemName = payload.itemName,

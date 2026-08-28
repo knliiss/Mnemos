@@ -9,7 +9,7 @@ import com.mnemos.notification.domain.booster.model.DomainBoosterType
 object BoosterActivatedEventMapper {
     fun ConsumedMessage<BoosterActivatedV1>.toCommand(): ProcessBoosterEventCommand =
         ProcessBoosterEventCommand(
-            messageId = messageId,
+            messageId = aggregateId,
             occurredAt = occurredAt,
             boosterType = payload.type.toDomain(),
             activatedBy = payload.activatedBy,

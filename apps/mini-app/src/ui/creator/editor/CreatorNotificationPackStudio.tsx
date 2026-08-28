@@ -338,10 +338,6 @@ export function CreatorNotificationPackStudio({ form, descriptor, editable, setF
       message.emoji,
       renderNotificationTemplate(previewContent, message.compact, previewValues),
     ),
-    withNotificationEmoji(
-      message.emoji,
-      renderNotificationTemplate(previewContent, message.compact, previewValues),
-    ),
   ].join("\n\n")
   const mixedTemplates = descriptor.templates.slice(0, Math.min(3, descriptor.templates.length))
   const mixedAggregateText = [
