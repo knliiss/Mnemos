@@ -1,0 +1,51 @@
+name: Production Monitoring Install
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-monitoring-install.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-monitoring-install
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Verify monitoring tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/verify-production-monitoring-tooling.sh
+
+      - name: Install runtime and monitoring only
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="$(git rev-parse HEAD)"
+
+          sudo -n sh scripts/install-production-runtime.sh "$release"
+          sudo -n env MNEMOS_ENABLE_PRODUCTION_MONITORING=true \
+            sh /opt/mnemos/current/scripts/install-production-monitoring.sh
+
+          sudo -n systemctl is-enabled mnemos-production-health.timer
+          sudo -n systemctl is-active mnemos-production-health.timer
+          sudo -n /opt/mnemos/current/scripts/check-production-health.sh
+
+          if sudo -n docker stack ls --format '{{.Name}}' | grep -Fxq mnemos; then
+            echo 'Mnemos stack unexpectedly exists after monitoring installation' >&2
+            exit 1
+          fi
