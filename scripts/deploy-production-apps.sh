@@ -90,6 +90,8 @@ fi
 sh "$REPOSITORY_ROOT/scripts/prune-production-cloudflare-tunnel-secrets.sh" \
     "$CLOUDFLARE_TUNNEL_SECRET"
 
+sh "$REPOSITORY_ROOT/scripts/install-production-runtime.sh" "$RELEASE_TAG"
+
 mkdir -p "$DEPLOY_STATE_DIR"
 printf '%s\n' "$RELEASE_TAG" > "$DEPLOY_STATE_DIR/current-release"
 chmod 600 "$DEPLOY_STATE_DIR/current-release"
