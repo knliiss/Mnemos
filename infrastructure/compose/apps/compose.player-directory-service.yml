@@ -1,6 +1,5 @@
 services:
   player-directory-service:
-    # Quota safety: keep this service single-replica until Cristalix rate limiting is distributed.
     container_name: mnemos-player-directory-service
 
     build:
