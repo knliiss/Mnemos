@@ -81,6 +81,7 @@ type Variant =
   | "global-eclipse"
   | "global-darkness"
   | "global-explosion"
+  | "global-comet-chaos"
 
 const eventAssets: Partial<Record<Variant, string>> = {
   "drop-sword": "/event-icons/sword.png",
@@ -98,6 +99,7 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "global-eclipse": "/event-icons/eclipse.png",
   "global-darkness": "/event-icons/dark.png",
   "global-explosion": "/event-icons/explosion.png",
+  "global-comet-chaos": "/event-icons/comet-chaos.png",
 }
 
 function ArtFrame({
@@ -182,6 +184,9 @@ function globalVariant(eventType: GlobalEventType): Variant {
   }
   if (eventType === "EXPLOSION") {
     return "global-explosion"
+  }
+  if (eventType === "COMET_CHAOS") {
+    return "global-comet-chaos"
   }
 
   return "global-eclipse"
