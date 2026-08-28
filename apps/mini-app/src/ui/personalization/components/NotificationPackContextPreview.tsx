@@ -84,7 +84,6 @@ export function NotificationPackContextPreview({
         </span>
 
         <span className="notification-pack-context-preview__copy">
-          <small>{t(`creator.editor.notificationTypes.${selectedType}`)}</small>
           <strong>{title}</strong>
           <em>{body}</em>
         </span>
