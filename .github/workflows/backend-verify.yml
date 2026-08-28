@@ -127,7 +127,7 @@ jobs:
   report:
     if: always() && github.event_name == 'push'
     needs: check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
 
     permissions:
       statuses: write
