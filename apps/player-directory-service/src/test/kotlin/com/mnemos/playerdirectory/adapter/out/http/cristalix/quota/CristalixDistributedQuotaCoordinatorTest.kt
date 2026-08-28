@@ -28,7 +28,7 @@ class CristalixDistributedQuotaCoordinatorTest {
             )
 
         whenever(repository.findByLaneForUpdate(CristalixCredentialLane.INTERACTIVE)).thenReturn(state)
-        whenever(repository.save(any())).thenAnswer { invocation -> invocation.arguments[0] }
+        whenever(repository.save(any<CristalixQuotaStateEntity>())).thenAnswer { invocation -> invocation.arguments[0] }
 
         val decision =
             coordinator.tryAcquire(
@@ -59,7 +59,7 @@ class CristalixDistributedQuotaCoordinatorTest {
             )
 
         whenever(repository.findByLaneForUpdate(CristalixCredentialLane.MONITORING)).thenReturn(state)
-        whenever(repository.save(any())).thenAnswer { invocation -> invocation.arguments[0] }
+        whenever(repository.save(any<CristalixQuotaStateEntity>())).thenAnswer { invocation -> invocation.arguments[0] }
 
         val decision =
             coordinator.tryAcquire(
