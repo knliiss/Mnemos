@@ -5,15 +5,18 @@ set -eu
 REGISTRY="${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}"
 TAG="${MNEMOS_IMAGE_TAG:?MNEMOS_IMAGE_TAG is required}"
 PUSH="${MNEMOS_IMAGE_PUSH:-true}"
+DRY_RUN="${MNEMOS_IMAGE_DRY_RUN:-false}"
 
-case "$PUSH" in
-    true | false)
-        ;;
-    *)
-        echo "MNEMOS_IMAGE_PUSH must be true or false" >&2
-        exit 1
-        ;;
-esac
+for boolean_value in "$PUSH" "$DRY_RUN"; do
+    case "$boolean_value" in
+        true | false)
+            ;;
+        *)
+            echo "MNEMOS_IMAGE_PUSH and MNEMOS_IMAGE_DRY_RUN must be true or false" >&2
+            exit 1
+            ;;
+    esac
+done
 
 build_image() {
     image_name="$1"
@@ -23,7 +26,21 @@ build_image() {
 
     image="${REGISTRY}/${image_name}:${TAG}"
 
+    if [ ! -f "$dockerfile" ]; then
+        echo "Dockerfile does not exist for ${image_name}: $dockerfile" >&2
+        exit 1
+    fi
+
+    if [ ! -d "$context" ]; then
+        echo "Build context does not exist for ${image_name}: $context" >&2
+        exit 1
+    fi
+
     echo "Building ${image}"
+
+    if [ "$DRY_RUN" = "true" ]; then
+        return
+    fi
 
     if [ "$PUSH" = "true" ]; then
         docker buildx build \
