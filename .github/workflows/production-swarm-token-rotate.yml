@@ -7,6 +7,10 @@ on:
     paths:
       - .github/workflows/production-swarm-token-rotate.yml
 
+concurrency:
+  group: production-swarm-token-rotate
+  cancel-in-progress: false
+
 permissions: {}
 
 jobs:
