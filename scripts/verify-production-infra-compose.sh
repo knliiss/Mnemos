@@ -54,9 +54,14 @@ def require_command_setting(service_name: str, setting: str) -> None:
 
 
 def require_memory_limit(service_name: str, minimum_bytes: int, maximum_bytes: int) -> None:
-    memory = services[service_name].get("mem_limit")
+    raw_memory = services[service_name].get("mem_limit")
 
-    if not isinstance(memory, int) or not minimum_bytes <= memory <= maximum_bytes:
+    try:
+        memory = int(raw_memory)
+    except (TypeError, ValueError):
+        fail(f"{service_name} has non-numeric memory limit: {raw_memory!r}")
+
+    if not minimum_bytes <= memory <= maximum_bytes:
         fail(f"{service_name} has unexpected memory limit: {memory}")
 
 
