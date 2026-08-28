@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.telegram.bot)
     implementation(libs.uuid.creator)
 
-    implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.3.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
