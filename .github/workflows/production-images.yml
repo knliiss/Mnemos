@@ -23,7 +23,8 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 60
 
     permissions:
       actions: read
@@ -142,11 +143,21 @@ jobs:
         if: steps.release_guard.outputs.current_release == 'true'
         run: ./gradlew assemble --no-daemon
 
-      - name: Configure Docker Buildx
+      - name: Configure isolated Docker publishing
         if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
         run: |
           set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install \
+            --directory \
+            --mode=0700 \
+            "$DOCKER_CONFIG"
+
+          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
 
           docker buildx create \
             --driver docker-container \
@@ -160,6 +171,7 @@ jobs:
         shell: bash
         env:
           GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
         run: |
           set -euo pipefail
 
@@ -172,6 +184,7 @@ jobs:
         if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
           MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
           MNEMOS_IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
           MNEMOS_IMAGE_PUSH: "true"
@@ -221,6 +234,17 @@ jobs:
             echo "Registry: \`$REGISTRY\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Remove publish registry credentials and builder
+        if: always()
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
+        run: |
+          set +e
+
+          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
+          rm -rf "$DOCKER_CONFIG"
+
   deploy:
     needs:
       - publish
@@ -240,7 +264,7 @@ jobs:
       contents: read
       packages: read
 
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout verified production revision
@@ -276,6 +300,35 @@ jobs:
                 --username "${{ github.actor }}" \
                 --password-stdin
 
+      - name: Back up current release before update
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if sudo -n test -s /var/lib/mnemos-deploy/current-release; then
+            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
+          else
+            echo "No existing production release; skipping pre-deploy backup"
+          fi
+
+      - name: Start or update production infrastructure
+        shell: bash
+        env:
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_RELEASE_TAG: ${{ github.event.workflow_run.head_sha }}
+          MNEMOS_PRODUCTION_ENV_FILE: /etc/mnemos/mnemos.env
+          MNEMOS_SWARM_NETWORK: mnemos-production-network
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
+            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
+            MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
+            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
+            sh scripts/start-production-infra.sh
+
       - name: Deploy production application stack
         shell: bash
         env:
@@ -295,6 +348,18 @@ jobs:
             MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
             MNEMOS_SWARM_STACK_NAME="$MNEMOS_SWARM_STACK_NAME" \
             sh scripts/deploy-production-apps.sh
+
+      - name: Initialize backups and verify production health
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! sudo -n systemctl is-enabled --quiet mnemos-production-backup.timer; then
+            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
+            sudo -n /opt/mnemos/current/scripts/enable-production-backups.sh
+          fi
+
+          sudo -n /opt/mnemos/current/scripts/check-production-health.sh
 
       - name: Remove production registry credentials
         if: always()

@@ -5,6 +5,8 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
+STACK_SMOKE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/stack-smoke.yml"
+START_INFRA_SCRIPT="$REPOSITORY_ROOT/scripts/start-production-infra.sh"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 
 fail() {
@@ -13,9 +15,12 @@ fail() {
 }
 
 [ -f "$WORKFLOW" ] || fail "Production Release workflow is missing"
+[ -f "$STACK_SMOKE_WORKFLOW" ] || fail "Stack Smoke workflow is missing"
+[ -f "$START_INFRA_SCRIPT" ] || fail "Production infrastructure startup script is missing"
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
+STACK_SMOKE_WORKFLOW_CONTENT="$(cat "$STACK_SMOKE_WORKFLOW")"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'workflow_run:' ||
     fail "Production Release must be triggered from a completed verification workflow"
@@ -25,6 +30,15 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - Backend Verify' ||
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - Stack Smoke' ||
     fail "Production Release must depend on Stack Smoke"
+
+printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq '  push:' ||
+    fail "Stack Smoke must run on pushes for the production release gate"
+
+printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq '      - master' ||
+    fail "Stack Smoke push verification must target master"
+
+printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository" ||
+    fail "Stack Smoke must allow trusted master push runs while retaining fork pull-request protection"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "github.event.workflow_run.conclusion == 'success'" ||
     fail "Production Release must require a successful triggering verification workflow"
@@ -50,8 +64,8 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'vars.MNEMOS_PRODUCTION_DEPLOY_ENAB
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - mnemos-production' ||
     fail "Production deploy must target the dedicated production runner"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '    runs-on: ubuntu-latest' ||
-    fail "Production image publishing must use a GitHub-hosted runner"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '    runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
+    fail "Production image publishing must use the hardened backend runner"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      packages: write' ||
     fail "Production image publishing must explicitly own package write permission"
@@ -65,11 +79,33 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'ref: ${{ github.event.workflow_run
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      group: mnemos-production-deploy' ||
     fail "Production deploys must be globally serialized across release SHAs"
 
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth' ||
+    fail "Production publishing credentials must use an isolated Docker config"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
+    fail "Production publishing credentials must be removed after the publish job"
+
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG=/run/mnemos-production-docker-auth' ||
-    fail "Production registry credentials must use an isolated Docker config"
+    fail "Production deploy registry credentials must use an isolated Docker config"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'sh scripts/start-production-infra.sh' ||
+    fail "Production deploy must start and verify stateful infrastructure before applications"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/run-production-backup.sh' ||
+    fail "Production upgrades and first deployment must include guarded backup handling"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/check-production-health.sh' ||
+    fail "Production deploy must finish with a host/runtime health check"
+
+infra_line="$(grep -n -F 'sh scripts/start-production-infra.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
+app_line="$(grep -n -F 'sh scripts/deploy-production-apps.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
+
+if [ -z "$infra_line" ] || [ -z "$app_line" ] || [ "$infra_line" -ge "$app_line" ]; then
+    fail "Production infrastructure startup must precede application deployment"
+fi
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '          sudo -n rm -rf /run/mnemos-production-docker-auth' ||
-    fail "Production registry credentials must be removed after the deploy job"
+    fail "Production deploy registry credentials must be removed after the deploy job"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '        if: always()' ||
     fail "Production registry credential cleanup must run after failures"
