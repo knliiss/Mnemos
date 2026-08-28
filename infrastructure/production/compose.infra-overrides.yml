@@ -1,5 +1,24 @@
 services:
   app-postgres:
+    command:
+      - postgres
+      - -c
+      - max_connections=120
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=8GB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - max_wal_size=2GB
+    mem_limit: 3g
+    mem_reservation: 1g
+    shm_size: 256m
     ports: !reset []
 
   app-postgres-security-init:
@@ -7,6 +26,25 @@ services:
     volumes: !reset []
 
   keycloak-postgres:
+    command:
+      - postgres
+      - -c
+      - max_connections=40
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - max_wal_size=1GB
+    mem_limit: 1536m
+    mem_reservation: 512m
+    shm_size: 128m
     ports: !reset []
 
   redis:
@@ -34,6 +72,10 @@ services:
     command:
       - start
       - --optimized
+    environment:
+      KC_DB_POOL_INITIAL_SIZE: "2"
+      KC_DB_POOL_MIN_SIZE: "2"
+      KC_DB_POOL_MAX_SIZE: "20"
     volumes: !reset []
     ports: !reset []
 
