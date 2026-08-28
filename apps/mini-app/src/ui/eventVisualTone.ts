@@ -12,6 +12,7 @@ export type EventVisualTone =
   | "global-eclipse"
   | "global-darkness"
   | "global-explosion"
+  | "global-comet-chaos"
   | "raid"
   | "dungeon"
 
@@ -49,6 +50,9 @@ export function globalEventVisualTone(eventType: GlobalEventType): EventVisualTo
   }
   if (eventType === "EXPLOSION") {
     return "global-explosion"
+  }
+  if (eventType === "COMET_CHAOS") {
+    return "global-comet-chaos"
   }
 
   return "global-eclipse"
