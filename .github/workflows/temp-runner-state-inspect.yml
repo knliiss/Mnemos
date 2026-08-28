@@ -1,0 +1,45 @@
+name: Temporary Runner State Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - ".github/workflows/temp-runner-state-inspect.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 5
+
+    steps:
+      - name: Inspect repository runner state
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          runners_json="$(curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runners?per_page=100")"
+
+          printf '%s' "$runners_json" | jq -r '
+            .runners[]
+            | [
+                "name=" + .name,
+                "status=" + .status,
+                "busy=" + (.busy | tostring),
+                "labels=" + ([.labels[].name] | join(","))
+              ]
+            | join(" ")
+          '
