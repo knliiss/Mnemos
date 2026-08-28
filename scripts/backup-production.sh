@@ -9,6 +9,7 @@ fi
 
 REPOSITORY_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 BACKUP_ROOT="${MNEMOS_BACKUP_ROOT:-/var/backups/mnemos}"
+BACKUP_STATE_DIR="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}"
 TIMESTAMP="$(date -u '+%Y%m%dT%H%M%SZ')"
 BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
 MINIO_BACKUP_DIR="$BACKUP_DIR/minio"
@@ -17,6 +18,7 @@ REDIS_TEMP_FILE="/tmp/mnemos-backup-${TIMESTAMP}.rdb"
 install -d -o root -g root -m 0700 "$BACKUP_ROOT"
 install -d -o root -g root -m 0700 "$BACKUP_DIR"
 install -d -o root -g root -m 0700 "$MINIO_BACKUP_DIR"
+install -d -o root -g root -m 0700 "$BACKUP_STATE_DIR"
 
 cleanup() {
     sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
@@ -98,5 +100,8 @@ EOF
 chmod -R go-rwx "$BACKUP_DIR"
 
 sh "$REPOSITORY_ROOT/scripts/verify-production-backup.sh" "$BACKUP_DIR"
+
+printf '%s\n' "$BACKUP_DIR" > "$BACKUP_STATE_DIR/latest"
+chmod 600 "$BACKUP_STATE_DIR/latest"
 
 printf 'Production backup created: %s\n' "$BACKUP_DIR"
