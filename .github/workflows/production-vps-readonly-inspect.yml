@@ -32,14 +32,14 @@ jobs:
 
           echo '=== docker ==='
           docker --version
-          docker info --format 'Swarm={{.Swarm.LocalNodeState}} LoggingDriver={{.Driver}} LiveRestore={{.LiveRestoreEnabled}}'
-          docker node ls
-          docker stack ls
-          docker ps -a --format '{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'
+          sudo -n docker info --format 'Swarm={{.Swarm.LocalNodeState}} LoggingDriver={{.LoggingDriver}} LiveRestore={{.LiveRestoreEnabled}}'
+          sudo -n docker node ls
+          sudo -n docker stack ls
+          sudo -n docker ps -a --format '{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'
 
           echo '=== protected paths ==='
-          stat -c '%a %U:%G %n' /etc/mnemos /etc/mnemos/mnemos.env
-          test -e /opt/mnemos/runtime/.production-deployed && echo 'deployment_marker=present' || echo 'deployment_marker=absent'
+          sudo -n stat -c '%a %U:%G %n' /etc/mnemos /etc/mnemos/mnemos.env
+          sudo -n test -e /opt/mnemos/runtime/.production-deployed && echo 'deployment_marker=present' || echo 'deployment_marker=absent'
 
           echo '=== backup and monitoring ==='
           restic version
@@ -51,4 +51,4 @@ jobs:
           systemctl show mnemos-production-backup.service -p Result -p ExecMainStatus || true
 
           echo '=== protected legacy volumes (names only) ==='
-          docker volume ls --format '{{.Name}}' | grep -E '^(base-project-vps|trajecta|trajectav3|trajectav4)$' || true
+          sudo -n docker volume ls --format '{{.Name}}' | grep -E '^(base-project-vps|trajecta|trajectav3|trajectav4)$' || true
