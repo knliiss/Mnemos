@@ -1,0 +1,47 @@
+name: Temporary Backend Runner Listener Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - ".github/workflows/temp-backend-runner-listener-inspect.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    timeout-minutes: 5
+
+    steps:
+      - name: Inspect backend runner listener
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          backend_runner="${HOME}/actions-runner"
+
+          echo "=== Processes ==="
+          ps -eo pid,ppid,stat,etime,args | \
+            grep -E 'Runner\.(Listener|Worker)|actions-runner/run\.sh' | \
+            grep -v grep || true
+
+          echo "=== Backend runner registration ==="
+          if [ -f "${backend_runner}/.runner" ]; then
+            jq '{agentId,agentName,poolId,poolName,workFolder,useV2Flow}' "${backend_runner}/.runner"
+          else
+            echo 'backend .runner missing'
+          fi
+
+          echo "=== Latest backend listener diagnostics ==="
+          latest_log="$(find "${backend_runner}/_diag" -maxdepth 1 -type f -name 'Runner_*.log' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n 1 | cut -d' ' -f2-)"
+
+          if [ -n "$latest_log" ] && [ -f "$latest_log" ]; then
+            echo "LatestLog=$(basename "$latest_log")"
+            tail -n 120 "$latest_log" | \
+              grep -E 'Listening for Jobs|Running job|completed with result|Session|session|connect|Connected|Runner connect|OAuth|Message queue|Job request|Stop/Shutdown|exit|Exit' || true
+          else
+            echo 'No backend Runner diagnostic log found'
+          fi
