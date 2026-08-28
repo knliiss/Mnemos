@@ -73,14 +73,15 @@ verify_read_only_pr_job() {
 verify_push_only_report_job() {
     workflow="$1"
     description="$2"
+    expected_runner="$3"
 
     report_job="$(extract_job "$workflow" report)"
 
     printf '%s\n' "$report_job" | grep -Fq "github.event_name == 'push'" ||
         fail "$description status report job must run only for push events"
 
-    printf '%s\n' "$report_job" | grep -Fq 'runs-on: ubuntu-latest' ||
-        fail "$description status report job must use a GitHub-hosted runner"
+    printf '%s\n' "$report_job" | grep -Fq "$expected_runner" ||
+        fail "$description status report job must use its trusted runner boundary"
 
     printf '%s\n' "$report_job" | grep -Fq 'statuses: write' ||
         fail "$description status report job must own status write permission"
@@ -94,8 +95,15 @@ verify_read_only_pr_job "$BACKEND_WORKFLOW" check "Backend Verify"
 verify_read_only_pr_job "$MINI_APP_WORKFLOW" verify "Mini App Verify"
 verify_read_only_pr_job "$STACK_WORKFLOW" smoke "Stack Smoke"
 
-verify_push_only_report_job "$BACKEND_WORKFLOW" "Backend Verify"
-verify_push_only_report_job "$MINI_APP_WORKFLOW" "Mini App Verify"
+verify_push_only_report_job \
+    "$BACKEND_WORKFLOW" \
+    "Backend Verify" \
+    'runs-on: [self-hosted, Linux, X64, mnemos-backend]'
+
+verify_push_only_report_job \
+    "$MINI_APP_WORKFLOW" \
+    "Mini App Verify" \
+    'runs-on: ubuntu-latest'
 
 if grep -Fq 'NVD_API_KEY: ${{ secrets.NVD_API_KEY }}' "$BACKEND_WORKFLOW"; then
     fail "Backend Verify must not expose the NVD API key unconditionally to pull requests"
