@@ -8,7 +8,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 BACKUP_ROOT="${MNEMOS_BACKUP_ROOT:-/var/backups/mnemos}"
-KEEP_COUNT="${MNEMOS_LOCAL_BACKUP_KEEP_COUNT:-3}"
+KEEP_COUNT="${MNEMOS_LOCAL_BACKUP_KEEP_COUNT:-7}"
 
 case "$KEEP_COUNT" in
     '' | *[!0-9]*)
