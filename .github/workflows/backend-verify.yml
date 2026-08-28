@@ -68,6 +68,7 @@ jobs:
           sh -n scripts/verify-redis-service-isolation-runtime.sh
           sh -n scripts/publish-production-images.sh
           sh -n scripts/production-infra.sh
+          sh -n scripts/start-production-infra.sh
           sh -n scripts/render-production-app-stack.sh
           sh -n scripts/sync-production-kafka-truststore.sh
           sh -n scripts/sync-production-cloudflare-tunnel-secret.sh
