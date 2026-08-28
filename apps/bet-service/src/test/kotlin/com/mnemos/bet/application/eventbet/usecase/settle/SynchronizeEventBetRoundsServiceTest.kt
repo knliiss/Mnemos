@@ -60,6 +60,7 @@ class SynchronizeEventBetRoundsServiceTest {
 
         assertEquals(EventBetRoundStatus.SETTLED, round.status)
         assertEquals(EventBetOutcome.NO, round.effectiveOutcome)
+        verify(repository).findRoundByIdForUpdate(round.id)
         verify(resolutionProcessor).process(
             round = eq(round),
             resolution = any(),
@@ -74,6 +75,7 @@ class SynchronizeEventBetRoundsServiceTest {
         round.awaitAdministrativeConfirmation()
 
         whenever(repository.findRoundsRequiringSynchronization(now)).thenReturn(listOf(round))
+        whenever(repository.findRoundByIdForUpdate(round.id)).thenReturn(round)
         whenever(repository.saveRound(any())).thenAnswer { invocation -> invocation.arguments[0] as EventBetRound }
         whenever(repository.createResolution(any())).thenAnswer { invocation -> invocation.arguments[0] as EventBetResolution }
         whenever(repository.findBetsByRoundForUpdate(round.id)).thenReturn(emptyList())
@@ -123,8 +125,27 @@ class SynchronizeEventBetRoundsServiceTest {
         verify(resolutionProcessor, never()).process(any(), any(), any())
     }
 
+    @Test
+    fun `stale scheduler candidate is skipped after another replica settles it`() {
+        val staleCandidate = createExpiredRound()
+        val lockedRound = createExpiredRound()
+
+        lockedRound.synchronize(now)
+        lockedRound.resolveAutomatically(EventBetOutcome.NO)
+
+        whenever(repository.findRoundsRequiringSynchronization(now)).thenReturn(listOf(staleCandidate))
+        whenever(repository.findRoundByIdForUpdate(staleCandidate.id)).thenReturn(lockedRound)
+
+        service.execute()
+
+        verify(repository, never()).saveRound(any())
+        verify(repository, never()).createResolution(any<EventBetResolution>())
+        verify(resolutionProcessor, never()).process(any(), any(), any())
+    }
+
     private fun prepareRound(round: EventBetRound) {
         whenever(repository.findRoundsRequiringSynchronization(now)).thenReturn(listOf(round))
+        whenever(repository.findRoundByIdForUpdate(round.id)).thenReturn(round)
         whenever(repository.saveRound(any())).thenAnswer { invocation -> invocation.arguments[0] as EventBetRound }
         whenever(repository.createResolution(any())).thenAnswer { invocation -> invocation.arguments[0] as EventBetResolution }
         whenever(repository.findBetsByRoundForUpdate(round.id)).thenReturn(emptyList())
