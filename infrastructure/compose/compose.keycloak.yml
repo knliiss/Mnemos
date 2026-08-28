@@ -47,7 +47,12 @@ services:
       MNEMOS_ACCOUNT_SERVICE_CLIENT_ID: ${MNEMOS_ACCOUNT_SERVICE_CLIENT_ID}
 
     volumes:
-      - ../../keycloak-extensions/telegram-authenticator/build/libs/mnemos-telegram-authenticator.jar:/opt/keycloak/providers/mnemos-telegram-authenticator.jar:ro
+      - type: bind
+        source: ../../keycloak-extensions/telegram-authenticator/build/libs/mnemos-telegram-authenticator.jar
+        target: /opt/keycloak/providers/mnemos-telegram-authenticator.jar
+        read_only: true
+        bind:
+          create_host_path: false
       - ../keycloak/themes/mnemos:/opt/keycloak/themes/mnemos:ro
 
     ports:
