@@ -1,0 +1,44 @@
+name: Production Runtime Refresh
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-runtime-refresh.yml
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout verified preparation revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 25e4cc88328783b16da786294028debc067f5839
+          fetch-depth: 1
+
+      - name: Refresh immutable runtime and monitoring only
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/install-production-runtime.sh 25e4cc88328783b16da786294028debc067f5839
+          sudo -n env MNEMOS_ENABLE_PRODUCTION_MONITORING=true \
+            sh /opt/mnemos/current/scripts/install-production-monitoring.sh
+
+          sudo -n systemctl --no-pager --full status mnemos-production-health.service
+          sudo -n systemctl is-enabled mnemos-production-health.timer
+          sudo -n systemctl is-active mnemos-production-health.timer
+
+          test "$(readlink -f /opt/mnemos/current)" = "/opt/mnemos/runtime/25e4cc88328783b16da786294028debc067f5839"
+
+          sudo -n docker stack ls
+          test -z "$(sudo -n docker ps -aq)"
