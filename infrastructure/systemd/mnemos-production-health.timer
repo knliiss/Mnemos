@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Mnemos production health checks
+
+[Timer]
+OnBootSec=5m
+OnUnitActiveSec=5m
+AccuracySec=30s
+Persistent=true
+Unit=mnemos-production-health.service
+
+[Install]
+WantedBy=timers.target
