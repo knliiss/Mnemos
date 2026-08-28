@@ -4,6 +4,7 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/cloudflare-pages.yml"
+FRONTEND_RUNNER='runs-on: [self-hosted, Linux, X64, mnemos-frontend]'
 
 fail() {
     echo "$1" >&2
@@ -65,11 +66,14 @@ printf '%s\n' "$deploy_job" | grep -Fq "if: github.ref == 'refs/heads/master'" |
 printf '%s\n' "$report_job" | grep -Fq "github.ref == 'refs/heads/master'" ||
     fail "Cloudflare deployment status reporting must be restricted to master"
 
-printf '%s\n' "$build_job" | grep -Fq 'runs-on: ubuntu-latest' ||
-    fail "Cloudflare production build must use an ephemeral GitHub-hosted runner"
+printf '%s\n' "$build_job" | grep -Fq "$FRONTEND_RUNNER" ||
+    fail "Cloudflare production build must use the trusted frontend runner"
 
-printf '%s\n' "$deploy_job" | grep -Fq 'runs-on: ubuntu-latest' ||
-    fail "Cloudflare production deploy must use an ephemeral GitHub-hosted runner"
+printf '%s\n' "$deploy_job" | grep -Fq "$FRONTEND_RUNNER" ||
+    fail "Cloudflare production deploy must use the trusted frontend runner"
+
+printf '%s\n' "$report_job" | grep -Fq "$FRONTEND_RUNNER" ||
+    fail "Cloudflare deployment status reporting must use the trusted frontend runner"
 
 if printf '%s\n' "$build_job" | grep -Fq 'CLOUDFLARE_API_TOKEN'; then
     fail "Cloudflare API token must not be exposed to the production build job"

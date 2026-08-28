@@ -19,7 +19,7 @@ permissions:
 jobs:
   build:
     if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
 
     env:
       VITE_KEYCLOAK_URL: https://auth.knalis.rest
@@ -57,7 +57,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/master'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
 
     permissions:
       contents: read
@@ -342,7 +342,7 @@ jobs:
     needs:
       - build
       - deploy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
 
     permissions:
       statuses: write
