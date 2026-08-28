@@ -103,7 +103,7 @@ verify_push_only_report_job \
 verify_push_only_report_job \
     "$MINI_APP_WORKFLOW" \
     "Mini App Verify" \
-    'runs-on: ubuntu-latest'
+    'runs-on: [self-hosted, Linux, X64, mnemos-frontend]'
 
 if grep -Fq 'NVD_API_KEY: ${{ secrets.NVD_API_KEY }}' "$BACKEND_WORKFLOW"; then
     fail "Backend Verify must not expose the NVD API key unconditionally to pull requests"
