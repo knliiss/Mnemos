@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Mnemos production backup daily
+
+[Timer]
+OnBootSec=30m
+OnUnitActiveSec=24h
+RandomizedDelaySec=30m
+Persistent=true
+Unit=mnemos-production-backup.service
+
+[Install]
+WantedBy=timers.target
