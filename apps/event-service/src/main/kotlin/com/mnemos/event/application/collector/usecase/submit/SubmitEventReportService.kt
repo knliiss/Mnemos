@@ -10,6 +10,7 @@ import com.mnemos.event.domain.verification.model.EventCandidate
 import com.mnemos.event.domain.verification.model.EventCandidateStatus
 import com.mnemos.event.domain.verification.model.EventFingerprint
 import com.mnemos.event.domain.verification.model.EventObservation
+import com.mnemos.event.domain.verification.model.report.allowsRepeatedObservationFromSameCollector
 import com.mnemos.event.domain.verification.model.report.fingerprint
 import com.mnemos.event.domain.verification.repository.EventCandidateRepository
 import org.springframework.stereotype.Service
@@ -63,6 +64,23 @@ class SubmitEventReportService(
 
         if (retryCandidate != null) {
             return processRetry(retryCandidate)
+        }
+
+        val repeatedObservationCandidate =
+            if (command.report.allowsRepeatedObservationFromSameCollector()) {
+                null
+            } else {
+                candidates.firstOrNull {
+                    it.hasCollector(command.collectorId) &&
+                        it.matchesTime(
+                            observedAt = command.observedAt,
+                            matchingWindow = properties.matchingWindow,
+                        )
+                }
+            }
+
+        if (repeatedObservationCandidate != null) {
+            return processRetry(repeatedObservationCandidate)
         }
 
         val candidate =

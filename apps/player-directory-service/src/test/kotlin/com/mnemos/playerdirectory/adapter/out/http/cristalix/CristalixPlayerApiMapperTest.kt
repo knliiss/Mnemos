@@ -5,6 +5,8 @@ import com.mnemos.playerdirectory.adapter.out.http.cristalix.CristalixPlayerApiM
 import com.mnemos.playerdirectory.domain.player.model.CristalixPlayerId
 import com.mnemos.playerdirectory.domain.player.model.PlayerPresenceStatus
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.UUID
@@ -32,16 +34,20 @@ class CristalixPlayerApiMapperTest {
     }
 
     @Test
-    fun `hidden privacy overrides an online status`() {
+    fun `hidden privacy removes presence details`() {
         val response = response(online = true, privacyHidden = true)
 
         val observation = response.toObservation(observedAt)
 
         assertEquals(PlayerPresenceStatus.HIDDEN, observation.presence.status)
+        assertTrue(observation.presence.privacyHidden)
+        assertNull(observation.presence.realm)
+        assertNull(observation.presence.realmType)
+        assertNull(observation.presence.lastSeenOnline)
     }
 
     @Test
-    fun `disabled online status setting maps to hidden presence`() {
+    fun `disabled online status setting removes presence details`() {
         val response =
             response(
                 online = true,
@@ -51,6 +57,10 @@ class CristalixPlayerApiMapperTest {
         val observation = response.toObservation(observedAt)
 
         assertEquals(PlayerPresenceStatus.HIDDEN, observation.presence.status)
+        assertTrue(observation.presence.privacyHidden)
+        assertNull(observation.presence.realm)
+        assertNull(observation.presence.realmType)
+        assertNull(observation.presence.lastSeenOnline)
     }
 
     @Test

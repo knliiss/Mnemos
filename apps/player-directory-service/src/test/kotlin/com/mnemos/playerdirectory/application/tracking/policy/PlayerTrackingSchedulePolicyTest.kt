@@ -20,7 +20,7 @@ class PlayerTrackingSchedulePolicyTest {
     private val now = Instant.parse("2026-08-27T00:00:00Z")
 
     @Test
-    fun `subscription keeps the shortest poll interval`() {
+    fun `subscription keeps the shortest poll interval for observable presence`() {
         assertEquals(
             now.plusSeconds(20),
             policy.nextAfterObservation(
@@ -28,6 +28,20 @@ class PlayerTrackingSchedulePolicyTest {
                 saoOnline = true,
                 hasSubscription = true,
                 highActivity = true,
+                completedAt = now,
+            ),
+        )
+    }
+
+    @Test
+    fun `hidden subscription falls back to unverifiable poll interval`() {
+        assertEquals(
+            now.plus(Duration.ofMinutes(2)),
+            policy.nextAfterObservation(
+                status = PlayerPresenceStatus.HIDDEN,
+                saoOnline = false,
+                hasSubscription = true,
+                highActivity = false,
                 completedAt = now,
             ),
         )

@@ -33,10 +33,10 @@ object CristalixPlayerApiMapper {
             presence =
                 PlayerPresence(
                     status = presenceStatus,
-                    realm = status?.realm,
-                    realmType = status?.realmType,
-                    privacyHidden = status?.privacyHidden == true,
-                    lastSeenOnline = social?.lastSeenOnline,
+                    realm = status?.realm.takeUnless { hidden },
+                    realmType = status?.realmType.takeUnless { hidden },
+                    privacyHidden = hidden,
+                    lastSeenOnline = social?.lastSeenOnline.takeUnless { hidden },
                     observedAt = observedAt,
                 ),
         )
