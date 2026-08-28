@@ -32,6 +32,7 @@ object StandardNotificationValueDictionary {
                     "MOON" to forms("Кровавая луна"),
                     "ECLIPSE" to forms("Затмение"),
                     "EXPLOSION" to forms("Взрыв"),
+                    "COMET_CHAOS" to forms("Кометный хаос"),
                 ),
             NotificationPackValueKey.ITEM_RARITY to
                 mapOf(
