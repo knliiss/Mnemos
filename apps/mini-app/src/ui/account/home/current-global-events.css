@@ -168,6 +168,10 @@
   --global-event-accent: #dda55e;
 }
 
+.account-home-global-event[data-event-type="comet_chaos"] {
+  --global-event-accent: #78aaff;
+}
+
 .account-home-global-event__art {
   display: grid;
   place-items: center;
