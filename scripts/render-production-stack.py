@@ -28,7 +28,15 @@ APPLICATION_SERVICES = (
     "wallet-service",
 )
 
-REPLICA_SAFE_SERVICES = frozenset(APPLICATION_SERVICES)
+REPLICA_SAFE_SERVICES = frozenset(
+    {
+        "account-service",
+        "event-service",
+        "gateway-service",
+        "payment-service",
+        "wallet-service",
+    }
+)
 
 SERVICE_MEMORY_LIMITS = {
     "event-service": "768M",
