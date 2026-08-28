@@ -80,7 +80,7 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      group: mnemos-production-dep
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth' ||
     fail "Production publishing credentials must use an isolated Docker config"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$RUNNER_TEMP/mnemos-production-publish-docker-auth"' ||
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
     fail "Production publishing credentials must be removed after the publish job"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG=/run/mnemos-production-docker-auth' ||
