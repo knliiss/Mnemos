@@ -1,0 +1,19 @@
+[Unit]
+Description=Mnemos production encrypted backup
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/mnemos/current/scripts/run-production-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/mnemos /var/backups/mnemos /var/lib/mnemos-backup /var/lib/mnemos-deploy /var/lib/docker
+NoNewPrivileges=true
