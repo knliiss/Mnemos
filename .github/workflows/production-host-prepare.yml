@@ -7,6 +7,10 @@ on:
     paths:
       - .github/workflows/production-host-prepare.yml
 
+concurrency:
+  group: production-host-prepare
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
