@@ -39,6 +39,7 @@ export const GLOBAL_EVENT_TYPES = [
   "MOON",
   "ECLIPSE",
   "EXPLOSION",
+  "COMET_CHAOS",
 ] as const satisfies readonly GlobalEventType[]
 
 export const BET_SIDES = ["YES", "NO"] as const satisfies readonly BetSide[]
