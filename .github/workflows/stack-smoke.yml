@@ -142,12 +142,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          if ! timeout --foreground 8m \
+          set +e
+          timeout --foreground 8m \
             env STARTUP_CHECK_DELAY=45 \
-            make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up; then
-            status=$?
-            echo "Stack startup did not complete within the bounded startup window" >&2
-            exit "$status"
+            make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
+          startup_status=$?
+          set -e
+
+          if [ "$startup_status" -ne 0 ]; then
+            if [ "$startup_status" -eq 124 ]; then
+              echo "Stack startup exceeded the 8 minute startup window" >&2
+            else
+              echo "Stack startup failed with exit code ${startup_status}" >&2
+            fi
+
+            exit "$startup_status"
           fi
 
           sleep 20
