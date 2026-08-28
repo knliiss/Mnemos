@@ -1,0 +1,77 @@
+name: Temporary Production Readiness Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - ".github/workflows/temp-production-readiness-inspect.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, mnemos-production]
+    timeout-minutes: 10
+
+    steps:
+      - name: Inspect production host readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Host ==="
+          hostname
+          uname -sr
+          free -h
+          df -h /
+          df -i /
+
+          echo "=== Docker and Swarm ==="
+          sudo -n docker version --format 'Docker server {{.Server.Version}}'
+          sudo -n docker info --format 'Swarm={{.Swarm.LocalNodeState}} ControlAvailable={{.Swarm.ControlAvailable}}'
+          sudo -n docker node ls --format '{{.Hostname}} {{.Status}} {{.Availability}} {{.ManagerStatus}}'
+
+          echo "=== Workloads ==="
+          echo "Stacks=$(sudo -n docker stack ls --format '{{.Name}}' | wc -l)"
+          echo "Containers=$(sudo -n docker ps -aq | wc -l)"
+
+          echo "=== Production paths ==="
+          sudo -n stat -c '/etc/mnemos %U:%G %a' /etc/mnemos
+          sudo -n stat -c '/etc/mnemos/mnemos.env %U:%G %a' /etc/mnemos/mnemos.env
+
+          if [ -e /var/lib/mnemos-deploy/current-release ]; then
+            echo 'DeploymentMarker=present'
+          else
+            echo 'DeploymentMarker=absent'
+          fi
+
+          if [ -L /opt/mnemos/current ]; then
+            echo "CurrentRuntime=$(readlink -f /opt/mnemos/current)"
+          elif [ -e /opt/mnemos/current ]; then
+            echo 'CurrentRuntime=present-not-symlink'
+          else
+            echo 'CurrentRuntime=absent'
+          fi
+
+          if [ -d /opt/mnemos/runtime ]; then
+            echo 'RuntimeDirectory=present'
+          else
+            echo 'RuntimeDirectory=absent'
+          fi
+
+          echo "=== Monitoring ==="
+          systemctl is-enabled mnemos-production-health.timer || true
+          systemctl is-active mnemos-production-health.timer || true
+          systemctl is-failed mnemos-production-health.service || true
+          systemctl show mnemos-production-health.service \
+            --property=Result \
+            --property=ExecMainStatus \
+            --no-pager || true
+
+          echo "=== Backups ==="
+          systemctl is-enabled mnemos-production-backup.timer || true
+          systemctl is-active mnemos-production-backup.timer || true
+
+          echo 'Production readiness inspection completed'
