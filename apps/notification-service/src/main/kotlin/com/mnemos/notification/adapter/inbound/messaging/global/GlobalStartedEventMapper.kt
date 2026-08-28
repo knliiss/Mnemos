@@ -20,5 +20,6 @@ object GlobalStartedEventMapper {
             ContractGlobalEventType.MOON -> DomainGlobalEventType.MOON
             ContractGlobalEventType.ECLIPSE -> DomainGlobalEventType.ECLIPSE
             ContractGlobalEventType.EXPLOSION -> DomainGlobalEventType.EXPLOSION
+            ContractGlobalEventType.COMET_CHAOS -> DomainGlobalEventType.COMET_CHAOS
         }
 }
