@@ -5,6 +5,8 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 BACKUP_SCRIPT="$SCRIPT_DIR/backup-production.sh"
 OFFSITE_SCRIPT="$SCRIPT_DIR/backup-production-offsite.sh"
+PRUNE_SCRIPT="$SCRIPT_DIR/prune-production-local-backups.sh"
+RUN_SCRIPT="$SCRIPT_DIR/run-production-backup.sh"
 RESTORE_CORE_SCRIPT="$SCRIPT_DIR/restore-production-core.sh"
 RESTORE_REDIS_SCRIPT="$SCRIPT_DIR/restore-production-redis.sh"
 RUNTIME_INSTALLER="$SCRIPT_DIR/install-production-runtime.sh"
@@ -17,6 +19,8 @@ fail() {
 for script in \
     "$BACKUP_SCRIPT" \
     "$OFFSITE_SCRIPT" \
+    "$PRUNE_SCRIPT" \
+    "$RUN_SCRIPT" \
     "$RESTORE_CORE_SCRIPT" \
     "$RESTORE_REDIS_SCRIPT" \
     "$RUNTIME_INSTALLER"; do
@@ -38,6 +42,25 @@ grep -Fq 'RESTIC_PASSWORD_FILE' "$OFFSITE_SCRIPT" ||
 
 grep -Fq 'root:root' "$OFFSITE_SCRIPT" ||
     fail "Off-site backup configuration ownership must be validated"
+
+grep -Fq 'MNEMOS_LOCAL_BACKUP_KEEP_COUNT' "$PRUNE_SCRIPT" ||
+    fail "Local backup pruning must have an explicit retention count"
+
+grep -Fq "grep -E '^[0-9]{8}T[0-9]{6}Z$'" "$PRUNE_SCRIPT" ||
+    fail "Local backup pruning must only target timestamp backup directories"
+
+grep -Fq 'backup-production-offsite.sh' "$RUN_SCRIPT" ||
+    fail "Backup pipeline must upload off-site before completion"
+
+grep -Fq 'prune-production-local-backups.sh' "$RUN_SCRIPT" ||
+    fail "Backup pipeline must prune local snapshots after off-site backup"
+
+offsite_line="$(grep -n 'backup-production-offsite.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
+prune_line="$(grep -n 'prune-production-local-backups.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
+
+if [ "$prune_line" -le "$offsite_line" ]; then
+    fail "Local backup pruning must run only after successful off-site upload"
+fi
 
 grep -Fq 'MNEMOS_RESTORE_CONFIRM' "$RESTORE_CORE_SCRIPT" ||
     fail "Core restore must require exact confirmation"
