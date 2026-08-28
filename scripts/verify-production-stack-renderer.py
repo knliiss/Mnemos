@@ -30,22 +30,20 @@ APPLICATION_PORTS = {
     "gateway-service": 8080,
 }
 
-REPLICA_SAFE_SERVICES = {
-    "account-service",
-    "bet-service",
-    "event-service",
-    "gateway-service",
-    "moderation-service",
-    "notification-service",
-    "payment-service",
-    "personalization-service",
-    "profile-service",
-    "realtime-service",
-    "reward-service",
-    "social-service",
-    "wallet-service",
+REPLICA_SAFE_SERVICES = set(APPLICATION_PORTS)
+
+EXPECTED_MEMORY_LIMITS = {
+    "event-service": "768M",
+    "gateway-service": "512M",
+    "notification-service": "768M",
+    "personalization-service": "768M",
+    "player-directory-service": "768M",
+    "realtime-service": "768M",
 }
 
+DEFAULT_MEMORY_LIMIT = "640M"
+DEFAULT_MEMORY_RESERVATION = "192M"
+MAX_APPLICATION_MEMORY_MIB = 20 * 1024
 CLOUDFLARED_IMAGE = "cloudflare/cloudflared:2026.8.1"
 CLOUDFLARE_SECRET_NAME = "mnemos-cloudflare-tunnel-token-deadbeef"
 
@@ -161,6 +159,16 @@ def render() -> dict[str, object]:
         return json.loads(output_path.read_text(encoding="utf-8"))
 
 
+def memory_mib(value: str) -> int:
+    if not value.endswith("M"):
+        fail(f"Expected MiB memory value, got {value!r}")
+
+    try:
+        return int(value[:-1])
+    except ValueError as exception:
+        raise AssertionError(f"Invalid memory value: {value!r}") from exception
+
+
 def verify_application_service(
     service_name: str,
     service: dict[str, object],
@@ -202,6 +210,11 @@ def verify_application_service(
 
     if environment.get("MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED") != "true":
         fail(f"{service_name} does not enable health probes")
+
+    expected_jvm = "-XX:MaxRAMPercentage=60.0 -XX:InitialRAMPercentage=15.0 -XX:+ExitOnOutOfMemoryError"
+
+    if environment.get("JAVA_TOOL_OPTIONS") != expected_jvm:
+        fail(f"{service_name} has an unexpected JVM memory policy")
 
     configs = service.get("configs")
 
@@ -253,6 +266,25 @@ def verify_application_service(
 
     if update_config.get("failure_action") != "rollback":
         fail(f"{service_name} does not automatically roll back failed updates")
+
+    resources = deploy.get("resources")
+
+    if not isinstance(resources, dict):
+        fail(f"{service_name} does not define resource policy")
+
+    limits = resources.get("limits")
+    reservations = resources.get("reservations")
+
+    if not isinstance(limits, dict) or not isinstance(reservations, dict):
+        fail(f"{service_name} has invalid memory resource policy")
+
+    expected_memory = EXPECTED_MEMORY_LIMITS.get(service_name, DEFAULT_MEMORY_LIMIT)
+
+    if limits.get("memory") != expected_memory:
+        fail(f"{service_name} has unexpected memory limit")
+
+    if reservations.get("memory") != DEFAULT_MEMORY_RESERVATION:
+        fail(f"{service_name} has unexpected memory reservation")
 
 
 def verify_cloudflared(service: dict[str, object]) -> None:
@@ -320,6 +352,45 @@ def verify_cloudflared(service: dict[str, object]) -> None:
         fail("cloudflared must use start-first rolling updates")
 
 
+def verify_total_application_memory(services: dict[str, object]) -> None:
+    total_mib = 0
+
+    for service_name in APPLICATION_PORTS:
+        service = services[service_name]
+
+        if not isinstance(service, dict):
+            fail(f"{service_name} is not a service object")
+
+        deploy = service.get("deploy")
+
+        if not isinstance(deploy, dict):
+            fail(f"{service_name} does not define deploy policy")
+
+        replicas = deploy.get("replicas")
+        resources = deploy.get("resources")
+
+        if not isinstance(replicas, int) or not isinstance(resources, dict):
+            fail(f"{service_name} has invalid deploy resources")
+
+        limits = resources.get("limits")
+
+        if not isinstance(limits, dict):
+            fail(f"{service_name} has invalid memory limits")
+
+        memory = limits.get("memory")
+
+        if not isinstance(memory, str):
+            fail(f"{service_name} memory limit is not a string")
+
+        total_mib += replicas * memory_mib(memory)
+
+    if total_mib > MAX_APPLICATION_MEMORY_MIB:
+        fail(
+            "Replicated application hard memory limits exceed the VPS budget: "
+            f"{total_mib} MiB > {MAX_APPLICATION_MEMORY_MIB} MiB"
+        )
+
+
 def main() -> int:
     stack = render()
 
@@ -343,6 +414,8 @@ def main() -> int:
             service_name=service_name,
             service=service,
         )
+
+    verify_total_application_memory(services)
 
     cloudflared = services.get("cloudflared")
 
