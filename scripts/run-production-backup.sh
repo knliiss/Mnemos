@@ -22,5 +22,6 @@ backup_dir="$(cat "$LATEST_FILE")"
 
 sh "$REPOSITORY_ROOT/scripts/verify-production-backup.sh" "$backup_dir"
 sh "$REPOSITORY_ROOT/scripts/backup-production-offsite.sh" "$backup_dir"
+sh "$REPOSITORY_ROOT/scripts/prune-production-local-backups.sh"
 
 printf 'Production backup pipeline completed: %s\n' "$backup_dir"
