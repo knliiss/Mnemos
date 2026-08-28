@@ -24,6 +24,7 @@ export const eventsUk = {
       MOON: "Місяць",
       ECLIPSE: "Затемнення",
       EXPLOSION: "Вибух",
+      COMET_CHAOS: "Кометний хаос",
     },
     itemTypes: {
       SWORD: "Меч",
