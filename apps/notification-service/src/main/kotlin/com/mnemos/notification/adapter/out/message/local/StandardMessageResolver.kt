@@ -183,6 +183,14 @@ class StandardMessageResolver {
                         body = "Свет померк — мир накрыло <b>Затмение</b>.",
                         compact = "Началось <b>Затмение</b>",
                     )
+
+                DomainGlobalEventType.COMET_CHAOS ->
+                    WorldEventPresentation(
+                        emoji = "☄️",
+                        title = "Начался Кометный хаос",
+                        body = "Комета пронеслась по небу — начался <b>Кометный хаос</b>.",
+                        compact = "Начался <b>Кометный хаос</b>",
+                    )
             }
 
         return ResolvedNotification(
