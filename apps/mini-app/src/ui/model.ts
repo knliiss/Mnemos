@@ -7,7 +7,7 @@ export type EventKind = "ITEM_DROP" | "BOOSTER" | "GLOBAL" | "RAID"
 export type SubscriptionType = "ITEM_DROP" | "BOOSTER" | "DUNGEON" | "RAID" | "GLOBAL"
 export type BoosterType = "LUCK" | "MONEY" | "DAMAGE" | "POWER"
 export type DungeonType = "EASY" | "MEDIUM" | "HARD" | "EXPERT"
-export type GlobalEventType = "DARKNESS" | "MOON" | "ECLIPSE" | "EXPLOSION"
+export type GlobalEventType = "DARKNESS" | "MOON" | "ECLIPSE" | "EXPLOSION" | "COMET_CHAOS"
 export type BetGlobalEventType = "MOON" | "ECLIPSE" | "EXPLOSION"
 export type BetSide = "YES" | "NO"
 export type EventBetOutcome = "YES" | "NO" | "REFUND"
@@ -178,15 +178,73 @@ export type GlowStyle = {
 export type VisualLayer = {
   id: string
   assetId: string
-  assetUrl: string
-  xPercent: number
-  yPercent: number
-  widthPercent: number
   opacity: number
-  rotationDegrees: number
   blendMode: VisualLayerBlendMode
   animation: VisualLayerAnimation
-  zIndex: number
+  animationSpeed: number
+  scale: number
+  offsetX: number
+  offsetY: number
+  rotation: number
+}
+
+export type ProfileBackground = {
+  baseColor: string
+  gradient?: {
+    type: "LINEAR" | "RADIAL"
+    angle: number
+    stops: GradientStop[]
+  }
+  layers: VisualLayer[]
+}
+
+export type ProfileTheme = {
+  background: string
+  surface: string
+  surfaceStrong: string
+  text: string
+  muted: string
+  accent: string
+  accentSoft: string
+  border: string
+  shadow: string
+}
+
+export type NickStyle = {
+  color?: string
+  gradient?: GradientStop[]
+  glow?: GlowStyle
+  bold?: boolean
+  italic?: boolean
+}
+
+export type AvatarFrame = {
+  imageUrl?: string
+  color?: string
+  style?: FrameStyle
+  thickness?: number
+  glow?: GlowStyle
+}
+
+export type ProfileEffect = {
+  type: EffectType
+  intensity: number
+  speed: number
+  density?: number
+  assetUrl?: string
+}
+
+export type ProfileAppearance = {
+  theme?: ProfileTheme
+  background?: ProfileBackground
+  nickStyle?: NickStyle
+  avatarFrame?: AvatarFrame
+  effect?: ProfileEffect
+}
+
+export type PersonalizationPrice = {
+  currency: Currency
+  amount: number
 }
 
 export type NotificationTemplateCondition = {
@@ -197,7 +255,7 @@ export type NotificationTemplateCondition = {
 export type NotificationTemplateVariant = {
   id: string
   conditions: NotificationTemplateCondition[]
-  emoji: string | null
+  emoji?: string | null
   soloTitle: string
   soloBody: string
   compact: string
@@ -205,7 +263,7 @@ export type NotificationTemplateVariant = {
 }
 
 export type NotificationTemplate = {
-  emoji: string | null
+  emoji?: string | null
   soloTitle: string
   soloBody: string
   compact: string
@@ -219,85 +277,54 @@ export type NotificationValueForms = {
 }
 
 export type NotificationPackContent = {
-  kind: "NOTIFICATION_PACK"
   mixedAggregateTitle: string
   templates: Record<NotificationTemplateKey, NotificationTemplate>
   valueMappings: Partial<Record<NotificationPackValueKey, Record<string, NotificationValueForms>>>
 }
 
-export type NickStyleContent = {
-  kind: "NICK_STYLE"
-  colors: GradientStop[]
-  angleDegrees: number
-  glow: GlowStyle | null
-}
-
-export type ProfileThemeContent = {
-  kind: "PROFILE_THEME"
-  background: string
-  backgroundSecondary: string
-  surface: string
-  surfaceSecondary: string
-  accent: string
-  text: string
-  border: string
-  gradientAngleDegrees: number
-  textureStrength: number
-  glow: GlowStyle | null
-  layers: VisualLayer[]
-}
-
-export type AvatarFrameContent = {
-  kind: "AVATAR_FRAME"
-  borderColor: string
-  secondaryBorderColor: string
-  borderWidthPx: number
-  gapPx: number
-  radiusPx: number
-  style: FrameStyle
-  glow: GlowStyle | null
-  layers: VisualLayer[]
-}
-
-type ProfileVisualEffectContent = {
-  effect: EffectType
-  intensity: number
-  speed: number
-  density: number
-  scale: number
-  primaryColor: string
-  secondaryColor: string | null
-  layers: VisualLayer[]
-}
-
-export type ProfileBackgroundContent = ProfileVisualEffectContent & {
-  kind: "PROFILE_BACKGROUND"
-}
-
-export type ProfileEffectContent = ProfileVisualEffectContent & {
-  kind: "PROFILE_EFFECT"
-}
-
 export type PersonalizationContent =
-  | NotificationPackContent
-  | NickStyleContent
-  | ProfileThemeContent
-  | ProfileBackgroundContent
-  | AvatarFrameContent
-  | ProfileEffectContent
+  | { type: "NOTIFICATION_PACK"; notificationPack: NotificationPackContent }
+  | { type: "NICK_STYLE"; nickStyle: NickStyle }
+  | { type: "PROFILE_THEME"; profileTheme: ProfileTheme }
+  | { type: "PROFILE_BACKGROUND"; profileBackground: ProfileBackground }
+  | { type: "AVATAR_FRAME"; avatarFrame: AvatarFrame }
+  | { type: "PROFILE_EFFECT"; profileEffect: ProfileEffect }
 
 export type Personalization = {
   id: string
+  catalogKey?: string | null
   type: PersonalizationType
   target: PersonalizationTarget
-  name: string
-  creator: string
-  createdByCurrentUser: boolean
-  currency: Currency
-  price: number
   status: PersonalizationStatus
+  origin: "SYSTEM" | "CREATOR"
+  creatorId?: string | null
+  name: string
+  price?: PersonalizationPrice | null
+  content: PersonalizationContent
   owned: boolean
   active: boolean
-  preview: string
-  content?: PersonalizationContent
+}
+
+export type PersonalizationOwnership = {
+  personalizationId: string
+  ownerId: string
+  acquiredAt: string
+  active: boolean
+}
+
+export type Sanction = {
+  id: string
+  userId: string
+  type: SanctionType
+  status: SanctionStatus
+  reason: string
+  createdAt: string
+  expiresAt?: string | null
+  revokedAt?: string | null
+}
+
+export type WalletAdjustment = {
+  requestId: string
+  status: WalletAdjustmentStatus
+  error?: string | null
 }
