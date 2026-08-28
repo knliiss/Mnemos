@@ -46,7 +46,14 @@ class CreateEventBetRoundService(
                 noOdds = odds.no,
             )
 
-        repository.createRound(round)
+        val persisted = repository.createRound(round)
+
+        if (persisted.id != round.id) {
+            return CreateEventBetRoundResult(
+                roundId = persisted.id,
+                created = false,
+            )
+        }
 
         publisher.publish(
             IntegrationEvent(
