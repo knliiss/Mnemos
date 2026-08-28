@@ -6,6 +6,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
 STACK_SMOKE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/stack-smoke.yml"
+START_INFRA_SCRIPT="$REPOSITORY_ROOT/scripts/start-production-infra.sh"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 
 fail() {
@@ -15,6 +16,7 @@ fail() {
 
 [ -f "$WORKFLOW" ] || fail "Production Release workflow is missing"
 [ -f "$STACK_SMOKE_WORKFLOW" ] || fail "Stack Smoke workflow is missing"
+[ -f "$START_INFRA_SCRIPT" ] || fail "Production infrastructure startup script is missing"
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
@@ -85,6 +87,22 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG=/run/mnemos-production-docker-auth' ||
     fail "Production deploy registry credentials must use an isolated Docker config"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'sh scripts/start-production-infra.sh' ||
+    fail "Production deploy must start and verify stateful infrastructure before applications"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/run-production-backup.sh' ||
+    fail "Production upgrades and first deployment must include guarded backup handling"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/check-production-health.sh' ||
+    fail "Production deploy must finish with a host/runtime health check"
+
+infra_line="$(grep -n -F 'sh scripts/start-production-infra.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
+app_line="$(grep -n -F 'sh scripts/deploy-production-apps.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
+
+if [ -z "$infra_line" ] || [ -z "$app_line" ] || [ "$infra_line" -ge "$app_line" ]; then
+    fail "Production infrastructure startup must precede application deployment"
+fi
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '          sudo -n rm -rf /run/mnemos-production-docker-auth' ||
     fail "Production deploy registry credentials must be removed after the deploy job"
