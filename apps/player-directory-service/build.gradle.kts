@@ -24,7 +24,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("io.github.openfeign:feign-okhttp")
-    implementation("io.github.resilience4j:resilience4j-ratelimiter")
     implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
     implementation(libs.uuid.creator)
 
