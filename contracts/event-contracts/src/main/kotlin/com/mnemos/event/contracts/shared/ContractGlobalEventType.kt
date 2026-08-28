@@ -5,4 +5,5 @@ enum class ContractGlobalEventType {
     MOON,
     ECLIPSE,
     EXPLOSION,
+    COMET_CHAOS,
 }
