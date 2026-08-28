@@ -1,6 +1,9 @@
 name: Stack Smoke
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     paths:
       - "apps/**"
@@ -46,7 +49,7 @@ permissions:
 
 jobs:
   smoke:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, mnemos-backend]
     timeout-minutes: 30
 
