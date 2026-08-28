@@ -5,4 +5,5 @@ enum class DomainGlobalEventType {
     MOON,
     ECLIPSE,
     EXPLOSION,
+    COMET_CHAOS,
 }
