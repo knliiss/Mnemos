@@ -23,7 +23,8 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 60
 
     permissions:
       actions: read
@@ -148,6 +149,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
+
           docker buildx create \
             --driver docker-container \
             --name mnemos-production-builder \
@@ -155,11 +158,24 @@ jobs:
 
           docker buildx inspect --bootstrap
 
+      - name: Prepare isolated publish registry credentials
+        if: steps.release_guard.outputs.current_release == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
+          install \
+            --directory \
+            --mode=0700 \
+            "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
+
       - name: Authenticate to GHCR
         if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
           GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
         run: |
           set -euo pipefail
 
@@ -172,6 +188,7 @@ jobs:
         if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
           MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
           MNEMOS_IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
           MNEMOS_IMAGE_PUSH: "true"
@@ -220,6 +237,15 @@ jobs:
             echo
             echo "Registry: \`$REGISTRY\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove publish registry credentials and builder
+        if: always()
+        shell: bash
+        run: |
+          set +e
+
+          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
+          rm -rf "$RUNNER_TEMP/mnemos-production-publish-docker-auth"
 
   deploy:
     needs:
