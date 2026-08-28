@@ -30,7 +30,13 @@ APPLICATION_PORTS = {
     "gateway-service": 8080,
 }
 
-REPLICA_SAFE_SERVICES = set(APPLICATION_PORTS)
+REPLICA_SAFE_SERVICES = {
+    "account-service",
+    "event-service",
+    "gateway-service",
+    "payment-service",
+    "wallet-service",
+}
 
 EXPECTED_MEMORY_LIMITS = {
     "event-service": "768M",
@@ -57,29 +63,16 @@ def source_model() -> dict[str, object]:
 
     for service_name, port in APPLICATION_PORTS.items():
         services[service_name] = {
-            "build": {
-                "context": ".",
-            },
+            "build": {"context": "."},
             "container_name": f"mnemos-{service_name}",
-            "depends_on": {
-                "kafka": {
-                    "condition": "service_healthy",
-                }
-            },
+            "depends_on": {"kafka": {"condition": "service_healthy"}},
             "environment": {
                 "SERVER_PORT": str(port),
                 "EXAMPLE_SETTING": "preserved",
             },
             "image": f"mnemos/{service_name}:local",
-            "networks": {
-                "mnemos-network": None,
-            },
-            "ports": [
-                {
-                    "target": port,
-                    "published": port,
-                }
-            ],
+            "networks": {"mnemos-network": None},
+            "ports": [{"target": port, "published": port}],
             "restart": "unless-stopped",
             "user": "10001:10001",
             "read_only": True,
@@ -99,15 +92,9 @@ def source_model() -> dict[str, object]:
     return {
         "name": "mnemos",
         "services": services,
-        "networks": {
-            "mnemos-network": {
-                "name": "mnemos-network",
-            }
-        },
+        "networks": {"mnemos-network": {"name": "mnemos-network"}},
         "volumes": {
-            "kafka-client-tls": {
-                "name": "mnemos-kafka-client-tls",
-            }
+            "kafka-client-tls": {"name": "mnemos-kafka-client-tls"}
         },
     }
 
@@ -127,11 +114,7 @@ def render() -> dict[str, object]:
     with tempfile.TemporaryDirectory() as directory:
         input_path = Path(directory) / "compose.json"
         output_path = Path(directory) / "stack.json"
-
-        input_path.write_text(
-            json.dumps(source_model()),
-            encoding="utf-8",
-        )
+        input_path.write_text(json.dumps(source_model()), encoding="utf-8")
 
         result = subprocess.run(
             [
@@ -150,11 +133,7 @@ def render() -> dict[str, object]:
         )
 
         if result.returncode != 0:
-            fail(
-                "Renderer failed:\n"
-                + result.stdout
-                + result.stderr
-            )
+            fail("Renderer failed:\n" + result.stdout + result.stderr)
 
         return json.loads(output_path.read_text(encoding="utf-8"))
 
@@ -211,7 +190,10 @@ def verify_application_service(
     if environment.get("MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED") != "true":
         fail(f"{service_name} does not enable health probes")
 
-    expected_jvm = "-XX:MaxRAMPercentage=60.0 -XX:InitialRAMPercentage=15.0 -XX:+ExitOnOutOfMemoryError"
+    expected_jvm = (
+        "-XX:MaxRAMPercentage=60.0 -XX:InitialRAMPercentage=15.0 "
+        "-XX:+ExitOnOutOfMemoryError"
+    )
 
     if environment.get("JAVA_TOOL_OPTIONS") != expected_jvm:
         fail(f"{service_name} has an unexpected JVM memory policy")
@@ -251,7 +233,9 @@ def verify_application_service(
         fail(f"{service_name} does not define Swarm deploy policy")
 
     expected_replicas = 2 if service_name in REPLICA_SAFE_SERVICES else 1
-    expected_order = "start-first" if service_name in REPLICA_SAFE_SERVICES else "stop-first"
+    expected_order = (
+        "start-first" if service_name in REPLICA_SAFE_SERVICES else "stop-first"
+    )
 
     if deploy.get("replicas") != expected_replicas:
         fail(f"{service_name} has an unexpected replica count")
@@ -278,7 +262,10 @@ def verify_application_service(
     if not isinstance(limits, dict) or not isinstance(reservations, dict):
         fail(f"{service_name} has invalid memory resource policy")
 
-    expected_memory = EXPECTED_MEMORY_LIMITS.get(service_name, DEFAULT_MEMORY_LIMIT)
+    expected_memory = EXPECTED_MEMORY_LIMITS.get(
+        service_name,
+        DEFAULT_MEMORY_LIMIT,
+    )
 
     if limits.get("memory") != expected_memory:
         fail(f"{service_name} has unexpected memory limit")
@@ -304,9 +291,6 @@ def verify_cloudflared(service: dict[str, object]) -> None:
         fail("cloudflared must not publish host ports")
 
     command = service.get("command")
-
-    if not isinstance(command, list):
-        fail("cloudflared command must use exec form")
 
     if command != [
         "tunnel",
@@ -393,7 +377,6 @@ def verify_total_application_memory(services: dict[str, object]) -> None:
 
 def main() -> int:
     stack = render()
-
     services = stack.get("services")
 
     if not isinstance(services, dict):
