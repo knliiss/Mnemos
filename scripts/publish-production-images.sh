@@ -89,7 +89,7 @@ build_image \
 
 build_image \
     "mnemos-kafka-init" \
-    "Dockerfile.init" \
+    "infrastructure/kafka/Dockerfile.init" \
     "infrastructure/kafka" \
     --build-arg "KAFKA_VERSION=${KAFKA_VERSION:?KAFKA_VERSION is required}"
 
