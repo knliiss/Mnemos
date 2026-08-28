@@ -33,20 +33,20 @@ jobs:
 
           echo '=== docker ==='
           docker --version
-          docker info --format 'Swarm={{.Swarm.LocalNodeState}} LiveRestore={{.LiveRestoreEnabled}} Logging={{.LoggingDriver}}'
-          docker node ls --format 'Node={{.Hostname}} Status={{.Status}} Availability={{.Availability}} Manager={{.ManagerStatus}}'
+          sudo -n docker info --format 'Swarm={{.Swarm.LocalNodeState}} LiveRestore={{.LiveRestoreEnabled}} Logging={{.LoggingDriver}}'
+          sudo -n docker node ls --format 'Node={{.Hostname}} Status={{.Status}} Availability={{.Availability}} Manager={{.ManagerStatus}}'
 
           echo '=== stacks ==='
-          docker stack ls
+          sudo -n docker stack ls
 
           echo '=== containers ==='
-          docker ps -a --format 'Name={{.Names}} State={{.State}} Status={{.Status}}'
+          sudo -n docker ps -a --format 'Name={{.Names}} State={{.State}} Status={{.Status}}'
 
           echo '=== named volumes ==='
-          docker volume ls --format '{{.Name}}' | sort
+          sudo -n docker volume ls --format '{{.Name}}' | sort
 
           echo '=== mnemos paths ==='
-          stat -c '%n owner=%U:%G mode=%a' /etc/mnemos /etc/mnemos/mnemos.env /opt/mnemos 2>/dev/null || true
+          sudo -n stat -c '%n owner=%U:%G mode=%a' /etc/mnemos /etc/mnemos/mnemos.env /opt/mnemos 2>/dev/null || true
 
           echo '=== restic ==='
           restic version 2>/dev/null || true
