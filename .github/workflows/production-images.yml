@@ -264,7 +264,7 @@ jobs:
       contents: read
       packages: read
 
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout verified production revision
@@ -300,6 +300,35 @@ jobs:
                 --username "${{ github.actor }}" \
                 --password-stdin
 
+      - name: Back up current release before update
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if sudo -n test -s /var/lib/mnemos-deploy/current-release; then
+            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
+          else
+            echo "No existing production release; skipping pre-deploy backup"
+          fi
+
+      - name: Start or update production infrastructure
+        shell: bash
+        env:
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_RELEASE_TAG: ${{ github.event.workflow_run.head_sha }}
+          MNEMOS_PRODUCTION_ENV_FILE: /etc/mnemos/mnemos.env
+          MNEMOS_SWARM_NETWORK: mnemos-production-network
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
+            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
+            MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
+            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
+            sh scripts/start-production-infra.sh
+
       - name: Deploy production application stack
         shell: bash
         env:
@@ -319,6 +348,18 @@ jobs:
             MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
             MNEMOS_SWARM_STACK_NAME="$MNEMOS_SWARM_STACK_NAME" \
             sh scripts/deploy-production-apps.sh
+
+      - name: Initialize backups and verify production health
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! sudo -n systemctl is-enabled --quiet mnemos-production-backup.timer; then
+            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
+            sudo -n /opt/mnemos/current/scripts/enable-production-backups.sh
+          fi
+
+          sudo -n /opt/mnemos/current/scripts/check-production-health.sh
 
       - name: Remove production registry credentials
         if: always()
