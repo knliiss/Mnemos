@@ -1,0 +1,81 @@
+name: Production VPS Inspect
+
+on:
+  push:
+    branches:
+      - feat/production-deployment
+    paths:
+      - .github/workflows/production-vps-inspect.yml
+
+permissions: {}
+
+jobs:
+  inspect:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    timeout-minutes: 5
+
+    steps:
+      - name: Inspect production host read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== host ==='
+          hostname --fqdn 2>/dev/null || hostname
+          uname -a
+          uptime
+
+          echo '=== memory ==='
+          free -h
+          swapon --show || true
+
+          echo '=== filesystems ==='
+          df -hT /
+          df -hT /var/lib/docker 2>/dev/null || true
+          df -hT /var/lib/mnemos-backup 2>/dev/null || true
+
+          echo '=== docker ==='
+          sudo -n docker version --format 'client={{.Client.Version}} server={{.Server.Version}}'
+          sudo -n docker info --format 'swarm={{.Swarm.LocalNodeState}} logging={{.LoggingDriver}} live_restore={{.LiveRestoreEnabled}} containers={{.Containers}} running={{.ContainersRunning}} images={{.Images}}'
+
+          echo '=== containers ==='
+          sudo -n docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+
+          echo '=== swarm stacks ==='
+          sudo -n docker stack ls || true
+          sudo -n docker service ls || true
+
+          echo '=== mnemos networks ==='
+          sudo -n docker network ls --filter name=mnemos
+
+          echo '=== mnemos volumes ==='
+          sudo -n docker volume ls --filter name=mnemos
+
+          echo '=== production config paths ==='
+          sudo -n sh -c '
+            for path in /etc/mnemos /var/lib/mnemos-backup; do
+              if [ -e "$path" ]; then
+                stat -c "%n owner=%U:%G mode=%a" "$path"
+              else
+                echo "$path missing"
+              fi
+            done
+          '
+
+          echo '=== backup timers ==='
+          sudo -n systemctl list-timers --all --no-pager 'mnemos*' || true
+          sudo -n systemctl status --no-pager mnemos-production-backup.timer 2>/dev/null || true
+
+          echo '=== recent backup state ==='
+          sudo -n sh -c '
+            if [ -s /var/lib/mnemos-backup/latest ]; then
+              latest="$(cat /var/lib/mnemos-backup/latest)"
+              echo "latest=$latest"
+              test -d "$latest" && stat -c "backup=%n modified=%y" "$latest"
+            else
+              echo "latest backup state missing"
+            fi
+          '
