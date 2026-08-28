@@ -16,7 +16,7 @@ services:
       - checkpoint_completion_target=0.9
       - -c
       - max_wal_size=2GB
-    mem_limit: 3g
+    mem_limit: 2560m
     mem_reservation: 1g
     shm_size: 256m
     ports: !reset []
@@ -42,14 +42,16 @@ services:
       - checkpoint_completion_target=0.9
       - -c
       - max_wal_size=1GB
-    mem_limit: 1536m
-    mem_reservation: 512m
+    mem_limit: 1g
+    mem_reservation: 384m
     shm_size: 128m
     ports: !reset []
 
   redis:
     build: !reset null
     image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-redis:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+    mem_limit: 768m
+    mem_reservation: 256m
     ports: !reset []
 
   kafka-tls-init:
@@ -57,11 +59,19 @@ services:
     image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-kafka-tls-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
 
   kafka:
+    environment:
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx768m
+    mem_limit: 1536m
+    mem_reservation: 768m
     ports: !reset []
 
   kafka-init:
     build: !reset null
     image: ${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}/mnemos-kafka-init:${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}
+
+  minio:
+    mem_limit: 768m
+    mem_reservation: 256m
 
   minio-init:
     build: !reset null
@@ -76,6 +86,9 @@ services:
       KC_DB_POOL_INITIAL_SIZE: "2"
       KC_DB_POOL_MIN_SIZE: "2"
       KC_DB_POOL_MAX_SIZE: "20"
+      JAVA_OPTS_KC_HEAP: -XX:MaxRAMPercentage=65.0 -XX:InitialRAMPercentage=20.0
+    mem_limit: 1280m
+    mem_reservation: 512m
     volumes: !reset []
     ports: !reset []
 
