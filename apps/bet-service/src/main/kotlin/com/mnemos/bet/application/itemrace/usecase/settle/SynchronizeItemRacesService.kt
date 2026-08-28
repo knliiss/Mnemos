@@ -27,7 +27,19 @@ class SynchronizeItemRacesService(
 
         repository
             .findRacesRequiringSynchronization(now)
-            .forEach { race -> synchronize(race, now) }
+            .forEach { candidate ->
+                val race = repository.findByIdForUpdate(candidate.id) ?: return@forEach
+
+                if (
+                    race.status != ItemRaceStatus.REGISTRATION &&
+                    race.status != ItemRaceStatus.ACTIVE &&
+                    race.status != ItemRaceStatus.REFUNDING
+                ) {
+                    return@forEach
+                }
+
+                synchronize(race, now)
+            }
     }
 
     private fun synchronize(
