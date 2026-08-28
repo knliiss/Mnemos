@@ -53,13 +53,17 @@ def require_command_setting(service_name: str, setting: str) -> None:
         fail(f"{service_name} is missing PostgreSQL setting {setting}")
 
 
-def require_memory_limit(service_name: str, minimum_bytes: int, maximum_bytes: int) -> None:
+def memory_bytes(service_name: str) -> int:
     raw_memory = services[service_name].get("mem_limit")
 
     try:
-        memory = int(raw_memory)
+        return int(raw_memory)
     except (TypeError, ValueError):
         fail(f"{service_name} has non-numeric memory limit: {raw_memory!r}")
+
+
+def require_memory_limit(service_name: str, minimum_bytes: int, maximum_bytes: int) -> None:
+    memory = memory_bytes(service_name)
 
     if not minimum_bytes <= memory <= maximum_bytes:
         fail(f"{service_name} has unexpected memory limit: {memory}")
@@ -121,16 +125,35 @@ for setting in (
 ):
     require_command_setting("keycloak-postgres", setting)
 
-require_memory_limit(
-    service_name="app-postgres",
-    minimum_bytes=3_000_000_000,
-    maximum_bytes=3_300_000_000,
+require_memory_limit("app-postgres", 2_600_000_000, 2_800_000_000)
+require_memory_limit("keycloak-postgres", 1_000_000_000, 1_200_000_000)
+require_memory_limit("redis", 750_000_000, 850_000_000)
+require_memory_limit("kafka", 1_500_000_000, 1_700_000_000)
+require_memory_limit("minio", 750_000_000, 850_000_000)
+require_memory_limit("keycloak", 1_300_000_000, 1_400_000_000)
+
+infrastructure_limit = sum(
+    memory_bytes(service_name)
+    for service_name in (
+        "app-postgres",
+        "keycloak-postgres",
+        "redis",
+        "kafka",
+        "minio",
+        "keycloak",
+    )
 )
-require_memory_limit(
-    service_name="keycloak-postgres",
-    minimum_bytes=1_500_000_000,
-    maximum_bytes=1_700_000_000,
-)
+
+if infrastructure_limit > 8_500_000_000:
+    fail(
+        "Production infrastructure hard memory limits exceed the host budget: "
+        f"{infrastructure_limit} bytes"
+    )
+
+kafka_environment = services["kafka"].get("environment", {})
+
+if kafka_environment.get("KAFKA_HEAP_OPTS") != "-Xms512m -Xmx768m":
+    fail("Kafka production heap must be explicitly bounded")
 
 keycloak_environment = services["keycloak"].get("environment", {})
 
@@ -139,6 +162,9 @@ if keycloak_environment.get("KC_DB_POOL_MAX_SIZE") != "20":
 
 if keycloak_environment.get("KC_DB_POOL_MIN_SIZE") != "2":
     fail("Keycloak production database pool minimum must be 2 connections")
+
+if keycloak_environment.get("JAVA_OPTS_KC_HEAP") != "-XX:MaxRAMPercentage=65.0 -XX:InitialRAMPercentage=20.0":
+    fail("Keycloak production heap policy must be explicitly bounded")
 
 network = config.get("networks", {}).get("mnemos-network", {})
 
