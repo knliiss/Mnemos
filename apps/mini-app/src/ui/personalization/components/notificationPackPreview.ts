@@ -61,6 +61,7 @@ const fallbackValueLabels: Partial<Record<NotificationPackValueKey, Record<strin
     MOON: "Кровавая луна",
     ECLIPSE: "Затмение",
     EXPLOSION: "Взрыв",
+    COMET_CHAOS: "Кометный хаос",
   },
 }
 
