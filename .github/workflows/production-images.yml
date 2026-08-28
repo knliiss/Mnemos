@@ -232,6 +232,10 @@ jobs:
       - self-hosted
       - mnemos-production
 
+    concurrency:
+      group: mnemos-production-deploy
+      cancel-in-progress: false
+
     permissions:
       contents: read
       packages: read
@@ -245,6 +249,19 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 1
 
+      - name: Prepare isolated registry credential directory
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-production-docker-auth
+
       - name: Authenticate production Docker to GHCR
         shell: bash
         env:
@@ -253,9 +270,11 @@ jobs:
           set -euo pipefail
 
           printf '%s' "$GHCR_TOKEN" | \
-            sudo -n docker login ghcr.io \
-              --username "${{ github.actor }}" \
-              --password-stdin
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
 
       - name: Deploy production application stack
         shell: bash
@@ -268,16 +287,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          cleanup() {
-            sudo -n docker logout ghcr.io >/dev/null 2>&1 || true
-          }
-
-          trap cleanup EXIT
-
           sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
             MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
             MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
             MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
             MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
             MNEMOS_SWARM_STACK_NAME="$MNEMOS_SWARM_STACK_NAME" \
             sh scripts/deploy-production-apps.sh
+
+      - name: Remove production registry credentials
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
