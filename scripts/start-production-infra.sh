@@ -13,6 +13,9 @@ SWARM_NETWORK="${MNEMOS_SWARM_NETWORK:-mnemos-production-network}"
 WAIT_TIMEOUT_SECONDS="${MNEMOS_PRODUCTION_INFRA_TIMEOUT_SECONDS:-600}"
 POLL_INTERVAL_SECONDS=5
 
+: "${MNEMOS_IMAGE_REGISTRY:?MNEMOS_IMAGE_REGISTRY is required}"
+: "${MNEMOS_RELEASE_TAG:?MNEMOS_RELEASE_TAG is required}"
+
 case "$WAIT_TIMEOUT_SECONDS" in
     '' | *[!0-9]*)
         echo "MNEMOS_PRODUCTION_INFRA_TIMEOUT_SECONDS must be a positive integer" >&2
@@ -29,6 +32,9 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "Production environment file is missing: $ENV_FILE" >&2
     exit 1
 fi
+
+export MNEMOS_PRODUCTION_ENV_FILE="$ENV_FILE"
+export MNEMOS_SWARM_NETWORK="$SWARM_NETWORK"
 
 sh "$REPOSITORY_ROOT/scripts/validate-production-env.sh"
 
