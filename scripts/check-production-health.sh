@@ -11,6 +11,7 @@ STACK_NAME="${MNEMOS_SWARM_STACK_NAME:-mnemos}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-mnemos}"
 RUNTIME_ROOT="${MNEMOS_RUNTIME_CURRENT_LINK:-/opt/mnemos/current}"
 DISK_USAGE_LIMIT_PERCENT="${MNEMOS_MONITOR_DISK_USAGE_LIMIT_PERCENT:-90}"
+INODE_USAGE_LIMIT_PERCENT="${MNEMOS_MONITOR_INODE_USAGE_LIMIT_PERCENT:-90}"
 MEMORY_AVAILABLE_MIN_PERCENT="${MNEMOS_MONITOR_MEMORY_AVAILABLE_MIN_PERCENT:-10}"
 BACKUP_MAX_AGE_SECONDS="${MNEMOS_MONITOR_BACKUP_MAX_AGE_SECONDS:-129600}"
 BACKUP_SUCCESSFUL_LATEST_FILE="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}/latest-successful"
@@ -34,6 +35,7 @@ require_integer() {
 }
 
 require_integer "MNEMOS_MONITOR_DISK_USAGE_LIMIT_PERCENT" "$DISK_USAGE_LIMIT_PERCENT"
+require_integer "MNEMOS_MONITOR_INODE_USAGE_LIMIT_PERCENT" "$INODE_USAGE_LIMIT_PERCENT"
 require_integer "MNEMOS_MONITOR_MEMORY_AVAILABLE_MIN_PERCENT" "$MEMORY_AVAILABLE_MIN_PERCENT"
 require_integer "MNEMOS_MONITOR_BACKUP_MAX_AGE_SECONDS" "$BACKUP_MAX_AGE_SECONDS"
 
@@ -59,6 +61,13 @@ require_integer "root filesystem usage" "$disk_usage"
 
 if [ "$disk_usage" -ge "$DISK_USAGE_LIMIT_PERCENT" ]; then
     fail "root filesystem usage is ${disk_usage}%"
+fi
+
+inode_usage="$(df -Pi / | awk 'NR == 2 { gsub(/%/, "", $5); print $5 }')"
+require_integer "root filesystem inode usage" "$inode_usage"
+
+if [ "$inode_usage" -ge "$INODE_USAGE_LIMIT_PERCENT" ]; then
+    fail "root filesystem inode usage is ${inode_usage}%"
 fi
 
 memory_total_kib="$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)"
@@ -133,6 +142,7 @@ if systemctl is-enabled --quiet mnemos-production-backup.timer 2>/dev/null; then
     fi
 fi
 
-printf 'Production health check passed: disk=%s%% memory_available=%s%%\n' \
+printf 'Production health check passed: disk=%s%% inodes=%s%% memory_available=%s%%\n' \
     "$disk_usage" \
+    "$inode_usage" \
     "$memory_available_percent"

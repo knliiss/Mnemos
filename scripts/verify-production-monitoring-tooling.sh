@@ -29,6 +29,24 @@ grep -Fq 'NoNewPrivileges=true' "$SERVICE_UNIT" \
 grep -Fq 'ProtectSystem=strict' "$SERVICE_UNIT" \
     || fail "health service is missing ProtectSystem=strict"
 
+grep -Fq 'ProtectKernelTunables=true' "$SERVICE_UNIT" \
+    || fail "health service must protect kernel tunables"
+
+grep -Fq 'ProtectKernelModules=true' "$SERVICE_UNIT" \
+    || fail "health service must protect kernel modules"
+
+grep -Fq 'ProtectControlGroups=true' "$SERVICE_UNIT" \
+    || fail "health service must protect control groups"
+
+grep -Fq 'RestrictSUIDSGID=true' "$SERVICE_UNIT" \
+    || fail "health service must restrict SUID/SGID transitions"
+
+grep -Fq 'LockPersonality=true' "$SERVICE_UNIT" \
+    || fail "health service must lock execution personality"
+
+grep -Fq 'RestrictRealtime=true' "$SERVICE_UNIT" \
+    || fail "health service must restrict realtime scheduling"
+
 grep -Fq 'OnUnitActiveSec=5m' "$TIMER_UNIT" \
     || fail "health timer must run every five minutes"
 
@@ -50,6 +68,12 @@ grep -Fq "docker node inspect self" "$HEALTH_SCRIPT" \
 
 grep -Fq "docker stack services" "$HEALTH_SCRIPT" \
     || fail "health check does not verify replica convergence"
+
+grep -Fq 'MNEMOS_MONITOR_INODE_USAGE_LIMIT_PERCENT:-90' "$HEALTH_SCRIPT" \
+    || fail "health check does not enforce an inode pressure threshold"
+
+grep -Fq 'df -Pi /' "$HEALTH_SCRIPT" \
+    || fail "health check does not inspect root filesystem inode usage"
 
 grep -Fq 'verify-production-infra.sh' "$HEALTH_SCRIPT" \
     || fail "health check does not verify stateful production infrastructure after deployment"
