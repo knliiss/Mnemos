@@ -11,7 +11,7 @@ STACK_NAME="${MNEMOS_SWARM_STACK_NAME:-mnemos}"
 DISK_USAGE_LIMIT_PERCENT="${MNEMOS_MONITOR_DISK_USAGE_LIMIT_PERCENT:-90}"
 MEMORY_AVAILABLE_MIN_PERCENT="${MNEMOS_MONITOR_MEMORY_AVAILABLE_MIN_PERCENT:-10}"
 BACKUP_MAX_AGE_SECONDS="${MNEMOS_MONITOR_BACKUP_MAX_AGE_SECONDS:-129600}"
-BACKUP_LATEST_FILE="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}/latest"
+BACKUP_SUCCESSFUL_LATEST_FILE="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}/latest-successful"
 DEPLOY_RELEASE_FILE="${MNEMOS_DEPLOY_STATE_DIR:-/var/lib/mnemos-deploy}/current-release"
 
 fail() {
@@ -97,14 +97,14 @@ elif [ -f "$DEPLOY_RELEASE_FILE" ]; then
 fi
 
 if systemctl is-enabled --quiet mnemos-production-backup.timer 2>/dev/null; then
-    if [ ! -s "$BACKUP_LATEST_FILE" ]; then
-        fail "backup timer is enabled but latest backup state is missing"
+    if [ ! -s "$BACKUP_SUCCESSFUL_LATEST_FILE" ]; then
+        fail "backup timer is enabled but no fully successful backup pipeline state exists"
     fi
 
-    latest_backup="$(cat "$BACKUP_LATEST_FILE")"
+    latest_backup="$(cat "$BACKUP_SUCCESSFUL_LATEST_FILE")"
 
     if [ ! -d "$latest_backup" ]; then
-        fail "latest backup directory does not exist: $latest_backup"
+        fail "latest successful backup directory does not exist: $latest_backup"
     fi
 
     backup_mtime="$(stat -c '%Y' "$latest_backup")"
@@ -112,7 +112,7 @@ if systemctl is-enabled --quiet mnemos-production-backup.timer 2>/dev/null; then
     backup_age="$((now - backup_mtime))"
 
     if [ "$backup_age" -gt "$BACKUP_MAX_AGE_SECONDS" ]; then
-        fail "latest verified backup is ${backup_age}s old"
+        fail "latest successful backup pipeline is ${backup_age}s old"
     fi
 fi
 

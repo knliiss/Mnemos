@@ -10,6 +10,7 @@ fi
 REPOSITORY_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 BACKUP_ROOT="${MNEMOS_BACKUP_ROOT:-/var/backups/mnemos}"
 BACKUP_STATE_DIR="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}"
+LOCAL_LATEST_FILE="$BACKUP_STATE_DIR/latest-local"
 TIMESTAMP="$(date -u '+%Y%m%dT%H%M%SZ')"
 BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
 MINIO_BACKUP_DIR="$BACKUP_DIR/minio"
@@ -101,7 +102,7 @@ chmod -R go-rwx "$BACKUP_DIR"
 
 sh "$REPOSITORY_ROOT/scripts/verify-production-backup.sh" "$BACKUP_DIR"
 
-printf '%s\n' "$BACKUP_DIR" > "$BACKUP_STATE_DIR/latest"
-chmod 600 "$BACKUP_STATE_DIR/latest"
+printf '%s\n' "$BACKUP_DIR" > "$LOCAL_LATEST_FILE"
+chmod 600 "$LOCAL_LATEST_FILE"
 
-printf 'Production backup created: %s\n' "$BACKUP_DIR"
+printf 'Production backup created and locally verified: %s\n' "$BACKUP_DIR"

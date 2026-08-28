@@ -7,6 +7,7 @@ BACKUP_SCRIPT="$SCRIPT_DIR/backup-production.sh"
 OFFSITE_SCRIPT="$SCRIPT_DIR/backup-production-offsite.sh"
 PRUNE_SCRIPT="$SCRIPT_DIR/prune-production-local-backups.sh"
 RUN_SCRIPT="$SCRIPT_DIR/run-production-backup.sh"
+HEALTH_SCRIPT="$SCRIPT_DIR/check-production-health.sh"
 RESTORE_CORE_SCRIPT="$SCRIPT_DIR/restore-production-core.sh"
 RESTORE_REDIS_SCRIPT="$SCRIPT_DIR/restore-production-redis.sh"
 RUNTIME_INSTALLER="$SCRIPT_DIR/install-production-runtime.sh"
@@ -21,6 +22,7 @@ for script in \
     "$OFFSITE_SCRIPT" \
     "$PRUNE_SCRIPT" \
     "$RUN_SCRIPT" \
+    "$HEALTH_SCRIPT" \
     "$RESTORE_CORE_SCRIPT" \
     "$RESTORE_REDIS_SCRIPT" \
     "$RUNTIME_INSTALLER"; do
@@ -33,6 +35,9 @@ grep -Fq 'secrets_included=false' "$BACKUP_SCRIPT" ||
 if grep -Eq 'cp .*\/etc\/mnemos|tar .*\/etc\/mnemos' "$BACKUP_SCRIPT"; then
     fail "Local production snapshots must not copy /etc/mnemos secrets"
 fi
+
+grep -Fq 'latest-local' "$BACKUP_SCRIPT" ||
+    fail "Local backup creation must only publish locally verified state"
 
 grep -Fq '/etc/mnemos' "$OFFSITE_SCRIPT" ||
     fail "Encrypted off-site backup must include /etc/mnemos"
@@ -55,11 +60,22 @@ grep -Fq 'backup-production-offsite.sh' "$RUN_SCRIPT" ||
 grep -Fq 'prune-production-local-backups.sh' "$RUN_SCRIPT" ||
     fail "Backup pipeline must prune local snapshots after off-site backup"
 
+grep -Fq 'latest-successful' "$RUN_SCRIPT" ||
+    fail "Backup pipeline must publish a fully successful completion marker"
+
+grep -Fq 'latest-successful' "$HEALTH_SCRIPT" ||
+    fail "Production monitoring must use the fully successful backup marker"
+
 offsite_line="$(grep -n 'backup-production-offsite.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
 prune_line="$(grep -n 'prune-production-local-backups.sh' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
+success_line="$(grep -n 'mv -f "$SUCCESSFUL_LATEST_TEMP" "$SUCCESSFUL_LATEST_FILE"' "$RUN_SCRIPT" | head -n 1 | cut -d: -f1)"
 
 if [ "$prune_line" -le "$offsite_line" ]; then
     fail "Local backup pruning must run only after successful off-site upload"
+fi
+
+if [ -z "$success_line" ] || [ "$success_line" -le "$prune_line" ]; then
+    fail "Successful backup state must only publish after off-site backup and local pruning succeed"
 fi
 
 grep -Fq 'MNEMOS_RESTORE_CONFIRM' "$RESTORE_CORE_SCRIPT" ||
