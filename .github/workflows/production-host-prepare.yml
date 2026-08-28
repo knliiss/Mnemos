@@ -65,9 +65,21 @@ jobs:
 
           env_owner="$(sudo -n stat -c '%U:%G' /etc/mnemos/mnemos.env)"
           env_mode="$(sudo -n stat -c '%a' /etc/mnemos/mnemos.env)"
+          swarm_state="$(sudo -n docker info --format '{{.Swarm.LocalNodeState}}')"
+          live_restore="$(sudo -n docker info --format '{{.LiveRestoreEnabled}}')"
 
           if [ "$env_owner" != 'root:root' ] || [ "$env_mode" != '600' ]; then
             echo "Unexpected production env ownership/mode: $env_owner $env_mode" >&2
+            exit 1
+          fi
+
+          if [ "$swarm_state" != 'active' ]; then
+            echo "Docker Swarm is not active: $swarm_state" >&2
+            exit 1
+          fi
+
+          if [ "$live_restore" != 'false' ]; then
+            echo "Docker live-restore must be disabled for Swarm mode" >&2
             exit 1
           fi
 
