@@ -45,11 +45,28 @@ sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     --no-deps \
     app-postgres-security-init
 
+echo "Stopping Keycloak before database restore"
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" stop keycloak
+
 echo "Restoring Keycloak PostgreSQL database"
 cat "$BACKUP_DIR/keycloak-postgres.dump" |
     sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
         exec -T keycloak-postgres \
         sh -c 'exec pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl'
+
+echo "Starting restored Keycloak"
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    up \
+    -d \
+    --wait \
+    keycloak
+
+echo "Reapplying declarative Keycloak configuration"
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    run \
+    --rm \
+    --no-deps \
+    keycloak-config
 
 echo "Ensuring MinIO bucket and service account exist"
 sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
