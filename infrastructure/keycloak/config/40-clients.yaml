@@ -16,12 +16,12 @@ clients:
     fullScopeAllowed: true
     consentRequired: false
     redirectUris:
-      - "https://app.knalis.rest/*"
+      - "$(env:MNEMOS_FRONTEND_ORIGIN)/*"
     webOrigins:
-      - "https://app.knalis.rest"
+      - "$(env:MNEMOS_FRONTEND_ORIGIN)"
     attributes:
       pkce.code.challenge.method: S256
-      post.logout.redirect.uris: "https://app.knalis.rest/*"
+      post.logout.redirect.uris: "$(env:MNEMOS_FRONTEND_ORIGIN)/*"
     authenticationFlowBindingOverrides:
       browser: Telegram Mini App
     defaultClientScopes:

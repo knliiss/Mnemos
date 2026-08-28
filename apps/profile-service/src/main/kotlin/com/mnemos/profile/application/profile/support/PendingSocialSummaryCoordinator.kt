@@ -20,13 +20,7 @@ class PendingSocialSummaryCoordinator(
         revision: Long,
         occurredAt: Instant,
     ) {
-        val existing = pendingRepository.findByAccountId(accountId)
-
-        if (existing != null && revision <= existing.revision) {
-            return
-        }
-
-        pendingRepository.save(
+        pendingRepository.saveIfNewer(
             PendingSocialSummary(
                 accountId = accountId,
                 likes = likes,

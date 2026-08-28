@@ -6,6 +6,8 @@ import java.util.UUID
 interface PendingSocialSummaryRepository {
     fun save(summary: PendingSocialSummary): PendingSocialSummary
 
+    fun saveIfNewer(summary: PendingSocialSummary): Boolean
+
     fun findByAccountId(accountId: UUID): PendingSocialSummary?
 
     fun findReady(limit: Int): List<PendingSocialSummary>

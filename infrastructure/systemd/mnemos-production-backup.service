@@ -1,0 +1,23 @@
+[Unit]
+Description=Mnemos production backup
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/mnemos/current/scripts/run-production-backup.sh
+Environment=MNEMOS_BACKUP_MODE=local
+Environment=RESTIC_CACHE_DIR=/var/cache/mnemos-restic
+EnvironmentFile=-/etc/mnemos/backup.env
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+CacheDirectory=mnemos-restic
+ReadWritePaths=/var/backups/mnemos /var/lib/mnemos-backup
+NoNewPrivileges=true

@@ -13,6 +13,16 @@ class PendingSocialSummaryRepositoryAdapter(
 ) : PendingSocialSummaryRepository {
     override fun save(summary: PendingSocialSummary): PendingSocialSummary = repository.save(summary.toEntity()).toDomain()
 
+    override fun saveIfNewer(summary: PendingSocialSummary): Boolean =
+        repository.saveIfNewer(
+            accountId = summary.accountId,
+            likes = summary.likes,
+            dislikes = summary.dislikes,
+            comments = summary.comments,
+            revision = summary.revision,
+            occurredAt = summary.occurredAt,
+        ) > 0
+
     override fun findByAccountId(accountId: UUID): PendingSocialSummary? = repository.findById(accountId).orElse(null)?.toDomain()
 
     override fun findReady(limit: Int): List<PendingSocialSummary> = repository.findReady(limit).map { it.toDomain() }

@@ -1,0 +1,73 @@
+x-production-datasource-defaults: &production-datasource-defaults
+  SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "1"
+  SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "5s"
+  SPRING_DATASOURCE_HIKARI_VALIDATION_TIMEOUT: "3s"
+  SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: "60s"
+  SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: "30m"
+  SPRING_DATASOURCE_HIKARI_KEEPALIVE_TIME: "5m"
+
+services:
+  account-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+
+  wallet-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+
+  event-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+
+  notification-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  reward-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  bet-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  moderation-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "2"
+
+  realtime-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  personalization-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  social-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  profile-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+
+  player-directory-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+
+  payment-service:
+    environment:
+      <<: *production-datasource-defaults
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"

@@ -12,7 +12,9 @@ import com.mnemos.profile.application.profile.usecase.sync.SyncPublicProfileServ
 import com.mnemos.profile.domain.profile.model.PendingSocialSummary
 import com.mnemos.profile.domain.profile.model.PublicProfile
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.UUID
@@ -82,6 +84,39 @@ class PublicProfileProjectionUseCaseTest {
         assertEquals(5, stored.revision)
         assertEquals(10, stored.likes)
         assertEquals(8, stored.comments)
+    }
+
+    @Test
+    fun `pending repository accepts only increasing revisions`() {
+        val fixture = Fixture()
+        val accountId = UUID.fromString("019c1ab0-1200-7000-8000-000000000011")
+        val newer =
+            PendingSocialSummary(
+                accountId = accountId,
+                likes = 9,
+                dislikes = 1,
+                comments = 6,
+                revision = 9,
+                occurredAt = Instant.parse("2026-08-16T00:09:00Z"),
+            )
+        val stale =
+            PendingSocialSummary(
+                accountId = accountId,
+                likes = 1,
+                dislikes = 1,
+                comments = 1,
+                revision = 8,
+                occurredAt = Instant.parse("2026-08-16T00:08:00Z"),
+            )
+
+        assertTrue(fixture.pending.saveIfNewer(newer))
+        assertFalse(fixture.pending.saveIfNewer(stale))
+
+        val stored = requireNotNull(fixture.pending.findByAccountId(accountId))
+
+        assertEquals(9, stored.revision)
+        assertEquals(9, stored.likes)
+        assertEquals(6, stored.comments)
     }
 
     @Test
@@ -260,6 +295,17 @@ class PublicProfileProjectionUseCaseTest {
         override fun save(summary: PendingSocialSummary): PendingSocialSummary {
             summaries[summary.accountId] = summary
             return summary
+        }
+
+        override fun saveIfNewer(summary: PendingSocialSummary): Boolean {
+            val current = summaries[summary.accountId]
+
+            if (current != null && summary.revision <= current.revision) {
+                return false
+            }
+
+            summaries[summary.accountId] = summary
+            return true
         }
 
         override fun findByAccountId(accountId: UUID): PendingSocialSummary? = summaries[accountId]
