@@ -24,6 +24,7 @@ export const eventsEn = {
       MOON: "Moon",
       ECLIPSE: "Eclipse",
       EXPLOSION: "Explosion",
+      COMET_CHAOS: "Comet Chaos",
     },
     itemTypes: {
       SWORD: "Sword",
