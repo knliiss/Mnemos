@@ -49,6 +49,7 @@ class KeycloakUserIdentitySynchronizer(
             request =
                 KeycloakUserUpdateRequest(
                     username = keycloakUser.username,
+                    email = keycloakUser.email,
                     attributes = attributes,
                 ),
         )
