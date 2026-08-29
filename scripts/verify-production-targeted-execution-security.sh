@@ -43,14 +43,32 @@ printf '%s\n' "$CONTENT" | grep -Fq 'packages: read' ||
 printf '%s\n' "$CONTENT" | grep -Fq 'APPLY $EXPECTED_TRANSITION_ID' ||
     fail "Targeted execution must require an exact transition authorization phrase"
 
-printf '%s\n' "$CONTENT" | grep -Fq '"Production Hotfix Plan"|"Production Release Plan"' ||
-    fail "Targeted execution must only accept artifacts from approved planning workflows"
+printf '%s\n' "$CONTENT" | grep -Fq 'expected_workflow_path=".github/workflows/production-hotfix-plan.yml"' ||
+    fail "Targeted execution must pin hotfix plans to the exact approved workflow path"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'expected_workflow_path=".github/workflows/production-release-plan.yml"' ||
+    fail "Targeted execution must pin release plans to the exact approved workflow path"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$workflow_path" != "$expected_workflow_path" ]; then' ||
+    fail "Targeted execution must reject planning runs from unauthorized workflow paths"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$workflow_name" != "$expected_workflow_name" ]; then' ||
+    fail "Targeted execution must bind workflow identity to the requested plan kind"
 
 printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$event_name" != "workflow_dispatch" ]; then' ||
     fail "Targeted execution must verify planning workflow manual provenance"
 
 printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$head_branch" != "master" ]; then' ||
     fail "Targeted execution must require planning artifacts from master"
+
+printf '%s\n' "$CONTENT" | grep -Fq "grep -Eq '^[0-9a-f]{40}$'" ||
+    fail "Targeted execution must require an exact planning head SHA"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'PLANNING_HEAD_SHA=$head_sha' ||
+    fail "Targeted execution must preserve the exact planning head SHA for audit"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'PLANNING_WORKFLOW_PATH=$workflow_path' ||
+    fail "Targeted execution must preserve the exact planning workflow path for audit"
 
 printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$conclusion" != "success" ]; then' ||
     fail "Targeted execution must require a successful planning run"
@@ -84,6 +102,12 @@ printf '%s\n' "$CONTENT" | grep -Fq -- '--execute' ||
 
 printf '%s\n' "$CONTENT" | grep -Fq 'retention-days: 90' ||
     fail "Targeted execution audit records must have extended retention"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'planning_workflow_path:$planning_workflow_path' ||
+    fail "Execution audit must record planning workflow provenance"
+
+printf '%s\n' "$CONTENT" | grep -Fq 'planning_head_sha:$planning_head_sha' ||
+    fail "Execution audit must record planning head SHA provenance"
 
 printf '%s\n' "$CONTENT" | grep -Fq 'if: always()' ||
     fail "Targeted execution must clean credentials even after failure"
