@@ -4,7 +4,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
@@ -23,6 +22,8 @@ public final class TelegramAuthenticator implements Authenticator {
     private static final String TELEGRAM_LOGIN_TEMPLATE = "telegram-login.ftl";
     private static final String TELEGRAM_USER_ID_ATTRIBUTE = "telegram_user_id";
     private static final String TELEGRAM_USERNAME_ATTRIBUTE = "telegram_username";
+    private static final String TELEGRAM_FIRST_NAME_ATTRIBUTE = "telegram_first_name";
+    private static final String TELEGRAM_LAST_NAME_ATTRIBUTE = "telegram_last_name";
     private static final String TELEGRAM_LANGUAGE_ATTRIBUTE = "telegram_language";
     private static final String TELEGRAM_PREMIUM_ATTRIBUTE = "telegram_premium";
     private static final String TELEGRAM_PHOTO_URL_ATTRIBUTE = "telegram_photo_url";
@@ -173,15 +174,23 @@ public final class TelegramAuthenticator implements Authenticator {
     }
 
     private void updateUser(UserModel user, TelegramUser telegramUser) {
-        setOptionalRootAttribute(telegramUser.firstName(), user::setFirstName);
-        setOptionalRootAttribute(telegramUser.lastName(), user::setLastName);
+        clearLegacyTelegramDisplayName(user);
+
         setOptionalAttribute(user, TELEGRAM_USERNAME_ATTRIBUTE, telegramUser.username());
+        setOptionalAttribute(user, TELEGRAM_FIRST_NAME_ATTRIBUTE, telegramUser.firstName());
+        setOptionalAttribute(user, TELEGRAM_LAST_NAME_ATTRIBUTE, telegramUser.lastName());
         setOptionalAttribute(user, TELEGRAM_LANGUAGE_ATTRIBUTE, telegramUser.languageCode());
         setOptionalAttribute(user, TELEGRAM_PHOTO_URL_ATTRIBUTE, telegramUser.photoUrl());
+
         user.setSingleAttribute(
                 TELEGRAM_PREMIUM_ATTRIBUTE,
                 Boolean.toString(Boolean.TRUE.equals(telegramUser.premium()))
         );
+    }
+
+    private void clearLegacyTelegramDisplayName(UserModel user) {
+        user.setFirstName(null);
+        user.setLastName(null);
     }
 
     private void joinDefaultUsersGroup(AuthenticationFlowContext context, UserModel user) {
@@ -241,14 +250,6 @@ public final class TelegramAuthenticator implements Authenticator {
         }
 
         user.setSingleAttribute(attributeName, value);
-    }
-
-    private void setOptionalRootAttribute(String value, Consumer<String> setter) {
-        if (value == null || value.isBlank()) {
-            return;
-        }
-
-        setter.accept(value);
     }
 
     private void fail(

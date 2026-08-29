@@ -1,6 +1,7 @@
 package com.mnemos.account.integration.keycloak.client
 
 import com.mnemos.account.integration.keycloak.dto.KeycloakUserResponse
+import com.mnemos.account.integration.keycloak.dto.KeycloakUserUpdateRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,6 +28,6 @@ interface KeycloakAdminClient {
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @PathVariable realm: String,
         @PathVariable userId: UUID,
-        @RequestBody request: KeycloakUserResponse,
+        @RequestBody request: KeycloakUserUpdateRequest,
     )
 }
