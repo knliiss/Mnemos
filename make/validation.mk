@@ -69,6 +69,8 @@ make-verify:
 	@python3 scripts/verify-production-deployment-state.py
 	@python3 scripts/verify-production-hotfix-plan.py
 	@python3 scripts/verify-production-stack-manifest-renderer.py
+	@sh scripts/verify-production-hotfix-plan-security.sh
+	@sh scripts/verify-production-service-image-security.sh
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
 		python3 scripts/publish-production-service-image.py \
