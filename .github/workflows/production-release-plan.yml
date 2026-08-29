@@ -1,0 +1,200 @@
+name: Production Release Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      current_state_json:
+        description: Current production deployment state JSON
+        required: true
+        type: string
+      target_assignments:
+        description: One SERVICE=FULL_COMMIT_SHA assignment per line
+        required: false
+        type: string
+      target_tooling_revision:
+        description: Optional full tooling commit SHA; blank keeps current tooling
+        required: false
+        type: string
+      requires_full_runtime_reconcile:
+        description: Mark that deployment configuration changes require full runtime reconcile
+        required: true
+        default: false
+        type: boolean
+      allow_full_runtime_reconcile:
+        description: Explicitly allow planning a full runtime reconcile
+        required: true
+        default: false
+        type: boolean
+      reason:
+        description: Reason recorded in the deployment transition
+        required: true
+        type: string
+
+concurrency:
+  group: production-release-plan
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout trusted deployment tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Materialize and validate current deployment state
+        shell: bash
+        env:
+          CURRENT_STATE_JSON: ${{ inputs.current_state_json }}
+        run: |
+          set -euo pipefail
+
+          state_file="$RUNNER_TEMP/mnemos-current-production-state.json"
+          umask 077
+          printf '%s\n' "$CURRENT_STATE_JSON" > "$state_file"
+
+          python3 scripts/production_deployment_state.py \
+            state-validate \
+            --input "$state_file"
+
+          echo "CURRENT_STATE_FILE=$state_file" >> "$GITHUB_ENV"
+
+      - name: Validate target revisions
+        shell: bash
+        env:
+          TARGET_ASSIGNMENTS: ${{ inputs.target_assignments }}
+          TARGET_TOOLING_REVISION: ${{ inputs.target_tooling_revision }}
+        run: |
+          set -euo pipefail
+
+          require_sha() {
+            value="$1"
+            description="$2"
+
+            if ! printf '%s' "$value" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "$description must be a full lowercase 40-character commit SHA" >&2
+              exit 1
+            fi
+          }
+
+          require_repo_commit() {
+            value="$1"
+            description="$2"
+
+            if ! git cat-file -e "${value}^{commit}" 2>/dev/null; then
+              echo "$description is not present in the Mnemos repository: $value" >&2
+              exit 1
+            fi
+          }
+
+          if [ -n "$TARGET_TOOLING_REVISION" ]; then
+            require_sha "$TARGET_TOOLING_REVISION" "Target tooling revision"
+            require_repo_commit "$TARGET_TOOLING_REVISION" "Target tooling revision"
+          fi
+
+          while IFS= read -r assignment; do
+            [ -n "$assignment" ] || continue
+
+            service="${assignment%%=*}"
+            source_sha="${assignment#*=}"
+
+            if [ "$service" = "$assignment" ] || [ -z "$service" ] || [ -z "$source_sha" ]; then
+              echo "Invalid target assignment: $assignment" >&2
+              exit 1
+            fi
+
+            require_sha "$source_sha" "Target source SHA for $service"
+            require_repo_commit "$source_sha" "Target source SHA for $service"
+          done <<EOF
+          $TARGET_ASSIGNMENTS
+          EOF
+
+      - name: Create audited release plan bundle
+        shell: bash
+        env:
+          TARGET_ASSIGNMENTS: ${{ inputs.target_assignments }}
+          TARGET_TOOLING_REVISION: ${{ inputs.target_tooling_revision }}
+          REQUIRES_FULL_RUNTIME_RECONCILE: ${{ inputs.requires_full_runtime_reconcile }}
+          ALLOW_FULL_RUNTIME_RECONCILE: ${{ inputs.allow_full_runtime_reconcile }}
+          TRANSITION_ACTOR: ${{ github.actor }}
+          TRANSITION_REASON: ${{ inputs.reason }}
+        run: |
+          set -euo pipefail
+
+          output_dir="$RUNNER_TEMP/mnemos-production-release-plan"
+          rm -rf "$output_dir"
+          install --directory --mode=0700 "$output_dir"
+
+          set -- \
+            --current-state "$CURRENT_STATE_FILE" \
+            --actor "$TRANSITION_ACTOR" \
+            --reason "$TRANSITION_REASON" \
+            --output-dir "$output_dir"
+
+          if [ -n "$TARGET_TOOLING_REVISION" ]; then
+            set -- "$@" --tooling-revision "$TARGET_TOOLING_REVISION"
+          fi
+
+          if [ "$REQUIRES_FULL_RUNTIME_RECONCILE" = "true" ]; then
+            set -- "$@" --requires-full-runtime-reconcile
+          fi
+
+          if [ "$ALLOW_FULL_RUNTIME_RECONCILE" = "true" ]; then
+            set -- "$@" --allow-full-runtime-reconcile
+          fi
+
+          while IFS= read -r assignment; do
+            [ -n "$assignment" ] || continue
+            set -- "$@" --set "$assignment"
+          done <<EOF
+          $TARGET_ASSIGNMENTS
+          EOF
+
+          python3 scripts/production_release_plan.py "$@"
+
+          echo "RELEASE_PLAN_DIR=$output_dir" >> "$GITHUB_ENV"
+
+      - name: Summarize release plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - "$RELEASE_PLAN_DIR/deployment-plan.json" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+
+          plan = json.load(open(sys.argv[1], encoding="utf-8"))
+
+          print("## Production release plan")
+          print()
+          print(f"Plan: `{plan['plan_id']}`")
+          print(f"Mode: `{plan['mode']}`")
+          print(f"Actions: `{plan['action_count']}`")
+          print()
+
+          for action in plan["actions"]:
+              print(
+                  f"- `{action['service']}`: `{action['from']['image']}` "
+                  f"→ `{action['to']['image']}`"
+              )
+
+          print()
+          print("This workflow only creates an audit bundle. It cannot mutate production.")
+          PY
+
+      - name: Upload release plan artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: production-release-plan-${{ github.run_id }}
+          path: ${{ env.RELEASE_PLAN_DIR }}
+          if-no-files-found: error
+          retention-days: 30
