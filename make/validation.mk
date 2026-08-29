@@ -21,7 +21,7 @@ require-node:
 	@expected="$$(tr -d '[:space:]' < "$(MINI_APP_NODE_VERSION_FILE)")"; \
 	actual="$$(node -p 'process.versions.node')"; \
 	if [ "$$actual" != "$$expected" ]; then \
-		printf "\033[31m✗$(RESET) Mini App requires Node.js %s, current version is %s\n" "$$expected" "$$actual" >&2; \
+		printf "\033[31m✗\033[0m Mini App requires Node.js %s, current version is %s\n" "$$expected" "$$actual" >&2; \
 		exit 2; \
 	fi
 
@@ -67,6 +67,7 @@ make-verify:
 	@python3 scripts/verify-production-service-changes.py
 	@python3 scripts/verify-production-deployment-plan.py
 	@python3 scripts/verify-production-deployment-state.py
+	@python3 scripts/verify-production-hotfix-plan.py
 	@python3 scripts/verify-production-stack-manifest-renderer.py
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
