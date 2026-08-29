@@ -5,13 +5,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { CurrentContextResponse, UserResponse } from "@/shared/api/backendContracts"
 import { AppProvider } from "./AppProvider"
 
-const mocks = vi.hoisted(() => ({
-  changeLanguage: vi.fn(),
-  getCurrentContext: vi.fn(),
-  getToken: vi.fn(),
-  initializeCurrentUser: vi.fn(),
-  updateCurrentLanguage: vi.fn(),
-}))
+const mocks = vi.hoisted(() => {
+  const changeLanguage = vi.fn()
+
+  return {
+    changeLanguage,
+    getCurrentContext: vi.fn(),
+    getToken: vi.fn(),
+    i18n: {
+      changeLanguage,
+    },
+    initializeCurrentUser: vi.fn(),
+    translate: (key: string) => key,
+    updateCurrentLanguage: vi.fn(),
+  }
+})
 
 vi.mock("react-i18next", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-i18next")>()
@@ -19,10 +27,8 @@ vi.mock("react-i18next", async (importOriginal) => {
   return {
     ...actual,
     useTranslation: () => ({
-      i18n: {
-        changeLanguage: mocks.changeLanguage,
-      },
-      t: (key: string) => key,
+      i18n: mocks.i18n,
+      t: mocks.translate,
     }),
   }
 })
