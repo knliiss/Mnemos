@@ -160,6 +160,14 @@ jobs:
           EOF
 
           python3 scripts/production_release_plan.py "$@"
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$output_dir" \
+            --kind release-plan
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$output_dir" \
+            --kind release-plan
 
           echo "RELEASE_PLAN_DIR=$output_dir" >> "$GITHUB_ENV"
 
@@ -188,6 +196,7 @@ jobs:
               )
 
           print()
+          print("Artifact integrity is recorded in `audit-manifest.json`.")
           print("This workflow only creates an audit bundle. It cannot mutate production.")
           PY
 
