@@ -16,6 +16,7 @@ from production_release_manifest import read_manifest
 
 PLAN_SCHEMA_VERSION = 1
 DEFAULT_STABLE_SECONDS = 15
+SUPPORTED_OPERATIONS = frozenset({"image-update", "runtime-reconcile"})
 
 
 class ProductionDeploymentPlanError(RuntimeError):
@@ -45,12 +46,12 @@ def verification_policy(deploy_type: str) -> dict[str, Any]:
     )
 
 
-def action_for_change(change: dict[str, Any]) -> dict[str, Any]:
-    deploy = change.get("deploy")
+def runtime_metadata(entry: dict[str, Any]) -> tuple[str, str]:
+    deploy = entry.get("deploy")
 
     if not isinstance(deploy, dict):
         raise ProductionDeploymentPlanError(
-            f"{change.get('service', '<unknown>')} does not define deployment metadata"
+            "Deployment entry does not define runtime metadata"
         )
 
     deploy_type = deploy.get("type")
@@ -62,28 +63,87 @@ def action_for_change(change: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(runtime_name, str) or not runtime_name:
         raise ProductionDeploymentPlanError("Runtime name must be a non-empty string")
 
+    return deploy_type, runtime_name
+
+
+def build_action(
+    service: str,
+    operation: str,
+    current_entry: dict[str, Any],
+    target_entry: dict[str, Any],
+) -> dict[str, Any]:
+    if operation not in SUPPORTED_OPERATIONS:
+        raise ProductionDeploymentPlanError(
+            f"Unsupported deployment operation for {service}: {operation}"
+        )
+
+    deploy_type, runtime_name = runtime_metadata(target_entry)
+
+    if current_entry.get("deploy") != target_entry.get("deploy"):
+        raise ProductionDeploymentPlanError(
+            f"Runtime metadata changed for {service}; catalog migration requires manual review"
+        )
+
     return {
-        "service": change["service"],
+        "service": service,
         "runtime": {
             "type": deploy_type,
             "name": runtime_name,
         },
-        "operation": "image-update",
+        "operation": operation,
         "from": {
-            "image": change["from_image"],
-            "source_sha": change["from_source_sha"],
+            "image": current_entry["image"],
+            "source_sha": current_entry["source_sha"],
         },
         "to": {
-            "image": change["to_image"],
-            "source_sha": change["to_source_sha"],
+            "image": target_entry["image"],
+            "source_sha": target_entry["source_sha"],
         },
         "verification": verification_policy(deploy_type),
         "rollback": {
             "operation": "image-update",
-            "image": change["from_image"],
-            "source_sha": change["from_source_sha"],
+            "image": current_entry["image"],
+            "source_sha": current_entry["source_sha"],
         },
     }
+
+
+def action_for_change(change: dict[str, Any]) -> dict[str, Any]:
+    current_entry = {
+        "image": change["from_image"],
+        "source_sha": change["from_source_sha"],
+        "deploy": change["deploy"],
+    }
+    target_entry = {
+        "image": change["to_image"],
+        "source_sha": change["to_source_sha"],
+        "deploy": change["deploy"],
+    }
+
+    return build_action(
+        service=change["service"],
+        operation="image-update",
+        current_entry=current_entry,
+        target_entry=target_entry,
+    )
+
+
+def full_reconcile_actions(
+    current: dict[str, Any],
+    target: dict[str, Any],
+) -> list[dict[str, Any]]:
+    current_services = current["services"]
+    target_services = target["services"]
+
+    return [
+        build_action(
+            service=service,
+            operation="runtime-reconcile",
+            current_entry=current_services[service],
+            target_entry=target_services[service],
+        )
+        for service in sorted(target_services)
+    ]
 
 
 def action_order(action: dict[str, Any]) -> tuple[int, str]:
@@ -102,12 +162,14 @@ def action_order(action: dict[str, Any]) -> tuple[int, str]:
 def plan_id(
     current_manifest_id: str,
     target_manifest_id: str,
+    mode: str,
     actions: list[dict[str, Any]],
 ) -> str:
     canonical = json.dumps(
         {
             "current_manifest_id": current_manifest_id,
             "target_manifest_id": target_manifest_id,
+            "mode": mode,
             "actions": actions,
         },
         separators=(",", ":"),
@@ -126,18 +188,24 @@ def build_plan(
     if requires_full_runtime_reconcile and not allow_full_runtime_reconcile:
         raise ProductionDeploymentPlanError(
             "Changed deployment configuration requires a full runtime reconcile. "
-            "Refusing to produce a scoped plan without explicit --allow-full-runtime-reconcile."
+            "Refusing to produce a full plan without explicit --allow-full-runtime-reconcile."
         )
 
-    changes = manifest_diff(
-        current=current,
-        target=target,
-    )
-    actions = sorted(
-        (action_for_change(change) for change in changes),
-        key=action_order,
-    )
+    if requires_full_runtime_reconcile:
+        mode = "full-runtime-reconcile"
+        actions = full_reconcile_actions(
+            current=current,
+            target=target,
+        )
+    else:
+        mode = "scoped"
+        changes = manifest_diff(
+            current=current,
+            target=target,
+        )
+        actions = [action_for_change(change) for change in changes]
 
+    actions = sorted(actions, key=action_order)
     current_manifest_id = current["manifest_id"]
     target_manifest_id = target["manifest_id"]
 
@@ -146,15 +214,12 @@ def build_plan(
         "plan_id": plan_id(
             current_manifest_id=current_manifest_id,
             target_manifest_id=target_manifest_id,
+            mode=mode,
             actions=actions,
         ),
         "current_manifest_id": current_manifest_id,
         "target_manifest_id": target_manifest_id,
-        "mode": (
-            "full-runtime-reconcile"
-            if requires_full_runtime_reconcile
-            else "scoped"
-        ),
+        "mode": mode,
         "action_count": len(actions),
         "actions": actions,
     }
@@ -166,6 +231,11 @@ def validate_plan(plan: dict[str, Any]) -> None:
 
     if plan.get("schema_version") != PLAN_SCHEMA_VERSION:
         raise ProductionDeploymentPlanError("Unsupported deployment plan schema")
+
+    mode = plan.get("mode")
+
+    if mode not in {"scoped", "full-runtime-reconcile"}:
+        raise ProductionDeploymentPlanError("Deployment plan mode is invalid")
 
     actions = plan.get("actions")
 
@@ -193,9 +263,21 @@ def validate_plan(plan: dict[str, Any]) -> None:
 
         services.add(service)
 
-        if action.get("operation") != "image-update":
+        operation = action.get("operation")
+
+        if operation not in SUPPORTED_OPERATIONS:
             raise ProductionDeploymentPlanError(
-                f"Unsupported deployment operation for {service}"
+                f"Unsupported deployment operation for {service}: {operation}"
+            )
+
+        if mode == "scoped" and operation != "image-update":
+            raise ProductionDeploymentPlanError(
+                f"Scoped plan contains non-image operation for {service}"
+            )
+
+        if mode == "full-runtime-reconcile" and operation != "runtime-reconcile":
+            raise ProductionDeploymentPlanError(
+                f"Full reconcile plan contains scoped operation for {service}"
             )
 
         runtime = action.get("runtime")
@@ -224,9 +306,15 @@ def validate_plan(plan: dict[str, Any]) -> None:
 
         verification_policy(str(runtime.get("type")))
 
+    if mode == "full-runtime-reconcile" and not actions:
+        raise ProductionDeploymentPlanError(
+            "Full runtime reconcile must contain runtime actions"
+        )
+
     expected_plan_id = plan_id(
         current_manifest_id=str(plan.get("current_manifest_id")),
         target_manifest_id=str(plan.get("target_manifest_id")),
+        mode=mode,
         actions=actions,
     )
 
