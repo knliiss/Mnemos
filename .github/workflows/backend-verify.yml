@@ -5,6 +5,24 @@ on:
     branches:
       - master
   pull_request:
+    paths:
+      - ".github/workflows/backend-verify.yml"
+      - ".github/workflows/production*.yml"
+      - "Makefile"
+      - "make/**"
+      - "apps/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "keycloak-extensions/**"
+      - "build-logic/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "scripts/**"
+      - "infrastructure/**"
 
 concurrency:
   group: backend-${{ github.ref }}
@@ -20,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -29,6 +49,46 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Resolve affected backend projects
+        id: backend_changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          changed_paths="$RUNNER_TEMP/backend-changed-paths.txt"
+          result="$RUNNER_TEMP/backend-ci-changes.json"
+
+          git diff \
+            --name-only \
+            "$BASE_SHA" \
+            "$HEAD_SHA" > "$changed_paths"
+
+          python3 scripts/resolve_backend_ci_changes.py \
+            --paths-file "$changed_paths" > "$result"
+
+          python3 - "$result" "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import sys
+
+          result_path, output_path = sys.argv[1:]
+          result = json.load(open(result_path, encoding="utf-8"))
+
+          with open(output_path, "a", encoding="utf-8") as output:
+              output.write("check_tasks=" + " ".join(result["check_tasks"]) + "\n")
+              output.write(
+                  "dependency_scan_required="
+                  + str(result["dependency_scan_required"]).lower()
+                  + "\n"
+              )
+              output.write("full_backend=" + str(result["full_backend"]).lower() + "\n")
+          PY
+
+          cat "$result"
 
       - name: Verify Make wiring
         run: make make-verify
@@ -89,6 +149,8 @@ jobs:
           sh -n scripts/run-production-backup.sh
           sh -n scripts/restore-production-core.sh
           sh -n scripts/restore-production-redis.sh
+          python3 -m py_compile scripts/resolve_backend_ci_changes.py
+          python3 -m py_compile scripts/verify-backend-ci-changes.py
           python3 -m py_compile scripts/production_release_manifest.py
           python3 -m py_compile scripts/production_deployment_plan.py
           python3 -m py_compile scripts/production_deployment_state.py
@@ -96,6 +158,7 @@ jobs:
           python3 -m py_compile scripts/render-production-stack.py
           python3 -m py_compile scripts/verify-production-stack-renderer.py
           python3 -m py_compile scripts/verify-production-stack-manifest-renderer.py
+          python3 scripts/verify-backend-ci-changes.py
           sh scripts/verify-compose-secret-validation.sh
           sh scripts/verify-resource-server-audience.sh
           sh scripts/verify-internal-api-authorization.sh
@@ -118,6 +181,7 @@ jobs:
           python3 scripts/verify-production-stack-manifest-renderer.py
 
       - name: Scan backend dependencies
+        if: github.event_name == 'push' || steps.backend_changes.outputs.dependency_scan_required == 'true'
         shell: bash
         env:
           NVD_API_KEY: ${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}
@@ -131,7 +195,20 @@ jobs:
           ./gradlew dependencyCheckAggregate --no-daemon --no-configuration-cache --no-parallel
 
       - name: Verify backend
-        run: ./gradlew check --no-daemon
+        if: github.event_name == 'push' || steps.backend_changes.outputs.check_tasks != ''
+        shell: bash
+        env:
+          CHECK_TASKS: ${{ steps.backend_changes.outputs.check_tasks }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            ./gradlew check --no-daemon
+            exit 0
+          fi
+
+          read -r -a tasks <<< "$CHECK_TASKS"
+          ./gradlew "${tasks[@]}" --no-daemon
 
   report:
     if: always() && github.event_name == 'push'
