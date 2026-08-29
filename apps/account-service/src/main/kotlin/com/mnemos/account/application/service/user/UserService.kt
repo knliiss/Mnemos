@@ -11,6 +11,7 @@ import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.account.integration.keycloak.client.KeycloakAdminClient
 import com.mnemos.account.integration.keycloak.config.KeycloakAdminProperties
 import com.mnemos.account.integration.keycloak.config.KeycloakTokenProvider
+import com.mnemos.account.integration.keycloak.dto.KeycloakUserUpdateRequest
 import com.mnemos.account.integration.keycloak.service.KeycloakUserIdentitySynchronizer
 import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
@@ -104,7 +105,11 @@ class UserService(
             authorization = authorization,
             realm = realm,
             userId = keycloakUserId,
-            request = keycloakUser.copy(username = newUsername.value),
+            request =
+                KeycloakUserUpdateRequest(
+                    username = newUsername.value,
+                    attributes = keycloakUser.attributes.orEmpty(),
+                ),
         )
 
         return updatedUser.toCurrentUserView()
@@ -160,7 +165,7 @@ class UserService(
         if (userRepository.existsByUsername(username)) {
             throw UserIdentityConflictException(
                 message = "Username is already used by another user",
-                details = mapOf("username" to username.value),
+                details = mapOf("username" to newUsername.value),
             )
         }
     }
