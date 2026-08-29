@@ -7,6 +7,7 @@ REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
 STACK_SMOKE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/stack-smoke.yml"
 START_INFRA_SCRIPT="$REPOSITORY_ROOT/scripts/start-production-infra.sh"
+KAFKA_TRUSTSTORE_SYNC_SCRIPT="$REPOSITORY_ROOT/scripts/sync-production-kafka-truststore.sh"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 
 fail() {
@@ -17,10 +18,12 @@ fail() {
 [ -f "$WORKFLOW" ] || fail "Production Release workflow is missing"
 [ -f "$STACK_SMOKE_WORKFLOW" ] || fail "Stack Smoke workflow is missing"
 [ -f "$START_INFRA_SCRIPT" ] || fail "Production infrastructure startup script is missing"
+[ -f "$KAFKA_TRUSTSTORE_SYNC_SCRIPT" ] || fail "Production Kafka truststore sync script is missing"
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
 STACK_SMOKE_WORKFLOW_CONTENT="$(cat "$STACK_SMOKE_WORKFLOW")"
+KAFKA_TRUSTSTORE_SYNC_CONTENT="$(cat "$KAFKA_TRUSTSTORE_SYNC_SCRIPT")"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'workflow_run:' ||
     fail "Production Release must be triggered from a completed verification workflow"
@@ -97,6 +100,21 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/run-pr
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/check-production-health.sh' ||
     fail "Production deploy must finish with a host/runtime health check"
 
+printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'SWARM_CONFIG_NAME_MAX_LENGTH=64' ||
+    fail "Kafka truststore Swarm config names must respect Docker's 64-character limit"
+
+printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'CONFIG_DIGEST_LENGTH=32' ||
+    fail "Kafka truststore Swarm config names must use a bounded content digest"
+
+printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'if [ "${#CONFIG_NAME}" -gt "$SWARM_CONFIG_NAME_MAX_LENGTH" ]; then' ||
+    fail "Kafka truststore Swarm config names must be validated before creation"
+
+DEFAULT_KAFKA_CONFIG_NAME="mnemos-kafka-truststore-0123456789abcdef0123456789abcdef"
+
+if [ "${#DEFAULT_KAFKA_CONFIG_NAME}" -gt 64 ]; then
+    fail "Default Kafka truststore Swarm config name exceeds Docker's 64-character limit"
+fi
+
 infra_line="$(grep -n -F 'sh scripts/start-production-infra.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
 app_line="$(grep -n -F 'sh scripts/deploy-production-apps.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
 
@@ -121,4 +139,4 @@ fi
 grep -Fq '$(env:MNEMOS_FRONTEND_ORIGIN)' "$KEYCLOAK_CLIENTS" ||
     fail "Keycloak client configuration must use MNEMOS_FRONTEND_ORIGIN"
 
-echo "Production release workflow and Keycloak origin boundaries verified"
+echo "Production release workflow, Swarm config naming, and Keycloak origin boundaries verified"
