@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import subprocess
 from pathlib import Path
@@ -67,3 +68,30 @@ def require_trusted_source_revision(
             "Production source revision is not reachable from the trusted production "
             f"history: {source_sha}"
         ) from exception
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate that a production source revision belongs to trusted Git history."
+    )
+    parser.add_argument("source_sha", help="Full lowercase 40-character Git commit SHA")
+    parser.add_argument(
+        "--trusted-ref",
+        default="HEAD",
+        help="Git ref whose history is trusted for production sources",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    arguments = parse_arguments()
+
+    require_trusted_source_revision(
+        source_sha=arguments.source_sha,
+        trusted_ref=arguments.trusted_ref,
+    )
+
+
+if __name__ == "__main__":
+    main()
