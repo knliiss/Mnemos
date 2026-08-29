@@ -61,4 +61,5 @@ make-verify:
 			exit 1; \
 		}; \
 	done
+	@python3 scripts/verify-production-swarm-stack-normalizer.py
 	$(call success,make,target wiring verified)
