@@ -16,7 +16,6 @@ data class CollectorConnectionProperties(
     val authorizationFailureGrace: Duration = Duration.ofSeconds(30),
     val activationTtl: Duration = Duration.ofMinutes(10),
     val updateSlotTtl: Duration = Duration.ofMinutes(2),
-    val updateRetryDelay: Duration = Duration.ofSeconds(30),
 ) {
     init {
         require(maxMessageSize.toBytes() > 0)
@@ -30,6 +29,5 @@ data class CollectorConnectionProperties(
         require(authorizationFailureGrace >= heartbeatInterval)
         require(!activationTtl.isNegative && !activationTtl.isZero)
         require(!updateSlotTtl.isNegative && !updateSlotTtl.isZero)
-        require(!updateRetryDelay.isNegative && !updateRetryDelay.isZero)
     }
 }

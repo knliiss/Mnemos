@@ -116,14 +116,14 @@ class CollectorSessionRegistryTest {
     }
 
     @Test
-    fun `the last observing collector is deferred from updating`() {
+    fun `the sole observing collector may acquire an update slot`() {
         val leaseStore = InMemoryCollectorSessionLeaseStore()
         val registry = registry(leaseStore)
         val collectorId =
             CollectorCredentialId(
                 UUID.fromString("019c1129-ef54-7000-8000-000000000204"),
             )
-        val session = session("last-observer")
+        val session = session("sole-observer")
 
         registry.register(session, collectorId)
         registry.markObserving(session)
@@ -132,10 +132,48 @@ class CollectorSessionRegistryTest {
 
         assertEquals(
             CollectorUpdateSlotDecision(
-                granted = false,
-                retryAfterSeconds = 30,
+                granted = true,
+                retryAfterSeconds = null,
             ),
             decision,
+        )
+    }
+
+    @Test
+    fun `a concurrent updater is deferred while another update slot is held`() {
+        val leaseStore = InMemoryCollectorSessionLeaseStore()
+        val firstRegistry = registry(leaseStore)
+        val secondRegistry = registry(leaseStore)
+        val firstCollectorId =
+            CollectorCredentialId(
+                UUID.fromString("019c1129-ef54-7000-8000-000000000205"),
+            )
+        val secondCollectorId =
+            CollectorCredentialId(
+                UUID.fromString("019c1129-ef54-7000-8000-000000000206"),
+            )
+        val firstSession = session("first-updater")
+        val secondSession = session("second-updater")
+
+        firstRegistry.register(firstSession, firstCollectorId)
+        secondRegistry.register(secondSession, secondCollectorId)
+
+        val firstDecision = firstRegistry.requestUpdateSlot(firstSession, "0.2.0")
+        val secondDecision = secondRegistry.requestUpdateSlot(secondSession, "0.2.0")
+
+        assertEquals(
+            CollectorUpdateSlotDecision(
+                granted = true,
+                retryAfterSeconds = null,
+            ),
+            firstDecision,
+        )
+        assertEquals(
+            CollectorUpdateSlotDecision(
+                granted = false,
+                retryAfterSeconds = 120,
+            ),
+            secondDecision,
         )
     }
 
@@ -145,7 +183,7 @@ class CollectorSessionRegistryTest {
         val registry = registry(leaseStore)
         val collectorId =
             CollectorCredentialId(
-                UUID.fromString("019c1129-ef54-7000-8000-000000000205"),
+                UUID.fromString("019c1129-ef54-7000-8000-000000000207"),
             )
         val session = session("paused-updater")
 
@@ -181,6 +219,7 @@ class CollectorSessionRegistryTest {
     private class InMemoryCollectorSessionLeaseStore : CollectorSessionLeaseStore {
         private val owners = mutableMapOf<CollectorCredentialId, UUID>()
         private val observing = mutableSetOf<CollectorCredentialId>()
+        private var updateSlot: Pair<CollectorCredentialId, String>? = null
         private var revision = 0L
 
         override fun acquire(
@@ -247,18 +286,22 @@ class CollectorSessionRegistryTest {
             sessionToken: UUID,
             version: String,
             slotTtl: Duration,
-            retryDelay: Duration,
         ): CollectorUpdateSlotDecision? {
             if (owners[collectorId] != sessionToken) {
                 return null
             }
 
-            if (collectorId in observing && observing.size <= 1) {
+            val requestedSlot = collectorId to version
+            val currentSlot = updateSlot
+
+            if (currentSlot != null && currentSlot != requestedSlot) {
                 return CollectorUpdateSlotDecision(
                     granted = false,
-                    retryAfterSeconds = retryDelay.seconds,
+                    retryAfterSeconds = slotTtl.seconds,
                 )
             }
+
+            updateSlot = requestedSlot
 
             return CollectorUpdateSlotDecision(
                 granted = true,

@@ -181,7 +181,6 @@ class CollectorSessionRegistry(
             sessionToken = sessionToken,
             version = version,
             slotTtl = properties.updateSlotTtl,
-            retryDelay = properties.updateRetryDelay,
         )
     }
 

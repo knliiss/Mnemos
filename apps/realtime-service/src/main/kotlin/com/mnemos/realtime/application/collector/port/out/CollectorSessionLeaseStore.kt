@@ -42,7 +42,6 @@ interface CollectorSessionLeaseStore {
         sessionToken: UUID,
         version: String,
         slotTtl: Duration,
-        retryDelay: Duration,
     ): CollectorUpdateSlotDecision?
 
     fun release(
