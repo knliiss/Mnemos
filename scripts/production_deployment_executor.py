@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import hashlib
 import json
 import os
 import subprocess
@@ -299,6 +300,15 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
+def execution_attempt_id(
+    transition_id: str,
+    started_at: str,
+) -> str:
+    payload = f"{transition_id}\n{started_at}".encode("utf-8")
+
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
 def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(value, indent=2, sort_keys=False) + "\n"
@@ -319,6 +329,31 @@ def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
     os.replace(temporary_path, path)
 
 
+def create_json_exclusive(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    serialized = json.dumps(value, indent=2, sort_keys=False) + "\n"
+
+    try:
+        descriptor = os.open(
+            path,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+            0o600,
+        )
+    except FileExistsError as exception:
+        raise ProductionDeploymentExecutionError(
+            f"Deployment execution record already exists: {path}"
+        ) from exception
+
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as file:
+            file.write(serialized)
+            file.flush()
+            os.fsync(file.fileno())
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+
+
 def persist_state_snapshot(state_dir: Path, state: dict[str, Any]) -> None:
     state_id = state["state_id"].removeprefix("sha256:")
     snapshot = state_dir / "states" / f"{state_id}.json"
@@ -334,7 +369,7 @@ def persist_state_snapshot(state_dir: Path, state: dict[str, Any]) -> None:
 
         return
 
-    atomic_write_json(snapshot, state)
+    create_json_exclusive(snapshot, state)
 
 
 def execution_record(
@@ -342,13 +377,20 @@ def execution_record(
     status: str,
     started_at: str,
     completed_at: str,
+    attempted_services: list[str],
     error: str | None = None,
     rollback_error: str | None = None,
 ) -> dict[str, Any]:
+    attempt_id = execution_attempt_id(
+        transition_id=transition["transition_id"],
+        started_at=started_at,
+    )
     execution: dict[str, Any] = {
+        "attempt_id": attempt_id,
         "status": status,
         "started_at": started_at,
         "completed_at": completed_at,
+        "attempted_services": attempted_services,
     }
 
     if error is not None:
@@ -368,10 +410,27 @@ def persist_execution_record(
     state_dir: Path,
     transition: dict[str, Any],
     record: dict[str, Any],
-) -> None:
+) -> Path:
     transition_id = transition["transition_id"].removeprefix("sha256:")
-    path = state_dir / "transitions" / f"{transition_id}.json"
-    atomic_write_json(path, record)
+    execution = record.get("execution")
+
+    if not isinstance(execution, dict):
+        raise ProductionDeploymentExecutionError(
+            "Deployment execution record has no execution metadata"
+        )
+
+    attempt_id = execution.get("attempt_id")
+
+    if not isinstance(attempt_id, str) or not attempt_id.startswith("sha256:"):
+        raise ProductionDeploymentExecutionError(
+            "Deployment execution record has an invalid attempt ID"
+        )
+
+    attempt_name = attempt_id.removeprefix("sha256:") + ".json"
+    path = state_dir / "transitions" / transition_id / attempt_name
+    create_json_exclusive(path, record)
+
+    return path
 
 
 def execute_transition(
@@ -409,6 +468,7 @@ def execute_transition(
             status=status,
             started_at=started_at,
             completed_at=now_iso(),
+            attempted_services=[action["service"] for action in attempted],
             error=str(exception),
             rollback_error=rollback_error,
         )
@@ -428,19 +488,20 @@ def execute_transition(
         ) from exception
 
     persist_state_snapshot(state_dir, target_state)
-    atomic_write_json(state_dir / "current-state.json", target_state)
 
     record = execution_record(
         transition=transition,
         status="applied",
         started_at=started_at,
         completed_at=now_iso(),
+        attempted_services=[action["service"] for action in attempted],
     )
     persist_execution_record(
         state_dir=state_dir,
         transition=transition,
         record=record,
     )
+    atomic_write_json(state_dir / "current-state.json", target_state)
 
 
 def dry_run_bundle(
