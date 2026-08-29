@@ -101,6 +101,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PLAN_RUN_ID: ${{ inputs.plan_run_id }}
+          PLAN_KIND: ${{ inputs.plan_kind }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -117,18 +118,36 @@ jobs:
           )"
 
           workflow_name="$(printf '%s' "$run_json" | jq -r '.name // empty')"
+          workflow_path="$(printf '%s' "$run_json" | jq -r '.path // empty')"
           event_name="$(printf '%s' "$run_json" | jq -r '.event // empty')"
           head_branch="$(printf '%s' "$run_json" | jq -r '.head_branch // empty')"
+          head_sha="$(printf '%s' "$run_json" | jq -r '.head_sha // empty')"
           conclusion="$(printf '%s' "$run_json" | jq -r '.conclusion // empty')"
 
-          case "$workflow_name" in
-            "Production Hotfix Plan"|"Production Release Plan")
+          case "$PLAN_KIND" in
+            hotfix-plan)
+              expected_workflow_name="Production Hotfix Plan"
+              expected_workflow_path=".github/workflows/production-hotfix-plan.yml"
+              ;;
+            release-plan)
+              expected_workflow_name="Production Release Plan"
+              expected_workflow_path=".github/workflows/production-release-plan.yml"
               ;;
             *)
-              echo "Planning run uses an unauthorized workflow: $workflow_name" >&2
+              echo "Unsupported plan kind: $PLAN_KIND" >&2
               exit 1
               ;;
           esac
+
+          if [ "$workflow_name" != "$expected_workflow_name" ]; then
+            echo "Planning run workflow name does not match plan kind: $workflow_name" >&2
+            exit 1
+          fi
+
+          if [ "$workflow_path" != "$expected_workflow_path" ]; then
+            echo "Planning run uses an unauthorized workflow path: $workflow_path" >&2
+            exit 1
+          fi
 
           if [ "$event_name" != "workflow_dispatch" ]; then
             echo "Planning run must be manually dispatched" >&2
@@ -140,10 +159,18 @@ jobs:
             exit 1
           fi
 
+          if ! printf '%s' "$head_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Planning run must expose an exact lowercase 40-character head SHA" >&2
+            exit 1
+          fi
+
           if [ "$conclusion" != "success" ]; then
             echo "Planning run must have succeeded" >&2
             exit 1
           fi
+
+          echo "PLANNING_WORKFLOW_PATH=$workflow_path" >> "$GITHUB_ENV"
+          echo "PLANNING_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
 
       - name: Checkout pinned deployment tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -331,10 +358,12 @@ jobs:
             --arg workflow_run_id "${{ github.run_id }}" \
             --arg actor "${{ github.actor }}" \
             --arg plan_run_id "$PLAN_RUN_ID" \
+            --arg planning_workflow_path "$PLANNING_WORKFLOW_PATH" \
+            --arg planning_head_sha "$PLANNING_HEAD_SHA" \
             --arg artifact_name "$ARTIFACT_NAME" \
             --arg transition_id "$EXPECTED_TRANSITION_ID" \
             --arg reason "$EXECUTION_REASON" \
-            '{workflow_run_id:$workflow_run_id,actor:$actor,plan_run_id:$plan_run_id,artifact_name:$artifact_name,transition_id:$transition_id,reason:$reason}' \
+            '{workflow_run_id:$workflow_run_id,actor:$actor,plan_run_id:$plan_run_id,planning_workflow_path:$planning_workflow_path,planning_head_sha:$planning_head_sha,artifact_name:$artifact_name,transition_id:$transition_id,reason:$reason}' \
             > "$audit_dir/workflow-execution.json"
 
           python3 scripts/production_audit_bundle.py \
