@@ -63,6 +63,7 @@ make-verify:
 	done
 	@python3 scripts/verify-production-swarm-stack-normalizer.py
 	@python3 scripts/verify-production-service-catalog.py
+	@python3 scripts/verify-production-release-manifest.py
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
 		python3 scripts/publish-production-service-image.py \
