@@ -43,39 +43,33 @@ def source_stack() -> dict[str, object]:
     }
 
 
-def normalize() -> tuple[dict[str, object], Path]:
-    temporary_directory = tempfile.TemporaryDirectory()
-    directory = Path(temporary_directory.name)
-    input_path = directory / "rendered-stack.json"
-    output_path = directory / "normalized-stack.json"
+def normalize() -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory_name:
+        directory = Path(directory_name)
+        input_path = directory / "rendered-stack.json"
+        output_path = directory / "normalized-stack.json"
 
-    input_path.write_text(json.dumps(source_stack()), encoding="utf-8")
+        input_path.write_text(json.dumps(source_stack()), encoding="utf-8")
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(NORMALIZER),
-            "--input",
-            str(input_path),
-            "--output",
-            str(output_path),
-        ],
-        cwd=REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(NORMALIZER),
+                "--input",
+                str(input_path),
+                "--output",
+                str(output_path),
+            ],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
 
-    if result.returncode != 0:
-        temporary_directory.cleanup()
-        fail("Normalizer failed:\n" + result.stdout + result.stderr)
+        if result.returncode != 0:
+            fail("Normalizer failed:\n" + result.stdout + result.stderr)
 
-    stack = json.loads(output_path.read_text(encoding="utf-8"))
-    output_copy = Path(tempfile.mkstemp(suffix=".json")[1])
-    output_copy.write_text(json.dumps(stack), encoding="utf-8")
-    temporary_directory.cleanup()
-
-    return stack, output_copy
+        return json.loads(output_path.read_text(encoding="utf-8"))
 
 
 def verify_normalized_model(stack: dict[str, object]) -> None:
@@ -104,31 +98,31 @@ def verify_normalized_model(stack: dict[str, object]) -> None:
         fail("cloudflared command is not normalized to a Swarm-compatible string")
 
 
-def verify_docker_stack_schema(path: Path) -> None:
+def verify_docker_stack_schema(stack: dict[str, object]) -> None:
     if shutil.which("docker") is None:
         print("Docker unavailable; skipping docker stack config parser verification")
         return
 
-    result = subprocess.run(
-        ["docker", "stack", "config", "--compose-file", str(path)],
-        cwd=REPOSITORY_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    with tempfile.TemporaryDirectory() as directory_name:
+        stack_path = Path(directory_name) / "normalized-stack.json"
+        stack_path.write_text(json.dumps(stack), encoding="utf-8")
+
+        result = subprocess.run(
+            ["docker", "stack", "config", "--compose-file", str(stack_path)],
+            cwd=REPOSITORY_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
 
     if result.returncode != 0:
         fail("docker stack config rejected normalized stack:\n" + result.stderr)
 
 
 def main() -> int:
-    stack, output_path = normalize()
-
-    try:
-        verify_normalized_model(stack)
-        verify_docker_stack_schema(output_path)
-    finally:
-        output_path.unlink(missing_ok=True)
+    stack = normalize()
+    verify_normalized_model(stack)
+    verify_docker_stack_schema(stack)
 
     print("Production Swarm stack command normalization verified")
     return 0
