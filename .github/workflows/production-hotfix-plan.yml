@@ -127,6 +127,14 @@ jobs:
 
           python3 scripts/production_hotfix_plan.py "$@"
           cp "$CURRENT_STATE_FILE" "$output_dir/current-state.json"
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$output_dir" \
+            --kind hotfix-plan
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$output_dir" \
+            --kind hotfix-plan
 
           echo "HOTFIX_PLAN_DIR=$output_dir" >> "$GITHUB_ENV"
 
@@ -155,6 +163,7 @@ jobs:
               )
 
           print()
+          print("Artifact integrity is recorded in `audit-manifest.json`.")
           print("This workflow only creates a plan artifact. It cannot mutate production.")
           PY
 
@@ -164,4 +173,4 @@ jobs:
           name: production-hotfix-plan-${{ inputs.service }}-${{ inputs.source_sha }}
           path: ${{ env.HOTFIX_PLAN_DIR }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
