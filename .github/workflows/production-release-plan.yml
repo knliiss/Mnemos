@@ -44,12 +44,34 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout trusted deployment tooling
+      - name: Checkout exact planning revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: master
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify exact planning revision
+        shell: bash
+        env:
+          PLANNING_HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$PLANNING_HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Planning head SHA must be a full lowercase Git commit SHA" >&2
+            exit 1
+          fi
+
+          if [ "$(git rev-parse HEAD)" != "$PLANNING_HEAD_SHA" ]; then
+            echo "Checked-out planning tooling does not match the workflow run head SHA" >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$PLANNING_HEAD_SHA" origin/master; then
+            echo "Planning head SHA is not reachable from trusted master history" >&2
+            exit 1
+          fi
 
       - name: Materialize and validate current deployment state
         shell: bash
