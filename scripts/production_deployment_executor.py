@@ -88,6 +88,48 @@ def stable_seconds(action: dict[str, Any]) -> int:
     return value
 
 
+def preflight_steps(action: dict[str, Any]) -> list[dict[str, Any]]:
+    runtime = action.get("runtime")
+    current = action.get("from")
+
+    if not isinstance(runtime, dict) or not isinstance(current, dict):
+        raise ProductionDeploymentExecutionError(
+            f"Deployment action cannot be preflighted: {action.get('service')}"
+        )
+
+    runtime_type = runtime.get("type")
+    runtime_name = runtime.get("name")
+    expected_image = current.get("image")
+
+    if not all(
+        isinstance(value, str) and value
+        for value in (runtime_type, runtime_name, expected_image)
+    ):
+        raise ProductionDeploymentExecutionError(
+            f"Deployment action has invalid runtime baseline: {action.get('service')}"
+        )
+
+    return [
+        {
+            "kind": "command",
+            "command": [
+                "python3",
+                str(
+                    REPOSITORY_ROOT
+                    / "scripts"
+                    / "verify-production-runtime-baseline.py"
+                ),
+                "--runtime-type",
+                runtime_type,
+                "--runtime-name",
+                runtime_name,
+                "--expected-image",
+                expected_image,
+            ],
+        }
+    ]
+
+
 def swarm_steps(
     action: dict[str, Any],
     image: str,
@@ -290,6 +332,7 @@ def validate_scoped_transition(
                 f"Scoped executor only accepts image-update actions: {action.get('service')}"
             )
 
+        preflight_steps(action)
         target_steps(action)
         rollback_steps(action)
 
@@ -433,6 +476,31 @@ def persist_execution_record(
     return path
 
 
+def persist_failed_execution(
+    state_dir: Path,
+    transition: dict[str, Any],
+    status: str,
+    started_at: str,
+    attempted: list[dict[str, Any]],
+    error: Exception,
+    rollback_error: str | None = None,
+) -> None:
+    record = execution_record(
+        transition=transition,
+        status=status,
+        started_at=started_at,
+        completed_at=now_iso(),
+        attempted_services=[action["service"] for action in attempted],
+        error=str(error),
+        rollback_error=rollback_error,
+    )
+    persist_execution_record(
+        state_dir=state_dir,
+        transition=transition,
+        record=record,
+    )
+
+
 def execute_transition(
     current_state: dict[str, Any],
     target_state: dict[str, Any],
@@ -451,6 +519,22 @@ def execute_transition(
 
     try:
         for action in actions:
+            run_steps(preflight_steps(action))
+    except (OSError, subprocess.CalledProcessError) as exception:
+        persist_failed_execution(
+            state_dir=state_dir,
+            transition=transition,
+            status="preflight-failed",
+            started_at=started_at,
+            attempted=attempted,
+            error=exception,
+        )
+        raise ProductionDeploymentExecutionError(
+            f"Production runtime does not match the recorded deployment baseline: {exception}"
+        ) from exception
+
+    try:
+        for action in actions:
             attempted.append(action)
             run_steps(target_steps(action))
     except (OSError, subprocess.CalledProcessError) as exception:
@@ -463,19 +547,14 @@ def execute_transition(
             rollback_error = str(rollback_exception)
 
         status = "rollback-failed" if rollback_error is not None else "rolled-back"
-        record = execution_record(
+        persist_failed_execution(
+            state_dir=state_dir,
             transition=transition,
             status=status,
             started_at=started_at,
-            completed_at=now_iso(),
-            attempted_services=[action["service"] for action in attempted],
-            error=str(exception),
+            attempted=attempted,
+            error=exception,
             rollback_error=rollback_error,
-        )
-        persist_execution_record(
-            state_dir=state_dir,
-            transition=transition,
-            record=record,
         )
 
         if rollback_error is not None:
@@ -521,6 +600,7 @@ def dry_run_bundle(
         "actions": [
             {
                 "service": action["service"],
+                "preflight": preflight_steps(action),
                 "apply": target_steps(action),
                 "rollback": rollback_steps(action),
             }
@@ -533,7 +613,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Execute a validated scoped Mnemos production deployment transition. "
-            "Without --execute this command only prints the exact apply/rollback steps."
+            "Without --execute this command only prints the exact preflight/apply/rollback steps."
         ),
     )
     parser.add_argument("--transition", type=Path, required=True)
