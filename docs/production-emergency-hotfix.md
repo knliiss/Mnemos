@@ -12,6 +12,7 @@ It does not authorize production mutation. Any production runtime change require
 - Never combine an application hotfix with a tooling revision change in the scoped executor.
 - Never use a full-stack reconcile for a single-service hotfix.
 - Never run production-mutating automation from a pull request branch.
+- Keep `MNEMOS_PRODUCTION_EXECUTION_ENABLED` disabled except for a separately authorized execution window.
 
 ## 1. Prepare the fix
 
@@ -55,7 +56,18 @@ Run `Production Hotfix Plan` manually from `master`. Supply:
 
 The workflow is plan-only. Review the generated artifact before any production execution.
 
-The plan must contain only `image-update` actions and should normally contain exactly one action for a service-local fix. Shared-library or contract changes may require a separately reviewed multi-service release instead of an emergency single-service hotfix.
+The plan must contain only `image-update` actions and should normally contain exactly one action for a service-local fix. Shared-library or contract changes may require a separately reviewed multi-service `Production Release Plan` instead of an emergency single-service hotfix.
+
+Every planning artifact contains `audit-manifest.json`. Verify it before trusting the bundle:
+
+```bash
+python3 scripts/production_audit_bundle.py \
+  verify \
+  --directory <plan-directory> \
+  --kind hotfix-plan
+```
+
+For a multi-service release plan, use `--kind release-plan`.
 
 ## 5. Review the transition
 
@@ -69,19 +81,44 @@ Before execution, verify all of the following:
 - health/convergence checks are scoped to affected services;
 - the transition ID matches the reviewed artifact;
 - the tooling revision is unchanged;
-- no full-runtime reconcile action is present.
+- no full-runtime reconcile action is present;
+- `audit-manifest.json` validates without missing, additional, resized, or modified files.
 
-Keep the reviewed plan, current state, target state, transition, source SHA, actor, and reason together for auditability.
+Keep the reviewed plan, current state, target state, transition, source SHA, actor, reason, planning workflow run ID, and artifact name together for auditability.
 
 ## 6. Obtain explicit production authorization
 
-Repository preparation, CI success, and a reviewed plan do not authorize deployment.
+Repository preparation, CI success, a reviewed plan, and an available execution workflow do not authorize deployment.
 
 Production execution requires a new explicit user instruction in live chat that authorizes the concrete production change. Without that instruction, stop after planning and artifact review.
 
+For an authorized execution window:
+
+1. confirm that the reviewed transition ID is the one named by the authorization;
+2. enable `MNEMOS_PRODUCTION_EXECUTION_ENABLED` only for that execution window;
+3. keep the executor's `MNEMOS_PRODUCTION_DEPLOY_ENABLED` and `MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED` gates under the same controlled authorization boundary;
+4. require approval through the GitHub `production` environment before the production job may start;
+5. disable `MNEMOS_PRODUCTION_EXECUTION_ENABLED` again after the authorized attempt finishes or is abandoned.
+
+The repository workflow deliberately cannot infer live-chat authorization. The environment approval and temporary execution gate are the operational boundary that must represent that explicit authorization.
+
 ## 7. Execute only the reviewed scoped transition
 
-When separately authorized, the scoped executor must run with all execution gates enabled, as root, under its exclusive deployment lock, and with `--expected-transition-id` equal to the reviewed transition ID.
+Use `Production Targeted Execution` only after the authorization above exists. It must remain a manual `workflow_dispatch` workflow and must never gain an automatic trigger.
+
+Supply the exact values from the reviewed plan:
+
+- successful planning workflow run ID;
+- exact artifact name;
+- plan kind (`hotfix-plan` or `release-plan`);
+- full tooling revision recorded by both sides of the transition;
+- exact `sha256:` transition ID;
+- authorization text exactly equal to `APPLY <transition-id>`;
+- the live-chat authorization reference/reason.
+
+The workflow independently verifies that the plan came from a successful manually dispatched `Production Hotfix Plan` or `Production Release Plan` run on `master`. It downloads that exact run artifact, verifies `audit-manifest.json`, verifies the pinned tooling revision and transition ID, rejects non-scoped plans, and renders the executor dry-run before the execution step.
+
+When separately authorized, the scoped executor runs with all execution gates enabled, as root, under its exclusive deployment lock, and with `--expected-transition-id` equal to the reviewed transition ID.
 
 The executor must:
 
@@ -100,16 +137,23 @@ If apply fails, the executor uses the rollback image recorded in the transition 
 
 If rollback fails, stop all further deployment work. Preserve the `rollback-failed` execution record and investigate the affected service. Do not widen the change into a full-stack recovery without a separately reviewed plan and explicit authorization.
 
+Do not retry by reusing an unreviewed replacement artifact or changing the expected transition ID. A new target requires a new plan and a new explicit authorization.
+
 ## 9. Post-hotfix audit
 
-After an authorized successful deployment, retain:
+After an authorized deployment attempt, retain:
 
 - immutable source SHA and image identity;
 - release manifest and state IDs;
 - transition ID;
-- actor and reason;
+- actor and authorization reason;
+- planning workflow run ID and artifact name;
+- execution workflow run ID;
 - execution timestamps and attempted services;
-- CI/build links and plan artifact;
-- final scoped health/convergence result.
+- CI/build links and integrity-verified plan artifact;
+- final scoped health/convergence result;
+- immutable executor attempt records.
+
+`Production Targeted Execution` packages the available state and transition attempt records into a tamper-evident execution audit artifact with 90-day retention.
 
 Temporary incident-only workflows are not part of the supported process and must remain removed.
