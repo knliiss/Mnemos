@@ -155,6 +155,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         source_sha = entry.get("source_sha")
         image = entry.get("image")
         deploy = entry.get("deploy")
+        kind = entry.get("kind")
 
         if not isinstance(source_sha, str):
             raise ProductionReleaseManifestError(
@@ -168,6 +169,11 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         if not isinstance(image, str) or not image.endswith(expected_image_suffix):
             raise ProductionReleaseManifestError(
                 f"{name}.image does not match its catalog image and source SHA"
+            )
+
+        if kind != catalog[name].get("kind"):
+            raise ProductionReleaseManifestError(
+                f"{name}.kind does not match the service catalog"
             )
 
         if deploy != catalog[name].get("deploy"):
