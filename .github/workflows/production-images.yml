@@ -1,153 +1,78 @@
-name: Production Release
+name: Production Image Batch
 
 on:
-  workflow_run:
-    workflows:
-      - Backend Verify
-      - Stack Smoke
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full 40-character Git commit SHA to build
+        required: true
+        type: string
 
 concurrency:
-  group: production-release
+  group: production-image-batch-${{ inputs.source_sha }}
   cancel-in-progress: false
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
   publish:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'master' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, mnemos-backend]
     timeout-minutes: 60
 
     permissions:
-      actions: read
       contents: read
       packages: write
 
-    outputs:
-      current_release: ${{ steps.release_guard.outputs.current_release }}
-
     steps:
-      - name: Require exact master verification pair
-        id: verification_gate
+      - name: Validate immutable source revision
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
-          REPOSITORY: ${{ github.repository }}
-          TRIGGER_WORKFLOW: ${{ github.event.workflow_run.name }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
 
-          case "$TRIGGER_WORKFLOW" in
-            "Backend Verify")
-              PEER_WORKFLOW="Stack Smoke"
-              ;;
-            "Stack Smoke")
-              PEER_WORKFLOW="Backend Verify"
-              ;;
-            *)
-              echo "Unexpected workflow_run source: $TRIGGER_WORKFLOW" >&2
-              exit 1
-              ;;
-          esac
-
-          RUNS_JSON="$(
-            curl \
-              --fail-with-body \
-              --silent \
-              --show-error \
-              --header "Accept: application/vnd.github+json" \
-              --header "Authorization: Bearer $GH_TOKEN" \
-              --header "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${REPOSITORY}/actions/runs?head_sha=${RELEASE_SHA}&event=push&status=success&per_page=100"
-          )"
-
-          PEER_RUN_COUNT="$(
-            printf '%s' "$RUNS_JSON" | \
-              jq \
-                --arg peer_workflow "$PEER_WORKFLOW" \
-                --arg release_sha "$RELEASE_SHA" \
-                '[
-                  .workflow_runs[]
-                  | select(
-                      .name == $peer_workflow and
-                      .head_sha == $release_sha and
-                      .head_branch == "master" and
-                      .event == "push" and
-                      .conclusion == "success"
-                    )
-                ]
-                | length'
-          )"
-
-          if [ "$PEER_RUN_COUNT" -gt 0 ]; then
-            echo "eligible=true" >> "$GITHUB_OUTPUT"
-            echo "$TRIGGER_WORKFLOW and $PEER_WORKFLOW both passed for $RELEASE_SHA"
-          else
-            echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping release until $PEER_WORKFLOW passes for exact SHA $RELEASE_SHA"
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "source_sha must be a full lowercase 40-character Git SHA" >&2
+            exit 1
           fi
 
-      - name: Checkout verified revision
-        if: steps.verification_gate.outputs.eligible == 'true'
+      - name: Checkout immutable source revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.source_sha }}
           fetch-depth: 1
 
-      - name: Reject stale verified revisions
-        if: steps.verification_gate.outputs.eligible == 'true'
-        id: release_guard
+      - name: Verify checked-out revision
         shell: bash
         env:
-          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
 
-          git fetch \
-            --no-tags \
-            --depth=1 \
-            origin \
-            master
+          CHECKED_OUT_SHA="$(git rev-parse HEAD)"
 
-          CURRENT_MASTER="$(git rev-parse FETCH_HEAD)"
-
-          if [ "$CURRENT_MASTER" = "$RELEASE_SHA" ]; then
-            echo "current_release=true" >> "$GITHUB_OUTPUT"
-            echo "Verified revision is the current master: $RELEASE_SHA"
-          else
-            echo "current_release=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping stale verified revision $RELEASE_SHA; current master is $CURRENT_MASTER"
+          if [ "$CHECKED_OUT_SHA" != "$SOURCE_SHA" ]; then
+            echo "Checked-out SHA $CHECKED_OUT_SHA does not match requested SHA $SOURCE_SHA" >&2
+            exit 1
           fi
 
       - name: Set up Java
-        if: steps.release_guard.outputs.current_release == 'true'
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
-        if: steps.release_guard.outputs.current_release == 'true'
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
 
       - name: Assemble production artifacts
-        if: steps.release_guard.outputs.current_release == 'true'
         run: ./gradlew assemble --no-daemon
 
       - name: Configure isolated Docker publishing
-        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-image-batch-docker-auth
         run: |
           set -euo pipefail
 
@@ -157,21 +82,20 @@ jobs:
             --mode=0700 \
             "$DOCKER_CONFIG"
 
-          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
+          docker buildx rm mnemos-production-image-batch-builder >/dev/null 2>&1 || true
 
           docker buildx create \
             --driver docker-container \
-            --name mnemos-production-builder \
+            --name mnemos-production-image-batch-builder \
             --use
 
           docker buildx inspect --bootstrap
 
       - name: Authenticate to GHCR
-        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
           GHCR_TOKEN: ${{ github.token }}
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-image-batch-docker-auth
         run: |
           set -euo pipefail
 
@@ -180,13 +104,12 @@ jobs:
               --username "${{ github.actor }}" \
               --password-stdin
 
-      - name: Publish immutable images
-        if: steps.release_guard.outputs.current_release == 'true'
+      - name: Publish immutable image batch
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-image-batch-docker-auth
           MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
-          MNEMOS_IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          MNEMOS_IMAGE_TAG: ${{ inputs.source_sha }}
           MNEMOS_IMAGE_PUSH: "true"
         run: |
           set -euo pipefail
@@ -220,151 +143,28 @@ jobs:
           sh scripts/publish-production-images.sh
 
       - name: Publish image summary
-        if: steps.release_guard.outputs.current_release == 'true'
         shell: bash
         env:
-          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
           REGISTRY: ghcr.io/${{ github.repository_owner }}
         run: |
           {
-            echo "## Production release"
+            echo "## Production image batch"
             echo
-            echo "Immutable release tag: \`$RELEASE_SHA\`"
+            echo "Immutable source SHA: \`$SOURCE_SHA\`"
             echo
             echo "Registry: \`$REGISTRY\`"
+            echo
+            echo "This workflow publishes images only. It has no production runtime job."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Remove publish registry credentials and builder
+      - name: Remove publishing credentials and builder
         if: always()
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-image-batch-docker-auth
         run: |
           set +e
 
-          docker buildx rm mnemos-production-builder >/dev/null 2>&1 || true
+          docker buildx rm mnemos-production-image-batch-builder >/dev/null 2>&1 || true
           rm -rf "$DOCKER_CONFIG"
-
-  deploy:
-    needs:
-      - publish
-    if: >-
-      needs.publish.result == 'success' &&
-      needs.publish.outputs.current_release == 'true' &&
-      vars.MNEMOS_PRODUCTION_DEPLOY_ENABLED == 'true'
-    runs-on:
-      - self-hosted
-      - mnemos-production
-
-    concurrency:
-      group: mnemos-production-deploy
-      cancel-in-progress: false
-
-    permissions:
-      contents: read
-      packages: read
-
-    timeout-minutes: 45
-
-    steps:
-      - name: Checkout verified production revision
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 1
-
-      - name: Prepare isolated registry credential directory
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          sudo -n rm -rf /run/mnemos-production-docker-auth
-          sudo -n install \
-            --directory \
-            --owner=root \
-            --group=root \
-            --mode=0700 \
-            /run/mnemos-production-docker-auth
-
-      - name: Authenticate production Docker to GHCR
-        shell: bash
-        env:
-          GHCR_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          printf '%s' "$GHCR_TOKEN" | \
-            sudo -n env \
-              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
-              docker login ghcr.io \
-                --username "${{ github.actor }}" \
-                --password-stdin
-
-      - name: Back up current release before update
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if sudo -n test -s /var/lib/mnemos-deploy/current-release; then
-            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
-          else
-            echo "No existing production release; skipping pre-deploy backup"
-          fi
-
-      - name: Start or update production infrastructure
-        shell: bash
-        env:
-          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
-          MNEMOS_RELEASE_TAG: ${{ github.event.workflow_run.head_sha }}
-          MNEMOS_PRODUCTION_ENV_FILE: /etc/mnemos/mnemos.env
-          MNEMOS_SWARM_NETWORK: mnemos-production-network
-        run: |
-          set -euo pipefail
-
-          sudo -n env \
-            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
-            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
-            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
-            MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
-            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
-            sh scripts/start-production-infra.sh
-
-      - name: Deploy production application stack
-        shell: bash
-        env:
-          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
-          MNEMOS_RELEASE_TAG: ${{ github.event.workflow_run.head_sha }}
-          MNEMOS_PRODUCTION_ENV_FILE: /etc/mnemos/mnemos.env
-          MNEMOS_SWARM_NETWORK: mnemos-production-network
-          MNEMOS_SWARM_STACK_NAME: mnemos
-        run: |
-          set -euo pipefail
-
-          sudo -n env \
-            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
-            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
-            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
-            MNEMOS_PRODUCTION_ENV_FILE="$MNEMOS_PRODUCTION_ENV_FILE" \
-            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
-            MNEMOS_SWARM_STACK_NAME="$MNEMOS_SWARM_STACK_NAME" \
-            sh scripts/deploy-production-apps.sh
-
-      - name: Initialize backups and verify production health
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if ! sudo -n systemctl is-enabled --quiet mnemos-production-backup.timer; then
-            sudo -n /opt/mnemos/current/scripts/run-production-backup.sh
-            sudo -n /opt/mnemos/current/scripts/enable-production-backups.sh
-          fi
-
-          sudo -n /opt/mnemos/current/scripts/check-production-health.sh
-
-      - name: Remove production registry credentials
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          sudo -n rm -rf /run/mnemos-production-docker-auth
