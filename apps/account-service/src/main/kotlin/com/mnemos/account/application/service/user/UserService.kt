@@ -165,7 +165,7 @@ class UserService(
         if (userRepository.existsByUsername(username)) {
             throw UserIdentityConflictException(
                 message = "Username is already used by another user",
-                details = mapOf("username" to newUsername.value),
+                details = mapOf("username" to username.value),
             )
         }
     }
