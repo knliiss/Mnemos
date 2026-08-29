@@ -33,6 +33,7 @@ permissions:
 
 jobs:
   plan:
+    if: github.ref == 'refs/heads/master'
     runs-on: [self-hosted, Linux, X64, mnemos-backend]
     timeout-minutes: 10
 
