@@ -73,7 +73,9 @@ make-verify:
 	@python3 -m py_compile scripts/production_deployment_executor.py
 	@python3 -m py_compile scripts/production_deployment_store.py
 	@python3 -m py_compile scripts/production_release_plan.py
+	@python3 -m py_compile scripts/production_source_revision.py
 	@python3 -m py_compile scripts/verify-production-release-plan.py
+	@python3 -m py_compile scripts/verify-production-source-revision.py
 	@python3 -m py_compile scripts/verify-production-targeted-execution-fixture.py
 	@python3 -m py_compile scripts/verify-production-runtime-baseline.py
 	@python3 -m py_compile scripts/production_runtime_state.py
@@ -88,6 +90,7 @@ make-verify:
 	@python3 scripts/verify-production-deployment-store.py
 	@python3 scripts/verify-production-hotfix-plan.py
 	@python3 scripts/verify-production-release-plan.py
+	@python3 scripts/verify-production-source-revision.py
 	@python3 scripts/verify-production-deployment-executor.py
 	@python3 scripts/verify-production-targeted-execution-fixture.py
 	@python3 scripts/verify-production-runtime-state.py
