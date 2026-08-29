@@ -4,6 +4,7 @@ import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.integration.keycloak.client.KeycloakAdminClient
 import com.mnemos.account.integration.keycloak.config.KeycloakAdminProperties
 import com.mnemos.account.integration.keycloak.config.KeycloakTokenProvider
+import com.mnemos.account.integration.keycloak.dto.KeycloakUserUpdateRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -46,10 +47,12 @@ class KeycloakUserIdentitySynchronizer(
             realm = keycloakAdminProperties.realm,
             userId = user.keycloakId.id,
             request =
-                keycloakUser.copy(
+                KeycloakUserUpdateRequest(
+                    username = keycloakUser.username,
                     attributes = attributes,
                 ),
         )
+
         return user
     }
 
