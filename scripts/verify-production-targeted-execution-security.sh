@@ -76,7 +76,7 @@ printf '%s\n' "$CONTENT" | grep -Fq 'if [ "$conclusion" != "success" ]; then' ||
 printf '%s\n' "$CONTENT" | grep -Fq 'ref: ${{ inputs.tooling_revision }}' ||
     fail "Targeted execution must checkout the explicitly pinned tooling revision"
 
-printf '%s\n' "$CONTENT" | grep -Fq 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093' ||
+printf '%s\n' "$CONTENT" | grep -Fq 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c' ||
     fail "Targeted execution must use the pinned cross-run artifact downloader"
 
 printf '%s\n' "$CONTENT" | grep -Fq 'run-id: ${{ inputs.plan_run_id }}' ||
