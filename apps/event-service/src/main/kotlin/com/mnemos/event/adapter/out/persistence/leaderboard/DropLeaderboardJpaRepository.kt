@@ -32,6 +32,7 @@ interface DropLeaderboardJpaRepository : Repository<ItemDropEventEntity, UUID> {
                   WHERE exclusion.subject_type = 'PLAYER'
                     AND exclusion.subject_id = event.player_id
                     AND exclusion.scope IN ('ALL', 'DROPS')
+                    AND exclusion.active = TRUE
               )
             GROUP BY event.player_id
             ORDER BY
