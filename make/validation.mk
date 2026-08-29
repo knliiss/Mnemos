@@ -42,7 +42,7 @@ make-verify:
 			exit 1; \
 		fi; \
 	done; \
-	targets="help build test check ktlintFormat clean deps test-env-prepare test-ready mini-app-install mini-app-verify mini-app-dev up stop restart down logs pull status compose-config kafka-init-build kafka-message-auth-sync kafka-message-auth-verify kafka-topics kafka-groups kafka-create-make-verify kafka-delete-make-verify kafka-describe-make-verify app-postgres-shell keycloak-postgres-shell keycloak-import keycloak-restart completion-install completion-uninstall"; \
+	targets="help build test check ktlintFormat clean deps test-env-prepare test-ready mini-app-install mini-app-verify mini-app-dev up stop restart down logs pull status compose-config kafka-init-build kafka-message-auth-sync kafka-message-auth-verify kafka-message-auth-runtime-verify kafka-topics kafka-groups kafka-create-make-verify kafka-delete-make-verify kafka-describe-make-verify app-postgres-shell keycloak-postgres-shell keycloak-import keycloak-restart completion-install completion-uninstall"; \
 	for service in $(APP_NAMES); do \
 		targets="$$targets $$service-build $$service-test $$service-check $$service-clean $$service-deps $$service-up $$service-stop $$service-restart $$service-status $$service-remove $$service-logs $$service-shell"; \
 	done; \
