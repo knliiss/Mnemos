@@ -12,6 +12,7 @@ import com.mnemos.common.core.model.user.Username
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -73,9 +74,9 @@ class KeycloakUserIdentitySynchronizerTest {
             userId = keycloakId.id,
         )
         verify(keycloakAdminClient).updateUser(
-            authorization = "Bearer service-token",
-            realm = "mnemos",
-            userId = keycloakId.id,
+            authorization = eq("Bearer service-token"),
+            realm = eq("mnemos"),
+            userId = eq(keycloakId.id),
             request = request.capture(),
         )
         verifyNoMoreInteractions(keycloakAdminClient)
