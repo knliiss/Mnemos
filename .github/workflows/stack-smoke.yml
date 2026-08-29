@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "apps/**"
+      - "!apps/mini-app/**"
       - "contracts/**"
       - "libraries/**"
       - "keycloak-extensions/**"
