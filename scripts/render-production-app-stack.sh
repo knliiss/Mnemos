@@ -16,9 +16,10 @@ fi
 umask 077
 
 COMPOSE_MODEL="$(mktemp)"
+RENDERED_STACK="$(mktemp)"
 
 cleanup() {
-    rm -f "$COMPOSE_MODEL"
+    rm -f "$COMPOSE_MODEL" "$RENDERED_STACK"
 }
 
 trap cleanup EXIT INT TERM
@@ -48,6 +49,10 @@ sh "$REPOSITORY_ROOT/scripts/docker-compose-env.sh" \
 
 python3 "$REPOSITORY_ROOT/scripts/render-production-stack.py" \
     --input "$COMPOSE_MODEL" \
+    --output "$RENDERED_STACK"
+
+python3 "$REPOSITORY_ROOT/scripts/normalize-production-swarm-stack.py" \
+    --input "$RENDERED_STACK" \
     --output "$OUTPUT_FILE"
 
 chmod 600 "$OUTPUT_FILE"
