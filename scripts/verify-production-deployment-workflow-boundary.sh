@@ -83,6 +83,28 @@ verify_trusted_revision_validation() {
         fail "$description must validate target revisions against trusted origin/master history"
 }
 
+verify_exact_planning_revision() {
+    workflow_path="$1"
+    description="$2"
+    content="$(cat "$workflow_path")"
+
+    printf '%s\n' "$content" | grep -Fq 'ref: ${{ github.sha }}' ||
+        fail "$description must checkout the exact workflow run head SHA"
+
+    printf '%s\n' "$content" | grep -Fq 'PLANNING_HEAD_SHA: ${{ github.sha }}' ||
+        fail "$description must explicitly verify the workflow run head SHA"
+
+    printf '%s\n' "$content" | grep -Fq '$(git rev-parse HEAD)' ||
+        fail "$description must compare checked-out tooling to the workflow run head SHA"
+
+    printf '%s\n' "$content" | grep -Fq 'git merge-base --is-ancestor "$PLANNING_HEAD_SHA" origin/master' ||
+        fail "$description must require planning tooling to remain in trusted master history"
+
+    if printf '%s\n' "$content" | grep -Eq '^[[:space:]]+ref:[[:space:]]+master[[:space:]]*$'; then
+        fail "$description must not dynamically checkout the moving master ref"
+    fi
+}
+
 verify_no_runtime_mutation \
     "$WORKFLOW_DIR/production-hotfix-plan.yml" \
     "Plan-only hotfix workflow"
@@ -100,6 +122,14 @@ verify_trusted_revision_validation \
     "Plan-only hotfix workflow"
 
 verify_trusted_revision_validation \
+    "$WORKFLOW_DIR/production-release-plan.yml" \
+    "Release plan workflow"
+
+verify_exact_planning_revision \
+    "$WORKFLOW_DIR/production-hotfix-plan.yml" \
+    "Plan-only hotfix workflow"
+
+verify_exact_planning_revision \
     "$WORKFLOW_DIR/production-release-plan.yml" \
     "Release plan workflow"
 
