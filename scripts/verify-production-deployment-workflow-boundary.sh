@@ -11,6 +11,14 @@ fail() {
     exit 1
 }
 
+uses_production_runner() {
+    workflow_path="$1"
+
+    grep -Eq \
+        '^[[:space:]]*-[[:space:]]*mnemos-production[[:space:]]*$|^[[:space:]]*runs-on:[[:space:]].*mnemos-production' \
+        "$workflow_path"
+}
+
 for removed_workflow in \
     cancel-stale-production-recovery.yml \
     production-account-login-hotfix.yml \
@@ -35,12 +43,12 @@ for workflow in \
     if printf '%s\n' "$content" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_run):'; then
         fail "Production workflow must not gain an automatic trigger: $workflow"
     fi
-
 done
 
-HOTFIX_PLAN_CONTENT="$(cat "$WORKFLOW_DIR/production-hotfix-plan.yml")"
+HOTFIX_PLAN_PATH="$WORKFLOW_DIR/production-hotfix-plan.yml"
+HOTFIX_PLAN_CONTENT="$(cat "$HOTFIX_PLAN_PATH")"
 
-if printf '%s\n' "$HOTFIX_PLAN_CONTENT" | grep -Fq 'mnemos-production'; then
+if uses_production_runner "$HOTFIX_PLAN_PATH"; then
     fail "Plan-only hotfix workflow must not target the production runner"
 fi
 
@@ -54,9 +62,9 @@ for forbidden in \
     fi
 done
 
-SERVICE_IMAGE_CONTENT="$(cat "$WORKFLOW_DIR/production-service-image.yml")"
+SERVICE_IMAGE_PATH="$WORKFLOW_DIR/production-service-image.yml"
 
-if printf '%s\n' "$SERVICE_IMAGE_CONTENT" | grep -Fq 'mnemos-production'; then
+if uses_production_runner "$SERVICE_IMAGE_PATH"; then
     fail "Service image workflow must not target the production runner"
 fi
 
