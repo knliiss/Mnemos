@@ -31,8 +31,18 @@ fi
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'persist-credentials: false' ||
     fail "Production Hotfix Plan checkout must not persist Git credentials"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'ref: master' ||
-    fail "Production Hotfix Plan must use tooling from master"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'ref: ${{ github.sha }}' ||
+    fail "Production Hotfix Plan must pin tooling to the workflow run head SHA"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'PLANNING_HEAD_SHA: ${{ github.sha }}' ||
+    fail "Production Hotfix Plan must explicitly verify the workflow run head SHA"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'git merge-base --is-ancestor "$PLANNING_HEAD_SHA" origin/master' ||
+    fail "Production Hotfix Plan tooling must be reachable from trusted master history"
+
+if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Eq '^[[:space:]]+ref:[[:space:]]+master[[:space:]]*$'; then
+    fail "Production Hotfix Plan must not checkout the moving master ref"
+fi
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'python3 scripts/production_hotfix_plan.py' ||
     fail "Production Hotfix Plan must use the shared scoped planner"
