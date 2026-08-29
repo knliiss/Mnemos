@@ -62,7 +62,7 @@ jobs:
 
           echo "CURRENT_STATE_FILE=$state_file" >> "$GITHUB_ENV"
 
-      - name: Validate immutable target revisions
+      - name: Validate trusted target revisions
         shell: bash
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
@@ -70,32 +70,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          require_sha() {
-            value="$1"
-            description="$2"
-
-            if ! printf '%s' "$value" | grep -Eq '^[0-9a-f]{40}$'; then
-              echo "$description must be a full lowercase 40-character commit SHA" >&2
-              exit 1
-            fi
-          }
-
-          require_repo_commit() {
-            value="$1"
-            description="$2"
-
-            if ! git cat-file -e "${value}^{commit}" 2>/dev/null; then
-              echo "$description is not present in the Mnemos repository: $value" >&2
-              exit 1
-            fi
-          }
-
-          require_sha "$SOURCE_SHA" "Target service source SHA"
-          require_repo_commit "$SOURCE_SHA" "Target service source SHA"
+          python3 scripts/production_source_revision.py \
+            "$SOURCE_SHA" \
+            --trusted-ref origin/master
 
           if [ -n "$TARGET_TOOLING_REVISION" ]; then
-            require_sha "$TARGET_TOOLING_REVISION" "Target tooling revision"
-            require_repo_commit "$TARGET_TOOLING_REVISION" "Target tooling revision"
+            python3 scripts/production_source_revision.py \
+              "$TARGET_TOOLING_REVISION" \
+              --trusted-ref origin/master
           fi
 
       - name: Create scoped hotfix plan bundle
