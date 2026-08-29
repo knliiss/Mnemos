@@ -5,9 +5,6 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
-STACK_SMOKE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/stack-smoke.yml"
-START_INFRA_SCRIPT="$REPOSITORY_ROOT/scripts/start-production-infra.sh"
-KAFKA_TRUSTSTORE_SYNC_SCRIPT="$REPOSITORY_ROOT/scripts/sync-production-kafka-truststore.sh"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 
 fail() {
@@ -15,122 +12,72 @@ fail() {
     exit 1
 }
 
-[ -f "$WORKFLOW" ] || fail "Production Release workflow is missing"
-[ -f "$STACK_SMOKE_WORKFLOW" ] || fail "Stack Smoke workflow is missing"
-[ -f "$START_INFRA_SCRIPT" ] || fail "Production infrastructure startup script is missing"
-[ -f "$KAFKA_TRUSTSTORE_SYNC_SCRIPT" ] || fail "Production Kafka truststore sync script is missing"
+uses_production_runner() {
+    workflow_path="$1"
+
+    grep -Eq \
+        '^[[:space:]]*-[[:space:]]*mnemos-production[[:space:]]*$|^[[:space:]]*runs-on:[[:space:]].*mnemos-production' \
+        "$workflow_path"
+}
+
+[ -f "$WORKFLOW" ] || fail "Production image batch workflow is missing"
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
-STACK_SMOKE_WORKFLOW_CONTENT="$(cat "$STACK_SMOKE_WORKFLOW")"
-KAFKA_TRUSTSTORE_SYNC_CONTENT="$(cat "$KAFKA_TRUSTSTORE_SYNC_SCRIPT")"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'workflow_run:' ||
-    fail "Production Release must be triggered from a completed verification workflow"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'workflow_dispatch:' ||
+    fail "Production image batch must be manually dispatched"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - Backend Verify' ||
-    fail "Production Release must depend on Backend Verify"
+if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_run):'; then
+    fail "Production image batch must not have automatic triggers"
+fi
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - Stack Smoke' ||
-    fail "Production Release must depend on Stack Smoke"
+if uses_production_runner "$WORKFLOW"; then
+    fail "Production image batch must not target the production runner"
+fi
 
-printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq '  push:' ||
-    fail "Stack Smoke must run on pushes for the production release gate"
-
-printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq '      - master' ||
-    fail "Stack Smoke push verification must target master"
-
-printf '%s\n' "$STACK_SMOKE_WORKFLOW_CONTENT" | grep -Fq "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository" ||
-    fail "Stack Smoke must allow trusted master push runs while retaining fork pull-request protection"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "github.event.workflow_run.conclusion == 'success'" ||
-    fail "Production Release must require a successful triggering verification workflow"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "github.event.workflow_run.event == 'push'" ||
-    fail "Production Release must reject pull request verification runs"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "github.event.workflow_run.head_branch == 'master'" ||
-    fail "Production Release must only accept master revisions"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'github.event.workflow_run.head_repository.full_name == github.repository' ||
-    fail "Production Release must reject revisions from another repository"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'PEER_WORKFLOW="Stack Smoke"' ||
-    fail "Production Release must require Stack Smoke when Backend Verify triggers it"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'PEER_WORKFLOW="Backend Verify"' ||
-    fail "Production Release must require Backend Verify when Stack Smoke triggers it"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'vars.MNEMOS_PRODUCTION_DEPLOY_ENABLED == '\''true'\''' ||
-    fail "Production deployment must remain explicitly gated"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      - mnemos-production' ||
-    fail "Production deploy must target the dedicated production runner"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '    runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
     fail "Production image publishing must use the hardened backend runner"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      packages: write' ||
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'packages: write' ||
     fail "Production image publishing must explicitly own package write permission"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      packages: read' ||
-    fail "Production deploy must have package read permission only"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'source_sha:' ||
+    fail "Production image batch must require an explicit immutable source SHA"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'ref: ${{ github.event.workflow_run.head_sha }}' ||
-    fail "Production jobs must checkout the verified immutable revision"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '^[0-9a-f]{40}$' ||
+    fail "Production image batch must validate the full source SHA"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '      group: mnemos-production-deploy' ||
-    fail "Production deploys must be globally serialized across release SHAs"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'ref: ${{ inputs.source_sha }}' ||
+    fail "Production image batch must checkout the explicitly requested revision"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-publish-docker-auth' ||
-    fail "Production publishing credentials must use an isolated Docker config"
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'CHECKED_OUT_SHA="$(git rev-parse HEAD)"' ||
+    fail "Production image batch must verify the checked-out revision"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'MNEMOS_IMAGE_TAG: ${{ inputs.source_sha }}' ||
+    fail "Production image batch must tag images with the immutable source SHA"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'sh scripts/publish-production-images.sh' ||
+    fail "Production image batch must use the catalog-backed publisher"
+
+printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/mnemos-production-image-batch-docker-auth' ||
+    fail "Production image publishing credentials must use an isolated Docker config"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
-    fail "Production publishing credentials must be removed after the publish job"
+    fail "Production image publishing credentials must be removed after publishing"
 
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG=/run/mnemos-production-docker-auth' ||
-    fail "Production deploy registry credentials must use an isolated Docker config"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'sh scripts/start-production-infra.sh' ||
-    fail "Production deploy must start and verify stateful infrastructure before applications"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/run-production-backup.sh' ||
-    fail "Production upgrades and first deployment must include guarded backup handling"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '/opt/mnemos/current/scripts/check-production-health.sh' ||
-    fail "Production deploy must finish with a host/runtime health check"
-
-printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'SWARM_CONFIG_NAME_MAX_LENGTH=64' ||
-    fail "Kafka truststore Swarm config names must respect Docker's 64-character limit"
-
-printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'CONFIG_DIGEST_LENGTH=32' ||
-    fail "Kafka truststore Swarm config names must use a bounded content digest"
-
-printf '%s\n' "$KAFKA_TRUSTSTORE_SYNC_CONTENT" | grep -Fq 'if [ "${#CONFIG_NAME}" -gt "$SWARM_CONFIG_NAME_MAX_LENGTH" ]; then' ||
-    fail "Kafka truststore Swarm config names must be validated before creation"
-
-DEFAULT_KAFKA_CONFIG_NAME="mnemos-kafka-truststore-0123456789abcdef0123456789abcdef"
-
-if [ "${#DEFAULT_KAFKA_CONFIG_NAME}" -gt 64 ]; then
-    fail "Default Kafka truststore Swarm config name exceeds Docker's 64-character limit"
-fi
-
-infra_line="$(grep -n -F 'sh scripts/start-production-infra.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
-app_line="$(grep -n -F 'sh scripts/deploy-production-apps.sh' "$WORKFLOW" | head -n 1 | cut -d: -f1)"
-
-if [ -z "$infra_line" ] || [ -z "$app_line" ] || [ "$infra_line" -ge "$app_line" ]; then
-    fail "Production infrastructure startup must precede application deployment"
-fi
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '          sudo -n rm -rf /run/mnemos-production-docker-auth' ||
-    fail "Production deploy registry credentials must be removed after the deploy job"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '        if: always()' ||
-    fail "Production registry credential cleanup must run after failures"
-
-if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Eq '^[[:space:]]*pull_request:'; then
-    fail "Production Release must never be directly triggerable by pull requests"
-fi
+for forbidden in \
+    'docker service update' \
+    'docker stack deploy' \
+    'scripts/start-production-infra.sh' \
+    'scripts/deploy-production-apps.sh' \
+    'production_deployment_executor.py --execute' \
+    '/opt/mnemos/current' \
+    '/etc/mnemos'; do
+    if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "$forbidden"; then
+        fail "Production image batch contains runtime mutation capability: $forbidden"
+    fi
+done
 
 if grep -Fq 'https://app.knalis.rest' "$KEYCLOAK_CLIENTS"; then
     fail "Keycloak client origins must be parameterized instead of hardcoded"
@@ -139,4 +86,4 @@ fi
 grep -Fq '$(env:MNEMOS_FRONTEND_ORIGIN)' "$KEYCLOAK_CLIENTS" ||
     fail "Keycloak client configuration must use MNEMOS_FRONTEND_ORIGIN"
 
-echo "Production release workflow, Swarm config naming, and Keycloak origin boundaries verified"
+echo "Production image batch and Keycloak origin boundaries verified"
