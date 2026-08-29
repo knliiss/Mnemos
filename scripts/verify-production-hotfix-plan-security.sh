@@ -24,6 +24,10 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq '  contents: read' ||
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
     fail "Production Hotfix Plan must use the hardened backend runner"
 
+if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Eq 'runs-on:.*mnemos-production'; then
+    fail "Production Hotfix Plan must never target the production runner"
+fi
+
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'persist-credentials: false' ||
     fail "Production Hotfix Plan checkout must not persist Git credentials"
 
@@ -37,7 +41,6 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'actions/upload-artifact@' ||
     fail "Production Hotfix Plan must publish its immutable plan bundle as an artifact"
 
 for forbidden in \
-    'mnemos-production' \
     'packages: write' \
     'actions: write' \
     'deployments: write' \
