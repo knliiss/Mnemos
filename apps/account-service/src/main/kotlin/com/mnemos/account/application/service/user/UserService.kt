@@ -108,6 +108,7 @@ class UserService(
             request =
                 KeycloakUserUpdateRequest(
                     username = newUsername.value,
+                    email = keycloakUser.email,
                     attributes = keycloakUser.attributes.orEmpty(),
                 ),
         )
