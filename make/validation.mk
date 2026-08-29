@@ -62,4 +62,14 @@ make-verify:
 		}; \
 	done
 	@python3 scripts/verify-production-swarm-stack-normalizer.py
+	@python3 scripts/verify-production-service-catalog.py
+	@set -e; \
+	for service in $$(python3 scripts/production_service_catalog.py list); do \
+		python3 scripts/publish-production-service-image.py \
+			--service "$$service" \
+			--registry "example.invalid/mnemos" \
+			--tag "0000000000000000000000000000000000000000" \
+			--dry-run \
+			--skip-assemble >/dev/null; \
+	done
 	$(call success,make,target wiring verified)
