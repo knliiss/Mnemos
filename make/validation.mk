@@ -65,10 +65,13 @@ make-verify:
 	@sh -n scripts/wait-production-container.sh
 	@sh -n scripts/verify-production-deployment-executor-security.sh
 	@sh -n scripts/verify-production-deployment-workflow-boundary.sh
+	@python3 -m py_compile scripts/resolve_backend_ci_changes.py
+	@python3 -m py_compile scripts/verify-backend-ci-changes.py
 	@python3 -m py_compile scripts/production_deployment_executor.py
 	@python3 -m py_compile scripts/production_deployment_store.py
 	@python3 -m py_compile scripts/verify-production-runtime-baseline.py
 	@python3 -m py_compile scripts/production_runtime_state.py
+	@python3 scripts/verify-backend-ci-changes.py
 	@python3 scripts/verify-production-swarm-stack-normalizer.py
 	@python3 scripts/verify-production-service-catalog.py
 	@python3 scripts/verify-production-release-manifest.py
