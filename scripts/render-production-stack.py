@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from production_release_manifest import ProductionReleaseManifestError
+from production_release_manifest import read_manifest
+from production_service_catalog import ProductionServiceCatalogError
+
 
 APPLICATION_SERVICES = (
     "account-service",
@@ -84,6 +88,14 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         help="Destination JSON file. Writes stdout when omitted.",
     )
+    parser.add_argument(
+        "--release-manifest",
+        type=Path,
+        help=(
+            "Optional per-service release manifest. When omitted, the legacy "
+            "MNEMOS_IMAGE_REGISTRY + MNEMOS_RELEASE_TAG image policy is used."
+        ),
+    )
 
     return parser.parse_args()
 
@@ -110,12 +122,51 @@ def read_compose_model(input_path: Path | None) -> dict[str, Any]:
     return model
 
 
-def image_for(
-    service_name: str,
-    registry: str,
-    release_tag: str,
-) -> str:
-    return f"{registry.rstrip('/')}/mnemos-{service_name}:{release_tag}"
+def legacy_application_images() -> dict[str, str]:
+    registry = required_environment("MNEMOS_IMAGE_REGISTRY").rstrip("/")
+    release_tag = required_environment("MNEMOS_RELEASE_TAG")
+
+    return {
+        service_name: f"{registry}/mnemos-{service_name}:{release_tag}"
+        for service_name in APPLICATION_SERVICES
+    }
+
+
+def manifest_application_images(path: Path) -> dict[str, str]:
+    manifest = read_manifest(path)
+    services = manifest["services"]
+    images: dict[str, str] = {}
+
+    for service_name in APPLICATION_SERVICES:
+        entry = services.get(service_name)
+
+        if not isinstance(entry, dict):
+            raise StackRenderError(
+                f"Release manifest does not contain application service {service_name}"
+            )
+
+        if entry.get("kind") != "application":
+            raise StackRenderError(
+                f"Release manifest entry {service_name} is not an application image"
+            )
+
+        image = entry.get("image")
+
+        if not isinstance(image, str) or not image:
+            raise StackRenderError(
+                f"Release manifest entry {service_name} does not define an image"
+            )
+
+        images[service_name] = image
+
+    return images
+
+
+def application_images(release_manifest: Path | None) -> dict[str, str]:
+    if release_manifest is None:
+        return legacy_application_images()
+
+    return manifest_application_images(release_manifest)
 
 
 def normalized_environment(service: dict[str, Any]) -> dict[str, str]:
@@ -281,8 +332,7 @@ def configure_deployment(
 def sanitize_service(
     service_name: str,
     source: dict[str, Any],
-    registry: str,
-    release_tag: str,
+    image: str,
 ) -> dict[str, Any]:
     service = copy.deepcopy(source)
 
@@ -298,11 +348,7 @@ def sanitize_service(
         service.pop(unsupported_field, None)
 
     service.pop("ports", None)
-    service["image"] = image_for(
-        service_name=service_name,
-        registry=registry,
-        release_tag=release_tag,
-    )
+    service["image"] = image
 
     configure_runtime_environment(
         service_name=service_name,
@@ -382,9 +428,11 @@ def cloudflared_service() -> dict[str, Any]:
     }
 
 
-def render_stack(model: dict[str, Any]) -> dict[str, Any]:
-    registry = required_environment("MNEMOS_IMAGE_REGISTRY")
-    release_tag = required_environment("MNEMOS_RELEASE_TAG")
+def render_stack(
+    model: dict[str, Any],
+    release_manifest: Path | None = None,
+) -> dict[str, Any]:
+    images = application_images(release_manifest)
     swarm_network = os.environ.get(
         "MNEMOS_SWARM_NETWORK",
         "mnemos-production-network",
@@ -409,8 +457,7 @@ def render_stack(model: dict[str, Any]) -> dict[str, Any]:
         service_name: sanitize_service(
             service_name=service_name,
             source=source_services[service_name],
-            registry=registry,
-            release_tag=release_tag,
+            image=images[service_name],
         )
         for service_name in APPLICATION_SERVICES
     }
@@ -462,12 +509,19 @@ def main() -> int:
 
     try:
         model = read_compose_model(arguments.input)
-        stack = render_stack(model)
+        stack = render_stack(
+            model=model,
+            release_manifest=arguments.release_manifest,
+        )
         write_stack(
             stack=stack,
             output_path=arguments.output,
         )
-    except StackRenderError as exception:
+    except (
+        ProductionReleaseManifestError,
+        ProductionServiceCatalogError,
+        StackRenderError,
+    ) as exception:
         print(f"Production stack render failed: {exception}", file=sys.stderr)
         return 1
 
