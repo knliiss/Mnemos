@@ -71,12 +71,44 @@ def flattened_commands(bundle: dict[str, object]) -> list[list[str]]:
     commands: list[list[str]] = []
 
     for action in bundle["actions"]:
-        for phase in ("apply", "rollback"):
+        for phase in ("preflight", "apply", "rollback"):
             for step in action[phase]:
                 command = step["command"]
                 commands.append(command)
 
     return commands
+
+
+def verify_preflight(
+    action: dict[str, object],
+    runtime_type: str,
+    runtime_name: str,
+    expected_image: str,
+) -> None:
+    preflight = action.get("preflight")
+
+    if not isinstance(preflight, list) or len(preflight) != 1:
+        fail(f"Scoped executor has invalid runtime preflight: {action}")
+
+    command = preflight[0].get("command")
+
+    if not isinstance(command, list):
+        fail(f"Scoped executor preflight command is invalid: {preflight}")
+
+    if "verify-production-runtime-baseline.py" not in command[1]:
+        fail(f"Scoped executor does not verify runtime baseline: {command}")
+
+    expected_tail = [
+        "--runtime-type",
+        runtime_type,
+        "--runtime-name",
+        runtime_name,
+        "--expected-image",
+        expected_image,
+    ]
+
+    if command[-len(expected_tail) :] != expected_tail:
+        fail(f"Scoped executor preflight targets the wrong baseline: {command}")
 
 
 def verify_account_service_update() -> None:
@@ -93,8 +125,14 @@ def verify_account_service_update() -> None:
         fail(f"Account executor bundle has unexpected action count: {bundle}")
 
     action = bundle["actions"][0]
-    apply_commands = [step["command"] for step in action["apply"]]
+    verify_preflight(
+        action=action,
+        runtime_type="swarm",
+        runtime_name="mnemos_account-service",
+        expected_image=f"{REGISTRY}/mnemos-account-service:{BASE_SHA}",
+    )
 
+    apply_commands = [step["command"] for step in action["apply"]]
     expected_update = [
         "docker",
         "service",
@@ -127,6 +165,13 @@ def verify_keycloak_update() -> None:
         transition=transition,
     )
     action = bundle["actions"][0]
+    verify_preflight(
+        action=action,
+        runtime_type="compose",
+        runtime_name="mnemos-keycloak",
+        expected_image=f"{REGISTRY}/mnemos-keycloak:{BASE_SHA}",
+    )
+
     apply_steps = action["apply"]
 
     if apply_steps[0]["command"] != [
