@@ -73,7 +73,8 @@ interface BalanceJpaRepository : JpaRepository<BalanceEntity, BalanceEntityId> {
               AND NOT EXISTS (
                   SELECT 1
                   FROM leaderboard_exclusion_projection exclusion
-                  WHERE exclusion.subject_type = 'ACCOUNT'
+                  WHERE exclusion.active = TRUE
+                    AND exclusion.subject_type = 'ACCOUNT'
                     AND exclusion.subject_id = balance.owner_id
                     AND exclusion.scope IN ('ALL', 'COINS')
               )

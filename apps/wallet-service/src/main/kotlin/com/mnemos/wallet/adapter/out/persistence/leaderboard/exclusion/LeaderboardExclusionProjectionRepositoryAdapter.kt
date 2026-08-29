@@ -21,18 +21,12 @@ class LeaderboardExclusionProjectionRepositoryAdapter(
             return
         }
 
-        if (!change.active) {
-            if (existing != null) {
-                repository.delete(existing)
-            }
-            return
-        }
-
         repository.save(
             LeaderboardExclusionProjectionEntity(
                 subjectType = change.subjectType,
                 subjectId = change.subjectId,
                 scope = change.scope,
+                active = change.active,
                 occurredAt = change.occurredAt,
             ),
         )
