@@ -1,0 +1,139 @@
+name: Production Service Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Service name from infrastructure/production/service-catalog.json
+        required: true
+        type: string
+      source_ref:
+        description: Git ref to build
+        required: true
+        default: master
+        type: string
+
+concurrency:
+  group: production-service-image-${{ inputs.service }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - mnemos-backend
+
+    permissions:
+      contents: read
+      packages: write
+
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1
+
+      - name: Resolve immutable image tag
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_sha="$(git rev-parse HEAD)"
+
+          if ! printf '%s' "$source_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Resolved source is not a full commit SHA: $source_sha" >&2
+            exit 1
+          fi
+
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Building ${{ inputs.service }} from $source_sha"
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+
+      - name: Verify production service catalog
+        run: python3 scripts/verify-production-service-catalog.py
+
+      - name: Configure isolated Docker publishing
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-service-image-docker-auth
+        run: |
+          set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install \
+            --directory \
+            --mode=0700 \
+            "$DOCKER_CONFIG"
+
+          docker buildx rm mnemos-service-image-builder >/dev/null 2>&1 || true
+          docker buildx create \
+            --driver docker-container \
+            --name mnemos-service-image-builder \
+            --use
+          docker buildx inspect --bootstrap
+
+      - name: Authenticate to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-service-image-docker-auth
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Build and publish selected service image
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-service-image-docker-auth
+        run: |
+          set -euo pipefail
+
+          python3 scripts/publish-production-service-image.py \
+            --service "${{ inputs.service }}" \
+            --registry "ghcr.io/${{ github.repository_owner }}" \
+            --tag "${{ steps.source.outputs.sha }}" \
+            --push
+
+      - name: Publish summary
+        shell: bash
+        run: |
+          {
+            echo "## Production service image"
+            echo
+            echo "Service: \`${{ inputs.service }}\`"
+            echo "Source: \`${{ steps.source.outputs.sha }}\`"
+            echo
+            echo "This workflow publishes an immutable image only. It does not access or mutate the production runtime."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove publishing credentials and builder
+        if: always()
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-service-image-docker-auth
+        run: |
+          set +e
+
+          docker buildx rm mnemos-service-image-builder >/dev/null 2>&1 || true
+          rm -rf "$DOCKER_CONFIG"
