@@ -50,15 +50,19 @@ container_is_ready() {
 
     health="$(
         docker inspect \
-            --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' \
+            --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' \
             "$CONTAINER_NAME"
     )"
 
     case "$health" in
-        healthy | none)
+        healthy)
             ;;
         unhealthy)
             echo "Container is unhealthy: $CONTAINER_NAME" >&2
+            return 2
+            ;;
+        missing)
+            echo "Container has no healthcheck: $CONTAINER_NAME" >&2
             return 2
             ;;
         *)
