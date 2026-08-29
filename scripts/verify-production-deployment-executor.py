@@ -261,12 +261,14 @@ def verify_rollback_attempts_every_affected_service() -> None:
     finally:
         executor.run_steps = original_run_steps
 
-    if len(rollback_calls) != 2:
+    if len(rollback_calls) != len(attempted):
         fail(
-            "Rollback stopped after the first failure instead of attempting every affected service"
+            "Rollback stopped after a failure instead of attempting every affected service"
         )
 
-    if len(errors) != 1 or "keycloak" not in errors[0]:
+    first_rollback_service = attempted[-1]["service"]
+
+    if len(errors) != 1 or first_rollback_service not in errors[0]:
         fail(f"Rollback errors are not service-scoped and preserved: {errors}")
 
 
