@@ -13,6 +13,10 @@ function supports(webApp: TelegramWebApp, version: string): boolean {
   return webApp.isVersionAtLeast?.(version) ?? false
 }
 
+function isMobileTelegramPlatform(platform: string | undefined): boolean {
+  return platform === "android" || platform === "ios"
+}
+
 function safeInsetValue(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : 0
 }
@@ -63,7 +67,7 @@ export function initializeTelegramWebApp(): void {
     webApp.disableVerticalSwipes?.()
   }
 
-  if (supports(webApp, "8.0")) {
+  if (isMobileTelegramPlatform(webApp.platform) && supports(webApp, "8.0")) {
     try {
       webApp.requestFullscreen?.()
     } catch {
