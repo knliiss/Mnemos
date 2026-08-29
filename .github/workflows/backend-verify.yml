@@ -52,6 +52,7 @@ jobs:
           sh -n scripts/verify-cloudflare-deploy-security.sh
           sh -n scripts/verify-ci-workflow-security.sh
           sh -n scripts/verify-production-release-security.sh
+          sh -n scripts/verify-production-hotfix-plan-security.sh
           sh -n scripts/verify-production-backup-tooling.sh
           sh -n scripts/verify-production-monitoring-tooling.sh
           sh -n scripts/check-production-health.sh
@@ -88,8 +89,13 @@ jobs:
           sh -n scripts/run-production-backup.sh
           sh -n scripts/restore-production-core.sh
           sh -n scripts/restore-production-redis.sh
+          python3 -m py_compile scripts/production_release_manifest.py
+          python3 -m py_compile scripts/production_deployment_plan.py
+          python3 -m py_compile scripts/production_deployment_state.py
+          python3 -m py_compile scripts/production_hotfix_plan.py
           python3 -m py_compile scripts/render-production-stack.py
           python3 -m py_compile scripts/verify-production-stack-renderer.py
+          python3 -m py_compile scripts/verify-production-stack-manifest-renderer.py
           sh scripts/verify-compose-secret-validation.sh
           sh scripts/verify-resource-server-audience.sh
           sh scripts/verify-internal-api-authorization.sh
@@ -99,6 +105,7 @@ jobs:
           sh scripts/verify-cloudflare-deploy-security.sh
           sh scripts/verify-ci-workflow-security.sh
           sh scripts/verify-production-release-security.sh
+          sh scripts/verify-production-hotfix-plan-security.sh
           sh scripts/verify-production-backup-tooling.sh
           sh scripts/verify-production-monitoring-tooling.sh
           sh scripts/verify-telegram-init-data-transport.sh
@@ -108,6 +115,7 @@ jobs:
           sh scripts/verify-redis-service-config.sh
           sh scripts/verify-production-infra-compose.sh
           python3 scripts/verify-production-stack-renderer.py
+          python3 scripts/verify-production-stack-manifest-renderer.py
 
       - name: Scan backend dependencies
         shell: bash
