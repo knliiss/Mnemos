@@ -19,6 +19,8 @@ from production_deployment_state import validate_transition
 from production_release_manifest import ProductionReleaseManifestError
 from production_release_manifest import update_manifest
 from production_release_manifest import validate_source_sha
+from production_source_revision import ProductionSourceRevisionError
+from production_source_revision import require_trusted_source_revision
 
 
 class ProductionHotfixPlanError(RuntimeError):
@@ -149,6 +151,9 @@ def main() -> int:
                 "Target tooling revision must be a string"
             )
 
+        require_trusted_source_revision(arguments.source_sha)
+        require_trusted_source_revision(tooling_revision)
+
         bundle = create_hotfix_bundle(
             current_state=current_state,
             service=arguments.service,
@@ -173,6 +178,7 @@ def main() -> int:
         ProductionDeploymentStateError,
         ProductionHotfixPlanError,
         ProductionReleaseManifestError,
+        ProductionSourceRevisionError,
     ) as exception:
         print(f"Production hotfix planning failed: {exception}", file=sys.stderr)
         return 1
