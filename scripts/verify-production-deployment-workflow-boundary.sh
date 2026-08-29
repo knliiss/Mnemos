@@ -31,6 +31,7 @@ done
 for workflow in \
     production-hotfix-plan.yml \
     production-images.yml \
+    production-release-plan.yml \
     production-service-image.yml; do
     path="$WORKFLOW_DIR/$workflow"
     [ -f "$path" ] || fail "Expected production workflow is missing: $workflow"
@@ -50,31 +51,47 @@ for workflow in \
     fi
 done
 
-HOTFIX_PLAN_PATH="$WORKFLOW_DIR/production-hotfix-plan.yml"
-HOTFIX_PLAN_CONTENT="$(cat "$HOTFIX_PLAN_PATH")"
+verify_no_runtime_mutation() {
+    workflow_path="$1"
+    description="$2"
+    content="$(cat "$workflow_path")"
 
-for forbidden in \
-    'docker service update' \
-    'docker stack deploy' \
-    'production-infra.sh up' \
-    'production_deployment_executor.py --execute'; do
-    if printf '%s\n' "$HOTFIX_PLAN_CONTENT" | grep -Fq "$forbidden"; then
-        fail "Plan-only hotfix workflow contains production mutation command: $forbidden"
-    fi
-done
+    for forbidden in \
+        'docker service update' \
+        'docker stack deploy' \
+        'scripts/start-production-infra.sh' \
+        'scripts/deploy-production-apps.sh' \
+        'production-infra.sh up' \
+        'production_deployment_executor.py --execute' \
+        '/opt/mnemos/current' \
+        '/etc/mnemos'; do
+        if printf '%s\n' "$content" | grep -Fq "$forbidden"; then
+            fail "$description contains production mutation capability: $forbidden"
+        fi
+    done
+}
 
-IMAGE_BATCH_PATH="$WORKFLOW_DIR/production-images.yml"
-IMAGE_BATCH_CONTENT="$(cat "$IMAGE_BATCH_PATH")"
+verify_no_runtime_mutation \
+    "$WORKFLOW_DIR/production-hotfix-plan.yml" \
+    "Plan-only hotfix workflow"
 
-for forbidden in \
-    'docker service update' \
-    'docker stack deploy' \
-    'scripts/start-production-infra.sh' \
-    'scripts/deploy-production-apps.sh' \
-    'production_deployment_executor.py --execute'; do
-    if printf '%s\n' "$IMAGE_BATCH_CONTENT" | grep -Fq "$forbidden"; then
-        fail "Image-only workflow contains production mutation command: $forbidden"
-    fi
-done
+verify_no_runtime_mutation \
+    "$WORKFLOW_DIR/production-images.yml" \
+    "Image-only workflow"
+
+verify_no_runtime_mutation \
+    "$WORKFLOW_DIR/production-release-plan.yml" \
+    "Release plan workflow"
+
+RELEASE_PLAN_CONTENT="$(cat "$WORKFLOW_DIR/production-release-plan.yml")"
+
+printf '%s\n' "$RELEASE_PLAN_CONTENT" | grep -Fq 'requires_full_runtime_reconcile:' ||
+    fail "Release plan workflow must record whether a full runtime reconcile is required"
+
+printf '%s\n' "$RELEASE_PLAN_CONTENT" | grep -Fq 'allow_full_runtime_reconcile:' ||
+    fail "Release plan workflow must require a separate full runtime reconcile allow gate"
+
+printf '%s\n' "$RELEASE_PLAN_CONTENT" | grep -Fq 'retention-days: 30' ||
+    fail "Release plan audit artifact must use extended retention"
 
 echo "Production deployment workflow safety boundary verified"
