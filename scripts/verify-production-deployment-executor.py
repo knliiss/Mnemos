@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import sys
+import tempfile
+from pathlib import Path
 
 from production_deployment_executor import ProductionDeploymentExecutionError
 from production_deployment_executor import dry_run_bundle
+from production_deployment_executor import execution_record
+from production_deployment_executor import persist_execution_record
 from production_deployment_plan import build_plan
 from production_deployment_state import build_state
 from production_deployment_state import build_transition
@@ -183,10 +187,67 @@ def verify_executor_guards() -> None:
     fail("Scoped executor accepted a tooling revision change")
 
 
+def verify_append_only_execution_history() -> None:
+    _, _, transition = transition_for(
+        assignments=[("account-service", ACCOUNT_SHA)],
+    )
+    first = execution_record(
+        transition=transition,
+        status="rolled-back",
+        started_at="2026-08-29T04:30:00+00:00",
+        completed_at="2026-08-29T04:30:05+00:00",
+        attempted_services=["account-service"],
+        error="simulated failure",
+    )
+    second = execution_record(
+        transition=transition,
+        status="applied",
+        started_at="2026-08-29T04:31:00+00:00",
+        completed_at="2026-08-29T04:31:05+00:00",
+        attempted_services=["account-service"],
+    )
+
+    with tempfile.TemporaryDirectory() as directory:
+        state_dir = Path(directory)
+        first_path = persist_execution_record(
+            state_dir=state_dir,
+            transition=transition,
+            record=first,
+        )
+        second_path = persist_execution_record(
+            state_dir=state_dir,
+            transition=transition,
+            record=second,
+        )
+
+        if first_path == second_path:
+            fail("Separate deployment attempts resolved to the same audit path")
+
+        if not first_path.is_file() or not second_path.is_file():
+            fail("Deployment attempt history was not persisted append-only")
+
+        history = list(first_path.parent.glob("*.json"))
+
+        if len(history) != 2:
+            fail(f"Expected two immutable execution records, got {history}")
+
+        try:
+            persist_execution_record(
+                state_dir=state_dir,
+                transition=transition,
+                record=first,
+            )
+        except ProductionDeploymentExecutionError:
+            return
+
+    fail("Duplicate deployment attempt overwrote immutable audit history")
+
+
 def main() -> int:
     verify_account_service_update()
     verify_keycloak_update()
     verify_executor_guards()
+    verify_append_only_execution_history()
 
     print("Production scoped deployment executor behavior verified")
     return 0
