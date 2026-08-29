@@ -71,6 +71,18 @@ verify_no_runtime_mutation() {
     done
 }
 
+verify_trusted_revision_validation() {
+    workflow_path="$1"
+    description="$2"
+    content="$(cat "$workflow_path")"
+
+    printf '%s\n' "$content" | grep -Fq 'scripts/production_source_revision.py' ||
+        fail "$description must validate target revisions with production_source_revision.py"
+
+    printf '%s\n' "$content" | grep -Fq -- '--trusted-ref origin/master' ||
+        fail "$description must validate target revisions against trusted origin/master history"
+}
+
 verify_no_runtime_mutation \
     "$WORKFLOW_DIR/production-hotfix-plan.yml" \
     "Plan-only hotfix workflow"
@@ -80,6 +92,14 @@ verify_no_runtime_mutation \
     "Image-only workflow"
 
 verify_no_runtime_mutation \
+    "$WORKFLOW_DIR/production-release-plan.yml" \
+    "Release plan workflow"
+
+verify_trusted_revision_validation \
+    "$WORKFLOW_DIR/production-hotfix-plan.yml" \
+    "Plan-only hotfix workflow"
+
+verify_trusted_revision_validation \
     "$WORKFLOW_DIR/production-release-plan.yml" \
     "Release plan workflow"
 
