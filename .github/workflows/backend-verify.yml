@@ -4,6 +4,24 @@ on:
   push:
     branches:
       - master
+    paths:
+      - ".github/workflows/backend-verify.yml"
+      - ".github/workflows/production*.yml"
+      - "Makefile"
+      - "make/**"
+      - "apps/**"
+      - "contracts/**"
+      - "libraries/**"
+      - "keycloak-extensions/**"
+      - "build-logic/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "scripts/**"
+      - "infrastructure/**"
   pull_request:
     paths:
       - ".github/workflows/backend-verify.yml"
@@ -52,21 +70,50 @@ jobs:
 
       - name: Resolve affected backend projects
         id: backend_changes
-        if: github.event_name == 'pull_request'
         shell: bash
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
 
           changed_paths="$RUNNER_TEMP/backend-changed-paths.txt"
           result="$RUNNER_TEMP/backend-ci-changes.json"
 
-          git diff \
-            --name-only \
-            "$BASE_SHA" \
-            "$HEAD_SHA" > "$changed_paths"
+          case "$EVENT_NAME" in
+            pull_request)
+              base_sha="$PULL_REQUEST_BASE_SHA"
+              head_sha="$PULL_REQUEST_HEAD_SHA"
+              ;;
+            push)
+              base_sha="$PUSH_BASE_SHA"
+              head_sha="$PUSH_HEAD_SHA"
+              ;;
+            *)
+              echo "Unsupported Backend Verify event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          if ! printf '%s' "$head_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Backend Verify head SHA is invalid: $head_sha" >&2
+            exit 1
+          fi
+
+          if printf '%s' "$base_sha" | grep -Eq '^[0-9a-f]{40}$' && \
+             [ "$base_sha" != "0000000000000000000000000000000000000000" ] && \
+             git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+            git diff \
+              --name-only \
+              "$base_sha" \
+              "$head_sha" > "$changed_paths"
+          else
+            echo "No usable event base SHA; forcing full backend verification" >&2
+            printf '%s\n' 'settings.gradle.kts' > "$changed_paths"
+          fi
 
           python3 scripts/resolve_backend_ci_changes.py \
             --paths-file "$changed_paths" > "$result"
@@ -181,7 +228,7 @@ jobs:
           python3 scripts/verify-production-stack-manifest-renderer.py
 
       - name: Scan backend dependencies
-        if: github.event_name == 'push' || steps.backend_changes.outputs.dependency_scan_required == 'true'
+        if: steps.backend_changes.outputs.dependency_scan_required == 'true'
         shell: bash
         env:
           NVD_API_KEY: ${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}
@@ -195,17 +242,12 @@ jobs:
           ./gradlew dependencyCheckAggregate --no-daemon --no-configuration-cache --no-parallel
 
       - name: Verify backend
-        if: github.event_name == 'push' || steps.backend_changes.outputs.check_tasks != ''
+        if: steps.backend_changes.outputs.check_tasks != ''
         shell: bash
         env:
           CHECK_TASKS: ${{ steps.backend_changes.outputs.check_tasks }}
         run: |
           set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "push" ]; then
-            ./gradlew check --no-daemon
-            exit 0
-          fi
 
           read -r -a tasks <<< "$CHECK_TASKS"
           ./gradlew "${tasks[@]}" --no-daemon

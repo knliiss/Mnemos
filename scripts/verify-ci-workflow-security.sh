@@ -105,6 +105,27 @@ verify_push_only_report_job \
     "Mini App Verify" \
     'runs-on: [self-hosted, Linux, X64, mnemos-frontend]'
 
+BACKEND_WORKFLOW_CONTENT="$(cat "$BACKEND_WORKFLOW")"
+
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq 'PUSH_BASE_SHA: ${{ github.event.before }}' ||
+    fail "Backend Verify must resolve affected projects from the push base SHA"
+
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq 'PUSH_HEAD_SHA: ${{ github.sha }}' ||
+    fail "Backend Verify must resolve affected projects from the push head SHA"
+
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "printf '%s\\n' 'settings.gradle.kts' > \"\$changed_paths\"" ||
+    fail "Backend Verify must fall back to a full backend verification when the event base SHA is unusable"
+
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: steps.backend_changes.outputs.dependency_scan_required == 'true'" ||
+    fail "Backend dependency scanning must follow the affected-path resolver on both pushes and pull requests"
+
+printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: steps.backend_changes.outputs.check_tasks != ''" ||
+    fail "Backend Gradle verification must follow the affected-project resolver on both pushes and pull requests"
+
+if printf '%s\n' "$BACKEND_WORKFLOW_CONTENT" | grep -Fq "if: github.event_name == 'push' || steps.backend_changes.outputs.dependency_scan_required == 'true'"; then
+    fail "Backend Verify must not force the dependency scan for every master push"
+fi
+
 if grep -Fq 'NVD_API_KEY: ${{ secrets.NVD_API_KEY }}' "$BACKEND_WORKFLOW"; then
     fail "Backend Verify must not expose the NVD API key unconditionally to pull requests"
 fi
@@ -112,4 +133,4 @@ fi
 grep -Fq "NVD_API_KEY: \${{ github.event_name == 'push' && secrets.NVD_API_KEY || '' }}" "$BACKEND_WORKFLOW" ||
     fail "Backend Verify must expose the NVD API key only for push events"
 
-echo "CI verification workflow token and secret boundaries verified"
+echo "CI verification workflow token, routing, and secret boundaries verified"

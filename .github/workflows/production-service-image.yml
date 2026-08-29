@@ -7,10 +7,9 @@ on:
         description: Service name from infrastructure/production/service-catalog.json
         required: true
         type: string
-      source_ref:
-        description: Git ref to build
+      source_sha:
+        description: Full lowercase 40-character commit SHA from trusted master history
         required: true
-        default: master
         type: string
 
 concurrency:
@@ -36,28 +35,36 @@ jobs:
     timeout-minutes: 40
 
     steps:
-      - name: Checkout selected revision
+      - name: Checkout trusted repository history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ inputs.source_ref }}
-          fetch-depth: 1
+          ref: master
+          fetch-depth: 0
           persist-credentials: false
 
-      - name: Resolve immutable image tag
+      - name: Validate and checkout immutable source revision
         id: source
         shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
 
-          source_sha="$(git rev-parse HEAD)"
+          python3 scripts/production_source_revision.py \
+            "$SOURCE_SHA" \
+            --trusted-ref origin/master
 
-          if ! printf '%s' "$source_sha" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "Resolved source is not a full commit SHA: $source_sha" >&2
+          git checkout --detach "$SOURCE_SHA"
+
+          resolved_sha="$(git rev-parse HEAD)"
+
+          if [ "$resolved_sha" != "$SOURCE_SHA" ]; then
+            echo "Checked-out source does not match requested immutable SHA" >&2
             exit 1
           fi
 
-          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
-          echo "Building ${{ inputs.service }} from $source_sha"
+          echo "sha=$resolved_sha" >> "$GITHUB_OUTPUT"
+          echo "Building ${{ inputs.service }} from $resolved_sha"
 
       - name: Set up Java
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -126,6 +133,7 @@ jobs:
             echo "Service: \`${{ inputs.service }}\`"
             echo "Source: \`${{ steps.source.outputs.sha }}\`"
             echo
+            echo "The source SHA was verified as reachable from trusted master history."
             echo "This workflow publishes an immutable image only. It does not access or mutate the production runtime."
           } >> "$GITHUB_STEP_SUMMARY"
 
