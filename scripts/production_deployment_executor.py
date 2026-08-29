@@ -302,6 +302,21 @@ def run_steps(steps: list[dict[str, Any]]) -> None:
         run_step(step)
 
 
+def rollback_attempted_actions(
+    attempted: list[dict[str, Any]],
+) -> list[str]:
+    errors: list[str] = []
+
+    for action in reversed(attempted):
+        try:
+            run_steps(rollback_steps(action))
+        except (OSError, subprocess.CalledProcessError) as exception:
+            service = action.get("service", "unknown")
+            errors.append(f"{service}: {exception}")
+
+    return errors
+
+
 def validate_scoped_transition(
     current_state: dict[str, Any],
     target_state: dict[str, Any],
@@ -538,15 +553,10 @@ def execute_transition(
             attempted.append(action)
             run_steps(target_steps(action))
     except (OSError, subprocess.CalledProcessError) as exception:
-        rollback_error: str | None = None
-
-        try:
-            for action in reversed(attempted):
-                run_steps(rollback_steps(action))
-        except (OSError, subprocess.CalledProcessError) as rollback_exception:
-            rollback_error = str(rollback_exception)
-
+        rollback_errors = rollback_attempted_actions(attempted)
+        rollback_error = "; ".join(rollback_errors) or None
         status = "rollback-failed" if rollback_error is not None else "rolled-back"
+
         persist_failed_execution(
             state_dir=state_dir,
             transition=transition,
