@@ -21,6 +21,8 @@ from production_release_manifest import parse_assignment
 from production_release_manifest import update_manifest
 from production_release_manifest import validate_manifest
 from production_release_manifest import validate_source_sha
+from production_source_revision import ProductionSourceRevisionError
+from production_source_revision import require_trusted_source_revision
 
 
 class ProductionReleasePlanError(RuntimeError):
@@ -167,6 +169,11 @@ def main() -> int:
                 "Target tooling revision must be a string"
             )
 
+        require_trusted_source_revision(tooling_revision)
+
+        for _, source_sha in arguments.assignments:
+            require_trusted_source_revision(source_sha)
+
         bundle = create_release_bundle(
             current_state=current_state,
             assignments=arguments.assignments,
@@ -197,6 +204,7 @@ def main() -> int:
         ProductionDeploymentStateError,
         ProductionReleaseManifestError,
         ProductionReleasePlanError,
+        ProductionSourceRevisionError,
     ) as exception:
         print(f"Production release planning failed: {exception}", file=sys.stderr)
         return 1
