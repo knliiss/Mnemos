@@ -17,7 +17,7 @@ require-compose: require-docker require-env
 require-node:
 	@command -v node >/dev/null 2>&1 || { printf "\033[31m✗\033[0m Node.js is required\n" >&2; exit 2; }
 	@command -v npm >/dev/null 2>&1 || { printf "\033[31m✗\033[0m npm is required\n" >&2; exit 2; }
-	@test -f "$(MINI_APP_NODE_VERSION_FILE)" || { printf "\033[31m✗\033[0m %s not found\n" "$(MINI_APP_NODE_VERSION_FILE)" >&2; exit 2; }
+	@test -f "$(MINI_APP_NODE_VERSION_FILE)" || { printf "\033[31m✗\033[0m %s is missing\n" "$(MINI_APP_NODE_VERSION_FILE)" >&2; exit 2; }
 	@expected="$$(tr -d '[:space:]' < "$(MINI_APP_NODE_VERSION_FILE)")"; \
 	actual="$$(node -p 'process.versions.node')"; \
 	if [ "$$actual" != "$$expected" ]; then \
@@ -61,4 +61,5 @@ make-verify:
 			exit 1; \
 		}; \
 	done
+	@python3 scripts/verify-production-swarm-stack-normalizer.py
 	$(call success,make,target wiring verified)
