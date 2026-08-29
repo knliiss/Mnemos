@@ -16,6 +16,9 @@ for workflow in "$REPOSITORY_ROOT"/.github/workflows/*.yml "$REPOSITORY_ROOT"/.g
 
     while IFS= read -r action_ref; do
         case "$action_ref" in
+            '')
+                continue
+                ;;
             ./*)
                 continue
                 ;;
