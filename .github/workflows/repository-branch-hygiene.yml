@@ -1,0 +1,186 @@
+name: Repository Branch Hygiene
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/repository-branch-hygiene.yml"
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 5
+
+    steps:
+      - name: Delete merged and superseded branches
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          repository = os.environ["REPOSITORY"]
+          token = os.environ["GITHUB_TOKEN"]
+          api_root = f"https://api.github.com/repos/{repository}"
+
+          known_superseded_refs = {
+              "chore/deploy-verified-1389185": "2bbc6077242b076ea3e352fd282738e4affdac8c",
+              "chore/local-pages-environment": "f971aa979cffbae762881a04c1340d8d137ece78",
+              "deploy/mini-app-1e93c2f7": "1e93c2f73386255de4fa8616a8cb635402ff42bd",
+              "deploy/mini-app-wallet-purchase-mockup": "fcb1371b66ae7b6f703d74e64368fe49e67133a0",
+              "feat/deployment-hotfix-system": "617b6cbbea5be965b0d72b939dbb0d93562952db",
+              "fix/production-stack-smoke-master-gate": "92d71797578ca29b08478f0f26deea53da51ce33",
+              "fix/production-swarm-runtime": "12f7c9e6ee850fb9ef1218f3a6eb9f30c4a931be",
+              "hotfix/cancel-stale-production-recovery": "6a8cef9015dece3009da0b2a8ea1ca17c0c206f0",
+              "hotfix/run-production-recovery": "2b9f12238b4f22db296f46ab49367d212aeb247c",
+              "hotfix/swarm-command-rendering": "f670b9418fe1374b6a5bdde4931923c8575520eb",
+              "hotfix/swarm-kafka-truststore-config-name": "437e2a397d8ea6f35fad5ffe0ce6fb20f5575c0e",
+              "hotfix/targeted-account-login-rollout": "2ea4b169b532a1861667e49e8c3befacfc127262",
+              "ops/comet-chaos-production-rollout": "0c9ca0601bd5deb47f83cb3fc9390297f0bcb544",
+              "ops/deploy-verified-mini-app-138918": "c09615ca45028134db7dfd3ab453be22c8ae41d9",
+              "ops/production-diagnostics": "8d413db3f24dad40190e189667f93eaefa61f3e0",
+              "ops/production-fast-deploy-6c6b2fd": "7451ccc03f90038b8b1a2d27da0e7564a230958f",
+              "ops/runner-access-check": "e14a72efeaaa66fc14b89c5e7eeb87383247d278",
+          }
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def request(path: str, method: str = "GET"):
+              api_request = urllib.request.Request(
+                  f"{api_root}{path}",
+                  headers=headers,
+                  method=method,
+              )
+
+              try:
+                  with urllib.request.urlopen(api_request) as response:
+                      payload = response.read()
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode("utf-8", errors="replace")
+                  raise RuntimeError(
+                      f"GitHub API {method} {path} failed: {error.code} {detail}"
+                  ) from error
+
+              if not payload:
+                  return None
+
+              return json.loads(payload)
+
+          def list_all(path: str):
+              items = []
+              page = 1
+
+              while True:
+                  separator = "&" if "?" in path else "?"
+                  page_items = request(f"{path}{separator}per_page=100&page={page}")
+
+                  if not page_items:
+                      return items
+
+                  items.extend(page_items)
+
+                  if len(page_items) < 100:
+                      return items
+
+                  page += 1
+
+          repository_info = request("")
+          default_branch = repository_info["default_branch"]
+          default_branch_info = request(
+              f"/branches/{urllib.parse.quote(default_branch, safe='')}"
+          )
+          default_sha = default_branch_info["commit"]["sha"]
+
+          open_pull_requests = list_all("/pulls?state=open")
+          open_head_branches = {
+              pull_request["head"]["ref"]
+              for pull_request in open_pull_requests
+              if pull_request["head"]["repo"]
+              and pull_request["head"]["repo"]["full_name"] == repository
+          }
+
+          closed_pull_requests = list_all("/pulls?state=closed")
+          merged_pull_request_heads = {
+              (pull_request["head"]["ref"], pull_request["head"]["sha"])
+              for pull_request in closed_pull_requests
+              if pull_request.get("merged_at")
+              and pull_request["head"]["repo"]
+              and pull_request["head"]["repo"]["full_name"] == repository
+          }
+
+          branches = list_all("/branches")
+          deleted = []
+          preserved = []
+
+          for branch in branches:
+              name = branch["name"]
+              sha = branch["commit"]["sha"]
+
+              if name == default_branch or branch.get("protected", False):
+                  preserved.append((name, "default-or-protected"))
+                  continue
+
+              if name in open_head_branches:
+                  preserved.append((name, "open-pull-request"))
+                  continue
+
+              expected_superseded_sha = known_superseded_refs.get(name)
+              is_known_superseded = expected_superseded_sha == sha
+              is_merged_pull_request_head = (name, sha) in merged_pull_request_heads
+
+              compare = request(f"/compare/{sha}...{default_sha}")
+              is_fully_merged = compare["behind_by"] == 0
+
+              if not (
+                  is_fully_merged
+                  or is_merged_pull_request_head
+                  or is_known_superseded
+              ):
+                  preserved.append((name, "contains-unmerged-commits"))
+                  continue
+
+              if is_known_superseded:
+                  reason = "known-superseded-exact-sha"
+              elif is_merged_pull_request_head:
+                  reason = "merged-pull-request-exact-sha"
+              else:
+                  reason = "fully-merged-history"
+
+              encoded_name = urllib.parse.quote(name, safe="/")
+              request(f"/git/refs/heads/{encoded_name}", method="DELETE")
+              deleted.append((name, reason))
+
+          print("Deleted branches:")
+          for name, reason in deleted:
+              print(f"- {name}: {reason}")
+
+          print("Preserved branches:")
+          for name, reason in preserved:
+              print(f"- {name}: {reason}")
+          PY
