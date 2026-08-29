@@ -34,16 +34,38 @@ def bundle_files(directory: Path) -> list[Path]:
             f"Audit bundle directory does not exist: {directory}"
         )
 
+    manifest_path = directory / AUDIT_MANIFEST_NAME
     files = [
         path
-        for path in directory.iterdir()
-        if path.is_file() and path.name != AUDIT_MANIFEST_NAME
+        for path in directory.rglob("*")
+        if path.is_file() and path != manifest_path
     ]
 
     if not files:
         raise ProductionAuditBundleError("Audit bundle must contain at least one file")
 
-    return sorted(files, key=lambda path: path.name)
+    return sorted(
+        files,
+        key=lambda path: path.relative_to(directory).as_posix(),
+    )
+
+
+def relative_name(directory: Path, path: Path) -> str:
+    return path.relative_to(directory).as_posix()
+
+
+def validate_relative_name(name: str) -> None:
+    path = Path(name)
+
+    if not name or path.is_absolute() or ".." in path.parts:
+        raise ProductionAuditBundleError(
+            f"Audit manifest file name is invalid: {name}"
+        )
+
+    if path.as_posix() != name:
+        raise ProductionAuditBundleError(
+            f"Audit manifest file name must use normalized POSIX separators: {name}"
+        )
 
 
 def build_manifest(directory: Path, bundle_kind: str) -> dict[str, Any]:
@@ -59,7 +81,7 @@ def build_manifest(directory: Path, bundle_kind: str) -> dict[str, Any]:
         "bundle_kind": bundle_kind,
         "files": [
             {
-                "name": path.name,
+                "name": relative_name(directory, path),
                 "sha256": sha256_file(path),
                 "size_bytes": path.stat().st_size,
             }
@@ -132,8 +154,10 @@ def validate_manifest(directory: Path, expected_kind: str | None = None) -> dict
         expected_digest = entry.get("sha256")
         expected_size = entry.get("size_bytes")
 
-        if not isinstance(name, str) or not name or Path(name).name != name:
-            raise ProductionAuditBundleError(f"Audit manifest file name is invalid: {name}")
+        if not isinstance(name, str):
+            raise ProductionAuditBundleError("Audit manifest file name must be a string")
+
+        validate_relative_name(name)
 
         if name == AUDIT_MANIFEST_NAME:
             raise ProductionAuditBundleError("Audit manifest must not hash itself")
@@ -142,7 +166,7 @@ def validate_manifest(directory: Path, expected_kind: str | None = None) -> dict
             raise ProductionAuditBundleError(f"Duplicate audit manifest file entry: {name}")
 
         expected_names.add(name)
-        path = directory / name
+        path = directory / Path(name)
 
         if not path.is_file():
             raise ProductionAuditBundleError(f"Audit bundle file is missing: {name}")
@@ -161,7 +185,10 @@ def validate_manifest(directory: Path, expected_kind: str | None = None) -> dict
                 f"Audit bundle digest mismatch for {name}: expected={expected_digest} actual={actual_digest}"
             )
 
-    actual_names = {path.name for path in bundle_files(directory)}
+    actual_names = {
+        relative_name(directory, path)
+        for path in bundle_files(directory)
+    }
 
     if actual_names != expected_names:
         unexpected = sorted(actual_names - expected_names)
