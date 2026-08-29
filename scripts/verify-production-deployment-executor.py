@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+import production_deployment_executor as executor
 from production_deployment_executor import ProductionDeploymentExecutionError
 from production_deployment_executor import dry_run_bundle
 from production_deployment_executor import execution_record
@@ -232,6 +234,42 @@ def verify_executor_guards() -> None:
     fail("Scoped executor accepted a tooling revision change")
 
 
+def verify_rollback_attempts_every_affected_service() -> None:
+    _, _, transition = transition_for(
+        assignments=[
+            ("account-service", ACCOUNT_SHA),
+            ("keycloak", KEYCLOAK_SHA),
+        ],
+    )
+    attempted = transition["plan"]["actions"]
+    rollback_calls: list[list[dict[str, object]]] = []
+    original_run_steps = executor.run_steps
+
+    def simulated_run_steps(steps: list[dict[str, object]]) -> None:
+        rollback_calls.append(steps)
+
+        if len(rollback_calls) == 1:
+            raise subprocess.CalledProcessError(
+                returncode=1,
+                cmd=["simulated", "rollback"],
+            )
+
+    executor.run_steps = simulated_run_steps
+
+    try:
+        errors = executor.rollback_attempted_actions(attempted)
+    finally:
+        executor.run_steps = original_run_steps
+
+    if len(rollback_calls) != 2:
+        fail(
+            "Rollback stopped after the first failure instead of attempting every affected service"
+        )
+
+    if len(errors) != 1 or "keycloak" not in errors[0]:
+        fail(f"Rollback errors are not service-scoped and preserved: {errors}")
+
+
 def verify_append_only_execution_history() -> None:
     _, _, transition = transition_for(
         assignments=[("account-service", ACCOUNT_SHA)],
@@ -292,6 +330,7 @@ def main() -> int:
     verify_account_service_update()
     verify_keycloak_update()
     verify_executor_guards()
+    verify_rollback_attempts_every_affected_service()
     verify_append_only_execution_history()
 
     print("Production scoped deployment executor behavior verified")
