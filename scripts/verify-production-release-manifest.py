@@ -98,16 +98,34 @@ def verify_independent_keycloak_hotfix(
         fail(f"Unexpected cumulative release diff: {all_changes}")
 
 
-def verify_tamper_detection(base: dict[str, object]) -> None:
-    tampered = copy.deepcopy(base)
-    tampered["services"]["account-service"]["image"] = "ghcr.io/example/wrong:broken"
-
+def expect_tamper_rejected(
+    manifest: dict[str, object],
+    description: str,
+) -> None:
     try:
-        validate_manifest(tampered)
+        validate_manifest(manifest)
     except ProductionReleaseManifestError:
         return
 
-    fail("Tampered release manifest was accepted")
+    fail(f"Tampered release manifest was accepted: {description}")
+
+
+def verify_tamper_detection(base: dict[str, object]) -> None:
+    image_tampered = copy.deepcopy(base)
+    image_tampered["services"]["account-service"]["image"] = (
+        "ghcr.io/example/wrong:broken"
+    )
+    expect_tamper_rejected(
+        manifest=image_tampered,
+        description="image",
+    )
+
+    kind_tampered = copy.deepcopy(base)
+    kind_tampered["services"]["account-service"]["kind"] = "infrastructure"
+    expect_tamper_rejected(
+        manifest=kind_tampered,
+        description="kind",
+    )
 
 
 def main() -> int:
