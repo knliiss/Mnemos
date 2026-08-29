@@ -5,6 +5,7 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 EXECUTOR="$REPOSITORY_ROOT/scripts/production_deployment_executor.py"
+BASELINE_VERIFIER="$REPOSITORY_ROOT/scripts/verify-production-runtime-baseline.py"
 
 fail() {
     echo "$1" >&2
@@ -12,6 +13,7 @@ fail() {
 }
 
 [ -f "$EXECUTOR" ] || fail "Scoped production deployment executor is missing"
+[ -f "$BASELINE_VERIFIER" ] || fail "Production runtime baseline verifier is missing"
 
 EXECUTOR_CONTENT="$(cat "$EXECUTOR")"
 
@@ -24,14 +26,33 @@ for required in \
     'fcntl.LOCK_EX | fcntl.LOCK_NB' \
     'Scoped executor refuses full runtime reconcile plans' \
     'Scoped service deployment cannot change the production tooling revision' \
+    'verify-production-runtime-baseline.py' \
+    'run_steps(preflight_steps(action))' \
+    'status="preflight-failed"' \
     'for action in reversed(attempted)' \
     'rollback_steps(action)' \
     'create_json_exclusive(path, record)' \
+    'state_dir / "transitions" / transition_id / attempt_name' \
     'atomic_write_json(state_dir / "current-state.json", target_state)'; do
     if ! printf '%s\n' "$EXECUTOR_CONTENT" | grep -Fq -- "$required"; then
         fail "Scoped production executor is missing required safety property: $required"
     fi
 done
+
+lock_line="$(grep -n -F 'fcntl.flock(' "$EXECUTOR" | tail -n 1 | cut -d: -f1)"
+execution_context_line="$(
+    grep -n -F 'current_state, target_state, transition = read_execution_context(' "$EXECUTOR" \
+        | tail -n 1 \
+        | cut -d: -f1
+)"
+
+if [ -z "$lock_line" ] || [ -z "$execution_context_line" ]; then
+    fail "Scoped executor lock/state ordering could not be verified"
+fi
+
+if [ "$lock_line" -ge "$execution_context_line" ]; then
+    fail "Execute-mode must acquire the deployment lock before reading current state"
+fi
 
 if printf '%s\n' "$EXECUTOR_CONTENT" | grep -Fq '"stack", "deploy"'; then
     fail "Scoped production executor must never use docker stack deploy"
