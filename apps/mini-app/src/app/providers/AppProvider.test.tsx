@@ -13,14 +13,19 @@ const mocks = vi.hoisted(() => ({
   updateCurrentLanguage: vi.fn(),
 }))
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    i18n: {
-      changeLanguage: mocks.changeLanguage,
-    },
-    t: (key: string) => key,
-  }),
-}))
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>()
+
+  return {
+    ...actual,
+    useTranslation: () => ({
+      i18n: {
+        changeLanguage: mocks.changeLanguage,
+      },
+      t: (key: string) => key,
+    }),
+  }
+})
 
 vi.mock("@/features/auth/api/auth", () => ({
   getToken: mocks.getToken,
