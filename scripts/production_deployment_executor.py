@@ -609,6 +609,22 @@ def dry_run_bundle(
     }
 
 
+def read_execution_context(
+    state_dir: Path,
+    target_state_path: Path,
+    transition_path: Path,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    current_state = read_state(state_dir / "current-state.json")
+    target_state = read_state(target_state_path)
+    transition = read_transition(
+        path=transition_path,
+        current=current_state,
+        target=target_state,
+    )
+
+    return current_state, target_state, transition
+
+
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -629,16 +645,12 @@ def main() -> int:
     arguments = parse_arguments()
 
     try:
-        current_state_path = arguments.state_dir / "current-state.json"
-        current_state = read_state(current_state_path)
-        target_state = read_state(arguments.target_state)
-        transition = read_transition(
-            path=arguments.transition,
-            current=current_state,
-            target=target_state,
-        )
-
         if not arguments.execute:
+            current_state, target_state, transition = read_execution_context(
+                state_dir=arguments.state_dir,
+                target_state_path=arguments.target_state,
+                transition_path=arguments.transition,
+            )
             json.dump(
                 dry_run_bundle(
                     current_state=current_state,
@@ -654,11 +666,6 @@ def main() -> int:
         require_root()
         require_execution_gate()
 
-        if arguments.expected_transition_id != transition["transition_id"]:
-            raise ProductionDeploymentExecutionError(
-                "--expected-transition-id must exactly match the validated transition"
-            )
-
         arguments.state_dir.mkdir(parents=True, exist_ok=True)
         os.chmod(arguments.state_dir, 0o700)
         lock_path = arguments.state_dir / ".scoped-deploy.lock"
@@ -673,6 +680,17 @@ def main() -> int:
                 raise ProductionDeploymentExecutionError(
                     "Another scoped production deployment is already running"
                 ) from exception
+
+            current_state, target_state, transition = read_execution_context(
+                state_dir=arguments.state_dir,
+                target_state_path=arguments.target_state,
+                transition_path=arguments.transition,
+            )
+
+            if arguments.expected_transition_id != transition["transition_id"]:
+                raise ProductionDeploymentExecutionError(
+                    "--expected-transition-id must exactly match the validated transition"
+                )
 
             execute_transition(
                 current_state=current_state,
