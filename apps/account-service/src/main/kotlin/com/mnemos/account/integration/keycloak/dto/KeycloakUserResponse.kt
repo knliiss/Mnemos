@@ -5,5 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KeycloakUserResponse(
     val username: String,
+    val email: String? = null,
     val attributes: Map<String, List<String>>? = null,
 )
