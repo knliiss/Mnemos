@@ -104,11 +104,7 @@ class RedisCollectorSessionLeaseStore(
         sessionToken: UUID,
         version: String,
         slotTtl: Duration,
-        retryDelay: Duration,
     ): CollectorUpdateSlotDecision? {
-        val retryDelaySeconds =
-            ((retryDelay.toMillis() + MILLISECONDS_PER_SECOND - 1) / MILLISECONDS_PER_SECOND)
-                .coerceAtLeast(1)
         val encoded =
             requireNotNull(
                 redisTemplate.execute(
@@ -122,7 +118,6 @@ class RedisCollectorSessionLeaseStore(
                     collectorId.id.toString(),
                     version,
                     slotTtl.toMillis().toString(),
-                    retryDelaySeconds.toString(),
                 ),
             ) {
                 "Redis did not return a collector update slot decision"
@@ -222,7 +217,6 @@ class RedisCollectorSessionLeaseStore(
         const val PRESENCE_REVISION_KEY = "realtime:{collectors}:presence:revision"
         const val UPDATE_SLOT_KEY = "realtime:{collectors}:update:slot"
 
-        const val MILLISECONDS_PER_SECOND = 1000L
         const val SESSION_NOT_OWNED = -1L
         const val OBSERVATION_UNCHANGED = 0L
         const val OBSERVATION_CHANGED = 1L
@@ -337,13 +331,6 @@ class RedisCollectorSessionLeaseStore(
                     local retry_after = math.max(1, math.ceil(remaining / 1000))
 
                     return 'DEFERRED:' .. tostring(retry_after)
-                end
-
-                local observing_until = redis.call('ZSCORE', KEYS[2], ARGV[2])
-                local active_collectors = redis.call('ZCARD', KEYS[2])
-
-                if observing_until and tonumber(observing_until) > now and active_collectors <= 1 then
-                    return 'DEFERRED:' .. ARGV[5]
                 end
 
                 redis.call('SET', KEYS[3], requested_slot, 'PX', ARGV[4])
