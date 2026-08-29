@@ -1,6 +1,7 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { App } from "@/app/App"
+import { installViewportZoomLock } from "@/shared/browser/viewportZoom"
 import { installGlobalErrorHandlers } from "@/shared/errors/errorHandler"
 import "@/shared/i18n"
 import "@/shared/styles/global.css"
@@ -10,6 +11,7 @@ import "@/ui/system/spotlight.css"
 import "@/ui/system/telegram-safe-area.css"
 
 installGlobalErrorHandlers()
+installViewportZoomLock()
 initializeTelegramWebApp()
 
 const root = document.getElementById("root")

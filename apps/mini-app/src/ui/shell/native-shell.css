@@ -22,7 +22,9 @@ html.telegram-mini-app #root {
 }
 
 .telegram-mini-app .route-stage {
-  padding-top: var(--mnemos-telegram-top-clearance, 0px);
+  height: calc(100% - var(--mnemos-telegram-top-clearance, 0px));
+  margin-top: var(--mnemos-telegram-top-clearance, 0px);
+  padding-top: 0;
   padding-right: max(
     var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, 0px)),
     env(safe-area-inset-right, 0px)

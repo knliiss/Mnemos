@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { getToken } from "@/features/auth/api/auth"
 import { isAuthError } from "@/features/auth/api/authErrors"
+import { LoadingPage } from "@/pages/loading/LoadingPage"
 import {
   createAccount,
   joinAccount,
@@ -43,7 +44,7 @@ const AUTOMATIC_RETRY_DELAY_MS = 10_000
 const AppContext = createContext<AppState | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [serviceUnavailable, setServiceUnavailable] = useState(false)
@@ -220,6 +221,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   if (serviceUnavailable) {
     return <ServiceUnavailableScreen reason="service" onRetry={bootstrap} />
+  }
+
+  if (loading || context === null) {
+    return <LoadingPage label={t("common.loading")} />
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

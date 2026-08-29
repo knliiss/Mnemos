@@ -25,6 +25,7 @@ html.telegram-mini-app .service-unavailable {
   );
 }
 
+html.telegram-mini-app .notification,
 html.telegram-mini-app .realtime-spotlight {
   top: max(12px, var(--mnemos-telegram-top-clearance));
 }
