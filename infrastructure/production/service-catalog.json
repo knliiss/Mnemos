@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "services": {
+    "account-service": {
+      "kind": "application",
+      "image": "mnemos-account-service",
+      "dockerfile": "apps/account-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:account-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_account-service"
+      }
+    },
+    "bet-service": {
+      "kind": "application",
+      "image": "mnemos-bet-service",
+      "dockerfile": "apps/bet-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:bet-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_bet-service"
+      }
+    },
+    "event-service": {
+      "kind": "application",
+      "image": "mnemos-event-service",
+      "dockerfile": "apps/event-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:event-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_event-service"
+      }
+    },
+    "gateway-service": {
+      "kind": "application",
+      "image": "mnemos-gateway-service",
+      "dockerfile": "apps/gateway-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:gateway-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_gateway-service"
+      }
+    },
+    "moderation-service": {
+      "kind": "application",
+      "image": "mnemos-moderation-service",
+      "dockerfile": "apps/moderation-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:moderation-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_moderation-service"
+      }
+    },
+    "notification-service": {
+      "kind": "application",
+      "image": "mnemos-notification-service",
+      "dockerfile": "apps/notification-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:notification-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_notification-service"
+      }
+    },
+    "payment-service": {
+      "kind": "application",
+      "image": "mnemos-payment-service",
+      "dockerfile": "apps/payment-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:payment-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_payment-service"
+      }
+    },
+    "personalization-service": {
+      "kind": "application",
+      "image": "mnemos-personalization-service",
+      "dockerfile": "apps/personalization-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:personalization-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_personalization-service"
+      }
+    },
+    "player-directory-service": {
+      "kind": "application",
+      "image": "mnemos-player-directory-service",
+      "dockerfile": "apps/player-directory-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:player-directory-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_player-directory-service"
+      }
+    },
+    "profile-service": {
+      "kind": "application",
+      "image": "mnemos-profile-service",
+      "dockerfile": "apps/profile-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:profile-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_profile-service"
+      }
+    },
+    "realtime-service": {
+      "kind": "application",
+      "image": "mnemos-realtime-service",
+      "dockerfile": "apps/realtime-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:realtime-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_realtime-service"
+      }
+    },
+    "reward-service": {
+      "kind": "application",
+      "image": "mnemos-reward-service",
+      "dockerfile": "apps/reward-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:reward-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_reward-service"
+      }
+    },
+    "social-service": {
+      "kind": "application",
+      "image": "mnemos-social-service",
+      "dockerfile": "apps/social-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:social-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_social-service"
+      }
+    },
+    "wallet-service": {
+      "kind": "application",
+      "image": "mnemos-wallet-service",
+      "dockerfile": "apps/wallet-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:wallet-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_wallet-service"
+      }
+    },
+    "keycloak": {
+      "kind": "infrastructure",
+      "image": "mnemos-keycloak",
+      "dockerfile": "infrastructure/keycloak/Dockerfile",
+      "context": ".",
+      "gradle_task": ":keycloak-extensions:telegram-authenticator:jar",
+      "build_args": {
+        "KEYCLOAK_VERSION": "KEYCLOAK_VERSION"
+      },
+      "deploy": {
+        "type": "compose",
+        "name": "mnemos-keycloak"
+      }
+    },
+    "keycloak-config": {
+      "kind": "infrastructure",
+      "image": "mnemos-keycloak-config",
+      "dockerfile": "infrastructure/keycloak-config/Dockerfile",
+      "context": ".",
+      "build_args": {
+        "KEYCLOAK_CONFIG_CLI_VERSION": "KEYCLOAK_CONFIG_CLI_VERSION"
+      }
+    },
+    "postgres-security-init": {
+      "kind": "infrastructure",
+      "image": "mnemos-postgres-security-init",
+      "dockerfile": "infrastructure/postgres/Dockerfile.security-init",
+      "context": ".",
+      "build_args": {
+        "POSTGRES_VERSION": "POSTGRES_VERSION"
+      }
+    },
+    "redis": {
+      "kind": "infrastructure",
+      "image": "mnemos-redis",
+      "dockerfile": "infrastructure/redis/Dockerfile",
+      "context": ".",
+      "build_args": {
+        "REDIS_VERSION": "REDIS_VERSION"
+      }
+    },
+    "kafka-tls-init": {
+      "kind": "infrastructure",
+      "image": "mnemos-kafka-tls-init",
+      "dockerfile": "infrastructure/kafka/Dockerfile.tls-init",
+      "context": ".",
+      "build_args": {
+        "KAFKA_VERSION": "KAFKA_VERSION"
+      }
+    },
+    "kafka-init": {
+      "kind": "infrastructure",
+      "image": "mnemos-kafka-init",
+      "dockerfile": "infrastructure/kafka/Dockerfile.init",
+      "context": "infrastructure/kafka",
+      "build_args": {
+        "KAFKA_VERSION": "KAFKA_VERSION"
+      }
+    },
+    "minio-init": {
+      "kind": "infrastructure",
+      "image": "mnemos-minio-init",
+      "dockerfile": "infrastructure/minio-init/Dockerfile",
+      "context": ".",
+      "build_args": {
+        "MINIO_MC_VERSION": "MINIO_MC_VERSION"
+      }
+    }
+  }
+}

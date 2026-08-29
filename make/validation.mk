@@ -61,5 +61,52 @@ make-verify:
 			exit 1; \
 		}; \
 	done
+	@sh -n scripts/wait-production-service.sh
+	@sh -n scripts/wait-production-container.sh
+	@sh -n scripts/verify-production-deployment-executor-security.sh
+	@sh -n scripts/verify-production-deployment-workflow-boundary.sh
+	@sh -n scripts/verify-production-targeted-execution-security.sh
+	@python3 -m py_compile scripts/resolve_backend_ci_changes.py
+	@python3 -m py_compile scripts/verify-backend-ci-changes.py
+	@python3 -m py_compile scripts/production_audit_bundle.py
+	@python3 -m py_compile scripts/verify-production-audit-bundle.py
+	@python3 -m py_compile scripts/production_deployment_executor.py
+	@python3 -m py_compile scripts/production_deployment_store.py
+	@python3 -m py_compile scripts/production_release_plan.py
+	@python3 -m py_compile scripts/production_source_revision.py
+	@python3 -m py_compile scripts/verify-production-release-plan.py
+	@python3 -m py_compile scripts/verify-production-source-revision.py
+	@python3 -m py_compile scripts/verify-production-targeted-execution-fixture.py
+	@python3 -m py_compile scripts/verify-production-runtime-baseline.py
+	@python3 -m py_compile scripts/production_runtime_state.py
+	@python3 scripts/verify-backend-ci-changes.py
+	@python3 scripts/verify-production-audit-bundle.py
 	@python3 scripts/verify-production-swarm-stack-normalizer.py
+	@python3 scripts/verify-production-service-catalog.py
+	@python3 scripts/verify-production-release-manifest.py
+	@python3 scripts/verify-production-service-changes.py
+	@python3 scripts/verify-production-deployment-plan.py
+	@python3 scripts/verify-production-deployment-state.py
+	@python3 scripts/verify-production-deployment-store.py
+	@python3 scripts/verify-production-hotfix-plan.py
+	@python3 scripts/verify-production-release-plan.py
+	@python3 scripts/verify-production-source-revision.py
+	@python3 scripts/verify-production-deployment-executor.py
+	@python3 scripts/verify-production-targeted-execution-fixture.py
+	@python3 scripts/verify-production-runtime-state.py
+	@python3 scripts/verify-production-stack-manifest-renderer.py
+	@sh scripts/verify-production-hotfix-plan-security.sh
+	@sh scripts/verify-production-service-image-security.sh
+	@sh scripts/verify-production-deployment-executor-security.sh
+	@sh scripts/verify-production-deployment-workflow-boundary.sh
+	@sh scripts/verify-production-targeted-execution-security.sh
+	@set -e; \
+	for service in $$(python3 scripts/production_service_catalog.py list); do \
+		python3 scripts/publish-production-service-image.py \
+			--service "$$service" \
+			--registry "example.invalid/mnemos" \
+			--tag "0000000000000000000000000000000000000000" \
+			--dry-run \
+			--skip-assemble >/dev/null; \
+	done
 	$(call success,make,target wiring verified)

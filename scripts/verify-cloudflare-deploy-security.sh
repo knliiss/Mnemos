@@ -5,6 +5,7 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/cloudflare-pages.yml"
 FRONTEND_RUNNER='runs-on: [self-hosted, Linux, X64, mnemos-frontend]'
+DEPLOY_GATE="vars.MNEMOS_CLOUDFLARE_PRODUCTION_DEPLOY_ENABLED == 'true'"
 
 fail() {
     echo "$1" >&2
@@ -31,6 +32,19 @@ extract_job() {
 
 [ -f "$WORKFLOW" ] || fail "Cloudflare Pages workflow is missing"
 
+if grep -Eq '^  (push|pull_request|workflow_run|schedule|repository_dispatch):' "$WORKFLOW"; then
+    fail "Cloudflare production deployment must remain workflow_dispatch-only"
+fi
+
+grep -Fq '  workflow_dispatch:' "$WORKFLOW" ||
+    fail "Cloudflare production deployment must keep workflow_dispatch"
+
+grep -Fq '  group: cloudflare-pages-production' "$WORKFLOW" ||
+    fail "Cloudflare production deployment must keep global concurrency"
+
+grep -Fq '  cancel-in-progress: false' "$WORKFLOW" ||
+    fail "Cloudflare production deployment must not cancel an in-flight production deployment"
+
 top_level_permissions="$(awk '
     /^permissions:$/ {
         in_permissions = 1
@@ -48,7 +62,6 @@ top_level_permissions="$(awk '
 
 build_job="$(extract_job build)"
 deploy_job="$(extract_job deploy)"
-report_job="$(extract_job report)"
 
 printf '%s\n' "$top_level_permissions" | grep -Fq '  contents: read' ||
     fail "Cloudflare workflow must keep top-level contents read permission"
@@ -57,14 +70,11 @@ if printf '%s\n' "$top_level_permissions" | grep -Eq '(deployments|statuses):[[:
     fail "Cloudflare workflow must not grant deployment or status writes at workflow scope"
 fi
 
-printf '%s\n' "$build_job" | grep -Fq "if: github.ref == 'refs/heads/master'" ||
-    fail "Cloudflare production build must be restricted to master"
+printf '%s\n' "$build_job" | grep -Fq "$DEPLOY_GATE" ||
+    fail "Cloudflare production build must be disabled by the explicit repository gate"
 
-printf '%s\n' "$deploy_job" | grep -Fq "if: github.ref == 'refs/heads/master'" ||
-    fail "Cloudflare production deploy must be restricted to master"
-
-printf '%s\n' "$report_job" | grep -Fq "github.ref == 'refs/heads/master'" ||
-    fail "Cloudflare deployment status reporting must be restricted to master"
+printf '%s\n' "$deploy_job" | grep -Fq "$DEPLOY_GATE" ||
+    fail "Cloudflare production deploy must be disabled by the explicit repository gate"
 
 printf '%s\n' "$build_job" | grep -Fq "$FRONTEND_RUNNER" ||
     fail "Cloudflare production build must use the trusted frontend runner"
@@ -72,21 +82,28 @@ printf '%s\n' "$build_job" | grep -Fq "$FRONTEND_RUNNER" ||
 printf '%s\n' "$deploy_job" | grep -Fq "$FRONTEND_RUNNER" ||
     fail "Cloudflare production deploy must use the trusted frontend runner"
 
-printf '%s\n' "$report_job" | grep -Fq "$FRONTEND_RUNNER" ||
-    fail "Cloudflare deployment status reporting must use the trusted frontend runner"
+printf '%s\n' "$deploy_job" | grep -Fq 'environment: production' ||
+    fail "Cloudflare production deploy must require the production environment boundary"
 
 if printf '%s\n' "$build_job" | grep -Fq 'CLOUDFLARE_API_TOKEN'; then
     fail "Cloudflare API token must not be exposed to the production build job"
 fi
 
+printf '%s\n' "$build_job" | grep -Fq 'git merge-base --is-ancestor "$SOURCE_SHA" origin/master' ||
+    fail "Cloudflare source SHA must be verified against trusted master history"
+
+printf '%s\n' "$build_job" | grep -Fq 'DEPLOY $SOURCE_SHA' ||
+    fail "Cloudflare production deployment must require exact source-SHA confirmation"
+
 printf '%s\n' "$deploy_job" | grep -Fq 'deployments: write' ||
     fail "Cloudflare deploy job must own deployment write permission"
 
-if printf '%s\n' "$deploy_job" | grep -Fq 'statuses: write'; then
-    fail "Cloudflare deploy job must not receive status write permission"
+if grep -Eq -- '--request[[:space:]]+(POST|PATCH|PUT|DELETE)|dns_records|pages/projects/.*/domains' "$WORKFLOW"; then
+    fail "Cloudflare Pages workflow must not mutate project, domain, or DNS configuration"
 fi
 
-printf '%s\n' "$report_job" | grep -Fq 'statuses: write' ||
-    fail "Cloudflare report job must own status write permission"
+if grep -Eq '^  report:' "$WORKFLOW"; then
+    fail "Cloudflare production deployment must not publish mutable commit status from the production runner"
+fi
 
 echo "Cloudflare production deployment security verified"
