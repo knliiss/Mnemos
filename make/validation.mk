@@ -64,6 +64,7 @@ make-verify:
 	@sh -n scripts/wait-production-service.sh
 	@sh -n scripts/wait-production-container.sh
 	@sh -n scripts/verify-production-deployment-executor-security.sh
+	@sh -n scripts/verify-production-deployment-workflow-boundary.sh
 	@python3 -m py_compile scripts/production_deployment_executor.py
 	@python3 -m py_compile scripts/production_deployment_store.py
 	@python3 -m py_compile scripts/verify-production-runtime-baseline.py
@@ -82,6 +83,7 @@ make-verify:
 	@sh scripts/verify-production-hotfix-plan-security.sh
 	@sh scripts/verify-production-service-image-security.sh
 	@sh scripts/verify-production-deployment-executor-security.sh
+	@sh scripts/verify-production-deployment-workflow-boundary.sh
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
 		python3 scripts/publish-production-service-image.py \
