@@ -5,6 +5,7 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
+SERVICE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-service-image.yml"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
 
 fail() {
@@ -20,27 +21,55 @@ uses_production_runner() {
         "$workflow_path"
 }
 
-[ -f "$WORKFLOW" ] || fail "Production image batch workflow is missing"
+verify_manual_image_workflow() {
+    workflow_path="$1"
+    workflow_name="$2"
+
+    [ -f "$workflow_path" ] || fail "$workflow_name is missing"
+
+    workflow_content="$(cat "$workflow_path")"
+
+    printf '%s\n' "$workflow_content" | grep -Fq 'workflow_dispatch:' ||
+        fail "$workflow_name must be manually dispatched"
+
+    if printf '%s\n' "$workflow_content" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_run):'; then
+        fail "$workflow_name must not have automatic triggers"
+    fi
+
+    if uses_production_runner "$workflow_path"; then
+        fail "$workflow_name must not target the production runner"
+    fi
+
+    printf '%s\n' "$workflow_content" | grep -Fq 'mnemos-backend' ||
+        fail "$workflow_name must use the hardened backend runner"
+
+    printf '%s\n' "$workflow_content" | grep -Fq 'packages: write' ||
+        fail "$workflow_name must explicitly own package write permission"
+
+    for forbidden in \
+        'docker service update' \
+        'docker stack deploy' \
+        'scripts/start-production-infra.sh' \
+        'scripts/deploy-production-apps.sh' \
+        'production_deployment_executor.py --execute' \
+        '/opt/mnemos/current' \
+        '/etc/mnemos'; do
+        if printf '%s\n' "$workflow_content" | grep -Fq "$forbidden"; then
+            fail "$workflow_name contains runtime mutation capability: $forbidden"
+        fi
+    done
+}
+
+verify_manual_image_workflow "$WORKFLOW" "Production image batch"
+verify_manual_image_workflow "$SERVICE_WORKFLOW" "Production service image workflow"
+
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'workflow_dispatch:' ||
-    fail "Production image batch must be manually dispatched"
-
-if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_run):'; then
-    fail "Production image batch must not have automatic triggers"
-fi
-
-if uses_production_runner "$WORKFLOW"; then
-    fail "Production image batch must not target the production runner"
-fi
+SERVICE_WORKFLOW_CONTENT="$(cat "$SERVICE_WORKFLOW")"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'runs-on: [self-hosted, Linux, X64, mnemos-backend]' ||
     fail "Production image publishing must use the hardened backend runner"
-
-printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'packages: write' ||
-    fail "Production image publishing must explicitly own package write permission"
 
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'source_sha:' ||
     fail "Production image batch must require an explicit immutable source SHA"
@@ -66,18 +95,36 @@ printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/
 printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
     fail "Production image publishing credentials must be removed after publishing"
 
-for forbidden in \
-    'docker service update' \
-    'docker stack deploy' \
-    'scripts/start-production-infra.sh' \
-    'scripts/deploy-production-apps.sh' \
-    'production_deployment_executor.py --execute' \
-    '/opt/mnemos/current' \
-    '/etc/mnemos'; do
-    if printf '%s\n' "$WORKFLOW_CONTENT" | grep -Fq "$forbidden"; then
-        fail "Production image batch contains runtime mutation capability: $forbidden"
-    fi
-done
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'source_sha:' ||
+    fail "Production service image workflow must require an explicit immutable source SHA"
+
+if printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'source_ref:'; then
+    fail "Production service image workflow must not accept arbitrary Git refs"
+fi
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'python3 scripts/production_source_revision.py' ||
+    fail "Production service image workflow must validate trusted source history"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq -- '--trusted-ref origin/master' ||
+    fail "Production service image workflow must trust only master history"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'git checkout --detach "$SOURCE_SHA"' ||
+    fail "Production service image workflow must checkout the immutable source SHA detached"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'if [ "$resolved_sha" != "$SOURCE_SHA" ]; then' ||
+    fail "Production service image workflow must verify the detached checkout SHA"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'python3 scripts/publish-production-service-image.py' ||
+    fail "Production service image workflow must use the catalog-backed per-service publisher"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq -- '--tag "${{ steps.source.outputs.sha }}"' ||
+    fail "Production service image workflow must tag the image with its immutable source SHA"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'DOCKER_CONFIG: ${{ runner.temp }}/mnemos-service-image-docker-auth' ||
+    fail "Production service image credentials must use an isolated Docker config"
+
+printf '%s\n' "$SERVICE_WORKFLOW_CONTENT" | grep -Fq 'rm -rf "$DOCKER_CONFIG"' ||
+    fail "Production service image credentials must be removed after publishing"
 
 if grep -Fq 'https://app.knalis.rest' "$KEYCLOAK_CLIENTS"; then
     fail "Keycloak client origins must be parameterized instead of hardcoded"
@@ -86,4 +133,4 @@ fi
 grep -Fq '$(env:MNEMOS_FRONTEND_ORIGIN)' "$KEYCLOAK_CLIENTS" ||
     fail "Keycloak client configuration must use MNEMOS_FRONTEND_ORIGIN"
 
-echo "Production image batch and Keycloak origin boundaries verified"
+echo "Production image workflows and Keycloak origin boundaries verified"
