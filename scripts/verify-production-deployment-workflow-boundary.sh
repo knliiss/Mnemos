@@ -30,6 +30,7 @@ done
 
 for workflow in \
     production-hotfix-plan.yml \
+    production-images.yml \
     production-service-image.yml; do
     path="$WORKFLOW_DIR/$workflow"
     [ -f "$path" ] || fail "Expected production workflow is missing: $workflow"
@@ -43,14 +44,14 @@ for workflow in \
     if printf '%s\n' "$content" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_run):'; then
         fail "Production workflow must not gain an automatic trigger: $workflow"
     fi
+
+    if uses_production_runner "$path"; then
+        fail "CI-safe production workflow must not target the production runner: $workflow"
+    fi
 done
 
 HOTFIX_PLAN_PATH="$WORKFLOW_DIR/production-hotfix-plan.yml"
 HOTFIX_PLAN_CONTENT="$(cat "$HOTFIX_PLAN_PATH")"
-
-if uses_production_runner "$HOTFIX_PLAN_PATH"; then
-    fail "Plan-only hotfix workflow must not target the production runner"
-fi
 
 for forbidden in \
     'docker service update' \
@@ -62,10 +63,18 @@ for forbidden in \
     fi
 done
 
-SERVICE_IMAGE_PATH="$WORKFLOW_DIR/production-service-image.yml"
+IMAGE_BATCH_PATH="$WORKFLOW_DIR/production-images.yml"
+IMAGE_BATCH_CONTENT="$(cat "$IMAGE_BATCH_PATH")"
 
-if uses_production_runner "$SERVICE_IMAGE_PATH"; then
-    fail "Service image workflow must not target the production runner"
-fi
+for forbidden in \
+    'docker service update' \
+    'docker stack deploy' \
+    'scripts/start-production-infra.sh' \
+    'scripts/deploy-production-apps.sh' \
+    'production_deployment_executor.py --execute'; do
+    if printf '%s\n' "$IMAGE_BATCH_CONTENT" | grep -Fq "$forbidden"; then
+        fail "Image-only workflow contains production mutation command: $forbidden"
+    fi
+done
 
 echo "Production deployment workflow safety boundary verified"
