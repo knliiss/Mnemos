@@ -37,7 +37,7 @@ object InternalEventFeedApiMapper {
 
     fun EventFeedPage.toInternalResponse(): InternalEventFeedResponse =
         InternalEventFeedResponse(
-            items = items.map(EventFeedItem::toInternalResponse),
+            items = items.map { item -> item.toInternalResponse() },
             cursor = cursor?.id,
         )
 
