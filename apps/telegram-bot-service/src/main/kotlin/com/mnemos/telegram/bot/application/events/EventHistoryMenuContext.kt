@@ -34,11 +34,9 @@ object EventHistoryMenuContext {
     fun search(
         context: Map<String, String>,
         query: String,
-    ): Map<String, String> =
-        resetPagination(context) + (SEARCH_KEY to query)
+    ): Map<String, String> = resetPagination(context) + (SEARCH_KEY to query)
 
-    fun clearSearch(context: Map<String, String>): Map<String, String> =
-        resetPagination(context) - SEARCH_KEY
+    fun clearSearch(context: Map<String, String>): Map<String, String> = resetPagination(context) - SEARCH_KEY
 
     fun searchQuery(context: Map<String, String>): String? = context[SEARCH_KEY]
 
