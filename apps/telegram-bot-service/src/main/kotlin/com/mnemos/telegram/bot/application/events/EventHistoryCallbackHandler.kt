@@ -49,6 +49,12 @@ class EventHistoryCallbackHandler(
             }
         }
 
+        EventHistoryCallbackData.selectedSort(context.data)?.let { sort ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.sort(current, sort)
+            }
+        }
+
         EventHistoryCallbackData.nextCursor(context.data)?.let { cursor ->
             return updateContext(context) { current ->
                 EventHistoryMenuContext.next(current, cursor)
