@@ -206,8 +206,16 @@ object EventHistoryMenuMessageRenderer {
             parseMode = OutboundTelegramMessageParseMode.HTML,
             actions =
                 data?.let { feed -> renderFeedActions(feed, null) }
-                    ?: genericUnavailableActions,
+                    ?: genericUnavailableActions(),
         )
+
+    private fun genericUnavailableActions(): List<OutboundTelegramMessageAction> =
+        listOf(
+            OutboundTelegramMessageAction.Callback(
+                "🔄 Обновить",
+                EventHistoryCallbackData.REFRESH,
+            ),
+        ) + commonNavigationActions
 
     private fun escapeHtml(value: String): String =
         value
@@ -227,14 +235,6 @@ object EventHistoryMenuMessageRenderer {
             ),
             OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
         )
-
-    private val genericUnavailableActions =
-        listOf(
-            OutboundTelegramMessageAction.Callback(
-                "🔄 Обновить",
-                EventHistoryCallbackData.REFRESH,
-            ),
-        ) + commonNavigationActions
 
     private val commonNavigationActions =
         listOf(
