@@ -60,14 +60,11 @@ class SettingsGatewayAdapterTest {
     private class FakePersonalizationServiceClient(
         private val selection: InternalTelegramNotificationPackSelectionResponse?,
     ) : PersonalizationServiceClient {
-        override fun getNotificationPackSelection(telegramId: Long): InternalTelegramNotificationPackSelectionResponse? {
-            return selection
-        }
+        override fun getNotificationPackSelection(telegramId: Long): InternalTelegramNotificationPackSelectionResponse? = selection
     }
 
     private class FailingPersonalizationServiceClient : PersonalizationServiceClient {
-        override fun getNotificationPackSelection(telegramId: Long): InternalTelegramNotificationPackSelectionResponse {
+        override fun getNotificationPackSelection(telegramId: Long): InternalTelegramNotificationPackSelectionResponse =
             error("personalization unavailable")
-        }
     }
 }
