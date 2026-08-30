@@ -1,8 +1,8 @@
 package com.mnemos.event.adapter.inbound.http.internal
 
-import com.mnemos.event.contracts.internal.v1.InternalWipeResponse as InternalWipeContractResponse
 import com.mnemos.event.domain.wipe.model.Wipe
 import java.time.Instant
+import com.mnemos.event.contracts.internal.v1.InternalWipeResponse as InternalWipeContractResponse
 
 object InternalWipeApiMapper {
     fun Wipe.toResponse(): InternalWipeResponse =
