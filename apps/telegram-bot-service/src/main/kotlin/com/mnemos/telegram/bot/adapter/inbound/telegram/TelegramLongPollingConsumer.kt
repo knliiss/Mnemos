@@ -4,6 +4,8 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramCallbackRouter
 import com.mnemos.telegram.bot.application.command.TelegramCommandContext
 import com.mnemos.telegram.bot.application.command.TelegramCommandRouter
+import com.mnemos.telegram.bot.application.input.TelegramTextInputContext
+import com.mnemos.telegram.bot.application.input.TelegramTextInputRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.payment.HandleTelegramStarPaymentUpdateService
 import com.pengrad.telegrambot.ExceptionHandler
@@ -27,6 +29,7 @@ import java.net.SocketTimeoutException
 class TelegramLongPollingConsumer(
     private val bot: TelegramBot,
     private val commandRouter: TelegramCommandRouter,
+    private val textInputRouter: TelegramTextInputRouter,
     private val callbackRouter: TelegramCallbackRouter,
     private val starPaymentService: HandleTelegramStarPaymentUpdateService,
 ) : ApplicationRunner,
@@ -84,12 +87,21 @@ class TelegramLongPollingConsumer(
 
         val text = message.text()?.trim() ?: return TelegramDeliveryResult.Delivered
 
-        return commandRouter.route(
-            TelegramCommandContext(
+        if (text.startsWith('/')) {
+            return commandRouter.route(
+                TelegramCommandContext(
+                    telegramId = message.chat().id(),
+                    text = text,
+                    firstName = message.from()?.firstName(),
+                    username = message.from()?.username(),
+                ),
+            )
+        }
+
+        return textInputRouter.route(
+            TelegramTextInputContext(
                 telegramId = message.chat().id(),
                 text = text,
-                firstName = message.from()?.firstName(),
-                username = message.from()?.username(),
             ),
         )
     }

@@ -5,6 +5,7 @@ data class TelegramMenuSession(
     val menuMessageId: Int? = null,
     val currentScreen: TelegramMenuScreen = TelegramMenuScreen.HOME,
     val navigationStack: List<TelegramMenuScreen> = emptyList(),
+    val pendingInput: TelegramPendingInput? = null,
     val screenContext: Map<String, String> = emptyMap(),
 ) {
     init {

@@ -2,32 +2,76 @@ package com.mnemos.telegram.bot.adapter.out.redis.menu
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Base64
 
 object TelegramMenuSessionRedisCodec {
     fun encode(session: TelegramMenuSession): String =
         listOf(
-            FORMAT_VERSION,
+            CURRENT_FORMAT_VERSION,
             session.telegramId.toString(),
             session.menuMessageId?.toString().orEmpty(),
             session.currentScreen.name,
             session.navigationStack.joinToString(",") { screen -> screen.name },
+            session.pendingInput?.name.orEmpty(),
             encodeContext(session.screenContext),
         ).joinToString("\n")
 
     fun decode(encoded: String): TelegramMenuSession? {
         val fields = encoded.split('\n')
 
-        if (fields.size != FIELD_COUNT || fields[0] != FORMAT_VERSION) {
+        return when (fields.firstOrNull()) {
+            FORMAT_VERSION_1 -> decodeVersion1(fields)
+            CURRENT_FORMAT_VERSION -> decodeVersion2(fields)
+            else -> null
+        }
+    }
+
+    private fun decodeVersion1(fields: List<String>): TelegramMenuSession? {
+        if (fields.size != VERSION_1_FIELD_COUNT) {
             return null
         }
 
-        val telegramId = fields[1].toLongOrNull()?.takeIf { value -> value > 0 } ?: return null
-        val menuMessageId = decodeMessageId(fields[2]) ?: return null
-        val currentScreen = decodeScreen(fields[3]) ?: return null
-        val navigationStack = decodeNavigationStack(fields[4]) ?: return null
-        val screenContext = decodeContext(fields[5]) ?: return null
+        return decodeSession(
+            telegramIdField = fields[1],
+            messageIdField = fields[2],
+            screenField = fields[3],
+            navigationField = fields[4],
+            pendingInputField = "",
+            contextField = fields[5],
+        )
+    }
+
+    private fun decodeVersion2(fields: List<String>): TelegramMenuSession? {
+        if (fields.size != VERSION_2_FIELD_COUNT) {
+            return null
+        }
+
+        return decodeSession(
+            telegramIdField = fields[1],
+            messageIdField = fields[2],
+            screenField = fields[3],
+            navigationField = fields[4],
+            pendingInputField = fields[5],
+            contextField = fields[6],
+        )
+    }
+
+    private fun decodeSession(
+        telegramIdField: String,
+        messageIdField: String,
+        screenField: String,
+        navigationField: String,
+        pendingInputField: String,
+        contextField: String,
+    ): TelegramMenuSession? {
+        val telegramId = telegramIdField.toLongOrNull()?.takeIf { value -> value > 0 } ?: return null
+        val menuMessageId = decodeMessageId(messageIdField) ?: return null
+        val currentScreen = decodeScreen(screenField) ?: return null
+        val navigationStack = decodeNavigationStack(navigationField) ?: return null
+        val pendingInput = decodePendingInput(pendingInputField) ?: return null
+        val screenContext = decodeContext(contextField) ?: return null
 
         return runCatching {
             TelegramMenuSession(
@@ -35,6 +79,7 @@ object TelegramMenuSessionRedisCodec {
                 menuMessageId = menuMessageId.value,
                 currentScreen = currentScreen,
                 navigationStack = navigationStack,
+                pendingInput = pendingInput.value,
                 screenContext = screenContext,
             )
         }.getOrNull()
@@ -67,6 +112,19 @@ object TelegramMenuSessionRedisCodec {
         }
 
         return screens.filterNotNull()
+    }
+
+    private fun decodePendingInput(encoded: String): DecodedPendingInput? {
+        if (encoded.isBlank()) {
+            return DecodedPendingInput(null)
+        }
+
+        val pendingInput =
+            runCatching {
+                TelegramPendingInput.valueOf(encoded)
+            }.getOrNull() ?: return null
+
+        return DecodedPendingInput(pendingInput)
     }
 
     private fun encodeContext(context: Map<String, String>): String =
@@ -108,8 +166,14 @@ object TelegramMenuSessionRedisCodec {
         val value: Int?,
     )
 
-    private const val FORMAT_VERSION = "1"
-    private const val FIELD_COUNT = 6
+    private data class DecodedPendingInput(
+        val value: TelegramPendingInput?,
+    )
+
+    private const val FORMAT_VERSION_1 = "1"
+    private const val CURRENT_FORMAT_VERSION = "2"
+    private const val VERSION_1_FIELD_COUNT = 6
+    private const val VERSION_2_FIELD_COUNT = 7
 
     private val encoder = Base64.getUrlEncoder().withoutPadding()
     private val decoder = Base64.getUrlDecoder()

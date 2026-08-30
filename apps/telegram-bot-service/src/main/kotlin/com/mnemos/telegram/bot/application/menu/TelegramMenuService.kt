@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.application.menu
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuMessageRenderer
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
@@ -65,6 +66,7 @@ class TelegramMenuService(
                 menuMessageId = messageId,
                 currentScreen = screen,
                 navigationStack = navigationStack,
+                pendingInput = null,
                 screenContext = emptyMap(),
             )
 
@@ -76,34 +78,72 @@ class TelegramMenuService(
         messageId: Int,
         expectedScreen: TelegramMenuScreen,
         update: (Map<String, String>) -> Map<String, String>,
-    ): TelegramDeliveryResult {
-        recipientGateway.activate(telegramId)
-
-        val currentSession = sessionRepository.find(telegramId)
-
-        if (currentSession != null && currentSession.menuMessageId != null && currentSession.menuMessageId != messageId) {
-            return TelegramDeliveryResult.Delivered
+    ): TelegramDeliveryResult =
+        updateFromMenuMessage(
+            telegramId = telegramId,
+            messageId = messageId,
+            expectedScreen = expectedScreen,
+        ) { session ->
+            session.copy(screenContext = update(session.screenContext))
         }
 
-        if (currentSession != null && currentSession.currentScreen != expectedScreen) {
-            return TelegramDeliveryResult.Delivered
+    fun requestTextInput(
+        telegramId: Long,
+        messageId: Int,
+        expectedScreen: TelegramMenuScreen,
+        pendingInput: TelegramPendingInput,
+    ): TelegramDeliveryResult =
+        updateFromMenuMessage(
+            telegramId = telegramId,
+            messageId = messageId,
+            expectedScreen = expectedScreen,
+        ) { session ->
+            session.copy(pendingInput = pendingInput)
         }
 
-        val baseSession =
-            currentSession
-                ?: TelegramMenuSession(
-                    telegramId = telegramId,
-                    menuMessageId = messageId,
-                    currentScreen = expectedScreen,
-                )
-        val nextSession =
-            baseSession.copy(
-                menuMessageId = messageId,
-                screenContext = update(baseSession.screenContext),
+    fun cancelTextInput(
+        telegramId: Long,
+        messageId: Int,
+        expectedScreen: TelegramMenuScreen,
+    ): TelegramDeliveryResult =
+        updateFromMenuMessage(
+            telegramId = telegramId,
+            messageId = messageId,
+            expectedScreen = expectedScreen,
+        ) { session ->
+            session.copy(pendingInput = null)
+        }
+
+    fun completeTextInput(
+        telegramId: Long,
+        expectedScreen: TelegramMenuScreen,
+        expectedInput: TelegramPendingInput,
+        updateContext: (Map<String, String>) -> Map<String, String>,
+    ): TelegramDeliveryResult =
+        updateStoredPendingInput(
+            telegramId = telegramId,
+            expectedScreen = expectedScreen,
+            expectedInput = expectedInput,
+        ) { session ->
+            session.copy(
+                pendingInput = null,
+                screenContext = updateContext(session.screenContext),
             )
+        }
 
-        return deliver(nextSession, messageId)
-    }
+    fun updatePendingTextInputContext(
+        telegramId: Long,
+        expectedScreen: TelegramMenuScreen,
+        expectedInput: TelegramPendingInput,
+        updateContext: (Map<String, String>) -> Map<String, String>,
+    ): TelegramDeliveryResult =
+        updateStoredPendingInput(
+            telegramId = telegramId,
+            expectedScreen = expectedScreen,
+            expectedInput = expectedInput,
+        ) { session ->
+            session.copy(screenContext = updateContext(session.screenContext))
+        }
 
     fun home(
         telegramId: Long,
@@ -144,10 +184,63 @@ class TelegramMenuService(
                 menuMessageId = messageId,
                 currentScreen = previousScreen,
                 navigationStack = nextStack,
+                pendingInput = null,
                 screenContext = emptyMap(),
             )
 
         return deliver(nextSession, messageId)
+    }
+
+    private fun updateFromMenuMessage(
+        telegramId: Long,
+        messageId: Int,
+        expectedScreen: TelegramMenuScreen,
+        update: (TelegramMenuSession) -> TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        recipientGateway.activate(telegramId)
+
+        val currentSession = sessionRepository.find(telegramId)
+
+        if (currentSession != null && currentSession.menuMessageId != null && currentSession.menuMessageId != messageId) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        if (currentSession != null && currentSession.currentScreen != expectedScreen) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        val baseSession =
+            currentSession
+                ?: TelegramMenuSession(
+                    telegramId = telegramId,
+                    menuMessageId = messageId,
+                    currentScreen = expectedScreen,
+                )
+        val nextSession =
+            update(baseSession).copy(
+                menuMessageId = messageId,
+                currentScreen = expectedScreen,
+            )
+
+        return deliver(nextSession, messageId)
+    }
+
+    private fun updateStoredPendingInput(
+        telegramId: Long,
+        expectedScreen: TelegramMenuScreen,
+        expectedInput: TelegramPendingInput,
+        update: (TelegramMenuSession) -> TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        recipientGateway.activate(telegramId)
+
+        val currentSession = sessionRepository.find(telegramId)
+            ?: return TelegramDeliveryResult.Delivered
+
+        if (currentSession.currentScreen != expectedScreen || currentSession.pendingInput != expectedInput) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return deliver(update(currentSession), currentSession.menuMessageId)
     }
 
     private fun deliver(
