@@ -103,9 +103,11 @@ object TelegramMenuSessionRedisCodec {
     private fun encodeToken(value: String): String =
         encoder.encodeToString(value.toByteArray(StandardCharsets.UTF_8))
 
-    private fun decodeToken(value: String): String? = runCatching {
-        String(decoder.decode(value), StandardCharsets.UTF_8)
-    }.getOrNull()
+    private fun decodeToken(value: String): String? {
+        return runCatching {
+            String(decoder.decode(value), StandardCharsets.UTF_8)
+        }.getOrNull()
+    }
 
     private data class DecodedMessageId(
         val value: Int?,
