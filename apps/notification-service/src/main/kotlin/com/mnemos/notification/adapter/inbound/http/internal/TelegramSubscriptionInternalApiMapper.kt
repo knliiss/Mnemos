@@ -47,7 +47,7 @@ object TelegramSubscriptionInternalApiMapper {
         raidLocations: Set<Int> = emptySet(),
     ): TelegramSubscriptionResponse =
         TelegramSubscriptionResponse(
-            id = id.value,
+            id = id.id,
             type = type.toContract(),
             createdAt = createdAt,
             droppedFor = droppedFor,
