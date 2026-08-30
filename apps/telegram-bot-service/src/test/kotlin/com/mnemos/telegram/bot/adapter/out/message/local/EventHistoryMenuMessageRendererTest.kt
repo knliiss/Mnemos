@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.events.EventHistoryCallbackData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItem
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryPage
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
@@ -24,6 +26,13 @@ class EventHistoryMenuMessageRendererTest {
                     filter = EventHistoryFilter.ALL,
                     search = "Sword <Art>",
                     sort = EventHistorySort.NEWEST,
+                    itemRarity = null,
+                    itemType = null,
+                    boosterType = null,
+                    globalType = null,
+                    raidLocation = null,
+                    raidLocationPage = 0,
+                    wipeId = null,
                     result =
                         EventHistoryResult.Available(
                             EventHistoryPage(
@@ -66,6 +75,45 @@ class EventHistoryMenuMessageRendererTest {
         assertTrue(
             callbacks.any { action ->
                 action.data == EventHistoryCallbackData.sort(EventHistorySort.OLDEST)
+            },
+        )
+    }
+
+    @Test
+    fun `item drop history renders rarity and item type filters`() {
+        val data =
+            TelegramMenuScreenData.EventHistory(
+                EventHistoryMenuScreenData.Feed(
+                    filter = EventHistoryFilter.ITEM_DROP,
+                    search = null,
+                    sort = EventHistorySort.NEWEST,
+                    itemRarity = EventHistoryItemRarity.MYTHICAL,
+                    itemType = EventHistoryItemType.SWORD,
+                    boosterType = null,
+                    globalType = null,
+                    raidLocation = null,
+                    raidLocationPage = 0,
+                    wipeId = null,
+                    result = EventHistoryResult.Available(EventHistoryPage(emptyList(), null)),
+                    hasPrevious = false,
+                ),
+            )
+
+        val message = EventHistoryMenuMessageRenderer.render(data)
+        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+
+        assertTrue(message.text.contains("Редкость: <b>Mythical</b>"))
+        assertTrue(message.text.contains("Тип предмета: <b>Мечи</b>"))
+        assertTrue(
+            callbacks.any { action ->
+                action.data == EventHistoryCallbackData.itemRarity(EventHistoryItemRarity.MYTHICAL) &&
+                    action.label.startsWith("✓ ")
+            },
+        )
+        assertTrue(
+            callbacks.any { action ->
+                action.data == EventHistoryCallbackData.itemType(EventHistoryItemType.SWORD) &&
+                    action.label.startsWith("✓ ")
             },
         )
     }
