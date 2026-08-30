@@ -116,18 +116,21 @@ describe("Telegram Web App bootstrap", () => {
     expect(document.documentElement.classList.contains("telegram-fullscreen")).toBe(true)
   })
 
-  it.each(["android", "ios"])("expands and requests fullscreen on supported %s clients", (platform) => {
-    stubAnimationFrame()
+  it.each(["android", "ios"])(
+    "expands and requests fullscreen on supported %s clients",
+    (platform) => {
+      stubAnimationFrame()
 
-    const webApp = createTelegramWebApp(platform)
+      const webApp = createTelegramWebApp(platform)
 
-    window.Telegram = { WebApp: webApp }
+      window.Telegram = { WebApp: webApp }
 
-    initializeTelegramWebApp()
+      initializeTelegramWebApp()
 
-    expect(webApp.expand).toHaveBeenCalledOnce()
-    expect(webApp.requestFullscreen).toHaveBeenCalledOnce()
-  })
+      expect(webApp.expand).toHaveBeenCalledOnce()
+      expect(webApp.requestFullscreen).toHaveBeenCalledOnce()
+    },
+  )
 
   it.each(["tdesktop", "macos", "web", "weba", "webk"])(
     "keeps supported %s clients compact without requesting fullscreen",
