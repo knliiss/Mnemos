@@ -1,22 +1,33 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuMessageRenderer
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
+import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
+import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import org.springframework.stereotype.Component
 
 @Component
 class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
-    override fun render(screen: TelegramMenuScreen): OutboundTelegramMessage =
+    override fun render(
+        screen: TelegramMenuScreen,
+        data: TelegramMenuScreenData,
+    ): OutboundTelegramMessage =
         OutboundTelegramMessage(
-            text = renderText(screen),
+            text = renderText(screen, data),
             parseMode = OutboundTelegramMessageParseMode.HTML,
             actions = renderActions(screen),
         )
 
-    private fun renderText(screen: TelegramMenuScreen): String =
+    private fun renderText(
+        screen: TelegramMenuScreen,
+        data: TelegramMenuScreenData,
+    ): String =
         when (screen) {
             TelegramMenuScreen.HOME ->
                 """
@@ -32,12 +43,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 Подписки на глобальные события, бустеры, данжи, рейды, дропы предметов и игроков.
                 """.trimIndent()
 
-            TelegramMenuScreen.ONLINE ->
-                """
-                🌐 <b>Онлайн SAO</b>
-
-                Онлайн по реалмам и поиск текущего статуса игрока.
-                """.trimIndent()
+            TelegramMenuScreen.ONLINE -> renderSaoOnline(data)
 
             TelegramMenuScreen.EVENTS ->
                 """
@@ -68,10 +74,51 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 """.trimIndent()
         }
 
+    private fun renderSaoOnline(data: TelegramMenuScreenData): String {
+        val onlineData = data as? TelegramMenuScreenData.SaoOnline ?: return renderSaoOnlineUnavailable()
+
+        return when (val result = onlineData.result) {
+            is SaoOnlineSnapshotResult.Available -> renderSaoOnlineAvailable(result.snapshot)
+            SaoOnlineSnapshotResult.Unavailable -> renderSaoOnlineUnavailable()
+        }
+    }
+
+    private fun renderSaoOnlineAvailable(snapshot: SaoOnlineSnapshot): String {
+        val realmLines =
+            snapshot.realms.joinToString("\n") { realm ->
+                "${realm.name} — <b>${realm.playerCount}</b>"
+            }.ifBlank {
+                "Нет активных реалмов."
+            }
+        val generatedAt = onlineTimestampFormatter.format(snapshot.generatedAt)
+
+        return """
+            🌐 <b>Онлайн SAO</b>
+
+            Сейчас отслеживается: <b>${snapshot.trackedOnline}</b>
+
+            $realmLines
+
+            Обновлено: <code>$generatedAt</code>
+        """.trimIndent()
+    }
+
+    private fun renderSaoOnlineUnavailable(): String =
+        """
+        🌐 <b>Онлайн SAO</b>
+
+        Не удалось получить актуальный онлайн. Попробуйте обновить через несколько секунд.
+        """.trimIndent()
+
     private fun renderActions(screen: TelegramMenuScreen): List<OutboundTelegramMessageAction> =
-        if (screen == TelegramMenuScreen.HOME) {
-            homeActions
-        } else {
+        when (screen) {
+            TelegramMenuScreen.HOME -> homeActions
+            TelegramMenuScreen.ONLINE -> onlineActions
+            else -> navigationActions
+        }
+
+    private companion object {
+        val navigationActions =
             listOf(
                 OutboundTelegramMessageAction.Callback(
                     "← Назад",
@@ -83,9 +130,15 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 ),
                 OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
-        }
 
-    private companion object {
+        val onlineActions =
+            listOf(
+                OutboundTelegramMessageAction.Callback(
+                    "🔄 Обновить",
+                    TelegramMenuScreen.ONLINE.callbackData,
+                ),
+            ) + navigationActions
+
         val homeActions =
             listOf(
                 OutboundTelegramMessageAction.Callback(
@@ -114,5 +167,10 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 ),
                 OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
+
+        val onlineTimestampFormatter: DateTimeFormatter =
+            DateTimeFormatter
+                .ofPattern("dd.MM HH:mm 'UTC'")
+                .withZone(ZoneOffset.UTC)
     }
 }

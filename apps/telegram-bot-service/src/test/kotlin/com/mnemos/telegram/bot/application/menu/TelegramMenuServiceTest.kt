@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.menu
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuMessageRenderer
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 
 class TelegramMenuServiceTest {
     private val renderer = TestMenuMessageRenderer()
+    private val screenDataResolver = TelegramMenuScreenDataResolver(emptyList())
     private val messageGateway = TestTelegramMessageGateway()
     private val sessionRepository = TestTelegramMenuSessionRepository()
     private val recipientGateway = TestNotificationRecipientGateway()
@@ -22,6 +24,7 @@ class TelegramMenuServiceTest {
     private val service =
         TelegramMenuService(
             renderer = renderer,
+            screenDataResolver = screenDataResolver,
             messageGateway = messageGateway,
             sessionRepository = sessionRepository,
             recipientGateway = recipientGateway,
@@ -93,7 +96,10 @@ class TelegramMenuServiceTest {
     }
 
     private class TestMenuMessageRenderer : TelegramMenuMessageRenderer {
-        override fun render(screen: TelegramMenuScreen): OutboundTelegramMessage =
+        override fun render(
+            screen: TelegramMenuScreen,
+            data: TelegramMenuScreenData,
+        ): OutboundTelegramMessage =
             OutboundTelegramMessage(
                 text = screen.name,
                 parseMode = OutboundTelegramMessageParseMode.PLAIN,

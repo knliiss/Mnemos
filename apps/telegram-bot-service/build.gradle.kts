@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":libraries:security-starter"))
 
     implementation(project(":contracts:payment-contracts"))
+    implementation(project(":contracts:player-directory-contracts"))
     implementation(project(":contracts:telegram-bot-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")

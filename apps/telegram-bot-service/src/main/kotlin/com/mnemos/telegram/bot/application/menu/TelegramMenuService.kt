@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class TelegramMenuService(
     private val renderer: TelegramMenuMessageRenderer,
+    private val screenDataResolver: TelegramMenuScreenDataResolver,
     private val messageGateway: TelegramMessageGateway,
     private val sessionRepository: TelegramMenuSessionRepository,
     private val recipientGateway: NotificationRecipientGateway,
@@ -119,7 +120,8 @@ class TelegramMenuService(
         session: TelegramMenuSession,
         preferredMessageId: Int?,
     ): TelegramDeliveryResult {
-        val message = renderer.render(session.currentScreen)
+        val screenData = screenDataResolver.resolve(session)
+        val message = renderer.render(session.currentScreen, screenData)
 
         if (preferredMessageId != null) {
             when (
