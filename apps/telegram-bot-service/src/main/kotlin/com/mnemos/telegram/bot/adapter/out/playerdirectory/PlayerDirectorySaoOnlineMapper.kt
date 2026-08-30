@@ -15,7 +15,7 @@ object PlayerDirectorySaoOnlineMapper {
             realms =
                 realms
                     .sortedBy(InternalSaoRealmResponse::number)
-                    .map(InternalSaoRealmResponse::toModel),
+                    .map { realm -> realm.toModel() },
         )
 
     private fun InternalSaoRealmResponse.toModel(): SaoOnlineRealm =
@@ -23,7 +23,7 @@ object PlayerDirectorySaoOnlineMapper {
             name = name,
             number = number,
             playerCount = playerCount,
-            players = players.map(InternalSaoRealmPlayerResponse::toModel),
+            players = players.map { player -> player.toModel() },
         )
 
     private fun InternalSaoRealmPlayerResponse.toModel(): SaoOnlinePlayer =
