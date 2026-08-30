@@ -64,17 +64,9 @@ class PrimePurchaseGatewayAdapterTest {
     ) : PaymentServiceClient {
         override fun getStarPrimeCatalog(): List<TelegramStarPrimePackageResponse> = catalog
 
-        override fun createStarPrimePurchase(
-            request: CreateTelegramStarPrimePurchaseRequest,
-        ): CreatedTelegramStarPrimePurchaseResponse {
-            return requireNotNull(purchase)
-        }
+        override fun createStarPrimePurchase(request: CreateTelegramStarPrimePurchaseRequest): CreatedTelegramStarPrimePurchaseResponse = requireNotNull(purchase)
 
-        override fun validateStarPreCheckout(
-            request: ValidateStarPreCheckoutRequest,
-        ): ValidateStarPreCheckoutResponse {
-            error("not used")
-        }
+        override fun validateStarPreCheckout(request: ValidateStarPreCheckoutRequest): ValidateStarPreCheckoutResponse = error("not used")
 
         override fun recordSuccessfulStarPayment(request: RecordSuccessfulStarPaymentRequest) {
             error("not used")
