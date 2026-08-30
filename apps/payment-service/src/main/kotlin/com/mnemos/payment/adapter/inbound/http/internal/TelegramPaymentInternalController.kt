@@ -30,8 +30,7 @@ class TelegramPaymentInternalController(
     private val recordSuccessfulPaymentService: RecordSuccessfulStarPaymentService,
 ) {
     @GetMapping("/prime/catalog")
-    fun catalog(): List<TelegramStarPrimePackageResponse> =
-        packageCatalog.all().map { primePackage -> primePackage.toTelegramResponse() }
+    fun catalog(): List<TelegramStarPrimePackageResponse> = packageCatalog.all().map { primePackage -> primePackage.toTelegramResponse() }
 
     @PostMapping("/prime/purchases")
     fun createPurchase(
