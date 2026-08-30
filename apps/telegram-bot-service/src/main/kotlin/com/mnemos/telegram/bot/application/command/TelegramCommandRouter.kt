@@ -45,6 +45,7 @@ class TelegramCommandRouter(
             "/events" -> openEvents(context.telegramId, argument)
             "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
             "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
+            "/prime" -> menuService.open(context.telegramId, TelegramMenuScreen.PRIME)
             "/settings" -> menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
             else -> TelegramDeliveryResult.Delivered
         }

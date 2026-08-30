@@ -24,6 +24,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
             TelegramMenuScreen.DAILY -> DailyMenuMessageRenderer.render(data)
             TelegramMenuScreen.ACCOUNT -> AccountMenuMessageRenderer.render(data)
+            TelegramMenuScreen.PRIME -> PrimeMenuMessageRenderer.render(data)
             else ->
                 OutboundTelegramMessage(
                     text = renderText(screen, data),
@@ -72,6 +73,13 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 👤 <b>Аккаунт</b>
 
                 Активный Cristalix-аккаунт, баланс и переключение между аккаунтами.
+                """.trimIndent()
+
+            TelegramMenuScreen.PRIME ->
+                """
+                💎 <b>PRIME</b>
+
+                Пополнение PRIME через Telegram Stars.
                 """.trimIndent()
 
             TelegramMenuScreen.SETTINGS -> renderSettings(data)
@@ -358,6 +366,10 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 OutboundTelegramMessageAction.Callback(
                     "👤 Аккаунт",
                     TelegramMenuScreen.ACCOUNT.callbackData,
+                ),
+                OutboundTelegramMessageAction.Callback(
+                    "💎 PRIME",
+                    TelegramMenuScreen.PRIME.callbackData,
                 ),
                 OutboundTelegramMessageAction.Callback(
                     "⚙️ Настройки",

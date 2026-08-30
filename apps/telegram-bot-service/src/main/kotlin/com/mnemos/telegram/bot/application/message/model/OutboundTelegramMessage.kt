@@ -22,6 +22,11 @@ sealed interface OutboundTelegramMessageAction {
         val label: String,
     ) : OutboundTelegramMessageAction
 
+    data class OpenUrl(
+        val label: String,
+        val url: String,
+    ) : OutboundTelegramMessageAction
+
     data class Callback(
         val label: String,
         val data: String,

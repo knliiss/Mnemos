@@ -56,6 +56,15 @@ object TelegramMessageMapper {
                         )
                 }
 
+                is OutboundTelegramMessageAction.OpenUrl -> {
+                    flushCallbacks()
+                    rows +=
+                        arrayOf(
+                            InlineKeyboardButton(action.label)
+                                .url(action.url),
+                        )
+                }
+
                 is OutboundTelegramMessageAction.Callback -> {
                     callbackBuffer +=
                         InlineKeyboardButton(action.label)
