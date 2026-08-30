@@ -25,8 +25,10 @@ class InternalWipeController(
     @PreAuthorize("authentication.name == 'telegram-bot-service'")
     fun list(): InternalWipeListResponse {
         val now = clock.instant()
-        val wipes = listWipesService.execute()
-            .map { wipe -> wipe.toContractResponse(now) }
+        val wipes =
+            listWipesService
+                .execute()
+                .map { wipe -> wipe.toContractResponse(now) }
 
         return InternalWipeListResponse(wipes = wipes)
     }
