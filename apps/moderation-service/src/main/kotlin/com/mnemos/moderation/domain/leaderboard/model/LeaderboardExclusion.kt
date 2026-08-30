@@ -23,8 +23,12 @@ data class LeaderboardExclusion(
             reason: String?,
             createdByUserId: UserId,
             createdAt: Instant,
-        ): LeaderboardExclusion =
-            LeaderboardExclusion(
+        ): LeaderboardExclusion {
+            require(LeaderboardExclusionScopePolicy.supports(subjectType, scope)) {
+                "Scope $scope is not supported for leaderboard exclusion subject type $subjectType"
+            }
+
+            return LeaderboardExclusion(
                 id = LeaderboardExclusionId.generate(),
                 subjectType = subjectType,
                 subjectId = subjectId,
@@ -33,5 +37,6 @@ data class LeaderboardExclusion(
                 createdByUserId = createdByUserId,
                 createdAt = createdAt,
             )
+        }
     }
 }
