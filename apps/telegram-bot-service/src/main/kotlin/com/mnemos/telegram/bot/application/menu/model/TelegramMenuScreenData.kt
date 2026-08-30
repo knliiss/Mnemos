@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.application.menu.model
 
+import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
@@ -22,5 +23,9 @@ sealed interface TelegramMenuScreenData {
 
     data class Daily(
         val data: DailyMenuScreenData,
+    ) : TelegramMenuScreenData
+
+    data class Account(
+        val data: AccountMenuScreenData,
     ) : TelegramMenuScreenData
 }

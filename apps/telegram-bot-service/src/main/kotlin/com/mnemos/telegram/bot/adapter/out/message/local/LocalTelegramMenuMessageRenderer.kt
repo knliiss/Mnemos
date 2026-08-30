@@ -23,6 +23,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             TelegramMenuScreen.NOTIFICATIONS -> NotificationMenuMessageRenderer.render(data)
             TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
             TelegramMenuScreen.DAILY -> DailyMenuMessageRenderer.render(data)
+            TelegramMenuScreen.ACCOUNT -> AccountMenuMessageRenderer.render(data)
             else ->
                 OutboundTelegramMessage(
                     text = renderText(screen, data),

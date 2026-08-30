@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":libraries:common-web"))
     implementation(project(":libraries:security-starter"))
 
+    implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:payment-contracts"))
     implementation(project(":contracts:player-directory-contracts"))

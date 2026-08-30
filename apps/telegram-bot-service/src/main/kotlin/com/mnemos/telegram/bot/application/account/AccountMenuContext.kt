@@ -19,5 +19,6 @@ object AccountMenuContext {
 
     fun clear(): Map<String, String> = emptyMap()
 
-    private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? = enumValues<T>().firstOrNull { it.name == value }
+    private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
+        enumValues<T>().firstOrNull { enumValue -> enumValue.name == value }
 }
