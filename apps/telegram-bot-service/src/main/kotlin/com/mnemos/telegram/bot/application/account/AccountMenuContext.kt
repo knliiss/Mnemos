@@ -11,11 +11,9 @@ object AccountMenuContext {
             ?.let { value -> enumValueOrNull<AccountMenuFeedbackType>(value) }
             ?.let(::AccountMenuFeedback)
 
-    fun switched(): Map<String, String> =
-        mapOf(FEEDBACK_KEY to AccountMenuFeedbackType.SWITCHED.name)
+    fun switched(): Map<String, String> = mapOf(FEEDBACK_KEY to AccountMenuFeedbackType.SWITCHED.name)
 
-    fun unavailable(): Map<String, String> =
-        mapOf(FEEDBACK_KEY to AccountMenuFeedbackType.UNAVAILABLE.name)
+    fun unavailable(): Map<String, String> = mapOf(FEEDBACK_KEY to AccountMenuFeedbackType.UNAVAILABLE.name)
 
     fun clear(): Map<String, String> = emptyMap()
 
