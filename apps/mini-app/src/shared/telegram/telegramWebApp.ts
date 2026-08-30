@@ -34,7 +34,19 @@ function applyInsetVariables(prefix: "safe" | "content-safe", inset?: TelegramSa
   root.style.setProperty(`--tg-${prefix}-area-inset-left`, `${safeInsetValue(inset.left)}px`)
 }
 
-function syncTelegramSafeArea(webApp: TelegramWebApp): void {
+function syncTelegramRuntimeClasses(webApp: TelegramWebApp): void {
+  const root = document.documentElement
+  const isMobile = isMobileTelegramPlatform(webApp.platform)
+  const isFullscreen = webApp.isFullscreen === true
+
+  root.classList.toggle("telegram-platform-mobile", isMobile)
+  root.classList.toggle("telegram-platform-desktop", !isMobile)
+  root.classList.toggle("telegram-fullscreen", isFullscreen)
+  root.classList.toggle("telegram-windowed", !isFullscreen)
+}
+
+function syncTelegramViewportState(webApp: TelegramWebApp): void {
+  syncTelegramRuntimeClasses(webApp)
   applyInsetVariables("safe", webApp.safeAreaInset)
   applyInsetVariables("content-safe", webApp.contentSafeAreaInset)
 }
@@ -46,18 +58,25 @@ export function initializeTelegramWebApp(): void {
     return
   }
 
+  const isMobile = isMobileTelegramPlatform(webApp.platform)
+
   document.documentElement.classList.add("telegram-mini-app")
 
+  const refreshViewportState = () => syncTelegramViewportState(webApp)
+
+  refreshViewportState()
+  webApp.onEvent?.("safeAreaChanged", refreshViewportState)
+  webApp.onEvent?.("contentSafeAreaChanged", refreshViewportState)
+  webApp.onEvent?.("fullscreenChanged", refreshViewportState)
+
   webApp.ready()
-  webApp.expand()
+
+  if (isMobile) {
+    webApp.expand()
+  }
+
   webApp.setHeaderColor(TELEGRAM_CHROME)
   webApp.setBackgroundColor(TELEGRAM_BACKGROUND)
-
-  const refreshSafeArea = () => syncTelegramSafeArea(webApp)
-
-  refreshSafeArea()
-  webApp.onEvent?.("safeAreaChanged", refreshSafeArea)
-  webApp.onEvent?.("contentSafeAreaChanged", refreshSafeArea)
 
   if (supports(webApp, "7.10")) {
     webApp.setBottomBarColor?.(TELEGRAM_BACKGROUND)
@@ -67,14 +86,14 @@ export function initializeTelegramWebApp(): void {
     webApp.disableVerticalSwipes?.()
   }
 
-  if (isMobileTelegramPlatform(webApp.platform) && supports(webApp, "8.0")) {
+  if (isMobile && supports(webApp, "8.0")) {
     try {
       webApp.requestFullscreen?.()
     } catch {
       // Telegram can reject fullscreen on clients that advertise support but do not allow it yet.
-      // expand() above remains the safe fallback.
+      // expand() above remains the safe fallback for mobile clients.
     }
   }
 
-  window.requestAnimationFrame(refreshSafeArea)
+  window.requestAnimationFrame(refreshViewportState)
 }
