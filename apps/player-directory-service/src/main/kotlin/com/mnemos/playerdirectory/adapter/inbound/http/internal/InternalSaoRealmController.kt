@@ -15,6 +15,5 @@ class InternalSaoRealmController(
 ) {
     @GetMapping("/sao")
     @PreAuthorize("authentication.name == 'telegram-bot-service'")
-    fun getSaoSnapshot(): InternalSaoRealmSnapshotResponse =
-        getSaoRealmSnapshotUseCase.execute().toInternalResponse()
+    fun getSaoSnapshot(): InternalSaoRealmSnapshotResponse = getSaoRealmSnapshotUseCase.execute().toInternalResponse()
 }
