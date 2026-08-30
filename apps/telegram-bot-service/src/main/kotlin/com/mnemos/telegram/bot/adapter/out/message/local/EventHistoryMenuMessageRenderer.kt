@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItem
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
+import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
@@ -57,6 +58,7 @@ object EventHistoryMenuMessageRenderer {
             mutableListOf(
                 "🕘 <b>История событий</b>",
                 "Фильтр: <b>${filterLabel(data.filter)}</b>",
+                "Сортировка: <b>${sortLabel(data.sort)}</b>",
             )
 
         data.search?.let { search ->
@@ -129,6 +131,7 @@ object EventHistoryMenuMessageRenderer {
     ): List<OutboundTelegramMessageAction> {
         val actions = filterActions(data.filter).toMutableList()
 
+        actions += sortActions(data.sort)
         actions +=
             OutboundTelegramMessageAction.Callback(
                 "🔎 Поиск",
@@ -178,12 +181,28 @@ object EventHistoryMenuMessageRenderer {
             )
         }
 
+    private fun sortActions(selected: EventHistorySort): List<OutboundTelegramMessageAction> =
+        EventHistorySort.entries.map { sort ->
+            OutboundTelegramMessageAction.Callback(
+                label = sortButtonLabel(sort, selected),
+                data = EventHistoryCallbackData.sort(sort),
+            )
+        }
+
     private fun filterButtonLabel(
         filter: EventHistoryFilter,
         selected: EventHistoryFilter,
     ): String {
         val prefix = if (filter == selected) "✓ " else ""
         return prefix + filterLabel(filter)
+    }
+
+    private fun sortButtonLabel(
+        sort: EventHistorySort,
+        selected: EventHistorySort,
+    ): String {
+        val prefix = if (sort == selected) "✓ " else ""
+        return prefix + sortLabel(sort)
     }
 
     private fun filterLabel(filter: EventHistoryFilter): String =
@@ -193,6 +212,12 @@ object EventHistoryMenuMessageRenderer {
             EventHistoryFilter.BOOSTER -> "Бустеры"
             EventHistoryFilter.GLOBAL -> "Глобальные"
             EventHistoryFilter.RAID -> "Рейды"
+        }
+
+    private fun sortLabel(sort: EventHistorySort): String =
+        when (sort) {
+            EventHistorySort.NEWEST -> "Сначала новые"
+            EventHistorySort.OLDEST -> "Сначала старые"
         }
 
     private fun unavailableMessage(data: EventHistoryMenuScreenData.Feed? = null): OutboundTelegramMessage =
