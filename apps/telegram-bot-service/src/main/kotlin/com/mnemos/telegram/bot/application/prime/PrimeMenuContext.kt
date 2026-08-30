@@ -16,8 +16,7 @@ object PrimeMenuContext {
             INVOICE_STARS_AMOUNT to invoice.starsAmount.toString(),
         )
 
-    fun notice(notice: PrimePurchaseNotice): Map<String, String> =
-        mapOf(NOTICE to notice.name)
+    fun notice(notice: PrimePurchaseNotice): Map<String, String> = mapOf(NOTICE to notice.name)
 
     fun invoice(context: Map<String, String>): PrimePurchaseInvoice? {
         val url = context[INVOICE_URL]?.takeIf(String::isNotBlank) ?: return null
