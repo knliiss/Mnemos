@@ -56,7 +56,7 @@ interface TelegramSafeAreaInset {
   left: number
 }
 
-type TelegramSafeAreaEvent = "safeAreaChanged" | "contentSafeAreaChanged"
+type TelegramWebAppEvent = "safeAreaChanged" | "contentSafeAreaChanged" | "fullscreenChanged"
 type TelegramInvoiceStatus = "paid" | "cancelled" | "failed" | "pending"
 
 interface TelegramWebApp {
@@ -68,6 +68,7 @@ interface TelegramWebApp {
   }
   colorScheme?: "light" | "dark"
   platform?: string
+  isFullscreen?: boolean
   safeAreaInset?: TelegramSafeAreaInset
   contentSafeAreaInset?: TelegramSafeAreaInset
   DeviceStorage?: TelegramDeviceStorage
@@ -93,9 +94,9 @@ interface TelegramWebApp {
 
   isVersionAtLeast?(version: string): boolean
 
-  onEvent?(event: TelegramSafeAreaEvent, callback: () => void): void
+  onEvent?(event: TelegramWebAppEvent, callback: () => void): void
 
-  offEvent?(event: TelegramSafeAreaEvent, callback: () => void): void
+  offEvent?(event: TelegramWebAppEvent, callback: () => void): void
 
   BackButton?: {
     show(): void
