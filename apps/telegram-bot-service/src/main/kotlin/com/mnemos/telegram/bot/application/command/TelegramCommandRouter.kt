@@ -3,8 +3,11 @@ package com.mnemos.telegram.bot.application.command
 import com.mnemos.telegram.bot.application.command.help.HandleTelegramHelpService
 import com.mnemos.telegram.bot.application.command.start.HandleTelegramStartService
 import com.mnemos.telegram.bot.application.command.start.TelegramStartContext
+import com.mnemos.telegram.bot.application.events.EventHistoryMenuContext
+import com.mnemos.telegram.bot.application.events.EventHistorySearchQuery
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
@@ -39,7 +42,7 @@ class TelegramCommandRouter(
             "/menu" -> menuService.open(context.telegramId)
             "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
             "/online" -> openOnline(context.telegramId, argument)
-            "/events" -> menuService.open(context.telegramId, TelegramMenuScreen.EVENTS)
+            "/events" -> openEvents(context.telegramId, argument)
             "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
             "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
             "/settings" -> menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
@@ -65,6 +68,39 @@ class TelegramCommandRouter(
             telegramId = telegramId,
             screen = TelegramMenuScreen.ONLINE,
             screenContext = screenContext,
+        )
+    }
+
+    private fun openEvents(
+        telegramId: Long,
+        argument: String,
+    ): TelegramDeliveryResult {
+        if (argument.isBlank()) {
+            return menuService.open(
+                telegramId = telegramId,
+                screen = TelegramMenuScreen.EVENTS,
+            )
+        }
+
+        val searchQuery = EventHistorySearchQuery.normalize(argument)
+
+        if (searchQuery != null) {
+            return menuService.open(
+                telegramId = telegramId,
+                screen = TelegramMenuScreen.EVENTS,
+                screenContext = EventHistoryMenuContext.search(emptyMap(), searchQuery),
+            )
+        }
+
+        return menuService.open(
+            telegramId = telegramId,
+            screen = TelegramMenuScreen.EVENTS,
+            screenContext =
+                EventHistoryMenuContext.withSearchError(
+                    emptyMap(),
+                    EventHistorySearchQuery.INVALID_MESSAGE,
+                ),
+            pendingInput = TelegramPendingInput.EVENT_SEARCH,
         )
     }
 }
