@@ -5,23 +5,51 @@ import java.util.UUID
 
 object EventHistoryMenuContext {
     const val FILTER_KEY = "events.filter"
+    const val SEARCH_KEY = "events.search"
+    const val SEARCH_ERROR_KEY = "events.search-error"
     const val AFTER_KEY = "events.after"
     const val CURSOR_STACK_KEY = "events.cursor-stack"
 
     private const val ROOT_CURSOR = "root"
     private const val STACK_SEPARATOR = ","
 
-    fun filter(filter: EventHistoryFilter): Map<String, String> =
-        if (filter == EventHistoryFilter.ALL) {
-            emptyMap()
+    fun filter(
+        context: Map<String, String>,
+        filter: EventHistoryFilter,
+    ): Map<String, String> {
+        val resetContext = resetPagination(context)
+
+        return if (filter == EventHistoryFilter.ALL) {
+            resetContext - FILTER_KEY
         } else {
-            mapOf(FILTER_KEY to filter.name)
+            resetContext + (FILTER_KEY to filter.name)
         }
+    }
 
     fun selectedFilter(context: Map<String, String>): EventHistoryFilter =
         context[FILTER_KEY]
             ?.let { value -> runCatching { EventHistoryFilter.valueOf(value) }.getOrNull() }
             ?: EventHistoryFilter.ALL
+
+    fun search(
+        context: Map<String, String>,
+        query: String,
+    ): Map<String, String> =
+        resetPagination(context) + (SEARCH_KEY to query)
+
+    fun clearSearch(context: Map<String, String>): Map<String, String> =
+        resetPagination(context) - SEARCH_KEY
+
+    fun searchQuery(context: Map<String, String>): String? = context[SEARCH_KEY]
+
+    fun searchError(context: Map<String, String>): String? = context[SEARCH_ERROR_KEY]
+
+    fun clearSearchError(context: Map<String, String>): Map<String, String> = context - SEARCH_ERROR_KEY
+
+    fun withSearchError(
+        context: Map<String, String>,
+        error: String,
+    ): Map<String, String> = context + (SEARCH_ERROR_KEY to error)
 
     fun after(context: Map<String, String>): UUID? =
         context[AFTER_KEY]
@@ -59,6 +87,9 @@ object EventHistoryMenuContext {
 
         return nextContext
     }
+
+    private fun resetPagination(context: Map<String, String>): Map<String, String> =
+        context - AFTER_KEY - CURSOR_STACK_KEY - SEARCH_ERROR_KEY
 
     private fun cursorStack(context: Map<String, String>): List<String> =
         context[CURSOR_STACK_KEY]
