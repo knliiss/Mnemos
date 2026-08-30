@@ -3,7 +3,6 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.account.AccountCallbackData
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedback
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedbackType
-import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalanceResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContext
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
