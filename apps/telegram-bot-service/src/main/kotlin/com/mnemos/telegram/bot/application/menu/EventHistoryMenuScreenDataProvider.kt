@@ -17,26 +17,39 @@ class EventHistoryMenuScreenDataProvider(
     override val screen: TelegramMenuScreen = TelegramMenuScreen.EVENTS
 
     override fun load(session: TelegramMenuSession): TelegramMenuScreenData {
-        val filter = EventHistoryMenuContext.selectedFilter(session.screenContext)
-        val search = EventHistoryMenuContext.searchQuery(session.screenContext)
-        val sort = EventHistoryMenuContext.selectedSort(session.screenContext)
+        val context = session.screenContext
+        val filter = EventHistoryMenuContext.selectedFilter(context)
+        val search = EventHistoryMenuContext.searchQuery(context)
+        val sort = EventHistoryMenuContext.selectedSort(context)
 
         if (session.pendingInput == TelegramPendingInput.EVENT_SEARCH) {
             return TelegramMenuScreenData.EventHistory(
                 EventHistoryMenuScreenData.SearchPrompt(
                     filter = filter,
                     currentSearch = search,
-                    error = EventHistoryMenuContext.searchError(session.screenContext),
+                    error = EventHistoryMenuContext.searchError(context),
                 ),
             )
         }
 
+        val itemRarity = EventHistoryMenuContext.selectedItemRarity(context)
+        val itemType = EventHistoryMenuContext.selectedItemType(context)
+        val boosterType = EventHistoryMenuContext.selectedBoosterType(context)
+        val globalType = EventHistoryMenuContext.selectedGlobalType(context)
+        val raidLocation = EventHistoryMenuContext.selectedRaidLocation(context)
+        val wipeId = EventHistoryMenuContext.selectedWipeId(context)
         val query =
             EventHistoryQuery(
                 filter = filter,
-                after = EventHistoryMenuContext.after(session.screenContext),
+                after = EventHistoryMenuContext.after(context),
                 search = search,
                 sort = sort,
+                itemRarity = itemRarity,
+                itemType = itemType,
+                boosterType = boosterType,
+                globalType = globalType,
+                raidLocation = raidLocation,
+                wipeId = wipeId,
             )
 
         return TelegramMenuScreenData.EventHistory(
@@ -44,8 +57,14 @@ class EventHistoryMenuScreenDataProvider(
                 filter = filter,
                 search = search,
                 sort = sort,
+                itemRarity = itemRarity,
+                itemType = itemType,
+                boosterType = boosterType,
+                globalType = globalType,
+                raidLocation = raidLocation,
+                wipeId = wipeId,
                 result = eventHistoryGateway.getPage(query),
-                hasPrevious = EventHistoryMenuContext.hasPrevious(session.screenContext),
+                hasPrevious = EventHistoryMenuContext.hasPrevious(context),
             ),
         )
     }
