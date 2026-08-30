@@ -6,7 +6,6 @@ import com.mnemos.wallet.contracts.wallet.shared.Currency
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class AccountBalanceGatewayAdapterTest {
     @Test
@@ -21,7 +20,7 @@ class AccountBalanceGatewayAdapterTest {
             )
         val gateway = AccountBalanceGatewayAdapter(client)
 
-        val result = gateway.getBalances(UUID.randomUUID()) as TelegramAccountBalanceResult.Available
+        val result = gateway.getBalances(931458258) as TelegramAccountBalanceResult.Available
 
         assertEquals(125, result.balance.coin)
         assertEquals(3, result.balance.prime)
@@ -36,26 +35,34 @@ class AccountBalanceGatewayAdapterTest {
                 ),
             )
 
-        val result = gateway.getBalances(UUID.randomUUID()) as TelegramAccountBalanceResult.Available
+        val result = gateway.getBalances(931458258) as TelegramAccountBalanceResult.Available
 
         assertEquals(50, result.balance.coin)
         assertEquals(0, result.balance.prime)
     }
 
     @Test
+    fun `gateway maps missing active account to not required`() {
+        val gateway = AccountBalanceGatewayAdapter(FakeWalletServiceClient(balances = null))
+
+        assertSame(TelegramAccountBalanceResult.NotRequired, gateway.getBalances(931458258))
+    }
+
+    @Test
     fun `gateway degrades wallet failure without blocking account screen`() {
         val gateway = AccountBalanceGatewayAdapter(FailingWalletServiceClient())
 
-        assertSame(TelegramAccountBalanceResult.Unavailable, gateway.getBalances(UUID.randomUUID()))
+        assertSame(TelegramAccountBalanceResult.Unavailable, gateway.getBalances(931458258))
     }
 
     private class FakeWalletServiceClient(
-        private val balances: List<TelegramAccountBalanceResponse>,
+        private val balances: List<TelegramAccountBalanceResponse>?,
     ) : WalletServiceClient {
-        override fun getAccountBalances(accountId: UUID): List<TelegramAccountBalanceResponse> = balances
+        override fun getActiveAccountBalances(telegramId: Long): List<TelegramAccountBalanceResponse>? = balances
     }
 
     private class FailingWalletServiceClient : WalletServiceClient {
-        override fun getAccountBalances(accountId: UUID): List<TelegramAccountBalanceResponse> = error("wallet unavailable")
+        override fun getActiveAccountBalances(telegramId: Long): List<TelegramAccountBalanceResponse> =
+            error("wallet unavailable")
     }
 }

@@ -20,7 +20,7 @@ class AccountMenuScreenDataProvider(
 
     override fun load(session: TelegramMenuSession): TelegramMenuScreenData {
         val accountResult = accountGateway.getContext(session.telegramId)
-        val balanceResult = loadBalance(accountResult)
+        val balanceResult = loadBalance(session.telegramId, accountResult)
 
         return TelegramMenuScreenData.Account(
             AccountMenuScreenData(
@@ -31,13 +31,19 @@ class AccountMenuScreenDataProvider(
         )
     }
 
-    private fun loadBalance(result: TelegramAccountContextResult): TelegramAccountBalanceResult {
-        val accountId =
+    private fun loadBalance(
+        telegramId: Long,
+        result: TelegramAccountContextResult,
+    ): TelegramAccountBalanceResult {
+        val activeAccountId =
             (result as? TelegramAccountContextResult.Available)
                 ?.context
                 ?.activeAccountId
-                ?: return TelegramAccountBalanceResult.NotRequired
 
-        return balanceGateway.getBalances(accountId)
+        if (activeAccountId == null) {
+            return TelegramAccountBalanceResult.NotRequired
+        }
+
+        return balanceGateway.getBalances(telegramId)
     }
 }
