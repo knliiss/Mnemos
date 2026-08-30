@@ -28,11 +28,41 @@ class EventHistoryMenuContextTest {
     }
 
     @Test
-    fun `changing filter resets pagination state`() {
-        val context = EventHistoryMenuContext.filter(EventHistoryFilter.GLOBAL)
+    fun `changing filter keeps search and resets pagination`() {
+        val cursor = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val searchContext = EventHistoryMenuContext.search(emptyMap(), "knaliz")
+        val paginatedContext = EventHistoryMenuContext.next(searchContext, cursor)
+
+        val context = EventHistoryMenuContext.filter(paginatedContext, EventHistoryFilter.GLOBAL)
 
         assertEquals(EventHistoryFilter.GLOBAL, EventHistoryMenuContext.selectedFilter(context))
+        assertEquals("knaliz", EventHistoryMenuContext.searchQuery(context))
         assertEquals(null, EventHistoryMenuContext.after(context))
         assertFalse(EventHistoryMenuContext.hasPrevious(context))
+    }
+
+    @Test
+    fun `new search keeps filter and resets pagination`() {
+        val cursor = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val filteredContext = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.ITEM_DROP)
+        val paginatedContext = EventHistoryMenuContext.next(filteredContext, cursor)
+
+        val context = EventHistoryMenuContext.search(paginatedContext, "Excalibur")
+
+        assertEquals(EventHistoryFilter.ITEM_DROP, EventHistoryMenuContext.selectedFilter(context))
+        assertEquals("Excalibur", EventHistoryMenuContext.searchQuery(context))
+        assertEquals(null, EventHistoryMenuContext.after(context))
+        assertFalse(EventHistoryMenuContext.hasPrevious(context))
+    }
+
+    @Test
+    fun `clearing search keeps selected filter`() {
+        val filteredContext = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.RAID)
+        val searchContext = EventHistoryMenuContext.search(filteredContext, "knaliz")
+
+        val context = EventHistoryMenuContext.clearSearch(searchContext)
+
+        assertEquals(EventHistoryFilter.RAID, EventHistoryMenuContext.selectedFilter(context))
+        assertEquals(null, EventHistoryMenuContext.searchQuery(context))
     }
 }
