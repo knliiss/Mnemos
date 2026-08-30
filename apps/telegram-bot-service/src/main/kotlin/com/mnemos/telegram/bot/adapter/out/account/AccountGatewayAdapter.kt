@@ -28,13 +28,17 @@ class AccountGatewayAdapter(
         accountId: UUID,
     ): TelegramAccountSwitchResult =
         try {
-            client
-                .changeActiveAccount(
+            val response =
+                client.changeActiveAccount(
                     telegramId = telegramId,
                     request = ChangeInternalTelegramActiveAccountRequest(accountId),
                 )
-                ?.let { TelegramAccountSwitchResult.Switched }
-                ?: TelegramAccountSwitchResult.RegistrationRequired
+
+            if (response == null) {
+                TelegramAccountSwitchResult.RegistrationRequired
+            } else {
+                TelegramAccountSwitchResult.Switched
+            }
         } catch (exception: FeignException) {
             if (exception.status() in 400..499) {
                 TelegramAccountSwitchResult.Refresh
