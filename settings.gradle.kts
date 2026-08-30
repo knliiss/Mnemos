@@ -43,6 +43,7 @@ include(
     ":contracts:social-contracts",
     ":contracts:player-directory-contracts",
     ":contracts:payment-contracts",
+    ":contracts:telegram-bot-contracts",
 
     ":keycloak-extensions:telegram-authenticator",
 
@@ -60,4 +61,5 @@ include(
     ":apps:profile-service",
     ":apps:player-directory-service",
     ":apps:payment-service",
+    ":apps:telegram-bot-service",
 )
