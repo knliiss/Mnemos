@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeSelection
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -33,11 +34,10 @@ class EventHistoryMenuContextTest {
     @Test
     fun `changing filter keeps search wipe and resets incompatible filters`() {
         val cursor = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
-        val wipeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         var context = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.ITEM_DROP)
 
         context = EventHistoryMenuContext.search(context, "knaliz")
-        context = EventHistoryMenuContext.wipe(context, wipeId)
+        context = EventHistoryMenuContext.wipe(context, EventHistoryWipeSelection.PREVIOUS)
         context = EventHistoryMenuContext.itemRarity(context, EventHistoryItemRarity.SECRET)
         context = EventHistoryMenuContext.itemType(context, EventHistoryItemType.SWORD)
         context = EventHistoryMenuContext.next(context, cursor)
@@ -45,11 +45,33 @@ class EventHistoryMenuContextTest {
 
         assertEquals(EventHistoryFilter.GLOBAL, EventHistoryMenuContext.selectedFilter(context))
         assertEquals("knaliz", EventHistoryMenuContext.searchQuery(context))
-        assertEquals(wipeId, EventHistoryMenuContext.selectedWipeId(context))
+        assertEquals(EventHistoryWipeSelection.PREVIOUS, EventHistoryMenuContext.selectedWipe(context))
         assertEquals(null, EventHistoryMenuContext.selectedItemRarity(context))
         assertEquals(null, EventHistoryMenuContext.selectedItemType(context))
         assertEquals(null, EventHistoryMenuContext.after(context))
         assertFalse(EventHistoryMenuContext.hasPrevious(context))
+    }
+
+    @Test
+    fun `changing wipe resets pagination and stores semantic selection`() {
+        val cursor = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val paginatedContext = EventHistoryMenuContext.next(emptyMap(), cursor)
+
+        val context = EventHistoryMenuContext.wipe(paginatedContext, EventHistoryWipeSelection.CURRENT)
+
+        assertEquals(EventHistoryWipeSelection.CURRENT, EventHistoryMenuContext.selectedWipe(context))
+        assertEquals(null, EventHistoryMenuContext.after(context))
+        assertFalse(EventHistoryMenuContext.hasPrevious(context))
+    }
+
+    @Test
+    fun `all wipe selection is represented by absence of context key`() {
+        val selectedContext = EventHistoryMenuContext.wipe(emptyMap(), EventHistoryWipeSelection.PREVIOUS)
+
+        val context = EventHistoryMenuContext.wipe(selectedContext, EventHistoryWipeSelection.ALL)
+
+        assertEquals(EventHistoryWipeSelection.ALL, EventHistoryMenuContext.selectedWipe(context))
+        assertFalse(context.containsKey(EventHistoryMenuContext.WIPE_SELECTION_KEY))
     }
 
     @Test
