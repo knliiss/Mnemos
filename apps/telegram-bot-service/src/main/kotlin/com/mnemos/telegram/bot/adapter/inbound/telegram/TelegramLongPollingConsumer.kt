@@ -1,9 +1,9 @@
 package com.mnemos.telegram.bot.adapter.inbound.telegram
 
-import com.mnemos.telegram.bot.application.command.help.HandleTelegramHelpService
-import com.mnemos.telegram.bot.application.command.help.TelegramHelpSection
-import com.mnemos.telegram.bot.application.command.start.HandleTelegramStartService
-import com.mnemos.telegram.bot.application.command.start.TelegramStartContext
+import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
+import com.mnemos.telegram.bot.application.callback.TelegramCallbackRouter
+import com.mnemos.telegram.bot.application.command.TelegramCommandContext
+import com.mnemos.telegram.bot.application.command.TelegramCommandRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.payment.HandleTelegramStarPaymentUpdateService
 import com.pengrad.telegrambot.ExceptionHandler
@@ -26,8 +26,8 @@ import java.net.SocketTimeoutException
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class TelegramLongPollingConsumer(
     private val bot: TelegramBot,
-    private val startService: HandleTelegramStartService,
-    private val helpService: HandleTelegramHelpService,
+    private val commandRouter: TelegramCommandRouter,
+    private val callbackRouter: TelegramCallbackRouter,
     private val starPaymentService: HandleTelegramStarPaymentUpdateService,
 ) : ApplicationRunner,
     DisposableBean {
@@ -78,48 +78,35 @@ class TelegramLongPollingConsumer(
             return starPaymentService.handleSuccessfulPayment(message)
         }
 
-        val text = message.text()?.trim() ?: return TelegramDeliveryResult.Delivered
-
         if (message.chat().type() != Chat.Type.Private) {
             return TelegramDeliveryResult.Delivered
         }
 
-        val command = text.substringBefore(' ')
+        val text = message.text()?.trim() ?: return TelegramDeliveryResult.Delivered
 
-        if (command == "/start" || command.startsWith("/start@")) {
-            return startService.handle(
-                TelegramStartContext(
-                    telegramId = message.chat().id(),
-                    firstName = message.from()?.firstName(),
-                    username = message.from()?.username(),
-                    parameter = text.substringAfter(' ', "").trim().takeIf(String::isNotEmpty),
-                ),
-            )
-        }
-
-        if (command == "/help" || command.startsWith("/help@")) {
-            return helpService.send(message.chat().id())
-        }
-
-        return TelegramDeliveryResult.Delivered
+        return commandRouter.route(
+            TelegramCommandContext(
+                telegramId = message.chat().id(),
+                text = text,
+                firstName = message.from()?.firstName(),
+                username = message.from()?.username(),
+            ),
+        )
     }
 
     private fun handleCallback(callbackQuery: CallbackQuery): TelegramDeliveryResult {
-        val section =
-            callbackQuery
-                .data()
-                ?.let(TelegramHelpSection::fromCallbackData)
-                ?: return TelegramDeliveryResult.Delivered
         val message = callbackQuery.message() ?: return TelegramDeliveryResult.Delivered
 
         if (message.chat().type() != Chat.Type.Private) {
             return TelegramDeliveryResult.Delivered
         }
 
-        return helpService.switchSection(
-            telegramId = message.chat().id(),
-            messageId = message.messageId(),
-            section = section,
+        return callbackRouter.route(
+            TelegramCallbackContext(
+                telegramId = message.chat().id(),
+                messageId = message.messageId(),
+                data = callbackQuery.data().orEmpty(),
+            ),
         )
     }
 

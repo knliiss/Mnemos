@@ -6,6 +6,7 @@ REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 REDIS_COMPOSE="$REPOSITORY_ROOT/infrastructure/compose/compose.redis.yml"
 REDIS_ENTRYPOINT="$REPOSITORY_ROOT/infrastructure/redis/redis-entrypoint.sh"
 REALTIME_LEASE_STORE="$REPOSITORY_ROOT/apps/realtime-service/src/main/kotlin/com/mnemos/realtime/adapter/sse/connection/RedisSseConnectionLeaseStore.kt"
+TELEGRAM_BOT_MENU_STORE="$REPOSITORY_ROOT/apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/redis/menu/RedisTelegramMenuSessionRepository.kt"
 MAKE_CONFIG="$REPOSITORY_ROOT/make/config.mk"
 
 fail() {
@@ -16,6 +17,7 @@ fail() {
 [ -f "$REDIS_COMPOSE" ] || fail "Redis Compose file is missing"
 [ -f "$REDIS_ENTRYPOINT" ] || fail "Redis ACL entrypoint is missing"
 [ -f "$REALTIME_LEASE_STORE" ] || fail "Realtime SSE lease store is missing"
+[ -f "$TELEGRAM_BOT_MENU_STORE" ] || fail "Telegram bot menu session store is missing"
 [ -f "$MAKE_CONFIG" ] || fail "Make configuration is missing"
 
 grep -Eq '^BUILDABLE_INFRA_SERVICE_NAMES[[:space:]]*:=[[:space:]].*(^|[[:space:]])redis([[:space:]]|$)' "$MAKE_CONFIG" ||
@@ -102,14 +104,25 @@ verify_service \
     "notification:*" \
     "$REPOSITORY_ROOT/apps/notification-service/src/main/resources/application.properties"
 
+verify_service \
+    "telegram-bot-service" \
+    "telegram_bot_service" \
+    "REDIS_TELEGRAM_BOT_PASSWORD" \
+    "telegram-bot:*" \
+    "$REPOSITORY_ROOT/apps/telegram-bot-service/src/main/resources/application.properties"
+
 grep -Fq 'const val KEY_PREFIX = "realtime:sse:leases"' "$REALTIME_LEASE_STORE" ||
     fail "Realtime SSE lease keys must stay inside the realtime:* Redis ACL namespace"
+
+grep -Fq 'const val KEY_PREFIX = "telegram-bot:menu"' "$TELEGRAM_BOT_MENU_STORE" ||
+    fail "Telegram bot menu keys must stay inside the telegram-bot:* Redis ACL namespace"
 
 if grep -R -n -E '(^|[^A-Z0-9_])REDIS_PASSWORD([^A-Z0-9_]|$)' \
     "$REPOSITORY_ROOT/infrastructure/compose" \
     "$REPOSITORY_ROOT/apps/gateway-service/src/main/resources" \
     "$REPOSITORY_ROOT/apps/realtime-service/src/main/resources" \
-    "$REPOSITORY_ROOT/apps/notification-service/src/main/resources" >/dev/null 2>&1; then
+    "$REPOSITORY_ROOT/apps/notification-service/src/main/resources" \
+    "$REPOSITORY_ROOT/apps/telegram-bot-service/src/main/resources" >/dev/null 2>&1; then
     fail "Shared REDIS_PASSWORD wiring must not remain in application or Compose configuration"
 fi
 

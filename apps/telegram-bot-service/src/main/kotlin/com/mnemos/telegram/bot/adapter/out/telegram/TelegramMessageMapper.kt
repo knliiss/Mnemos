@@ -33,28 +33,44 @@ object TelegramMessageMapper {
     }
 
     private fun OutboundTelegramMessage.buildRows(miniAppUrl: String): List<Array<InlineKeyboardButton>> {
-        val miniAppRows =
-            actions
-                .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
-                .map { action ->
-                    arrayOf(
-                        InlineKeyboardButton(action.label)
-                            .webApp(WebAppInfo(miniAppUrl)),
-                    )
-                }
-        val callbackRows =
-            actions
-                .filterIsInstance<OutboundTelegramMessageAction.Callback>()
-                .chunked(CALLBACK_BUTTONS_PER_ROW)
-                .map { actions ->
-                    actions
-                        .map { action ->
+        val rows = mutableListOf<Array<InlineKeyboardButton>>()
+        val callbackBuffer = mutableListOf<InlineKeyboardButton>()
+
+        fun flushCallbacks() {
+            if (callbackBuffer.isEmpty()) {
+                return
+            }
+
+            rows += callbackBuffer.toTypedArray()
+            callbackBuffer.clear()
+        }
+
+        actions.forEach { action ->
+            when (action) {
+                is OutboundTelegramMessageAction.OpenMiniApp -> {
+                    flushCallbacks()
+                    rows +=
+                        arrayOf(
                             InlineKeyboardButton(action.label)
-                                .callbackData(action.data)
-                        }.toTypedArray()
+                                .webApp(WebAppInfo(miniAppUrl)),
+                        )
                 }
 
-        return miniAppRows + callbackRows
+                is OutboundTelegramMessageAction.Callback -> {
+                    callbackBuffer +=
+                        InlineKeyboardButton(action.label)
+                            .callbackData(action.data)
+
+                    if (callbackBuffer.size == CALLBACK_BUTTONS_PER_ROW) {
+                        flushCallbacks()
+                    }
+                }
+            }
+        }
+
+        flushCallbacks()
+
+        return rows
     }
 
     private const val CALLBACK_BUTTONS_PER_ROW = 2

@@ -59,6 +59,30 @@ class TelegramMessageMapperTest {
         assertEquals("help:accounts", rows[1][1].callbackData)
     }
 
+    @Test
+    fun `keyboard preserves mini app action position`() {
+        val message =
+            OutboundTelegramMessage(
+                text = "menu",
+                parseMode = OutboundTelegramMessageParseMode.HTML,
+                actions =
+                    listOf(
+                        OutboundTelegramMessageAction.Callback("Online", "m:online"),
+                        OutboundTelegramMessageAction.Callback("Events", "m:events"),
+                        OutboundTelegramMessageAction.OpenMiniApp("Open Mnemos"),
+                    ),
+            )
+
+        val markup = message.toReplyMarkup(MINI_APP_URL)
+        val inlineMarkup = assertInstanceOf(InlineKeyboardMarkup::class.java, markup)
+        val rows = inlineMarkup.inlineKeyboard()
+
+        assertEquals(2, rows.size)
+        assertEquals("m:online", rows[0][0].callbackData)
+        assertEquals("m:events", rows[0][1].callbackData)
+        assertEquals("Open Mnemos", rows[1][0].text)
+    }
+
     private companion object {
         const val MINI_APP_URL = "https://app.example.com"
     }

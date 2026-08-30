@@ -1,10 +1,12 @@
 package com.mnemos.telegram.bot.adapter.out.telegram
 
 import com.mnemos.telegram.bot.adapter.out.telegram.TelegramDeliveryResultMapper.toDeliveryResult
+import com.mnemos.telegram.bot.adapter.out.telegram.TelegramDeliveryResultMapper.toMessageSendResult
 import com.mnemos.telegram.bot.adapter.out.telegram.TelegramMessageMapper.toReplyMarkup
 import com.mnemos.telegram.bot.adapter.out.telegram.TelegramMessageMapper.toTelegram
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.message.model.TelegramMessageSendResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
 import com.mnemos.telegram.bot.configuration.telegram.TelegramBotProperties
 import com.pengrad.telegrambot.TelegramBot
@@ -20,19 +22,19 @@ class TelegramBotMessageGateway(
     private val bot: TelegramBot,
     private val properties: TelegramBotProperties,
 ) : TelegramMessageGateway {
-    override fun send(
+    override fun sendTracked(
         telegramId: Long,
         message: OutboundTelegramMessage,
-    ): TelegramDeliveryResult =
+    ): TelegramMessageSendResult =
         try {
             val request = SendMessage(telegramId, message.text)
 
             message.parseMode.toTelegram()?.let(request::parseMode)
             message.toReplyMarkup(properties.miniAppUrl)?.let(request::replyMarkup)
 
-            bot.execute(request).toDeliveryResult()
+            bot.execute(request).toMessageSendResult()
         } catch (_: Exception) {
-            TelegramDeliveryResult.Retryable
+            TelegramMessageSendResult.Retryable
         }
 
     override fun edit(

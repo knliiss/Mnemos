@@ -17,9 +17,15 @@ services:
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${MNEMOS_AUTH_ORIGIN}/realms/mnemos
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/mnemos/protocol/openid-connect/certs
 
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_USERNAME: telegram_bot_service
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_TELEGRAM_BOT_PASSWORD}
+
       TELEGRAM_BOT_ENABLED: ${TELEGRAM_BOT_ENABLED:-false}
       MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
       MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+      TELEGRAM_BOT_MENU_SESSION_TTL: ${TELEGRAM_BOT_MENU_SESSION_TTL:-30d}
 
       NOTIFICATION_SERVICE_URL: http://notification-service:8084
       TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY: ${TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY}
@@ -31,6 +37,8 @@ services:
 
     depends_on:
       keycloak:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
     networks:

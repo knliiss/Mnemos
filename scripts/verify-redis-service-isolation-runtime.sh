@@ -39,12 +39,14 @@ admin_password="$(get_env REDIS_ADMIN_PASSWORD)"
 gateway_password="$(get_env REDIS_GATEWAY_PASSWORD)"
 realtime_password="$(get_env REDIS_REALTIME_PASSWORD)"
 notification_password="$(get_env REDIS_NOTIFICATION_PASSWORD)"
+telegram_bot_password="$(get_env REDIS_TELEGRAM_BOT_PASSWORD)"
 
 require_value "COMPOSE_PROJECT_NAME" "$project_name"
 require_value "REDIS_ADMIN_PASSWORD" "$admin_password"
 require_value "REDIS_GATEWAY_PASSWORD" "$gateway_password"
 require_value "REDIS_REALTIME_PASSWORD" "$realtime_password"
 require_value "REDIS_NOTIFICATION_PASSWORD" "$notification_password"
+require_value "REDIS_TELEGRAM_BOT_PASSWORD" "$telegram_bot_password"
 
 redis_container_id="$(
     docker ps -aq \
@@ -104,12 +106,14 @@ expect_noperm() {
 gateway_key="mnemos:gateway:security-isolation-probe"
 realtime_key="realtime:security-isolation-probe"
 notification_key="notification:security-isolation-probe"
+telegram_bot_key="telegram-bot:security-isolation-probe"
 
 cleanup() {
     run_redis redis_admin "$admin_password" DEL \
         "$gateway_key" \
         "$realtime_key" \
-        "$notification_key" >/dev/null 2>&1 || true
+        "$notification_key" \
+        "$telegram_bot_key" >/dev/null 2>&1 || true
 }
 
 trap cleanup EXIT INT TERM
@@ -144,6 +148,11 @@ expect_exact \
 
 expect_exact \
     "OK" \
+    "$(run_redis telegram_bot_service "$telegram_bot_password" SET "$telegram_bot_key" menu)" \
+    "Telegram bot Redis namespace write"
+
+expect_exact \
+    "OK" \
     "$(run_redis gateway_service "$gateway_password" EVAL "return redis.call('SET', KEYS[1], ARGV[1])" 1 "$gateway_key" scripted)" \
     "Gateway Redis scripting"
 
@@ -156,6 +165,10 @@ expect_exact \
     "OK" \
     "$(run_redis notification_service "$notification_password" EVAL "return redis.call('SET', KEYS[1], ARGV[1])" 1 "$notification_key" scripted)" \
     "Notification Redis scripting"
+
+expect_noperm \
+    "$(run_redis telegram_bot_service "$telegram_bot_password" EVAL "return 1" 0 || true)" \
+    "Telegram bot Redis scripting"
 
 expect_noperm \
     "$(run_redis gateway_service "$gateway_password" GET "$realtime_key" || true)" \
@@ -174,6 +187,14 @@ expect_noperm \
     "Notification reading gateway Redis state"
 
 expect_noperm \
+    "$(run_redis telegram_bot_service "$telegram_bot_password" GET "$notification_key" || true)" \
+    "Telegram bot reading notification Redis state"
+
+expect_noperm \
+    "$(run_redis notification_service "$notification_password" GET "$telegram_bot_key" || true)" \
+    "Notification reading Telegram bot Redis state"
+
+expect_noperm \
     "$(run_redis gateway_service "$gateway_password" FLUSHALL || true)" \
     "Gateway dangerous Redis command"
 
@@ -184,6 +205,10 @@ expect_noperm \
 expect_noperm \
     "$(run_redis notification_service "$notification_password" CONFIG GET '*' || true)" \
     "Notification Redis configuration access"
+
+expect_noperm \
+    "$(run_redis telegram_bot_service "$telegram_bot_password" FLUSHDB || true)" \
+    "Telegram bot dangerous Redis command"
 
 expect_exact \
     "PONG" \
