@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.adapter.out.event
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
+import com.mnemos.event.contracts.internal.v1.InternalWipeListResponse
 import com.mnemos.event.contracts.shared.ContractBoosterType
 import com.mnemos.event.contracts.shared.ContractGlobalEventType
 import com.mnemos.event.contracts.shared.ContractItemRarity
@@ -43,4 +44,7 @@ interface EventServiceClient {
         @RequestParam
         limit: Int,
     ): InternalEventFeedResponse
+
+    @GetMapping("/internal/v1/wipes")
+    fun listWipes(): InternalWipeListResponse
 }
