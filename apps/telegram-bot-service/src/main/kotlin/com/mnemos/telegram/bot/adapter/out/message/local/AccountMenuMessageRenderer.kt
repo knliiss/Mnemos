@@ -3,7 +3,6 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.account.AccountCallbackData
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedback
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedbackType
-import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContext
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
@@ -57,8 +56,9 @@ object AccountMenuMessageRenderer {
 
     private fun activeAccountLine(account: TelegramAccountSummary?): String =
         account
-            ?.let { "Активный: <code>${escapeHtml(it.cristalixNickname)}</code>" }
-            ?: "Активный: <b>не выбран</b>"
+            ?.let { activeAccount ->
+                "Активный: <code>${escapeHtml(activeAccount.cristalixNickname)}</code>"
+            } ?: "Активный: <b>не выбран</b>"
 
     private fun accountLines(context: TelegramAccountContext): String =
         context.accounts
@@ -81,8 +81,10 @@ object AccountMenuMessageRenderer {
             } else {
                 ""
             }
+        val nickname = escapeHtml(account.cristalixNickname)
+        val memberCount = "${account.memberCount}/${account.maxMembers}"
 
-        return "$marker <code>${escapeHtml(account.cristalixNickname)}</code> — $relation · ${account.memberCount}/${account.maxMembers}$status"
+        return "$marker <code>$nickname</code> — $relation · $memberCount$status"
     }
 
     private fun accountActions(context: TelegramAccountContext): List<OutboundTelegramMessageAction> =

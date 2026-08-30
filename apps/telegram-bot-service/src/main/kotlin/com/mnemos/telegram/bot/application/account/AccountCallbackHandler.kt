@@ -29,8 +29,9 @@ class AccountCallbackHandler(
             return update(context, AccountMenuContext.clear())
         }
 
-        val accountId = AccountCallbackData.switchedAccountId(context.data)
-            ?: return TelegramDeliveryResult.Delivered
+        val accountId =
+            AccountCallbackData.switchedAccountId(context.data)
+                ?: return TelegramDeliveryResult.Delivered
 
         return when (gateway.changeActiveAccount(context.telegramId, accountId)) {
             TelegramAccountSwitchResult.Switched -> update(context, AccountMenuContext.switched())
