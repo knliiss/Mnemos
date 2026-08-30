@@ -43,7 +43,8 @@ object EventHistoryMenuMessageRenderer {
         val eventLines =
             result.page.items
                 .mapIndexed { index, item -> "${index + 1}. ${renderItem(item)}" }
-                .joinToString("\n\n").ifBlank {
+                .joinToString("\n\n")
+                .ifBlank {
                     "Событий по выбранному фильтру пока нет."
                 }
 
@@ -71,7 +72,11 @@ object EventHistoryMenuMessageRenderer {
                 "🌒 <b>${escapeHtml(item.globalType)}</b>\n<code>$occurredAt</code>"
 
             is EventHistoryItem.Raid -> {
-                val locations = item.locations.sorted().joinToString(", ").ifBlank { "—" }
+                val locations =
+                    item.locations
+                        .sorted()
+                        .joinToString(", ")
+                        .ifBlank { "—" }
 
                 "🛡 <b>Рейд</b> · локации ${escapeHtml(locations)}\n<code>$occurredAt</code>"
             }
