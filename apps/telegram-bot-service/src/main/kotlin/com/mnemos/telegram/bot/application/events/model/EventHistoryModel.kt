@@ -64,8 +64,17 @@ sealed interface EventHistoryResult {
     data object Unavailable : EventHistoryResult
 }
 
-data class EventHistoryMenuScreenData(
-    val filter: EventHistoryFilter,
-    val result: EventHistoryResult,
-    val hasPrevious: Boolean,
-)
+sealed interface EventHistoryMenuScreenData {
+    data class Feed(
+        val filter: EventHistoryFilter,
+        val search: String?,
+        val result: EventHistoryResult,
+        val hasPrevious: Boolean,
+    ) : EventHistoryMenuScreenData
+
+    data class SearchPrompt(
+        val filter: EventHistoryFilter,
+        val currentSearch: String?,
+        val error: String?,
+    ) : EventHistoryMenuScreenData
+}
