@@ -11,7 +11,7 @@ import java.util.UUID
 
 class SettingsGatewayAdapterTest {
     @Test
-    fun `gateway maps active notification pack title`() {
+    fun `gateway maps active notification pack name`() {
         val gateway = SettingsGatewayAdapter(FakePersonalizationServiceClient(selection("Night <Ops>")))
 
         val result = requireNotNull(gateway.getSettings(931458258))
@@ -35,13 +35,14 @@ class SettingsGatewayAdapterTest {
         assertNull(gateway.getSettings(931458258))
     }
 
-    private fun selection(title: String): InternalTelegramNotificationPackSelectionResponse =
+    private fun selection(name: String): InternalTelegramNotificationPackSelectionResponse =
         InternalTelegramNotificationPackSelectionResponse(
             personalizationId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71"),
+            name = name,
             selectionRevision = 7,
             pack =
                 NotificationPackSnapshotV1(
-                    mixedAggregateTitle = title,
+                    mixedAggregateTitle = "aggregate title",
                     templates =
                         NotificationPackTemplateType.entries.map { type ->
                             NotificationPackTemplateV1(

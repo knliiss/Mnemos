@@ -5,6 +5,7 @@ import java.util.UUID
 
 data class InternalTelegramNotificationPackSelectionResponse(
     val personalizationId: UUID,
+    val name: String,
     val selectionRevision: Long,
     val pack: NotificationPackSnapshotV1,
 )

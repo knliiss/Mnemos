@@ -13,7 +13,7 @@ class SettingsGatewayAdapter(
             val selection = client.getNotificationPackSelection(telegramId)
 
             TelegramSettingsSnapshot(
-                activeNotificationPackTitle = selection?.pack?.mixedAggregateTitle,
+                activeNotificationPackTitle = selection?.name,
             )
         } catch (_: RuntimeException) {
             null
