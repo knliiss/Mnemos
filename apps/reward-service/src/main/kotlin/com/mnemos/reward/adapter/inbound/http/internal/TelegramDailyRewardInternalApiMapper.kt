@@ -29,6 +29,5 @@ object TelegramDailyRewardInternalApiMapper {
             primeChance = primeChance,
         )
 
-    fun Int.toRestoreResponse(): TelegramDailyRewardRestoreResponse =
-        TelegramDailyRewardRestoreResponse(currentStreak = this)
+    fun Int.toRestoreResponse(): TelegramDailyRewardRestoreResponse = TelegramDailyRewardRestoreResponse(currentStreak = this)
 }
