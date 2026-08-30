@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -21,8 +22,26 @@ class SaoOnlineCallbackHandler(
             SaoOnlineCallbackData.REALM_LIST -> updateContext(context) { emptyMap() }
             SaoOnlineCallbackData.PREVIOUS_PAGE -> changePage(context, -1)
             SaoOnlineCallbackData.NEXT_PAGE -> changePage(context, 1)
+            SaoOnlineCallbackData.SEARCH -> startSearch(context)
+            SaoOnlineCallbackData.SEARCH_CANCEL -> cancelSearch(context)
             else -> openRealm(context)
         }
+
+    private fun startSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.requestTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.ONLINE,
+            pendingInput = TelegramPendingInput.ONLINE_PLAYER_SEARCH,
+            updateContext = { current -> current - SaoOnlineMenuContext.SEARCH_ERROR_KEY },
+        )
+
+    private fun cancelSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.cancelTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.ONLINE,
+        )
 
     private fun openRealm(context: TelegramCallbackContext): TelegramDeliveryResult {
         val realmNumber =
@@ -39,7 +58,9 @@ class SaoOnlineCallbackHandler(
         delta: Int,
     ): TelegramDeliveryResult =
         updateContext(context) { current ->
-            if (current[SaoOnlineMenuContext.MODE_KEY] != SaoOnlineMenuContext.MODE_REALM) {
+            val mode = current[SaoOnlineMenuContext.MODE_KEY]
+
+            if (mode != SaoOnlineMenuContext.MODE_REALM && mode != SaoOnlineMenuContext.MODE_SEARCH) {
                 current
             } else {
                 val page = current[SaoOnlineMenuContext.PAGE_KEY]?.toIntOrNull() ?: 0

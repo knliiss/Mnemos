@@ -92,13 +92,17 @@ class TelegramMenuService(
         messageId: Int,
         expectedScreen: TelegramMenuScreen,
         pendingInput: TelegramPendingInput,
+        updateContext: (Map<String, String>) -> Map<String, String> = { context -> context },
     ): TelegramDeliveryResult =
         updateFromMenuMessage(
             telegramId = telegramId,
             messageId = messageId,
             expectedScreen = expectedScreen,
         ) { session ->
-            session.copy(pendingInput = pendingInput)
+            session.copy(
+                pendingInput = pendingInput,
+                screenContext = updateContext(session.screenContext),
+            )
         }
 
     fun cancelTextInput(

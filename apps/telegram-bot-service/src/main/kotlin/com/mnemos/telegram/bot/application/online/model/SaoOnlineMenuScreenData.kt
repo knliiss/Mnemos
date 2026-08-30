@@ -17,5 +17,18 @@ sealed interface SaoOnlineMenuScreenData {
         val players: List<SaoOnlinePlayer>,
     ) : SaoOnlineMenuScreenData
 
+    data class SearchPrompt(
+        val error: String?,
+    ) : SaoOnlineMenuScreenData
+
+    data class SearchResults(
+        val generatedAt: Instant,
+        val query: String,
+        val totalMatches: Int,
+        val page: Int,
+        val totalPages: Int,
+        val matches: List<SaoOnlinePlayerSearchMatch>,
+    ) : SaoOnlineMenuScreenData
+
     data object Unavailable : SaoOnlineMenuScreenData
 }
