@@ -11,7 +11,7 @@ html.telegram-mini-app #root {
   display: block;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 50% -18%, rgba(203, 255, 45, 0.03), transparent 44%), var(--bg-deep);
+    radial-gradient(circle at 50% -18%, rgba(203, 255, 45, 0.035), transparent 44%), var(--bg-deep);
 }
 
 .telegram-mini-app .app-shell {
