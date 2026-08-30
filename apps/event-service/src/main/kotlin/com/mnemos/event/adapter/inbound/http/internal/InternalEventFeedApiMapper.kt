@@ -16,7 +16,13 @@ import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
 import com.mnemos.event.contracts.shared.ContractBoosterType
 import com.mnemos.event.contracts.shared.ContractGlobalEventType
 import com.mnemos.event.contracts.shared.ContractItemRarity
+import com.mnemos.event.contracts.shared.ContractItemType
 import com.mnemos.event.domain.EventId
+import com.mnemos.event.domain.booster.model.DomainBoosterType
+import com.mnemos.event.domain.global.model.DomainGlobalEventType
+import com.mnemos.event.domain.item.model.DomainItemRarity
+import com.mnemos.event.domain.item.model.DomainItemType
+import com.mnemos.event.domain.wipe.model.WipeId
 import java.util.UUID
 
 object InternalEventFeedApiMapper {
@@ -24,6 +30,12 @@ object InternalEventFeedApiMapper {
         after: UUID?,
         type: InternalEventFeedType?,
         search: String?,
+        itemRarity: ContractItemRarity?,
+        itemType: ContractItemType?,
+        boosterType: ContractBoosterType?,
+        globalType: ContractGlobalEventType?,
+        raidLocation: Int?,
+        wipeId: UUID?,
         sort: InternalEventFeedSort,
         limit: Int,
     ): EventFeedQuery =
@@ -32,7 +44,13 @@ object InternalEventFeedApiMapper {
             limit = limit,
             kinds = type?.let { value -> setOf(EventFeedKind.valueOf(value.name)) } ?: EventFeedKind.entries.toSet(),
             search = search?.trim()?.takeIf(String::isNotEmpty),
+            itemRarity = itemRarity?.let { value -> DomainItemRarity.valueOf(value.name) },
+            itemType = itemType?.let { value -> DomainItemType.valueOf(value.name) },
+            boosterType = boosterType?.let { value -> DomainBoosterType.valueOf(value.name) },
+            globalType = globalType?.let { value -> DomainGlobalEventType.valueOf(value.name) },
+            raidLocation = raidLocation,
             sort = EventFeedSort.valueOf(sort.name),
+            wipeId = wipeId?.let(::WipeId),
         )
 
     fun EventFeedPage.toInternalResponse(): InternalEventFeedResponse =
