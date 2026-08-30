@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/internal/v1/users/telegram")
-@PreAuthorize(
-    "authentication.name == 'reward-service' or " +
-        "authentication.name == 'personalization-service' or " +
-        "authentication.name == 'payment-service'",
-)
+@PreAuthorize("authentication.name == 'reward-service'")
 class InternalTelegramUserContextController(
     private val service: InternalTelegramUserQueryService,
 ) {
