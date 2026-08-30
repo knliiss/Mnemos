@@ -51,22 +51,28 @@ class TelegramMenuService(
             return home(telegramId, messageId)
         }
 
+        val currentSession = sessionRepository.find(telegramId)
+
+        if (isStaleMenuMessage(currentSession, messageId)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
         recipientGateway.activate(telegramId)
 
-        val currentSession =
-            sessionRepository.find(telegramId)
+        val baseSession =
+            currentSession
                 ?: TelegramMenuSession(
                     telegramId = telegramId,
                     menuMessageId = messageId,
                 )
         val navigationStack =
-            if (currentSession.currentScreen == screen) {
-                currentSession.navigationStack
+            if (baseSession.currentScreen == screen) {
+                baseSession.navigationStack
             } else {
-                (currentSession.navigationStack + currentSession.currentScreen).takeLast(MAX_NAVIGATION_DEPTH)
+                (baseSession.navigationStack + baseSession.currentScreen).takeLast(MAX_NAVIGATION_DEPTH)
             }
         val nextSession =
-            currentSession.copy(
+            baseSession.copy(
                 menuMessageId = messageId,
                 currentScreen = screen,
                 navigationStack = navigationStack,
@@ -161,6 +167,12 @@ class TelegramMenuService(
         telegramId: Long,
         messageId: Int,
     ): TelegramDeliveryResult {
+        val currentSession = sessionRepository.find(telegramId)
+
+        if (isStaleMenuMessage(currentSession, messageId)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
         recipientGateway.activate(telegramId)
 
         val nextSession =
@@ -176,23 +188,29 @@ class TelegramMenuService(
         telegramId: Long,
         messageId: Int,
     ): TelegramDeliveryResult {
+        val currentSession = sessionRepository.find(telegramId)
+
+        if (isStaleMenuMessage(currentSession, messageId)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
         recipientGateway.activate(telegramId)
 
-        val currentSession =
-            sessionRepository.find(telegramId)
+        val baseSession =
+            currentSession
                 ?: TelegramMenuSession(
                     telegramId = telegramId,
                     menuMessageId = messageId,
                 )
-        val previousScreen = currentSession.navigationStack.lastOrNull() ?: TelegramMenuScreen.HOME
+        val previousScreen = baseSession.navigationStack.lastOrNull() ?: TelegramMenuScreen.HOME
         val nextStack =
-            if (currentSession.navigationStack.isEmpty()) {
+            if (baseSession.navigationStack.isEmpty()) {
                 emptyList()
             } else {
-                currentSession.navigationStack.dropLast(1)
+                baseSession.navigationStack.dropLast(1)
             }
         val nextSession =
-            currentSession.copy(
+            baseSession.copy(
                 menuMessageId = messageId,
                 currentScreen = previousScreen,
                 navigationStack = nextStack,
@@ -209,17 +227,17 @@ class TelegramMenuService(
         expectedScreen: TelegramMenuScreen,
         update: (TelegramMenuSession) -> TelegramMenuSession,
     ): TelegramDeliveryResult {
-        recipientGateway.activate(telegramId)
-
         val currentSession = sessionRepository.find(telegramId)
 
-        if (currentSession != null && currentSession.menuMessageId != null && currentSession.menuMessageId != messageId) {
+        if (isStaleMenuMessage(currentSession, messageId)) {
             return TelegramDeliveryResult.Delivered
         }
 
         if (currentSession != null && currentSession.currentScreen != expectedScreen) {
             return TelegramDeliveryResult.Delivered
         }
+
+        recipientGateway.activate(telegramId)
 
         val baseSession =
             currentSession
@@ -243,8 +261,6 @@ class TelegramMenuService(
         expectedInput: TelegramPendingInput,
         update: (TelegramMenuSession) -> TelegramMenuSession,
     ): TelegramDeliveryResult {
-        recipientGateway.activate(telegramId)
-
         val currentSession =
             sessionRepository.find(telegramId)
                 ?: return TelegramDeliveryResult.Delivered
@@ -252,6 +268,8 @@ class TelegramMenuService(
         if (currentSession.currentScreen != expectedScreen || currentSession.pendingInput != expectedInput) {
             return TelegramDeliveryResult.Delivered
         }
+
+        recipientGateway.activate(telegramId)
 
         return deliver(update(currentSession), currentSession.menuMessageId)
     }
@@ -299,6 +317,11 @@ class TelegramMenuService(
                 TelegramDeliveryResult.PermanentFailure(sendResult.reason)
         }
     }
+
+    private fun isStaleMenuMessage(
+        currentSession: TelegramMenuSession?,
+        messageId: Int,
+    ): Boolean = currentSession?.menuMessageId?.let { storedMessageId -> storedMessageId != messageId } ?: false
 
     private companion object {
         const val MAX_NAVIGATION_DEPTH = 16
