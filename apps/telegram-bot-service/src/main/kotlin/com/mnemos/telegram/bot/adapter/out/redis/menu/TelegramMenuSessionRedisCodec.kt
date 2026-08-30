@@ -2,7 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.redis.menu
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Base64
 
 object TelegramMenuSessionRedisCodec {
@@ -100,14 +100,9 @@ object TelegramMenuSessionRedisCodec {
         return context
     }
 
-    private fun encodeToken(value: String): String =
-        encoder.encodeToString(value.toByteArray(StandardCharsets.UTF_8))
+    private fun encodeToken(value: String): String = encoder.encodeToString(value.toByteArray(UTF_8))
 
-    private fun decodeToken(value: String): String? {
-        return runCatching {
-            String(decoder.decode(value), StandardCharsets.UTF_8)
-        }.getOrNull()
-    }
+    private fun decodeToken(value: String): String? = runCatching { String(decoder.decode(value), UTF_8) }.getOrNull()
 
     private data class DecodedMessageId(
         val value: Int?,
