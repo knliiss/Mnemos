@@ -15,12 +15,13 @@ import java.util.UUID
 
 class EventHistoryMenuMessageRendererTest {
     @Test
-    fun `event history renders typed items and cursor actions`() {
+    fun `event history renders search typed items and cursor actions`() {
         val cursor = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.EventHistory(
-                EventHistoryMenuScreenData(
+                EventHistoryMenuScreenData.Feed(
                     filter = EventHistoryFilter.ALL,
+                    search = "Sword <Art>",
                     result =
                         EventHistoryResult.Available(
                             EventHistoryPage(
@@ -46,11 +47,35 @@ class EventHistoryMenuMessageRendererTest {
         val message = EventHistoryMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
+        assertTrue(message.text.contains("Поиск: <code>Sword &lt;Art&gt;</code>"))
         assertTrue(message.text.contains("Sword &lt;Art&gt;"))
         assertTrue(message.text.contains("knaliz&amp;friend"))
         assertTrue(message.text.contains("30.08 12:24 UTC"))
+        assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.SEARCH })
+        assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.SEARCH_CLEAR })
         assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.PREVIOUS })
         assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.next(cursor) })
         assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.filter(EventHistoryFilter.ITEM_DROP) })
+    }
+
+    @Test
+    fun `event history search prompt renders current search error and cancel`() {
+        val data =
+            TelegramMenuScreenData.EventHistory(
+                EventHistoryMenuScreenData.SearchPrompt(
+                    filter = EventHistoryFilter.ITEM_DROP,
+                    currentSearch = "old<query>",
+                    error = "invalid <query>",
+                ),
+            )
+
+        val message = EventHistoryMenuMessageRenderer.render(data)
+        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+
+        assertTrue(message.text.contains("Поиск по событиям"))
+        assertTrue(message.text.contains("Фильтр: <b>Дропы</b>"))
+        assertTrue(message.text.contains("Текущий поиск: <code>old&lt;query&gt;</code>"))
+        assertTrue(message.text.contains("invalid &lt;query&gt;"))
+        assertTrue(callbacks.any { action -> action.data == EventHistoryCallbackData.SEARCH_CANCEL })
     }
 }
