@@ -94,8 +94,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             snapshot.realms
                 .joinToString("\n") { realm ->
                     "${escapeHtml(realm.name)} — <b>${realm.playerCount}</b>"
-                }
-                .ifBlank {
+                }.ifBlank {
                     "Нет активных реалмов."
                 }
         val generatedAt = onlineTimestampFormatter.format(snapshot.generatedAt)
@@ -118,8 +117,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 .mapIndexed { index, player ->
                     "${firstPlayerNumber + index}. <code>${escapeHtml(player.nickname)}</code>"
                 }
-                .joinToString("\n")
-                .ifBlank {
+                .joinToString("\n").ifBlank {
                     "Сейчас на этом реалме никого нет."
                 }
         val generatedAt = onlineTimestampFormatter.format(data.generatedAt)
@@ -163,8 +161,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
                     "${firstMatchNumber + index}. <code>$nickname</code> — $realmName"
                 }
-                .joinToString("\n")
-                .ifBlank {
+                .joinToString("\n").ifBlank {
                     "Онлайн-игроки по этому запросу не найдены."
                 }
         val generatedAt = onlineTimestampFormatter.format(data.generatedAt)
