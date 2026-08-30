@@ -73,16 +73,20 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             homeActions
         } else {
             listOf(
-                OutboundTelegramMessageAction.Callback("← Назад", BACK_CALLBACK_DATA),
-                OutboundTelegramMessageAction.Callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData),
+                OutboundTelegramMessageAction.Callback(
+                    "← Назад",
+                    TelegramMenuScreen.BACK_CALLBACK_DATA,
+                ),
+                OutboundTelegramMessageAction.Callback(
+                    "⌂ Меню",
+                    TelegramMenuScreen.HOME.callbackData,
+                ),
                 OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
         }
 
-    companion object {
-        const val BACK_CALLBACK_DATA = "m:back"
-
-        private val homeActions =
+    private companion object {
+        val homeActions =
             listOf(
                 OutboundTelegramMessageAction.Callback(
                     "🔔 Уведомления",

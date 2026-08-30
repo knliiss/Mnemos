@@ -1,6 +1,5 @@
 package com.mnemos.telegram.bot.application.callback
 
-import com.mnemos.telegram.bot.adapter.out.message.local.LocalTelegramMenuMessageRenderer
 import com.mnemos.telegram.bot.application.command.help.HandleTelegramHelpService
 import com.mnemos.telegram.bot.application.command.help.TelegramHelpSection
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
@@ -24,7 +23,7 @@ class TelegramCallbackRouter(
             )
         }
 
-        if (context.data == LocalTelegramMenuMessageRenderer.BACK_CALLBACK_DATA) {
+        if (context.data == TelegramMenuScreen.BACK_CALLBACK_DATA) {
             return menuService.back(
                 telegramId = context.telegramId,
                 messageId = context.messageId,
