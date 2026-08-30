@@ -4,6 +4,8 @@ import com.mnemos.telegram.bot.application.account.AccountCallbackData
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedback
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedbackType
 import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalance
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalanceResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContext
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
@@ -16,7 +18,7 @@ import java.util.UUID
 
 class AccountMenuMessageRendererTest {
     @Test
-    fun `account screen renders active account and safe switch actions`() {
+    fun `account screen renders active account balance and safe switch actions`() {
         val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
         val switchableAccount = account("alt", active = false, status = TelegramAccountStatus.ACTIVE)
         val deactivatedAccount = account("old", active = false, status = TelegramAccountStatus.DEACTIVATED)
@@ -30,6 +32,13 @@ class AccountMenuMessageRendererTest {
                                 accounts = listOf(activeAccount, switchableAccount, deactivatedAccount),
                             ),
                         ),
+                    balance =
+                        TelegramAccountBalanceResult.Available(
+                            TelegramAccountBalance(
+                                coin = 125,
+                                prime = 3,
+                            ),
+                        ),
                     feedback = AccountMenuFeedback(AccountMenuFeedbackType.SWITCHED),
                 ),
             )
@@ -38,10 +47,35 @@ class AccountMenuMessageRendererTest {
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Активный: <code>knaliz</code>"))
+        assertTrue(message.text.contains("Баланс: <b>125 COIN</b> · <b>3 PRIME</b>"))
         assertTrue(message.text.contains("<code>old</code> — владелец · 1/5 · деактивирован"))
         assertTrue(message.text.contains("Активный аккаунт переключён"))
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.switch(switchableAccount.accountId) })
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
+    }
+
+    @Test
+    fun `wallet outage does not replace account screen`() {
+        val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
+        val data =
+            TelegramMenuScreenData.Account(
+                AccountMenuScreenData(
+                    result =
+                        TelegramAccountContextResult.Available(
+                            TelegramAccountContext(
+                                activeAccountId = activeAccount.accountId,
+                                accounts = listOf(activeAccount),
+                            ),
+                        ),
+                    balance = TelegramAccountBalanceResult.Unavailable,
+                    feedback = null,
+                ),
+            )
+
+        val message = AccountMenuMessageRenderer.render(data)
+
+        assertTrue(message.text.contains("Активный: <code>knaliz</code>"))
+        assertTrue(message.text.contains("Баланс: <i>временно недоступен</i>"))
     }
 
     @Test
@@ -50,6 +84,7 @@ class AccountMenuMessageRendererTest {
             TelegramMenuScreenData.Account(
                 AccountMenuScreenData(
                     result = TelegramAccountContextResult.Unavailable,
+                    balance = TelegramAccountBalanceResult.NotRequired,
                     feedback = null,
                 ),
             )

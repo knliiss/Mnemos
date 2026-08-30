@@ -33,6 +33,21 @@ sealed interface TelegramAccountContextResult {
     data object Unavailable : TelegramAccountContextResult
 }
 
+data class TelegramAccountBalance(
+    val coin: Long,
+    val prime: Long,
+)
+
+sealed interface TelegramAccountBalanceResult {
+    data class Available(
+        val balance: TelegramAccountBalance,
+    ) : TelegramAccountBalanceResult
+
+    data object NotRequired : TelegramAccountBalanceResult
+
+    data object Unavailable : TelegramAccountBalanceResult
+}
+
 sealed interface TelegramAccountSwitchResult {
     data object Switched : TelegramAccountSwitchResult
 
@@ -45,6 +60,7 @@ sealed interface TelegramAccountSwitchResult {
 
 data class AccountMenuScreenData(
     val result: TelegramAccountContextResult,
+    val balance: TelegramAccountBalanceResult,
     val feedback: AccountMenuFeedback?,
 )
 

@@ -3,6 +3,8 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.account.AccountCallbackData
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedback
 import com.mnemos.telegram.bot.application.account.model.AccountMenuFeedbackType
+import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalanceResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContext
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
@@ -20,7 +22,13 @@ object AccountMenuMessageRenderer {
                 ?: return unavailableMessage()
 
         return when (val result = accountData.data.result) {
-            is TelegramAccountContextResult.Available -> availableMessage(result.context, accountData.data.feedback)
+            is TelegramAccountContextResult.Available ->
+                availableMessage(
+                    context = result.context,
+                    balance = accountData.data.balance,
+                    feedback = accountData.data.feedback,
+                )
+
             TelegramAccountContextResult.RegistrationRequired -> registrationRequiredMessage()
             TelegramAccountContextResult.Unavailable -> unavailableMessage()
         }
@@ -28,6 +36,7 @@ object AccountMenuMessageRenderer {
 
     private fun availableMessage(
         context: TelegramAccountContext,
+        balance: TelegramAccountBalanceResult,
         feedback: AccountMenuFeedback?,
     ): OutboundTelegramMessage {
         val activeAccount = context.accounts.firstOrNull { account -> account.active }
@@ -36,6 +45,7 @@ object AccountMenuMessageRenderer {
                 "👤 <b>Аккаунт</b>",
                 "",
                 activeAccountLine(activeAccount),
+                balanceLine(balance),
                 "Доступно аккаунтов: <b>${context.accounts.size}</b>",
             )
 
@@ -59,6 +69,15 @@ object AccountMenuMessageRenderer {
             ?.let { activeAccount ->
                 "Активный: <code>${escapeHtml(activeAccount.cristalixNickname)}</code>"
             } ?: "Активный: <b>не выбран</b>"
+
+    private fun balanceLine(balance: TelegramAccountBalanceResult): String =
+        when (balance) {
+            is TelegramAccountBalanceResult.Available ->
+                "Баланс: <b>${balance.balance.coin} COIN</b> · <b>${balance.balance.prime} PRIME</b>"
+
+            TelegramAccountBalanceResult.NotRequired -> "Баланс: <b>—</b>"
+            TelegramAccountBalanceResult.Unavailable -> "Баланс: <i>временно недоступен</i>"
+        }
 
     private fun accountLines(context: TelegramAccountContext): String =
         context.accounts

@@ -47,6 +47,9 @@ services:
       REWARD_SERVICE_URL: http://reward-service:8085
       TELEGRAM_BOT_SERVICE_REWARD_API_KEY: ${TELEGRAM_BOT_SERVICE_REWARD_API_KEY}
 
+      WALLET_SERVICE_URL: http://wallet-service:8082
+      TELEGRAM_BOT_SERVICE_WALLET_API_KEY: ${TELEGRAM_BOT_SERVICE_WALLET_API_KEY}
+
     depends_on:
       keycloak:
         condition: service_healthy
