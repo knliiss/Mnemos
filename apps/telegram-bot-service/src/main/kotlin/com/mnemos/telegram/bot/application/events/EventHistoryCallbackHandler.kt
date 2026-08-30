@@ -55,6 +55,42 @@ class EventHistoryCallbackHandler(
             }
         }
 
+        EventHistoryCallbackData.selectedItemRarity(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.itemRarity(current, selection.valueOrNull())
+            }
+        }
+
+        EventHistoryCallbackData.selectedItemType(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.itemType(current, selection.valueOrNull())
+            }
+        }
+
+        EventHistoryCallbackData.selectedBoosterType(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.boosterType(current, selection.valueOrNull())
+            }
+        }
+
+        EventHistoryCallbackData.selectedGlobalType(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.globalType(current, selection.valueOrNull())
+            }
+        }
+
+        EventHistoryCallbackData.selectedRaidLocation(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.raidLocation(current, selection.valueOrNull())
+            }
+        }
+
+        EventHistoryCallbackData.selectedRaidLocationPage(context.data)?.let { page ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.raidLocationPage(current, page)
+            }
+        }
+
         EventHistoryCallbackData.nextCursor(context.data)?.let { cursor ->
             return updateContext(context) { current ->
                 EventHistoryMenuContext.next(current, cursor)
@@ -63,6 +99,12 @@ class EventHistoryCallbackHandler(
 
         return TelegramDeliveryResult.Delivered
     }
+
+    private fun <T> FilterCallbackValue<T>.valueOrNull(): T? =
+        when (this) {
+            is FilterCallbackValue.Selected -> value
+            FilterCallbackValue.Clear -> null
+        }
 
     private fun updateContext(
         context: TelegramCallbackContext,
