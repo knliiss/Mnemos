@@ -6,8 +6,10 @@ import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuMessageRend
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
+import com.mnemos.telegram.bot.application.online.SaoOnlineCallbackData
+import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
+import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
-import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
 import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -21,7 +23,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         OutboundTelegramMessage(
             text = renderText(screen, data),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderActions(screen),
+            actions = renderActions(screen, data),
         )
 
     private fun renderText(
@@ -77,13 +79,14 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
     private fun renderSaoOnline(data: TelegramMenuScreenData): String {
         val onlineData = data as? TelegramMenuScreenData.SaoOnline ?: return renderSaoOnlineUnavailable()
 
-        return when (val result = onlineData.result) {
-            is SaoOnlineSnapshotResult.Available -> renderSaoOnlineAvailable(result.snapshot)
-            SaoOnlineSnapshotResult.Unavailable -> renderSaoOnlineUnavailable()
+        return when (val screenData = onlineData.data) {
+            is SaoOnlineMenuScreenData.RealmList -> renderSaoRealmList(screenData.snapshot)
+            is SaoOnlineMenuScreenData.RealmDetail -> renderSaoRealmDetail(screenData)
+            SaoOnlineMenuScreenData.Unavailable -> renderSaoOnlineUnavailable()
         }
     }
 
-    private fun renderSaoOnlineAvailable(snapshot: SaoOnlineSnapshot): String {
+    private fun renderSaoRealmList(snapshot: SaoOnlineSnapshot): String {
         val realmLines =
             snapshot.realms
                 .joinToString("\n") { realm ->
@@ -104,6 +107,30 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         ).joinToString("\n")
     }
 
+    private fun renderSaoRealmDetail(data: SaoOnlineMenuScreenData.RealmDetail): String {
+        val firstPlayerNumber = data.page * PLAYERS_PER_PAGE + 1
+        val playerLines =
+            data.players
+                .mapIndexed { index, player ->
+                    "${firstPlayerNumber + index}. <code>${escapeHtml(player.nickname)}</code>"
+                }.joinToString("\n")
+                .ifBlank {
+                    "Сейчас на этом реалме никого нет."
+                }
+        val generatedAt = onlineTimestampFormatter.format(data.generatedAt)
+
+        return listOf(
+            "🌐 <b>${data.realmName}</b>",
+            "",
+            "Онлайн: <b>${data.playerCount}</b>",
+            "Страница: <b>${data.page + 1}/${data.totalPages}</b>",
+            "",
+            playerLines,
+            "",
+            "Обновлено: <code>$generatedAt</code>",
+        ).joinToString("\n")
+    }
+
     private fun renderSaoOnlineUnavailable(): String =
         listOf(
             "🌐 <b>Онлайн SAO</b>",
@@ -111,14 +138,86 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             "Не удалось получить актуальный онлайн. Попробуйте обновить через несколько секунд.",
         ).joinToString("\n")
 
-    private fun renderActions(screen: TelegramMenuScreen): List<OutboundTelegramMessageAction> =
+    private fun renderActions(
+        screen: TelegramMenuScreen,
+        data: TelegramMenuScreenData,
+    ): List<OutboundTelegramMessageAction> =
         when (screen) {
             TelegramMenuScreen.HOME -> homeActions
-            TelegramMenuScreen.ONLINE -> onlineActions
+            TelegramMenuScreen.ONLINE -> renderSaoOnlineActions(data)
             else -> navigationActions
         }
 
+    private fun renderSaoOnlineActions(data: TelegramMenuScreenData): List<OutboundTelegramMessageAction> {
+        val onlineData = data as? TelegramMenuScreenData.SaoOnline
+            ?: return refreshActions + navigationActions
+
+        return when (val screenData = onlineData.data) {
+            is SaoOnlineMenuScreenData.RealmList -> renderRealmListActions(screenData.snapshot)
+            is SaoOnlineMenuScreenData.RealmDetail -> renderRealmDetailActions(screenData)
+            SaoOnlineMenuScreenData.Unavailable -> refreshActions + navigationActions
+        }
+    }
+
+    private fun renderRealmListActions(snapshot: SaoOnlineSnapshot): List<OutboundTelegramMessageAction> {
+        val realmActions =
+            snapshot.realms.map { realm ->
+                OutboundTelegramMessageAction.Callback(
+                    label = "${realm.name} · ${realm.playerCount}",
+                    data = SaoOnlineCallbackData.realm(realm.number),
+                )
+            }
+
+        return realmActions + refreshActions + navigationActions
+    }
+
+    private fun renderRealmDetailActions(
+        data: SaoOnlineMenuScreenData.RealmDetail,
+    ): List<OutboundTelegramMessageAction> {
+        val pageActions = mutableListOf<OutboundTelegramMessageAction>()
+
+        if (data.page > 0) {
+            pageActions +=
+                OutboundTelegramMessageAction.Callback(
+                    label = "← Страница",
+                    data = SaoOnlineCallbackData.PREVIOUS_PAGE,
+                )
+        }
+
+        if (data.page + 1 < data.totalPages) {
+            pageActions +=
+                OutboundTelegramMessageAction.Callback(
+                    label = "Страница →",
+                    data = SaoOnlineCallbackData.NEXT_PAGE,
+                )
+        }
+
+        pageActions +=
+            OutboundTelegramMessageAction.Callback(
+                label = "← К реалмам",
+                data = SaoOnlineCallbackData.REALM_LIST,
+            )
+
+        return pageActions + refreshActions + navigationActions
+    }
+
+    private fun escapeHtml(value: String): String =
+        value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+
     private companion object {
+        const val PLAYERS_PER_PAGE = 10
+
+        val refreshActions =
+            listOf(
+                OutboundTelegramMessageAction.Callback(
+                    "🔄 Обновить",
+                    SaoOnlineCallbackData.REFRESH,
+                ),
+            )
+
         val navigationActions =
             listOf(
                 OutboundTelegramMessageAction.Callback(
@@ -131,14 +230,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 ),
                 OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
-
-        val onlineActions =
-            listOf(
-                OutboundTelegramMessageAction.Callback(
-                    "🔄 Обновить",
-                    TelegramMenuScreen.ONLINE.callbackData,
-                ),
-            ) + navigationActions
 
         val homeActions =
             listOf(

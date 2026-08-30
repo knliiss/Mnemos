@@ -13,7 +13,16 @@ import org.springframework.stereotype.Service
 class TelegramCallbackRouter(
     private val helpService: HandleTelegramHelpService,
     private val menuService: TelegramMenuService,
+    scopedHandlers: List<TelegramScopedCallbackHandler>,
 ) {
+    private val scopedHandlersByPrefix = scopedHandlers.associateBy { handler -> handler.callbackPrefix }
+
+    init {
+        require(scopedHandlersByPrefix.size == scopedHandlers.size) {
+            "Telegram scoped callback prefixes must be unique"
+        }
+    }
+
     fun route(context: TelegramCallbackContext): TelegramDeliveryResult {
         TelegramHelpSection.fromCallbackData(context.data)?.let { section ->
             return helpService.switchSection(
@@ -21,6 +30,10 @@ class TelegramCallbackRouter(
                 messageId = context.messageId,
                 section = section,
             )
+        }
+
+        findScopedHandler(context.data)?.let { handler ->
+            return handler.handle(context)
         }
 
         if (context.data == TelegramMenuScreen.BACK_CALLBACK_DATA) {
@@ -40,6 +53,11 @@ class TelegramCallbackRouter(
             screen = screen,
         )
     }
+
+    private fun findScopedHandler(callbackData: String): TelegramScopedCallbackHandler? =
+        scopedHandlersByPrefix.entries
+            .firstOrNull { entry -> callbackData.startsWith(entry.key) }
+            ?.value
 }
 
 data class TelegramCallbackContext(

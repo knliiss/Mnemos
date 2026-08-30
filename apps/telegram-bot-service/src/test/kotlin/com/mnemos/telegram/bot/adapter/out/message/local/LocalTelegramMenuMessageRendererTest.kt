@@ -3,19 +3,22 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
+import com.mnemos.telegram.bot.application.online.SaoOnlineCallbackData
+import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
+import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineRealm
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
-import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
-import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.Instant
+import java.util.UUID
 
 class LocalTelegramMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `online screen renders live realm snapshot and refresh action`() {
+    fun `realm list renders live snapshot and realm actions`() {
         val snapshot =
             SaoOnlineSnapshot(
                 generatedAt = Instant.parse("2026-08-30T12:24:00Z"),
@@ -36,29 +39,73 @@ class LocalTelegramMenuMessageRendererTest {
                         ),
                     ),
             )
-        val data =
-            TelegramMenuScreenData.SaoOnline(
-                SaoOnlineSnapshotResult.Available(snapshot),
-            )
+        val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.RealmList(snapshot))
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data)
-        val refreshAction = message.actions.first() as OutboundTelegramMessageAction.Callback
+        val firstRealmAction = message.actions[0] as OutboundTelegramMessageAction.Callback
+        val secondRealmAction = message.actions[1] as OutboundTelegramMessageAction.Callback
+        val refreshAction = message.actions[2] as OutboundTelegramMessageAction.Callback
 
         assertTrue(message.text.contains("Сейчас отслеживается: <b>58</b>"))
         assertTrue(message.text.contains("SAO-1 — <b>21</b>"))
         assertTrue(message.text.contains("SAO-2 — <b>37</b>"))
         assertTrue(message.text.contains("30.08 12:24 UTC"))
-        assertEquals("🔄 Обновить", refreshAction.label)
-        assertEquals(TelegramMenuScreen.ONLINE.callbackData, refreshAction.data)
+        assertEquals("SAO-1 · 21", firstRealmAction.label)
+        assertEquals("on:r:1", firstRealmAction.data)
+        assertEquals("SAO-2 · 37", secondRealmAction.label)
+        assertEquals("on:r:2", secondRealmAction.data)
+        assertEquals(SaoOnlineCallbackData.REFRESH, refreshAction.data)
+    }
+
+    @Test
+    fun `realm detail renders paginated players and escapes nickname html`() {
+        val data =
+            TelegramMenuScreenData.SaoOnline(
+                SaoOnlineMenuScreenData.RealmDetail(
+                    generatedAt = Instant.parse("2026-08-30T12:24:00Z"),
+                    realmName = "SAO-4",
+                    realmNumber = 4,
+                    playerCount = 12,
+                    page = 1,
+                    totalPages = 2,
+                    players =
+                        listOf(
+                            player("player11"),
+                            player("name<12>"),
+                        ),
+                ),
+            )
+
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+
+        assertTrue(message.text.contains("<b>SAO-4</b>"))
+        assertTrue(message.text.contains("Страница: <b>2/2</b>"))
+        assertTrue(message.text.contains("11. <code>player11</code>"))
+        assertTrue(message.text.contains("12. <code>name&lt;12&gt;</code>"))
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.PREVIOUS_PAGE })
+        assertTrue(callbacks.none { action -> action.data == SaoOnlineCallbackData.NEXT_PAGE })
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
     }
 
     @Test
     fun `online screen renders recoverable unavailable state`() {
-        val data = TelegramMenuScreenData.SaoOnline(SaoOnlineSnapshotResult.Unavailable)
+        val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.Unavailable)
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data)
 
         assertTrue(message.text.contains("Не удалось получить актуальный онлайн"))
-        assertEquals(4, message.actions.size)
+        assertEquals(SaoOnlineCallbackData.REFRESH, callbackData(message.actions.first()))
     }
+
+    private fun player(nickname: String): SaoOnlinePlayer =
+        SaoOnlinePlayer(
+            playerId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71"),
+            nickname = nickname,
+            accountId = null,
+            observedAt = Instant.parse("2026-08-30T12:24:00Z"),
+        )
+
+    private fun callbackData(action: OutboundTelegramMessageAction): String =
+        (action as OutboundTelegramMessageAction.Callback).data
 }

@@ -71,6 +71,40 @@ class TelegramMenuService(
         return deliver(nextSession, messageId)
     }
 
+    fun updateScreenContext(
+        telegramId: Long,
+        messageId: Int,
+        expectedScreen: TelegramMenuScreen,
+        update: (Map<String, String>) -> Map<String, String>,
+    ): TelegramDeliveryResult {
+        recipientGateway.activate(telegramId)
+
+        val currentSession = sessionRepository.find(telegramId)
+
+        if (currentSession != null && currentSession.menuMessageId != null && currentSession.menuMessageId != messageId) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        if (currentSession != null && currentSession.currentScreen != expectedScreen) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        val baseSession =
+            currentSession
+                ?: TelegramMenuSession(
+                    telegramId = telegramId,
+                    menuMessageId = messageId,
+                    currentScreen = expectedScreen,
+                )
+        val nextSession =
+            baseSession.copy(
+                menuMessageId = messageId,
+                screenContext = update(baseSession.screenContext),
+            )
+
+        return deliver(nextSession, messageId)
+    }
+
     fun home(
         telegramId: Long,
         messageId: Int,
