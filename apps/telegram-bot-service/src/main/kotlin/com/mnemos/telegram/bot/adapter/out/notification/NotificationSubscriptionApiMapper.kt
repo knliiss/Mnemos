@@ -10,7 +10,7 @@ import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscript
 object NotificationSubscriptionApiMapper {
     fun TelegramSubscriptionListResponse.toModel(): NotificationSubscriptionPage =
         NotificationSubscriptionPage(
-            items = items.map(TelegramSubscriptionResponse::toModel),
+            items = items.map { subscription -> subscription.toModel() },
             page = page,
             totalPages = totalPages,
             totalItems = totalItems,
