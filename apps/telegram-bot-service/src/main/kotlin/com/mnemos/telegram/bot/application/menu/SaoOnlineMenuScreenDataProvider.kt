@@ -40,8 +40,9 @@ class SaoOnlineMenuScreenDataProvider(
         }
 
         val realmNumber = context[SaoOnlineMenuContext.REALM_KEY]?.toIntOrNull()
-        val realm = snapshot.realms.firstOrNull { candidate -> candidate.number == realmNumber }
-            ?: return SaoOnlineMenuScreenData.RealmList(snapshot)
+        val realm =
+            snapshot.realms.firstOrNull { candidate -> candidate.number == realmNumber }
+                ?: return SaoOnlineMenuScreenData.RealmList(snapshot)
         val players =
             realm.players.sortedWith(
                 compareBy<SaoOnlinePlayer>(String.CASE_INSENSITIVE_ORDER) { player -> player.nickname },

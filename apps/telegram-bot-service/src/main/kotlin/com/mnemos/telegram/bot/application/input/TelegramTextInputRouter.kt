@@ -21,10 +21,12 @@ class TelegramTextInputRouter(
     }
 
     fun route(context: TelegramTextInputContext): TelegramDeliveryResult {
-        val pendingInput = sessionRepository.find(context.telegramId)?.pendingInput
-            ?: return TelegramDeliveryResult.Delivered
-        val handler = handlersByInput[pendingInput]
-            ?: return TelegramDeliveryResult.Delivered
+        val pendingInput =
+            sessionRepository.find(context.telegramId)?.pendingInput
+                ?: return TelegramDeliveryResult.Delivered
+        val handler =
+            handlersByInput[pendingInput]
+                ?: return TelegramDeliveryResult.Delivered
 
         return handler.handle(context)
     }

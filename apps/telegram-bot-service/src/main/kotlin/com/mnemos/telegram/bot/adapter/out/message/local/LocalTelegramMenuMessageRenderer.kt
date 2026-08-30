@@ -8,11 +8,10 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.online.SaoOnlineCallbackData
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
-import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
-import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import org.springframework.stereotype.Component
 
 @Component
 class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
@@ -77,7 +76,9 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         }
 
     private fun renderSaoOnline(data: TelegramMenuScreenData): String {
-        val onlineData = data as? TelegramMenuScreenData.SaoOnline ?: return renderSaoOnlineUnavailable()
+        val onlineData =
+            data as? TelegramMenuScreenData.SaoOnline
+                ?: return renderSaoOnlineUnavailable()
 
         return when (val screenData = onlineData.data) {
             is SaoOnlineMenuScreenData.RealmList -> renderSaoRealmList(screenData.snapshot)
@@ -91,7 +92,8 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             snapshot.realms
                 .joinToString("\n") { realm ->
                     "${realm.name} — <b>${realm.playerCount}</b>"
-                }.ifBlank {
+                }
+                .ifBlank {
                     "Нет активных реалмов."
                 }
         val generatedAt = onlineTimestampFormatter.format(snapshot.generatedAt)
@@ -113,7 +115,8 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             data.players
                 .mapIndexed { index, player ->
                     "${firstPlayerNumber + index}. <code>${escapeHtml(player.nickname)}</code>"
-                }.joinToString("\n")
+                }
+                .joinToString("\n")
                 .ifBlank {
                     "Сейчас на этом реалме никого нет."
                 }
@@ -149,8 +152,9 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         }
 
     private fun renderSaoOnlineActions(data: TelegramMenuScreenData): List<OutboundTelegramMessageAction> {
-        val onlineData = data as? TelegramMenuScreenData.SaoOnline
-            ?: return refreshActions + navigationActions
+        val onlineData =
+            data as? TelegramMenuScreenData.SaoOnline
+                ?: return refreshActions + navigationActions
 
         return when (val screenData = onlineData.data) {
             is SaoOnlineMenuScreenData.RealmList -> renderRealmListActions(screenData.snapshot)
@@ -171,9 +175,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         return realmActions + refreshActions + navigationActions
     }
 
-    private fun renderRealmDetailActions(
-        data: SaoOnlineMenuScreenData.RealmDetail,
-    ): List<OutboundTelegramMessageAction> {
+    private fun renderRealmDetailActions(data: SaoOnlineMenuScreenData.RealmDetail): List<OutboundTelegramMessageAction> {
         val pageActions = mutableListOf<OutboundTelegramMessageAction>()
 
         if (data.page > 0) {

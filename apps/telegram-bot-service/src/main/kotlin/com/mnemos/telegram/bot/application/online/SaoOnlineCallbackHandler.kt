@@ -25,8 +25,9 @@ class SaoOnlineCallbackHandler(
         }
 
     private fun openRealm(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val realmNumber = SaoOnlineCallbackData.realmNumber(context.data)
-            ?: return TelegramDeliveryResult.Delivered
+        val realmNumber =
+            SaoOnlineCallbackData.realmNumber(context.data)
+                ?: return TelegramDeliveryResult.Delivered
 
         return updateContext(context) {
             SaoOnlineMenuContext.realm(realmNumber)

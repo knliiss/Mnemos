@@ -233,8 +233,9 @@ class TelegramMenuService(
     ): TelegramDeliveryResult {
         recipientGateway.activate(telegramId)
 
-        val currentSession = sessionRepository.find(telegramId)
-            ?: return TelegramDeliveryResult.Delivered
+        val currentSession =
+            sessionRepository.find(telegramId)
+                ?: return TelegramDeliveryResult.Delivered
 
         if (currentSession.currentScreen != expectedScreen || currentSession.pendingInput != expectedInput) {
             return TelegramDeliveryResult.Delivered
