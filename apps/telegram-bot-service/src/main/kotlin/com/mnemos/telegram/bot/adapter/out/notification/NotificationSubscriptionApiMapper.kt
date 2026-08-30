@@ -30,6 +30,5 @@ object NotificationSubscriptionApiMapper {
             raidLocations = raidLocations,
         )
 
-    private fun TelegramSubscriptionType.toModel(): NotificationSubscriptionType =
-        NotificationSubscriptionType.valueOf(name)
+    private fun TelegramSubscriptionType.toModel(): NotificationSubscriptionType = NotificationSubscriptionType.valueOf(name)
 }
