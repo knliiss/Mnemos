@@ -11,6 +11,9 @@ on:
         description: Type DEPLOY followed by the exact source SHA
         required: true
         type: string
+  push:
+    branches:
+      - deploy/production-frontend
 
 concurrency:
   group: cloudflare-pages-production
@@ -19,14 +22,16 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  SOURCE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || github.sha }}
+  CONFIRMATION: ${{ github.event_name == 'workflow_dispatch' && inputs.confirmation || '' }}
+
 jobs:
   build:
     runs-on: [self-hosted, Linux, X64, mnemos-frontend]
     timeout-minutes: 15
 
     env:
-      SOURCE_SHA: ${{ inputs.source_sha }}
-      CONFIRMATION: ${{ inputs.confirmation }}
       VITE_KEYCLOAK_URL: https://auth.knalis.rest
       VITE_KEYCLOAK_REALM: mnemos
       VITE_KEYCLOAK_CLIENT_ID: mnemos-mini-app
@@ -49,17 +54,40 @@ jobs:
             exit 1
           fi
 
-          if [ "$CONFIRMATION" != "DEPLOY $SOURCE_SHA" ]; then
-            echo "confirmation must exactly equal: DEPLOY $SOURCE_SHA" >&2
-            exit 1
-          fi
-
           git cat-file -e "$SOURCE_SHA^{commit}"
 
-          if ! git merge-base --is-ancestor "$SOURCE_SHA" origin/master; then
-            echo "source_sha is not reachable from trusted master history" >&2
-            exit 1
-          fi
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch)
+              if [ "$CONFIRMATION" != "DEPLOY $SOURCE_SHA" ]; then
+                echo "confirmation must exactly equal: DEPLOY $SOURCE_SHA" >&2
+                exit 1
+              fi
+
+              if ! git merge-base --is-ancestor "$SOURCE_SHA" origin/master; then
+                echo "source_sha is not reachable from trusted master history" >&2
+                exit 1
+              fi
+              ;;
+            push)
+              if [ "$GITHUB_REF" != "refs/heads/deploy/production-frontend" ]; then
+                echo "push-triggered production deploys are restricted to deploy/production-frontend" >&2
+                exit 1
+              fi
+
+              master_sha="$(git rev-parse origin/master)"
+
+              if [ "$SOURCE_SHA" != "$master_sha" ]; then
+                echo "deploy/production-frontend must point exactly at the current master HEAD" >&2
+                echo "source_sha=$SOURCE_SHA" >&2
+                echo "master_sha=$master_sha" >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "unsupported production deployment event: $GITHUB_EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Checkout exact source revision
         shell: bash
@@ -88,7 +116,7 @@ jobs:
       - name: Upload immutable production artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: mini-app-production-${{ inputs.source_sha }}
+          name: mini-app-production-${{ env.SOURCE_SHA }}
           path: apps/mini-app/dist
           if-no-files-found: error
           retention-days: 30
@@ -119,7 +147,7 @@ jobs:
       - name: Download immutable production artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: mini-app-production-${{ inputs.source_sha }}
+          name: mini-app-production-${{ env.SOURCE_SHA }}
           path: apps/mini-app/dist
 
       - name: Setup Node
