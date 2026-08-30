@@ -92,6 +92,78 @@ class TelegramMenuServiceTest {
     }
 
     @Test
+    fun `stale navigation callback does not replace active menu session`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+            ),
+        )
+
+        val result =
+            service.navigate(
+                telegramId = TELEGRAM_ID,
+                messageId = OLD_MENU_MESSAGE_ID,
+                screen = TelegramMenuScreen.ONLINE,
+            )
+        val session = sessionRepository.find(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
+        assertEquals(TelegramMenuScreen.HOME, session?.currentScreen)
+        assertEquals(0, messageGateway.editedMessages.size)
+        assertEquals(0, recipientGateway.activatedTelegramIds.size)
+    }
+
+    @Test
+    fun `stale back callback does not replace active menu session`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.ONLINE,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+            ),
+        )
+
+        val result =
+            service.back(
+                telegramId = TELEGRAM_ID,
+                messageId = OLD_MENU_MESSAGE_ID,
+            )
+        val session = sessionRepository.find(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
+        assertEquals(TelegramMenuScreen.ONLINE, session?.currentScreen)
+        assertEquals(listOf(TelegramMenuScreen.HOME), session?.navigationStack)
+        assertEquals(0, messageGateway.editedMessages.size)
+    }
+
+    @Test
+    fun `stale home callback does not replace active menu session`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.ONLINE,
+            ),
+        )
+
+        val result =
+            service.home(
+                telegramId = TELEGRAM_ID,
+                messageId = OLD_MENU_MESSAGE_ID,
+            )
+        val session = sessionRepository.find(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
+        assertEquals(TelegramMenuScreen.ONLINE, session?.currentScreen)
+        assertEquals(0, messageGateway.editedMessages.size)
+    }
+
+    @Test
     fun `deleted stored menu falls back to new tracked message`() {
         sessionRepository.save(
             TelegramMenuSession(
