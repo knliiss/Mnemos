@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -19,13 +20,32 @@ class EventHistoryCallbackHandler(
         when (context.data) {
             EventHistoryCallbackData.REFRESH -> updateContext(context) { current -> current }
             EventHistoryCallbackData.PREVIOUS -> updateContext(context, EventHistoryMenuContext::previous)
+            EventHistoryCallbackData.SEARCH -> requestSearch(context)
+            EventHistoryCallbackData.SEARCH_CANCEL -> cancelSearch(context)
+            EventHistoryCallbackData.SEARCH_CLEAR -> updateContext(context, EventHistoryMenuContext::clearSearch)
             else -> handleParameterizedCallback(context)
         }
 
+    private fun requestSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.requestTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.EVENTS,
+            pendingInput = TelegramPendingInput.EVENT_SEARCH,
+            updateContext = EventHistoryMenuContext::clearSearchError,
+        )
+
+    private fun cancelSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.cancelTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.EVENTS,
+        )
+
     private fun handleParameterizedCallback(context: TelegramCallbackContext): TelegramDeliveryResult {
         EventHistoryCallbackData.selectedFilter(context.data)?.let { filter ->
-            return updateContext(context) {
-                EventHistoryMenuContext.filter(filter)
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.filter(current, filter)
             }
         }
 
