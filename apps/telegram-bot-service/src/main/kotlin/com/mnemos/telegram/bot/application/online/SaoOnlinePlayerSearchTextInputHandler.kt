@@ -17,15 +17,15 @@ class SaoOnlinePlayerSearchTextInputHandler(
     override val pendingInput: TelegramPendingInput = TelegramPendingInput.ONLINE_PLAYER_SEARCH
 
     override fun handle(context: TelegramTextInputContext): TelegramDeliveryResult {
-        val query = context.text.trim()
+        val query = SaoOnlineSearchQuery.normalize(context.text)
 
-        if (!isValidQuery(query)) {
+        if (query == null) {
             return menuService.updatePendingTextInputContext(
                 telegramId = context.telegramId,
                 expectedScreen = TelegramMenuScreen.ONLINE,
                 expectedInput = pendingInput,
             ) { current ->
-                current + (SaoOnlineMenuContext.SEARCH_ERROR_KEY to INVALID_QUERY_MESSAGE)
+                current + (SaoOnlineMenuContext.SEARCH_ERROR_KEY to SaoOnlineSearchQuery.INVALID_MESSAGE)
             }
         }
 
@@ -36,14 +36,5 @@ class SaoOnlinePlayerSearchTextInputHandler(
         ) {
             SaoOnlineMenuContext.search(query)
         }
-    }
-
-    private fun isValidQuery(query: String): Boolean =
-        query.length in MIN_QUERY_LENGTH..MAX_QUERY_LENGTH && query.none { character -> character.isWhitespace() }
-
-    private companion object {
-        const val MIN_QUERY_LENGTH = 2
-        const val MAX_QUERY_LENGTH = 32
-        const val INVALID_QUERY_MESSAGE = "Введите от 2 до 32 символов без пробелов."
     }
 }

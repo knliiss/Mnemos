@@ -42,6 +42,22 @@ class TelegramMenuServiceTest {
     }
 
     @Test
+    fun `opening menu with context stores direct screen state`() {
+        val context = mapOf("online.mode" to "realm", "online.realm" to "4")
+
+        val result =
+            service.open(
+                telegramId = TELEGRAM_ID,
+                screen = TelegramMenuScreen.ONLINE,
+                screenContext = context,
+            )
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(TelegramMenuScreen.ONLINE, sessionRepository.find(TELEGRAM_ID)?.currentScreen)
+        assertEquals(context, sessionRepository.find(TELEGRAM_ID)?.screenContext)
+    }
+
+    @Test
     fun `navigation and back reuse same menu message`() {
         sessionRepository.save(
             TelegramMenuSession(

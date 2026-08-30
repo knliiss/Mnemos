@@ -6,6 +6,8 @@ import com.mnemos.telegram.bot.application.command.start.TelegramStartContext
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
+import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
+import com.mnemos.telegram.bot.application.online.SaoOnlineSearchQuery
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -20,6 +22,7 @@ class TelegramCommandRouter(
         val text = context.text.trim()
         val rawCommand = text.substringBefore(' ')
         val command = rawCommand.substringBefore('@').lowercase()
+        val argument = text.substringAfter(' ', "").trim()
 
         return when (command) {
             "/start" ->
@@ -28,20 +31,41 @@ class TelegramCommandRouter(
                         telegramId = context.telegramId,
                         firstName = context.firstName,
                         username = context.username,
-                        parameter = text.substringAfter(' ', "").trim().takeIf(String::isNotEmpty),
+                        parameter = argument.takeIf(String::isNotEmpty),
                     ),
                 )
 
             "/help" -> helpService.send(context.telegramId)
             "/menu" -> menuService.open(context.telegramId)
             "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
-            "/online" -> menuService.open(context.telegramId, TelegramMenuScreen.ONLINE)
+            "/online" -> openOnline(context.telegramId, argument)
             "/events" -> menuService.open(context.telegramId, TelegramMenuScreen.EVENTS)
             "/daily" -> menuService.open(context.telegramId, TelegramMenuScreen.DAILY)
             "/account" -> menuService.open(context.telegramId, TelegramMenuScreen.ACCOUNT)
             "/settings" -> menuService.open(context.telegramId, TelegramMenuScreen.SETTINGS)
             else -> TelegramDeliveryResult.Delivered
         }
+    }
+
+    private fun openOnline(
+        telegramId: Long,
+        argument: String,
+    ): TelegramDeliveryResult {
+        val realmNumber = argument.toIntOrNull()?.takeIf { number -> number > 0 }
+        val searchQuery = SaoOnlineSearchQuery.normalize(argument)
+        val screenContext =
+            when {
+                argument.isBlank() -> emptyMap()
+                realmNumber != null -> SaoOnlineMenuContext.realm(realmNumber)
+                searchQuery != null -> SaoOnlineMenuContext.search(searchQuery)
+                else -> emptyMap()
+            }
+
+        return menuService.open(
+            telegramId = telegramId,
+            screen = TelegramMenuScreen.ONLINE,
+            screenContext = screenContext,
+        )
     }
 }
 

@@ -24,6 +24,7 @@ class TelegramMenuService(
     fun open(
         telegramId: Long,
         screen: TelegramMenuScreen = TelegramMenuScreen.HOME,
+        screenContext: Map<String, String> = emptyMap(),
     ): TelegramDeliveryResult {
         recipientGateway.activate(telegramId)
 
@@ -33,6 +34,7 @@ class TelegramMenuService(
                 telegramId = telegramId,
                 menuMessageId = currentSession?.menuMessageId,
                 currentScreen = screen,
+                screenContext = screenContext,
             )
 
         return deliver(nextSession, currentSession?.menuMessageId)
