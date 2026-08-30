@@ -37,13 +37,11 @@ object EventHistoryCallbackData {
 
     fun filter(filter: EventHistoryFilter): String = "$FILTER_PREFIX${filter.name}"
 
-    fun selectedFilter(callbackData: String): EventHistoryFilter? =
-        enumValue(callbackData, FILTER_PREFIX, EventHistoryFilter::valueOf)
+    fun selectedFilter(callbackData: String): EventHistoryFilter? = enumValue(callbackData, FILTER_PREFIX, EventHistoryFilter::valueOf)
 
     fun sort(sort: EventHistorySort): String = "$SORT_PREFIX${sort.name}"
 
-    fun selectedSort(callbackData: String): EventHistorySort? =
-        enumValue(callbackData, SORT_PREFIX, EventHistorySort::valueOf)
+    fun selectedSort(callbackData: String): EventHistorySort? = enumValue(callbackData, SORT_PREFIX, EventHistorySort::valueOf)
 
     fun itemRarity(rarity: EventHistoryItemRarity?): String = "$ITEM_RARITY_PREFIX${rarity?.name ?: CLEAR_VALUE}"
 
