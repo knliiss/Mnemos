@@ -4,6 +4,7 @@ import com.mnemos.account.application.context.CurrentUserProvider
 import com.mnemos.account.domain.exception.account.AccountNotFoundException
 import com.mnemos.account.domain.exception.account.AccountUnavailableException
 import com.mnemos.account.domain.exception.account.member.AccountMemberNotFoundException
+import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.user.UserRepository
@@ -20,8 +21,17 @@ class ChangeActiveAccountService(
 ) {
     @Transactional
     fun changeActiveAccount(accountId: AccountId) {
-        val user = currentUserProvider.get()
+        changeActiveAccount(
+            user = currentUserProvider.get(),
+            accountId = accountId,
+        )
+    }
 
+    @Transactional
+    fun changeActiveAccount(
+        user: User,
+        accountId: AccountId,
+    ) {
         accountMemberRepository.findByAccountIdAndUserId(
             accountId = accountId,
             userId = user.id,
