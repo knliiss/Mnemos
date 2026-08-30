@@ -19,10 +19,11 @@ class AccountGatewayAdapterTest {
         val gateway = AccountGatewayAdapter(client)
 
         val result = gateway.getContext(931458258) as TelegramAccountContextResult.Available
+        val account = result.context.accounts.single()
 
         assertEquals(accountId, result.context.activeAccountId)
-        assertEquals("knaliz", result.context.accounts.single().cristalixNickname)
-        assertEquals(true, result.context.accounts.single().owner)
+        assertEquals("knaliz", account.cristalixNickname)
+        assertEquals(true, account.owner)
     }
 
     @Test
