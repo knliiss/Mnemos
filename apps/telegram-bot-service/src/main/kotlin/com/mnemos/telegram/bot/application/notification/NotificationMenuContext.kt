@@ -64,8 +64,7 @@ object NotificationMenuContext {
             else -> clearFeedback(context)
         }
 
-    fun startCreation(): Map<String, String> =
-        mapOf(MODE_KEY to NotificationCreationMode.TYPE_SELECTION.name)
+    fun startCreation(): Map<String, String> = mapOf(MODE_KEY to NotificationCreationMode.TYPE_SELECTION.name)
 
     fun selectMode(mode: NotificationCreationMode): Map<String, String> {
         require(mode != NotificationCreationMode.LIST)
@@ -73,8 +72,7 @@ object NotificationMenuContext {
         return mapOf(MODE_KEY to mode.name)
     }
 
-    fun creationSucceeded(): Map<String, String> =
-        mapOf(FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name)
+    fun creationSucceeded(): Map<String, String> = mapOf(FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name)
 
     fun withFeedback(
         context: Map<String, String>,
@@ -88,16 +86,14 @@ object NotificationMenuContext {
         droppedFor: String,
     ): Map<String, String> = clearFeedback(context) + (DROPPED_FOR_KEY to droppedFor)
 
-    fun withoutDroppedFor(context: Map<String, String>): Map<String, String> =
-        clearFeedback(context) - DROPPED_FOR_KEY
+    fun withoutDroppedFor(context: Map<String, String>): Map<String, String> = clearFeedback(context) - DROPPED_FOR_KEY
 
     fun withItemName(
         context: Map<String, String>,
         itemName: String,
     ): Map<String, String> = clearFeedback(context) + (ITEM_NAME_KEY to itemName)
 
-    fun withoutItemName(context: Map<String, String>): Map<String, String> =
-        clearFeedback(context) - ITEM_NAME_KEY
+    fun withoutItemName(context: Map<String, String>): Map<String, String> = clearFeedback(context) - ITEM_NAME_KEY
 
     fun toggleRaidLocation(
         context: Map<String, String>,
@@ -116,8 +112,7 @@ object NotificationMenuContext {
         return withRaidLocations(clearFeedback(context), nextLocations)
     }
 
-    fun clearRaidLocations(context: Map<String, String>): Map<String, String> =
-        clearFeedback(context) - RAID_LOCATIONS_KEY
+    fun clearRaidLocations(context: Map<String, String>): Map<String, String> = clearFeedback(context) - RAID_LOCATIONS_KEY
 
     fun withRaidPage(
         context: Map<String, String>,

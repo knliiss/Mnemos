@@ -26,8 +26,9 @@ class NotificationSubscriptionCreationService(
     private val sessionRepository: TelegramMenuSessionRepository,
 ) {
     fun createItemDrop(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val session = currentCreationSession(context, NotificationCreationMode.ITEM_DROP)
-            ?: return TelegramDeliveryResult.Delivered
+        val session =
+            currentCreationSession(context, NotificationCreationMode.ITEM_DROP)
+                ?: return TelegramDeliveryResult.Delivered
         val draft =
             NotificationItemDropSubscriptionDraft(
                 droppedFor = NotificationMenuContext.droppedFor(session.screenContext),
@@ -61,8 +62,9 @@ class NotificationSubscriptionCreationService(
         }
 
     fun createRaid(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val session = currentCreationSession(context, NotificationCreationMode.RAID)
-            ?: return TelegramDeliveryResult.Delivered
+        val session =
+            currentCreationSession(context, NotificationCreationMode.RAID)
+                ?: return TelegramDeliveryResult.Delivered
         val draft =
             NotificationRaidSubscriptionDraft(
                 locations = NotificationMenuContext.raidLocations(session.screenContext),

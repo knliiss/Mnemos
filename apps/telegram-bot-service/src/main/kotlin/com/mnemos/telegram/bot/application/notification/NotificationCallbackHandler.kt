@@ -169,8 +169,7 @@ class NotificationCallbackHandler(
         return refresh(context)
     }
 
-    private fun refresh(context: TelegramCallbackContext): TelegramDeliveryResult =
-        updateContext(context, NotificationMenuContext::refresh)
+    private fun refresh(context: TelegramCallbackContext): TelegramDeliveryResult = updateContext(context, NotificationMenuContext::refresh)
 
     private fun updateCreationContext(
         context: TelegramCallbackContext,
