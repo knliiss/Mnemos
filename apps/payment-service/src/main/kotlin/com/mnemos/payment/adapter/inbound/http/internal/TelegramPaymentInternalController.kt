@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/internal/v1/telegram/stars")
-@PreAuthorize("authentication.name == 'notification-service'")
+@PreAuthorize("authentication.name == 'telegram-bot-service'")
 class TelegramPaymentInternalController(
     private val validatePreCheckoutService: ValidateStarPreCheckoutService,
     private val recordSuccessfulPaymentService: RecordSuccessfulStarPaymentService,

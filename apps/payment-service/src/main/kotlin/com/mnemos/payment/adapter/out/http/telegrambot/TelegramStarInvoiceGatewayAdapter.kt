@@ -1,4 +1,4 @@
-package com.mnemos.payment.adapter.out.http.notification
+package com.mnemos.payment.adapter.out.http.telegrambot
 
 import com.mnemos.payment.application.stars.port.out.TelegramStarInvoice
 import com.mnemos.payment.application.stars.port.out.TelegramStarInvoiceGateway
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class TelegramStarInvoiceGatewayAdapter(
-    private val client: NotificationTelegramClient,
+    private val client: TelegramBotClient,
 ) : TelegramStarInvoiceGateway {
     override fun createInvoice(invoice: TelegramStarInvoice): String =
         client

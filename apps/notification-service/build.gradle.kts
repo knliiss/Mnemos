@@ -20,7 +20,6 @@ dependencies {
     implementation(project(":contracts:bet-contracts"))
     implementation(project(":contracts:personalization-contracts"))
     implementation(project(":contracts:player-directory-contracts"))
-    implementation(project(":contracts:payment-contracts"))
     implementation(project(":contracts:telegram-bot-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -29,7 +28,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation(libs.telegram.bot)
     implementation(libs.uuid.creator)
 
     implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
