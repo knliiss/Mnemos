@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.adapter.out.event.EventHistoryMapper.toModel
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
 import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
+import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import com.mnemos.telegram.bot.application.events.port.out.EventHistoryGateway
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -24,7 +25,7 @@ class EventHistoryGatewayAdapter(
                         after = query.after,
                         type = query.filter.toInternalType(),
                         search = query.search,
-                        sort = InternalEventFeedSort.NEWEST,
+                        sort = query.sort.toInternalSort(),
                         limit = PAGE_SIZE,
                     )
 
@@ -44,6 +45,12 @@ class EventHistoryGatewayAdapter(
             EventHistoryFilter.BOOSTER -> InternalEventFeedType.BOOSTER
             EventHistoryFilter.GLOBAL -> InternalEventFeedType.GLOBAL
             EventHistoryFilter.RAID -> InternalEventFeedType.RAID
+        }
+
+    private fun EventHistorySort.toInternalSort(): InternalEventFeedSort =
+        when (this) {
+            EventHistorySort.NEWEST -> InternalEventFeedSort.NEWEST
+            EventHistorySort.OLDEST -> InternalEventFeedSort.OLDEST
         }
 
     private companion object {
