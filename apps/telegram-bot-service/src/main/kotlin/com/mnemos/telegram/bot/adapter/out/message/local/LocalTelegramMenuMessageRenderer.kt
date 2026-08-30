@@ -120,8 +120,8 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             data.players
                 .mapIndexed { index, player ->
                     "${firstPlayerNumber + index}. <code>${escapeHtml(player.nickname)}</code>"
-                }
-                .joinToString("\n").ifBlank {
+                }.joinToString("\n")
+                .ifBlank {
                     "Сейчас на этом реалме никого нет."
                 }
         val generatedAt = onlineTimestampFormatter.format(data.generatedAt)
@@ -164,8 +164,8 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                     val realmName = escapeHtml(match.realmName)
 
                     "${firstMatchNumber + index}. <code>$nickname</code> — $realmName"
-                }
-                .joinToString("\n").ifBlank {
+                }.joinToString("\n")
+                .ifBlank {
                     "Онлайн-игроки по этому запросу не найдены."
                 }
         val generatedAt = onlineTimestampFormatter.format(data.generatedAt)
