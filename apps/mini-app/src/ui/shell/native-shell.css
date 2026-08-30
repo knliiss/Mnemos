@@ -4,13 +4,15 @@ html.telegram-mini-app #root {
   width: 100%;
   min-width: 100%;
   min-height: 100%;
-  background: #050604;
+  background: var(--bg-deep);
 }
 
 .telegram-mini-app .preview-stage {
   display: block;
   min-height: 100dvh;
-  background: #050604;
+  background:
+    radial-gradient(circle at 50% -18%, rgba(203, 255, 45, 0.03), transparent 44%),
+    var(--bg-deep);
 }
 
 .telegram-mini-app .app-shell {

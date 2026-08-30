@@ -3,7 +3,9 @@
   justify-content: center;
   width: 100%;
   min-height: 100dvh;
-  background: #020302;
+  background:
+    radial-gradient(circle at 50% -14%, rgba(203, 255, 45, 0.035), transparent 48%),
+    linear-gradient(180deg, #222720 0%, var(--bg-deep) 100%);
 }
 
 .app-shell {
@@ -13,10 +15,11 @@
   height: 100dvh;
   min-height: 620px;
   overflow: hidden;
-  border-inline: 1px solid rgba(235, 241, 213, 0.025);
+  border-inline: 1px solid rgba(226, 234, 221, 0.035);
   background:
-    radial-gradient(circle at 15% 2%, rgba(203, 255, 45, 0.02), transparent 28%),
-    linear-gradient(180deg, #0b0d09 0%, #070806 44%, #050604 100%);
+    radial-gradient(circle at 14% 0%, rgba(203, 255, 45, 0.05), transparent 36%),
+    radial-gradient(circle at 92% 22%, rgba(148, 160, 145, 0.055), transparent 34%),
+    linear-gradient(180deg, #272c25 0%, #222720 48%, #1d211c 100%);
   box-shadow: var(--shadow);
 }
 
@@ -26,8 +29,8 @@
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  opacity: 0.14;
-  background: radial-gradient(circle at 78% 5%, rgba(203, 255, 45, 0.06), transparent 29%);
+  opacity: 0.22;
+  background: radial-gradient(circle at 78% 5%, rgba(203, 255, 45, 0.07), transparent 33%);
 }
 
 .route-stage {
@@ -71,12 +74,13 @@
   gap: 2px;
   min-height: 70px;
   padding: 5px;
-  border: 1px solid rgba(238, 245, 214, 0.15) !important;
+  border: 1px solid var(--line-strong) !important;
   border-radius: 20px;
-  background: rgba(15, 17, 13, 0.92) !important;
+  background:
+    linear-gradient(180deg, rgba(31, 36, 31, 0.94), rgba(24, 28, 24, 0.94)) !important;
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.5),
-    inset 0 1px rgba(255, 255, 255, 0.04) !important;
+    0 16px 48px rgba(0, 0, 0, 0.36),
+    inset 0 1px rgba(255, 255, 255, 0.035) !important;
   backdrop-filter: blur(24px) saturate(108%);
   -webkit-backdrop-filter: blur(24px) saturate(108%);
 }
@@ -90,7 +94,7 @@
   min-width: 0;
   min-height: 58px;
   border-radius: 15px;
-  color: #777d70 !important;
+  color: var(--text-muted) !important;
   transition:
     background 0.18s ease,
     color 0.18s ease,
