@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeSelection
 import java.util.UUID
 
 object EventHistoryMenuContext {
@@ -19,7 +20,7 @@ object EventHistoryMenuContext {
     const val GLOBAL_TYPE_KEY = "events.global-type"
     const val RAID_LOCATION_KEY = "events.raid-location"
     const val RAID_LOCATION_PAGE_KEY = "events.raid-location-page"
-    const val WIPE_ID_KEY = "events.wipe-id"
+    const val WIPE_SELECTION_KEY = "events.wipe-selection"
     const val AFTER_KEY = "events.after"
     const val CURSOR_STACK_KEY = "events.cursor-stack"
 
@@ -137,12 +138,21 @@ object EventHistoryMenuContext {
 
     fun wipe(
         context: Map<String, String>,
-        wipeId: UUID?,
-    ): Map<String, String> = setOptionalFilter(context, WIPE_ID_KEY, wipeId?.toString())
+        selection: EventHistoryWipeSelection,
+    ): Map<String, String> {
+        val resetContext = resetPagination(context)
 
-    fun selectedWipeId(context: Map<String, String>): UUID? =
-        context[WIPE_ID_KEY]
-            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
+        return if (selection == EventHistoryWipeSelection.ALL) {
+            resetContext - WIPE_SELECTION_KEY
+        } else {
+            resetContext + (WIPE_SELECTION_KEY to selection.name)
+        }
+    }
+
+    fun selectedWipe(context: Map<String, String>): EventHistoryWipeSelection =
+        context[WIPE_SELECTION_KEY]
+            ?.let { value -> runCatching { EventHistoryWipeSelection.valueOf(value) }.getOrNull() }
+            ?: EventHistoryWipeSelection.ALL
 
     fun search(
         context: Map<String, String>,
