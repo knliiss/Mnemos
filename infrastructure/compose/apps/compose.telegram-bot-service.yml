@@ -1,0 +1,37 @@
+services:
+  telegram-bot-service:
+    container_name: mnemos-telegram-bot-service
+
+    build:
+      context: ../..
+      dockerfile: apps/telegram-bot-service/Dockerfile
+
+    image: mnemos/telegram-bot-service:${TELEGRAM_BOT_SERVICE_VERSION:-local}
+
+    restart: unless-stopped
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8094
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${MNEMOS_AUTH_ORIGIN}/realms/mnemos
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/mnemos/protocol/openid-connect/certs
+
+      TELEGRAM_BOT_ENABLED: ${TELEGRAM_BOT_ENABLED:-false}
+      MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
+      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+
+      NOTIFICATION_SERVICE_URL: http://notification-service:8084
+      TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY: ${TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY}
+      NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY: ${NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY}
+
+      PAYMENT_SERVICE_URL: http://payment-service:8093
+      TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY: ${TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY}
+      PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY: ${PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY}
+
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+    networks:
+      - mnemos-network
