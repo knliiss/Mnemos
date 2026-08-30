@@ -45,7 +45,7 @@ object TelegramBotServiceMessageMapper {
         TelegramMessagePayload(
             text = text,
             parseMode = parseMode.toContract(),
-            actions = actions.map(MessageAction::toContract),
+            actions = actions.map { action -> action.toContract() },
         )
 
     private fun MessageParseMode.toContract(): TelegramMessageParseMode =

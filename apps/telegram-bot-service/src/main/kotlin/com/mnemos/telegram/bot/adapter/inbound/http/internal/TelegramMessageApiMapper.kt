@@ -16,7 +16,7 @@ object TelegramMessageApiMapper {
         OutboundTelegramMessage(
             text = text,
             parseMode = parseMode.toDomain(),
-            actions = actions.map(TelegramMessageActionPayload::toDomain),
+            actions = actions.map { action -> action.toDomain() },
         )
 
     fun TelegramDeliveryResult.toResponse(): TelegramDeliveryResponse =
