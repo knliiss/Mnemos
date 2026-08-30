@@ -29,6 +29,5 @@ object DailyRewardApiMapper {
             primes = primes,
         )
 
-    fun TelegramDailyRewardRestoreResponse.toModel(): DailyRestoredStreak =
-        DailyRestoredStreak(currentStreak = currentStreak)
+    fun TelegramDailyRewardRestoreResponse.toModel(): DailyRestoredStreak = DailyRestoredStreak(currentStreak = currentStreak)
 }

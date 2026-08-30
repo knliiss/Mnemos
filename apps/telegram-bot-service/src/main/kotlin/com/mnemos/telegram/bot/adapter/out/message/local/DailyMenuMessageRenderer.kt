@@ -3,7 +3,6 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 import com.mnemos.telegram.bot.application.daily.DailyCallbackData
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuFeedback
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuFeedbackType
-import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardState
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen

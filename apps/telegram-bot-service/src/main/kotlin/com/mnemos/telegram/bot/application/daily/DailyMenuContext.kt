@@ -39,8 +39,7 @@ object DailyMenuContext {
             STREAK_KEY to streak.currentStreak.toString(),
         )
 
-    fun unavailable(): Map<String, String> =
-        mapOf(FEEDBACK_KEY to DailyMenuFeedbackType.UNAVAILABLE.name)
+    fun unavailable(): Map<String, String> = mapOf(FEEDBACK_KEY to DailyMenuFeedbackType.UNAVAILABLE.name)
 
     fun clear(): Map<String, String> = emptyMap()
 
