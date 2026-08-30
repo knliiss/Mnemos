@@ -1,6 +1,10 @@
 package com.mnemos.telegram.bot.application.events
 
+import com.mnemos.telegram.bot.application.events.model.EventHistoryBoosterType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import java.util.UUID
 
@@ -9,6 +13,13 @@ object EventHistoryMenuContext {
     const val SEARCH_KEY = "events.search"
     const val SEARCH_ERROR_KEY = "events.search-error"
     const val SORT_KEY = "events.sort"
+    const val ITEM_RARITY_KEY = "events.item-rarity"
+    const val ITEM_TYPE_KEY = "events.item-type"
+    const val BOOSTER_TYPE_KEY = "events.booster-type"
+    const val GLOBAL_TYPE_KEY = "events.global-type"
+    const val RAID_LOCATION_KEY = "events.raid-location"
+    const val RAID_LOCATION_PAGE_KEY = "events.raid-location-page"
+    const val WIPE_ID_KEY = "events.wipe-id"
     const val AFTER_KEY = "events.after"
     const val CURSOR_STACK_KEY = "events.cursor-stack"
 
@@ -19,7 +30,11 @@ object EventHistoryMenuContext {
         context: Map<String, String>,
         filter: EventHistoryFilter,
     ): Map<String, String> {
-        val resetContext = resetPagination(context)
+        if (selectedFilter(context) == filter) {
+            return context
+        }
+
+        val resetContext = resetKindFilters(resetPagination(context))
 
         return if (filter == EventHistoryFilter.ALL) {
             resetContext - FILTER_KEY
@@ -50,6 +65,84 @@ object EventHistoryMenuContext {
         context[SORT_KEY]
             ?.let { value -> runCatching { EventHistorySort.valueOf(value) }.getOrNull() }
             ?: EventHistorySort.NEWEST
+
+    fun itemRarity(
+        context: Map<String, String>,
+        rarity: EventHistoryItemRarity?,
+    ): Map<String, String> = setOptionalFilter(context, ITEM_RARITY_KEY, rarity?.name)
+
+    fun selectedItemRarity(context: Map<String, String>): EventHistoryItemRarity? =
+        context[ITEM_RARITY_KEY]
+            ?.let { value -> runCatching { EventHistoryItemRarity.valueOf(value) }.getOrNull() }
+
+    fun itemType(
+        context: Map<String, String>,
+        itemType: EventHistoryItemType?,
+    ): Map<String, String> = setOptionalFilter(context, ITEM_TYPE_KEY, itemType?.name)
+
+    fun selectedItemType(context: Map<String, String>): EventHistoryItemType? =
+        context[ITEM_TYPE_KEY]
+            ?.let { value -> runCatching { EventHistoryItemType.valueOf(value) }.getOrNull() }
+
+    fun boosterType(
+        context: Map<String, String>,
+        boosterType: EventHistoryBoosterType?,
+    ): Map<String, String> = setOptionalFilter(context, BOOSTER_TYPE_KEY, boosterType?.name)
+
+    fun selectedBoosterType(context: Map<String, String>): EventHistoryBoosterType? =
+        context[BOOSTER_TYPE_KEY]
+            ?.let { value -> runCatching { EventHistoryBoosterType.valueOf(value) }.getOrNull() }
+
+    fun globalType(
+        context: Map<String, String>,
+        globalType: EventHistoryGlobalType?,
+    ): Map<String, String> = setOptionalFilter(context, GLOBAL_TYPE_KEY, globalType?.name)
+
+    fun selectedGlobalType(context: Map<String, String>): EventHistoryGlobalType? =
+        context[GLOBAL_TYPE_KEY]
+            ?.let { value -> runCatching { EventHistoryGlobalType.valueOf(value) }.getOrNull() }
+
+    fun raidLocation(
+        context: Map<String, String>,
+        location: Int?,
+    ): Map<String, String> {
+        require(location == null || location in 1..28) { "Raid location must be between 1 and 28" }
+
+        return setOptionalFilter(context, RAID_LOCATION_KEY, location?.toString())
+    }
+
+    fun selectedRaidLocation(context: Map<String, String>): Int? =
+        context[RAID_LOCATION_KEY]
+            ?.toIntOrNull()
+            ?.takeIf { location -> location in 1..28 }
+
+    fun raidLocationPage(
+        context: Map<String, String>,
+        page: Int,
+    ): Map<String, String> {
+        require(page in 0..3) { "Raid location page must be between 0 and 3" }
+
+        return if (page == 0) {
+            context - RAID_LOCATION_PAGE_KEY
+        } else {
+            context + (RAID_LOCATION_PAGE_KEY to page.toString())
+        }
+    }
+
+    fun selectedRaidLocationPage(context: Map<String, String>): Int =
+        context[RAID_LOCATION_PAGE_KEY]
+            ?.toIntOrNull()
+            ?.coerceIn(0, 3)
+            ?: 0
+
+    fun wipe(
+        context: Map<String, String>,
+        wipeId: UUID?,
+    ): Map<String, String> = setOptionalFilter(context, WIPE_ID_KEY, wipeId?.toString())
+
+    fun selectedWipeId(context: Map<String, String>): UUID? =
+        context[WIPE_ID_KEY]
+            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
 
     fun search(
         context: Map<String, String>,
@@ -105,6 +198,29 @@ object EventHistoryMenuContext {
 
         return nextContext
     }
+
+    private fun setOptionalFilter(
+        context: Map<String, String>,
+        key: String,
+        value: String?,
+    ): Map<String, String> {
+        val resetContext = resetPagination(context)
+
+        return if (value == null) {
+            resetContext - key
+        } else {
+            resetContext + (key to value)
+        }
+    }
+
+    private fun resetKindFilters(context: Map<String, String>): Map<String, String> =
+        context -
+            ITEM_RARITY_KEY -
+            ITEM_TYPE_KEY -
+            BOOSTER_TYPE_KEY -
+            GLOBAL_TYPE_KEY -
+            RAID_LOCATION_KEY -
+            RAID_LOCATION_PAGE_KEY
 
     private fun resetPagination(context: Map<String, String>): Map<String, String> =
         context - AFTER_KEY - CURSOR_STACK_KEY - SEARCH_ERROR_KEY
