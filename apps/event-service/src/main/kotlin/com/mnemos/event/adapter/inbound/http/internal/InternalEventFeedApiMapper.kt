@@ -1,0 +1,83 @@
+package com.mnemos.event.adapter.inbound.http.internal
+
+import com.mnemos.event.application.feed.model.BoosterFeedItem
+import com.mnemos.event.application.feed.model.EventFeedItem
+import com.mnemos.event.application.feed.model.EventFeedKind
+import com.mnemos.event.application.feed.model.EventFeedPage
+import com.mnemos.event.application.feed.model.EventFeedQuery
+import com.mnemos.event.application.feed.model.EventFeedSort
+import com.mnemos.event.application.feed.model.GlobalFeedItem
+import com.mnemos.event.application.feed.model.ItemDropFeedItem
+import com.mnemos.event.application.feed.model.RaidFeedItem
+import com.mnemos.event.contracts.internal.v1.InternalEventFeedItemResponse
+import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
+import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
+import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
+import com.mnemos.event.contracts.shared.ContractBoosterType
+import com.mnemos.event.contracts.shared.ContractGlobalEventType
+import com.mnemos.event.contracts.shared.ContractItemRarity
+import com.mnemos.event.domain.EventId
+import java.util.UUID
+
+object InternalEventFeedApiMapper {
+    fun toQuery(
+        after: UUID?,
+        type: InternalEventFeedType?,
+        search: String?,
+        sort: InternalEventFeedSort,
+        limit: Int,
+    ): EventFeedQuery =
+        EventFeedQuery(
+            after = after?.let(::EventId),
+            limit = limit,
+            kinds = type?.let { value -> setOf(EventFeedKind.valueOf(value.name)) } ?: EventFeedKind.entries.toSet(),
+            search = search?.trim()?.takeIf(String::isNotEmpty),
+            sort = EventFeedSort.valueOf(sort.name),
+        )
+
+    fun EventFeedPage.toInternalResponse(): InternalEventFeedResponse =
+        InternalEventFeedResponse(
+            items = items.map(EventFeedItem::toInternalResponse),
+            cursor = cursor?.id,
+        )
+
+    private fun EventFeedItem.toInternalResponse(): InternalEventFeedItemResponse =
+        when (this) {
+            is ItemDropFeedItem ->
+                InternalEventFeedItemResponse(
+                    type = InternalEventFeedType.ITEM_DROP,
+                    eventId = eventId.id,
+                    occurredAt = occurredAt,
+                    itemId = itemId.id,
+                    itemName = itemName,
+                    itemRarity = ContractItemRarity.valueOf(itemRarity.name),
+                    itemType = itemType,
+                    droppedFor = droppedFor,
+                )
+
+            is BoosterFeedItem ->
+                InternalEventFeedItemResponse(
+                    type = InternalEventFeedType.BOOSTER,
+                    eventId = eventId.id,
+                    occurredAt = occurredAt,
+                    boosterType = ContractBoosterType.valueOf(boosterType.name),
+                    activatedBy = activatedBy,
+                )
+
+            is GlobalFeedItem ->
+                InternalEventFeedItemResponse(
+                    type = InternalEventFeedType.GLOBAL,
+                    eventId = eventId.id,
+                    occurredAt = occurredAt,
+                    globalType = ContractGlobalEventType.valueOf(globalType.name),
+                )
+
+            is RaidFeedItem ->
+                InternalEventFeedItemResponse(
+                    type = InternalEventFeedType.RAID,
+                    eventId = eventId.id,
+                    occurredAt = occurredAt,
+                    locations = locations,
+                )
+        }
+}

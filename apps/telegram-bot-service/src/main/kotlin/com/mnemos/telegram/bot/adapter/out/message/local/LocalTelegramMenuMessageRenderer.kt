@@ -19,11 +19,15 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         screen: TelegramMenuScreen,
         data: TelegramMenuScreenData,
     ): OutboundTelegramMessage =
-        OutboundTelegramMessage(
-            text = renderText(screen, data),
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderActions(screen, data),
-        )
+        when (screen) {
+            TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
+            else ->
+                OutboundTelegramMessage(
+                    text = renderText(screen, data),
+                    parseMode = OutboundTelegramMessageParseMode.HTML,
+                    actions = renderActions(screen, data),
+                )
+        }
 
     private fun renderText(
         screen: TelegramMenuScreen,

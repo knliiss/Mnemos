@@ -1,0 +1,34 @@
+package com.mnemos.telegram.bot.application.menu
+
+import com.mnemos.telegram.bot.application.events.EventHistoryMenuContext
+import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
+import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
+import com.mnemos.telegram.bot.application.events.port.out.EventHistoryGateway
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import org.springframework.stereotype.Component
+
+@Component
+class EventHistoryMenuScreenDataProvider(
+    private val eventHistoryGateway: EventHistoryGateway,
+) : TelegramMenuScreenDataProvider {
+    override val screen: TelegramMenuScreen = TelegramMenuScreen.EVENTS
+
+    override fun load(session: TelegramMenuSession): TelegramMenuScreenData {
+        val filter = EventHistoryMenuContext.selectedFilter(session.screenContext)
+        val query =
+            EventHistoryQuery(
+                filter = filter,
+                after = EventHistoryMenuContext.after(session.screenContext),
+            )
+
+        return TelegramMenuScreenData.EventHistory(
+            EventHistoryMenuScreenData(
+                filter = filter,
+                result = eventHistoryGateway.getPage(query),
+                hasPrevious = EventHistoryMenuContext.hasPrevious(session.screenContext),
+            ),
+        )
+    }
+}
