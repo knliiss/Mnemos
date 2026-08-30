@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.application.payment
 import com.mnemos.payment.contracts.internal.telegram.RecordSuccessfulStarPaymentRequest
 import com.mnemos.payment.contracts.internal.telegram.ValidateStarPreCheckoutRequest
 import com.mnemos.telegram.bot.adapter.out.payment.PaymentServiceClient
+import com.mnemos.telegram.bot.application.identity.TelegramPrivateActorPolicy
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.model.Chat
@@ -73,17 +74,19 @@ class HandleTelegramStarPaymentUpdateService(
 
     fun handleSuccessfulPayment(message: Message): TelegramDeliveryResult {
         val payment = message.successfulPayment() ?: return TelegramDeliveryResult.Delivered
-
-        if (message.chat().type() != Chat.Type.Private) {
-            return TelegramDeliveryResult.PermanentFailure(
-                "Telegram Stars payment arrived outside a private chat",
+        val telegramId =
+            TelegramPrivateActorPolicy.resolve(
+                isPrivateChat = message.chat().type() == Chat.Type.Private,
+                chatId = message.chat().id(),
+                actorId = message.from()?.id(),
+            ) ?: return TelegramDeliveryResult.PermanentFailure(
+                "Telegram Stars payment actor does not match the private chat",
             )
-        }
 
         return try {
             paymentServiceClient.recordSuccessfulStarPayment(
                 RecordSuccessfulStarPaymentRequest(
-                    telegramId = message.chat().id(),
+                    telegramId = telegramId,
                     invoicePayload = payment.invoicePayload,
                     currency = payment.currency,
                     totalAmount = payment.totalAmount,
