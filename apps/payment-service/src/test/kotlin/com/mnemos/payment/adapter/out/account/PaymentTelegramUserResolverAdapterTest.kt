@@ -1,6 +1,6 @@
 package com.mnemos.payment.adapter.out.account
 
-import com.mnemos.contracts.account.internal.v1.InternalTelegramUserContextResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserIdentityResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -14,9 +14,8 @@ class PaymentTelegramUserResolverAdapterTest {
             PaymentAccountServiceClient { telegramId ->
                 require(telegramId == 931458258L)
 
-                InternalTelegramUserContextResponse(
+                InternalTelegramUserIdentityResponse(
                     userId = userId,
-                    activeAccountId = null,
                 )
             }
         val resolver = PaymentTelegramUserResolverAdapter(client)
