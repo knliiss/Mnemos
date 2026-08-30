@@ -85,7 +85,7 @@
 .section__head h2,
 .moderation-form h2 {
   margin: 0;
-  color: #c8cbca;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 680;
   letter-spacing: 0.02em;
@@ -98,7 +98,7 @@
   padding: 3px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--surface-faint);
 }
 
 .segmented button {
@@ -115,7 +115,7 @@
 
 .segmented button.is-selected {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.075);
+  background: var(--surface-hover);
 }
 
 .choice-grid {
@@ -134,15 +134,15 @@
   border: 1px solid var(--line);
   border-radius: 9px;
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--surface-faint);
   font-size: 11px;
   text-align: left;
 }
 
 .choice-grid button.is-selected {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--line-strong);
   color: var(--text);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--surface-hover);
 }
 
 .choice-grid__mark {
@@ -157,8 +157,8 @@
 
 .choice-grid button.is-selected .choice-grid__mark {
   border-color: transparent;
-  color: #171818;
-  background: #d8dbd9;
+  color: #171b17;
+  background: #d7ddd4;
 }
 
 .form-stack {
@@ -197,7 +197,7 @@
   border-radius: 9px;
   outline: 0;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--surface-faint);
   font: inherit;
 }
 
@@ -216,7 +216,7 @@
 
 .field input[type="range"] {
   width: 100%;
-  accent-color: #aeb3b0;
+  accent-color: #9faa9f;
 }
 
 .field output {
@@ -240,8 +240,8 @@
 }
 
 .primary-action {
-  color: #171818;
-  background: #d7dad8;
+  color: #171b17;
+  background: #d8ddd6;
 }
 
 .destructive-action {
@@ -258,7 +258,7 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0 max(0px, calc((100vw - 430px) / 2));
-  background: rgba(0, 0, 0, 0.48);
+  background: var(--overlay);
 }
 
 .sheet {
@@ -269,7 +269,11 @@
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: 22px 22px 0 0;
-  background: var(--surface-solid);
+  background:
+    linear-gradient(180deg, rgba(35, 40, 35, 0.98), var(--surface-solid));
+  box-shadow:
+    0 -18px 48px rgba(0, 0, 0, 0.24),
+    inset 0 1px rgba(255, 255, 255, 0.025);
 }
 
 .sheet__grip {

@@ -8,8 +8,10 @@
   padding: max(24px, env(safe-area-inset-top, 0px)) 18px max(28px, env(safe-area-inset-bottom, 0px));
   color: #edf0e8;
   background:
-    radial-gradient(circle at 50% 29%, rgba(178, 195, 111, 0.075), transparent 27%),
-    radial-gradient(circle at 84% 83%, rgba(118, 200, 206, 0.035), transparent 25%), #050705;
+    radial-gradient(circle at 50% 26%, rgba(203, 255, 45, 0.04), transparent 34%),
+    radial-gradient(circle at 12% 62%, rgba(123, 143, 126, 0.055), transparent 36%),
+    radial-gradient(circle at 88% 82%, rgba(145, 158, 142, 0.04), transparent 32%),
+    linear-gradient(135deg, #242923 0%, #1f231f 50%, #222622 100%);
 }
 
 .service-unavailable::before {
@@ -17,7 +19,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.22;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
@@ -31,13 +33,13 @@
   gap: 18px;
   width: min(100%, 390px);
   padding: 30px 24px 25px;
-  border: 1px solid rgba(221, 231, 205, 0.095);
+  border: 1px solid rgba(221, 229, 216, 0.105);
   border-radius: 26px;
   background:
-    linear-gradient(145deg, rgba(21, 24, 19, 0.92), rgba(9, 11, 8, 0.965)), rgba(10, 12, 9, 0.96);
+    linear-gradient(145deg, rgba(28, 32, 28, 0.94), rgba(15, 18, 16, 0.97)), rgba(17, 20, 17, 0.96);
   box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.38),
-    inset 0 1px rgba(255, 255, 255, 0.035);
+    0 30px 80px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.04);
   text-align: center;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);

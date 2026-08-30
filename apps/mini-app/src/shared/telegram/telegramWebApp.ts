@@ -1,5 +1,5 @@
-const TELEGRAM_BACKGROUND = "#050604"
-const TELEGRAM_CHROME = "#07090b"
+const TELEGRAM_BACKGROUND = "#181c18"
+const TELEGRAM_CHROME = "#1c211c"
 
 function isTelegramRuntime(webApp: TelegramWebApp): boolean {
   return Boolean(

@@ -1,21 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --bg: #050605;
-  --bg-deep: #020302;
+  --bg: #20241f;
+  --bg-deep: #181c18;
 
-  --surface: rgba(22, 23, 19, 0.88);
-  --surface-solid: #151612;
-  --surface-raised: rgba(31, 32, 26, 0.96);
-  --surface-soft: rgba(247, 250, 232, 0.055);
-  --surface-hover: rgba(247, 250, 232, 0.09);
+  --surface: rgba(29, 33, 29, 0.9);
+  --surface-solid: #1d211d;
+  --surface-raised: rgba(35, 40, 35, 0.96);
+  --surface-faint: rgba(240, 247, 237, 0.025);
+  --surface-soft: rgba(240, 247, 237, 0.055);
+  --surface-hover: rgba(240, 247, 237, 0.085);
+  --surface-accent: rgba(203, 255, 45, 0.055);
+  --overlay: rgba(4, 6, 4, 0.58);
 
-  --line: rgba(235, 241, 213, 0.115);
-  --line-strong: rgba(235, 241, 213, 0.205);
+  --line: rgba(226, 234, 221, 0.11);
+  --line-strong: rgba(226, 234, 221, 0.19);
 
-  --text: #f5f6ef;
-  --text-secondary: #b9bbae;
-  --text-muted: #85887b;
+  --text: #f4f6f0;
+  --text-secondary: #b8beb4;
+  --text-muted: #858d82;
 
   --accent: #cbff2d;
   --accent-strong: #ddff72;
@@ -31,7 +34,7 @@
   --positive: #bde06d;
 
   --blur: blur(24px) saturate(106%);
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
 
   --font-ui:
     "Inter", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
@@ -119,7 +122,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #65695f;
+  color: #697067;
 }
 
 button,
@@ -131,7 +134,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 1px solid rgba(224, 228, 225, 0.6);
+  outline: 1px solid rgba(224, 230, 224, 0.58);
   outline-offset: 2px;
 }
 

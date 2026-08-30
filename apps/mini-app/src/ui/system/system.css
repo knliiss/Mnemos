@@ -41,15 +41,15 @@
   justify-items: center;
   gap: 7px;
   padding: 26px 18px;
-  border: 1px dashed rgba(226, 234, 207, 0.11);
+  border: 1px dashed var(--line);
   border-radius: 18px;
-  color: #747b6f;
-  background: rgba(255, 255, 255, 0.012);
+  color: var(--text-muted);
+  background: var(--surface-faint);
   text-align: center;
 }
 
 .feature-empty strong {
-  color: #a5ab9f;
+  color: var(--text-secondary);
   font-size: 11px;
 }
 
@@ -85,13 +85,13 @@
   padding: 14px 15px 14px 11px;
   border: 1px solid rgba(199, 242, 74, 0.2);
   border-radius: 20px;
-  color: #e8ece2;
+  color: var(--text);
   background:
-    radial-gradient(circle at 14% 44%, rgba(199, 242, 74, 0.12), transparent 34%),
-    radial-gradient(circle at 90% 10%, rgba(181, 139, 194, 0.07), transparent 30%),
-    linear-gradient(145deg, rgba(14, 18, 11, 0.985), rgba(8, 10, 8, 0.985));
+    radial-gradient(circle at 14% 44%, rgba(199, 242, 74, 0.11), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(181, 139, 194, 0.065), transparent 30%),
+    linear-gradient(145deg, rgba(31, 36, 30, 0.985), rgba(21, 25, 21, 0.985));
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.46),
+    0 24px 64px rgba(0, 0, 0, 0.36),
     inset 0 1px rgba(255, 255, 255, 0.03);
   pointer-events: none;
   transform: translateX(-50%);
@@ -107,7 +107,7 @@
   width: 150px;
   height: 58px;
   border-radius: 50%;
-  background: rgba(199, 242, 74, 0.055);
+  background: rgba(199, 242, 74, 0.05);
   filter: blur(22px);
 }
 
@@ -152,9 +152,9 @@
   min-width: 26px;
   min-height: 26px;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
   border-radius: 9px;
-  background: rgba(11, 14, 10, 0.92);
+  background: rgba(26, 31, 26, 0.94);
   font-size: 13px;
 }
 
@@ -209,7 +209,7 @@
 .realtime-spotlight__copy > strong {
   display: -webkit-box;
   overflow: hidden;
-  color: #f0f3ea;
+  color: var(--text);
   font-size: 14px;
   font-weight: 760;
   line-height: 1.18;
@@ -221,7 +221,7 @@
 .realtime-spotlight__copy > em {
   overflow: hidden;
   margin: 1px 0 0;
-  color: #a0a79b;
+  color: var(--text-secondary);
   font-size: 9px;
   font-style: normal;
   line-height: 1.4;
@@ -243,13 +243,13 @@
   align-items: center;
   gap: 7px;
   margin-top: 3px;
-  color: #7d8578;
+  color: var(--text-muted);
   font-size: 8px;
 }
 
 .realtime-spotlight__meta b {
   overflow: hidden;
-  color: #aeb5a9;
+  color: var(--text-secondary);
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;

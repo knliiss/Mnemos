@@ -7,7 +7,7 @@
   justify-content: center;
   padding: 18px max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom))
     max(14px, env(safe-area-inset-left));
-  background: rgba(3, 4, 3, 0.76);
+  background: rgba(4, 6, 4, 0.7);
   backdrop-filter: blur(12px);
   animation: wallet-purchase-backdrop-in 0.18s ease-out;
 }
@@ -17,15 +17,15 @@
   width: min(100%, 430px);
   overflow: hidden;
   padding: 14px;
-  border: 1px solid rgba(235, 241, 213, 0.1);
+  border: 1px solid var(--line);
   border-radius: 22px;
   background:
     radial-gradient(circle at 88% 4%, rgba(169, 93, 189, 0.12), transparent 34%),
-    radial-gradient(circle at 24% 112%, rgba(212, 255, 66, 0.06), transparent 46%),
-    rgba(13, 15, 12, 0.99);
+    radial-gradient(circle at 24% 112%, rgba(212, 255, 66, 0.055), transparent 46%),
+    linear-gradient(160deg, rgba(32, 37, 32, 0.99), rgba(24, 28, 24, 0.99));
   box-shadow:
-    0 26px 70px rgba(0, 0, 0, 0.54),
-    inset 0 1px rgba(255, 255, 255, 0.025);
+    0 26px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.03);
   animation: wallet-purchase-sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -47,7 +47,7 @@
   height: 4px;
   margin: 0 auto 12px;
   border-radius: 999px;
-  background: rgba(235, 241, 213, 0.12);
+  background: var(--line-strong);
 }
 
 .wallet-purchase-sheet__header {
@@ -65,7 +65,7 @@
 }
 
 .wallet-purchase-sheet__header > strong {
-  color: #e7eae1;
+  color: var(--text);
   font-size: 16px;
   line-height: 1.18;
 }
@@ -73,7 +73,7 @@
 .wallet-purchase-sheet__header > p {
   max-width: 350px;
   margin: 0;
-  color: #80867c;
+  color: var(--text-muted);
   font-size: 9px;
   line-height: 1.45;
 }
@@ -94,9 +94,9 @@
   min-width: 0;
   min-height: 82px;
   padding: 11px;
-  border: 1px solid rgba(235, 241, 213, 0.07);
+  border: 1px solid var(--line);
   border-radius: 13px;
-  background: rgba(7, 9, 7, 0.34);
+  background: var(--surface-faint);
 }
 
 .wallet-purchase-sheet__exchange > article:first-child {
@@ -110,7 +110,7 @@
 }
 
 .wallet-purchase-sheet__exchange small {
-  color: #747b70;
+  color: var(--text-muted);
   font-family: var(--font-meta);
   font-size: 8px;
   letter-spacing: 0.1em;
@@ -125,7 +125,7 @@
 
 .wallet-purchase-sheet__exchange strong {
   overflow: hidden;
-  color: #e8ebe4;
+  color: var(--text);
   font-size: 18px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -133,7 +133,7 @@
 }
 
 .wallet-purchase-sheet__exchange em {
-  color: #777d73;
+  color: var(--text-muted);
   font-family: var(--font-meta);
   font-size: 7.5px;
   font-style: normal;
@@ -143,7 +143,7 @@
 .wallet-purchase-sheet__exchange > i {
   display: grid;
   place-items: center;
-  color: #6f756b;
+  color: var(--text-muted);
   font-size: 14px;
   font-style: normal;
 }
@@ -166,10 +166,10 @@
   z-index: 1;
   margin-top: 10px;
   padding: 10px 11px;
-  border: 1px solid rgba(235, 241, 213, 0.065);
+  border: 1px solid var(--line);
   border-radius: 13px;
-  color: #858b80;
-  background: rgba(7, 9, 7, 0.34);
+  color: var(--text-muted);
+  background: var(--surface-faint);
   font-size: 8.5px;
   line-height: 1.48;
 }
@@ -239,9 +239,9 @@
 }
 
 .wallet-purchase-sheet__actions .is-secondary {
-  border: 1px solid rgba(235, 241, 213, 0.08);
-  color: #959b90;
-  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--line);
+  color: var(--text-secondary);
+  background: var(--surface-faint);
 }
 
 .wallet-purchase-sheet__actions .is-primary {
@@ -249,7 +249,7 @@
   color: #ead9eb;
   background:
     linear-gradient(180deg, rgba(183, 104, 196, 0.13), rgba(183, 104, 196, 0.075)),
-    rgba(255, 255, 255, 0.012);
+    var(--surface-faint);
 }
 
 @keyframes wallet-purchase-backdrop-in {
