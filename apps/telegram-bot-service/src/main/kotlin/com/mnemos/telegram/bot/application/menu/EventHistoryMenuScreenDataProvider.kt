@@ -19,6 +19,7 @@ class EventHistoryMenuScreenDataProvider(
     override fun load(session: TelegramMenuSession): TelegramMenuScreenData {
         val filter = EventHistoryMenuContext.selectedFilter(session.screenContext)
         val search = EventHistoryMenuContext.searchQuery(session.screenContext)
+        val sort = EventHistoryMenuContext.selectedSort(session.screenContext)
 
         if (session.pendingInput == TelegramPendingInput.EVENT_SEARCH) {
             return TelegramMenuScreenData.EventHistory(
@@ -35,12 +36,14 @@ class EventHistoryMenuScreenDataProvider(
                 filter = filter,
                 after = EventHistoryMenuContext.after(session.screenContext),
                 search = search,
+                sort = sort,
             )
 
         return TelegramMenuScreenData.EventHistory(
             EventHistoryMenuScreenData.Feed(
                 filter = filter,
                 search = search,
+                sort = sort,
                 result = eventHistoryGateway.getPage(query),
                 hasPrevious = EventHistoryMenuContext.hasPrevious(session.screenContext),
             ),
