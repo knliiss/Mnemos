@@ -401,7 +401,12 @@ object EventHistoryMenuMessageRenderer {
             return "Любой"
         }
 
-        val name = wipe.name?.takeIf(String::isNotBlank)?.let { value -> " · ${escapeHtml(value)}" }.orEmpty()
+        val name =
+            wipe.name
+                ?.takeIf(String::isNotBlank)
+                ?.let { value -> " · ${escapeHtml(value)}" }
+                .orEmpty()
+
         return "$prefix #${wipe.number}$name"
     }
 
