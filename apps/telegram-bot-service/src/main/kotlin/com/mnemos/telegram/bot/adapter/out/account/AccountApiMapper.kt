@@ -26,6 +26,5 @@ object AccountApiMapper {
             status = status.toModel(),
         )
 
-    private fun InternalTelegramAccountStatus.toModel(): TelegramAccountStatus =
-        TelegramAccountStatus.valueOf(name)
+    private fun InternalTelegramAccountStatus.toModel(): TelegramAccountStatus = TelegramAccountStatus.valueOf(name)
 }
