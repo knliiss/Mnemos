@@ -8,9 +8,9 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
+import org.springframework.stereotype.Component
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import org.springframework.stereotype.Component
 
 @Component
 class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
@@ -85,30 +85,31 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
     private fun renderSaoOnlineAvailable(snapshot: SaoOnlineSnapshot): String {
         val realmLines =
-            snapshot.realms.joinToString("\n") { realm ->
-                "${realm.name} — <b>${realm.playerCount}</b>"
-            }.ifBlank {
-                "Нет активных реалмов."
-            }
+            snapshot.realms
+                .joinToString("\n") { realm ->
+                    "${realm.name} — <b>${realm.playerCount}</b>"
+                }.ifBlank {
+                    "Нет активных реалмов."
+                }
         val generatedAt = onlineTimestampFormatter.format(snapshot.generatedAt)
 
-        return """
-            🌐 <b>Онлайн SAO</b>
-
-            Сейчас отслеживается: <b>${snapshot.trackedOnline}</b>
-
-            $realmLines
-
-            Обновлено: <code>$generatedAt</code>
-        """.trimIndent()
+        return listOf(
+            "🌐 <b>Онлайн SAO</b>",
+            "",
+            "Сейчас отслеживается: <b>${snapshot.trackedOnline}</b>",
+            "",
+            realmLines,
+            "",
+            "Обновлено: <code>$generatedAt</code>",
+        ).joinToString("\n")
     }
 
     private fun renderSaoOnlineUnavailable(): String =
-        """
-        🌐 <b>Онлайн SAO</b>
-
-        Не удалось получить актуальный онлайн. Попробуйте обновить через несколько секунд.
-        """.trimIndent()
+        listOf(
+            "🌐 <b>Онлайн SAO</b>",
+            "",
+            "Не удалось получить актуальный онлайн. Попробуйте обновить через несколько секунд.",
+        ).joinToString("\n")
 
     private fun renderActions(screen: TelegramMenuScreen): List<OutboundTelegramMessageAction> =
         when (screen) {
