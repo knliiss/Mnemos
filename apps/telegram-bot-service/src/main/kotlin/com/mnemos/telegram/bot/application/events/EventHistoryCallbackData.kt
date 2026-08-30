@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.events
 
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import java.util.UUID
 
 object EventHistoryCallbackData {
@@ -13,6 +14,7 @@ object EventHistoryCallbackData {
 
     private const val NEXT_PREFIX = "ev:n:"
     private const val FILTER_PREFIX = "ev:f:"
+    private const val SORT_PREFIX = "ev:o:"
 
     fun next(cursor: UUID): String = "$NEXT_PREFIX$cursor"
 
@@ -29,4 +31,12 @@ object EventHistoryCallbackData {
             .takeIf { value -> value.startsWith(FILTER_PREFIX) }
             ?.removePrefix(FILTER_PREFIX)
             ?.let { value -> runCatching { EventHistoryFilter.valueOf(value) }.getOrNull() }
+
+    fun sort(sort: EventHistorySort): String = "$SORT_PREFIX${sort.name}"
+
+    fun selectedSort(callbackData: String): EventHistorySort? =
+        callbackData
+            .takeIf { value -> value.startsWith(SORT_PREFIX) }
+            ?.removePrefix(SORT_PREFIX)
+            ?.let { value -> runCatching { EventHistorySort.valueOf(value) }.getOrNull() }
 }
