@@ -10,6 +10,8 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeOption
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeSelection
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
@@ -63,6 +65,7 @@ object EventHistoryMenuMessageRenderer {
                 "🕘 <b>История событий</b>",
                 "Фильтр: <b>${filterLabel(data.filter)}</b>",
                 "Сортировка: <b>${sortLabel(data.sort)}</b>",
+                "Вайп: <b>${wipeLabel(data)}</b>",
             )
 
         lines += detailedFilterLines(data)
@@ -158,6 +161,7 @@ object EventHistoryMenuMessageRenderer {
         val actions = filterActions(data.filter).toMutableList()
 
         actions += detailedFilterActions(data)
+        actions += wipeActions(data)
         actions += sortActions(data.sort)
         actions +=
             OutboundTelegramMessageAction.Callback(
@@ -309,6 +313,34 @@ object EventHistoryMenuMessageRenderer {
         return actions
     }
 
+    private fun wipeActions(data: EventHistoryMenuScreenData.Feed): List<OutboundTelegramMessageAction> {
+        val actions =
+            mutableListOf<OutboundTelegramMessageAction>(
+                filterCallback(
+                    label = selectionLabel("Любой вайп", data.wipeSelection == EventHistoryWipeSelection.ALL),
+                    data = EventHistoryCallbackData.wipe(EventHistoryWipeSelection.ALL),
+                ),
+            )
+
+        data.wipeOptions.current?.let { wipe ->
+            actions +=
+                filterCallback(
+                    label = selectionLabel(wipeButtonLabel("Текущий", wipe), data.wipeSelection == EventHistoryWipeSelection.CURRENT),
+                    data = EventHistoryCallbackData.wipe(EventHistoryWipeSelection.CURRENT),
+                )
+        }
+
+        data.wipeOptions.previous?.let { wipe ->
+            actions +=
+                filterCallback(
+                    label = selectionLabel(wipeButtonLabel("Предыдущий", wipe), data.wipeSelection == EventHistoryWipeSelection.PREVIOUS),
+                    data = EventHistoryCallbackData.wipe(EventHistoryWipeSelection.PREVIOUS),
+                )
+        }
+
+        return actions
+    }
+
     private fun filterActions(selected: EventHistoryFilter): List<OutboundTelegramMessageAction> =
         EventHistoryFilter.entries.map { filter ->
             filterCallback(
@@ -353,6 +385,30 @@ object EventHistoryMenuMessageRenderer {
             EventHistorySort.NEWEST -> "Сначала новые"
             EventHistorySort.OLDEST -> "Сначала старые"
         }
+
+    private fun wipeLabel(data: EventHistoryMenuScreenData.Feed): String =
+        when (data.wipeSelection) {
+            EventHistoryWipeSelection.ALL -> "Любой"
+            EventHistoryWipeSelection.CURRENT -> wipeTextLabel("Текущий", data.wipeOptions.current)
+            EventHistoryWipeSelection.PREVIOUS -> wipeTextLabel("Предыдущий", data.wipeOptions.previous)
+        }
+
+    private fun wipeTextLabel(
+        prefix: String,
+        wipe: EventHistoryWipeOption?,
+    ): String {
+        if (wipe == null) {
+            return "Любой"
+        }
+
+        val name = wipe.name?.takeIf(String::isNotBlank)?.let { value -> " · ${escapeHtml(value)}" }.orEmpty()
+        return "$prefix #${wipe.number}$name"
+    }
+
+    private fun wipeButtonLabel(
+        prefix: String,
+        wipe: EventHistoryWipeOption,
+    ): String = "$prefix #${wipe.number}"
 
     private fun itemRarityLabel(rarity: EventHistoryItemRarity?): String =
         when (rarity) {
