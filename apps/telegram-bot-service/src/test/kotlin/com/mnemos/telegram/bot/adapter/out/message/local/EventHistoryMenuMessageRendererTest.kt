@@ -9,6 +9,9 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenDa
 import com.mnemos.telegram.bot.application.events.model.EventHistoryPage
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeOption
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeOptions
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeSelection
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -32,7 +35,8 @@ class EventHistoryMenuMessageRendererTest {
                     globalType = null,
                     raidLocation = null,
                     raidLocationPage = 0,
-                    wipeId = null,
+                    wipeSelection = EventHistoryWipeSelection.ALL,
+                    wipeOptions = EventHistoryWipeOptions(current = null, previous = null),
                     result =
                         EventHistoryResult.Available(
                             EventHistoryPage(
@@ -80,7 +84,21 @@ class EventHistoryMenuMessageRendererTest {
     }
 
     @Test
-    fun `item drop history renders rarity and item type filters`() {
+    fun `item drop history renders rarity item type and wipe filters`() {
+        val currentWipe =
+            EventHistoryWipeOption(
+                id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b74"),
+                number = 12,
+                name = "Season 12",
+                active = true,
+            )
+        val previousWipe =
+            EventHistoryWipeOption(
+                id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b75"),
+                number = 11,
+                name = null,
+                active = false,
+            )
         val data =
             TelegramMenuScreenData.EventHistory(
                 EventHistoryMenuScreenData.Feed(
@@ -93,7 +111,12 @@ class EventHistoryMenuMessageRendererTest {
                     globalType = null,
                     raidLocation = null,
                     raidLocationPage = 0,
-                    wipeId = null,
+                    wipeSelection = EventHistoryWipeSelection.CURRENT,
+                    wipeOptions =
+                        EventHistoryWipeOptions(
+                            current = currentWipe,
+                            previous = previousWipe,
+                        ),
                     result = EventHistoryResult.Available(EventHistoryPage(emptyList(), null)),
                     hasPrevious = false,
                 ),
