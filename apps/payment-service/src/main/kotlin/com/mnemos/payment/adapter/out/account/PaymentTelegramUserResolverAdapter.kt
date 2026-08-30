@@ -14,7 +14,7 @@ class PaymentTelegramUserResolverAdapter(
             ?.let { context ->
                 CurrentPaymentUser(
                     userId = context.userId,
-                    telegramId = context.telegramId,
+                    telegramId = telegramId,
                 )
             }
 }
