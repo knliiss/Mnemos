@@ -94,13 +94,13 @@ describe("Telegram Web App bootstrap", () => {
 
     stubAnimationFrame()
 
-    const webApp = {
+    const webApp: TelegramWebApp = {
       ...createTelegramWebApp("ios"),
       isFullscreen: false,
       onEvent: vi.fn((event: TelegramWebAppEvent, callback: () => void) => {
         callbacks.set(event, callback)
       }),
-    } satisfies TelegramWebApp
+    }
 
     window.Telegram = { WebApp: webApp }
 
