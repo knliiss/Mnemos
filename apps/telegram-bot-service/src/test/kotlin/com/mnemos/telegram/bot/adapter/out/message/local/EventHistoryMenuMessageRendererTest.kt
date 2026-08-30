@@ -64,6 +64,7 @@ class EventHistoryMenuMessageRendererTest {
 
         assertTrue(message.text.contains("Поиск: <code>Sword &lt;Art&gt;</code>"))
         assertTrue(message.text.contains("Сортировка: <b>Сначала новые</b>"))
+        assertTrue(message.text.contains("Вайп: <b>Любой</b>"))
         assertTrue(message.text.contains("Sword &lt;Art&gt;"))
         assertTrue(message.text.contains("knaliz&amp;friend"))
         assertTrue(message.text.contains("30.08 12:24 UTC"))
@@ -127,6 +128,7 @@ class EventHistoryMenuMessageRendererTest {
 
         assertTrue(message.text.contains("Редкость: <b>Mythical</b>"))
         assertTrue(message.text.contains("Тип предмета: <b>Мечи</b>"))
+        assertTrue(message.text.contains("Вайп: <b>Текущий #12 · Season 12</b>"))
         assertTrue(
             callbacks.any { action ->
                 action.data == EventHistoryCallbackData.itemRarity(EventHistoryItemRarity.MYTHICAL) &&
@@ -137,6 +139,18 @@ class EventHistoryMenuMessageRendererTest {
             callbacks.any { action ->
                 action.data == EventHistoryCallbackData.itemType(EventHistoryItemType.SWORD) &&
                     action.label.startsWith("✓ ")
+            },
+        )
+        assertTrue(
+            callbacks.any { action ->
+                action.data == EventHistoryCallbackData.wipe(EventHistoryWipeSelection.CURRENT) &&
+                    action.label == "✓ Текущий #12"
+            },
+        )
+        assertTrue(
+            callbacks.any { action ->
+                action.data == EventHistoryCallbackData.wipe(EventHistoryWipeSelection.PREVIOUS) &&
+                    action.label == "Предыдущий #11"
             },
         )
     }
