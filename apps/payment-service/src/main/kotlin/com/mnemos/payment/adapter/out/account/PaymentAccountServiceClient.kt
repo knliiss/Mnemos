@@ -1,6 +1,6 @@
 package com.mnemos.payment.adapter.out.account
 
-import com.mnemos.contracts.account.internal.v1.InternalTelegramUserContextResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserIdentityResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable
     dismiss404 = true,
 )
 fun interface PaymentAccountServiceClient {
-    @GetMapping("/internal/v1/users/telegram/{telegramId}/context")
-    fun getTelegramUserContext(
+    @GetMapping("/internal/v1/users/telegram/{telegramId}/identity")
+    fun getTelegramUserIdentity(
         @PathVariable telegramId: Long,
-    ): InternalTelegramUserContextResponse?
+    ): InternalTelegramUserIdentityResponse?
 }
