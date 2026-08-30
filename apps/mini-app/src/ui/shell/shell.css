@@ -76,8 +76,7 @@
   padding: 5px;
   border: 1px solid var(--line-strong) !important;
   border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(31, 36, 31, 0.94), rgba(24, 28, 24, 0.94)) !important;
+  background: linear-gradient(180deg, rgba(31, 36, 31, 0.94), rgba(24, 28, 24, 0.94)) !important;
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.36),
     inset 0 1px rgba(255, 255, 255, 0.035) !important;
