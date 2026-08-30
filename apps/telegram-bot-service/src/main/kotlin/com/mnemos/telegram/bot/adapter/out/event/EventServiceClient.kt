@@ -3,6 +3,10 @@ package com.mnemos.telegram.bot.adapter.out.event
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
+import com.mnemos.event.contracts.shared.ContractBoosterType
+import com.mnemos.event.contracts.shared.ContractGlobalEventType
+import com.mnemos.event.contracts.shared.ContractItemRarity
+import com.mnemos.event.contracts.shared.ContractItemType
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -22,6 +26,18 @@ interface EventServiceClient {
         type: InternalEventFeedType?,
         @RequestParam(required = false)
         search: String?,
+        @RequestParam(required = false)
+        itemRarity: ContractItemRarity?,
+        @RequestParam(required = false)
+        itemType: ContractItemType?,
+        @RequestParam(required = false)
+        boosterType: ContractBoosterType?,
+        @RequestParam(required = false)
+        globalType: ContractGlobalEventType?,
+        @RequestParam(required = false)
+        raidLocation: Int?,
+        @RequestParam(required = false)
+        wipeId: UUID?,
         @RequestParam
         sort: InternalEventFeedSort,
         @RequestParam
