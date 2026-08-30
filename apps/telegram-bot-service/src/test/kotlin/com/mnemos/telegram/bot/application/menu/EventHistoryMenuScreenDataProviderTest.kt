@@ -2,6 +2,8 @@ package com.mnemos.telegram.bot.application.menu
 
 import com.mnemos.telegram.bot.application.events.EventHistoryMenuContext
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryPage
 import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
@@ -14,6 +16,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class EventHistoryMenuScreenDataProviderTest {
     @Test
@@ -41,26 +44,39 @@ class EventHistoryMenuScreenDataProviderTest {
     }
 
     @Test
-    fun `feed forwards active filter search and cursor`() {
+    fun `feed forwards active detailed filters search and cursor`() {
         val gateway = RecordingEventHistoryGateway()
         val provider = EventHistoryMenuScreenDataProvider(gateway)
-        val filteredContext = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.ITEM_DROP)
-        val searchContext = EventHistoryMenuContext.search(filteredContext, "Excalibur")
+        val wipeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
+        var context = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.ITEM_DROP)
+
+        context = EventHistoryMenuContext.search(context, "Excalibur")
+        context = EventHistoryMenuContext.itemRarity(context, EventHistoryItemRarity.MYTHICAL)
+        context = EventHistoryMenuContext.itemType(context, EventHistoryItemType.SWORD)
+        context = EventHistoryMenuContext.wipe(context, wipeId)
+
         val session =
             TelegramMenuSession(
                 telegramId = 931458258L,
                 currentScreen = TelegramMenuScreen.EVENTS,
-                screenContext = searchContext,
+                screenContext = context,
             )
 
         val data = provider.load(session) as TelegramMenuScreenData.EventHistory
         val feed = data.data as EventHistoryMenuScreenData.Feed
+        val query = gateway.queries.single()
 
         assertEquals(EventHistoryFilter.ITEM_DROP, feed.filter)
         assertEquals("Excalibur", feed.search)
+        assertEquals(EventHistoryItemRarity.MYTHICAL, feed.itemRarity)
+        assertEquals(EventHistoryItemType.SWORD, feed.itemType)
+        assertEquals(wipeId, feed.wipeId)
+        assertEquals(EventHistoryFilter.ITEM_DROP, query.filter)
+        assertEquals("Excalibur", query.search)
+        assertEquals(EventHistoryItemRarity.MYTHICAL, query.itemRarity)
+        assertEquals(EventHistoryItemType.SWORD, query.itemType)
+        assertEquals(wipeId, query.wipeId)
         assertEquals(1, gateway.queries.size)
-        assertEquals(EventHistoryFilter.ITEM_DROP, gateway.queries.single().filter)
-        assertEquals("Excalibur", gateway.queries.single().search)
         assertTrue(feed.result is EventHistoryResult.Available)
     }
 
