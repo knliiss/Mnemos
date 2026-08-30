@@ -9,7 +9,6 @@ import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayerSearchMatch
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineRealm
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
