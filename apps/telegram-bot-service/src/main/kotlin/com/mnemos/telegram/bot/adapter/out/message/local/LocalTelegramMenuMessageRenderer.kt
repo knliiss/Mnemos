@@ -74,13 +74,35 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 Активный Cristalix-аккаунт, баланс и переключение между аккаунтами.
                 """.trimIndent()
 
-            TelegramMenuScreen.SETTINGS ->
-                """
-                ⚙️ <b>Настройки</b>
-
-                Язык, настройки Telegram-клиента и активный пак уведомлений.
-                """.trimIndent()
+            TelegramMenuScreen.SETTINGS -> renderSettings(data)
         }
+
+    private fun renderSettings(data: TelegramMenuScreenData): String {
+        val settingsData =
+            data as? TelegramMenuScreenData.Settings
+                ?: return renderSettingsUnavailable()
+        val snapshot = settingsData.snapshot ?: return renderSettingsUnavailable()
+        val packTitle =
+            snapshot.activeNotificationPackTitle
+                ?.takeIf(String::isNotBlank)
+                ?.let(::escapeHtml)
+                ?: "Не выбран"
+
+        return listOf(
+            "⚙️ <b>Настройки</b>",
+            "",
+            "Пак уведомлений: <b>$packTitle</b>",
+            "",
+            "Язык и остальные настройки доступны в Mini App.",
+        ).joinToString("\n")
+    }
+
+    private fun renderSettingsUnavailable(): String =
+        listOf(
+            "⚙️ <b>Настройки</b>",
+            "",
+            "Не удалось загрузить персональные настройки. Попробуйте позже.",
+        ).joinToString("\n")
 
     private fun renderSaoOnline(data: TelegramMenuScreenData): String {
         val onlineData =

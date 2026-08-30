@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":contracts:account-contracts"))
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:payment-contracts"))
+    implementation(project(":contracts:personalization-contracts"))
     implementation(project(":contracts:player-directory-contracts"))
     implementation(project(":contracts:telegram-bot-contracts"))
     implementation(project(":contracts:wallet-contracts"))

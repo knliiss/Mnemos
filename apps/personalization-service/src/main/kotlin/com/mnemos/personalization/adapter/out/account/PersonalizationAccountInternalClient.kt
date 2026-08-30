@@ -2,6 +2,7 @@ package com.mnemos.personalization.adapter.out.account
 
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserContextResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,6 +18,11 @@ import java.util.UUID
     dismiss404 = true,
 )
 interface PersonalizationAccountInternalClient {
+    @GetMapping("/internal/v1/users/telegram/{telegramId}/context")
+    fun getTelegramUserContext(
+        @PathVariable telegramId: Long,
+    ): InternalTelegramUserContextResponse?
+
     @GetMapping("/internal/v1/accounts/resolve")
     fun resolve(
         @RequestParam(required = false) userId: UUID? = null,
