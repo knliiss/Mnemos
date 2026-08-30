@@ -4,8 +4,8 @@
   width: 100%;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 50% -14%, rgba(203, 255, 45, 0.032), transparent 48%),
-    linear-gradient(180deg, #171d15 0%, var(--bg-deep) 100%);
+    radial-gradient(circle at 50% -14%, rgba(203, 255, 45, 0.018), transparent 44%),
+    linear-gradient(180deg, #0f140e 0%, var(--bg-deep) 100%);
 }
 
 .app-shell {
@@ -15,11 +15,11 @@
   height: 100dvh;
   min-height: 620px;
   overflow: hidden;
-  border-inline: 1px solid rgba(210, 224, 204, 0.028);
+  border-inline: 1px solid rgba(210, 224, 204, 0.02);
   background:
-    radial-gradient(circle at 14% 0%, rgba(203, 255, 45, 0.046), transparent 36%),
-    radial-gradient(circle at 92% 22%, rgba(106, 130, 102, 0.04), transparent 34%),
-    linear-gradient(180deg, #1d231a 0%, #171c15 48%, #121611 100%);
+    radial-gradient(circle at 14% 0%, rgba(203, 255, 45, 0.022), transparent 32%),
+    radial-gradient(circle at 92% 22%, rgba(86, 110, 82, 0.017), transparent 30%),
+    linear-gradient(180deg, #131912 0%, #0f140e 48%, #0a0e0a 100%);
   box-shadow: var(--shadow);
 }
 
@@ -29,8 +29,8 @@
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  opacity: 0.17;
-  background: radial-gradient(circle at 78% 5%, rgba(203, 255, 45, 0.06), transparent 33%);
+  opacity: 0.09;
+  background: radial-gradient(circle at 78% 5%, rgba(203, 255, 45, 0.038), transparent 30%);
 }
 
 .route-stage {
@@ -74,16 +74,16 @@
   gap: 2px;
   min-height: 70px;
   padding: 5px;
-  border: 1px solid rgba(183, 202, 173, 0.1) !important;
+  border: 1px solid rgba(183, 202, 173, 0.074) !important;
   border-radius: 20px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(203, 255, 45, 0.034), transparent 58%),
-    linear-gradient(180deg, rgba(17, 22, 15, 0.995), rgba(10, 13, 9, 0.997)) !important;
+    radial-gradient(circle at 50% 0%, rgba(203, 255, 45, 0.017), transparent 54%),
+    linear-gradient(180deg, rgba(12, 17, 11, 0.992), rgba(9, 13, 9, 0.995)) !important;
   box-shadow:
-    0 20px 58px rgba(0, 0, 0, 0.54),
-    inset 0 1px rgba(255, 255, 255, 0.02) !important;
-  backdrop-filter: blur(24px) saturate(112%);
-  -webkit-backdrop-filter: blur(24px) saturate(112%);
+    0 12px 34px rgba(0, 0, 0, 0.38),
+    inset 0 1px rgba(255, 255, 255, 0.013) !important;
+  backdrop-filter: blur(18px) saturate(102%);
+  -webkit-backdrop-filter: blur(18px) saturate(102%);
 }
 
 .root-navigation.root-navigation--five button {
@@ -114,10 +114,10 @@
 
 .root-navigation.root-navigation--five button.is-active {
   color: var(--accent) !important;
-  background: linear-gradient(180deg, rgba(203, 255, 45, 0.09), rgba(203, 255, 45, 0.028));
+  background: linear-gradient(180deg, rgba(203, 255, 45, 0.065), rgba(203, 255, 45, 0.018));
   box-shadow:
-    inset 0 0 0 1px rgba(203, 255, 45, 0.085),
-    0 0 18px rgba(203, 255, 45, 0.022);
+    inset 0 0 0 1px rgba(203, 255, 45, 0.066),
+    0 0 14px rgba(203, 255, 45, 0.014);
 }
 
 .root-navigation--illustrated button {
@@ -142,7 +142,7 @@
   z-index: -1;
   inset: 3px;
   border-radius: 10px;
-  background: rgba(203, 255, 45, 0.06);
+  background: rgba(203, 255, 45, 0.046);
   opacity: 0;
   transform: scale(0.8);
   transition:
@@ -161,7 +161,7 @@
 .root-navigation--illustrated button.is-active .root-navigation__icon--illustrated {
   color: var(--accent);
   transform: translateY(-1px);
-  filter: drop-shadow(0 0 7px rgba(203, 255, 45, 0.145));
+  filter: drop-shadow(0 0 7px rgba(203, 255, 45, 0.115));
 }
 
 .root-navigation--illustrated button.is-active .root-navigation__icon--illustrated::before {

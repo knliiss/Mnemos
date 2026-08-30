@@ -8,10 +8,9 @@
   padding: max(24px, env(safe-area-inset-top, 0px)) 18px max(28px, env(safe-area-inset-bottom, 0px));
   color: #edf0e8;
   background:
-    radial-gradient(circle at 50% 26%, rgba(203, 255, 45, 0.025), transparent 34%),
-    radial-gradient(circle at 12% 62%, rgba(102, 126, 98, 0.036), transparent 36%),
-    radial-gradient(circle at 88% 82%, rgba(119, 139, 114, 0.027), transparent 32%),
-    linear-gradient(135deg, #171d15 0%, var(--bg-deep) 52%, #111511 100%);
+    radial-gradient(circle at 50% 26%, rgba(203, 255, 45, 0.014), transparent 30%),
+    radial-gradient(circle at 12% 62%, rgba(84, 108, 80, 0.018), transparent 32%),
+    linear-gradient(135deg, #0f140e 0%, var(--bg-deep) 56%, #090d09 100%);
 }
 
 .service-unavailable::before {
@@ -19,10 +18,10 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  opacity: 0.14;
+  opacity: 0.08;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: linear-gradient(to bottom, transparent, black 28%, black 72%, transparent);
 }
@@ -33,16 +32,16 @@
   gap: 18px;
   width: min(100%, 390px);
   padding: 30px 24px 25px;
-  border: 1px solid rgba(193, 210, 185, 0.072);
+  border: 1px solid rgba(193, 210, 185, 0.058);
   border-radius: 26px;
   background:
-    linear-gradient(145deg, rgba(17, 21, 16, 0.98), rgba(7, 9, 7, 0.99)), var(--surface-solid);
+    linear-gradient(145deg, rgba(12, 16, 11, 0.99), rgba(5, 7, 5, 0.997)), var(--surface-solid);
   box-shadow:
-    0 36px 94px rgba(0, 0, 0, 0.52),
-    inset 0 1px rgba(255, 255, 255, 0.022);
+    0 40px 108px rgba(0, 0, 0, 0.6),
+    inset 0 1px rgba(255, 255, 255, 0.015);
   text-align: center;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .service-unavailable__illustration {
@@ -62,7 +61,7 @@
   width: 82px;
   height: 15px;
   border-radius: 50%;
-  background: rgba(111, 134, 87, 0.058);
+  background: rgba(98, 122, 77, 0.042);
   filter: blur(9px);
   transform: translateX(-50%);
 }
@@ -74,7 +73,7 @@
   height: 128px;
   overflow: visible;
   image-rendering: pixelated;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.52));
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.6));
   animation: service-unavailable-breathe 3.6s ease-in-out infinite;
 }
 
@@ -83,8 +82,8 @@
   z-index: 1;
   width: 4px;
   border-radius: 1px;
-  background: #6c765f;
-  opacity: 0.17;
+  background: #626c57;
+  opacity: 0.14;
   transform-origin: bottom;
 }
 
@@ -113,7 +112,7 @@
 }
 
 .service-unavailable__eyebrow {
-  color: #7b856a;
+  color: #717b5f;
   font-family: var(--font-meta);
   font-size: 9px;
   font-weight: 700;
@@ -133,7 +132,7 @@
 .service-unavailable__copy p {
   max-width: 310px;
   margin: 0;
-  color: #8a9385;
+  color: #828b7f;
   font-size: 11px;
   font-weight: 520;
   line-height: 1.55;
@@ -142,7 +141,7 @@
 .service-unavailable__copy small:not(.service-unavailable__automatic-retry) {
   max-width: 300px;
   margin-top: 2px;
-  color: #646c5f;
+  color: #5a6256;
   font-size: 9px;
   font-weight: 520;
   line-height: 1.5;
@@ -160,8 +159,8 @@
   width: 4px;
   height: 4px;
   border-radius: 999px;
-  background: #98aa5f;
-  opacity: 0.19;
+  background: #90a257;
+  opacity: 0.17;
   animation: service-unavailable-pulse 1.25s ease-in-out infinite;
 }
 
@@ -177,11 +176,11 @@
   min-width: 170px;
   min-height: 42px;
   padding: 0 18px;
-  border: 1px solid rgba(203, 255, 45, 0.14);
+  border: 1px solid rgba(203, 255, 45, 0.12);
   border-radius: 12px;
   color: var(--accent-strong);
-  background: rgba(203, 255, 45, 0.036);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.016);
+  background: rgba(203, 255, 45, 0.026);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.012);
   font-size: 10px;
   font-weight: 700;
   transition:
