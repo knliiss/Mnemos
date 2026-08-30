@@ -3,9 +3,11 @@ package com.mnemos.telegram.bot.application.message
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
 @Service
+@ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class DeliverTelegramMessageService(
     private val gateway: TelegramMessageGateway,
 ) {
