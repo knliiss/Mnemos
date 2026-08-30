@@ -6,7 +6,6 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.notification.NotificationCallbackData
-import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscription
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
@@ -102,13 +101,15 @@ object NotificationMenuMessageRenderer {
         page: Int,
         hasNextPage: Boolean,
     ): List<OutboundTelegramMessageAction> {
-        val actions =
-            items.mapIndexed { index, subscription ->
+        val actions = mutableListOf<OutboundTelegramMessageAction>()
+
+        items.forEachIndexed { index, subscription ->
+            actions +=
                 OutboundTelegramMessageAction.Callback(
                     label = "✖ ${index + 1}",
                     data = NotificationCallbackData.delete(subscription.id),
                 )
-            }.toMutableList<OutboundTelegramMessageAction>()
+        }
 
         if (page > 0) {
             actions +=
