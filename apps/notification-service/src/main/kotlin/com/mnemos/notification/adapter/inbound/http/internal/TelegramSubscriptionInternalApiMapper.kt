@@ -10,7 +10,7 @@ import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscript
 object TelegramSubscriptionInternalApiMapper {
     fun PageResult<SubscriptionView>.toResponse(): TelegramSubscriptionListResponse =
         TelegramSubscriptionListResponse(
-            items = items.map(SubscriptionView::toResponse),
+            items = items.map { subscription -> subscription.toResponse() },
             page = page,
             totalPages = totalPages,
             totalItems = totalItems,
