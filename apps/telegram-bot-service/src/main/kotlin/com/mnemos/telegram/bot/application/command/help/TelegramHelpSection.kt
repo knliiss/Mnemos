@@ -12,7 +12,6 @@ enum class TelegramHelpSection(
     ;
 
     companion object {
-        fun fromCallbackData(value: String): TelegramHelpSection? =
-            entries.firstOrNull { section -> section.callbackData == value }
+        fun fromCallbackData(value: String): TelegramHelpSection? = entries.firstOrNull { section -> section.callbackData == value }
     }
 }

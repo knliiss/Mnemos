@@ -11,5 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping
 )
 interface NotificationServiceClient {
     @PostMapping("/internal/v1/telegram/recipients/{telegramId}/activation")
-    fun activateRecipient(@PathVariable telegramId: Long)
+    fun activateRecipient(
+        @PathVariable telegramId: Long,
+    )
 }
