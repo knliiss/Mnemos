@@ -1,29 +1,29 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --bg: #20241f;
-  --bg-deep: #181c18;
+  --bg: #151a14;
+  --bg-deep: #0d110d;
 
-  --surface: rgba(29, 33, 29, 0.9);
-  --surface-solid: #1d211d;
-  --surface-raised: rgba(35, 40, 35, 0.96);
-  --surface-faint: rgba(240, 247, 237, 0.025);
-  --surface-soft: rgba(240, 247, 237, 0.055);
-  --surface-hover: rgba(240, 247, 237, 0.085);
-  --surface-accent: rgba(203, 255, 45, 0.055);
-  --overlay: rgba(4, 6, 4, 0.58);
+  --surface: rgba(17, 22, 16, 0.94);
+  --surface-solid: #111610;
+  --surface-raised: rgba(23, 29, 22, 0.97);
+  --surface-faint: rgba(227, 238, 222, 0.017);
+  --surface-soft: rgba(227, 238, 222, 0.035);
+  --surface-hover: rgba(227, 238, 222, 0.055);
+  --surface-accent: rgba(203, 255, 45, 0.042);
+  --overlay: rgba(2, 4, 2, 0.71);
 
-  --line: rgba(226, 234, 221, 0.11);
-  --line-strong: rgba(226, 234, 221, 0.19);
+  --line: rgba(210, 224, 204, 0.08);
+  --line-strong: rgba(210, 224, 204, 0.135);
 
-  --text: #f4f6f0;
-  --text-secondary: #b8beb4;
-  --text-muted: #858d82;
+  --text: #f2f5ef;
+  --text-secondary: #a8b2a4;
+  --text-muted: #707a6d;
 
   --accent: #cbff2d;
   --accent-strong: #ddff72;
-  --accent-soft: rgba(203, 255, 45, 0.145);
-  --accent-faint: rgba(203, 255, 45, 0.06);
+  --accent-soft: rgba(203, 255, 45, 0.14);
+  --accent-faint: rgba(203, 255, 45, 0.055);
 
   --amber: #ffb34f;
   --amber-soft: rgba(255, 179, 79, 0.14);
@@ -33,8 +33,8 @@
   --danger-soft: rgba(255, 104, 115, 0.13);
   --positive: #bde06d;
 
-  --blur: blur(24px) saturate(106%);
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+  --blur: blur(24px) saturate(110%);
+  --shadow: 0 28px 78px rgba(0, 0, 0, 0.52);
 
   --font-ui:
     "Inter", "SF Pro Display", "SF Pro Text", ui-sans-serif, -apple-system, BlinkMacSystemFont,
@@ -122,7 +122,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #697067;
+  color: #545e51;
 }
 
 button,
@@ -134,7 +134,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 1px solid rgba(224, 230, 224, 0.58);
+  outline: 1px solid rgba(224, 230, 224, 0.46);
   outline-offset: 2px;
 }
 
