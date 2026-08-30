@@ -12,7 +12,7 @@ object InternalSaoRealmApiMapper {
         InternalSaoRealmSnapshotResponse(
             generatedAt = generatedAt,
             trackedOnline = trackedOnline,
-            realms = realms.map(SaoRealm::toInternalResponse),
+            realms = realms.map { realm -> realm.toInternalResponse() },
         )
 
     private fun SaoRealm.toInternalResponse(): InternalSaoRealmResponse =
@@ -20,7 +20,7 @@ object InternalSaoRealmApiMapper {
             name = name.value,
             number = name.number,
             playerCount = players.size,
-            players = players.map(SaoRealmPlayer::toInternalResponse),
+            players = players.map { player -> player.toInternalResponse() },
         )
 
     private fun SaoRealmPlayer.toInternalResponse(): InternalSaoRealmPlayerResponse =
