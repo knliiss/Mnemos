@@ -1,12 +1,14 @@
 package com.mnemos.telegram.bot.application.events
 
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import java.util.UUID
 
 object EventHistoryMenuContext {
     const val FILTER_KEY = "events.filter"
     const val SEARCH_KEY = "events.search"
     const val SEARCH_ERROR_KEY = "events.search-error"
+    const val SORT_KEY = "events.sort"
     const val AFTER_KEY = "events.after"
     const val CURSOR_STACK_KEY = "events.cursor-stack"
 
@@ -30,6 +32,24 @@ object EventHistoryMenuContext {
         context[FILTER_KEY]
             ?.let { value -> runCatching { EventHistoryFilter.valueOf(value) }.getOrNull() }
             ?: EventHistoryFilter.ALL
+
+    fun sort(
+        context: Map<String, String>,
+        sort: EventHistorySort,
+    ): Map<String, String> {
+        val resetContext = resetPagination(context)
+
+        return if (sort == EventHistorySort.NEWEST) {
+            resetContext - SORT_KEY
+        } else {
+            resetContext + (SORT_KEY to sort.name)
+        }
+    }
+
+    fun selectedSort(context: Map<String, String>): EventHistorySort =
+        context[SORT_KEY]
+            ?.let { value -> runCatching { EventHistorySort.valueOf(value) }.getOrNull() }
+            ?: EventHistorySort.NEWEST
 
     fun search(
         context: Map<String, String>,
