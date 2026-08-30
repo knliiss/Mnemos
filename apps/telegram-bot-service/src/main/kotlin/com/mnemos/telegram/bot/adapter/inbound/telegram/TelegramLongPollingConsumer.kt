@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramCallbackRouter
 import com.mnemos.telegram.bot.application.command.TelegramCommandContext
 import com.mnemos.telegram.bot.application.command.TelegramCommandRouter
+import com.mnemos.telegram.bot.application.identity.TelegramPrivateActorPolicy
 import com.mnemos.telegram.bot.application.input.TelegramTextInputContext
 import com.mnemos.telegram.bot.application.input.TelegramTextInputRouter
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
@@ -81,16 +82,18 @@ class TelegramLongPollingConsumer(
             return starPaymentService.handleSuccessfulPayment(message)
         }
 
-        if (message.chat().type() != Chat.Type.Private) {
-            return TelegramDeliveryResult.Delivered
-        }
-
+        val telegramId =
+            TelegramPrivateActorPolicy.resolve(
+                isPrivateChat = message.chat().type() == Chat.Type.Private,
+                chatId = message.chat().id(),
+                actorId = message.from()?.id(),
+            ) ?: return TelegramDeliveryResult.Delivered
         val text = message.text()?.trim() ?: return TelegramDeliveryResult.Delivered
 
         if (text.startsWith('/')) {
             return commandRouter.route(
                 TelegramCommandContext(
-                    telegramId = message.chat().id(),
+                    telegramId = telegramId,
                     text = text,
                     firstName = message.from()?.firstName(),
                     username = message.from()?.username(),
@@ -100,7 +103,7 @@ class TelegramLongPollingConsumer(
 
         return textInputRouter.route(
             TelegramTextInputContext(
-                telegramId = message.chat().id(),
+                telegramId = telegramId,
                 text = text,
             ),
         )
@@ -108,14 +111,16 @@ class TelegramLongPollingConsumer(
 
     private fun handleCallback(callbackQuery: CallbackQuery): TelegramDeliveryResult {
         val message = callbackQuery.message() ?: return TelegramDeliveryResult.Delivered
-
-        if (message.chat().type() != Chat.Type.Private) {
-            return TelegramDeliveryResult.Delivered
-        }
+        val telegramId =
+            TelegramPrivateActorPolicy.resolve(
+                isPrivateChat = message.chat().type() == Chat.Type.Private,
+                chatId = message.chat().id(),
+                actorId = callbackQuery.from().id(),
+            ) ?: return TelegramDeliveryResult.Delivered
 
         return callbackRouter.route(
             TelegramCallbackContext(
-                telegramId = message.chat().id(),
+                telegramId = telegramId,
                 messageId = message.messageId(),
                 data = callbackQuery.data().orEmpty(),
             ),
