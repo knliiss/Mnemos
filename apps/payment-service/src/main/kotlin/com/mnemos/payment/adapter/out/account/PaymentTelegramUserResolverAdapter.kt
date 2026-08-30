@@ -10,10 +10,10 @@ class PaymentTelegramUserResolverAdapter(
 ) : PaymentTelegramUserResolver {
     override fun findByTelegramId(telegramId: Long): CurrentPaymentUser? =
         client
-            .getTelegramUserContext(telegramId)
-            ?.let { context ->
+            .getTelegramUserIdentity(telegramId)
+            ?.let { identity ->
                 CurrentPaymentUser(
-                    userId = context.userId,
+                    userId = identity.userId,
                     telegramId = telegramId,
                 )
             }
