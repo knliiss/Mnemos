@@ -11,6 +11,6 @@ class PersonalizationTelegramUserResolverAdapter(
 ) : PersonalizationTelegramUserResolver {
     override fun findUserId(telegramId: TelegramId): UserId? =
         client
-            .getTelegramUserContext(telegramId.id)
-            ?.let { response -> UserId(response.userId) }
+            .getTelegramUserIdentity(telegramId.id)
+            ?.let { identity -> UserId(identity.userId) }
 }
