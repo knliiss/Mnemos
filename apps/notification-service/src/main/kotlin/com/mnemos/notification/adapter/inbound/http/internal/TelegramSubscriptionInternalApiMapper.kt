@@ -2,7 +2,15 @@ package com.mnemos.notification.adapter.inbound.http.internal
 
 import com.mnemos.notification.application.common.pagination.PageResult
 import com.mnemos.notification.application.subscription.model.SubscriptionView
+import com.mnemos.notification.domain.booster.model.DomainBoosterType
+import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
+import com.mnemos.notification.domain.global.model.DomainGlobalEventType
+import com.mnemos.notification.domain.subscription.model.SubscriptionId
 import com.mnemos.notification.domain.subscription.model.SubscriptionType
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramBoosterType
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateSubscriptionResponse
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramDungeonType
+import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramGlobalType
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionListResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionResponse
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscriptionType
@@ -16,6 +24,17 @@ object TelegramSubscriptionInternalApiMapper {
             totalItems = totalItems,
             hasNextPage = hasNextPage,
         )
+
+    fun SubscriptionId?.toCreateResponse(): TelegramCreateSubscriptionResponse =
+        TelegramCreateSubscriptionResponse(
+            subscriptionId = this?.id,
+        )
+
+    fun TelegramBoosterType.toDomainBoosterType(): DomainBoosterType = DomainBoosterType.valueOf(name)
+
+    fun TelegramDungeonType.toDomainDungeonType(): DomainDungeonType = DomainDungeonType.valueOf(name)
+
+    fun TelegramGlobalType.toDomainGlobalType(): DomainGlobalEventType = DomainGlobalEventType.valueOf(name)
 
     private fun SubscriptionView.toResponse(): TelegramSubscriptionResponse =
         when (val details = details) {

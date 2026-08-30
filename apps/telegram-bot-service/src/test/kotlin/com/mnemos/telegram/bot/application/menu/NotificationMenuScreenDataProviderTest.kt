@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.notification.NotificationMenuContext
+import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionPage
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
@@ -76,6 +77,30 @@ class NotificationMenuScreenDataProviderTest {
 
         assertEquals(NotificationSubscriptionResult.Unavailable, data.data.result)
         assertEquals(listOf(PageRequest(page = 0, size = 8)), gateway.requests)
+    }
+
+    @Test
+    fun `creation screen uses session state without loading subscription list`() {
+        val gateway = RecordingGateway(emptyMap())
+        val provider = NotificationMenuScreenDataProvider(gateway)
+        val itemDropContext =
+            NotificationMenuContext.withDroppedFor(
+                NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP),
+                "knaliz",
+            )
+        val session =
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                currentScreen = TelegramMenuScreen.NOTIFICATIONS,
+                screenContext = itemDropContext,
+            )
+
+        val data = provider.load(session) as TelegramMenuScreenData.Notifications
+
+        assertEquals(NotificationCreationMode.ITEM_DROP, data.data.mode)
+        assertEquals("knaliz", data.data.droppedFor)
+        assertEquals(NotificationSubscriptionResult.NotLoaded, data.data.result)
+        assertEquals(emptyList<PageRequest>(), gateway.requests)
     }
 
     private fun availablePage(

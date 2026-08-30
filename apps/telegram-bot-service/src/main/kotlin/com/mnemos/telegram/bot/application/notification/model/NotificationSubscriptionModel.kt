@@ -37,8 +37,17 @@ sealed interface NotificationSubscriptionResult {
     ) : NotificationSubscriptionResult
 
     data object Unavailable : NotificationSubscriptionResult
+
+    data object NotLoaded : NotificationSubscriptionResult
 }
 
 data class NotificationMenuScreenData(
     val result: NotificationSubscriptionResult,
+    val mode: NotificationCreationMode = NotificationCreationMode.LIST,
+    val feedback: NotificationMenuFeedback? = null,
+    val itemDropInput: NotificationItemDropInputField? = null,
+    val droppedFor: String? = null,
+    val itemName: String? = null,
+    val raidLocations: Set<Int> = emptySet(),
+    val raidPage: Int = 0,
 )

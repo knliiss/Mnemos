@@ -113,13 +113,17 @@ class TelegramMenuService(
         telegramId: Long,
         messageId: Int,
         expectedScreen: TelegramMenuScreen,
+        updateContext: (Map<String, String>) -> Map<String, String> = { context -> context },
     ): TelegramDeliveryResult =
         updateFromMenuMessage(
             telegramId = telegramId,
             messageId = messageId,
             expectedScreen = expectedScreen,
         ) { session ->
-            session.copy(pendingInput = null)
+            session.copy(
+                pendingInput = null,
+                screenContext = updateContext(session.screenContext),
+            )
         }
 
     fun completeTextInput(
