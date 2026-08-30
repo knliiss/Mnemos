@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
+import com.mnemos.telegram.bot.application.events.model.EventHistoryWipeSelection
 import java.util.UUID
 
 object EventHistoryCallbackData {
@@ -25,6 +26,7 @@ object EventHistoryCallbackData {
     private const val GLOBAL_TYPE_PREFIX = "ev:g:"
     private const val RAID_LOCATION_PREFIX = "ev:l:"
     private const val RAID_LOCATION_PAGE_PREFIX = "ev:lp:"
+    private const val WIPE_PREFIX = "ev:w:"
     private const val CLEAR_VALUE = "x"
 
     fun next(cursor: UUID): String = "$NEXT_PREFIX$cursor"
@@ -82,6 +84,11 @@ object EventHistoryCallbackData {
         callbackValue(callbackData, RAID_LOCATION_PAGE_PREFIX)
             ?.toIntOrNull()
             ?.takeIf { page -> page in 0..3 }
+
+    fun wipe(selection: EventHistoryWipeSelection): String = "$WIPE_PREFIX${selection.name}"
+
+    fun selectedWipe(callbackData: String): EventHistoryWipeSelection? =
+        enumValue(callbackData, WIPE_PREFIX, EventHistoryWipeSelection::valueOf)
 
     private fun <T> enumValue(
         callbackData: String,
