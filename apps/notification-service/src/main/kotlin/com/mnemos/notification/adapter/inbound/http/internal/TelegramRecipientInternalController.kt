@@ -14,7 +14,9 @@ class TelegramRecipientInternalController(
     private val service: ActivateTelegramRecipientService,
 ) {
     @PostMapping("/{telegramId}/activation")
-    fun activate(@PathVariable telegramId: Long) {
+    fun activate(
+        @PathVariable telegramId: Long,
+    ) {
         service.execute(telegramId)
     }
 }
