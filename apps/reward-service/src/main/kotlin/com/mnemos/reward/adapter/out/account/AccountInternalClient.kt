@@ -1,6 +1,7 @@
 package com.mnemos.reward.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserContextResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,6 +22,11 @@ interface AccountInternalClient {
         @RequestParam(required = false) userId: UUID? = null,
         @RequestParam(required = false) cristalixNickname: String? = null,
     ): InternalAccountResponse?
+
+    @GetMapping("/internal/v1/users/telegram/{telegramId}/context")
+    fun resolveTelegramUserContext(
+        @PathVariable telegramId: Long,
+    ): InternalTelegramUserContextResponse?
 
     @PostMapping("/internal/v1/accounts/{accountId}/permissions/check")
     fun checkPermission(

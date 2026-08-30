@@ -1,5 +1,6 @@
 package com.mnemos.reward.application.daily.usecase.restore
 
+import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
 import com.mnemos.reward.configuration.RewardProperties
@@ -20,8 +21,11 @@ class RestoreDailyStreakService(
     private val clock: Clock,
 ) {
     @Transactional
-    fun restore(): Int {
-        val accountId = activeAccountProvider.getActiveAccountContext().accountId
+    fun restore(): Int = restore(activeAccountProvider.getActiveAccountContext())
+
+    @Transactional
+    fun restore(activeAccount: ActiveAccountContext): Int {
+        val accountId = activeAccount.accountId
         val today = LocalDate.now(clock.withZone(ClaimDailyRewardService.MOSCOW))
         val streak =
             repository.findByAccountIdForUpdate(accountId)
