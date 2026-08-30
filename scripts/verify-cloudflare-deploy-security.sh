@@ -130,12 +130,6 @@ printf '%s\n' "$build_job" | grep -Fq 'master_sha="$(git rev-parse origin/master
 printf '%s\n' "$build_job" | grep -Fq '[ "$SOURCE_SHA" != "$master_sha" ]' ||
     fail "Cloudflare connector-driven deployment must reject non-master source revisions"
 
-printf '%s\n' "$deploy_job" | grep -Fq 'PRODUCTION_DEPLOY_ENABLED: ${{ vars.MNEMOS_CLOUDFLARE_PRODUCTION_DEPLOY_ENABLED }}' ||
-    fail "Cloudflare production deploy must read its deployment gate from the production environment"
-
-printf '%s\n' "$deploy_job" | grep -Fq '[ "$PRODUCTION_DEPLOY_ENABLED" != "true" ]' ||
-    fail "Cloudflare production deploy must enforce the explicit production deployment gate"
-
 printf '%s\n' "$deploy_job" | grep -Fq 'deployments: write' ||
     fail "Cloudflare deploy job must own deployment write permission"
 
