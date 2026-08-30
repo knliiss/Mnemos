@@ -1,8 +1,12 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.events.EventHistoryCallbackData
+import com.mnemos.telegram.bot.application.events.model.EventHistoryBoosterType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryItem
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
@@ -61,6 +65,8 @@ object EventHistoryMenuMessageRenderer {
                 "Сортировка: <b>${sortLabel(data.sort)}</b>",
             )
 
+        lines += detailedFilterLines(data)
+
         data.search?.let { search ->
             lines += "Поиск: <code>${escapeHtml(search)}</code>"
         }
@@ -70,6 +76,26 @@ object EventHistoryMenuMessageRenderer {
 
         return lines.joinToString("\n")
     }
+
+    private fun detailedFilterLines(data: EventHistoryMenuScreenData.Feed): List<String> =
+        when (data.filter) {
+            EventHistoryFilter.ITEM_DROP ->
+                listOf(
+                    "Редкость: <b>${itemRarityLabel(data.itemRarity)}</b>",
+                    "Тип предмета: <b>${itemTypeLabel(data.itemType)}</b>",
+                )
+
+            EventHistoryFilter.BOOSTER ->
+                listOf("Бустер: <b>${boosterTypeLabel(data.boosterType)}</b>")
+
+            EventHistoryFilter.GLOBAL ->
+                listOf("Событие: <b>${globalTypeLabel(data.globalType)}</b>")
+
+            EventHistoryFilter.RAID ->
+                listOf("Локация: <b>${data.raidLocation?.toString() ?: "Любая"}</b>")
+
+            EventHistoryFilter.ALL -> emptyList()
+        }
 
     private fun renderItem(item: EventHistoryItem): String {
         val occurredAt = eventTimestampFormatter.format(item.occurredAt)
@@ -131,6 +157,7 @@ object EventHistoryMenuMessageRenderer {
     ): List<OutboundTelegramMessageAction> {
         val actions = filterActions(data.filter).toMutableList()
 
+        actions += detailedFilterActions(data)
         actions += sortActions(data.sort)
         actions +=
             OutboundTelegramMessageAction.Callback(
@@ -173,37 +200,144 @@ object EventHistoryMenuMessageRenderer {
         return actions
     }
 
+    private fun detailedFilterActions(data: EventHistoryMenuScreenData.Feed): List<OutboundTelegramMessageAction> =
+        when (data.filter) {
+            EventHistoryFilter.ITEM_DROP -> itemDropFilterActions(data)
+            EventHistoryFilter.BOOSTER -> boosterFilterActions(data.boosterType)
+            EventHistoryFilter.GLOBAL -> globalFilterActions(data.globalType)
+            EventHistoryFilter.RAID -> raidFilterActions(data.raidLocation, data.raidLocationPage)
+            EventHistoryFilter.ALL -> emptyList()
+        }
+
+    private fun itemDropFilterActions(data: EventHistoryMenuScreenData.Feed): List<OutboundTelegramMessageAction> =
+        itemRarityActions(data.itemRarity) + itemTypeActions(data.itemType)
+
+    private fun itemRarityActions(selected: EventHistoryItemRarity?): List<OutboundTelegramMessageAction> =
+        listOf<OutboundTelegramMessageAction>(
+            filterCallback(
+                label = selectionLabel("Любая редкость", selected == null),
+                data = EventHistoryCallbackData.itemRarity(null),
+            ),
+        ) +
+            EventHistoryItemRarity.entries.map { rarity ->
+                filterCallback(
+                    label = selectionLabel(itemRarityLabel(rarity), rarity == selected),
+                    data = EventHistoryCallbackData.itemRarity(rarity),
+                )
+            }
+
+    private fun itemTypeActions(selected: EventHistoryItemType?): List<OutboundTelegramMessageAction> =
+        listOf<OutboundTelegramMessageAction>(
+            filterCallback(
+                label = selectionLabel("Любой тип", selected == null),
+                data = EventHistoryCallbackData.itemType(null),
+            ),
+        ) +
+            EventHistoryItemType.entries.map { itemType ->
+                filterCallback(
+                    label = selectionLabel(itemTypeLabel(itemType), itemType == selected),
+                    data = EventHistoryCallbackData.itemType(itemType),
+                )
+            }
+
+    private fun boosterFilterActions(selected: EventHistoryBoosterType?): List<OutboundTelegramMessageAction> =
+        listOf<OutboundTelegramMessageAction>(
+            filterCallback(
+                label = selectionLabel("Любой бустер", selected == null),
+                data = EventHistoryCallbackData.boosterType(null),
+            ),
+        ) +
+            EventHistoryBoosterType.entries.map { boosterType ->
+                filterCallback(
+                    label = selectionLabel(boosterTypeLabel(boosterType), boosterType == selected),
+                    data = EventHistoryCallbackData.boosterType(boosterType),
+                )
+            }
+
+    private fun globalFilterActions(selected: EventHistoryGlobalType?): List<OutboundTelegramMessageAction> =
+        listOf<OutboundTelegramMessageAction>(
+            filterCallback(
+                label = selectionLabel("Любое событие", selected == null),
+                data = EventHistoryCallbackData.globalType(null),
+            ),
+        ) +
+            EventHistoryGlobalType.entries.map { globalType ->
+                filterCallback(
+                    label = selectionLabel(globalTypeLabel(globalType), globalType == selected),
+                    data = EventHistoryCallbackData.globalType(globalType),
+                )
+            }
+
+    private fun raidFilterActions(
+        selected: Int?,
+        page: Int,
+    ): List<OutboundTelegramMessageAction> {
+        val firstLocation = page * RAID_LOCATIONS_PER_PAGE + 1
+        val lastLocation = minOf(firstLocation + RAID_LOCATIONS_PER_PAGE - 1, MAX_RAID_LOCATION)
+        val actions =
+            mutableListOf<OutboundTelegramMessageAction>(
+                filterCallback(
+                    label = selectionLabel("Любая локация", selected == null),
+                    data = EventHistoryCallbackData.raidLocation(null),
+                ),
+            )
+
+        (firstLocation..lastLocation).forEach { location ->
+            actions +=
+                filterCallback(
+                    label = selectionLabel("Локация $location", location == selected),
+                    data = EventHistoryCallbackData.raidLocation(location),
+                )
+        }
+
+        if (page > 0) {
+            actions +=
+                filterCallback(
+                    label = "← Локации",
+                    data = EventHistoryCallbackData.raidLocationPage(page - 1),
+                )
+        }
+
+        if (page < LAST_RAID_LOCATION_PAGE) {
+            actions +=
+                filterCallback(
+                    label = "Локации →",
+                    data = EventHistoryCallbackData.raidLocationPage(page + 1),
+                )
+        }
+
+        return actions
+    }
+
     private fun filterActions(selected: EventHistoryFilter): List<OutboundTelegramMessageAction> =
         EventHistoryFilter.entries.map { filter ->
-            OutboundTelegramMessageAction.Callback(
-                label = filterButtonLabel(filter, selected),
+            filterCallback(
+                label = selectionLabel(filterLabel(filter), filter == selected),
                 data = EventHistoryCallbackData.filter(filter),
             )
         }
 
     private fun sortActions(selected: EventHistorySort): List<OutboundTelegramMessageAction> =
         EventHistorySort.entries.map { sort ->
-            OutboundTelegramMessageAction.Callback(
-                label = sortButtonLabel(sort, selected),
+            filterCallback(
+                label = selectionLabel(sortLabel(sort), sort == selected),
                 data = EventHistoryCallbackData.sort(sort),
             )
         }
 
-    private fun filterButtonLabel(
-        filter: EventHistoryFilter,
-        selected: EventHistoryFilter,
-    ): String {
-        val prefix = if (filter == selected) "✓ " else ""
-        return prefix + filterLabel(filter)
-    }
+    private fun filterCallback(
+        label: String,
+        data: String,
+    ): OutboundTelegramMessageAction.Callback =
+        OutboundTelegramMessageAction.Callback(
+            label = label,
+            data = data,
+        )
 
-    private fun sortButtonLabel(
-        sort: EventHistorySort,
-        selected: EventHistorySort,
-    ): String {
-        val prefix = if (sort == selected) "✓ " else ""
-        return prefix + sortLabel(sort)
-    }
+    private fun selectionLabel(
+        label: String,
+        selected: Boolean,
+    ): String = if (selected) "✓ $label" else label
 
     private fun filterLabel(filter: EventHistoryFilter): String =
         when (filter) {
@@ -218,6 +352,42 @@ object EventHistoryMenuMessageRenderer {
         when (sort) {
             EventHistorySort.NEWEST -> "Сначала новые"
             EventHistorySort.OLDEST -> "Сначала старые"
+        }
+
+    private fun itemRarityLabel(rarity: EventHistoryItemRarity?): String =
+        when (rarity) {
+            EventHistoryItemRarity.MYTHICAL -> "Mythical"
+            EventHistoryItemRarity.SECRET -> "Secret"
+            null -> "Любая"
+        }
+
+    private fun itemTypeLabel(itemType: EventHistoryItemType?): String =
+        when (itemType) {
+            EventHistoryItemType.SWORD -> "Мечи"
+            EventHistoryItemType.AURA -> "Ауры"
+            EventHistoryItemType.PET -> "Петы"
+            EventHistoryItemType.BOOK -> "Книги"
+            EventHistoryItemType.JEWELRY -> "Бижутерия"
+            null -> "Любой"
+        }
+
+    private fun boosterTypeLabel(boosterType: EventHistoryBoosterType?): String =
+        when (boosterType) {
+            EventHistoryBoosterType.LUCK -> "Luck"
+            EventHistoryBoosterType.MONEY -> "Money"
+            EventHistoryBoosterType.DAMAGE -> "Damage"
+            EventHistoryBoosterType.POWER -> "Power"
+            null -> "Любой"
+        }
+
+    private fun globalTypeLabel(globalType: EventHistoryGlobalType?): String =
+        when (globalType) {
+            EventHistoryGlobalType.DARKNESS -> "Darkness"
+            EventHistoryGlobalType.MOON -> "Moon"
+            EventHistoryGlobalType.ECLIPSE -> "Eclipse"
+            EventHistoryGlobalType.EXPLOSION -> "Explosion"
+            EventHistoryGlobalType.COMET_CHAOS -> "Comet Chaos"
+            null -> "Любое"
         }
 
     private fun unavailableMessage(data: EventHistoryMenuScreenData.Feed? = null): OutboundTelegramMessage =
@@ -278,4 +448,8 @@ object EventHistoryMenuMessageRenderer {
         DateTimeFormatter
             .ofPattern("dd.MM HH:mm 'UTC'")
             .withZone(ZoneOffset.UTC)
+
+    private const val RAID_LOCATIONS_PER_PAGE = 7
+    private const val MAX_RAID_LOCATION = 28
+    private const val LAST_RAID_LOCATION_PAGE = 3
 }
