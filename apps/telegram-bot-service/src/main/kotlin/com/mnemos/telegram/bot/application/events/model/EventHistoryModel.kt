@@ -11,10 +11,16 @@ enum class EventHistoryFilter {
     RAID,
 }
 
+enum class EventHistorySort {
+    NEWEST,
+    OLDEST,
+}
+
 data class EventHistoryQuery(
     val filter: EventHistoryFilter,
     val after: UUID?,
     val search: String? = null,
+    val sort: EventHistorySort = EventHistorySort.NEWEST,
 )
 
 sealed interface EventHistoryItem {
@@ -68,6 +74,7 @@ sealed interface EventHistoryMenuScreenData {
     data class Feed(
         val filter: EventHistoryFilter,
         val search: String?,
+        val sort: EventHistorySort,
         val result: EventHistoryResult,
         val hasPrevious: Boolean,
     ) : EventHistoryMenuScreenData
