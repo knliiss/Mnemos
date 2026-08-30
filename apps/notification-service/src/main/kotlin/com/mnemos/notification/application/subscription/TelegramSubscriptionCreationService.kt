@@ -115,8 +115,7 @@ class TelegramSubscriptionCreationService(
             ).subscriptionId
     }
 
-    private fun resolveUserId(telegramId: TelegramId): UserId? =
-        recipientReader.findByTelegramId(telegramId)?.userId
+    private fun resolveUserId(telegramId: TelegramId): UserId? = recipientReader.findByTelegramId(telegramId)?.userId
 
     private fun normalizeDroppedFor(value: String?): String? {
         val normalized = value?.trim()?.takeIf(String::isNotEmpty) ?: return null
