@@ -45,26 +45,22 @@ object EventHistoryCallbackData {
     fun selectedSort(callbackData: String): EventHistorySort? =
         enumValue(callbackData, SORT_PREFIX, EventHistorySort::valueOf)
 
-    fun itemRarity(rarity: EventHistoryItemRarity?): String =
-        "$ITEM_RARITY_PREFIX${rarity?.name ?: CLEAR_VALUE}"
+    fun itemRarity(rarity: EventHistoryItemRarity?): String = "$ITEM_RARITY_PREFIX${rarity?.name ?: CLEAR_VALUE}"
 
     fun selectedItemRarity(callbackData: String): FilterCallbackValue<EventHistoryItemRarity>? =
         optionalEnumValue(callbackData, ITEM_RARITY_PREFIX, EventHistoryItemRarity::valueOf)
 
-    fun itemType(itemType: EventHistoryItemType?): String =
-        "$ITEM_TYPE_PREFIX${itemType?.name ?: CLEAR_VALUE}"
+    fun itemType(itemType: EventHistoryItemType?): String = "$ITEM_TYPE_PREFIX${itemType?.name ?: CLEAR_VALUE}"
 
     fun selectedItemType(callbackData: String): FilterCallbackValue<EventHistoryItemType>? =
         optionalEnumValue(callbackData, ITEM_TYPE_PREFIX, EventHistoryItemType::valueOf)
 
-    fun boosterType(boosterType: EventHistoryBoosterType?): String =
-        "$BOOSTER_TYPE_PREFIX${boosterType?.name ?: CLEAR_VALUE}"
+    fun boosterType(boosterType: EventHistoryBoosterType?): String = "$BOOSTER_TYPE_PREFIX${boosterType?.name ?: CLEAR_VALUE}"
 
     fun selectedBoosterType(callbackData: String): FilterCallbackValue<EventHistoryBoosterType>? =
         optionalEnumValue(callbackData, BOOSTER_TYPE_PREFIX, EventHistoryBoosterType::valueOf)
 
-    fun globalType(globalType: EventHistoryGlobalType?): String =
-        "$GLOBAL_TYPE_PREFIX${globalType?.name ?: CLEAR_VALUE}"
+    fun globalType(globalType: EventHistoryGlobalType?): String = "$GLOBAL_TYPE_PREFIX${globalType?.name ?: CLEAR_VALUE}"
 
     fun selectedGlobalType(callbackData: String): FilterCallbackValue<EventHistoryGlobalType>? =
         optionalEnumValue(callbackData, GLOBAL_TYPE_PREFIX, EventHistoryGlobalType::valueOf)
@@ -110,7 +106,7 @@ object EventHistoryCallbackData {
 
         return runCatching { parser(rawValue) }
             .getOrNull()
-            ?.let(FilterCallbackValue<T>::Selected)
+            ?.let { value -> FilterCallbackValue.Selected(value) }
     }
 
     private fun callbackValue(
