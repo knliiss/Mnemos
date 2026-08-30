@@ -114,6 +114,7 @@ sealed interface EventHistoryMenuScreenData {
         val boosterType: EventHistoryBoosterType?,
         val globalType: EventHistoryGlobalType?,
         val raidLocation: Int?,
+        val raidLocationPage: Int,
         val wipeId: UUID?,
         val result: EventHistoryResult,
         val hasPrevious: Boolean,
