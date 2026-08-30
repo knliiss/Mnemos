@@ -27,6 +27,8 @@ class LeaderboardExclusionProjectionEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "scope", nullable = false, length = 16)
     val scope: LeaderboardExclusionScope,
+    @Column(name = "exclusion_id")
+    val exclusionId: UUID?,
     @Column(name = "active", nullable = false)
     val active: Boolean,
     @Column(name = "occurred_at", nullable = false)

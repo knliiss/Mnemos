@@ -8,6 +8,7 @@ import com.mnemos.wallet.application.leaderboard.exclusion.model.LeaderboardExcl
 object LeaderboardExclusionContractMapper {
     fun LeaderboardExclusionChangedV1.toChange(): LeaderboardExclusionChange =
         LeaderboardExclusionChange(
+            exclusionId = exclusionId,
             subjectType = LeaderboardExclusionSubjectType.valueOf(subjectType.name),
             subjectId = subjectId,
             scope = LeaderboardExclusionScope.valueOf(scope.name),

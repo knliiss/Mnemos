@@ -23,7 +23,7 @@ class ApplyLeaderboardExclusionChangeServiceTest {
 
     @Test
     fun `coin exclusion updates projection and invalidates cache`() {
-        val change = change(LeaderboardExclusionScope.COINS)
+        val change = change(scope = LeaderboardExclusionScope.COINS)
 
         service.execute(change)
 
@@ -33,7 +33,7 @@ class ApplyLeaderboardExclusionChangeServiceTest {
 
     @Test
     fun `all exclusion updates projection and invalidates cache`() {
-        val change = change(LeaderboardExclusionScope.ALL)
+        val change = change(scope = LeaderboardExclusionScope.ALL)
 
         service.execute(change)
 
@@ -43,7 +43,7 @@ class ApplyLeaderboardExclusionChangeServiceTest {
 
     @Test
     fun `unrelated exclusion does not invalidate coin cache`() {
-        val change = change(LeaderboardExclusionScope.DROPS)
+        val change = change(scope = LeaderboardExclusionScope.DROPS)
 
         service.execute(change)
 
@@ -51,10 +51,28 @@ class ApplyLeaderboardExclusionChangeServiceTest {
         verify(cacheInvalidator, never()).invalidate()
     }
 
-    private fun change(scope: LeaderboardExclusionScope): LeaderboardExclusionChange =
+    @Test
+    fun `player exclusion is ignored by wallet leaderboard projection`() {
+        val change =
+            change(
+                subjectType = LeaderboardExclusionSubjectType.PLAYER,
+                scope = LeaderboardExclusionScope.ALL,
+            )
+
+        service.execute(change)
+
+        verify(repository, never()).apply(change)
+        verify(cacheInvalidator, never()).invalidate()
+    }
+
+    private fun change(
+        subjectType: LeaderboardExclusionSubjectType = LeaderboardExclusionSubjectType.ACCOUNT,
+        scope: LeaderboardExclusionScope,
+    ): LeaderboardExclusionChange =
         LeaderboardExclusionChange(
-            subjectType = LeaderboardExclusionSubjectType.ACCOUNT,
-            subjectId = UUID.fromString("019c1156-3274-7000-8000-000000000501"),
+            exclusionId = UUID.fromString("019c1156-3274-7000-8000-000000000501"),
+            subjectType = subjectType,
+            subjectId = UUID.fromString("019c1156-3274-7000-8000-000000000502"),
             scope = scope,
             active = true,
             occurredAt = Instant.parse("2026-08-27T15:30:00Z"),

@@ -8,6 +8,7 @@ import com.mnemos.moderation.contracts.event.LeaderboardExclusionChangedV1
 object LeaderboardExclusionContractMapper {
     fun LeaderboardExclusionChangedV1.toChange(): LeaderboardExclusionChange =
         LeaderboardExclusionChange(
+            exclusionId = exclusionId,
             subjectType = LeaderboardExclusionSubjectType.valueOf(subjectType.name),
             subjectId = subjectId,
             scope = LeaderboardExclusionScope.valueOf(scope.name),

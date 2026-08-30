@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 data class LeaderboardExclusionChange(
+    val exclusionId: UUID,
     val subjectType: LeaderboardExclusionSubjectType,
     val subjectId: UUID,
     val scope: LeaderboardExclusionScope,
