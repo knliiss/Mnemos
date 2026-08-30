@@ -6,6 +6,10 @@ import com.mnemos.event.application.feed.usecase.list.ListEventFeedService
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
+import com.mnemos.event.contracts.shared.ContractBoosterType
+import com.mnemos.event.contracts.shared.ContractGlobalEventType
+import com.mnemos.event.contracts.shared.ContractItemRarity
+import com.mnemos.event.contracts.shared.ContractItemType
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Size
@@ -33,6 +37,20 @@ class InternalEventFeedController(
         @RequestParam(required = false)
         @Size(max = 64)
         search: String?,
+        @RequestParam(required = false)
+        itemRarity: ContractItemRarity?,
+        @RequestParam(required = false)
+        itemType: ContractItemType?,
+        @RequestParam(required = false)
+        boosterType: ContractBoosterType?,
+        @RequestParam(required = false)
+        globalType: ContractGlobalEventType?,
+        @RequestParam(required = false)
+        @Min(1)
+        @Max(28)
+        raidLocation: Int?,
+        @RequestParam(required = false)
+        wipeId: UUID?,
         @RequestParam(defaultValue = "NEWEST")
         sort: InternalEventFeedSort,
         @RequestParam(defaultValue = "8")
@@ -46,6 +64,12 @@ class InternalEventFeedController(
                     after = after,
                     type = type,
                     search = search,
+                    itemRarity = itemRarity,
+                    itemType = itemType,
+                    boosterType = boosterType,
+                    globalType = globalType,
+                    raidLocation = raidLocation,
+                    wipeId = wipeId,
                     sort = sort,
                     limit = limit,
                 ),
