@@ -56,7 +56,6 @@ class AccountBalanceGatewayAdapterTest {
     }
 
     private class FailingWalletServiceClient : WalletServiceClient {
-        override fun getAccountBalances(accountId: UUID): List<TelegramAccountBalanceResponse> =
-            error("wallet unavailable")
+        override fun getAccountBalances(accountId: UUID): List<TelegramAccountBalanceResponse> = error("wallet unavailable")
     }
 }
