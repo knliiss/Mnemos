@@ -62,6 +62,7 @@ class EventHistoryMenuScreenDataProvider(
                 boosterType = boosterType,
                 globalType = globalType,
                 raidLocation = raidLocation,
+                raidLocationPage = EventHistoryMenuContext.selectedRaidLocationPage(context),
                 wipeId = wipeId,
                 result = eventHistoryGateway.getPage(query),
                 hasPrevious = EventHistoryMenuContext.hasPrevious(context),
