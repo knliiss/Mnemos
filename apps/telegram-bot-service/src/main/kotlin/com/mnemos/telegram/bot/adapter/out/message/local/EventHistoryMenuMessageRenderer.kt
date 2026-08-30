@@ -12,6 +12,7 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 object EventHistoryMenuMessageRenderer {
     fun render(data: TelegramMenuScreenData): OutboundTelegramMessage {
@@ -19,41 +20,53 @@ object EventHistoryMenuMessageRenderer {
             data as? TelegramMenuScreenData.EventHistory
                 ?: return unavailableMessage()
 
-        return when (val result = historyData.data.result) {
-            is EventHistoryResult.Available -> availableMessage(historyData.data, result)
-            EventHistoryResult.Unavailable -> unavailableMessage()
+        return when (val screenData = historyData.data) {
+            is EventHistoryMenuScreenData.Feed -> renderFeed(screenData)
+            is EventHistoryMenuScreenData.SearchPrompt -> renderSearchPrompt(screenData)
         }
     }
 
+    private fun renderFeed(data: EventHistoryMenuScreenData.Feed): OutboundTelegramMessage =
+        when (val result = data.result) {
+            is EventHistoryResult.Available -> availableMessage(data, result)
+            EventHistoryResult.Unavailable -> unavailableMessage(data)
+        }
+
     private fun availableMessage(
-        data: EventHistoryMenuScreenData,
+        data: EventHistoryMenuScreenData.Feed,
         result: EventHistoryResult.Available,
     ): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text = renderAvailableText(data, result),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderAvailableActions(data, result),
+            actions = renderFeedActions(data, result.page.cursor),
         )
 
     private fun renderAvailableText(
-        data: EventHistoryMenuScreenData,
+        data: EventHistoryMenuScreenData.Feed,
         result: EventHistoryResult.Available,
     ): String {
-        val filterLabel = filterLabel(data.filter)
         val eventLines =
             result.page.items
                 .mapIndexed { index, item -> "${index + 1}. ${renderItem(item)}" }
                 .joinToString("\n\n")
                 .ifBlank {
-                    "Событий по выбранному фильтру пока нет."
+                    "Событий по выбранным условиям пока нет."
                 }
+        val lines =
+            mutableListOf(
+                "🕘 <b>История событий</b>",
+                "Фильтр: <b>${filterLabel(data.filter)}</b>",
+            )
 
-        return listOf(
-            "🕘 <b>История событий</b>",
-            "Фильтр: <b>$filterLabel</b>",
-            "",
-            eventLines,
-        ).joinToString("\n")
+        data.search?.let { search ->
+            lines += "Поиск: <code>${escapeHtml(search)}</code>"
+        }
+
+        lines += ""
+        lines += eventLines
+
+        return lines.joinToString("\n")
     }
 
     private fun renderItem(item: EventHistoryItem): String {
@@ -83,11 +96,52 @@ object EventHistoryMenuMessageRenderer {
         }
     }
 
-    private fun renderAvailableActions(
-        data: EventHistoryMenuScreenData,
-        result: EventHistoryResult.Available,
+    private fun renderSearchPrompt(data: EventHistoryMenuScreenData.SearchPrompt): OutboundTelegramMessage {
+        val lines =
+            mutableListOf(
+                "🔎 <b>Поиск по событиям</b>",
+                "Фильтр: <b>${filterLabel(data.filter)}</b>",
+                "",
+                "Отправьте название предмета, никнейм или часть запроса одним сообщением.",
+                "От 1 до 64 символов.",
+            )
+
+        data.currentSearch?.let { currentSearch ->
+            lines += ""
+            lines += "Текущий поиск: <code>${escapeHtml(currentSearch)}</code>"
+        }
+
+        data.error?.let { error ->
+            lines += ""
+            lines += "⚠️ ${escapeHtml(error)}"
+        }
+
+        return OutboundTelegramMessage(
+            text = lines.joinToString("\n"),
+            parseMode = OutboundTelegramMessageParseMode.HTML,
+            actions = searchPromptActions,
+        )
+    }
+
+    private fun renderFeedActions(
+        data: EventHistoryMenuScreenData.Feed,
+        cursor: UUID?,
     ): List<OutboundTelegramMessageAction> {
         val actions = filterActions(data.filter).toMutableList()
+
+        actions +=
+            OutboundTelegramMessageAction.Callback(
+                "🔎 Поиск",
+                EventHistoryCallbackData.SEARCH,
+            )
+
+        if (data.search != null) {
+            actions +=
+                OutboundTelegramMessageAction.Callback(
+                    "✖ Сбросить поиск",
+                    EventHistoryCallbackData.SEARCH_CLEAR,
+                )
+        }
 
         actions +=
             OutboundTelegramMessageAction.Callback(
@@ -103,11 +157,11 @@ object EventHistoryMenuMessageRenderer {
                 )
         }
 
-        result.page.cursor?.let { cursor ->
+        cursor?.let { nextCursor ->
             actions +=
                 OutboundTelegramMessageAction.Callback(
                     "Дальше →",
-                    EventHistoryCallbackData.next(cursor),
+                    EventHistoryCallbackData.next(nextCursor),
                 )
         }
 
@@ -141,7 +195,7 @@ object EventHistoryMenuMessageRenderer {
             EventHistoryFilter.RAID -> "Рейды"
         }
 
-    private fun unavailableMessage(): OutboundTelegramMessage =
+    private fun unavailableMessage(data: EventHistoryMenuScreenData.Feed? = null): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text =
                 listOf(
@@ -151,12 +205,8 @@ object EventHistoryMenuMessageRenderer {
                 ).joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
             actions =
-                listOf(
-                    OutboundTelegramMessageAction.Callback(
-                        "🔄 Обновить",
-                        EventHistoryCallbackData.REFRESH,
-                    ),
-                ) + commonNavigationActions,
+                data?.let { feed -> renderFeedActions(feed, null) }
+                    ?: genericUnavailableActions,
         )
 
     private fun escapeHtml(value: String): String =
@@ -164,6 +214,27 @@ object EventHistoryMenuMessageRenderer {
             .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
+
+    private val searchPromptActions =
+        listOf(
+            OutboundTelegramMessageAction.Callback(
+                "✖ Отмена",
+                EventHistoryCallbackData.SEARCH_CANCEL,
+            ),
+            OutboundTelegramMessageAction.Callback(
+                "⌂ Меню",
+                TelegramMenuScreen.HOME.callbackData,
+            ),
+            OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
+        )
+
+    private val genericUnavailableActions =
+        listOf(
+            OutboundTelegramMessageAction.Callback(
+                "🔄 Обновить",
+                EventHistoryCallbackData.REFRESH,
+            ),
+        ) + commonNavigationActions
 
     private val commonNavigationActions =
         listOf(
