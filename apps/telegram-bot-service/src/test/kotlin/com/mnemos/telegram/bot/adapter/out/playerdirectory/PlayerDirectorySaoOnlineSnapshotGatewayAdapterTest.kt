@@ -4,11 +4,11 @@ import com.mnemos.contracts.playerdirectory.internal.v1.InternalSaoRealmPlayerRe
 import com.mnemos.contracts.playerdirectory.internal.v1.InternalSaoRealmResponse
 import com.mnemos.contracts.playerdirectory.internal.v1.InternalSaoRealmSnapshotResponse
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshotResult
-import java.time.Instant
-import java.util.UUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import java.time.Instant
+import java.util.UUID
 
 class PlayerDirectorySaoOnlineSnapshotGatewayAdapterTest {
     @Test
@@ -50,8 +50,22 @@ class PlayerDirectorySaoOnlineSnapshotGatewayAdapterTest {
         assertEquals(generatedAt, result.snapshot.generatedAt)
         assertEquals(1, result.snapshot.trackedOnline)
         assertEquals(listOf("SAO-1", "SAO-2"), result.snapshot.realms.map { realm -> realm.name })
-        assertEquals(playerId, result.snapshot.realms.first().players.single().playerId)
-        assertEquals("knaliz", result.snapshot.realms.first().players.single().nickname)
+        assertEquals(
+            playerId,
+            result.snapshot.realms
+                .first()
+                .players
+                .single()
+                .playerId,
+        )
+        assertEquals(
+            "knaliz",
+            result.snapshot.realms
+                .first()
+                .players
+                .single()
+                .nickname,
+        )
     }
 
     @Test
@@ -70,7 +84,6 @@ class PlayerDirectorySaoOnlineSnapshotGatewayAdapterTest {
     }
 
     private class FailingPlayerDirectoryServiceClient : PlayerDirectoryServiceClient {
-        override fun getSaoSnapshot(): InternalSaoRealmSnapshotResponse =
-            error("player-directory-service unavailable")
+        override fun getSaoSnapshot(): InternalSaoRealmSnapshotResponse = error("player-directory-service unavailable")
     }
 }
