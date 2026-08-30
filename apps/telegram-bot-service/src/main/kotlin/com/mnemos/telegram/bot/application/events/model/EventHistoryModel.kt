@@ -16,11 +16,45 @@ enum class EventHistorySort {
     OLDEST,
 }
 
+enum class EventHistoryItemRarity {
+    MYTHICAL,
+    SECRET,
+}
+
+enum class EventHistoryItemType {
+    SWORD,
+    AURA,
+    PET,
+    BOOK,
+    JEWELRY,
+}
+
+enum class EventHistoryBoosterType {
+    LUCK,
+    MONEY,
+    DAMAGE,
+    POWER,
+}
+
+enum class EventHistoryGlobalType {
+    DARKNESS,
+    MOON,
+    ECLIPSE,
+    EXPLOSION,
+    COMET_CHAOS,
+}
+
 data class EventHistoryQuery(
     val filter: EventHistoryFilter,
     val after: UUID?,
     val search: String? = null,
     val sort: EventHistorySort = EventHistorySort.NEWEST,
+    val itemRarity: EventHistoryItemRarity? = null,
+    val itemType: EventHistoryItemType? = null,
+    val boosterType: EventHistoryBoosterType? = null,
+    val globalType: EventHistoryGlobalType? = null,
+    val raidLocation: Int? = null,
+    val wipeId: UUID? = null,
 )
 
 sealed interface EventHistoryItem {
@@ -75,6 +109,12 @@ sealed interface EventHistoryMenuScreenData {
         val filter: EventHistoryFilter,
         val search: String?,
         val sort: EventHistorySort,
+        val itemRarity: EventHistoryItemRarity?,
+        val itemType: EventHistoryItemType?,
+        val boosterType: EventHistoryBoosterType?,
+        val globalType: EventHistoryGlobalType?,
+        val raidLocation: Int?,
+        val wipeId: UUID?,
         val result: EventHistoryResult,
         val hasPrevious: Boolean,
     ) : EventHistoryMenuScreenData
