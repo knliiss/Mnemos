@@ -27,6 +27,8 @@ services:
       MNEMOS_KAFKA_MESSAGEAUTH_ENABLED: "true"
       MNEMOS_KAFKA_MESSAGEAUTH_PRIVATEKEY: ${PAYMENT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY}
       MNEMOS_KAFKA_MESSAGEAUTH_TRUSTEDPUBLICKEYS: ${MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      PAYMENT_SERVICE_ACCOUNT_API_KEY: ${PAYMENT_SERVICE_ACCOUNT_API_KEY}
       TELEGRAM_BOT_SERVICE_URL: http://telegram-bot-service:8094
       PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY: ${PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY}
       TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY: ${TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY}
@@ -42,6 +44,8 @@ services:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
+      account-service:
+        condition: service_started
       telegram-bot-service:
         condition: service_started
     networks:

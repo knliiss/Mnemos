@@ -2,6 +2,7 @@ package com.mnemos.payment.application.stars
 
 import com.github.f4b6a3.uuid.UuidCreator
 import com.mnemos.common.web.exception.AppException
+import com.mnemos.payment.application.security.port.out.CurrentPaymentUser
 import com.mnemos.payment.application.security.port.out.CurrentPaymentUserProvider
 import com.mnemos.payment.application.stars.model.CreatedStarPrimePurchase
 import com.mnemos.payment.application.stars.port.out.TelegramStarInvoice
@@ -25,8 +26,17 @@ class CreateStarPrimePurchaseService(
     private val clock: Clock,
 ) {
     @Transactional
-    fun execute(packageId: String): CreatedStarPrimePurchase {
-        val user = currentUserProvider.requireCurrent()
+    fun execute(packageId: String): CreatedStarPrimePurchase =
+        execute(
+            packageId = packageId,
+            user = currentUserProvider.requireCurrent(),
+        )
+
+    @Transactional
+    fun execute(
+        packageId: String,
+        user: CurrentPaymentUser,
+    ): CreatedStarPrimePurchase {
         val selectedPackage =
             try {
                 packageCatalog.requireById(packageId)
