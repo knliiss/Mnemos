@@ -2,8 +2,16 @@ package com.mnemos.telegram.bot.adapter.out.event
 
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedSort
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedType
+import com.mnemos.event.contracts.shared.ContractBoosterType
+import com.mnemos.event.contracts.shared.ContractGlobalEventType
+import com.mnemos.event.contracts.shared.ContractItemRarity
+import com.mnemos.event.contracts.shared.ContractItemType
 import com.mnemos.telegram.bot.adapter.out.event.EventHistoryMapper.toModel
+import com.mnemos.telegram.bot.application.events.model.EventHistoryBoosterType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryFilter
+import com.mnemos.telegram.bot.application.events.model.EventHistoryGlobalType
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemRarity
+import com.mnemos.telegram.bot.application.events.model.EventHistoryItemType
 import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
@@ -25,6 +33,12 @@ class EventHistoryGatewayAdapter(
                         after = query.after,
                         type = query.filter.toInternalType(),
                         search = query.search,
+                        itemRarity = query.itemRarity?.toContract(),
+                        itemType = query.itemType?.toContract(),
+                        boosterType = query.boosterType?.toContract(),
+                        globalType = query.globalType?.toContract(),
+                        raidLocation = query.raidLocation,
+                        wipeId = query.wipeId,
                         sort = query.sort.toInternalSort(),
                         limit = PAGE_SIZE,
                     )
@@ -52,6 +66,14 @@ class EventHistoryGatewayAdapter(
             EventHistorySort.NEWEST -> InternalEventFeedSort.NEWEST
             EventHistorySort.OLDEST -> InternalEventFeedSort.OLDEST
         }
+
+    private fun EventHistoryItemRarity.toContract(): ContractItemRarity = ContractItemRarity.valueOf(name)
+
+    private fun EventHistoryItemType.toContract(): ContractItemType = ContractItemType.valueOf(name)
+
+    private fun EventHistoryBoosterType.toContract(): ContractBoosterType = ContractBoosterType.valueOf(name)
+
+    private fun EventHistoryGlobalType.toContract(): ContractGlobalEventType = ContractGlobalEventType.valueOf(name)
 
     private companion object {
         const val PAGE_SIZE = 8
