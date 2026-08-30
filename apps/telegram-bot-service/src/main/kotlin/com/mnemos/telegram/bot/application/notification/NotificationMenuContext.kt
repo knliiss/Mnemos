@@ -9,16 +9,16 @@ object NotificationMenuContext {
             ?.coerceAtLeast(0)
             ?: 0
 
-    fun next(context: Map<String, String>): Map<String, String> =
-        context + (PAGE_KEY to (page(context) + 1).toString())
+    fun withPage(
+        context: Map<String, String>,
+        page: Int,
+    ): Map<String, String> {
+        val normalizedPage = page.coerceAtLeast(0)
 
-    fun previous(context: Map<String, String>): Map<String, String> {
-        val previousPage = (page(context) - 1).coerceAtLeast(0)
-
-        return if (previousPage == 0) {
+        return if (normalizedPage == 0) {
             context - PAGE_KEY
         } else {
-            context + (PAGE_KEY to previousPage.toString())
+            context + (PAGE_KEY to normalizedPage.toString())
         }
     }
 }
