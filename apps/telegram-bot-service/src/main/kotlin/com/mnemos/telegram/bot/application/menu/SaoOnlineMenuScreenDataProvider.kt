@@ -62,7 +62,7 @@ class SaoOnlineMenuScreenDataProvider(
                 ?: return SaoOnlineMenuScreenData.RealmList(snapshot)
         val players =
             realm.players.sortedWith(
-                compareBy<SaoOnlinePlayer>(String.CASE_INSENSITIVE_ORDER) { player -> player.nickname },
+                compareBy<SaoOnlinePlayer, String>(String.CASE_INSENSITIVE_ORDER) { player -> player.nickname },
             )
         val page = resolvePage(context, players.size)
         val totalPages = pageCount(players.size)
@@ -125,7 +125,7 @@ class SaoOnlineMenuScreenDataProvider(
 
     private fun sortMatches(matches: List<SaoOnlinePlayerSearchMatch>): List<SaoOnlinePlayerSearchMatch> =
         matches.sortedWith(
-            compareBy<SaoOnlinePlayerSearchMatch>(String.CASE_INSENSITIVE_ORDER) { match -> match.nickname }
+            compareBy<SaoOnlinePlayerSearchMatch, String>(String.CASE_INSENSITIVE_ORDER) { match -> match.nickname }
                 .thenBy { match -> match.realmNumber },
         )
 
