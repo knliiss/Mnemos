@@ -91,6 +91,12 @@ class EventHistoryCallbackHandler(
             }
         }
 
+        EventHistoryCallbackData.selectedWipe(context.data)?.let { selection ->
+            return updateContext(context) { current ->
+                EventHistoryMenuContext.wipe(current, selection)
+            }
+        }
+
         EventHistoryCallbackData.nextCursor(context.data)?.let { cursor ->
             return updateContext(context) { current ->
                 EventHistoryMenuContext.next(current, cursor)
