@@ -94,10 +94,22 @@ sealed interface TelegramItemRaceHistoryResult {
     data object Unavailable : TelegramItemRaceHistoryResult
 }
 
-enum class TelegramBetMutationResult {
-    ACCEPTED,
-    ACCOUNT_REQUIRED,
-    INVALID,
+sealed interface TelegramBetMutationResult {
+    data class Accepted(
+        val operationId: UUID,
+    ) : TelegramBetMutationResult
+
+    data object AccountRequired : TelegramBetMutationResult
+
+    data object Invalid : TelegramBetMutationResult
+
+    data object Unavailable : TelegramBetMutationResult
+}
+
+enum class TelegramBetOperationState {
+    PENDING,
+    COMPLETED,
+    FAILED,
     UNAVAILABLE,
 }
 
@@ -108,7 +120,9 @@ enum class BetMenuMode {
 }
 
 enum class BetMenuFeedback {
-    ACCEPTED,
+    COMPLETED,
+    FAILED,
+    PENDING,
     INVALID_AMOUNT,
     ACCOUNT_REQUIRED,
     UNAVAILABLE,
