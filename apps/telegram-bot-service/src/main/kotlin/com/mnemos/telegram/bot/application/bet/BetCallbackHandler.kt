@@ -20,6 +20,7 @@ import java.util.UUID
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class BetCallbackHandler(
     private val gateway: BetGateway,
+    private val operationResultResolver: BetOperationResultResolver,
     private val menuService: TelegramMenuService,
     private val sessionRepository: TelegramMenuSessionRepository,
 ) : TelegramScopedCallbackHandler {
@@ -101,21 +102,30 @@ class BetCallbackHandler(
         raceId: UUID,
     ): TelegramDeliveryResult {
         val idempotencyKey = deterministicKey("race-join:${context.callbackQueryId}:$raceId")
+        val result = gateway.joinItemRace(context.telegramId, raceId, idempotencyKey)
 
-        return when (gateway.joinItemRace(context.telegramId, raceId, idempotencyKey)) {
-            TelegramBetMutationResult.ACCEPTED ->
-                update(context, BetMenuContext.accepted(BetMenuMode.RACES))
+        return when (result) {
+            is TelegramBetMutationResult.Accepted ->
+                update(
+                    context = context,
+                    screenContext =
+                        operationResultResolver.resolve(
+                            telegramId = context.telegramId,
+                            mode = BetMenuMode.RACES,
+                            operationId = result.operationId,
+                        ),
+                )
 
-            TelegramBetMutationResult.ACCOUNT_REQUIRED ->
+            TelegramBetMutationResult.AccountRequired ->
                 update(context, BetMenuContext.accountRequired(BetMenuMode.RACES))
 
-            TelegramBetMutationResult.INVALID ->
+            TelegramBetMutationResult.Invalid ->
                 update(
                     context,
                     BetMenuContext.withFeedback(BetMenuContext.races(), BetMenuFeedback.INVALID_AMOUNT),
                 )
 
-            TelegramBetMutationResult.UNAVAILABLE ->
+            TelegramBetMutationResult.Unavailable ->
                 update(
                     context,
                     BetMenuContext.withFeedback(BetMenuContext.races(), BetMenuFeedback.UNAVAILABLE),
@@ -124,15 +134,13 @@ class BetCallbackHandler(
     }
 
     private fun refreshCurrentMode(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val mode = sessionRepository.find(context.telegramId)?.screenContext?.let(BetMenuContext::mode) ?: BetMenuMode.ROUNDS
-        val screenContext =
-            when (mode) {
-                BetMenuMode.ROUNDS -> BetMenuContext.rounds()
-                BetMenuMode.RACES -> BetMenuContext.races()
-                BetMenuMode.HISTORY -> BetMenuContext.history()
-            }
+        val session = sessionRepository.find(context.telegramId) ?: return TelegramDeliveryResult.Delivered
+        val mode = BetMenuContext.mode(session.screenContext)
 
-        return update(context, screenContext)
+        return update(
+            context = context,
+            screenContext = BetMenuContext.refresh(session.screenContext, mode),
+        )
     }
 
     private fun cancelInput(context: TelegramCallbackContext): TelegramDeliveryResult {
