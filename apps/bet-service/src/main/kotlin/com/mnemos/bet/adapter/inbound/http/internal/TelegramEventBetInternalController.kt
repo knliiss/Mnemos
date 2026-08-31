@@ -2,6 +2,7 @@ package com.mnemos.bet.adapter.inbound.http.internal
 
 import com.mnemos.bet.adapter.inbound.http.internal.TelegramEventBetInternalApiMapper.toTelegramResponse
 import com.mnemos.bet.adapter.inbound.http.internal.TelegramItemRaceInternalApiMapper.toTelegramResponse
+import com.mnemos.bet.application.activity.usecase.GetBetOperationService
 import com.mnemos.bet.application.eventbet.usecase.history.ListMyEventBetsService
 import com.mnemos.bet.application.eventbet.usecase.increase.IncreaseEventBetCommand
 import com.mnemos.bet.application.eventbet.usecase.increase.IncreaseEventBetService
@@ -18,9 +19,12 @@ import com.mnemos.bet.application.security.port.out.TelegramBetActorProvider
 import com.mnemos.bet.domain.eventbet.model.DomainBetSide
 import com.mnemos.bet.domain.eventbet.model.EventBetRoundId
 import com.mnemos.bet.domain.itemrace.model.ItemRaceId
+import com.mnemos.bet.domain.wallet.model.WalletOperationId
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationResponse
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationStatus
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationStatusResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetRoundResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
@@ -55,6 +59,7 @@ class TelegramEventBetInternalController(
     private val itemRaceHistoryService: ListMyItemRaceHistoryService,
     private val joinItemRaceService: JoinItemRaceService,
     private val increaseItemRaceBetService: IncreaseItemRaceBetService,
+    private val getBetOperationService: GetBetOperationService,
 ) {
     @GetMapping("/{telegramId}/event-rounds")
     fun listRounds(
@@ -189,6 +194,24 @@ class TelegramEventBetInternalController(
         return TelegramBetOperationResponse(
             resourceId = result.participantId.id,
             operationId = result.operationId.id,
+        )
+    }
+
+    @GetMapping("/{telegramId}/operations/{operationId}")
+    fun getOperation(
+        @PathVariable telegramId: Long,
+        @PathVariable operationId: UUID,
+    ): TelegramBetOperationStatusResponse {
+        val actorUserId = requireActor(telegramId)
+        val operation =
+            getBetOperationService.executeFor(
+                operationId = WalletOperationId(operationId),
+                userId = actorUserId,
+            )
+
+        return TelegramBetOperationStatusResponse(
+            operationId = operation.id.id,
+            status = TelegramBetOperationStatus.valueOf(operation.status.name),
         )
     }
 
