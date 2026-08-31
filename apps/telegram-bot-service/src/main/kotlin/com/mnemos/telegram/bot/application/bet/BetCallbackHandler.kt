@@ -136,10 +136,21 @@ class BetCallbackHandler(
     private fun refreshCurrentMode(context: TelegramCallbackContext): TelegramDeliveryResult {
         val session = sessionRepository.find(context.telegramId) ?: return TelegramDeliveryResult.Delivered
         val mode = BetMenuContext.mode(session.screenContext)
+        val operationId = BetMenuContext.operationId(session.screenContext)
+        val screenContext =
+            if (operationId == null) {
+                BetMenuContext.refresh(session.screenContext, mode)
+            } else {
+                BetMenuContext.operationResult(
+                    mode = mode,
+                    operationId = operationId,
+                    state = gateway.getOperationState(context.telegramId, operationId),
+                )
+            }
 
         return update(
             context = context,
-            screenContext = BetMenuContext.refresh(session.screenContext, mode),
+            screenContext = screenContext,
         )
     }
 
