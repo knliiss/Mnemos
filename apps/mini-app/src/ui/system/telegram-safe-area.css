@@ -6,6 +6,15 @@ html.telegram-mini-app {
   );
 }
 
+html.telegram-mini-app.telegram-platform-mobile {
+  --mnemos-telegram-top-clearance: max(
+    92px,
+    var(--tg-content-safe-area-inset-top, 0px),
+    calc(var(--tg-safe-area-inset-top, 0px) + 52px),
+    calc(env(safe-area-inset-top, 0px) + 52px)
+  );
+}
+
 html.telegram-mini-app .service-unavailable {
   padding-top: max(24px, var(--mnemos-telegram-top-clearance));
   padding-right: max(
@@ -28,15 +37,4 @@ html.telegram-mini-app .service-unavailable {
 html.telegram-mini-app .notification,
 html.telegram-mini-app .realtime-spotlight {
   top: max(12px, var(--mnemos-telegram-top-clearance));
-}
-
-@media (max-width: 699px) {
-  html.telegram-mini-app {
-    --mnemos-telegram-top-clearance: max(
-      92px,
-      var(--tg-content-safe-area-inset-top, 0px),
-      calc(var(--tg-safe-area-inset-top, 0px) + 52px),
-      calc(env(safe-area-inset-top, 0px) + 52px)
-    );
-  }
 }

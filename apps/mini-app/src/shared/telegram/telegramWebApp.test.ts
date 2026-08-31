@@ -37,7 +37,13 @@ function createTelegramWebApp(platform: string): TelegramWebApp {
 
 afterEach(() => {
   delete window.Telegram
-  document.documentElement.classList.remove("telegram-mini-app")
+  document.documentElement.classList.remove(
+    "telegram-mini-app",
+    "telegram-platform-mobile",
+    "telegram-platform-desktop",
+    "telegram-fullscreen",
+    "telegram-windowed",
+  )
 
   safeAreaVariables.forEach((name) => document.documentElement.style.removeProperty(name))
 
@@ -46,7 +52,7 @@ afterEach(() => {
 
 describe("Telegram Web App bootstrap", () => {
   it("binds Telegram safe-area values to CSS variables and refreshes them on events", () => {
-    const callbacks = new Map<TelegramSafeAreaEvent, () => void>()
+    const callbacks = new Map<TelegramWebAppEvent, () => void>()
 
     stubAnimationFrame()
 
@@ -55,7 +61,7 @@ describe("Telegram Web App bootstrap", () => {
       safeAreaInset: { top: 47, right: 0, bottom: 34, left: 0 },
       contentSafeAreaInset: { top: 96, right: 0, bottom: 34, left: 0 },
       isVersionAtLeast: vi.fn(() => false),
-      onEvent: vi.fn((event: TelegramSafeAreaEvent, callback: () => void) => {
+      onEvent: vi.fn((event: TelegramWebAppEvent, callback: () => void) => {
         callbacks.set(event, callback)
       }),
     } satisfies TelegramWebApp
@@ -65,6 +71,7 @@ describe("Telegram Web App bootstrap", () => {
     initializeTelegramWebApp()
 
     expect(document.documentElement.classList.contains("telegram-mini-app")).toBe(true)
+    expect(document.documentElement.classList.contains("telegram-platform-mobile")).toBe(true)
     expect(document.documentElement.style.getPropertyValue("--tg-safe-area-inset-top")).toBe("47px")
     expect(
       document.documentElement.style.getPropertyValue("--tg-content-safe-area-inset-top"),
@@ -82,21 +89,35 @@ describe("Telegram Web App bootstrap", () => {
     expect(window.requestAnimationFrame).toHaveBeenCalledOnce()
   })
 
-  it.each(["android", "ios"])("requests fullscreen on supported %s clients", (platform) => {
+  it("tracks Telegram fullscreen state from runtime events", () => {
+    const callbacks = new Map<TelegramWebAppEvent, () => void>()
+
     stubAnimationFrame()
 
-    const webApp = createTelegramWebApp(platform)
+    const webApp: TelegramWebApp = {
+      ...createTelegramWebApp("ios"),
+      isFullscreen: false,
+      onEvent: vi.fn((event: TelegramWebAppEvent, callback: () => void) => {
+        callbacks.set(event, callback)
+      }),
+    }
 
     window.Telegram = { WebApp: webApp }
 
     initializeTelegramWebApp()
 
-    expect(webApp.expand).toHaveBeenCalledOnce()
-    expect(webApp.requestFullscreen).toHaveBeenCalledOnce()
+    expect(document.documentElement.classList.contains("telegram-windowed")).toBe(true)
+    expect(document.documentElement.classList.contains("telegram-fullscreen")).toBe(false)
+
+    webApp.isFullscreen = true
+    callbacks.get("fullscreenChanged")?.()
+
+    expect(document.documentElement.classList.contains("telegram-windowed")).toBe(false)
+    expect(document.documentElement.classList.contains("telegram-fullscreen")).toBe(true)
   })
 
-  it.each(["tdesktop", "macos", "web", "weba", "webk"])(
-    "keeps supported %s clients expanded without requesting fullscreen",
+  it.each(["android", "ios"])(
+    "expands and requests fullscreen on supported %s clients",
     (platform) => {
       stubAnimationFrame()
 
@@ -107,6 +128,23 @@ describe("Telegram Web App bootstrap", () => {
       initializeTelegramWebApp()
 
       expect(webApp.expand).toHaveBeenCalledOnce()
+      expect(webApp.requestFullscreen).toHaveBeenCalledOnce()
+    },
+  )
+
+  it.each(["tdesktop", "macos", "web", "weba", "webk"])(
+    "keeps supported %s clients compact without requesting fullscreen",
+    (platform) => {
+      stubAnimationFrame()
+
+      const webApp = createTelegramWebApp(platform)
+
+      window.Telegram = { WebApp: webApp }
+
+      initializeTelegramWebApp()
+
+      expect(document.documentElement.classList.contains("telegram-platform-desktop")).toBe(true)
+      expect(webApp.expand).not.toHaveBeenCalled()
       expect(webApp.requestFullscreen).not.toHaveBeenCalled()
     },
   )
