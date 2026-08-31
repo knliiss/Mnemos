@@ -36,7 +36,7 @@ class PrimePurchaseGatewayAdapterTest {
     }
 
     @Test
-    fun `gateway maps created invoice without exposing purchase id to menu`() {
+    fun `gateway forwards callback idempotency key and maps created invoice`() {
         val client =
             FakePaymentServiceClient(
                 purchase =
@@ -50,9 +50,22 @@ class PrimePurchaseGatewayAdapterTest {
             )
         val gateway = PrimePurchaseGatewayAdapter(client)
 
-        val result = gateway.createPurchase(931458258L, "prime-250")
+        val result =
+            gateway.createPurchase(
+                telegramId = 931458258L,
+                packageId = "prime-250",
+                requestId = "callback-query-42",
+            )
         val invoice = (result as PrimePurchaseCreationResult.Ready).invoice
 
+        assertEquals(
+            CreateTelegramStarPrimePurchaseRequest(
+                telegramId = 931458258L,
+                packageId = "prime-250",
+                requestId = "callback-query-42",
+            ),
+            client.lastPurchaseRequest,
+        )
         assertEquals(250, invoice.primeAmount)
         assertEquals(250, invoice.starsAmount)
         assertEquals("https://t.me/invoice/example", invoice.url)
@@ -62,12 +75,16 @@ class PrimePurchaseGatewayAdapterTest {
         private val catalog: List<TelegramStarPrimePackageResponse> = emptyList(),
         private val purchase: CreatedTelegramStarPrimePurchaseResponse? = null,
     ) : PaymentServiceClient {
+        var lastPurchaseRequest: CreateTelegramStarPrimePurchaseRequest? = null
+            private set
+
         override fun getStarPrimeCatalog(): List<TelegramStarPrimePackageResponse> = catalog
 
-        override fun createStarPrimePurchase(request: CreateTelegramStarPrimePurchaseRequest): CreatedTelegramStarPrimePurchaseResponse =
-            requireNotNull(
-                purchase,
-            )
+        override fun createStarPrimePurchase(request: CreateTelegramStarPrimePurchaseRequest): CreatedTelegramStarPrimePurchaseResponse {
+            lastPurchaseRequest = request
+
+            return requireNotNull(purchase)
+        }
 
         override fun validateStarPreCheckout(request: ValidateStarPreCheckoutRequest): ValidateStarPreCheckoutResponse = error("not used")
 

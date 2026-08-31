@@ -122,6 +122,7 @@ class TelegramLongPollingConsumer(
             TelegramCallbackContext(
                 telegramId = telegramId,
                 messageId = message.messageId(),
+                callbackQueryId = callbackQuery.id(),
                 data = callbackQuery.data().orEmpty(),
             ),
         )

@@ -9,5 +9,6 @@ interface PrimePurchaseGateway {
     fun createPurchase(
         telegramId: Long,
         packageId: String,
+        requestId: String,
     ): PrimePurchaseCreationResult
 }

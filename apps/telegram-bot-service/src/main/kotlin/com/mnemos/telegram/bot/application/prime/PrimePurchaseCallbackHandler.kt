@@ -34,7 +34,14 @@ class PrimePurchaseCallbackHandler(
             PrimePurchaseCallbackData.packageId(context.data)
                 ?: return TelegramDeliveryResult.Delivered
 
-        return when (val result = gateway.createPurchase(context.telegramId, packageId)) {
+        return when (
+            val result =
+                gateway.createPurchase(
+                    telegramId = context.telegramId,
+                    packageId = packageId,
+                    requestId = context.callbackQueryId,
+                )
+        ) {
             is PrimePurchaseCreationResult.Ready -> update(context, PrimeMenuContext.invoice(result.invoice))
             PrimePurchaseCreationResult.RegistrationRequired ->
                 update(context, PrimeMenuContext.notice(PrimePurchaseNotice.REGISTRATION_REQUIRED))

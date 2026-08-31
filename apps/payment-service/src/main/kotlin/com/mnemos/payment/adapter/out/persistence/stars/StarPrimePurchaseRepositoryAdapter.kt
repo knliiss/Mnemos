@@ -13,6 +13,8 @@ class StarPrimePurchaseRepositoryAdapter(
 ) : StarPrimePurchaseRepository {
     override fun save(purchase: StarPrimePurchase): StarPrimePurchase = repository.save(purchase.toEntity()).toDomain()
 
+    override fun saveAndFlush(purchase: StarPrimePurchase): StarPrimePurchase = repository.saveAndFlush(purchase.toEntity()).toDomain()
+
     override fun findById(id: UUID): StarPrimePurchase? = repository.findById(id).orElse(null)?.toDomain()
 
     override fun findByInvoicePayload(invoicePayload: String): StarPrimePurchase? =
@@ -20,4 +22,7 @@ class StarPrimePurchaseRepositoryAdapter(
 
     override fun findByTelegramPaymentChargeId(chargeId: String): StarPrimePurchase? =
         repository.findByTelegramPaymentChargeId(chargeId)?.toDomain()
+
+    override fun findByTelegramRequestId(requestId: String): StarPrimePurchase? =
+        repository.findByTelegramRequestId(requestId)?.toDomain()
 }

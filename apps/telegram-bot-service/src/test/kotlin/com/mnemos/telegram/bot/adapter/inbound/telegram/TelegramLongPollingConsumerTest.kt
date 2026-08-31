@@ -150,6 +150,7 @@ class TelegramLongPollingConsumerTest {
             TelegramCallbackContext(
                 telegramId = 777L,
                 messageId = 321,
+                callbackQueryId = "callback-1",
                 data = "menu:home",
             )
         whenever(callbackRouter.route(any())).thenReturn(TelegramDeliveryResult.Delivered)

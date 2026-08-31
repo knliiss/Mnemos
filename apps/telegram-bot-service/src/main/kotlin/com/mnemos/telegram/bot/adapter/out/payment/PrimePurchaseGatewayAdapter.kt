@@ -28,6 +28,7 @@ class PrimePurchaseGatewayAdapter(
     override fun createPurchase(
         telegramId: Long,
         packageId: String,
+        requestId: String,
     ): PrimePurchaseCreationResult =
         try {
             val purchase =
@@ -35,6 +36,7 @@ class PrimePurchaseGatewayAdapter(
                     CreateTelegramStarPrimePurchaseRequest(
                         telegramId = telegramId,
                         packageId = packageId,
+                        requestId = requestId,
                     ),
                 )
 

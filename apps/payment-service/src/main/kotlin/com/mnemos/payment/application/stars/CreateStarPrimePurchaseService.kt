@@ -36,6 +36,7 @@ class CreateStarPrimePurchaseService(
     fun execute(
         packageId: String,
         user: CurrentPaymentUser,
+        telegramRequestId: String? = null,
     ): CreatedStarPrimePurchase {
         val selectedPackage =
             try {
@@ -62,9 +63,10 @@ class CreateStarPrimePurchaseService(
                 invoicePayload = invoicePayload,
                 createdAt = now,
                 expiresAt = now.plus(properties.invoiceLifetime),
+                telegramRequestId = telegramRequestId,
             )
 
-        repository.save(purchase)
+        repository.saveAndFlush(purchase)
 
         val invoiceUrl =
             invoiceGateway.createInvoice(
@@ -77,7 +79,10 @@ class CreateStarPrimePurchaseService(
                 ),
             )
 
-        purchase.markInvoiceReady(clock.instant())
+        purchase.markInvoiceReady(
+            now = clock.instant(),
+            invoiceUrl = invoiceUrl,
+        )
         repository.save(purchase)
 
         return CreatedStarPrimePurchase(

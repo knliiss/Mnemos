@@ -40,6 +40,7 @@ class TelegramPaymentInternalController(
             .execute(
                 telegramId = request.telegramId,
                 packageId = request.packageId,
+                requestId = request.requestId,
             ).toTelegramResponse()
 
     @PostMapping("/pre-checkout")

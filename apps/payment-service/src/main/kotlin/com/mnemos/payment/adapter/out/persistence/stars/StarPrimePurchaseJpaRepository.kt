@@ -15,4 +15,6 @@ interface StarPrimePurchaseJpaRepository : JpaRepository<StarPrimePurchaseEntity
     ): StarPrimePurchaseEntity?
 
     fun findByTelegramPaymentChargeId(telegramPaymentChargeId: String): StarPrimePurchaseEntity?
+
+    fun findByTelegramRequestId(telegramRequestId: String): StarPrimePurchaseEntity?
 }

@@ -63,5 +63,6 @@ class TelegramCallbackRouter(
 data class TelegramCallbackContext(
     val telegramId: Long,
     val messageId: Int,
+    val callbackQueryId: String,
     val data: String,
 )
