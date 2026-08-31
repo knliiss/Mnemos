@@ -43,18 +43,15 @@ class TelegramKeycloakIdentityService(
     }
 
     private fun findUserId(telegramId: Long) =
-        keycloakAdminClient
-            .searchUsers(
-                authorization = authorization(),
-                realm = keycloakAdminProperties.realm,
-                query = "$TELEGRAM_USER_ID_ATTRIBUTE:$telegramId",
-            )
-            .firstOrNull { user ->
-                user.attributes
-                    ?.get(TELEGRAM_USER_ID_ATTRIBUTE)
-                    ?.contains(telegramId.toString()) == true
-            }
-            ?.id
+        keycloakAdminClient.searchUsers(
+            authorization = authorization(),
+            realm = keycloakAdminProperties.realm,
+            query = "$TELEGRAM_USER_ID_ATTRIBUTE:$telegramId",
+        ).firstOrNull { user ->
+            user.attributes
+                ?.get(TELEGRAM_USER_ID_ATTRIBUTE)
+                ?.contains(telegramId.toString()) == true
+        }?.id
 
     private fun authorization(): String = "Bearer ${keycloakTokenProvider.token()}"
 
