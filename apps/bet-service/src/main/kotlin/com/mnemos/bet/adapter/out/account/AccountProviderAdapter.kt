@@ -3,6 +3,7 @@ package com.mnemos.bet.adapter.out.account
 import com.mnemos.bet.application.account.model.AccountSnapshot
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.common.web.exception.common.AccountPermissionDeniedException
 import com.mnemos.contracts.account.internal.v1.InternalAccountResponse
@@ -23,6 +24,39 @@ class AccountProviderAdapter(
 
     override fun requireActiveAccount(permission: RolePermission): AccountSnapshot {
         val userId = currentUser.requireUserId()
+
+        return resolveActiveAccount(
+            userId = userId,
+            permission = permission,
+        )
+    }
+
+    override fun requireActiveAccount(userId: UserId): AccountSnapshot = resolveActiveAccount(userId.id)
+
+    override fun requireActiveAccount(
+        userId: UserId,
+        permission: RolePermission,
+    ): AccountSnapshot =
+        resolveActiveAccount(
+            userId = userId.id,
+            permission = permission,
+        )
+
+    override fun findByNickname(nickname: String): AccountSnapshot? =
+        client
+            .resolve(cristalixNickname = nickname)
+            ?.let(::toSnapshot)
+
+    private fun resolveActiveAccount(userId: UUID): AccountSnapshot =
+        client
+            .resolve(userId = userId)
+            ?.let(::toSnapshot)
+            ?: throw IllegalStateException("Active account is required")
+
+    private fun resolveActiveAccount(
+        userId: UUID,
+        permission: RolePermission,
+    ): AccountSnapshot {
         val account = resolveActiveAccount(userId)
         val granted =
             client
@@ -44,17 +78,6 @@ class AccountProviderAdapter(
 
         return account
     }
-
-    override fun findByNickname(nickname: String): AccountSnapshot? =
-        client
-            .resolve(cristalixNickname = nickname)
-            ?.let(::toSnapshot)
-
-    private fun resolveActiveAccount(userId: UUID): AccountSnapshot =
-        client
-            .resolve(userId = userId)
-            ?.let(::toSnapshot)
-            ?: throw IllegalStateException("Active account is required")
 
     private fun toSnapshot(response: InternalAccountResponse): AccountSnapshot =
         AccountSnapshot(
