@@ -4,6 +4,10 @@ import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationRespon
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetRoundResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseItemRaceRequest
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramItemRaceParticipantResponse
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramItemRaceResponse
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramJoinItemRaceRequest
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramPlaceEventBetRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,7 +29,7 @@ interface BetServiceClient {
     ): List<TelegramEventBetRoundResponse>
 
     @GetMapping("/internal/v1/telegram/bets/{telegramId}/event-bets/history")
-    fun history(
+    fun eventHistory(
         @PathVariable telegramId: Long,
     ): List<TelegramEventBetResponse>
 
@@ -41,5 +45,29 @@ interface BetServiceClient {
         @PathVariable telegramId: Long,
         @PathVariable roundId: UUID,
         @RequestBody request: TelegramIncreaseEventBetRequest,
+    ): TelegramBetOperationResponse
+
+    @GetMapping("/internal/v1/telegram/bets/{telegramId}/item-races")
+    fun listItemRaces(
+        @PathVariable telegramId: Long,
+    ): List<TelegramItemRaceResponse>
+
+    @GetMapping("/internal/v1/telegram/bets/{telegramId}/item-races/history")
+    fun itemRaceHistory(
+        @PathVariable telegramId: Long,
+    ): List<TelegramItemRaceParticipantResponse>
+
+    @PostMapping("/internal/v1/telegram/bets/{telegramId}/item-races/{raceId}/join")
+    fun joinItemRace(
+        @PathVariable telegramId: Long,
+        @PathVariable raceId: UUID,
+        @RequestBody request: TelegramJoinItemRaceRequest,
+    ): TelegramBetOperationResponse
+
+    @PatchMapping("/internal/v1/telegram/bets/{telegramId}/item-races/{raceId}/increase")
+    fun increaseItemRace(
+        @PathVariable telegramId: Long,
+        @PathVariable raceId: UUID,
+        @RequestBody request: TelegramIncreaseItemRaceRequest,
     ): TelegramBetOperationResponse
 }
