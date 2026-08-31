@@ -1,5 +1,6 @@
 package com.mnemos.payment.application.stars
 
+import com.mnemos.common.web.exception.AppException
 import com.mnemos.payment.application.account.port.out.PaymentTelegramUserResolver
 import com.mnemos.payment.application.security.port.out.CurrentPaymentUser
 import com.mnemos.payment.application.stars.model.CreatedStarPrimePurchase
@@ -7,6 +8,7 @@ import com.mnemos.payment.domain.stars.model.StarPrimePurchase
 import com.mnemos.payment.domain.stars.model.StarPrimePurchaseStatus
 import com.mnemos.payment.domain.stars.repository.StarPrimePurchaseRepository
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -41,6 +43,21 @@ class CreateTelegramStarPrimePurchaseServiceTest {
 
         assertEquals(PURCHASE_ID, result.purchaseId)
         assertEquals(INVOICE_URL, result.invoiceUrl)
+        verifyNoInteractions(telegramUserResolver, createPurchaseService)
+    }
+
+    @Test
+    fun `unfinished Telegram callback is not recreated`() {
+        whenever(repository.findByTelegramRequestId(REQUEST_ID)).thenReturn(pendingPurchase())
+
+        assertThrows(AppException::class.java) {
+            service.execute(
+                telegramId = TELEGRAM_ID,
+                packageId = PACKAGE_ID,
+                requestId = REQUEST_ID,
+            )
+        }
+
         verifyNoInteractions(telegramUserResolver, createPurchaseService)
     }
 
@@ -86,28 +103,27 @@ class CreateTelegramStarPrimePurchaseServiceTest {
         )
     }
 
-    private fun existingPurchase(): StarPrimePurchase {
-        val purchase =
-            StarPrimePurchase.create(
-                id = PURCHASE_ID,
-                userId = USER_ID,
-                telegramId = TELEGRAM_ID,
-                packageId = PACKAGE_ID,
-                primeAmount = 250,
-                starsAmount = 250,
-                invoicePayload = "mnemos-prime:test-payload",
-                createdAt = NOW,
-                expiresAt = NOW.plusSeconds(900),
-                telegramRequestId = REQUEST_ID,
+    private fun existingPurchase(): StarPrimePurchase =
+        pendingPurchase().also { purchase ->
+            purchase.markInvoiceReady(
+                now = NOW.plusSeconds(1),
+                invoiceUrl = INVOICE_URL,
             )
+        }
 
-        purchase.markInvoiceReady(
-            now = NOW.plusSeconds(1),
-            invoiceUrl = INVOICE_URL,
+    private fun pendingPurchase(): StarPrimePurchase =
+        StarPrimePurchase.create(
+            id = PURCHASE_ID,
+            userId = USER_ID,
+            telegramId = TELEGRAM_ID,
+            packageId = PACKAGE_ID,
+            primeAmount = 250,
+            starsAmount = 250,
+            invoicePayload = "mnemos-prime:test-payload",
+            createdAt = NOW,
+            expiresAt = NOW.plusSeconds(900),
+            telegramRequestId = REQUEST_ID,
         )
-
-        return purchase
-    }
 
     private companion object {
         val NOW: Instant = Instant.parse("2026-08-31T01:00:00Z")
