@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize(
     "authentication.name == 'personalization-service' or " +
         "authentication.name == 'payment-service' or " +
-        "authentication.name == 'notification-service'",
+        "authentication.name == 'notification-service' or " +
+        "authentication.name == 'bet-service'",
 )
 class InternalTelegramUserIdentityController(
     private val service: InternalTelegramUserQueryService,
