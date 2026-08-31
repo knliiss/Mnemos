@@ -24,6 +24,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
             TelegramMenuScreen.DAILY -> DailyMenuMessageRenderer.render(data)
             TelegramMenuScreen.ACCOUNT -> AccountMenuMessageRenderer.render(data)
+            TelegramMenuScreen.BETS -> BetMenuMessageRenderer.render(data)
             TelegramMenuScreen.PRIME -> PrimeMenuMessageRenderer.render(data)
             TelegramMenuScreen.SETTINGS -> SettingsMenuMessageRenderer.render(data)
             else ->
@@ -76,6 +77,13 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 Активный Cristalix-аккаунт, баланс и переключение между аккаунтами.
                 """.trimIndent()
 
+            TelegramMenuScreen.BETS ->
+                """
+                🎲 <b>Ставки</b>
+
+                Ставки на события SAO и история операций.
+                """.trimIndent()
+
             TelegramMenuScreen.PRIME ->
                 """
                 💎 <b>PRIME</b>
@@ -101,8 +109,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             "⚙️ <b>Настройки</b>",
             "",
             "Пак уведомлений: <b>$packTitle</b>",
-            "",
-            "Язык и остальные настройки доступны в Mini App.",
         ).joinToString("\n")
     }
 
@@ -330,7 +336,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                     "⌂ Меню",
                     TelegramMenuScreen.HOME.callbackData,
                 ),
-                OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
 
         val navigationActions =
@@ -343,7 +348,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                     "⌂ Меню",
                     TelegramMenuScreen.HOME.callbackData,
                 ),
-                OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
             )
 
         val homeActions =
@@ -367,6 +371,10 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 OutboundTelegramMessageAction.Callback(
                     "👤 Аккаунт",
                     TelegramMenuScreen.ACCOUNT.callbackData,
+                ),
+                OutboundTelegramMessageAction.Callback(
+                    "🎲 Ставки",
+                    TelegramMenuScreen.BETS.callbackData,
                 ),
                 OutboundTelegramMessageAction.Callback(
                     "💎 PRIME",
