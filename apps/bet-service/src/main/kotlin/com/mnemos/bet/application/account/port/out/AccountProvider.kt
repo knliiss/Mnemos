@@ -17,9 +17,10 @@ interface AccountProvider {
     fun requireActiveAccount(
         userId: UserId,
         permission: RolePermission,
-    ): AccountSnapshot = throw UnsupportedOperationException(
-        "Explicit user permission resolution is not supported",
-    )
+    ): AccountSnapshot =
+        throw UnsupportedOperationException(
+            "Explicit user permission resolution is not supported",
+        )
 
     fun findByNickname(nickname: String): AccountSnapshot?
 }
