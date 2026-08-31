@@ -132,7 +132,6 @@ object NotificationMenuMessageRenderer {
             return listOf(
                 callback("✖ Отмена ввода", NotificationCallbackData.ITEM_DROP_INPUT_CANCEL),
                 homeAction,
-                miniAppAction,
             )
         }
 
@@ -341,7 +340,7 @@ object NotificationMenuMessageRenderer {
         when (feedback) {
             NotificationMenuFeedback.CREATED -> "✅ Подписка активирована."
             NotificationMenuFeedback.USER_NOT_FOUND ->
-                "⚠️ Не найден профиль Mnemos для этого Telegram. Сначала откройте Mini App."
+                "⚠️ Не удалось подготовить профиль Mnemos. Попробуйте еще раз."
 
             NotificationMenuFeedback.SERVICE_UNAVAILABLE ->
                 "⚠️ Сервис уведомлений временно недоступен. Попробуйте еще раз."
@@ -410,13 +409,11 @@ object NotificationMenuMessageRenderer {
     private val createAction = callback("➕ Добавить подписку", NotificationCallbackData.CREATE)
     private val refreshAction = callback("🔄 Обновить", NotificationCallbackData.REFRESH)
     private val homeAction = callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData)
-    private val miniAppAction = OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App")
 
     private val listNavigationActions =
         listOf(
             callback("← Подписки", TelegramMenuScreen.NOTIFICATIONS.callbackData),
             homeAction,
-            miniAppAction,
         )
 
     private val creationNavigationActions =
@@ -424,13 +421,11 @@ object NotificationMenuMessageRenderer {
             callback("← Типы", NotificationCallbackData.CREATE_TYPES),
             callback("← Подписки", TelegramMenuScreen.NOTIFICATIONS.callbackData),
             homeAction,
-            miniAppAction,
         )
 
     private val navigationActions =
         listOf(
             callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA),
             homeAction,
-            miniAppAction,
         )
 }

@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/internal/v1/users/telegram")
 @PreAuthorize(
     "authentication.name == 'personalization-service' or " +
-        "authentication.name == 'payment-service'",
+        "authentication.name == 'payment-service' or " +
+        "authentication.name == 'notification-service'",
 )
 class InternalTelegramUserIdentityController(
     private val service: InternalTelegramUserQueryService,
@@ -35,7 +36,10 @@ class InternalTelegramUserIdentityController(
     }
 
     @PostMapping("/{telegramId}/identity/bootstrap")
-    @PreAuthorize("authentication.name == 'payment-service'")
+    @PreAuthorize(
+        "authentication.name == 'payment-service' or " +
+            "authentication.name == 'notification-service'",
+    )
     fun bootstrapIdentity(
         @PathVariable telegramId: Long,
     ): InternalTelegramUserIdentityResponse {

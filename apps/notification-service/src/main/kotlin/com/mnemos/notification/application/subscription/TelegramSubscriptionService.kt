@@ -3,7 +3,7 @@ package com.mnemos.notification.application.subscription
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.notification.application.common.pagination.PageQuery
 import com.mnemos.notification.application.common.pagination.PageResult
-import com.mnemos.notification.application.recipient.port.out.RecipientReader
+import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.application.subscription.model.SubscriptionView
 import com.mnemos.notification.application.subscription.usecase.delete.DeleteSubscriptionCommand
 import com.mnemos.notification.application.subscription.usecase.delete.DeleteSubscriptionUseCase
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TelegramSubscriptionService(
-    private val recipientReader: RecipientReader,
+    private val userIdentityService: TelegramUserIdentityService,
     private val listSubscriptionsUseCase: ListSubscriptionsUseCase,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCase,
 ) {
@@ -22,13 +22,11 @@ class TelegramSubscriptionService(
         telegramId: TelegramId,
         page: PageQuery,
     ): PageResult<SubscriptionView> {
-        val recipient =
-            recipientReader.findByTelegramId(telegramId)
-                ?: return emptyPage(page)
+        val userId = userIdentityService.resolve(telegramId) ?: return emptyPage(page)
 
         return listSubscriptionsUseCase.execute(
             ListSubscriptionsQuery(
-                userId = recipient.userId,
+                userId = userId,
                 page = page,
             ),
         )
@@ -38,12 +36,12 @@ class TelegramSubscriptionService(
         telegramId: TelegramId,
         subscriptionId: SubscriptionId,
     ) {
-        val recipient = recipientReader.findByTelegramId(telegramId) ?: return
+        val userId = userIdentityService.resolve(telegramId) ?: return
 
         deleteSubscriptionUseCase.execute(
             DeleteSubscriptionCommand(
                 subscriptionId = subscriptionId,
-                userId = recipient.userId,
+                userId = userId,
             ),
         )
     }

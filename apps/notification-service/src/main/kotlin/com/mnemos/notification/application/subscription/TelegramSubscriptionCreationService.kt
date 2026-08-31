@@ -1,7 +1,6 @@
 package com.mnemos.notification.application.subscription
 
 import com.mnemos.common.core.model.id.TelegramId
-import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.application.booster.usecase.create.CreateBoosterSubscriptionCommand
 import com.mnemos.notification.application.booster.usecase.create.CreateBoosterSubscriptionUseCase
 import com.mnemos.notification.application.dungeon.usecase.create.CreateDungeonSubscriptionCommand
@@ -12,7 +11,7 @@ import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDro
 import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDropSubscriptionUseCase
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionCommand
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionUseCase
-import com.mnemos.notification.application.recipient.port.out.RecipientReader
+import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
 import com.mnemos.notification.domain.global.model.DomainGlobalEventType
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TelegramSubscriptionCreationService(
-    private val recipientReader: RecipientReader,
+    private val userIdentityService: TelegramUserIdentityService,
     private val createItemDropSubscriptionUseCase: CreateItemDropSubscriptionUseCase,
     private val createBoosterSubscriptionUseCase: CreateBoosterSubscriptionUseCase,
     private val createDungeonSubscriptionUseCase: CreateDungeonSubscriptionUseCase,
@@ -33,7 +32,7 @@ class TelegramSubscriptionCreationService(
         droppedFor: String?,
         itemName: String?,
     ): SubscriptionId? {
-        val userId = resolveUserId(telegramId) ?: return null
+        val userId = userIdentityService.resolve(telegramId) ?: return null
         val normalizedDroppedFor = normalizeDroppedFor(droppedFor)
         val normalizedItemName = normalizeItemName(itemName)
 
@@ -55,7 +54,7 @@ class TelegramSubscriptionCreationService(
         telegramId: TelegramId,
         boosterType: DomainBoosterType,
     ): SubscriptionId? {
-        val userId = resolveUserId(telegramId) ?: return null
+        val userId = userIdentityService.resolve(telegramId) ?: return null
 
         return createBoosterSubscriptionUseCase
             .execute(
@@ -70,7 +69,7 @@ class TelegramSubscriptionCreationService(
         telegramId: TelegramId,
         dungeonType: DomainDungeonType,
     ): SubscriptionId? {
-        val userId = resolveUserId(telegramId) ?: return null
+        val userId = userIdentityService.resolve(telegramId) ?: return null
 
         return createDungeonSubscriptionUseCase
             .execute(
@@ -89,7 +88,7 @@ class TelegramSubscriptionCreationService(
             "Raid locations must be between $MIN_RAID_LOCATION and $MAX_RAID_LOCATION"
         }
 
-        val userId = resolveUserId(telegramId) ?: return null
+        val userId = userIdentityService.resolve(telegramId) ?: return null
 
         return createRaidSubscriptionUseCase
             .execute(
@@ -104,7 +103,7 @@ class TelegramSubscriptionCreationService(
         telegramId: TelegramId,
         eventType: DomainGlobalEventType,
     ): SubscriptionId? {
-        val userId = resolveUserId(telegramId) ?: return null
+        val userId = userIdentityService.resolve(telegramId) ?: return null
 
         return createGlobalSubscriptionUseCase
             .execute(
@@ -114,8 +113,6 @@ class TelegramSubscriptionCreationService(
                 ),
             ).subscriptionId
     }
-
-    private fun resolveUserId(telegramId: TelegramId): UserId? = recipientReader.findByTelegramId(telegramId)?.userId
 
     private fun normalizeDroppedFor(value: String?): String? {
         val normalized = value?.trim()?.takeIf(String::isNotEmpty) ?: return null

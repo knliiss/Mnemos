@@ -13,19 +13,21 @@ class InternalTelegramUserEndpointSecurityTest {
         assertTrue(authorization.contains("reward-service"))
         assertFalse(authorization.contains("payment-service"))
         assertFalse(authorization.contains("personalization-service"))
+        assertFalse(authorization.contains("notification-service"))
     }
 
     @Test
-    fun `narrow Telegram identity is available to payment and personalization only`() {
+    fun `narrow Telegram identity is available to payment personalization and notification services`() {
         val authorization = authorizationFor(InternalTelegramUserIdentityController::class.java)
 
         assertTrue(authorization.contains("payment-service"))
         assertTrue(authorization.contains("personalization-service"))
+        assertTrue(authorization.contains("notification-service"))
         assertFalse(authorization.contains("reward-service"))
     }
 
     @Test
-    fun `Telegram identity bootstrap is restricted to payment service`() {
+    fun `Telegram identity bootstrap is restricted to payment and notification services`() {
         val method =
             InternalTelegramUserIdentityController::class.java.getDeclaredMethod(
                 "bootstrapIdentity",
@@ -34,8 +36,10 @@ class InternalTelegramUserEndpointSecurityTest {
         val authorization = requireNotNull(method.getAnnotation(PreAuthorize::class.java)).value
 
         assertTrue(authorization.contains("payment-service"))
+        assertTrue(authorization.contains("notification-service"))
         assertFalse(authorization.contains("personalization-service"))
         assertFalse(authorization.contains("telegram-bot-service"))
+        assertFalse(authorization.contains("reward-service"))
     }
 
     @Test
@@ -45,6 +49,7 @@ class InternalTelegramUserEndpointSecurityTest {
         assertTrue(authorization.contains("telegram-bot-service"))
         assertFalse(authorization.contains("payment-service"))
         assertFalse(authorization.contains("personalization-service"))
+        assertFalse(authorization.contains("notification-service"))
         assertFalse(authorization.contains("reward-service"))
     }
 

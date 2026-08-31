@@ -4,8 +4,10 @@ import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.notification.application.common.pagination.PageQuery
 import com.mnemos.notification.application.common.pagination.PageResult
+import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
+import com.mnemos.notification.application.recipient.port.out.TelegramUserIdentityGateway
 import com.mnemos.notification.application.subscription.model.SubscriptionView
 import com.mnemos.notification.application.subscription.usecase.delete.DeleteSubscriptionCommand
 import com.mnemos.notification.application.subscription.usecase.delete.DeleteSubscriptionUseCase
@@ -21,17 +23,42 @@ import java.util.UUID
 
 class TelegramSubscriptionServiceTest {
     @Test
-    fun `unknown Telegram recipient returns empty page without loading subscriptions`() {
+    fun `missing recipient projection uses bootstrapped identity for list`() {
+        var capturedQuery: ListSubscriptionsQuery? = null
+        val expectedResult = emptyPage(page = 1, size = 8)
+        val service =
+            createService(
+                recipient = null,
+                fallbackUserId = USER_ID,
+                listSubscriptionsUseCase =
+                    ListSubscriptionsUseCase { query ->
+                        capturedQuery = query
+                        expectedResult
+                    },
+            )
+
+        val result =
+            service.list(
+                telegramId = TELEGRAM_ID,
+                page = PageQuery(page = 1, size = 8),
+            )
+
+        assertEquals(expectedResult, result)
+        assertEquals(USER_ID, capturedQuery?.userId)
+    }
+
+    @Test
+    fun `missing Telegram identity returns empty page without loading subscriptions`() {
         var listCalled = false
         val service =
-            TelegramSubscriptionService(
-                recipientReader = FixedRecipientReader(null),
+            createService(
+                recipient = null,
+                fallbackUserId = null,
                 listSubscriptionsUseCase =
                     ListSubscriptionsUseCase {
                         listCalled = true
                         emptyPage()
                     },
-                deleteSubscriptionUseCase = DeleteSubscriptionUseCase { },
             )
 
         val result =
@@ -52,14 +79,13 @@ class TelegramSubscriptionServiceTest {
         var capturedQuery: ListSubscriptionsQuery? = null
         val expectedResult = emptyPage(page = 1, size = 8)
         val service =
-            TelegramSubscriptionService(
-                recipientReader = FixedRecipientReader(recipient()),
+            createService(
+                recipient = recipient(),
                 listSubscriptionsUseCase =
                     ListSubscriptionsUseCase { query ->
                         capturedQuery = query
                         expectedResult
                     },
-                deleteSubscriptionUseCase = DeleteSubscriptionUseCase { },
             )
 
         val result =
@@ -75,13 +101,13 @@ class TelegramSubscriptionServiceTest {
     }
 
     @Test
-    fun `delete resolves Telegram recipient before delegating`() {
+    fun `delete uses bootstrapped identity before recipient projection arrives`() {
         var capturedCommand: DeleteSubscriptionCommand? = null
         val subscriptionId = SubscriptionId(UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71"))
         val service =
-            TelegramSubscriptionService(
-                recipientReader = FixedRecipientReader(recipient()),
-                listSubscriptionsUseCase = ListSubscriptionsUseCase { emptyPage() },
+            createService(
+                recipient = null,
+                fallbackUserId = USER_ID,
                 deleteSubscriptionUseCase =
                     DeleteSubscriptionUseCase { command ->
                         capturedCommand = command
@@ -98,12 +124,12 @@ class TelegramSubscriptionServiceTest {
     }
 
     @Test
-    fun `delete ignores unknown Telegram recipient`() {
+    fun `delete ignores missing Telegram identity`() {
         var capturedCommand: DeleteSubscriptionCommand? = null
         val service =
-            TelegramSubscriptionService(
-                recipientReader = FixedRecipientReader(null),
-                listSubscriptionsUseCase = ListSubscriptionsUseCase { emptyPage() },
+            createService(
+                recipient = null,
+                fallbackUserId = null,
                 deleteSubscriptionUseCase =
                     DeleteSubscriptionUseCase { command ->
                         capturedCommand = command
@@ -117,6 +143,22 @@ class TelegramSubscriptionServiceTest {
 
         assertNull(capturedCommand)
     }
+
+    private fun createService(
+        recipient: RecipientView?,
+        fallbackUserId: UserId? = null,
+        listSubscriptionsUseCase: ListSubscriptionsUseCase = ListSubscriptionsUseCase { emptyPage() },
+        deleteSubscriptionUseCase: DeleteSubscriptionUseCase = DeleteSubscriptionUseCase { },
+    ): TelegramSubscriptionService =
+        TelegramSubscriptionService(
+            userIdentityService =
+                TelegramUserIdentityService(
+                    recipientReader = FixedRecipientReader(recipient),
+                    identityGateway = TelegramUserIdentityGateway { fallbackUserId },
+                ),
+            listSubscriptionsUseCase = listSubscriptionsUseCase,
+            deleteSubscriptionUseCase = deleteSubscriptionUseCase,
+        )
 
     private fun recipient(): RecipientView =
         RecipientView(

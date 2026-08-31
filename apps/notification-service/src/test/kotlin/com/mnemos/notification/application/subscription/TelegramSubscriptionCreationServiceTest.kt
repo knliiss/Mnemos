@@ -17,8 +17,10 @@ import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDro
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionCommand
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionResult
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionUseCase
+import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
+import com.mnemos.notification.application.recipient.port.out.TelegramUserIdentityGateway
 import com.mnemos.notification.domain.recipient.model.RecipientPriority
 import com.mnemos.notification.domain.subscription.model.SubscriptionId
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -32,7 +34,7 @@ class TelegramSubscriptionCreationServiceTest {
     @Test
     fun `item drop creation resolves Telegram user and normalizes filters`() {
         val itemDropUseCase = RecordingItemDropUseCase()
-        val service = createService(FixedRecipientReader(recipient()), itemDropUseCase)
+        val service = createService(recipient = recipient(), itemDropUseCase = itemDropUseCase)
 
         val result =
             service.createItemDrop(
@@ -48,9 +50,35 @@ class TelegramSubscriptionCreationServiceTest {
     }
 
     @Test
-    fun `unknown Telegram recipient does not invoke item drop use case`() {
+    fun `missing recipient projection bootstraps Telegram identity`() {
         val itemDropUseCase = RecordingItemDropUseCase()
-        val service = createService(FixedRecipientReader(null), itemDropUseCase)
+        val service =
+            createService(
+                recipient = null,
+                fallbackUserId = USER_ID,
+                itemDropUseCase = itemDropUseCase,
+            )
+
+        val result =
+            service.createItemDrop(
+                telegramId = TELEGRAM_ID,
+                droppedFor = "knaliz",
+                itemName = null,
+            )
+
+        assertEquals(SUBSCRIPTION_ID, result)
+        assertEquals(USER_ID, itemDropUseCase.command?.userId)
+    }
+
+    @Test
+    fun `missing Telegram identity does not invoke item drop use case`() {
+        val itemDropUseCase = RecordingItemDropUseCase()
+        val service =
+            createService(
+                recipient = null,
+                fallbackUserId = null,
+                itemDropUseCase = itemDropUseCase,
+            )
 
         val result =
             service.createItemDrop(
@@ -65,7 +93,7 @@ class TelegramSubscriptionCreationServiceTest {
 
     @Test
     fun `raid creation rejects locations outside public API bounds`() {
-        val service = createService(FixedRecipientReader(recipient()), RecordingItemDropUseCase())
+        val service = createService(recipient = recipient(), itemDropUseCase = RecordingItemDropUseCase())
 
         assertThrows(IllegalArgumentException::class.java) {
             service.createRaid(
@@ -78,7 +106,12 @@ class TelegramSubscriptionCreationServiceTest {
     @Test
     fun `raid creation accepts empty locations as all locations subscription`() {
         val raidUseCase = RecordingRaidUseCase()
-        val service = createService(FixedRecipientReader(recipient()), RecordingItemDropUseCase(), raidUseCase)
+        val service =
+            createService(
+                recipient = recipient(),
+                itemDropUseCase = RecordingItemDropUseCase(),
+                raidUseCase = raidUseCase,
+            )
 
         val result = service.createRaid(TELEGRAM_ID, emptySet())
 
@@ -88,12 +121,17 @@ class TelegramSubscriptionCreationServiceTest {
     }
 
     private fun createService(
-        recipientReader: RecipientReader,
+        recipient: RecipientView?,
         itemDropUseCase: CreateItemDropSubscriptionUseCase,
+        fallbackUserId: UserId? = null,
         raidUseCase: CreateRaidSubscriptionUseCase = RecordingRaidUseCase(),
     ): TelegramSubscriptionCreationService =
         TelegramSubscriptionCreationService(
-            recipientReader = recipientReader,
+            userIdentityService =
+                TelegramUserIdentityService(
+                    recipientReader = FixedRecipientReader(recipient),
+                    identityGateway = TelegramUserIdentityGateway { fallbackUserId },
+                ),
             createItemDropSubscriptionUseCase = itemDropUseCase,
             createBoosterSubscriptionUseCase = StubBoosterUseCase(),
             createDungeonSubscriptionUseCase = StubDungeonUseCase(),
@@ -127,6 +165,7 @@ class TelegramSubscriptionCreationServiceTest {
 
         override fun execute(command: CreateRaidSubscriptionCommand): CreateRaidSubscriptionResult {
             this.command = command
+
             return CreateRaidSubscriptionResult(SUBSCRIPTION_ID)
         }
     }
