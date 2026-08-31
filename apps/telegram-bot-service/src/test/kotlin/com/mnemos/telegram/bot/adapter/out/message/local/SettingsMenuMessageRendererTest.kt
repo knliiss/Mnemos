@@ -37,7 +37,7 @@ class SettingsMenuMessageRendererTest {
                 mutationResult = null,
             )
 
-        val message = renderer.render(TelegramMenuScreen.SETTINGS, data)
+        val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
 
         assertTrue(message.text.contains("🇺🇦 Українська"))
         assertTrue(message.text.contains("Night &lt;Ops&gt;"))
@@ -58,7 +58,7 @@ class SettingsMenuMessageRendererTest {
                 mutationResult = TelegramSettingsMutationResult.UPDATED,
             )
 
-        val message = renderer.render(TelegramMenuScreen.SETTINGS, data)
+        val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
 
         assertTrue(message.text.contains("Пак уведомлений: <b>Не выбран</b>"))
         assertTrue(message.text.contains("✅ Настройка сохранена."))
@@ -73,7 +73,7 @@ class SettingsMenuMessageRendererTest {
                 mutationResult = null,
             )
 
-        val message = renderer.render(TelegramMenuScreen.SETTINGS, data)
+        val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
 
         assertTrue(message.text.contains("Не удалось загрузить персональные настройки"))
     }
