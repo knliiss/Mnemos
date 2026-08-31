@@ -26,6 +26,20 @@ class BetMenuContextOperationTest {
     }
 
     @Test
+    fun `unavailable operation remains attached for a later retry`() {
+        val operationId = UUID.randomUUID()
+        val context =
+            BetMenuContext.operationResult(
+                mode = BetMenuMode.ROUNDS,
+                operationId = operationId,
+                state = TelegramBetOperationState.UNAVAILABLE,
+            )
+
+        assertEquals(operationId, BetMenuContext.operationId(context))
+        assertEquals(BetMenuFeedback.UNAVAILABLE, BetMenuContext.feedback(context))
+    }
+
+    @Test
     fun `terminal operation does not remain attached to menu context`() {
         val operationId = UUID.randomUUID()
         val context =
