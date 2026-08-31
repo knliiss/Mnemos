@@ -14,6 +14,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.dao.DataIntegrityViolationException
 import java.time.Instant
 import java.util.UUID
 
@@ -59,6 +60,58 @@ class CreateTelegramStarPrimePurchaseServiceTest {
         }
 
         verifyNoInteractions(telegramUserResolver, createPurchaseService)
+    }
+
+    @Test
+    fun `request id cannot be reused for another purchase`() {
+        whenever(repository.findByTelegramRequestId(REQUEST_ID)).thenReturn(existingPurchase())
+
+        assertThrows(AppException::class.java) {
+            service.execute(
+                telegramId = TELEGRAM_ID,
+                packageId = OTHER_PACKAGE_ID,
+                requestId = REQUEST_ID,
+            )
+        }
+
+        verifyNoInteractions(telegramUserResolver, createPurchaseService)
+    }
+
+    @Test
+    fun `concurrent request race replays purchase created by winning transaction`() {
+        val user =
+            CurrentPaymentUser(
+                userId = USER_ID,
+                telegramId = TELEGRAM_ID,
+            )
+        val purchase = existingPurchase()
+
+        whenever(repository.findByTelegramRequestId(REQUEST_ID))
+            .thenReturn(null)
+            .thenReturn(purchase)
+        whenever(telegramUserResolver.findByTelegramId(TELEGRAM_ID)).thenReturn(user)
+        whenever(
+            createPurchaseService.execute(
+                packageId = PACKAGE_ID,
+                user = user,
+                telegramRequestId = REQUEST_ID,
+            ),
+        ).thenThrow(DataIntegrityViolationException("duplicate telegram request id"))
+
+        val result =
+            service.execute(
+                telegramId = TELEGRAM_ID,
+                packageId = PACKAGE_ID,
+                requestId = REQUEST_ID,
+            )
+
+        assertEquals(PURCHASE_ID, result.purchaseId)
+        assertEquals(INVOICE_URL, result.invoiceUrl)
+        verify(createPurchaseService).execute(
+            packageId = PACKAGE_ID,
+            user = user,
+            telegramRequestId = REQUEST_ID,
+        )
     }
 
     @Test
@@ -131,6 +184,7 @@ class CreateTelegramStarPrimePurchaseServiceTest {
         val USER_ID: UUID = UUID.fromString("019c113f-b116-7000-8000-000000000202")
         const val TELEGRAM_ID = 931458258L
         const val PACKAGE_ID = "prime-250"
+        const val OTHER_PACKAGE_ID = "prime-500"
         const val REQUEST_ID = "callback-query-42"
         const val INVOICE_URL = "https://t.me/invoice/example"
     }
