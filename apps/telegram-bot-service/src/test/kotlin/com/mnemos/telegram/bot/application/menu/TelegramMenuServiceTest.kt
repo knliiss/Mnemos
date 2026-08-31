@@ -11,8 +11,13 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.message.model.TelegramMessageSendResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationRecipientGateway
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsMutationResult
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsSnapshot
+import com.mnemos.telegram.bot.application.settings.port.out.SettingsGateway
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class TelegramMenuServiceTest {
     private val renderer = TestMenuMessageRenderer()
@@ -20,6 +25,7 @@ class TelegramMenuServiceTest {
     private val messageGateway = TestTelegramMessageGateway()
     private val sessionRepository = TestTelegramMenuSessionRepository()
     private val recipientGateway = TestNotificationRecipientGateway()
+    private val settingsGateway = TestSettingsGateway()
 
     private val service =
         TelegramMenuService(
@@ -28,6 +34,7 @@ class TelegramMenuServiceTest {
             messageGateway = messageGateway,
             sessionRepository = sessionRepository,
             recipientGateway = recipientGateway,
+            settingsGateway = settingsGateway,
         )
 
     @Test
@@ -39,6 +46,17 @@ class TelegramMenuServiceTest {
         assertEquals(1, messageGateway.sentMessages.size)
         assertEquals(MENU_MESSAGE_ID, sessionRepository.find(TELEGRAM_ID)?.menuMessageId)
         assertEquals(TelegramMenuScreen.HOME, sessionRepository.find(TELEGRAM_ID)?.currentScreen)
+        assertEquals(TelegramSettingsLanguage.RU, renderer.lastLanguage)
+    }
+
+    @Test
+    fun `opening menu uses persisted localization language`() {
+        settingsGateway.language = TelegramSettingsLanguage.UK
+
+        val result = service.open(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(TelegramSettingsLanguage.UK, renderer.lastLanguage)
     }
 
     @Test
@@ -184,15 +202,21 @@ class TelegramMenuServiceTest {
     }
 
     private class TestMenuMessageRenderer : TelegramMenuMessageRenderer {
+        var lastLanguage: TelegramSettingsLanguage? = null
+
         override fun render(
             screen: TelegramMenuScreen,
             data: TelegramMenuScreenData,
-        ): OutboundTelegramMessage =
-            OutboundTelegramMessage(
+            language: TelegramSettingsLanguage,
+        ): OutboundTelegramMessage {
+            lastLanguage = language
+
+            return OutboundTelegramMessage(
                 text = screen.name,
                 parseMode = OutboundTelegramMessageParseMode.PLAIN,
                 actions = emptyList(),
             )
+        }
     }
 
     private class TestTelegramMenuSessionRepository : TelegramMenuSessionRepository {
@@ -211,6 +235,30 @@ class TelegramMenuServiceTest {
         override fun activate(telegramId: Long) {
             activatedTelegramIds += telegramId
         }
+    }
+
+    private class TestSettingsGateway : SettingsGateway {
+        var language: TelegramSettingsLanguage? = null
+
+        override fun getSettings(telegramId: Long): TelegramSettingsSnapshot? =
+            language?.let { selectedLanguage ->
+                TelegramSettingsSnapshot(
+                    localizationLanguage = selectedLanguage,
+                    activeNotificationPackId = null,
+                    activeNotificationPackTitle = null,
+                    notificationPacks = emptyList(),
+                )
+            }
+
+        override fun updateLanguage(
+            telegramId: Long,
+            language: TelegramSettingsLanguage,
+        ): TelegramSettingsMutationResult = TelegramSettingsMutationResult.UNAVAILABLE
+
+        override fun activateNotificationPack(
+            telegramId: Long,
+            personalizationId: UUID,
+        ): TelegramSettingsMutationResult = TelegramSettingsMutationResult.UNAVAILABLE
     }
 
     private class TestTelegramMessageGateway : TelegramMessageGateway {
