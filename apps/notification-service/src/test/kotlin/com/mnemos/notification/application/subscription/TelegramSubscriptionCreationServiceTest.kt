@@ -17,6 +17,9 @@ import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDro
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionCommand
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionResult
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionUseCase
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionCommand
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionResult
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionUseCase
 import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.application.recipient.model.RecipientView
 import com.mnemos.notification.application.recipient.port.out.RecipientReader
@@ -120,11 +123,45 @@ class TelegramSubscriptionCreationServiceTest {
         assertFalse(raidUseCase.command == null)
     }
 
+    @Test
+    fun `raid update replaces locations through update use case`() {
+        val updateRaidUseCase = RecordingUpdateRaidUseCase()
+        val service =
+            createService(
+                recipient = recipient(),
+                itemDropUseCase = RecordingItemDropUseCase(),
+                updateRaidUseCase = updateRaidUseCase,
+            )
+
+        val result = service.updateRaid(TELEGRAM_ID, setOf(3, 12))
+
+        assertEquals(SUBSCRIPTION_ID, result)
+        assertEquals(USER_ID, updateRaidUseCase.command?.userId)
+        assertEquals(setOf(3, 12), updateRaidUseCase.command?.locations)
+    }
+
+    @Test
+    fun `raid update accepts empty locations as all locations`() {
+        val updateRaidUseCase = RecordingUpdateRaidUseCase()
+        val service =
+            createService(
+                recipient = recipient(),
+                itemDropUseCase = RecordingItemDropUseCase(),
+                updateRaidUseCase = updateRaidUseCase,
+            )
+
+        val result = service.updateRaid(TELEGRAM_ID, emptySet())
+
+        assertEquals(SUBSCRIPTION_ID, result)
+        assertEquals(emptySet<Int>(), updateRaidUseCase.command?.locations)
+    }
+
     private fun createService(
         recipient: RecipientView?,
         itemDropUseCase: CreateItemDropSubscriptionUseCase,
         fallbackUserId: UserId? = null,
         raidUseCase: CreateRaidSubscriptionUseCase = RecordingRaidUseCase(),
+        updateRaidUseCase: UpdateRaidSubscriptionUseCase = RecordingUpdateRaidUseCase(),
     ): TelegramSubscriptionCreationService =
         TelegramSubscriptionCreationService(
             userIdentityService =
@@ -136,6 +173,7 @@ class TelegramSubscriptionCreationServiceTest {
             createBoosterSubscriptionUseCase = StubBoosterUseCase(),
             createDungeonSubscriptionUseCase = StubDungeonUseCase(),
             createRaidSubscriptionUseCase = raidUseCase,
+            updateRaidSubscriptionUseCase = updateRaidUseCase,
             createGlobalSubscriptionUseCase = StubGlobalUseCase(),
         )
 
@@ -167,6 +205,16 @@ class TelegramSubscriptionCreationServiceTest {
             this.command = command
 
             return CreateRaidSubscriptionResult(SUBSCRIPTION_ID)
+        }
+    }
+
+    private class RecordingUpdateRaidUseCase : UpdateRaidSubscriptionUseCase {
+        var command: UpdateRaidSubscriptionCommand? = null
+
+        override fun execute(command: UpdateRaidSubscriptionCommand): UpdateRaidSubscriptionResult {
+            this.command = command
+
+            return UpdateRaidSubscriptionResult(SUBSCRIPTION_ID)
         }
     }
 
