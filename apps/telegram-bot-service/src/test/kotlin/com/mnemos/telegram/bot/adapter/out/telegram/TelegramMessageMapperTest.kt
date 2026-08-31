@@ -33,7 +33,7 @@ class TelegramMessageMapperTest {
     }
 
     @Test
-    fun `callback actions are grouped into compact rows`() {
+    fun `legacy callback actions use adaptive compact rows`() {
         val message =
             OutboundTelegramMessage(
                 text = "help",
@@ -51,12 +51,43 @@ class TelegramMessageMapperTest {
         val inlineMarkup = assertInstanceOf(InlineKeyboardMarkup::class.java, markup)
         val rows = inlineMarkup.inlineKeyboard()
 
-        assertEquals(3, rows.size)
+        assertEquals(2, rows.size)
         assertEquals(1, rows[0].size)
-        assertEquals(2, rows[1].size)
-        assertEquals(1, rows[2].size)
+        assertEquals(3, rows[1].size)
         assertEquals("help:overview", rows[1][0].callbackData)
         assertEquals("help:accounts", rows[1][1].callbackData)
+        assertEquals("help:troubleshooting", rows[1][2].callbackData)
+    }
+
+    @Test
+    fun `explicit action rows are preserved exactly`() {
+        val message =
+            OutboundTelegramMessage(
+                text = "menu",
+                parseMode = OutboundTelegramMessageParseMode.HTML,
+                actionRows =
+                    listOf(
+                        listOf(
+                            OutboundTelegramMessageAction.Callback("One", "m:one"),
+                            OutboundTelegramMessageAction.Callback("Two", "m:two"),
+                            OutboundTelegramMessageAction.Callback("Three", "m:three"),
+                        ),
+                        listOf(
+                            OutboundTelegramMessageAction.Callback("Four", "m:four"),
+                        ),
+                    ),
+            )
+
+        val markup = message.toReplyMarkup(MINI_APP_URL)
+        val inlineMarkup = assertInstanceOf(InlineKeyboardMarkup::class.java, markup)
+        val rows = inlineMarkup.inlineKeyboard()
+
+        assertEquals(2, rows.size)
+        assertEquals(3, rows[0].size)
+        assertEquals(1, rows[1].size)
+        assertEquals("m:one", rows[0][0].callbackData)
+        assertEquals("m:three", rows[0][2].callbackData)
+        assertEquals("m:four", rows[1][0].callbackData)
     }
 
     @Test
