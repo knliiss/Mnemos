@@ -168,13 +168,12 @@ class HandleTelegramStarPaymentUpdateServiceTest {
             mock<User> {
                 on { id() }.thenReturn(actorId)
             }
-        val payment =
-            mock<SuccessfulPayment> {
-                on { invoicePayload() }.thenReturn(INVOICE_PAYLOAD)
-                on { currency() }.thenReturn("XTR")
-                on { totalAmount() }.thenReturn(STARS_AMOUNT)
-                on { telegramPaymentChargeId() }.thenReturn(PAYMENT_CHARGE_ID)
-            }
+        val payment = mock<SuccessfulPayment>()
+
+        whenever(payment.invoicePayload()).thenReturn(INVOICE_PAYLOAD)
+        whenever(payment.currency()).thenReturn("XTR")
+        whenever(payment.totalAmount()).thenReturn(STARS_AMOUNT)
+        whenever(payment.telegramPaymentChargeId()).thenReturn(PAYMENT_CHARGE_ID)
 
         return mock {
             on { successfulPayment() }.thenReturn(payment)
