@@ -30,6 +30,9 @@ services:
       ACCOUNT_SERVICE_URL: http://account-service:8081
       TELEGRAM_BOT_SERVICE_ACCOUNT_API_KEY: ${TELEGRAM_BOT_SERVICE_ACCOUNT_API_KEY}
 
+      BET_SERVICE_URL: http://bet-service:8086
+      TELEGRAM_BOT_SERVICE_BET_API_KEY: ${TELEGRAM_BOT_SERVICE_BET_API_KEY}
+
       EVENT_SERVICE_URL: http://event-service:8083
       TELEGRAM_BOT_SERVICE_EVENT_API_KEY: ${TELEGRAM_BOT_SERVICE_EVENT_API_KEY}
 
@@ -58,6 +61,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      bet-service:
+        condition: service_started
 
     networks:
       - mnemos-network
