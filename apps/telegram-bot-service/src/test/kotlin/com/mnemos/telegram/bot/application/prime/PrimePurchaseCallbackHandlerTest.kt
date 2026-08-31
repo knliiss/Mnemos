@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -61,9 +62,9 @@ class PrimePurchaseCallbackHandlerTest {
 
         val updateCaptor = argumentCaptor<(Map<String, String>) -> Map<String, String>>()
         verify(menuService).updateScreenContext(
-            telegramId = TELEGRAM_ID,
-            messageId = MESSAGE_ID,
-            expectedScreen = TelegramMenuScreen.PRIME,
+            telegramId = eq(TELEGRAM_ID),
+            messageId = eq(MESSAGE_ID),
+            expectedScreen = eq(TelegramMenuScreen.PRIME),
             update = updateCaptor.capture(),
         )
         assertEquals(PrimeMenuContext.invoice(invoice), updateCaptor.firstValue(emptyMap()))
@@ -107,9 +108,9 @@ class PrimePurchaseCallbackHandlerTest {
 
         val updateCaptor = argumentCaptor<(Map<String, String>) -> Map<String, String>>()
         verify(menuService).updateScreenContext(
-            telegramId = TELEGRAM_ID,
-            messageId = MESSAGE_ID,
-            expectedScreen = TelegramMenuScreen.PRIME,
+            telegramId = eq(TELEGRAM_ID),
+            messageId = eq(MESSAGE_ID),
+            expectedScreen = eq(TelegramMenuScreen.PRIME),
             update = updateCaptor.capture(),
         )
         assertEquals(emptyMap<String, String>(), updateCaptor.firstValue(mapOf("old" to "value")))
