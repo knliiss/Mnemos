@@ -40,7 +40,7 @@ object PrimeMenuMessageRenderer {
         when (data.notice) {
             PrimePurchaseNotice.REGISTRATION_REQUIRED -> {
                 lines += ""
-                lines += "⚠️ Сначала зарегистрируйтесь в Mnemos через Mini App."
+                lines += "⚠️ Не удалось автоматически подготовить профиль Mnemos. Откройте раздел «Аккаунт» и повторите покупку."
             }
 
             PrimePurchaseNotice.UNAVAILABLE -> {
@@ -68,6 +68,14 @@ object PrimeMenuMessageRenderer {
                 OutboundTelegramMessageAction.OpenUrl(
                     label = "⭐ Оплатить ${invoice.primeAmount} PRIME",
                     url = invoice.url,
+                )
+        }
+
+        if (data.notice == PrimePurchaseNotice.REGISTRATION_REQUIRED) {
+            actions +=
+                OutboundTelegramMessageAction.Callback(
+                    label = "👤 Настроить аккаунт",
+                    data = TelegramMenuScreen.ACCOUNT.callbackData,
                 )
         }
 
@@ -119,6 +127,5 @@ object PrimeMenuMessageRenderer {
                 "⌂ Меню",
                 TelegramMenuScreen.HOME.callbackData,
             ),
-            OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
         )
 }

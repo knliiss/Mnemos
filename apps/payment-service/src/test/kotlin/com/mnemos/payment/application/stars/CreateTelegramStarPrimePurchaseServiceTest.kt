@@ -79,17 +79,13 @@ class CreateTelegramStarPrimePurchaseServiceTest {
 
     @Test
     fun `concurrent request race replays purchase created by winning transaction`() {
-        val user =
-            CurrentPaymentUser(
-                userId = USER_ID,
-                telegramId = TELEGRAM_ID,
-            )
+        val user = paymentUser()
         val purchase = existingPurchase()
 
         whenever(repository.findByTelegramRequestId(REQUEST_ID))
             .thenReturn(null)
             .thenReturn(purchase)
-        whenever(telegramUserResolver.findByTelegramId(TELEGRAM_ID)).thenReturn(user)
+        whenever(telegramUserResolver.getOrCreateByTelegramId(TELEGRAM_ID)).thenReturn(user)
         whenever(
             createPurchaseService.execute(
                 packageId = PACKAGE_ID,
@@ -107,6 +103,7 @@ class CreateTelegramStarPrimePurchaseServiceTest {
 
         assertEquals(PURCHASE_ID, result.purchaseId)
         assertEquals(INVOICE_URL, result.invoiceUrl)
+        verify(telegramUserResolver).getOrCreateByTelegramId(TELEGRAM_ID)
         verify(createPurchaseService).execute(
             packageId = PACKAGE_ID,
             user = user,
@@ -115,12 +112,8 @@ class CreateTelegramStarPrimePurchaseServiceTest {
     }
 
     @Test
-    fun `new Telegram callback forwards request id into durable purchase creation`() {
-        val user =
-            CurrentPaymentUser(
-                userId = USER_ID,
-                telegramId = TELEGRAM_ID,
-            )
+    fun `new Telegram callback bootstraps identity before durable purchase creation`() {
+        val user = paymentUser()
         val createdPurchase =
             CreatedStarPrimePurchase(
                 purchaseId = PURCHASE_ID,
@@ -132,7 +125,7 @@ class CreateTelegramStarPrimePurchaseServiceTest {
             )
 
         whenever(repository.findByTelegramRequestId(REQUEST_ID)).thenReturn(null)
-        whenever(telegramUserResolver.findByTelegramId(TELEGRAM_ID)).thenReturn(user)
+        whenever(telegramUserResolver.getOrCreateByTelegramId(TELEGRAM_ID)).thenReturn(user)
         whenever(
             createPurchaseService.execute(
                 packageId = PACKAGE_ID,
@@ -149,12 +142,19 @@ class CreateTelegramStarPrimePurchaseServiceTest {
             )
 
         assertEquals(createdPurchase, result)
+        verify(telegramUserResolver).getOrCreateByTelegramId(TELEGRAM_ID)
         verify(createPurchaseService).execute(
             packageId = PACKAGE_ID,
             user = user,
             telegramRequestId = REQUEST_ID,
         )
     }
+
+    private fun paymentUser(): CurrentPaymentUser =
+        CurrentPaymentUser(
+            userId = USER_ID,
+            telegramId = TELEGRAM_ID,
+        )
 
     private fun existingPurchase(): StarPrimePurchase =
         pendingPurchase().also { purchase ->

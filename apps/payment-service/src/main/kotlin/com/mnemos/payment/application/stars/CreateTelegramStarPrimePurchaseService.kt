@@ -26,13 +26,7 @@ class CreateTelegramStarPrimePurchaseService(
             return existingPurchase.toReplay(telegramId, packageId)
         }
 
-        val user =
-            telegramUserResolver.findByTelegramId(telegramId)
-                ?: throw AppException(
-                    message = "Telegram user is not registered in Mnemos",
-                    code = "TELEGRAM_USER_NOT_REGISTERED",
-                    httpStatus = HttpStatus.NOT_FOUND,
-                )
+        val user = telegramUserResolver.getOrCreateByTelegramId(telegramId)
 
         return try {
             createPurchaseService.execute(

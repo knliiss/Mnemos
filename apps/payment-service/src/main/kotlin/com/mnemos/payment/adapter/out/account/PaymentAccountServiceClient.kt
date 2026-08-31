@@ -4,6 +4,7 @@ import com.mnemos.contracts.account.internal.v1.InternalTelegramUserIdentityResp
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 
 @FeignClient(
     name = "payment-account-service-client",
@@ -11,9 +12,14 @@ import org.springframework.web.bind.annotation.PathVariable
     configuration = [PaymentAccountServiceFeignConfiguration::class],
     dismiss404 = true,
 )
-fun interface PaymentAccountServiceClient {
+interface PaymentAccountServiceClient {
     @GetMapping("/internal/v1/users/telegram/{telegramId}/identity")
     fun getTelegramUserIdentity(
         @PathVariable telegramId: Long,
     ): InternalTelegramUserIdentityResponse?
+
+    @PostMapping("/internal/v1/users/telegram/{telegramId}/identity/bootstrap")
+    fun bootstrapTelegramUserIdentity(
+        @PathVariable telegramId: Long,
+    ): InternalTelegramUserIdentityResponse
 }

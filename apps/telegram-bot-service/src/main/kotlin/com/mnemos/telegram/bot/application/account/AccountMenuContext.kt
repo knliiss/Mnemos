@@ -25,8 +25,7 @@ object AccountMenuContext {
 
     fun clear(): Map<String, String> = emptyMap()
 
-    private fun feedback(type: AccountMenuFeedbackType): Map<String, String> =
-        mapOf(FEEDBACK_KEY to type.name)
+    private fun feedback(type: AccountMenuFeedbackType): Map<String, String> = mapOf(FEEDBACK_KEY to type.name)
 
     private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
         enumValues<T>().firstOrNull { enumValue -> enumValue.name == value }
