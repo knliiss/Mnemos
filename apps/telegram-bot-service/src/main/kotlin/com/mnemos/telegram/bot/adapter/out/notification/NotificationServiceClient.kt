@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramSubscript
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -54,6 +55,12 @@ interface NotificationServiceClient {
 
     @PostMapping("/internal/v1/telegram/subscriptions/{telegramId}/raid")
     fun createRaidSubscription(
+        @PathVariable telegramId: Long,
+        @RequestBody request: TelegramCreateRaidSubscriptionRequest,
+    ): TelegramCreateSubscriptionResponse
+
+    @PatchMapping("/internal/v1/telegram/subscriptions/{telegramId}/raid")
+    fun updateRaidSubscription(
         @PathVariable telegramId: Long,
         @RequestBody request: TelegramCreateRaidSubscriptionRequest,
     ): TelegramCreateSubscriptionResponse

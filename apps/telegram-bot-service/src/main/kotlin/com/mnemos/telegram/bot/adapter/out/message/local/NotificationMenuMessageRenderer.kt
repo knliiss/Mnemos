@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -25,47 +26,43 @@ object NotificationMenuMessageRenderer {
 
         return when (notificationsData.data.mode) {
             NotificationCreationMode.LIST -> renderList(notificationsData.data)
-            NotificationCreationMode.TYPE_SELECTION -> renderTypeSelection(notificationsData.data)
+            NotificationCreationMode.TYPE_SELECTION -> renderItemDropCreation(notificationsData.data)
             NotificationCreationMode.ITEM_DROP -> renderItemDropCreation(notificationsData.data)
-            NotificationCreationMode.BOOSTER -> renderBoosterCreation(notificationsData.data)
-            NotificationCreationMode.DUNGEON -> renderDungeonCreation(notificationsData.data)
-            NotificationCreationMode.RAID -> renderRaidCreation(notificationsData.data)
-            NotificationCreationMode.GLOBAL -> renderGlobalCreation(notificationsData.data)
+            NotificationCreationMode.BOOSTER -> renderBoosterToggles(notificationsData.data)
+            NotificationCreationMode.DUNGEON -> renderDungeonToggles(notificationsData.data)
+            NotificationCreationMode.RAID -> renderRaidEditor(notificationsData.data)
+            NotificationCreationMode.GLOBAL -> renderGlobalToggles(notificationsData.data)
         }
     }
 
     private fun renderList(data: NotificationMenuScreenData): OutboundTelegramMessage =
         when (val result = data.result) {
-            is NotificationSubscriptionResult.Available -> availableMessage(data, result)
+            is NotificationSubscriptionResult.Available -> availableListMessage(data, result)
             NotificationSubscriptionResult.Unavailable -> unavailableMessage(data.feedback)
             NotificationSubscriptionResult.NotLoaded -> unavailableMessage(data.feedback)
         }
 
-    private fun availableMessage(
+    private fun availableListMessage(
         data: NotificationMenuScreenData,
         result: NotificationSubscriptionResult.Available,
     ): OutboundTelegramMessage {
         val page = result.page
+        val totalPages = page.totalPages.coerceAtLeast(1)
         val subscriptionLines =
             page.items
                 .mapIndexed { index, subscription ->
-                    "${index + 1}. ${renderSubscription(subscription)}"
+                    "${index + 1}. ${renderItemDrop(subscription)}"
                 }.joinToString("\n\n")
                 .ifBlank {
                     "Активных подписок пока нет."
                 }
-        val pageLine =
-            if (page.totalPages > 0) {
-                "Страница: <b>${page.page + 1}/${page.totalPages}</b>"
-            } else {
-                "Страница: <b>1/1</b>"
-            }
         val text =
             listOfNotNull(
                 "🔔 <b>Уведомления</b>",
+                "⚔️ <b>Дропы</b>",
                 feedbackText(data.feedback),
                 "Активных подписок: <b>${page.totalItems}</b>",
-                pageLine,
+                "Страница: <b>${page.page + 1}/$totalPages</b>",
                 "",
                 subscriptionLines,
                 deleteHint(page.items),
@@ -74,55 +71,86 @@ object NotificationMenuMessageRenderer {
 
         return message(
             text = text,
-            actions = renderListActions(page.items, page.page, page.hasNextPage),
+            actions = renderListActions(result),
         )
     }
 
-    private fun renderTypeSelection(data: NotificationMenuScreenData): OutboundTelegramMessage =
-        message(
-            text =
-                listOfNotNull(
-                    "➕ <b>Новая подписка</b>",
-                    feedbackText(data.feedback),
-                    "",
-                    "Выберите тип события, о котором хотите получать уведомления.",
-                ).joinToString("\n"),
-            actions =
-                listOf(
-                    callback("⚔️ Дроп", NotificationCallbackData.type(NotificationSubscriptionType.ITEM_DROP)),
-                    callback("⚡ Бустер", NotificationCallbackData.type(NotificationSubscriptionType.BOOSTER)),
-                    callback("🏰 Данж", NotificationCallbackData.type(NotificationSubscriptionType.DUNGEON)),
-                    callback("🛡 Рейд", NotificationCallbackData.type(NotificationSubscriptionType.RAID)),
-                    callback("🌒 Глобальное", NotificationCallbackData.type(NotificationSubscriptionType.GLOBAL)),
-                ) + listNavigationActions,
-        )
+    private fun renderListActions(result: NotificationSubscriptionResult.Available): List<OutboundTelegramMessageAction> {
+        val page = result.page
+        val totalPages = page.totalPages.coerceAtLeast(1)
+        val actions =
+            mutableListOf<OutboundTelegramMessageAction>(
+                callback(
+                    label = "➕ Подписка на дроп",
+                    data = NotificationCallbackData.CREATE,
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+                callback(
+                    label = "⚡ Бустеры",
+                    data = NotificationCallbackData.type(NotificationSubscriptionType.BOOSTER),
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+                callback(
+                    label = "🏰 Dungeon",
+                    data = NotificationCallbackData.type(NotificationSubscriptionType.DUNGEON),
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+                callback(
+                    label = "🛡 Рейды",
+                    data = NotificationCallbackData.type(NotificationSubscriptionType.RAID),
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+                callback(
+                    label = "🌒 Глобальные",
+                    data = NotificationCallbackData.type(NotificationSubscriptionType.GLOBAL),
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+            )
+
+        page.items.forEachIndexed { index, subscription ->
+            actions +=
+                callback(
+                    label = "✖ ${index + 1}",
+                    data = NotificationCallbackData.delete(subscription.id),
+                    style = OutboundTelegramButtonStyle.DANGER,
+                )
+        }
+
+        if (page.page > 0) {
+            actions += callback("← ${page.page}/$totalPages", NotificationCallbackData.page(page.page - 1))
+        }
+
+        if (page.hasNextPage) {
+            actions += callback("${page.page + 2}/$totalPages →", NotificationCallbackData.page(page.page + 1))
+        }
+
+        actions += refreshAction
+        actions += navigationActions
+
+        return actions
+    }
 
     private fun renderItemDropCreation(data: NotificationMenuScreenData): OutboundTelegramMessage {
         val playerFilter = data.droppedFor?.let { value -> "<code>${escapeHtml(value)}</code>" } ?: "—"
         val itemFilter = data.itemName?.let { value -> "<code>${escapeHtml(value)}</code>" } ?: "—"
         val inputPrompt =
             when (data.itemDropInput) {
-                NotificationItemDropInputField.PLAYER ->
-                    "Отправьте ник игрока: 4–20 символов, буквы, цифры или <code>_</code>."
-
-                NotificationItemDropInputField.ITEM ->
-                    "Отправьте название предмета: от 1 до 24 символов."
-
-                null -> null
+                NotificationItemDropInputField.PLAYER -> "👤 <b>4–20</b> · <code>A-Z a-z 0-9 _</code>"
+                NotificationItemDropInputField.ITEM -> "⚔️ <b>1–24</b>"
+                null -> "Укажите хотя бы один фильтр. Можно использовать оба одновременно."
             }
-        val text =
-            listOfNotNull(
-                "⚔️ <b>Подписка на дроп</b>",
-                feedbackText(data.feedback),
-                "",
-                "Игрок: $playerFilter",
-                "Предмет: $itemFilter",
-                "",
-                inputPrompt ?: "Укажите хотя бы один фильтр. Можно использовать оба одновременно.",
-            ).joinToString("\n")
 
         return message(
-            text = text,
+            text =
+                listOfNotNull(
+                    "⚔️ <b>Подписка на дроп</b>",
+                    feedbackText(data.feedback),
+                    "",
+                    "👤 $playerFilter",
+                    "⚔️ $itemFilter",
+                    "",
+                    inputPrompt,
+                ).joinToString("\n"),
             actions = renderItemDropActions(data),
         )
     }
@@ -130,81 +158,166 @@ object NotificationMenuMessageRenderer {
     private fun renderItemDropActions(data: NotificationMenuScreenData): List<OutboundTelegramMessageAction> {
         if (data.itemDropInput != null) {
             return listOf(
-                callback("✖ Отмена ввода", NotificationCallbackData.ITEM_DROP_INPUT_CANCEL),
+                callback(
+                    label = "✖ Отмена",
+                    data = NotificationCallbackData.ITEM_DROP_INPUT_CANCEL,
+                    style = OutboundTelegramButtonStyle.DANGER,
+                ),
                 homeAction,
             )
         }
 
         val actions =
             mutableListOf<OutboundTelegramMessageAction>(
-                callback("👤 Игрок", NotificationCallbackData.ITEM_DROP_PLAYER),
-                callback("⚔️ Предмет", NotificationCallbackData.ITEM_DROP_ITEM),
+                callback("👤", NotificationCallbackData.ITEM_DROP_PLAYER),
+                callback("⚔️", NotificationCallbackData.ITEM_DROP_ITEM),
             )
 
         if (data.droppedFor != null) {
-            actions += callback("✖ Игрок", NotificationCallbackData.ITEM_DROP_CLEAR_PLAYER)
+            actions += callback("✖ 👤", NotificationCallbackData.ITEM_DROP_CLEAR_PLAYER, OutboundTelegramButtonStyle.DANGER)
         }
 
         if (data.itemName != null) {
-            actions += callback("✖ Предмет", NotificationCallbackData.ITEM_DROP_CLEAR_ITEM)
+            actions += callback("✖ ⚔️", NotificationCallbackData.ITEM_DROP_CLEAR_ITEM, OutboundTelegramButtonStyle.DANGER)
         }
 
         if (data.droppedFor != null || data.itemName != null) {
-            actions += callback("✓ Создать", NotificationCallbackData.ITEM_DROP_CREATE)
+            actions += callback("✓ Создать", NotificationCallbackData.ITEM_DROP_CREATE, OutboundTelegramButtonStyle.SUCCESS)
         }
 
-        actions += creationNavigationActions
+        actions += editorNavigationActions
 
         return actions
     }
 
-    private fun renderBoosterCreation(data: NotificationMenuScreenData): OutboundTelegramMessage =
-        choiceMessage(
+    private fun renderBoosterToggles(data: NotificationMenuScreenData): OutboundTelegramMessage =
+        renderToggleScreen(
+            data = data,
             title = "⚡ <b>Подписка на бустер</b>",
-            description = "Выберите тип бустера.",
-            feedback = data.feedback,
             actions =
                 listOf(
-                    callback("🍀 Удача", NotificationCallbackData.booster(NotificationBoosterType.LUCK)),
-                    callback("💰 Деньги", NotificationCallbackData.booster(NotificationBoosterType.MONEY)),
-                    callback("⚔️ Урон", NotificationCallbackData.booster(NotificationBoosterType.DAMAGE)),
-                    callback("💪 Сила", NotificationCallbackData.booster(NotificationBoosterType.POWER)),
+                    toggleCallback(
+                        label = "🍀 Удача",
+                        data = NotificationCallbackData.booster(NotificationBoosterType.LUCK),
+                        active = isBoosterActive(data, NotificationBoosterType.LUCK),
+                    ),
+                    toggleCallback(
+                        label = "💰 Деньги",
+                        data = NotificationCallbackData.booster(NotificationBoosterType.MONEY),
+                        active = isBoosterActive(data, NotificationBoosterType.MONEY),
+                    ),
+                    toggleCallback(
+                        label = "⚔️ Урон",
+                        data = NotificationCallbackData.booster(NotificationBoosterType.DAMAGE),
+                        active = isBoosterActive(data, NotificationBoosterType.DAMAGE),
+                    ),
+                    toggleCallback(
+                        label = "💪 Сила",
+                        data = NotificationCallbackData.booster(NotificationBoosterType.POWER),
+                        active = isBoosterActive(data, NotificationBoosterType.POWER),
+                    ),
                 ),
         )
 
-    private fun renderDungeonCreation(data: NotificationMenuScreenData): OutboundTelegramMessage =
-        choiceMessage(
+    private fun renderDungeonToggles(data: NotificationMenuScreenData): OutboundTelegramMessage =
+        renderToggleScreen(
+            data = data,
             title = "🏰 <b>Подписка на данж</b>",
-            description = "Выберите сложность данжа.",
-            feedback = data.feedback,
             actions =
                 listOf(
-                    callback("Легкий", NotificationCallbackData.dungeon(NotificationDungeonType.EASY)),
-                    callback("Средний", NotificationCallbackData.dungeon(NotificationDungeonType.MEDIUM)),
-                    callback("Сложный", NotificationCallbackData.dungeon(NotificationDungeonType.HARD)),
-                    callback("Эксперт", NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT)),
+                    toggleCallback(
+                        label = "Легкий",
+                        data = NotificationCallbackData.dungeon(NotificationDungeonType.EASY),
+                        active = isDungeonActive(data, NotificationDungeonType.EASY),
+                    ),
+                    toggleCallback(
+                        label = "Средний",
+                        data = NotificationCallbackData.dungeon(NotificationDungeonType.MEDIUM),
+                        active = isDungeonActive(data, NotificationDungeonType.MEDIUM),
+                    ),
+                    toggleCallback(
+                        label = "Сложный",
+                        data = NotificationCallbackData.dungeon(NotificationDungeonType.HARD),
+                        active = isDungeonActive(data, NotificationDungeonType.HARD),
+                    ),
+                    toggleCallback(
+                        label = "Эксперт",
+                        data = NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT),
+                        active = isDungeonActive(data, NotificationDungeonType.EXPERT),
+                    ),
                 ),
         )
 
-    private fun renderGlobalCreation(data: NotificationMenuScreenData): OutboundTelegramMessage =
-        choiceMessage(
+    private fun renderGlobalToggles(data: NotificationMenuScreenData): OutboundTelegramMessage =
+        renderToggleScreen(
+            data = data,
             title = "🌒 <b>Подписка на глобальное событие</b>",
-            description = "Выберите событие.",
-            feedback = data.feedback,
             actions =
                 listOf(
-                    callback("🌑 Тьма", NotificationCallbackData.global(NotificationGlobalType.DARKNESS)),
-                    callback("🌙 Луна", NotificationCallbackData.global(NotificationGlobalType.MOON)),
-                    callback("🌘 Затмение", NotificationCallbackData.global(NotificationGlobalType.ECLIPSE)),
-                    callback("💥 Взрыв", NotificationCallbackData.global(NotificationGlobalType.EXPLOSION)),
-                    callback("☄️ Хаос кометы", NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS)),
+                    toggleCallback(
+                        label = "🌑 Тьма",
+                        data = NotificationCallbackData.global(NotificationGlobalType.DARKNESS),
+                        active = isGlobalActive(data, NotificationGlobalType.DARKNESS),
+                    ),
+                    toggleCallback(
+                        label = "🌙 Луна",
+                        data = NotificationCallbackData.global(NotificationGlobalType.MOON),
+                        active = isGlobalActive(data, NotificationGlobalType.MOON),
+                    ),
+                    toggleCallback(
+                        label = "🌘 Затмение",
+                        data = NotificationCallbackData.global(NotificationGlobalType.ECLIPSE),
+                        active = isGlobalActive(data, NotificationGlobalType.ECLIPSE),
+                    ),
+                    toggleCallback(
+                        label = "💥 Взрыв",
+                        data = NotificationCallbackData.global(NotificationGlobalType.EXPLOSION),
+                        active = isGlobalActive(data, NotificationGlobalType.EXPLOSION),
+                    ),
+                    toggleCallback(
+                        label = "☄️ COMET_CHAOS",
+                        data = NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS),
+                        active = isGlobalActive(data, NotificationGlobalType.COMET_CHAOS),
+                    ),
                 ),
         )
 
-    private fun renderRaidCreation(data: NotificationMenuScreenData): OutboundTelegramMessage {
+    private fun renderToggleScreen(
+        data: NotificationMenuScreenData,
+        title: String,
+        actions: List<OutboundTelegramMessageAction>,
+    ): OutboundTelegramMessage {
+        if (data.result !is NotificationSubscriptionResult.Available) {
+            return unavailableMessage(data.feedback)
+        }
+
+        return message(
+            text =
+                listOfNotNull(
+                    title,
+                    feedbackText(data.feedback),
+                ).joinToString("\n"),
+            actions = actions + editorNavigationActions,
+        )
+    }
+
+    private fun renderRaidEditor(data: NotificationMenuScreenData): OutboundTelegramMessage {
+        val available = data.result as? NotificationSubscriptionResult.Available ?: return unavailableMessage(data.feedback)
+        val raidSubscription = available.raidSubscription
+
+        if (raidSubscription == null) {
+            return message(
+                text = "⚠️ <b>RAID</b>\n\nMini App",
+                actions =
+                    listOf(
+                        OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
+                    ) + editorNavigationActions,
+            )
+        }
+
         val selectedLocations =
             if (data.raidLocations.isEmpty()) {
-                "любая локация"
+                "Любая локация"
             } else {
                 data.raidLocations.sorted().joinToString(", ")
             }
@@ -212,26 +325,29 @@ object NotificationMenuMessageRenderer {
         val lastLocation = (firstLocation + RAID_LOCATIONS_PER_PAGE - 1).coerceAtMost(MAX_RAID_LOCATION)
         val locationActions =
             (firstLocation..lastLocation).map { location ->
-                val selectedPrefix = if (location in data.raidLocations) "✓ " else ""
-
-                callback(
-                    label = "$selectedPrefix$location",
+                toggleCallback(
+                    label = location.toString(),
                     data = NotificationCallbackData.raidLocation(location),
+                    active = location in data.raidLocations,
                 )
             }
         val pageActions =
             when (data.raidPage) {
-                0 -> listOf(callback("15–28 →", NotificationCallbackData.raidPage(1)))
-                else -> listOf(callback("← 1–14", NotificationCallbackData.raidPage(0)))
+                0 -> listOf(callback("2/2 →", NotificationCallbackData.raidPage(1)))
+                else -> listOf(callback("← 1/2", NotificationCallbackData.raidPage(0)))
             }
-        val actions =
-            locationActions +
-                pageActions +
-                listOf(
-                    callback("◎ Любая локация", NotificationCallbackData.RAID_CLEAR),
-                    callback("✓ Создать", NotificationCallbackData.RAID_CREATE),
-                ) +
-                creationNavigationActions
+        val anyLocationAction =
+            toggleCallback(
+                label = "◎ Любая локация",
+                data = NotificationCallbackData.RAID_CLEAR,
+                active = data.raidLocations.isEmpty(),
+            )
+        val saveAction =
+            callback(
+                label = "✅ RAID",
+                data = NotificationCallbackData.RAID_SAVE,
+                style = OutboundTelegramButtonStyle.SUCCESS,
+            )
 
         return message(
             text =
@@ -239,94 +355,53 @@ object NotificationMenuMessageRenderer {
                     "🛡 <b>Подписка на рейд</b>",
                     feedbackText(data.feedback),
                     "",
-                    "Локации: <b>${escapeHtml(selectedLocations)}</b>",
+                    "📍 <b>${escapeHtml(selectedLocations)}</b>",
                     "",
                     "Если ничего не выбрано, уведомления будут приходить для рейда на любой локации.",
                 ).joinToString("\n"),
-            actions = actions,
+            actions = locationActions + pageActions + anyLocationAction + saveAction + editorNavigationActions,
         )
     }
 
-    private fun choiceMessage(
-        title: String,
-        description: String,
-        feedback: NotificationMenuFeedback?,
-        actions: List<OutboundTelegramMessageAction>,
-    ): OutboundTelegramMessage =
-        message(
-            text =
-                listOfNotNull(
-                    title,
-                    feedbackText(feedback),
-                    "",
-                    description,
-                ).joinToString("\n"),
-            actions = actions + creationNavigationActions,
-        )
+    private fun isBoosterActive(
+        data: NotificationMenuScreenData,
+        type: NotificationBoosterType,
+    ): Boolean =
+        (data.result as? NotificationSubscriptionResult.Available)
+            ?.boosterSubscriptions
+            ?.containsKey(type)
+            ?: false
 
-    private fun renderSubscription(subscription: NotificationSubscription): String =
-        when (subscription.type) {
-            NotificationSubscriptionType.ITEM_DROP -> renderItemDrop(subscription)
-            NotificationSubscriptionType.BOOSTER -> "⚡ <b>Бустер</b> · ${displayValue(subscription.boosterType)}"
-            NotificationSubscriptionType.DUNGEON -> "🏰 <b>Данж</b> · ${displayValue(subscription.dungeonType)}"
-            NotificationSubscriptionType.RAID -> renderRaid(subscription)
-            NotificationSubscriptionType.GLOBAL -> "🌒 <b>Глобальное</b> · ${displayValue(subscription.globalType)}"
-        }
+    private fun isDungeonActive(
+        data: NotificationMenuScreenData,
+        type: NotificationDungeonType,
+    ): Boolean =
+        (data.result as? NotificationSubscriptionResult.Available)
+            ?.dungeonSubscriptions
+            ?.containsKey(type)
+            ?: false
+
+    private fun isGlobalActive(
+        data: NotificationMenuScreenData,
+        type: NotificationGlobalType,
+    ): Boolean =
+        (data.result as? NotificationSubscriptionResult.Available)
+            ?.globalSubscriptions
+            ?.containsKey(type)
+            ?: false
 
     private fun renderItemDrop(subscription: NotificationSubscription): String {
         val filters =
             listOfNotNull(
-                subscription.itemName?.takeIf(String::isNotBlank)?.let { itemName ->
-                    "предмет <code>${escapeHtml(itemName)}</code>"
-                },
-                subscription.droppedFor?.takeIf(String::isNotBlank)?.let { nickname ->
-                    "игрок <code>${escapeHtml(nickname)}</code>"
-                },
+                subscription.itemName
+                    ?.takeIf(String::isNotBlank)
+                    ?.let { itemName -> "⚔️ <code>${escapeHtml(itemName)}</code>" },
+                subscription.droppedFor
+                    ?.takeIf(String::isNotBlank)
+                    ?.let { nickname -> "👤 <code>${escapeHtml(nickname)}</code>" },
             ).joinToString(" · ")
 
-        return "⚔️ <b>Дроп</b> · ${filters.ifBlank { "без фильтра" }}"
-    }
-
-    private fun renderRaid(subscription: NotificationSubscription): String {
-        val locations =
-            subscription.raidLocations
-                .sorted()
-                .joinToString(", ")
-                .ifBlank { "любая" }
-
-        return "🛡 <b>Рейд</b> · локации ${escapeHtml(locations)}"
-    }
-
-    private fun renderListActions(
-        items: List<NotificationSubscription>,
-        page: Int,
-        hasNextPage: Boolean,
-    ): List<OutboundTelegramMessageAction> {
-        val actions =
-            mutableListOf<OutboundTelegramMessageAction>(
-                callback("➕ Добавить подписку", NotificationCallbackData.CREATE),
-            )
-
-        items.forEachIndexed { index, subscription ->
-            actions +=
-                callback(
-                    label = "✖ ${index + 1}",
-                    data = NotificationCallbackData.delete(subscription.id),
-                )
-        }
-
-        if (page > 0) {
-            actions += callback("← Страница", NotificationCallbackData.page(page - 1))
-        }
-
-        if (hasNextPage) {
-            actions += callback("Страница →", NotificationCallbackData.page(page + 1))
-        }
-
-        actions += refreshAction
-        actions += navigationActions
-
-        return actions
+        return filters.ifBlank { "⚔️ —" }
     }
 
     private fun deleteHint(items: List<NotificationSubscription>): String =
@@ -357,15 +432,6 @@ object NotificationMenuMessageRenderer {
             null -> null
         }
 
-    private fun displayValue(value: String?): String =
-        value
-            ?.takeIf(String::isNotBlank)
-            ?.lowercase()
-            ?.replace('_', ' ')
-            ?.replaceFirstChar { character -> character.titlecase() }
-            ?.let(::escapeHtml)
-            ?: "—"
-
     private fun unavailableMessage(feedback: NotificationMenuFeedback? = null): OutboundTelegramMessage =
         message(
             text =
@@ -375,7 +441,7 @@ object NotificationMenuMessageRenderer {
                     "",
                     "Не удалось получить подписки. Попробуйте обновить через несколько секунд.",
                 ).joinToString("\n"),
-            actions = listOf(createAction, refreshAction) + navigationActions,
+            actions = listOf(refreshAction) + navigationActions,
         )
 
     private fun message(
@@ -391,10 +457,23 @@ object NotificationMenuMessageRenderer {
     private fun callback(
         label: String,
         data: String,
+        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
     ): OutboundTelegramMessageAction.Callback =
         OutboundTelegramMessageAction.Callback(
             label = label,
             data = data,
+            style = style,
+        )
+
+    private fun toggleCallback(
+        label: String,
+        data: String,
+        active: Boolean,
+    ): OutboundTelegramMessageAction.Callback =
+        callback(
+            label = if (active) "✅ $label" else label,
+            data = data,
+            style = if (active) OutboundTelegramButtonStyle.SUCCESS else OutboundTelegramButtonStyle.DEFAULT,
         )
 
     private fun escapeHtml(value: String): String =
@@ -406,20 +485,12 @@ object NotificationMenuMessageRenderer {
     private const val RAID_LOCATIONS_PER_PAGE = 14
     private const val MAX_RAID_LOCATION = 28
 
-    private val createAction = callback("➕ Добавить подписку", NotificationCallbackData.CREATE)
     private val refreshAction = callback("🔄 Обновить", NotificationCallbackData.REFRESH)
     private val homeAction = callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData)
 
-    private val listNavigationActions =
+    private val editorNavigationActions =
         listOf(
-            callback("← Подписки", TelegramMenuScreen.NOTIFICATIONS.callbackData),
-            homeAction,
-        )
-
-    private val creationNavigationActions =
-        listOf(
-            callback("← Типы", NotificationCallbackData.CREATE_TYPES),
-            callback("← Подписки", TelegramMenuScreen.NOTIFICATIONS.callbackData),
+            callback("← Уведомления", TelegramMenuScreen.NOTIFICATIONS.callbackData),
             homeAction,
         )
 

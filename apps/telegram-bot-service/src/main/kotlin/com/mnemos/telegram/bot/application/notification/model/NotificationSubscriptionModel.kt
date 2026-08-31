@@ -34,6 +34,10 @@ data class NotificationSubscriptionPage(
 sealed interface NotificationSubscriptionResult {
     data class Available(
         val page: NotificationSubscriptionPage,
+        val boosterSubscriptions: Map<NotificationBoosterType, UUID> = emptyMap(),
+        val dungeonSubscriptions: Map<NotificationDungeonType, UUID> = emptyMap(),
+        val globalSubscriptions: Map<NotificationGlobalType, UUID> = emptyMap(),
+        val raidSubscription: NotificationSubscription? = null,
     ) : NotificationSubscriptionResult
 
     data object Unavailable : NotificationSubscriptionResult

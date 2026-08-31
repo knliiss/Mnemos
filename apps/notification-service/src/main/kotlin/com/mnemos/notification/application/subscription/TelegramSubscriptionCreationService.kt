@@ -11,6 +11,8 @@ import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDro
 import com.mnemos.notification.application.itemdrop.usecase.create.CreateItemDropSubscriptionUseCase
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionCommand
 import com.mnemos.notification.application.raid.usecase.create.CreateRaidSubscriptionUseCase
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionCommand
+import com.mnemos.notification.application.raid.usecase.update.UpdateRaidSubscriptionUseCase
 import com.mnemos.notification.application.recipient.TelegramUserIdentityService
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
@@ -25,6 +27,7 @@ class TelegramSubscriptionCreationService(
     private val createBoosterSubscriptionUseCase: CreateBoosterSubscriptionUseCase,
     private val createDungeonSubscriptionUseCase: CreateDungeonSubscriptionUseCase,
     private val createRaidSubscriptionUseCase: CreateRaidSubscriptionUseCase,
+    private val updateRaidSubscriptionUseCase: UpdateRaidSubscriptionUseCase,
     private val createGlobalSubscriptionUseCase: CreateGlobalSubscriptionUseCase,
 ) {
     fun createItemDrop(
@@ -84,15 +87,28 @@ class TelegramSubscriptionCreationService(
         telegramId: TelegramId,
         locations: Set<Int>,
     ): SubscriptionId? {
-        require(locations.all { location -> location in MIN_RAID_LOCATION..MAX_RAID_LOCATION }) {
-            "Raid locations must be between $MIN_RAID_LOCATION and $MAX_RAID_LOCATION"
-        }
-
+        validateRaidLocations(locations)
         val userId = userIdentityService.resolve(telegramId) ?: return null
 
         return createRaidSubscriptionUseCase
             .execute(
                 CreateRaidSubscriptionCommand(
+                    userId = userId,
+                    locations = locations,
+                ),
+            ).subscriptionId
+    }
+
+    fun updateRaid(
+        telegramId: TelegramId,
+        locations: Set<Int>,
+    ): SubscriptionId? {
+        validateRaidLocations(locations)
+        val userId = userIdentityService.resolve(telegramId) ?: return null
+
+        return updateRaidSubscriptionUseCase
+            .execute(
+                UpdateRaidSubscriptionCommand(
                     userId = userId,
                     locations = locations,
                 ),
@@ -112,6 +128,12 @@ class TelegramSubscriptionCreationService(
                     eventType = eventType,
                 ),
             ).subscriptionId
+    }
+
+    private fun validateRaidLocations(locations: Set<Int>) {
+        require(locations.all { location -> location in MIN_RAID_LOCATION..MAX_RAID_LOCATION }) {
+            "Raid locations must be between $MIN_RAID_LOCATION and $MAX_RAID_LOCATION"
+        }
     }
 
     private fun normalizeDroppedFor(value: String?): String? {

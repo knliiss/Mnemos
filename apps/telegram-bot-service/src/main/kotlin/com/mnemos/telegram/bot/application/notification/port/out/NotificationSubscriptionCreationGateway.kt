@@ -28,6 +28,11 @@ interface NotificationSubscriptionCreationGateway {
         draft: NotificationRaidSubscriptionDraft,
     ): NotificationSubscriptionCreationResult
 
+    fun updateRaid(
+        telegramId: Long,
+        draft: NotificationRaidSubscriptionDraft,
+    ): NotificationSubscriptionCreationResult = NotificationSubscriptionCreationResult.UNAVAILABLE
+
     fun createGlobal(
         telegramId: Long,
         eventType: NotificationGlobalType,

@@ -19,7 +19,8 @@ object NotificationCallbackData {
     const val ITEM_DROP_CREATE = "${PREFIX}is"
     const val ITEM_DROP_INPUT_CANCEL = "${PREFIX}ix"
     const val RAID_CLEAR = "${PREFIX}ra"
-    const val RAID_CREATE = "${PREFIX}rs"
+    const val RAID_SAVE = "${PREFIX}rs"
+    const val RAID_CREATE = RAID_SAVE
 
     private const val PAGE_PREFIX = "${PREFIX}p:"
     private const val DELETE_PREFIX = "${PREFIX}d:"

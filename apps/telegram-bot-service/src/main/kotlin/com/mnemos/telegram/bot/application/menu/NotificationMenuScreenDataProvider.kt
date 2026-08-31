@@ -21,8 +21,8 @@ class NotificationMenuScreenDataProvider(
     override fun load(session: TelegramMenuSession): TelegramMenuScreenData {
         val mode = NotificationMenuContext.mode(session.screenContext)
         val result =
-            if (mode == NotificationCreationMode.LIST) {
-                loadSubscriptions(session)
+            if (mode.requiresSubscriptionState()) {
+                loadSubscriptions(session, mode)
             } else {
                 NotificationSubscriptionResult.NotLoaded
             }
@@ -41,9 +41,21 @@ class NotificationMenuScreenDataProvider(
         )
     }
 
-    private fun loadSubscriptions(session: TelegramMenuSession): NotificationSubscriptionResult {
-        val requestedPage = NotificationMenuContext.page(session.screenContext)
+    private fun loadSubscriptions(
+        session: TelegramMenuSession,
+        mode: NotificationCreationMode,
+    ): NotificationSubscriptionResult {
+        val requestedPage =
+            if (mode == NotificationCreationMode.LIST) {
+                NotificationMenuContext.page(session.screenContext)
+            } else {
+                0
+            }
         val result = gateway.list(session.telegramId, requestedPage, PAGE_SIZE)
+
+        if (mode != NotificationCreationMode.LIST) {
+            return result
+        }
 
         return resolveValidPage(session.telegramId, requestedPage, result)
     }
@@ -66,6 +78,20 @@ class NotificationMenuScreenDataProvider(
             size = PAGE_SIZE,
         )
     }
+
+    private fun NotificationCreationMode.requiresSubscriptionState(): Boolean =
+        when (this) {
+            NotificationCreationMode.LIST,
+            NotificationCreationMode.BOOSTER,
+            NotificationCreationMode.DUNGEON,
+            NotificationCreationMode.RAID,
+            NotificationCreationMode.GLOBAL,
+            -> true
+
+            NotificationCreationMode.TYPE_SELECTION,
+            NotificationCreationMode.ITEM_DROP,
+            -> false
+        }
 
     private fun resolveItemDropInput(pendingInput: TelegramPendingInput?): NotificationItemDropInputField? =
         when (pendingInput) {

@@ -24,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -99,6 +100,17 @@ class TelegramSubscriptionInternalController(
     ): TelegramCreateSubscriptionResponse =
         creationService
             .createRaid(
+                telegramId = TelegramId(telegramId),
+                locations = request.locations,
+            ).toCreateResponse()
+
+    @PatchMapping("/{telegramId}/raid")
+    fun updateRaid(
+        @PathVariable telegramId: Long,
+        @RequestBody request: TelegramCreateRaidSubscriptionRequest,
+    ): TelegramCreateSubscriptionResponse =
+        creationService
+            .updateRaid(
                 telegramId = TelegramId(telegramId),
                 locations = request.locations,
             ).toCreateResponse()

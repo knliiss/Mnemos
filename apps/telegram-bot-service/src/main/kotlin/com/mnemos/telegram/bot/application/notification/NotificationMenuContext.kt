@@ -33,6 +33,7 @@ object NotificationMenuContext {
 
     fun raidLocations(context: Map<String, String>): Set<Int> =
         context[RAID_LOCATIONS_KEY]
+            ?.takeUnless { value -> value == ANY_RAID_LOCATION_TOKEN }
             ?.split(',')
             ?.mapNotNull(String::toIntOrNull)
             ?.filter { location -> location in MIN_RAID_LOCATION..MAX_RAID_LOCATION }
@@ -64,13 +65,19 @@ object NotificationMenuContext {
             else -> clearFeedback(context)
         }
 
-    fun startCreation(): Map<String, String> = mapOf(MODE_KEY to NotificationCreationMode.TYPE_SELECTION.name)
+    fun startCreation(): Map<String, String> = selectMode(NotificationCreationMode.ITEM_DROP)
 
     fun selectMode(mode: NotificationCreationMode): Map<String, String> {
         require(mode != NotificationCreationMode.LIST)
 
         return mapOf(MODE_KEY to mode.name)
     }
+
+    fun selectRaidMode(locations: Set<Int>): Map<String, String> =
+        withRaidLocations(
+            context = mapOf(MODE_KEY to NotificationCreationMode.RAID.name),
+            locations = locations,
+        )
 
     fun creationSucceeded(): Map<String, String> = mapOf(FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name)
 
@@ -112,7 +119,8 @@ object NotificationMenuContext {
         return withRaidLocations(clearFeedback(context), nextLocations)
     }
 
-    fun clearRaidLocations(context: Map<String, String>): Map<String, String> = clearFeedback(context) - RAID_LOCATIONS_KEY
+    fun clearRaidLocations(context: Map<String, String>): Map<String, String> =
+        withRaidLocations(clearFeedback(context), emptySet())
 
     fun withRaidPage(
         context: Map<String, String>,
@@ -132,20 +140,20 @@ object NotificationMenuContext {
         context: Map<String, String>,
         locations: Set<Int>,
     ): Map<String, String> {
-        val withoutLocations = context - RAID_LOCATIONS_KEY
+        val encodedLocations =
+            if (locations.isEmpty()) {
+                ANY_RAID_LOCATION_TOKEN
+            } else {
+                locations.sorted().joinToString(",")
+            }
 
-        if (locations.isEmpty()) {
-            return withoutLocations
-        }
-
-        val encodedLocations = locations.sorted().joinToString(",")
-
-        return withoutLocations + (RAID_LOCATIONS_KEY to encodedLocations)
+        return context + (RAID_LOCATIONS_KEY to encodedLocations)
     }
 
     private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
         enumValues<T>().firstOrNull { enumValue -> enumValue.name == value }
 
+    private const val ANY_RAID_LOCATION_TOKEN = "*"
     private const val MIN_RAID_LOCATION = 1
     private const val MAX_RAID_LOCATION = 28
     private const val MAX_RAID_PAGE = 1

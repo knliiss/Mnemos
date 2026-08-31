@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
+import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -28,16 +29,16 @@ class NotificationCallbackHandler(
             return refresh(context)
         }
 
-        if (context.data == NotificationCallbackData.CREATE) {
-            return updateContext(context) { NotificationMenuContext.startCreation() }
-        }
-
-        if (context.data == NotificationCallbackData.CREATE_TYPES) {
-            return updateContext(context) { NotificationMenuContext.startCreation() }
+        if (context.data == NotificationCallbackData.CREATE || context.data == NotificationCallbackData.CREATE_TYPES) {
+            return updateContext(context) { NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP) }
         }
 
         NotificationCallbackData.selectedCreationMode(context.data)?.let { mode ->
-            return updateContext(context) { NotificationMenuContext.selectMode(mode) }
+            return if (mode == NotificationCreationMode.RAID) {
+                openRaidEditor(context)
+            } else {
+                updateContext(context) { NotificationMenuContext.selectMode(mode) }
+            }
         }
 
         if (context.data == NotificationCallbackData.ITEM_DROP_PLAYER) {
@@ -88,15 +89,15 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedBoosterType(context.data)?.let { boosterType ->
-            return creationService.createBooster(context, boosterType)
+            return creationService.toggleBooster(context, boosterType)
         }
 
         NotificationCallbackData.selectedDungeonType(context.data)?.let { dungeonType ->
-            return creationService.createDungeon(context, dungeonType)
+            return creationService.toggleDungeon(context, dungeonType)
         }
 
         NotificationCallbackData.selectedGlobalType(context.data)?.let { globalType ->
-            return creationService.createGlobal(context, globalType)
+            return creationService.toggleGlobal(context, globalType)
         }
 
         NotificationCallbackData.selectedRaidLocation(context.data)?.let { location ->
@@ -119,8 +120,8 @@ class NotificationCallbackHandler(
             )
         }
 
-        if (context.data == NotificationCallbackData.RAID_CREATE) {
-            return creationService.createRaid(context)
+        if (context.data == NotificationCallbackData.RAID_SAVE) {
+            return creationService.updateRaid(context)
         }
 
         NotificationCallbackData.selectedPage(context.data)?.let { page ->
@@ -134,6 +135,19 @@ class NotificationCallbackHandler(
         }
 
         return TelegramDeliveryResult.Delivered
+    }
+
+    private fun openRaidEditor(context: TelegramCallbackContext): TelegramDeliveryResult {
+        val result =
+            subscriptionGateway.list(
+                telegramId = context.telegramId,
+                page = 0,
+                size = 1,
+            )
+        val available = result as? NotificationSubscriptionResult.Available
+        val locations = available?.raidSubscription?.raidLocations.orEmpty()
+
+        return updateContext(context) { NotificationMenuContext.selectRaidMode(locations) }
     }
 
     private fun requestItemDropInput(
