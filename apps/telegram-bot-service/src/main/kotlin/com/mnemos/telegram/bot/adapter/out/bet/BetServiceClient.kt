@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.adapter.out.bet
 
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationResponse
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationStatusResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramEventBetRoundResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
@@ -70,4 +71,10 @@ interface BetServiceClient {
         @PathVariable raceId: UUID,
         @RequestBody request: TelegramIncreaseItemRaceRequest,
     ): TelegramBetOperationResponse
+
+    @GetMapping("/internal/v1/telegram/bets/{telegramId}/operations/{operationId}")
+    fun getOperation(
+        @PathVariable telegramId: Long,
+        @PathVariable operationId: UUID,
+    ): TelegramBetOperationStatusResponse
 }
