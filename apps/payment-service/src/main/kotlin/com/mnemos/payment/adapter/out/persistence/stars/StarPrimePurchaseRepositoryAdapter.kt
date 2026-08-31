@@ -13,7 +13,8 @@ class StarPrimePurchaseRepositoryAdapter(
 ) : StarPrimePurchaseRepository {
     override fun save(purchase: StarPrimePurchase): StarPrimePurchase = repository.save(purchase.toEntity()).toDomain()
 
-    override fun saveAndFlush(purchase: StarPrimePurchase): StarPrimePurchase = repository.saveAndFlush(purchase.toEntity()).toDomain()
+    override fun saveAndFlush(purchase: StarPrimePurchase): StarPrimePurchase =
+        repository.saveAndFlush(purchase.toEntity()).toDomain()
 
     override fun findById(id: UUID): StarPrimePurchase? = repository.findById(id).orElse(null)?.toDomain()
 
