@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.online.SaoOnlineCallbackData
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
@@ -43,7 +44,7 @@ class LocalTelegramMenuMessageRendererTest {
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.RealmList(snapshot))
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("Сейчас отслеживается: <b>58</b>"))
         assertTrue(message.text.contains("SAO-1 — <b>21</b>"))
@@ -75,7 +76,7 @@ class LocalTelegramMenuMessageRendererTest {
             )
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("<b>SAO-4</b>"))
         assertTrue(message.text.contains("Страница: <b>2/2</b>"))
@@ -96,7 +97,7 @@ class LocalTelegramMenuMessageRendererTest {
             )
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("Отправьте никнейм или его часть"))
         assertTrue(message.text.contains("invalid &lt;query&gt;"))
@@ -130,7 +131,7 @@ class LocalTelegramMenuMessageRendererTest {
             )
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("Запрос: <code>name&lt;</code>"))
         assertTrue(message.text.contains("<code>name&lt;one&gt;</code> — SAO-1"))
@@ -144,12 +145,15 @@ class LocalTelegramMenuMessageRendererTest {
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.Unavailable)
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("Не удалось получить актуальный онлайн"))
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
     }
+
+    private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
+        (actions + actionRows.flatten()).filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
     private fun player(nickname: String): SaoOnlinePlayer =
         SaoOnlinePlayer(
