@@ -116,10 +116,11 @@ object BetMenuMessageRenderer {
         races.forEachIndexed { index, race ->
             if (race.status == REGISTRATION_STATUS) {
                 if (race.myPosition == null) {
-                    actions += callback(
-                        "${index + 1} · Вступить за ${race.entryAmount} COIN",
-                        BetCallbackData.joinRace(race.id),
-                    )
+                    actions +=
+                        callback(
+                            "${index + 1} · Вступить за ${race.entryAmount} COIN",
+                            BetCallbackData.joinRace(race.id),
+                        )
                 } else {
                     actions +=
                         callback(
