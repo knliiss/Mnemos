@@ -8,6 +8,7 @@ import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.domain.model.account.invite.InviteCode
 import com.mnemos.account.domain.model.account.role.assignment.RoleAssignment
+import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.invite.AccountInviteRepository
@@ -28,18 +29,20 @@ class JoinAccountService(
     private val roleAssignmentRepository: RoleAssignmentRepository,
 ) {
     @Transactional
-    fun joinAccount(rawInviteCode: String): JoinAccountResult {
-        val user = currentUserProvider.get()
+    fun joinAccount(rawInviteCode: String): JoinAccountResult =
+        joinAccountFor(
+            user = currentUserProvider.get(),
+            rawInviteCode = rawInviteCode,
+        )
+
+    @Transactional
+    fun joinAccountFor(
+        user: User,
+        rawInviteCode: String,
+    ): JoinAccountResult {
         val inviteCode = parseInviteCode(rawInviteCode)
-
-        val invitePreview =
-            inviteRepository.findByCode(inviteCode)
-                ?: throw AccountInviteUnavailableException()
-
-        val account =
-            accountRepository.findByIdForUpdate(
-                invitePreview.accountId,
-            ) ?: throw AccountInviteUnavailableException()
+        val invitePreview = inviteRepository.findByCode(inviteCode) ?: throw AccountInviteUnavailableException()
+        val account = accountRepository.findByIdForUpdate(invitePreview.accountId) ?: throw AccountInviteUnavailableException()
 
         if (account.status != AccountStatus.ACTIVE) {
             throw AccountInviteUnavailableException()
@@ -51,37 +54,21 @@ class JoinAccountService(
                 accountId = account.id,
             ) ?: throw AccountInviteUnavailableException()
 
-        if (
-            accountMemberRepository.existsByAccountIdAndUserId(
-                accountId = account.id,
-                userId = user.id,
-            )
-        ) {
-            throw AccountMemberAlreadyExistsException(
-                accountId = account.id,
-                userId = user.id,
-            )
+        if (accountMemberRepository.existsByAccountIdAndUserId(account.id, user.id)) {
+            throw AccountMemberAlreadyExistsException(account.id, user.id)
         }
 
-        val currentMemberCount =
-            accountMemberRepository.countByAccountId(
-                account.id,
-            )
-
-        account.requireAvailableMemberSlot(currentMemberCount)
+        account.requireAvailableMemberSlot(accountMemberRepository.countByAccountId(account.id))
 
         val now = Instant.now()
-
         invite.consume(now)
 
-        val memberId = AccountMemberId.generate()
         val member =
             AccountMember.create(
-                id = memberId,
+                id = AccountMemberId.generate(),
                 accountId = account.id,
                 userId = user.id,
             )
-
         val createdMember = accountMemberRepository.create(member)
 
         account.baseRoleId?.let { baseRoleId ->
@@ -96,7 +83,6 @@ class JoinAccountService(
         }
 
         user.changeActiveAccount(account.id)
-
         inviteRepository.update(invite)
         userRepository.update(user)
 

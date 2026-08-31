@@ -26,3 +26,11 @@ enum class InternalTelegramAccountStatus {
 data class ChangeInternalTelegramActiveAccountRequest(
     val accountId: UUID,
 )
+
+data class CreateInternalTelegramAccountRequest(
+    val cristalixNickname: String,
+)
+
+data class JoinInternalTelegramAccountRequest(
+    val inviteCode: String,
+)
