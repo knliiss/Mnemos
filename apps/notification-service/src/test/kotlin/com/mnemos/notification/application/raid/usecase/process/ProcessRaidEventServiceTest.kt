@@ -5,6 +5,7 @@ import com.mnemos.notification.application.notification.model.RaidNotificationPa
 import com.mnemos.notification.application.notification.service.NotificationDispatcher
 import com.mnemos.notification.application.raid.matcher.RaidSubscriptionMatcher
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -53,6 +54,34 @@ class ProcessRaidEventServiceTest {
             payload = eq(RaidNotificationPayload(setOf(2, 5))),
             occurredAt = eq(command.occurredAt),
         )
+    }
+
+    @Test
+    fun `uses different source ids for different raid recipients`() {
+        val firstUser = UserId(UUID.randomUUID())
+        val secondUser = UserId(UUID.randomUUID())
+        val command = command(locations = setOf(4))
+
+        whenever(subscriptionMatcher.match(command.locations))
+            .thenReturn(
+                linkedMapOf(
+                    firstUser to setOf(4),
+                    secondUser to setOf(4),
+                ),
+            )
+
+        service.execute(command)
+
+        val sourceIdCaptor = argumentCaptor<UUID>()
+
+        verify(notificationDispatcher, times(2)).dispatch(
+            sourceId = sourceIdCaptor.capture(),
+            recipientIds = any(),
+            payload = eq(RaidNotificationPayload(setOf(4))),
+            occurredAt = eq(command.occurredAt),
+        )
+
+        assertNotEquals(sourceIdCaptor.firstValue, sourceIdCaptor.secondValue)
     }
 
     @Test
