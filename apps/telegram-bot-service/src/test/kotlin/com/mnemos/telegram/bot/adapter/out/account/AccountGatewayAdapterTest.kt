@@ -5,7 +5,9 @@ import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountReq
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountStatus
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountSummaryResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserSettingsResponse
 import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
+import com.mnemos.contracts.account.internal.v1.UpdateInternalTelegramUserLocalizationRequest
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountMutationResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchResult
@@ -121,6 +123,13 @@ class AccountGatewayAdapterTest {
             telegramId: Long,
             request: ChangeInternalTelegramActiveAccountRequest,
         ): InternalTelegramAccountContextResponse? = context
+
+        override fun getUserSettings(telegramId: Long): InternalTelegramUserSettingsResponse? = null
+
+        override fun updateLocalization(
+            telegramId: Long,
+            request: UpdateInternalTelegramUserLocalizationRequest,
+        ): InternalTelegramUserSettingsResponse? = null
     }
 
     private class FailingAccountServiceClient : AccountServiceClient {
@@ -140,5 +149,12 @@ class AccountGatewayAdapterTest {
             telegramId: Long,
             request: ChangeInternalTelegramActiveAccountRequest,
         ): InternalTelegramAccountContextResponse = error("account unavailable")
+
+        override fun getUserSettings(telegramId: Long): InternalTelegramUserSettingsResponse = error("account unavailable")
+
+        override fun updateLocalization(
+            telegramId: Long,
+            request: UpdateInternalTelegramUserLocalizationRequest,
+        ): InternalTelegramUserSettingsResponse = error("account unavailable")
     }
 }

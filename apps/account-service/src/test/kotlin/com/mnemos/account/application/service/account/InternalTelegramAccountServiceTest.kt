@@ -2,6 +2,8 @@ package com.mnemos.account.application.service.account
 
 import com.mnemos.account.application.query.account.AccountQueryRepository
 import com.mnemos.account.application.query.account.AccountSummary
+import com.mnemos.account.application.service.member.JoinAccountService
+import com.mnemos.account.application.service.user.InternalTelegramUserBootstrapService
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.domain.model.user.User
@@ -38,7 +40,7 @@ class InternalTelegramAccountServiceTest {
         ).thenReturn(listOf(account))
 
         val service =
-            InternalTelegramAccountService(
+            createService(
                 userRepository = userRepository,
                 accountQueryRepository = accountQueryRepository,
                 changeActiveAccountService = changeActiveAccountService,
@@ -69,7 +71,7 @@ class InternalTelegramAccountServiceTest {
         ).thenReturn(emptyList())
 
         val service =
-            InternalTelegramAccountService(
+            createService(
                 userRepository = userRepository,
                 accountQueryRepository = accountQueryRepository,
                 changeActiveAccountService = changeActiveAccountService,
@@ -85,6 +87,20 @@ class InternalTelegramAccountServiceTest {
             accountId = targetAccountId,
         )
     }
+
+    private fun createService(
+        userRepository: UserRepository,
+        accountQueryRepository: AccountQueryRepository,
+        changeActiveAccountService: ChangeActiveAccountService,
+    ): InternalTelegramAccountService =
+        InternalTelegramAccountService(
+            userRepository = userRepository,
+            accountQueryRepository = accountQueryRepository,
+            changeActiveAccountService = changeActiveAccountService,
+            createAccountService = mock<CreateAccountService>(),
+            joinAccountService = mock<JoinAccountService>(),
+            userBootstrapService = mock<InternalTelegramUserBootstrapService>(),
+        )
 
     private fun createUser(activeAccountId: AccountId?): User {
         val user =
