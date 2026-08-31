@@ -4,12 +4,18 @@ import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetMutationResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetRoundsResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetSide
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import java.util.UUID
 
 interface BetGateway {
     fun listRounds(telegramId: Long): TelegramBetRoundsResult
 
-    fun history(telegramId: Long): TelegramBetHistoryResult
+    fun eventHistory(telegramId: Long): TelegramBetHistoryResult
+
+    fun listItemRaces(telegramId: Long): TelegramItemRacesResult
+
+    fun itemRaceHistory(telegramId: Long): TelegramItemRaceHistoryResult
 
     fun place(
         telegramId: Long,
@@ -22,6 +28,19 @@ interface BetGateway {
     fun increase(
         telegramId: Long,
         roundId: UUID,
+        amount: Long,
+        idempotencyKey: UUID,
+    ): TelegramBetMutationResult
+
+    fun joinItemRace(
+        telegramId: Long,
+        raceId: UUID,
+        idempotencyKey: UUID,
+    ): TelegramBetMutationResult
+
+    fun increaseItemRace(
+        telegramId: Long,
+        raceId: UUID,
         amount: Long,
         idempotencyKey: UUID,
     ): TelegramBetMutationResult
