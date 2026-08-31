@@ -2,6 +2,7 @@ package com.mnemos.bet.application.eventbet.usecase.list
 
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.eventbet.port.out.EventBetReader
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,7 +25,7 @@ class ListEventBetRoundsService(
         return listForAccount(account.id)
     }
 
-    private fun listForAccount(accountId: com.mnemos.common.core.model.id.AccountId): List<ListEventBetRoundResult> {
+    private fun listForAccount(accountId: AccountId): List<ListEventBetRoundResult> {
         val rounds = reader.findCurrentRounds()
         val betsByRoundId =
             reader
