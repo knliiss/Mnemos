@@ -5,9 +5,13 @@ import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetMutationResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetRoundsResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetSide
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import com.mnemos.telegram.bot.application.bet.port.out.BetGateway
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetSide as ContractBetSide
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseItemRaceRequest
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramJoinItemRaceRequest
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramPlaceEventBetRequest
 import feign.FeignException
 import org.springframework.stereotype.Component
@@ -32,10 +36,10 @@ class BetGatewayAdapter(
             TelegramBetRoundsResult.Unavailable
         }
 
-    override fun history(telegramId: Long): TelegramBetHistoryResult =
+    override fun eventHistory(telegramId: Long): TelegramBetHistoryResult =
         try {
             TelegramBetHistoryResult.Available(
-                client.history(telegramId).map { bet -> bet.toModel() },
+                client.eventHistory(telegramId).map { bet -> bet.toModel() },
             )
         } catch (exception: FeignException) {
             if (exception.status() == 404) {
@@ -45,6 +49,36 @@ class BetGatewayAdapter(
             }
         } catch (_: RuntimeException) {
             TelegramBetHistoryResult.Unavailable
+        }
+
+    override fun listItemRaces(telegramId: Long): TelegramItemRacesResult =
+        try {
+            TelegramItemRacesResult.Available(
+                client.listItemRaces(telegramId).map { race -> race.toModel() },
+            )
+        } catch (exception: FeignException) {
+            if (exception.status() == 404) {
+                TelegramItemRacesResult.AccountRequired
+            } else {
+                TelegramItemRacesResult.Unavailable
+            }
+        } catch (_: RuntimeException) {
+            TelegramItemRacesResult.Unavailable
+        }
+
+    override fun itemRaceHistory(telegramId: Long): TelegramItemRaceHistoryResult =
+        try {
+            TelegramItemRaceHistoryResult.Available(
+                client.itemRaceHistory(telegramId).map { position -> position.toModel() },
+            )
+        } catch (exception: FeignException) {
+            if (exception.status() == 404) {
+                TelegramItemRaceHistoryResult.AccountRequired
+            } else {
+                TelegramItemRaceHistoryResult.Unavailable
+            }
+        } catch (_: RuntimeException) {
+            TelegramItemRaceHistoryResult.Unavailable
         }
 
     override fun place(
@@ -79,6 +113,37 @@ class BetGatewayAdapter(
                 roundId = roundId,
                 request =
                     TelegramIncreaseEventBetRequest(
+                        amount = amount,
+                        idempotencyKey = idempotencyKey,
+                    ),
+            )
+        }
+
+    override fun joinItemRace(
+        telegramId: Long,
+        raceId: UUID,
+        idempotencyKey: UUID,
+    ): TelegramBetMutationResult =
+        mutate {
+            client.joinItemRace(
+                telegramId = telegramId,
+                raceId = raceId,
+                request = TelegramJoinItemRaceRequest(idempotencyKey = idempotencyKey),
+            )
+        }
+
+    override fun increaseItemRace(
+        telegramId: Long,
+        raceId: UUID,
+        amount: Long,
+        idempotencyKey: UUID,
+    ): TelegramBetMutationResult =
+        mutate {
+            client.increaseItemRace(
+                telegramId = telegramId,
+                raceId = raceId,
+                request =
+                    TelegramIncreaseItemRaceRequest(
                         amount = amount,
                         idempotencyKey = idempotencyKey,
                     ),
