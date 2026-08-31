@@ -11,8 +11,7 @@ class InternalTelegramUserSettingsService(
     private val userRepository: UserRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findLocalization(telegramId: TelegramId): LocalizationLanguage? =
-        userRepository.findByTelegramId(telegramId)?.localizationLanguage
+    fun findLocalization(telegramId: TelegramId): LocalizationLanguage? = userRepository.findByTelegramId(telegramId)?.localizationLanguage
 
     @Transactional
     fun updateLocalization(

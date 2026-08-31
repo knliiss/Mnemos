@@ -5,11 +5,9 @@ import com.mnemos.contracts.account.internal.v1.InternalTelegramLocalizationLang
 import com.mnemos.contracts.account.internal.v1.InternalTelegramUserSettingsResponse
 
 object InternalTelegramUserSettingsApiMapper {
-    fun LocalizationLanguage.toInternal(): InternalTelegramLocalizationLanguage =
-        InternalTelegramLocalizationLanguage.valueOf(name)
+    fun LocalizationLanguage.toInternal(): InternalTelegramLocalizationLanguage = InternalTelegramLocalizationLanguage.valueOf(name)
 
-    fun InternalTelegramLocalizationLanguage.toDomain(): LocalizationLanguage =
-        LocalizationLanguage.valueOf(name)
+    fun InternalTelegramLocalizationLanguage.toDomain(): LocalizationLanguage = LocalizationLanguage.valueOf(name)
 
     fun LocalizationLanguage.toSettingsResponse(): InternalTelegramUserSettingsResponse =
         InternalTelegramUserSettingsResponse(
