@@ -193,7 +193,7 @@ class NotificationSubscriptionGatewayAdapter(
     private inline fun <reified T : Enum<T>> enumSubscriptionIds(
         subscriptions: List<NotificationSubscription>,
         type: NotificationSubscriptionType,
-        value: (NotificationSubscription) -> String?,
+        crossinline value: (NotificationSubscription) -> String?,
     ): Map<T, UUID> =
         subscriptions
             .asSequence()
