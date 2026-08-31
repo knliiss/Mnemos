@@ -7,6 +7,7 @@ enum class TelegramHelpSection(
     MINI_APP("help:mini-app"),
     SUBSCRIPTIONS("help:subscriptions"),
     ACCOUNTS("help:accounts"),
+    BETS("help:bets"),
     NOTIFICATIONS("help:notifications"),
     TROUBLESHOOTING("help:troubleshooting"),
     ;
