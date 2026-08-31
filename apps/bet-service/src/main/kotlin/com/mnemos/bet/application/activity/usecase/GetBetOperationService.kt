@@ -26,11 +26,15 @@ class GetBetOperationService(
     fun executeFor(
         operationId: WalletOperationId,
         userId: UserId,
-    ): WalletOperation =
-        findForAccount(
-            operationId = operationId,
-            accountId = accountProvider.requireActiveAccount(userId).id,
-        )
+    ): WalletOperation {
+        val operation = repository.findById(operationId)
+
+        if (operation == null || operation.initiatedByUserId != userId) {
+            throw BetNotFoundException("Bet operation was not found")
+        }
+
+        return operation
+    }
 
     private fun findForAccount(
         operationId: WalletOperationId,
