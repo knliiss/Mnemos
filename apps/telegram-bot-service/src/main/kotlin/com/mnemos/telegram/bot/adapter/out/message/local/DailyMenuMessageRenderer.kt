@@ -111,10 +111,16 @@ object DailyMenuMessageRenderer {
                     "🎁 <b>Daily</b>",
                     "",
                     "Для Daily нужен активный Cristalix-аккаунт.",
-                    "Откройте Mini App, если аккаунт ещё не настроен.",
+                    "Создать аккаунт или присоединиться по приглашению можно прямо в боте.",
                 ).joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = navigationActions,
+            actions =
+                listOf(
+                    OutboundTelegramMessageAction.Callback(
+                        label = "👤 Настроить аккаунт",
+                        data = TelegramMenuScreen.ACCOUNT.callbackData,
+                    ),
+                ) + navigationActions,
         )
 
     private fun unavailableMessage(): OutboundTelegramMessage =
@@ -147,6 +153,5 @@ object DailyMenuMessageRenderer {
                 "⌂ Меню",
                 TelegramMenuScreen.HOME.callbackData,
             ),
-            OutboundTelegramMessageAction.OpenMiniApp("↗️ Открыть Mini App"),
         )
 }

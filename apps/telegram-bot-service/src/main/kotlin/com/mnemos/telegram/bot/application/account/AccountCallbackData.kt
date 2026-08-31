@@ -5,6 +5,9 @@ import java.util.UUID
 object AccountCallbackData {
     const val PREFIX = "a:"
     const val REFRESH = "a:r"
+    const val CREATE = "a:c"
+    const val JOIN = "a:j"
+    const val CANCEL_INPUT = "a:x"
     private const val SWITCH_PREFIX = "a:s:"
 
     fun switch(accountId: UUID): String = "$SWITCH_PREFIX$accountId"

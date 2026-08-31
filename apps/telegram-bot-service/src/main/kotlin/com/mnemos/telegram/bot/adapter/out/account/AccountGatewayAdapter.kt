@@ -1,8 +1,11 @@
 package com.mnemos.telegram.bot.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.ChangeInternalTelegramActiveAccountRequest
+import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountRequest
+import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
 import com.mnemos.telegram.bot.adapter.out.account.AccountApiMapper.toModel
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountMutationResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchResult
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import feign.FeignException
@@ -21,6 +24,28 @@ class AccountGatewayAdapter(
                 ?: TelegramAccountContextResult.RegistrationRequired
         } catch (_: RuntimeException) {
             TelegramAccountContextResult.Unavailable
+        }
+
+    override fun createAccount(
+        telegramId: Long,
+        cristalixNickname: String,
+    ): TelegramAccountMutationResult =
+        mutate {
+            client.createAccount(
+                telegramId = telegramId,
+                request = CreateInternalTelegramAccountRequest(cristalixNickname),
+            )
+        }
+
+    override fun joinAccount(
+        telegramId: Long,
+        inviteCode: String,
+    ): TelegramAccountMutationResult =
+        mutate {
+            client.joinAccount(
+                telegramId = telegramId,
+                request = JoinInternalTelegramAccountRequest(inviteCode),
+            )
         }
 
     override fun changeActiveAccount(
@@ -47,5 +72,22 @@ class AccountGatewayAdapter(
             }
         } catch (_: RuntimeException) {
             TelegramAccountSwitchResult.Unavailable
+        }
+
+    private fun mutate(action: () -> Any?): TelegramAccountMutationResult =
+        try {
+            if (action() == null) {
+                TelegramAccountMutationResult.Invalid
+            } else {
+                TelegramAccountMutationResult.Updated
+            }
+        } catch (exception: FeignException) {
+            if (exception.status() in 400..499) {
+                TelegramAccountMutationResult.Invalid
+            } else {
+                TelegramAccountMutationResult.Unavailable
+            }
+        } catch (_: RuntimeException) {
+            TelegramAccountMutationResult.Unavailable
         }
 }

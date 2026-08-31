@@ -1,10 +1,13 @@
 package com.mnemos.telegram.bot.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.ChangeInternalTelegramActiveAccountRequest
+import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextResponse
+import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 
@@ -18,6 +21,18 @@ interface AccountServiceClient {
     @GetMapping("/internal/v1/users/telegram/{telegramId}/accounts")
     fun getAccounts(
         @PathVariable telegramId: Long,
+    ): InternalTelegramAccountContextResponse?
+
+    @PostMapping("/internal/v1/users/telegram/{telegramId}/accounts")
+    fun createAccount(
+        @PathVariable telegramId: Long,
+        @RequestBody request: CreateInternalTelegramAccountRequest,
+    ): InternalTelegramAccountContextResponse?
+
+    @PostMapping("/internal/v1/users/telegram/{telegramId}/accounts/join")
+    fun joinAccount(
+        @PathVariable telegramId: Long,
+        @RequestBody request: JoinInternalTelegramAccountRequest,
     ): InternalTelegramAccountContextResponse?
 
     @PutMapping("/internal/v1/users/telegram/{telegramId}/active-account")

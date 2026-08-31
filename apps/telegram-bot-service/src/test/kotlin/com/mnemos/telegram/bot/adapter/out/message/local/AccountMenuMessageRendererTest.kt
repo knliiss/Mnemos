@@ -8,10 +8,12 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalance
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalanceResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContext
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountInputMode
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSummary
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -52,6 +54,50 @@ class AccountMenuMessageRendererTest {
         assertTrue(message.text.contains("Активный аккаунт переключён"))
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.switch(switchableAccount.accountId) })
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
+        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
+        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
+    }
+
+    @Test
+    fun `registration required screen offers chat native account setup`() {
+        val data =
+            TelegramMenuScreenData.Account(
+                AccountMenuScreenData(
+                    result = TelegramAccountContextResult.RegistrationRequired,
+                    balance = TelegramAccountBalanceResult.NotRequired,
+                    feedback = null,
+                ),
+            )
+
+        val message = AccountMenuMessageRenderer.render(data)
+        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val miniAppActions = message.actions.filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
+
+        assertTrue(message.text.contains("без Mini App"))
+        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
+        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
+        assertTrue(miniAppActions.isEmpty())
+    }
+
+    @Test
+    fun `account input mode keeps user inside chat flow`() {
+        val data =
+            TelegramMenuScreenData.Account(
+                AccountMenuScreenData(
+                    result = TelegramAccountContextResult.RegistrationRequired,
+                    balance = TelegramAccountBalanceResult.NotRequired,
+                    feedback = AccountMenuFeedback(AccountMenuFeedbackType.CREATE_INVALID),
+                    inputMode = TelegramAccountInputMode.CREATE,
+                ),
+            )
+
+        val message = AccountMenuMessageRenderer.render(data)
+        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+
+        assertTrue(message.text.contains("ник Cristalix"))
+        assertTrue(message.text.contains("отправьте его ещё раз"))
+        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CANCEL_INPUT })
+        assertFalse(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
     }
 
     @Test

@@ -4,11 +4,13 @@ import com.mnemos.telegram.bot.application.account.AccountMenuContext
 import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountBalanceResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountInputMode
 import com.mnemos.telegram.bot.application.account.port.out.AccountBalanceGateway
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import org.springframework.stereotype.Component
 
 @Component
@@ -27,6 +29,7 @@ class AccountMenuScreenDataProvider(
                 result = accountResult,
                 balance = balanceResult,
                 feedback = AccountMenuContext.feedback(session.screenContext),
+                inputMode = inputMode(session.pendingInput),
             ),
         )
     }
@@ -46,4 +49,11 @@ class AccountMenuScreenDataProvider(
 
         return balanceGateway.getBalances(telegramId)
     }
+
+    private fun inputMode(pendingInput: TelegramPendingInput?): TelegramAccountInputMode? =
+        when (pendingInput) {
+            TelegramPendingInput.ACCOUNT_CREATE -> TelegramAccountInputMode.CREATE
+            TelegramPendingInput.ACCOUNT_JOIN -> TelegramAccountInputMode.JOIN
+            else -> null
+        }
 }

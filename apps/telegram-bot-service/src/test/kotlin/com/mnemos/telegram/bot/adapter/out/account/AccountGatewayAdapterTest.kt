@@ -1,10 +1,13 @@
 package com.mnemos.telegram.bot.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.ChangeInternalTelegramActiveAccountRequest
+import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountStatus
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountSummaryResponse
+import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
+import com.mnemos.telegram.bot.application.account.model.TelegramAccountMutationResult
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
@@ -24,6 +27,21 @@ class AccountGatewayAdapterTest {
         assertEquals(accountId, result.context.activeAccountId)
         assertEquals("knaliz", account.cristalixNickname)
         assertEquals(true, account.owner)
+    }
+
+    @Test
+    fun `gateway maps successful account create and join`() {
+        val accountId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val gateway = AccountGatewayAdapter(FakeAccountServiceClient(context = context(accountId)))
+
+        assertSame(
+            TelegramAccountMutationResult.Updated,
+            gateway.createAccount(931458258, "knaliz"),
+        )
+        assertSame(
+            TelegramAccountMutationResult.Updated,
+            gateway.joinAccount(931458258, "invite-code"),
+        )
     }
 
     @Test
@@ -53,6 +71,14 @@ class AccountGatewayAdapterTest {
 
         assertSame(TelegramAccountContextResult.Unavailable, gateway.getContext(931458258))
         assertSame(
+            TelegramAccountMutationResult.Unavailable,
+            gateway.createAccount(931458258, "knaliz"),
+        )
+        assertSame(
+            TelegramAccountMutationResult.Unavailable,
+            gateway.joinAccount(931458258, "invite-code"),
+        )
+        assertSame(
             TelegramAccountSwitchResult.Unavailable,
             gateway.changeActiveAccount(931458258, UUID.randomUUID()),
         )
@@ -81,6 +107,16 @@ class AccountGatewayAdapterTest {
     ) : AccountServiceClient {
         override fun getAccounts(telegramId: Long): InternalTelegramAccountContextResponse? = context
 
+        override fun createAccount(
+            telegramId: Long,
+            request: CreateInternalTelegramAccountRequest,
+        ): InternalTelegramAccountContextResponse? = context
+
+        override fun joinAccount(
+            telegramId: Long,
+            request: JoinInternalTelegramAccountRequest,
+        ): InternalTelegramAccountContextResponse? = context
+
         override fun changeActiveAccount(
             telegramId: Long,
             request: ChangeInternalTelegramActiveAccountRequest,
@@ -89,6 +125,16 @@ class AccountGatewayAdapterTest {
 
     private class FailingAccountServiceClient : AccountServiceClient {
         override fun getAccounts(telegramId: Long): InternalTelegramAccountContextResponse = error("account unavailable")
+
+        override fun createAccount(
+            telegramId: Long,
+            request: CreateInternalTelegramAccountRequest,
+        ): InternalTelegramAccountContextResponse = error("account unavailable")
+
+        override fun joinAccount(
+            telegramId: Long,
+            request: JoinInternalTelegramAccountRequest,
+        ): InternalTelegramAccountContextResponse = error("account unavailable")
 
         override fun changeActiveAccount(
             telegramId: Long,

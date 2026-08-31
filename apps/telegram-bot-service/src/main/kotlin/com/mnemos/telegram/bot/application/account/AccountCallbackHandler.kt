@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -25,10 +26,36 @@ class AccountCallbackHandler(
             return TelegramDeliveryResult.Delivered
         }
 
-        if (context.data == AccountCallbackData.REFRESH) {
-            return update(context, AccountMenuContext.clear())
+        return when (context.data) {
+            AccountCallbackData.REFRESH -> update(context, AccountMenuContext.clear())
+            AccountCallbackData.CREATE -> requestInput(context, TelegramPendingInput.ACCOUNT_CREATE)
+            AccountCallbackData.JOIN -> requestInput(context, TelegramPendingInput.ACCOUNT_JOIN)
+            AccountCallbackData.CANCEL_INPUT -> cancelInput(context)
+            else -> switchAccount(context)
         }
+    }
 
+    private fun requestInput(
+        context: TelegramCallbackContext,
+        pendingInput: TelegramPendingInput,
+    ): TelegramDeliveryResult =
+        menuService.requestTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.ACCOUNT,
+            pendingInput = pendingInput,
+            updateContext = { AccountMenuContext.clear() },
+        )
+
+    private fun cancelInput(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.cancelTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.ACCOUNT,
+            updateContext = { AccountMenuContext.clear() },
+        )
+
+    private fun switchAccount(context: TelegramCallbackContext): TelegramDeliveryResult {
         val accountId =
             AccountCallbackData.switchedAccountId(context.data)
                 ?: return TelegramDeliveryResult.Delivered
