@@ -101,7 +101,7 @@ object BetMenuContext {
             put(MODE_KEY, mode.name)
             put(FEEDBACK_KEY, state.toFeedback().name)
 
-            if (state == TelegramBetOperationState.PENDING) {
+            if (state == TelegramBetOperationState.PENDING || state == TelegramBetOperationState.UNAVAILABLE) {
                 put(OPERATION_ID_KEY, operationId.toString())
             }
         }
