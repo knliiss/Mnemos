@@ -3,6 +3,7 @@ package com.mnemos.bet.application.eventbet.usecase.history
 import com.mnemos.bet.application.account.port.out.AccountProvider
 import com.mnemos.bet.application.eventbet.model.EventBetView
 import com.mnemos.bet.application.eventbet.port.out.EventBetReader
+import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,5 +16,10 @@ class ListMyEventBetsService(
     override fun execute(): List<EventBetView> =
         reader.findHistory(
             accountProvider.requireActiveAccount().id,
+        )
+
+    fun executeFor(userId: UserId): List<EventBetView> =
+        reader.findHistory(
+            accountProvider.requireActiveAccount(userId).id,
         )
 }
