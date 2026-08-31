@@ -20,6 +20,7 @@ import java.util.UUID
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class BetRaceIncreaseAmountTextInputHandler(
     private val gateway: BetGateway,
+    private val operationResultResolver: BetOperationResultResolver,
     private val menuService: TelegramMenuService,
     private val sessionRepository: TelegramMenuSessionRepository,
 ) : TelegramTextInputHandler {
@@ -39,24 +40,39 @@ class BetRaceIncreaseAmountTextInputHandler(
         }
 
         val idempotencyKey = deterministicKey("race-increase:$seed:$raceId:$amount")
-
-        return when (
+        val result =
             gateway.increaseItemRace(
                 telegramId = context.telegramId,
                 raceId = raceId,
                 amount = amount,
                 idempotencyKey = idempotencyKey,
             )
-        ) {
-            TelegramBetMutationResult.ACCEPTED -> complete(context.telegramId, BetMenuContext.accepted(BetMenuMode.RACES))
-            TelegramBetMutationResult.ACCOUNT_REQUIRED -> complete(context.telegramId, BetMenuContext.accountRequired(BetMenuMode.RACES))
-            TelegramBetMutationResult.INVALID ->
+
+        return when (result) {
+            is TelegramBetMutationResult.Accepted ->
+                complete(
+                    telegramId = context.telegramId,
+                    screenContext =
+                        operationResultResolver.resolve(
+                            telegramId = context.telegramId,
+                            mode = BetMenuMode.RACES,
+                            operationId = result.operationId,
+                        ),
+                )
+
+            TelegramBetMutationResult.AccountRequired ->
+                complete(
+                    telegramId = context.telegramId,
+                    screenContext = BetMenuContext.accountRequired(BetMenuMode.RACES),
+                )
+
+            TelegramBetMutationResult.Invalid ->
                 updatePending(
                     telegramId = context.telegramId,
                     screenContext = BetMenuContext.withFeedback(session.screenContext, BetMenuFeedback.INVALID_AMOUNT),
                 )
 
-            TelegramBetMutationResult.UNAVAILABLE ->
+            TelegramBetMutationResult.Unavailable ->
                 updatePending(
                     telegramId = context.telegramId,
                     screenContext = BetMenuContext.withFeedback(session.screenContext, BetMenuFeedback.UNAVAILABLE),
