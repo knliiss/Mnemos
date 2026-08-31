@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.online.SaoOnlineMenuContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -75,7 +76,7 @@ class TelegramCommandRouterTest {
                 "/prime" to TelegramMenuScreen.PRIME,
                 "/settings" to TelegramMenuScreen.SETTINGS,
             )
-        whenever(menuService.open(any(), any(), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
 
         shortcuts.forEach { (command, screen) ->
             val result = router.route(commandContext(command))
@@ -94,7 +95,7 @@ class TelegramCommandRouterTest {
 
     @Test
     fun `online numeric argument opens selected realm`() {
-        whenever(menuService.open(any(), any(), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
 
         val result = router.route(commandContext("/online 7"))
 
@@ -109,7 +110,7 @@ class TelegramCommandRouterTest {
 
     @Test
     fun `online text argument opens player search`() {
-        whenever(menuService.open(any(), any(), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
 
         val result = router.route(commandContext("/online Kirito"))
 
@@ -124,7 +125,7 @@ class TelegramCommandRouterTest {
 
     @Test
     fun `events argument opens event search`() {
-        whenever(menuService.open(any(), any(), any(), any())).thenReturn(TelegramDeliveryResult.Delivered)
+        whenever(menuService.open(any(), any(), any(), isNull())).thenReturn(TelegramDeliveryResult.Delivered)
 
         val result = router.route(commandContext("/events Secret Sword"))
 
