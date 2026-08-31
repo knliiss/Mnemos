@@ -14,16 +14,32 @@ class BetOperationTracker(
     fun awaitTerminalState(
         telegramId: Long,
         operationId: UUID,
+    ): TelegramBetOperationState =
+        awaitTerminalState(
+            telegramId = telegramId,
+            operationId = operationId,
+            maxAttempts = MAX_ATTEMPTS,
+            pollInterval = POLL_INTERVAL,
+        )
+
+    internal fun awaitTerminalState(
+        telegramId: Long,
+        operationId: UUID,
+        maxAttempts: Int,
+        pollInterval: Duration,
     ): TelegramBetOperationState {
-        repeat(MAX_ATTEMPTS) { attempt ->
+        require(maxAttempts > 0)
+        require(!pollInterval.isNegative)
+
+        repeat(maxAttempts) { attempt ->
             val state = gateway.getOperationState(telegramId, operationId)
 
             if (state != TelegramBetOperationState.PENDING) {
                 return state
             }
 
-            if (attempt < MAX_ATTEMPTS - 1) {
-                LockSupport.parkNanos(POLL_INTERVAL.toNanos())
+            if (attempt < maxAttempts - 1 && !pollInterval.isZero) {
+                LockSupport.parkNanos(pollInterval.toNanos())
             }
         }
 
