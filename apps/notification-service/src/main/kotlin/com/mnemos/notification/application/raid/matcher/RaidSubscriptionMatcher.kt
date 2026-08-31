@@ -10,13 +10,20 @@ class RaidSubscriptionMatcher(
     private val repository: RaidSubscriptionRepository,
 ) {
     @Transactional(readOnly = true)
-    fun match(locations: Set<Int>): Set<UserId> {
-        val allLocationsSubscribers = repository.findAllLocationsSubscriberUserIds()
+    fun match(locations: Set<Int>): Map<UserId, Set<Int>> {
+        val matchedLocationsByUser = linkedMapOf<UserId, Set<Int>>()
 
-        if (locations.isEmpty()) {
-            return allLocationsSubscribers
+        repository.findAllLocationsSubscriberUserIds().forEach { userId ->
+            matchedLocationsByUser[userId] = locations
         }
 
-        return allLocationsSubscribers + repository.findSubscriberUserIdsByLocations(locations)
+        locations.sorted().forEach { location ->
+            repository.findSubscriberUserIdsByLocations(setOf(location)).forEach { userId ->
+                val currentLocations = matchedLocationsByUser[userId].orEmpty()
+                matchedLocationsByUser[userId] = currentLocations + location
+            }
+        }
+
+        return matchedLocationsByUser
     }
 }
