@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import java.time.Clock
 
 @Service
-@ConditionalOnProperty(prefix = "mnemos.notification.telegram", name = ["enabled"], havingValue = "true")
+@ConditionalOnProperty(prefix = "mnemos.notification.delivery", name = ["enabled"], havingValue = "true")
 class NotificationDeliveryService(
     private val queue: NotificationDeliveryQueue,
     private val schedulingPolicy: DeliverySchedulingPolicy,
