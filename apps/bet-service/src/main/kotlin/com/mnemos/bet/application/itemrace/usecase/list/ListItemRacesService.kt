@@ -5,6 +5,7 @@ import com.mnemos.bet.application.itemrace.model.ItemRaceView
 import com.mnemos.bet.application.itemrace.port.out.ItemRaceReader
 import com.mnemos.bet.application.itemrace.usecase.get.GetItemRaceResult
 import com.mnemos.bet.domain.itemrace.model.ItemRaceId
+import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +20,7 @@ class ListItemRacesService(
 
     fun executeFor(userId: UserId): List<GetItemRaceResult> = listForAccount(accountProvider.requireActiveAccount(userId).id)
 
-    private fun listForAccount(accountId: com.mnemos.common.core.model.id.AccountId): List<GetItemRaceResult> {
+    private fun listForAccount(accountId: AccountId): List<GetItemRaceResult> {
         val ongoingParticipants = reader.findOngoingParticipants(accountId)
         val participantByRaceId = ongoingParticipants.associateBy { it.raceId }
         val raceById = LinkedHashMap<ItemRaceId, ItemRaceView>()
