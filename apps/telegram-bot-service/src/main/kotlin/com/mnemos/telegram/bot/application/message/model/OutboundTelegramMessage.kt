@@ -11,13 +11,6 @@ data class OutboundTelegramMessage(
         require(text.length <= 4096)
         require(actionRows.none(List<OutboundTelegramMessageAction>::isEmpty))
     }
-
-    fun keyboardRows(): List<List<OutboundTelegramMessageAction>> =
-        if (actionRows.isNotEmpty()) {
-            actionRows
-        } else {
-            emptyList()
-        }
 }
 
 enum class OutboundTelegramMessageParseMode {
@@ -36,21 +29,22 @@ enum class OutboundTelegramButtonStyle(
 }
 
 sealed interface OutboundTelegramMessageAction {
+    val label: String
     val style: OutboundTelegramButtonStyle
 
     data class OpenMiniApp(
-        val label: String,
+        override val label: String,
         override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.PRIMARY,
     ) : OutboundTelegramMessageAction
 
     data class OpenUrl(
-        val label: String,
+        override val label: String,
         val url: String,
         override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
     ) : OutboundTelegramMessageAction
 
     data class Callback(
-        val label: String,
+        override val label: String,
         val data: String,
         override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
     ) : OutboundTelegramMessageAction
