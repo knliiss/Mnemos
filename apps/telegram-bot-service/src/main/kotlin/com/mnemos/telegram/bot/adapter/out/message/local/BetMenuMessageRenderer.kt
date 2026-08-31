@@ -121,7 +121,11 @@ object BetMenuMessageRenderer {
                         BetCallbackData.joinRace(race.id),
                     )
                 } else {
-                    actions += callback("${index + 1} · ➕ Увеличить", BetCallbackData.increaseRace(race.id))
+                    actions +=
+                        callback(
+                            "${index + 1} · ➕ Увеличить",
+                            BetCallbackData.increaseRace(race.id),
+                        )
                 }
             }
         }
