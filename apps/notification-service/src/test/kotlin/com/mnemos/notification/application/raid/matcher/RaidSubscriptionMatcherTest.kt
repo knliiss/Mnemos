@@ -51,7 +51,7 @@ class RaidSubscriptionMatcherTest {
 
         val result = matcher.match(emptySet())
 
-        assertEquals(mapOf(allLocationsUser to emptySet()), result)
+        assertEquals(mapOf(allLocationsUser to emptySet<Int>()), result)
         verify(repository, never()).findSubscriberUserIdsByLocations(any())
     }
 }
