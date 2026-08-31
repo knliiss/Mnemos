@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.menu.model
 
 import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
+import com.mnemos.telegram.bot.application.bet.model.BetMenuScreenData
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
@@ -30,6 +31,10 @@ sealed interface TelegramMenuScreenData {
 
     data class Account(
         val data: AccountMenuScreenData,
+    ) : TelegramMenuScreenData
+
+    data class Bets(
+        val data: BetMenuScreenData,
     ) : TelegramMenuScreenData
 
     data class Prime(
