@@ -7,4 +7,6 @@ enum class TelegramPendingInput {
     NOTIFICATION_ITEM_DROP_ITEM,
     ACCOUNT_CREATE,
     ACCOUNT_JOIN,
+    BET_PLACE_AMOUNT,
+    BET_INCREASE_AMOUNT,
 }
