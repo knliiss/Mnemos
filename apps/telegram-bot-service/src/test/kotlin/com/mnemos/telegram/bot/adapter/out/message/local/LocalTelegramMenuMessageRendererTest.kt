@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayer
 import com.mnemos.telegram.bot.application.online.model.SaoOnlinePlayerSearchMatch
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineRealm
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineSnapshot
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -41,7 +42,7 @@ class LocalTelegramMenuMessageRendererTest {
             )
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.RealmList(snapshot))
 
-        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Сейчас отслеживается: <b>58</b>"))
@@ -73,7 +74,7 @@ class LocalTelegramMenuMessageRendererTest {
                 ),
             )
 
-        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("<b>SAO-4</b>"))
@@ -94,7 +95,7 @@ class LocalTelegramMenuMessageRendererTest {
                 ),
             )
 
-        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Отправьте никнейм или его часть"))
@@ -128,7 +129,7 @@ class LocalTelegramMenuMessageRendererTest {
                 ),
             )
 
-        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Запрос: <code>name&lt;</code>"))
@@ -142,7 +143,7 @@ class LocalTelegramMenuMessageRendererTest {
     fun `online screen renders recoverable unavailable state`() {
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.Unavailable)
 
-        val message = renderer.render(TelegramMenuScreen.ONLINE, data)
+        val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Не удалось получить актуальный онлайн"))
