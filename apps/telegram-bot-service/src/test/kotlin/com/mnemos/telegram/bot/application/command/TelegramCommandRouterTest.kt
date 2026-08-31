@@ -73,6 +73,7 @@ class TelegramCommandRouterTest {
                 "/notifications" to TelegramMenuScreen.NOTIFICATIONS,
                 "/daily" to TelegramMenuScreen.DAILY,
                 "/account" to TelegramMenuScreen.ACCOUNT,
+                "/bets" to TelegramMenuScreen.BETS,
                 "/prime" to TelegramMenuScreen.PRIME,
                 "/settings" to TelegramMenuScreen.SETTINGS,
             )
