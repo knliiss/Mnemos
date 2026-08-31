@@ -7,6 +7,8 @@ import com.mnemos.telegram.bot.application.bet.model.BetMenuMode
 import com.mnemos.telegram.bot.application.bet.model.BetMenuScreenData
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetRoundsResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import com.mnemos.telegram.bot.application.bet.port.out.BetGateway
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
@@ -30,12 +32,28 @@ class BetMenuScreenDataProvider(
             } else {
                 TelegramBetRoundsResult.AccountRequired
             }
-        val history =
+        val races =
+            if (accountReady) {
+                betGateway.listItemRaces(session.telegramId)
+            } else {
+                TelegramItemRacesResult.AccountRequired
+            }
+        val eventHistory =
             if (mode == BetMenuMode.HISTORY) {
                 if (accountReady) {
-                    betGateway.history(session.telegramId)
+                    betGateway.eventHistory(session.telegramId)
                 } else {
                     TelegramBetHistoryResult.AccountRequired
+                }
+            } else {
+                null
+            }
+        val raceHistory =
+            if (mode == BetMenuMode.HISTORY) {
+                if (accountReady) {
+                    betGateway.itemRaceHistory(session.telegramId)
+                } else {
+                    TelegramItemRaceHistoryResult.AccountRequired
                 }
             } else {
                 null
@@ -45,17 +63,23 @@ class BetMenuScreenDataProvider(
             BetMenuScreenData(
                 mode = mode,
                 rounds = rounds,
-                history = history,
+                eventHistory = eventHistory,
+                races = races,
+                raceHistory = raceHistory,
                 selectedRoundId = BetMenuContext.roundId(session.screenContext),
+                selectedRaceId = BetMenuContext.raceId(session.screenContext),
                 selectedSide = BetMenuContext.side(session.screenContext),
                 feedback = BetMenuContext.feedback(session.screenContext),
-                waitingForAmount =
-                    session.pendingInput == TelegramPendingInput.BET_PLACE_AMOUNT ||
-                        session.pendingInput == TelegramPendingInput.BET_INCREASE_AMOUNT,
+                waitingForAmount = isWaitingForAmount(session.pendingInput),
                 increasing = BetMenuContext.increasing(session.screenContext),
             ),
         )
     }
+
+    private fun isWaitingForAmount(pendingInput: TelegramPendingInput?): Boolean =
+        pendingInput == TelegramPendingInput.BET_PLACE_AMOUNT ||
+            pendingInput == TelegramPendingInput.BET_INCREASE_AMOUNT ||
+            pendingInput == TelegramPendingInput.BET_RACE_INCREASE_AMOUNT
 
     private fun hasActiveAccount(telegramId: Long): Boolean =
         when (val result = accountGateway.getContext(telegramId)) {
