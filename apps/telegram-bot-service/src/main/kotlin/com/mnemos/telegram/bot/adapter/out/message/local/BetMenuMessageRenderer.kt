@@ -360,10 +360,12 @@ object BetMenuMessageRenderer {
 
     private fun feedbackText(feedback: BetMenuFeedback?): String? =
         when (feedback) {
-            BetMenuFeedback.ACCEPTED -> "✅ Операция принята. Баланс и позиция обновятся после подтверждения транзакции."
+            BetMenuFeedback.COMPLETED -> "✅ Операция подтверждена. Баланс и позиция обновлены."
+            BetMenuFeedback.FAILED -> "❌ Транзакция не прошла. Ставка не была подтверждена."
+            BetMenuFeedback.PENDING -> "⏳ Операция ещё обрабатывается. Нажмите «Обновить», чтобы проверить статус."
             BetMenuFeedback.INVALID_AMOUNT -> "⚠️ Операция отклонена. Проверьте сумму, баланс, права и состояние рынка."
             BetMenuFeedback.ACCOUNT_REQUIRED -> "⚠️ Активный аккаунт не найден."
-            BetMenuFeedback.UNAVAILABLE -> "⚠️ Не удалось выполнить операцию. Попробуйте еще раз."
+            BetMenuFeedback.UNAVAILABLE -> "⚠️ Не удалось проверить или выполнить операцию. Попробуйте ещё раз."
             null -> null
         }
 
