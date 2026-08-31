@@ -10,6 +10,7 @@ import com.mnemos.bet.domain.exception.BetNotFoundException
 import com.mnemos.bet.domain.itemrace.model.ItemRaceParticipant
 import com.mnemos.bet.domain.itemrace.repository.ItemRaceRepository
 import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission.PLACE_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,9 +26,18 @@ class JoinItemRaceService(
     private val clock: Clock,
 ) : JoinItemRaceUseCase {
     @Transactional
-    override fun execute(command: JoinItemRaceCommand): JoinItemRaceResult {
-        val account = accountProvider.requireActiveAccount(PLACE_BETS)
-        val actorUserId = currentActorProvider.requireUserId()
+    override fun execute(command: JoinItemRaceCommand): JoinItemRaceResult =
+        executeFor(
+            command = command,
+            actorUserId = currentActorProvider.requireUserId(),
+        )
+
+    @Transactional
+    fun executeFor(
+        command: JoinItemRaceCommand,
+        actorUserId: UserId,
+    ): JoinItemRaceResult {
+        val account = accountProvider.requireActiveAccount(actorUserId, PLACE_BETS)
         val race =
             repository.findByIdForUpdate(command.raceId)
                 ?: throw BetNotFoundException("Item race ${command.raceId} was not found")
