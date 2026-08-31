@@ -9,4 +9,5 @@ enum class TelegramPendingInput {
     ACCOUNT_JOIN,
     BET_PLACE_AMOUNT,
     BET_INCREASE_AMOUNT,
+    BET_RACE_INCREASE_AMOUNT,
 }
