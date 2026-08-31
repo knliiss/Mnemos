@@ -21,6 +21,7 @@ class NotificationDeliveryActivationTest {
         assertEquals(serviceCondition.havingValue, schedulerCondition.havingValue)
     }
 
-    private fun conditionOn(type: Class<*>): ConditionalOnProperty =
-        requireNotNull(type.getAnnotation(ConditionalOnProperty::class.java))
+    private fun conditionOn(type: Class<*>): ConditionalOnProperty = requireNotNull(
+        type.getAnnotation(ConditionalOnProperty::class.java),
+    )
 }
