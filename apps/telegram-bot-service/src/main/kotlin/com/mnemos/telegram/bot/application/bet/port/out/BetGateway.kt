@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.application.bet.port.out
 
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetMutationResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramBetOperationState
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetRoundsResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetSide
 import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResult
@@ -16,6 +17,11 @@ interface BetGateway {
     fun listItemRaces(telegramId: Long): TelegramItemRacesResult
 
     fun itemRaceHistory(telegramId: Long): TelegramItemRaceHistoryResult
+
+    fun getOperationState(
+        telegramId: Long,
+        operationId: UUID,
+    ): TelegramBetOperationState
 
     fun place(
         telegramId: Long,
