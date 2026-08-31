@@ -24,6 +24,16 @@ class InternalTelegramUserEndpointSecurityTest {
         assertFalse(authorization.contains("reward-service"))
     }
 
+    @Test
+    fun `Telegram user settings are restricted to telegram bot service`() {
+        val authorization = authorizationFor(InternalTelegramUserSettingsController::class.java)
+
+        assertTrue(authorization.contains("telegram-bot-service"))
+        assertFalse(authorization.contains("payment-service"))
+        assertFalse(authorization.contains("personalization-service"))
+        assertFalse(authorization.contains("reward-service"))
+    }
+
     private fun authorizationFor(controllerType: Class<*>): String =
         requireNotNull(controllerType.getAnnotation(PreAuthorize::class.java)).value
 }
