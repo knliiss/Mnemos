@@ -119,8 +119,7 @@ object NotificationMenuContext {
         return withRaidLocations(clearFeedback(context), nextLocations)
     }
 
-    fun clearRaidLocations(context: Map<String, String>): Map<String, String> =
-        withRaidLocations(clearFeedback(context), emptySet())
+    fun clearRaidLocations(context: Map<String, String>): Map<String, String> = withRaidLocations(clearFeedback(context), emptySet())
 
     fun withRaidPage(
         context: Map<String, String>,
