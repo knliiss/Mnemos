@@ -14,15 +14,17 @@ class InternalTelegramUserEndpointSecurityTest {
         assertFalse(authorization.contains("payment-service"))
         assertFalse(authorization.contains("personalization-service"))
         assertFalse(authorization.contains("notification-service"))
+        assertFalse(authorization.contains("bet-service"))
     }
 
     @Test
-    fun `narrow Telegram identity is available to payment personalization and notification services`() {
+    fun `narrow Telegram identity is available to payment personalization notification and bet services`() {
         val authorization = authorizationFor(InternalTelegramUserIdentityController::class.java)
 
         assertTrue(authorization.contains("payment-service"))
         assertTrue(authorization.contains("personalization-service"))
         assertTrue(authorization.contains("notification-service"))
+        assertTrue(authorization.contains("bet-service"))
         assertFalse(authorization.contains("reward-service"))
     }
 
@@ -39,6 +41,7 @@ class InternalTelegramUserEndpointSecurityTest {
         assertTrue(authorization.contains("notification-service"))
         assertFalse(authorization.contains("personalization-service"))
         assertFalse(authorization.contains("telegram-bot-service"))
+        assertFalse(authorization.contains("bet-service"))
         assertFalse(authorization.contains("reward-service"))
     }
 
@@ -50,6 +53,7 @@ class InternalTelegramUserEndpointSecurityTest {
         assertFalse(authorization.contains("payment-service"))
         assertFalse(authorization.contains("personalization-service"))
         assertFalse(authorization.contains("notification-service"))
+        assertFalse(authorization.contains("bet-service"))
         assertFalse(authorization.contains("reward-service"))
     }
 
