@@ -4,13 +4,22 @@ import com.mnemos.contracts.playerdirectory.internal.v1.InternalSaoRealmSnapshot
 import com.mnemos.event.contracts.internal.v1.InternalEventFeedResponse
 import com.mnemos.event.contracts.internal.v1.InternalWipeListResponse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import tools.jackson.databind.json.JsonMapper
 import java.time.Instant
 
+@SpringBootTest(
+    properties = [
+        "mnemos.telegram-bot.telegram.enabled=false",
+    ],
+)
 class JacksonKotlinContractDeserializationTest {
-    private val jsonMapper = JsonMapper.builder().findAndAddModules().build()
+    @Autowired
+    private lateinit var jsonMapper: JsonMapper
 
     @Test
     fun `deserializes player directory Kotlin contract`() {
@@ -54,7 +63,7 @@ class JacksonKotlinContractDeserializationTest {
             )
 
         assertTrue(feed.items.isEmpty())
-        assertEquals(null, feed.cursor)
+        assertNull(feed.cursor)
         assertTrue(wipes.wipes.isEmpty())
     }
 }
