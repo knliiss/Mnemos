@@ -27,8 +27,7 @@ object BetMenuContext {
 
     fun operationId(context: Map<String, String>): UUID? = context[OPERATION_ID_KEY]?.let(::uuidOrNull)
 
-    fun side(context: Map<String, String>): TelegramBetSide? =
-        context[SIDE_KEY]?.let { value -> enumValueOrNull<TelegramBetSide>(value) }
+    fun side(context: Map<String, String>): TelegramBetSide? = context[SIDE_KEY]?.let { value -> enumValueOrNull<TelegramBetSide>(value) }
 
     fun idempotencySeed(context: Map<String, String>): String? = context[IDEMPOTENCY_SEED_KEY]
 
