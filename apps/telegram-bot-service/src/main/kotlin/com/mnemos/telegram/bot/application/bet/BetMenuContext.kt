@@ -113,8 +113,6 @@ object BetMenuContext {
             FEEDBACK_KEY to BetMenuFeedback.ACCOUNT_REQUIRED.name,
         )
 
-    fun feedbackForOperationState(state: TelegramBetOperationState): BetMenuFeedback = state.toFeedback()
-
     private fun TelegramBetOperationState.toFeedback(): BetMenuFeedback =
         when (this) {
             TelegramBetOperationState.COMPLETED -> BetMenuFeedback.COMPLETED
