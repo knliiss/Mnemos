@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.adapter.out.telegram
 
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -18,11 +19,12 @@ object TelegramMessageMapper {
         }
 
     fun OutboundTelegramMessage.toReplyMarkup(miniAppUrl: String): Keyboard? {
-        if (actions.isEmpty()) {
+        val rows = buildRows(miniAppUrl)
+
+        if (rows.isEmpty()) {
             return null
         }
 
-        val rows = buildRows(miniAppUrl)
         val markup = InlineKeyboardMarkup(*rows.first())
 
         rows.drop(1).forEach { row ->
@@ -33,46 +35,46 @@ object TelegramMessageMapper {
     }
 
     private fun OutboundTelegramMessage.buildRows(miniAppUrl: String): List<Array<InlineKeyboardButton>> {
+        if (actionRows.isNotEmpty()) {
+            return actionRows.map { row ->
+                row.map { action -> action.toTelegramButton(miniAppUrl) }.toTypedArray()
+            }
+        }
+
+        return buildAdaptiveRows(actions, miniAppUrl)
+    }
+
+    private fun buildAdaptiveRows(
+        actions: List<OutboundTelegramMessageAction>,
+        miniAppUrl: String,
+    ): List<Array<InlineKeyboardButton>> {
         val rows = mutableListOf<Array<InlineKeyboardButton>>()
-        val callbackBuffer = mutableListOf<InlineKeyboardButton>()
+        val callbackBuffer = mutableListOf<OutboundTelegramMessageAction.Callback>()
 
         fun flushCallbacks() {
             if (callbackBuffer.isEmpty()) {
                 return
             }
 
-            rows += callbackBuffer.toTypedArray()
+            val buttonsPerRow = buttonsPerAdaptiveRow(callbackBuffer)
+
+            callbackBuffer
+                .chunked(buttonsPerRow)
+                .forEach { row ->
+                    rows += row.map { action -> action.toTelegramButton(miniAppUrl) }.toTypedArray()
+                }
+
             callbackBuffer.clear()
         }
 
         actions.forEach { action ->
             when (action) {
-                is OutboundTelegramMessageAction.OpenMiniApp -> {
+                is OutboundTelegramMessageAction.Callback -> callbackBuffer += action
+                is OutboundTelegramMessageAction.OpenMiniApp,
+                is OutboundTelegramMessageAction.OpenUrl,
+                -> {
                     flushCallbacks()
-                    rows +=
-                        arrayOf(
-                            InlineKeyboardButton(action.label)
-                                .webApp(WebAppInfo(miniAppUrl)),
-                        )
-                }
-
-                is OutboundTelegramMessageAction.OpenUrl -> {
-                    flushCallbacks()
-                    rows +=
-                        arrayOf(
-                            InlineKeyboardButton(action.label)
-                                .url(action.url),
-                        )
-                }
-
-                is OutboundTelegramMessageAction.Callback -> {
-                    callbackBuffer +=
-                        InlineKeyboardButton(action.label)
-                            .callbackData(action.data)
-
-                    if (callbackBuffer.size == CALLBACK_BUTTONS_PER_ROW) {
-                        flushCallbacks()
-                    }
+                    rows += arrayOf(action.toTelegramButton(miniAppUrl))
                 }
             }
         }
@@ -82,5 +84,52 @@ object TelegramMessageMapper {
         return rows
     }
 
-    private const val CALLBACK_BUTTONS_PER_ROW = 2
+    private fun buttonsPerAdaptiveRow(actions: List<OutboundTelegramMessageAction.Callback>): Int {
+        val longestLabel = actions.maxOfOrNull { action -> action.label.length } ?: return 1
+
+        return when {
+            longestLabel <= 5 -> 5
+            longestLabel <= 11 -> 4
+            longestLabel <= 18 -> 3
+            longestLabel <= 28 -> 2
+            else -> 1
+        }
+    }
+
+    private fun OutboundTelegramMessageAction.toTelegramButton(miniAppUrl: String): InlineKeyboardButton {
+        val button =
+            when (this) {
+                is OutboundTelegramMessageAction.OpenMiniApp ->
+                    InlineKeyboardButton(label).webApp(WebAppInfo(miniAppUrl))
+
+                is OutboundTelegramMessageAction.OpenUrl ->
+                    InlineKeyboardButton(label).url(url)
+
+                is OutboundTelegramMessageAction.Callback ->
+                    InlineKeyboardButton(label).callbackData(data)
+            }
+
+        resolvedStyle().telegramValue?.let(button::style)
+
+        return button
+    }
+
+    private fun OutboundTelegramMessageAction.resolvedStyle(): OutboundTelegramButtonStyle {
+        if (style != OutboundTelegramButtonStyle.DEFAULT) {
+            return style
+        }
+
+        return when {
+            label.startsWith("✖") || label.startsWith("✕") || label.startsWith("🗑") ->
+                OutboundTelegramButtonStyle.DANGER
+
+            label.startsWith("✅") || label.startsWith("✓") || label.startsWith("🎁") || label.startsWith("⭐") ->
+                OutboundTelegramButtonStyle.SUCCESS
+
+            label.startsWith("➕") || label.startsWith("🔎") ->
+                OutboundTelegramButtonStyle.PRIMARY
+
+            else -> OutboundTelegramButtonStyle.DEFAULT
+        }
+    }
 }
