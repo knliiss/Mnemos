@@ -3,11 +3,13 @@ package com.mnemos.telegram.bot.adapter.out.bet
 import com.mnemos.telegram.bot.adapter.out.bet.BetApiMapper.toModel
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetMutationResult
+import com.mnemos.telegram.bot.application.bet.model.TelegramBetOperationState
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetRoundsResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetSide
 import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResult
 import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import com.mnemos.telegram.bot.application.bet.port.out.BetGateway
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationResponse
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetSide as ContractBetSide
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseItemRaceRequest
@@ -81,6 +83,21 @@ class BetGatewayAdapter(
             TelegramItemRaceHistoryResult.Unavailable
         }
 
+    override fun getOperationState(
+        telegramId: Long,
+        operationId: UUID,
+    ): TelegramBetOperationState =
+        try {
+            TelegramBetOperationState.valueOf(
+                client.getOperation(
+                    telegramId = telegramId,
+                    operationId = operationId,
+                ).status.name,
+            )
+        } catch (_: RuntimeException) {
+            TelegramBetOperationState.UNAVAILABLE
+        }
+
     override fun place(
         telegramId: Long,
         roundId: UUID,
@@ -150,17 +167,18 @@ class BetGatewayAdapter(
             )
         }
 
-    private fun mutate(request: () -> Any): TelegramBetMutationResult =
+    private fun mutate(request: () -> TelegramBetOperationResponse): TelegramBetMutationResult =
         try {
-            request()
-            TelegramBetMutationResult.ACCEPTED
+            TelegramBetMutationResult.Accepted(
+                operationId = request().operationId,
+            )
         } catch (exception: FeignException) {
             when (exception.status()) {
-                404 -> TelegramBetMutationResult.ACCOUNT_REQUIRED
-                400, 403, 409 -> TelegramBetMutationResult.INVALID
-                else -> TelegramBetMutationResult.UNAVAILABLE
+                404 -> TelegramBetMutationResult.AccountRequired
+                400, 403, 409 -> TelegramBetMutationResult.Invalid
+                else -> TelegramBetMutationResult.Unavailable
             }
         } catch (_: RuntimeException) {
-            TelegramBetMutationResult.UNAVAILABLE
+            TelegramBetMutationResult.Unavailable
         }
 }
