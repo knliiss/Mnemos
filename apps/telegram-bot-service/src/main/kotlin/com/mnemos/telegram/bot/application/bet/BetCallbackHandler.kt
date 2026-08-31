@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.application.bet
 
+import com.mnemos.telegram.bot.application.bet.model.BetMenuFeedback
 import com.mnemos.telegram.bot.application.bet.model.BetMenuMode
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetMutationResult
 import com.mnemos.telegram.bot.application.bet.port.out.BetGateway
@@ -102,10 +103,23 @@ class BetCallbackHandler(
         val idempotencyKey = deterministicKey("race-join:${context.callbackQueryId}:$raceId")
 
         return when (gateway.joinItemRace(context.telegramId, raceId, idempotencyKey)) {
-            TelegramBetMutationResult.ACCEPTED -> update(context, BetMenuContext.accepted(BetMenuMode.RACES))
-            TelegramBetMutationResult.ACCOUNT_REQUIRED -> update(context, BetMenuContext.accountRequired(BetMenuMode.RACES))
-            TelegramBetMutationResult.INVALID -> update(context, BetMenuContext.withFeedback(BetMenuContext.races(), com.mnemos.telegram.bot.application.bet.model.BetMenuFeedback.INVALID_AMOUNT))
-            TelegramBetMutationResult.UNAVAILABLE -> update(context, BetMenuContext.withFeedback(BetMenuContext.races(), com.mnemos.telegram.bot.application.bet.model.BetMenuFeedback.UNAVAILABLE))
+            TelegramBetMutationResult.ACCEPTED ->
+                update(context, BetMenuContext.accepted(BetMenuMode.RACES))
+
+            TelegramBetMutationResult.ACCOUNT_REQUIRED ->
+                update(context, BetMenuContext.accountRequired(BetMenuMode.RACES))
+
+            TelegramBetMutationResult.INVALID ->
+                update(
+                    context,
+                    BetMenuContext.withFeedback(BetMenuContext.races(), BetMenuFeedback.INVALID_AMOUNT),
+                )
+
+            TelegramBetMutationResult.UNAVAILABLE ->
+                update(
+                    context,
+                    BetMenuContext.withFeedback(BetMenuContext.races(), BetMenuFeedback.UNAVAILABLE),
+                )
         }
     }
 
