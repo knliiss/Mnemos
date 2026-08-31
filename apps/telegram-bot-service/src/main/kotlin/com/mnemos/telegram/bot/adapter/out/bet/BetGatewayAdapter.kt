@@ -10,7 +10,6 @@ import com.mnemos.telegram.bot.application.bet.model.TelegramItemRaceHistoryResu
 import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import com.mnemos.telegram.bot.application.bet.port.out.BetGateway
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetOperationResponse
-import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetSide as ContractBetSide
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseEventBetRequest
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramIncreaseItemRaceRequest
 import com.mnemos.telegram.bot.contracts.internal.bet.TelegramJoinItemRaceRequest
@@ -18,6 +17,7 @@ import com.mnemos.telegram.bot.contracts.internal.bet.TelegramPlaceEventBetReque
 import feign.FeignException
 import org.springframework.stereotype.Component
 import java.util.UUID
+import com.mnemos.telegram.bot.contracts.internal.bet.TelegramBetSide as ContractBetSide
 
 @Component
 class BetGatewayAdapter(
@@ -88,12 +88,13 @@ class BetGatewayAdapter(
         operationId: UUID,
     ): TelegramBetOperationState =
         try {
-            TelegramBetOperationState.valueOf(
+            val response =
                 client.getOperation(
                     telegramId = telegramId,
                     operationId = operationId,
-                ).status.name,
-            )
+                )
+
+            TelegramBetOperationState.valueOf(response.status.name)
         } catch (_: RuntimeException) {
             TelegramBetOperationState.UNAVAILABLE
         }
