@@ -3,7 +3,6 @@ package com.mnemos.telegram.bot.application.menu
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextResult
 import com.mnemos.telegram.bot.application.account.port.out.AccountGateway
 import com.mnemos.telegram.bot.application.bet.BetMenuContext
-import com.mnemos.telegram.bot.application.bet.model.BetMenuFeedback
 import com.mnemos.telegram.bot.application.bet.model.BetMenuMode
 import com.mnemos.telegram.bot.application.bet.model.BetMenuScreenData
 import com.mnemos.telegram.bot.application.bet.model.TelegramBetHistoryResult
@@ -70,26 +69,11 @@ class BetMenuScreenDataProvider(
                 selectedRoundId = BetMenuContext.roundId(session.screenContext),
                 selectedRaceId = BetMenuContext.raceId(session.screenContext),
                 selectedSide = BetMenuContext.side(session.screenContext),
-                feedback = resolveFeedback(session),
+                feedback = BetMenuContext.feedback(session.screenContext),
                 waitingForAmount = isWaitingForAmount(session.pendingInput),
                 increasing = BetMenuContext.increasing(session.screenContext),
             ),
         )
-    }
-
-    private fun resolveFeedback(session: TelegramMenuSession): BetMenuFeedback? {
-        val operationId = BetMenuContext.operationId(session.screenContext)
-
-        if (operationId != null) {
-            return BetMenuContext.feedbackForOperationState(
-                betGateway.getOperationState(
-                    telegramId = session.telegramId,
-                    operationId = operationId,
-                ),
-            )
-        }
-
-        return BetMenuContext.feedback(session.screenContext)
     }
 
     private fun isWaitingForAmount(pendingInput: TelegramPendingInput?): Boolean =
