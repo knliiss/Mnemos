@@ -3,6 +3,7 @@ package com.mnemos.telegram.bot.application.menu
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuMessageRenderer
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
@@ -152,6 +153,92 @@ class TelegramMenuServiceTest {
         assertEquals(TelegramDeliveryResult.Delivered, result)
         assertEquals(TelegramMenuScreen.HOME, session?.currentScreen)
         assertEquals(emptyList<TelegramMenuScreen>(), session?.navigationStack)
+        assertEquals(1, messageGateway.editedMessages.size)
+    }
+
+    @Test
+    fun `pending search ignores same message screen navigation`() {
+        val pendingSession =
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.EVENTS,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+                pendingInput = TelegramPendingInput.EVENT_SEARCH,
+                screenContext = mapOf("event.search" to "query"),
+            )
+        sessionRepository.save(pendingSession)
+
+        val result =
+            service.navigate(
+                telegramId = TELEGRAM_ID,
+                messageId = MENU_MESSAGE_ID,
+                screen = TelegramMenuScreen.SETTINGS,
+            )
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(pendingSession, sessionRepository.find(TELEGRAM_ID))
+        assertEquals(0, messageGateway.editedMessages.size)
+        assertEquals(0, recipientGateway.activatedTelegramIds.size)
+    }
+
+    @Test
+    fun `pending search ignores same message home callback`() {
+        val pendingSession =
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.EVENTS,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+                pendingInput = TelegramPendingInput.EVENT_SEARCH,
+            )
+        sessionRepository.save(pendingSession)
+
+        val result = service.home(TELEGRAM_ID, MENU_MESSAGE_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(pendingSession, sessionRepository.find(TELEGRAM_ID))
+        assertEquals(0, messageGateway.sentMessages.size)
+        assertEquals(0, messageGateway.editedMessages.size)
+    }
+
+    @Test
+    fun `pending search ignores queued back callback`() {
+        val pendingSession =
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.EVENTS,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+                pendingInput = TelegramPendingInput.EVENT_SEARCH,
+            )
+        sessionRepository.save(pendingSession)
+
+        val result = service.back(TELEGRAM_ID, MENU_MESSAGE_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(pendingSession, sessionRepository.find(TELEGRAM_ID))
+        assertEquals(0, messageGateway.editedMessages.size)
+    }
+
+    @Test
+    fun `account input keeps intentional back navigation`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.ACCOUNT,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+                pendingInput = TelegramPendingInput.ACCOUNT_CREATE,
+            ),
+        )
+
+        val result = service.back(TELEGRAM_ID, MENU_MESSAGE_ID)
+        val session = sessionRepository.find(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(TelegramMenuScreen.HOME, session?.currentScreen)
+        assertEquals(null, session?.pendingInput)
         assertEquals(1, messageGateway.editedMessages.size)
     }
 
