@@ -320,7 +320,7 @@ object BetMenuMessageRenderer {
         }
 
         round.outcome?.let { outcome ->
-            lines += "   Результат: <b>${escapeHtml(outcome.lowercase())}</b>"
+            lines += "   Результат: <b>${outcomeLabel(outcome)}</b>"
         }
 
         return lines.joinToString("\n")
@@ -351,8 +351,7 @@ object BetMenuMessageRenderer {
     ): String =
         listOf(
             "<b>$number. ${sideLabel(bet.side)}</b> · ${bet.confirmedAmount} COIN${pendingAmount(bet)}",
-            "├ ${escapeHtml(bet.status.lowercase())}",
-            "└ <code>${bet.roundId.toString().take(8)}</code>",
+            "└ Статус: <b>${eventBetStatusLabel(bet.status)}</b>",
         ).joinToString("\n")
 
     private fun renderHistoryRacePosition(
@@ -361,8 +360,7 @@ object BetMenuMessageRenderer {
     ): String =
         listOf(
             "<b>$number. ${escapeHtml(position.accountNickname)}</b> · ${position.confirmedAmount} COIN${pendingAmount(position)}",
-            "├ ${escapeHtml(position.status.lowercase())}",
-            "└ <code>${position.raceId.toString().take(8)}</code>",
+            "└ Статус: <b>${racePositionStatusLabel(position.status)}</b>",
         ).joinToString("\n")
 
     private fun pendingAmount(bet: TelegramEventBet): String = pendingAmount(bet.pendingAmount)
@@ -371,7 +369,7 @@ object BetMenuMessageRenderer {
 
     private fun pendingAmount(amount: Long): String =
         if (amount > 0) {
-            " · ожидает $amount"
+            " · ожидает подтверждения: $amount COIN"
         } else {
             ""
         }
@@ -475,7 +473,15 @@ object BetMenuMessageRenderer {
             "MOON" -> "🌙 Луна"
             "ECLIPSE" -> "🌘 Затмение"
             "EXPLOSION" -> "💥 Взрыв"
-            else -> value.lowercase().replace('_', ' ').replaceFirstChar { character -> character.titlecase() }
+            else -> humanizeStatus(value)
+        }
+
+    private fun outcomeLabel(value: String): String =
+        when (value.uppercase()) {
+            "YES" -> "Да"
+            "NO" -> "Нет"
+            "REFUND" -> "Возврат"
+            else -> humanizeStatus(value)
         }
 
     private fun sideLabel(side: TelegramBetSide): String =
@@ -493,8 +499,40 @@ object BetMenuMessageRenderer {
             "RESOLVED", "SETTLED" -> "завершена"
             "REFUNDED" -> "возврат"
             "EXPIRED" -> "истекла"
-            else -> value.lowercase()
+            else -> humanizeStatus(value)
         }
+
+    private fun eventBetStatusLabel(value: String): String =
+        when (value.uppercase()) {
+            "ACTIVE" -> "активна"
+            "SETTLEMENT_PENDING" -> "ожидает результата"
+            "SETTLEMENT_FAILED" -> "ошибка расчёта"
+            "SETTLED" -> "завершена"
+            "REFUND_PENDING" -> "возврат обрабатывается"
+            "REFUND_FAILED" -> "возврат не выполнен"
+            "REFUNDED" -> "возврат выполнен"
+            else -> humanizeStatus(value)
+        }
+
+    private fun racePositionStatusLabel(value: String): String =
+        when (value.uppercase()) {
+            "PENDING" -> "ожидает подтверждения"
+            "ACTIVE" -> "активна"
+            "PAYOUT_PENDING" -> "выплата обрабатывается"
+            "PAYOUT_FAILED" -> "выплата не выполнена"
+            "WON" -> "выигрыш"
+            "LOST" -> "проигрыш"
+            "REFUND_PENDING" -> "возврат обрабатывается"
+            "REFUND_FAILED" -> "возврат не выполнен"
+            "REFUNDED" -> "возврат выполнен"
+            else -> humanizeStatus(value)
+        }
+
+    private fun humanizeStatus(value: String): String =
+        value
+            .lowercase()
+            .replace('_', ' ')
+            .replaceFirstChar { character -> character.titlecase() }
 
     private fun odds(value: BigDecimal): String = value.stripTrailingZeros().toPlainString()
 
