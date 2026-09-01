@@ -131,6 +131,31 @@ class TelegramMenuServiceTest {
     }
 
     @Test
+    fun `legacy more navigation canonicalizes to home`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.ONLINE,
+                navigationStack = listOf(TelegramMenuScreen.HOME),
+            ),
+        )
+
+        val result =
+            service.navigate(
+                telegramId = TELEGRAM_ID,
+                messageId = MENU_MESSAGE_ID,
+                screen = TelegramMenuScreen.MORE,
+            )
+        val session = sessionRepository.find(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(TelegramMenuScreen.HOME, session?.currentScreen)
+        assertEquals(emptyList<TelegramMenuScreen>(), session?.navigationStack)
+        assertEquals(1, messageGateway.editedMessages.size)
+    }
+
+    @Test
     fun `stale navigation callback does not replace active menu session`() {
         sessionRepository.save(
             TelegramMenuSession(
