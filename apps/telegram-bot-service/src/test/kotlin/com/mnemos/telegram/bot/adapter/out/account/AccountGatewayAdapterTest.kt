@@ -1,8 +1,11 @@
 package com.mnemos.telegram.bot.adapter.out.account
 
 import com.mnemos.contracts.account.internal.v1.ChangeInternalTelegramActiveAccountRequest
+import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountInviteRequest
+import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountInviteResponse
 import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountInvitesResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountStatus
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountSummaryResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramUserSettingsResponse
@@ -14,6 +17,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountSwitchRe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import org.springframework.http.ResponseEntity
 import java.util.UUID
 
 class AccountGatewayAdapterTest {
@@ -124,6 +128,18 @@ class AccountGatewayAdapterTest {
             request: ChangeInternalTelegramActiveAccountRequest,
         ): InternalTelegramAccountContextResponse? = context
 
+        override fun getAccountInvites(telegramId: Long): InternalTelegramAccountInvitesResponse? = null
+
+        override fun createAccountInvite(
+            telegramId: Long,
+            request: CreateInternalTelegramAccountInviteRequest,
+        ): CreateInternalTelegramAccountInviteResponse? = null
+
+        override fun revokeAccountInvite(
+            telegramId: Long,
+            inviteId: UUID,
+        ): ResponseEntity<Void>? = null
+
         override fun getUserSettings(telegramId: Long): InternalTelegramUserSettingsResponse? = null
 
         override fun updateLocalization(
@@ -149,6 +165,18 @@ class AccountGatewayAdapterTest {
             telegramId: Long,
             request: ChangeInternalTelegramActiveAccountRequest,
         ): InternalTelegramAccountContextResponse = error("account unavailable")
+
+        override fun getAccountInvites(telegramId: Long): InternalTelegramAccountInvitesResponse = error("account unavailable")
+
+        override fun createAccountInvite(
+            telegramId: Long,
+            request: CreateInternalTelegramAccountInviteRequest,
+        ): CreateInternalTelegramAccountInviteResponse = error("account unavailable")
+
+        override fun revokeAccountInvite(
+            telegramId: Long,
+            inviteId: UUID,
+        ): ResponseEntity<Void> = error("account unavailable")
 
         override fun getUserSettings(telegramId: Long): InternalTelegramUserSettingsResponse = error("account unavailable")
 
