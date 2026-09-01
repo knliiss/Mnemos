@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.application.notification
 
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuFeedback
+import java.util.UUID
 
 object NotificationMenuContext {
     private const val PAGE_KEY = "notifications.page"
@@ -9,6 +10,7 @@ object NotificationMenuContext {
     private const val FEEDBACK_KEY = "notifications.feedback"
     private const val DROPPED_FOR_KEY = "notifications.itemDrop.player"
     private const val ITEM_NAME_KEY = "notifications.itemDrop.item"
+    private const val DELETE_ID_KEY = "notifications.itemDrop.deleteId"
     private const val RAID_LOCATIONS_KEY = "notifications.raid.locations"
     private const val RAID_PAGE_KEY = "notifications.raid.page"
 
@@ -30,6 +32,10 @@ object NotificationMenuContext {
     fun droppedFor(context: Map<String, String>): String? = context[DROPPED_FOR_KEY]
 
     fun itemName(context: Map<String, String>): String? = context[ITEM_NAME_KEY]
+
+    fun deleteSubscriptionId(context: Map<String, String>): UUID? =
+        context[DELETE_ID_KEY]
+            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
 
     fun raidLocations(context: Map<String, String>): Set<Int> =
         context[RAID_LOCATIONS_KEY]
@@ -69,6 +75,18 @@ object NotificationMenuContext {
 
         return mapOf(MODE_KEY to mode.name)
     }
+
+    fun selectDelete(
+        context: Map<String, String>,
+        subscriptionId: UUID,
+    ): Map<String, String> =
+        clearFeedback(context) +
+            (MODE_KEY to NotificationCreationMode.ITEM_DROP_DELETE.name) +
+            (DELETE_ID_KEY to subscriptionId.toString())
+
+    fun returnToDropList(context: Map<String, String>): Map<String, String> =
+        (clearFeedback(context) - DELETE_ID_KEY) +
+            (MODE_KEY to NotificationCreationMode.ITEM_DROP_LIST.name)
 
     fun selectRaidMode(locations: Set<Int>): Map<String, String> =
         withRaidLocations(
