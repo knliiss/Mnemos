@@ -1,10 +1,8 @@
 package com.mnemos.telegram.bot.application.notification
 
 import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
-import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
 import com.mnemos.telegram.bot.application.notification.model.NotificationGlobalType
-import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -45,7 +43,6 @@ class NotificationCallbackDataTest {
 
     @Test
     fun `target state callbacks round trip and stay within Telegram callback limit`() {
-        val typeCallback = NotificationCallbackData.type(NotificationSubscriptionType.ITEM_DROP)
         val boosterCallback = NotificationCallbackData.booster(NotificationBoosterType.LUCK, enabled = false)
         val dungeonCallback = NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT, enabled = true)
         val globalCallback = NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS, enabled = false)
@@ -53,7 +50,7 @@ class NotificationCallbackDataTest {
         val raidPageCallback = NotificationCallbackData.raidPage(1)
         val callbacks =
             listOf(
-                typeCallback,
+                NotificationCallbackData.RAID_EDIT,
                 boosterCallback,
                 dungeonCallback,
                 globalCallback,
@@ -61,7 +58,6 @@ class NotificationCallbackDataTest {
                 raidPageCallback,
             )
 
-        assertEquals(NotificationCreationMode.ITEM_DROP, NotificationCallbackData.selectedCreationMode(typeCallback))
         assertEquals(
             NotificationToggleTarget(NotificationBoosterType.LUCK, enabled = false),
             NotificationCallbackData.selectedBoosterTarget(boosterCallback),
