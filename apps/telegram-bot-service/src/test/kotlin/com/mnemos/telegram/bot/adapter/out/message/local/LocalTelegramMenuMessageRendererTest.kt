@@ -22,7 +22,7 @@ class LocalTelegramMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `home menu is one unified full width control panel`() {
+    fun `home menu uses semantic mixed width control rows`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
         val miniAppActions =
@@ -31,7 +31,7 @@ class LocalTelegramMenuMessageRendererTest {
                 .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
         assertTrue(message.text.contains("Панель управления"))
-        assertEquals(listOf(1, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 1, 2, 1), message.actionRows.map(List<*>::size))
         assertEquals(1, miniAppActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.NOTIFICATIONS.callbackData })
