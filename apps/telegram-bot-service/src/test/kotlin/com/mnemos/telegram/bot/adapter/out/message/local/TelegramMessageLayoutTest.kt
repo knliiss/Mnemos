@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -16,6 +17,7 @@ class TelegramMessageLayoutTest {
                         "content",
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                     ).joinToString("\n"),
+                parseMode = OutboundTelegramMessageParseMode.HTML,
             )
 
         val normalized = TelegramMessageLayout.normalize(message)
