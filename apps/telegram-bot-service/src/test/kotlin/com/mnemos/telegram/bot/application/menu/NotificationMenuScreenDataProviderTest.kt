@@ -15,15 +15,16 @@ import java.util.UUID
 
 class NotificationMenuScreenDataProviderTest {
     @Test
-    fun `loads requested notification page from menu context`() {
+    fun `loads requested drop page from menu context`() {
         val result = availablePage(page = 2, totalPages = 4)
         val gateway = RecordingGateway(mapOf(2 to result))
         val provider = NotificationMenuScreenDataProvider(gateway)
+        val dropListContext = NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
         val session =
             TelegramMenuSession(
                 telegramId = TELEGRAM_ID,
                 currentScreen = TelegramMenuScreen.NOTIFICATIONS,
-                screenContext = NotificationMenuContext.withPage(emptyMap(), 2),
+                screenContext = NotificationMenuContext.withPage(dropListContext, 2),
             )
 
         val data = provider.load(session) as TelegramMenuScreenData.Notifications
@@ -33,7 +34,7 @@ class NotificationMenuScreenDataProviderTest {
     }
 
     @Test
-    fun `falls back to last page when notification page shrinks`() {
+    fun `falls back to last page when drop page shrinks`() {
         val stalePage = availablePage(page = 8, totalPages = 2)
         val lastPage = availablePage(page = 1, totalPages = 2)
         val gateway =
@@ -44,11 +45,12 @@ class NotificationMenuScreenDataProviderTest {
                 ),
             )
         val provider = NotificationMenuScreenDataProvider(gateway)
+        val dropListContext = NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
         val session =
             TelegramMenuSession(
                 telegramId = TELEGRAM_ID,
                 currentScreen = TelegramMenuScreen.NOTIFICATIONS,
-                screenContext = NotificationMenuContext.withPage(emptyMap(), 8),
+                screenContext = NotificationMenuContext.withPage(dropListContext, 8),
             )
 
         val data = provider.load(session) as TelegramMenuScreenData.Notifications
@@ -61,6 +63,30 @@ class NotificationMenuScreenDataProviderTest {
             ),
             gateway.requests,
         )
+    }
+
+    @Test
+    fun `delete confirmation reloads selected drop page and id`() {
+        val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val result = availablePage(page = 2, totalPages = 4)
+        val gateway = RecordingGateway(mapOf(2 to result))
+        val provider = NotificationMenuScreenDataProvider(gateway)
+        val dropListContext = NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
+        val secondPage = NotificationMenuContext.withPage(dropListContext, 2)
+        val deleteContext = NotificationMenuContext.selectDelete(secondPage, subscriptionId)
+        val session =
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                currentScreen = TelegramMenuScreen.NOTIFICATIONS,
+                screenContext = deleteContext,
+            )
+
+        val data = provider.load(session) as TelegramMenuScreenData.Notifications
+
+        assertSame(result, data.data.result)
+        assertEquals(NotificationCreationMode.ITEM_DROP_DELETE, data.data.mode)
+        assertEquals(subscriptionId, data.data.deleteSubscriptionId)
+        assertEquals(listOf(PageRequest(page = 2, size = 8)), gateway.requests)
     }
 
     @Test
