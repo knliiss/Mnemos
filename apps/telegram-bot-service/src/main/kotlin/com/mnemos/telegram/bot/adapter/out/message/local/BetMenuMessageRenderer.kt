@@ -15,6 +15,7 @@ import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacePosition
 import com.mnemos.telegram.bot.application.bet.model.TelegramItemRacesResult
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -50,12 +51,17 @@ object BetMenuMessageRenderer {
             return amountPrompt(data)
         }
 
-        val lines = mutableListOf("🎲 <b>Ставки · События</b>")
+        val lines =
+            mutableListOf(
+                "🎲 <b>Ставки</b>",
+                MESSAGE_DIVIDER,
+                "",
+                "🎯 <b>События</b>",
+            )
         addFeedback(lines, data.feedback)
 
         if (rounds.isEmpty()) {
-            lines += ""
-            lines += "Сейчас нет доступных раундов событий."
+            lines += "└ Нет доступных раундов."
         } else {
             rounds.forEachIndexed { index, round ->
                 lines += ""
@@ -63,24 +69,42 @@ object BetMenuMessageRenderer {
             }
         }
 
-        val actions = mutableListOf<OutboundTelegramMessageAction>()
+        val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
         rounds.forEachIndexed { index, round ->
-            if (round.status == OPEN_STATUS) {
-                if (round.myBet == null) {
-                    actions += callback("${index + 1} · ✅ Да", BetCallbackData.place(round.id, TelegramBetSide.YES))
-                    actions += callback("${index + 1} · ❌ Нет", BetCallbackData.place(round.id, TelegramBetSide.NO))
-                } else {
-                    actions += callback("${index + 1} · ➕ Увеличить", BetCallbackData.increase(round.id))
-                }
+            if (round.status != OPEN_STATUS) {
+                return@forEachIndexed
+            }
+
+            if (round.myBet == null) {
+                rows +=
+                    listOf(
+                        callback(
+                            label = "${index + 1} · 👍 Да",
+                            data = BetCallbackData.place(round.id, TelegramBetSide.YES),
+                            style = OutboundTelegramButtonStyle.SUCCESS,
+                        ),
+                        callback(
+                            label = "${index + 1} · 👎 Нет",
+                            data = BetCallbackData.place(round.id, TelegramBetSide.NO),
+                            style = OutboundTelegramButtonStyle.DANGER,
+                        ),
+                    )
+            } else {
+                rows +=
+                    listOf(
+                        callback(
+                            label = "${index + 1} · ➕ Увеличить ставку",
+                            data = BetCallbackData.increase(round.id),
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    )
             }
         }
 
-        actions += modeActions(BetMenuMode.ROUNDS)
-        actions += callback("🔄 Обновить", BetCallbackData.REFRESH)
-        actions += navigationActions
+        rows += commonRows(BetMenuMode.ROUNDS)
 
-        return message(lines.joinToString("\n"), actions)
+        return message(lines.joinToString("\n"), rows)
     }
 
     private fun renderRaces(data: BetMenuScreenData): OutboundTelegramMessage =
@@ -98,12 +122,17 @@ object BetMenuMessageRenderer {
             return amountPrompt(data)
         }
 
-        val lines = mutableListOf("🏁 <b>Ставки · Item Race</b>")
+        val lines =
+            mutableListOf(
+                "🎲 <b>Ставки</b>",
+                MESSAGE_DIVIDER,
+                "",
+                "🏁 <b>Item Race</b>",
+            )
         addFeedback(lines, data.feedback)
 
         if (races.isEmpty()) {
-            lines += ""
-            lines += "Сейчас нет активных item race."
+            lines += "└ Нет активных гонок."
         } else {
             races.forEachIndexed { index, race ->
                 lines += ""
@@ -111,31 +140,37 @@ object BetMenuMessageRenderer {
             }
         }
 
-        val actions = mutableListOf<OutboundTelegramMessageAction>()
+        val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
         races.forEachIndexed { index, race ->
-            if (race.status == REGISTRATION_STATUS) {
-                if (race.myPosition == null) {
-                    actions +=
+            if (race.status != REGISTRATION_STATUS) {
+                return@forEachIndexed
+            }
+
+            if (race.myPosition == null) {
+                rows +=
+                    listOf(
                         callback(
-                            "${index + 1} · Вступить за ${race.entryAmount} COIN",
-                            BetCallbackData.joinRace(race.id),
-                        )
-                } else {
-                    actions +=
+                            label = "${index + 1} · 🏁 Вступить · ${race.entryAmount} COIN",
+                            data = BetCallbackData.joinRace(race.id),
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    )
+            } else {
+                rows +=
+                    listOf(
                         callback(
-                            "${index + 1} · ➕ Увеличить",
-                            BetCallbackData.increaseRace(race.id),
-                        )
-                }
+                            label = "${index + 1} · ➕ Увеличить позицию",
+                            data = BetCallbackData.increaseRace(race.id),
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    )
             }
         }
 
-        actions += modeActions(BetMenuMode.RACES)
-        actions += callback("🔄 Обновить", BetCallbackData.REFRESH)
-        actions += navigationActions
+        rows += commonRows(BetMenuMode.RACES)
 
-        return message(lines.joinToString("\n"), actions)
+        return message(lines.joinToString("\n"), rows)
     }
 
     private fun renderHistory(data: BetMenuScreenData): OutboundTelegramMessage {
@@ -157,16 +192,21 @@ object BetMenuMessageRenderer {
 
         val eventBets = data.eventHistory.bets
         val racePositions = data.raceHistory.positions
-        val lines = mutableListOf("📜 <b>История ставок</b>")
+        val lines =
+            mutableListOf(
+                "🎲 <b>Ставки</b>",
+                MESSAGE_DIVIDER,
+                "",
+                "📜 <b>История</b>",
+            )
         addFeedback(lines, data.feedback)
 
         if (eventBets.isEmpty() && racePositions.isEmpty()) {
-            lines += ""
-            lines += "История ставок пока пустая."
+            lines += "└ История пока пустая."
         } else {
             if (eventBets.isNotEmpty()) {
                 lines += ""
-                lines += "<b>События</b>"
+                lines += "🎯 <b>События</b>"
                 eventBets.take(HISTORY_LIMIT).forEachIndexed { index, bet ->
                     lines += ""
                     lines += renderHistoryBet(index + 1, bet)
@@ -175,7 +215,7 @@ object BetMenuMessageRenderer {
 
             if (racePositions.isNotEmpty()) {
                 lines += ""
-                lines += "<b>Item Race</b>"
+                lines += "🏁 <b>Item Race</b>"
                 racePositions.take(HISTORY_LIMIT).forEachIndexed { index, position ->
                     lines += ""
                     lines += renderHistoryRacePosition(index + 1, position)
@@ -185,7 +225,7 @@ object BetMenuMessageRenderer {
 
         return message(
             text = lines.joinToString("\n"),
-            actions = modeActions(BetMenuMode.HISTORY) + callback("🔄 Обновить", BetCallbackData.REFRESH) + navigationActions,
+            rows = commonRows(BetMenuMode.HISTORY),
         )
     }
 
@@ -200,12 +240,13 @@ object BetMenuMessageRenderer {
                 text =
                     listOfNotNull(
                         "🏁 <b>Item Race</b>",
+                        MESSAGE_DIVIDER,
                         "",
-                        "Предмет: <b>${escapeHtml(selectedRace.itemName)}</b>",
-                        "Отправьте сумму COIN, на которую хотите увеличить свою позицию.",
+                        "📦 Предмет: <b>${escapeHtml(selectedRace.itemName)}</b>",
+                        "💰 Отправьте сумму COIN для увеличения позиции.",
                         feedbackText(data.feedback),
                     ).joinToString("\n"),
-                actions = amountPromptActions,
+                rows = amountPromptRows,
             )
         }
 
@@ -226,12 +267,15 @@ object BetMenuMessageRenderer {
             text =
                 listOfNotNull(
                     "🎲 <b>Ставки</b>",
+                    MESSAGE_DIVIDER,
                     "",
-                    "Вы выбрали <b>${escapeHtml(eventName)}</b> и хотите $action.",
-                    "Отправьте сумму в COIN одним сообщением.",
+                    "🎯 ${escapeHtml(eventName)}",
+                    "└ Вы хотите $action.",
+                    "",
+                    "💰 Отправьте сумму COIN одним сообщением.",
                     feedbackText(data.feedback),
                 ).joinToString("\n"),
-            actions = amountPromptActions,
+            rows = amountPromptRows,
         )
     }
 
@@ -242,17 +286,17 @@ object BetMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "<b>$number. ${escapeHtml(eventLabel(round.eventType))}</b>",
-                "Время: <code>${timeFormatter.format(round.scheduledAt)}</code>",
-                "Закрытие: <code>${timeFormatter.format(round.closesAt)}</code>",
-                "Да ×${odds(round.yesOdds)} · Нет ×${odds(round.noOdds)} · ${statusLabel(round.status)}",
+                "├ 🕒 ${timeFormatter.format(round.scheduledAt)}",
+                "├ 🔒 ${timeFormatter.format(round.closesAt)}",
+                "└ Да ×${odds(round.yesOdds)} · Нет ×${odds(round.noOdds)} · ${statusLabel(round.status)}",
             )
 
         round.myBet?.let { bet ->
-            lines += "Моя ставка: <b>${sideLabel(bet.side)}</b> · ${bet.confirmedAmount} COIN${pendingAmount(bet)}"
+            lines += "   Моя ставка: <b>${sideLabel(bet.side)}</b> · ${bet.confirmedAmount} COIN${pendingAmount(bet)}"
         }
 
         round.outcome?.let { outcome ->
-            lines += "Результат: <b>${escapeHtml(outcome.lowercase())}</b>"
+            lines += "   Результат: <b>${escapeHtml(outcome.lowercase())}</b>"
         }
 
         return lines.joinToString("\n")
@@ -264,14 +308,14 @@ object BetMenuMessageRenderer {
     ): String {
         val lines =
             mutableListOf(
-                "<b>$number. ${escapeHtml(race.itemName)}</b> · ${escapeHtml(race.itemType.lowercase())}",
-                "Вход: <b>${race.entryAmount} COIN</b> · комиссия ${race.feePercent}%",
-                "Регистрация до: <code>${timeFormatter.format(race.registrationClosesAt)}</code>",
-                "Старт: <code>${timeFormatter.format(race.startsAt)}</code> · ${statusLabel(race.status)}",
+                "<b>$number. 📦 ${escapeHtml(race.itemName)}</b> · ${escapeHtml(race.itemType.lowercase())}",
+                "├ 💰 Вход: <b>${race.entryAmount} COIN</b> · комиссия ${race.feePercent}%",
+                "├ 🔒 ${timeFormatter.format(race.registrationClosesAt)}",
+                "└ 🏁 ${timeFormatter.format(race.startsAt)} · ${statusLabel(race.status)}",
             )
 
         race.myPosition?.let { position ->
-            lines += "Моя позиция: <b>${position.confirmedAmount} COIN</b>${pendingAmount(position)}"
+            lines += "   Моя позиция: <b>${position.confirmedAmount} COIN</b>${pendingAmount(position)}"
         }
 
         return lines.joinToString("\n")
@@ -283,8 +327,8 @@ object BetMenuMessageRenderer {
     ): String =
         listOf(
             "<b>$number. ${sideLabel(bet.side)}</b> · ${bet.confirmedAmount} COIN${pendingAmount(bet)}",
-            "Статус: ${escapeHtml(bet.status.lowercase())}",
-            "Раунд: <code>${bet.roundId.toString().take(8)}</code>",
+            "├ ${escapeHtml(bet.status.lowercase())}",
+            "└ <code>${bet.roundId.toString().take(8)}</code>",
         ).joinToString("\n")
 
     private fun renderHistoryRacePosition(
@@ -293,8 +337,8 @@ object BetMenuMessageRenderer {
     ): String =
         listOf(
             "<b>$number. ${escapeHtml(position.accountNickname)}</b> · ${position.confirmedAmount} COIN${pendingAmount(position)}",
-            "Статус: ${escapeHtml(position.status.lowercase())}",
-            "Race: <code>${position.raceId.toString().take(8)}</code>",
+            "├ ${escapeHtml(position.status.lowercase())}",
+            "└ <code>${position.raceId.toString().take(8)}</code>",
         ).joinToString("\n")
 
     private fun pendingAmount(bet: TelegramEventBet): String = pendingAmount(bet.pendingAmount)
@@ -308,35 +352,58 @@ object BetMenuMessageRenderer {
             ""
         }
 
-    private fun modeActions(current: BetMenuMode): List<OutboundTelegramMessageAction> =
-        buildList {
-            if (current != BetMenuMode.ROUNDS) {
-                add(callback("🎲 События", BetCallbackData.ROUNDS))
-            }
-            if (current != BetMenuMode.RACES) {
-                add(callback("🏁 Item Race", BetCallbackData.RACES))
-            }
-            if (current != BetMenuMode.HISTORY) {
-                add(callback("📜 История", BetCallbackData.HISTORY))
-            }
-        }
+    private fun commonRows(current: BetMenuMode): List<List<OutboundTelegramMessageAction>> =
+        listOf(
+            modeRow(current),
+            listOf(refreshAction),
+            listOf(backAction),
+        )
+
+    private fun modeRow(current: BetMenuMode): List<OutboundTelegramMessageAction> =
+        listOf(
+            modeCallback("🎯 События", BetCallbackData.ROUNDS, current == BetMenuMode.ROUNDS),
+            modeCallback("🏁 Race", BetCallbackData.RACES, current == BetMenuMode.RACES),
+            modeCallback("📜 История", BetCallbackData.HISTORY, current == BetMenuMode.HISTORY),
+        )
+
+    private fun modeCallback(
+        label: String,
+        data: String,
+        selected: Boolean,
+    ): OutboundTelegramMessageAction.Callback =
+        callback(
+            label = label,
+            data = data,
+            style =
+                if (selected) {
+                    OutboundTelegramButtonStyle.SUCCESS
+                } else {
+                    OutboundTelegramButtonStyle.DEFAULT
+                },
+        )
 
     private fun accountRequiredMessage(feedback: BetMenuFeedback?): OutboundTelegramMessage {
         val lines =
             mutableListOf(
                 "🎲 <b>Ставки</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Для ставок нужен активный Cristalix-аккаунт Mnemos.",
-                "Его можно создать, подключить или переключить прямо в Telegram.",
+                "⚠️ Нужен активный Cristalix-аккаунт.",
             )
         addFeedback(lines, feedback)
 
         return message(
             text = lines.joinToString("\n"),
-            actions =
+            rows =
                 listOf(
-                    callback("👤 Настроить аккаунт", TelegramMenuScreen.ACCOUNT.callbackData),
-                    callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData),
+                    listOf(
+                        callback(
+                            label = "👤 Аккаунт",
+                            data = TelegramMenuScreen.ACCOUNT.callbackData,
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    ),
+                    listOf(backAction),
                 ),
         )
     }
@@ -346,11 +413,16 @@ object BetMenuMessageRenderer {
             text =
                 listOfNotNull(
                     "🎲 <b>Ставки</b>",
+                    MESSAGE_DIVIDER,
                     feedbackText(feedback),
                     "",
-                    "Сервис ставок временно недоступен. Попробуйте обновить.",
+                    "⚠️ Сервис ставок временно недоступен.",
                 ).joinToString("\n"),
-            actions = listOf(callback("🔄 Обновить", BetCallbackData.REFRESH)) + navigationActions,
+            rows =
+                listOf(
+                    listOf(refreshAction),
+                    listOf(backAction),
+                ),
         )
 
     private fun addFeedback(
@@ -367,18 +439,18 @@ object BetMenuMessageRenderer {
         when (feedback) {
             BetMenuFeedback.COMPLETED -> "✅ Операция подтверждена. Баланс и позиция обновлены."
             BetMenuFeedback.FAILED -> "❌ Транзакция не прошла. Ставка не была подтверждена."
-            BetMenuFeedback.PENDING -> "⏳ Операция ещё обрабатывается. Нажмите «Обновить», чтобы проверить статус."
-            BetMenuFeedback.INVALID_AMOUNT -> "⚠️ Операция отклонена. Проверьте сумму, баланс, права и состояние рынка."
+            BetMenuFeedback.PENDING -> "⏳ Операция ещё обрабатывается."
+            BetMenuFeedback.INVALID_AMOUNT -> "⚠️ Проверьте сумму, баланс, права и состояние рынка."
             BetMenuFeedback.ACCOUNT_REQUIRED -> "⚠️ Активный аккаунт не найден."
-            BetMenuFeedback.UNAVAILABLE -> "⚠️ Не удалось проверить или выполнить операцию. Попробуйте ещё раз."
+            BetMenuFeedback.UNAVAILABLE -> "⚠️ Не удалось проверить или выполнить операцию."
             null -> null
         }
 
     private fun eventLabel(value: String): String =
         when (value.uppercase()) {
-            "MOON" -> "Луна"
-            "ECLIPSE" -> "Затмение"
-            "EXPLOSION" -> "Взрыв"
+            "MOON" -> "🌙 Луна"
+            "ECLIPSE" -> "🌘 Затмение"
+            "EXPLOSION" -> "💥 Взрыв"
             else -> value.lowercase().replace('_', ' ').replaceFirstChar { character -> character.titlecase() }
         }
 
@@ -404,21 +476,24 @@ object BetMenuMessageRenderer {
 
     private fun message(
         text: String,
-        actions: List<OutboundTelegramMessageAction>,
+        rows: List<List<OutboundTelegramMessageAction>>,
     ): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text = text,
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = actions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
 
     private fun callback(
         label: String,
         data: String,
+        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
     ): OutboundTelegramMessageAction.Callback =
         OutboundTelegramMessageAction.Callback(
             label = label,
             data = data,
+            style = style,
         )
 
     private fun escapeHtml(value: String): String =
@@ -427,21 +502,25 @@ object BetMenuMessageRenderer {
             .replace("<", "&lt;")
             .replace(">", "&gt;")
 
+    private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
     private const val OPEN_STATUS = "OPEN"
     private const val REGISTRATION_STATUS = "REGISTRATION"
     private const val HISTORY_LIMIT = 20
 
-    private val amountPromptActions =
+    private val amountPromptRows =
         listOf(
-            callback("✖ Отмена", BetCallbackData.CANCEL_INPUT),
-            callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData),
+            listOf(
+                callback(
+                    label = "✖ Отмена",
+                    data = BetCallbackData.CANCEL_INPUT,
+                    style = OutboundTelegramButtonStyle.DANGER,
+                ),
+            ),
         )
 
-    private val navigationActions =
-        listOf(
-            callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA),
-            callback("⌂ Меню", TelegramMenuScreen.HOME.callbackData),
-        )
+    private val refreshAction = callback("🔄 Обновить", BetCallbackData.REFRESH)
+
+    private val backAction = callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA)
 
     private val timeFormatter: DateTimeFormatter =
         DateTimeFormatter
