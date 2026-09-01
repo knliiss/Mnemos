@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.daily.model.DailyRewardState
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,14 +29,16 @@ class DailyMenuMessageRendererTest {
 
         val message = DailyMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val claimAction = callbacks.single { action -> action.data == DailyCallbackData.CLAIM }
+        val restoreAction = callbacks.single { action -> action.data == DailyCallbackData.RESTORE }
 
         assertTrue(message.text.contains("🔥 <b>Серия</b>"))
         assertTrue(message.text.contains("└ 7 дней"))
         assertTrue(message.text.contains("├ 70–90 COIN"))
         assertTrue(message.text.contains("└ PRIME: 0.20%"))
         assertTrue(message.text.contains("Серия для восстановления: 12"))
-        assertTrue(callbacks.any { action -> action.data == DailyCallbackData.CLAIM })
-        assertTrue(callbacks.any { action -> action.data == DailyCallbackData.RESTORE })
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, claimAction.style)
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, restoreAction.style)
         assertTrue(callbacks.any { action -> action.data == DailyCallbackData.REFRESH })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
         assertEquals(listOf(1, 1, 1, 1), message.actionRows.map(List<*>::size))
