@@ -100,7 +100,7 @@ class NotificationSubscriptionCreationService(
                 locations = NotificationMenuContext.raidLocations(session.screenContext),
             )
 
-        return applyInlineResult(
+        return applyRaidUpdateResult(
             context = context,
             result = gateway.updateRaid(context.telegramId, draft),
         )
@@ -160,6 +160,26 @@ class NotificationSubscriptionCreationService(
                     messageId = context.messageId,
                     expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
                     update = { NotificationMenuContext.creationSucceeded() },
+                )
+
+            NotificationSubscriptionCreationResult.USER_NOT_FOUND ->
+                updateFeedback(context, NotificationMenuFeedback.USER_NOT_FOUND)
+
+            NotificationSubscriptionCreationResult.UNAVAILABLE ->
+                updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
+        }
+
+    private fun applyRaidUpdateResult(
+        context: TelegramCallbackContext,
+        result: NotificationSubscriptionCreationResult,
+    ): TelegramDeliveryResult =
+        when (result) {
+            NotificationSubscriptionCreationResult.APPLIED ->
+                menuService.updateScreenContext(
+                    telegramId = context.telegramId,
+                    messageId = context.messageId,
+                    expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
+                    update = { NotificationMenuContext.raidUpdateSucceeded() },
                 )
 
             NotificationSubscriptionCreationResult.USER_NOT_FOUND ->
