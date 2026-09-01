@@ -30,6 +30,7 @@ object EventHistoryMenuMessageRenderer {
 
         return when (val screenData = historyData.data) {
             is EventHistoryMenuScreenData.Feed -> renderFeed(screenData)
+            is EventHistoryMenuScreenData.Filters -> renderFilters(screenData)
             is EventHistoryMenuScreenData.SearchPrompt -> renderSearchPrompt(screenData)
         }
     }
@@ -46,11 +47,9 @@ object EventHistoryMenuMessageRenderer {
     ): OutboundTelegramMessage {
         val rows = renderFeedRows(data, result.page.cursor)
 
-        return OutboundTelegramMessage(
+        return message(
             text = renderAvailableText(data, result),
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = rows.flatten(),
-            actionRows = rows,
+            rows = rows,
         )
     }
 
@@ -70,40 +69,108 @@ object EventHistoryMenuMessageRenderer {
                 "📜 <b>История событий</b>",
                 MESSAGE_DIVIDER,
                 "",
-                "🔎 <b>Фильтры</b>",
-                "├ Тип: <b>${filterLabel(data.filter)}</b>",
-                "├ Вайп: <b>${wipeLabel(data)}</b>",
-                "└ Сортировка: <b>${sortLabel(data.sort)}</b>",
             )
 
-        lines += detailedFilterLines(data)
+        feedContextLines(data).forEach(lines::add)
 
-        data.search?.let { search ->
-            lines += "   Поиск: <code>${escapeHtml(search)}</code>"
+        if (lines.lastOrNull()?.isNotEmpty() == true) {
+            lines += ""
         }
 
-        lines += ""
         lines += eventLines
 
         return lines.joinToString("\n")
     }
 
-    private fun detailedFilterLines(data: EventHistoryMenuScreenData.Feed): List<String> =
+    private fun feedContextLines(data: EventHistoryMenuScreenData.Feed): List<String> {
+        val hasCustomFilters =
+            data.filter != EventHistoryFilter.ALL ||
+                data.sort != EventHistorySort.NEWEST ||
+                data.wipeSelection != EventHistoryWipeSelection.ALL ||
+                data.search != null
+
+        if (!hasCustomFilters) {
+            return emptyList()
+        }
+
+        return buildList {
+            add("🎛 ${escapeHtml(filterSummary(data))}")
+
+            data.search?.let { search ->
+                add("🔎 <code>${escapeHtml(search)}</code>")
+            }
+        }
+    }
+
+    private fun filterSummary(data: EventHistoryMenuScreenData.Feed): String {
+        val parts =
+            mutableListOf(
+                detailedFilterSummary(data),
+                wipeSelectionLabel(data.wipeSelection),
+                sortLabel(data.sort),
+            )
+
+        return parts.joinToString(" · ")
+    }
+
+    private fun detailedFilterSummary(data: EventHistoryMenuScreenData.Feed): String =
         when (data.filter) {
             EventHistoryFilter.ITEM_DROP ->
                 listOf(
-                    "   Редкость: <b>${itemRarityLabel(data.itemRarity)}</b>",
-                    "   Предмет: <b>${itemTypeLabel(data.itemType)}</b>",
+                    filterLabel(data.filter),
+                    itemRarityLabel(data.itemRarity),
+                    itemTypeLabel(data.itemType),
+                ).joinToString(" · ")
+
+            EventHistoryFilter.BOOSTER ->
+                "${filterLabel(data.filter)} · ${boosterTypeLabel(data.boosterType)}"
+
+            EventHistoryFilter.GLOBAL ->
+                "${filterLabel(data.filter)} · ${globalTypeLabel(data.globalType)}"
+
+            EventHistoryFilter.RAID ->
+                "${filterLabel(data.filter)} · ${data.raidLocation?.let { "локация $it" } ?: "любая локация"}"
+
+            EventHistoryFilter.ALL -> filterLabel(data.filter)
+        }
+
+    private fun renderFilters(data: EventHistoryMenuScreenData.Filters): OutboundTelegramMessage {
+        val lines =
+            mutableListOf(
+                "🎛 <b>Фильтры истории</b>",
+                MESSAGE_DIVIDER,
+                "",
+                "Тип: <b>${filterLabel(data.filter)}</b>",
+                "Вайп: <b>${wipeLabel(data)}</b>",
+                "Сортировка: <b>${sortLabel(data.sort)}</b>",
+            )
+
+        lines += detailedFilterLines(data)
+        lines += ""
+        lines += "Изменения применяются сразу. Вернитесь к истории, когда закончите настройку."
+
+        return message(
+            text = lines.joinToString("\n"),
+            rows = renderFilterRows(data),
+        )
+    }
+
+    private fun detailedFilterLines(data: EventHistoryMenuScreenData.Filters): List<String> =
+        when (data.filter) {
+            EventHistoryFilter.ITEM_DROP ->
+                listOf(
+                    "Редкость: <b>${itemRarityLabel(data.itemRarity)}</b>",
+                    "Предмет: <b>${itemTypeLabel(data.itemType)}</b>",
                 )
 
             EventHistoryFilter.BOOSTER ->
-                listOf("   Бустер: <b>${boosterTypeLabel(data.boosterType)}</b>")
+                listOf("Бустер: <b>${boosterTypeLabel(data.boosterType)}</b>")
 
             EventHistoryFilter.GLOBAL ->
-                listOf("   Событие: <b>${globalTypeLabel(data.globalType)}</b>")
+                listOf("Событие: <b>${globalTypeLabel(data.globalType)}</b>")
 
             EventHistoryFilter.RAID ->
-                listOf("   Локация: <b>${data.raidLocation?.toString() ?: "Любая"}</b>")
+                listOf("Локация: <b>${data.raidLocation?.toString() ?: "Любая"}</b>")
 
             EventHistoryFilter.ALL -> emptyList()
         }
@@ -159,16 +226,7 @@ object EventHistoryMenuMessageRenderer {
 
         return message(
             text = lines.joinToString("\n"),
-            rows =
-                listOf(
-                    listOf(
-                        callback(
-                            label = "✖ Отмена",
-                            data = EventHistoryCallbackData.SEARCH_CANCEL,
-                            style = OutboundTelegramButtonStyle.DANGER,
-                        ),
-                    ),
-                ),
+            rows = listOf(listOf(searchCancelAction)),
         )
     }
 
@@ -177,27 +235,12 @@ object EventHistoryMenuMessageRenderer {
         cursor: UUID?,
     ): List<List<OutboundTelegramMessageAction>> =
         buildList {
-            addAll(filterActions(data.filter).chunked(3))
-            addAll(detailedFilterRows(data))
-            add(wipeActions(data))
-            add(sortActions(data.sort))
+            add(listOf(filtersAction))
 
-            val searchRow =
-                mutableListOf<OutboundTelegramMessageAction>(
-                    callback(
-                        label = "🔎 Поиск",
-                        data = EventHistoryCallbackData.SEARCH,
-                        style = OutboundTelegramButtonStyle.PRIMARY,
-                    ),
-                )
+            val searchRow = mutableListOf<OutboundTelegramMessageAction>(searchAction)
 
             if (data.search != null) {
-                searchRow +=
-                    callback(
-                        label = "✖ Сбросить",
-                        data = EventHistoryCallbackData.SEARCH_CLEAR,
-                        style = OutboundTelegramButtonStyle.DANGER,
-                    )
+                searchRow += searchClearAction
             }
 
             add(searchRow)
@@ -220,7 +263,16 @@ object EventHistoryMenuMessageRenderer {
             add(listOf(backAction))
         }
 
-    private fun detailedFilterRows(data: EventHistoryMenuScreenData.Feed): List<List<OutboundTelegramMessageAction>> =
+    private fun renderFilterRows(data: EventHistoryMenuScreenData.Filters): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            addAll(filterActions(data.filter).chunked(3))
+            addAll(detailedFilterRows(data))
+            add(wipeActions(data))
+            add(sortActions(data.sort))
+            add(listOf(filtersCloseAction))
+        }
+
+    private fun detailedFilterRows(data: EventHistoryMenuScreenData.Filters): List<List<OutboundTelegramMessageAction>> =
         when (data.filter) {
             EventHistoryFilter.ITEM_DROP ->
                 itemRarityActions(data.itemRarity).chunked(3) +
@@ -302,7 +354,7 @@ object EventHistoryMenuMessageRenderer {
     ): List<List<OutboundTelegramMessageAction>> {
         val firstLocation = page * RAID_LOCATIONS_PER_PAGE + 1
         val lastLocation = minOf(firstLocation + RAID_LOCATIONS_PER_PAGE - 1, MAX_RAID_LOCATION)
-        val locationRow =
+        val locationActions =
             (firstLocation..lastLocation).map { location ->
                 selectionCallback(
                     label = location.toString(),
@@ -330,7 +382,7 @@ object EventHistoryMenuMessageRenderer {
                     ),
                 ),
             )
-            add(locationRow)
+            add(locationActions)
 
             if (pageRow.isNotEmpty()) {
                 add(pageRow)
@@ -338,7 +390,7 @@ object EventHistoryMenuMessageRenderer {
         }
     }
 
-    private fun wipeActions(data: EventHistoryMenuScreenData.Feed): List<OutboundTelegramMessageAction> =
+    private fun wipeActions(data: EventHistoryMenuScreenData.Filters): List<OutboundTelegramMessageAction> =
         buildList {
             add(
                 selectionCallback(
@@ -395,13 +447,15 @@ object EventHistoryMenuMessageRenderer {
         callback(
             label = label,
             data = data,
-            style =
-                if (selected) {
-                    OutboundTelegramButtonStyle.SUCCESS
-                } else {
-                    OutboundTelegramButtonStyle.DEFAULT
-                },
+            style = selectedStyle(selected),
         )
+
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
+        if (selected) {
+            OutboundTelegramButtonStyle.SUCCESS
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
+        }
 
     private fun filterLabel(filter: EventHistoryFilter): String =
         when (filter) {
@@ -418,7 +472,14 @@ object EventHistoryMenuMessageRenderer {
             EventHistorySort.OLDEST -> "Старые"
         }
 
-    private fun wipeLabel(data: EventHistoryMenuScreenData.Feed): String =
+    private fun wipeSelectionLabel(selection: EventHistoryWipeSelection): String =
+        when (selection) {
+            EventHistoryWipeSelection.ALL -> "Любой вайп"
+            EventHistoryWipeSelection.CURRENT -> "Текущий вайп"
+            EventHistoryWipeSelection.PREVIOUS -> "Предыдущий вайп"
+        }
+
+    private fun wipeLabel(data: EventHistoryMenuScreenData.Filters): String =
         when (data.wipeSelection) {
             EventHistoryWipeSelection.ALL -> "Любой"
             EventHistoryWipeSelection.CURRENT -> wipeTextLabel("Текущий", data.wipeOptions.current)
@@ -487,6 +548,7 @@ object EventHistoryMenuMessageRenderer {
         val rows =
             if (data == null) {
                 listOf(
+                    listOf(filtersAction),
                     listOf(refreshAction),
                     listOf(backAction),
                 )
@@ -538,6 +600,41 @@ object EventHistoryMenuMessageRenderer {
     private const val RAID_LOCATIONS_PER_PAGE = 7
     private const val MAX_RAID_LOCATION = 28
     private const val LAST_RAID_LOCATION_PAGE = 3
+
+    private val filtersAction =
+        callback(
+            label = "🎛 Фильтры",
+            data = EventHistoryCallbackData.FILTERS,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val filtersCloseAction =
+        callback(
+            label = "← К истории",
+            data = EventHistoryCallbackData.FILTERS_CLOSE,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val searchAction =
+        callback(
+            label = "🔎 Поиск",
+            data = EventHistoryCallbackData.SEARCH,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val searchClearAction =
+        callback(
+            label = "✖ Сбросить",
+            data = EventHistoryCallbackData.SEARCH_CLEAR,
+            style = OutboundTelegramButtonStyle.DANGER,
+        )
+
+    private val searchCancelAction =
+        callback(
+            label = "✖ Отмена",
+            data = EventHistoryCallbackData.SEARCH_CANCEL,
+            style = OutboundTelegramButtonStyle.DANGER,
+        )
 
     private val refreshAction = callback("🔄 Обновить", EventHistoryCallbackData.REFRESH)
 
