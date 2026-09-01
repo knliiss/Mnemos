@@ -9,7 +9,6 @@ import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepo
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -50,9 +49,9 @@ class EventHistoryCallbackHandlerGuardTest {
         whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(searchSession())
         whenever(
             menuService.cancelTextInput(
-                telegramId = eq(TELEGRAM_ID),
-                messageId = eq(MESSAGE_ID),
-                expectedScreen = eq(TelegramMenuScreen.EVENTS),
+                telegramId = TELEGRAM_ID,
+                messageId = MESSAGE_ID,
+                expectedScreen = TelegramMenuScreen.EVENTS,
             ),
         ).thenReturn(TelegramDeliveryResult.Delivered)
 
@@ -60,9 +59,9 @@ class EventHistoryCallbackHandlerGuardTest {
 
         assertEquals(TelegramDeliveryResult.Delivered, result)
         verify(menuService).cancelTextInput(
-            telegramId = eq(TELEGRAM_ID),
-            messageId = eq(MESSAGE_ID),
-            expectedScreen = eq(TelegramMenuScreen.EVENTS),
+            telegramId = TELEGRAM_ID,
+            messageId = MESSAGE_ID,
+            expectedScreen = TelegramMenuScreen.EVENTS,
         )
     }
 
