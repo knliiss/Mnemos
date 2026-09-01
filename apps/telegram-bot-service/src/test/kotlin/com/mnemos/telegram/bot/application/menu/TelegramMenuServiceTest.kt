@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.message.model.TelegramMessageSendResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationRecipientGateway
+import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageResolver
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsMutationResult
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsSnapshot
@@ -26,6 +27,7 @@ class TelegramMenuServiceTest {
     private val sessionRepository = TestTelegramMenuSessionRepository()
     private val recipientGateway = TestNotificationRecipientGateway()
     private val settingsGateway = TestSettingsGateway()
+    private val languageResolver = TelegramSettingsLanguageResolver(settingsGateway)
 
     private val service =
         TelegramMenuService(
@@ -34,7 +36,7 @@ class TelegramMenuServiceTest {
             messageGateway = messageGateway,
             sessionRepository = sessionRepository,
             recipientGateway = recipientGateway,
-            settingsGateway = settingsGateway,
+            languageResolver = languageResolver,
         )
 
     @Test
