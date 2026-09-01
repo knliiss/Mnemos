@@ -44,18 +44,14 @@ class NotificationCallbackHandler(
             return updateContext(context, NotificationMenuContext::returnToDropList)
         }
 
-        if (context.data == NotificationCallbackData.CREATE || context.data == NotificationCallbackData.CREATE_TYPES) {
+        if (context.data == NotificationCallbackData.CREATE) {
             return updateContext(context) {
                 NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP)
             }
         }
 
-        NotificationCallbackData.selectedCreationMode(context.data)?.let { mode ->
-            return if (mode == NotificationCreationMode.RAID) {
-                openRaidEditor(context)
-            } else {
-                updateContext(context) { NotificationMenuContext.selectMode(mode) }
-            }
+        if (context.data == NotificationCallbackData.RAID_EDIT) {
+            return openRaidEditor(context)
         }
 
         if (context.data == NotificationCallbackData.ITEM_DROP_PLAYER) {
