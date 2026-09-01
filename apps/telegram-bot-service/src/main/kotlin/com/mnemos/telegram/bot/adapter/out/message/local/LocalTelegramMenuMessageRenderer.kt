@@ -36,9 +36,11 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 TelegramMenuScreen.SETTINGS -> SettingsMenuMessageRenderer.render(data)
             }
 
-        return rawMessage
-            .localized(language)
-            .withStructuredKeyboard()
+        return TelegramMessageLayout.normalize(
+            rawMessage
+                .localized(language)
+                .withStructuredKeyboard(),
+        )
     }
 
     private fun homeMessage(): OutboundTelegramMessage =
@@ -46,10 +48,9 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             text =
                 """
                 🤖 <b>Mnemos</b>
-                $MESSAGE_DIVIDER
+                ${TelegramMessageLayout.DIVIDER}
 
                 📋 <b>Панель управления</b>
-                Выберите раздел:
                 """.trimIndent(),
             parseMode = OutboundTelegramMessageParseMode.HTML,
             actionRows = homeActionRows,
@@ -92,7 +93,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
         return listOf(
             "🌐 <b>SAO и события</b>",
-            MESSAGE_DIVIDER,
+            TelegramMessageLayout.DIVIDER,
             "",
             "👥 <b>Онлайн</b>",
             "└ Всего: <b>${snapshot.trackedOnline}</b>",
@@ -119,7 +120,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
         return listOf(
             "🌐 <b>${escapeHtml(data.realmName)}</b>",
-            MESSAGE_DIVIDER,
+            TelegramMessageLayout.DIVIDER,
             "",
             "👥 Онлайн: <b>${data.playerCount}</b>",
             "📄 Страница: <b>${data.page + 1}/$totalPages</b>",
@@ -134,7 +135,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "🔎 <b>Поиск игрока</b>",
-                MESSAGE_DIVIDER,
+                TelegramMessageLayout.DIVIDER,
                 "",
                 "Отправьте никнейм или его часть одним сообщением.",
                 "От 2 до 32 символов, без пробелов.",
@@ -166,7 +167,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
         return listOf(
             "🔎 <b>Поиск игрока</b>",
-            MESSAGE_DIVIDER,
+            TelegramMessageLayout.DIVIDER,
             "",
             "Запрос: <code>${escapeHtml(data.query)}</code>",
             "Найдено: <b>${data.totalMatches}</b>",
@@ -181,7 +182,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
     private fun renderSaoOnlineUnavailable(): String =
         listOf(
             "🌐 <b>SAO и события</b>",
-            MESSAGE_DIVIDER,
+            TelegramMessageLayout.DIVIDER,
             "",
             "⚠️ Не удалось получить актуальный онлайн.",
         ).joinToString("\n")
@@ -432,7 +433,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
     private companion object {
         const val ITEMS_PER_PAGE = 10
-        const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
 
         val searchAction =
             OutboundTelegramMessageAction.Callback(
