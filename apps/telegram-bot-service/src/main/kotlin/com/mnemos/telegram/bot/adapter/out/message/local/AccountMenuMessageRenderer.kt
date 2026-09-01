@@ -318,7 +318,7 @@ object AccountMenuMessageRenderer {
 
     private val primeAction =
         OutboundTelegramMessageAction.Callback(
-            label = "⭐ PRIME и баланс",
+            label = "⭐ PRIME",
             data = TelegramMenuScreen.PRIME.callbackData,
             style = OutboundTelegramButtonStyle.PRIMARY,
         )
