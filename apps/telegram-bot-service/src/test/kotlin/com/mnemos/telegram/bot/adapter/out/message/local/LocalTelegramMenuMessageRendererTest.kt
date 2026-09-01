@@ -22,7 +22,7 @@ class LocalTelegramMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `home menu keeps only primary bot actions`() {
+    fun `home menu is one unified full width control panel`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
         val miniAppActions =
@@ -30,43 +30,43 @@ class LocalTelegramMenuMessageRendererTest {
                 .flatten()
                 .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
-        assertEquals(listOf(1, 2, 1), message.actionRows.map(List<*>::size))
+        assertTrue(message.text.contains("Панель управления"))
+        assertEquals(listOf(1, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
         assertEquals(1, miniAppActions.size)
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.NOTIFICATIONS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ONLINE.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BETS.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.SETTINGS.callbackData })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
         assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
-        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
     }
 
     @Test
-    fun `more menu contains secondary actions and one way back`() {
-        val message = renderer.render(TelegramMenuScreen.MORE, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.UK)
+    fun `legacy more callback resolves to the same unified root menu`() {
+        val message = renderer.render(TelegramMenuScreen.MORE, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("<b>Ще</b>"))
+        assertTrue(message.text.contains("Панель управления"))
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BETS.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.SETTINGS.callbackData })
-        assertEquals(1, callbacks.count { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
-        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.HOME.callbackData })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
     }
 
     @Test
-    fun `home menu localizes text and labels to english`() {
+    fun `home menu localizes redesigned labels to english`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.EN)
         val labels = message.actionRows.flatten().map(OutboundTelegramMessageAction::label)
 
-        assertTrue(message.text.contains("Quick access to notifications and online"))
+        assertTrue(message.text.contains("Control panel"))
+        assertTrue(labels.any { label -> label.contains("Account") })
         assertTrue(labels.any { label -> label.contains("Notifications") })
-        assertTrue(labels.any { label -> label.contains("More") })
+        assertTrue(labels.any { label -> label.contains("SAO & events") })
+        assertFalse(labels.any { label -> label.contains("More") })
     }
 
     @Test
-    fun `realm list renders live snapshot and search actions`() {
+    fun `realm list is part of sao and events section`() {
         val snapshot =
             SaoOnlineSnapshot(
                 generatedAt = Instant.parse("2026-08-30T12:24:00Z"),
@@ -92,18 +92,20 @@ class LocalTelegramMenuMessageRendererTest {
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("Сейчас отслеживается: <b>58</b>"))
-        assertTrue(message.text.contains("SAO-1 — <b>21</b>"))
-        assertTrue(message.text.contains("SAO-2 — <b>37</b>"))
+        assertTrue(message.text.contains("SAO и события"))
+        assertTrue(message.text.contains("Всего: <b>58</b>"))
+        assertTrue(message.text.contains("SAO-1: <b>21</b>"))
+        assertTrue(message.text.contains("SAO-2: <b>37</b>"))
         assertTrue(message.text.contains("30.08 12:24 UTC"))
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == "on:r:1" })
         assertTrue(callbacks.any { action -> action.data == "on:r:2" })
     }
 
     @Test
-    fun `realm detail renders paginated players and escapes nickname html`() {
+    fun `realm detail renders paginated players and keeps section navigation`() {
         val data =
             TelegramMenuScreenData.SaoOnline(
                 SaoOnlineMenuScreenData.RealmDetail(
@@ -131,7 +133,8 @@ class LocalTelegramMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.PREVIOUS_PAGE })
         assertTrue(callbacks.none { action -> action.data == SaoOnlineCallbackData.NEXT_PAGE })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
-        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
     }
 
     @Test
@@ -153,7 +156,7 @@ class LocalTelegramMenuMessageRendererTest {
     }
 
     @Test
-    fun `search results render realm matches and escape user text`() {
+    fun `search results render realm matches and event history action`() {
         val data =
             TelegramMenuScreenData.SaoOnline(
                 SaoOnlineMenuScreenData.SearchResults(
@@ -184,12 +187,12 @@ class LocalTelegramMenuMessageRendererTest {
         assertTrue(message.text.contains("Запрос: <code>name&lt;</code>"))
         assertTrue(message.text.contains("<code>name&lt;one&gt;</code> — SAO-1"))
         assertTrue(message.text.contains("Найдено: <b>2</b>"))
-        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
     }
 
     @Test
-    fun `online screen renders recoverable unavailable state`() {
+    fun `online section renders recoverable unavailable state`() {
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.Unavailable)
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
@@ -198,6 +201,7 @@ class LocalTelegramMenuMessageRendererTest {
         assertTrue(message.text.contains("Не удалось получить актуальный онлайн"))
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
     }
 
     private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
