@@ -45,7 +45,7 @@ class PrimeMenuMessageRendererTest {
     }
 
     @Test
-    fun `renderer exposes invoice url only through full width payment action`() {
+    fun `ready invoice hides package creation actions and focuses payment`() {
         val invoiceUrl = "https://t.me/invoice/private-token"
         val message =
             PrimeMenuMessageRenderer.render(
@@ -72,7 +72,11 @@ class PrimeMenuMessageRendererTest {
         assertEquals(invoiceUrl, urlAction.url)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, urlAction.style)
         assertFalse(callbackData.any { data -> data.contains(invoiceUrl) })
+        assertFalse(callbackData.any { data -> data.startsWith("prime:buy:") })
+        assertFalse(message.text.contains("Пополнение через Telegram Stars"))
         assertTrue(message.text.contains("⭐ <b>Счёт готов</b>"))
+        assertTrue(message.text.contains("Нажмите кнопку оплаты ниже"))
+        assertEquals(listOf(1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     private fun primePackage(): PrimePurchasePackage =
