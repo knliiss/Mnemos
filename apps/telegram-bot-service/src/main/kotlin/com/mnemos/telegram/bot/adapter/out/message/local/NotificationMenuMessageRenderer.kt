@@ -27,6 +27,7 @@ object NotificationMenuMessageRenderer {
         return when (notificationsData.data.mode) {
             NotificationCreationMode.LIST -> renderDashboard(notificationsData.data)
             NotificationCreationMode.ITEM_DROP_LIST -> renderItemDropList(notificationsData.data)
+            NotificationCreationMode.ITEM_DROP_DELETE -> renderItemDropDeleteConfirmation(notificationsData.data)
             NotificationCreationMode.TYPE_SELECTION -> renderItemDropCreation(notificationsData.data)
             NotificationCreationMode.ITEM_DROP -> renderItemDropCreation(notificationsData.data)
             NotificationCreationMode.BOOSTER -> renderBoosterToggles(notificationsData.data)
@@ -210,6 +211,52 @@ object NotificationMenuMessageRenderer {
         return rows
     }
 
+    private fun renderItemDropDeleteConfirmation(data: NotificationMenuScreenData): OutboundTelegramMessage {
+        val available = data.result as? NotificationSubscriptionResult.Available
+            ?: return unavailableMessage(data.feedback)
+        val subscriptionId = data.deleteSubscriptionId
+        val subscription =
+            subscriptionId?.let { selectedId ->
+                available.page.items.firstOrNull { item -> item.id == selectedId }
+            }
+
+        if (subscriptionId == null || subscription == null) {
+            return messageWithRows(
+                text =
+                    listOf(
+                        "🗑 <b>Удалить правило?</b>",
+                        MESSAGE_DIVIDER,
+                        "",
+                        "Правило уже недоступно.",
+                    ).joinToString("\n"),
+                rows = listOf(listOf(deleteCancelAction)),
+            )
+        }
+
+        return messageWithRows(
+            text =
+                listOf(
+                    "🗑 <b>Удалить правило?</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    renderItemDrop(subscription),
+                    "",
+                    "Это действие нельзя отменить.",
+                ).joinToString("\n"),
+            rows =
+                listOf(
+                    listOf(
+                        callback(
+                            label = "🗑 Удалить",
+                            data = NotificationCallbackData.confirmDelete(subscriptionId),
+                            style = OutboundTelegramButtonStyle.DANGER,
+                        ),
+                    ),
+                    listOf(deleteCancelAction),
+                ),
+        )
+    }
+
     private fun renderItemDropCreation(data: NotificationMenuScreenData): OutboundTelegramMessage {
         val playerFilter = data.droppedFor?.let { value -> "<code>${escapeHtml(value)}</code>" } ?: "—"
         val itemFilter = data.itemName?.let { value -> "<code>${escapeHtml(value)}</code>" } ?: "—"
@@ -297,7 +344,8 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderBoosterToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available ?: return unavailableMessage(data.feedback)
+        val available = data.result as? NotificationSubscriptionResult.Available
+            ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 boosterToggle(available, NotificationBoosterType.LUCK, "🍀 Удача"),
@@ -314,7 +362,8 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderDungeonToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available ?: return unavailableMessage(data.feedback)
+        val available = data.result as? NotificationSubscriptionResult.Available
+            ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 dungeonToggle(available, NotificationDungeonType.EASY, "🟢 Легкий"),
@@ -331,7 +380,8 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderGlobalToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available ?: return unavailableMessage(data.feedback)
+        val available = data.result as? NotificationSubscriptionResult.Available
+            ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 globalToggle(available, NotificationGlobalType.DARKNESS, "🌑 Тьма"),
@@ -368,7 +418,8 @@ object NotificationMenuMessageRenderer {
         )
 
     private fun renderRaidEditor(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available ?: return unavailableMessage(data.feedback)
+        val available = data.result as? NotificationSubscriptionResult.Available
+            ?: return unavailableMessage(data.feedback)
         val raidSubscription = available.raidSubscription
 
         if (raidSubscription == null) {
@@ -621,4 +672,5 @@ object NotificationMenuMessageRenderer {
     private val backAction = callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA)
     private val notificationsAction = callback("← Уведомления", TelegramMenuScreen.NOTIFICATIONS.callbackData)
     private val dropsAction = callback("← Дропы", NotificationCallbackData.DROPS)
+    private val deleteCancelAction = callback("← Не удалять", NotificationCallbackData.DELETE_CANCEL)
 }
