@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonS
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -14,13 +15,13 @@ class LocalTelegramCommandMessageRendererTest {
     private val renderer = LocalTelegramCommandMessageRenderer()
 
     @Test
-    fun `start presents native actions together and keeps mini app optional`() {
+    fun `start prioritizes menu and keeps secondary actions separate`() {
         val message = renderer.renderStart(startContext(), TelegramSettingsLanguage.RU)
         val actions = message.actionRows.flatten()
 
         assertTrue(message.text.contains("Mini App для этого не нужен"))
-        assertTrue(message.text.contains("Mini App ниже остаётся дополнительным интерфейсом"))
-        assertEquals(listOf(2, 1), message.actionRows.map(List<*>::size))
+        assertFalse(message.text.contains("Mini App ниже остаётся дополнительным интерфейсом"))
+        assertEquals(listOf(1, 1, 1), message.actionRows.map(List<*>::size))
         assertTrue(
             actions.any { action ->
                 action is OutboundTelegramMessageAction.Callback &&
@@ -48,15 +49,28 @@ class LocalTelegramCommandMessageRendererTest {
     }
 
     @Test
-    fun `help localizes persisted english language`() {
+    fun `subscription help is self contained and localizes to english`() {
         val message = renderer.renderHelp(TelegramHelpSection.SUBSCRIPTIONS, TelegramSettingsLanguage.EN)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
         val activeSection = callbacks.first { action -> action.data == TelegramHelpSection.SUBSCRIPTIONS.callbackData }
 
-        assertTrue(message.text.contains("Subscription controls match the Mini App"))
-        assertTrue(message.text.contains("RAID is edited as one subscription"))
+        assertTrue(message.text.contains("Global events"))
+        assertFalse(message.text.contains("match the Mini App"))
+        assertFalse(message.text.contains("Mini App"))
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, activeSection.style)
         assertTrue(activeSection.label.contains("Subscriptions"))
+    }
+
+    @Test
+    fun `overview help summarizes native bot capabilities`() {
+        val message = renderer.renderHelp(TelegramHelpSection.OVERVIEW, TelegramSettingsLanguage.RU)
+
+        assertTrue(message.text.contains("Основные команды"))
+        assertTrue(message.text.contains("Cristalix-аккаунты"))
+        assertTrue(message.text.contains("уведомления"))
+        assertTrue(message.text.contains("Daily"))
+        assertTrue(message.text.contains("PRIME"))
+        assertFalse(message.text.contains("Нужен ли Mini App?"))
     }
 
     @Test
