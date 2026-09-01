@@ -16,6 +16,8 @@ object EventHistoryCallbackData {
     const val SEARCH = "ev:s"
     const val SEARCH_CANCEL = "ev:s:c"
     const val SEARCH_CLEAR = "ev:s:x"
+    const val FILTERS = "ev:filters"
+    const val FILTERS_CLOSE = "ev:feed"
 
     private const val NEXT_PREFIX = "ev:n:"
     private const val FILTER_PREFIX = "ev:f:"
