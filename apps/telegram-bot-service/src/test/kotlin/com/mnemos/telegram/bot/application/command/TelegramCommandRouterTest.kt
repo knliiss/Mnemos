@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -56,13 +57,15 @@ class TelegramCommandRouterTest {
     }
 
     @Test
-    fun `help command delegates to help service`() {
+    fun `help and commands delegate to help service`() {
         whenever(helpService.send(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Retryable)
 
-        val result = router.route(commandContext("/help"))
+        val helpResult = router.route(commandContext("/help"))
+        val commandsResult = router.route(commandContext("/commands"))
 
-        assertEquals(TelegramDeliveryResult.Retryable, result)
-        verify(helpService).send(TELEGRAM_ID)
+        assertEquals(TelegramDeliveryResult.Retryable, helpResult)
+        assertEquals(TelegramDeliveryResult.Retryable, commandsResult)
+        verify(helpService, times(2)).send(TELEGRAM_ID)
         verifyNoInteractions(startService, menuService)
     }
 
