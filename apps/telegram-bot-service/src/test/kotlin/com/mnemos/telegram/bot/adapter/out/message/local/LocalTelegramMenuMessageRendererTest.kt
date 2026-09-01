@@ -220,8 +220,11 @@ class LocalTelegramMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
     }
 
-    private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
-        actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+    private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> {
+        val source = actions.ifEmpty { actionRows.flatten() }
+
+        return source.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+    }
 
     private fun player(nickname: String): SaoOnlinePlayer =
         SaoOnlinePlayer(
