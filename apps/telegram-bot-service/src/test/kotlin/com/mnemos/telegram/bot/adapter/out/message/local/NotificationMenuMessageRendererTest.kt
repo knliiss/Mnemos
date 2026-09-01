@@ -5,6 +5,7 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonS
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.notification.NotificationCallbackData
+import com.mnemos.telegram.bot.application.notification.NotificationRaidLocations
 import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
@@ -56,7 +57,7 @@ class NotificationMenuMessageRendererTest {
         assertTrue(message.text.contains("<b>Глобальные события</b>"))
         assertTrue(message.text.contains("RAID · Настройка сохранена"))
         assertTrue(message.text.contains("Правил: <b>17</b>"))
-        assertTrue(message.text.contains("3, 12"))
+        assertTrue(message.text.contains("Вкл · 2/28"))
         assertEquals("🌙 Луна Вкл", moon.label)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
         assertEquals("🌘 Затмение Выкл", eclipse.label)
@@ -201,7 +202,7 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
-    fun `raid editor keeps compact location grid and update only save`() {
+    fun `raid editor applies location targets immediately without save flow`() {
         val data =
             TelegramMenuScreenData.Notifications(
                 NotificationMenuScreenData(
@@ -223,6 +224,7 @@ class NotificationMenuMessageRendererTest {
                 action.data == NotificationCallbackData.raidLocation(location = 3, selected = false)
             }
 
+        assertTrue(message.text.contains("RAID: <b>2/28</b>"))
         assertTrue(message.text.contains("3, 12"))
         assertEquals("3", locationThree.label)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, locationThree.style)
@@ -232,28 +234,67 @@ class NotificationMenuMessageRendererTest {
             },
         )
         assertTrue(callbacks.any { action -> action.label == "2/2 ▶" })
-        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
-        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
-        assertEquals(7, message.actionRows[0].size)
-        assertEquals(7, message.actionRows[1].size)
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_DISABLE })
+        assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
+        assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
+        assertEquals(listOf(7, 7, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
-    fun `missing raid state does not expose create action`() {
+    fun `missing raid is disabled but location targets can enable stable raid`() {
         val data =
             TelegramMenuScreenData.Notifications(
                 NotificationMenuScreenData(
                     result = NotificationSubscriptionResult.Available(page = emptyPage()),
                     mode = NotificationCreationMode.RAID,
+                    raidLocations = emptySet(),
                 ),
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
         val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("Новая подписка из этого экрана не создаётся"))
+        assertTrue(message.text.contains("RAID: <b>0/28</b>"))
+        assertTrue(message.text.contains("└ Выкл"))
+        assertTrue(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.raidLocation(location = 1, selected = true)
+            },
+        )
+        assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_DISABLE })
         assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
+        assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.CREATE })
         assertFalse(message.actions.any { action -> action is OutboundTelegramMessageAction.OpenMiniApp })
+        assertEquals(listOf(7, 7, 1, 1), message.actionRows.map(List<*>::size))
+    }
+
+    @Test
+    fun `all location raid renders all locations active`() {
+        val data =
+            TelegramMenuScreenData.Notifications(
+                NotificationMenuScreenData(
+                    result =
+                        NotificationSubscriptionResult.Available(
+                            page = emptyPage(),
+                            raidSubscription = raidSubscription(emptySet()),
+                        ),
+                    mode = NotificationCreationMode.RAID,
+                    raidLocations = NotificationRaidLocations.all,
+                ),
+            )
+
+        val message = NotificationMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+        val firstLocation =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.raidLocation(location = 1, selected = false)
+            }
+
+        assertTrue(message.text.contains("RAID: <b>28/28</b>"))
+        assertTrue(message.text.contains("└ Все"))
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, firstLocation.style)
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_DISABLE })
+        assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.notification.NotificationCallbackData
+import com.mnemos.telegram.bot.application.notification.NotificationRaidLocations
 import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
@@ -343,30 +344,22 @@ object NotificationMenuMessageRenderer {
         val available =
             data.result as? NotificationSubscriptionResult.Available
                 ?: return unavailableMessage(data.feedback)
-        val raidSubscription = available.raidSubscription
-
-        if (raidSubscription == null) {
-            return messageWithRows(
-                text =
-                    "🛡 <b>Рейды</b>\n$MESSAGE_DIVIDER\n\n" +
-                        "Существующая RAID-подписка не найдена. Новая подписка из этого экрана не создаётся.",
-                rows = listOf(listOf(notificationsAction)),
-            )
-        }
-
-        val selectedLocations =
-            if (data.raidLocations.isEmpty()) {
-                "Любая локация"
-            } else {
-                data.raidLocations.sorted().joinToString(", ")
+        val activeLocations = data.raidLocations
+        val locationSummary =
+            when {
+                activeLocations.isEmpty() -> "Выкл"
+                activeLocations.size == NotificationRaidLocations.all.size -> "Все"
+                else -> activeLocations.sorted().joinToString(", ")
             }
         val firstLocation = data.raidPage * RAID_LOCATIONS_PER_PAGE + 1
-        val lastLocation = (firstLocation + RAID_LOCATIONS_PER_PAGE - 1).coerceAtMost(MAX_RAID_LOCATION)
+        val lastLocation =
+            (firstLocation + RAID_LOCATIONS_PER_PAGE - 1)
+                .coerceAtMost(NotificationRaidLocations.MAX)
         val locationActions =
             (firstLocation..lastLocation).map { location ->
                 compactToggleCallback(
                     label = location.toString(),
-                    active = location in data.raidLocations,
+                    active = location in activeLocations,
                     targetData = { selected -> NotificationCallbackData.raidLocation(location, selected) },
                 )
             }
@@ -375,18 +368,6 @@ object NotificationMenuMessageRenderer {
                 0 -> listOf(callback("2/2 ▶", NotificationCallbackData.raidPage(1)))
                 else -> listOf(callback("◀ 1/2", NotificationCallbackData.raidPage(0)))
             }
-        val anyLocationAction =
-            compactStateCallback(
-                label = "◎ Любая локация",
-                data = NotificationCallbackData.RAID_CLEAR,
-                active = data.raidLocations.isEmpty(),
-            )
-        val saveAction =
-            callback(
-                label = "💾 Сохранить RAID",
-                data = NotificationCallbackData.RAID_SAVE,
-                style = OutboundTelegramButtonStyle.SUCCESS,
-            )
 
         return messageWithRows(
             text =
@@ -395,14 +376,18 @@ object NotificationMenuMessageRenderer {
                     MESSAGE_DIVIDER,
                     feedbackText(data.feedback),
                     "",
-                    "📍 Локации: <b>${escapeHtml(selectedLocations)}</b>",
+                    "📍 RAID: <b>${activeLocations.size}/${NotificationRaidLocations.all.size}</b>",
+                    "└ ${escapeHtml(locationSummary)}",
                 ).joinToString("\n"),
             rows =
                 buildList {
                     addAll(locationActions.chunked(RAID_LOCATION_BUTTONS_PER_ROW))
                     add(pageActions)
-                    add(listOf(anyLocationAction))
-                    add(listOf(saveAction))
+
+                    if (available.raidSubscription != null) {
+                        add(listOf(disableRaidAction))
+                    }
+
                     add(listOf(notificationsAction))
                 },
         )
@@ -452,12 +437,14 @@ object NotificationMenuMessageRenderer {
 
     private fun raidLocationSummary(result: NotificationSubscriptionResult.Available): String {
         val raid = result.raidSubscription ?: return "Выкл"
+        val activeLocationCount =
+            if (raid.raidLocations.isEmpty()) {
+                NotificationRaidLocations.all.size
+            } else {
+                raid.raidLocations.size
+            }
 
-        return if (raid.raidLocations.isEmpty()) {
-            "Вкл · любая локация"
-        } else {
-            "Вкл · ${raid.raidLocations.sorted().joinToString(", ")}"
-        }
+        return "Вкл · $activeLocationCount/${NotificationRaidLocations.all.size}"
     }
 
     private fun renderItemDrop(subscription: NotificationSubscription): String {
@@ -590,11 +577,16 @@ object NotificationMenuMessageRenderer {
     private const val DELETE_BUTTONS_PER_ROW = 4
     private const val RAID_LOCATIONS_PER_PAGE = 14
     private const val RAID_LOCATION_BUTTONS_PER_ROW = 7
-    private const val MAX_RAID_LOCATION = 28
 
     private val refreshAction = callback("🔄 Обновить", NotificationCallbackData.REFRESH)
     private val backAction = callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA)
     private val notificationsAction = callback("← Уведомления", TelegramMenuScreen.NOTIFICATIONS.callbackData)
     private val dropsAction = callback("← Дропы", NotificationCallbackData.DROPS)
     private val deleteCancelAction = callback("← Не удалять", NotificationCallbackData.DELETE_CANCEL)
+    private val disableRaidAction =
+        callback(
+            label = "✖ Отключить RAID",
+            data = NotificationCallbackData.RAID_DISABLE,
+            style = OutboundTelegramButtonStyle.DANGER,
+        )
 }

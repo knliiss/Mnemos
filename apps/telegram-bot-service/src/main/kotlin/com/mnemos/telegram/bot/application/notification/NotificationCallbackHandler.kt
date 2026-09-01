@@ -126,13 +126,11 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedRaidLocationTarget(context.data)?.let { target ->
-            return updateCreationContext(context, NotificationCreationMode.RAID) { current ->
-                NotificationMenuContext.setRaidLocation(
-                    context = current,
-                    location = target.location,
-                    selected = target.selected,
-                )
-            }
+            return creationService.setRaidLocation(
+                context = context,
+                location = target.location,
+                selected = target.selected,
+            )
         }
 
         NotificationCallbackData.selectedRaidPage(context.data)?.let { page ->
@@ -141,12 +139,12 @@ class NotificationCallbackHandler(
             }
         }
 
+        if (context.data == NotificationCallbackData.RAID_DISABLE) {
+            return creationService.disableRaid(context)
+        }
+
         if (context.data == NotificationCallbackData.RAID_CLEAR) {
-            return updateCreationContext(
-                context,
-                NotificationCreationMode.RAID,
-                NotificationMenuContext::clearRaidLocations,
-            )
+            return creationService.selectAllRaidLocations(context)
         }
 
         if (context.data == NotificationCallbackData.RAID_SAVE) {
@@ -182,10 +180,10 @@ class NotificationCallbackHandler(
                 size = 1,
             )
         val available = result as? NotificationSubscriptionResult.Available
-        val locations = available?.raidSubscription?.raidLocations.orEmpty()
+        val activeLocations = NotificationRaidLocations.active(available?.raidSubscription)
 
         return updateContext(context) {
-            NotificationMenuContext.selectRaidMode(locations)
+            NotificationMenuContext.selectRaidMode(activeLocations)
         }
     }
 

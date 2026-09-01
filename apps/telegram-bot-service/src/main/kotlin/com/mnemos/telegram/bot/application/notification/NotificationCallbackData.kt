@@ -30,6 +30,7 @@ object NotificationCallbackData {
     const val RAID_EDIT = "${PREFIX}re"
     const val RAID_CLEAR = "${PREFIX}ra"
     const val RAID_SAVE = "${PREFIX}rs"
+    const val RAID_DISABLE = "${PREFIX}rd"
 
     private const val PAGE_PREFIX = "${PREFIX}p:"
     private const val DELETE_PREFIX = "${PREFIX}d:"

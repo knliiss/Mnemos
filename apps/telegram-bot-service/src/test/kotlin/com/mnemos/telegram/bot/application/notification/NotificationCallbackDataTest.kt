@@ -51,6 +51,7 @@ class NotificationCallbackDataTest {
         val callbacks =
             listOf(
                 NotificationCallbackData.RAID_EDIT,
+                NotificationCallbackData.RAID_DISABLE,
                 boosterCallback,
                 dungeonCallback,
                 globalCallback,

@@ -85,19 +85,85 @@ class NotificationSubscriptionCreationService(
             create = { gateway.createGlobal(context.telegramId, eventType) },
         )
 
+    fun setRaidLocation(
+        context: TelegramCallbackContext,
+        location: Int,
+        selected: Boolean,
+    ): TelegramDeliveryResult {
+        val session =
+            currentCreationSession(context, NotificationCreationMode.RAID)
+                ?: return TelegramDeliveryResult.Delivered
+        val currentLocations = NotificationMenuContext.raidLocations(session.screenContext)
+        val nextLocations =
+            NotificationRaidLocations.withTarget(
+                current = currentLocations,
+                location = location,
+                selected = selected,
+            )
+
+        if (nextLocations == currentLocations) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return applyRaidSelection(
+            context = context,
+            activeLocations = nextLocations,
+        )
+    }
+
+    fun selectAllRaidLocations(context: TelegramCallbackContext): TelegramDeliveryResult {
+        val session =
+            currentCreationSession(context, NotificationCreationMode.RAID)
+                ?: return TelegramDeliveryResult.Delivered
+        val currentLocations = NotificationMenuContext.raidLocations(session.screenContext)
+
+        if (currentLocations == NotificationRaidLocations.all) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return applyRaidSelection(
+            context = context,
+            activeLocations = NotificationRaidLocations.all,
+        )
+    }
+
+    fun disableRaid(context: TelegramCallbackContext): TelegramDeliveryResult {
+        currentCreationSession(context, NotificationCreationMode.RAID)
+            ?: return TelegramDeliveryResult.Delivered
+
+        val state = loadState(context.telegramId) ?: return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
+        val existingId = state.raidSubscription?.id
+        val result =
+            when {
+                existingId == null -> NotificationSubscriptionCreationResult.APPLIED
+                subscriptionGateway.delete(context.telegramId, existingId) -> NotificationSubscriptionCreationResult.APPLIED
+                else ->
+                    resolveDeleteRace(
+                        telegramId = context.telegramId,
+                        existingSubscription = { available -> available.raidSubscription?.id },
+                    )
+            }
+
+        return applyRaidSelectionResult(
+            context = context,
+            activeLocations = emptySet(),
+            result = result,
+        )
+    }
+
     fun updateRaid(context: TelegramCallbackContext): TelegramDeliveryResult {
         val session =
             currentCreationSession(context, NotificationCreationMode.RAID)
                 ?: return TelegramDeliveryResult.Delivered
-        val state = loadState(context.telegramId) ?: return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
+        val activeLocations = NotificationMenuContext.raidLocations(session.screenContext)
 
-        if (state.raidSubscription == null) {
-            return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
+        if (activeLocations.isEmpty()) {
+            return disableRaid(context)
         }
 
         val draft =
             NotificationRaidSubscriptionDraft(
-                locations = NotificationMenuContext.raidLocations(session.screenContext),
+                locations = NotificationRaidLocations.toBackendLocations(activeLocations),
             )
 
         return applyRaidUpdateResult(
@@ -127,6 +193,26 @@ class NotificationSubscriptionCreationService(
             }
 
         return applyInlineResult(context, result)
+    }
+
+    private fun applyRaidSelection(
+        context: TelegramCallbackContext,
+        activeLocations: Set<Int>,
+    ): TelegramDeliveryResult {
+        if (activeLocations.isEmpty()) {
+            return disableRaid(context)
+        }
+
+        val draft =
+            NotificationRaidSubscriptionDraft(
+                locations = NotificationRaidLocations.toBackendLocations(activeLocations),
+            )
+
+        return applyRaidSelectionResult(
+            context = context,
+            activeLocations = activeLocations,
+            result = gateway.updateRaid(context.telegramId, draft),
+        )
     }
 
     private fun resolveDeleteRace(
@@ -161,6 +247,31 @@ class NotificationSubscriptionCreationService(
                     expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
                     update = { NotificationMenuContext.creationSucceeded() },
                 )
+
+            NotificationSubscriptionCreationResult.USER_NOT_FOUND ->
+                updateFeedback(context, NotificationMenuFeedback.USER_NOT_FOUND)
+
+            NotificationSubscriptionCreationResult.UNAVAILABLE ->
+                updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
+        }
+
+    private fun applyRaidSelectionResult(
+        context: TelegramCallbackContext,
+        activeLocations: Set<Int>,
+        result: NotificationSubscriptionCreationResult,
+    ): TelegramDeliveryResult =
+        when (result) {
+            NotificationSubscriptionCreationResult.APPLIED ->
+                menuService.updateScreenContext(
+                    telegramId = context.telegramId,
+                    messageId = context.messageId,
+                    expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
+                ) { current ->
+                    NotificationMenuContext.replaceRaidLocations(
+                        context = current,
+                        activeLocations = activeLocations,
+                    )
+                }
 
             NotificationSubscriptionCreationResult.USER_NOT_FOUND ->
                 updateFeedback(context, NotificationMenuFeedback.USER_NOT_FOUND)

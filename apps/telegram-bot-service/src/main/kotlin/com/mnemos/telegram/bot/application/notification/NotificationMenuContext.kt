@@ -37,14 +37,23 @@ object NotificationMenuContext {
         context[DELETE_ID_KEY]
             ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
 
-    fun raidLocations(context: Map<String, String>): Set<Int> =
-        context[RAID_LOCATIONS_KEY]
-            ?.takeUnless { value -> value == ANY_RAID_LOCATION_TOKEN }
-            ?.split(',')
-            ?.mapNotNull(String::toIntOrNull)
-            ?.filter { location -> location in MIN_RAID_LOCATION..MAX_RAID_LOCATION }
-            ?.toSet()
-            ?: emptySet()
+    fun raidLocations(context: Map<String, String>): Set<Int> {
+        val encodedLocations = context[RAID_LOCATIONS_KEY] ?: return emptySet()
+
+        if (encodedLocations == LEGACY_ALL_RAID_LOCATIONS_TOKEN) {
+            return NotificationRaidLocations.all
+        }
+
+        if (encodedLocations == EMPTY_RAID_LOCATIONS_TOKEN) {
+            return emptySet()
+        }
+
+        return encodedLocations
+            .split(',')
+            .mapNotNull(String::toIntOrNull)
+            .filter { location -> location in NotificationRaidLocations.MIN..NotificationRaidLocations.MAX }
+            .toSet()
+    }
 
     fun raidPage(context: Map<String, String>): Int =
         context[RAID_PAGE_KEY]
@@ -88,10 +97,10 @@ object NotificationMenuContext {
         (clearFeedback(context) - DELETE_ID_KEY) +
             (MODE_KEY to NotificationCreationMode.ITEM_DROP_LIST.name)
 
-    fun selectRaidMode(locations: Set<Int>): Map<String, String> =
-        withRaidLocations(
+    fun selectRaidMode(activeLocations: Set<Int>): Map<String, String> =
+        replaceRaidLocations(
             context = mapOf(MODE_KEY to NotificationCreationMode.RAID.name),
-            locations = locations,
+            activeLocations = activeLocations,
         )
 
     fun creationSucceeded(): Map<String, String> =
@@ -130,21 +139,44 @@ object NotificationMenuContext {
         context: Map<String, String>,
         location: Int,
         selected: Boolean,
-    ): Map<String, String> {
-        require(location in MIN_RAID_LOCATION..MAX_RAID_LOCATION)
+    ): Map<String, String> =
+        replaceRaidLocations(
+            context = clearFeedback(context),
+            activeLocations =
+                NotificationRaidLocations.withTarget(
+                    current = raidLocations(context),
+                    location = location,
+                    selected = selected,
+                ),
+        )
 
-        val currentLocations = raidLocations(context)
-        val nextLocations =
-            if (selected) {
-                currentLocations + location
+    fun replaceRaidLocations(
+        context: Map<String, String>,
+        activeLocations: Set<Int>,
+    ): Map<String, String> {
+        require(activeLocations.all { location -> location in NotificationRaidLocations.MIN..NotificationRaidLocations.MAX })
+
+        val encodedLocations =
+            if (activeLocations.isEmpty()) {
+                EMPTY_RAID_LOCATIONS_TOKEN
             } else {
-                currentLocations - location
+                activeLocations.sorted().joinToString(",")
             }
 
-        return withRaidLocations(clearFeedback(context), nextLocations)
+        return clearFeedback(context) + (RAID_LOCATIONS_KEY to encodedLocations)
     }
 
-    fun clearRaidLocations(context: Map<String, String>): Map<String, String> = withRaidLocations(clearFeedback(context), emptySet())
+    fun selectAllRaidLocations(context: Map<String, String>): Map<String, String> =
+        replaceRaidLocations(
+            context = context,
+            activeLocations = NotificationRaidLocations.all,
+        )
+
+    fun clearRaidLocations(context: Map<String, String>): Map<String, String> =
+        replaceRaidLocations(
+            context = context,
+            activeLocations = emptySet(),
+        )
 
     fun withRaidPage(
         context: Map<String, String>,
@@ -160,25 +192,10 @@ object NotificationMenuContext {
         }
     }
 
-    private fun withRaidLocations(
-        context: Map<String, String>,
-        locations: Set<Int>,
-    ): Map<String, String> {
-        val encodedLocations =
-            if (locations.isEmpty()) {
-                ANY_RAID_LOCATION_TOKEN
-            } else {
-                locations.sorted().joinToString(",")
-            }
-
-        return context + (RAID_LOCATIONS_KEY to encodedLocations)
-    }
-
     private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
         enumValues<T>().firstOrNull { enumValue -> enumValue.name == value }
 
-    private const val ANY_RAID_LOCATION_TOKEN = "*"
-    private const val MIN_RAID_LOCATION = 1
-    private const val MAX_RAID_LOCATION = 28
+    private const val LEGACY_ALL_RAID_LOCATIONS_TOKEN = "*"
+    private const val EMPTY_RAID_LOCATIONS_TOKEN = "-"
     private const val MAX_RAID_PAGE = 1
 }

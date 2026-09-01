@@ -50,8 +50,8 @@ class NotificationMenuContextTest {
     }
 
     @Test
-    fun `raid location target state is idempotent`() {
-        val raidContext = NotificationMenuContext.selectMode(NotificationCreationMode.RAID)
+    fun `raid target state is idempotent`() {
+        val raidContext = NotificationMenuContext.selectRaidMode(emptySet())
         val selectedOnce = NotificationMenuContext.setRaidLocation(raidContext, location = 12, selected = true)
         val selectedTwice = NotificationMenuContext.setRaidLocation(selectedOnce, location = 12, selected = true)
         val clearedOnce = NotificationMenuContext.setRaidLocation(selectedTwice, location = 12, selected = false)
@@ -61,6 +61,15 @@ class NotificationMenuContextTest {
         assertEquals(setOf(12), NotificationMenuContext.raidLocations(selectedTwice))
         assertEquals(emptySet<Int>(), NotificationMenuContext.raidLocations(clearedOnce))
         assertEquals(emptySet<Int>(), NotificationMenuContext.raidLocations(clearedTwice))
+    }
+
+    @Test
+    fun `raid context keeps disabled state distinct from all locations`() {
+        val disabled = NotificationMenuContext.selectRaidMode(emptySet())
+        val allLocations = NotificationMenuContext.selectRaidMode(NotificationRaidLocations.all)
+
+        assertEquals(emptySet<Int>(), NotificationMenuContext.raidLocations(disabled))
+        assertEquals(NotificationRaidLocations.all, NotificationMenuContext.raidLocations(allLocations))
     }
 
     @Test
