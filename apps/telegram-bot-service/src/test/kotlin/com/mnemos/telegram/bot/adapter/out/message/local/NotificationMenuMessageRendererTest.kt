@@ -24,7 +24,7 @@ import java.util.UUID
 
 class NotificationMenuMessageRendererTest {
     @Test
-    fun `notification dashboard renders direct event toggles with named states`() {
+    fun `notification dashboard renders balanced direct event toggle rows`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -60,7 +60,10 @@ class NotificationMenuMessageRendererTest {
         assertFalse(eclipse.label.startsWith("✅"))
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_EDIT })
-        assertEquals(listOf(3, 2, 4, 4, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(
+            listOf(3, 2, 2, 2, 2, 2, 1, 1, 1, 1),
+            message.actionRows.map(List<*>::size),
+        )
     }
 
     @Test
