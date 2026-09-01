@@ -75,6 +75,7 @@ object BetMenuMessageRenderer {
             return amountPrompt(data)
         }
 
+        val visibleRounds = rounds.take(BET_LIST_LIMIT)
         val lines =
             mutableListOf(
                 "🎲 <b>Ставки</b>",
@@ -84,18 +85,23 @@ object BetMenuMessageRenderer {
             )
         addFeedback(lines, data.feedback)
 
-        if (rounds.isEmpty()) {
+        if (visibleRounds.isEmpty()) {
             lines += "└ Нет доступных раундов."
         } else {
-            rounds.forEachIndexed { index, round ->
+            visibleRounds.forEachIndexed { index, round ->
                 lines += ""
                 lines += renderRound(index + 1, round)
+            }
+
+            if (rounds.size > visibleRounds.size) {
+                lines += ""
+                lines += "Показано ближайших <b>${visibleRounds.size}</b> из <b>${rounds.size}</b>."
             }
         }
 
         val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
-        rounds.forEachIndexed { index, round ->
+        visibleRounds.forEachIndexed { index, round ->
             if (round.status != OPEN_STATUS) {
                 return@forEachIndexed
             }
@@ -146,6 +152,7 @@ object BetMenuMessageRenderer {
             return amountPrompt(data)
         }
 
+        val visibleRaces = races.take(BET_LIST_LIMIT)
         val lines =
             mutableListOf(
                 "🎲 <b>Ставки</b>",
@@ -155,18 +162,23 @@ object BetMenuMessageRenderer {
             )
         addFeedback(lines, data.feedback)
 
-        if (races.isEmpty()) {
+        if (visibleRaces.isEmpty()) {
             lines += "└ Нет активных гонок."
         } else {
-            races.forEachIndexed { index, race ->
+            visibleRaces.forEachIndexed { index, race ->
                 lines += ""
                 lines += renderRace(index + 1, race)
+            }
+
+            if (races.size > visibleRaces.size) {
+                lines += ""
+                lines += "Показано <b>${visibleRaces.size}</b> из <b>${races.size}</b> активных гонок."
             }
         }
 
         val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
-        races.forEachIndexed { index, race ->
+        visibleRaces.forEachIndexed { index, race ->
             if (race.status != REGISTRATION_STATUS) {
                 return@forEachIndexed
             }
@@ -216,6 +228,8 @@ object BetMenuMessageRenderer {
 
         val eventBets = data.eventHistory.bets
         val racePositions = data.raceHistory.positions
+        val visibleEventBets = eventBets.take(HISTORY_SECTION_LIMIT)
+        val visibleRacePositions = racePositions.take(HISTORY_SECTION_LIMIT)
         val lines =
             mutableListOf(
                 "🎲 <b>Ставки</b>",
@@ -228,21 +242,29 @@ object BetMenuMessageRenderer {
         if (eventBets.isEmpty() && racePositions.isEmpty()) {
             lines += "└ История пока пустая."
         } else {
-            if (eventBets.isNotEmpty()) {
+            if (visibleEventBets.isNotEmpty()) {
                 lines += ""
                 lines += "🎯 <b>События</b>"
-                eventBets.take(HISTORY_LIMIT).forEachIndexed { index, bet ->
+                visibleEventBets.forEachIndexed { index, bet ->
                     lines += ""
                     lines += renderHistoryBet(index + 1, bet)
                 }
+
+                if (eventBets.size > visibleEventBets.size) {
+                    lines += "└ Показано последних ${visibleEventBets.size} из ${eventBets.size}."
+                }
             }
 
-            if (racePositions.isNotEmpty()) {
+            if (visibleRacePositions.isNotEmpty()) {
                 lines += ""
                 lines += "🏁 <b>Item Race</b>"
-                racePositions.take(HISTORY_LIMIT).forEachIndexed { index, position ->
+                visibleRacePositions.forEachIndexed { index, position ->
                     lines += ""
                     lines += renderHistoryRacePosition(index + 1, position)
+                }
+
+                if (racePositions.size > visibleRacePositions.size) {
+                    lines += "└ Показано последних ${visibleRacePositions.size} из ${racePositions.size}."
                 }
             }
         }
@@ -567,7 +589,8 @@ object BetMenuMessageRenderer {
     private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
     private const val OPEN_STATUS = "OPEN"
     private const val REGISTRATION_STATUS = "REGISTRATION"
-    private const val HISTORY_LIMIT = 20
+    private const val BET_LIST_LIMIT = 8
+    private const val HISTORY_SECTION_LIMIT = 8
 
     private val amountPromptRows =
         listOf(
