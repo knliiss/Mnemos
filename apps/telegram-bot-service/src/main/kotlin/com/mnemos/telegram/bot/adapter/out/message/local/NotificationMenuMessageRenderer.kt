@@ -60,8 +60,6 @@ object NotificationMenuMessageRenderer {
                     MESSAGE_DIVIDER,
                     feedbackText(data.feedback),
                     "",
-                    "Выберите раздел",
-                    "",
                     "🌌 Глобальные события: <b>$activeGlobals/${NotificationGlobalType.entries.size}</b>",
                     "⚡ Бустеры: <b>$activeBoosters/${NotificationBoosterType.entries.size}</b>",
                     "🏰 Dungeon: <b>$activeDungeons/${NotificationDungeonType.entries.size}</b>",
