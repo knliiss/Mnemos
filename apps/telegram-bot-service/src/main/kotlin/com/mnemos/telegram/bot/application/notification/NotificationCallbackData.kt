@@ -1,10 +1,8 @@
 package com.mnemos.telegram.bot.application.notification
 
 import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
-import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
 import com.mnemos.telegram.bot.application.notification.model.NotificationGlobalType
-import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
 import java.util.UUID
 
 data class NotificationToggleTarget<T>(
@@ -21,7 +19,6 @@ object NotificationCallbackData {
     const val PREFIX = "ntf:"
     const val REFRESH = "${PREFIX}r"
     const val CREATE = "${PREFIX}c"
-    const val CREATE_TYPES = "${PREFIX}ct"
     const val DROPS = "${PREFIX}dl"
     const val DELETE_CANCEL = "${PREFIX}dx"
     const val ITEM_DROP_PLAYER = "${PREFIX}ip"
@@ -30,14 +27,13 @@ object NotificationCallbackData {
     const val ITEM_DROP_CLEAR_ITEM = "${PREFIX}iic"
     const val ITEM_DROP_CREATE = "${PREFIX}is"
     const val ITEM_DROP_INPUT_CANCEL = "${PREFIX}ix"
+    const val RAID_EDIT = "${PREFIX}re"
     const val RAID_CLEAR = "${PREFIX}ra"
     const val RAID_SAVE = "${PREFIX}rs"
-    const val RAID_CREATE = RAID_SAVE
 
     private const val PAGE_PREFIX = "${PREFIX}p:"
     private const val DELETE_PREFIX = "${PREFIX}d:"
     private const val DELETE_CONFIRM_PREFIX = "${PREFIX}dc:"
-    private const val TYPE_PREFIX = "${PREFIX}t:"
     private const val BOOSTER_PREFIX = "${PREFIX}b:"
     private const val DUNGEON_PREFIX = "${PREFIX}u:"
     private const val GLOBAL_PREFIX = "${PREFIX}g:"
@@ -49,8 +45,6 @@ object NotificationCallbackData {
     fun delete(subscriptionId: UUID): String = "$DELETE_PREFIX$subscriptionId"
 
     fun confirmDelete(subscriptionId: UUID): String = "$DELETE_CONFIRM_PREFIX$subscriptionId"
-
-    fun type(type: NotificationSubscriptionType): String = "$TYPE_PREFIX${typeCode(type)}"
 
     fun booster(
         type: NotificationBoosterType,
@@ -97,12 +91,6 @@ object NotificationCallbackData {
             prefix = DELETE_CONFIRM_PREFIX,
         )
 
-    fun selectedCreationMode(data: String): NotificationCreationMode? =
-        data
-            .takeIf { value -> value.startsWith(TYPE_PREFIX) }
-            ?.removePrefix(TYPE_PREFIX)
-            ?.let(::creationModeForCode)
-
     fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? = enumTargetFromData(data, BOOSTER_PREFIX)
 
     fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? = enumTargetFromData(data, DUNGEON_PREFIX)
@@ -143,25 +131,6 @@ object NotificationCallbackData {
             .takeIf { value -> value.startsWith(prefix) }
             ?.removePrefix(prefix)
             ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
-
-    private fun typeCode(type: NotificationSubscriptionType): String =
-        when (type) {
-            NotificationSubscriptionType.ITEM_DROP -> "i"
-            NotificationSubscriptionType.BOOSTER -> "b"
-            NotificationSubscriptionType.DUNGEON -> "d"
-            NotificationSubscriptionType.RAID -> "r"
-            NotificationSubscriptionType.GLOBAL -> "g"
-        }
-
-    private fun creationModeForCode(code: String): NotificationCreationMode? =
-        when (code) {
-            "i" -> NotificationCreationMode.ITEM_DROP
-            "b" -> NotificationCreationMode.BOOSTER
-            "d" -> NotificationCreationMode.DUNGEON
-            "r" -> NotificationCreationMode.RAID
-            "g" -> NotificationCreationMode.GLOBAL
-            else -> null
-        }
 
     private inline fun <reified T : Enum<T>> enumTargetFromData(
         data: String,
