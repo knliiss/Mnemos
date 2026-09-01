@@ -4,7 +4,9 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationCreati
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuFeedback
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class NotificationMenuContextTest {
     @Test
@@ -29,6 +31,22 @@ class NotificationMenuContextTest {
         assertEquals(1, NotificationMenuContext.page(secondPage))
         assertEquals(NotificationCreationMode.ITEM_DROP_LIST, NotificationMenuContext.mode(firstPage))
         assertEquals(0, NotificationMenuContext.page(firstPage))
+    }
+
+    @Test
+    fun `delete confirmation preserves page and selected rule`() {
+        val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val dropsContext = NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
+        val secondPage = NotificationMenuContext.withPage(dropsContext, 1)
+        val confirmation = NotificationMenuContext.selectDelete(secondPage, subscriptionId)
+        val returned = NotificationMenuContext.returnToDropList(confirmation)
+
+        assertEquals(NotificationCreationMode.ITEM_DROP_DELETE, NotificationMenuContext.mode(confirmation))
+        assertEquals(1, NotificationMenuContext.page(confirmation))
+        assertEquals(subscriptionId, NotificationMenuContext.deleteSubscriptionId(confirmation))
+        assertEquals(NotificationCreationMode.ITEM_DROP_LIST, NotificationMenuContext.mode(returned))
+        assertEquals(1, NotificationMenuContext.page(returned))
+        assertNull(NotificationMenuContext.deleteSubscriptionId(returned))
     }
 
     @Test
