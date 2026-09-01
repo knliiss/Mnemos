@@ -29,8 +29,16 @@ class NotificationCallbackHandler(
             return refresh(context)
         }
 
+        if (context.data == NotificationCallbackData.DROPS) {
+            return updateContext(context) {
+                NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
+            }
+        }
+
         if (context.data == NotificationCallbackData.CREATE || context.data == NotificationCallbackData.CREATE_TYPES) {
-            return updateContext(context) { NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP) }
+            return updateContext(context) {
+                NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP)
+            }
         }
 
         NotificationCallbackData.selectedCreationMode(context.data)?.let { mode ->
@@ -141,6 +149,10 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedPage(context.data)?.let { page ->
+            if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP_LIST)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return updateContext(context) { current ->
                 NotificationMenuContext.withPage(current, page)
             }
@@ -163,7 +175,9 @@ class NotificationCallbackHandler(
         val available = result as? NotificationSubscriptionResult.Available
         val locations = available?.raidSubscription?.raidLocations.orEmpty()
 
-        return updateContext(context) { NotificationMenuContext.selectRaidMode(locations) }
+        return updateContext(context) {
+            NotificationMenuContext.selectRaidMode(locations)
+        }
     }
 
     private fun requestItemDropInput(
@@ -187,7 +201,7 @@ class NotificationCallbackHandler(
         context: TelegramCallbackContext,
         subscriptionId: UUID,
     ): TelegramDeliveryResult {
-        if (!isCurrentMode(context, NotificationCreationMode.LIST)) {
+        if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP_LIST)) {
             return TelegramDeliveryResult.Delivered
         }
 
@@ -199,7 +213,8 @@ class NotificationCallbackHandler(
         return refresh(context)
     }
 
-    private fun refresh(context: TelegramCallbackContext): TelegramDeliveryResult = updateContext(context, NotificationMenuContext::refresh)
+    private fun refresh(context: TelegramCallbackContext): TelegramDeliveryResult =
+        updateContext(context, NotificationMenuContext::refresh)
 
     private fun updateCreationContext(
         context: TelegramCallbackContext,
