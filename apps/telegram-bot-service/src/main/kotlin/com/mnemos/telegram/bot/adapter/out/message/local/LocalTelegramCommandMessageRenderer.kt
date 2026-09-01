@@ -23,9 +23,11 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "🤖 <b>Mnemos</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "👋 Добро пожаловать.",
+                    "👋 <b>Добро пожаловать в Mnemos</b>",
                     "",
-                    "Все основные функции доступны через единое меню прямо в Telegram.",
+                    "Основными функциями Mnemos можно пользоваться прямо в этом чате — Mini App для этого не нужен.",
+                    "",
+                    "Нажмите «Меню Mnemos» или используйте /menu. Mini App ниже остаётся дополнительным интерфейсом, если он доступен в вашем регионе.",
                     "",
                     "📋 <b>Откройте панель управления:</b>",
                 ).joinToString("\n"),
@@ -54,10 +56,11 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "❓ <b>Помощь Mnemos</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "📋 <b>Основное управление</b>",
-                    "└ <code>/menu</code> — единая панель Mnemos.",
+                    "📋 <b>С чего начать?</b>",
+                    "Откройте /menu. Основные функции Mnemos работают прямо в Telegram-чате, включая настройку Cristalix-аккаунта.",
                     "",
-                    "Все основные разделы доступны из меню. Mini App остаётся дополнительным интерфейсом.",
+                    "📱 <b>Нужен ли Mini App?</b>",
+                    "Нет для основных сценариев. Он остаётся дополнительным визуальным интерфейсом и не должен блокировать использование Mnemos, если недоступен в вашем регионе.",
                 ).joinToString("\n")
 
             TelegramHelpSection.MINI_APP ->
@@ -65,31 +68,29 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "📱 <b>Mini App</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "Mini App — дополнительный визуальный интерфейс Mnemos.",
+                    "Mini App — дополнительный интерфейс Mnemos. Если он открывается, используйте кнопку «Mini App» или стандартную кнопку Telegram.",
                     "",
-                    "Если он недоступен, используйте <code>/menu</code>: основные функции работают прямо в чате.",
+                    "Если Mini App не загружается из-за сети или региональных ограничений, продолжайте пользоваться /menu: аккаунт, уведомления, Daily, события, ставки, PRIME и настройки доступны через чат.",
                 ).joinToString("\n")
 
             TelegramHelpSection.SUBSCRIPTIONS ->
                 listOf(
-                    "🔔 <b>Уведомления</b>",
+                    "🔔 <b>Подписки</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "🌌 Глобальные события, ⚡ бустеры и 🏰 Dungeon переключаются прямо в панели.",
-                    "🛡 RAID редактируется как одна существующая настройка.",
-                    "📦 Правила дропа управляются отдельным списком.",
+                    "Откройте /notifications. Управление подписками повторяет Mini App: глобальные события, бустеры и данжи переключаются как настройки, RAID редактируется как одна подписка, а правила дропа управляются отдельно.",
+                    "",
+                    "Для фильтров по игроку или предмету бот сам запросит значение обычным сообщением.",
                 ).joinToString("\n")
 
             TelegramHelpSection.ACCOUNTS ->
                 listOf(
-                    "👤 <b>Аккаунт</b>",
+                    "👤 <b>Аккаунты</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "В одном разделе находятся:",
-                    "├ 🔑 активный Cristalix-аккаунт",
-                    "├ 💰 COIN и PRIME",
-                    "├ 🎁 Daily",
-                    "└ 👥 создание, подключение и переключение аккаунтов",
+                    "Откройте /account. Там можно создать Mnemos/Cristalix-аккаунт, присоединиться по invite-коду, посмотреть доступные аккаунты и переключить активный.",
+                    "",
+                    "Daily, ставки и другие account-scoped функции используют выбранный активный аккаунт и его права.",
                 ).joinToString("\n")
 
             TelegramHelpSection.BETS ->
@@ -97,29 +98,36 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "🎲 <b>Ставки</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "🎯 События, 🏁 Item Race и 📜 история находятся в одном разделе.",
+                    "Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.",
                     "",
-                    "Выберите действие и отправьте сумму COIN, когда бот запросит её.",
+                    "Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна в этом же разделе.",
+                    "",
+                    "Для операции нужен активный аккаунт и право PLACE_BETS. Все ставки проходят через обычный Mnemos wallet/idempotency flow.",
                 ).joinToString("\n")
 
             TelegramHelpSection.NOTIFICATIONS ->
                 listOf(
-                    "✉️ <b>Доставка уведомлений</b>",
+                    "✉️ <b>Уведомления</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "Если бот был заблокирован, разблокируйте его и отправьте <code>/start</code> или <code>/menu</code>.",
+                    "Если бот был заблокирован, разблокируйте его и отправьте /start или /help — Mnemos снова активирует Telegram-получателя.",
                     "",
-                    "Пак уведомлений и язык меняются в разделе ⚙️ Настройки.",
+                    "Notification pack и доступные пользовательские настройки можно менять через /settings.",
                 ).joinToString("\n")
 
             TelegramHelpSection.TROUBLESHOOTING ->
                 listOf(
-                    "🛠 <b>Проблемы</b>",
+                    "🛠 <b>Проблемы и решения</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "📱 Mini App не открывается — используйте <code>/menu</code>.",
-                    "🔄 Раздел не загрузился — нажмите «Обновить».",
-                    "👤 Нужен аккаунт — откройте раздел «Аккаунт» в меню.",
+                    "<b>Mini App не открывается или не загружается.</b>",
+                    "Используйте /menu. Для основных функций это не является блокирующей ошибкой.",
+                    "",
+                    "<b>Отдельный раздел бота временно недоступен.</b>",
+                    "Нажмите «Обновить». Если соответствующий backend-сервис не отвечает, бот покажет локальную ошибку без требования открыть Mini App.",
+                    "",
+                    "<b>Нужен активный Cristalix-аккаунт.</b>",
+                    "Перейдите в /account и создайте, подключите или переключите его прямо в Telegram.",
                 ).joinToString("\n")
         }
 
@@ -211,10 +219,10 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             listOf(
                 TelegramHelpSection.OVERVIEW to "Обзор",
                 TelegramHelpSection.MINI_APP to "Mini App",
-                TelegramHelpSection.SUBSCRIPTIONS to "Уведомления",
-                TelegramHelpSection.ACCOUNTS to "Аккаунт",
+                TelegramHelpSection.SUBSCRIPTIONS to "Подписки",
+                TelegramHelpSection.ACCOUNTS to "Аккаунты",
                 TelegramHelpSection.BETS to "Ставки",
-                TelegramHelpSection.NOTIFICATIONS to "Доставка",
+                TelegramHelpSection.NOTIFICATIONS to "Уведомления",
                 TelegramHelpSection.TROUBLESHOOTING to "Проблемы",
             )
     }
