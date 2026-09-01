@@ -100,6 +100,11 @@ object NotificationMenuContext {
             FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name,
         )
 
+    fun raidUpdateSucceeded(): Map<String, String> =
+        mapOf(
+            FEEDBACK_KEY to NotificationMenuFeedback.RAID_SAVED.name,
+        )
+
     fun withFeedback(
         context: Map<String, String>,
         feedback: NotificationMenuFeedback,
