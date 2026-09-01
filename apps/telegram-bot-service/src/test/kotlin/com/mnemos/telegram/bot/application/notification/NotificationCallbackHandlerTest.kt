@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
+import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
@@ -62,6 +63,75 @@ class NotificationCallbackHandlerTest {
     }
 
     @Test
+    fun `active player input ignores queued create callback`() {
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(
+            session(
+                mode = NotificationCreationMode.ITEM_DROP,
+                pendingInput = TelegramPendingInput.NOTIFICATION_ITEM_DROP_PLAYER,
+            ),
+        )
+
+        val result = handler.handle(callback(NotificationCallbackData.ITEM_DROP_CREATE))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verifyNoInteractions(menuService, subscriptionGateway, creationService)
+    }
+
+    @Test
+    fun `active item input ignores queued clear callback`() {
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(
+            session(
+                mode = NotificationCreationMode.ITEM_DROP,
+                pendingInput = TelegramPendingInput.NOTIFICATION_ITEM_DROP_ITEM,
+            ),
+        )
+
+        val result = handler.handle(callback(NotificationCallbackData.ITEM_DROP_CLEAR_ITEM))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verifyNoInteractions(menuService, subscriptionGateway, creationService)
+    }
+
+    @Test
+    fun `active item drop input can still be cancelled`() {
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(
+            session(
+                mode = NotificationCreationMode.ITEM_DROP,
+                pendingInput = TelegramPendingInput.NOTIFICATION_ITEM_DROP_PLAYER,
+            ),
+        )
+        whenever(
+            menuService.cancelTextInput(
+                telegramId = eq(TELEGRAM_ID),
+                messageId = eq(MESSAGE_ID),
+                expectedScreen = eq(TelegramMenuScreen.NOTIFICATIONS),
+                updateContext = any(),
+            ),
+        ).thenReturn(TelegramDeliveryResult.Delivered)
+
+        val result = handler.handle(callback(NotificationCallbackData.ITEM_DROP_INPUT_CANCEL))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verify(menuService).cancelTextInput(
+            telegramId = eq(TELEGRAM_ID),
+            messageId = eq(MESSAGE_ID),
+            expectedScreen = eq(TelegramMenuScreen.NOTIFICATIONS),
+            updateContext = any(),
+        )
+        verifyNoInteractions(subscriptionGateway, creationService)
+    }
+
+    @Test
+    fun `item drop cancel without active input is ignored`() {
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(session(NotificationCreationMode.ITEM_DROP))
+
+        val result = handler.handle(callback(NotificationCallbackData.ITEM_DROP_INPUT_CANCEL))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verifyNoInteractions(menuService, subscriptionGateway, creationService)
+    }
+
+    @Test
     fun `drop creation can return to drop list`() {
         whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(session(NotificationCreationMode.ITEM_DROP))
         whenever(
@@ -109,11 +179,15 @@ class NotificationCallbackHandlerTest {
         verifyNoInteractions(subscriptionGateway, creationService)
     }
 
-    private fun session(mode: NotificationCreationMode): TelegramMenuSession =
+    private fun session(
+        mode: NotificationCreationMode,
+        pendingInput: TelegramPendingInput? = null,
+    ): TelegramMenuSession =
         TelegramMenuSession(
             telegramId = TELEGRAM_ID,
             menuMessageId = MESSAGE_ID,
             currentScreen = TelegramMenuScreen.NOTIFICATIONS,
+            pendingInput = pendingInput,
             screenContext =
                 if (mode == NotificationCreationMode.LIST) {
                     emptyMap()
