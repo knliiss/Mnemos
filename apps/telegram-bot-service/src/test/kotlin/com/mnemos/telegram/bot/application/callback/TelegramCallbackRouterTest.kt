@@ -58,6 +58,19 @@ class TelegramCallbackRouterTest {
     }
 
     @Test
+    fun `external menu callback opens fresh menu`() {
+        val router = router()
+        val context = callbackContext(TelegramMenuScreen.OPEN_CALLBACK_DATA)
+        whenever(menuService.open(TELEGRAM_ID)).thenReturn(TelegramDeliveryResult.Delivered)
+
+        val result = router.route(context)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verify(menuService).open(TELEGRAM_ID)
+        verifyNoInteractions(helpService)
+    }
+
+    @Test
     fun `back callback delegates to menu back navigation`() {
         val router = router()
         val context = callbackContext(TelegramMenuScreen.BACK_CALLBACK_DATA)
