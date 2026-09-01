@@ -51,19 +51,16 @@ object NotificationMenuContext {
         page: Int,
     ): Map<String, String> {
         val normalizedPage = page.coerceAtLeast(0)
+        val withoutPage = clearFeedback(context) - PAGE_KEY
 
-        return buildMap {
-            if (normalizedPage > 0) {
-                put(PAGE_KEY, normalizedPage.toString())
-            }
+        return if (normalizedPage == 0) {
+            withoutPage
+        } else {
+            withoutPage + (PAGE_KEY to normalizedPage.toString())
         }
     }
 
-    fun refresh(context: Map<String, String>): Map<String, String> =
-        when (mode(context)) {
-            NotificationCreationMode.LIST -> withPage(context, page(context))
-            else -> clearFeedback(context)
-        }
+    fun refresh(context: Map<String, String>): Map<String, String> = clearFeedback(context)
 
     fun startCreation(): Map<String, String> = selectMode(NotificationCreationMode.ITEM_DROP)
 
@@ -120,7 +117,8 @@ object NotificationMenuContext {
         return withRaidLocations(clearFeedback(context), nextLocations)
     }
 
-    fun clearRaidLocations(context: Map<String, String>): Map<String, String> = withRaidLocations(clearFeedback(context), emptySet())
+    fun clearRaidLocations(context: Map<String, String>): Map<String, String> =
+        withRaidLocations(clearFeedback(context), emptySet())
 
     fun withRaidPage(
         context: Map<String, String>,
