@@ -93,14 +93,11 @@ object NotificationCallbackData {
             ?.removePrefix(TYPE_PREFIX)
             ?.let(::creationModeForCode)
 
-    fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? =
-        enumTargetFromData(data, BOOSTER_PREFIX)
+    fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? = enumTargetFromData(data, BOOSTER_PREFIX)
 
-    fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? =
-        enumTargetFromData(data, DUNGEON_PREFIX)
+    fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? = enumTargetFromData(data, DUNGEON_PREFIX)
 
-    fun selectedGlobalTarget(data: String): NotificationToggleTarget<NotificationGlobalType>? =
-        enumTargetFromData(data, GLOBAL_PREFIX)
+    fun selectedGlobalTarget(data: String): NotificationToggleTarget<NotificationGlobalType>? = enumTargetFromData(data, GLOBAL_PREFIX)
 
     fun selectedRaidLocationTarget(data: String): NotificationRaidLocationTarget? {
         val payload =
