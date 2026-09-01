@@ -31,6 +31,10 @@ class NotificationCallbackHandler(
         }
 
         if (context.data == NotificationCallbackData.DROPS) {
+            if (!isCurrentMode(context, NotificationCreationMode.LIST, NotificationCreationMode.ITEM_DROP)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return updateContext(context) {
                 NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
             }
@@ -45,12 +49,20 @@ class NotificationCallbackHandler(
         }
 
         if (context.data == NotificationCallbackData.CREATE) {
+            if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP_LIST)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return updateContext(context) {
                 NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP)
             }
         }
 
         if (context.data == NotificationCallbackData.RAID_EDIT) {
+            if (!isCurrentMode(context, NotificationCreationMode.LIST)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return openRaidEditor(context)
         }
 
@@ -268,13 +280,23 @@ class NotificationCallbackHandler(
 
     private fun isCurrentMode(
         context: TelegramCallbackContext,
-        expectedMode: NotificationCreationMode,
-    ): Boolean = currentSession(context, expectedMode) != null
+        vararg expectedModes: NotificationCreationMode,
+    ): Boolean {
+        val session = currentSession(context) ?: return false
+        val currentMode = NotificationMenuContext.mode(session.screenContext)
+
+        return currentMode in expectedModes
+    }
 
     private fun currentSession(
         context: TelegramCallbackContext,
         expectedMode: NotificationCreationMode,
-    ): TelegramMenuSession? {
+    ): TelegramMenuSession? =
+        currentSession(context)?.takeIf { current ->
+            NotificationMenuContext.mode(current.screenContext) == expectedMode
+        }
+
+    private fun currentSession(context: TelegramCallbackContext): TelegramMenuSession? {
         val session = sessionRepository.find(context.telegramId) ?: return null
 
         if (session.currentScreen != TelegramMenuScreen.NOTIFICATIONS) {
@@ -285,8 +307,6 @@ class NotificationCallbackHandler(
             return null
         }
 
-        return session.takeIf { current ->
-            NotificationMenuContext.mode(current.screenContext) == expectedMode
-        }
+        return session
     }
 }
