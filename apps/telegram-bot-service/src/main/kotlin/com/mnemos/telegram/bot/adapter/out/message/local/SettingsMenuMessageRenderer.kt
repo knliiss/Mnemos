@@ -122,13 +122,16 @@ object SettingsMenuMessageRenderer {
         )
     }
 
-    private fun packButtonLabel(title: String): String =
-        "🔔 " + title.trim().ifBlank { "Без названия" }.take(MAX_PACK_BUTTON_TITLE_LENGTH)
+    private fun packButtonLabel(title: String): String {
+        return "🔔 " + title.trim().ifBlank { "Без названия" }.take(MAX_PACK_BUTTON_TITLE_LENGTH)
+    }
 
-    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle = if (selected) {
-        OutboundTelegramButtonStyle.SUCCESS
-    } else {
-        OutboundTelegramButtonStyle.DEFAULT
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle {
+        return if (selected) {
+            OutboundTelegramButtonStyle.SUCCESS
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
+        }
     }
 
     private fun escapeHtml(value: String): String =
