@@ -21,6 +21,13 @@ object BotMenuDesignTranslations {
 
     private val ukrainian =
         listOf(
+            "Правило срабатывает, когда совпадают все указанные фильтры." to
+                "Правило спрацьовує, коли збігаються всі вказані фільтри.",
+            "Только игрок — любой его дроп. Только предмет — этот предмет у любого игрока." to
+                "Лише гравець — будь-який його дроп. Лише предмет — цей предмет у будь-якого гравця.",
+            "Нажмите номер локации, чтобы включить или выключить её." to
+                "Натисніть номер локації, щоб увімкнути або вимкнути її.",
+            "Изменения применяются сразу." to "Зміни застосовуються одразу.",
             "Панель управления" to "Панель керування",
             "Выберите раздел" to "Оберіть розділ",
             "SAO и события" to "SAO та події",
@@ -29,6 +36,7 @@ object BotMenuDesignTranslations {
             "Включено" to "Увімкнено",
             "Выкл" to "Вимк",
             "Вкл" to "Увімк",
+            "Все" to "Усі",
             "Хаос" to "Хаос",
             "Правил дропа пока нет" to "Правил дропу поки немає",
             "Удалить правило?" to "Видалити правило?",
@@ -58,6 +66,13 @@ object BotMenuDesignTranslations {
 
     private val english =
         listOf(
+            "Правило срабатывает, когда совпадают все указанные фильтры." to
+                "The rule triggers when all specified filters match.",
+            "Только игрок — любой его дроп. Только предмет — этот предмет у любого игрока." to
+                "Player only — any of their drops. Item only — this item for any player.",
+            "Нажмите номер локации, чтобы включить или выключить её." to
+                "Tap a location number to turn it on or off.",
+            "Изменения применяются сразу." to "Changes apply immediately.",
             "Панель управления" to "Control panel",
             "Выберите раздел" to "Choose a section",
             "SAO и события" to "SAO & events",
@@ -66,6 +81,7 @@ object BotMenuDesignTranslations {
             "Включено" to "Enabled",
             "Выкл" to "Off",
             "Вкл" to "On",
+            "Все" to "All",
             "Хаос" to "Chaos",
             "Правил дропа пока нет" to "There are no drop rules yet",
             "Удалить правило?" to "Delete rule?",

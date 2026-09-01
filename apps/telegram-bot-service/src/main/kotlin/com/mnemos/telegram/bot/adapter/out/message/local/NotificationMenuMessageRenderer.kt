@@ -274,6 +274,9 @@ object NotificationMenuMessageRenderer {
                     "👤 Игрок: $playerFilter",
                     "⚔️ Предмет: $itemFilter",
                     "",
+                    "Правило срабатывает, когда совпадают все указанные фильтры.",
+                    "Только игрок — любой его дроп. Только предмет — этот предмет у любого игрока.",
+                    "",
                     inputPrompt,
                 ).joinToString("\n"),
             rows = renderItemDropRows(data),
@@ -378,6 +381,9 @@ object NotificationMenuMessageRenderer {
                     "",
                     "📍 RAID: <b>${activeLocations.size}/${NotificationRaidLocations.all.size}</b>",
                     "└ ${escapeHtml(locationSummary)}",
+                    "",
+                    "Изменения применяются сразу.",
+                    "Нажмите номер локации, чтобы включить или выключить её.",
                 ).joinToString("\n"),
             rows =
                 buildList {
