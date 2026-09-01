@@ -23,7 +23,7 @@ import java.util.UUID
 
 class AccountMenuMessageRendererTest {
     @Test
-    fun `account dashboard groups daily prime and keeps account controls together`() {
+    fun `account dashboard separates account coin from user prime and keeps actions readable`() {
         val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
         val switchableAccount = account("alt", active = false, status = TelegramAccountStatus.ACTIVE)
         val deactivatedAccount = account("old", active = false, status = TelegramAccountStatus.DEACTIVATED)
@@ -50,29 +50,31 @@ class AccountMenuMessageRendererTest {
 
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val quickActions = message.actionRows[0]
-        val dailyLabel = quickActions[0].label
-        val primeLabel = quickActions[1].label
+        val dailyAction = message.actionRows[0].single()
+        val primeAction = message.actionRows[1].single()
         val switchAction =
             callbacks.single { action ->
                 action.data == AccountCallbackData.switch(switchableAccount.accountId)
             }
 
-        assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
+        assertTrue(message.text.contains("<b>Активный Cristalix-аккаунт</b>"))
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
-        assertTrue(message.text.contains("├ COIN: <b>125</b>"))
-        assertTrue(message.text.contains("└ PRIME: <b>3</b> ⭐"))
+        assertTrue(message.text.contains("<b>COIN активного аккаунта</b>"))
+        assertTrue(message.text.contains("└ <b>125</b> COIN"))
+        assertTrue(message.text.contains("<b>PRIME пользователя Mnemos</b>"))
+        assertTrue(message.text.contains("└ <b>3</b> PRIME"))
+        assertTrue(message.text.contains("PRIME общий для вас и не меняется"))
         assertTrue(message.text.contains("<code>old</code> · владелец · 1/5 · деактивирован"))
         assertTrue(message.text.contains("Активный аккаунт переключён"))
-        assertEquals(2, quickActions.size)
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
+        assertTrue(message.actionRows.all { row -> row.size == 1 })
+        assertEquals(TelegramMenuScreen.DAILY.callbackData, (dailyAction as OutboundTelegramMessageAction.Callback).data)
+        assertEquals(TelegramMenuScreen.PRIME.callbackData, (primeAction as OutboundTelegramMessageAction.Callback).data)
+        assertTrue(dailyAction.label.contains("Daily аккаунта"))
+        assertTrue(primeAction.label.contains("PRIME пользователя"))
         assertEquals(OutboundTelegramButtonStyle.PRIMARY, switchAction.style)
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
-        assertTrue(dailyLabel.contains("Daily"))
-        assertTrue(primeLabel.contains("PRIME"))
     }
 
     @Test
@@ -138,6 +140,8 @@ class AccountMenuMessageRendererTest {
         val message = AccountMenuMessageRenderer.render(data)
 
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
+        assertTrue(message.text.contains("<b>COIN активного аккаунта</b>"))
+        assertTrue(message.text.contains("<b>PRIME пользователя Mnemos</b>"))
         assertTrue(message.text.contains("Временно недоступен"))
     }
 
