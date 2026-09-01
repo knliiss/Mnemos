@@ -36,6 +36,10 @@ class TelegramCallbackRouter(
             return handler.handle(context)
         }
 
+        if (context.data == TelegramMenuScreen.OPEN_CALLBACK_DATA) {
+            return menuService.open(context.telegramId)
+        }
+
         if (context.data == TelegramMenuScreen.BACK_CALLBACK_DATA) {
             return menuService.back(
                 telegramId = context.telegramId,
