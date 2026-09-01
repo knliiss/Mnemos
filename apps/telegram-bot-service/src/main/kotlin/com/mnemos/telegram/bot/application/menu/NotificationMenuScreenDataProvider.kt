@@ -35,6 +35,7 @@ class NotificationMenuScreenDataProvider(
                 itemDropInput = resolveItemDropInput(session.pendingInput),
                 droppedFor = NotificationMenuContext.droppedFor(session.screenContext),
                 itemName = NotificationMenuContext.itemName(session.screenContext),
+                deleteSubscriptionId = NotificationMenuContext.deleteSubscriptionId(session.screenContext),
                 raidLocations = NotificationMenuContext.raidLocations(session.screenContext),
                 raidPage = NotificationMenuContext.raidPage(session.screenContext),
             ),
@@ -46,14 +47,14 @@ class NotificationMenuScreenDataProvider(
         mode: NotificationCreationMode,
     ): NotificationSubscriptionResult {
         val requestedPage =
-            if (mode == NotificationCreationMode.ITEM_DROP_LIST) {
+            if (mode.usesItemDropPage()) {
                 NotificationMenuContext.page(session.screenContext)
             } else {
                 0
             }
         val result = gateway.list(session.telegramId, requestedPage, PAGE_SIZE)
 
-        if (mode != NotificationCreationMode.ITEM_DROP_LIST) {
+        if (!mode.usesItemDropPage()) {
             return result
         }
 
@@ -79,10 +80,15 @@ class NotificationMenuScreenDataProvider(
         )
     }
 
+    private fun NotificationCreationMode.usesItemDropPage(): Boolean =
+        this == NotificationCreationMode.ITEM_DROP_LIST ||
+            this == NotificationCreationMode.ITEM_DROP_DELETE
+
     private fun NotificationCreationMode.requiresSubscriptionState(): Boolean =
         when (this) {
             NotificationCreationMode.LIST,
             NotificationCreationMode.ITEM_DROP_LIST,
+            NotificationCreationMode.ITEM_DROP_DELETE,
             NotificationCreationMode.BOOSTER,
             NotificationCreationMode.DUNGEON,
             NotificationCreationMode.RAID,
