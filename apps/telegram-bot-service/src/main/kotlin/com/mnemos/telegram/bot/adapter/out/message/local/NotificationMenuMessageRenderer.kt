@@ -115,8 +115,8 @@ object NotificationMenuMessageRenderer {
         return buildList {
             add(globalActions.take(3))
             add(globalActions.drop(3))
-            add(boosterActions)
-            add(dungeonActions)
+            addAll(boosterActions.chunked(2))
+            addAll(dungeonActions.chunked(2))
             add(listOf(raidAction))
             add(listOf(dropsAction))
             add(listOf(refreshAction))
