@@ -22,7 +22,7 @@ class LocalTelegramMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `home menu gives every primary section its own row`() {
+    fun `home menu separates online and event history`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
         val miniAppActions =
@@ -31,11 +31,12 @@ class LocalTelegramMenuMessageRendererTest {
                 .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
         assertTrue(message.text.contains("Панель управления"))
-        assertEquals(listOf(1, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(1, 1, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
         assertEquals(1, miniAppActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.NOTIFICATIONS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ONLINE.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BETS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.SETTINGS.callbackData })
         assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
@@ -54,19 +55,20 @@ class LocalTelegramMenuMessageRendererTest {
     }
 
     @Test
-    fun `home menu localizes redesigned labels to english`() {
+    fun `home menu localizes separate online and event history labels to english`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.EN)
         val labels = message.actionRows.flatten().map(OutboundTelegramMessageAction::label)
 
         assertTrue(message.text.contains("Control panel"))
         assertTrue(labels.any { label -> label.contains("Account") })
         assertTrue(labels.any { label -> label.contains("Notifications") })
-        assertTrue(labels.any { label -> label.contains("SAO & events") })
+        assertTrue(labels.any { label -> label.contains("Online") })
+        assertTrue(labels.any { label -> label.contains("Event history") })
         assertFalse(labels.any { label -> label.contains("More") })
     }
 
     @Test
-    fun `realm list keeps section actions separate from realm actions`() {
+    fun `realm list focuses only on online and realm browsing`() {
         val snapshot =
             SaoOnlineSnapshot(
                 generatedAt = Instant.parse("2026-08-30T12:24:00Z"),
@@ -91,26 +93,24 @@ class LocalTelegramMenuMessageRendererTest {
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
-        val sectionCallbacks = message.actionRows[0].filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val searchCallbacks = message.actionRows[0].filterIsInstance<OutboundTelegramMessageAction.Callback>()
         val realmCallbacks = message.actionRows[1].filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
-        assertTrue(message.text.contains("SAO и события"))
-        assertTrue(message.text.contains("Всего: <b>58</b>"))
+        assertTrue(message.text.contains("Онлайн SAO"))
+        assertTrue(message.text.contains("Всего онлайн: <b>58</b>"))
         assertTrue(message.text.contains("SAO-1: <b>21</b>"))
         assertTrue(message.text.contains("SAO-2: <b>37</b>"))
         assertTrue(message.text.contains("30.08 12:24 UTC"))
-        assertEquals(listOf(2, 2, 1, 1), message.actionRows.map(List<*>::size))
-        assertTrue(sectionCallbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
-        assertTrue(sectionCallbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
+        assertEquals(listOf(1, 2, 1, 1), message.actionRows.map(List<*>::size))
+        assertTrue(searchCallbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
         assertTrue(realmCallbacks.any { action -> action.data == "on:r:1" })
         assertTrue(realmCallbacks.any { action -> action.data == "on:r:2" })
-        assertFalse(realmCallbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
-        assertFalse(realmCallbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
     }
 
     @Test
-    fun `realm detail separates section pagination utility and back rows`() {
+    fun `realm detail keeps pagination and realm navigation without event history`() {
         val data =
             TelegramMenuScreenData.SaoOnline(
                 SaoOnlineMenuScreenData.RealmDetail(
@@ -130,19 +130,17 @@ class LocalTelegramMenuMessageRendererTest {
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
-        val paginationCallbacks = message.actionRows[1].filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val utilityCallbacks = message.actionRows[2].filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("<b>SAO-4</b>"))
         assertTrue(message.text.contains("Страница: <b>2/2</b>"))
         assertTrue(message.text.contains("11. <code>player11</code>"))
         assertTrue(message.text.contains("12. <code>name&lt;12&gt;</code>"))
-        assertEquals(listOf(2, 1, 2, 1), message.actionRows.map(List<*>::size))
-        assertTrue(paginationCallbacks.any { action -> action.data == SaoOnlineCallbackData.PREVIOUS_PAGE })
-        assertTrue(paginationCallbacks.none { action -> action.data == SaoOnlineCallbackData.NEXT_PAGE })
-        assertTrue(utilityCallbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
-        assertTrue(utilityCallbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
+        assertEquals(listOf(1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.PREVIOUS_PAGE })
+        assertTrue(callbacks.none { action -> action.data == SaoOnlineCallbackData.NEXT_PAGE })
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
     }
 
@@ -166,7 +164,7 @@ class LocalTelegramMenuMessageRendererTest {
     }
 
     @Test
-    fun `search results keep history separate from realm utility actions`() {
+    fun `search results return to realms without event history shortcut`() {
         val data =
             TelegramMenuScreenData.SaoOnline(
                 SaoOnlineMenuScreenData.SearchResults(
@@ -193,31 +191,29 @@ class LocalTelegramMenuMessageRendererTest {
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
-        val historyCallbacks = message.actionRows[0].filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val utilityCallbacks = message.actionRows[1].filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
         assertTrue(message.text.contains("Запрос: <code>name&lt;</code>"))
         assertTrue(message.text.contains("<code>name&lt;one&gt;</code> — SAO-1"))
         assertTrue(message.text.contains("Найдено: <b>2</b>"))
-        assertEquals(listOf(1, 2, 1), message.actionRows.map(List<*>::size))
-        assertTrue(historyCallbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
-        assertTrue(utilityCallbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
-        assertTrue(utilityCallbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
+        assertEquals(listOf(1, 1, 1), message.actionRows.map(List<*>::size))
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REALM_LIST })
+        assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
     }
 
     @Test
-    fun `online unavailable state keeps section refresh and back rows`() {
+    fun `online unavailable state keeps search refresh and back only`() {
         val data = TelegramMenuScreenData.SaoOnline(SaoOnlineMenuScreenData.Unavailable)
 
         val message = renderer.render(TelegramMenuScreen.ONLINE, data, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("Не удалось получить актуальный онлайн"))
-        assertEquals(listOf(2, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(1, 1, 1), message.actionRows.map(List<*>::size))
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.REFRESH })
         assertTrue(callbacks.any { action -> action.data == SaoOnlineCallbackData.SEARCH })
-        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
+        assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
     }
 
     private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> {
