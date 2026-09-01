@@ -114,11 +114,22 @@ sealed interface EventHistoryMenuScreenData {
         val boosterType: EventHistoryBoosterType?,
         val globalType: EventHistoryGlobalType?,
         val raidLocation: Int?,
+        val wipeSelection: EventHistoryWipeSelection,
+        val result: EventHistoryResult,
+        val hasPrevious: Boolean,
+    ) : EventHistoryMenuScreenData
+
+    data class Filters(
+        val filter: EventHistoryFilter,
+        val sort: EventHistorySort,
+        val itemRarity: EventHistoryItemRarity?,
+        val itemType: EventHistoryItemType?,
+        val boosterType: EventHistoryBoosterType?,
+        val globalType: EventHistoryGlobalType?,
+        val raidLocation: Int?,
         val raidLocationPage: Int,
         val wipeSelection: EventHistoryWipeSelection,
         val wipeOptions: EventHistoryWipeOptions,
-        val result: EventHistoryResult,
-        val hasPrevious: Boolean,
     ) : EventHistoryMenuScreenData
 
     data class SearchPrompt(
