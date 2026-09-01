@@ -4,7 +4,9 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
+import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -13,18 +15,30 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class EventHistoryCallbackHandler(
     private val menuService: TelegramMenuService,
+    private val sessionRepository: TelegramMenuSessionRepository,
 ) : TelegramScopedCallbackHandler {
     override val callbackPrefix: String = EventHistoryCallbackData.PREFIX
 
-    override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult =
-        when (context.data) {
+    override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
+        val session = currentEventsSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (session.pendingInput == TelegramPendingInput.EVENT_SEARCH) {
+            return if (context.data == EventHistoryCallbackData.SEARCH_CANCEL) {
+                cancelSearch(context)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
+        }
+
+        return when (context.data) {
             EventHistoryCallbackData.REFRESH -> updateContext(context) { current -> current }
             EventHistoryCallbackData.PREVIOUS -> updateContext(context, EventHistoryMenuContext::previous)
             EventHistoryCallbackData.SEARCH -> requestSearch(context)
-            EventHistoryCallbackData.SEARCH_CANCEL -> cancelSearch(context)
+            EventHistoryCallbackData.SEARCH_CANCEL -> TelegramDeliveryResult.Delivered
             EventHistoryCallbackData.SEARCH_CLEAR -> updateContext(context, EventHistoryMenuContext::clearSearch)
             else -> handleParameterizedCallback(context)
         }
+    }
 
     private fun requestSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
         menuService.requestTextInput(
@@ -122,4 +136,14 @@ class EventHistoryCallbackHandler(
             expectedScreen = TelegramMenuScreen.EVENTS,
             update = update,
         )
+
+    private fun currentEventsSession(context: TelegramCallbackContext): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
+
+        if (session.currentScreen != TelegramMenuScreen.EVENTS || session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session
+    }
 }
