@@ -21,6 +21,5 @@ object TelegramMessageLayout {
                 }
             }
 
-    private fun String.isDividerLine(): Boolean =
-        isNotEmpty() && all { character -> character == '━' }
+    private fun String.isDividerLine(): Boolean = isNotEmpty() && all { character -> character == '━' }
 }
