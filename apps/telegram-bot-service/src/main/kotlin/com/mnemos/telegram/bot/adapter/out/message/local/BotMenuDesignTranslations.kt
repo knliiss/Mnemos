@@ -21,6 +21,10 @@ object BotMenuDesignTranslations {
 
     private val ukrainian =
         listOf(
+            "PRIME общий для вас и не меняется при переключении Cristalix-аккаунта." to
+                "PRIME спільний для вас і не змінюється під час перемикання Cristalix-акаунта.",
+            "Выберите реалм кнопкой ниже или найдите игрока по нику." to
+                "Оберіть реалм кнопкою нижче або знайдіть гравця за ніком.",
             "Правило срабатывает, когда совпадают все указанные фильтры." to
                 "Правило спрацьовує, коли збігаються всі вказані фільтри.",
             "Только игрок — любой его дроп. Только предмет — этот предмет у любого игрока." to
@@ -28,6 +32,18 @@ object BotMenuDesignTranslations {
             "Нажмите номер локации, чтобы включить или выключить её." to
                 "Натисніть номер локації, щоб увімкнути або вимкнути її.",
             "Изменения применяются сразу." to "Зміни застосовуються одразу.",
+            "Присоединиться по инвайту" to "Приєднатися за інвайтом",
+            "Активный Cristalix-аккаунт" to "Активний Cristalix-акаунт",
+            "COIN активного аккаунта" to "COIN активного акаунта",
+            "PRIME пользователя Mnemos" to "PRIME користувача Mnemos",
+            "PRIME пользователя" to "PRIME користувача",
+            "Доступные аккаунты" to "Доступні акаунти",
+            "Создать аккаунт" to "Створити акаунт",
+            "Выберите Cristalix-аккаунт" to "Оберіть Cristalix-акаунт",
+            "Поиск игрока онлайн" to "Пошук гравця онлайн",
+            "Онлайн и реалмы" to "Онлайн і реалми",
+            "Всего онлайн" to "Усього онлайн",
+            "Онлайн SAO" to "Онлайн SAO",
             "возврат обрабатывается" to "повернення обробляється",
             "ожидает подтверждения" to "очікує підтвердження",
             "выплата обрабатывается" to "виплата обробляється",
@@ -78,6 +94,10 @@ object BotMenuDesignTranslations {
 
     private val english =
         listOf(
+            "PRIME общий для вас и не меняется при переключении Cristalix-аккаунта." to
+                "PRIME belongs to your Mnemos user and does not change when switching Cristalix accounts.",
+            "Выберите реалм кнопкой ниже или найдите игрока по нику." to
+                "Choose a realm below or find a player by nickname.",
             "Правило срабатывает, когда совпадают все указанные фильтры." to
                 "The rule triggers when all specified filters match.",
             "Только игрок — любой его дроп. Только предмет — этот предмет у любого игрока." to
@@ -85,6 +105,18 @@ object BotMenuDesignTranslations {
             "Нажмите номер локации, чтобы включить или выключить её." to
                 "Tap a location number to turn it on or off.",
             "Изменения применяются сразу." to "Changes apply immediately.",
+            "Присоединиться по инвайту" to "Join by invite",
+            "Активный Cristalix-аккаунт" to "Active Cristalix account",
+            "COIN активного аккаунта" to "Active account COIN",
+            "PRIME пользователя Mnemos" to "Mnemos user PRIME",
+            "PRIME пользователя" to "User PRIME",
+            "Доступные аккаунты" to "Available accounts",
+            "Создать аккаунт" to "Create account",
+            "Выберите Cristalix-аккаунт" to "Select a Cristalix account",
+            "Поиск игрока онлайн" to "Find online player",
+            "Онлайн и реалмы" to "Online & realms",
+            "Всего онлайн" to "Total online",
+            "Онлайн SAO" to "SAO online",
             "возврат обрабатывается" to "refund processing",
             "ожидает подтверждения" to "awaiting confirmation",
             "выплата обрабатывается" to "payout processing",
