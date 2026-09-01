@@ -89,15 +89,10 @@ class NotificationMenuScreenDataProvider(
             NotificationCreationMode.LIST,
             NotificationCreationMode.ITEM_DROP_LIST,
             NotificationCreationMode.ITEM_DROP_DELETE,
-            NotificationCreationMode.BOOSTER,
-            NotificationCreationMode.DUNGEON,
             NotificationCreationMode.RAID,
-            NotificationCreationMode.GLOBAL,
             -> true
 
-            NotificationCreationMode.TYPE_SELECTION,
-            NotificationCreationMode.ITEM_DROP,
-            -> false
+            NotificationCreationMode.ITEM_DROP -> false
         }
 
     private fun resolveItemDropInput(pendingInput: TelegramPendingInput?): NotificationItemDropInputField? =
