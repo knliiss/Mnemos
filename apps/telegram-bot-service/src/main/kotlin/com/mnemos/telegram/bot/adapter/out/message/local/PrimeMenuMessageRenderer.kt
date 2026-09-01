@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -14,33 +15,37 @@ object PrimeMenuMessageRenderer {
         val primeData =
             (data as? TelegramMenuScreenData.Prime)?.data
                 ?: return unavailableMessage()
+        val rows = renderRows(primeData)
 
         return OutboundTelegramMessage(
             text = renderText(primeData),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderActions(primeData),
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
     private fun renderText(data: PrimeMenuScreenData): String {
         val packages = data.packages ?: return unavailableText()
         val packageLines =
-            packages.joinToString("\n") { primePackage ->
-                "• <b>${primePackage.primeAmount} PRIME</b> — ⭐ ${primePackage.starsAmount}"
-            }
+            packages
+                .mapIndexed { index, primePackage ->
+                    val marker = if (index + 1 == packages.size) "└" else "├"
+                    "$marker <b>${primePackage.primeAmount} PRIME</b> · ⭐ ${primePackage.starsAmount}"
+                }.joinToString("\n")
         val lines =
             mutableListOf(
-                "💎 <b>PRIME</b>",
+                "⭐ <b>PRIME и баланс</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Пополнение PRIME через Telegram Stars.",
-                "",
+                "💳 <b>Пополнение через Telegram Stars</b>",
                 packageLines,
             )
 
         when (data.notice) {
             PrimePurchaseNotice.REGISTRATION_REQUIRED -> {
                 lines += ""
-                lines += "⚠️ Не удалось автоматически подготовить профиль Mnemos. Откройте раздел «Аккаунт» и повторите покупку."
+                lines += "⚠️ Сначала настройте Cristalix-аккаунт."
             }
 
             PrimePurchaseNotice.UNAVAILABLE -> {
@@ -53,79 +58,89 @@ object PrimeMenuMessageRenderer {
 
         data.invoice?.let { invoice ->
             lines += ""
-            lines += "Счёт готов: <b>${invoice.primeAmount} PRIME</b> за ⭐ ${invoice.starsAmount}."
-            lines += "Нажмите кнопку оплаты ниже."
+            lines += "⭐ <b>Счёт готов</b>"
+            lines += "└ ${invoice.primeAmount} PRIME · ⭐ ${invoice.starsAmount}"
         }
 
         return lines.joinToString("\n")
     }
 
-    private fun renderActions(data: PrimeMenuScreenData): List<OutboundTelegramMessageAction> {
-        val actions = mutableListOf<OutboundTelegramMessageAction>()
-
-        data.invoice?.let { invoice ->
-            actions +=
-                OutboundTelegramMessageAction.OpenUrl(
-                    label = "⭐ Оплатить ${invoice.primeAmount} PRIME",
-                    url = invoice.url,
+    private fun renderRows(data: PrimeMenuScreenData): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            data.invoice?.let { invoice ->
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.OpenUrl(
+                            label = "⭐ Оплатить ${invoice.primeAmount} PRIME",
+                            url = invoice.url,
+                            style = OutboundTelegramButtonStyle.SUCCESS,
+                        ),
+                    ),
                 )
+            }
+
+            if (data.notice == PrimePurchaseNotice.REGISTRATION_REQUIRED) {
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "👤 Аккаунт",
+                            data = TelegramMenuScreen.ACCOUNT.callbackData,
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    ),
+                )
+            }
+
+            data.packages?.forEach { primePackage ->
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "⭐ ${primePackage.primeAmount} PRIME · ${primePackage.starsAmount} Stars",
+                            data = PrimePurchaseCallbackData.buy(primePackage.id),
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
+                    ),
+                )
+            }
+
+            add(listOf(refreshAction))
+            add(listOf(backAction))
         }
 
-        if (data.notice == PrimePurchaseNotice.REGISTRATION_REQUIRED) {
-            actions +=
-                OutboundTelegramMessageAction.Callback(
-                    label = "👤 Настроить аккаунт",
-                    data = TelegramMenuScreen.ACCOUNT.callbackData,
-                )
-        }
-
-        data.packages?.forEach { primePackage ->
-            actions +=
-                OutboundTelegramMessageAction.Callback(
-                    label = "${primePackage.primeAmount} PRIME · ⭐ ${primePackage.starsAmount}",
-                    data = PrimePurchaseCallbackData.buy(primePackage.id),
-                )
-        }
-
-        actions +=
-            OutboundTelegramMessageAction.Callback(
-                label = "🔄 Обновить",
-                data = PrimePurchaseCallbackData.REFRESH,
+    private fun unavailableMessage(): OutboundTelegramMessage {
+        val rows =
+            listOf(
+                listOf(refreshAction),
+                listOf(backAction),
             )
-        actions += navigationActions
 
-        return actions
-    }
-
-    private fun unavailableMessage(): OutboundTelegramMessage =
-        OutboundTelegramMessage(
+        return OutboundTelegramMessage(
             text = unavailableText(),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions =
-                listOf(
-                    OutboundTelegramMessageAction.Callback(
-                        label = "🔄 Обновить",
-                        data = PrimePurchaseCallbackData.REFRESH,
-                    ),
-                ) + navigationActions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
+    }
 
     private fun unavailableText(): String =
         listOf(
-            "💎 <b>PRIME</b>",
+            "⭐ <b>PRIME и баланс</b>",
+            MESSAGE_DIVIDER,
             "",
-            "Не удалось загрузить варианты пополнения. Попробуйте позже.",
+            "⚠️ Не удалось загрузить варианты пополнения.",
         ).joinToString("\n")
 
-    private val navigationActions =
-        listOf(
-            OutboundTelegramMessageAction.Callback(
-                "← Назад",
-                TelegramMenuScreen.BACK_CALLBACK_DATA,
-            ),
-            OutboundTelegramMessageAction.Callback(
-                "⌂ Меню",
-                TelegramMenuScreen.HOME.callbackData,
-            ),
+    private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
+
+    private val refreshAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "🔄 Обновить",
+            data = PrimePurchaseCallbackData.REFRESH,
+        )
+
+    private val backAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "← Назад",
+            data = TelegramMenuScreen.BACK_CALLBACK_DATA,
         )
 }
