@@ -169,7 +169,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         }
 
         return copy(
-            text = BotMenuTranslations.translate(text, language),
+            text = BotCommandTranslations.translate(text, language),
             actions = actions.map { action -> action.localized(language) },
             actionRows =
                 actionRows.map { row ->
@@ -181,13 +181,13 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
     private fun OutboundTelegramMessageAction.localized(language: TelegramSettingsLanguage): OutboundTelegramMessageAction =
         when (this) {
             is OutboundTelegramMessageAction.Callback ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = BotCommandTranslations.translate(label, language))
 
             is OutboundTelegramMessageAction.OpenMiniApp ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = BotCommandTranslations.translate(label, language))
 
             is OutboundTelegramMessageAction.OpenUrl ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = BotCommandTranslations.translate(label, language))
         }
 
     private companion object {
