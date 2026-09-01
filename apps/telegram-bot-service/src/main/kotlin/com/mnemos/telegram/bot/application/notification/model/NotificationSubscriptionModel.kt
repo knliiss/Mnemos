@@ -52,6 +52,7 @@ data class NotificationMenuScreenData(
     val itemDropInput: NotificationItemDropInputField? = null,
     val droppedFor: String? = null,
     val itemName: String? = null,
+    val deleteSubscriptionId: UUID? = null,
     val raidLocations: Set<Int> = emptySet(),
     val raidPage: Int = 0,
 )
