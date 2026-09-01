@@ -26,6 +26,16 @@ class NotificationCallbackHandler(
     override val callbackPrefix: String = NotificationCallbackData.PREFIX
 
     override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
+        val session = currentSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (isItemDropInput(session.pendingInput)) {
+            return if (context.data == NotificationCallbackData.ITEM_DROP_INPUT_CANCEL) {
+                cancelItemDropInput(context)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
+        }
+
         if (context.data == NotificationCallbackData.REFRESH) {
             return refresh(context)
         }
@@ -93,16 +103,7 @@ class NotificationCallbackHandler(
         }
 
         if (context.data == NotificationCallbackData.ITEM_DROP_INPUT_CANCEL) {
-            if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP)) {
-                return TelegramDeliveryResult.Delivered
-            }
-
-            return menuService.cancelTextInput(
-                telegramId = context.telegramId,
-                messageId = context.messageId,
-                expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
-                updateContext = NotificationMenuContext::clearFeedback,
-            )
+            return TelegramDeliveryResult.Delivered
         }
 
         if (context.data == NotificationCallbackData.ITEM_DROP_CLEAR_PLAYER) {
@@ -253,6 +254,14 @@ class NotificationCallbackHandler(
         )
     }
 
+    private fun cancelItemDropInput(context: TelegramCallbackContext): TelegramDeliveryResult =
+        menuService.cancelTextInput(
+            telegramId = context.telegramId,
+            messageId = context.messageId,
+            expectedScreen = TelegramMenuScreen.NOTIFICATIONS,
+            updateContext = NotificationMenuContext::clearFeedback,
+        )
+
     private fun requestDelete(
         context: TelegramCallbackContext,
         subscriptionId: UUID,
@@ -346,4 +355,8 @@ class NotificationCallbackHandler(
 
         return session
     }
+
+    private fun isItemDropInput(pendingInput: TelegramPendingInput?): Boolean =
+        pendingInput == TelegramPendingInput.NOTIFICATION_ITEM_DROP_PLAYER ||
+            pendingInput == TelegramPendingInput.NOTIFICATION_ITEM_DROP_ITEM
 }
