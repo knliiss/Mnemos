@@ -60,7 +60,7 @@ class NotificationMenuMessageRendererTest {
         assertFalse(eclipse.label.startsWith("✅"))
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.type(NotificationSubscriptionType.RAID) })
-        assertEquals(listOf(2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(3, 2, 4, 4, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -135,7 +135,7 @@ class NotificationMenuMessageRendererTest {
         assertEquals("🌙 Луна Вкл", moon.label)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
         assertEquals("🌘 Затмение Выкл", eclipse.label)
-        assertEquals(listOf(2, 2, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(3, 2, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
