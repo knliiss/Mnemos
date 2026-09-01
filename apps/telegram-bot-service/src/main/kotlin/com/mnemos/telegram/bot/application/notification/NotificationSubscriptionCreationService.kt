@@ -56,7 +56,6 @@ class NotificationSubscriptionCreationService(
     ): TelegramDeliveryResult =
         setSimple(
             context = context,
-            expectedMode = NotificationCreationMode.BOOSTER,
             enabled = enabled,
             existingSubscription = { available -> available.boosterSubscriptions[boosterType] },
             create = { gateway.createBooster(context.telegramId, boosterType) },
@@ -69,7 +68,6 @@ class NotificationSubscriptionCreationService(
     ): TelegramDeliveryResult =
         setSimple(
             context = context,
-            expectedMode = NotificationCreationMode.DUNGEON,
             enabled = enabled,
             existingSubscription = { available -> available.dungeonSubscriptions[dungeonType] },
             create = { gateway.createDungeon(context.telegramId, dungeonType) },
@@ -82,7 +80,6 @@ class NotificationSubscriptionCreationService(
     ): TelegramDeliveryResult =
         setSimple(
             context = context,
-            expectedMode = NotificationCreationMode.GLOBAL,
             enabled = enabled,
             existingSubscription = { available -> available.globalSubscriptions[eventType] },
             create = { gateway.createGlobal(context.telegramId, eventType) },
@@ -111,12 +108,11 @@ class NotificationSubscriptionCreationService(
 
     private fun setSimple(
         context: TelegramCallbackContext,
-        expectedMode: NotificationCreationMode,
         enabled: Boolean,
         existingSubscription: (NotificationSubscriptionResult.Available) -> UUID?,
         create: () -> NotificationSubscriptionCreationResult,
     ): TelegramDeliveryResult {
-        currentToggleSession(context, expectedMode)
+        currentDashboardSession(context)
             ?: return TelegramDeliveryResult.Delivered
 
         val state = loadState(context.telegramId) ?: return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
@@ -205,15 +201,11 @@ class NotificationSubscriptionCreationService(
             NotificationMenuContext.withFeedback(current, feedback)
         }
 
-    private fun currentToggleSession(
-        context: TelegramCallbackContext,
-        expectedMode: NotificationCreationMode,
-    ): TelegramMenuSession? {
+    private fun currentDashboardSession(context: TelegramCallbackContext): TelegramMenuSession? {
         val session = currentSession(context) ?: return null
-        val mode = NotificationMenuContext.mode(session.screenContext)
 
-        return session.takeIf {
-            mode == NotificationCreationMode.LIST || mode == expectedMode
+        return session.takeIf { current ->
+            NotificationMenuContext.mode(current.screenContext) == NotificationCreationMode.LIST
         }
     }
 
