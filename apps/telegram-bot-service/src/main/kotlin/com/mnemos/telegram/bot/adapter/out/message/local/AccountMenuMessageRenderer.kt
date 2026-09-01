@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSummary
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -54,21 +55,34 @@ object AccountMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "👤 <b>Аккаунт</b>",
+                MESSAGE_DIVIDER,
                 "",
-                activeAccountLine(activeAccount),
-                balanceLine(balance),
-                "Доступно аккаунтов: <b>${context.accounts.size}</b>",
+                "🔑 <b>Активный аккаунт</b>",
+                activeAccountSection(activeAccount),
                 "",
-                accountLines(context),
+                "💰 <b>Баланс</b>",
             )
+
+        lines += balanceSection(balance)
+        lines += ""
+        lines += "👥 <b>Аккаунты</b>"
+        lines += "└ Доступно: <b>${context.accounts.size}</b>"
+
+        if (context.accounts.isNotEmpty()) {
+            lines += ""
+            lines += accountLines(context)
+        }
 
         appendInputPrompt(lines, inputMode)
         appendFeedback(lines, feedback)
 
+        val rows = availableRows(context, inputMode)
+
         return OutboundTelegramMessage(
             text = lines.joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = availableActions(context, inputMode),
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
@@ -79,18 +93,24 @@ object AccountMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "👤 <b>Аккаунт</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Cristalix-аккаунт ещё не подключён.",
-                "Его можно полностью настроить прямо здесь, без Mini App.",
+                "🔑 <b>Активный аккаунт</b>",
+                "└ Не подключён",
+                "",
+                "Создайте Cristalix-аккаунт или присоединитесь по приглашению.",
             )
 
         appendInputPrompt(lines, inputMode)
         appendFeedback(lines, feedback)
 
+        val rows = setupRows(inputMode) + listOf(listOf(backAction))
+
         return OutboundTelegramMessage(
             text = lines.joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = setupActions(inputMode) + navigationActions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
@@ -101,44 +121,73 @@ object AccountMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "👤 <b>Аккаунт</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Не удалось получить данные аккаунта. Попробуйте обновить через несколько секунд.",
+                "⚠️ Не удалось получить данные аккаунта.",
             )
 
         appendInputPrompt(lines, inputMode)
         appendFeedback(lines, feedback)
 
+        val rows =
+            setupRows(inputMode) +
+                listOf(
+                    listOf(refreshAction),
+                    listOf(backAction),
+                )
+
         return OutboundTelegramMessage(
             text = lines.joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = setupActions(inputMode) + listOf(refreshAction) + navigationActions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
-    private fun availableActions(
+    private fun availableRows(
         context: TelegramAccountContext,
         inputMode: TelegramAccountInputMode?,
-    ): List<OutboundTelegramMessageAction> {
+    ): List<List<OutboundTelegramMessageAction>> {
         if (inputMode != null) {
-            return setupActions(inputMode) + navigationActions
+            return setupRows(inputMode) + listOf(listOf(backAction))
         }
 
-        return accountActions(context) + setupActions(null) + listOf(refreshAction) + navigationActions
+        return buildList {
+            add(listOf(dailyAction))
+            add(listOf(primeAction))
+
+            accountSwitchActions(context).forEach { action ->
+                add(listOf(action))
+            }
+
+            addAll(setupRows(null))
+            add(listOf(refreshAction))
+            add(listOf(backAction))
+        }
     }
 
-    private fun activeAccountLine(account: TelegramAccountSummary?): String =
+    private fun activeAccountSection(account: TelegramAccountSummary?): String =
         account
             ?.let { activeAccount ->
-                "Активный: <code>${escapeHtml(activeAccount.cristalixNickname)}</code>"
-            } ?: "Активный: <b>не выбран</b>"
+                "└ <code>${escapeHtml(activeAccount.cristalixNickname)}</code>"
+            } ?: "└ Не выбран"
 
-    private fun balanceLine(balance: TelegramAccountBalanceResult): String =
+    private fun balanceSection(balance: TelegramAccountBalanceResult): List<String> =
         when (balance) {
             is TelegramAccountBalanceResult.Available ->
-                "Баланс: <b>${balance.balance.coin} COIN</b> · <b>${balance.balance.prime} PRIME</b>"
+                listOf(
+                    "├ COIN: <b>${balance.balance.coin}</b>",
+                    "└ PRIME: <b>${balance.balance.prime}</b> ⭐",
+                )
 
-            TelegramAccountBalanceResult.NotRequired -> "Баланс: <b>—</b>"
-            TelegramAccountBalanceResult.Unavailable -> "Баланс: <i>временно недоступен</i>"
+            TelegramAccountBalanceResult.NotRequired ->
+                listOf(
+                    "├ COIN: —",
+                    "└ PRIME: —",
+                )
+
+            TelegramAccountBalanceResult.Unavailable ->
+                listOf("└ Временно недоступен")
         }
 
     private fun accountLines(context: TelegramAccountContext): String =
@@ -151,7 +200,7 @@ object AccountMenuMessageRenderer {
     private fun renderAccountLine(account: TelegramAccountSummary): String {
         val marker =
             when {
-                account.active -> "✅"
+                account.active -> "🔑"
                 account.status == TelegramAccountStatus.DEACTIVATED -> "⛔"
                 else -> "•"
             }
@@ -165,36 +214,43 @@ object AccountMenuMessageRenderer {
         val nickname = escapeHtml(account.cristalixNickname)
         val memberCount = "${account.memberCount}/${account.maxMembers}"
 
-        return "$marker <code>$nickname</code> — $relation · $memberCount$status"
+        return "$marker <code>$nickname</code> · $relation · $memberCount$status"
     }
 
-    private fun accountActions(context: TelegramAccountContext): List<OutboundTelegramMessageAction> =
+    private fun accountSwitchActions(context: TelegramAccountContext): List<OutboundTelegramMessageAction> =
         context.accounts
             .filter { account -> !account.active && account.status == TelegramAccountStatus.ACTIVE }
             .map { account ->
                 OutboundTelegramMessageAction.Callback(
-                    label = "🔄 ${account.cristalixNickname}",
+                    label = "🔄 Выбрать ${account.cristalixNickname}",
                     data = AccountCallbackData.switch(account.accountId),
                 )
             }
 
-    private fun setupActions(inputMode: TelegramAccountInputMode?): List<OutboundTelegramMessageAction> =
+    private fun setupRows(inputMode: TelegramAccountInputMode?): List<List<OutboundTelegramMessageAction>> =
         if (inputMode == null) {
             listOf(
-                OutboundTelegramMessageAction.Callback(
-                    label = "➕ Создать аккаунт",
-                    data = AccountCallbackData.CREATE,
-                ),
-                OutboundTelegramMessageAction.Callback(
-                    label = "🔗 Присоединиться",
-                    data = AccountCallbackData.JOIN,
+                listOf(
+                    OutboundTelegramMessageAction.Callback(
+                        label = "➕ Создать",
+                        data = AccountCallbackData.CREATE,
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
+                    OutboundTelegramMessageAction.Callback(
+                        label = "🔗 Присоединиться",
+                        data = AccountCallbackData.JOIN,
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
                 ),
             )
         } else {
             listOf(
-                OutboundTelegramMessageAction.Callback(
-                    label = "✕ Отменить ввод",
-                    data = AccountCallbackData.CANCEL_INPUT,
+                listOf(
+                    OutboundTelegramMessageAction.Callback(
+                        label = "✖ Отменить ввод",
+                        data = AccountCallbackData.CANCEL_INPUT,
+                        style = OutboundTelegramButtonStyle.DANGER,
+                    ),
                 ),
             )
         }
@@ -206,16 +262,16 @@ object AccountMenuMessageRenderer {
         val prompt =
             when (inputMode) {
                 TelegramAccountInputMode.CREATE ->
-                    "Отправьте <b>ник Cristalix</b> обычным сообщением. Бот создаст аккаунт и сделает его активным."
+                    "Отправьте <b>ник Cristalix</b> обычным сообщением."
 
                 TelegramAccountInputMode.JOIN ->
-                    "Отправьте <b>код приглашения</b> обычным сообщением. После вступления аккаунт станет активным."
+                    "Отправьте <b>код приглашения</b> обычным сообщением."
 
                 null -> null
             } ?: return
 
         lines += ""
-        lines += prompt
+        lines += "✏️ $prompt"
     }
 
     private fun appendFeedback(
@@ -251,21 +307,31 @@ object AccountMenuMessageRenderer {
             .replace("<", "&lt;")
             .replace(">", "&gt;")
 
+    private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
+
+    private val dailyAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "🎁 Daily",
+            data = TelegramMenuScreen.DAILY.callbackData,
+            style = OutboundTelegramButtonStyle.SUCCESS,
+        )
+
+    private val primeAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "⭐ PRIME и баланс",
+            data = TelegramMenuScreen.PRIME.callbackData,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
     private val refreshAction =
         OutboundTelegramMessageAction.Callback(
             label = "🔄 Обновить",
             data = AccountCallbackData.REFRESH,
         )
 
-    private val navigationActions =
-        listOf(
-            OutboundTelegramMessageAction.Callback(
-                "← Назад",
-                TelegramMenuScreen.BACK_CALLBACK_DATA,
-            ),
-            OutboundTelegramMessageAction.Callback(
-                "⌂ Меню",
-                TelegramMenuScreen.HOME.callbackData,
-            ),
+    private val backAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "← Назад",
+            data = TelegramMenuScreen.BACK_CALLBACK_DATA,
         )
 }
