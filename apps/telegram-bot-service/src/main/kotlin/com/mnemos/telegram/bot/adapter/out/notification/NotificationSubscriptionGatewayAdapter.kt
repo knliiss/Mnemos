@@ -91,17 +91,6 @@ class NotificationSubscriptionGatewayAdapter(
             )
         }
 
-    override fun createRaid(
-        telegramId: Long,
-        draft: NotificationRaidSubscriptionDraft,
-    ): NotificationSubscriptionCreationResult =
-        create {
-            client.createRaidSubscription(
-                telegramId = telegramId,
-                request = draft.toContract(),
-            )
-        }
-
     override fun updateRaid(
         telegramId: Long,
         draft: NotificationRaidSubscriptionDraft,
