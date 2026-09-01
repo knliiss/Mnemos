@@ -19,148 +19,132 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
     ): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text =
-                "👋 <b>Добро пожаловать в Mnemos</b>\n\n" +
-                    "Основными функциями Mnemos можно пользоваться прямо в этом чате — Mini App для этого не нужен.\n\n" +
-                    "• создавайте и подключайте Cristalix-аккаунты;\n" +
-                    "• настраивайте уведомления и смотрите онлайн/историю событий;\n" +
-                    "• забирайте Daily и управляйте балансами;\n" +
-                    "• делайте ставки и покупайте PRIME через Telegram Stars;\n" +
-                    "• меняйте доступные настройки Mnemos.\n\n" +
-                    "Нажмите «Меню Mnemos» или используйте /menu. Mini App ниже остаётся дополнительным интерфейсом, если он доступен в вашем регионе.",
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actionRows =
                 listOf(
-                    listOf(
-                        OutboundTelegramMessageAction.Callback(
-                            label = "🧠 Меню Mnemos",
-                            data = TelegramMenuScreen.OPEN_CALLBACK_DATA,
-                            style = OutboundTelegramButtonStyle.PRIMARY,
-                        ),
-                    ),
-                    listOf(
-                        OutboundTelegramMessageAction.Callback(
-                            label = "❓ Помощь",
-                            data = TelegramHelpSection.OVERVIEW.callbackData,
-                        ),
-                        OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
-                    ),
-                ),
+                    "🤖 <b>Mnemos</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "👋 Добро пожаловать.",
+                    "",
+                    "Все основные функции доступны через единое меню прямо в Telegram.",
+                    "",
+                    "📋 <b>Откройте панель управления:</b>",
+                ).joinToString("\n"),
+            parseMode = OutboundTelegramMessageParseMode.HTML,
+            actionRows = startActionRows,
         ).localized(language)
 
     override fun renderHelp(
         section: TelegramHelpSection,
         language: TelegramSettingsLanguage,
-    ): OutboundTelegramMessage =
-        OutboundTelegramMessage(
+    ): OutboundTelegramMessage {
+        val rows = renderHelpRows(section)
+
+        return OutboundTelegramMessage(
             text = renderHelpText(section),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderHelpActions(section),
+            actions = rows.flatten(),
+            actionRows = rows,
         ).localized(language)
+    }
 
     private fun renderHelpText(section: TelegramHelpSection): String =
         when (section) {
             TelegramHelpSection.OVERVIEW ->
-                """
-                ❓ <b>Помощь Mnemos</b>
-
-                <b>С чего начать?</b>
-                Откройте /menu. Основные функции Mnemos работают прямо в Telegram-чате, включая настройку Cristalix-аккаунта.
-
-                <b>Основные команды</b>
-                /notifications · /online · /events · /daily · /account · /bets · /prime · /settings
-
-                <b>Нужен ли Mini App?</b>
-                Нет для основных сценариев. Он остаётся дополнительным визуальным интерфейсом и не должен блокировать использование Mnemos, если недоступен в вашем регионе.
-                """.trimIndent()
+                listOf(
+                    "❓ <b>Помощь Mnemos</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "📋 <b>Основное управление</b>",
+                    "└ <code>/menu</code> — единая панель Mnemos.",
+                    "",
+                    "Все основные разделы доступны из меню. Mini App остаётся дополнительным интерфейсом.",
+                ).joinToString("\n")
 
             TelegramHelpSection.MINI_APP ->
-                """
-                📱 <b>Mini App</b>
-
-                Mini App — дополнительный интерфейс Mnemos. Если он открывается, используйте кнопку «Mini App» или стандартную кнопку Telegram.
-
-                Если Mini App не загружается из-за сети или региональных ограничений, продолжайте пользоваться /menu: аккаунт, уведомления, Daily, события, ставки, PRIME и настройки доступны через чат.
-                """.trimIndent()
+                listOf(
+                    "📱 <b>Mini App</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "Mini App — дополнительный визуальный интерфейс Mnemos.",
+                    "",
+                    "Если он недоступен, используйте <code>/menu</code>: основные функции работают прямо в чате.",
+                ).joinToString("\n")
 
             TelegramHelpSection.SUBSCRIPTIONS ->
-                """
-                🔔 <b>Подписки</b>
-
-                Откройте /notifications. Управление подписками повторяет Mini App: глобальные события, бустеры и данжи переключаются как настройки, RAID редактируется как одна подписка, а правила дропа управляются отдельно.
-
-                Для фильтров по игроку или предмету бот сам запросит значение обычным сообщением.
-                """.trimIndent()
+                listOf(
+                    "🔔 <b>Уведомления</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "🌌 Глобальные события, ⚡ бустеры и 🏰 Dungeon переключаются прямо в панели.",
+                    "🛡 RAID редактируется как одна существующая настройка.",
+                    "📦 Правила дропа управляются отдельным списком.",
+                ).joinToString("\n")
 
             TelegramHelpSection.ACCOUNTS ->
-                """
-                👤 <b>Аккаунты</b>
-
-                Откройте /account. Там можно создать Mnemos/Cristalix-аккаунт, присоединиться по invite-коду, посмотреть доступные аккаунты и переключить активный.
-
-                Daily, ставки и другие account-scoped функции используют выбранный активный аккаунт и его права.
-                """.trimIndent()
+                listOf(
+                    "👤 <b>Аккаунт</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "В одном разделе находятся:",
+                    "├ 🔑 активный Cristalix-аккаунт",
+                    "├ 💰 COIN и PRIME",
+                    "├ 🎁 Daily",
+                    "└ 👥 создание, подключение и переключение аккаунтов",
+                ).joinToString("\n")
 
             TelegramHelpSection.BETS ->
-                """
-                🎲 <b>Ставки</b>
-
-                Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.
-
-                Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна в этом же разделе.
-
-                Для операции нужен активный аккаунт и право PLACE_BETS. Все ставки проходят через обычный Mnemos wallet/idempotency flow.
-                """.trimIndent()
+                listOf(
+                    "🎲 <b>Ставки</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "🎯 События, 🏁 Item Race и 📜 история находятся в одном разделе.",
+                    "",
+                    "Выберите действие и отправьте сумму COIN, когда бот запросит её.",
+                ).joinToString("\n")
 
             TelegramHelpSection.NOTIFICATIONS ->
-                """
-                ✉️ <b>Уведомления</b>
-
-                Если бот был заблокирован, разблокируйте его и отправьте /start или /help — Mnemos снова активирует Telegram-получателя.
-
-                Notification pack и доступные пользовательские настройки можно менять через /settings.
-                """.trimIndent()
+                listOf(
+                    "✉️ <b>Доставка уведомлений</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "Если бот был заблокирован, разблокируйте его и отправьте <code>/start</code> или <code>/menu</code>.",
+                    "",
+                    "Пак уведомлений и язык меняются в разделе ⚙️ Настройки.",
+                ).joinToString("\n")
 
             TelegramHelpSection.TROUBLESHOOTING ->
-                """
-                🛠 <b>Проблемы и решения</b>
-
-                <b>Mini App не открывается или не загружается.</b>
-                Используйте /menu. Для основных функций это не является блокирующей ошибкой.
-
-                <b>Отдельный раздел бота временно недоступен.</b>
-                Нажмите «Обновить». Если соответствующий backend-сервис не отвечает, бот покажет локальную ошибку без требования открыть Mini App.
-
-                <b>Нужен активный Cristalix-аккаунт.</b>
-                Перейдите в /account и создайте, подключите или переключите его прямо в Telegram.
-                """.trimIndent()
+                listOf(
+                    "🛠 <b>Проблемы</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "📱 Mini App не открывается — используйте <code>/menu</code>.",
+                    "🔄 Раздел не загрузился — нажмите «Обновить».",
+                    "👤 Нужен аккаунт — откройте раздел «Аккаунт» в меню.",
+                ).joinToString("\n")
         }
 
-    private fun renderHelpActions(section: TelegramHelpSection): List<OutboundTelegramMessageAction> =
-        buildList {
-            add(
+    private fun renderHelpRows(section: TelegramHelpSection): List<List<OutboundTelegramMessageAction>> {
+        val sectionActions =
+            helpSections.map { (helpSection, label) ->
                 OutboundTelegramMessageAction.Callback(
-                    label = "🧠 Меню Mnemos",
-                    data = TelegramMenuScreen.OPEN_CALLBACK_DATA,
-                    style = OutboundTelegramButtonStyle.PRIMARY,
-                ),
-            )
-
-            helpSections.forEach { (helpSection, label) ->
-                add(
-                    OutboundTelegramMessageAction.Callback(
-                        label = if (helpSection == section) "✓ $label" else label,
-                        data = helpSection.callbackData,
-                        style =
-                            if (helpSection == section) {
-                                OutboundTelegramButtonStyle.SUCCESS
-                            } else {
-                                OutboundTelegramButtonStyle.DEFAULT
-                            },
-                    ),
+                    label = label,
+                    data = helpSection.callbackData,
+                    style = selectedStyle(helpSection == section),
                 )
             }
 
-            add(OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"))
+        return buildList {
+            add(listOf(menuAction))
+            addAll(sectionActions.chunked(3))
+            add(listOf(OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App")))
+        }
+    }
+
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
+        if (selected) {
+            OutboundTelegramButtonStyle.SUCCESS
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
         }
 
     private fun OutboundTelegramMessage.localized(language: TelegramSettingsLanguage): OutboundTelegramMessage {
@@ -169,7 +153,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         }
 
         return copy(
-            text = BotCommandTranslations.translate(text, language),
+            text = translate(text, language),
             actions = actions.map { action -> action.localized(language) },
             actionRows =
                 actionRows.map { row ->
@@ -181,24 +165,56 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
     private fun OutboundTelegramMessageAction.localized(language: TelegramSettingsLanguage): OutboundTelegramMessageAction =
         when (this) {
             is OutboundTelegramMessageAction.Callback ->
-                copy(label = BotCommandTranslations.translate(label, language))
+                copy(label = translate(label, language))
 
             is OutboundTelegramMessageAction.OpenMiniApp ->
-                copy(label = BotCommandTranslations.translate(label, language))
+                copy(label = translate(label, language))
 
             is OutboundTelegramMessageAction.OpenUrl ->
-                copy(label = BotCommandTranslations.translate(label, language))
+                copy(label = translate(label, language))
         }
 
+    private fun translate(
+        value: String,
+        language: TelegramSettingsLanguage,
+    ): String =
+        BotMenuDesignTranslations.translate(
+            value = BotCommandTranslations.translate(value, language),
+            language = language,
+        )
+
     private companion object {
+        const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
+
+        val menuAction =
+            OutboundTelegramMessageAction.Callback(
+                label = "📋 Меню Mnemos",
+                data = TelegramMenuScreen.OPEN_CALLBACK_DATA,
+                style = OutboundTelegramButtonStyle.PRIMARY,
+            )
+
+        val startActionRows =
+            listOf(
+                listOf(menuAction),
+                listOf(
+                    OutboundTelegramMessageAction.Callback(
+                        label = "❓ Помощь",
+                        data = TelegramHelpSection.OVERVIEW.callbackData,
+                    ),
+                ),
+                listOf(
+                    OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
+                ),
+            )
+
         val helpSections =
             listOf(
                 TelegramHelpSection.OVERVIEW to "Обзор",
                 TelegramHelpSection.MINI_APP to "Mini App",
-                TelegramHelpSection.SUBSCRIPTIONS to "Подписки",
-                TelegramHelpSection.ACCOUNTS to "Аккаунты",
+                TelegramHelpSection.SUBSCRIPTIONS to "Уведомления",
+                TelegramHelpSection.ACCOUNTS to "Аккаунт",
                 TelegramHelpSection.BETS to "Ставки",
-                TelegramHelpSection.NOTIFICATIONS to "Уведомления",
+                TelegramHelpSection.NOTIFICATIONS to "Доставка",
                 TelegramHelpSection.TROUBLESHOOTING to "Проблемы",
             )
     }
