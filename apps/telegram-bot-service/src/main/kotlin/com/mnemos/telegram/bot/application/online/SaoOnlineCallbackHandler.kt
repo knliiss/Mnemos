@@ -4,7 +4,9 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
+import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -13,19 +15,31 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(prefix = "mnemos.telegram-bot.telegram", name = ["enabled"], havingValue = "true")
 class SaoOnlineCallbackHandler(
     private val menuService: TelegramMenuService,
+    private val sessionRepository: TelegramMenuSessionRepository,
 ) : TelegramScopedCallbackHandler {
     override val callbackPrefix: String = SaoOnlineCallbackData.PREFIX
 
-    override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult =
-        when (context.data) {
+    override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
+        val session = currentOnlineSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (session.pendingInput == TelegramPendingInput.ONLINE_PLAYER_SEARCH) {
+            return if (context.data == SaoOnlineCallbackData.SEARCH_CANCEL) {
+                cancelSearch(context)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
+        }
+
+        return when (context.data) {
             SaoOnlineCallbackData.REFRESH -> updateContext(context) { current -> current }
             SaoOnlineCallbackData.REALM_LIST -> updateContext(context) { emptyMap() }
             SaoOnlineCallbackData.PREVIOUS_PAGE -> changePage(context, -1)
             SaoOnlineCallbackData.NEXT_PAGE -> changePage(context, 1)
             SaoOnlineCallbackData.SEARCH -> startSearch(context)
-            SaoOnlineCallbackData.SEARCH_CANCEL -> cancelSearch(context)
+            SaoOnlineCallbackData.SEARCH_CANCEL -> TelegramDeliveryResult.Delivered
             else -> openRealm(context)
         }
+    }
 
     private fun startSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
         menuService.requestTextInput(
@@ -79,4 +93,14 @@ class SaoOnlineCallbackHandler(
             expectedScreen = TelegramMenuScreen.ONLINE,
             update = update,
         )
+
+    private fun currentOnlineSession(context: TelegramCallbackContext): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
+
+        if (session.currentScreen != TelegramMenuScreen.ONLINE || session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session
+    }
 }
