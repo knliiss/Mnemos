@@ -1,6 +1,8 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.prime.PrimePurchaseCallbackData
 import com.mnemos.telegram.bot.application.prime.model.PrimeMenuScreenData
@@ -13,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class PrimeMenuMessageRendererTest {
     @Test
-    fun `renderer exposes packages as scoped callbacks`() {
+    fun `renderer exposes PRIME packages as full width account scoped actions`() {
         val message =
             PrimeMenuMessageRenderer.render(
                 TelegramMenuScreenData.Prime(
@@ -31,11 +33,19 @@ class PrimeMenuMessageRendererTest {
                 .first { action -> action.data.startsWith("prime:buy:") }
 
         assertEquals(PrimePurchaseCallbackData.buy("prime-100"), buyAction.data)
-        assertTrue(message.text.contains("100 PRIME"))
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, buyAction.style)
+        assertTrue(message.text.contains("⭐ <b>PRIME и баланс</b>"))
+        assertTrue(message.text.contains("└ <b>100 PRIME</b> · ⭐ 100"))
+        assertTrue(message.actionRows.all { row -> row.size == 1 })
+        assertTrue(
+            message.actions
+                .filterIsInstance<OutboundTelegramMessageAction.Callback>()
+                .any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA },
+        )
     }
 
     @Test
-    fun `renderer exposes invoice url only through url action`() {
+    fun `renderer exposes invoice url only through full width payment action`() {
         val invoiceUrl = "https://t.me/invoice/private-token"
         val message =
             PrimeMenuMessageRenderer.render(
@@ -60,8 +70,9 @@ class PrimeMenuMessageRendererTest {
                 .map { action -> action.data }
 
         assertEquals(invoiceUrl, urlAction.url)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, urlAction.style)
         assertFalse(callbackData.any { data -> data.contains(invoiceUrl) })
-        assertTrue(message.text.contains("Счёт готов"))
+        assertTrue(message.text.contains("⭐ <b>Счёт готов</b>"))
     }
 
     private fun primePackage(): PrimePurchasePackage =
