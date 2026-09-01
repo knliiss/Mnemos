@@ -95,6 +95,24 @@ class PrimePurchaseCallbackHandlerTest {
     }
 
     @Test
+    fun `queued buy callback cannot replace ready invoice`() {
+        val invoice =
+            PrimePurchaseInvoice(
+                primeAmount = 250,
+                starsAmount = 250,
+                url = "https://t.me/invoice/existing",
+            )
+        whenever(sessionRepository.find(TELEGRAM_ID)).thenReturn(
+            primeSession(screenContext = PrimeMenuContext.invoice(invoice)),
+        )
+
+        val result = handler.handle(callbackContext(PrimePurchaseCallbackData.buy(PACKAGE_ID)))
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        verifyNoInteractions(gateway, menuService)
+    }
+
+    @Test
     fun `refresh callback clears PRIME context without creating purchase`() {
         val context = callbackContext(PrimePurchaseCallbackData.REFRESH)
 
@@ -137,11 +155,13 @@ class PrimePurchaseCallbackHandlerTest {
     private fun primeSession(
         messageId: Int = MESSAGE_ID,
         screen: TelegramMenuScreen = TelegramMenuScreen.PRIME,
+        screenContext: Map<String, String> = emptyMap(),
     ): TelegramMenuSession =
         TelegramMenuSession(
             telegramId = TELEGRAM_ID,
             menuMessageId = messageId,
             currentScreen = screen,
+            screenContext = screenContext,
         )
 
     private companion object {
