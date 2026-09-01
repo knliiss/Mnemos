@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.invite
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.domain.exception.invite.AccountInviteNotFoundException
 import com.mnemos.account.domain.model.account.invite.InviteId
@@ -20,18 +21,29 @@ class RevokeAccountInviteService(
         accountId: AccountId,
         inviteId: InviteId,
     ) {
-        contextProvider.requirePermissionForUpdate(
-            accountId = accountId,
-            permission = MANAGE_MEMBERS,
-        )
+        val context =
+            contextProvider.requirePermissionForUpdate(
+                accountId = accountId,
+                permission = MANAGE_MEMBERS,
+            )
 
+        revokeInvite(
+            context = context,
+            inviteId = inviteId,
+        )
+    }
+
+    internal fun revokeInvite(
+        context: ActiveAccountContext,
+        inviteId: InviteId,
+    ) {
         val invite =
             inviteRepository.findByIdAndAccountIdForUpdate(
                 inviteId = inviteId,
-                accountId = accountId,
+                accountId = context.account.id,
             ) ?: throw AccountInviteNotFoundException(
                 inviteId = inviteId,
-                accountId = accountId,
+                accountId = context.account.id,
             )
 
         if (invite.revoke(Instant.now())) {

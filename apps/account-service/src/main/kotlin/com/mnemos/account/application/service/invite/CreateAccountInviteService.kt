@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.invite
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.port.invite.InviteCodeGenerator
 import com.mnemos.account.domain.model.account.invite.AccountInvite
@@ -24,27 +25,35 @@ class CreateAccountInviteService(
         accountId: AccountId,
         expiresIn: Duration?,
     ): CreateAccountInviteResult {
-        require(expiresIn == null || (!expiresIn.isZero && !expiresIn.isNegative)) {
-            "Invite expiration duration must be positive"
-        }
-
         val context =
             contextProvider.requirePermissionForUpdate(
                 accountId = accountId,
                 permission = RolePermission.MANAGE_MEMBERS,
             )
 
-        val now = Instant.now()
+        return createInvite(
+            context = context,
+            expiresIn = expiresIn,
+        )
+    }
 
+    internal fun createInvite(
+        context: ActiveAccountContext,
+        expiresIn: Duration?,
+    ): CreateAccountInviteResult {
+        require(expiresIn == null || (!expiresIn.isZero && !expiresIn.isNegative)) {
+            "Invite expiration duration must be positive"
+        }
+
+        val now = Instant.now()
         val invite =
             AccountInvite.create(
-                accountId = accountId,
+                accountId = context.account.id,
                 code = inviteCodeGenerator.generate(),
                 createdByUserId = context.user.id,
                 expiresAt = expiresIn?.let(now::plus),
                 now = now,
             )
-
         val createdInvite = inviteRepository.create(invite)
 
         return CreateAccountInviteResult(
