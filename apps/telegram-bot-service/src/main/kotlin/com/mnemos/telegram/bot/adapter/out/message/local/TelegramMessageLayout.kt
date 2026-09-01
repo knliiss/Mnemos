@@ -40,8 +40,7 @@ object TelegramMessageLayout {
         return copy(label = "✓ $label")
     }
 
-    private fun String.isCompactNumber(): Boolean =
-        length in 1..2 && all(Char::isDigit)
+    private fun String.isCompactNumber(): Boolean = length in 1..2 && all(Char::isDigit)
 
     private fun String.isDividerLine(): Boolean = isNotEmpty() && all { character -> character == '━' }
 }
