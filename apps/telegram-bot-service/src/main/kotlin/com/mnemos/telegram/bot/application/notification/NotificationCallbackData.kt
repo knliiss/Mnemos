@@ -23,6 +23,7 @@ object NotificationCallbackData {
     const val CREATE = "${PREFIX}c"
     const val CREATE_TYPES = "${PREFIX}ct"
     const val DROPS = "${PREFIX}dl"
+    const val DELETE_CANCEL = "${PREFIX}dx"
     const val ITEM_DROP_PLAYER = "${PREFIX}ip"
     const val ITEM_DROP_ITEM = "${PREFIX}ii"
     const val ITEM_DROP_CLEAR_PLAYER = "${PREFIX}ipc"
@@ -35,6 +36,7 @@ object NotificationCallbackData {
 
     private const val PAGE_PREFIX = "${PREFIX}p:"
     private const val DELETE_PREFIX = "${PREFIX}d:"
+    private const val DELETE_CONFIRM_PREFIX = "${PREFIX}dc:"
     private const val TYPE_PREFIX = "${PREFIX}t:"
     private const val BOOSTER_PREFIX = "${PREFIX}b:"
     private const val DUNGEON_PREFIX = "${PREFIX}u:"
@@ -45,6 +47,8 @@ object NotificationCallbackData {
     fun page(page: Int): String = "$PAGE_PREFIX${page.coerceAtLeast(0)}"
 
     fun delete(subscriptionId: UUID): String = "$DELETE_PREFIX$subscriptionId"
+
+    fun confirmDelete(subscriptionId: UUID): String = "$DELETE_CONFIRM_PREFIX$subscriptionId"
 
     fun type(type: NotificationSubscriptionType): String = "$TYPE_PREFIX${typeCode(type)}"
 
@@ -82,10 +86,16 @@ object NotificationCallbackData {
             ?.takeIf { page -> page >= 0 }
 
     fun deletedSubscriptionId(data: String): UUID? =
-        data
-            .takeIf { value -> value.startsWith(DELETE_PREFIX) }
-            ?.removePrefix(DELETE_PREFIX)
-            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
+        uuidFromPrefixedData(
+            data = data,
+            prefix = DELETE_PREFIX,
+        )
+
+    fun confirmedDeleteSubscriptionId(data: String): UUID? =
+        uuidFromPrefixedData(
+            data = data,
+            prefix = DELETE_CONFIRM_PREFIX,
+        )
 
     fun selectedCreationMode(data: String): NotificationCreationMode? =
         data
@@ -124,6 +134,15 @@ object NotificationCallbackData {
             ?.removePrefix(RAID_PAGE_PREFIX)
             ?.toIntOrNull()
             ?.takeIf { page -> page in 0..1 }
+
+    private fun uuidFromPrefixedData(
+        data: String,
+        prefix: String,
+    ): UUID? =
+        data
+            .takeIf { value -> value.startsWith(prefix) }
+            ?.removePrefix(prefix)
+            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
 
     private fun typeCode(type: NotificationSubscriptionType): String =
         when (type) {
