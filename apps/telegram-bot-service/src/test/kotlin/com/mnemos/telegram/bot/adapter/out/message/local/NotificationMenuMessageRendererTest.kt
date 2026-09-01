@@ -10,6 +10,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationCreati
 import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
 import com.mnemos.telegram.bot.application.notification.model.NotificationGlobalType
 import com.mnemos.telegram.bot.application.notification.model.NotificationItemDropInputField
+import com.mnemos.telegram.bot.application.notification.model.NotificationMenuFeedback
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscription
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionPage
@@ -37,6 +38,7 @@ class NotificationMenuMessageRendererTest {
                             globalSubscriptions = mapOf(NotificationGlobalType.MOON to activeId),
                             raidSubscription = raidSubscription(setOf(3, 12)),
                         ),
+                    feedback = NotificationMenuFeedback.RAID_SAVED,
                 ),
             )
 
@@ -52,6 +54,7 @@ class NotificationMenuMessageRendererTest {
             }
 
         assertTrue(message.text.contains("<b>Глобальные события</b>"))
+        assertTrue(message.text.contains("RAID · Настройка сохранена"))
         assertTrue(message.text.contains("Правил: <b>17</b>"))
         assertTrue(message.text.contains("3, 12"))
         assertEquals("🌙 Луна Вкл", moon.label)
