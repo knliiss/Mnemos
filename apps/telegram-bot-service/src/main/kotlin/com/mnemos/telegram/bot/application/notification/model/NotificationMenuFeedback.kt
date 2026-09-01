@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.application.notification.model
 
 enum class NotificationMenuFeedback {
     CREATED,
+    RAID_SAVED,
     USER_NOT_FOUND,
     SERVICE_UNAVAILABLE,
     INVALID_PLAYER_FILTER,
