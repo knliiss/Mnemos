@@ -44,6 +44,15 @@ class TelegramMenuSessionRedisCodecTest {
     }
 
     @Test
+    fun `persisted pending input for another screen is rejected`() {
+        val encoded = "2\n931458258\n42\nEVENTS\nHOME\nACCOUNT_CREATE\n"
+
+        val decoded = TelegramMenuSessionRedisCodec.decode(encoded)
+
+        assertNull(decoded)
+    }
+
+    @Test
     fun `invalid persisted session is rejected`() {
         assertNull(TelegramMenuSessionRedisCodec.decode("broken"))
     }
