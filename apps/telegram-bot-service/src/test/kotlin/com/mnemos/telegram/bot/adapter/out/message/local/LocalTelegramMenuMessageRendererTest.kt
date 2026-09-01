@@ -25,9 +25,13 @@ class LocalTelegramMenuMessageRendererTest {
     fun `home menu keeps only primary bot actions`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
+        val miniAppActions =
+            message.actionRows
+                .flatten()
+                .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
         assertEquals(listOf(1, 2, 1), message.actionRows.map(List<*>::size))
-        assertEquals(1, message.actionRows.flatten().filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>().size)
+        assertEquals(1, miniAppActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.NOTIFICATIONS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ONLINE.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
