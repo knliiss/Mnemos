@@ -117,9 +117,10 @@ object NotificationMenuMessageRenderer {
             )
 
         return buildList {
-            addAll(globalActions.chunked(2))
-            addAll(boosterActions.chunked(2))
-            addAll(dungeonActions.chunked(2))
+            add(globalActions.take(3))
+            add(globalActions.drop(3))
+            add(boosterActions)
+            add(dungeonActions)
             add(listOf(raidAction))
             add(listOf(dropsAction))
             add(listOf(refreshAction))
@@ -308,7 +309,7 @@ object NotificationMenuMessageRenderer {
         return renderToggleScreen(
             data = data,
             title = "⚡ <b>Бустеры</b>",
-            toggleRows = actions.chunked(2),
+            toggleRows = listOf(actions),
         )
     }
 
@@ -325,7 +326,7 @@ object NotificationMenuMessageRenderer {
         return renderToggleScreen(
             data = data,
             title = "🏰 <b>Dungeon</b>",
-            toggleRows = actions.chunked(2),
+            toggleRows = listOf(actions),
         )
     }
 
@@ -343,7 +344,11 @@ object NotificationMenuMessageRenderer {
         return renderToggleScreen(
             data = data,
             title = "🌌 <b>Глобальные события</b>",
-            toggleRows = actions.chunked(2),
+            toggleRows =
+                listOf(
+                    actions.take(3),
+                    actions.drop(3),
+                ),
         )
     }
 
