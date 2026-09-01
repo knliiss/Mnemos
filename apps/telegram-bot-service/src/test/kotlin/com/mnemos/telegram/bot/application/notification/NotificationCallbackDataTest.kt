@@ -13,12 +13,18 @@ import java.util.UUID
 
 class NotificationCallbackDataTest {
     @Test
-    fun `delete callback round trips subscription id`() {
+    fun `delete request and confirmation callbacks round trip subscription id`() {
         val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
 
-        val callbackData = NotificationCallbackData.delete(subscriptionId)
+        val requestCallback = NotificationCallbackData.delete(subscriptionId)
+        val confirmCallback = NotificationCallbackData.confirmDelete(subscriptionId)
 
-        assertEquals(subscriptionId, NotificationCallbackData.deletedSubscriptionId(callbackData))
+        assertEquals(subscriptionId, NotificationCallbackData.deletedSubscriptionId(requestCallback))
+        assertEquals(subscriptionId, NotificationCallbackData.confirmedDeleteSubscriptionId(confirmCallback))
+        assertNull(NotificationCallbackData.deletedSubscriptionId(confirmCallback))
+        assertNull(NotificationCallbackData.confirmedDeleteSubscriptionId(requestCallback))
+        assertTrue(requestCallback.toByteArray(Charsets.UTF_8).size <= 64)
+        assertTrue(confirmCallback.toByteArray(Charsets.UTF_8).size <= 64)
     }
 
     @Test
@@ -32,6 +38,7 @@ class NotificationCallbackDataTest {
     fun `malformed and legacy toggle callbacks are ignored`() {
         assertNull(NotificationCallbackData.selectedPage("ntf:p:invalid"))
         assertNull(NotificationCallbackData.deletedSubscriptionId("ntf:d:invalid"))
+        assertNull(NotificationCallbackData.confirmedDeleteSubscriptionId("ntf:dc:invalid"))
         assertNull(NotificationCallbackData.selectedBoosterTarget("ntf:b:luck"))
         assertNull(NotificationCallbackData.selectedRaidLocationTarget("ntf:rl:3"))
     }
