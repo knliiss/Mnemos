@@ -55,15 +55,21 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         when (section) {
             TelegramHelpSection.OVERVIEW ->
                 listOf(
-                    "❓ <b>Помощь Mnemos</b>",
+                    "📋 <b>Команды Mnemos</b>",
                     TelegramMessageLayout.DIVIDER,
                     "",
-                    "📋 <b>Основные команды</b>",
-                    "• создавайте и подключайте Cristalix-аккаунты;",
-                    "• настраивайте уведомления и смотрите онлайн/историю событий;",
-                    "• забирайте Daily и управляйте балансами;",
-                    "• делайте ставки и покупайте PRIME через Telegram Stars;",
-                    "• меняйте доступные настройки Mnemos.",
+                    "/menu — главное меню",
+                    "/account — аккаунты",
+                    "/notifications — уведомления",
+                    "/online — онлайн и реалмы",
+                    "/events — история событий",
+                    "/bets — ставки",
+                    "/daily — Daily",
+                    "/prime — PRIME",
+                    "/settings — настройки",
+                    "/help или /commands — этот список",
+                    "",
+                    "Для /online можно передать номер реалма или ник игрока. Для /events — строку поиска.",
                 ).joinToString("\n")
 
             TelegramHelpSection.MINI_APP ->
@@ -73,7 +79,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "",
                     "Mini App — дополнительный интерфейс Mnemos. Если он открывается, используйте кнопку «Mini App» или стандартную кнопку Telegram.",
                     "",
-                    "Если Mini App не загружается из-за сети или региональных ограничений, продолжайте пользоваться /menu: аккаунт, уведомления, Daily, события, ставки, PRIME и настройки доступны через чат.",
+                    "Если Mini App не загружается, основные функции остаются доступны через /menu.",
                 ).joinToString("\n")
 
             TelegramHelpSection.SUBSCRIPTIONS ->
@@ -95,9 +101,9 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "👤 <b>Аккаунты</b>",
                     TelegramMessageLayout.DIVIDER,
                     "",
-                    "Откройте /account. Там можно создать Mnemos/Cristalix-аккаунт, присоединиться по invite-коду, посмотреть доступные аккаунты и переключить активный.",
+                    "Откройте /account. Там можно создать Cristalix-аккаунт, присоединиться по invite-коду, посмотреть доступные аккаунты и переключить активный.",
                     "",
-                    "Daily, ставки и другие account-scoped функции используют выбранный активный аккаунт и его права.",
+                    "COIN относится к активному Cristalix-аккаунту. PRIME относится к вашему пользователю Mnemos и не переключается вместе с аккаунтом.",
                 ).joinToString("\n")
 
             TelegramHelpSection.BETS ->
@@ -105,9 +111,9 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "🎲 <b>Ставки</b>",
                     TelegramMessageLayout.DIVIDER,
                     "",
-                    "Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.",
+                    "Откройте /bets. Для каждого типа события показывается только ближайший раунд.",
                     "",
-                    "Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна в этом же разделе.",
+                    "Нажмите «Да» или «Нет», затем отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить.",
                 ).joinToString("\n")
 
             TelegramHelpSection.NOTIFICATIONS ->
@@ -117,7 +123,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "",
                     "Если бот был заблокирован, разблокируйте его и отправьте /start или /help — Mnemos снова активирует Telegram-получателя.",
                     "",
-                    "Notification pack и доступные пользовательские настройки можно менять через /settings.",
+                    "Notification pack и пользовательские настройки находятся в /settings.",
                 ).joinToString("\n")
 
             TelegramHelpSection.TROUBLESHOOTING ->
@@ -125,14 +131,14 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "🛠 <b>Проблемы и решения</b>",
                     TelegramMessageLayout.DIVIDER,
                     "",
-                    "<b>Mini App не открывается или не загружается.</b>",
-                    "Используйте /menu. Для основных функций это не является блокирующей ошибкой.",
+                    "<b>Mini App не открывается.</b>",
+                    "Используйте /menu — основные функции доступны в боте.",
                     "",
-                    "<b>Отдельный раздел бота временно недоступен.</b>",
-                    "Нажмите «Обновить». Если соответствующий backend-сервис не отвечает, бот покажет локальную ошибку без требования открыть Mini App.",
+                    "<b>Раздел временно недоступен.</b>",
+                    "Нажмите «Обновить». Бот покажет локальную ошибку, если backend-сервис не отвечает.",
                     "",
                     "<b>Нужен активный Cristalix-аккаунт.</b>",
-                    "Перейдите в /account и создайте, подключите или переключите его прямо в Telegram.",
+                    "Перейдите в /account и создайте, подключите или переключите его.",
                 ).joinToString("\n")
         }
 
@@ -224,7 +230,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         val helpSectionGroups =
             listOf(
                 listOf(
-                    TelegramHelpSection.OVERVIEW to "Обзор",
+                    TelegramHelpSection.OVERVIEW to "Команды",
                     TelegramHelpSection.MINI_APP to "Mini App",
                 ),
                 listOf(
