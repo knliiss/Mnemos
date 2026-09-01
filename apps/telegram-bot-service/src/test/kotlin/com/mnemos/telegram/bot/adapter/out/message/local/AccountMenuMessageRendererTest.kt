@@ -14,6 +14,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountSummary
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ import java.util.UUID
 
 class AccountMenuMessageRendererTest {
     @Test
-    fun `account dashboard keeps balances daily prime and account controls together`() {
+    fun `account dashboard groups daily prime and keeps account controls together`() {
         val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
         val switchableAccount = account("alt", active = false, status = TelegramAccountStatus.ACTIVE)
         val deactivatedAccount = account("old", active = false, status = TelegramAccountStatus.DEACTIVATED)
@@ -48,8 +49,9 @@ class AccountMenuMessageRendererTest {
 
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val dailyLabel = message.actionRows[0][0].label
-        val primeLabel = message.actionRows[1][0].label
+        val quickActions = message.actionRows[0]
+        val dailyLabel = quickActions[0].label
+        val primeLabel = quickActions[1].label
 
         assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
@@ -57,6 +59,7 @@ class AccountMenuMessageRendererTest {
         assertTrue(message.text.contains("└ PRIME: <b>3</b> ⭐"))
         assertTrue(message.text.contains("<code>old</code> · владелец · 1/5 · деактивирован"))
         assertTrue(message.text.contains("Активный аккаунт переключён"))
+        assertEquals(2, quickActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.switch(switchableAccount.accountId) })
