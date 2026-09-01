@@ -12,6 +12,7 @@ data class TelegramMenuSession(
         require(telegramId > 0)
         require(menuMessageId == null || menuMessageId > 0)
         require(navigationStack.size <= MAX_NAVIGATION_DEPTH)
+        require(pendingInput == null || pendingInput.screen == currentScreen)
     }
 
     private companion object {
