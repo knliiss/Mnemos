@@ -13,6 +13,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSummary
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -52,6 +53,10 @@ class AccountMenuMessageRendererTest {
         val quickActions = message.actionRows[0]
         val dailyLabel = quickActions[0].label
         val primeLabel = quickActions[1].label
+        val switchAction =
+            callbacks.single { action ->
+                action.data == AccountCallbackData.switch(switchableAccount.accountId)
+            }
 
         assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
@@ -62,7 +67,7 @@ class AccountMenuMessageRendererTest {
         assertEquals(2, quickActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
-        assertTrue(callbacks.any { action -> action.data == AccountCallbackData.switch(switchableAccount.accountId) })
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, switchAction.style)
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
