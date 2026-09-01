@@ -116,7 +116,7 @@ class NotificationSubscriptionCreationService(
         existingSubscription: (NotificationSubscriptionResult.Available) -> UUID?,
         create: () -> NotificationSubscriptionCreationResult,
     ): TelegramDeliveryResult {
-        currentCreationSession(context, expectedMode)
+        currentToggleSession(context, expectedMode)
             ?: return TelegramDeliveryResult.Delivered
 
         val state = loadState(context.telegramId) ?: return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
@@ -205,10 +205,30 @@ class NotificationSubscriptionCreationService(
             NotificationMenuContext.withFeedback(current, feedback)
         }
 
+    private fun currentToggleSession(
+        context: TelegramCallbackContext,
+        expectedMode: NotificationCreationMode,
+    ): TelegramMenuSession? {
+        val session = currentSession(context) ?: return null
+        val mode = NotificationMenuContext.mode(session.screenContext)
+
+        return session.takeIf {
+            mode == NotificationCreationMode.LIST || mode == expectedMode
+        }
+    }
+
     private fun currentCreationSession(
         context: TelegramCallbackContext,
         expectedMode: NotificationCreationMode,
     ): TelegramMenuSession? {
+        val session = currentSession(context) ?: return null
+
+        return session.takeIf { current ->
+            NotificationMenuContext.mode(current.screenContext) == expectedMode
+        }
+    }
+
+    private fun currentSession(context: TelegramCallbackContext): TelegramMenuSession? {
         val session = sessionRepository.find(context.telegramId) ?: return null
 
         if (session.currentScreen != TelegramMenuScreen.NOTIFICATIONS) {
@@ -219,7 +239,7 @@ class NotificationSubscriptionCreationService(
             return null
         }
 
-        return session.takeIf { current -> NotificationMenuContext.mode(current.screenContext) == expectedMode }
+        return session
     }
 
     private companion object {
