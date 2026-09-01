@@ -230,8 +230,9 @@ class NotificationCallbackHandler(
         context: TelegramCallbackContext,
         subscriptionId: UUID,
     ): TelegramDeliveryResult {
-        val session = currentSession(context, NotificationCreationMode.ITEM_DROP_DELETE)
-            ?: return TelegramDeliveryResult.Delivered
+        val session =
+            currentSession(context, NotificationCreationMode.ITEM_DROP_DELETE)
+                ?: return TelegramDeliveryResult.Delivered
         val selectedSubscriptionId = NotificationMenuContext.deleteSubscriptionId(session.screenContext)
 
         if (selectedSubscriptionId != subscriptionId) {
