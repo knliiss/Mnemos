@@ -223,6 +223,7 @@ object AccountMenuMessageRenderer {
                 OutboundTelegramMessageAction.Callback(
                     label = "🔄 Выбрать ${account.cristalixNickname}",
                     data = AccountCallbackData.switch(account.accountId),
+                    style = OutboundTelegramButtonStyle.PRIMARY,
                 )
             }
 
