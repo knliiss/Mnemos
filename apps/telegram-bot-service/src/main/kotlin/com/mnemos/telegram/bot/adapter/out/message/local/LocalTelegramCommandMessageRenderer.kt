@@ -33,7 +33,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     listOf(
                         OutboundTelegramMessageAction.Callback(
                             label = "🧠 Меню Mnemos",
-                            data = TelegramMenuScreen.HOME.callbackData,
+                            data = TelegramMenuScreen.OPEN_CALLBACK_DATA,
                             style = OutboundTelegramButtonStyle.PRIMARY,
                         ),
                     ),
@@ -140,7 +140,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             add(
                 OutboundTelegramMessageAction.Callback(
                     label = "🧠 Меню Mnemos",
-                    data = TelegramMenuScreen.HOME.callbackData,
+                    data = TelegramMenuScreen.OPEN_CALLBACK_DATA,
                     style = OutboundTelegramButtonStyle.PRIMARY,
                 ),
             )
