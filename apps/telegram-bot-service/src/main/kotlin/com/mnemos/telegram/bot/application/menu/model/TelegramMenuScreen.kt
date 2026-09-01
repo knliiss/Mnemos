@@ -10,6 +10,7 @@ enum class TelegramMenuScreen(
     EVENTS("m:events"),
     DAILY("m:daily"),
     ACCOUNT("m:account"),
+    ACCOUNT_INVITES("m:account-invites"),
     BETS("m:bets"),
     PRIME("m:prime"),
     SETTINGS("m:settings"),

@@ -36,6 +36,5 @@ object InternalTelegramAccountInviteApiMapper {
             status = status.toResponse(),
         )
 
-    private fun AccountInviteStatus.toResponse(): InternalTelegramAccountInviteStatus =
-        InternalTelegramAccountInviteStatus.valueOf(name)
+    private fun AccountInviteStatus.toResponse(): InternalTelegramAccountInviteStatus = InternalTelegramAccountInviteStatus.valueOf(name)
 }

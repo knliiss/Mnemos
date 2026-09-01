@@ -155,6 +155,10 @@ object AccountMenuMessageRenderer {
             add(listOf(dailyAction))
             add(listOf(primeAction))
 
+            if (context.activeAccountId != null) {
+                add(listOf(invitesAction))
+            }
+
             accountSwitchActions(context).forEach { action ->
                 add(listOf(action))
             }
@@ -335,6 +339,13 @@ object AccountMenuMessageRenderer {
         OutboundTelegramMessageAction.Callback(
             label = "⭐ PRIME пользователя",
             data = TelegramMenuScreen.PRIME.callbackData,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val invitesAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "🔗 Приглашения аккаунта",
+            data = TelegramMenuScreen.ACCOUNT_INVITES.callbackData,
             style = OutboundTelegramButtonStyle.PRIMARY,
         )
 
