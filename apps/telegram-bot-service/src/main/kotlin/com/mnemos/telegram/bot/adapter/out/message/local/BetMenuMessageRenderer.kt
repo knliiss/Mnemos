@@ -29,11 +29,35 @@ object BetMenuMessageRenderer {
             data as? TelegramMenuScreenData.Bets
                 ?: return unavailableMessage()
 
+        if (bets.data.operationTracked && !bets.data.waitingForAmount) {
+            return trackedOperationMessage(bets.data)
+        }
+
         return when (bets.data.mode) {
             BetMenuMode.ROUNDS -> renderRounds(bets.data)
             BetMenuMode.RACES -> renderRaces(bets.data)
             BetMenuMode.HISTORY -> renderHistory(bets.data)
         }
+    }
+
+    private fun trackedOperationMessage(data: BetMenuScreenData): OutboundTelegramMessage {
+        val status =
+            if (data.feedback == BetMenuFeedback.UNAVAILABLE) {
+                feedbackText(data.feedback)
+            } else {
+                "⏳ Операция ещё обрабатывается. Нажмите «Обновить», чтобы проверить статус."
+            }
+
+        return message(
+            text =
+                listOfNotNull(
+                    "🎲 <b>Ставки</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    status,
+                ).joinToString("\n"),
+            rows = trackedOperationRows,
+        )
     }
 
     private fun renderRounds(data: BetMenuScreenData): OutboundTelegramMessage =
@@ -516,6 +540,12 @@ object BetMenuMessageRenderer {
                     style = OutboundTelegramButtonStyle.DANGER,
                 ),
             ),
+        )
+
+    private val trackedOperationRows =
+        listOf(
+            listOf(refreshAction),
+            listOf(backAction),
         )
 
     private val refreshAction = callback("🔄 Обновить", BetCallbackData.REFRESH)
