@@ -106,6 +106,75 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
+    fun `drop deletion shows selected rule and explicit confirmation`() {
+        val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val subscription =
+            itemDropSubscription(
+                id = subscriptionId,
+                droppedFor = "knaliz&friend",
+                itemName = "Sword <Art>",
+            )
+        val data =
+            TelegramMenuScreenData.Notifications(
+                NotificationMenuScreenData(
+                    result =
+                        NotificationSubscriptionResult.Available(
+                            page =
+                                NotificationSubscriptionPage(
+                                    items = listOf(subscription),
+                                    page = 1,
+                                    totalPages = 3,
+                                    totalItems = 17,
+                                    hasNextPage = true,
+                                ),
+                        ),
+                    mode = NotificationCreationMode.ITEM_DROP_DELETE,
+                    deleteSubscriptionId = subscriptionId,
+                ),
+            )
+
+        val message = NotificationMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+        val confirmAction =
+            callbacks.single { action ->
+                action.data == NotificationCallbackData.confirmDelete(subscriptionId)
+            }
+
+        assertTrue(message.text.contains("🗑 <b>Удалить правило?</b>"))
+        assertTrue(message.text.contains("Sword &lt;Art&gt;"))
+        assertTrue(message.text.contains("knaliz&amp;friend"))
+        assertTrue(message.text.contains("Это действие нельзя отменить"))
+        assertEquals("🗑 Удалить", confirmAction.label)
+        assertEquals(OutboundTelegramButtonStyle.DANGER, confirmAction.style)
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DELETE_CANCEL })
+        assertEquals(listOf(1, 1), message.actionRows.map(List<*>::size))
+    }
+
+    @Test
+    fun `stale drop deletion cannot expose destructive confirmation`() {
+        val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
+        val data =
+            TelegramMenuScreenData.Notifications(
+                NotificationMenuScreenData(
+                    result = NotificationSubscriptionResult.Available(page = emptyPage()),
+                    mode = NotificationCreationMode.ITEM_DROP_DELETE,
+                    deleteSubscriptionId = subscriptionId,
+                ),
+            )
+
+        val message = NotificationMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+
+        assertTrue(message.text.contains("Правило уже недоступно"))
+        assertFalse(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.confirmDelete(subscriptionId)
+            },
+        )
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DELETE_CANCEL })
+    }
+
+    @Test
     fun `legacy global screen uses event emoji name and on off state`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
