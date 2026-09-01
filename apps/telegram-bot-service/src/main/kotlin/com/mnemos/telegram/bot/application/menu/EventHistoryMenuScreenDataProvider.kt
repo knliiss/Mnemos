@@ -46,6 +46,24 @@ class EventHistoryMenuScreenDataProvider(
         val wipeOptions = loadWipeOptions()
         val resolvedWipe = wipeOptions.resolve(requestedWipeSelection)
         val wipeSelection = effectiveWipeSelection(requestedWipeSelection, resolvedWipe != null)
+
+        if (EventHistoryMenuContext.filtersOpen(context)) {
+            return TelegramMenuScreenData.EventHistory(
+                EventHistoryMenuScreenData.Filters(
+                    filter = filter,
+                    sort = sort,
+                    itemRarity = itemRarity,
+                    itemType = itemType,
+                    boosterType = boosterType,
+                    globalType = globalType,
+                    raidLocation = raidLocation,
+                    raidLocationPage = EventHistoryMenuContext.selectedRaidLocationPage(context),
+                    wipeSelection = wipeSelection,
+                    wipeOptions = wipeOptions,
+                ),
+            )
+        }
+
         val query =
             EventHistoryQuery(
                 filter = filter,
@@ -70,9 +88,7 @@ class EventHistoryMenuScreenDataProvider(
                 boosterType = boosterType,
                 globalType = globalType,
                 raidLocation = raidLocation,
-                raidLocationPage = EventHistoryMenuContext.selectedRaidLocationPage(context),
                 wipeSelection = wipeSelection,
-                wipeOptions = wipeOptions,
                 result = eventHistoryGateway.getPage(query),
                 hasPrevious = EventHistoryMenuContext.hasPrevious(context),
             ),
