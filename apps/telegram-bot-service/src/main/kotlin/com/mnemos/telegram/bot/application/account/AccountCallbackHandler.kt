@@ -6,6 +6,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
@@ -22,15 +23,21 @@ class AccountCallbackHandler(
     override val callbackPrefix: String = AccountCallbackData.PREFIX
 
     override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
-        if (!isCurrentAccountMenu(context)) {
-            return TelegramDeliveryResult.Delivered
+        val session = currentAccountSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (isWaitingForAccountInput(session.pendingInput)) {
+            return if (context.data == AccountCallbackData.CANCEL_INPUT) {
+                cancelInput(context)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
         }
 
         return when (context.data) {
             AccountCallbackData.REFRESH -> update(context, AccountMenuContext.clear())
             AccountCallbackData.CREATE -> requestInput(context, TelegramPendingInput.ACCOUNT_CREATE)
             AccountCallbackData.JOIN -> requestInput(context, TelegramPendingInput.ACCOUNT_JOIN)
-            AccountCallbackData.CANCEL_INPUT -> cancelInput(context)
+            AccountCallbackData.CANCEL_INPUT -> TelegramDeliveryResult.Delivered
             else -> switchAccount(context)
         }
     }
@@ -81,9 +88,17 @@ class AccountCallbackHandler(
             update = { screenContext },
         )
 
-    private fun isCurrentAccountMenu(context: TelegramCallbackContext): Boolean {
-        val session = sessionRepository.find(context.telegramId) ?: return false
+    private fun currentAccountSession(context: TelegramCallbackContext): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
 
-        return session.currentScreen == TelegramMenuScreen.ACCOUNT && session.menuMessageId == context.messageId
+        if (session.currentScreen != TelegramMenuScreen.ACCOUNT || session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session
     }
+
+    private fun isWaitingForAccountInput(pendingInput: TelegramPendingInput?): Boolean =
+        pendingInput == TelegramPendingInput.ACCOUNT_CREATE ||
+            pendingInput == TelegramPendingInput.ACCOUNT_JOIN
 }
