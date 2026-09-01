@@ -31,17 +31,16 @@ class TelegramMenuService(
     ): TelegramDeliveryResult {
         recipientGateway.activate(telegramId)
 
-        val currentSession = sessionRepository.find(telegramId)
         val nextSession =
             TelegramMenuSession(
                 telegramId = telegramId,
-                menuMessageId = currentSession?.menuMessageId,
+                menuMessageId = null,
                 currentScreen = screen,
                 pendingInput = pendingInput,
                 screenContext = screenContext,
             )
 
-        return deliver(nextSession, currentSession?.menuMessageId)
+        return deliver(nextSession, preferredMessageId = null)
     }
 
     fun navigate(
