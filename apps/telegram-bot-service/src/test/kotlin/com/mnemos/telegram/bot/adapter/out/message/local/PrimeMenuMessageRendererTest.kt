@@ -34,7 +34,8 @@ class PrimeMenuMessageRendererTest {
 
         assertEquals(PrimePurchaseCallbackData.buy("prime-100"), buyAction.data)
         assertEquals(OutboundTelegramButtonStyle.PRIMARY, buyAction.style)
-        assertTrue(message.text.contains("⭐ <b>PRIME и баланс</b>"))
+        assertTrue(message.text.contains("⭐ <b>PRIME</b>"))
+        assertFalse(message.text.contains("PRIME и баланс"))
         assertTrue(message.text.contains("└ <b>100 PRIME</b> · ⭐ 100"))
         assertTrue(message.actionRows.all { row -> row.size == 1 })
         assertTrue(
@@ -74,6 +75,7 @@ class PrimeMenuMessageRendererTest {
         assertFalse(callbackData.any { data -> data.contains(invoiceUrl) })
         assertFalse(callbackData.any { data -> data.startsWith("prime:buy:") })
         assertFalse(message.text.contains("Пополнение через Telegram Stars"))
+        assertTrue(message.text.contains("⭐ <b>PRIME</b>"))
         assertTrue(message.text.contains("⭐ <b>Счёт готов</b>"))
         assertTrue(message.text.contains("Нажмите кнопку оплаты ниже"))
         assertEquals(listOf(1, 1, 1), message.actionRows.map(List<*>::size))
