@@ -65,7 +65,7 @@ class NotificationMenuMessageRendererTest {
                 action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
             },
         )
-        assertEquals(listOf(2, 2, 1, 2), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -98,7 +98,7 @@ class NotificationMenuMessageRendererTest {
         assertTrue(message.text.contains("Включено: <b>1/5</b>"))
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
         assertEquals(OutboundTelegramButtonStyle.DEFAULT, eclipse.style)
-        assertEquals(listOf(3, 2, 2), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(3, 2, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -122,8 +122,8 @@ class NotificationMenuMessageRendererTest {
                 ),
             )
 
-        assertEquals(listOf(2, 2, 2), booster.actionRows.map(List<*>::size))
-        assertEquals(listOf(2, 2, 2), dungeon.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 1, 1), booster.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 1, 1), dungeon.actionRows.map(List<*>::size))
         assertTrue(
             booster.callbacks().any { action ->
                 action.data == NotificationCallbackData.booster(NotificationBoosterType.LUCK, true)
@@ -176,6 +176,7 @@ class NotificationMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.label == "◀ 1/3" })
         assertTrue(callbacks.any { action -> action.label == "3/3 ▶" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.REFRESH })
+        assertEquals(listOf(1, 1, 2, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
