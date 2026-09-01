@@ -4,14 +4,19 @@ import com.mnemos.telegram.bot.application.command.help.TelegramHelpSection
 import com.mnemos.telegram.bot.application.command.port.out.TelegramCommandMessageRenderer
 import com.mnemos.telegram.bot.application.command.start.TelegramStartContext
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.springframework.stereotype.Component
 
 @Component
 class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
-    override fun renderStart(context: TelegramStartContext): OutboundTelegramMessage =
+    override fun renderStart(
+        context: TelegramStartContext,
+        language: TelegramSettingsLanguage,
+    ): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text =
                 "👋 <b>Добро пожаловать в Mnemos</b>\n\n" +
@@ -23,26 +28,34 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "• меняйте доступные настройки Mnemos.\n\n" +
                     "Нажмите «Меню Mnemos» или используйте /menu. Mini App ниже остаётся дополнительным интерфейсом, если он доступен в вашем регионе.",
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions =
+            actionRows =
                 listOf(
-                    OutboundTelegramMessageAction.Callback(
-                        label = "🧠 Меню Mnemos",
-                        data = TelegramMenuScreen.HOME.callbackData,
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "🧠 Меню Mnemos",
+                            data = TelegramMenuScreen.HOME.callbackData,
+                            style = OutboundTelegramButtonStyle.PRIMARY,
+                        ),
                     ),
-                    OutboundTelegramMessageAction.Callback(
-                        label = "Помощь",
-                        data = TelegramHelpSection.OVERVIEW.callbackData,
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "❓ Помощь",
+                            data = TelegramHelpSection.OVERVIEW.callbackData,
+                        ),
+                        OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
                     ),
-                    OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
                 ),
-        )
+        ).localized(language)
 
-    override fun renderHelp(section: TelegramHelpSection): OutboundTelegramMessage =
+    override fun renderHelp(
+        section: TelegramHelpSection,
+        language: TelegramSettingsLanguage,
+    ): OutboundTelegramMessage =
         OutboundTelegramMessage(
             text = renderHelpText(section),
             parseMode = OutboundTelegramMessageParseMode.HTML,
             actions = renderHelpActions(section),
-        )
+        ).localized(language)
 
     private fun renderHelpText(section: TelegramHelpSection): String =
         when (section) {
@@ -73,7 +86,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                 """
                 🔔 <b>Подписки</b>
 
-                Откройте /notifications. Через чат можно просматривать, создавать и удалять подписки на дропы, бустеры, данжи, рейды и глобальные события.
+                Откройте /notifications. Управление подписками повторяет Mini App: глобальные события, бустеры и данжи переключаются как настройки, RAID редактируется как одна подписка, а правила дропа управляются отдельно.
 
                 Для фильтров по игроку или предмету бот сам запросит значение обычным сообщением.
                 """.trimIndent()
@@ -93,7 +106,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
 
                 Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.
 
-                Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна той же страницей.
+                Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна в этом же разделе.
 
                 Для операции нужен активный аккаунт и право PLACE_BETS. Все ставки проходят через обычный Mnemos wallet/idempotency flow.
                 """.trimIndent()
@@ -128,19 +141,53 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                 OutboundTelegramMessageAction.Callback(
                     label = "🧠 Меню Mnemos",
                     data = TelegramMenuScreen.HOME.callbackData,
+                    style = OutboundTelegramButtonStyle.PRIMARY,
                 ),
             )
 
             helpSections.forEach { (helpSection, label) ->
                 add(
                     OutboundTelegramMessageAction.Callback(
-                        label = if (helpSection == section) "• $label" else label,
+                        label = if (helpSection == section) "✓ $label" else label,
                         data = helpSection.callbackData,
+                        style =
+                            if (helpSection == section) {
+                                OutboundTelegramButtonStyle.SUCCESS
+                            } else {
+                                OutboundTelegramButtonStyle.DEFAULT
+                            },
                     ),
                 )
             }
 
             add(OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"))
+        }
+
+    private fun OutboundTelegramMessage.localized(language: TelegramSettingsLanguage): OutboundTelegramMessage {
+        if (language == TelegramSettingsLanguage.RU) {
+            return this
+        }
+
+        return copy(
+            text = BotMenuTranslations.translate(text, language),
+            actions = actions.map { action -> action.localized(language) },
+            actionRows =
+                actionRows.map { row ->
+                    row.map { action -> action.localized(language) }
+                },
+        )
+    }
+
+    private fun OutboundTelegramMessageAction.localized(language: TelegramSettingsLanguage): OutboundTelegramMessageAction =
+        when (this) {
+            is OutboundTelegramMessageAction.Callback ->
+                copy(label = BotMenuTranslations.translate(label, language))
+
+            is OutboundTelegramMessageAction.OpenMiniApp ->
+                copy(label = BotMenuTranslations.translate(label, language))
+
+            is OutboundTelegramMessageAction.OpenUrl ->
+                copy(label = BotMenuTranslations.translate(label, language))
         }
 
     private companion object {
