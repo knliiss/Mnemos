@@ -64,10 +64,10 @@ class NotificationMenuContextTest {
     }
 
     @Test
-    fun `successful creation returns to dashboard with feedback`() {
+    fun `successful creation opens drop list with feedback`() {
         val context = NotificationMenuContext.creationSucceeded()
 
-        assertEquals(NotificationCreationMode.LIST, NotificationMenuContext.mode(context))
+        assertEquals(NotificationCreationMode.ITEM_DROP_LIST, NotificationMenuContext.mode(context))
         assertEquals(NotificationMenuFeedback.CREATED, NotificationMenuContext.feedback(context))
         assertFalse(context.containsValue(NotificationCreationMode.ITEM_DROP.name))
     }
