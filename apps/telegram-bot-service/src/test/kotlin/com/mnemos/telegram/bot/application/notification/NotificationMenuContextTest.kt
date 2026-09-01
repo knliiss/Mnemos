@@ -71,4 +71,13 @@ class NotificationMenuContextTest {
         assertEquals(NotificationMenuFeedback.CREATED, NotificationMenuContext.feedback(context))
         assertFalse(context.containsValue(NotificationCreationMode.ITEM_DROP.name))
     }
+
+    @Test
+    fun `successful raid update returns to dashboard with feedback`() {
+        val context = NotificationMenuContext.raidUpdateSucceeded()
+
+        assertEquals(NotificationCreationMode.LIST, NotificationMenuContext.mode(context))
+        assertEquals(NotificationMenuFeedback.RAID_SAVED, NotificationMenuContext.feedback(context))
+        assertFalse(context.containsValue(NotificationCreationMode.RAID.name))
+    }
 }
