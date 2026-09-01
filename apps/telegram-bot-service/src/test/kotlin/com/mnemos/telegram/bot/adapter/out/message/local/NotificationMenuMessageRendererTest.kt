@@ -4,7 +4,9 @@ import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.notification.NotificationCallbackData
+import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
 import com.mnemos.telegram.bot.application.notification.model.NotificationCreationMode
+import com.mnemos.telegram.bot.application.notification.model.NotificationDungeonType
 import com.mnemos.telegram.bot.application.notification.model.NotificationGlobalType
 import com.mnemos.telegram.bot.application.notification.model.NotificationItemDropInputField
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
@@ -21,7 +23,48 @@ import java.util.UUID
 
 class NotificationMenuMessageRendererTest {
     @Test
-    fun `notification menu renders only item drop rules with intentional button rows`() {
+    fun `notification dashboard renders direct event toggles with named states`() {
+        val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
+        val raidSubscription = raidSubscription(setOf(3, 12))
+        val data =
+            TelegramMenuScreenData.Notifications(
+                NotificationMenuScreenData(
+                    result =
+                        NotificationSubscriptionResult.Available(
+                            page = emptyPage(totalItems = 17),
+                            boosterSubscriptions = mapOf(NotificationBoosterType.LUCK to activeId),
+                            dungeonSubscriptions = mapOf(NotificationDungeonType.HARD to activeId),
+                            globalSubscriptions = mapOf(NotificationGlobalType.MOON to activeId),
+                            raidSubscription = raidSubscription,
+                        ),
+                ),
+            )
+
+        val message = NotificationMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+        val moon =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
+            }
+        val eclipse =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled = true)
+            }
+
+        assertTrue(message.text.contains("<b>Глобальные события</b>"))
+        assertTrue(message.text.contains("Правил: <b>17</b>"))
+        assertTrue(message.text.contains("3, 12"))
+        assertEquals("🌙 Луна Вкл", moon.label)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
+        assertEquals("🌘 Затмение Выкл", eclipse.label)
+        assertFalse(eclipse.label.startsWith("✅"))
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.type(NotificationSubscriptionType.RAID) })
+        assertEquals(listOf(2, 2, 1, 2, 2, 2, 2, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+    }
+
+    @Test
+    fun `drop list is a separate paginated screen`() {
         val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -44,29 +87,26 @@ class NotificationMenuMessageRendererTest {
                                     hasNextPage = true,
                                 ),
                         ),
+                    mode = NotificationCreationMode.ITEM_DROP_LIST,
                 ),
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("Активных подписок: <b>17</b>"))
+        assertTrue(message.text.contains("📦 <b>Дропы</b>"))
         assertTrue(message.text.contains("Страница: <b>2/3</b>"))
         assertTrue(message.text.contains("Sword &lt;Art&gt;"))
         assertTrue(message.text.contains("knaliz&amp;friend"))
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.delete(subscriptionId) })
-        assertTrue(callbacks.any { action -> action.label == "← 1/3" })
-        assertTrue(callbacks.any { action -> action.label == "3/3 →" })
+        assertTrue(callbacks.any { action -> action.label == "◀ 1/3" })
+        assertTrue(callbacks.any { action -> action.label == "3/3 ▶" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.REFRESH })
-        assertEquals(1, message.actionRows[0].size)
-        assertEquals(3, message.actionRows[1].size)
-        assertEquals(1, message.actionRows[2].size)
-        assertEquals(3, message.actionRows[4].size)
     }
 
     @Test
-    fun `global screen renders replay safe target state callbacks in three plus two grid`() {
+    fun `legacy global screen uses event emoji name and on off state`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -81,7 +121,7 @@ class NotificationMenuMessageRendererTest {
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
         val moon =
             callbacks.first { action ->
                 action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
@@ -91,12 +131,11 @@ class NotificationMenuMessageRendererTest {
                 action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled = true)
             }
 
-        assertTrue(message.text.contains("Подписка на глобальное событие"))
-        assertTrue(moon.label.startsWith("✅"))
-        assertTrue(moon.style == OutboundTelegramButtonStyle.SUCCESS)
-        assertFalse(eclipse.label.startsWith("✅"))
-        assertEquals(3, message.actionRows[0].size)
-        assertEquals(2, message.actionRows[1].size)
+        assertTrue(message.text.contains("Глобальные события"))
+        assertEquals("🌙 Луна Вкл", moon.label)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
+        assertEquals("🌘 Затмение Выкл", eclipse.label)
+        assertEquals(listOf(2, 2, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -112,7 +151,7 @@ class NotificationMenuMessageRendererTest {
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
         assertTrue(message.text.contains("knaliz&lt;1&gt;"))
         assertTrue(message.text.contains("1–24"))
@@ -120,27 +159,14 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
-    fun `raid editor uses replay safe target location callbacks and compact location rows`() {
-        val raidId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b73")
-        val raidSubscription =
-            NotificationSubscription(
-                id = raidId,
-                type = NotificationSubscriptionType.RAID,
-                createdAt = Instant.parse("2026-08-30T12:24:00Z"),
-                droppedFor = null,
-                itemName = null,
-                boosterType = null,
-                dungeonType = null,
-                globalType = null,
-                raidLocations = setOf(3, 12),
-            )
+    fun `raid editor keeps compact location grid and update only save`() {
         val data =
             TelegramMenuScreenData.Notifications(
                 NotificationMenuScreenData(
                     result =
                         NotificationSubscriptionResult.Available(
                             page = emptyPage(),
-                            raidSubscription = raidSubscription,
+                            raidSubscription = raidSubscription(setOf(3, 12)),
                         ),
                     mode = NotificationCreationMode.RAID,
                     raidLocations = setOf(3, 12),
@@ -149,26 +175,25 @@ class NotificationMenuMessageRendererTest {
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
+        val locationThree =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.raidLocation(location = 3, selected = false)
+            }
 
         assertTrue(message.text.contains("3, 12"))
-        assertTrue(callbacks.any { action -> action.label == "✅ 3" })
-        assertTrue(
-            callbacks.any { action ->
-                action.data == NotificationCallbackData.raidLocation(location = 3, selected = false)
-            },
-        )
+        assertEquals("3", locationThree.label)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, locationThree.style)
         assertTrue(
             callbacks.any { action ->
                 action.data == NotificationCallbackData.raidLocation(location = 4, selected = true)
             },
         )
-        assertTrue(callbacks.any { action -> action.label == "2/2 →" })
+        assertTrue(callbacks.any { action -> action.label == "2/2 ▶" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
         assertEquals(7, message.actionRows[0].size)
         assertEquals(7, message.actionRows[1].size)
-        assertEquals(2, message.actionRows[3].size)
     }
 
     @Test
@@ -182,15 +207,15 @@ class NotificationMenuMessageRendererTest {
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("RAID"))
+        assertTrue(message.text.contains("Новая подписка из этого экрана не создаётся"))
         assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
-        assertTrue(message.actions.any { action -> action is OutboundTelegramMessageAction.OpenMiniApp })
+        assertFalse(message.actions.any { action -> action is OutboundTelegramMessageAction.OpenMiniApp })
     }
 
     @Test
-    fun `unavailable notification menu keeps refresh and navigation without create`() {
+    fun `unavailable notification dashboard keeps refresh and back`() {
         val data =
             TelegramMenuScreenData.Notifications(
                 NotificationMenuScreenData(
@@ -199,12 +224,15 @@ class NotificationMenuMessageRendererTest {
             )
 
         val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val callbacks = message.callbacks()
 
-        assertTrue(message.text.contains("Не удалось получить подписки"))
+        assertTrue(message.text.contains("Не удалось получить настройки уведомлений"))
         assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.REFRESH })
     }
+
+    private fun OutboundTelegramMessageAction.Callback.isDeleteFor(subscriptionId: UUID): Boolean =
+        data == NotificationCallbackData.delete(subscriptionId)
 
     private fun itemDropSubscription(
         id: UUID,
@@ -223,12 +251,30 @@ class NotificationMenuMessageRendererTest {
             raidLocations = emptySet(),
         )
 
-    private fun emptyPage(): NotificationSubscriptionPage =
+    private fun raidSubscription(locations: Set<Int>): NotificationSubscription =
+        NotificationSubscription(
+            id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b73"),
+            type = NotificationSubscriptionType.RAID,
+            createdAt = Instant.parse("2026-08-30T12:24:00Z"),
+            droppedFor = null,
+            itemName = null,
+            boosterType = null,
+            dungeonType = null,
+            globalType = null,
+            raidLocations = locations,
+        )
+
+    private fun emptyPage(totalItems: Long = 0): NotificationSubscriptionPage =
         NotificationSubscriptionPage(
             items = emptyList(),
             page = 0,
             totalPages = 0,
-            totalItems = 0,
+            totalItems = totalItems,
             hasNextPage = false,
         )
+
+    private fun TelegramMenuScreenData.Notifications.callbacks(): List<OutboundTelegramMessageAction.Callback> = emptyList()
+
+    private fun com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
+        actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 }
