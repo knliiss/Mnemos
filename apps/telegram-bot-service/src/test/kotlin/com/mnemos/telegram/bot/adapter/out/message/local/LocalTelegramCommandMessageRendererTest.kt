@@ -62,14 +62,16 @@ class LocalTelegramCommandMessageRendererTest {
     }
 
     @Test
-    fun `overview help summarizes native bot capabilities`() {
+    fun `overview help exposes the actual command list`() {
         val message = renderer.renderHelp(TelegramHelpSection.OVERVIEW, TelegramSettingsLanguage.RU)
 
-        assertTrue(message.text.contains("Основные команды"))
-        assertTrue(message.text.contains("Cristalix-аккаунты"))
-        assertTrue(message.text.contains("уведомления"))
-        assertTrue(message.text.contains("Daily"))
-        assertTrue(message.text.contains("PRIME"))
+        assertTrue(message.text.contains("<b>Команды Mnemos</b>"))
+        assertTrue(message.text.contains("/menu — главное меню"))
+        assertTrue(message.text.contains("/account — аккаунты"))
+        assertTrue(message.text.contains("/online — онлайн и реалмы"))
+        assertTrue(message.text.contains("/events — история событий"))
+        assertTrue(message.text.contains("/bets — ставки"))
+        assertTrue(message.text.contains("/help или /commands — этот список"))
         assertFalse(message.text.contains("Нужен ли Mini App?"))
     }
 
