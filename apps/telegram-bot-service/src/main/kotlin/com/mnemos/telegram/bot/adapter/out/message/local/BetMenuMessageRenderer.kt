@@ -542,15 +542,15 @@ object BetMenuMessageRenderer {
             ),
         )
 
+    private val refreshAction = callback("🔄 Обновить", BetCallbackData.REFRESH)
+
+    private val backAction = callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA)
+
     private val trackedOperationRows =
         listOf(
             listOf(refreshAction),
             listOf(backAction),
         )
-
-    private val refreshAction = callback("🔄 Обновить", BetCallbackData.REFRESH)
-
-    private val backAction = callback("← Назад", TelegramMenuScreen.BACK_CALLBACK_DATA)
 
     private val timeFormatter: DateTimeFormatter =
         DateTimeFormatter
