@@ -46,14 +46,14 @@ class NotificationMenuScreenDataProvider(
         mode: NotificationCreationMode,
     ): NotificationSubscriptionResult {
         val requestedPage =
-            if (mode == NotificationCreationMode.LIST) {
+            if (mode == NotificationCreationMode.ITEM_DROP_LIST) {
                 NotificationMenuContext.page(session.screenContext)
             } else {
                 0
             }
         val result = gateway.list(session.telegramId, requestedPage, PAGE_SIZE)
 
-        if (mode != NotificationCreationMode.LIST) {
+        if (mode != NotificationCreationMode.ITEM_DROP_LIST) {
             return result
         }
 
@@ -82,6 +82,7 @@ class NotificationMenuScreenDataProvider(
     private fun NotificationCreationMode.requiresSubscriptionState(): Boolean =
         when (this) {
             NotificationCreationMode.LIST,
+            NotificationCreationMode.ITEM_DROP_LIST,
             NotificationCreationMode.BOOSTER,
             NotificationCreationMode.DUNGEON,
             NotificationCreationMode.RAID,
