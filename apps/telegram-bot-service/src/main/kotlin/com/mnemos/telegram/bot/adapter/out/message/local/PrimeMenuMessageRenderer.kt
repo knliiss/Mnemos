@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.prime.PrimePurchaseCallbackData
 import com.mnemos.telegram.bot.application.prime.model.PrimeMenuScreenData
+import com.mnemos.telegram.bot.application.prime.model.PrimePurchaseInvoice
 import com.mnemos.telegram.bot.application.prime.model.PrimePurchaseNotice
 
 object PrimeMenuMessageRenderer {
@@ -26,6 +27,10 @@ object PrimeMenuMessageRenderer {
     }
 
     private fun renderText(data: PrimeMenuScreenData): String {
+        data.invoice?.let { invoice ->
+            return readyInvoiceText(invoice)
+        }
+
         val packages = data.packages ?: return unavailableText()
         val packageLines =
             packages
@@ -56,14 +61,19 @@ object PrimeMenuMessageRenderer {
             null -> Unit
         }
 
-        data.invoice?.let { invoice ->
-            lines += ""
-            lines += "⭐ <b>Счёт готов</b>"
-            lines += "└ ${invoice.primeAmount} PRIME · ⭐ ${invoice.starsAmount}"
-        }
-
         return lines.joinToString("\n")
     }
+
+    private fun readyInvoiceText(invoice: PrimePurchaseInvoice): String =
+        listOf(
+            "⭐ <b>PRIME и баланс</b>",
+            MESSAGE_DIVIDER,
+            "",
+            "⭐ <b>Счёт готов</b>",
+            "└ ${invoice.primeAmount} PRIME · ⭐ ${invoice.starsAmount}",
+            "",
+            "Нажмите кнопку оплаты ниже.",
+        ).joinToString("\n")
 
     private fun renderRows(data: PrimeMenuScreenData): List<List<OutboundTelegramMessageAction>> =
         buildList {
@@ -91,16 +101,18 @@ object PrimeMenuMessageRenderer {
                 )
             }
 
-            data.packages?.forEach { primePackage ->
-                add(
-                    listOf(
-                        OutboundTelegramMessageAction.Callback(
-                            label = "⭐ ${primePackage.primeAmount} PRIME · ${primePackage.starsAmount} Stars",
-                            data = PrimePurchaseCallbackData.buy(primePackage.id),
-                            style = OutboundTelegramButtonStyle.PRIMARY,
+            if (data.invoice == null) {
+                data.packages?.forEach { primePackage ->
+                    add(
+                        listOf(
+                            OutboundTelegramMessageAction.Callback(
+                                label = "⭐ ${primePackage.primeAmount} PRIME · ${primePackage.starsAmount} Stars",
+                                data = PrimePurchaseCallbackData.buy(primePackage.id),
+                                style = OutboundTelegramButtonStyle.PRIMARY,
+                            ),
                         ),
-                    ),
-                )
+                    )
+                }
             }
 
             add(listOf(refreshAction))
