@@ -212,8 +212,9 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderItemDropDeleteConfirmation(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available
-            ?: return unavailableMessage(data.feedback)
+        val available =
+            data.result as? NotificationSubscriptionResult.Available
+                ?: return unavailableMessage(data.feedback)
         val subscriptionId = data.deleteSubscriptionId
         val subscription =
             subscriptionId?.let { selectedId ->
@@ -344,8 +345,9 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderBoosterToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available
-            ?: return unavailableMessage(data.feedback)
+        val available =
+            data.result as? NotificationSubscriptionResult.Available
+                ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 boosterToggle(available, NotificationBoosterType.LUCK, "🍀 Удача"),
@@ -362,8 +364,9 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderDungeonToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available
-            ?: return unavailableMessage(data.feedback)
+        val available =
+            data.result as? NotificationSubscriptionResult.Available
+                ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 dungeonToggle(available, NotificationDungeonType.EASY, "🟢 Легкий"),
@@ -380,8 +383,9 @@ object NotificationMenuMessageRenderer {
     }
 
     private fun renderGlobalToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available
-            ?: return unavailableMessage(data.feedback)
+        val available =
+            data.result as? NotificationSubscriptionResult.Available
+                ?: return unavailableMessage(data.feedback)
         val actions =
             listOf(
                 globalToggle(available, NotificationGlobalType.DARKNESS, "🌑 Тьма"),
@@ -418,8 +422,9 @@ object NotificationMenuMessageRenderer {
         )
 
     private fun renderRaidEditor(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available = data.result as? NotificationSubscriptionResult.Available
-            ?: return unavailableMessage(data.feedback)
+        val available =
+            data.result as? NotificationSubscriptionResult.Available
+                ?: return unavailableMessage(data.feedback)
         val raidSubscription = available.raidSubscription
 
         if (raidSubscription == null) {
