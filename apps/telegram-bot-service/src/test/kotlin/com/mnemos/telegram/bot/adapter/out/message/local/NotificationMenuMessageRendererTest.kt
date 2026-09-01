@@ -61,7 +61,7 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
-    fun `global screen renders stateful toggles instead of list entries`() {
+    fun `global screen renders replay safe target state callbacks`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -77,8 +77,14 @@ class NotificationMenuMessageRendererTest {
 
         val message = NotificationMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val moon = callbacks.first { action -> action.data == NotificationCallbackData.global(NotificationGlobalType.MOON) }
-        val eclipse = callbacks.first { action -> action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE) }
+        val moon =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
+            }
+        val eclipse =
+            callbacks.first { action ->
+                action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled = true)
+            }
 
         assertTrue(message.text.contains("Подписка на глобальное событие"))
         assertTrue(moon.label.startsWith("✅"))
@@ -107,7 +113,7 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
-    fun `raid editor uses existing subscription locations and update action`() {
+    fun `raid editor uses replay safe target location callbacks and update action`() {
         val raidId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b73")
         val raidSubscription =
             NotificationSubscription(
@@ -140,6 +146,16 @@ class NotificationMenuMessageRendererTest {
 
         assertTrue(message.text.contains("3, 12"))
         assertTrue(callbacks.any { action -> action.label == "✅ 3" })
+        assertTrue(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.raidLocation(location = 3, selected = false)
+            },
+        )
+        assertTrue(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.raidLocation(location = 4, selected = true)
+            },
+        )
         assertTrue(callbacks.any { action -> action.label == "2/2 →" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })

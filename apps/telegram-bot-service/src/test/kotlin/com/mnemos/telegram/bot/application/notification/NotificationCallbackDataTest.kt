@@ -29,18 +29,20 @@ class NotificationCallbackDataTest {
     }
 
     @Test
-    fun `malformed callbacks are ignored`() {
+    fun `malformed and legacy toggle callbacks are ignored`() {
         assertNull(NotificationCallbackData.selectedPage("ntf:p:invalid"))
         assertNull(NotificationCallbackData.deletedSubscriptionId("ntf:d:invalid"))
+        assertNull(NotificationCallbackData.selectedBoosterTarget("ntf:b:luck"))
+        assertNull(NotificationCallbackData.selectedRaidLocationTarget("ntf:rl:3"))
     }
 
     @Test
-    fun `creation callbacks round trip and stay within Telegram callback limit`() {
+    fun `target state callbacks round trip and stay within Telegram callback limit`() {
         val typeCallback = NotificationCallbackData.type(NotificationSubscriptionType.ITEM_DROP)
-        val boosterCallback = NotificationCallbackData.booster(NotificationBoosterType.LUCK)
-        val dungeonCallback = NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT)
-        val globalCallback = NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS)
-        val raidLocationCallback = NotificationCallbackData.raidLocation(28)
+        val boosterCallback = NotificationCallbackData.booster(NotificationBoosterType.LUCK, enabled = false)
+        val dungeonCallback = NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT, enabled = true)
+        val globalCallback = NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS, enabled = false)
+        val raidLocationCallback = NotificationCallbackData.raidLocation(location = 28, selected = true)
         val raidPageCallback = NotificationCallbackData.raidPage(1)
         val callbacks =
             listOf(
@@ -53,10 +55,22 @@ class NotificationCallbackDataTest {
             )
 
         assertEquals(NotificationCreationMode.ITEM_DROP, NotificationCallbackData.selectedCreationMode(typeCallback))
-        assertEquals(NotificationBoosterType.LUCK, NotificationCallbackData.selectedBoosterType(boosterCallback))
-        assertEquals(NotificationDungeonType.EXPERT, NotificationCallbackData.selectedDungeonType(dungeonCallback))
-        assertEquals(NotificationGlobalType.COMET_CHAOS, NotificationCallbackData.selectedGlobalType(globalCallback))
-        assertEquals(28, NotificationCallbackData.selectedRaidLocation(raidLocationCallback))
+        assertEquals(
+            NotificationToggleTarget(NotificationBoosterType.LUCK, enabled = false),
+            NotificationCallbackData.selectedBoosterTarget(boosterCallback),
+        )
+        assertEquals(
+            NotificationToggleTarget(NotificationDungeonType.EXPERT, enabled = true),
+            NotificationCallbackData.selectedDungeonTarget(dungeonCallback),
+        )
+        assertEquals(
+            NotificationToggleTarget(NotificationGlobalType.COMET_CHAOS, enabled = false),
+            NotificationCallbackData.selectedGlobalTarget(globalCallback),
+        )
+        assertEquals(
+            NotificationRaidLocationTarget(location = 28, selected = true),
+            NotificationCallbackData.selectedRaidLocationTarget(raidLocationCallback),
+        )
         assertEquals(1, NotificationCallbackData.selectedRaidPage(raidPageCallback))
         assertTrue(callbacks.all { callback -> callback.toByteArray(Charsets.UTF_8).size <= 64 })
     }

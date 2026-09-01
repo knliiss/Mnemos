@@ -7,6 +7,16 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationGlobal
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
 import java.util.UUID
 
+data class NotificationToggleTarget<T>(
+    val value: T,
+    val enabled: Boolean,
+)
+
+data class NotificationRaidLocationTarget(
+    val location: Int,
+    val selected: Boolean,
+)
+
 object NotificationCallbackData {
     const val PREFIX = "ntf:"
     const val REFRESH = "${PREFIX}r"
@@ -37,13 +47,29 @@ object NotificationCallbackData {
 
     fun type(type: NotificationSubscriptionType): String = "$TYPE_PREFIX${typeCode(type)}"
 
-    fun booster(type: NotificationBoosterType): String = "$BOOSTER_PREFIX${type.name.lowercase()}"
+    fun booster(
+        type: NotificationBoosterType,
+        enabled: Boolean,
+    ): String = "$BOOSTER_PREFIX${type.name.lowercase()}:${stateCode(enabled)}"
 
-    fun dungeon(type: NotificationDungeonType): String = "$DUNGEON_PREFIX${type.name.lowercase()}"
+    fun dungeon(
+        type: NotificationDungeonType,
+        enabled: Boolean,
+    ): String = "$DUNGEON_PREFIX${type.name.lowercase()}:${stateCode(enabled)}"
 
-    fun global(type: NotificationGlobalType): String = "$GLOBAL_PREFIX${type.name.lowercase()}"
+    fun global(
+        type: NotificationGlobalType,
+        enabled: Boolean,
+    ): String = "$GLOBAL_PREFIX${type.name.lowercase()}:${stateCode(enabled)}"
 
-    fun raidLocation(location: Int): String = "$RAID_LOCATION_PREFIX$location"
+    fun raidLocation(
+        location: Int,
+        selected: Boolean,
+    ): String {
+        require(location in MIN_RAID_LOCATION..MAX_RAID_LOCATION)
+
+        return "$RAID_LOCATION_PREFIX$location:${stateCode(selected)}"
+    }
 
     fun raidPage(page: Int): String = "$RAID_PAGE_PREFIX${page.coerceIn(0, 1)}"
 
@@ -66,18 +92,33 @@ object NotificationCallbackData {
             ?.removePrefix(TYPE_PREFIX)
             ?.let(::creationModeForCode)
 
-    fun selectedBoosterType(data: String): NotificationBoosterType? = enumFromData(data, BOOSTER_PREFIX)
+    fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? =
+        enumTargetFromData(data, BOOSTER_PREFIX)
 
-    fun selectedDungeonType(data: String): NotificationDungeonType? = enumFromData(data, DUNGEON_PREFIX)
+    fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? =
+        enumTargetFromData(data, DUNGEON_PREFIX)
 
-    fun selectedGlobalType(data: String): NotificationGlobalType? = enumFromData(data, GLOBAL_PREFIX)
+    fun selectedGlobalTarget(data: String): NotificationToggleTarget<NotificationGlobalType>? =
+        enumTargetFromData(data, GLOBAL_PREFIX)
 
-    fun selectedRaidLocation(data: String): Int? =
-        data
-            .takeIf { value -> value.startsWith(RAID_LOCATION_PREFIX) }
-            ?.removePrefix(RAID_LOCATION_PREFIX)
-            ?.toIntOrNull()
-            ?.takeIf { location -> location in 1..28 }
+    fun selectedRaidLocationTarget(data: String): NotificationRaidLocationTarget? {
+        val payload =
+            data
+                .takeIf { value -> value.startsWith(RAID_LOCATION_PREFIX) }
+                ?.removePrefix(RAID_LOCATION_PREFIX)
+                ?: return null
+        val target = splitTarget(payload) ?: return null
+        val location = target.first.toIntOrNull() ?: return null
+
+        if (location !in MIN_RAID_LOCATION..MAX_RAID_LOCATION) {
+            return null
+        }
+
+        return NotificationRaidLocationTarget(
+            location = location,
+            selected = target.second,
+        )
+    }
 
     fun selectedRaidPage(data: String): Int? =
         data
@@ -105,17 +146,48 @@ object NotificationCallbackData {
             else -> null
         }
 
-    private inline fun <reified T : Enum<T>> enumFromData(
+    private inline fun <reified T : Enum<T>> enumTargetFromData(
         data: String,
         prefix: String,
-    ): T? {
-        val name =
+    ): NotificationToggleTarget<T>? {
+        val payload =
             data
                 .takeIf { value -> value.startsWith(prefix) }
                 ?.removePrefix(prefix)
-                ?.uppercase()
                 ?: return null
+        val target = splitTarget(payload) ?: return null
+        val enumName = target.first.uppercase()
+        val enumValue = enumValues<T>().firstOrNull { value -> value.name == enumName } ?: return null
 
-        return enumValues<T>().firstOrNull { value -> value.name == name }
+        return NotificationToggleTarget(
+            value = enumValue,
+            enabled = target.second,
+        )
     }
+
+    private fun splitTarget(value: String): Pair<String, Boolean>? {
+        val separatorIndex = value.lastIndexOf(':')
+
+        if (separatorIndex <= 0 || separatorIndex == value.lastIndex) {
+            return null
+        }
+
+        val enabled = parseState(value.substring(separatorIndex + 1)) ?: return null
+
+        return value.substring(0, separatorIndex) to enabled
+    }
+
+    private fun stateCode(enabled: Boolean): String = if (enabled) ENABLED_STATE else DISABLED_STATE
+
+    private fun parseState(value: String): Boolean? =
+        when (value) {
+            ENABLED_STATE -> true
+            DISABLED_STATE -> false
+            else -> null
+        }
+
+    private const val ENABLED_STATE = "1"
+    private const val DISABLED_STATE = "0"
+    private const val MIN_RAID_LOCATION = 1
+    private const val MAX_RAID_LOCATION = 28
 }

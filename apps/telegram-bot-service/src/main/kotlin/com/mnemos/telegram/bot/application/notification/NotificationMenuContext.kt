@@ -102,18 +102,19 @@ object NotificationMenuContext {
 
     fun withoutItemName(context: Map<String, String>): Map<String, String> = clearFeedback(context) - ITEM_NAME_KEY
 
-    fun toggleRaidLocation(
+    fun setRaidLocation(
         context: Map<String, String>,
         location: Int,
+        selected: Boolean,
     ): Map<String, String> {
         require(location in MIN_RAID_LOCATION..MAX_RAID_LOCATION)
 
         val currentLocations = raidLocations(context)
         val nextLocations =
-            if (location in currentLocations) {
-                currentLocations - location
-            } else {
+            if (selected) {
                 currentLocations + location
+            } else {
+                currentLocations - location
             }
 
         return withRaidLocations(clearFeedback(context), nextLocations)

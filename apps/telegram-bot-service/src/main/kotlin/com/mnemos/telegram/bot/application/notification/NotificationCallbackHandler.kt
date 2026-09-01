@@ -88,21 +88,37 @@ class NotificationCallbackHandler(
             return creationService.createItemDrop(context)
         }
 
-        NotificationCallbackData.selectedBoosterType(context.data)?.let { boosterType ->
-            return creationService.toggleBooster(context, boosterType)
+        NotificationCallbackData.selectedBoosterTarget(context.data)?.let { target ->
+            return creationService.setBooster(
+                context = context,
+                boosterType = target.value,
+                enabled = target.enabled,
+            )
         }
 
-        NotificationCallbackData.selectedDungeonType(context.data)?.let { dungeonType ->
-            return creationService.toggleDungeon(context, dungeonType)
+        NotificationCallbackData.selectedDungeonTarget(context.data)?.let { target ->
+            return creationService.setDungeon(
+                context = context,
+                dungeonType = target.value,
+                enabled = target.enabled,
+            )
         }
 
-        NotificationCallbackData.selectedGlobalType(context.data)?.let { globalType ->
-            return creationService.toggleGlobal(context, globalType)
+        NotificationCallbackData.selectedGlobalTarget(context.data)?.let { target ->
+            return creationService.setGlobal(
+                context = context,
+                eventType = target.value,
+                enabled = target.enabled,
+            )
         }
 
-        NotificationCallbackData.selectedRaidLocation(context.data)?.let { location ->
+        NotificationCallbackData.selectedRaidLocationTarget(context.data)?.let { target ->
             return updateCreationContext(context, NotificationCreationMode.RAID) { current ->
-                NotificationMenuContext.toggleRaidLocation(current, location)
+                NotificationMenuContext.setRaidLocation(
+                    context = current,
+                    location = target.location,
+                    selected = target.selected,
+                )
             }
         }
 

@@ -20,14 +20,17 @@ class NotificationMenuContextTest {
     }
 
     @Test
-    fun `raid locations toggle and encode deterministically`() {
+    fun `raid location target state is idempotent`() {
         val raidContext = NotificationMenuContext.selectMode(NotificationCreationMode.RAID)
-        val first = NotificationMenuContext.toggleRaidLocation(raidContext, 12)
-        val second = NotificationMenuContext.toggleRaidLocation(first, 3)
-        val removed = NotificationMenuContext.toggleRaidLocation(second, 12)
+        val selectedOnce = NotificationMenuContext.setRaidLocation(raidContext, location = 12, selected = true)
+        val selectedTwice = NotificationMenuContext.setRaidLocation(selectedOnce, location = 12, selected = true)
+        val clearedOnce = NotificationMenuContext.setRaidLocation(selectedTwice, location = 12, selected = false)
+        val clearedTwice = NotificationMenuContext.setRaidLocation(clearedOnce, location = 12, selected = false)
 
-        assertEquals(setOf(3, 12), NotificationMenuContext.raidLocations(second))
-        assertEquals(setOf(3), NotificationMenuContext.raidLocations(removed))
+        assertEquals(setOf(12), NotificationMenuContext.raidLocations(selectedOnce))
+        assertEquals(setOf(12), NotificationMenuContext.raidLocations(selectedTwice))
+        assertEquals(emptySet<Int>(), NotificationMenuContext.raidLocations(clearedOnce))
+        assertEquals(emptySet<Int>(), NotificationMenuContext.raidLocations(clearedTwice))
     }
 
     @Test

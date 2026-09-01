@@ -196,25 +196,25 @@ object NotificationMenuMessageRenderer {
             title = "⚡ <b>Подписка на бустер</b>",
             actions =
                 listOf(
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "🍀 Удача",
-                        data = NotificationCallbackData.booster(NotificationBoosterType.LUCK),
                         active = isBoosterActive(data, NotificationBoosterType.LUCK),
+                        targetData = { enabled -> NotificationCallbackData.booster(NotificationBoosterType.LUCK, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "💰 Деньги",
-                        data = NotificationCallbackData.booster(NotificationBoosterType.MONEY),
                         active = isBoosterActive(data, NotificationBoosterType.MONEY),
+                        targetData = { enabled -> NotificationCallbackData.booster(NotificationBoosterType.MONEY, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "⚔️ Урон",
-                        data = NotificationCallbackData.booster(NotificationBoosterType.DAMAGE),
                         active = isBoosterActive(data, NotificationBoosterType.DAMAGE),
+                        targetData = { enabled -> NotificationCallbackData.booster(NotificationBoosterType.DAMAGE, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "💪 Сила",
-                        data = NotificationCallbackData.booster(NotificationBoosterType.POWER),
                         active = isBoosterActive(data, NotificationBoosterType.POWER),
+                        targetData = { enabled -> NotificationCallbackData.booster(NotificationBoosterType.POWER, enabled) },
                     ),
                 ),
         )
@@ -225,25 +225,25 @@ object NotificationMenuMessageRenderer {
             title = "🏰 <b>Подписка на данж</b>",
             actions =
                 listOf(
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "Легкий",
-                        data = NotificationCallbackData.dungeon(NotificationDungeonType.EASY),
                         active = isDungeonActive(data, NotificationDungeonType.EASY),
+                        targetData = { enabled -> NotificationCallbackData.dungeon(NotificationDungeonType.EASY, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "Средний",
-                        data = NotificationCallbackData.dungeon(NotificationDungeonType.MEDIUM),
                         active = isDungeonActive(data, NotificationDungeonType.MEDIUM),
+                        targetData = { enabled -> NotificationCallbackData.dungeon(NotificationDungeonType.MEDIUM, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "Сложный",
-                        data = NotificationCallbackData.dungeon(NotificationDungeonType.HARD),
                         active = isDungeonActive(data, NotificationDungeonType.HARD),
+                        targetData = { enabled -> NotificationCallbackData.dungeon(NotificationDungeonType.HARD, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "Эксперт",
-                        data = NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT),
                         active = isDungeonActive(data, NotificationDungeonType.EXPERT),
+                        targetData = { enabled -> NotificationCallbackData.dungeon(NotificationDungeonType.EXPERT, enabled) },
                     ),
                 ),
         )
@@ -254,30 +254,30 @@ object NotificationMenuMessageRenderer {
             title = "🌒 <b>Подписка на глобальное событие</b>",
             actions =
                 listOf(
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "🌑 Тьма",
-                        data = NotificationCallbackData.global(NotificationGlobalType.DARKNESS),
                         active = isGlobalActive(data, NotificationGlobalType.DARKNESS),
+                        targetData = { enabled -> NotificationCallbackData.global(NotificationGlobalType.DARKNESS, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "🌙 Луна",
-                        data = NotificationCallbackData.global(NotificationGlobalType.MOON),
                         active = isGlobalActive(data, NotificationGlobalType.MOON),
+                        targetData = { enabled -> NotificationCallbackData.global(NotificationGlobalType.MOON, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "🌘 Затмение",
-                        data = NotificationCallbackData.global(NotificationGlobalType.ECLIPSE),
                         active = isGlobalActive(data, NotificationGlobalType.ECLIPSE),
+                        targetData = { enabled -> NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "💥 Взрыв",
-                        data = NotificationCallbackData.global(NotificationGlobalType.EXPLOSION),
                         active = isGlobalActive(data, NotificationGlobalType.EXPLOSION),
+                        targetData = { enabled -> NotificationCallbackData.global(NotificationGlobalType.EXPLOSION, enabled) },
                     ),
-                    toggleCallback(
+                    targetToggleCallback(
                         label = "☄️ COMET_CHAOS",
-                        data = NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS),
                         active = isGlobalActive(data, NotificationGlobalType.COMET_CHAOS),
+                        targetData = { enabled -> NotificationCallbackData.global(NotificationGlobalType.COMET_CHAOS, enabled) },
                     ),
                 ),
         )
@@ -325,10 +325,10 @@ object NotificationMenuMessageRenderer {
         val lastLocation = (firstLocation + RAID_LOCATIONS_PER_PAGE - 1).coerceAtMost(MAX_RAID_LOCATION)
         val locationActions =
             (firstLocation..lastLocation).map { location ->
-                toggleCallback(
+                targetToggleCallback(
                     label = location.toString(),
-                    data = NotificationCallbackData.raidLocation(location),
                     active = location in data.raidLocations,
+                    targetData = { selected -> NotificationCallbackData.raidLocation(location, selected) },
                 )
             }
         val pageActions =
@@ -337,7 +337,7 @@ object NotificationMenuMessageRenderer {
                 else -> listOf(callback("← 1/2", NotificationCallbackData.raidPage(0)))
             }
         val anyLocationAction =
-            toggleCallback(
+            stateCallback(
                 label = "◎ Любая локация",
                 data = NotificationCallbackData.RAID_CLEAR,
                 active = data.raidLocations.isEmpty(),
@@ -465,7 +465,18 @@ object NotificationMenuMessageRenderer {
             style = style,
         )
 
-    private fun toggleCallback(
+    private fun targetToggleCallback(
+        label: String,
+        active: Boolean,
+        targetData: (Boolean) -> String,
+    ): OutboundTelegramMessageAction.Callback =
+        stateCallback(
+            label = label,
+            data = targetData(!active),
+            active = active,
+        )
+
+    private fun stateCallback(
         label: String,
         data: String,
         active: Boolean,

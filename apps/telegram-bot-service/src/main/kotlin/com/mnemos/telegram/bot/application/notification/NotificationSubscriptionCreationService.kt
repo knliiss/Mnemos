@@ -49,35 +49,41 @@ class NotificationSubscriptionCreationService(
         )
     }
 
-    fun toggleBooster(
+    fun setBooster(
         context: TelegramCallbackContext,
         boosterType: NotificationBoosterType,
+        enabled: Boolean,
     ): TelegramDeliveryResult =
-        toggleSimple(
+        setSimple(
             context = context,
             expectedMode = NotificationCreationMode.BOOSTER,
+            enabled = enabled,
             existingSubscription = { available -> available.boosterSubscriptions[boosterType] },
             create = { gateway.createBooster(context.telegramId, boosterType) },
         )
 
-    fun toggleDungeon(
+    fun setDungeon(
         context: TelegramCallbackContext,
         dungeonType: NotificationDungeonType,
+        enabled: Boolean,
     ): TelegramDeliveryResult =
-        toggleSimple(
+        setSimple(
             context = context,
             expectedMode = NotificationCreationMode.DUNGEON,
+            enabled = enabled,
             existingSubscription = { available -> available.dungeonSubscriptions[dungeonType] },
             create = { gateway.createDungeon(context.telegramId, dungeonType) },
         )
 
-    fun toggleGlobal(
+    fun setGlobal(
         context: TelegramCallbackContext,
         eventType: NotificationGlobalType,
+        enabled: Boolean,
     ): TelegramDeliveryResult =
-        toggleSimple(
+        setSimple(
             context = context,
             expectedMode = NotificationCreationMode.GLOBAL,
+            enabled = enabled,
             existingSubscription = { available -> available.globalSubscriptions[eventType] },
             create = { gateway.createGlobal(context.telegramId, eventType) },
         )
@@ -103,9 +109,10 @@ class NotificationSubscriptionCreationService(
         )
     }
 
-    private fun toggleSimple(
+    private fun setSimple(
         context: TelegramCallbackContext,
         expectedMode: NotificationCreationMode,
+        enabled: Boolean,
         existingSubscription: (NotificationSubscriptionResult.Available) -> UUID?,
         create: () -> NotificationSubscriptionCreationResult,
     ): TelegramDeliveryResult {
@@ -115,15 +122,28 @@ class NotificationSubscriptionCreationService(
         val state = loadState(context.telegramId) ?: return updateFeedback(context, NotificationMenuFeedback.SERVICE_UNAVAILABLE)
         val existingId = existingSubscription(state)
         val result =
-            if (existingId == null) {
-                create()
-            } else if (subscriptionGateway.delete(context.telegramId, existingId)) {
-                NotificationSubscriptionCreationResult.APPLIED
-            } else {
-                NotificationSubscriptionCreationResult.UNAVAILABLE
+            when {
+                enabled && existingId == null -> create()
+                enabled -> NotificationSubscriptionCreationResult.APPLIED
+                existingId == null -> NotificationSubscriptionCreationResult.APPLIED
+                subscriptionGateway.delete(context.telegramId, existingId) -> NotificationSubscriptionCreationResult.APPLIED
+                else -> resolveDeleteRace(context.telegramId, existingSubscription)
             }
 
         return applyInlineResult(context, result)
+    }
+
+    private fun resolveDeleteRace(
+        telegramId: Long,
+        existingSubscription: (NotificationSubscriptionResult.Available) -> UUID?,
+    ): NotificationSubscriptionCreationResult {
+        val refreshedState = loadState(telegramId) ?: return NotificationSubscriptionCreationResult.UNAVAILABLE
+
+        return if (existingSubscription(refreshedState) == null) {
+            NotificationSubscriptionCreationResult.APPLIED
+        } else {
+            NotificationSubscriptionCreationResult.UNAVAILABLE
+        }
     }
 
     private fun loadState(telegramId: Long): NotificationSubscriptionResult.Available? =
