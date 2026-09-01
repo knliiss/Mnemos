@@ -78,9 +78,7 @@ class EventHistoryCallbackHandlerGuardTest {
         verifyNoInteractions(menuService)
     }
 
-    private fun searchSession(
-        pendingInput: TelegramPendingInput? = TelegramPendingInput.EVENT_SEARCH,
-    ): TelegramMenuSession =
+    private fun searchSession(pendingInput: TelegramPendingInput? = TelegramPendingInput.EVENT_SEARCH): TelegramMenuSession =
         TelegramMenuSession(
             telegramId = TELEGRAM_ID,
             menuMessageId = MESSAGE_ID,
