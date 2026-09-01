@@ -9,8 +9,7 @@ import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.message.model.TelegramMessageSendResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationRecipientGateway
-import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
-import com.mnemos.telegram.bot.application.settings.port.out.SettingsGateway
+import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageResolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -22,7 +21,7 @@ class TelegramMenuService(
     private val messageGateway: TelegramMessageGateway,
     private val sessionRepository: TelegramMenuSessionRepository,
     private val recipientGateway: NotificationRecipientGateway,
-    private val settingsGateway: SettingsGateway,
+    private val languageResolver: TelegramSettingsLanguageResolver,
 ) {
     fun open(
         telegramId: Long,
@@ -282,7 +281,7 @@ class TelegramMenuService(
         preferredMessageId: Int?,
     ): TelegramDeliveryResult {
         val screenData = screenDataResolver.resolve(session)
-        val language = resolveLanguage(session.telegramId)
+        val language = languageResolver.resolve(session.telegramId)
         val message = renderer.render(session.currentScreen, screenData, language)
 
         if (preferredMessageId != null) {
@@ -322,13 +321,6 @@ class TelegramMenuService(
         }
     }
 
-    private fun resolveLanguage(telegramId: Long): TelegramSettingsLanguage =
-        try {
-            settingsGateway.getSettings(telegramId)?.localizationLanguage ?: DEFAULT_LANGUAGE
-        } catch (_: RuntimeException) {
-            DEFAULT_LANGUAGE
-        }
-
     private fun isStaleMenuMessage(
         currentSession: TelegramMenuSession?,
         messageId: Int,
@@ -336,6 +328,5 @@ class TelegramMenuService(
 
     private companion object {
         const val MAX_NAVIGATION_DEPTH = 16
-        val DEFAULT_LANGUAGE = TelegramSettingsLanguage.RU
     }
 }
