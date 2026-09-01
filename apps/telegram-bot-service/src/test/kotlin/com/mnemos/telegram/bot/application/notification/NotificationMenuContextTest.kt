@@ -20,6 +20,18 @@ class NotificationMenuContextTest {
     }
 
     @Test
+    fun `drop list pagination preserves drop list mode`() {
+        val dropsContext = NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
+        val secondPage = NotificationMenuContext.withPage(dropsContext, 1)
+        val firstPage = NotificationMenuContext.withPage(secondPage, 0)
+
+        assertEquals(NotificationCreationMode.ITEM_DROP_LIST, NotificationMenuContext.mode(secondPage))
+        assertEquals(1, NotificationMenuContext.page(secondPage))
+        assertEquals(NotificationCreationMode.ITEM_DROP_LIST, NotificationMenuContext.mode(firstPage))
+        assertEquals(0, NotificationMenuContext.page(firstPage))
+    }
+
+    @Test
     fun `raid location target state is idempotent`() {
         val raidContext = NotificationMenuContext.selectMode(NotificationCreationMode.RAID)
         val selectedOnce = NotificationMenuContext.setRaidLocation(raidContext, location = 12, selected = true)
@@ -34,7 +46,7 @@ class NotificationMenuContextTest {
     }
 
     @Test
-    fun `successful creation returns to list with feedback`() {
+    fun `successful creation returns to dashboard with feedback`() {
         val context = NotificationMenuContext.creationSucceeded()
 
         assertEquals(NotificationCreationMode.LIST, NotificationMenuContext.mode(context))
