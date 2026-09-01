@@ -253,7 +253,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         }
 
         return copy(
-            text = BotMenuTranslations.translate(text, language),
+            text = translate(text, language),
             actions = actions.map { action -> action.localized(language) },
             actionRows =
                 actionRows.map { row ->
@@ -265,14 +265,23 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
     private fun OutboundTelegramMessageAction.localized(language: TelegramSettingsLanguage): OutboundTelegramMessageAction =
         when (this) {
             is OutboundTelegramMessageAction.Callback ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = translate(label, language))
 
             is OutboundTelegramMessageAction.OpenMiniApp ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = translate(label, language))
 
             is OutboundTelegramMessageAction.OpenUrl ->
-                copy(label = BotMenuTranslations.translate(label, language))
+                copy(label = translate(label, language))
         }
+
+    private fun translate(
+        value: String,
+        language: TelegramSettingsLanguage,
+    ): String =
+        BotMenuDesignTranslations.translate(
+            value = BotMenuTranslations.translate(value, language),
+            language = language,
+        )
 
     private fun OutboundTelegramMessage.withStructuredKeyboard(): OutboundTelegramMessage {
         if (actionRows.isNotEmpty() || actions.isEmpty()) {
