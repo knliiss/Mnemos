@@ -10,10 +10,15 @@ object TelegramMessageLayout {
     fun normalize(message: OutboundTelegramMessage): OutboundTelegramMessage =
         message.copy(
             text = normalizeDivider(message.text),
-            actions = message.actions.map(OutboundTelegramMessageAction::withSelectedCompactLabel),
+            actions =
+                message.actions.map { action ->
+                    action.withSelectedCompactLabel()
+                },
             actionRows =
                 message.actionRows.map { row ->
-                    row.map(OutboundTelegramMessageAction::withSelectedCompactLabel)
+                    row.map { action ->
+                        action.withSelectedCompactLabel()
+                    }
                 },
         )
 
