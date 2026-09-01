@@ -6,8 +6,10 @@ import com.mnemos.telegram.bot.application.daily.model.DailyMenuFeedbackType
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardState
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -15,7 +17,7 @@ import java.util.UUID
 
 class DailyMenuMessageRendererTest {
     @Test
-    fun `available daily renders reward state and available actions`() {
+    fun `available daily renders structured reward state and full width actions`() {
         val data =
             TelegramMenuScreenData.Daily(
                 DailyMenuScreenData(
@@ -27,13 +29,16 @@ class DailyMenuMessageRendererTest {
         val message = DailyMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
-        assertTrue(message.text.contains("Серия: 🔥 <b>7</b>"))
-        assertTrue(message.text.contains("70–90 COIN"))
-        assertTrue(message.text.contains("Шанс PRIME: <b>0.20%</b>"))
-        assertTrue(message.text.contains("Можно восстановить серию <b>12</b>"))
+        assertTrue(message.text.contains("🔥 <b>Серия</b>"))
+        assertTrue(message.text.contains("└ 7 дней"))
+        assertTrue(message.text.contains("├ 70–90 COIN"))
+        assertTrue(message.text.contains("└ PRIME: 0.20%"))
+        assertTrue(message.text.contains("Серия для восстановления: 12"))
         assertTrue(callbacks.any { action -> action.data == DailyCallbackData.CLAIM })
         assertTrue(callbacks.any { action -> action.data == DailyCallbackData.RESTORE })
         assertTrue(callbacks.any { action -> action.data == DailyCallbackData.REFRESH })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
+        assertEquals(listOf(1, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -63,7 +68,7 @@ class DailyMenuMessageRendererTest {
     }
 
     @Test
-    fun `unavailable daily keeps refresh action`() {
+    fun `unavailable daily keeps refresh and back actions`() {
         val data =
             TelegramMenuScreenData.Daily(
                 DailyMenuScreenData(
@@ -77,6 +82,8 @@ class DailyMenuMessageRendererTest {
 
         assertTrue(message.text.contains("Не удалось получить состояние Daily"))
         assertTrue(callbacks.any { action -> action.data == DailyCallbackData.REFRESH })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
+        assertEquals(listOf(1, 1), message.actionRows.map(List<*>::size))
     }
 
     private fun recoverableState(): DailyRewardState =
