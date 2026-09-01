@@ -23,11 +23,6 @@ interface NotificationSubscriptionCreationGateway {
         dungeonType: NotificationDungeonType,
     ): NotificationSubscriptionCreationResult
 
-    fun createRaid(
-        telegramId: Long,
-        draft: NotificationRaidSubscriptionDraft,
-    ): NotificationSubscriptionCreationResult
-
     fun updateRaid(
         telegramId: Long,
         draft: NotificationRaidSubscriptionDraft,
