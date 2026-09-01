@@ -110,7 +110,8 @@ object NotificationMenuMessageRenderer {
                     style = OutboundTelegramButtonStyle.PRIMARY,
                 ),
             ),
-            listOf(refreshAction, backAction),
+            listOf(refreshAction),
+            listOf(backAction),
         )
     }
 
@@ -133,7 +134,8 @@ object NotificationMenuMessageRenderer {
                 listOf(
                     actions.take(3),
                     actions.drop(3),
-                    listOf(refreshAction, notificationsAction),
+                    listOf(refreshAction),
+                    listOf(notificationsAction),
                 )
             },
         )
@@ -153,7 +155,11 @@ object NotificationMenuMessageRenderer {
                         boosterToggle(result, NotificationBoosterType.POWER, "💪 Сила"),
                     )
 
-                actions.chunked(2) + listOf(listOf(refreshAction, notificationsAction))
+                actions.chunked(2) +
+                    listOf(
+                        listOf(refreshAction),
+                        listOf(notificationsAction),
+                    )
             },
         )
 
@@ -172,7 +178,11 @@ object NotificationMenuMessageRenderer {
                         dungeonToggle(result, NotificationDungeonType.EXPERT, "🟣 Эксперт"),
                     )
 
-                actions.chunked(2) + listOf(listOf(refreshAction, notificationsAction))
+                actions.chunked(2) +
+                    listOf(
+                        listOf(refreshAction),
+                        listOf(notificationsAction),
+                    )
             },
         )
 
@@ -277,7 +287,8 @@ object NotificationMenuMessageRenderer {
             rows += pageRow
         }
 
-        rows += listOf(refreshAction, notificationsAction)
+        rows += listOf(refreshAction)
+        rows += listOf(notificationsAction)
 
         return rows
     }
