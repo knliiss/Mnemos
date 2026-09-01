@@ -28,11 +28,9 @@ object EventHistoryMenuContext {
     private const val ROOT_CURSOR = "root"
     private const val STACK_SEPARATOR = ","
 
-    fun openFilters(context: Map<String, String>): Map<String, String> =
-        context + (FILTERS_MODE_KEY to "1")
+    fun openFilters(context: Map<String, String>): Map<String, String> = context + (FILTERS_MODE_KEY to "1")
 
-    fun closeFilters(context: Map<String, String>): Map<String, String> =
-        context - FILTERS_MODE_KEY - RAID_LOCATION_PAGE_KEY
+    fun closeFilters(context: Map<String, String>): Map<String, String> = context - FILTERS_MODE_KEY - RAID_LOCATION_PAGE_KEY
 
     fun filtersOpen(context: Map<String, String>): Boolean = context[FILTERS_MODE_KEY] == "1"
 
