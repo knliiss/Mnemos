@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.prime.model.PrimePurchaseCreationResult
@@ -22,12 +23,14 @@ class PrimePurchaseCallbackHandler(
     override val callbackPrefix: String = PrimePurchaseCallbackData.PREFIX
 
     override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
-        if (!isCurrentPrimeMenu(context)) {
-            return TelegramDeliveryResult.Delivered
-        }
+        val session = currentPrimeSession(context) ?: return TelegramDeliveryResult.Delivered
 
         if (context.data == PrimePurchaseCallbackData.REFRESH) {
             return update(context, PrimeMenuContext.clear())
+        }
+
+        if (PrimeMenuContext.invoice(session.screenContext) != null) {
+            return TelegramDeliveryResult.Delivered
         }
 
         val packageId =
@@ -63,9 +66,13 @@ class PrimePurchaseCallbackHandler(
             update = { screenContext },
         )
 
-    private fun isCurrentPrimeMenu(context: TelegramCallbackContext): Boolean {
-        val session = sessionRepository.find(context.telegramId) ?: return false
+    private fun currentPrimeSession(context: TelegramCallbackContext): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
 
-        return session.currentScreen == TelegramMenuScreen.PRIME && session.menuMessageId == context.messageId
+        if (session.currentScreen != TelegramMenuScreen.PRIME || session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session
     }
 }
