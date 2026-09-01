@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -17,10 +18,13 @@ object SettingsMenuMessageRenderer {
             return unavailableMessage()
         }
 
+        val rows = renderRows(settingsData)
+
         return OutboundTelegramMessage(
             text = renderText(settingsData),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderActions(settingsData),
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
@@ -35,9 +39,13 @@ object SettingsMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "⚙️ <b>Настройки</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Язык: <b>${escapeHtml(language)}</b>",
-                "Пак уведомлений: <b>$packTitle</b>",
+                "🌐 <b>Язык</b>",
+                "└ ${escapeHtml(language)}",
+                "",
+                "🔔 <b>Пак уведомлений</b>",
+                "└ $packTitle",
             )
 
         when (data.mutationResult) {
@@ -56,59 +64,73 @@ object SettingsMenuMessageRenderer {
 
         if (snapshot.notificationPacks.isEmpty()) {
             lines += ""
-            lines += "Доступных паков уведомлений пока нет."
+            lines += "Паки уведомлений пока недоступны."
         }
 
         return lines.joinToString("\n")
     }
 
-    private fun renderActions(data: TelegramMenuScreenData.Settings): List<OutboundTelegramMessageAction> {
+    private fun renderRows(data: TelegramMenuScreenData.Settings): List<List<OutboundTelegramMessageAction>> {
         val snapshot = requireNotNull(data.snapshot)
-        val languageActions =
+        val languageRow =
             TelegramSettingsLanguage.entries.map { language ->
                 OutboundTelegramMessageAction.Callback(
-                    label = language.buttonLabel(snapshot.localizationLanguage == language),
+                    label = language.shortLabel,
                     data = SettingsCallbackData.language(language),
-                )
-            }
-        val packActions =
-            snapshot.notificationPacks.map { pack ->
-                OutboundTelegramMessageAction.Callback(
-                    label = packButtonLabel(pack.title, pack.active),
-                    data = SettingsCallbackData.notificationPack(pack.personalizationId),
+                    style = selectedStyle(snapshot.localizationLanguage == language),
                 )
             }
 
-        return languageActions + packActions + refreshAndNavigationActions
+        return buildList {
+            add(languageRow)
+
+            snapshot.notificationPacks.forEach { pack ->
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = packButtonLabel(pack.title),
+                            data = SettingsCallbackData.notificationPack(pack.personalizationId),
+                            style = selectedStyle(pack.active),
+                        ),
+                    ),
+                )
+            }
+
+            add(listOf(refreshAction))
+            add(listOf(backAction))
+        }
     }
 
-    private fun unavailableMessage(): OutboundTelegramMessage =
-        OutboundTelegramMessage(
+    private fun unavailableMessage(): OutboundTelegramMessage {
+        val rows =
+            listOf(
+                listOf(refreshAction),
+                listOf(backAction),
+            )
+
+        return OutboundTelegramMessage(
             text =
                 listOf(
                     "⚙️ <b>Настройки</b>",
+                    MESSAGE_DIVIDER,
                     "",
-                    "Не удалось загрузить персональные настройки. Попробуйте позже.",
+                    "⚠️ Не удалось загрузить персональные настройки.",
                 ).joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = refreshAndNavigationActions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
-
-    private fun TelegramSettingsLanguage.buttonLabel(selected: Boolean): String {
-        val prefix = if (selected) "✓ " else ""
-
-        return prefix + displayName
     }
 
-    private fun packButtonLabel(
-        title: String,
-        selected: Boolean,
-    ): String {
-        val normalizedTitle = title.trim().ifBlank { "Без названия" }.take(MAX_PACK_BUTTON_TITLE_LENGTH)
-        val prefix = if (selected) "✓ " else ""
+    private fun packButtonLabel(title: String): String =
+        "🔔 " + title.trim().ifBlank { "Без названия" }.take(MAX_PACK_BUTTON_TITLE_LENGTH)
 
-        return prefix + normalizedTitle
-    }
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
+        if (selected) {
+            OutboundTelegramButtonStyle.SUCCESS
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
+        }
 
     private fun escapeHtml(value: String): String =
         value
@@ -124,21 +146,26 @@ object SettingsMenuMessageRenderer {
                 TelegramSettingsLanguage.EN -> "🇬🇧 English"
             }
 
-    private val refreshAndNavigationActions =
-        listOf(
-            OutboundTelegramMessageAction.Callback(
-                "🔄 Обновить",
-                SettingsCallbackData.REFRESH,
-            ),
-            OutboundTelegramMessageAction.Callback(
-                "← Назад",
-                TelegramMenuScreen.BACK_CALLBACK_DATA,
-            ),
-            OutboundTelegramMessageAction.Callback(
-                "⌂ Меню",
-                TelegramMenuScreen.HOME.callbackData,
-            ),
+    private val TelegramSettingsLanguage.shortLabel: String
+        get() =
+            when (this) {
+                TelegramSettingsLanguage.UK -> "🇺🇦 UA"
+                TelegramSettingsLanguage.RU -> "🇷🇺 RU"
+                TelegramSettingsLanguage.EN -> "🇬🇧 EN"
+            }
+
+    private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
+    private const val MAX_PACK_BUTTON_TITLE_LENGTH = 28
+
+    private val refreshAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "🔄 Обновить",
+            data = SettingsCallbackData.REFRESH,
         )
 
-    private const val MAX_PACK_BUTTON_TITLE_LENGTH = 28
+    private val backAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "← Назад",
+            data = TelegramMenuScreen.BACK_CALLBACK_DATA,
+        )
 }
