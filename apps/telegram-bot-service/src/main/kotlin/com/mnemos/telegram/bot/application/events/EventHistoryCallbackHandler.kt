@@ -31,13 +31,39 @@ class EventHistoryCallbackHandler(
         }
 
         return when (context.data) {
+            EventHistoryCallbackData.FILTERS -> openFilters(context, session)
+            EventHistoryCallbackData.FILTERS_CLOSE -> closeFilters(context, session)
             EventHistoryCallbackData.REFRESH -> updateContext(context) { current -> current }
-            EventHistoryCallbackData.PREVIOUS -> updateContext(context, EventHistoryMenuContext::previous)
-            EventHistoryCallbackData.SEARCH -> requestSearch(context)
+            EventHistoryCallbackData.PREVIOUS -> feedOnly(session) { updateContext(context, EventHistoryMenuContext::previous) }
+            EventHistoryCallbackData.SEARCH -> feedOnly(session) { requestSearch(context) }
             EventHistoryCallbackData.SEARCH_CANCEL -> TelegramDeliveryResult.Delivered
-            EventHistoryCallbackData.SEARCH_CLEAR -> updateContext(context, EventHistoryMenuContext::clearSearch)
-            else -> handleParameterizedCallback(context)
+            EventHistoryCallbackData.SEARCH_CLEAR ->
+                feedOnly(session) { updateContext(context, EventHistoryMenuContext::clearSearch) }
+
+            else -> handleParameterizedCallback(context, session)
         }
+    }
+
+    private fun openFilters(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        if (EventHistoryMenuContext.filtersOpen(session.screenContext)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return updateContext(context, EventHistoryMenuContext::openFilters)
+    }
+
+    private fun closeFilters(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        if (!EventHistoryMenuContext.filtersOpen(session.screenContext)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return updateContext(context, EventHistoryMenuContext::closeFilters)
     }
 
     private fun requestSearch(context: TelegramCallbackContext): TelegramDeliveryResult =
@@ -56,69 +82,96 @@ class EventHistoryCallbackHandler(
             expectedScreen = TelegramMenuScreen.EVENTS,
         )
 
-    private fun handleParameterizedCallback(context: TelegramCallbackContext): TelegramDeliveryResult {
+    private fun handleParameterizedCallback(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        val filtersOpen = EventHistoryMenuContext.filtersOpen(session.screenContext)
+
         EventHistoryCallbackData.selectedFilter(context.data)?.let { filter ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.filter(current, filter)
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.filter(current, filter) }
             }
         }
 
         EventHistoryCallbackData.selectedSort(context.data)?.let { sort ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.sort(current, sort)
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.sort(current, sort) }
             }
         }
 
         EventHistoryCallbackData.selectedItemRarity(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.itemRarity(current, selection.valueOrNull())
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.itemRarity(current, selection.valueOrNull()) }
             }
         }
 
         EventHistoryCallbackData.selectedItemType(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.itemType(current, selection.valueOrNull())
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.itemType(current, selection.valueOrNull()) }
             }
         }
 
         EventHistoryCallbackData.selectedBoosterType(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.boosterType(current, selection.valueOrNull())
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.boosterType(current, selection.valueOrNull()) }
             }
         }
 
         EventHistoryCallbackData.selectedGlobalType(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.globalType(current, selection.valueOrNull())
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.globalType(current, selection.valueOrNull()) }
             }
         }
 
         EventHistoryCallbackData.selectedRaidLocation(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.raidLocation(current, selection.valueOrNull())
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.raidLocation(current, selection.valueOrNull()) }
             }
         }
 
         EventHistoryCallbackData.selectedRaidLocationPage(context.data)?.let { page ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.raidLocationPage(current, page)
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.raidLocationPage(current, page) }
             }
         }
 
         EventHistoryCallbackData.selectedWipe(context.data)?.let { selection ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.wipe(current, selection)
+            return filtersOnly(filtersOpen) {
+                updateContext(context) { current -> EventHistoryMenuContext.wipe(current, selection) }
             }
         }
 
         EventHistoryCallbackData.nextCursor(context.data)?.let { cursor ->
-            return updateContext(context) { current ->
-                EventHistoryMenuContext.next(current, cursor)
+            return if (filtersOpen) {
+                TelegramDeliveryResult.Delivered
+            } else {
+                updateContext(context) { current -> EventHistoryMenuContext.next(current, cursor) }
             }
         }
 
         return TelegramDeliveryResult.Delivered
     }
+
+    private fun feedOnly(
+        session: TelegramMenuSession,
+        action: () -> TelegramDeliveryResult,
+    ): TelegramDeliveryResult =
+        if (EventHistoryMenuContext.filtersOpen(session.screenContext)) {
+            TelegramDeliveryResult.Delivered
+        } else {
+            action()
+        }
+
+    private fun filtersOnly(
+        filtersOpen: Boolean,
+        action: () -> TelegramDeliveryResult,
+    ): TelegramDeliveryResult =
+        if (filtersOpen) {
+            action()
+        } else {
+            TelegramDeliveryResult.Delivered
+        }
 
     private fun <T> FilterCallbackValue<T>.valueOrNull(): T? =
         when (this) {
