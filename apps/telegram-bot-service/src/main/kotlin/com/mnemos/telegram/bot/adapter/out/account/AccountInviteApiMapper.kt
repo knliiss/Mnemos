@@ -12,7 +12,7 @@ object AccountInviteApiMapper {
         TelegramAccountInvites(
             accountId = accountId,
             cristalixNickname = cristalixNickname,
-            invites = invites.map(InternalTelegramAccountInviteResponse::toModel),
+            invites = invites.map { invite -> invite.toModel() },
         )
 
     private fun InternalTelegramAccountInviteResponse.toModel(): TelegramAccountInvite =

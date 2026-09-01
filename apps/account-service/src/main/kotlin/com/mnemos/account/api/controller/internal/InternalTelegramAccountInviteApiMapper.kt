@@ -14,7 +14,7 @@ object InternalTelegramAccountInviteApiMapper {
         InternalTelegramAccountInvitesResponse(
             accountId = accountId.id,
             cristalixNickname = cristalixNickname.value,
-            invites = invites.map(AccountInviteListItem::toResponse),
+            invites = invites.map { invite -> invite.toResponse() },
         )
 
     fun CreateAccountInviteResult.toResponse(): CreateInternalTelegramAccountInviteResponse =
