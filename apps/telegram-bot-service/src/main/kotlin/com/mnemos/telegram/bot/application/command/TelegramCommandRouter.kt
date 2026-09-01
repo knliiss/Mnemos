@@ -38,7 +38,7 @@ class TelegramCommandRouter(
                     ),
                 )
 
-            "/help" -> helpService.send(context.telegramId)
+            "/help", "/commands" -> helpService.send(context.telegramId)
             "/menu" -> menuService.open(context.telegramId)
             "/notifications" -> menuService.open(context.telegramId, TelegramMenuScreen.NOTIFICATIONS)
             "/online" -> openOnline(context.telegramId, argument)
