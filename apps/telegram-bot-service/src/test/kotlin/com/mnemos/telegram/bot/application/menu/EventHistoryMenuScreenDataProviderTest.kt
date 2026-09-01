@@ -31,7 +31,7 @@ class EventHistoryMenuScreenDataProviderTest {
         val provider = EventHistoryMenuScreenDataProvider(eventGateway, wipeGateway)
         val session =
             TelegramMenuSession(
-                telegramId = 931458258L,
+                telegramId = TELEGRAM_ID,
                 currentScreen = TelegramMenuScreen.EVENTS,
                 pendingInput = TelegramPendingInput.EVENT_SEARCH,
                 screenContext =
@@ -51,21 +51,39 @@ class EventHistoryMenuScreenDataProviderTest {
     }
 
     @Test
+    fun `filter editor loads wipe metadata without loading event page`() {
+        val currentWipe = wipe(number = 12, active = true)
+        val eventGateway = RecordingEventHistoryGateway()
+        val wipeGateway =
+            RecordingEventWipeMetadataGateway(
+                EventHistoryWipeMetadataResult.Available(
+                    EventHistoryWipeOptions(
+                        current = currentWipe,
+                        previous = null,
+                    ),
+                ),
+            )
+        val provider = EventHistoryMenuScreenDataProvider(eventGateway, wipeGateway)
+        var context = EventHistoryMenuContext.filter(emptyMap(), EventHistoryFilter.RAID)
+
+        context = EventHistoryMenuContext.raidLocation(context, 7)
+        context = EventHistoryMenuContext.openFilters(context)
+
+        val session = session(context)
+        val data = provider.load(session) as TelegramMenuScreenData.EventHistory
+        val filters = data.data as EventHistoryMenuScreenData.Filters
+
+        assertEquals(EventHistoryFilter.RAID, filters.filter)
+        assertEquals(7, filters.raidLocation)
+        assertEquals(currentWipe, filters.wipeOptions.current)
+        assertEquals(0, eventGateway.queries.size)
+        assertEquals(1, wipeGateway.calls)
+    }
+
+    @Test
     fun `feed resolves previous wipe and forwards detailed filters search and cursor`() {
-        val currentWipe =
-            EventHistoryWipeOption(
-                id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72"),
-                number = 12,
-                name = "Current",
-                active = true,
-            )
-        val previousWipe =
-            EventHistoryWipeOption(
-                id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b73"),
-                number = 11,
-                name = "Previous",
-                active = false,
-            )
+        val currentWipe = wipe(number = 12, active = true)
+        val previousWipe = wipe(number = 11, active = false)
         val eventGateway = RecordingEventHistoryGateway()
         val wipeGateway =
             RecordingEventWipeMetadataGateway(
@@ -84,14 +102,7 @@ class EventHistoryMenuScreenDataProviderTest {
         context = EventHistoryMenuContext.itemType(context, EventHistoryItemType.SWORD)
         context = EventHistoryMenuContext.wipe(context, EventHistoryWipeSelection.PREVIOUS)
 
-        val session =
-            TelegramMenuSession(
-                telegramId = 931458258L,
-                currentScreen = TelegramMenuScreen.EVENTS,
-                screenContext = context,
-            )
-
-        val data = provider.load(session) as TelegramMenuScreenData.EventHistory
+        val data = provider.load(session(context)) as TelegramMenuScreenData.EventHistory
         val feed = data.data as EventHistoryMenuScreenData.Feed
         val query = eventGateway.queries.single()
 
@@ -100,7 +111,6 @@ class EventHistoryMenuScreenDataProviderTest {
         assertEquals(EventHistoryItemRarity.MYTHICAL, feed.itemRarity)
         assertEquals(EventHistoryItemType.SWORD, feed.itemType)
         assertEquals(EventHistoryWipeSelection.PREVIOUS, feed.wipeSelection)
-        assertEquals(previousWipe, feed.wipeOptions.previous)
         assertEquals(EventHistoryFilter.ITEM_DROP, query.filter)
         assertEquals("Excalibur", query.search)
         assertEquals(EventHistoryItemRarity.MYTHICAL, query.itemRarity)
@@ -113,13 +123,7 @@ class EventHistoryMenuScreenDataProviderTest {
 
     @Test
     fun `missing requested wipe falls back to all events`() {
-        val currentWipe =
-            EventHistoryWipeOption(
-                id = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72"),
-                number = 12,
-                name = null,
-                active = true,
-            )
+        val currentWipe = wipe(number = 12, active = true)
         val eventGateway = RecordingEventHistoryGateway()
         val wipeGateway =
             RecordingEventWipeMetadataGateway(
@@ -132,20 +136,32 @@ class EventHistoryMenuScreenDataProviderTest {
             )
         val provider = EventHistoryMenuScreenDataProvider(eventGateway, wipeGateway)
         val context = EventHistoryMenuContext.wipe(emptyMap(), EventHistoryWipeSelection.PREVIOUS)
-        val session =
-            TelegramMenuSession(
-                telegramId = 931458258L,
-                currentScreen = TelegramMenuScreen.EVENTS,
-                screenContext = context,
-            )
 
-        val data = provider.load(session) as TelegramMenuScreenData.EventHistory
+        val data = provider.load(session(context)) as TelegramMenuScreenData.EventHistory
         val feed = data.data as EventHistoryMenuScreenData.Feed
         val query = eventGateway.queries.single()
 
         assertEquals(EventHistoryWipeSelection.ALL, feed.wipeSelection)
         assertEquals(null, query.wipeId)
     }
+
+    private fun session(context: Map<String, String>): TelegramMenuSession =
+        TelegramMenuSession(
+            telegramId = TELEGRAM_ID,
+            currentScreen = TelegramMenuScreen.EVENTS,
+            screenContext = context,
+        )
+
+    private fun wipe(
+        number: Int,
+        active: Boolean,
+    ): EventHistoryWipeOption =
+        EventHistoryWipeOption(
+            id = UUID.nameUUIDFromBytes("wipe-$number".toByteArray()),
+            number = number,
+            name = if (active) "Current" else "Previous",
+            active = active,
+        )
 
     private class RecordingEventHistoryGateway : EventHistoryGateway {
         val queries = mutableListOf<EventHistoryQuery>()
@@ -172,5 +188,9 @@ class EventHistoryMenuScreenDataProviderTest {
             calls += 1
             return result
         }
+    }
+
+    private companion object {
+        const val TELEGRAM_ID = 931458258L
     }
 }
