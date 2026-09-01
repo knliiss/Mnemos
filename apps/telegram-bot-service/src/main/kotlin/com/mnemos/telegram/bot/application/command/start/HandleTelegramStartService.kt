@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.command.port.out.TelegramCommandMessa
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.message.port.out.TelegramMessageGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationRecipientGateway
+import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageResolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
@@ -13,13 +14,16 @@ class HandleTelegramStartService(
     private val renderer: TelegramCommandMessageRenderer,
     private val messageGateway: TelegramMessageGateway,
     private val recipientGateway: NotificationRecipientGateway,
+    private val languageResolver: TelegramSettingsLanguageResolver,
 ) {
     fun handle(context: TelegramStartContext): TelegramDeliveryResult {
         recipientGateway.activate(context.telegramId)
 
+        val language = languageResolver.resolve(context.telegramId)
+
         return messageGateway.send(
             telegramId = context.telegramId,
-            message = renderer.renderStart(context),
+            message = renderer.renderStart(context, language),
         )
     }
 }
