@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
@@ -27,22 +28,45 @@ class BetCallbackHandler(
     override val callbackPrefix: String = BetCallbackData.PREFIX
 
     override fun handle(context: TelegramCallbackContext): TelegramDeliveryResult {
-        if (!isCurrentBetsMenu(context)) {
-            return TelegramDeliveryResult.Delivered
+        val session = currentBetsSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (isWaitingForBetAmount(session.pendingInput)) {
+            return if (context.data == BetCallbackData.CANCEL_INPUT) {
+                cancelInput(context, session)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
+        }
+
+        if (BetMenuContext.operationId(session.screenContext) != null) {
+            return if (context.data == BetCallbackData.REFRESH) {
+                refreshCurrentMode(context, session)
+            } else {
+                TelegramDeliveryResult.Delivered
+            }
         }
 
         return when (context.data) {
-            BetCallbackData.REFRESH -> refreshCurrentMode(context)
+            BetCallbackData.REFRESH -> refreshCurrentMode(context, session)
             BetCallbackData.HISTORY -> update(context, BetMenuContext.history())
             BetCallbackData.ROUNDS -> update(context, BetMenuContext.rounds())
             BetCallbackData.RACES -> update(context, BetMenuContext.races())
-            BetCallbackData.CANCEL_INPUT -> cancelInput(context)
-            else -> handleSelection(context)
+            BetCallbackData.CANCEL_INPUT -> TelegramDeliveryResult.Delivered
+            else -> handleSelection(context, session)
         }
     }
 
-    private fun handleSelection(context: TelegramCallbackContext): TelegramDeliveryResult {
+    private fun handleSelection(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        val mode = BetMenuContext.mode(session.screenContext)
+
         BetCallbackData.placeSelection(context.data)?.let { selection ->
+            if (mode != BetMenuMode.ROUNDS) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             val (roundId, side) = selection
 
             return menuService.requestTextInput(
@@ -61,6 +85,10 @@ class BetCallbackHandler(
         }
 
         BetCallbackData.increasedRoundId(context.data)?.let { roundId ->
+            if (mode != BetMenuMode.ROUNDS) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return menuService.requestTextInput(
                 telegramId = context.telegramId,
                 messageId = context.messageId,
@@ -76,10 +104,18 @@ class BetCallbackHandler(
         }
 
         BetCallbackData.joinedRaceId(context.data)?.let { raceId ->
+            if (mode != BetMenuMode.RACES) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return joinRace(context, raceId)
         }
 
         BetCallbackData.increasedRaceId(context.data)?.let { raceId ->
+            if (mode != BetMenuMode.RACES) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return menuService.requestTextInput(
                 telegramId = context.telegramId,
                 messageId = context.messageId,
@@ -133,8 +169,10 @@ class BetCallbackHandler(
         }
     }
 
-    private fun refreshCurrentMode(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val session = sessionRepository.find(context.telegramId) ?: return TelegramDeliveryResult.Delivered
+    private fun refreshCurrentMode(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
         val mode = BetMenuContext.mode(session.screenContext)
         val operationId = BetMenuContext.operationId(session.screenContext)
         val screenContext =
@@ -154,8 +192,11 @@ class BetCallbackHandler(
         )
     }
 
-    private fun cancelInput(context: TelegramCallbackContext): TelegramDeliveryResult {
-        val mode = sessionRepository.find(context.telegramId)?.screenContext?.let(BetMenuContext::mode) ?: BetMenuMode.ROUNDS
+    private fun cancelInput(
+        context: TelegramCallbackContext,
+        session: TelegramMenuSession,
+    ): TelegramDeliveryResult {
+        val mode = BetMenuContext.mode(session.screenContext)
 
         return menuService.cancelTextInput(
             telegramId = context.telegramId,
@@ -182,11 +223,20 @@ class BetCallbackHandler(
             update = { screenContext },
         )
 
-    private fun isCurrentBetsMenu(context: TelegramCallbackContext): Boolean {
-        val session = sessionRepository.find(context.telegramId) ?: return false
+    private fun currentBetsSession(context: TelegramCallbackContext): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
 
-        return session.currentScreen == TelegramMenuScreen.BETS && session.menuMessageId == context.messageId
+        if (session.currentScreen != TelegramMenuScreen.BETS || session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session
     }
+
+    private fun isWaitingForBetAmount(pendingInput: TelegramPendingInput?): Boolean =
+        pendingInput == TelegramPendingInput.BET_PLACE_AMOUNT ||
+            pendingInput == TelegramPendingInput.BET_INCREASE_AMOUNT ||
+            pendingInput == TelegramPendingInput.BET_RACE_INCREASE_AMOUNT
 
     private fun deterministicKey(value: String): UUID =
         UUID.nameUUIDFromBytes(
