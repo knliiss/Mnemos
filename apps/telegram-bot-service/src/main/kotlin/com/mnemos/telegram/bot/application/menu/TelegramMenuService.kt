@@ -171,7 +171,7 @@ class TelegramMenuService(
         val currentSession = sessionRepository.find(telegramId)
 
         if (isStaleMenuMessage(currentSession, messageId)) {
-            return TelegramDeliveryResult.Delivered
+            return open(telegramId)
         }
 
         recipientGateway.activate(telegramId)
