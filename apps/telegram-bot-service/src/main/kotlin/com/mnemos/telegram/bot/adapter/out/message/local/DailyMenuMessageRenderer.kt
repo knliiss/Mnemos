@@ -7,6 +7,7 @@ import com.mnemos.telegram.bot.application.daily.model.DailyRewardState
 import com.mnemos.telegram.bot.application.daily.model.DailyRewardStateResult
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -32,17 +33,24 @@ object DailyMenuMessageRenderer {
         val lines =
             mutableListOf(
                 "🎁 <b>Daily</b>",
+                MESSAGE_DIVIDER,
                 "",
-                "Серия: 🔥 <b>${state.currentStreak}</b>",
-                "Сегодня: <b>${if (state.claimedToday) "награда получена" else "награда доступна"}</b>",
-                "Следующая награда: <b>${state.nextCoinMin}–${state.nextCoinMax} COIN</b>",
-                "Шанс PRIME: <b>${formatPercent(state.primeChance)}</b>",
-                "Восстановлений в этом месяце: <b>${state.restoresRemaining}</b>",
+                "🔥 <b>Серия</b>",
+                "└ ${state.currentStreak} дней",
+                "",
+                "🎁 <b>Сегодня</b>",
+                "└ ${if (state.claimedToday) "Награда получена" else "Награда доступна"}",
+                "",
+                "💰 <b>Следующая награда</b>",
+                "├ ${state.nextCoinMin}–${state.nextCoinMax} COIN",
+                "└ PRIME: ${formatPercent(state.primeChance)}",
+                "",
+                "♻️ <b>Восстановление</b>",
+                "└ Осталось: ${state.restoresRemaining}",
             )
 
         if (state.recoverable) {
-            lines += ""
-            lines += "Можно восстановить серию <b>${state.recoverableStreak}</b>."
+            lines += "   Серия для восстановления: ${state.recoverableStreak}"
         }
 
         renderFeedback(feedback)?.let { feedbackText ->
@@ -50,37 +58,44 @@ object DailyMenuMessageRenderer {
             lines += feedbackText
         }
 
+        val rows = availableRows(state)
+
         return OutboundTelegramMessage(
             text = lines.joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = availableActions(state),
+            actions = rows.flatten(),
+            actionRows = rows,
         )
     }
 
-    private fun availableActions(state: DailyRewardState): List<OutboundTelegramMessageAction> {
-        val actions = mutableListOf<OutboundTelegramMessageAction>()
-
-        if (!state.claimedToday) {
-            actions +=
-                OutboundTelegramMessageAction.Callback(
-                    label = "🎁 Забрать награду",
-                    data = DailyCallbackData.CLAIM,
+    private fun availableRows(state: DailyRewardState): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            if (!state.claimedToday) {
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "🎁 Забрать награду",
+                            data = DailyCallbackData.CLAIM,
+                            style = OutboundTelegramButtonStyle.SUCCESS,
+                        ),
+                    ),
                 )
-        }
+            }
 
-        if (state.recoverable && state.restoresRemaining > 0) {
-            actions +=
-                OutboundTelegramMessageAction.Callback(
-                    label = "♻️ Восстановить серию",
-                    data = DailyCallbackData.RESTORE,
+            if (state.recoverable && state.restoresRemaining > 0) {
+                add(
+                    listOf(
+                        OutboundTelegramMessageAction.Callback(
+                            label = "♻️ Восстановить серию",
+                            data = DailyCallbackData.RESTORE,
+                        ),
+                    ),
                 )
+            }
+
+            add(listOf(refreshAction))
+            add(listOf(backAction))
         }
-
-        actions += refreshAction
-        actions += navigationActions
-
-        return actions
-    }
 
     private fun renderFeedback(feedback: DailyMenuFeedback?): String? =
         when (feedback?.type) {
@@ -104,38 +119,57 @@ object DailyMenuMessageRenderer {
             null -> null
         }
 
-    private fun accountRequiredMessage(): OutboundTelegramMessage =
-        OutboundTelegramMessage(
-            text =
-                listOf(
-                    "🎁 <b>Daily</b>",
-                    "",
-                    "Для Daily нужен активный Cristalix-аккаунт.",
-                    "Создать аккаунт или присоединиться по приглашению можно прямо в боте.",
-                ).joinToString("\n"),
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions =
+    private fun accountRequiredMessage(): OutboundTelegramMessage {
+        val rows =
+            listOf(
                 listOf(
                     OutboundTelegramMessageAction.Callback(
-                        label = "👤 Настроить аккаунт",
+                        label = "👤 Аккаунт",
                         data = TelegramMenuScreen.ACCOUNT.callbackData,
+                        style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
-                ) + navigationActions,
-        )
+                ),
+                listOf(backAction),
+            )
 
-    private fun unavailableMessage(): OutboundTelegramMessage =
-        OutboundTelegramMessage(
+        return OutboundTelegramMessage(
             text =
                 listOf(
                     "🎁 <b>Daily</b>",
+                    MESSAGE_DIVIDER,
                     "",
-                    "Не удалось получить состояние Daily. Попробуйте обновить через несколько секунд.",
+                    "⚠️ Нужен активный Cristalix-аккаунт.",
                 ).joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = listOf(refreshAction) + navigationActions,
+            actions = rows.flatten(),
+            actionRows = rows,
         )
+    }
+
+    private fun unavailableMessage(): OutboundTelegramMessage {
+        val rows =
+            listOf(
+                listOf(refreshAction),
+                listOf(backAction),
+            )
+
+        return OutboundTelegramMessage(
+            text =
+                listOf(
+                    "🎁 <b>Daily</b>",
+                    MESSAGE_DIVIDER,
+                    "",
+                    "⚠️ Не удалось получить состояние Daily.",
+                ).joinToString("\n"),
+            parseMode = OutboundTelegramMessageParseMode.HTML,
+            actions = rows.flatten(),
+            actionRows = rows,
+        )
+    }
 
     private fun formatPercent(value: Double): String = String.format(Locale.US, "%.2f%%", value * 100.0)
+
+    private const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
 
     private val refreshAction =
         OutboundTelegramMessageAction.Callback(
@@ -143,15 +177,9 @@ object DailyMenuMessageRenderer {
             data = DailyCallbackData.REFRESH,
         )
 
-    private val navigationActions =
-        listOf(
-            OutboundTelegramMessageAction.Callback(
-                "← Назад",
-                TelegramMenuScreen.BACK_CALLBACK_DATA,
-            ),
-            OutboundTelegramMessageAction.Callback(
-                "⌂ Меню",
-                TelegramMenuScreen.HOME.callbackData,
-            ),
+    private val backAction =
+        OutboundTelegramMessageAction.Callback(
+            label = "← Назад",
+            data = TelegramMenuScreen.BACK_CALLBACK_DATA,
         )
 }
