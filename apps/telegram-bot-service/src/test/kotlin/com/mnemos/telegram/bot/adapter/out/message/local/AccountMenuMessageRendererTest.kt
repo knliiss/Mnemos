@@ -48,8 +48,8 @@ class AccountMenuMessageRendererTest {
 
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
-        val dailyLabel = message.actionRows.first().single().label
-        val primeLabel = message.actionRows[1].single().label
+        val dailyLabel = message.actionRows[0][0].label
+        val primeLabel = message.actionRows[1][0].label
 
         assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
