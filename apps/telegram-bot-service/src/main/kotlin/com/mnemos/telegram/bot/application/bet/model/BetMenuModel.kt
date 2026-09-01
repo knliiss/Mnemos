@@ -140,4 +140,5 @@ data class BetMenuScreenData(
     val feedback: BetMenuFeedback?,
     val waitingForAmount: Boolean,
     val increasing: Boolean,
+    val operationTracked: Boolean = false,
 )
