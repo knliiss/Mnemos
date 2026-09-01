@@ -153,8 +153,7 @@ object AccountMenuMessageRenderer {
         }
 
         return buildList {
-            add(listOf(dailyAction))
-            add(listOf(primeAction))
+            add(listOf(dailyAction, primeAction))
 
             accountSwitchActions(context).forEach { action ->
                 add(listOf(action))
