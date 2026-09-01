@@ -27,8 +27,6 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "",
                     "Основными функциями Mnemos можно пользоваться прямо в этом чате — Mini App для этого не нужен.",
                     "",
-                    "Нажмите «Меню Mnemos» или используйте /menu. Mini App ниже остаётся дополнительным интерфейсом, если он доступен в вашем регионе.",
-                    "",
                     "📋 <b>Откройте панель управления:</b>",
                 ).joinToString("\n"),
             parseMode = OutboundTelegramMessageParseMode.HTML,
@@ -56,11 +54,12 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "❓ <b>Помощь Mnemos</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "📋 <b>С чего начать?</b>",
-                    "Откройте /menu. Основные функции Mnemos работают прямо в Telegram-чате, включая настройку Cristalix-аккаунта.",
-                    "",
-                    "📱 <b>Нужен ли Mini App?</b>",
-                    "Нет для основных сценариев. Он остаётся дополнительным визуальным интерфейсом и не должен блокировать использование Mnemos, если недоступен в вашем регионе.",
+                    "📋 <b>Основные команды</b>",
+                    "• создавайте и подключайте Cristalix-аккаунты;",
+                    "• настраивайте уведомления и смотрите онлайн/историю событий;",
+                    "• забирайте Daily и управляйте балансами;",
+                    "• делайте ставки и покупайте PRIME через Telegram Stars;",
+                    "• меняйте доступные настройки Mnemos.",
                 ).joinToString("\n")
 
             TelegramHelpSection.MINI_APP ->
@@ -78,7 +77,11 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "🔔 <b>Подписки</b>",
                     MESSAGE_DIVIDER,
                     "",
-                    "Откройте /notifications. Управление подписками повторяет Mini App: глобальные события, бустеры и данжи переключаются как настройки, RAID редактируется как одна подписка, а правила дропа управляются отдельно.",
+                    "🌌 Глобальные события",
+                    "⚡ Бустеры",
+                    "🏰 Dungeon",
+                    "🛡 RAID",
+                    "📦 Дропы",
                     "",
                     "Для фильтров по игроку или предмету бот сам запросит значение обычным сообщением.",
                 ).joinToString("\n")
@@ -101,8 +104,6 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.",
                     "",
                     "Выберите «Да» или «Нет», отправьте сумму COIN обычным сообщением. Уже созданную ставку можно увеличить. История доступна в этом же разделе.",
-                    "",
-                    "Для операции нужен активный аккаунт и право PLACE_BETS. Все ставки проходят через обычный Mnemos wallet/idempotency flow.",
                 ).joinToString("\n")
 
             TelegramHelpSection.NOTIFICATIONS ->
@@ -211,7 +212,8 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
 
         val startActionRows =
             listOf(
-                listOf(menuAction, helpAction),
+                listOf(menuAction),
+                listOf(helpAction),
                 listOf(
                     OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
                 ),
