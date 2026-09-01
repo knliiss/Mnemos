@@ -94,7 +94,11 @@ object NotificationMenuContext {
             locations = locations,
         )
 
-    fun creationSucceeded(): Map<String, String> = mapOf(FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name)
+    fun creationSucceeded(): Map<String, String> =
+        mapOf(
+            MODE_KEY to NotificationCreationMode.ITEM_DROP_LIST.name,
+            FEEDBACK_KEY to NotificationMenuFeedback.CREATED.name,
+        )
 
     fun withFeedback(
         context: Map<String, String>,
