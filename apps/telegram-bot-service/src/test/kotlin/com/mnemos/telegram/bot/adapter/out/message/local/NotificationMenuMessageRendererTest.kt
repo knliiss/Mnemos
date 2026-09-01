@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.notification.NotificationCallbackData
 import com.mnemos.telegram.bot.application.notification.model.NotificationBoosterType
@@ -25,7 +26,6 @@ class NotificationMenuMessageRendererTest {
     @Test
     fun `notification dashboard renders direct event toggles with named states`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
-        val raidSubscription = raidSubscription(setOf(3, 12))
         val data =
             TelegramMenuScreenData.Notifications(
                 NotificationMenuScreenData(
@@ -35,7 +35,7 @@ class NotificationMenuMessageRendererTest {
                             boosterSubscriptions = mapOf(NotificationBoosterType.LUCK to activeId),
                             dungeonSubscriptions = mapOf(NotificationDungeonType.HARD to activeId),
                             globalSubscriptions = mapOf(NotificationGlobalType.MOON to activeId),
-                            raidSubscription = raidSubscription,
+                            raidSubscription = raidSubscription(setOf(3, 12)),
                         ),
                 ),
             )
@@ -231,9 +231,6 @@ class NotificationMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.REFRESH })
     }
 
-    private fun OutboundTelegramMessageAction.Callback.isDeleteFor(subscriptionId: UUID): Boolean =
-        data == NotificationCallbackData.delete(subscriptionId)
-
     private fun itemDropSubscription(
         id: UUID,
         droppedFor: String,
@@ -273,8 +270,6 @@ class NotificationMenuMessageRendererTest {
             hasNextPage = false,
         )
 
-    private fun TelegramMenuScreenData.Notifications.callbacks(): List<OutboundTelegramMessageAction.Callback> = emptyList()
-
-    private fun com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
+    private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
         actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 }
