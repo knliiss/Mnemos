@@ -57,6 +57,5 @@ object AccountInviteMenuContext {
         context[REVOKE_ID_KEY]
             ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
 
-    private fun Map<String, String>.withoutTransientState(): Map<String, String> =
-        this - FEEDBACK_KEY - REVOKE_ID_KEY
+    private fun Map<String, String>.withoutTransientState(): Map<String, String> = this - FEEDBACK_KEY - REVOKE_ID_KEY
 }

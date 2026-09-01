@@ -26,6 +26,5 @@ object AccountInviteApiMapper {
             status = status.toModel(),
         )
 
-    private fun InternalTelegramAccountInviteStatus.toModel(): TelegramAccountInviteStatus =
-        TelegramAccountInviteStatus.valueOf(name)
+    private fun InternalTelegramAccountInviteStatus.toModel(): TelegramAccountInviteStatus = TelegramAccountInviteStatus.valueOf(name)
 }
