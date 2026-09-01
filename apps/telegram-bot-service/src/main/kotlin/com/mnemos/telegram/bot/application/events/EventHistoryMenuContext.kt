@@ -23,9 +23,18 @@ object EventHistoryMenuContext {
     const val WIPE_SELECTION_KEY = "events.wipe-selection"
     const val AFTER_KEY = "events.after"
     const val CURSOR_STACK_KEY = "events.cursor-stack"
+    const val FILTERS_MODE_KEY = "events.filters-mode"
 
     private const val ROOT_CURSOR = "root"
     private const val STACK_SEPARATOR = ","
+
+    fun openFilters(context: Map<String, String>): Map<String, String> =
+        context + (FILTERS_MODE_KEY to "1")
+
+    fun closeFilters(context: Map<String, String>): Map<String, String> =
+        context - FILTERS_MODE_KEY - RAID_LOCATION_PAGE_KEY
+
+    fun filtersOpen(context: Map<String, String>): Boolean = context[FILTERS_MODE_KEY] == "1"
 
     fun filter(
         context: Map<String, String>,
@@ -157,7 +166,7 @@ object EventHistoryMenuContext {
     fun search(
         context: Map<String, String>,
         query: String,
-    ): Map<String, String> = resetPagination(context) + (SEARCH_KEY to query)
+    ): Map<String, String> = closeFilters(resetPagination(context)) + (SEARCH_KEY to query)
 
     fun clearSearch(context: Map<String, String>): Map<String, String> = resetPagination(context) - SEARCH_KEY
 
