@@ -26,7 +26,7 @@ import java.util.UUID
 
 class NotificationMenuMessageRendererTest {
     @Test
-    fun `notification dashboard renders balanced direct event toggle rows`() {
+    fun `notification dashboard uses compact category navigation`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -45,29 +45,87 @@ class NotificationMenuMessageRendererTest {
 
         val message = NotificationMenuMessageRenderer.render(data)
         val callbacks = message.callbacks()
+        val globals = callbacks.single { action -> action.data == NotificationCallbackData.GLOBALS }
+        val boosters = callbacks.single { action -> action.data == NotificationCallbackData.BOOSTERS }
+        val dungeons = callbacks.single { action -> action.data == NotificationCallbackData.DUNGEONS }
+        val raid = callbacks.single { action -> action.data == NotificationCallbackData.RAID_EDIT }
+
+        assertTrue(message.text.contains("Глобальные события: <b>1/5</b>"))
+        assertTrue(message.text.contains("Бустеры: <b>1/4</b>"))
+        assertTrue(message.text.contains("Dungeon: <b>1/4</b>"))
+        assertTrue(message.text.contains("RAID: <b>2/28</b>"))
+        assertTrue(message.text.contains("Дропы: <b>17</b>"))
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, globals.style)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, boosters.style)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, dungeons.style)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, raid.style)
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
+        assertFalse(
+            callbacks.any { action ->
+                action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
+            },
+        )
+        assertEquals(listOf(2, 2, 1, 2), message.actionRows.map(List<*>::size))
+    }
+
+    @Test
+    fun `global category keeps direct event toggles in balanced grid`() {
+        val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
+        val data =
+            TelegramMenuScreenData.Notifications(
+                NotificationMenuScreenData(
+                    result =
+                        NotificationSubscriptionResult.Available(
+                            page = emptyPage(),
+                            globalSubscriptions = mapOf(NotificationGlobalType.MOON to activeId),
+                        ),
+                    mode = NotificationCreationMode.GLOBALS,
+                ),
+            )
+
+        val message = NotificationMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
         val moon =
-            callbacks.first { action ->
+            callbacks.single { action ->
                 action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
             }
         val eclipse =
-            callbacks.first { action ->
+            callbacks.single { action ->
                 action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled = true)
             }
 
         assertTrue(message.text.contains("<b>Глобальные события</b>"))
-        assertTrue(message.text.contains("RAID · Настройка сохранена"))
-        assertTrue(message.text.contains("Правил: <b>17</b>"))
-        assertTrue(message.text.contains("Вкл · 2/28"))
-        assertEquals("🌙 Луна Вкл", moon.label)
+        assertTrue(message.text.contains("Включено: <b>1/5</b>"))
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
-        assertEquals("🌘 Затмение Выкл", eclipse.label)
-        assertFalse(eclipse.label.startsWith("✅"))
-        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
-        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_EDIT })
-        assertEquals(
-            listOf(3, 2, 2, 2, 2, 2, 1, 1, 1, 1),
-            message.actionRows.map(List<*>::size),
-        )
+        assertEquals(OutboundTelegramButtonStyle.DEFAULT, eclipse.style)
+        assertEquals(listOf(3, 2, 2), message.actionRows.map(List<*>::size))
+    }
+
+    @Test
+    fun `booster and dungeon categories keep two by two toggle grids`() {
+        val booster =
+            NotificationMenuMessageRenderer.render(
+                TelegramMenuScreenData.Notifications(
+                    NotificationMenuScreenData(
+                        result = NotificationSubscriptionResult.Available(page = emptyPage()),
+                        mode = NotificationCreationMode.BOOSTERS,
+                    ),
+                ),
+            )
+        val dungeon =
+            NotificationMenuMessageRenderer.render(
+                TelegramMenuScreenData.Notifications(
+                    NotificationMenuScreenData(
+                        result = NotificationSubscriptionResult.Available(page = emptyPage()),
+                        mode = NotificationCreationMode.DUNGEONS,
+                    ),
+                ),
+            )
+
+        assertEquals(listOf(2, 2, 2), booster.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 2), dungeon.actionRows.map(List<*>::size))
+        assertTrue(booster.callbacks().any { action -> action.data == NotificationCallbackData.booster(NotificationBoosterType.LUCK, true) })
+        assertTrue(dungeon.callbacks().any { action -> action.data == NotificationCallbackData.dungeon(NotificationDungeonType.EASY, true) })
     }
 
     @Test
@@ -237,7 +295,8 @@ class NotificationMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_DISABLE })
         assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
         assertFalse(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
-        assertEquals(listOf(7, 7, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(7, message.actionRows[0].size)
+        assertEquals(7, message.actionRows[1].size)
     }
 
     @Test

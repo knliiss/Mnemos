@@ -30,6 +30,18 @@ class NotificationCallbackHandler(
             return refresh(context)
         }
 
+        if (context.data == NotificationCallbackData.GLOBALS) {
+            return openCategory(context, NotificationCreationMode.GLOBALS)
+        }
+
+        if (context.data == NotificationCallbackData.BOOSTERS) {
+            return openCategory(context, NotificationCreationMode.BOOSTERS)
+        }
+
+        if (context.data == NotificationCallbackData.DUNGEONS) {
+            return openCategory(context, NotificationCreationMode.DUNGEONS)
+        }
+
         if (context.data == NotificationCallbackData.DROPS) {
             if (!isCurrentMode(context, NotificationCreationMode.LIST, NotificationCreationMode.ITEM_DROP)) {
                 return TelegramDeliveryResult.Delivered
@@ -182,6 +194,19 @@ class NotificationCallbackHandler(
         }
 
         return TelegramDeliveryResult.Delivered
+    }
+
+    private fun openCategory(
+        context: TelegramCallbackContext,
+        mode: NotificationCreationMode,
+    ): TelegramDeliveryResult {
+        if (!isCurrentMode(context, NotificationCreationMode.LIST)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return updateContext(context) {
+            NotificationMenuContext.selectMode(mode)
+        }
     }
 
     private fun openRaidEditor(context: TelegramCallbackContext): TelegramDeliveryResult {

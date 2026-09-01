@@ -87,6 +87,9 @@ class NotificationMenuScreenDataProvider(
     private fun NotificationCreationMode.requiresSubscriptionState(): Boolean =
         when (this) {
             NotificationCreationMode.LIST,
+            NotificationCreationMode.GLOBALS,
+            NotificationCreationMode.BOOSTERS,
+            NotificationCreationMode.DUNGEONS,
             NotificationCreationMode.ITEM_DROP_LIST,
             NotificationCreationMode.ITEM_DROP_DELETE,
             NotificationCreationMode.RAID,
