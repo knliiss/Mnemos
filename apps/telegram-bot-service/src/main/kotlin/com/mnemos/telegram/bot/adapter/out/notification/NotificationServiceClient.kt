@@ -53,12 +53,6 @@ interface NotificationServiceClient {
         @RequestBody request: TelegramCreateDungeonSubscriptionRequest,
     ): TelegramCreateSubscriptionResponse
 
-    @PostMapping("/internal/v1/telegram/subscriptions/{telegramId}/raid")
-    fun createRaidSubscription(
-        @PathVariable telegramId: Long,
-        @RequestBody request: TelegramCreateRaidSubscriptionRequest,
-    ): TelegramCreateSubscriptionResponse
-
     @PatchMapping("/internal/v1/telegram/subscriptions/{telegramId}/raid")
     fun updateRaidSubscription(
         @PathVariable telegramId: Long,
