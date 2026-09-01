@@ -11,6 +11,7 @@ import com.mnemos.telegram.bot.application.account.model.TelegramAccountContextR
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountInputMode
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountStatus
 import com.mnemos.telegram.bot.application.account.model.TelegramAccountSummary
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -20,7 +21,7 @@ import java.util.UUID
 
 class AccountMenuMessageRendererTest {
     @Test
-    fun `account screen renders active account balance and safe switch actions`() {
+    fun `account dashboard keeps balances daily prime and account controls together`() {
         val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
         val switchableAccount = account("alt", active = false, status = TelegramAccountStatus.ACTIVE)
         val deactivatedAccount = account("old", active = false, status = TelegramAccountStatus.DEACTIVATED)
@@ -48,14 +49,20 @@ class AccountMenuMessageRendererTest {
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
-        assertTrue(message.text.contains("Активный: <code>knaliz</code>"))
-        assertTrue(message.text.contains("Баланс: <b>125 COIN</b> · <b>3 PRIME</b>"))
-        assertTrue(message.text.contains("<code>old</code> — владелец · 1/5 · деактивирован"))
+        assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
+        assertTrue(message.text.contains("└ <code>knaliz</code>"))
+        assertTrue(message.text.contains("├ COIN: <b>125</b>"))
+        assertTrue(message.text.contains("└ PRIME: <b>3</b> ⭐"))
+        assertTrue(message.text.contains("<code>old</code> · владелец · 1/5 · деактивирован"))
         assertTrue(message.text.contains("Активный аккаунт переключён"))
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.DAILY.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PRIME.callbackData })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.switch(switchableAccount.accountId) })
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
+        assertTrue(message.actionRows.first().single().label.contains("Daily"))
+        assertTrue(message.actionRows[1].single().label.contains("PRIME"))
     }
 
     @Test
@@ -73,7 +80,7 @@ class AccountMenuMessageRendererTest {
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
         val miniAppActions = message.actions.filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
-        assertTrue(message.text.contains("без Mini App"))
+        assertTrue(message.text.contains("Не подключён"))
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
         assertTrue(miniAppActions.isEmpty())
@@ -101,7 +108,7 @@ class AccountMenuMessageRendererTest {
     }
 
     @Test
-    fun `wallet outage does not replace account screen`() {
+    fun `wallet outage keeps account dashboard structure`() {
         val activeAccount = account("knaliz", active = true, status = TelegramAccountStatus.ACTIVE)
         val data =
             TelegramMenuScreenData.Account(
@@ -120,8 +127,8 @@ class AccountMenuMessageRendererTest {
 
         val message = AccountMenuMessageRenderer.render(data)
 
-        assertTrue(message.text.contains("Активный: <code>knaliz</code>"))
-        assertTrue(message.text.contains("Баланс: <i>временно недоступен</i>"))
+        assertTrue(message.text.contains("└ <code>knaliz</code>"))
+        assertTrue(message.text.contains("Временно недоступен"))
     }
 
     @Test
