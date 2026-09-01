@@ -78,6 +78,25 @@ class TelegramMenuServiceTest {
     }
 
     @Test
+    fun `command open sends fresh menu instead of editing stored menu`() {
+        sessionRepository.save(
+            TelegramMenuSession(
+                telegramId = TELEGRAM_ID,
+                menuMessageId = OLD_MENU_MESSAGE_ID,
+                currentScreen = TelegramMenuScreen.ONLINE,
+            ),
+        )
+
+        val result = service.open(TELEGRAM_ID)
+
+        assertEquals(TelegramDeliveryResult.Delivered, result)
+        assertEquals(1, messageGateway.sentMessages.size)
+        assertEquals(0, messageGateway.editedMessages.size)
+        assertEquals(MENU_MESSAGE_ID, sessionRepository.find(TELEGRAM_ID)?.menuMessageId)
+        assertEquals(TelegramMenuScreen.HOME, sessionRepository.find(TELEGRAM_ID)?.currentScreen)
+    }
+
+    @Test
     fun `navigation and back reuse same menu message`() {
         sessionRepository.save(
             TelegramMenuSession(
@@ -181,26 +200,6 @@ class TelegramMenuServiceTest {
         assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
         assertEquals(TelegramMenuScreen.ONLINE, session?.currentScreen)
         assertEquals(0, messageGateway.editedMessages.size)
-    }
-
-    @Test
-    fun `deleted stored menu falls back to new tracked message`() {
-        sessionRepository.save(
-            TelegramMenuSession(
-                telegramId = TELEGRAM_ID,
-                menuMessageId = OLD_MENU_MESSAGE_ID,
-            ),
-        )
-        messageGateway.editResult =
-            TelegramDeliveryResult.PermanentFailure(
-                reason = "message not found",
-            )
-
-        val result = service.open(TELEGRAM_ID)
-
-        assertEquals(TelegramDeliveryResult.Delivered, result)
-        assertEquals(1, messageGateway.sentMessages.size)
-        assertEquals(MENU_MESSAGE_ID, sessionRepository.find(TELEGRAM_ID)?.menuMessageId)
     }
 
     private class TestMenuMessageRenderer : TelegramMenuMessageRenderer {
