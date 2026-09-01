@@ -58,6 +58,10 @@ class TelegramMenuService(
             return TelegramDeliveryResult.Delivered
         }
 
+        if (currentSession?.pendingInput != null) {
+            return TelegramDeliveryResult.Delivered
+        }
+
         recipientGateway.activate(telegramId)
 
         val baseSession =
@@ -174,6 +178,10 @@ class TelegramMenuService(
             return open(telegramId)
         }
 
+        if (currentSession?.pendingInput != null) {
+            return TelegramDeliveryResult.Delivered
+        }
+
         recipientGateway.activate(telegramId)
 
         val nextSession =
@@ -192,6 +200,10 @@ class TelegramMenuService(
         val currentSession = sessionRepository.find(telegramId)
 
         if (isStaleMenuMessage(currentSession, messageId)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        if (currentSession?.pendingInput != null && !canLeavePendingInputWithBack(currentSession.pendingInput)) {
             return TelegramDeliveryResult.Delivered
         }
 
@@ -324,6 +336,10 @@ class TelegramMenuService(
         currentSession: TelegramMenuSession?,
         messageId: Int,
     ): Boolean = currentSession?.menuMessageId?.let { storedMessageId -> storedMessageId != messageId } ?: false
+
+    private fun canLeavePendingInputWithBack(pendingInput: TelegramPendingInput): Boolean =
+        pendingInput == TelegramPendingInput.ACCOUNT_CREATE ||
+            pendingInput == TelegramPendingInput.ACCOUNT_JOIN
 
     private companion object {
         const val MAX_NAVIGATION_DEPTH = 16
