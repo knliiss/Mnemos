@@ -48,7 +48,7 @@ class TelegramMenuService(
         messageId: Int,
         screen: TelegramMenuScreen,
     ): TelegramDeliveryResult {
-        if (screen == TelegramMenuScreen.HOME) {
+        if (screen == TelegramMenuScreen.HOME || screen == TelegramMenuScreen.MORE) {
             return home(telegramId, messageId)
         }
 
