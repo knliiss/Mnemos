@@ -59,7 +59,7 @@ class NotificationMenuMessageRendererTest {
         assertEquals("🌘 Затмение Выкл", eclipse.label)
         assertFalse(eclipse.label.startsWith("✅"))
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DROPS })
-        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.type(NotificationSubscriptionType.RAID) })
+        assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_EDIT })
         assertEquals(listOf(3, 2, 4, 4, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
@@ -172,39 +172,6 @@ class NotificationMenuMessageRendererTest {
             },
         )
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.DELETE_CANCEL })
-    }
-
-    @Test
-    fun `legacy global screen uses event emoji name and on off state`() {
-        val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
-        val data =
-            TelegramMenuScreenData.Notifications(
-                NotificationMenuScreenData(
-                    result =
-                        NotificationSubscriptionResult.Available(
-                            page = emptyPage(),
-                            globalSubscriptions = mapOf(NotificationGlobalType.MOON to activeId),
-                        ),
-                    mode = NotificationCreationMode.GLOBAL,
-                ),
-            )
-
-        val message = NotificationMenuMessageRenderer.render(data)
-        val callbacks = message.callbacks()
-        val moon =
-            callbacks.first { action ->
-                action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
-            }
-        val eclipse =
-            callbacks.first { action ->
-                action.data == NotificationCallbackData.global(NotificationGlobalType.ECLIPSE, enabled = true)
-            }
-
-        assertTrue(message.text.contains("Глобальные события"))
-        assertEquals("🌙 Луна Вкл", moon.label)
-        assertEquals(OutboundTelegramButtonStyle.SUCCESS, moon.style)
-        assertEquals("🌘 Затмение Выкл", eclipse.label)
-        assertEquals(listOf(3, 2, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
