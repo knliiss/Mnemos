@@ -40,7 +40,7 @@ object PrimeMenuMessageRenderer {
                 }.joinToString("\n")
         val lines =
             mutableListOf(
-                "⭐ <b>PRIME и баланс</b>",
+                "⭐ <b>PRIME</b>",
                 MESSAGE_DIVIDER,
                 "",
                 "💳 <b>Пополнение через Telegram Stars</b>",
@@ -66,7 +66,7 @@ object PrimeMenuMessageRenderer {
 
     private fun readyInvoiceText(invoice: PrimePurchaseInvoice): String =
         listOf(
-            "⭐ <b>PRIME и баланс</b>",
+            "⭐ <b>PRIME</b>",
             MESSAGE_DIVIDER,
             "",
             "⭐ <b>Счёт готов</b>",
@@ -136,7 +136,7 @@ object PrimeMenuMessageRenderer {
 
     private fun unavailableText(): String =
         listOf(
-            "⭐ <b>PRIME и баланс</b>",
+            "⭐ <b>PRIME</b>",
             MESSAGE_DIVIDER,
             "",
             "⚠️ Не удалось загрузить варианты пополнения.",
