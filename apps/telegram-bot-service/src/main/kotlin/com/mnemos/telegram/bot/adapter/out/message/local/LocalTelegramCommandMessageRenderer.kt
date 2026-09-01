@@ -17,21 +17,23 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         context: TelegramStartContext,
         language: TelegramSettingsLanguage,
     ): OutboundTelegramMessage =
-        OutboundTelegramMessage(
-            text =
-                listOf(
-                    "🤖 <b>Mnemos</b>",
-                    MESSAGE_DIVIDER,
-                    "",
-                    "👋 <b>Добро пожаловать в Mnemos</b>",
-                    "",
-                    "Основными функциями Mnemos можно пользоваться прямо в этом чате — Mini App для этого не нужен.",
-                    "",
-                    "📋 <b>Откройте панель управления:</b>",
-                ).joinToString("\n"),
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actionRows = startActionRows,
-        ).localized(language)
+        TelegramMessageLayout.normalize(
+            OutboundTelegramMessage(
+                text =
+                    listOf(
+                        "🤖 <b>Mnemos</b>",
+                        TelegramMessageLayout.DIVIDER,
+                        "",
+                        "👋 <b>Добро пожаловать в Mnemos</b>",
+                        "",
+                        "Основными функциями Mnemos можно пользоваться прямо в этом чате — Mini App для этого не нужен.",
+                        "",
+                        "📋 <b>Откройте панель управления:</b>",
+                    ).joinToString("\n"),
+                parseMode = OutboundTelegramMessageParseMode.HTML,
+                actionRows = startActionRows,
+            ).localized(language),
+        )
 
     override fun renderHelp(
         section: TelegramHelpSection,
@@ -39,12 +41,14 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
     ): OutboundTelegramMessage {
         val rows = renderHelpRows(section)
 
-        return OutboundTelegramMessage(
-            text = renderHelpText(section),
-            parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = rows.flatten(),
-            actionRows = rows,
-        ).localized(language)
+        return TelegramMessageLayout.normalize(
+            OutboundTelegramMessage(
+                text = renderHelpText(section),
+                parseMode = OutboundTelegramMessageParseMode.HTML,
+                actions = rows.flatten(),
+                actionRows = rows,
+            ).localized(language),
+        )
     }
 
     private fun renderHelpText(section: TelegramHelpSection): String =
@@ -52,7 +56,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.OVERVIEW ->
                 listOf(
                     "❓ <b>Помощь Mnemos</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "📋 <b>Основные команды</b>",
                     "• создавайте и подключайте Cristalix-аккаунты;",
@@ -65,7 +69,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.MINI_APP ->
                 listOf(
                     "📱 <b>Mini App</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "Mini App — дополнительный интерфейс Mnemos. Если он открывается, используйте кнопку «Mini App» или стандартную кнопку Telegram.",
                     "",
@@ -75,7 +79,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.SUBSCRIPTIONS ->
                 listOf(
                     "🔔 <b>Подписки</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "🌌 Глобальные события",
                     "⚡ Бустеры",
@@ -89,7 +93,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.ACCOUNTS ->
                 listOf(
                     "👤 <b>Аккаунты</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "Откройте /account. Там можно создать Mnemos/Cristalix-аккаунт, присоединиться по invite-коду, посмотреть доступные аккаунты и переключить активный.",
                     "",
@@ -99,7 +103,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.BETS ->
                 listOf(
                     "🎲 <b>Ставки</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "Откройте /bets. Бот показывает текущие раунды, коэффициенты и вашу ставку.",
                     "",
@@ -109,7 +113,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.NOTIFICATIONS ->
                 listOf(
                     "✉️ <b>Уведомления</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "Если бот был заблокирован, разблокируйте его и отправьте /start или /help — Mnemos снова активирует Telegram-получателя.",
                     "",
@@ -119,7 +123,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
             TelegramHelpSection.TROUBLESHOOTING ->
                 listOf(
                     "🛠 <b>Проблемы и решения</b>",
-                    MESSAGE_DIVIDER,
+                    TelegramMessageLayout.DIVIDER,
                     "",
                     "<b>Mini App не открывается или не загружается.</b>",
                     "Используйте /menu. Для основных функций это не является блокирующей ошибкой.",
@@ -195,8 +199,6 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
         )
 
     private companion object {
-        const val MESSAGE_DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
-
         val menuAction =
             OutboundTelegramMessageAction.Callback(
                 label = "📋 Меню Mnemos",
