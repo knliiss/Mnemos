@@ -14,12 +14,13 @@ class LocalTelegramCommandMessageRendererTest {
     private val renderer = LocalTelegramCommandMessageRenderer()
 
     @Test
-    fun `start presents native menu first and keeps mini app optional`() {
+    fun `start presents native actions together and keeps mini app optional`() {
         val message = renderer.renderStart(startContext(), TelegramSettingsLanguage.RU)
         val actions = message.actionRows.flatten()
 
         assertTrue(message.text.contains("Mini App для этого не нужен"))
         assertTrue(message.text.contains("Mini App ниже остаётся дополнительным интерфейсом"))
+        assertEquals(listOf(2, 1), message.actionRows.map(List<*>::size))
         assertTrue(
             actions.any { action ->
                 action is OutboundTelegramMessageAction.Callback &&
@@ -59,12 +60,13 @@ class LocalTelegramCommandMessageRendererTest {
     }
 
     @Test
-    fun `every help section keeps native menu help navigation and optional mini app`() {
+    fun `every help section keeps semantic help groups and optional mini app`() {
         TelegramHelpSection.entries.forEach { section ->
             val message = renderer.renderHelp(section, TelegramSettingsLanguage.RU)
             val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
             assertTrue(message.text.contains("<b>"))
+            assertEquals(listOf(1, 2, 3, 2, 1), message.actionRows.map(List<*>::size))
             assertEquals(TelegramHelpSection.entries.size + 1, callbacks.size)
             assertTrue(
                 callbacks.any { action ->

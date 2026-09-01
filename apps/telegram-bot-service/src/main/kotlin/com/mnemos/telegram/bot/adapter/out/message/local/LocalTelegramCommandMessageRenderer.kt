@@ -131,22 +131,24 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                 ).joinToString("\n")
         }
 
-    private fun renderHelpRows(section: TelegramHelpSection): List<List<OutboundTelegramMessageAction>> {
-        val sectionActions =
-            helpSections.map { (helpSection, label) ->
-                OutboundTelegramMessageAction.Callback(
-                    label = label,
-                    data = helpSection.callbackData,
-                    style = selectedStyle(helpSection == section),
+    private fun renderHelpRows(section: TelegramHelpSection): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            add(listOf(menuAction))
+
+            helpSectionGroups.forEach { group ->
+                add(
+                    group.map { (helpSection, label) ->
+                        OutboundTelegramMessageAction.Callback(
+                            label = label,
+                            data = helpSection.callbackData,
+                            style = selectedStyle(helpSection == section),
+                        )
+                    },
                 )
             }
 
-        return buildList {
-            add(listOf(menuAction))
-            addAll(sectionActions.chunked(3))
             add(listOf(OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App")))
         }
-    }
 
     private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
         if (selected) {
@@ -201,29 +203,35 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                 style = OutboundTelegramButtonStyle.PRIMARY,
             )
 
+        val helpAction =
+            OutboundTelegramMessageAction.Callback(
+                label = "❓ Помощь",
+                data = TelegramHelpSection.OVERVIEW.callbackData,
+            )
+
         val startActionRows =
             listOf(
-                listOf(menuAction),
-                listOf(
-                    OutboundTelegramMessageAction.Callback(
-                        label = "❓ Помощь",
-                        data = TelegramHelpSection.OVERVIEW.callbackData,
-                    ),
-                ),
+                listOf(menuAction, helpAction),
                 listOf(
                     OutboundTelegramMessageAction.OpenMiniApp("↗️ Mini App"),
                 ),
             )
 
-        val helpSections =
+        val helpSectionGroups =
             listOf(
-                TelegramHelpSection.OVERVIEW to "Обзор",
-                TelegramHelpSection.MINI_APP to "Mini App",
-                TelegramHelpSection.SUBSCRIPTIONS to "Подписки",
-                TelegramHelpSection.ACCOUNTS to "Аккаунты",
-                TelegramHelpSection.BETS to "Ставки",
-                TelegramHelpSection.NOTIFICATIONS to "Уведомления",
-                TelegramHelpSection.TROUBLESHOOTING to "Проблемы",
+                listOf(
+                    TelegramHelpSection.OVERVIEW to "Обзор",
+                    TelegramHelpSection.MINI_APP to "Mini App",
+                ),
+                listOf(
+                    TelegramHelpSection.SUBSCRIPTIONS to "Подписки",
+                    TelegramHelpSection.ACCOUNTS to "Аккаунты",
+                    TelegramHelpSection.BETS to "Ставки",
+                ),
+                listOf(
+                    TelegramHelpSection.NOTIFICATIONS to "Уведомления",
+                    TelegramHelpSection.TROUBLESHOOTING to "Проблемы",
+                ),
             )
     }
 }
