@@ -22,6 +22,7 @@ object NotificationCallbackData {
     const val REFRESH = "${PREFIX}r"
     const val CREATE = "${PREFIX}c"
     const val CREATE_TYPES = "${PREFIX}ct"
+    const val DROPS = "${PREFIX}dl"
     const val ITEM_DROP_PLAYER = "${PREFIX}ip"
     const val ITEM_DROP_ITEM = "${PREFIX}ii"
     const val ITEM_DROP_CLEAR_PLAYER = "${PREFIX}ipc"
@@ -92,11 +93,14 @@ object NotificationCallbackData {
             ?.removePrefix(TYPE_PREFIX)
             ?.let(::creationModeForCode)
 
-    fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? = enumTargetFromData(data, BOOSTER_PREFIX)
+    fun selectedBoosterTarget(data: String): NotificationToggleTarget<NotificationBoosterType>? =
+        enumTargetFromData(data, BOOSTER_PREFIX)
 
-    fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? = enumTargetFromData(data, DUNGEON_PREFIX)
+    fun selectedDungeonTarget(data: String): NotificationToggleTarget<NotificationDungeonType>? =
+        enumTargetFromData(data, DUNGEON_PREFIX)
 
-    fun selectedGlobalTarget(data: String): NotificationToggleTarget<NotificationGlobalType>? = enumTargetFromData(data, GLOBAL_PREFIX)
+    fun selectedGlobalTarget(data: String): NotificationToggleTarget<NotificationGlobalType>? =
+        enumTargetFromData(data, GLOBAL_PREFIX)
 
     fun selectedRaidLocationTarget(data: String): NotificationRaidLocationTarget? {
         val payload =
