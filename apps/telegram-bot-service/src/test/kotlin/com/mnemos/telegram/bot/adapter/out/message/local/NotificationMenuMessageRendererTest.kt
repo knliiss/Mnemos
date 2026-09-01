@@ -12,6 +12,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationSubscr
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionPage
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -20,7 +21,7 @@ import java.util.UUID
 
 class NotificationMenuMessageRendererTest {
     @Test
-    fun `notification menu renders only item drop rules with numbered pagination`() {
+    fun `notification menu renders only item drop rules with intentional button rows`() {
         val subscriptionId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -58,10 +59,14 @@ class NotificationMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.label == "← 1/3" })
         assertTrue(callbacks.any { action -> action.label == "3/3 →" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.REFRESH })
+        assertEquals(1, message.actionRows[0].size)
+        assertEquals(3, message.actionRows[1].size)
+        assertEquals(1, message.actionRows[2].size)
+        assertEquals(3, message.actionRows[4].size)
     }
 
     @Test
-    fun `global screen renders replay safe target state callbacks`() {
+    fun `global screen renders replay safe target state callbacks in three plus two grid`() {
         val activeId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b72")
         val data =
             TelegramMenuScreenData.Notifications(
@@ -90,6 +95,8 @@ class NotificationMenuMessageRendererTest {
         assertTrue(moon.label.startsWith("✅"))
         assertTrue(moon.style == OutboundTelegramButtonStyle.SUCCESS)
         assertFalse(eclipse.label.startsWith("✅"))
+        assertEquals(3, message.actionRows[0].size)
+        assertEquals(2, message.actionRows[1].size)
     }
 
     @Test
@@ -113,7 +120,7 @@ class NotificationMenuMessageRendererTest {
     }
 
     @Test
-    fun `raid editor uses replay safe target location callbacks and update action`() {
+    fun `raid editor uses replay safe target location callbacks and compact location rows`() {
         val raidId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b73")
         val raidSubscription =
             NotificationSubscription(
@@ -159,6 +166,9 @@ class NotificationMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.label == "2/2 →" })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_CLEAR })
         assertTrue(callbacks.any { action -> action.data == NotificationCallbackData.RAID_SAVE })
+        assertEquals(7, message.actionRows[0].size)
+        assertEquals(7, message.actionRows[1].size)
+        assertEquals(2, message.actionRows[3].size)
     }
 
     @Test
