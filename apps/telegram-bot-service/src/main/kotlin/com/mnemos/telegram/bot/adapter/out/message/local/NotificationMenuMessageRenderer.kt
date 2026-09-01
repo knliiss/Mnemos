@@ -16,7 +16,6 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationMenuFe
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscription
 import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionResult
-import com.mnemos.telegram.bot.application.notification.model.NotificationSubscriptionType
 
 object NotificationMenuMessageRenderer {
     fun render(data: TelegramMenuScreenData): OutboundTelegramMessage {
@@ -28,12 +27,8 @@ object NotificationMenuMessageRenderer {
             NotificationCreationMode.LIST -> renderDashboard(notificationsData.data)
             NotificationCreationMode.ITEM_DROP_LIST -> renderItemDropList(notificationsData.data)
             NotificationCreationMode.ITEM_DROP_DELETE -> renderItemDropDeleteConfirmation(notificationsData.data)
-            NotificationCreationMode.TYPE_SELECTION -> renderItemDropCreation(notificationsData.data)
             NotificationCreationMode.ITEM_DROP -> renderItemDropCreation(notificationsData.data)
-            NotificationCreationMode.BOOSTER -> renderBoosterToggles(notificationsData.data)
-            NotificationCreationMode.DUNGEON -> renderDungeonToggles(notificationsData.data)
             NotificationCreationMode.RAID -> renderRaidEditor(notificationsData.data)
-            NotificationCreationMode.GLOBAL -> renderGlobalToggles(notificationsData.data)
         }
     }
 
@@ -107,7 +102,7 @@ object NotificationMenuMessageRenderer {
         val raidAction =
             callback(
                 label = stateLabel("🛡 Рейды", raidActive),
-                data = NotificationCallbackData.type(NotificationSubscriptionType.RAID),
+                data = NotificationCallbackData.RAID_EDIT,
                 style = activeStyle(raidActive),
             )
         val dropsAction =
@@ -343,83 +338,6 @@ object NotificationMenuMessageRenderer {
 
         return rows
     }
-
-    private fun renderBoosterToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available =
-            data.result as? NotificationSubscriptionResult.Available
-                ?: return unavailableMessage(data.feedback)
-        val actions =
-            listOf(
-                boosterToggle(available, NotificationBoosterType.LUCK, "🍀 Удача"),
-                boosterToggle(available, NotificationBoosterType.MONEY, "💰 Деньги"),
-                boosterToggle(available, NotificationBoosterType.DAMAGE, "⚔️ Урон"),
-                boosterToggle(available, NotificationBoosterType.POWER, "💪 Сила"),
-            )
-
-        return renderToggleScreen(
-            data = data,
-            title = "⚡ <b>Бустеры</b>",
-            toggleRows = listOf(actions),
-        )
-    }
-
-    private fun renderDungeonToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available =
-            data.result as? NotificationSubscriptionResult.Available
-                ?: return unavailableMessage(data.feedback)
-        val actions =
-            listOf(
-                dungeonToggle(available, NotificationDungeonType.EASY, "🟢 Легкий"),
-                dungeonToggle(available, NotificationDungeonType.MEDIUM, "🟡 Средний"),
-                dungeonToggle(available, NotificationDungeonType.HARD, "🔴 Сложный"),
-                dungeonToggle(available, NotificationDungeonType.EXPERT, "🟣 Эксперт"),
-            )
-
-        return renderToggleScreen(
-            data = data,
-            title = "🏰 <b>Dungeon</b>",
-            toggleRows = listOf(actions),
-        )
-    }
-
-    private fun renderGlobalToggles(data: NotificationMenuScreenData): OutboundTelegramMessage {
-        val available =
-            data.result as? NotificationSubscriptionResult.Available
-                ?: return unavailableMessage(data.feedback)
-        val actions =
-            listOf(
-                globalToggle(available, NotificationGlobalType.DARKNESS, "🌑 Тьма"),
-                globalToggle(available, NotificationGlobalType.MOON, "🌙 Луна"),
-                globalToggle(available, NotificationGlobalType.ECLIPSE, "🌘 Затмение"),
-                globalToggle(available, NotificationGlobalType.EXPLOSION, "💥 Взрыв"),
-                globalToggle(available, NotificationGlobalType.COMET_CHAOS, "☄️ Хаос"),
-            )
-
-        return renderToggleScreen(
-            data = data,
-            title = "🌌 <b>Глобальные события</b>",
-            toggleRows =
-                listOf(
-                    actions.take(3),
-                    actions.drop(3),
-                ),
-        )
-    }
-
-    private fun renderToggleScreen(
-        data: NotificationMenuScreenData,
-        title: String,
-        toggleRows: List<List<OutboundTelegramMessageAction>>,
-    ): OutboundTelegramMessage =
-        messageWithRows(
-            text =
-                listOfNotNull(
-                    title,
-                    MESSAGE_DIVIDER,
-                    feedbackText(data.feedback),
-                ).joinToString("\n"),
-            rows = toggleRows + listOf(listOf(notificationsAction)),
-        )
 
     private fun renderRaidEditor(data: NotificationMenuScreenData): OutboundTelegramMessage {
         val available =
