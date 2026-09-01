@@ -16,6 +16,7 @@ enum class TelegramMenuScreen(
     ;
 
     companion object {
+        const val OPEN_CALLBACK_DATA = "m:open"
         const val BACK_CALLBACK_DATA = "m:back"
 
         fun fromCallbackData(callbackData: String): TelegramMenuScreen? =
