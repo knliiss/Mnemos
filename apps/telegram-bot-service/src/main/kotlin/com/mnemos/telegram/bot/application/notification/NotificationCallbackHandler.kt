@@ -4,6 +4,7 @@ import com.mnemos.telegram.bot.application.callback.TelegramCallbackContext
 import com.mnemos.telegram.bot.application.callback.TelegramScopedCallbackHandler
 import com.mnemos.telegram.bot.application.menu.TelegramMenuService
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
@@ -33,6 +34,14 @@ class NotificationCallbackHandler(
             return updateContext(context) {
                 NotificationMenuContext.selectMode(NotificationCreationMode.ITEM_DROP_LIST)
             }
+        }
+
+        if (context.data == NotificationCallbackData.DELETE_CANCEL) {
+            if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP_DELETE)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
+            return updateContext(context, NotificationMenuContext::returnToDropList)
         }
 
         if (context.data == NotificationCallbackData.CREATE || context.data == NotificationCallbackData.CREATE_TYPES) {
@@ -158,8 +167,12 @@ class NotificationCallbackHandler(
             }
         }
 
+        NotificationCallbackData.confirmedDeleteSubscriptionId(context.data)?.let { subscriptionId ->
+            return confirmDelete(context, subscriptionId)
+        }
+
         NotificationCallbackData.deletedSubscriptionId(context.data)?.let { subscriptionId ->
-            return delete(context, subscriptionId)
+            return requestDelete(context, subscriptionId)
         }
 
         return TelegramDeliveryResult.Delivered
@@ -197,11 +210,31 @@ class NotificationCallbackHandler(
         )
     }
 
-    private fun delete(
+    private fun requestDelete(
         context: TelegramCallbackContext,
         subscriptionId: UUID,
     ): TelegramDeliveryResult {
         if (!isCurrentMode(context, NotificationCreationMode.ITEM_DROP_LIST)) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return updateContext(context) { current ->
+            NotificationMenuContext.selectDelete(
+                context = current,
+                subscriptionId = subscriptionId,
+            )
+        }
+    }
+
+    private fun confirmDelete(
+        context: TelegramCallbackContext,
+        subscriptionId: UUID,
+    ): TelegramDeliveryResult {
+        val session = currentSession(context, NotificationCreationMode.ITEM_DROP_DELETE)
+            ?: return TelegramDeliveryResult.Delivered
+        val selectedSubscriptionId = NotificationMenuContext.deleteSubscriptionId(session.screenContext)
+
+        if (selectedSubscriptionId != subscriptionId) {
             return TelegramDeliveryResult.Delivered
         }
 
@@ -210,7 +243,7 @@ class NotificationCallbackHandler(
             subscriptionId = subscriptionId,
         )
 
-        return refresh(context)
+        return updateContext(context, NotificationMenuContext::returnToDropList)
     }
 
     private fun refresh(context: TelegramCallbackContext): TelegramDeliveryResult = updateContext(context, NotificationMenuContext::refresh)
@@ -241,11 +274,24 @@ class NotificationCallbackHandler(
     private fun isCurrentMode(
         context: TelegramCallbackContext,
         expectedMode: NotificationCreationMode,
-    ): Boolean {
-        val session = sessionRepository.find(context.telegramId) ?: return false
+    ): Boolean = currentSession(context, expectedMode) != null
 
-        return session.currentScreen == TelegramMenuScreen.NOTIFICATIONS &&
-            session.menuMessageId == context.messageId &&
-            NotificationMenuContext.mode(session.screenContext) == expectedMode
+    private fun currentSession(
+        context: TelegramCallbackContext,
+        expectedMode: NotificationCreationMode,
+    ): TelegramMenuSession? {
+        val session = sessionRepository.find(context.telegramId) ?: return null
+
+        if (session.currentScreen != TelegramMenuScreen.NOTIFICATIONS) {
+            return null
+        }
+
+        if (session.menuMessageId != context.messageId) {
+            return null
+        }
+
+        return session.takeIf { current ->
+            NotificationMenuContext.mode(current.screenContext) == expectedMode
+        }
     }
 }
