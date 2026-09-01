@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.application.input
 
+import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuSession
 import com.mnemos.telegram.bot.application.menu.model.TelegramPendingInput
 import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepository
@@ -16,6 +17,7 @@ class TelegramTextInputRouterTest {
         repository.save(
             TelegramMenuSession(
                 telegramId = TELEGRAM_ID,
+                currentScreen = TelegramMenuScreen.ONLINE,
                 pendingInput = TelegramPendingInput.ONLINE_PLAYER_SEARCH,
             ),
         )
