@@ -477,6 +477,7 @@ object NotificationMenuMessageRenderer {
     private fun feedbackText(feedback: NotificationMenuFeedback?): String? =
         when (feedback) {
             NotificationMenuFeedback.CREATED -> "✅ Правило сохранено."
+            NotificationMenuFeedback.RAID_SAVED -> "✅ RAID · Настройка сохранена."
             NotificationMenuFeedback.USER_NOT_FOUND ->
                 "⚠️ Не удалось подготовить профиль Mnemos. Попробуйте еще раз."
 
