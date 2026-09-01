@@ -55,12 +55,16 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             actionRows = homeActionRows,
         )
 
-    private fun onlineMessage(data: TelegramMenuScreenData): OutboundTelegramMessage =
-        OutboundTelegramMessage(
+    private fun onlineMessage(data: TelegramMenuScreenData): OutboundTelegramMessage {
+        val rows = renderSaoOnlineRows(data)
+
+        return OutboundTelegramMessage(
             text = renderSaoOnline(data),
             parseMode = OutboundTelegramMessageParseMode.HTML,
-            actions = renderSaoOnlineActions(data),
+            actions = rows.flatten(),
+            actionRows = rows,
         )
+    }
 
     private fun renderSaoOnline(data: TelegramMenuScreenData): String {
         val onlineData =
@@ -182,21 +186,21 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             "⚠️ Не удалось получить актуальный онлайн.",
         ).joinToString("\n")
 
-    private fun renderSaoOnlineActions(data: TelegramMenuScreenData): List<OutboundTelegramMessageAction> {
+    private fun renderSaoOnlineRows(data: TelegramMenuScreenData): List<List<OutboundTelegramMessageAction>> {
         val onlineData =
             data as? TelegramMenuScreenData.SaoOnline
-                ?: return sectionActions + navigationActions
+                ?: return unavailableOnlineRows
 
         return when (val screenData = onlineData.data) {
-            is SaoOnlineMenuScreenData.RealmList -> renderRealmListActions(screenData.snapshot)
-            is SaoOnlineMenuScreenData.RealmDetail -> renderRealmDetailActions(screenData)
-            is SaoOnlineMenuScreenData.SearchPrompt -> searchPromptActions
-            is SaoOnlineMenuScreenData.SearchResults -> renderSearchResultsActions(screenData)
-            SaoOnlineMenuScreenData.Unavailable -> sectionActions + navigationActions
+            is SaoOnlineMenuScreenData.RealmList -> renderRealmListRows(screenData.snapshot)
+            is SaoOnlineMenuScreenData.RealmDetail -> renderRealmDetailRows(screenData)
+            is SaoOnlineMenuScreenData.SearchPrompt -> listOf(searchPromptActions)
+            is SaoOnlineMenuScreenData.SearchResults -> renderSearchResultsRows(screenData)
+            SaoOnlineMenuScreenData.Unavailable -> unavailableOnlineRows
         }
     }
 
-    private fun renderRealmListActions(snapshot: SaoOnlineSnapshot): List<OutboundTelegramMessageAction> {
+    private fun renderRealmListRows(snapshot: SaoOnlineSnapshot): List<List<OutboundTelegramMessageAction>> {
         val realmActions =
             snapshot.realms.map { realm ->
                 OutboundTelegramMessageAction.Callback(
@@ -206,20 +210,41 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 )
             }
 
-        return sectionActions + realmActions + navigationActions
+        return buildList {
+            add(sectionRow)
+            addAll(realmActions.adaptiveRows())
+            add(listOf(refreshAction))
+            add(listOf(backAction))
+        }
     }
 
-    private fun renderRealmDetailActions(data: SaoOnlineMenuScreenData.RealmDetail): List<OutboundTelegramMessageAction> =
-        listOf(searchAction, eventHistoryAction, refreshAction) +
-            pageActions(data.page, data.totalPages) +
-            realmListAction +
-            navigationActions
+    private fun renderRealmDetailRows(data: SaoOnlineMenuScreenData.RealmDetail): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            add(sectionRow)
 
-    private fun renderSearchResultsActions(data: SaoOnlineMenuScreenData.SearchResults): List<OutboundTelegramMessageAction> =
-        listOf(eventHistoryAction, refreshAction) +
-            pageActions(data.page, data.totalPages) +
-            realmListAction +
-            navigationActions
+            val pagination = pageActions(data.page, data.totalPages)
+
+            if (pagination.isNotEmpty()) {
+                add(pagination)
+            }
+
+            add(listOf(realmListAction, refreshAction))
+            add(listOf(backAction))
+        }
+
+    private fun renderSearchResultsRows(data: SaoOnlineMenuScreenData.SearchResults): List<List<OutboundTelegramMessageAction>> =
+        buildList {
+            add(listOf(eventHistoryAction))
+
+            val pagination = pageActions(data.page, data.totalPages)
+
+            if (pagination.isNotEmpty()) {
+                add(pagination)
+            }
+
+            add(listOf(realmListAction, refreshAction))
+            add(listOf(backAction))
+        }
 
     private fun pageActions(
         page: Int,
@@ -429,7 +454,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 data = SaoOnlineCallbackData.REFRESH,
             )
 
-        val sectionActions = listOf(searchAction, eventHistoryAction, refreshAction)
+        val sectionRow = listOf(searchAction, eventHistoryAction)
 
         val realmListAction =
             OutboundTelegramMessageAction.Callback(
@@ -452,7 +477,12 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 data = TelegramMenuScreen.BACK_CALLBACK_DATA,
             )
 
-        val navigationActions = listOf(backAction)
+        val unavailableOnlineRows =
+            listOf(
+                sectionRow,
+                listOf(refreshAction),
+                listOf(backAction),
+            )
 
         val homeActionRows =
             listOf(
