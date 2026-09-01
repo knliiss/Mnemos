@@ -462,8 +462,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                         data = TelegramMenuScreen.ACCOUNT.callbackData,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
-                ),
-                listOf(
                     OutboundTelegramMessageAction.Callback(
                         label = "🔔 Уведомления",
                         data = TelegramMenuScreen.NOTIFICATIONS.callbackData,
@@ -483,8 +481,6 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                         data = TelegramMenuScreen.BETS.callbackData,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
-                ),
-                listOf(
                     OutboundTelegramMessageAction.Callback(
                         label = "⚙️ Настройки",
                         data = TelegramMenuScreen.SETTINGS.callbackData,
