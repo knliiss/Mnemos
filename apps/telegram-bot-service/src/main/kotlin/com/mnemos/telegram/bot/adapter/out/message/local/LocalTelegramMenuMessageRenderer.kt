@@ -92,14 +92,15 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         val generatedAt = onlineTimestampFormatter.format(snapshot.generatedAt)
 
         return listOf(
-            "🌐 <b>SAO и события</b>",
+            "🌐 <b>Онлайн SAO</b>",
             TelegramMessageLayout.DIVIDER,
             "",
-            "👥 <b>Онлайн</b>",
-            "└ Всего: <b>${snapshot.trackedOnline}</b>",
+            "👥 Всего онлайн: <b>${snapshot.trackedOnline}</b>",
             "",
             "🗺 <b>Реалмы</b>",
             realmLines,
+            "",
+            "Выберите реалм кнопкой ниже или найдите игрока по нику.",
             "",
             "🕒 <code>$generatedAt</code>",
         ).joinToString("\n")
@@ -119,7 +120,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         val totalPages = data.totalPages.coerceAtLeast(1)
 
         return listOf(
-            "🌐 <b>${escapeHtml(data.realmName)}</b>",
+            "🗺 <b>${escapeHtml(data.realmName)}</b>",
             TelegramMessageLayout.DIVIDER,
             "",
             "👥 Онлайн: <b>${data.playerCount}</b>",
@@ -134,7 +135,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
     private fun renderSearchPrompt(data: SaoOnlineMenuScreenData.SearchPrompt): String {
         val lines =
             mutableListOf(
-                "🔎 <b>Поиск игрока</b>",
+                "🔎 <b>Поиск игрока онлайн</b>",
                 TelegramMessageLayout.DIVIDER,
                 "",
                 "Отправьте никнейм или его часть одним сообщением.",
@@ -166,7 +167,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
         val totalPages = data.totalPages.coerceAtLeast(1)
 
         return listOf(
-            "🔎 <b>Поиск игрока</b>",
+            "🔎 <b>Поиск игрока онлайн</b>",
             TelegramMessageLayout.DIVIDER,
             "",
             "Запрос: <code>${escapeHtml(data.query)}</code>",
@@ -181,7 +182,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
     private fun renderSaoOnlineUnavailable(): String =
         listOf(
-            "🌐 <b>SAO и события</b>",
+            "🌐 <b>Онлайн SAO</b>",
             TelegramMessageLayout.DIVIDER,
             "",
             "⚠️ Не удалось получить актуальный онлайн.",
@@ -212,7 +213,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
             }
 
         return buildList {
-            add(sectionRow)
+            add(listOf(searchAction))
             addAll(realmActions.adaptiveRows())
             add(listOf(refreshAction))
             add(listOf(backAction))
@@ -221,29 +222,27 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
     private fun renderRealmDetailRows(data: SaoOnlineMenuScreenData.RealmDetail): List<List<OutboundTelegramMessageAction>> =
         buildList {
-            add(sectionRow)
-
             val pagination = pageActions(data.page, data.totalPages)
 
             if (pagination.isNotEmpty()) {
                 add(pagination)
             }
 
-            add(listOf(realmListAction, refreshAction))
+            add(listOf(realmListAction))
+            add(listOf(refreshAction))
             add(listOf(backAction))
         }
 
     private fun renderSearchResultsRows(data: SaoOnlineMenuScreenData.SearchResults): List<List<OutboundTelegramMessageAction>> =
         buildList {
-            add(listOf(eventHistoryAction))
-
             val pagination = pageActions(data.page, data.totalPages)
 
             if (pagination.isNotEmpty()) {
                 add(pagination)
             }
 
-            add(listOf(realmListAction, refreshAction))
+            add(listOf(realmListAction))
+            add(listOf(refreshAction))
             add(listOf(backAction))
         }
 
@@ -441,20 +440,11 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 style = OutboundTelegramButtonStyle.PRIMARY,
             )
 
-        val eventHistoryAction =
-            OutboundTelegramMessageAction.Callback(
-                label = "📜 История событий",
-                data = TelegramMenuScreen.EVENTS.callbackData,
-                style = OutboundTelegramButtonStyle.PRIMARY,
-            )
-
         val refreshAction =
             OutboundTelegramMessageAction.Callback(
                 label = "🔄 Обновить",
                 data = SaoOnlineCallbackData.REFRESH,
             )
-
-        val sectionRow = listOf(searchAction, eventHistoryAction)
 
         val realmListAction =
             OutboundTelegramMessageAction.Callback(
@@ -479,7 +469,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
 
         val unavailableOnlineRows =
             listOf(
-                sectionRow,
+                listOf(searchAction),
                 listOf(refreshAction),
                 listOf(backAction),
             )
@@ -502,8 +492,15 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 ),
                 listOf(
                     OutboundTelegramMessageAction.Callback(
-                        label = "🌐 SAO и события",
+                        label = "🌐 Онлайн и реалмы",
                         data = TelegramMenuScreen.ONLINE.callbackData,
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
+                ),
+                listOf(
+                    OutboundTelegramMessageAction.Callback(
+                        label = "📜 История событий",
+                        data = TelegramMenuScreen.EVENTS.callbackData,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
                 ),
