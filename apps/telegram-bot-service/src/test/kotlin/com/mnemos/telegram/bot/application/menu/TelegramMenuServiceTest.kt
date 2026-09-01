@@ -180,7 +180,7 @@ class TelegramMenuServiceTest {
     }
 
     @Test
-    fun `stale home callback does not replace active menu session`() {
+    fun `stale home callback safely opens fresh menu`() {
         sessionRepository.save(
             TelegramMenuSession(
                 telegramId = TELEGRAM_ID,
@@ -197,9 +197,10 @@ class TelegramMenuServiceTest {
         val session = sessionRepository.find(TELEGRAM_ID)
 
         assertEquals(TelegramDeliveryResult.Delivered, result)
-        assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
-        assertEquals(TelegramMenuScreen.ONLINE, session?.currentScreen)
+        assertEquals(1, messageGateway.sentMessages.size)
         assertEquals(0, messageGateway.editedMessages.size)
+        assertEquals(MENU_MESSAGE_ID, session?.menuMessageId)
+        assertEquals(TelegramMenuScreen.HOME, session?.currentScreen)
     }
 
     private class TestMenuMessageRenderer : TelegramMenuMessageRenderer {
