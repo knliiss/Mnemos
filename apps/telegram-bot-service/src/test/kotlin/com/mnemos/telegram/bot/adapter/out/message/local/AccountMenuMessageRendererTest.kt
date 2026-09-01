@@ -48,6 +48,8 @@ class AccountMenuMessageRendererTest {
 
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val dailyLabel = message.actionRows.first().single().label
+        val primeLabel = message.actionRows[1].single().label
 
         assertTrue(message.text.contains("<b>Активный аккаунт</b>"))
         assertTrue(message.text.contains("└ <code>knaliz</code>"))
@@ -61,8 +63,8 @@ class AccountMenuMessageRendererTest {
         assertTrue(callbacks.none { action -> action.data == AccountCallbackData.switch(deactivatedAccount.accountId) })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CREATE })
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
-        assertTrue(message.actionRows.first().single().label.contains("Daily"))
-        assertTrue(message.actionRows[1].single().label.contains("PRIME"))
+        assertTrue(dailyLabel.contains("Daily"))
+        assertTrue(primeLabel.contains("PRIME"))
     }
 
     @Test
