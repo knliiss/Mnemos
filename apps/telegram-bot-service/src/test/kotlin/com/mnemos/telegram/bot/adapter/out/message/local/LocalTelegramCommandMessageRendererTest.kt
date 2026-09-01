@@ -23,7 +23,7 @@ class LocalTelegramCommandMessageRendererTest {
         assertTrue(
             actions.any { action ->
                 action is OutboundTelegramMessageAction.Callback &&
-                    action.data == TelegramMenuScreen.HOME.callbackData &&
+                    action.data == TelegramMenuScreen.OPEN_CALLBACK_DATA &&
                     action.style == OutboundTelegramButtonStyle.PRIMARY
             },
         )
@@ -68,7 +68,7 @@ class LocalTelegramCommandMessageRendererTest {
             assertEquals(TelegramHelpSection.entries.size + 1, callbacks.size)
             assertTrue(
                 callbacks.any { action ->
-                    action.data == TelegramMenuScreen.HOME.callbackData
+                    action.data == TelegramMenuScreen.OPEN_CALLBACK_DATA
                 },
             )
             assertTrue(callbacks.any { action -> action.data == section.callbackData })
