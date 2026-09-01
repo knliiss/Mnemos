@@ -72,6 +72,7 @@ class BetMenuScreenDataProvider(
                 feedback = BetMenuContext.feedback(session.screenContext),
                 waitingForAmount = isWaitingForAmount(session.pendingInput),
                 increasing = BetMenuContext.increasing(session.screenContext),
+                operationTracked = BetMenuContext.operationId(session.screenContext) != null,
             ),
         )
     }
