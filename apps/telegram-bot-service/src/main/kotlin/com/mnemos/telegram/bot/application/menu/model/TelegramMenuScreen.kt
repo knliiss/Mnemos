@@ -4,6 +4,7 @@ enum class TelegramMenuScreen(
     val callbackData: String,
 ) {
     HOME("m:home"),
+    MORE("m:more"),
     NOTIFICATIONS("m:notifications"),
     ONLINE("m:online"),
     EVENTS("m:events"),
