@@ -54,19 +54,18 @@ object AccountMenuMessageRenderer {
         val activeAccount = context.accounts.firstOrNull { account -> account.active }
         val lines =
             mutableListOf(
-                "👤 <b>Аккаунт</b>",
+                "👤 <b>Аккаунты</b>",
                 MESSAGE_DIVIDER,
                 "",
-                "🔑 <b>Активный аккаунт</b>",
+                "🔑 <b>Активный Cristalix-аккаунт</b>",
                 activeAccountSection(activeAccount),
                 "",
-                "💰 <b>Баланс</b>",
             )
 
         lines += balanceSection(balance)
         lines += ""
-        lines += "👥 <b>Аккаунты</b>"
-        lines += "└ Доступно: <b>${context.accounts.size}</b>"
+        lines += "👥 <b>Доступные аккаунты</b>"
+        lines += "└ ${context.accounts.size}"
 
         if (context.accounts.isNotEmpty()) {
             lines += ""
@@ -92,10 +91,10 @@ object AccountMenuMessageRenderer {
     ): OutboundTelegramMessage {
         val lines =
             mutableListOf(
-                "👤 <b>Аккаунт</b>",
+                "👤 <b>Аккаунты</b>",
                 MESSAGE_DIVIDER,
                 "",
-                "🔑 <b>Активный аккаунт</b>",
+                "🔑 <b>Активный Cristalix-аккаунт</b>",
                 "└ Не подключён",
                 "",
                 "Создайте Cristalix-аккаунт или присоединитесь по приглашению.",
@@ -120,7 +119,7 @@ object AccountMenuMessageRenderer {
     ): OutboundTelegramMessage {
         val lines =
             mutableListOf(
-                "👤 <b>Аккаунт</b>",
+                "👤 <b>Аккаунты</b>",
                 MESSAGE_DIVIDER,
                 "",
                 "⚠️ Не удалось получить данные аккаунта.",
@@ -153,7 +152,8 @@ object AccountMenuMessageRenderer {
         }
 
         return buildList {
-            add(listOf(dailyAction, primeAction))
+            add(listOf(dailyAction))
+            add(listOf(primeAction))
 
             accountSwitchActions(context).forEach { action ->
                 add(listOf(action))
@@ -175,18 +175,31 @@ object AccountMenuMessageRenderer {
         when (balance) {
             is TelegramAccountBalanceResult.Available ->
                 listOf(
-                    "├ COIN: <b>${balance.balance.coin}</b>",
-                    "└ PRIME: <b>${balance.balance.prime}</b> ⭐",
+                    "💰 <b>COIN активного аккаунта</b>",
+                    "└ <b>${balance.balance.coin}</b> COIN",
+                    "",
+                    "⭐ <b>PRIME пользователя Mnemos</b>",
+                    "└ <b>${balance.balance.prime}</b> PRIME",
+                    "   PRIME общий для вас и не меняется при переключении Cristalix-аккаунта.",
                 )
 
             TelegramAccountBalanceResult.NotRequired ->
                 listOf(
-                    "├ COIN: —",
-                    "└ PRIME: —",
+                    "💰 <b>COIN активного аккаунта</b>",
+                    "└ Выберите Cristalix-аккаунт",
+                    "",
+                    "⭐ <b>PRIME пользователя Mnemos</b>",
+                    "└ Откройте раздел PRIME",
                 )
 
             TelegramAccountBalanceResult.Unavailable ->
-                listOf("└ Временно недоступен")
+                listOf(
+                    "💰 <b>COIN активного аккаунта</b>",
+                    "└ Временно недоступен",
+                    "",
+                    "⭐ <b>PRIME пользователя Mnemos</b>",
+                    "└ Временно недоступен",
+                )
         }
 
     private fun accountLines(context: TelegramAccountContext): String =
@@ -232,12 +245,14 @@ object AccountMenuMessageRenderer {
             listOf(
                 listOf(
                     OutboundTelegramMessageAction.Callback(
-                        label = "➕ Создать",
+                        label = "➕ Создать аккаунт",
                         data = AccountCallbackData.CREATE,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
+                ),
+                listOf(
                     OutboundTelegramMessageAction.Callback(
-                        label = "🔗 Присоединиться",
+                        label = "🔗 Присоединиться по инвайту",
                         data = AccountCallbackData.JOIN,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
@@ -311,14 +326,14 @@ object AccountMenuMessageRenderer {
 
     private val dailyAction =
         OutboundTelegramMessageAction.Callback(
-            label = "🎁 Daily",
+            label = "🎁 Daily аккаунта",
             data = TelegramMenuScreen.DAILY.callbackData,
             style = OutboundTelegramButtonStyle.SUCCESS,
         )
 
     private val primeAction =
         OutboundTelegramMessageAction.Callback(
-            label = "⭐ PRIME",
+            label = "⭐ PRIME пользователя",
             data = TelegramMenuScreen.PRIME.callbackData,
             style = OutboundTelegramButtonStyle.PRIMARY,
         )
