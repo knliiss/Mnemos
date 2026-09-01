@@ -88,6 +88,7 @@ object DailyMenuMessageRenderer {
                         OutboundTelegramMessageAction.Callback(
                             label = "♻️ Восстановить серию",
                             data = DailyCallbackData.RESTORE,
+                            style = OutboundTelegramButtonStyle.PRIMARY,
                         ),
                     ),
                 )
