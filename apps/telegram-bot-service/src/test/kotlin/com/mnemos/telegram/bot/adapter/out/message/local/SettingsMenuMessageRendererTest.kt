@@ -2,11 +2,13 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.settings.model.TelegramNotificationPackOption
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsMutationResult
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsSnapshot
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -16,7 +18,7 @@ class SettingsMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `settings render language and active notification pack without Mini App fallback`() {
+    fun `settings render structured language and active notification pack`() {
         val packId = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b71")
         val data =
             TelegramMenuScreenData.Settings(
@@ -38,9 +40,15 @@ class SettingsMenuMessageRendererTest {
             )
 
         val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
+        val callbacks = message.actionRows.flatten().filterIsInstance<OutboundTelegramMessageAction.Callback>()
+        val activePack = callbacks.first { action -> action.label.startsWith("🔔 Night") }
 
-        assertTrue(message.text.contains("🇺🇦 Українська"))
-        assertTrue(message.text.contains("Night &lt;Ops&gt;"))
+        assertTrue(message.text.contains("🌐 <b>Язык</b>"))
+        assertTrue(message.text.contains("└ 🇺🇦 Українська"))
+        assertTrue(message.text.contains("🔔 <b>Пак уведомлений</b>"))
+        assertTrue(message.text.contains("└ Night &lt;Ops&gt;"))
+        assertEquals(3, message.actionRows.first().size)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, activePack.style)
         assertFalse(message.actions.any { action -> action is OutboundTelegramMessageAction.OpenMiniApp })
     }
 
@@ -60,9 +68,11 @@ class SettingsMenuMessageRendererTest {
 
         val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
 
-        assertTrue(message.text.contains("Пак уведомлений: <b>Не выбран</b>"))
+        assertTrue(message.text.contains("🔔 <b>Пак уведомлений</b>"))
+        assertTrue(message.text.contains("└ Не выбран"))
         assertTrue(message.text.contains("✅ Настройка сохранена."))
-        assertTrue(message.text.contains("Доступных паков уведомлений пока нет."))
+        assertTrue(message.text.contains("Паки уведомлений пока недоступны."))
+        assertEquals(listOf(3, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test
@@ -76,5 +86,6 @@ class SettingsMenuMessageRendererTest {
         val message = renderer.render(TelegramMenuScreen.SETTINGS, data, TelegramSettingsLanguage.RU)
 
         assertTrue(message.text.contains("Не удалось загрузить персональные настройки"))
+        assertEquals(listOf(1, 1), message.actionRows.map(List<*>::size))
     }
 }
