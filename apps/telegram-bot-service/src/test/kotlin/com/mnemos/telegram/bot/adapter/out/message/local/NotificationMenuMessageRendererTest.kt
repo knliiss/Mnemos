@@ -124,8 +124,16 @@ class NotificationMenuMessageRendererTest {
 
         assertEquals(listOf(2, 2, 2), booster.actionRows.map(List<*>::size))
         assertEquals(listOf(2, 2, 2), dungeon.actionRows.map(List<*>::size))
-        assertTrue(booster.callbacks().any { action -> action.data == NotificationCallbackData.booster(NotificationBoosterType.LUCK, true) })
-        assertTrue(dungeon.callbacks().any { action -> action.data == NotificationCallbackData.dungeon(NotificationDungeonType.EASY, true) })
+        assertTrue(
+            booster.callbacks().any { action ->
+                action.data == NotificationCallbackData.booster(NotificationBoosterType.LUCK, true)
+            },
+        )
+        assertTrue(
+            dungeon.callbacks().any { action ->
+                action.data == NotificationCallbackData.dungeon(NotificationDungeonType.EASY, true)
+            },
+        )
     }
 
     @Test

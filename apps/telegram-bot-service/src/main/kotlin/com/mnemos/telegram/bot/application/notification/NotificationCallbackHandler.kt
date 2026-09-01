@@ -126,6 +126,10 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedBoosterTarget(context.data)?.let { target ->
+            if (!isCurrentMode(context, NotificationCreationMode.BOOSTERS)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return creationService.setBooster(
                 context = context,
                 boosterType = target.value,
@@ -134,6 +138,10 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedDungeonTarget(context.data)?.let { target ->
+            if (!isCurrentMode(context, NotificationCreationMode.DUNGEONS)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return creationService.setDungeon(
                 context = context,
                 dungeonType = target.value,
@@ -142,6 +150,10 @@ class NotificationCallbackHandler(
         }
 
         NotificationCallbackData.selectedGlobalTarget(context.data)?.let { target ->
+            if (!isCurrentMode(context, NotificationCreationMode.GLOBALS)) {
+                return TelegramDeliveryResult.Delivered
+            }
+
             return creationService.setGlobal(
                 context = context,
                 eventType = target.value,
