@@ -57,7 +57,29 @@ jobs:
   check:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, mnemos-backend]
+    timeout-minutes: 45
+
     steps:
+      - name: Clean generated workspace state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "$GITHUB_WORKSPACE" ]; then
+            exit 0
+          fi
+
+          find "$GITHUB_WORKSPACE" \
+            -type d \
+            \( \
+              -name build -o \
+              -name .gradle -o \
+              -name .kotlin -o \
+              -name __pycache__ \
+            \) \
+            -prune \
+            -exec rm -rf -- {} +
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
