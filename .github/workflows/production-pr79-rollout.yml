@@ -1,4 +1,4 @@
-name: Production PR79 Rollout
+name: Production Telegram Bot Rollout
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 concurrency:
-  group: mnemos-production-pr79-rollout
+  group: mnemos-production-telegram-bot-rollout
   cancel-in-progress: false
 
 permissions:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   migrate-production-env:
-    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
     runs-on:
       - self-hosted
       - mnemos-production
@@ -47,7 +47,7 @@ jobs:
           sudo -n sh scripts/validate-production-env.sh
 
   publish-production-images:
-    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
     runs-on:
       - self-hosted
       - Linux
@@ -82,17 +82,17 @@ jobs:
       - name: Configure isolated Docker publishing
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-bot-rollout-docker-auth
         run: |
           set -euo pipefail
 
           rm -rf "$DOCKER_CONFIG"
           install --directory --mode=0700 "$DOCKER_CONFIG"
 
-          docker buildx rm mnemos-pr79-builder >/dev/null 2>&1 || true
+          docker buildx rm mnemos-telegram-bot-rollout-builder >/dev/null 2>&1 || true
           docker buildx create \
             --driver docker-container \
-            --name mnemos-pr79-builder \
+            --name mnemos-telegram-bot-rollout-builder \
             --use
           docker buildx inspect --bootstrap
 
@@ -100,7 +100,7 @@ jobs:
         shell: bash
         env:
           GHCR_TOKEN: ${{ github.token }}
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-bot-rollout-docker-auth
         run: |
           set -euo pipefail
 
@@ -112,7 +112,7 @@ jobs:
       - name: Publish immutable production images
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-bot-rollout-docker-auth
           MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
           MNEMOS_IMAGE_TAG: ${{ github.sha }}
           MNEMOS_IMAGE_PUSH: "true"
@@ -144,15 +144,15 @@ jobs:
         if: always()
         shell: bash
         env:
-          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-bot-rollout-docker-auth
         run: |
           set +e
 
-          docker buildx rm mnemos-pr79-builder >/dev/null 2>&1 || true
+          docker buildx rm mnemos-telegram-bot-rollout-builder >/dev/null 2>&1 || true
           rm -rf "$DOCKER_CONFIG"
 
   deploy-production:
-    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
     needs:
       - migrate-production-env
       - publish-production-images
@@ -178,13 +178,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          sudo -n rm -rf /run/mnemos-pr79-docker-auth
+          sudo -n rm -rf /run/mnemos-telegram-bot-rollout-docker-auth
           sudo -n install \
             --directory \
             --owner=root \
             --group=root \
             --mode=0700 \
-            /run/mnemos-pr79-docker-auth
+            /run/mnemos-telegram-bot-rollout-docker-auth
 
       - name: Authenticate production Docker to GHCR
         shell: bash
@@ -195,7 +195,7 @@ jobs:
 
           printf '%s' "$GHCR_TOKEN" | \
             sudo -n env \
-              DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+              DOCKER_CONFIG=/run/mnemos-telegram-bot-rollout-docker-auth \
               docker login ghcr.io \
                 --username "${{ github.actor }}" \
                 --password-stdin
@@ -206,7 +206,7 @@ jobs:
           set -euo pipefail
 
           sudo -n env \
-            DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+            DOCKER_CONFIG=/run/mnemos-telegram-bot-rollout-docker-auth \
             MNEMOS_IMAGE_REGISTRY=ghcr.io/${{ github.repository_owner }} \
             MNEMOS_RELEASE_TAG=${{ github.sha }} \
             sh scripts/start-production-infra.sh
@@ -217,7 +217,7 @@ jobs:
           set -euo pipefail
 
           sudo -n env \
-            DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+            DOCKER_CONFIG=/run/mnemos-telegram-bot-rollout-docker-auth \
             MNEMOS_IMAGE_REGISTRY=ghcr.io/${{ github.repository_owner }} \
             MNEMOS_RELEASE_TAG=${{ github.sha }} \
             sh scripts/deploy-production-apps.sh
@@ -238,4 +238,4 @@ jobs:
         shell: bash
         run: |
           set +e
-          sudo -n rm -rf /run/mnemos-pr79-docker-auth
+          sudo -n rm -rf /run/mnemos-telegram-bot-rollout-docker-auth
