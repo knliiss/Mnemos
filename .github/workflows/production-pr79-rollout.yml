@@ -1,0 +1,241 @@
+name: Production PR79 Rollout
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: mnemos-production-pr79-rollout
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate-production-env:
+    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout merged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify merged revision
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "${GITHUB_SHA}" ]; then
+            echo "Checked-out revision does not match merged master revision" >&2
+            exit 1
+          fi
+
+      - name: Migrate and validate production environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/migrate-production-env.sh
+          sudo -n sh scripts/validate-production-env.sh
+
+  publish-production-images:
+    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - mnemos-backend
+    timeout-minutes: 60
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout merged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Assemble production artifacts
+        run: ./gradlew assemble --no-daemon
+
+      - name: Configure isolated Docker publishing
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+        run: |
+          set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install --directory --mode=0700 "$DOCKER_CONFIG"
+
+          docker buildx rm mnemos-pr79-builder >/dev/null 2>&1 || true
+          docker buildx create \
+            --driver docker-container \
+            --name mnemos-pr79-builder \
+            --use
+          docker buildx inspect --bootstrap
+
+      - name: Authenticate to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Publish immutable production images
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_IMAGE_TAG: ${{ github.sha }}
+          MNEMOS_IMAGE_PUSH: "true"
+        run: |
+          set -euo pipefail
+
+          read_env_value() {
+            key="$1"
+            value="$(sed -n "s/^${key}=//p" .env.example)"
+
+            if [ -z "$value" ]; then
+              echo "${key} is missing from .env.example" >&2
+              exit 1
+            fi
+
+            printf '%s' "$value"
+          }
+
+          export POSTGRES_VERSION="$(read_env_value POSTGRES_VERSION)"
+          export KEYCLOAK_VERSION="$(read_env_value KEYCLOAK_VERSION)"
+          export KEYCLOAK_CONFIG_CLI_VERSION="$(read_env_value KEYCLOAK_CONFIG_CLI_VERSION)"
+          export KAFKA_VERSION="$(read_env_value KAFKA_VERSION)"
+          export REDIS_VERSION="$(read_env_value REDIS_VERSION)"
+          export MINIO_MC_VERSION="$(read_env_value MINIO_MC_VERSION)"
+
+          sh scripts/publish-production-images.sh
+
+      - name: Remove publishing credentials and builder
+        if: always()
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-pr79-docker-auth
+        run: |
+          set +e
+
+          docker buildx rm mnemos-pr79-builder >/dev/null 2>&1 || true
+          rm -rf "$DOCKER_CONFIG"
+
+  deploy-production:
+    if: contains(github.event.head_commit.message, 'Merge pull request #79')
+    needs:
+      - migrate-production-env
+      - publish-production-images
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout merged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Prepare isolated production registry credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-pr79-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-pr79-docker-auth
+
+      - name: Authenticate production Docker to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Reconcile production infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+            MNEMOS_IMAGE_REGISTRY=ghcr.io/${{ github.repository_owner }} \
+            MNEMOS_RELEASE_TAG=${{ github.sha }} \
+            sh scripts/start-production-infra.sh
+
+      - name: Deploy production applications
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-pr79-docker-auth \
+            MNEMOS_IMAGE_REGISTRY=ghcr.io/${{ github.repository_owner }} \
+            MNEMOS_RELEASE_TAG=${{ github.sha }} \
+            sh scripts/deploy-production-apps.sh
+
+      - name: Verify production runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/verify-production-infra.sh
+          sudo -n sh scripts/wait-production-stack.sh \
+            mnemos \
+            "${GITHUB_SHA}" \
+            900
+
+      - name: Remove production registry credentials
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          sudo -n rm -rf /run/mnemos-pr79-docker-auth
