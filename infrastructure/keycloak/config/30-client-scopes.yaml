@@ -9,11 +9,25 @@ clientScopes:
       include.in.token.scope: "false"
       display.on.consent.screen: "false"
 
+  - name: moderation-service-admin-roles
+    description: Read-only Keycloak Admin API roles for moderation-service
+    protocol: openid-connect
+
+    attributes:
+      include.in.token.scope: "false"
+      display.on.consent.screen: "false"
+
 clientScopeMappings:
   realm-management:
     - clientScope: account-service-admin-roles
 
       roles:
         - manage-users
+        - view-users
+        - query-users
+
+    - clientScope: moderation-service-admin-roles
+
+      roles:
         - view-users
         - query-users
