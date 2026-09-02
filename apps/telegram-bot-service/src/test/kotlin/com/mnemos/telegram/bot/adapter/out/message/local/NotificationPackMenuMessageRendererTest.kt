@@ -9,10 +9,12 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonS
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackDetailResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackDetail
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackPreview
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStorePage
@@ -62,7 +64,7 @@ class NotificationPackMenuMessageRendererTest {
     @Test
     fun `detail renders standard and aggregate previews together`() {
         val pack =
-            storePack(
+            detailPack(
                 name = "Crystal <Pack>",
                 author = "Creator & Co",
             )
@@ -86,7 +88,7 @@ class NotificationPackMenuMessageRendererTest {
 
     @Test
     fun `detail exposes the same event type and variant controls as Mini App`() {
-        val message = NotificationPackMenuMessageRenderer.render(detailData(storePack()))
+        val message = NotificationPackMenuMessageRenderer.render(detailData(detailPack()))
         val callbacks = message.callbacks()
 
         NotificationPackTemplateType.entries.forEach { type ->
@@ -104,7 +106,7 @@ class NotificationPackMenuMessageRendererTest {
     fun `selected conditional variant changes both preview formats`() {
         val data =
             detailData(
-                pack = storePack(),
+                pack = detailPack(),
                 selectedVariantId = SECRET_VARIANT_ID,
             )
 
@@ -121,7 +123,7 @@ class NotificationPackMenuMessageRendererTest {
     fun `switching event type keeps both preview formats on selected type`() {
         val data =
             detailData(
-                pack = storePack(),
+                pack = detailPack(),
                 selectedTemplateType = NotificationPackTemplateType.GLOBAL,
             )
 
@@ -136,7 +138,7 @@ class NotificationPackMenuMessageRendererTest {
 
     @Test
     fun `owned pack detail renders success apply action`() {
-        val pack = storePack(owned = true)
+        val pack = detailPack(owned = true)
         val data = detailData(pack)
 
         val message = NotificationPackMenuMessageRenderer.render(data)
@@ -145,6 +147,22 @@ class NotificationPackMenuMessageRendererTest {
         assertTrue(message.text.contains("Статус: <b>куплен</b>"))
         assertEquals("✅ Применить", apply.label)
         assertEquals(OutboundTelegramButtonStyle.SUCCESS, apply.style)
+    }
+
+    @Test
+    fun `missing detail returns to store`() {
+        val data =
+            screenData(
+                mode = NotificationPackMenuMode.DETAIL,
+                detail = NotificationPackDetailResult.NotFound,
+                selectedPersonalizationId = PACK_ID,
+            )
+
+        val message = NotificationPackMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+
+        assertTrue(message.text.contains("Этот пак больше недоступен в магазине"))
+        assertTrue(callbacks.any { action -> action.data == NotificationPackCallbackData.STORE })
     }
 
     @Test
@@ -192,22 +210,13 @@ class NotificationPackMenuMessageRendererTest {
     }
 
     private fun detailData(
-        pack: TelegramNotificationPackStoreItem,
+        pack: TelegramNotificationPackDetail,
         selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
         selectedVariantId: String? = null,
     ): TelegramMenuScreenData.Packs =
         screenData(
             mode = NotificationPackMenuMode.DETAIL,
-            store =
-                NotificationPackStoreResult.Available(
-                    TelegramNotificationPackStorePage(
-                        packs = listOf(pack),
-                        page = 0,
-                        totalItems = 1,
-                        totalPages = 1,
-                        hasNextPage = false,
-                    ),
-                ),
+            detail = NotificationPackDetailResult.Available(pack),
             selectedPersonalizationId = PACK_ID,
             selectedTemplateType = selectedTemplateType,
             selectedVariantId = selectedVariantId,
@@ -216,6 +225,7 @@ class NotificationPackMenuMessageRendererTest {
     private fun screenData(
         mode: NotificationPackMenuMode,
         store: NotificationPackStoreResult? = null,
+        detail: NotificationPackDetailResult? = null,
         owned: OwnedNotificationPacksResult? = null,
         selectedPersonalizationId: UUID? = null,
         selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
@@ -225,6 +235,7 @@ class NotificationPackMenuMessageRendererTest {
             NotificationPackMenuScreenData(
                 mode = mode,
                 store = store,
+                detail = detail,
                 owned = owned,
                 selectedPersonalizationId = selectedPersonalizationId,
                 selectedTemplateType = selectedTemplateType,
@@ -240,6 +251,22 @@ class NotificationPackMenuMessageRendererTest {
         active: Boolean = false,
     ): TelegramNotificationPackStoreItem =
         TelegramNotificationPackStoreItem(
+            personalizationId = PACK_ID,
+            name = name,
+            author = author,
+            priceAmount = 25,
+            currency = "PRIME",
+            owned = owned,
+            active = active,
+        )
+
+    private fun detailPack(
+        name: String = "Crystal Pack",
+        author: String = "Mnemos",
+        owned: Boolean = false,
+        active: Boolean = false,
+    ): TelegramNotificationPackDetail =
+        TelegramNotificationPackDetail(
             personalizationId = PACK_ID,
             name = name,
             author = author,
