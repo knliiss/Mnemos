@@ -25,7 +25,8 @@ object InternalTelegramNotificationPackApiMapper {
         InternalTelegramNotificationPackPreviewResponse(
             mixedAggregateTitle = mixedAggregateTitle,
             templates =
-                templates.mapKeys { (key, _) -> key.contractType }
+                templates
+                    .mapKeys { (key, _) -> key.contractType }
                     .mapValues { (_, template) -> template.toResponse() },
             valueMappings =
                 valueMappings.mapValues { (_, mappings) ->
@@ -40,13 +41,13 @@ object InternalTelegramNotificationPackApiMapper {
             soloBody = soloBody,
             compact = compact,
             aggregateTitle = aggregateTitle,
-            variants = variants.map(NotificationTemplateVariant::toResponse),
+            variants = variants.map { variant -> variant.toResponse() },
         )
 
     private fun NotificationTemplateVariant.toResponse(): InternalTelegramNotificationTemplateVariantResponse =
         InternalTelegramNotificationTemplateVariantResponse(
             id = id,
-            conditions = conditions.map(NotificationTemplateCondition::toResponse),
+            conditions = conditions.map { condition -> condition.toResponse() },
             emoji = emoji,
             soloTitle = soloTitle,
             soloBody = soloBody,
