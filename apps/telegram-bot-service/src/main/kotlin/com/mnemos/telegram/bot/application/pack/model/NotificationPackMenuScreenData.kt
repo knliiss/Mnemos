@@ -9,11 +9,6 @@ enum class NotificationPackMenuMode {
     DETAIL,
 }
 
-enum class NotificationPackAggregatePreviewMode {
-    SAME_TYPE,
-    MIXED,
-}
-
 enum class NotificationPackMenuFeedback {
     PURCHASE_ACCEPTED,
     PURCHASE_REFRESH,
@@ -30,6 +25,5 @@ data class NotificationPackMenuScreenData(
     val selectedPersonalizationId: UUID?,
     val selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
     val selectedVariantId: String? = null,
-    val aggregatePreviewMode: NotificationPackAggregatePreviewMode = NotificationPackAggregatePreviewMode.SAME_TYPE,
     val feedback: NotificationPackMenuFeedback? = null,
 )
