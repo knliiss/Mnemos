@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Verify config-only recovery boundary
@@ -45,8 +45,6 @@ jobs:
           SOURCE_RELEASE: 8cf36034cb5228afbd656419bee94e5a00ac1237
         run: |
           set -euo pipefail
-
-          git fetch --no-tags --depth=2 origin master
 
           git cat-file -e "${SOURCE_RELEASE}^{commit}"
 
