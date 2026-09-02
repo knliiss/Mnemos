@@ -274,6 +274,7 @@ class InternalTelegramAccountManagementService(
         return InternalTelegramAccountManagement(
             accountId = accountId,
             cristalixNickname = context.account.cristalixNickname.value,
+            actorMemberId = context.member.id,
             actorPermissions = actorPermissions,
             members = members,
             roles = roleSnapshots,
@@ -284,6 +285,7 @@ class InternalTelegramAccountManagementService(
 data class InternalTelegramAccountManagement(
     val accountId: AccountId,
     val cristalixNickname: String,
+    val actorMemberId: AccountMemberId,
     val actorPermissions: Set<RolePermission>,
     val members: List<InternalTelegramAccountMember>,
     val roles: List<InternalTelegramAccountRole>,

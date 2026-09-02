@@ -14,6 +14,7 @@ object InternalTelegramAccountManagementApiMapper {
         InternalTelegramAccountManagementResponse(
             accountId = accountId.id,
             cristalixNickname = cristalixNickname,
+            actorMemberId = actorMemberId.id,
             actorPermissions = actorPermissions.mapTo(linkedSetOf(), RolePermission::toContract),
             members = members.map(InternalTelegramAccountMember::toResponse),
             roles = roles.map(InternalTelegramAccountRole::toResponse),

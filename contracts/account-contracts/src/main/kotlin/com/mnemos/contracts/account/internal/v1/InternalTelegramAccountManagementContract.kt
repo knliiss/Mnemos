@@ -6,6 +6,7 @@ import java.util.UUID
 data class InternalTelegramAccountManagementResponse(
     val accountId: UUID,
     val cristalixNickname: String,
+    val actorMemberId: UUID,
     val actorPermissions: Set<InternalTelegramAccountPermission>,
     val members: List<InternalTelegramAccountMemberResponse>,
     val roles: List<InternalTelegramAccountRoleResponse>,
