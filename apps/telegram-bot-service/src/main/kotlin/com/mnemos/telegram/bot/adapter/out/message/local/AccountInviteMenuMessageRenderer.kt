@@ -135,6 +135,7 @@ object AccountInviteMenuMessageRenderer {
                             label = "🗑 Отозвать",
                             data = AccountInviteCallbackData.confirmRevoke(invite.id),
                             style = OutboundTelegramButtonStyle.DANGER,
+                            accented = true,
                         ),
                     ),
                     listOf(cancelRevokeAction),
@@ -260,11 +261,13 @@ object AccountInviteMenuMessageRenderer {
         label: String,
         data: String,
         style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        accented: Boolean = false,
     ): OutboundTelegramMessageAction.Callback =
         OutboundTelegramMessageAction.Callback(
             label = label,
             data = data,
             style = style,
+            accented = accented,
         )
 
     private fun escapeHtml(value: String): String =

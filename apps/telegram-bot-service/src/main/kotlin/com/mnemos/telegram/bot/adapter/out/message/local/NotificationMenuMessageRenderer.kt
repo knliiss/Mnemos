@@ -331,6 +331,7 @@ object NotificationMenuMessageRenderer {
                             label = "🗑 Удалить",
                             data = NotificationCallbackData.confirmDelete(subscriptionId),
                             style = OutboundTelegramButtonStyle.DANGER,
+                            accented = true,
                         ),
                     ),
                     listOf(deleteCancelAction),
@@ -603,11 +604,13 @@ object NotificationMenuMessageRenderer {
         label: String,
         data: String,
         style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        accented: Boolean = false,
     ): OutboundTelegramMessageAction.Callback =
         OutboundTelegramMessageAction.Callback(
             label = label,
             data = data,
             style = style,
+            accented = accented,
         )
 
     private fun categoryAction(

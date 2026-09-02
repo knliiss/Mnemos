@@ -31,21 +31,25 @@ enum class OutboundTelegramButtonStyle(
 sealed interface OutboundTelegramMessageAction {
     val label: String
     val style: OutboundTelegramButtonStyle
+    val accented: Boolean
 
     data class OpenMiniApp(
         override val label: String,
-        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.PRIMARY,
+        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        override val accented: Boolean = false,
     ) : OutboundTelegramMessageAction
 
     data class OpenUrl(
         override val label: String,
         val url: String,
         override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        override val accented: Boolean = false,
     ) : OutboundTelegramMessageAction
 
     data class Callback(
         override val label: String,
         val data: String,
         override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        override val accented: Boolean = false,
     ) : OutboundTelegramMessageAction
 }

@@ -1,6 +1,5 @@
 package com.mnemos.telegram.bot.adapter.out.telegram
 
-import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -109,27 +108,10 @@ object TelegramMessageMapper {
                     InlineKeyboardButton(label).callbackData(data)
             }
 
-        resolvedStyle().telegramValue?.let(button::style)
+        if (accented) {
+            style.telegramValue?.let(button::style)
+        }
 
         return button
-    }
-
-    private fun OutboundTelegramMessageAction.resolvedStyle(): OutboundTelegramButtonStyle {
-        if (style != OutboundTelegramButtonStyle.DEFAULT) {
-            return style
-        }
-
-        return when {
-            label.startsWith("✖") || label.startsWith("✕") || label.startsWith("🗑") ->
-                OutboundTelegramButtonStyle.DANGER
-
-            label.startsWith("✅") || label.startsWith("✓") || label.startsWith("🎁") || label.startsWith("⭐") ->
-                OutboundTelegramButtonStyle.SUCCESS
-
-            label.startsWith("➕") || label.startsWith("🔎") ->
-                OutboundTelegramButtonStyle.PRIMARY
-
-            else -> OutboundTelegramButtonStyle.DEFAULT
-        }
     }
 }
