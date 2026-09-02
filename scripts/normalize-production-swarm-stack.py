@@ -8,24 +8,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from production_runtime_policy import APPLICATION_SERVICES
+from production_runtime_policy import desired_replicas
+from production_runtime_policy import update_order
 
-APPLICATION_SERVICES = (
-    "account-service",
-    "bet-service",
-    "event-service",
-    "gateway-service",
-    "moderation-service",
-    "notification-service",
-    "payment-service",
-    "personalization-service",
-    "player-directory-service",
-    "profile-service",
-    "realtime-service",
-    "reward-service",
-    "social-service",
-    "telegram-bot-service",
-    "wallet-service",
-)
 
 APPLICATION_TMPFS_TARGET = "/tmp"
 APPLICATION_TMPFS_SIZE_BYTES = 64 * 1024 * 1024
@@ -121,11 +107,54 @@ def configure_application_tmpfs(service: dict[str, Any]) -> None:
     service["volumes"] = retained_volumes
 
 
-def normalize_application_service(service: dict[str, Any]) -> None:
+def configure_application_deployment(
+    service_name: str,
+    service: dict[str, Any],
+) -> None:
+    deploy = service.get("deploy")
+
+    if deploy is None:
+        deploy = {}
+    elif not isinstance(deploy, dict):
+        raise SwarmStackNormalizationError(
+            f"{service_name} deploy policy must be an object"
+        )
+
+    order = update_order(service_name)
+
+    deploy["mode"] = "replicated"
+    deploy["replicas"] = desired_replicas(service_name)
+    deploy["update_config"] = {
+        "parallelism": 1,
+        "delay": "5s",
+        "monitor": "45s",
+        "failure_action": "rollback",
+        "order": order,
+    }
+    deploy["rollback_config"] = {
+        "parallelism": 1,
+        "delay": "5s",
+        "monitor": "45s",
+        "failure_action": "pause",
+        "order": order,
+    }
+
+    service["deploy"] = deploy
+    service["endpoint_mode"] = "vip"
+
+
+def normalize_application_service(
+    service_name: str,
+    service: dict[str, Any],
+) -> None:
     service.pop("command", None)
     service.pop("entrypoint", None)
 
     configure_application_tmpfs(service)
+    configure_application_deployment(
+        service_name=service_name,
+        service=service,
+    )
 
 
 def normalize_cloudflared_service(service: dict[str, Any]) -> None:
@@ -146,7 +175,10 @@ def normalize_stack(stack: dict[str, Any]) -> dict[str, Any]:
                 f"{service_name} must be a service object"
             )
 
-        normalize_application_service(service)
+        normalize_application_service(
+            service_name=service_name,
+            service=service,
+        )
 
     cloudflared = services.get(CLOUDFLARED_SERVICE)
 
@@ -175,7 +207,7 @@ def main() -> int:
         stack = read_stack(arguments.input)
         normalized = normalize_stack(stack)
         write_stack(normalized, arguments.output)
-    except SwarmStackNormalizationError as exception:
+    except (SwarmStackNormalizationError, ValueError) as exception:
         print(f"Production Swarm normalization failed: {exception}", file=sys.stderr)
         return 1
 
