@@ -115,6 +115,20 @@ read_env_value() {
     ' "$env_file"
 }
 
+count_env_values() {
+    env_file="$1"
+    key="$2"
+
+    awk -v key="$key" '
+        index($0, key "=") == 1 {
+            count++
+        }
+        END {
+            print count + 0
+        }
+    ' "$env_file"
+}
+
 normalize_value() {
     printf '%s' "$1" |
         sed \
@@ -184,6 +198,12 @@ fi
 seen_secret_values=""
 
 for key in $(list_required_secret_keys); do
+    occurrence_count="$(count_env_values "$ENV_FILE" "$key")"
+
+    if [ "$occurrence_count" -ne 1 ]; then
+        fail_secret "$key" "value must be defined exactly once"
+    fi
+
     raw_value="$(read_env_value "$ENV_FILE" "$key")"
     value="$(normalize_value "$raw_value")"
 
