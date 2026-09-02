@@ -1,0 +1,167 @@
+name: Production Zero Downtime Rollout
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    if: contains(github.event.head_commit.message, 'fix/zero-downtime-production-deploy')
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout merged production tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Verify config and tooling-only merge boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          changed="$RUNNER_TEMP/zero-downtime-production-paths.txt"
+          git diff --name-only HEAD^1 HEAD > "$changed"
+
+          if grep -Eq '^(apps|libraries|contracts|keycloak-extensions|build-logic|gradle)/|^(build\.gradle\.kts|settings\.gradle\.kts|gradle\.properties)$' "$changed"; then
+            echo "Zero-downtime runtime rollout refuses application or build changes:" >&2
+            cat "$changed" >&2
+            exit 1
+          fi
+
+          if grep -Ev '^(\.github/workflows/production-(pr-backend-verify|pr-ci-recovery|pr-final-stack-smoke|pr-stack-smoke|pr79-rollout|runtime-diagnostic|runtime-policy|zero-downtime-rollout|zero-downtime-verify)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/(normalize-production-swarm-stack|production_deployment_executor|production_deployment_executor_base|production_deployment_plan|production_deployment_plan_base|production_runtime_policy|reconcile-production-runtime-policy|verify-production-availability|verify-production-runtime-policy|verify-production-stack-renderer|verify-production-swarm-stack-normalizer|verify-production-telegram-poller)\.(py|sh))$' "$changed" | grep -q .; then
+            echo "Zero-downtime rollout contains an unexpected changed path:" >&2
+            cat "$changed" >&2
+            exit 1
+          fi
+
+          echo "Config and tooling-only merge boundary verified"
+
+      - name: Verify candidate tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          make make-verify
+          python3 scripts/verify-production-stack-renderer.py
+          python3 scripts/verify-production-runtime-policy.py
+
+      - name: Verify production baseline availability
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/validate-production-env.sh
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+      - name: Capture immutable image baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          baseline="$RUNNER_TEMP/production-image-baseline.tsv"
+          : > "$baseline"
+
+          for service in $(python3 scripts/production_service_catalog.py list --runtime swarm); do
+            runtime="mnemos_${service}"
+            image="$(sudo -n docker service inspect --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' "$runtime")"
+            printf '%s\t%s\n' "$runtime" "$image" >> "$baseline"
+          done
+
+          cat "$baseline"
+
+      - name: Reconcile runtime policy without image replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/reconcile-production-runtime-policy.py
+
+      - name: Prove service images were not replaced
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          baseline="$RUNNER_TEMP/production-image-baseline.tsv"
+          failed=0
+
+          while IFS=$'\t' read -r runtime expected_image; do
+            actual_image="$(sudo -n docker service inspect --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' "$runtime")"
+
+            if [ "$actual_image" != "$expected_image" ]; then
+              echo "Runtime policy reconciliation changed image for $runtime" >&2
+              echo "expected=$expected_image" >&2
+              echo "actual=$actual_image" >&2
+              failed=1
+            fi
+          done < "$baseline"
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "Production images remained unchanged"
+
+      - name: Verify post-reconciliation availability
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+      - name: Install approved production deployment tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/install-production-runtime.sh "$GITHUB_SHA"
+
+      - name: Record exact live production state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          state_tmp="$(mktemp)"
+          trap 'sudo -n rm -f "$state_tmp"' EXIT
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            observe \
+            --tooling-revision "$GITHUB_SHA" \
+            --output "$state_tmp"
+
+          sudo -n install --directory --mode=0700 /var/lib/mnemos-deploy
+          sudo -n install \
+            --owner=root \
+            --group=root \
+            --mode=0600 \
+            "$state_tmp" \
+            /var/lib/mnemos-deploy/current-state.json
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+
+      - name: Final production availability gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh

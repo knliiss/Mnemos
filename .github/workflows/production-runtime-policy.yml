@@ -1,0 +1,137 @@
+name: Production Runtime Policy
+
+on:
+  workflow_dispatch:
+    inputs:
+      tooling_revision:
+        description: Exact master SHA containing the approved runtime policy
+        required: true
+        type: string
+      authorization:
+        description: Type APPLY followed by the exact tooling SHA
+        required: true
+        type: string
+      reason:
+        description: Reason for the production policy reconciliation
+        required: true
+        type: string
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 30
+
+    steps:
+      - name: Validate explicit production authorization
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ inputs.tooling_revision }}
+          AUTHORIZATION: ${{ inputs.authorization }}
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$TOOLING_REVISION" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "tooling_revision must be a full 40-character commit SHA" >&2
+            exit 1
+          fi
+
+          if [ "$AUTHORIZATION" != "APPLY $TOOLING_REVISION" ]; then
+            echo "authorization must exactly equal: APPLY <tooling_revision>" >&2
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF" != "refs/heads/master" ]; then
+            echo "Production runtime policy can only run from master" >&2
+            exit 1
+          fi
+
+          if [ "$GITHUB_SHA" != "$TOOLING_REVISION" ]; then
+            echo "Dispatched master revision does not match the approved tooling SHA" >&2
+            exit 1
+          fi
+
+      - name: Checkout approved production tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.tooling_revision }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify checked-out tooling revision
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ inputs.tooling_revision }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TOOLING_REVISION"
+
+      - name: Verify production baseline availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/validate-production-env.sh
+          sudo -n sh scripts/verify-production-availability.sh
+
+      - name: Reconcile runtime policy without image replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n python3 scripts/reconcile-production-runtime-policy.py
+
+      - name: Verify production availability after reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+
+      - name: Install approved production tooling
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ inputs.tooling_revision }}
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/install-production-runtime.sh "$TOOLING_REVISION"
+
+      - name: Record exact live production state
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ inputs.tooling_revision }}
+        run: |
+          set -euo pipefail
+
+          state_tmp="$(mktemp)"
+          trap 'sudo -n rm -f "$state_tmp"' EXIT
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            observe \
+            --tooling-revision "$TOOLING_REVISION" \
+            --output "$state_tmp"
+
+          sudo -n install --directory --mode=0700 /var/lib/mnemos-deploy
+          sudo -n install \
+            --owner=root \
+            --group=root \
+            --mode=0600 \
+            "$state_tmp" \
+            /var/lib/mnemos-deploy/current-state.json
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+
+      - name: Final production availability gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh

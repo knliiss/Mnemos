@@ -31,6 +31,7 @@ def source_stack() -> dict[str, object]:
                 "image": "busybox:1.36",
                 "command": ["unexpected", "compose", "command"],
                 "entrypoint": ["/unexpected-entrypoint"],
+                "endpoint_mode": "vip",
                 "tmpfs": ["/tmp:rw,noexec,nosuid,size=64m"],
                 "volumes": [
                     {
@@ -145,6 +146,9 @@ def verify_normalized_model(stack: dict[str, object]) -> None:
 
     if "entrypoint" in social_service:
         fail("Application entrypoint override was not removed")
+
+    if "endpoint_mode" in social_service:
+        fail("Unsupported legacy endpoint_mode was not removed")
 
     verify_application_tmpfs(social_service)
 

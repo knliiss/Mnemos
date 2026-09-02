@@ -40,7 +40,7 @@ services:
   moderation-service:
     environment:
       <<: *production-datasource-defaults
-      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "2"
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
 
   realtime-service:
     environment:
