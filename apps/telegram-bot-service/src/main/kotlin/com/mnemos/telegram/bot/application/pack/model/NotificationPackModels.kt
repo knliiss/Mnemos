@@ -1,5 +1,8 @@
 package com.mnemos.telegram.bot.application.pack.model
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 import java.util.UUID
 
 data class TelegramNotificationPackStorePage(
@@ -18,7 +21,42 @@ data class TelegramNotificationPackStoreItem(
     val currency: String,
     val owned: Boolean,
     val active: Boolean,
-    val samples: List<String>,
+    val preview: TelegramNotificationPackPreview,
+)
+
+data class TelegramNotificationPackPreview(
+    val mixedAggregateTitle: String,
+    val templates: Map<NotificationPackTemplateType, TelegramNotificationTemplate>,
+    val valueMappings: Map<NotificationPackValueKey, Map<String, TelegramNotificationValueForms>>,
+)
+
+data class TelegramNotificationTemplate(
+    val emoji: String?,
+    val soloTitle: String,
+    val soloBody: String,
+    val compact: String,
+    val aggregateTitle: String,
+    val variants: List<TelegramNotificationTemplateVariant>,
+)
+
+data class TelegramNotificationTemplateVariant(
+    val id: String,
+    val conditions: List<TelegramNotificationTemplateCondition>,
+    val emoji: String?,
+    val soloTitle: String,
+    val soloBody: String,
+    val compact: String,
+    val aggregateTitle: String,
+)
+
+data class TelegramNotificationTemplateCondition(
+    val field: NotificationPackVariantField,
+    val value: String,
+)
+
+data class TelegramNotificationValueForms(
+    val default: String,
+    val forms: Map<String, String>,
 )
 
 data class TelegramOwnedNotificationPack(
