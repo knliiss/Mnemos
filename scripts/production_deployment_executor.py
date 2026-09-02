@@ -17,6 +17,7 @@ ProductionDeploymentExecutionError = base.ProductionDeploymentExecutionError
 execution_record = base.execution_record
 persist_execution_record = base.persist_execution_record
 run_steps = base.run_steps
+base_dry_run_bundle = base.dry_run_bundle
 
 
 def availability_steps() -> list[dict[str, Any]]:
@@ -131,7 +132,7 @@ def dry_run_bundle(
     target_state: dict[str, Any],
     transition: dict[str, Any],
 ) -> dict[str, Any]:
-    bundle = base.dry_run_bundle(
+    bundle = base_dry_run_bundle(
         current_state=current_state,
         target_state=target_state,
         transition=transition,
