@@ -1,0 +1,113 @@
+name: Moderation Production Diagnostics
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: mnemos-production-diagnostics
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    if: contains(github.event.head_commit.message, 'chore/moderation-production-diagnostics')
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout trusted master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify diagnostics-only execution boundary
+        shell: bash
+        env:
+          BASELINE_SHA: 7234f0d5a7e9371531e63c441fd872e940b54e0e
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "Checkout does not match workflow SHA" >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$BASELINE_SHA" HEAD; then
+            echo "Diagnostics baseline is outside trusted master history" >&2
+            exit 1
+          fi
+
+          changed="$(git diff --name-only "$BASELINE_SHA" HEAD)"
+          if [ "$changed" != ".github/workflows/moderation-production-diagnostics.yml" ]; then
+            echo "Unexpected files changed after diagnostics baseline:" >&2
+            printf '%s\n' "$changed" >&2
+            exit 1
+          fi
+
+      - name: Capture moderation service state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== moderation service ==='
+          sudo -n docker service inspect mnemos_moderation-service \
+            --format 'name={{.Spec.Name}} image={{.Spec.TaskTemplate.ContainerSpec.Image}} replicas={{.Spec.Mode.Replicated.Replicas}}'
+          sudo -n docker service ps mnemos_moderation-service \
+            --no-trunc \
+            --format 'task={{.Name}} image={{.Image}} node={{.Node}} desired={{.DesiredState}} current={{.CurrentState}} error={{.Error}}'
+
+      - name: Capture recent moderation errors
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== moderation logs: recent errors and sanction/keycloak context ==='
+          sudo -n docker service logs \
+            --since 24h \
+            --timestamps \
+            --raw \
+            mnemos_moderation-service 2>&1 \
+            | grep -E -i -C 12 'ERROR|Exception|sanction|keycloak|Feign|status.?500|Internal Server Error' \
+            | tail -n 2500 \
+            || true
+
+      - name: Capture recent gateway moderation errors
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== gateway logs: moderation/5xx context ==='
+          sudo -n docker service logs \
+            --since 24h \
+            --timestamps \
+            --raw \
+            mnemos_gateway-service 2>&1 \
+            | grep -E -i -C 8 'moderation|sanction|ban|status.?500|Internal Server Error|ERROR|Exception' \
+            | tail -n 1200 \
+            || true
+
+      - name: Capture recent Keycloak errors
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== keycloak logs: recent errors ==='
+          if sudo -n docker ps --format '{{.Names}}' | grep -Fxq 'mnemos-keycloak'; then
+            sudo -n docker logs \
+              --since 24h \
+              --timestamps \
+              mnemos-keycloak 2>&1 \
+              | grep -E -i -C 8 'ERROR|WARN|admin|token|client|forbidden|unauthorized' \
+              | tail -n 1200 \
+              || true
+          else
+            echo 'mnemos-keycloak container not found by exact name'
+          fi
