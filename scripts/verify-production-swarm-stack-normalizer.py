@@ -15,6 +15,8 @@ NORMALIZER = REPOSITORY_ROOT / "scripts" / "normalize-production-swarm-stack.py"
 EXPECTED_CLOUDFLARED_COMMAND = (
     "tunnel run --token-file /run/secrets/cloudflare_tunnel_token"
 )
+EXPECTED_TMPFS_SIZE_BYTES = 64 * 1024 * 1024
+EXPECTED_TMPFS_MODE = 0o1777
 
 
 def fail(message: str) -> None:
@@ -29,6 +31,14 @@ def source_stack() -> dict[str, object]:
                 "image": "busybox:1.36",
                 "command": ["unexpected", "compose", "command"],
                 "entrypoint": ["/unexpected-entrypoint"],
+                "tmpfs": ["/tmp:rw,noexec,nosuid,size=64m"],
+                "volumes": [
+                    {
+                        "type": "volume",
+                        "source": "example-data",
+                        "target": "/data",
+                    }
+                ],
             },
             "cloudflared": {
                 "image": "cloudflare/cloudflared:2026.8.1",
@@ -39,6 +49,9 @@ def source_stack() -> dict[str, object]:
                     "/run/secrets/cloudflare_tunnel_token",
                 ],
             },
+        },
+        "volumes": {
+            "example-data": {},
         },
     }
 
@@ -72,6 +85,50 @@ def normalize() -> dict[str, object]:
         return json.loads(output_path.read_text(encoding="utf-8"))
 
 
+def verify_application_tmpfs(service: dict[str, object]) -> None:
+    if "tmpfs" in service:
+        fail("Legacy service-level tmpfs field was not removed")
+
+    volumes = service.get("volumes")
+
+    if not isinstance(volumes, list):
+        fail("Application volumes are missing")
+
+    data_mounts = [
+        volume
+        for volume in volumes
+        if isinstance(volume, dict) and volume.get("target") == "/data"
+    ]
+
+    if len(data_mounts) != 1:
+        fail("Existing application volumes were not preserved")
+
+    tmp_mounts = [
+        volume
+        for volume in volumes
+        if isinstance(volume, dict) and volume.get("target") == "/tmp"
+    ]
+
+    if len(tmp_mounts) != 1:
+        fail("Application must contain exactly one /tmp mount")
+
+    tmp_mount = tmp_mounts[0]
+
+    if tmp_mount.get("type") != "tmpfs":
+        fail("Application /tmp mount is not tmpfs")
+
+    tmpfs = tmp_mount.get("tmpfs")
+
+    if not isinstance(tmpfs, dict):
+        fail("Application /tmp tmpfs options are missing")
+
+    if tmpfs.get("size") != EXPECTED_TMPFS_SIZE_BYTES:
+        fail("Application /tmp tmpfs size is not bounded to 64 MiB")
+
+    if tmpfs.get("mode") != EXPECTED_TMPFS_MODE:
+        fail("Application /tmp tmpfs mode is not 1777")
+
+
 def verify_normalized_model(stack: dict[str, object]) -> None:
     services = stack.get("services")
 
@@ -88,6 +145,8 @@ def verify_normalized_model(stack: dict[str, object]) -> None:
 
     if "entrypoint" in social_service:
         fail("Application entrypoint override was not removed")
+
+    verify_application_tmpfs(social_service)
 
     cloudflared = services.get("cloudflared")
 
@@ -124,7 +183,7 @@ def main() -> int:
     verify_normalized_model(stack)
     verify_docker_stack_schema(stack)
 
-    print("Production Swarm stack command normalization verified")
+    print("Production Swarm stack command and tmpfs normalization verified")
     return 0
 
 
