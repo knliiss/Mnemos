@@ -153,6 +153,6 @@ class InternalTelegramAccountManagementController(
     private fun response(management: InternalTelegramAccountManagement?): ResponseEntity<InternalTelegramAccountManagementResponse> =
         management
             ?.toResponse()
-            ?.let(ResponseEntity::ok)
+            ?.let { response -> ResponseEntity.ok(response) }
             ?: ResponseEntity.notFound().build()
 }

@@ -15,9 +15,9 @@ object AccountManagementApiMapper {
             accountId = accountId,
             cristalixNickname = cristalixNickname,
             actorMemberId = actorMemberId,
-            actorPermissions = actorPermissions.mapTo(linkedSetOf(), InternalTelegramAccountPermission::toModel),
-            members = members.map(InternalTelegramAccountMemberResponse::toModel),
-            roles = roles.map(InternalTelegramAccountRoleResponse::toModel),
+            actorPermissions = actorPermissions.mapTo(linkedSetOf()) { permission -> permission.toModel() },
+            members = members.map { member -> member.toModel() },
+            roles = roles.map { role -> role.toModel() },
         )
 
     fun TelegramAccountManagementPermission.toContract(): InternalTelegramAccountPermission =
@@ -40,7 +40,7 @@ object AccountManagementApiMapper {
             name = name,
             color = color,
             hierarchyRank = hierarchyRank,
-            permissions = permissions.mapTo(linkedSetOf(), InternalTelegramAccountPermission::toModel),
+            permissions = permissions.mapTo(linkedSetOf()) { permission -> permission.toModel() },
         )
 
     private fun InternalTelegramAccountPermission.toModel(): TelegramAccountManagementPermission =
