@@ -88,7 +88,6 @@ class InternalTelegramAccountManagementController(
             service.createRole(
                 telegramId = TelegramId(telegramId),
                 name = request.name,
-                color = request.color,
             ) ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity.status(HttpStatus.CREATED).body(management.toResponse())

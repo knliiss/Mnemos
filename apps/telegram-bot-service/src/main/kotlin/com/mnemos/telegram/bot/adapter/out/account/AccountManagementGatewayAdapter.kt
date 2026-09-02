@@ -70,16 +70,11 @@ class AccountManagementGatewayAdapter(
     override fun createRole(
         telegramId: Long,
         name: String,
-        color: String,
     ): TelegramAccountManagementMutationResult =
         mutate {
             client.createRole(
                 telegramId = telegramId,
-                request =
-                    CreateInternalTelegramAccountRoleRequest(
-                        name = name,
-                        color = color,
-                    ),
+                request = CreateInternalTelegramAccountRoleRequest(name = name),
             )
         }
 

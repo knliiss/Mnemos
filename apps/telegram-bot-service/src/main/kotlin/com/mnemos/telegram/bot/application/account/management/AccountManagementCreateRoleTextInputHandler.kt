@@ -20,14 +20,13 @@ class AccountManagementCreateRoleTextInputHandler(
     override val pendingInput: TelegramPendingInput = TelegramPendingInput.ACCOUNT_MANAGEMENT_ROLE_CREATE
 
     override fun handle(context: TelegramTextInputContext): TelegramDeliveryResult {
-        val input =
-            AccountManagementRoleInputParser.parse(context.text)
+        val name =
+            AccountManagementRoleInputParser.parseName(context.text)
                 ?: return updatePending(context.telegramId, AccountManagementMenuContext::invalid)
         val result =
             gateway.createRole(
                 telegramId = context.telegramId,
-                name = input.name,
-                color = input.color,
+                name = name,
             )
 
         return when (result) {

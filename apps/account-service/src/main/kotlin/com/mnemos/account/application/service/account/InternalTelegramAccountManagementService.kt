@@ -107,7 +107,6 @@ class InternalTelegramAccountManagementService(
     fun createRole(
         telegramId: TelegramId,
         name: String,
-        color: String,
     ): InternalTelegramAccountManagement? {
         val context =
             contextProvider.requirePermissionForUpdate(
@@ -118,7 +117,7 @@ class InternalTelegramAccountManagementService(
         createRoleService.createRole(
             context = context,
             name = name,
-            color = color,
+            color = DEFAULT_ROLE_COLOR,
             permissions = emptySet(),
         )
 
@@ -279,6 +278,10 @@ class InternalTelegramAccountManagementService(
             members = members,
             roles = roleSnapshots,
         )
+    }
+
+    private companion object {
+        const val DEFAULT_ROLE_COLOR = "#A9B1A4"
     }
 }
 

@@ -32,7 +32,7 @@ class AccountManagementEditRoleTextInputHandler(
                     updateContext = AccountManagementMenuContext::showRoles,
                 )
         val input =
-            AccountManagementRoleInputParser.parse(context.text)
+            AccountManagementRoleInputParser.parseDetails(context.text)
                 ?: return updatePending(context.telegramId, AccountManagementMenuContext::invalid)
         val result =
             gateway.updateRoleDetails(

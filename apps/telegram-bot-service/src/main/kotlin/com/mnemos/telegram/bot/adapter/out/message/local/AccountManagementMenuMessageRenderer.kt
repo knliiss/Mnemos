@@ -372,19 +372,26 @@ object AccountManagementMenuMessageRenderer {
             }
         val lines = mutableListOf(title, TelegramMessageLayout.DIVIDER, "")
 
-        if (inputMode == AccountManagementInputMode.EDIT_ROLE) {
-            snapshot.roles
-                .firstOrNull { role -> role.id == data.selectedRoleId }
-                ?.let { role ->
-                    lines += "Сейчас: <b>${escapeHtml(role.name)}</b> · <code>${escapeHtml(role.color)}</code>"
-                }
-            lines += ""
-        }
+        when (inputMode) {
+            AccountManagementInputMode.CREATE_ROLE -> {
+                lines += "Отправьте название роли одним сообщением."
+                lines += ""
+                lines += "Пример: <code>Модератор</code>"
+            }
 
-        lines += "Отправьте одним сообщением:"
-        lines += "<code>Название роли #RRGGBB</code>"
-        lines += ""
-        lines += "Пример: <code>Модератор #7C5CFC</code>"
+            AccountManagementInputMode.EDIT_ROLE -> {
+                snapshot.roles
+                    .firstOrNull { role -> role.id == data.selectedRoleId }
+                    ?.let { role ->
+                        lines += "Сейчас: <b>${escapeHtml(role.name)}</b> · <code>${escapeHtml(role.color)}</code>"
+                    }
+                lines += ""
+                lines += "Отправьте одним сообщением:"
+                lines += "<code>Название роли #RRGGBB</code>"
+                lines += ""
+                lines += "Пример: <code>Модератор #7C5CFC</code>"
+            }
+        }
         appendFeedback(lines, data.feedback)
 
         return message(

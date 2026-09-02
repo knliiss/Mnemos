@@ -23,7 +23,6 @@ interface AccountManagementGateway {
     fun createRole(
         telegramId: Long,
         name: String,
-        color: String,
     ): TelegramAccountManagementMutationResult
 
     fun updateRoleDetails(

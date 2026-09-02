@@ -32,7 +32,6 @@ data class InternalTelegramAccountRoleResponse(
 
 data class CreateInternalTelegramAccountRoleRequest(
     val name: String,
-    val color: String,
 )
 
 data class UpdateInternalTelegramAccountRoleDetailsRequest(
