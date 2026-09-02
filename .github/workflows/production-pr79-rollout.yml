@@ -14,13 +14,28 @@ permissions:
 
 jobs:
   migrate-production-env:
-    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
+    if: >-
+      contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
     runs-on:
       - self-hosted
       - mnemos-production
     timeout-minutes: 10
 
     steps:
+      - name: Clean privileged Python cache
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n find "$GITHUB_WORKSPACE" \
+              -type d \
+              -name __pycache__ \
+              -prune \
+              -exec rm -rf {} +
+          fi
+
       - name: Checkout merged revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -47,7 +62,9 @@ jobs:
           sudo -n sh scripts/validate-production-env.sh
 
   publish-production-images:
-    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
+    if: >-
+      contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
     runs-on:
       - self-hosted
       - Linux
@@ -152,7 +169,9 @@ jobs:
           rm -rf "$DOCKER_CONFIG"
 
   deploy-production:
-    if: contains(github.event.head_commit.message, 'feat/telegram-bot-service')
+    if: >-
+      contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
     needs:
       - migrate-production-env
       - publish-production-images
@@ -166,6 +185,19 @@ jobs:
       packages: read
 
     steps:
+      - name: Clean privileged Python cache
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n find "$GITHUB_WORKSPACE" \
+              -type d \
+              -name __pycache__ \
+              -prune \
+              -exec rm -rf {} +
+          fi
+
       - name: Checkout merged revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
