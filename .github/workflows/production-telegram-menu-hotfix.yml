@@ -1,0 +1,646 @@
+name: Production Telegram Menu Hotfix
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, 'chore/production-telegram-menu-hotfix')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      APPLICATION_SOURCE_SHA: d8ee2ac726a2edcbe07d6b9ae4be86b311673cab
+      TARGET_SERVICES: bet-service personalization-service telegram-bot-service
+
+    steps:
+      - name: Checkout trusted master history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable application source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/production_source_revision.py \
+            "$APPLICATION_SOURCE_SHA" \
+            --trusted-ref origin/master
+
+          git checkout --detach "$APPLICATION_SOURCE_SHA"
+
+          if [ "$(git rev-parse HEAD)" != "$APPLICATION_SOURCE_SHA" ]; then
+            echo "Checked-out source does not match the authorized application revision" >&2
+            exit 1
+          fi
+
+          python3 scripts/verify-production-service-catalog.py
+
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Configure isolated image publishing
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-hotfix-docker-auth
+        run: |
+          set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install --directory --mode=0700 "$DOCKER_CONFIG"
+
+          docker buildx rm mnemos-telegram-hotfix-builder >/dev/null 2>&1 || true
+          docker buildx create \
+            --driver docker-container \
+            --name mnemos-telegram-hotfix-builder \
+            --use
+          docker buildx inspect --bootstrap
+
+      - name: Authenticate publisher to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-hotfix-docker-auth
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Publish three immutable service images
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-hotfix-docker-auth
+        run: |
+          set -euo pipefail
+
+          for service in $TARGET_SERVICES; do
+            python3 scripts/publish-production-service-image.py \
+              --service "$service" \
+              --registry "ghcr.io/${{ github.repository_owner }}" \
+              --tag "$APPLICATION_SOURCE_SHA" \
+              --push
+          done
+
+      - name: Verify published manifests
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-hotfix-docker-auth
+        run: |
+          set -euo pipefail
+
+          for service in $TARGET_SERVICES; do
+            image="$(
+              python3 scripts/production_service_catalog.py show "$service" | \
+                python3 -c 'import json, sys; print(json.load(sys.stdin)["image"])'
+            )"
+            reference="ghcr.io/${{ github.repository_owner }}/${image}:${APPLICATION_SOURCE_SHA}"
+
+            docker manifest inspect "$reference" >/dev/null
+            echo "Verified $reference"
+          done
+
+      - name: Remove publishing credentials and builder
+        if: always()
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-telegram-hotfix-docker-auth
+        run: |
+          set +e
+          docker buildx rm mnemos-telegram-hotfix-builder >/dev/null 2>&1 || true
+          rm -rf "$DOCKER_CONFIG"
+
+  deploy:
+    if: contains(github.event.head_commit.message, 'chore/production-telegram-menu-hotfix')
+    needs: publish
+    environment: production
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+      packages: read
+
+    env:
+      APPLICATION_SOURCE_SHA: d8ee2ac726a2edcbe07d6b9ae4be86b311673cab
+      TARGET_SERVICES: bet-service personalization-service telegram-bot-service
+      BET_RUNTIME: mnemos_bet-service
+      BOT_RUNTIME: mnemos_telegram-bot-service
+
+    steps:
+      - name: Checkout immutable execution head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify trusted one-off execution boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "Execution checkout does not match workflow SHA" >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$APPLICATION_SOURCE_SHA" HEAD; then
+            echo "Authorized application source is outside trusted master history" >&2
+            exit 1
+          fi
+
+          changed_after_source="$(git diff --name-only "$APPLICATION_SOURCE_SHA" HEAD)"
+
+          if [ "$changed_after_source" != ".github/workflows/production-telegram-menu-hotfix.yml" ]; then
+            echo "Unexpected repository changes exist after the authorized application source:" >&2
+            printf '%s\n' "$changed_after_source" >&2
+            exit 1
+          fi
+
+          python3 -m py_compile \
+            scripts/production_release_plan.py \
+            scripts/production_deployment_executor.py \
+            scripts/production_deployment_executor_base.py \
+            scripts/production_runtime_state.py
+          python3 scripts/verify-production-stack-renderer.py
+          python3 scripts/verify-production-runtime-policy.py
+          sh scripts/verify-production-deployment-executor-security.sh
+
+      - name: Verify exact production baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/validate-production-env.sh
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          if ! sudo -n test -f /var/lib/mnemos-deploy/current-state.json; then
+            echo "Recorded production deployment state is missing" >&2
+            exit 1
+          fi
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+
+          state_copy="$RUNNER_TEMP/mnemos-telegram-hotfix-current-state.json"
+          sudo -n install \
+            --owner="$(id -u)" \
+            --group="$(id -g)" \
+            --mode=0600 \
+            /var/lib/mnemos-deploy/current-state.json \
+            "$state_copy"
+
+          recorded_tooling="$(
+            python3 - "$state_copy" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              state = json.load(handle)
+
+          print(state["tooling_revision"])
+          PY
+          )"
+
+          if ! printf '%s' "$recorded_tooling" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Recorded production tooling revision is invalid" >&2
+            exit 1
+          fi
+
+          if ! git cat-file -e "${recorded_tooling}^{commit}"; then
+            echo "Recorded production tooling revision is unavailable" >&2
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$recorded_tooling" HEAD; then
+            echo "Recorded production tooling is outside trusted master history" >&2
+            exit 1
+          fi
+
+          echo "CURRENT_STATE_COPY=$state_copy" >> "$GITHUB_ENV"
+          echo "RECORDED_TOOLING_REVISION=$recorded_tooling" >> "$GITHUB_ENV"
+
+      - name: Create audited three-service release plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          plan_dir="$RUNNER_TEMP/mnemos-telegram-hotfix-plan"
+          rm -rf "$plan_dir"
+          install --directory --mode=0700 "$plan_dir"
+
+          set -- \
+            --current-state "$CURRENT_STATE_COPY" \
+            --actor "$GITHUB_ACTOR" \
+            --reason "User-authorized Telegram menu colors, packs and bets production hotfix" \
+            --output-dir "$plan_dir"
+
+          for service in $TARGET_SERVICES; do
+            set -- "$@" --set "$service=$APPLICATION_SOURCE_SHA"
+          done
+
+          python3 scripts/production_release_plan.py "$@"
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$plan_dir" \
+            --kind release-plan
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$plan_dir" \
+            --kind release-plan
+
+          transition_id="$(
+            python3 - "$plan_dir/transition.json" "$plan_dir/target-state.json" "$APPLICATION_SOURCE_SHA" $TARGET_SERVICES <<'PY'
+          import json
+          import re
+          import sys
+
+          transition_path, target_state_path, expected_source, *target_services = sys.argv[1:]
+          target_services = set(target_services)
+
+          with open(transition_path, encoding="utf-8") as handle:
+              transition = json.load(handle)
+
+          with open(target_state_path, encoding="utf-8") as handle:
+              target_state = json.load(handle)
+
+          plan = transition["plan"]
+          actions = plan.get("actions", [])
+          actual_actions = {action.get("service") for action in actions}
+
+          if plan.get("mode") != "scoped":
+              raise SystemExit("Telegram hotfix plan must remain scoped")
+
+          if not actual_actions.issubset(target_services):
+              raise SystemExit(
+                  f"Unexpected service action set: {sorted(actual_actions)}"
+              )
+
+          deployed = target_state["release_manifest"]["services"]
+
+          for service in target_services:
+              actual_source = deployed[service]["source_sha"]
+
+              if actual_source != expected_source:
+                  raise SystemExit(
+                      f"Target state mismatch for {service}: {actual_source}"
+                  )
+
+          transition_id = transition.get("transition_id", "")
+
+          if not re.fullmatch(r"sha256:[0-9a-f]{64}", transition_id):
+              raise SystemExit("Generated transition ID is invalid")
+
+          print(transition_id)
+          PY
+          )"
+
+          action_count="$(
+            python3 - "$plan_dir/deployment-plan.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              print(json.load(handle)["action_count"])
+          PY
+          )"
+
+          if [ "$action_count" -lt 1 ]; then
+            echo "Production already records all three services at the target source; refusing a no-op execution" >&2
+            exit 1
+          fi
+
+          echo "PLAN_DIR=$plan_dir" >> "$GITHUB_ENV"
+          echo "TRANSITION_ID=$transition_id" >> "$GITHUB_ENV"
+          echo "ACTION_COUNT=$action_count" >> "$GITHUB_ENV"
+
+      - name: Converge bet internal credential in Swarm runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          canonical_key="$(
+            sudo -n awk -F= '
+              $1 == "TELEGRAM_BOT_SERVICE_BET_API_KEY" {
+                print substr($0, index($0, "=") + 1)
+                exit
+              }
+            ' /etc/mnemos/mnemos.env
+          )"
+
+          if [ -z "$canonical_key" ]; then
+            echo "Canonical Telegram bot to bet credential is missing" >&2
+            exit 1
+          fi
+
+          runtime_value() {
+            runtime="$1"
+            key="$2"
+
+            sudo -n docker service inspect \
+              --format '{{range .Spec.TaskTemplate.ContainerSpec.Env}}{{println .}}{{end}}' \
+              "$runtime" | \
+              awk -F= -v key="$key" '$1 == key {print substr($0, index($0, "=") + 1); exit}'
+          }
+
+          bot_key="$(runtime_value "$BOT_RUNTIME" TELEGRAM_BOT_SERVICE_BET_API_KEY)"
+
+          if [ "$bot_key" != "$canonical_key" ]; then
+            echo "Telegram bot runtime credential does not match canonical production environment" >&2
+            exit 1
+          fi
+
+          bet_key="$(runtime_value "$BET_RUNTIME" TELEGRAM_BOT_SERVICE_BET_API_KEY)"
+          current_bet_image="$(
+            python3 - "$CURRENT_STATE_COPY" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              state = json.load(handle)
+
+          print(state["release_manifest"]["services"]["bet-service"]["image"])
+          PY
+          )"
+
+          if [ "$bet_key" != "$canonical_key" ]; then
+            if [ -n "$bet_key" ]; then
+              sudo -n docker service update \
+                --detach=true \
+                --env-rm TELEGRAM_BOT_SERVICE_BET_API_KEY \
+                --env-add "TELEGRAM_BOT_SERVICE_BET_API_KEY=$canonical_key" \
+                "$BET_RUNTIME" >/dev/null
+            else
+              sudo -n docker service update \
+                --detach=true \
+                --env-add "TELEGRAM_BOT_SERVICE_BET_API_KEY=$canonical_key" \
+                "$BET_RUNTIME" >/dev/null
+            fi
+
+            sudo -n sh scripts/wait-production-service.sh \
+              "$BET_RUNTIME" \
+              "$current_bet_image" \
+              300 \
+              15
+          fi
+
+          converged_bet_key="$(runtime_value "$BET_RUNTIME" TELEGRAM_BOT_SERVICE_BET_API_KEY)"
+
+          if [ "$converged_bet_key" != "$canonical_key" ]; then
+            echo "Bet runtime credential did not converge to the canonical value" >&2
+            exit 1
+          fi
+
+          echo "Bet internal credential converged without exposing the secret"
+
+      - name: Checkout recorded production executor tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git checkout --detach "$RECORDED_TOOLING_REVISION"
+
+          if [ "$(git rev-parse HEAD)" != "$RECORDED_TOOLING_REVISION" ]; then
+            echo "Executor checkout does not match recorded production tooling" >&2
+            exit 1
+          fi
+
+          sh scripts/verify-production-deployment-executor-security.sh
+
+      - name: Render exact production dry run
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_deployment_executor.py \
+            --transition "$PLAN_DIR/transition.json" \
+            --target-state "$PLAN_DIR/target-state.json" \
+            --expected-transition-id "$TRANSITION_ID" \
+            > "$RUNNER_TEMP/mnemos-telegram-hotfix-dry-run.json"
+
+          python3 - "$RUNNER_TEMP/mnemos-telegram-hotfix-dry-run.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              dry_run = json.load(handle)
+
+          print(f"Transition {dry_run['transition_id']} has {dry_run['action_count']} scoped actions")
+
+          for action in dry_run["actions"]:
+              print(action["service"])
+          PY
+
+      - name: Prepare isolated production registry credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-production-docker-auth
+
+      - name: Authenticate production Docker to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Verify immutable hotfix images exist
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for service in $TARGET_SERVICES; do
+            image="$(
+              python3 scripts/production_service_catalog.py show "$service" | \
+                python3 -c 'import json, sys; print(json.load(sys.stdin)["image"])'
+            )"
+            reference="ghcr.io/${{ github.repository_owner }}/${image}:${APPLICATION_SOURCE_SHA}"
+
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker manifest inspect "$reference" >/dev/null
+
+            echo "Verified $reference"
+          done
+
+      - name: Execute authorized scoped hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+            MNEMOS_PRODUCTION_DEPLOY_ENABLED=true \
+            MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED=true \
+            python3 scripts/production_deployment_executor.py \
+              --transition "$PLAN_DIR/transition.json" \
+              --target-state "$PLAN_DIR/target-state.json" \
+              --expected-transition-id "$TRANSITION_ID" \
+              --execute
+
+      - name: Verify deployed production state and credential contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          deployed_state="$RUNNER_TEMP/mnemos-telegram-hotfix-deployed-state.json"
+          sudo -n install \
+            --owner="$(id -u)" \
+            --group="$(id -g)" \
+            --mode=0600 \
+            /var/lib/mnemos-deploy/current-state.json \
+            "$deployed_state"
+
+          python3 - "$deployed_state" "$APPLICATION_SOURCE_SHA" $TARGET_SERVICES <<'PY'
+          import json
+          import sys
+
+          state_path, expected_source, *services = sys.argv[1:]
+
+          with open(state_path, encoding="utf-8") as handle:
+              state = json.load(handle)
+
+          deployed = state["release_manifest"]["services"]
+
+          for service in services:
+              actual = deployed[service]["source_sha"]
+
+              if actual != expected_source:
+                  raise SystemExit(
+                      f"Production service revision mismatch: {service}={actual}"
+                  )
+          PY
+
+          canonical_key="$(
+            sudo -n awk -F= '
+              $1 == "TELEGRAM_BOT_SERVICE_BET_API_KEY" {
+                print substr($0, index($0, "=") + 1)
+                exit
+              }
+            ' /etc/mnemos/mnemos.env
+          )"
+
+          runtime_value() {
+            runtime="$1"
+            key="$2"
+
+            sudo -n docker service inspect \
+              --format '{{range .Spec.TaskTemplate.ContainerSpec.Env}}{{println .}}{{end}}' \
+              "$runtime" | \
+              awk -F= -v key="$key" '$1 == key {print substr($0, index($0, "=") + 1); exit}'
+          }
+
+          bot_key="$(runtime_value "$BOT_RUNTIME" TELEGRAM_BOT_SERVICE_BET_API_KEY)"
+          bet_key="$(runtime_value "$BET_RUNTIME" TELEGRAM_BOT_SERVICE_BET_API_KEY)"
+
+          if [ -z "$canonical_key" ] || [ "$bot_key" != "$canonical_key" ] || [ "$bet_key" != "$canonical_key" ]; then
+            echo "Bot and bet runtime credentials are not aligned after deployment" >&2
+            exit 1
+          fi
+
+          for service in $TARGET_SERVICES; do
+            runtime="mnemos_${service}"
+            sudo -n docker service ls \
+              --filter "name=$runtime" \
+              --format '{{.Name}} {{.Replicas}} {{.Image}}'
+          done
+
+          echo "Bot-to-bet credential contract verified without exposing the secret"
+
+      - name: Collect production hotfix audit
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          audit_dir="$RUNNER_TEMP/mnemos-telegram-hotfix-audit"
+          rm -rf "$audit_dir"
+          install --directory --mode=0700 "$audit_dir"
+
+          if [ -n "${PLAN_DIR:-}" ] && [ -d "$PLAN_DIR" ]; then
+            cp -R "$PLAN_DIR" "$audit_dir/release-plan"
+          fi
+
+          if sudo -n test -f /var/lib/mnemos-deploy/current-state.json; then
+            sudo -n cp /var/lib/mnemos-deploy/current-state.json "$audit_dir/current-state.json"
+          fi
+
+          if [ -n "${TRANSITION_ID:-}" ]; then
+            transition_digest="${TRANSITION_ID#sha256:}"
+
+            if sudo -n test -d "/var/lib/mnemos-deploy/transitions/$transition_digest"; then
+              sudo -n cp -R \
+                "/var/lib/mnemos-deploy/transitions/$transition_digest" \
+                "$audit_dir/execution-attempts"
+            fi
+          fi
+
+          sudo -n chown -R "$(id -u):$(id -g)" "$audit_dir"
+          echo "HOTFIX_AUDIT_DIR=$audit_dir" >> "$GITHUB_ENV"
+
+      - name: Upload production hotfix audit
+        if: always() && env.HOTFIX_AUDIT_DIR != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-telegram-menu-hotfix-audit-${{ github.run_id }}
+          path: ${{ env.HOTFIX_AUDIT_DIR }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove production registry credentials
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          sudo -n rm -rf /run/mnemos-production-docker-auth
