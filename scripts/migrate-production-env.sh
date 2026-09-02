@@ -21,7 +21,7 @@ if ! command -v openssl >/dev/null 2>&1; then
     exit 1
 fi
 
-if [ ! -x "$VALIDATOR" ] && [ ! -f "$VALIDATOR" ]; then
+if [ ! -f "$VALIDATOR" ]; then
     echo "Production environment validator does not exist: $VALIDATOR" >&2
     exit 1
 fi
@@ -108,19 +108,6 @@ set_env() {
     mv "$next_env" "$WORKING_ENV"
 }
 
-remove_env() {
-    key="$1"
-    next_env="$TEMP_DIR/next.env"
-
-    awk -v key="$key" '
-        index($0, key "=") != 1 {
-            print
-        }
-    ' "$WORKING_ENV" > "$next_env"
-
-    mv "$next_env" "$WORKING_ENV"
-}
-
 ensure_default() {
     key="$1"
     value="$2"
@@ -155,10 +142,6 @@ if ! has_env TELEGRAM_BOT_ENABLED; then
         set_env TELEGRAM_BOT_ENABLED "false"
     fi
 fi
-
-remove_env NOTIFICATION_TELEGRAM_ENABLED
-remove_env NOTIFICATION_SERVICE_PAYMENT_API_KEY
-remove_env PAYMENT_SERVICE_NOTIFICATION_API_KEY
 
 ensure_default TELEGRAM_BOT_SERVICE_VERSION local
 ensure_default TELEGRAM_BOT_MENU_SESSION_TTL 30d
@@ -202,5 +185,6 @@ Previous environment backup:
   $backup_path
 
 New internal credentials were generated locally and were not printed.
-The Telegram bot enablement state was preserved from NOTIFICATION_TELEGRAM_ENABLED when that legacy variable existed.
+The Telegram bot enablement state was copied from NOTIFICATION_TELEGRAM_ENABLED when that legacy variable existed.
+Legacy variables were intentionally preserved so the currently running production revision can still restart safely before cutover.
 EOF
