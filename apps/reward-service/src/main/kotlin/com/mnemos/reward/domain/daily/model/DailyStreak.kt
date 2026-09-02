@@ -54,9 +54,12 @@ class DailyStreak(
         normalizeRestoreMonth(month)
         require(currentStreak == 0 && recoverableStreak > 0) { "Daily streak is not recoverable" }
         require(restoresUsed < limit) { "Monthly streak restore limit reached" }
+
         currentStreak = recoverableStreak
         recoverableStreak = 0
+        lastClaimedDate = today.minusDays(1)
         restoresUsed++
+
         return currentStreak
     }
 
