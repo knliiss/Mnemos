@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Inspect recovered production runtime
+      - name: Inspect competing Telegram runtimes
         shell: bash
         run: |
           set -euo pipefail
@@ -31,22 +31,39 @@ jobs:
           echo "===== STACK ====="
           sudo -n docker stack services mnemos
 
-          for service in gateway-service moderation-service telegram-bot-service; do
-            runtime="mnemos_${service}"
-            echo "===== ${runtime} TASKS ====="
-            sudo -n docker service ps \
-              --no-trunc \
-              --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
-              "$runtime"
+          echo "===== ALL DOCKER CONTAINERS ====="
+          sudo -n docker ps -a \
+            --format 'table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Command}}'
 
-            echo "===== ${runtime} LOGS ====="
-            sudo -n docker service logs \
-              --raw \
-              --timestamps \
-              --since 45m \
-              --tail 250 \
-              "$runtime" 2>&1 || true
-          done
+          echo "===== RUNNING SYSTEMD UNITS ====="
+          sudo -n systemctl list-units \
+            --type=service \
+            --state=running \
+            --no-pager \
+            --plain \
+            | grep -Ei 'mnemos|telegram|bot|java|docker|container' || true
+
+          echo "===== RELEVANT PROCESSES ====="
+          sudo -n ps \
+            -eo pid,ppid,user,lstart,args \
+            --sort=pid \
+            | grep -Ei 'mnemos|telegram|bot|java|spring|gradle' \
+            | grep -Ev 'grep -Ei|production-runtime-diagnostic' || true
+
+          echo "===== TELEGRAM BOT TASKS ====="
+          sudo -n docker service ps \
+            --no-trunc \
+            --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+            mnemos_telegram-bot-service
+
+          echo "===== TELEGRAM BOT RECENT CONFLICTS ====="
+          sudo -n docker service logs \
+            --raw \
+            --timestamps \
+            --since 15m \
+            --tail 400 \
+            mnemos_telegram-bot-service 2>&1 \
+            | grep -E '409|Conflict|getUpdates|started|Started' || true
 
           echo "===== PUBLIC READINESS ====="
           curl \
