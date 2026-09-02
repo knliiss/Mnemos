@@ -251,8 +251,9 @@ object NotificationPackMenuMessageRenderer {
                     )
                 }
             }
+        val hasLongLabel = actions.maxOf { action -> action.label.length } > LONG_VARIANT_LABEL_LENGTH
 
-        return if (actions.maxOf(OutboundTelegramMessageAction::label).length > LONG_VARIANT_LABEL_LENGTH) {
+        return if (hasLongLabel) {
             actions.map(::listOf)
         } else {
             actions.chunked(VARIANT_BUTTONS_PER_ROW)
