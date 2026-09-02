@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.adapter.out.telegram
 
 import com.mnemos.telegram.bot.adapter.out.telegram.TelegramMessageMapper.toReplyMarkup
+import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
@@ -30,6 +31,8 @@ class TelegramMessageMapperTest {
 
         assertEquals("Open Mnemos", button.text)
         assertEquals(MINI_APP_URL, button.webApp?.url())
+        assertEquals(OutboundTelegramButtonStyle.DEFAULT, message.actions.single().style)
+        assertEquals(false, message.actions.single().accented)
     }
 
     @Test

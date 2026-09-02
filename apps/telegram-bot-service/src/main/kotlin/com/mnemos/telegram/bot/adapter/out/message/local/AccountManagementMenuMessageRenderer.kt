@@ -461,6 +461,7 @@ object AccountManagementMenuMessageRenderer {
                         label = confirmLabel,
                         data = confirmData,
                         style = OutboundTelegramButtonStyle.DANGER,
+                        accented = true,
                     ),
                 ),
                 listOf(cancelConfirmationAction),
@@ -581,11 +582,13 @@ object AccountManagementMenuMessageRenderer {
         label: String,
         data: String,
         style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
+        accented: Boolean = false,
     ): OutboundTelegramMessageAction.Callback =
         OutboundTelegramMessageAction.Callback(
             label = label,
             data = data,
             style = style,
+            accented = accented,
         )
 
     private fun escapeHtml(value: String): String =

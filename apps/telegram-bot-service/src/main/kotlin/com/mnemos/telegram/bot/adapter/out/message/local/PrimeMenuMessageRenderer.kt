@@ -84,6 +84,7 @@ object PrimeMenuMessageRenderer {
                             label = "⭐ Оплатить ${invoice.primeAmount} PRIME",
                             url = invoice.url,
                             style = OutboundTelegramButtonStyle.SUCCESS,
+                            accented = true,
                         ),
                     ),
                 )

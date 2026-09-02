@@ -77,6 +77,7 @@ object DailyMenuMessageRenderer {
                             label = "🎁 Забрать награду",
                             data = DailyCallbackData.CLAIM,
                             style = OutboundTelegramButtonStyle.SUCCESS,
+                            accented = true,
                         ),
                     ),
                 )
