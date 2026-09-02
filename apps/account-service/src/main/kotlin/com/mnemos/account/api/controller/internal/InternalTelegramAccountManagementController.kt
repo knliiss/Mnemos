@@ -35,8 +35,7 @@ class InternalTelegramAccountManagementController(
     @GetMapping
     fun getManagement(
         @PathVariable telegramId: Long,
-    ): ResponseEntity<InternalTelegramAccountManagementResponse> =
-        response(service.getManagement(TelegramId(telegramId)))
+    ): ResponseEntity<InternalTelegramAccountManagementResponse> = response(service.getManagement(TelegramId(telegramId)))
 
     @DeleteMapping("/members/{memberId}")
     fun kickMember(
@@ -151,9 +150,7 @@ class InternalTelegramAccountManagementController(
             ),
         )
 
-    private fun response(
-        management: InternalTelegramAccountManagement?,
-    ): ResponseEntity<InternalTelegramAccountManagementResponse> =
+    private fun response(management: InternalTelegramAccountManagement?): ResponseEntity<InternalTelegramAccountManagementResponse> =
         management
             ?.toResponse()
             ?.let(ResponseEntity::ok)
