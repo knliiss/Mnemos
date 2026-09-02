@@ -20,5 +20,15 @@ data class TelegramNotificationPackStoreItem(
     val currency: Currency,
     val owned: Boolean,
     val active: Boolean,
+)
+
+data class TelegramNotificationPackDetail(
+    val personalizationId: PersonalizationId,
+    val name: String,
+    val author: String,
+    val priceAmount: Long,
+    val currency: Currency,
+    val owned: Boolean,
+    val active: Boolean,
     val content: PersonalizationContent.NotificationPack,
 )
