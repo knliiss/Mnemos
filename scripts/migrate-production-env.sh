@@ -135,6 +135,37 @@ ensure_generated_secret() {
     set_env "$key" "$(openssl rand -hex 32)"
 }
 
+migrate_legacy_secret() {
+    canonical_key="$1"
+    legacy_key="$2"
+
+    if has_env "$canonical_key"; then
+        canonical_value="$(get_env "$canonical_key")"
+
+        case "$canonical_value" in
+            ""|change_me|change_me_*|replace_me|replace_me_*|changeme|replace-me|replace_me_personalization)
+                ;;
+            *)
+                return
+                ;;
+        esac
+    fi
+
+    if ! has_env "$legacy_key"; then
+        return
+    fi
+
+    legacy_value="$(get_env "$legacy_key")"
+
+    case "$legacy_value" in
+        ""|change_me|change_me_*|replace_me|replace_me_*|changeme|replace-me|replace_me_personalization)
+            return
+            ;;
+    esac
+
+    set_env "$canonical_key" "$legacy_value"
+}
+
 if ! has_env TELEGRAM_BOT_ENABLED; then
     if has_env NOTIFICATION_TELEGRAM_ENABLED; then
         set_env TELEGRAM_BOT_ENABLED "$(get_env NOTIFICATION_TELEGRAM_ENABLED)"
@@ -145,6 +176,8 @@ fi
 
 ensure_default TELEGRAM_BOT_SERVICE_VERSION local
 ensure_default TELEGRAM_BOT_MENU_SESSION_TTL 30d
+
+migrate_legacy_secret TELEGRAM_BOT_SERVICE_BET_API_KEY BET_SERVICE_TELEGRAM_BOT_API_KEY
 
 NEW_GENERATED_SECRETS="
 REDIS_TELEGRAM_BOT_PASSWORD
