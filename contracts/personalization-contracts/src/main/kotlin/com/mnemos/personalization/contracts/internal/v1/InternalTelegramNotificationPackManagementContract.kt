@@ -35,6 +35,16 @@ data class InternalTelegramNotificationPackStoreItemResponse(
     val currency: String,
     val owned: Boolean,
     val active: Boolean,
+)
+
+data class InternalTelegramNotificationPackDetailResponse(
+    val personalizationId: UUID,
+    val name: String,
+    val author: String,
+    val priceAmount: Long,
+    val currency: String,
+    val owned: Boolean,
+    val active: Boolean,
     val preview: InternalTelegramNotificationPackPreviewResponse,
 )
 
