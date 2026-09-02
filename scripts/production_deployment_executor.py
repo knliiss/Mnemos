@@ -14,6 +14,9 @@ AVAILABILITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "verify-production-availabil
 
 
 ProductionDeploymentExecutionError = base.ProductionDeploymentExecutionError
+execution_record = base.execution_record
+persist_execution_record = base.persist_execution_record
+run_steps = base.run_steps
 
 
 def availability_steps() -> list[dict[str, Any]]:
@@ -34,8 +37,8 @@ def rollback_attempted_actions(
         service = action.get("service", "unknown")
 
         try:
-            base.run_steps(base.rollback_steps(action))
-            base.run_steps(availability_steps())
+            run_steps(base.rollback_steps(action))
+            run_steps(availability_steps())
         except (OSError, subprocess.CalledProcessError) as exception:
             errors.append(f"{service}: {exception}")
 
@@ -60,9 +63,9 @@ def execute_transition(
 
     try:
         for action in actions:
-            base.run_steps(base.preflight_steps(action))
+            run_steps(base.preflight_steps(action))
 
-        base.run_steps(availability_steps())
+        run_steps(availability_steps())
     except (OSError, subprocess.CalledProcessError) as exception:
         base.persist_failed_execution(
             state_dir=state_dir,
@@ -80,8 +83,8 @@ def execute_transition(
     try:
         for action in actions:
             attempted.append(action)
-            base.run_steps(base.target_steps(action))
-            base.run_steps(availability_steps())
+            run_steps(base.target_steps(action))
+            run_steps(availability_steps())
     except (OSError, subprocess.CalledProcessError) as exception:
         rollback_errors = rollback_attempted_actions(attempted)
         rollback_error = "; ".join(rollback_errors) or None
@@ -108,14 +111,14 @@ def execute_transition(
 
     base.persist_state_snapshot(state_dir, target_state)
 
-    record = base.execution_record(
+    record = execution_record(
         transition=transition,
         status="applied",
         started_at=started_at,
         completed_at=base.now_iso(),
         attempted_services=[action["service"] for action in attempted],
     )
-    base.persist_execution_record(
+    persist_execution_record(
         state_dir=state_dir,
         transition=transition,
         record=record,
@@ -139,6 +142,10 @@ def dry_run_bundle(
         action["availability_after"] = availability_steps()
 
     return bundle
+
+
+def __getattr__(name: str) -> Any:
+    return getattr(base, name)
 
 
 def main() -> int:
