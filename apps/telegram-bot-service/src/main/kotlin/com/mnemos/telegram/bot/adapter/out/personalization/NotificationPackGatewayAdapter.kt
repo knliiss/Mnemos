@@ -2,6 +2,7 @@ package com.mnemos.telegram.bot.adapter.out.personalization
 
 import com.mnemos.personalization.contracts.internal.v1.PurchaseInternalTelegramNotificationPackRequest
 import com.mnemos.personalization.contracts.internal.v1.UpdateInternalTelegramNotificationPackSelectionRequest
+import com.mnemos.telegram.bot.adapter.out.settings.PersonalizationServiceClient
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackApplyResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackPurchaseResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
@@ -25,7 +26,7 @@ class NotificationPackGatewayAdapter(
     ): NotificationPackStoreResult =
         try {
             client
-                .listStore(
+                .getNotificationPackStore(
                     telegramId = telegramId,
                     page = page,
                     size = size,
@@ -59,7 +60,7 @@ class NotificationPackGatewayAdapter(
     override fun owned(telegramId: Long): OwnedNotificationPacksResult =
         try {
             client
-                .listOwned(telegramId)
+                .getNotificationPacks(telegramId)
                 ?.let { response ->
                     OwnedNotificationPacksResult.Available(
                         response.packs.map { pack ->
@@ -82,7 +83,7 @@ class NotificationPackGatewayAdapter(
     ): NotificationPackPurchaseResult =
         try {
             client
-                .purchase(
+                .purchaseNotificationPack(
                     telegramId = telegramId,
                     personalizationId = personalizationId,
                     request = PurchaseInternalTelegramNotificationPackRequest(idempotencyKey),
@@ -104,7 +105,7 @@ class NotificationPackGatewayAdapter(
     ): NotificationPackApplyResult =
         try {
             client
-                .apply(
+                .updateNotificationPackSelection(
                     telegramId = telegramId,
                     request = UpdateInternalTelegramNotificationPackSelectionRequest(personalizationId),
                 )?.let { NotificationPackApplyResult.Applied }
