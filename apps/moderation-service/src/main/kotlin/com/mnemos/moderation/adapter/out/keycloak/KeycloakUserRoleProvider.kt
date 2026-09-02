@@ -2,7 +2,10 @@ package com.mnemos.moderation.adapter.out.keycloak
 
 import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.user.UserRole
+import com.mnemos.moderation.application.security.exception.UserRoleLookupUnavailableException
 import com.mnemos.moderation.application.security.port.out.UserRoleProvider
+import feign.FeignException
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException
 import org.springframework.stereotype.Component
 
 @Component
@@ -11,7 +14,16 @@ class KeycloakUserRoleProvider(
     private val properties: KeycloakAdminProperties,
     private val tokenProvider: KeycloakTokenProvider,
 ) : UserRoleProvider {
-    override fun highestRole(userId: UserId): UserRole {
+    override fun highestRole(userId: UserId): UserRole =
+        try {
+            resolveHighestRole(userId)
+        } catch (exception: FeignException) {
+            throw UserRoleLookupUnavailableException(exception)
+        } catch (exception: OAuth2AuthorizationException) {
+            throw UserRoleLookupUnavailableException(exception)
+        }
+
+    private fun resolveHighestRole(userId: UserId): UserRole {
         val authorization = "Bearer ${tokenProvider.token()}"
         val expectedUserId = userId.id.toString()
         val users =
