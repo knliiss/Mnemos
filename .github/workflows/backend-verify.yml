@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/backend-verify.yml"
       - ".github/workflows/production*.yml"
+      - ".env.example"
       - "Makefile"
       - "make/**"
       - "apps/**"
@@ -27,6 +28,7 @@ on:
     paths:
       - ".github/workflows/backend-verify.yml"
       - ".github/workflows/production*.yml"
+      - ".env.example"
       - "Makefile"
       - "make/**"
       - "apps/**"
