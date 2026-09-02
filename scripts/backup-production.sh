@@ -61,6 +61,11 @@ sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     sh "$REDIS_TEMP_FILE" \
     >/dev/null
 
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    exec -T redis \
+    redis-check-rdb "$REDIS_TEMP_FILE" \
+    >/dev/null
+
 redis_container="$(
     sh "$REPOSITORY_ROOT/scripts/production-infra.sh" ps -q redis
 )"
