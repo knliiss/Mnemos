@@ -54,6 +54,12 @@ DEPLOYMENT_PRIORITIES = {
     "telegram-bot-service": 100,
 }
 
+RUNTIME_ENVIRONMENT_OVERRIDES = {
+    "moderation-service": {
+        "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE": "4",
+    },
+}
+
 
 def validate_policy() -> None:
     application_services = set(APPLICATION_SERVICES)
@@ -66,6 +72,21 @@ def validate_policy() -> None:
 
     if set(DEPLOYMENT_PRIORITIES) != application_services:
         raise ValueError("Production deployment priorities do not cover every application service")
+
+    if not set(RUNTIME_ENVIRONMENT_OVERRIDES).issubset(application_services):
+        raise ValueError("Production runtime overrides contain an unknown application service")
+
+    for service_name, environment in RUNTIME_ENVIRONMENT_OVERRIDES.items():
+        if not isinstance(environment, dict) or not environment:
+            raise ValueError(
+                f"Production runtime overrides are empty for {service_name}"
+            )
+
+        for key, value in environment.items():
+            if not key or not isinstance(value, str) or not value:
+                raise ValueError(
+                    f"Production runtime override is invalid for {service_name}: {key}"
+                )
 
 
 def require_application_service(service_name: str) -> None:
@@ -86,6 +107,11 @@ def update_order(service_name: str) -> str:
 def deployment_priority(service_name: str) -> int:
     require_application_service(service_name)
     return DEPLOYMENT_PRIORITIES[service_name]
+
+
+def runtime_environment_overrides(service_name: str) -> dict[str, str]:
+    require_application_service(service_name)
+    return dict(RUNTIME_ENVIRONMENT_OVERRIDES.get(service_name, {}))
 
 
 validate_policy()
