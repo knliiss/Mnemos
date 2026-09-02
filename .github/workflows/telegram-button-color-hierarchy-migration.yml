@@ -1,0 +1,135 @@
+name: Telegram Button Color Hierarchy Migration
+
+on:
+  push:
+    branches:
+      - fix/telegram-button-color-hierarchy
+    paths:
+      - .github/workflows/telegram-button-color-hierarchy-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/telegram-button-color-hierarchy
+          fetch-depth: 0
+
+      - name: Apply restrained button color policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file_path = Path(path)
+              text = file_path.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected 1 occurrence, found {count}: {old!r}")
+              file_path.write_text(text.replace(old, new, 1))
+
+          model = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/application/message/model/OutboundTelegramMessage.kt"
+          replace_once(
+              model,
+              "sealed interface OutboundTelegramMessageAction {\n    val label: String\n    val style: OutboundTelegramButtonStyle\n",
+              "sealed interface OutboundTelegramMessageAction {\n    val label: String\n    val style: OutboundTelegramButtonStyle\n    val accented: Boolean\n",
+          )
+          replace_once(
+              model,
+              "    data class OpenMiniApp(\n        override val label: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.PRIMARY,\n    ) : OutboundTelegramMessageAction\n",
+              "    data class OpenMiniApp(\n        override val label: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        override val accented: Boolean = false,\n    ) : OutboundTelegramMessageAction\n",
+          )
+          replace_once(
+              model,
+              "    data class OpenUrl(\n        override val label: String,\n        val url: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n    ) : OutboundTelegramMessageAction\n",
+              "    data class OpenUrl(\n        override val label: String,\n        val url: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        override val accented: Boolean = false,\n    ) : OutboundTelegramMessageAction\n",
+          )
+          replace_once(
+              model,
+              "    data class Callback(\n        override val label: String,\n        val data: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n    ) : OutboundTelegramMessageAction\n",
+              "    data class Callback(\n        override val label: String,\n        val data: String,\n        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        override val accented: Boolean = false,\n    ) : OutboundTelegramMessageAction\n",
+          )
+
+          mapper = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/telegram/TelegramMessageMapper.kt"
+          replace_once(
+              mapper,
+              "        resolvedStyle().telegramValue?.let(button::style)\n\n        return button\n    }\n\n    private fun OutboundTelegramMessageAction.resolvedStyle(): OutboundTelegramButtonStyle {\n        if (style != OutboundTelegramButtonStyle.DEFAULT) {\n            return style\n        }\n\n        return when {\n            label.startsWith(\"✖\") || label.startsWith(\"✕\") || label.startsWith(\"🗑\") ->\n                OutboundTelegramButtonStyle.DANGER\n\n            label.startsWith(\"✅\") || label.startsWith(\"✓\") || label.startsWith(\"🎁\") || label.startsWith(\"⭐\") ->\n                OutboundTelegramButtonStyle.SUCCESS\n\n            label.startsWith(\"➕\") || label.startsWith(\"🔎\") ->\n                OutboundTelegramButtonStyle.PRIMARY\n\n            else -> OutboundTelegramButtonStyle.DEFAULT\n        }\n    }\n",
+              "        if (accented) {\n            style.telegramValue?.let(button::style)\n        }\n\n        return button\n    }\n",
+          )
+
+          daily = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/DailyMenuMessageRenderer.kt"
+          replace_once(
+              daily,
+              "                            data = DailyCallbackData.CLAIM,\n                            style = OutboundTelegramButtonStyle.SUCCESS,\n",
+              "                            data = DailyCallbackData.CLAIM,\n                            style = OutboundTelegramButtonStyle.SUCCESS,\n                            accented = true,\n",
+          )
+
+          prime = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/PrimeMenuMessageRenderer.kt"
+          replace_once(
+              prime,
+              "                            url = invoice.url,\n                            style = OutboundTelegramButtonStyle.SUCCESS,\n",
+              "                            url = invoice.url,\n                            style = OutboundTelegramButtonStyle.SUCCESS,\n                            accented = true,\n",
+          )
+
+          notification = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/NotificationMenuMessageRenderer.kt"
+          replace_once(
+              notification,
+              "                            data = NotificationCallbackData.confirmDelete(subscriptionId),\n                            style = OutboundTelegramButtonStyle.DANGER,\n",
+              "                            data = NotificationCallbackData.confirmDelete(subscriptionId),\n                            style = OutboundTelegramButtonStyle.DANGER,\n                            accented = true,\n",
+          )
+
+          invite = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/AccountInviteMenuMessageRenderer.kt"
+          replace_once(
+              invite,
+              "                            data = AccountInviteCallbackData.confirmRevoke(invite.id),\n                            style = OutboundTelegramButtonStyle.DANGER,\n",
+              "                            data = AccountInviteCallbackData.confirmRevoke(invite.id),\n                            style = OutboundTelegramButtonStyle.DANGER,\n                            accented = true,\n",
+          )
+
+          management = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/AccountManagementMenuMessageRenderer.kt"
+          replace_once(
+              management,
+              "                        data = confirmData,\n                        style = OutboundTelegramButtonStyle.DANGER,\n",
+              "                        data = confirmData,\n                        style = OutboundTelegramButtonStyle.DANGER,\n                        accented = true,\n",
+          )
+
+          test = "apps/telegram-bot-service/src/test/kotlin/com/mnemos/telegram/bot/adapter/out/telegram/TelegramMessageMapperTest.kt"
+          replace_once(
+              test,
+              "import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage\n",
+              "import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle\nimport com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage\n",
+          )
+          replace_once(
+              test,
+              "        assertEquals(\"Open Mnemos\", button.text)\n        assertEquals(MINI_APP_URL, button.webApp?.url())\n",
+              "        assertEquals(\"Open Mnemos\", button.text)\n        assertEquals(MINI_APP_URL, button.webApp?.url())\n        assertEquals(OutboundTelegramButtonStyle.DEFAULT, message.actions.single().style)\n        assertEquals(false, message.actions.single().accented)\n",
+          )
+
+          workflow = Path(".github/workflows/telegram-button-color-hierarchy-migration.yml")
+          workflow.unlink()
+          PY
+
+      - name: Verify telegram bot service
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :apps:telegram-bot-service:ktlintCheck :apps:telegram-bot-service:test --no-daemon
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "knalis"
+          git config user.email "vitallot21@gmail.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Restrict Telegram button color accents"
+          git push origin HEAD:fix/telegram-button-color-hierarchy
