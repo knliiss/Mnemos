@@ -5,6 +5,7 @@ import com.mnemos.personalization.contracts.internal.v1.UpdateInternalTelegramNo
 import com.mnemos.telegram.bot.adapter.out.personalization.TelegramNotificationPackContractMapper.toModel
 import com.mnemos.telegram.bot.adapter.out.settings.PersonalizationServiceClient
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackApplyResult
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackDetailResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackPurchaseResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
@@ -43,6 +44,28 @@ class NotificationPackGatewayAdapter(
                 } ?: NotificationPackStoreResult.RegistrationRequired
         } catch (_: RuntimeException) {
             NotificationPackStoreResult.Unavailable
+        }
+
+    override fun detail(
+        telegramId: Long,
+        personalizationId: UUID,
+    ): NotificationPackDetailResult =
+        try {
+            client
+                .getNotificationPackDetail(
+                    telegramId = telegramId,
+                    personalizationId = personalizationId,
+                )?.let { response ->
+                    NotificationPackDetailResult.Available(response.toModel())
+                } ?: NotificationPackDetailResult.NotFound
+        } catch (exception: FeignException) {
+            if (exception.status() in 400..499) {
+                NotificationPackDetailResult.NotFound
+            } else {
+                NotificationPackDetailResult.Unavailable
+            }
+        } catch (_: RuntimeException) {
+            NotificationPackDetailResult.Unavailable
         }
 
     override fun owned(telegramId: Long): OwnedNotificationPacksResult =
