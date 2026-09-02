@@ -16,7 +16,7 @@ class AccountEntity(
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     var id: UUID,
-    @Column(name = "owner_member_id", nullable = false, updatable = false)
+    @Column(name = "owner_member_id", nullable = false)
     var ownerMemberId: UUID,
     @Column(name = "cristalix_uuid", nullable = false, unique = true, updatable = false)
     var cristalixUuid: UUID,
