@@ -53,6 +53,7 @@ jobs:
               "feat/deployment-hotfix-system": "617b6cbbea5be965b0d72b939dbb0d93562952db",
               "fix/production-stack-smoke-master-gate": "92d71797578ca29b08478f0f26deea53da51ce33",
               "fix/production-swarm-runtime": "12f7c9e6ee850fb9ef1218f3a6eb9f30c4a931be",
+              "fix/production-telegram-rollout": "ebe754f2091a48c670bd9c9c5c4050e64544a868",
               "hotfix/cancel-stale-production-recovery": "6a8cef9015dece3009da0b2a8ea1ca17c0c206f0",
               "hotfix/run-production-recovery": "2b9f12238b4f22db296f46ab49367d212aeb247c",
               "hotfix/swarm-command-rendering": "f670b9418fe1374b6a5bdde4931923c8575520eb",
