@@ -1,11 +1,13 @@
 package com.mnemos.telegram.bot.adapter.out.personalization
 
+import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackDetailResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackPreviewResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackStoreItemResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationTemplateConditionResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationTemplateResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationTemplateVariantResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationValueFormsResponse
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackDetail
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackPreview
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplate
@@ -16,6 +18,17 @@ import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationValueF
 object TelegramNotificationPackContractMapper {
     fun InternalTelegramNotificationPackStoreItemResponse.toModel(): TelegramNotificationPackStoreItem =
         TelegramNotificationPackStoreItem(
+            personalizationId = personalizationId,
+            name = name,
+            author = author,
+            priceAmount = priceAmount,
+            currency = currency,
+            owned = owned,
+            active = active,
+        )
+
+    fun InternalTelegramNotificationPackDetailResponse.toModel(): TelegramNotificationPackDetail =
+        TelegramNotificationPackDetail(
             personalizationId = personalizationId,
             name = name,
             author = author,
