@@ -54,17 +54,17 @@ sh "$REPOSITORY_ROOT/scripts/docker-compose-env.sh" \
     > "$COMPOSE_MODEL"
 
 if [ -n "$RELEASE_MANIFEST" ]; then
-    python3 "$REPOSITORY_ROOT/scripts/render-production-stack.py" \
+    python3 -B "$REPOSITORY_ROOT/scripts/render-production-stack.py" \
         --input "$COMPOSE_MODEL" \
         --output "$RENDERED_STACK" \
         --release-manifest "$RELEASE_MANIFEST"
 else
-    python3 "$REPOSITORY_ROOT/scripts/render-production-stack.py" \
+    python3 -B "$REPOSITORY_ROOT/scripts/render-production-stack.py" \
         --input "$COMPOSE_MODEL" \
         --output "$RENDERED_STACK"
 fi
 
-python3 "$REPOSITORY_ROOT/scripts/normalize-production-swarm-stack.py" \
+python3 -B "$REPOSITORY_ROOT/scripts/normalize-production-swarm-stack.py" \
     --input "$RENDERED_STACK" \
     --output "$OUTPUT_FILE"
 
