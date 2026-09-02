@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.member
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.domain.model.account.AccountMemberId
@@ -29,6 +30,17 @@ class KickAccountMemberService(
                 permission = RolePermission.MANAGE_MEMBERS,
             )
 
+        kickMember(
+            context = context,
+            targetMemberId = targetMemberId,
+        )
+    }
+
+    @Transactional
+    fun kickMember(
+        context: ActiveAccountContext,
+        targetMemberId: AccountMemberId,
+    ) {
         val targetMember =
             roleAccessGuard.requireCanKickMember(
                 context = context,
@@ -39,7 +51,7 @@ class KickAccountMemberService(
 
         userRepository.clearActiveAccountIfMatches(
             userId = targetMember.userId,
-            accountId = accountId,
+            accountId = context.account.id,
             updatedAt = now,
         )
 

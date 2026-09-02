@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
@@ -30,25 +31,32 @@ class UpdateRoleHierarchyService(
                 permission = MANAGE_ROLE_HIERARCHY,
             )
 
-        val currentRoles = roleRepository.findAllByAccountIdOrderByRank(accountId)
+        return updateHierarchy(
+            context = context,
+            orderedRoleIds = orderedRoleIds,
+        )
+    }
+
+    @Transactional
+    fun updateHierarchy(
+        context: ActiveAccountContext,
+        orderedRoleIds: List<RoleId>,
+    ): List<RoleView> {
+        val currentRoles = roleRepository.findAllByAccountIdOrderByRank(context.account.id)
 
         validateRequestedOrder(
-            accountId = accountId,
+            accountId = context.account.id,
             roles = currentRoles,
             orderedRoleIds = orderedRoleIds,
         )
 
         val rolesById = currentRoles.associateBy { it.id }
-
-        val reorderedRoles =
-            orderedRoleIds.map { roleId ->
-                rolesById.getValue(roleId)
-            }
+        val reorderedRoles = orderedRoleIds.map(rolesById::getValue)
 
         roleAccessGuard.requireCanUpdateHierarchy(
             context = context,
             roles = currentRoles,
-            orderedRoleIds = reorderedRoles.map { it.id },
+            orderedRoleIds = reorderedRoles.map { role -> role.id },
         )
 
         val updatedRoles =
@@ -62,7 +70,7 @@ class UpdateRoleHierarchyService(
             roleRepository.updateAll(updatedRoles)
         }
 
-        return reorderedRoles.map { it.toView() }
+        return reorderedRoles.map { role -> role.toView() }
     }
 
     private fun validateRequestedOrder(
@@ -77,7 +85,7 @@ class UpdateRoleHierarchyService(
             )
         }
 
-        val existingRoleIds = roles.mapTo(mutableSetOf()) { it.id }
+        val existingRoleIds = roles.mapTo(mutableSetOf()) { role -> role.id }
         val requestedRoleIds = orderedRoleIds.toSet()
 
         if (requestedRoleIds != existingRoleIds) {

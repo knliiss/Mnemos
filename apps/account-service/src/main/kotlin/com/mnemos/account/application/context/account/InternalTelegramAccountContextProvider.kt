@@ -19,15 +19,23 @@ class InternalTelegramAccountContextProvider(
     private val accountRepository: AccountRepository,
     private val accountMemberRepository: AccountMemberRepository,
 ) {
+    fun requireActiveContext(telegramId: TelegramId): ActiveAccountContext? =
+        createContext(
+            telegramId = telegramId,
+            lockAccount = false,
+        )
+
+    fun requireActiveContextForUpdate(telegramId: TelegramId): ActiveAccountContext? =
+        createContext(
+            telegramId = telegramId,
+            lockAccount = true,
+        )
+
     fun requirePermission(
         telegramId: TelegramId,
         permission: RolePermission,
     ): ActiveAccountContext? {
-        val context =
-            createContext(
-                telegramId = telegramId,
-                lockAccount = false,
-            ) ?: return null
+        val context = requireActiveContext(telegramId) ?: return null
 
         requirePermission(context, permission)
 
@@ -38,11 +46,7 @@ class InternalTelegramAccountContextProvider(
         telegramId: TelegramId,
         permission: RolePermission,
     ): ActiveAccountContext? {
-        val context =
-            createContext(
-                telegramId = telegramId,
-                lockAccount = true,
-            ) ?: return null
+        val context = requireActiveContextForUpdate(telegramId) ?: return null
 
         requirePermission(context, permission)
 

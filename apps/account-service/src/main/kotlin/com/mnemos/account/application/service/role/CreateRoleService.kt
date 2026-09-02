@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.query.account.role.RoleView
@@ -32,6 +33,22 @@ class CreateRoleService(
                 accountId = accountId,
                 permission = MANAGE_ROLES,
             )
+
+        return createRole(
+            context = context,
+            name = name,
+            color = color,
+            permissions = permissions,
+        )
+    }
+
+    @Transactional
+    fun createRole(
+        context: ActiveAccountContext,
+        name: String,
+        color: String,
+        permissions: Set<RolePermission>,
+    ): RoleView {
         val finalPermissions = permissions.toMutableSet()
 
         roleAccessGuard.requireCanGrantPermissions(

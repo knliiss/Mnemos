@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.domain.model.account.role.RoleId
@@ -28,6 +29,17 @@ class DeleteAccountRoleService(
                 permission = MANAGE_ROLES,
             )
 
+        deleteRole(
+            context = context,
+            roleId = roleId,
+        )
+    }
+
+    @Transactional
+    fun deleteRole(
+        context: ActiveAccountContext,
+        roleId: RoleId,
+    ) {
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
