@@ -67,6 +67,11 @@ jobs:
           mapper = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/telegram/TelegramMessageMapper.kt"
           replace_once(
               mapper,
+              "import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle\n",
+              "",
+          )
+          replace_once(
+              mapper,
               "        resolvedStyle().telegramValue?.let(button::style)\n\n        return button\n    }\n\n    private fun OutboundTelegramMessageAction.resolvedStyle(): OutboundTelegramButtonStyle {\n        if (style != OutboundTelegramButtonStyle.DEFAULT) {\n            return style\n        }\n\n        return when {\n            label.startsWith(\"✖\") || label.startsWith(\"✕\") || label.startsWith(\"🗑\") ->\n                OutboundTelegramButtonStyle.DANGER\n\n            label.startsWith(\"✅\") || label.startsWith(\"✓\") || label.startsWith(\"🎁\") || label.startsWith(\"⭐\") ->\n                OutboundTelegramButtonStyle.SUCCESS\n\n            label.startsWith(\"➕\") || label.startsWith(\"🔎\") ->\n                OutboundTelegramButtonStyle.PRIMARY\n\n            else -> OutboundTelegramButtonStyle.DEFAULT\n        }\n    }\n",
               "        if (accented) {\n            style.telegramValue?.let(button::style)\n        }\n\n        return button\n    }\n",
           )
