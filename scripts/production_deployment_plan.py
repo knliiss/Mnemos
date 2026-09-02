@@ -14,16 +14,29 @@ DEFAULT_STABLE_SECONDS = base.DEFAULT_STABLE_SECONDS
 SUPPORTED_OPERATIONS = base.SUPPORTED_OPERATIONS
 
 
-def action_order(
-    component: str,
-    catalog: dict[str, Any],
-) -> tuple[int, int, str]:
-    runtime_kind = catalog["services"][component]["deploy"]["runtime"]
+def action_order(action: dict[str, Any]) -> tuple[int, int, str]:
+    runtime = action.get("runtime")
+    service_name = action.get("service")
 
-    if runtime_kind == "compose":
-        return (0, 0, component)
+    if not isinstance(runtime, dict):
+        raise ProductionDeploymentPlanError(
+            "Deployment action does not define runtime metadata"
+        )
 
-    return (1, deployment_priority(component), component)
+    runtime_type = runtime.get("type")
+
+    if not isinstance(service_name, str) or not service_name:
+        raise ProductionDeploymentPlanError(
+            "Deployment action service must be a non-empty string"
+        )
+
+    if runtime_type == "compose":
+        return (0, 0, service_name)
+
+    if runtime_type == "swarm":
+        return (1, deployment_priority(service_name), service_name)
+
+    return (100, 0, service_name)
 
 
 base.action_order = action_order
