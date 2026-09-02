@@ -16,7 +16,8 @@ jobs:
   migrate-production-env:
     if: >-
       contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
-      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp') ||
+      contains(github.event.head_commit.message, 'fix/production-runtime-config')
     runs-on:
       - self-hosted
       - mnemos-production
@@ -64,7 +65,8 @@ jobs:
   publish-production-images:
     if: >-
       contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
-      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp') ||
+      contains(github.event.head_commit.message, 'fix/production-runtime-config')
     runs-on:
       - self-hosted
       - Linux
@@ -171,7 +173,8 @@ jobs:
   deploy-production:
     if: >-
       contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
-      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp') ||
+      contains(github.event.head_commit.message, 'fix/production-runtime-config')
     needs:
       - migrate-production-env
       - publish-production-images
