@@ -42,7 +42,7 @@ jobs:
             exit 1
           fi
 
-          if grep -Ev '^(\.github/workflows/production-(pr-backend-verify|pr-ci-recovery|pr-final-stack-smoke|pr-stack-smoke|pr79-rollout|runtime-diagnostic|runtime-policy|zero-downtime-rollout|zero-downtime-verify)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/(normalize-production-swarm-stack|production_deployment_executor|production_deployment_executor_base|production_deployment_plan|production_deployment_plan_base|production_runtime_policy|reconcile-production-runtime-policy|verify-production-availability|verify-production-runtime-policy|verify-production-stack-renderer|verify-production-swarm-stack-normalizer|verify-production-telegram-poller)\.(py|sh))$' "$changed" | grep -q .; then
+          if grep -Ev '^(\.github/workflows/production-(pr-backend-verify|pr-ci-recovery|pr-final-stack-smoke|pr-stack-smoke|pr79-rollout|runtime-diagnostic|runtime-policy|zero-downtime-rollout|zero-downtime-verify)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/(normalize-production-swarm-stack|production_deployment_executor|production_deployment_executor_base|production_deployment_plan|production_deployment_plan_base|production_runtime_policy|reconcile-production-runtime-policy|verify-production-availability|verify-production-deployment-executor-security|verify-production-runtime-policy|verify-production-stack-renderer|verify-production-swarm-stack-normalizer|verify-production-telegram-poller)\.(py|sh))$' "$changed" | grep -q .; then
             echo "Zero-downtime rollout contains an unexpected changed path:" >&2
             cat "$changed" >&2
             exit 1
