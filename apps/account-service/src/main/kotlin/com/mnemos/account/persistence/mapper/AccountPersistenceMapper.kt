@@ -38,6 +38,7 @@ object AccountPersistenceMapper {
         )
 
     fun AccountEntity.updateFrom(account: Account) {
+        ownerMemberId = account.ownerMemberId.id
         cristalixNickname = account.cristalixNickname.value
         updatedAt = account.updatedAt
         status = account.status
