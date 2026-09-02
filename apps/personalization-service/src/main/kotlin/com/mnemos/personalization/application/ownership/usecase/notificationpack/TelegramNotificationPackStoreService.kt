@@ -73,16 +73,6 @@ class TelegramNotificationPackStoreService(
         val packPrice = requireNotNull(price) {
             "Published notification pack requires a price"
         }
-        val samples =
-            notificationPack.templates.values
-                .take(MAX_SAMPLES)
-                .map { template ->
-                    listOfNotNull(
-                        template.emoji,
-                        template.soloTitle,
-                        template.soloBody,
-                    ).joinToString(" ")
-                }
 
         return TelegramNotificationPackStoreItem(
             personalizationId = id,
@@ -97,13 +87,12 @@ class TelegramNotificationPackStoreService(
             currency = packPrice.currency,
             owned = owned,
             active = active,
-            samples = samples,
+            content = notificationPack,
         )
     }
 
     private companion object {
         const val MAX_PAGE_SIZE = 8
-        const val MAX_SAMPLES = 3
         const val SYSTEM_AUTHOR = "Mnemos"
         const val COMMUNITY_AUTHOR = "Автор сообщества"
     }
