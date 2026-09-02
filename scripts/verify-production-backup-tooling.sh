@@ -44,6 +44,18 @@ fi
 grep -Fq 'latest-local' "$BACKUP_SCRIPT" ||
     fail "Local backup creation must only publish locally verified state"
 
+pg_restore_list_count="$(grep -Fc 'pg_restore --list' "$BACKUP_SCRIPT")"
+
+if [ "$pg_restore_list_count" -ne 2 ]; then
+    fail "Both PostgreSQL production dumps must be structurally validated at creation time"
+fi
+
+grep -Fq '< "$BACKUP_DIR/app-postgres.dump"' "$BACKUP_SCRIPT" ||
+    fail "Application PostgreSQL dump must be validated through pg_restore"
+
+grep -Fq '< "$BACKUP_DIR/keycloak-postgres.dump"' "$BACKUP_SCRIPT" ||
+    fail "Keycloak PostgreSQL dump must be validated through pg_restore"
+
 grep -Fq '/etc/mnemos' "$OFFSITE_SCRIPT" ||
     fail "Encrypted off-site backup must include /etc/mnemos"
 
