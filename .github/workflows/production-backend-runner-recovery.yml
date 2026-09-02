@@ -1,4 +1,4 @@
-name: Production Backend Runner Recovery
+name: Production Runtime Config Validation
 
 on:
   push:
@@ -9,59 +9,67 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
-  force-cancel-stuck-backend-run:
+  validate-runtime-config:
     runs-on:
       - self-hosted
       - mnemos-production
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
-      - name: Force cancel stuck backend workflow
+      - name: Clean privileged Python cache
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          STUCK_RUN_ID: "33592119577"
         run: |
           set -euo pipefail
 
-          api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}"
-
-          read_status() {
-            curl --fail-with-body --silent --show-error \
-              --header "Accept: application/vnd.github+json" \
-              --header "Authorization: Bearer ${GH_TOKEN}" \
-              --header "X-GitHub-Api-Version: 2022-11-28" \
-              "${api_url}" | \
-              python3 -c 'import json, sys; print(json.load(sys.stdin)["status"])'
-          }
-
-          status="$(read_status)"
-
-          if [ "$status" = "completed" ]; then
-            echo "Backend workflow ${STUCK_RUN_ID} is already completed"
-            exit 0
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n find "$GITHUB_WORKSPACE" \
+              -type d \
+              -name __pycache__ \
+              -prune \
+              -exec rm -rf {} +
           fi
 
-          curl --fail-with-body --silent --show-error \
-            --request POST \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer ${GH_TOKEN}" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "${api_url}/force-cancel"
+      - name: Checkout validation revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
 
-          for attempt in $(seq 1 20); do
-            status="$(read_status)"
+      - name: Verify production runtime configuration
+        shell: bash
+        env:
+          MNEMOS_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          MNEMOS_RELEASE_TAG: 8cf36034cb5228afbd656419bee94e5a00ac1237
+          MNEMOS_SWARM_NETWORK: mnemos-production-network
+          MNEMOS_KAFKA_TRUSTSTORE_CONFIG: mnemos-validation-kafka-truststore
+          MNEMOS_CLOUDFLARE_TUNNEL_SECRET: mnemos-validation-cloudflare-secret
+        run: |
+          set -euo pipefail
 
-            if [ "$status" = "completed" ]; then
-              echo "Backend workflow ${STUCK_RUN_ID} force-cancelled"
-              exit 0
-            fi
+          python3 -B scripts/verify-production-app-overrides.py
+          sudo -n sh scripts/validate-production-env.sh
 
-            sleep 3
-          done
+          stack_file="$RUNNER_TEMP/mnemos-runtime-config-validation.yml"
+          trap 'rm -f "$stack_file"' EXIT
 
-          echo "Backend workflow ${STUCK_RUN_ID} did not complete after force-cancel" >&2
-          exit 1
+          sudo -n env \
+            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
+            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
+            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
+            MNEMOS_KAFKA_TRUSTSTORE_CONFIG="$MNEMOS_KAFKA_TRUSTSTORE_CONFIG" \
+            MNEMOS_CLOUDFLARE_TUNNEL_SECRET="$MNEMOS_CLOUDFLARE_TUNNEL_SECRET" \
+            python3 -B scripts/verify-production-app-overrides.py
+
+          sudo -n env \
+            MNEMOS_IMAGE_REGISTRY="$MNEMOS_IMAGE_REGISTRY" \
+            MNEMOS_RELEASE_TAG="$MNEMOS_RELEASE_TAG" \
+            MNEMOS_SWARM_NETWORK="$MNEMOS_SWARM_NETWORK" \
+            MNEMOS_KAFKA_TRUSTSTORE_CONFIG="$MNEMOS_KAFKA_TRUSTSTORE_CONFIG" \
+            MNEMOS_CLOUDFLARE_TUNNEL_SECRET="$MNEMOS_CLOUDFLARE_TUNNEL_SECRET" \
+            sh scripts/render-production-app-stack.sh "$stack_file"
+
+          sudo -n docker stack config --compose-file "$stack_file" >/dev/null
+          echo "Production runtime configuration validated"
