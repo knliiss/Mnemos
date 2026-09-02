@@ -2,6 +2,7 @@ package com.mnemos.account.persistence.repository.account
 
 import com.mnemos.account.domain.exception.account.AccountNotFoundException
 import com.mnemos.account.domain.model.account.Account
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.domain.model.account.CristalixUuid
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.persistence.mapper.AccountPersistenceMapper.toDomain
@@ -36,11 +37,15 @@ class AccountRepositoryAdapter(
 
     override fun findActiveByUserId(userId: UserId): Account? = jpaAccountRepository.findActiveByUserId(userId.id)?.toDomain()
 
-    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean = jpaAccountRepository.existsByCristalixUuid(cristalixUuid.id)
+    override fun existsByCristalixUuid(cristalixUuid: CristalixUuid): Boolean =
+        jpaAccountRepository.existsByCristalixUuidAndStatusNot(
+            cristalixUuid = cristalixUuid.id,
+            status = AccountStatus.DELETED,
+        )
 
     override fun findByCristalixUuidForUpdate(cristalixUuid: CristalixUuid): Account? =
         jpaAccountRepository
-            .findByCristalixUuidForUpdate(cristalixUuid.id)
+            .findLiveByCristalixUuidForUpdate(cristalixUuid.id)
             ?.toDomain()
 
     override fun findAllAvailableForUser(userId: UserId): List<Account> =
