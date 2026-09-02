@@ -20,7 +20,7 @@ for config_file in "$REPOSITORY_ROOT"/apps/*-service/src/main/resources/applicat
         fail "Application config contains a PostgreSQL username fallback: $relative_path"
     fi
 
-    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*:[^}]+' "$config_file"; then
+    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|PROJECT_KEY)[A-Z0-9_]*:[^}]+' "$config_file"; then
         fail "Application config contains a non-empty credential fallback: $relative_path"
     fi
 
@@ -41,7 +41,7 @@ for compose_file in \
 
     relative_path="${compose_file#"$REPOSITORY_ROOT/"}"
 
-    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*:-[^}]+' "$compose_file"; then
+    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|PROJECT_KEY)[A-Z0-9_]*:-[^}]+' "$compose_file"; then
         fail "Compose config contains a non-empty credential fallback: $relative_path"
     fi
 
