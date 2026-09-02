@@ -8,7 +8,6 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
-import com.mnemos.telegram.bot.application.pack.model.NotificationPackAggregatePreviewMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuFeedback
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
@@ -137,13 +136,11 @@ object NotificationPackMenuMessageRenderer {
                 preview = pack.preview,
                 selectedType = data.selectedTemplateType,
                 selectedVariantId = data.selectedVariantId,
-                aggregateMode = data.aggregatePreviewMode,
             )
         val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
         rows += templateRows(preview.selectedType)
         rows += variantRows(pack, preview.selectedType, preview.selectedVariant)
-        rows += aggregateModeRow(data.aggregatePreviewMode)
         rows += purchaseOrApplyRow(pack)
         rows +=
             listOf(
@@ -173,14 +170,6 @@ object NotificationPackMenuMessageRenderer {
             preview.selectedVariant
                 ?.let(NotificationPackPreviewFormatter::variantLabel)
                 ?: "Базовый"
-        val aggregateLabel =
-            when (data.aggregatePreviewMode) {
-                NotificationPackAggregatePreviewMode.SAME_TYPE -> "один тип"
-                NotificationPackAggregatePreviewMode.MIXED -> "смешанный"
-            }
-        val aggregateBody =
-            preview.aggregateLines
-                .joinToString("\n\n") { line -> escapeHtml(line) }
         val status =
             when {
                 pack.active -> "Статус: <b>активен</b>"
@@ -204,9 +193,9 @@ object NotificationPackMenuMessageRenderer {
             "<b>${escapeHtml(preview.standardTitle)}</b>",
             escapeHtml(preview.standardBody),
             "",
-            "🧩 <b>Агрегированное · $aggregateLabel</b>",
+            "🧩 <b>Агрегированное сообщение</b>",
             "<b>${escapeHtml(preview.aggregateTitle)}</b>",
-            aggregateBody,
+            escapeHtml(preview.aggregateBody),
         ).joinToString("\n")
     }
 
@@ -259,20 +248,6 @@ object NotificationPackMenuMessageRenderer {
             actions.chunked(VARIANT_BUTTONS_PER_ROW)
         }
     }
-
-    private fun aggregateModeRow(activeMode: NotificationPackAggregatePreviewMode): List<OutboundTelegramMessageAction> =
-        listOf(
-            callback(
-                label = "🧩 Один тип",
-                data = NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.SAME_TYPE),
-                style = selectedStyle(activeMode == NotificationPackAggregatePreviewMode.SAME_TYPE),
-            ),
-            callback(
-                label = "🌐 Смешанный",
-                data = NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.MIXED),
-                style = selectedStyle(activeMode == NotificationPackAggregatePreviewMode.MIXED),
-            ),
-        )
 
     private fun purchaseOrApplyRow(pack: TelegramNotificationPackStoreItem): List<OutboundTelegramMessageAction> =
         when {
