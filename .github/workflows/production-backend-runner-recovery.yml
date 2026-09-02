@@ -1,0 +1,66 @@
+name: Production Backend Runner Recovery
+
+on:
+  push:
+    branches:
+      - fix/production-runtime-config
+    paths:
+      - ".github/workflows/production-backend-runner-recovery.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  force-cancel-stuck-backend-run:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+
+    steps:
+      - name: Force cancel stuck backend workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STUCK_RUN_ID: "33592119577"
+        run: |
+          set -euo pipefail
+
+          api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}"
+
+          status="$(curl --fail-with-body --silent --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "${api_url}" | jq -r '.status')"
+
+          if [ "$status" = "completed" ]; then
+            echo "Backend workflow ${STUCK_RUN_ID} is already completed"
+            exit 0
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "${api_url}/force-cancel"
+
+          for attempt in $(seq 1 20); do
+            status="$(curl --fail-with-body --silent --show-error \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "${api_url}" | jq -r '.status')"
+
+            if [ "$status" = "completed" ]; then
+              echo "Backend workflow ${STUCK_RUN_ID} force-cancelled"
+              exit 0
+            fi
+
+            sleep 3
+          done
+
+          echo "Backend workflow ${STUCK_RUN_ID} did not complete after force-cancel" >&2
+          exit 1
