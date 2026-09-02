@@ -70,12 +70,6 @@ class NotificationPackCallbackHandler(
             }
         }
 
-        NotificationPackCallbackData.selectedAggregateMode(context.data)?.let { mode ->
-            return updateDetailContext(context) { current ->
-                NotificationPackMenuContext.selectAggregateMode(current, mode)
-            }
-        }
-
         NotificationPackCallbackData.purchaseTarget(context.data)?.let { personalizationId ->
             return purchase(
                 context = context,
