@@ -21,6 +21,7 @@ enum class NotificationPackMenuFeedback {
 data class NotificationPackMenuScreenData(
     val mode: NotificationPackMenuMode,
     val store: NotificationPackStoreResult?,
+    val detail: NotificationPackDetailResult?,
     val owned: OwnedNotificationPacksResult?,
     val selectedPersonalizationId: UUID?,
     val selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
