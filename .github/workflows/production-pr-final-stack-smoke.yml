@@ -1,0 +1,341 @@
+name: Stack Smoke
+
+on:
+  push:
+    branches:
+      - fix/production-runtime-config
+    paths:
+      - ".github/workflows/production-pr-final-stack-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout recovery revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Prepare isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp .env.example .env.ci
+
+          set_env() {
+            local key="$1"
+            local value="$2"
+            sed -i "s|^${key}=.*|${key}=${value}|" .env.ci
+          }
+
+          for key in $(sh scripts/validate-compose-secrets.sh --list-required); do
+            set_env "$key" "ci-${GITHUB_RUN_ID}-${key}-secure-value"
+          done
+
+          port_base=$((40000 + GITHUB_RUN_ID % 10000))
+
+          set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
+          set_env APP_POSTGRES_HOST_PORT "$port_base"
+          set_env KEYCLOAK_POSTGRES_HOST_PORT "$((port_base + 1))"
+          set_env KEYCLOAK_HOST_PORT "$((port_base + 2))"
+          set_env KAFKA_HOST_PORT "$((port_base + 3))"
+          set_env REDIS_HOST_PORT "$((port_base + 4))"
+          set_env GATEWAY_HOST_PORT "$((port_base + 5))"
+          set_env MNEMOS_FRONTEND_ORIGIN "http://127.0.0.1:$((port_base + 6))"
+          set_env MNEMOS_API_ORIGIN "http://127.0.0.1:$((port_base + 5))"
+          set_env MNEMOS_AUTH_ORIGIN "http://127.0.0.1:$((port_base + 2))"
+
+          sh scripts/validate-compose-secrets.sh .env.ci
+          sh scripts/verify-kafka-service-config.sh
+          sh scripts/verify-kafka-transport-security.sh
+          sh scripts/verify-redis-service-config.sh
+          sh scripts/generate-kafka-message-keys.sh .env.ci
+          sh scripts/verify-kafka-message-auth.sh .env.ci
+
+          for key in \
+            SOCIAL_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            PROFILE_SERVICE_KAFKA_SIGNING_PRIVATE_KEY \
+            MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS; do
+            grep -Eq "^${key}=.+" .env.ci || {
+              echo "Generated environment is missing ${key}" >&2
+              exit 1
+            }
+          done
+
+          compose_command="sh scripts/docker-compose-env.sh .env.ci"
+
+          for file in infrastructure/compose/compose.*.yml infrastructure/compose/apps/compose.*.yml; do
+            compose_command+=" -f ${file}"
+          done
+
+          compose_command+=" -f .github/ci/compose-isolation.override.yml"
+          echo "CI_COMPOSE_COMMAND=${compose_command}" >> "$GITHUB_ENV"
+
+          echo "MNEMOS_KAFKA_TRUSTED_PUBLIC_KEYS=account-service=stale-shell-key" >> "$GITHUB_ENV"
+          echo "ACCOUNT_SERVICE_KAFKA_SIGNING_PRIVATE_KEY=stale-shell-private-key" >> "$GITHUB_ENV"
+          echo "KAFKA_ACCOUNT_SERVICE_PASSWORD=stale-shell-password" >> "$GITHUB_ENV"
+
+      - name: Validate Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          $CI_COMPOSE_COMMAND config --quiet
+
+      - name: Build stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" build
+
+      - name: Start clean stack
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          set +e
+          timeout --kill-after=15s 8m \
+            env STARTUP_CHECK_DELAY=45 \
+            make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
+          startup_status=$?
+          set -e
+
+          if [ "$startup_status" -ne 0 ]; then
+            if [ "$startup_status" -eq 124 ] || [ "$startup_status" -eq 137 ]; then
+              echo "Stack startup exceeded the 8 minute startup window" >&2
+            else
+              echo "Stack startup failed with exit code ${startup_status}" >&2
+            fi
+            exit "$startup_status"
+          fi
+
+          sleep 20
+
+          timeout --kill-after=10s 3m \
+            make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
+          timeout --kill-after=10s 2m \
+            sh scripts/verify-kafka-message-auth-runtime.sh .env.ci
+          timeout --kill-after=10s 2m \
+            sh scripts/verify-kafka-acl-reconciliation-runtime.sh .env.ci
+
+      - name: Verify Redis service isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/verify-redis-service-isolation-runtime.sh .env.ci
+
+      - name: Verify MinIO isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          minio_init_container="$($CI_COMPOSE_COMMAND ps -aq minio-init)"
+          test -n "$minio_init_container"
+
+          minio_init_state="$(docker inspect -f '{{.State.Status}}' "$minio_init_container")"
+          minio_init_exit_code="$(docker inspect -f '{{.State.ExitCode}}' "$minio_init_container")"
+
+          if [ "$minio_init_state" != "exited" ] || [ "$minio_init_exit_code" != "0" ]; then
+            echo "minio-init did not complete successfully" >&2
+            exit 1
+          fi
+
+          if $CI_COMPOSE_COMMAND exec -T personalization-service sh -c \
+            'env | grep -q "^MINIO_ROOT_"'; then
+            echo "personalization-service must not receive MinIO root credentials" >&2
+            exit 1
+          fi
+
+          $CI_COMPOSE_COMMAND exec -T personalization-service sh -ec \
+            'test -n "$MINIO_PERSONALIZATION_ACCESS_KEY" && test -n "$MINIO_PERSONALIZATION_SECRET_KEY"'
+
+          sh scripts/verify-minio-policy-reconciliation-runtime.sh .env.ci
+
+      - name: Verify Flyway schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          schemas=(
+            account bet event moderation notification payment personalization
+            player_directory profile realtime reward social wallet
+          )
+
+          for schema in "${schemas[@]}"; do
+            migrations="$($CI_COMPOSE_COMMAND exec -T app-postgres \
+              psql \
+              --username mnemos \
+              --dbname mnemos \
+              --tuples-only \
+              --no-align \
+              --command "SELECT COUNT(*) FROM ${schema}.flyway_schema_history WHERE success = true;")"
+
+            migrations="$(echo "$migrations" | tr -d '[:space:]')"
+
+            if [ -z "$migrations" ] || [ "$migrations" -lt 1 ]; then
+              echo "No successful Flyway migrations found for schema ${schema}" >&2
+              exit 1
+            fi
+
+            echo "${schema}: ${migrations} migrations"
+          done
+
+      - name: Verify PostgreSQL service isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          read_env() {
+            local key="$1"
+            awk -F= -v key="$key" '
+              $1 == key {
+                print substr($0, length(key) + 2)
+                exit
+              }
+            ' .env.ci
+          }
+
+          admin_user="$(read_env APP_POSTGRES_USER)"
+          database="$(read_env APP_POSTGRES_DB)"
+          schemas=(
+            account wallet event notification reward bet moderation realtime
+            personalization social profile player_directory payment
+          )
+          mappings=""
+
+          for schema in "${schemas[@]}"; do
+            role_key="$(printf '%s_POSTGRES_USER' "$schema" | tr '[:lower:]' '[:upper:]')"
+            role="$(read_env "$role_key")"
+
+            if [ -z "$role" ]; then
+              echo "Missing PostgreSQL role for ${schema}" >&2
+              exit 1
+            fi
+
+            if [ -n "$mappings" ]; then
+              mappings+=","
+            fi
+            mappings+="('${role}','${schema}')"
+          done
+
+          query_count() {
+            local query="$1"
+            $CI_COMPOSE_COMMAND exec -T app-postgres \
+              psql \
+              --username "$admin_user" \
+              --dbname "$database" \
+              --tuples-only \
+              --no-align \
+              --command "$query" | tr -d '[:space:]'
+          }
+
+          unsafe_roles="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles service
+            JOIN pg_roles role ON role.rolname = service.role_name
+            WHERE role.rolsuper
+               OR role.rolcreatedb
+               OR role.rolcreaterole
+               OR role.rolbypassrls;
+          ")"
+
+          wrong_owners="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles service
+            JOIN pg_namespace namespace ON namespace.nspname = service.own_schema
+            JOIN pg_roles owner ON owner.oid = namespace.nspowner
+            WHERE owner.rolname <> service.role_name;
+          ")"
+
+          cross_schema_access="$(query_count "
+            WITH service_roles(role_name, own_schema) AS (VALUES ${mappings})
+            SELECT COUNT(*)
+            FROM service_roles caller
+            CROSS JOIN service_roles target
+            WHERE caller.role_name <> target.role_name
+              AND has_schema_privilege(caller.role_name, target.own_schema, 'USAGE');
+          ")"
+
+          [ "$unsafe_roles" = "0" ] || {
+            echo "One or more service database roles have elevated PostgreSQL privileges" >&2
+            exit 1
+          }
+          [ "$wrong_owners" = "0" ] || {
+            echo "One or more service schemas have the wrong PostgreSQL owner" >&2
+            exit 1
+          }
+          [ "$cross_schema_access" = "0" ] || {
+            echo "One or more service roles can access another service schema" >&2
+            exit 1
+          }
+
+          echo "PostgreSQL service isolation verified"
+
+      - name: Verify PostgreSQL legacy ownership migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sh scripts/verify-postgres-legacy-ownership-migration.sh \
+            .env.ci \
+            .github/ci/compose-isolation.override.yml
+
+      - name: Diagnose stack failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+
+          if [ -z "${CI_COMPOSE_COMMAND:-}" ]; then
+            echo "Compose command was not initialized"
+            exit 0
+          fi
+
+          run_diagnostic() {
+            label="$1"
+            command="$2"
+            echo "=== ${label} ==="
+            timeout --kill-after=5s 30s bash -c "$command" </dev/null || true
+          }
+
+          run_diagnostic "Compose state" "$CI_COMPOSE_COMMAND ps -a"
+          run_diagnostic "Application logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=120 account-service wallet-service event-service notification-service reward-service bet-service moderation-service realtime-service personalization-service social-service profile-service player-directory-service payment-service gateway-service telegram-bot-service"
+          run_diagnostic "PostgreSQL security init logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=200 app-postgres-security-init"
+          run_diagnostic "Kafka logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=300 kafka kafka-init kafka-tls-init"
+          run_diagnostic "Redis logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=200 redis"
+          run_diagnostic "Keycloak config logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=200 keycloak-config"
+          run_diagnostic "MinIO logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=200 minio minio-init"
+
+      - name: Cleanup isolated stack
+        if: always()
+        shell: bash
+        run: |
+          set +e
+
+          if [ -n "${CI_COMPOSE_COMMAND:-}" ]; then
+            timeout --kill-after=10s 2m bash -c \
+              "$CI_COMPOSE_COMMAND down --volumes --remove-orphans" || true
+          fi
+
+          rm -f .env.ci
