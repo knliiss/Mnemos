@@ -82,7 +82,7 @@ jobs:
                   f"from {run['path']}"
               )
 
-              subprocess.run(
+              result = subprocess.run(
                   [
                       "curl",
                       "--fail-with-body",
@@ -98,6 +98,19 @@ jobs:
                       "X-GitHub-Api-Version: 2022-11-28",
                       f"{api_url}/repos/{repository}/actions/runs/{run_id}/force-cancel",
                   ],
-                  check=True,
+                  capture_output=True,
+                  text=True,
               )
+
+              if result.returncode == 0:
+                  continue
+
+              output = (result.stdout or "") + (result.stderr or "")
+
+              if "Cannot cancel a workflow run that is completed" in output:
+                  print(f"Run {run_id} completed before cancellation; continuing")
+                  continue
+
+              print(output, end="")
+              raise SystemExit(result.returncode)
           PY
