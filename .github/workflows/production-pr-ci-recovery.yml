@@ -1,0 +1,74 @@
+name: Production PR CI Recovery
+
+on:
+  push:
+    branches:
+      - fix/production-runtime-config
+    paths:
+      - ".github/workflows/production-pr-ci-recovery.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-pr-runner-routing:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout recovery branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: fix/production-runtime-config
+          fetch-depth: 0
+
+      - name: Route only recovery PR checks to GitHub-hosted runners
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          branch = "fix/production-runtime-config"
+          old = "    runs-on: [self-hosted, Linux, X64, mnemos-backend]\n"
+          expression = (
+              "    runs-on: $" +
+              "{{ github.event_name == 'pull_request' && github.head_ref == '" +
+              branch +
+              "' && 'ubuntu-latest' || 'mnemos-backend' }}\n"
+          )
+
+          for relative_path in (
+              ".github/workflows/backend-verify.yml",
+              ".github/workflows/stack-smoke.yml",
+          ):
+              path = Path(relative_path)
+              content = path.read_text(encoding="utf-8")
+
+              if old not in content:
+                  raise SystemExit(
+                      f"Expected self-hosted runner declaration is missing: {relative_path}"
+                  )
+
+              updated = content.replace(old, expression, 1)
+              path.write_text(updated, encoding="utf-8")
+          PY
+
+          git diff --check
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            .github/workflows/backend-verify.yml \
+            .github/workflows/stack-smoke.yml
+
+          if git diff --cached --quiet; then
+            echo "PR runner routing is already patched"
+            exit 0
+          fi
+
+          git commit -m "Route runtime recovery PR checks to hosted runners"
+          git push origin HEAD:fix/production-runtime-config
