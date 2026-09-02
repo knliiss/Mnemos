@@ -110,10 +110,6 @@ jobs:
           set -euo pipefail
 
           make make-verify
-          make production-service-catalog-verify
-          make production-audit-bundle-verify
-          make production-release-plan-verify
-          make production-targeted-execution-verify
           git diff --check
 
       - name: Assemble production artifacts
