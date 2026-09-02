@@ -56,6 +56,9 @@ grep -Fq '< "$BACKUP_DIR/app-postgres.dump"' "$BACKUP_SCRIPT" ||
 grep -Fq '< "$BACKUP_DIR/keycloak-postgres.dump"' "$BACKUP_SCRIPT" ||
     fail "Keycloak PostgreSQL dump must be validated through pg_restore"
 
+grep -Fq 'redis-check-rdb "$REDIS_TEMP_FILE"' "$BACKUP_SCRIPT" ||
+    fail "Redis RDB backup must be structurally validated before it leaves the Redis container"
+
 grep -Fq '/etc/mnemos' "$OFFSITE_SCRIPT" ||
     fail "Encrypted off-site backup must include /etc/mnemos"
 
