@@ -65,9 +65,11 @@ jobs:
               "hotfix/targeted-account-login-rollout": "2ea4b169b532a1861667e49e8c3befacfc127262",
               "ops/comet-chaos-production-rollout": "0c9ca0601bd5deb47f83cb3fc9390297f0bcb544",
               "ops/deploy-verified-mini-app-138918": "c09615ca45028134db7dfd3ab453be22c8ae41d9",
+              "ops/prod-auth-diagnostics-20260831": "6011fedfbac2e6764f4de77294f875c96d26dba8",
               "ops/production-diagnostics": "8d413db3f24dad40190e189667f93eaefa61f3e0",
               "ops/production-fast-deploy-6c6b2fd": "7451ccc03f90038b8b1a2d27da0e7564a230958f",
               "ops/runner-access-check": "e14a72efeaaa66fc14b89c5e7eeb87383247d278",
+              "tmp/account-batch-validation": "3814860dba85e4992c4c4f0b3c132584b374e19d",
           }
 
           headers = {
