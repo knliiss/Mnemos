@@ -28,8 +28,8 @@ data class NotificationPackMenuScreenData(
     val store: NotificationPackStoreResult?,
     val owned: OwnedNotificationPacksResult?,
     val selectedPersonalizationId: UUID?,
-    val selectedTemplateType: NotificationPackTemplateType,
-    val selectedVariantId: String?,
-    val aggregatePreviewMode: NotificationPackAggregatePreviewMode,
-    val feedback: NotificationPackMenuFeedback?,
+    val selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
+    val selectedVariantId: String? = null,
+    val aggregatePreviewMode: NotificationPackAggregatePreviewMode = NotificationPackAggregatePreviewMode.SAME_TYPE,
+    val feedback: NotificationPackMenuFeedback? = null,
 )
