@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
@@ -7,12 +8,14 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackAggregatePreviewMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuFeedback
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateVariant
 
 object NotificationPackMenuMessageRenderer {
     fun render(data: TelegramMenuScreenData): OutboundTelegramMessage {
@@ -66,7 +69,7 @@ object NotificationPackMenuMessageRenderer {
                             "🛍 <b>Магазин</b>",
                             pageLabel,
                             "",
-                            "Выберите пак, чтобы посмотреть примеры и цену.",
+                            "Выберите пак, чтобы открыть полный интерактивный предпросмотр.",
                         ).joinToString("\n"),
                     rows = rows,
                 )
@@ -129,40 +132,19 @@ object NotificationPackMenuMessageRenderer {
         val selectedId = data.selectedPersonalizationId
         val pack = result.page.packs.firstOrNull { item -> item.personalizationId == selectedId }
             ?: return missingPackMessage(data.feedback)
+        val preview =
+            NotificationPackPreviewFormatter.render(
+                preview = pack.preview,
+                selectedType = data.selectedTemplateType,
+                selectedVariantId = data.selectedVariantId,
+                aggregateMode = data.aggregatePreviewMode,
+            )
         val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
 
-        when {
-            pack.active ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "✅ Активен",
-                            data = NotificationPackCallbackData.REFRESH,
-                            style = OutboundTelegramButtonStyle.SUCCESS,
-                        ),
-                    )
-
-            pack.owned ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "✅ Применить",
-                            data = NotificationPackCallbackData.apply(pack.personalizationId),
-                            style = OutboundTelegramButtonStyle.SUCCESS,
-                        ),
-                    )
-
-            else ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "💎 Купить · ${pack.priceAmount} ${pack.currency}",
-                            data = NotificationPackCallbackData.purchase(pack.personalizationId),
-                            style = OutboundTelegramButtonStyle.PRIMARY,
-                        ),
-                    )
-        }
-
+        rows += templateRows(preview.selectedType)
+        rows += variantRows(pack, preview.selectedType, preview.selectedVariant)
+        rows += aggregateModeRow(data.aggregatePreviewMode)
+        rows += purchaseOrApplyRow(pack)
         rows +=
             listOf(
                 callback(
@@ -176,42 +158,162 @@ object NotificationPackMenuMessageRenderer {
             )
         rows += listOf(backAction)
 
-        val sampleLines =
-            pack.samples
-                .mapIndexed { index, sample ->
-                    "${index + 1}. ${escapeHtml(sample)}"
-                }
-                .joinToString("\n")
-
         return message(
-            text =
-                listOfNotNull(
-                    "🎨 <b>${escapeHtml(pack.name)}</b>",
-                    DIVIDER,
-                    feedbackText(data.feedback),
-                    "",
-                    "Автор: <b>${escapeHtml(pack.author)}</b>",
-                    "Цена: <b>${pack.priceAmount} ${escapeHtml(pack.currency)}</b>",
-                    if (pack.active) "Статус: <b>активен</b>" else if (pack.owned) "Статус: <b>куплен</b>" else null,
-                    "",
-                    "<b>Примеры</b>",
-                    sampleLines.ifBlank { "Примеры для этого пака не указаны." },
-                ).joinToString("\n"),
+            text = renderDetailText(data, pack, preview),
             rows = rows,
         )
     }
+
+    private fun renderDetailText(
+        data: NotificationPackMenuScreenData,
+        pack: TelegramNotificationPackStoreItem,
+        preview: NotificationPackRenderedPreview,
+    ): String {
+        val variantLabel =
+            preview.selectedVariant
+                ?.let(NotificationPackPreviewFormatter::variantLabel)
+                ?: "Базовый"
+        val aggregateLabel =
+            when (data.aggregatePreviewMode) {
+                NotificationPackAggregatePreviewMode.SAME_TYPE -> "один тип"
+                NotificationPackAggregatePreviewMode.MIXED -> "смешанный"
+            }
+        val aggregateBody =
+            preview.aggregateLines
+                .joinToString("\n\n") { line -> escapeHtml(line) }
+        val status =
+            when {
+                pack.active -> "Статус: <b>активен</b>"
+                pack.owned -> "Статус: <b>куплен</b>"
+                else -> null
+            }
+
+        return listOfNotNull(
+            "🎨 <b>${escapeHtml(pack.name)}</b>",
+            DIVIDER,
+            feedbackText(data.feedback),
+            "",
+            "Автор: <b>${escapeHtml(pack.author)}</b>",
+            "Цена: <b>${pack.priceAmount} ${escapeHtml(pack.currency)}</b>",
+            status,
+            "",
+            "Событие: <b>${escapeHtml(templateLabel(preview.selectedType))}</b>",
+            "Вариант: <b>${escapeHtml(variantLabel)}</b>",
+            "",
+            "📨 <b>Обычное сообщение</b>",
+            "<b>${escapeHtml(preview.standardTitle)}</b>",
+            escapeHtml(preview.standardBody),
+            "",
+            "🧩 <b>Агрегированное · $aggregateLabel</b>",
+            "<b>${escapeHtml(preview.aggregateTitle)}</b>",
+            aggregateBody,
+        ).joinToString("\n")
+    }
+
+    private fun templateRows(selectedType: NotificationPackTemplateType): List<List<OutboundTelegramMessageAction>> =
+        NotificationPackPreviewFormatter.templateTypes
+            .map { type ->
+                callback(
+                    label = templateButtonLabel(type),
+                    data = NotificationPackCallbackData.template(type),
+                    style = selectedStyle(type == selectedType),
+                )
+            }.chunked(TEMPLATE_BUTTONS_PER_ROW)
+
+    private fun variantRows(
+        pack: TelegramNotificationPackStoreItem,
+        selectedType: NotificationPackTemplateType,
+        selectedVariant: TelegramNotificationTemplateVariant?,
+    ): List<List<OutboundTelegramMessageAction>> {
+        val template = pack.preview.templates[selectedType] ?: return emptyList()
+
+        if (template.variants.isEmpty()) {
+            return emptyList()
+        }
+
+        val actions =
+            buildList {
+                add(
+                    callback(
+                        label = "Базовый",
+                        data = NotificationPackCallbackData.BASE_VARIANT,
+                        style = selectedStyle(selectedVariant == null),
+                    ),
+                )
+
+                template.variants.forEach { variant ->
+                    add(
+                        callback(
+                            label = NotificationPackPreviewFormatter.variantLabel(variant),
+                            data = NotificationPackCallbackData.variant(variant.id),
+                            style = selectedStyle(selectedVariant?.id == variant.id),
+                        ),
+                    )
+                }
+            }
+
+        return if (actions.maxOf(OutboundTelegramMessageAction::label).length > LONG_VARIANT_LABEL_LENGTH) {
+            actions.map(::listOf)
+        } else {
+            actions.chunked(VARIANT_BUTTONS_PER_ROW)
+        }
+    }
+
+    private fun aggregateModeRow(activeMode: NotificationPackAggregatePreviewMode): List<OutboundTelegramMessageAction> =
+        listOf(
+            callback(
+                label = "🧩 Один тип",
+                data = NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.SAME_TYPE),
+                style = selectedStyle(activeMode == NotificationPackAggregatePreviewMode.SAME_TYPE),
+            ),
+            callback(
+                label = "🌐 Смешанный",
+                data = NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.MIXED),
+                style = selectedStyle(activeMode == NotificationPackAggregatePreviewMode.MIXED),
+            ),
+        )
+
+    private fun purchaseOrApplyRow(pack: TelegramNotificationPackStoreItem): List<OutboundTelegramMessageAction> =
+        when {
+            pack.active ->
+                listOf(
+                    callback(
+                        label = "✅ Активен",
+                        data = NotificationPackCallbackData.REFRESH,
+                        style = OutboundTelegramButtonStyle.SUCCESS,
+                    ),
+                )
+
+            pack.owned ->
+                listOf(
+                    callback(
+                        label = "✅ Применить",
+                        data = NotificationPackCallbackData.apply(pack.personalizationId),
+                        style = OutboundTelegramButtonStyle.SUCCESS,
+                    ),
+                )
+
+            else ->
+                listOf(
+                    callback(
+                        label = "💎 Купить · ${pack.priceAmount} ${pack.currency}",
+                        data = NotificationPackCallbackData.purchase(pack.personalizationId),
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
+                )
+        }
 
     private fun modeRow(activeMode: NotificationPackMenuMode): List<OutboundTelegramMessageAction> =
         listOf(
             callback(
                 label = "🛍 Магазин",
                 data = NotificationPackCallbackData.STORE,
-                style = if (activeMode == NotificationPackMenuMode.STORE) OutboundTelegramButtonStyle.PRIMARY else OutboundTelegramButtonStyle.DEFAULT,
+                style = selectedStyle(activeMode == NotificationPackMenuMode.STORE),
             ),
             callback(
                 label = "🎒 Мои",
                 data = NotificationPackCallbackData.OWNED,
-                style = if (activeMode == NotificationPackMenuMode.OWNED) OutboundTelegramButtonStyle.PRIMARY else OutboundTelegramButtonStyle.DEFAULT,
+                style = selectedStyle(activeMode == NotificationPackMenuMode.OWNED),
             ),
         )
 
@@ -253,6 +355,33 @@ object NotificationPackMenuMessageRenderer {
 
         return "$prefix ${pack.name} · ${pack.priceAmount} ${pack.currency}"
     }
+
+    private fun templateButtonLabel(type: NotificationPackTemplateType): String =
+        when (type) {
+            NotificationPackTemplateType.ITEM_DROP -> "📦 Дроп"
+            NotificationPackTemplateType.BOOSTER -> "⚡ Бустер"
+            NotificationPackTemplateType.DUNGEON -> "🏰 Dungeon"
+            NotificationPackTemplateType.RAID -> "🛡 RAID"
+            NotificationPackTemplateType.GLOBAL -> "🌌 Глобал"
+            NotificationPackTemplateType.PLAYER_OFFLINE -> "👤 Offline"
+        }
+
+    private fun templateLabel(type: NotificationPackTemplateType): String =
+        when (type) {
+            NotificationPackTemplateType.ITEM_DROP -> "Дроп предмета"
+            NotificationPackTemplateType.BOOSTER -> "Бустер"
+            NotificationPackTemplateType.DUNGEON -> "Dungeon"
+            NotificationPackTemplateType.RAID -> "RAID"
+            NotificationPackTemplateType.GLOBAL -> "Глобальное событие"
+            NotificationPackTemplateType.PLAYER_OFFLINE -> "Игрок вышел"
+        }
+
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
+        if (selected) {
+            OutboundTelegramButtonStyle.PRIMARY
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
+        }
 
     private fun feedbackText(feedback: NotificationPackMenuFeedback?): String? =
         when (feedback) {
@@ -361,5 +490,8 @@ object NotificationPackMenuMessageRenderer {
             data = TelegramMenuScreen.BACK_CALLBACK_DATA,
         )
 
+    private const val TEMPLATE_BUTTONS_PER_ROW = 3
+    private const val VARIANT_BUTTONS_PER_ROW = 2
+    private const val LONG_VARIANT_LABEL_LENGTH = 22
     private const val DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
 }
