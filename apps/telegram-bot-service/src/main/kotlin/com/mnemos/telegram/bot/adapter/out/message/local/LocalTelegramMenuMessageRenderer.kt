@@ -27,6 +27,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 TelegramMenuScreen.HOME -> homeMessage()
                 TelegramMenuScreen.MORE -> homeMessage()
                 TelegramMenuScreen.NOTIFICATIONS -> NotificationMenuMessageRenderer.render(data)
+                TelegramMenuScreen.PACKS -> NotificationPackMenuMessageRenderer.render(data)
                 TelegramMenuScreen.ONLINE -> onlineMessage(data)
                 TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
                 TelegramMenuScreen.DAILY -> DailyMenuMessageRenderer.render(data)
