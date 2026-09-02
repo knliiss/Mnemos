@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(prefix = "mnemos.notification.telegram", name = ["enabled"], havingValue = "true")
+@ConditionalOnProperty(prefix = "mnemos.notification.delivery", name = ["enabled"], havingValue = "true")
 class TelegramDeliveryScheduler(
     private val deliveryService: NotificationDeliveryService,
 ) {

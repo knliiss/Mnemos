@@ -144,6 +144,17 @@
         "name": "mnemos_social-service"
       }
     },
+    "telegram-bot-service": {
+      "kind": "application",
+      "image": "mnemos-telegram-bot-service",
+      "dockerfile": "apps/telegram-bot-service/Dockerfile",
+      "context": ".",
+      "gradle_task": ":apps:telegram-bot-service:bootJar",
+      "deploy": {
+        "type": "swarm",
+        "name": "mnemos_telegram-bot-service"
+      }
+    },
     "wallet-service": {
       "kind": "application",
       "image": "mnemos-wallet-service",

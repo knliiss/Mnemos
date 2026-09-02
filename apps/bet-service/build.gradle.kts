@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":contracts:event-contracts"))
     implementation(project(":contracts:wallet-contracts"))
     implementation(project(":contracts:bet-contracts"))
+    implementation(project(":contracts:telegram-bot-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")

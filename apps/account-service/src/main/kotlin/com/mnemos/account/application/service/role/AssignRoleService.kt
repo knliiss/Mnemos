@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.domain.model.account.AccountMemberId
@@ -30,6 +31,19 @@ class AssignRoleService(
                 permission = ASSIGN_MEMBER_ROLES,
             )
 
+        assignRole(
+            context = context,
+            memberId = memberId,
+            roleId = roleId,
+        )
+    }
+
+    @Transactional
+    fun assignRole(
+        context: ActiveAccountContext,
+        memberId: AccountMemberId,
+        roleId: RoleId,
+    ) {
         roleAccessGuard.requireCanAssignRole(
             context = context,
             targetMemberId = memberId,
@@ -39,7 +53,7 @@ class AssignRoleService(
         val now = Instant.now()
         val assignment =
             RoleAssignment.createManual(
-                accountId = accountId,
+                accountId = context.account.id,
                 accountMemberId = memberId,
                 roleId = roleId,
                 assignedByUserId = context.user.id,
@@ -61,6 +75,19 @@ class AssignRoleService(
                 permission = ASSIGN_MEMBER_ROLES,
             )
 
+        revokeRole(
+            context = context,
+            memberId = memberId,
+            roleId = roleId,
+        )
+    }
+
+    @Transactional
+    fun revokeRole(
+        context: ActiveAccountContext,
+        memberId: AccountMemberId,
+        roleId: RoleId,
+    ) {
         roleAccessGuard.requireCanRevokeRole(
             context = context,
             targetMemberId = memberId,

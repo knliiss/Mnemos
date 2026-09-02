@@ -7,6 +7,8 @@ REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-images.yml"
 SERVICE_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-service-image.yml"
 KEYCLOAK_CLIENTS="$REPOSITORY_ROOT/infrastructure/keycloak/config/40-clients.yaml"
+START_INFRA_SCRIPT="$REPOSITORY_ROOT/scripts/start-production-infra.sh"
+DEPLOY_APPS_SCRIPT="$REPOSITORY_ROOT/scripts/deploy-production-apps.sh"
 
 fail() {
     echo "$1" >&2
@@ -64,6 +66,8 @@ verify_manual_image_workflow "$WORKFLOW" "Production image batch"
 verify_manual_image_workflow "$SERVICE_WORKFLOW" "Production service image workflow"
 
 [ -f "$KEYCLOAK_CLIENTS" ] || fail "Keycloak client configuration is missing"
+[ -f "$START_INFRA_SCRIPT" ] || fail "Production infrastructure entrypoint is missing"
+[ -f "$DEPLOY_APPS_SCRIPT" ] || fail "Production application deploy entrypoint is missing"
 
 WORKFLOW_CONTENT="$(cat "$WORKFLOW")"
 SERVICE_WORKFLOW_CONTENT="$(cat "$SERVICE_WORKFLOW")"
@@ -133,4 +137,9 @@ fi
 grep -Fq '$(env:MNEMOS_FRONTEND_ORIGIN)' "$KEYCLOAK_CLIENTS" ||
     fail "Keycloak client configuration must use MNEMOS_FRONTEND_ORIGIN"
 
-echo "Production image workflows and Keycloak origin boundaries verified"
+for deploy_entrypoint in "$START_INFRA_SCRIPT" "$DEPLOY_APPS_SCRIPT"; do
+    grep -Fq 'sh "$REPOSITORY_ROOT/scripts/validate-production-env.sh"' "$deploy_entrypoint" ||
+        fail "Production runtime entrypoint must validate the complete production environment before mutation: $deploy_entrypoint"
+done
+
+echo "Production image workflows, runtime env guards and Keycloak origin boundaries verified"

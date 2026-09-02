@@ -39,24 +39,37 @@ class CreateAccountService(
     private val integrationEventPublisher: IntegrationEventPublisher,
     private val transactionTemplate: TransactionTemplate,
 ) {
-    fun createAccount(request: CreateAccountRequest): CreateAccountResult {
-        val nickname = CristalixNickname(request.cristalixNickname)
+    fun createAccount(request: CreateAccountRequest): CreateAccountResult =
+        createAccountFor(
+            owner = currentUserProvider.get(),
+            request = request,
+        )
 
+    fun createAccountFor(
+        owner: User,
+        request: CreateAccountRequest,
+    ): CreateAccountResult {
+        val nickname = CristalixNickname(request.cristalixNickname)
         val player =
             playerIdentityProvider.resolveByNickname(nickname)
                 ?: throw CristalixPlayerNotFoundException(nickname)
 
         return requireNotNull(
             transactionTemplate.execute {
-                createFromPlayer(player)
+                createFromPlayer(
+                    owner = owner,
+                    player = player,
+                )
             },
         ) {
             "Create account transaction returned no result"
         }
     }
 
-    private fun createFromPlayer(player: ResolvedPlayerIdentity): CreateAccountResult {
-        val owner = currentUserProvider.get()
+    private fun createFromPlayer(
+        owner: User,
+        player: ResolvedPlayerIdentity,
+    ): CreateAccountResult {
         val existingAccount = accountRepository.findByCristalixUuidForUpdate(player.uuid)
 
         if (existingAccount != null) {

@@ -28,6 +28,10 @@ class StarPrimePurchaseEntity(
     var starsAmount: Int,
     @Column(name = "invoice_payload", nullable = false, unique = true, length = 128)
     var invoicePayload: String,
+    @Column(name = "telegram_request_id", length = 255)
+    var telegramRequestId: String?,
+    @Column(name = "invoice_url")
+    var invoiceUrl: String?,
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 32)
     var status: StarPrimePurchaseStatus,

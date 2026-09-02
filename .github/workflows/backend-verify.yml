@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/backend-verify.yml"
       - ".github/workflows/production*.yml"
+      - ".env.example"
       - "Makefile"
       - "make/**"
       - "apps/**"
@@ -27,6 +28,7 @@ on:
     paths:
       - ".github/workflows/backend-verify.yml"
       - ".github/workflows/production*.yml"
+      - ".env.example"
       - "Makefile"
       - "make/**"
       - "apps/**"
@@ -205,8 +207,10 @@ jobs:
           python3 -m py_compile scripts/production_deployment_state.py
           python3 -m py_compile scripts/production_hotfix_plan.py
           python3 -m py_compile scripts/render-production-stack.py
+          python3 -m py_compile scripts/normalize-production-swarm-stack.py
           python3 -m py_compile scripts/verify-production-stack-renderer.py
           python3 -m py_compile scripts/verify-production-stack-manifest-renderer.py
+          python3 -m py_compile scripts/verify-production-swarm-stack-normalizer.py
           python3 scripts/verify-backend-ci-changes.py
           sh scripts/verify-compose-secret-validation.sh
           sh scripts/verify-resource-server-audience.sh
@@ -228,6 +232,7 @@ jobs:
           sh scripts/verify-production-infra-compose.sh
           python3 scripts/verify-production-stack-renderer.py
           python3 scripts/verify-production-stack-manifest-renderer.py
+          python3 scripts/verify-production-swarm-stack-normalizer.py
 
       - name: Scan backend dependencies
         if: steps.backend_changes.outputs.dependency_scan_required == 'true'

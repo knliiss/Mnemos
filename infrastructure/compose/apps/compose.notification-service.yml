@@ -41,13 +41,13 @@ services:
       SPRING_DATA_REDIS_USERNAME: notification_service
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_NOTIFICATION_PASSWORD}
 
-      NOTIFICATION_TELEGRAM_ENABLED: ${NOTIFICATION_TELEGRAM_ENABLED:-false}
-      MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
-      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      NOTIFICATION_SERVICE_ACCOUNT_API_KEY: ${NOTIFICATION_SERVICE_ACCOUNT_API_KEY}
 
-      PAYMENT_SERVICE_URL: http://payment-service:8093
-      NOTIFICATION_SERVICE_PAYMENT_API_KEY: ${NOTIFICATION_SERVICE_PAYMENT_API_KEY}
-      PAYMENT_SERVICE_NOTIFICATION_API_KEY: ${PAYMENT_SERVICE_NOTIFICATION_API_KEY}
+      NOTIFICATION_DELIVERY_ENABLED: ${TELEGRAM_BOT_ENABLED:-false}
+      TELEGRAM_BOT_SERVICE_URL: http://telegram-bot-service:8094
+      NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY: ${NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY}
+      TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY: ${TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY}
 
     volumes:
       - "kafka-client-tls:/etc/mnemos/kafka:ro"
@@ -55,12 +55,16 @@ services:
     depends_on:
       app-postgres-security-init:
         condition: service_completed_successfully
+      account-service:
+        condition: service_started
       keycloak:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      telegram-bot-service:
+        condition: service_started
 
     networks:
       - mnemos-network

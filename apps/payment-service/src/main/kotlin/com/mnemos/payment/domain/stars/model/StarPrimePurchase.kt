@@ -13,6 +13,8 @@ class StarPrimePurchase(
     val invoicePayload: String,
     val createdAt: Instant,
     val expiresAt: Instant,
+    val telegramRequestId: String? = null,
+    invoiceUrl: String? = null,
     status: StarPrimePurchaseStatus,
     telegramPaymentChargeId: String?,
     preCheckoutApprovedAt: Instant?,
@@ -20,6 +22,9 @@ class StarPrimePurchase(
     fulfilledAt: Instant?,
     updatedAt: Instant,
 ) {
+    var invoiceUrl: String? = invoiceUrl
+        private set
+
     var status: StarPrimePurchaseStatus = status
         private set
 
@@ -38,11 +43,15 @@ class StarPrimePurchase(
     var updatedAt: Instant = updatedAt
         private set
 
-    fun markInvoiceReady(now: Instant) {
+    fun markInvoiceReady(
+        now: Instant,
+        invoiceUrl: String? = null,
+    ) {
         require(status == StarPrimePurchaseStatus.CREATED) {
             "Purchase $id cannot become invoice-ready from $status"
         }
 
+        this.invoiceUrl = invoiceUrl
         status = StarPrimePurchaseStatus.INVOICE_READY
         updatedAt = now
     }
@@ -138,6 +147,7 @@ class StarPrimePurchase(
             invoicePayload: String,
             createdAt: Instant,
             expiresAt: Instant,
+            telegramRequestId: String? = null,
         ): StarPrimePurchase =
             StarPrimePurchase(
                 id = id,
@@ -149,6 +159,8 @@ class StarPrimePurchase(
                 invoicePayload = invoicePayload,
                 createdAt = createdAt,
                 expiresAt = expiresAt,
+                telegramRequestId = telegramRequestId,
+                invoiceUrl = null,
                 status = StarPrimePurchaseStatus.CREATED,
                 telegramPaymentChargeId = null,
                 preCheckoutApprovedAt = null,

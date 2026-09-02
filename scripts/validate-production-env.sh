@@ -10,6 +10,27 @@ if [ ! -f "$TARGET_ENV" ]; then
     exit 1
 fi
 
+duplicate_keys="$(
+    awk -F= '
+        /^[A-Za-z_][A-Za-z0-9_]*=/ {
+            count[$1]++
+        }
+        END {
+            for (key in count) {
+                if (count[key] > 1) {
+                    print key
+                }
+            }
+        }
+    ' "$TARGET_ENV" | sort
+)"
+
+if [ -n "$duplicate_keys" ]; then
+    echo "Production environment contains duplicate variables:" >&2
+    printf '%s\n' "$duplicate_keys" >&2
+    exit 1
+fi
+
 get_env() {
     key="$1"
 

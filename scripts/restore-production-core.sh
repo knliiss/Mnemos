@@ -36,7 +36,7 @@ echo "Restoring application PostgreSQL database"
 cat "$BACKUP_DIR/app-postgres.dump" |
     sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
         exec -T app-postgres \
-        sh -c 'exec pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl'
+        sh -c 'exec pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl --single-transaction'
 
 echo "Reapplying application PostgreSQL role ownership"
 sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
@@ -52,7 +52,7 @@ echo "Restoring Keycloak PostgreSQL database"
 cat "$BACKUP_DIR/keycloak-postgres.dump" |
     sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
         exec -T keycloak-postgres \
-        sh -c 'exec pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl'
+        sh -c 'exec pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl --single-transaction'
 
 echo "Starting restored Keycloak"
 sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
@@ -86,7 +86,7 @@ sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     -c '
         set -eu
         mc alias set mnemos http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null
-        exec mc mirror --overwrite --preserve /backup/personalization "mnemos/$MINIO_PERSONALIZATION_BUCKET"
+        exec mc mirror --overwrite --remove --preserve /backup/personalization "mnemos/$MINIO_PERSONALIZATION_BUCKET"
     '
 
 cat <<EOF

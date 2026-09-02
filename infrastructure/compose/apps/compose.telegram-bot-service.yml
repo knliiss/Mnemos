@@ -1,0 +1,68 @@
+services:
+  telegram-bot-service:
+    container_name: mnemos-telegram-bot-service
+
+    build:
+      context: ../..
+      dockerfile: apps/telegram-bot-service/Dockerfile
+
+    image: mnemos/telegram-bot-service:${TELEGRAM_BOT_SERVICE_VERSION:-local}
+
+    restart: unless-stopped
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8094
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${MNEMOS_AUTH_ORIGIN}/realms/mnemos
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/mnemos/protocol/openid-connect/certs
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_USERNAME: telegram_bot_service
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_TELEGRAM_BOT_PASSWORD}
+
+      TELEGRAM_BOT_ENABLED: ${TELEGRAM_BOT_ENABLED:-false}
+      MNEMOS_TELEGRAM_BOT_TOKEN: ${MNEMOS_TELEGRAM_BOT_TOKEN}
+      MNEMOS_FRONTEND_ORIGIN: ${MNEMOS_FRONTEND_ORIGIN}
+      TELEGRAM_BOT_MENU_SESSION_TTL: ${TELEGRAM_BOT_MENU_SESSION_TTL:-30d}
+
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      TELEGRAM_BOT_SERVICE_ACCOUNT_API_KEY: ${TELEGRAM_BOT_SERVICE_ACCOUNT_API_KEY}
+
+      BET_SERVICE_URL: http://bet-service:8086
+      TELEGRAM_BOT_SERVICE_BET_API_KEY: ${TELEGRAM_BOT_SERVICE_BET_API_KEY}
+
+      EVENT_SERVICE_URL: http://event-service:8083
+      TELEGRAM_BOT_SERVICE_EVENT_API_KEY: ${TELEGRAM_BOT_SERVICE_EVENT_API_KEY}
+
+      NOTIFICATION_SERVICE_URL: http://notification-service:8084
+      TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY: ${TELEGRAM_BOT_SERVICE_NOTIFICATION_API_KEY}
+      NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY: ${NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY}
+
+      PERSONALIZATION_SERVICE_URL: http://personalization-service:8089
+      TELEGRAM_BOT_SERVICE_PERSONALIZATION_API_KEY: ${TELEGRAM_BOT_SERVICE_PERSONALIZATION_API_KEY}
+
+      PLAYER_DIRECTORY_SERVICE_URL: http://player-directory-service:8092
+      TELEGRAM_BOT_SERVICE_PLAYER_DIRECTORY_API_KEY: ${TELEGRAM_BOT_SERVICE_PLAYER_DIRECTORY_API_KEY}
+
+      PAYMENT_SERVICE_URL: http://payment-service:8093
+      TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY: ${TELEGRAM_BOT_SERVICE_PAYMENT_API_KEY}
+      PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY: ${PAYMENT_SERVICE_TELEGRAM_BOT_API_KEY}
+
+      REWARD_SERVICE_URL: http://reward-service:8085
+      TELEGRAM_BOT_SERVICE_REWARD_API_KEY: ${TELEGRAM_BOT_SERVICE_REWARD_API_KEY}
+
+      WALLET_SERVICE_URL: http://wallet-service:8082
+      TELEGRAM_BOT_SERVICE_WALLET_API_KEY: ${TELEGRAM_BOT_SERVICE_WALLET_API_KEY}
+
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      bet-service:
+        condition: service_started
+
+    networks:
+      - mnemos-network

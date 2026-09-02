@@ -26,6 +26,9 @@ services:
   payment-service:
     <<: *app-security
 
+  telegram-bot-service:
+    <<: *app-security
+
   reward-service:
     <<: *app-security
 

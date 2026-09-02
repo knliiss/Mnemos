@@ -1,5 +1,6 @@
 package com.mnemos.account.application.service.role
 
+import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.application.policy.role.RolePermissionMutationGuard
@@ -34,6 +35,22 @@ class UpdateRoleService(
                 accountId = accountId,
                 permission = MANAGE_ROLES,
             )
+
+        return updateDetails(
+            context = context,
+            roleId = roleId,
+            name = name,
+            color = color,
+        )
+    }
+
+    @Transactional
+    fun updateDetails(
+        context: ActiveAccountContext,
+        roleId: RoleId,
+        name: String?,
+        color: String?,
+    ): RoleView {
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,
@@ -68,6 +85,20 @@ class UpdateRoleService(
                 accountId = accountId,
                 permission = MANAGE_ROLES,
             )
+
+        return updatePermissions(
+            context = context,
+            roleId = roleId,
+            permissions = permissions,
+        )
+    }
+
+    @Transactional
+    fun updatePermissions(
+        context: ActiveAccountContext,
+        roleId: RoleId,
+        permissions: Map<RolePermission, Boolean>,
+    ): RoleView {
         val role =
             roleAccessGuard.requireCanManageRole(
                 context = context,

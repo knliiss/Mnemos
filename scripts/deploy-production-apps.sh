@@ -20,6 +20,10 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
+export MNEMOS_PRODUCTION_ENV_FILE="$ENV_FILE"
+
+sh "$REPOSITORY_ROOT/scripts/validate-production-env.sh"
+
 swarm_state="$(docker info --format '{{ .Swarm.LocalNodeState }}')"
 manager_control="$(docker info --format '{{ .Swarm.ControlAvailable }}')"
 
@@ -55,7 +59,6 @@ export MNEMOS_RELEASE_TAG="$RELEASE_TAG"
 export MNEMOS_SWARM_NETWORK="$SWARM_NETWORK"
 export MNEMOS_KAFKA_TRUSTSTORE_CONFIG="$KAFKA_TRUSTSTORE_CONFIG"
 export MNEMOS_CLOUDFLARE_TUNNEL_SECRET="$CLOUDFLARE_TUNNEL_SECRET"
-export MNEMOS_PRODUCTION_ENV_FILE="$ENV_FILE"
 
 umask 077
 STACK_FILE="$(mktemp)"

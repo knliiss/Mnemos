@@ -1,6 +1,7 @@
 package com.mnemos.reward.application.daily.usecase.claim
 
 import com.mnemos.reward.application.daily.model.ClaimedDailyReward
+import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.port.out.RewardRandom
 import com.mnemos.reward.application.daily.port.out.RewardWallet
@@ -24,8 +25,10 @@ class ClaimDailyRewardService(
     private val clock: Clock,
 ) {
     @Transactional
-    fun claim(): ClaimedDailyReward {
-        val activeAccount = activeAccountProvider.getActiveAccountContext()
+    fun claim(): ClaimedDailyReward = claim(activeAccountProvider.getActiveAccountContext())
+
+    @Transactional
+    fun claim(activeAccount: ActiveAccountContext): ClaimedDailyReward {
         val accountId = activeAccount.accountId
         val today = LocalDate.now(clock.withZone(MOSCOW))
         val streak =

@@ -9,6 +9,7 @@ import com.mnemos.bet.domain.exception.BetConflictException
 import com.mnemos.bet.domain.exception.BetNotFoundException
 import com.mnemos.bet.domain.itemrace.repository.ItemRaceRepository
 import com.mnemos.bet.domain.wallet.model.WalletOperationRequestType
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission.PLACE_BETS
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,11 +25,20 @@ class IncreaseItemRaceBetService(
     private val clock: Clock,
 ) : IncreaseItemRaceBetUseCase {
     @Transactional
-    override fun execute(command: IncreaseItemRaceBetCommand): IncreaseItemRaceBetResult {
+    override fun execute(command: IncreaseItemRaceBetCommand): IncreaseItemRaceBetResult =
+        executeFor(
+            command = command,
+            actorUserId = currentActorProvider.requireUserId(),
+        )
+
+    @Transactional
+    fun executeFor(
+        command: IncreaseItemRaceBetCommand,
+        actorUserId: UserId,
+    ): IncreaseItemRaceBetResult {
         require(command.amount > 0)
 
-        val account = accountProvider.requireActiveAccount(PLACE_BETS)
-        val actorUserId = currentActorProvider.requireUserId()
+        val account = accountProvider.requireActiveAccount(actorUserId, PLACE_BETS)
         val replay =
             command.idempotencyKey?.let { idempotencyKey ->
                 idempotencySupport.findStakeReplay(

@@ -23,7 +23,7 @@ class EventBetReaderAdapter(
 
     override fun findAllRounds(): List<EventBetRoundView> = roundRepository.findTop200ByOrderByScheduledAtDescIdDesc().map { it.toView() }
 
-    override fun findRound(id: EventBetRoundId): EventBetRoundView? = roundRepository.findByIdOrNull(id.id)?.toView()
+    override fun findRound(roundId: EventBetRoundId): EventBetRoundView? = roundRepository.findByIdOrNull(roundId.id)?.toView()
 
     override fun findBet(
         roundId: EventBetRoundId,

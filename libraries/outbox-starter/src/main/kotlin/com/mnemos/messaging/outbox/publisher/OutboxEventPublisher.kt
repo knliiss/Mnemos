@@ -245,7 +245,7 @@ class OutboxEventPublisher(
             .take(MAX_ERROR_LENGTH)
     }
 
-    private tailrec fun unwrap(exception: Throwable): Throwable =
+    private fun unwrap(exception: Throwable): Throwable =
         when (exception) {
             is ExecutionException,
             is CompletionException ->

@@ -1,6 +1,7 @@
 package com.mnemos.reward.application.daily.usecase.get
 
 import com.mnemos.reward.application.daily.model.DailyRewardState
+import com.mnemos.reward.application.daily.port.out.ActiveAccountContext
 import com.mnemos.reward.application.daily.port.out.ActiveAccountProvider
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService
 import com.mnemos.reward.application.daily.usecase.claim.ClaimDailyRewardService.Companion.MOSCOW
@@ -19,8 +20,10 @@ class GetDailyRewardStateService(
     private val properties: RewardProperties,
     private val clock: Clock,
 ) {
-    fun get(): DailyRewardState {
-        val accountId = activeAccountProvider.getActiveAccountContext().accountId
+    fun get(): DailyRewardState = get(activeAccountProvider.getActiveAccountContext())
+
+    fun get(activeAccount: ActiveAccountContext): DailyRewardState {
+        val accountId = activeAccount.accountId
         val today = LocalDate.now(clock.withZone(MOSCOW))
 
         val streak = repository.findByAccountId(accountId)
@@ -56,6 +59,7 @@ class GetDailyRewardStateService(
             properties.daily.coinRanges[
                 (nextStreak - 1) % properties.daily.coinRanges.size,
             ]
+
         return DailyRewardState(
             accountId = accountId,
             currentStreak = currentStreak,

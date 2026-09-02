@@ -30,6 +30,7 @@ APPLICATION_PORTS = {
     "profile-service": 8091,
     "player-directory-service": 8092,
     "payment-service": 8093,
+    "telegram-bot-service": 8094,
     "gateway-service": 8080,
 }
 

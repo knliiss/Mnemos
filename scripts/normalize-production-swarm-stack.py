@@ -23,6 +23,7 @@ APPLICATION_SERVICES = (
     "realtime-service",
     "reward-service",
     "social-service",
+    "telegram-bot-service",
     "wallet-service",
 )
 

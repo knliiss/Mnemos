@@ -36,17 +36,34 @@ sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     sh -c 'exec pg_dump --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --format=custom --compress=6 --no-owner --no-acl' \
     > "$BACKUP_DIR/app-postgres.dump"
 
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    exec -T app-postgres \
+    pg_restore --list \
+    < "$BACKUP_DIR/app-postgres.dump" \
+    >/dev/null
+
 echo "Creating Keycloak PostgreSQL backup"
 sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     exec -T keycloak-postgres \
     sh -c 'exec pg_dump --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --format=custom --compress=6 --no-owner --no-acl' \
     > "$BACKUP_DIR/keycloak-postgres.dump"
 
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    exec -T keycloak-postgres \
+    pg_restore --list \
+    < "$BACKUP_DIR/keycloak-postgres.dump" \
+    >/dev/null
+
 echo "Creating Redis RDB backup"
 sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
     exec -T redis \
     sh -c 'REDISCLI_AUTH="$REDIS_ADMIN_PASSWORD" exec redis-cli --user redis_admin --rdb "$1"' \
     sh "$REDIS_TEMP_FILE" \
+    >/dev/null
+
+sh "$REPOSITORY_ROOT/scripts/production-infra.sh" \
+    exec -T redis \
+    redis-check-rdb "$REDIS_TEMP_FILE" \
     >/dev/null
 
 redis_container="$(

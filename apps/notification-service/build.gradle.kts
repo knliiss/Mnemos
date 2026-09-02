@@ -2,6 +2,7 @@ plugins {
     id("mnemos.spring-service")
     id("mnemos.spring-integration-test")
 }
+
 val springCloudVersion by extra("2025.1.2")
 
 dependencies {
@@ -19,7 +20,7 @@ dependencies {
     implementation(project(":contracts:bet-contracts"))
     implementation(project(":contracts:personalization-contracts"))
     implementation(project(":contracts:player-directory-contracts"))
-    implementation(project(":contracts:payment-contracts"))
+    implementation(project(":contracts:telegram-bot-contracts"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -27,7 +28,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation(libs.telegram.bot)
     implementation(libs.uuid.creator)
 
     implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
@@ -40,6 +40,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.testcontainers:testcontainers-postgresql")
 }
+
 dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")

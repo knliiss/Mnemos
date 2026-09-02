@@ -15,8 +15,11 @@ INODE_USAGE_LIMIT_PERCENT="${MNEMOS_MONITOR_INODE_USAGE_LIMIT_PERCENT:-90}"
 MEMORY_AVAILABLE_MIN_PERCENT="${MNEMOS_MONITOR_MEMORY_AVAILABLE_MIN_PERCENT:-10}"
 BACKUP_MAX_AGE_SECONDS="${MNEMOS_MONITOR_BACKUP_MAX_AGE_SECONDS:-129600}"
 BACKUP_SUCCESSFUL_LATEST_FILE="${MNEMOS_BACKUP_STATE_DIR:-/var/lib/mnemos-backup}/latest-successful"
-DEPLOY_RELEASE_FILE="${MNEMOS_DEPLOY_STATE_DIR:-/var/lib/mnemos-deploy}/current-release"
+DEPLOY_STATE_DIR="${MNEMOS_DEPLOY_STATE_DIR:-/var/lib/mnemos-deploy}"
+DEPLOY_RELEASE_FILE="$DEPLOY_STATE_DIR/current-release"
+DEPLOY_STRUCTURED_STATE_FILE="$DEPLOY_STATE_DIR/current-state.json"
 VERIFY_INFRA_SCRIPT="$RUNTIME_ROOT/scripts/verify-production-infra.sh"
+VERIFY_RUNTIME_STATE_SCRIPT="$RUNTIME_ROOT/scripts/production_runtime_state.py"
 
 fail() {
     echo "Production health check failed: $*" >&2
@@ -104,11 +107,23 @@ if docker stack ls --format '{{.Name}}' | grep -Fxq "$STACK_NAME"; then
         echo "$unhealthy_services" >&2
         fail "one or more Swarm services have not converged"
     fi
-elif [ -f "$DEPLOY_RELEASE_FILE" ]; then
+elif [ -f "$DEPLOY_RELEASE_FILE" ] || [ -f "$DEPLOY_STRUCTURED_STATE_FILE" ]; then
     fail "deployment state exists but Swarm stack $STACK_NAME is missing"
 fi
 
-if [ -f "$DEPLOY_RELEASE_FILE" ]; then
+if [ -f "$DEPLOY_STRUCTURED_STATE_FILE" ]; then
+    if [ ! -f "$VERIFY_RUNTIME_STATE_SCRIPT" ]; then
+        fail "production runtime state verifier is missing: $VERIFY_RUNTIME_STATE_SCRIPT"
+    fi
+
+    if ! python3 "$VERIFY_RUNTIME_STATE_SCRIPT" \
+        verify \
+        --state "$DEPLOY_STRUCTURED_STATE_FILE"; then
+        fail "production runtime images drifted from the recorded deployment state"
+    fi
+fi
+
+if [ -f "$DEPLOY_RELEASE_FILE" ] || [ -f "$DEPLOY_STRUCTURED_STATE_FILE" ]; then
     if [ ! -f "$VERIFY_INFRA_SCRIPT" ]; then
         fail "production infrastructure verifier is missing: $VERIFY_INFRA_SCRIPT"
     fi
