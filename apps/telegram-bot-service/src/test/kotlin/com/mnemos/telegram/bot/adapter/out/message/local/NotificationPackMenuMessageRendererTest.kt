@@ -9,7 +9,6 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonS
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
-import com.mnemos.telegram.bot.application.pack.model.NotificationPackAggregatePreviewMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
@@ -78,7 +77,7 @@ class NotificationPackMenuMessageRendererTest {
         assertTrue(message.text.contains("📨 <b>Обычное сообщение</b>"))
         assertTrue(message.text.contains("✨ Дроп Вечный клинок"))
         assertTrue(message.text.contains("north выбил Мифический меч"))
-        assertTrue(message.text.contains("🧩 <b>Агрегированное · один тип</b>"))
+        assertTrue(message.text.contains("🧩 <b>Агрегированное сообщение</b>"))
         assertTrue(message.text.contains("✨ Дропы"))
         assertTrue(message.text.contains("✨ north: Вечный клинок"))
         assertTrue(message.text.contains("25 PRIME"))
@@ -86,7 +85,7 @@ class NotificationPackMenuMessageRendererTest {
     }
 
     @Test
-    fun `detail exposes every notification type and conditional variants`() {
+    fun `detail exposes the same event type and variant controls as Mini App`() {
         val message = NotificationPackMenuMessageRenderer.render(detailData(storePack()))
         val callbacks = message.callbacks()
 
@@ -99,16 +98,6 @@ class NotificationPackMenuMessageRendererTest {
 
         assertTrue(callbacks.any { action -> action.data == NotificationPackCallbackData.BASE_VARIANT })
         assertTrue(callbacks.any { action -> action.data == NotificationPackCallbackData.variant(SECRET_VARIANT_ID) })
-        assertTrue(
-            callbacks.any { action ->
-                action.data == NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.SAME_TYPE)
-            },
-        )
-        assertTrue(
-            callbacks.any { action ->
-                action.data == NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.MIXED)
-            },
-        )
     }
 
     @Test
@@ -129,23 +118,20 @@ class NotificationPackMenuMessageRendererTest {
     }
 
     @Test
-    fun `mixed aggregate keeps standard preview and renders several event types`() {
+    fun `switching event type keeps both preview formats on selected type`() {
         val data =
             detailData(
                 pack = storePack(),
                 selectedTemplateType = NotificationPackTemplateType.GLOBAL,
-                aggregatePreviewMode = NotificationPackAggregatePreviewMode.MIXED,
             )
 
         val message = NotificationPackMenuMessageRenderer.render(data)
 
         assertTrue(message.text.contains("Событие: <b>Глобальное событие</b>"))
-        assertTrue(message.text.contains("🌌 Глобальное: Затмение"))
-        assertTrue(message.text.contains("🧩 <b>Агрегированное · смешанный</b>"))
-        assertTrue(message.text.contains("<b>Сводка Mnemos</b>"))
-        assertTrue(message.text.contains("✨ north: Вечный клинок"))
-        assertTrue(message.text.contains("⚡ vex: Удача"))
-        assertTrue(message.text.contains("🏰 Экспертное подземелье"))
+        assertTrue(message.text.contains("<b>🌌 Глобальное: Затмение</b>"))
+        assertTrue(message.text.contains("Началось событие Затмение"))
+        assertTrue(message.text.contains("<b>🌌 Глобальные</b>"))
+        assertTrue(message.text.contains("🌌 Затмение"))
     }
 
     @Test
@@ -209,7 +195,6 @@ class NotificationPackMenuMessageRendererTest {
         pack: TelegramNotificationPackStoreItem,
         selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
         selectedVariantId: String? = null,
-        aggregatePreviewMode: NotificationPackAggregatePreviewMode = NotificationPackAggregatePreviewMode.SAME_TYPE,
     ): TelegramMenuScreenData.Packs =
         screenData(
             mode = NotificationPackMenuMode.DETAIL,
@@ -226,7 +211,6 @@ class NotificationPackMenuMessageRendererTest {
             selectedPersonalizationId = PACK_ID,
             selectedTemplateType = selectedTemplateType,
             selectedVariantId = selectedVariantId,
-            aggregatePreviewMode = aggregatePreviewMode,
         )
 
     private fun screenData(
@@ -236,7 +220,6 @@ class NotificationPackMenuMessageRendererTest {
         selectedPersonalizationId: UUID? = null,
         selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
         selectedVariantId: String? = null,
-        aggregatePreviewMode: NotificationPackAggregatePreviewMode = NotificationPackAggregatePreviewMode.SAME_TYPE,
     ): TelegramMenuScreenData.Packs =
         TelegramMenuScreenData.Packs(
             NotificationPackMenuScreenData(
@@ -246,7 +229,6 @@ class NotificationPackMenuMessageRendererTest {
                 selectedPersonalizationId = selectedPersonalizationId,
                 selectedTemplateType = selectedTemplateType,
                 selectedVariantId = selectedVariantId,
-                aggregatePreviewMode = aggregatePreviewMode,
                 feedback = null,
             ),
         )
