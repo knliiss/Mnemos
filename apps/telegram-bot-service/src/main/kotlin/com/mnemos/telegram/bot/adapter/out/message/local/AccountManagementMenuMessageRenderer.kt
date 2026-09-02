@@ -153,49 +153,50 @@ object AccountManagementMenuMessageRenderer {
                 .ifEmpty { listOf("• Дополнительных ролей нет") }
         appendFeedback(lines, data.feedback)
 
-        val rows = buildList {
-            if (TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES in snapshot.actorPermissions) {
-                snapshot.roles.forEach { role ->
-                    val assigned = role.id in member.roleIds
+        val rows =
+            buildList {
+                if (TelegramAccountManagementPermission.ASSIGN_MEMBER_ROLES in snapshot.actorPermissions) {
+                    snapshot.roles.forEach { role ->
+                        val assigned = role.id in member.roleIds
 
+                        add(
+                            listOf(
+                                callback(
+                                    label = if (assigned) "✓ ${role.name}" else "+ ${role.name}",
+                                    data =
+                                        if (assigned) {
+                                            AccountManagementCallbackData.revokeRole(role.id)
+                                        } else {
+                                            AccountManagementCallbackData.assignRole(role.id)
+                                        },
+                                    style =
+                                        if (assigned) {
+                                            OutboundTelegramButtonStyle.SUCCESS
+                                        } else {
+                                            OutboundTelegramButtonStyle.PRIMARY
+                                        },
+                                ),
+                            ),
+                        )
+                    }
+                }
+
+                if (canKick(snapshot, member)) {
                     add(
                         listOf(
                             callback(
-                                label = if (assigned) "✓ ${role.name}" else "+ ${role.name}",
-                                data =
-                                    if (assigned) {
-                                        AccountManagementCallbackData.revokeRole(role.id)
-                                    } else {
-                                        AccountManagementCallbackData.assignRole(role.id)
-                                    },
-                                style =
-                                    if (assigned) {
-                                        OutboundTelegramButtonStyle.SUCCESS
-                                    } else {
-                                        OutboundTelegramButtonStyle.PRIMARY
-                                    },
+                                label = "🗑 Исключить участника",
+                                data = AccountManagementCallbackData.KICK_MEMBER,
+                                style = OutboundTelegramButtonStyle.DANGER,
                             ),
                         ),
                     )
                 }
-            }
 
-            if (canKick(snapshot, member)) {
-                add(
-                    listOf(
-                        callback(
-                            label = "🗑 Исключить участника",
-                            data = AccountManagementCallbackData.KICK_MEMBER,
-                            style = OutboundTelegramButtonStyle.DANGER,
-                        ),
-                    ),
-                )
+                add(listOf(membersAction))
+                add(listOf(overviewAction))
+                add(listOf(backAction))
             }
-
-            add(listOf(membersAction))
-            add(listOf(overviewAction))
-            add(listOf(backAction))
-        }
 
         return message(lines, rows)
     }
@@ -221,35 +222,36 @@ object AccountManagementMenuMessageRenderer {
                 }.ifEmpty { listOf("Роли пока не настроены.") }
         appendFeedback(lines, feedback)
 
-        val rows = buildList {
-            snapshot.roles.forEach { role ->
-                add(
-                    listOf(
-                        callback(
-                            label = "🎭 ${role.name}",
-                            data = AccountManagementCallbackData.role(role.id),
-                            style = OutboundTelegramButtonStyle.PRIMARY,
+        val rows =
+            buildList {
+                snapshot.roles.forEach { role ->
+                    add(
+                        listOf(
+                            callback(
+                                label = "🎭 ${role.name}",
+                                data = AccountManagementCallbackData.role(role.id),
+                                style = OutboundTelegramButtonStyle.PRIMARY,
+                            ),
                         ),
-                    ),
-                )
-            }
+                    )
+                }
 
-            if (TelegramAccountManagementPermission.MANAGE_ROLES in snapshot.actorPermissions) {
-                add(
-                    listOf(
-                        callback(
-                            label = "➕ Создать роль",
-                            data = AccountManagementCallbackData.CREATE_ROLE,
-                            style = OutboundTelegramButtonStyle.SUCCESS,
+                if (TelegramAccountManagementPermission.MANAGE_ROLES in snapshot.actorPermissions) {
+                    add(
+                        listOf(
+                            callback(
+                                label = "➕ Создать роль",
+                                data = AccountManagementCallbackData.CREATE_ROLE,
+                                style = OutboundTelegramButtonStyle.SUCCESS,
+                            ),
                         ),
-                    ),
-                )
-            }
+                    )
+                }
 
-            add(listOf(overviewAction))
-            add(listOf(refreshAction))
-            add(listOf(backAction))
-        }
+                add(listOf(overviewAction))
+                add(listOf(refreshAction))
+                add(listOf(backAction))
+            }
 
         return message(lines, rows)
     }
@@ -280,47 +282,80 @@ object AccountManagementMenuMessageRenderer {
                 .ifEmpty { listOf("• Дополнительных прав нет") }
         appendFeedback(lines, data.feedback)
 
-        val rows = buildList {
-            if (canManagePermissions(snapshot)) {
-                TelegramAccountManagementPermission.entries.forEach { permission ->
-                    val enabled = permission in role.permissions
+        val rows =
+            buildList {
+                if (canManagePermissions(snapshot)) {
+                    TelegramAccountManagementPermission.entries.forEach { permission ->
+                        val enabled = permission in role.permissions
 
+                        add(
+                            listOf(
+                                callback(
+                                    label = "${if (enabled) "✓" else "○"} ${permissionLabel(permission)}",
+                                    data = AccountManagementCallbackData.permission(permission, enabled = !enabled),
+                                    style =
+                                        if (enabled) {
+                                            OutboundTelegramButtonStyle.SUCCESS
+                                        } else {
+                                            OutboundTelegramButtonStyle.DEFAULT
+                                        },
+                                ),
+                            ),
+                        )
+                    }
+                }
+
+                if (TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY in snapshot.actorPermissions) {
+                    if (index > 0) {
+                        add(
+                            listOf(
+                                callback(
+                                    label = "⬆ Поднять роль",
+                                    data = AccountManagementCallbackData.MOVE_ROLE_UP,
+                                    style = OutboundTelegramButtonStyle.PRIMARY,
+                                ),
+                            ),
+                        )
+                    }
+
+                    if (index in 0 until snapshot.roles.lastIndex) {
+                        add(
+                            listOf(
+                                callback(
+                                    label = "⬇ Опустить роль",
+                                    data = AccountManagementCallbackData.MOVE_ROLE_DOWN,
+                                    style = OutboundTelegramButtonStyle.PRIMARY,
+                                ),
+                            ),
+                        )
+                    }
+                }
+
+                if (TelegramAccountManagementPermission.MANAGE_ROLES in snapshot.actorPermissions) {
                     add(
                         listOf(
                             callback(
-                                label = "${if (enabled) "✓" else "○"} ${permissionLabel(permission)}",
-                                data = AccountManagementCallbackData.permission(permission, enabled = !enabled),
-                                style =
-                                    if (enabled) {
-                                        OutboundTelegramButtonStyle.SUCCESS
-                                    } else {
-                                        OutboundTelegramButtonStyle.DEFAULT
-                                    },
+                                label = "✏️ Изменить имя и цвет",
+                                data = AccountManagementCallbackData.EDIT_ROLE,
+                                style = OutboundTelegramButtonStyle.PRIMARY,
+                            ),
+                        ),
+                    )
+                    add(
+                        listOf(
+                            callback(
+                                label = "🗑 Удалить роль",
+                                data = AccountManagementCallbackData.DELETE_ROLE,
+                                style = OutboundTelegramButtonStyle.DANGER,
                             ),
                         ),
                     )
                 }
+
+                add(listOf(rolesAction))
+                add(listOf(overviewAction))
+                add(listOf(backAction))
             }
-
-            if (TelegramAccountManagementPermission.MANAGE_ROLE_HIERARCHY in snapshot.actorPermissions) {
-                if (index > 0) {
-                    add(listOf(callback("⬆ Поднять роль", AccountManagementCallbackData.MOVE_ROLE_UP, OutboundTelegramButtonStyle.PRIMARY)))
-                }
-
-                if (index in 0 until snapshot.roles.lastIndex) {
-                    add(listOf(callback("⬇ Опустить роль", AccountManagementCallbackData.MOVE_ROLE_DOWN, OutboundTelegramButtonStyle.PRIMARY)))
-                }
-            }
-
-            if (TelegramAccountManagementPermission.MANAGE_ROLES in snapshot.actorPermissions) {
-                add(listOf(callback("✏️ Изменить имя и цвет", AccountManagementCallbackData.EDIT_ROLE, OutboundTelegramButtonStyle.PRIMARY)))
-                add(listOf(callback("🗑 Удалить роль", AccountManagementCallbackData.DELETE_ROLE, OutboundTelegramButtonStyle.DANGER)))
-            }
-
-            add(listOf(rolesAction))
-            add(listOf(overviewAction))
-            add(listOf(backAction))
-        }
 
         return message(lines, rows)
     }
@@ -340,7 +375,9 @@ object AccountManagementMenuMessageRenderer {
         if (inputMode == AccountManagementInputMode.EDIT_ROLE) {
             snapshot.roles
                 .firstOrNull { role -> role.id == data.selectedRoleId }
-                ?.let { role -> lines += "Сейчас: <b>${escapeHtml(role.name)}</b> · <code>${escapeHtml(role.color)}</code>" }
+                ?.let { role ->
+                    lines += "Сейчас: <b>${escapeHtml(role.name)}</b> · <code>${escapeHtml(role.color)}</code>"
+                }
             lines += ""
         }
 
@@ -412,7 +449,13 @@ object AccountManagementMenuMessageRenderer {
                 "Это действие требует явного подтверждения.",
             ),
             listOf(
-                listOf(callback(confirmLabel, confirmData, OutboundTelegramButtonStyle.DANGER)),
+                listOf(
+                    callback(
+                        label = confirmLabel,
+                        data = confirmData,
+                        style = OutboundTelegramButtonStyle.DANGER,
+                    ),
+                ),
                 listOf(cancelConfirmationAction),
             ),
         )
@@ -420,8 +463,7 @@ object AccountManagementMenuMessageRenderer {
     private fun activeAccountRequiredMessage(): OutboundTelegramMessage =
         simpleStateMessage("⚠️ Сначала выберите активный Cristalix-аккаунт.")
 
-    private fun forbiddenMessage(): OutboundTelegramMessage =
-        simpleStateMessage("🔒 У вас нет доступа к управлению этим аккаунтом.")
+    private fun forbiddenMessage(): OutboundTelegramMessage = simpleStateMessage("🔒 У вас нет доступа к управлению этим аккаунтом.")
 
     private fun unavailableMessage(): OutboundTelegramMessage =
         message(
@@ -468,7 +510,11 @@ object AccountManagementMenuMessageRenderer {
                 member.id == actorMemberId -> "👤"
                 else -> "•"
             }
-        val role = member.highestRoleName?.let(::escapeHtml)?.let { name -> " · $name" }.orEmpty()
+        val role =
+            member.highestRoleName
+                ?.let(::escapeHtml)
+                ?.let { name -> " · $name" }
+                .orEmpty()
 
         return "${index + 1}. $marker <b>${escapeHtml(member.name)}</b>$role"
     }
@@ -541,9 +587,27 @@ object AccountManagementMenuMessageRenderer {
             .replace("<", "&lt;")
             .replace(">", "&gt;")
 
-    private val membersAction = callback("👥 Участники", AccountManagementCallbackData.MEMBERS, OutboundTelegramButtonStyle.PRIMARY)
-    private val rolesAction = callback("🎭 Роли и права", AccountManagementCallbackData.ROLES, OutboundTelegramButtonStyle.PRIMARY)
-    private val invitesAction = callback("🔗 Приглашения", TelegramMenuScreen.ACCOUNT_INVITES.callbackData, OutboundTelegramButtonStyle.PRIMARY)
+    private val membersAction =
+        callback(
+            label = "👥 Участники",
+            data = AccountManagementCallbackData.MEMBERS,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val rolesAction =
+        callback(
+            label = "🎭 Роли и права",
+            data = AccountManagementCallbackData.ROLES,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
+    private val invitesAction =
+        callback(
+            label = "🔗 Приглашения",
+            data = TelegramMenuScreen.ACCOUNT_INVITES.callbackData,
+            style = OutboundTelegramButtonStyle.PRIMARY,
+        )
+
     private val overviewAction = callback("⚙️ Обзор управления", AccountManagementCallbackData.OVERVIEW)
     private val refreshAction = callback("🔄 Обновить", AccountManagementCallbackData.REFRESH)
     private val cancelConfirmationAction = callback("✖ Отмена", AccountManagementCallbackData.CANCEL_CONFIRMATION)

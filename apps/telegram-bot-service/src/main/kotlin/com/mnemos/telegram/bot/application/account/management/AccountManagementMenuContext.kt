@@ -20,11 +20,9 @@ object AccountManagementMenuContext {
 
     fun selectedRoleId(context: Map<String, String>): UUID? = uuidOrNull(context[ROLE_ID_KEY])
 
-    fun feedback(context: Map<String, String>): AccountManagementMenuFeedback? =
-        enumValueOrNull(context[FEEDBACK_KEY])
+    fun feedback(context: Map<String, String>): AccountManagementMenuFeedback? = enumValueOrNull(context[FEEDBACK_KEY])
 
-    fun confirmation(context: Map<String, String>): AccountManagementConfirmation? =
-        enumValueOrNull(context[CONFIRMATION_KEY])
+    fun confirmation(context: Map<String, String>): AccountManagementConfirmation? = enumValueOrNull(context[CONFIRMATION_KEY])
 
     fun showOverview(context: Map<String, String>): Map<String, String> =
         context
@@ -100,11 +98,9 @@ object AccountManagementMenuContext {
 
     fun clearFeedback(context: Map<String, String>): Map<String, String> = context - FEEDBACK_KEY
 
-    private fun Map<String, String>.withoutTransientState(): Map<String, String> =
-        this - FEEDBACK_KEY - CONFIRMATION_KEY
+    private fun Map<String, String>.withoutTransientState(): Map<String, String> = this - FEEDBACK_KEY - CONFIRMATION_KEY
 
-    private fun uuidOrNull(value: String?): UUID? =
-        value?.let { raw -> runCatching { UUID.fromString(raw) }.getOrNull() }
+    private fun uuidOrNull(value: String?): UUID? = value?.let { raw -> runCatching { UUID.fromString(raw) }.getOrNull() }
 
     private inline fun <reified T : Enum<T>> enumValueOrNull(value: String?): T? =
         value?.let { raw -> enumValues<T>().firstOrNull { enumValue -> enumValue.name == raw } }

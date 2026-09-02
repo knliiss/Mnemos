@@ -84,8 +84,9 @@ class AccountManagementCallbackHandler(
         }
 
         AccountManagementCallbackData.permissionMutation(context.data)?.let { mutation ->
-            val roleId = AccountManagementMenuContext.selectedRoleId(session.screenContext)
-                ?: return TelegramDeliveryResult.Delivered
+            val roleId =
+                AccountManagementMenuContext.selectedRoleId(session.screenContext)
+                    ?: return TelegramDeliveryResult.Delivered
             val result =
                 gateway.setRolePermission(
                     telegramId = context.telegramId,
@@ -179,8 +180,9 @@ class AccountManagementCallbackHandler(
         roleId: UUID,
         assigned: Boolean,
     ): TelegramDeliveryResult {
-        val memberId = AccountManagementMenuContext.selectedMemberId(session.screenContext)
-            ?: return TelegramDeliveryResult.Delivered
+        val memberId =
+            AccountManagementMenuContext.selectedMemberId(session.screenContext)
+                ?: return TelegramDeliveryResult.Delivered
         val result =
             gateway.setMemberRole(
                 telegramId = context.telegramId,
@@ -239,8 +241,9 @@ class AccountManagementCallbackHandler(
         session: TelegramMenuSession,
         offset: Int,
     ): TelegramDeliveryResult {
-        val roleId = AccountManagementMenuContext.selectedRoleId(session.screenContext)
-            ?: return TelegramDeliveryResult.Delivered
+        val roleId =
+            AccountManagementMenuContext.selectedRoleId(session.screenContext)
+                ?: return TelegramDeliveryResult.Delivered
         val management = gateway.getManagement(context.telegramId)
         val snapshot =
             (management as? TelegramAccountManagementResult.Available)?.snapshot

@@ -38,8 +38,7 @@ object AccountManagementCallbackData {
     fun permission(
         permission: TelegramAccountManagementPermission,
         enabled: Boolean,
-    ): String =
-        (if (enabled) ENABLE_PERMISSION_PREFIX else DISABLE_PERMISSION_PREFIX) + permission.name
+    ): String = (if (enabled) ENABLE_PERMISSION_PREFIX else DISABLE_PERMISSION_PREFIX) + permission.name
 
     fun selectedMemberId(data: String): UUID? = uuidAfterPrefix(data, MEMBER_PREFIX)
 
@@ -59,7 +58,8 @@ object AccountManagementCallbackData {
 
         val prefix = if (enabled) ENABLE_PERMISSION_PREFIX else DISABLE_PERMISSION_PREFIX
         val permission =
-            data.removePrefix(prefix)
+            data
+                .removePrefix(prefix)
                 .let { value ->
                     TelegramAccountManagementPermission.entries.firstOrNull { candidate -> candidate.name == value }
                 } ?: return null
