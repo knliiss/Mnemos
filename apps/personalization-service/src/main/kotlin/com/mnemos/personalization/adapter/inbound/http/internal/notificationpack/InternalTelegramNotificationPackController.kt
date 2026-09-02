@@ -71,7 +71,7 @@ class InternalTelegramNotificationPackController(
                             currency = item.currency.name,
                             owned = item.owned,
                             active = item.active,
-                            samples = item.samples,
+                            preview = item.content.toResponse(),
                         )
                     },
                 page = result.page,
