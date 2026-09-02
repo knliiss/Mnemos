@@ -1,7 +1,11 @@
 package com.mnemos.personalization.adapter.inbound.http.internal.notificationpack
 
+import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackDetail
 import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackOption
+import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackStoreItem
+import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackDetailResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackPreviewResponse
+import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackStoreItemResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackSummaryResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationTemplateConditionResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationTemplateResponse
@@ -21,7 +25,30 @@ object InternalTelegramNotificationPackApiMapper {
             active = active,
         )
 
-    fun PersonalizationContent.NotificationPack.toResponse(): InternalTelegramNotificationPackPreviewResponse =
+    fun TelegramNotificationPackStoreItem.toResponse(): InternalTelegramNotificationPackStoreItemResponse =
+        InternalTelegramNotificationPackStoreItemResponse(
+            personalizationId = personalizationId.id,
+            name = name,
+            author = author,
+            priceAmount = priceAmount,
+            currency = currency.name,
+            owned = owned,
+            active = active,
+        )
+
+    fun TelegramNotificationPackDetail.toResponse(): InternalTelegramNotificationPackDetailResponse =
+        InternalTelegramNotificationPackDetailResponse(
+            personalizationId = personalizationId.id,
+            name = name,
+            author = author,
+            priceAmount = priceAmount,
+            currency = currency.name,
+            owned = owned,
+            active = active,
+            preview = content.toResponse(),
+        )
+
+    private fun PersonalizationContent.NotificationPack.toResponse(): InternalTelegramNotificationPackPreviewResponse =
         InternalTelegramNotificationPackPreviewResponse(
             mixedAggregateTitle = mixedAggregateTitle,
             templates =
