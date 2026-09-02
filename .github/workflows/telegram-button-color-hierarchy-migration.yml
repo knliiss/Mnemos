@@ -96,6 +96,11 @@ jobs:
               "                            data = NotificationCallbackData.confirmDelete(subscriptionId),\n                            style = OutboundTelegramButtonStyle.DANGER,\n",
               "                            data = NotificationCallbackData.confirmDelete(subscriptionId),\n                            style = OutboundTelegramButtonStyle.DANGER,\n                            accented = true,\n",
           )
+          replace_once(
+              notification,
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n        )\n",
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        accented: Boolean = false,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n            accented = accented,\n        )\n",
+          )
 
           invite = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/AccountInviteMenuMessageRenderer.kt"
           replace_once(
@@ -103,12 +108,22 @@ jobs:
               "                            data = AccountInviteCallbackData.confirmRevoke(invite.id),\n                            style = OutboundTelegramButtonStyle.DANGER,\n",
               "                            data = AccountInviteCallbackData.confirmRevoke(invite.id),\n                            style = OutboundTelegramButtonStyle.DANGER,\n                            accented = true,\n",
           )
+          replace_once(
+              invite,
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n        )\n",
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        accented: Boolean = false,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n            accented = accented,\n        )\n",
+          )
 
           management = "apps/telegram-bot-service/src/main/kotlin/com/mnemos/telegram/bot/adapter/out/message/local/AccountManagementMenuMessageRenderer.kt"
           replace_once(
               management,
               "                        data = confirmData,\n                        style = OutboundTelegramButtonStyle.DANGER,\n",
               "                        data = confirmData,\n                        style = OutboundTelegramButtonStyle.DANGER,\n                        accented = true,\n",
+          )
+          replace_once(
+              management,
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n        )\n",
+              "    private fun callback(\n        label: String,\n        data: String,\n        style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,\n        accented: Boolean = false,\n    ): OutboundTelegramMessageAction.Callback =\n        OutboundTelegramMessageAction.Callback(\n            label = label,\n            data = data,\n            style = style,\n            accented = accented,\n        )\n",
           )
 
           test = "apps/telegram-bot-service/src/test/kotlin/com/mnemos/telegram/bot/adapter/out/telegram/TelegramMessageMapperTest.kt"
