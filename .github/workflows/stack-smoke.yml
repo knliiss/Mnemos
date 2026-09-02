@@ -147,14 +147,14 @@ jobs:
           set -euo pipefail
 
           set +e
-          timeout --foreground 8m \
+          timeout --kill-after=15s 8m \
             env STARTUP_CHECK_DELAY=45 \
             make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" up
           startup_status=$?
           set -e
 
           if [ "$startup_status" -ne 0 ]; then
-            if [ "$startup_status" -eq 124 ]; then
+            if [ "$startup_status" -eq 124 ] || [ "$startup_status" -eq 137 ]; then
               echo "Stack startup exceeded the 8 minute startup window" >&2
             else
               echo "Stack startup failed with exit code ${startup_status}" >&2
@@ -165,13 +165,13 @@ jobs:
 
           sleep 20
 
-          timeout --foreground 3m \
+          timeout --kill-after=10s 3m \
             make ENV_FILE=.env.ci DC="$CI_COMPOSE_COMMAND" status
 
-          timeout --foreground 2m \
+          timeout --kill-after=10s 2m \
             sh scripts/verify-kafka-message-auth-runtime.sh .env.ci
 
-          timeout --foreground 2m \
+          timeout --kill-after=10s 2m \
             sh scripts/verify-kafka-acl-reconciliation-runtime.sh .env.ci
 
       - name: Verify Redis service isolation
@@ -385,11 +385,14 @@ jobs:
             command="$2"
 
             echo "=== ${label} ==="
-            timeout --foreground 30s bash -c "$command" || true
+            timeout --kill-after=5s 30s bash -c "$command" </dev/null || true
           }
 
           run_diagnostic "Compose state" \
             "$CI_COMPOSE_COMMAND ps -a"
+
+          run_diagnostic "Application logs" \
+            "$CI_COMPOSE_COMMAND logs --no-color --tail=120 account-service wallet-service event-service notification-service reward-service bet-service moderation-service realtime-service personalization-service social-service profile-service player-directory-service payment-service gateway-service telegram-bot-service"
 
           run_diagnostic "PostgreSQL security init logs" \
             "$CI_COMPOSE_COMMAND logs --no-color --tail=200 app-postgres-security-init"
@@ -398,9 +401,9 @@ jobs:
             "$CI_COMPOSE_COMMAND logs --no-color --tail=200 kafka-tls-init"
 
           echo "=== Kafka health ==="
-          kafka_container="$(timeout --foreground 30s bash -c "$CI_COMPOSE_COMMAND ps -q kafka" || true)"
+          kafka_container="$(timeout --kill-after=5s 30s bash -c "$CI_COMPOSE_COMMAND ps -q kafka" </dev/null || true)"
           if [ -n "$kafka_container" ]; then
-            timeout --foreground 30s docker inspect \
+            timeout --kill-after=5s 30s docker inspect \
               --format '{{json .State.Health}}' \
               "$kafka_container" || true
           fi
@@ -430,7 +433,7 @@ jobs:
           set +e
 
           if [ -n "${CI_COMPOSE_COMMAND:-}" ]; then
-            timeout --foreground 2m bash -c \
+            timeout --kill-after=10s 2m bash -c \
               "$CI_COMPOSE_COMMAND down --volumes --remove-orphans" || true
           fi
 
