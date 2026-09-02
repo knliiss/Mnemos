@@ -42,15 +42,19 @@ jobs:
               -e 's/(Bearer[[:space:]]+)[A-Za-z0-9._~+\/-]+/\1<redacted>/Ig'
           }
 
+          docker_cmd() {
+            sudo -n docker "$@"
+          }
+
           echo "=== STACK SERVICES ==="
-          docker service ls | redact
+          docker_cmd service ls | redact
 
           for service in "${services[@]}"; do
             swarm_service="mnemos_${service}"
 
             echo
             echo "=== ${swarm_service} TASKS ==="
-            docker service ps \
+            docker_cmd service ps \
               --no-trunc \
               --format '{{.ID}} {{.Name}} {{.Image}} {{.CurrentState}} {{.Error}}' \
               "$swarm_service" 2>&1 | redact || true
@@ -62,22 +66,22 @@ jobs:
             while IFS= read -r container_id; do
               [ -n "$container_id" ] || continue
 
-              image="$(docker inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || true)"
+              image="$(docker_cmd inspect --format '{{.Config.Image}}' "$container_id" 2>/dev/null || true)"
 
               case "$image" in
                 *":${release}"*)
                   found=true
                   echo "--- container ${container_id} image=${image} ---" | redact
-                  docker inspect \
+                  docker_cmd inspect \
                     --format 'state={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}} started={{.State.StartedAt}} finished={{.State.FinishedAt}}' \
                     "$container_id" 2>&1 | redact || true
 
                   echo "--- logs ${container_id} ---"
-                  docker logs --tail 180 "$container_id" 2>&1 | redact || true
+                  docker_cmd logs --tail 180 "$container_id" 2>&1 | redact || true
                   ;;
               esac
             done < <(
-              docker ps -aq \
+              docker_cmd ps -aq \
                 --filter "label=com.docker.swarm.service.name=${swarm_service}" \
                 2>/dev/null || true
             )
