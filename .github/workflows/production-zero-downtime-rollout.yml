@@ -81,13 +81,24 @@ jobs:
           set -euo pipefail
 
           baseline="$RUNNER_TEMP/production-image-baseline.tsv"
+          services="$(python3 scripts/production_service_catalog.py list --kind application)"
           : > "$baseline"
 
-          for service in $(python3 scripts/production_service_catalog.py list --runtime swarm); do
+          if [ -z "$services" ]; then
+            echo "Production application service catalog is empty" >&2
+            exit 1
+          fi
+
+          for service in $services; do
             runtime="mnemos_${service}"
             image="$(sudo -n docker service inspect --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' "$runtime")"
             printf '%s\t%s\n' "$runtime" "$image" >> "$baseline"
           done
+
+          if [ ! -s "$baseline" ]; then
+            echo "Production image baseline is empty" >&2
+            exit 1
+          fi
 
           cat "$baseline"
 
@@ -105,6 +116,11 @@ jobs:
 
           baseline="$RUNNER_TEMP/production-image-baseline.tsv"
           failed=0
+
+          if [ ! -s "$baseline" ]; then
+            echo "Production image baseline is missing or empty" >&2
+            exit 1
+          fi
 
           while IFS=$'\t' read -r runtime expected_image; do
             actual_image="$(sudo -n docker service inspect --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' "$runtime")"
@@ -144,7 +160,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          state_tmp="$(mktemp)"
+          sudo -n install --directory --mode=0700 /var/lib/mnemos-deploy
+          state_tmp="$(sudo -n mktemp /var/lib/mnemos-deploy/current-state.XXXXXX)"
           trap 'sudo -n rm -f "$state_tmp"' EXIT
 
           sudo -n python3 scripts/production_runtime_state.py \
@@ -152,7 +169,6 @@ jobs:
             --tooling-revision "$GITHUB_SHA" \
             --output "$state_tmp"
 
-          sudo -n install --directory --mode=0700 /var/lib/mnemos-deploy
           sudo -n install \
             --owner=root \
             --group=root \
