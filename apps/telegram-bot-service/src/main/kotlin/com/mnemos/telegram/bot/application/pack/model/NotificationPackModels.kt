@@ -21,6 +21,16 @@ data class TelegramNotificationPackStoreItem(
     val currency: String,
     val owned: Boolean,
     val active: Boolean,
+)
+
+data class TelegramNotificationPackDetail(
+    val personalizationId: UUID,
+    val name: String,
+    val author: String,
+    val priceAmount: Long,
+    val currency: String,
+    val owned: Boolean,
+    val active: Boolean,
     val preview: TelegramNotificationPackPreview,
 )
 
@@ -73,6 +83,16 @@ sealed interface NotificationPackStoreResult {
     data object RegistrationRequired : NotificationPackStoreResult
 
     data object Unavailable : NotificationPackStoreResult
+}
+
+sealed interface NotificationPackDetailResult {
+    data class Available(
+        val pack: TelegramNotificationPackDetail,
+    ) : NotificationPackDetailResult
+
+    data object NotFound : NotificationPackDetailResult
+
+    data object Unavailable : NotificationPackDetailResult
 }
 
 sealed interface OwnedNotificationPacksResult {
