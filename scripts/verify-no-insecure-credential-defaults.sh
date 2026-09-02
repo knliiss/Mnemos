@@ -20,7 +20,7 @@ for config_file in "$REPOSITORY_ROOT"/apps/*-service/src/main/resources/applicat
         fail "Application config contains a PostgreSQL username fallback: $relative_path"
     fi
 
-    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY)[A-Z0-9_]*:[^}]+' "$config_file"; then
+    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*:[^}]+' "$config_file"; then
         fail "Application config contains a non-empty credential fallback: $relative_path"
     fi
 
@@ -35,12 +35,13 @@ verified_compose_files=0
 
 for compose_file in \
     "$REPOSITORY_ROOT"/infrastructure/compose/*.yml \
-    "$REPOSITORY_ROOT"/infrastructure/compose/apps/*.yml; do
+    "$REPOSITORY_ROOT"/infrastructure/compose/apps/*.yml \
+    "$REPOSITORY_ROOT"/infrastructure/production/*.yml; do
     [ -f "$compose_file" ] || continue
 
     relative_path="${compose_file#"$REPOSITORY_ROOT/"}"
 
-    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY)[A-Z0-9_]*:-[^}]+' "$compose_file"; then
+    if grep -Eq '\$\{[A-Z0-9_]*(PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*:-[^}]+' "$compose_file"; then
         fail "Compose config contains a non-empty credential fallback: $relative_path"
     fi
 
@@ -53,10 +54,12 @@ fi
 
 if grep -R -n -E 'mnemos_local_(password|redis_password|storage_password)' \
     "$REPOSITORY_ROOT/apps" \
-    "$REPOSITORY_ROOT/infrastructure/compose" >/dev/null 2>&1; then
+    "$REPOSITORY_ROOT/infrastructure/compose" \
+    "$REPOSITORY_ROOT/infrastructure/production" >/dev/null 2>&1; then
     grep -R -n -E 'mnemos_local_(password|redis_password|storage_password)' \
         "$REPOSITORY_ROOT/apps" \
-        "$REPOSITORY_ROOT/infrastructure/compose" >&2 || true
+        "$REPOSITORY_ROOT/infrastructure/compose" \
+        "$REPOSITORY_ROOT/infrastructure/production" >&2 || true
 
     fail "Application or Compose sources contain legacy local credential defaults"
 fi
