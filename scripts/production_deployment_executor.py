@@ -35,10 +35,10 @@ def rollback_attempted_actions(
 
     for action in reversed(attempted):
         service = action.get("service", "unknown")
+        steps = base.rollback_steps(action) + availability_steps()
 
         try:
-            run_steps(base.rollback_steps(action))
-            run_steps(availability_steps())
+            run_steps(steps)
         except (OSError, subprocess.CalledProcessError) as exception:
             errors.append(f"{service}: {exception}")
 
