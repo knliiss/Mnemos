@@ -110,7 +110,7 @@ class TelegramLongPollingConsumer(
     }
 
     private fun handleCallback(callbackQuery: CallbackQuery): TelegramDeliveryResult {
-        val message = callbackQuery.message() ?: return TelegramDeliveryResult.Delivered
+        val message = callbackQuery.maybeInaccessibleMessage() ?: return TelegramDeliveryResult.Delivered
         val telegramId =
             TelegramPrivateActorPolicy.resolve(
                 isPrivateChat = message.chat().type() == Chat.Type.Private,

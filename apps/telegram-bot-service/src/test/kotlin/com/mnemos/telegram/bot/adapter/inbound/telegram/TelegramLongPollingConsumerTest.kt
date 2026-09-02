@@ -294,7 +294,7 @@ class TelegramLongPollingConsumerTest {
 
         return mock {
             on { id() }.thenReturn("callback-1")
-            on { this.message() }.thenReturn(message)
+            on { maybeInaccessibleMessage() }.thenReturn(message)
             on { from() }.thenReturn(user)
             on { this.data() }.thenReturn(data)
         }
