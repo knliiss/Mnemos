@@ -6,6 +6,10 @@ on:
       - fix/production-runtime-config
     paths:
       - ".github/workflows/production-pr-final-stack-smoke.yml"
+      - ".github/workflows/production-pr79-rollout.yml"
+      - "infrastructure/compose/compose.kafka.yml"
+      - "infrastructure/production/compose.app-overrides.yml"
+      - "scripts/verify-production-app-compose.sh"
 
 permissions:
   contents: read
@@ -314,6 +318,8 @@ jobs:
           }
 
           run_diagnostic "Compose state" "$CI_COMPOSE_COMMAND ps -a"
+          run_diagnostic "Kafka health state" \
+            "$CI_COMPOSE_COMMAND ps -q kafka | xargs -r docker inspect --format '{{json .State.Health}}'"
           run_diagnostic "Application logs" \
             "$CI_COMPOSE_COMMAND logs --no-color --tail=120 account-service wallet-service event-service notification-service reward-service bet-service moderation-service realtime-service personalization-service social-service profile-service player-directory-service payment-service gateway-service telegram-bot-service"
           run_diagnostic "PostgreSQL security init logs" \
