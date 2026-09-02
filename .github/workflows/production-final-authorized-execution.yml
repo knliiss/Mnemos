@@ -1,0 +1,481 @@
+name: Production Final Authorized Execution
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  execute:
+    if: contains(github.event.head_commit.message, 'chore/production-final-execute')
+    environment: production
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 60
+
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+
+    env:
+      APPLICATION_SOURCE_SHA: 4d1b00601f4c32cd104f82ea437d2df88545a03d
+      TOOLING_REVISION: 57f33951f03842d00d353127b207550d53ed7fdd
+      PUBLISH_RUN_ID: "33660407928"
+      PUBLISH_RUN_HEAD_SHA: a3059d301679d6aef609c46cc4a8e2bd345dff9a
+
+    steps:
+      - name: Checkout immutable trusted execution head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable image publication
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          run_file="$RUNNER_TEMP/mnemos-publish-run.json"
+          jobs_file="$RUNNER_TEMP/mnemos-publish-jobs.json"
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/runs/${PUBLISH_RUN_ID}" \
+            > "$run_file"
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/runs/${PUBLISH_RUN_ID}/jobs?per_page=100" \
+            > "$jobs_file"
+
+          python3 - \
+            "$run_file" \
+            "$jobs_file" \
+            "$PUBLISH_RUN_HEAD_SHA" <<'PY'
+          import json
+          import sys
+
+          run_path, jobs_path, expected_head_sha = sys.argv[1:]
+
+          with open(run_path, encoding="utf-8") as handle:
+              run = json.load(handle)
+
+          with open(jobs_path, encoding="utf-8") as handle:
+              jobs = json.load(handle)
+
+          if run.get("head_sha") != expected_head_sha:
+              raise SystemExit("Immutable image publication run head changed")
+
+          if run.get("conclusion") != "success":
+              raise SystemExit(
+                  f"Immutable image publication run is not successful: "
+                  f"{run.get('conclusion')}"
+              )
+
+          successful_publish_jobs = [
+              job
+              for job in jobs.get("jobs", [])
+              if job.get("name") == "publish"
+              and job.get("conclusion") == "success"
+          ]
+
+          if len(successful_publish_jobs) != 1:
+              raise SystemExit(
+                  "Expected exactly one successful immutable image publish job"
+              )
+          PY
+
+          echo "Immutable application image publication verified"
+
+      - name: Verify trusted execution head and pinned tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "Execution checkout does not match immutable workflow SHA" >&2
+            exit 1
+          fi
+
+          for revision in "$TOOLING_REVISION" "$APPLICATION_SOURCE_SHA"; do
+            if ! git cat-file -e "${revision}^{commit}"; then
+              echo "Required production revision is unavailable: $revision" >&2
+              exit 1
+            fi
+
+            if ! git merge-base --is-ancestor "$revision" HEAD; then
+              echo "Production revision is outside trusted execution history: $revision" >&2
+              exit 1
+            fi
+          done
+
+          if ! git diff --quiet \
+            "$TOOLING_REVISION" \
+            HEAD \
+            -- scripts infrastructure/production; then
+            echo "Production deployment tooling changed after the pinned tooling revision" >&2
+            git diff --name-only \
+              "$TOOLING_REVISION" \
+              HEAD \
+              -- scripts infrastructure/production >&2
+            exit 1
+          fi
+
+          python3 -m py_compile \
+            scripts/production_release_plan.py \
+            scripts/production_deployment_executor.py \
+            scripts/production_deployment_executor_base.py \
+            scripts/production_runtime_state.py
+          python3 scripts/verify-production-stack-renderer.py
+          python3 scripts/verify-production-runtime-policy.py
+          sh scripts/verify-production-deployment-executor-security.sh
+
+          echo "Trusted execution history and pinned production tooling verified"
+
+      - name: Verify exact production baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh scripts/validate-production-env.sh
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          if ! sudo -n test -f /var/lib/mnemos-deploy/current-state.json; then
+            echo "Recorded production deployment state is missing" >&2
+            exit 1
+          fi
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+
+          state_copy="$RUNNER_TEMP/mnemos-production-current-state.json"
+          sudo -n install \
+            --owner="$(id -u)" \
+            --group="$(id -g)" \
+            --mode=0600 \
+            /var/lib/mnemos-deploy/current-state.json \
+            "$state_copy"
+
+          python3 - "$state_copy" "$TOOLING_REVISION" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              state = json.load(handle)
+
+          expected_tooling = sys.argv[2]
+          actual_tooling = state.get("tooling_revision")
+
+          if actual_tooling != expected_tooling:
+              raise SystemExit(
+                  f"Recorded tooling revision changed: "
+                  f"{actual_tooling} != {expected_tooling}"
+              )
+          PY
+
+          echo "CURRENT_STATE_COPY=$state_copy" >> "$GITHUB_ENV"
+
+      - name: Create audited full application release plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          plan_dir="$RUNNER_TEMP/mnemos-production-final-release-plan"
+          rm -rf "$plan_dir"
+          install --directory --mode=0700 "$plan_dir"
+
+          services="$(python3 scripts/production_service_catalog.py list --kind application)"
+
+          if [ -z "$services" ]; then
+            echo "Production application service catalog is empty" >&2
+            exit 1
+          fi
+
+          set -- \
+            --current-state "$CURRENT_STATE_COPY" \
+            --tooling-revision "$TOOLING_REVISION" \
+            --actor "$GITHUB_ACTOR" \
+            --reason "Explicitly user-authorized full Mnemos production release" \
+            --output-dir "$plan_dir"
+
+          for service in $services; do
+            set -- "$@" --set "$service=$APPLICATION_SOURCE_SHA"
+          done
+
+          python3 scripts/production_release_plan.py "$@"
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$plan_dir" \
+            --kind release-plan
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$plan_dir" \
+            --kind release-plan
+
+          python3 - \
+            "$plan_dir/deployment-plan.json" \
+            "$plan_dir/transition.json" \
+            "$APPLICATION_SOURCE_SHA" \
+            $services <<'PY'
+          import json
+          import re
+          import sys
+
+          plan_path, transition_path, expected_source, *services = sys.argv[1:]
+          expected_services = set(services)
+
+          with open(plan_path, encoding="utf-8") as handle:
+              plan = json.load(handle)
+
+          with open(transition_path, encoding="utf-8") as handle:
+              transition = json.load(handle)
+
+          actions = plan.get("actions")
+
+          if plan.get("mode") != "scoped" or not isinstance(actions, list):
+              raise SystemExit("Production release plan is not a scoped action list")
+
+          actual_services = {action.get("service") for action in actions}
+
+          if actual_services != expected_services:
+              raise SystemExit(
+                  f"Release plan action set mismatch: "
+                  f"actual={sorted(actual_services)} "
+                  f"expected={sorted(expected_services)}"
+              )
+
+          for action in actions:
+              target = action.get("to", {})
+
+              if target.get("source_sha") != expected_source:
+                  raise SystemExit(
+                      f"Unexpected target revision for {action.get('service')}: "
+                      f"{target.get('source_sha')}"
+                  )
+
+          transition_id = transition.get("transition_id", "")
+
+          if not re.fullmatch(r"sha256:[0-9a-f]{64}", transition_id):
+              raise SystemExit("Generated production transition ID is invalid")
+
+          print(transition_id)
+          PY
+
+          transition_id="$(
+            python3 - "$plan_dir/transition.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              print(json.load(handle).get("transition_id", ""))
+          PY
+          )"
+
+          echo "PLAN_DIR=$plan_dir" >> "$GITHUB_ENV"
+          echo "TRANSITION_ID=$transition_id" >> "$GITHUB_ENV"
+
+      - name: Render exact production dry run
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_deployment_executor.py \
+            --transition "$PLAN_DIR/transition.json" \
+            --target-state "$PLAN_DIR/target-state.json" \
+            --expected-transition-id "$TRANSITION_ID" \
+            > "$RUNNER_TEMP/mnemos-production-final-dry-run.json"
+
+          cat "$RUNNER_TEMP/mnemos-production-final-dry-run.json"
+
+      - name: Prepare isolated production registry credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-production-docker-auth
+
+      - name: Authenticate production Docker to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Verify every immutable application image exists
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          services="$(python3 scripts/production_service_catalog.py list --kind application)"
+
+          for service in $services; do
+            image="$(
+              python3 scripts/production_service_catalog.py show "$service" | \
+                python3 -c 'import json, sys; print(json.load(sys.stdin).get("image", ""))'
+            )"
+
+            if [ -z "$image" ]; then
+              echo "Missing image name for production service $service" >&2
+              exit 1
+            fi
+
+            reference="ghcr.io/${{ github.repository_owner }}/${image}:${APPLICATION_SOURCE_SHA}"
+
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker manifest inspect "$reference" >/dev/null
+
+            echo "Verified $reference"
+          done
+
+      - name: Execute explicitly authorized production release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+            MNEMOS_PRODUCTION_DEPLOY_ENABLED=true \
+            MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED=true \
+            python3 scripts/production_deployment_executor.py \
+              --transition "$PLAN_DIR/transition.json" \
+              --target-state "$PLAN_DIR/target-state.json" \
+              --expected-transition-id "$TRANSITION_ID" \
+              --execute
+
+      - name: Verify deployed production state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          state_copy="$RUNNER_TEMP/mnemos-production-deployed-state.json"
+          sudo -n install \
+            --owner="$(id -u)" \
+            --group="$(id -g)" \
+            --mode=0600 \
+            /var/lib/mnemos-deploy/current-state.json \
+            "$state_copy"
+
+          services="$(python3 scripts/production_service_catalog.py list --kind application)"
+
+          python3 - "$state_copy" "$APPLICATION_SOURCE_SHA" $services <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              state = json.load(handle)
+
+          expected_source = sys.argv[2]
+          expected_services = set(sys.argv[3:])
+          deployed = state["release_manifest"]["services"]
+
+          for service in expected_services:
+              actual = deployed[service]["source_sha"]
+
+              if actual != expected_source:
+                  raise SystemExit(
+                      f"Production service revision mismatch: "
+                      f"{service}={actual}, expected={expected_source}"
+                  )
+          PY
+
+          for service in $services; do
+            runtime="mnemos_${service}"
+            sudo -n docker service ls \
+              --filter "name=$runtime" \
+              --format '{{.Name}} {{.Replicas}} {{.Image}}'
+          done
+
+      - name: Collect production release audit
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          audit_dir="$RUNNER_TEMP/mnemos-production-final-release-audit"
+          rm -rf "$audit_dir"
+          install --directory --mode=0700 "$audit_dir"
+
+          if [ -n "${PLAN_DIR:-}" ] && [ -d "$PLAN_DIR" ]; then
+            cp -R "$PLAN_DIR" "$audit_dir/release-plan"
+          fi
+
+          if sudo -n test -f /var/lib/mnemos-deploy/current-state.json; then
+            sudo -n cp /var/lib/mnemos-deploy/current-state.json "$audit_dir/current-state.json"
+          fi
+
+          if [ -n "${TRANSITION_ID:-}" ]; then
+            transition_digest="${TRANSITION_ID#sha256:}"
+
+            if sudo -n test -d "/var/lib/mnemos-deploy/transitions/$transition_digest"; then
+              sudo -n cp -R \
+                "/var/lib/mnemos-deploy/transitions/$transition_digest" \
+                "$audit_dir/execution-attempts"
+            fi
+          fi
+
+          sudo -n chown -R "$(id -u):$(id -g)" "$audit_dir"
+          echo "RELEASE_AUDIT_DIR=$audit_dir" >> "$GITHUB_ENV"
+
+      - name: Upload production release audit
+        if: always() && env.RELEASE_AUDIT_DIR != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-final-release-audit-${{ github.run_id }}
+          path: ${{ env.RELEASE_AUDIT_DIR }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove production registry credentials
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          sudo -n rm -rf /run/mnemos-production-docker-auth
