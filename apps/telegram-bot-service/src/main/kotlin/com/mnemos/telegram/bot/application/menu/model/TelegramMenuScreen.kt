@@ -6,6 +6,7 @@ enum class TelegramMenuScreen(
     HOME("m:home"),
     MORE("m:more"),
     NOTIFICATIONS("m:notifications"),
+    PACKS("m:packs"),
     ONLINE("m:online"),
     EVENTS("m:events"),
     DAILY("m:daily"),
