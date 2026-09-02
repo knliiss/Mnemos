@@ -2,7 +2,6 @@ package com.mnemos.telegram.bot.adapter.out.message.local
 
 import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
 import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
-import com.mnemos.telegram.bot.application.pack.model.NotificationPackAggregatePreviewMode
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackPreview
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplate
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateVariant
@@ -22,7 +21,6 @@ object NotificationPackPreviewFormatter {
         preview: TelegramNotificationPackPreview,
         selectedType: NotificationPackTemplateType,
         selectedVariantId: String?,
-        aggregateMode: NotificationPackAggregatePreviewMode,
     ): NotificationPackRenderedPreview {
         val resolvedType =
             selectedType.takeIf(preview.templates::containsKey)
@@ -47,25 +45,24 @@ object NotificationPackPreviewFormatter {
                 template = message.soloBody,
                 values = values,
             )
-        val aggregate =
-            when (aggregateMode) {
-                NotificationPackAggregatePreviewMode.SAME_TYPE ->
-                    renderSameTypeAggregate(
-                        preview = preview,
-                        message = message,
-                        values = values,
-                    )
-
-                NotificationPackAggregatePreviewMode.MIXED -> renderMixedAggregate(preview)
-            }
+        val aggregateTitle = withEmoji(message.emoji, message.aggregateTitle)
+        val aggregateBody =
+            withEmoji(
+                message.emoji,
+                renderTemplate(
+                    preview = preview,
+                    template = message.compact,
+                    values = values,
+                ),
+            )
 
         return NotificationPackRenderedPreview(
             selectedType = resolvedType,
             selectedVariant = selectedVariant,
             standardTitle = standardTitle,
             standardBody = standardBody,
-            aggregateTitle = aggregate.title,
-            aggregateLines = aggregate.lines,
+            aggregateTitle = aggregateTitle,
+            aggregateBody = aggregateBody,
         )
     }
 
@@ -75,49 +72,6 @@ object NotificationPackPreviewFormatter {
                 fallbackValueLabels[condition.field.valueKey]?.get(condition.value)
                     ?: condition.value
             }
-
-    private fun renderSameTypeAggregate(
-        preview: TelegramNotificationPackPreview,
-        message: NotificationMessageFields,
-        values: Map<String, String>,
-    ): AggregatePreview =
-        AggregatePreview(
-            title = withEmoji(message.emoji, message.aggregateTitle),
-            lines =
-                listOf(
-                    withEmoji(
-                        message.emoji,
-                        renderTemplate(
-                            preview = preview,
-                            template = message.compact,
-                            values = values,
-                        ),
-                    ),
-                ),
-        )
-
-    private fun renderMixedAggregate(preview: TelegramNotificationPackPreview): AggregatePreview {
-        val lines =
-            templateTypes
-                .take(MIXED_PREVIEW_TEMPLATE_COUNT)
-                .mapNotNull { type ->
-                    val template = preview.templates[type] ?: return@mapNotNull null
-
-                    withEmoji(
-                        template.emoji,
-                        renderTemplate(
-                            preview = preview,
-                            template = template.compact,
-                            values = valuesForVariant(type, null),
-                        ),
-                    )
-                }
-
-        return AggregatePreview(
-            title = preview.mixedAggregateTitle,
-            lines = lines,
-        )
-    }
 
     private fun valuesForVariant(
         type: NotificationPackTemplateType,
@@ -219,12 +173,6 @@ object NotificationPackPreviewFormatter {
         val aggregateTitle: String,
     )
 
-    private data class AggregatePreview(
-        val title: String,
-        val lines: List<String>,
-    )
-
-    private const val MIXED_PREVIEW_TEMPLATE_COUNT = 3
     private const val DEFAULT_FORM = "default"
 
     private val placeholderRegex =
@@ -276,5 +224,5 @@ data class NotificationPackRenderedPreview(
     val standardTitle: String,
     val standardBody: String,
     val aggregateTitle: String,
-    val aggregateLines: List<String>,
+    val aggregateBody: String,
 )
