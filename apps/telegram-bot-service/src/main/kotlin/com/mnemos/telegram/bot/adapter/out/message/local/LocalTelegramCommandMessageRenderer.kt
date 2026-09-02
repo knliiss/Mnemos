@@ -61,6 +61,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "/menu — главное меню",
                     "/account — аккаунты",
                     "/notifications — уведомления",
+                    "/packs — паки уведомлений",
                     "/online — онлайн и реалмы",
                     "/events — история событий",
                     "/bets — ставки",
@@ -123,7 +124,7 @@ class LocalTelegramCommandMessageRenderer : TelegramCommandMessageRenderer {
                     "",
                     "Если бот был заблокирован, разблокируйте его и отправьте /start или /help — Mnemos снова активирует Telegram-получателя.",
                     "",
-                    "Notification pack и пользовательские настройки находятся в /settings.",
+                    "Паки уведомлений доступны через /packs или кнопку «Паки уведомлений» внутри /notifications.",
                 ).joinToString("\n")
 
             TelegramHelpSection.TROUBLESHOOTING ->

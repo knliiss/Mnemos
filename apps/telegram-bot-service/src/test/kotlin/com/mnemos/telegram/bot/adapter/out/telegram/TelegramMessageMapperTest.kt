@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 
 class TelegramMessageMapperTest {
     @Test
-    fun `mini app action uses inline web app button`() {
+    fun `mini app action uses primary inline web app button`() {
         val message =
             OutboundTelegramMessage(
                 text = "open app",
@@ -31,8 +31,32 @@ class TelegramMessageMapperTest {
 
         assertEquals("Open Mnemos", button.text)
         assertEquals(MINI_APP_URL, button.webApp?.url())
-        assertEquals(OutboundTelegramButtonStyle.DEFAULT, message.actions.single().style)
-        assertEquals(false, message.actions.single().accented)
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, message.actions.single().style)
+        assertEquals(true, message.actions.single().accented)
+    }
+
+    @Test
+    fun `explicit styled callback remains styled without accent opt in`() {
+        val action =
+            OutboundTelegramMessageAction.Callback(
+                label = "Active",
+                data = "m:active",
+                style = OutboundTelegramButtonStyle.SUCCESS,
+            )
+        val message =
+            OutboundTelegramMessage(
+                text = "menu",
+                parseMode = OutboundTelegramMessageParseMode.HTML,
+                actions = listOf(action),
+            )
+
+        val markup = message.toReplyMarkup(MINI_APP_URL)
+        val inlineMarkup = assertInstanceOf(InlineKeyboardMarkup::class.java, markup)
+        val button = inlineMarkup.inlineKeyboard().single().single()
+
+        assertEquals("m:active", button.callbackData)
+        assertEquals(OutboundTelegramButtonStyle.SUCCESS, action.style)
+        assertEquals(false, action.accented)
     }
 
     @Test

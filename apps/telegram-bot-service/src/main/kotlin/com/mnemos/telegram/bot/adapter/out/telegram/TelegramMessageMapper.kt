@@ -108,9 +108,7 @@ object TelegramMessageMapper {
                     InlineKeyboardButton(label).callbackData(data)
             }
 
-        if (accented) {
-            style.telegramValue?.let(button::style)
-        }
+        style.telegramValue?.let(button::style)
 
         return button
     }

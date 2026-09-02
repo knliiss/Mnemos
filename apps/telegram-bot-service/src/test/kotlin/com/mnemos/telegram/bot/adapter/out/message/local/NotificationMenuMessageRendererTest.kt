@@ -65,7 +65,7 @@ class NotificationMenuMessageRendererTest {
                 action.data == NotificationCallbackData.global(NotificationGlobalType.MOON, enabled = false)
             },
         )
-        assertEquals(listOf(2, 2, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(2, 2, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
     }
 
     @Test

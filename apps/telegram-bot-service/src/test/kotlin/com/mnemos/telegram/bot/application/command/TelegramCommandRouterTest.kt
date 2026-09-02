@@ -74,6 +74,7 @@ class TelegramCommandRouterTest {
         val shortcuts =
             mapOf(
                 "/notifications" to TelegramMenuScreen.NOTIFICATIONS,
+                "/packs" to TelegramMenuScreen.PACKS,
                 "/daily" to TelegramMenuScreen.DAILY,
                 "/account" to TelegramMenuScreen.ACCOUNT,
                 "/bets" to TelegramMenuScreen.BETS,

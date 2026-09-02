@@ -8,6 +8,7 @@ import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
 import com.mnemos.telegram.bot.application.events.model.EventHistoryMenuScreenData
 import com.mnemos.telegram.bot.application.notification.model.NotificationMenuScreenData
 import com.mnemos.telegram.bot.application.online.model.SaoOnlineMenuScreenData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.prime.model.PrimeMenuScreenData
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsMutationResult
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsSnapshot
@@ -17,6 +18,10 @@ sealed interface TelegramMenuScreenData {
 
     data class Notifications(
         val data: NotificationMenuScreenData,
+    ) : TelegramMenuScreenData
+
+    data class Packs(
+        val data: NotificationPackMenuScreenData,
     ) : TelegramMenuScreenData
 
     data class SaoOnline(

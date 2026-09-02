@@ -108,6 +108,13 @@ object NotificationMenuMessageRenderer {
                     style = OutboundTelegramButtonStyle.PRIMARY,
                 ),
             ),
+            listOf(
+                callback(
+                    label = "🎨 Паки уведомлений",
+                    data = TelegramMenuScreen.PACKS.callbackData,
+                    style = OutboundTelegramButtonStyle.PRIMARY,
+                ),
+            ),
             listOf(refreshAction),
             listOf(backAction),
         )

@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.purchase.usecase.purchase
 
+import com.mnemos.common.core.model.id.UserId
 import com.mnemos.common.core.model.permission.RolePermission
 import com.mnemos.personalization.application.account.port.out.PersonalizationAccountAccess
 import com.mnemos.personalization.application.personalization.exception.PersonalizationAccessDeniedException
@@ -37,12 +38,34 @@ class PurchasePersonalizationService(
     override fun execute(
         personalizationId: PersonalizationId,
         idempotencyKey: UUID?,
+    ): PurchasePersonalizationResult =
+        executeForUserInternal(
+            userId = actorProvider.requireActor().userId,
+            personalizationId = personalizationId,
+            idempotencyKey = idempotencyKey,
+        )
+
+    @Transactional
+    fun executeForUser(
+        userId: UserId,
+        personalizationId: PersonalizationId,
+        idempotencyKey: UUID?,
+    ): PurchasePersonalizationResult =
+        executeForUserInternal(
+            userId = userId,
+            personalizationId = personalizationId,
+            idempotencyKey = idempotencyKey,
+        )
+
+    private fun executeForUserInternal(
+        userId: UserId,
+        personalizationId: PersonalizationId,
+        idempotencyKey: UUID?,
     ): PurchasePersonalizationResult {
-        val actor = actorProvider.requireActor()
         val replay = idempotencyKey?.let(purchaseOperationRepository::findByIdempotencyKey)
 
         if (replay != null) {
-            if (replay.buyerUserId != actor.userId || replay.personalizationId != personalizationId) {
+            if (replay.buyerUserId != userId || replay.personalizationId != personalizationId) {
                 throw PurchaseIdempotencyConflictException()
             }
 
@@ -56,20 +79,20 @@ class PurchasePersonalizationService(
             personalizationRepository.findByIdForUpdate(personalizationId)
                 ?: throw PersonalizationNotFoundException()
 
-        if (!personalization.isPurchasableBy(actor.userId)) {
+        if (!personalization.isPurchasableBy(userId)) {
             throw PersonalizationNotPurchasableException()
         }
 
         val price = personalization.price ?: throw PersonalizationNotPurchasableException()
         val owner =
             when (personalization.type.target) {
-                PersonalizationTarget.USER -> PersonalizationOwner.User(actor.userId)
+                PersonalizationTarget.USER -> PersonalizationOwner.User(userId)
                 PersonalizationTarget.ACCOUNT -> {
-                    val accountId = accountAccess.requireActiveAccount(actor.userId)
+                    val accountId = accountAccess.requireActiveAccount(userId)
                     val granted =
                         accountAccess.hasPermission(
                             accountId = accountId,
-                            userId = actor.userId,
+                            userId = userId,
                             permission = RolePermission.BUY_ACCOUNT_PERSONALIZATIONS,
                         )
 
@@ -92,7 +115,7 @@ class PurchasePersonalizationService(
         val operation =
             PurchaseOperation.create(
                 personalizationId = personalization.id,
-                buyerUserId = actor.userId,
+                buyerUserId = userId,
                 owner = owner,
                 currency = price.currency,
                 amount = price.amount,
