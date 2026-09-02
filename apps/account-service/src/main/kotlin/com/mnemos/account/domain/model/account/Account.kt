@@ -1,6 +1,7 @@
 package com.mnemos.account.domain.model.account
 
 import com.mnemos.account.domain.exception.account.AccountDeletionUnavailableException
+import com.mnemos.account.domain.exception.account.DeletedAccountImmutableException
 import com.mnemos.account.domain.exception.account.member.AccountMemberLimitReachedException
 import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.common.core.model.id.AccountId
@@ -15,6 +16,7 @@ class Account private constructor(
     updatedAt: Instant,
     status: AccountStatus,
     deactivatedAt: Instant?,
+    deletedAt: Instant?,
     maxMembers: Int,
     baseRoleId: RoleId?,
 ) {
@@ -31,6 +33,9 @@ class Account private constructor(
         private set
 
     var deactivatedAt = deactivatedAt
+        private set
+
+    var deletedAt = deletedAt
         private set
 
     var maxMembers = maxMembers
@@ -62,6 +67,7 @@ class Account private constructor(
                 createdAt = now,
                 updatedAt = now,
                 deactivatedAt = null,
+                deletedAt = null,
                 maxMembers = maxMembers,
                 baseRoleId = baseRoleId,
             )
@@ -76,6 +82,7 @@ class Account private constructor(
             createdAt: Instant,
             updatedAt: Instant,
             deactivatedAt: Instant?,
+            deletedAt: Instant?,
             maxMembers: Int,
             baseRoleId: RoleId?,
         ): Account =
@@ -88,6 +95,7 @@ class Account private constructor(
                 createdAt = createdAt,
                 updatedAt = updatedAt,
                 deactivatedAt = deactivatedAt,
+                deletedAt = deletedAt,
                 maxMembers = maxMembers,
                 baseRoleId = baseRoleId,
             )
@@ -97,6 +105,7 @@ class Account private constructor(
         newOwnerMemberId: AccountMemberId,
         now: Instant = Instant.now(),
     ): Boolean {
+        requireMutable()
         if (ownerMemberId == newOwnerMemberId) return false
 
         ownerMemberId = newOwnerMemberId
@@ -108,6 +117,7 @@ class Account private constructor(
         newCristalixNickname: CristalixNickname,
         now: Instant,
     ): Boolean {
+        requireMutable()
         if (newCristalixNickname == cristalixNickname) return false
 
         cristalixNickname = newCristalixNickname
@@ -116,6 +126,7 @@ class Account private constructor(
     }
 
     fun deactivate(now: Instant = Instant.now()) {
+        requireMutable()
         if (status != AccountStatus.ACTIVE) {
             throw AccountDeletionUnavailableException(id, status)
         }
@@ -126,6 +137,7 @@ class Account private constructor(
     }
 
     fun reactivate(now: Instant = Instant.now()) {
+        requireMutable()
         if (status != AccountStatus.DEACTIVATED) {
             throw AccountDeletionUnavailableException(id, status)
         }
@@ -135,9 +147,24 @@ class Account private constructor(
         updatedAt = now
     }
 
+    fun deletePermanently(now: Instant = Instant.now()) {
+        requireMutable()
+
+        if (status == AccountStatus.ACTIVE) {
+            deactivatedAt = now
+        }
+
+        status = AccountStatus.DELETED
+        deletedAt = now
+        updatedAt = now
+    }
+
     fun isActive(): Boolean = status == AccountStatus.ACTIVE
 
+    fun isDeleted(): Boolean = status == AccountStatus.DELETED
+
     fun requireAvailableMemberSlot(currentMemberCount: Int) {
+        requireMutable()
         if (currentMemberCount >= maxMembers) {
             throw AccountMemberLimitReachedException(
                 accountId = id,
@@ -151,6 +178,7 @@ class Account private constructor(
         currentMemberCount: Int,
         now: Instant = Instant.now(),
     ): Boolean {
+        requireMutable()
         require(maxMembers > 0) {
             "Account member limit must be greater than zero"
         }
@@ -171,9 +199,17 @@ class Account private constructor(
         roleId: RoleId?,
         now: Instant = Instant.now(),
     ): Boolean {
+        requireMutable()
         if (baseRoleId == roleId) return false
+
         baseRoleId = roleId
         updatedAt = now
         return true
+    }
+
+    private fun requireMutable() {
+        if (status == AccountStatus.DELETED) {
+            throw DeletedAccountImmutableException(id)
+        }
     }
 }
