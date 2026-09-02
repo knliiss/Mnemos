@@ -45,7 +45,7 @@ jobs:
           git diff --name-only "$SOURCE_RELEASE" "$GITHUB_SHA" > "$changed_paths"
 
           if grep -Ev \
-            '^(\.github/workflows/(backend-verify|production-pr79-rollout|stack-smoke|production-pr-ci-recovery|production-pr-backend-verify|production-pr-stack-smoke|production-pr-final-stack-smoke)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/verify-production-(app-overrides\.py|app-compose\.sh|stack-renderer\.py))$' \
+            '^(\.github/workflows/(backend-verify|production-pr79-rollout|stack-smoke|production-pr-ci-recovery|production-pr-backend-verify|production-pr-stack-smoke|production-pr-final-stack-smoke)\.yml|infrastructure/(compose/compose\.kafka\.yml|production/compose\.app-overrides\.yml)|make/validation\.mk|scripts/verify-production-(app-overrides\.py|app-compose\.sh|stack-renderer\.py))$' \
             "$changed_paths" | grep -q .; then
             echo "Runtime recovery contains application/build changes and cannot use config-only verification:" >&2
             cat "$changed_paths" >&2
