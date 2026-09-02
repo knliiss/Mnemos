@@ -71,22 +71,31 @@ def verify_classification() -> None:
 
 
 def verify_ordering() -> None:
-    catalog = {
-        "services": {
-            service_name: {"deploy": {"runtime": "swarm"}}
-            for service_name in production_runtime_policy.APPLICATION_SERVICES
+    actions = [
+        {
+            "service": service_name,
+            "runtime": {"type": "swarm"},
         }
-    }
-    ordered = sorted(
-        production_runtime_policy.APPLICATION_SERVICES,
-        key=lambda service_name: production_deployment_plan.action_order(
-            service_name,
-            catalog,
-        ),
-    )
+        for service_name in production_runtime_policy.APPLICATION_SERVICES
+    ]
+    ordered = [
+        action["service"]
+        for action in sorted(
+            actions,
+            key=production_deployment_plan.action_order,
+        )
+    ]
 
     if ordered[-2:] != ["gateway-service", "telegram-bot-service"]:
         fail("Gateway and Telegram bot must be the final scoped deployment actions")
+
+    compose_action = {
+        "service": "postgres",
+        "runtime": {"type": "compose"},
+    }
+
+    if production_deployment_plan.action_order(compose_action)[0] != 0:
+        fail("Compose runtime actions must remain before Swarm application actions")
 
 
 def verify_moderation_pool() -> None:
