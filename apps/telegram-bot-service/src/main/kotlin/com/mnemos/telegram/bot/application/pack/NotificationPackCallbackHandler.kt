@@ -28,7 +28,9 @@ class NotificationPackCallbackHandler(
         currentSession(context) ?: return TelegramDeliveryResult.Delivered
 
         if (context.data == NotificationPackCallbackData.STORE) {
-            return updateContext(context, NotificationPackMenuContext::store)
+            return updateContext(context) { current ->
+                NotificationPackMenuContext.store(current)
+            }
         }
 
         if (context.data == NotificationPackCallbackData.OWNED) {
