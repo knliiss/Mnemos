@@ -9,6 +9,7 @@ import com.mnemos.telegram.bot.application.menu.port.out.TelegramMenuSessionRepo
 import com.mnemos.telegram.bot.application.message.model.TelegramDeliveryResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackApplyResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuFeedback
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackPurchaseResult
 import com.mnemos.telegram.bot.application.pack.port.out.NotificationPackGateway
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -41,6 +42,10 @@ class NotificationPackCallbackHandler(
             return updateContext(context, NotificationPackMenuContext::clearFeedback)
         }
 
+        if (context.data == NotificationPackCallbackData.BASE_VARIANT) {
+            return updateDetailContext(context, NotificationPackMenuContext::selectBaseVariant)
+        }
+
         NotificationPackCallbackData.selectedPage(context.data)?.let { page ->
             return updateContext(context) { current ->
                 NotificationPackMenuContext.store(current, page)
@@ -50,6 +55,18 @@ class NotificationPackCallbackHandler(
         NotificationPackCallbackData.selectedItem(context.data)?.let { personalizationId ->
             return updateContext(context) { current ->
                 NotificationPackMenuContext.detail(current, personalizationId)
+            }
+        }
+
+        NotificationPackCallbackData.selectedTemplate(context.data)?.let { templateType ->
+            return updateDetailContext(context) { current ->
+                NotificationPackMenuContext.selectTemplate(current, templateType)
+            }
+        }
+
+        NotificationPackCallbackData.selectedVariant(context.data)?.let { variantId ->
+            return updateDetailContext(context) { current ->
+                NotificationPackMenuContext.selectVariant(current, variantId)
             }
         }
 
@@ -118,6 +135,19 @@ class NotificationPackCallbackHandler(
         return updateContext(context) { current ->
             NotificationPackMenuContext.withFeedback(current, feedback)
         }
+    }
+
+    private fun updateDetailContext(
+        context: TelegramCallbackContext,
+        update: (Map<String, String>) -> Map<String, String>,
+    ): TelegramDeliveryResult {
+        val session = currentSession(context) ?: return TelegramDeliveryResult.Delivered
+
+        if (NotificationPackMenuContext.mode(session.screenContext) != NotificationPackMenuMode.DETAIL) {
+            return TelegramDeliveryResult.Delivered
+        }
+
+        return updateContext(context, update)
     }
 
     private fun updateContext(

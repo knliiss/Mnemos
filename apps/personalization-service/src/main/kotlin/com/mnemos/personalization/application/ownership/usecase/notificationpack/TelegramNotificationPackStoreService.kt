@@ -3,14 +3,17 @@ package com.mnemos.personalization.application.ownership.usecase.notificationpac
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.personalization.application.account.port.out.PersonalizationTelegramUserResolver
 import com.mnemos.personalization.application.common.pagination.PageQuery
+import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackDetail
 import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackStoreItem
 import com.mnemos.personalization.application.ownership.model.TelegramNotificationPackStorePage
+import com.mnemos.personalization.application.personalization.usecase.getcatalog.GetPersonalizationUseCase
 import com.mnemos.personalization.application.personalization.usecase.listcatalog.ListPersonalizationsQuery
 import com.mnemos.personalization.application.personalization.usecase.listcatalog.ListPersonalizationsUseCase
 import com.mnemos.personalization.domain.ownership.model.PersonalizationOwner
 import com.mnemos.personalization.domain.ownership.repository.OwnedPersonalizationRepository
 import com.mnemos.personalization.domain.personalization.model.Personalization
 import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
+import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.personalization.domain.personalization.model.PersonalizationOrigin
 import com.mnemos.personalization.domain.personalization.model.PersonalizationType
 import org.springframework.stereotype.Service
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 class TelegramNotificationPackStoreService(
     private val telegramUserResolver: PersonalizationTelegramUserResolver,
     private val catalog: ListPersonalizationsUseCase,
+    private val getPersonalization: GetPersonalizationUseCase,
     private val ownershipRepository: OwnedPersonalizationRepository,
 ) {
     @Transactional(readOnly = true)
@@ -65,45 +69,77 @@ class TelegramNotificationPackStoreService(
         )
     }
 
+    @Transactional(readOnly = true)
+    fun detail(
+        telegramId: TelegramId,
+        personalizationId: PersonalizationId,
+    ): TelegramNotificationPackDetail? {
+        val userId = telegramUserResolver.findUserId(telegramId) ?: return null
+        val personalization = getPersonalization.execute(personalizationId)
+
+        if (personalization.type != PersonalizationType.NOTIFICATION_PACK) {
+            return null
+        }
+
+        val owner = PersonalizationOwner.User(userId)
+        val ownership = ownershipRepository.find(owner, personalizationId)
+
+        return personalization.toDetail(
+            owned = ownership != null,
+            active = ownership?.active == true,
+        )
+    }
+
     private fun Personalization.toStoreItem(
         owned: Boolean,
         active: Boolean,
     ): TelegramNotificationPackStoreItem {
-        val notificationPack = content as PersonalizationContent.NotificationPack
-        val packPrice = requireNotNull(price) {
-            "Published notification pack requires a price"
-        }
-        val samples =
-            notificationPack.templates.values
-                .take(MAX_SAMPLES)
-                .map { template ->
-                    listOfNotNull(
-                        template.emoji,
-                        template.soloTitle,
-                        template.soloBody,
-                    ).joinToString(" ")
-                }
+        val packPrice = requirePackPrice()
 
         return TelegramNotificationPackStoreItem(
             personalizationId = id,
             name = name,
-            author =
-                if (origin == PersonalizationOrigin.SYSTEM) {
-                    SYSTEM_AUTHOR
-                } else {
-                    COMMUNITY_AUTHOR
-                },
+            author = packAuthor(),
             priceAmount = packPrice.amount,
             currency = packPrice.currency,
             owned = owned,
             active = active,
-            samples = samples,
         )
     }
 
+    private fun Personalization.toDetail(
+        owned: Boolean,
+        active: Boolean,
+    ): TelegramNotificationPackDetail {
+        val notificationPack = content as PersonalizationContent.NotificationPack
+        val packPrice = requirePackPrice()
+
+        return TelegramNotificationPackDetail(
+            personalizationId = id,
+            name = name,
+            author = packAuthor(),
+            priceAmount = packPrice.amount,
+            currency = packPrice.currency,
+            owned = owned,
+            active = active,
+            content = notificationPack,
+        )
+    }
+
+    private fun Personalization.requirePackPrice() =
+        requireNotNull(price) {
+            "Published notification pack requires a price"
+        }
+
+    private fun Personalization.packAuthor(): String =
+        if (origin == PersonalizationOrigin.SYSTEM) {
+            SYSTEM_AUTHOR
+        } else {
+            COMMUNITY_AUTHOR
+        }
+
     private companion object {
         const val MAX_PAGE_SIZE = 8
-        const val MAX_SAMPLES = 3
         const val SYSTEM_AUTHOR = "Mnemos"
         const val COMMUNITY_AUTHOR = "Автор сообщества"
     }

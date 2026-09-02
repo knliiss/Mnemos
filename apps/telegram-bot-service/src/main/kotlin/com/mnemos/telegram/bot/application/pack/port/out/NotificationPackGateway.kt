@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.pack.port.out
 
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackApplyResult
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackDetailResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackPurchaseResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
@@ -12,6 +13,11 @@ interface NotificationPackGateway {
         page: Int,
         size: Int,
     ): NotificationPackStoreResult
+
+    fun detail(
+        telegramId: Long,
+        personalizationId: UUID,
+    ): NotificationPackDetailResult
 
     fun owned(telegramId: Long): OwnedNotificationPacksResult
 

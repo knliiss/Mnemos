@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
@@ -7,12 +8,15 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackDetailResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuFeedback
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackDetail
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateVariant
 
 object NotificationPackMenuMessageRenderer {
     fun render(data: TelegramMenuScreenData): OutboundTelegramMessage {
@@ -66,7 +70,7 @@ object NotificationPackMenuMessageRenderer {
                             "🛍 <b>Магазин</b>",
                             pageLabel,
                             "",
-                            "Выберите пак, чтобы посмотреть примеры и цену.",
+                            "Выберите пак, чтобы открыть полный интерактивный предпросмотр.",
                         ).joinToString("\n"),
                     rows = rows,
                 )
@@ -123,46 +127,31 @@ object NotificationPackMenuMessageRenderer {
             -> unavailableMessage(data.feedback)
         }
 
-    private fun renderDetail(data: NotificationPackMenuScreenData): OutboundTelegramMessage {
-        val result = data.store as? NotificationPackStoreResult.Available
-            ?: return unavailableMessage(data.feedback)
-        val selectedId = data.selectedPersonalizationId
-        val pack = result.page.packs.firstOrNull { item -> item.personalizationId == selectedId }
-            ?: return missingPackMessage(data.feedback)
-        val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
+    private fun renderDetail(data: NotificationPackMenuScreenData): OutboundTelegramMessage =
+        when (val result = data.detail) {
+            is NotificationPackDetailResult.Available -> renderAvailableDetail(data, result.pack)
+            NotificationPackDetailResult.NotFound,
+            null,
+            -> missingPackMessage(data.feedback)
 
-        when {
-            pack.active ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "✅ Активен",
-                            data = NotificationPackCallbackData.REFRESH,
-                            style = OutboundTelegramButtonStyle.SUCCESS,
-                        ),
-                    )
-
-            pack.owned ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "✅ Применить",
-                            data = NotificationPackCallbackData.apply(pack.personalizationId),
-                            style = OutboundTelegramButtonStyle.SUCCESS,
-                        ),
-                    )
-
-            else ->
-                rows +=
-                    listOf(
-                        callback(
-                            label = "💎 Купить · ${pack.priceAmount} ${pack.currency}",
-                            data = NotificationPackCallbackData.purchase(pack.personalizationId),
-                            style = OutboundTelegramButtonStyle.PRIMARY,
-                        ),
-                    )
+            NotificationPackDetailResult.Unavailable -> unavailableMessage(data.feedback)
         }
 
+    private fun renderAvailableDetail(
+        data: NotificationPackMenuScreenData,
+        pack: TelegramNotificationPackDetail,
+    ): OutboundTelegramMessage {
+        val preview =
+            NotificationPackPreviewFormatter.render(
+                preview = pack.preview,
+                selectedType = data.selectedTemplateType,
+                selectedVariantId = data.selectedVariantId,
+            )
+        val rows = mutableListOf<List<OutboundTelegramMessageAction>>()
+
+        rows += templateRows(preview.selectedType)
+        rows += variantRows(pack, preview.selectedType, preview.selectedVariant)
+        rows += purchaseOrApplyRow(pack)
         rows +=
             listOf(
                 callback(
@@ -176,42 +165,147 @@ object NotificationPackMenuMessageRenderer {
             )
         rows += listOf(backAction)
 
-        val sampleLines =
-            pack.samples
-                .mapIndexed { index, sample ->
-                    "${index + 1}. ${escapeHtml(sample)}"
-                }
-                .joinToString("\n")
-
         return message(
-            text =
-                listOfNotNull(
-                    "🎨 <b>${escapeHtml(pack.name)}</b>",
-                    DIVIDER,
-                    feedbackText(data.feedback),
-                    "",
-                    "Автор: <b>${escapeHtml(pack.author)}</b>",
-                    "Цена: <b>${pack.priceAmount} ${escapeHtml(pack.currency)}</b>",
-                    if (pack.active) "Статус: <b>активен</b>" else if (pack.owned) "Статус: <b>куплен</b>" else null,
-                    "",
-                    "<b>Примеры</b>",
-                    sampleLines.ifBlank { "Примеры для этого пака не указаны." },
-                ).joinToString("\n"),
+            text = renderDetailText(data, pack, preview),
             rows = rows,
         )
     }
 
+    private fun renderDetailText(
+        data: NotificationPackMenuScreenData,
+        pack: TelegramNotificationPackDetail,
+        preview: NotificationPackRenderedPreview,
+    ): String {
+        val variantLabel =
+            preview.selectedVariant
+                ?.let(NotificationPackPreviewFormatter::variantLabel)
+                ?: "Базовый"
+        val status =
+            when {
+                pack.active -> "Статус: <b>активен</b>"
+                pack.owned -> "Статус: <b>куплен</b>"
+                else -> null
+            }
+
+        return listOfNotNull(
+            "🎨 <b>${escapeHtml(pack.name)}</b>",
+            DIVIDER,
+            feedbackText(data.feedback),
+            "",
+            "Автор: <b>${escapeHtml(pack.author)}</b>",
+            "Цена: <b>${pack.priceAmount} ${escapeHtml(pack.currency)}</b>",
+            status,
+            "",
+            "Событие: <b>${escapeHtml(templateLabel(preview.selectedType))}</b>",
+            "Вариант: <b>${escapeHtml(variantLabel)}</b>",
+            "",
+            "📨 <b>Обычное сообщение</b>",
+            "<b>${escapeHtml(preview.standardTitle)}</b>",
+            escapeHtml(preview.standardBody),
+            "",
+            "🧩 <b>Агрегированное сообщение</b>",
+            "<b>${escapeHtml(preview.aggregateTitle)}</b>",
+            escapeHtml(preview.aggregateBody),
+        ).joinToString("\n")
+    }
+
+    private fun templateRows(selectedType: NotificationPackTemplateType): List<List<OutboundTelegramMessageAction>> =
+        NotificationPackPreviewFormatter.templateTypes
+            .map { type ->
+                val selected = type == selectedType
+
+                callback(
+                    label = selectedLabel(templateButtonLabel(type), selected),
+                    data = NotificationPackCallbackData.template(type),
+                    style = selectedStyle(selected),
+                )
+            }.chunked(TEMPLATE_BUTTONS_PER_ROW)
+
+    private fun variantRows(
+        pack: TelegramNotificationPackDetail,
+        selectedType: NotificationPackTemplateType,
+        selectedVariant: TelegramNotificationTemplateVariant?,
+    ): List<List<OutboundTelegramMessageAction>> {
+        val template = pack.preview.templates[selectedType] ?: return emptyList()
+
+        if (template.variants.isEmpty()) {
+            return emptyList()
+        }
+
+        val actions =
+            buildList {
+                val baseSelected = selectedVariant == null
+
+                add(
+                    callback(
+                        label = selectedLabel("Базовый", baseSelected),
+                        data = NotificationPackCallbackData.BASE_VARIANT,
+                        style = selectedStyle(baseSelected),
+                    ),
+                )
+
+                template.variants.forEach { variant ->
+                    val selected = selectedVariant?.id == variant.id
+
+                    add(
+                        callback(
+                            label = selectedLabel(NotificationPackPreviewFormatter.variantLabel(variant), selected),
+                            data = NotificationPackCallbackData.variant(variant.id),
+                            style = selectedStyle(selected),
+                        ),
+                    )
+                }
+            }
+        val hasLongLabel = actions.maxOf { action -> action.label.length } > LONG_VARIANT_LABEL_LENGTH
+
+        return if (hasLongLabel) {
+            actions.map(::listOf)
+        } else {
+            actions.chunked(VARIANT_BUTTONS_PER_ROW)
+        }
+    }
+
+    private fun purchaseOrApplyRow(pack: TelegramNotificationPackDetail): List<OutboundTelegramMessageAction> =
+        when {
+            pack.active ->
+                listOf(
+                    callback(
+                        label = "✅ Активен",
+                        data = NotificationPackCallbackData.REFRESH,
+                        style = OutboundTelegramButtonStyle.SUCCESS,
+                    ),
+                )
+
+            pack.owned ->
+                listOf(
+                    callback(
+                        label = "✅ Применить",
+                        data = NotificationPackCallbackData.apply(pack.personalizationId),
+                        style = OutboundTelegramButtonStyle.SUCCESS,
+                    ),
+                )
+
+            else ->
+                listOf(
+                    callback(
+                        label = "💎 Купить · ${pack.priceAmount} ${pack.currency}",
+                        data = NotificationPackCallbackData.purchase(pack.personalizationId),
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
+                )
+        }
+
     private fun modeRow(activeMode: NotificationPackMenuMode): List<OutboundTelegramMessageAction> =
         listOf(
             callback(
-                label = "🛍 Магазин",
+                label = selectedLabel("🛍 Магазин", activeMode == NotificationPackMenuMode.STORE),
                 data = NotificationPackCallbackData.STORE,
-                style = if (activeMode == NotificationPackMenuMode.STORE) OutboundTelegramButtonStyle.PRIMARY else OutboundTelegramButtonStyle.DEFAULT,
+                style = selectedStyle(activeMode == NotificationPackMenuMode.STORE),
             ),
             callback(
-                label = "🎒 Мои",
+                label = selectedLabel("🎒 Мои", activeMode == NotificationPackMenuMode.OWNED),
                 data = NotificationPackCallbackData.OWNED,
-                style = if (activeMode == NotificationPackMenuMode.OWNED) OutboundTelegramButtonStyle.PRIMARY else OutboundTelegramButtonStyle.DEFAULT,
+                style = selectedStyle(activeMode == NotificationPackMenuMode.OWNED),
             ),
         )
 
@@ -226,7 +320,7 @@ object NotificationPackMenuMessageRenderer {
         return listOfNotNull(
             if (page > 0) {
                 callback(
-                    label = "← ${page}",
+                    label = "← $page",
                     data = NotificationPackCallbackData.page(page - 1),
                 )
             } else {
@@ -253,6 +347,43 @@ object NotificationPackMenuMessageRenderer {
 
         return "$prefix ${pack.name} · ${pack.priceAmount} ${pack.currency}"
     }
+
+    private fun templateButtonLabel(type: NotificationPackTemplateType): String =
+        when (type) {
+            NotificationPackTemplateType.ITEM_DROP -> "📦 Дроп"
+            NotificationPackTemplateType.BOOSTER -> "⚡ Бустер"
+            NotificationPackTemplateType.DUNGEON -> "🏰 Dungeon"
+            NotificationPackTemplateType.RAID -> "🛡 RAID"
+            NotificationPackTemplateType.GLOBAL -> "🌌 Глобал"
+            NotificationPackTemplateType.PLAYER_OFFLINE -> "👤 Offline"
+        }
+
+    private fun templateLabel(type: NotificationPackTemplateType): String =
+        when (type) {
+            NotificationPackTemplateType.ITEM_DROP -> "Дроп предмета"
+            NotificationPackTemplateType.BOOSTER -> "Бустер"
+            NotificationPackTemplateType.DUNGEON -> "Dungeon"
+            NotificationPackTemplateType.RAID -> "RAID"
+            NotificationPackTemplateType.GLOBAL -> "Глобальное событие"
+            NotificationPackTemplateType.PLAYER_OFFLINE -> "Игрок вышел"
+        }
+
+    private fun selectedLabel(
+        label: String,
+        selected: Boolean,
+    ): String =
+        if (selected) {
+            "✓ $label"
+        } else {
+            label
+        }
+
+    private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
+        if (selected) {
+            OutboundTelegramButtonStyle.PRIMARY
+        } else {
+            OutboundTelegramButtonStyle.DEFAULT
+        }
 
     private fun feedbackText(feedback: NotificationPackMenuFeedback?): String? =
         when (feedback) {
@@ -307,7 +438,7 @@ object NotificationPackMenuMessageRenderer {
                     DIVIDER,
                     feedbackText(feedback),
                     "",
-                    "Этот пак больше не находится на текущей странице магазина.",
+                    "Этот пак больше недоступен в магазине.",
                 ).joinToString("\n"),
             rows =
                 listOf(
@@ -361,5 +492,8 @@ object NotificationPackMenuMessageRenderer {
             data = TelegramMenuScreen.BACK_CALLBACK_DATA,
         )
 
+    private const val TEMPLATE_BUTTONS_PER_ROW = 3
+    private const val VARIANT_BUTTONS_PER_ROW = 2
+    private const val LONG_VARIANT_LABEL_LENGTH = 22
     private const val DIVIDER = "━━━━━━━━━━━━━━━━━━━━"
 }

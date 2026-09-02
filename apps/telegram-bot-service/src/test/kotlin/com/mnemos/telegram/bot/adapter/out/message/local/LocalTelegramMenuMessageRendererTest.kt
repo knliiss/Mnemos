@@ -22,7 +22,7 @@ class LocalTelegramMenuMessageRendererTest {
     private val renderer = LocalTelegramMenuMessageRenderer()
 
     @Test
-    fun `home menu separates online and event history`() {
+    fun `home menu exposes notification pack store directly`() {
         val message = renderer.render(TelegramMenuScreen.HOME, TelegramMenuScreenData.Empty, TelegramSettingsLanguage.RU)
         val callbacks = message.callbacks()
         val miniAppActions =
@@ -31,10 +31,11 @@ class LocalTelegramMenuMessageRendererTest {
                 .filterIsInstance<OutboundTelegramMessageAction.OpenMiniApp>()
 
         assertTrue(message.text.contains("Панель управления"))
-        assertEquals(listOf(1, 1, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
+        assertEquals(listOf(1, 2, 1, 1, 1, 1, 1), message.actionRows.map(List<*>::size))
         assertEquals(1, miniAppActions.size)
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.NOTIFICATIONS.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PACKS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ONLINE.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.EVENTS.callbackData })
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BETS.callbackData })
@@ -51,6 +52,7 @@ class LocalTelegramMenuMessageRendererTest {
 
         assertTrue(message.text.contains("Панель управления"))
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.ACCOUNT.callbackData })
+        assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.PACKS.callbackData })
         assertFalse(callbacks.any { action -> action.data == TelegramMenuScreen.MORE.callbackData })
     }
 
@@ -62,6 +64,7 @@ class LocalTelegramMenuMessageRendererTest {
         assertTrue(message.text.contains("Control panel"))
         assertTrue(labels.any { label -> label.contains("Account") })
         assertTrue(labels.any { label -> label.contains("Notifications") })
+        assertTrue(labels.any { label -> label.contains("Паки") })
         assertTrue(labels.any { label -> label.contains("Online") })
         assertTrue(labels.any { label -> label.contains("Event history") })
         assertFalse(labels.any { label -> label.contains("More") })

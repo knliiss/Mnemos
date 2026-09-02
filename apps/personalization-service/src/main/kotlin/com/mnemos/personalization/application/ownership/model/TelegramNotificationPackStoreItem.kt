@@ -1,5 +1,6 @@
 package com.mnemos.personalization.application.ownership.model
 
+import com.mnemos.personalization.domain.personalization.model.PersonalizationContent
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
 import com.mnemos.wallet.contracts.wallet.shared.Currency
 
@@ -19,5 +20,15 @@ data class TelegramNotificationPackStoreItem(
     val currency: Currency,
     val owned: Boolean,
     val active: Boolean,
-    val samples: List<String>,
+)
+
+data class TelegramNotificationPackDetail(
+    val personalizationId: PersonalizationId,
+    val name: String,
+    val author: String,
+    val priceAmount: Long,
+    val currency: Currency,
+    val owned: Boolean,
+    val active: Boolean,
+    val content: PersonalizationContent.NotificationPack,
 )

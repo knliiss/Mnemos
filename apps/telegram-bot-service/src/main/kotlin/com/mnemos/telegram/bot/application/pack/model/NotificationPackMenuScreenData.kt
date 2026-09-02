@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.application.pack.model
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
 import java.util.UUID
 
 enum class NotificationPackMenuMode {
@@ -20,7 +21,10 @@ enum class NotificationPackMenuFeedback {
 data class NotificationPackMenuScreenData(
     val mode: NotificationPackMenuMode,
     val store: NotificationPackStoreResult?,
+    val detail: NotificationPackDetailResult?,
     val owned: OwnedNotificationPacksResult?,
     val selectedPersonalizationId: UUID?,
-    val feedback: NotificationPackMenuFeedback?,
+    val selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
+    val selectedVariantId: String? = null,
+    val feedback: NotificationPackMenuFeedback? = null,
 )

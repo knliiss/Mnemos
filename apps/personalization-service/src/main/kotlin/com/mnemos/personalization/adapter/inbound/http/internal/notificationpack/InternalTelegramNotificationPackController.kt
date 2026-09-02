@@ -5,9 +5,9 @@ import com.mnemos.personalization.adapter.inbound.http.internal.notificationpack
 import com.mnemos.personalization.application.ownership.usecase.notificationpack.TelegramNotificationPackManagementService
 import com.mnemos.personalization.application.ownership.usecase.notificationpack.TelegramNotificationPackPurchaseService
 import com.mnemos.personalization.application.ownership.usecase.notificationpack.TelegramNotificationPackStoreService
+import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackDetailResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackListResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackPurchaseResponse
-import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackStoreItemResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackStoreResponse
 import com.mnemos.personalization.contracts.internal.v1.PurchaseInternalTelegramNotificationPackRequest
 import com.mnemos.personalization.domain.personalization.model.PersonalizationId
@@ -61,25 +61,27 @@ class InternalTelegramNotificationPackController(
 
         return ResponseEntity.ok(
             InternalTelegramNotificationPackStoreResponse(
-                packs =
-                    result.items.map { item ->
-                        InternalTelegramNotificationPackStoreItemResponse(
-                            personalizationId = item.personalizationId.id,
-                            name = item.name,
-                            author = item.author,
-                            priceAmount = item.priceAmount,
-                            currency = item.currency.name,
-                            owned = item.owned,
-                            active = item.active,
-                            samples = item.samples,
-                        )
-                    },
+                packs = result.items.map { item -> item.toResponse() },
                 page = result.page,
                 totalItems = result.totalItems,
                 totalPages = result.totalPages,
                 hasNextPage = result.hasNextPage,
             ),
         )
+    }
+
+    @GetMapping("/store/{personalizationId}")
+    fun detail(
+        @PathVariable telegramId: Long,
+        @PathVariable personalizationId: UUID,
+    ): ResponseEntity<InternalTelegramNotificationPackDetailResponse> {
+        val result =
+            storeService.detail(
+                telegramId = TelegramId(telegramId),
+                personalizationId = PersonalizationId(personalizationId),
+            ) ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(result.toResponse())
     }
 
     @PostMapping("/store/{personalizationId}/purchase")

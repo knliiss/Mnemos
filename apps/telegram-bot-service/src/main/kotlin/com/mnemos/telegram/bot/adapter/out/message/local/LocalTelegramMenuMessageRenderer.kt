@@ -492,6 +492,11 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                         data = TelegramMenuScreen.NOTIFICATIONS.callbackData,
                         style = OutboundTelegramButtonStyle.PRIMARY,
                     ),
+                    OutboundTelegramMessageAction.Callback(
+                        label = "🎨 Паки",
+                        data = TelegramMenuScreen.PACKS.callbackData,
+                        style = OutboundTelegramButtonStyle.PRIMARY,
+                    ),
                 ),
                 listOf(
                     OutboundTelegramMessageAction.Callback(
