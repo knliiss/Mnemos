@@ -79,6 +79,7 @@ make-verify:
 	@python3 -m py_compile scripts/verify-production-targeted-execution-fixture.py
 	@python3 -m py_compile scripts/verify-production-runtime-baseline.py
 	@python3 -m py_compile scripts/production_runtime_state.py
+	@python3 -m py_compile scripts/verify-production-app-overrides.py
 	@python3 scripts/verify-backend-ci-changes.py
 	@python3 scripts/verify-production-audit-bundle.py
 	@python3 scripts/verify-production-swarm-stack-normalizer.py
@@ -95,6 +96,7 @@ make-verify:
 	@python3 scripts/verify-production-targeted-execution-fixture.py
 	@python3 scripts/verify-production-runtime-state.py
 	@python3 scripts/verify-production-stack-manifest-renderer.py
+	@python3 scripts/verify-production-app-overrides.py
 	@sh scripts/verify-production-hotfix-plan-security.sh
 	@sh scripts/verify-production-service-image-security.sh
 	@sh scripts/verify-production-deployment-executor-security.sh
