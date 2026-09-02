@@ -1,6 +1,7 @@
 package com.mnemos.telegram.bot.application.menu.model
 
 import com.mnemos.telegram.bot.application.account.invite.model.AccountInviteMenuScreenData
+import com.mnemos.telegram.bot.application.account.management.model.AccountManagementMenuScreenData
 import com.mnemos.telegram.bot.application.account.model.AccountMenuScreenData
 import com.mnemos.telegram.bot.application.bet.model.BetMenuScreenData
 import com.mnemos.telegram.bot.application.daily.model.DailyMenuScreenData
@@ -32,6 +33,10 @@ sealed interface TelegramMenuScreenData {
 
     data class Account(
         val data: AccountMenuScreenData,
+    ) : TelegramMenuScreenData
+
+    data class AccountManagement(
+        val data: AccountManagementMenuScreenData,
     ) : TelegramMenuScreenData
 
     data class AccountInvites(

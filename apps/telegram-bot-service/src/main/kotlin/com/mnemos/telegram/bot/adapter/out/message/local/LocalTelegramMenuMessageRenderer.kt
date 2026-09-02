@@ -31,6 +31,7 @@ class LocalTelegramMenuMessageRenderer : TelegramMenuMessageRenderer {
                 TelegramMenuScreen.EVENTS -> EventHistoryMenuMessageRenderer.render(data)
                 TelegramMenuScreen.DAILY -> DailyMenuMessageRenderer.render(data)
                 TelegramMenuScreen.ACCOUNT -> AccountMenuMessageRenderer.render(data)
+                TelegramMenuScreen.ACCOUNT_MANAGEMENT -> AccountManagementMenuMessageRenderer.render(data)
                 TelegramMenuScreen.ACCOUNT_INVITES -> AccountInviteMenuMessageRenderer.render(data)
                 TelegramMenuScreen.BETS -> BetMenuMessageRenderer.render(data)
                 TelegramMenuScreen.PRIME -> PrimeMenuMessageRenderer.render(data)

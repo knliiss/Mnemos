@@ -33,7 +33,9 @@ class InternalTelegramAccountManagementController(
     private val service: InternalTelegramAccountManagementService,
 ) {
     @GetMapping
-    fun getManagement(@PathVariable telegramId: Long): ResponseEntity<InternalTelegramAccountManagementResponse> =
+    fun getManagement(
+        @PathVariable telegramId: Long,
+    ): ResponseEntity<InternalTelegramAccountManagementResponse> =
         response(service.getManagement(TelegramId(telegramId)))
 
     @DeleteMapping("/members/{memberId}")
@@ -149,7 +151,9 @@ class InternalTelegramAccountManagementController(
             ),
         )
 
-    private fun response(management: InternalTelegramAccountManagement?): ResponseEntity<InternalTelegramAccountManagementResponse> =
+    private fun response(
+        management: InternalTelegramAccountManagement?,
+    ): ResponseEntity<InternalTelegramAccountManagementResponse> =
         management
             ?.toResponse()
             ?.let(ResponseEntity::ok)

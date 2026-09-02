@@ -156,7 +156,7 @@ object AccountMenuMessageRenderer {
             add(listOf(primeAction))
 
             if (context.activeAccountId != null) {
-                add(listOf(invitesAction))
+                add(listOf(managementAction))
             }
 
             accountSwitchActions(context).forEach { action ->
@@ -342,10 +342,10 @@ object AccountMenuMessageRenderer {
             style = OutboundTelegramButtonStyle.PRIMARY,
         )
 
-    private val invitesAction =
+    private val managementAction =
         OutboundTelegramMessageAction.Callback(
-            label = "🔗 Приглашения аккаунта",
-            data = TelegramMenuScreen.ACCOUNT_INVITES.callbackData,
+            label = "⚙️ Управление аккаунтом",
+            data = TelegramMenuScreen.ACCOUNT_MANAGEMENT.callbackData,
             style = OutboundTelegramButtonStyle.PRIMARY,
         )
 
