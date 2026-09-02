@@ -140,7 +140,7 @@ def configure_application_deployment(
     }
 
     service["deploy"] = deploy
-    service["endpoint_mode"] = "vip"
+    service.pop("endpoint_mode", None)
 
 
 def normalize_application_service(
