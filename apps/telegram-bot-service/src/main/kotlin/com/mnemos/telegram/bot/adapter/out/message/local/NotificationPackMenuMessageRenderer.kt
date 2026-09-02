@@ -8,11 +8,13 @@ import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageParseMode
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackDetailResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuFeedback
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackDetail
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateVariant
 
@@ -125,12 +127,20 @@ object NotificationPackMenuMessageRenderer {
             -> unavailableMessage(data.feedback)
         }
 
-    private fun renderDetail(data: NotificationPackMenuScreenData): OutboundTelegramMessage {
-        val result = data.store as? NotificationPackStoreResult.Available
-            ?: return unavailableMessage(data.feedback)
-        val selectedId = data.selectedPersonalizationId
-        val pack = result.page.packs.firstOrNull { item -> item.personalizationId == selectedId }
-            ?: return missingPackMessage(data.feedback)
+    private fun renderDetail(data: NotificationPackMenuScreenData): OutboundTelegramMessage =
+        when (val result = data.detail) {
+            is NotificationPackDetailResult.Available -> renderAvailableDetail(data, result.pack)
+            NotificationPackDetailResult.NotFound,
+            null,
+            -> missingPackMessage(data.feedback)
+
+            NotificationPackDetailResult.Unavailable -> unavailableMessage(data.feedback)
+        }
+
+    private fun renderAvailableDetail(
+        data: NotificationPackMenuScreenData,
+        pack: TelegramNotificationPackDetail,
+    ): OutboundTelegramMessage {
         val preview =
             NotificationPackPreviewFormatter.render(
                 preview = pack.preview,
@@ -163,7 +173,7 @@ object NotificationPackMenuMessageRenderer {
 
     private fun renderDetailText(
         data: NotificationPackMenuScreenData,
-        pack: TelegramNotificationPackStoreItem,
+        pack: TelegramNotificationPackDetail,
         preview: NotificationPackRenderedPreview,
     ): String {
         val variantLabel =
@@ -210,7 +220,7 @@ object NotificationPackMenuMessageRenderer {
             }.chunked(TEMPLATE_BUTTONS_PER_ROW)
 
     private fun variantRows(
-        pack: TelegramNotificationPackStoreItem,
+        pack: TelegramNotificationPackDetail,
         selectedType: NotificationPackTemplateType,
         selectedVariant: TelegramNotificationTemplateVariant?,
     ): List<List<OutboundTelegramMessageAction>> {
@@ -249,7 +259,7 @@ object NotificationPackMenuMessageRenderer {
         }
     }
 
-    private fun purchaseOrApplyRow(pack: TelegramNotificationPackStoreItem): List<OutboundTelegramMessageAction> =
+    private fun purchaseOrApplyRow(pack: TelegramNotificationPackDetail): List<OutboundTelegramMessageAction> =
         when {
             pack.active ->
                 listOf(
@@ -412,7 +422,7 @@ object NotificationPackMenuMessageRenderer {
                     DIVIDER,
                     feedbackText(feedback),
                     "",
-                    "Этот пак больше не находится на текущей странице магазина.",
+                    "Этот пак больше недоступен в магазине.",
                 ).joinToString("\n"),
             rows =
                 listOf(
