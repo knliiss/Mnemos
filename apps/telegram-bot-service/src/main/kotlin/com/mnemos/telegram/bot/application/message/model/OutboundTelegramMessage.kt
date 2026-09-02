@@ -35,8 +35,8 @@ sealed interface OutboundTelegramMessageAction {
 
     data class OpenMiniApp(
         override val label: String,
-        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.DEFAULT,
-        override val accented: Boolean = false,
+        override val style: OutboundTelegramButtonStyle = OutboundTelegramButtonStyle.PRIMARY,
+        override val accented: Boolean = true,
     ) : OutboundTelegramMessageAction
 
     data class OpenUrl(
