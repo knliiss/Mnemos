@@ -109,4 +109,5 @@ clients:
     webOrigins: []
     defaultClientScopes:
       - roles
+      - moderation-service-admin-roles
     optionalClientScopes: []
