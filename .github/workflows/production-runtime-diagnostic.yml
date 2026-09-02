@@ -1,0 +1,58 @@
+name: Production Runtime Diagnostic
+
+on:
+  push:
+    branches:
+      - fix/zero-downtime-production-deploy
+    paths:
+      - ".github/workflows/production-runtime-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout diagnostic tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Inspect recovered production runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "===== STACK ====="
+          sudo -n docker stack services mnemos
+
+          for service in gateway-service moderation-service telegram-bot-service; do
+            runtime="mnemos_${service}"
+            echo "===== ${runtime} TASKS ====="
+            sudo -n docker service ps \
+              --no-trunc \
+              --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+              "$runtime"
+
+            echo "===== ${runtime} LOGS ====="
+            sudo -n docker service logs \
+              --raw \
+              --timestamps \
+              --since 45m \
+              --tail 250 \
+              "$runtime" 2>&1 || true
+          done
+
+          echo "===== PUBLIC READINESS ====="
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --max-time 10 \
+            https://api.knalis.rest/actuator/health/readiness
+          echo
