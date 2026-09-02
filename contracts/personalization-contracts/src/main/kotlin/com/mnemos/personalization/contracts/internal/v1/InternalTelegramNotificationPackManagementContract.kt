@@ -1,5 +1,8 @@
 package com.mnemos.personalization.contracts.internal.v1
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 import java.util.UUID
 
 data class InternalTelegramNotificationPackListResponse(
@@ -32,7 +35,42 @@ data class InternalTelegramNotificationPackStoreItemResponse(
     val currency: String,
     val owned: Boolean,
     val active: Boolean,
-    val samples: List<String>,
+    val preview: InternalTelegramNotificationPackPreviewResponse,
+)
+
+data class InternalTelegramNotificationPackPreviewResponse(
+    val mixedAggregateTitle: String,
+    val templates: Map<NotificationPackTemplateType, InternalTelegramNotificationTemplateResponse>,
+    val valueMappings: Map<NotificationPackValueKey, Map<String, InternalTelegramNotificationValueFormsResponse>>,
+)
+
+data class InternalTelegramNotificationTemplateResponse(
+    val emoji: String?,
+    val soloTitle: String,
+    val soloBody: String,
+    val compact: String,
+    val aggregateTitle: String,
+    val variants: List<InternalTelegramNotificationTemplateVariantResponse>,
+)
+
+data class InternalTelegramNotificationTemplateVariantResponse(
+    val id: String,
+    val conditions: List<InternalTelegramNotificationTemplateConditionResponse>,
+    val emoji: String?,
+    val soloTitle: String,
+    val soloBody: String,
+    val compact: String,
+    val aggregateTitle: String,
+)
+
+data class InternalTelegramNotificationTemplateConditionResponse(
+    val field: NotificationPackVariantField,
+    val value: String,
+)
+
+data class InternalTelegramNotificationValueFormsResponse(
+    val default: String,
+    val forms: Map<String, String>,
 )
 
 data class PurchaseInternalTelegramNotificationPackRequest(
