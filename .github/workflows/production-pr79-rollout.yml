@@ -194,11 +194,11 @@ jobs:
               -exec rm -rf {} +
           fi
 
-      - name: Checkout merged revision
+      - name: Checkout merged revision with recovery parent
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 1
+          fetch-depth: 2
           persist-credentials: false
 
       - name: Verify config-only recovery boundary
@@ -208,7 +208,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          git fetch --no-tags --depth=1 origin "$SOURCE_RELEASE"
+          git cat-file -e "${SOURCE_RELEASE}^{commit}"
 
           changed_paths="$RUNNER_TEMP/runtime-config-recovery-paths.txt"
           git diff --name-only "$SOURCE_RELEASE" "$GITHUB_SHA" > "$changed_paths"
@@ -287,6 +287,8 @@ jobs:
             exit 1
           fi
 
+          count=0
+
           for image in $images; do
             source_image="${IMAGE_REGISTRY}/${image}:${SOURCE_RELEASE}"
             target_image="${IMAGE_REGISTRY}/${image}:${TARGET_RELEASE}"
@@ -304,7 +306,15 @@ jobs:
               docker push "$target_image"
 
             sudo -n docker image rm "$target_image" >/dev/null 2>&1 || true
+            count=$((count + 1))
           done
+
+          if [ "$count" -ne 22 ]; then
+            echo "Expected 22 production images, promoted ${count}" >&2
+            exit 1
+          fi
+
+          echo "Promoted ${count} production images"
 
       - name: Remove promotion credentials
         if: always()
