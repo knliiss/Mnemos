@@ -212,10 +212,12 @@ object NotificationPackMenuMessageRenderer {
     private fun templateRows(selectedType: NotificationPackTemplateType): List<List<OutboundTelegramMessageAction>> =
         NotificationPackPreviewFormatter.templateTypes
             .map { type ->
+                val selected = type == selectedType
+
                 callback(
-                    label = templateButtonLabel(type),
+                    label = selectedLabel(templateButtonLabel(type), selected),
                     data = NotificationPackCallbackData.template(type),
-                    style = selectedStyle(type == selectedType),
+                    style = selectedStyle(selected),
                 )
             }.chunked(TEMPLATE_BUTTONS_PER_ROW)
 
@@ -232,20 +234,24 @@ object NotificationPackMenuMessageRenderer {
 
         val actions =
             buildList {
+                val baseSelected = selectedVariant == null
+
                 add(
                     callback(
-                        label = "Базовый",
+                        label = selectedLabel("Базовый", baseSelected),
                         data = NotificationPackCallbackData.BASE_VARIANT,
-                        style = selectedStyle(selectedVariant == null),
+                        style = selectedStyle(baseSelected),
                     ),
                 )
 
                 template.variants.forEach { variant ->
+                    val selected = selectedVariant?.id == variant.id
+
                     add(
                         callback(
-                            label = NotificationPackPreviewFormatter.variantLabel(variant),
+                            label = selectedLabel(NotificationPackPreviewFormatter.variantLabel(variant), selected),
                             data = NotificationPackCallbackData.variant(variant.id),
-                            style = selectedStyle(selectedVariant?.id == variant.id),
+                            style = selectedStyle(selected),
                         ),
                     )
                 }
@@ -292,12 +298,12 @@ object NotificationPackMenuMessageRenderer {
     private fun modeRow(activeMode: NotificationPackMenuMode): List<OutboundTelegramMessageAction> =
         listOf(
             callback(
-                label = "🛍 Магазин",
+                label = selectedLabel("🛍 Магазин", activeMode == NotificationPackMenuMode.STORE),
                 data = NotificationPackCallbackData.STORE,
                 style = selectedStyle(activeMode == NotificationPackMenuMode.STORE),
             ),
             callback(
-                label = "🎒 Мои",
+                label = selectedLabel("🎒 Мои", activeMode == NotificationPackMenuMode.OWNED),
                 data = NotificationPackCallbackData.OWNED,
                 style = selectedStyle(activeMode == NotificationPackMenuMode.OWNED),
             ),
@@ -314,7 +320,7 @@ object NotificationPackMenuMessageRenderer {
         return listOfNotNull(
             if (page > 0) {
                 callback(
-                    label = "← ${page}",
+                    label = "← $page",
                     data = NotificationPackCallbackData.page(page - 1),
                 )
             } else {
@@ -360,6 +366,16 @@ object NotificationPackMenuMessageRenderer {
             NotificationPackTemplateType.RAID -> "RAID"
             NotificationPackTemplateType.GLOBAL -> "Глобальное событие"
             NotificationPackTemplateType.PLAYER_OFFLINE -> "Игрок вышел"
+        }
+
+    private fun selectedLabel(
+        label: String,
+        selected: Boolean,
+    ): String =
+        if (selected) {
+            "✓ $label"
+        } else {
+            label
         }
 
     private fun selectedStyle(selected: Boolean): OutboundTelegramButtonStyle =
