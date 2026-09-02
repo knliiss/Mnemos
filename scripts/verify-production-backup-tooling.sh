@@ -126,6 +126,15 @@ grep -Fq 'docker stack services -q' "$RESTORE_CORE_SCRIPT" ||
 grep -Fq 'stop keycloak' "$RESTORE_CORE_SCRIPT" ||
     fail "Keycloak must be stopped before restoring its database"
 
+restore_transaction_count="$(grep -Fc -- '--single-transaction' "$RESTORE_CORE_SCRIPT")"
+
+if [ "$restore_transaction_count" -ne 2 ]; then
+    fail "Both PostgreSQL core restores must be atomic single-transaction restores"
+fi
+
+grep -Fq 'mc mirror --overwrite --remove --preserve' "$RESTORE_CORE_SCRIPT" ||
+    fail "MinIO restore must remove objects that are absent from the selected backup"
+
 grep -Fq 'MNEMOS_RESTORE_REDIS_CONFIRM' "$RESTORE_REDIS_SCRIPT" ||
     fail "Redis restore must require exact confirmation"
 
