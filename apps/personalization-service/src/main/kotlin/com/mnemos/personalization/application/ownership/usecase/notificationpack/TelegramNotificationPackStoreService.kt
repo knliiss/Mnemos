@@ -70,9 +70,10 @@ class TelegramNotificationPackStoreService(
         active: Boolean,
     ): TelegramNotificationPackStoreItem {
         val notificationPack = content as PersonalizationContent.NotificationPack
-        val packPrice = requireNotNull(price) {
-            "Published notification pack requires a price"
-        }
+        val packPrice =
+            requireNotNull(price) {
+                "Published notification pack requires a price"
+            }
 
         return TelegramNotificationPackStoreItem(
             personalizationId = id,
