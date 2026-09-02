@@ -2,12 +2,12 @@ package com.mnemos.telegram.bot.adapter.out.personalization
 
 import com.mnemos.personalization.contracts.internal.v1.PurchaseInternalTelegramNotificationPackRequest
 import com.mnemos.personalization.contracts.internal.v1.UpdateInternalTelegramNotificationPackSelectionRequest
+import com.mnemos.telegram.bot.adapter.out.personalization.TelegramNotificationPackContractMapper.toModel
 import com.mnemos.telegram.bot.adapter.out.settings.PersonalizationServiceClient
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackApplyResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackPurchaseResult
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
-import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStorePage
 import com.mnemos.telegram.bot.application.pack.model.TelegramOwnedNotificationPack
 import com.mnemos.telegram.bot.application.pack.port.out.NotificationPackGateway
@@ -33,19 +33,7 @@ class NotificationPackGatewayAdapter(
                 )?.let { response ->
                     NotificationPackStoreResult.Available(
                         TelegramNotificationPackStorePage(
-                            packs =
-                                response.packs.map { pack ->
-                                    TelegramNotificationPackStoreItem(
-                                        personalizationId = pack.personalizationId,
-                                        name = pack.name,
-                                        author = pack.author,
-                                        priceAmount = pack.priceAmount,
-                                        currency = pack.currency,
-                                        owned = pack.owned,
-                                        active = pack.active,
-                                        samples = pack.samples,
-                                    )
-                                },
+                            packs = response.packs.map { pack -> pack.toModel() },
                             page = response.page,
                             totalItems = response.totalItems,
                             totalPages = response.totalPages,
