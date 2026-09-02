@@ -11,6 +11,7 @@ from typing import Any
 
 from production_runtime_policy import APPLICATION_SERVICES
 from production_runtime_policy import desired_replicas
+from production_runtime_policy import runtime_environment_overrides
 from production_runtime_policy import update_order
 
 
@@ -96,6 +97,29 @@ def service_image(specification: dict[str, Any], runtime_name: str) -> str:
     return image
 
 
+def service_environment(specification: dict[str, Any]) -> dict[str, str]:
+    try:
+        raw_environment = specification["TaskTemplate"]["ContainerSpec"].get("Env", [])
+    except (KeyError, TypeError):
+        return {}
+
+    if not isinstance(raw_environment, list):
+        return {}
+
+    environment: dict[str, str] = {}
+
+    for entry in raw_environment:
+        if not isinstance(entry, str):
+            continue
+
+        key, separator, value = entry.partition("=")
+
+        if separator:
+            environment[key] = value
+
+    return environment
+
+
 def current_replicas(specification: dict[str, Any]) -> int | None:
     try:
         replicas = specification["Mode"]["Replicated"]["Replicas"]
@@ -118,6 +142,20 @@ def current_order(
     return order if isinstance(order, str) else None
 
 
+def environment_matches(
+    service_name: str,
+    specification: dict[str, Any],
+) -> bool:
+    expected = runtime_environment_overrides(service_name)
+
+    if not expected:
+        return True
+
+    actual = service_environment(specification)
+
+    return all(actual.get(key) == value for key, value in expected.items())
+
+
 def policy_matches(
     service_name: str,
     specification: dict[str, Any],
@@ -129,6 +167,7 @@ def policy_matches(
         current_replicas(specification) == expected_replicas
         and current_order(specification, "UpdateConfig") == expected_order
         and current_order(specification, "RollbackConfig") == expected_order
+        and environment_matches(service_name, specification)
     )
 
 
@@ -140,6 +179,48 @@ def run_availability_guard() -> None:
     )
 
 
+def update_command(
+    service_name: str,
+    runtime_name: str,
+) -> list[str]:
+    order = update_order(service_name)
+    replicas = desired_replicas(service_name)
+    command = [
+        "docker",
+        "service",
+        "update",
+        "--detach=true",
+        "--replicas",
+        str(replicas),
+        "--update-parallelism",
+        "1",
+        "--update-delay",
+        "5s",
+        "--update-monitor",
+        "45s",
+        "--update-failure-action",
+        "rollback",
+        "--update-order",
+        order,
+        "--rollback-parallelism",
+        "1",
+        "--rollback-delay",
+        "5s",
+        "--rollback-monitor",
+        "45s",
+        "--rollback-failure-action",
+        "pause",
+        "--rollback-order",
+        order,
+    ]
+
+    for key, value in sorted(runtime_environment_overrides(service_name).items()):
+        command.extend(["--env-add", f"{key}={value}"])
+
+    command.append(runtime_name)
+    return command
+
+
 def reconcile_service(service_name: str) -> bool:
     runtime_name = f"{STACK_NAME}_{service_name}"
     before = inspect_service(runtime_name)
@@ -149,44 +230,17 @@ def reconcile_service(service_name: str) -> bool:
         print(f"Production runtime policy already current: {service_name}")
         return False
 
-    order = update_order(service_name)
-    replicas = desired_replicas(service_name)
-
     print(
         "Reconciling production runtime policy: "
-        f"{service_name} replicas={replicas} order={order}"
+        f"{service_name} replicas={desired_replicas(service_name)} "
+        f"order={update_order(service_name)}"
     )
 
     subprocess.run(
-        [
-            "docker",
-            "service",
-            "update",
-            "--detach=true",
-            "--replicas",
-            str(replicas),
-            "--update-parallelism",
-            "1",
-            "--update-delay",
-            "5s",
-            "--update-monitor",
-            "45s",
-            "--update-failure-action",
-            "rollback",
-            "--update-order",
-            order,
-            "--rollback-parallelism",
-            "1",
-            "--rollback-delay",
-            "5s",
-            "--rollback-monitor",
-            "45s",
-            "--rollback-failure-action",
-            "pause",
-            "--rollback-order",
-            order,
-            runtime_name,
-        ],
+        update_command(
+            service_name=service_name,
+            runtime_name=runtime_name,
+        ),
         cwd=REPOSITORY_ROOT,
         check=True,
     )
