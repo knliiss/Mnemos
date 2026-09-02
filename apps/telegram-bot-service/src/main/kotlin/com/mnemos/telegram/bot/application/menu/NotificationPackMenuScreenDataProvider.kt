@@ -42,7 +42,6 @@ class NotificationPackMenuScreenDataProvider(
                 selectedPersonalizationId = NotificationPackMenuContext.selectedPersonalizationId(session.screenContext),
                 selectedTemplateType = NotificationPackMenuContext.selectedTemplateType(session.screenContext),
                 selectedVariantId = NotificationPackMenuContext.selectedVariantId(session.screenContext),
-                aggregatePreviewMode = NotificationPackMenuContext.aggregatePreviewMode(session.screenContext),
                 feedback = NotificationPackMenuContext.feedback(session.screenContext),
             ),
         )
