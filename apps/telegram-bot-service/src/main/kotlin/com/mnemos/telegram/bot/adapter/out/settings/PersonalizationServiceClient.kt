@@ -1,5 +1,6 @@
 package com.mnemos.telegram.bot.adapter.out.settings
 
+import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackDetailResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackListResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackPurchaseResponse
 import com.mnemos.personalization.contracts.internal.v1.InternalTelegramNotificationPackSelectionResponse
@@ -38,6 +39,12 @@ interface PersonalizationServiceClient {
         @RequestParam page: Int,
         @RequestParam size: Int,
     ): InternalTelegramNotificationPackStoreResponse?
+
+    @GetMapping("/internal/v1/users/telegram/{telegramId}/notification-packs/store/{personalizationId}")
+    fun getNotificationPackDetail(
+        @PathVariable telegramId: Long,
+        @PathVariable personalizationId: UUID,
+    ): InternalTelegramNotificationPackDetailResponse?
 
     @PostMapping("/internal/v1/users/telegram/{telegramId}/notification-packs/store/{personalizationId}/purchase")
     fun purchaseNotificationPack(
