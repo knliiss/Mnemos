@@ -6,6 +6,7 @@ on:
       - fix/production-runtime-config
     paths:
       - ".github/workflows/production-pr-backend-verify.yml"
+      - ".github/ci/production-runtime-config-recovery.trigger"
 
 permissions:
   contents: read
@@ -44,7 +45,7 @@ jobs:
           git diff --name-only "$SOURCE_RELEASE" "$GITHUB_SHA" > "$changed_paths"
 
           if grep -Ev \
-            '^(\.github/workflows/(backend-verify|production-pr79-rollout|stack-smoke|production-pr-ci-recovery|production-pr-backend-verify|production-pr-stack-smoke)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/verify-production-app-overrides\.py)$' \
+            '^(\.github/workflows/(backend-verify|production-pr79-rollout|stack-smoke|production-pr-ci-recovery|production-pr-backend-verify|production-pr-stack-smoke)\.yml|\.github/ci/production-runtime-config-recovery\.trigger|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/verify-production-(app-overrides\.py|app-compose\.sh|stack-renderer\.py))$' \
             "$changed_paths" | grep -q .; then
             echo "Runtime recovery contains application/build changes and cannot use config-only verification:" >&2
             cat "$changed_paths" >&2
@@ -70,15 +71,18 @@ jobs:
           sh -n scripts/verify-ci-workflow-security.sh
           sh -n scripts/verify-production-release-security.sh
           sh -n scripts/verify-production-infra-compose.sh
+          sh -n scripts/verify-production-app-compose.sh
           sh -n scripts/render-production-app-stack.sh
 
           python3 -m py_compile scripts/verify-production-app-overrides.py
+          python3 -m py_compile scripts/verify-production-stack-renderer.py
           python3 -m py_compile scripts/render-production-stack.py
           python3 -m py_compile scripts/normalize-production-swarm-stack.py
 
           sh scripts/verify-ci-workflow-security.sh
           sh scripts/verify-production-release-security.sh
           sh scripts/verify-production-infra-compose.sh
+          sh scripts/verify-production-app-compose.sh
           python3 scripts/verify-production-stack-renderer.py
           python3 scripts/verify-production-stack-manifest-renderer.py
           python3 scripts/verify-production-swarm-stack-normalizer.py
