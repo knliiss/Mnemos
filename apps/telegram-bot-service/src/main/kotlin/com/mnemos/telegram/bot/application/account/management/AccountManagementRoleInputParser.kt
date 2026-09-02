@@ -4,7 +4,8 @@ object AccountManagementRoleInputParser {
     private val inputPattern = Regex("^(.+?)\\s+(#[0-9A-Fa-f]{6})$")
 
     fun parseName(raw: String): String? =
-        raw.trim()
+        raw
+            .trim()
             .takeIf { name -> name.isNotBlank() }
 
     fun parseDetails(raw: String): AccountManagementRoleInput? {
