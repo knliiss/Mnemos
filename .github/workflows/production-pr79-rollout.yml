@@ -65,8 +65,7 @@ jobs:
   publish-production-images:
     if: >-
       contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
-      contains(github.event.head_commit.message, 'fix/production-writable-tmp') ||
-      contains(github.event.head_commit.message, 'fix/production-runtime-config')
+      contains(github.event.head_commit.message, 'fix/production-writable-tmp')
     runs-on:
       - self-hosted
       - Linux
@@ -170,14 +169,168 @@ jobs:
           docker buildx rm mnemos-telegram-bot-rollout-builder >/dev/null 2>&1 || true
           rm -rf "$DOCKER_CONFIG"
 
+  promote-production-images:
+    if: contains(github.event.head_commit.message, 'fix/production-runtime-config')
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Clean privileged Python cache
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo -n find "$GITHUB_WORKSPACE" \
+              -type d \
+              -name __pycache__ \
+              -prune \
+              -exec rm -rf {} +
+          fi
+
+      - name: Checkout merged revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify config-only recovery boundary
+        shell: bash
+        env:
+          SOURCE_RELEASE: 8cf36034cb5228afbd656419bee94e5a00ac1237
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags --depth=1 origin "$SOURCE_RELEASE"
+
+          changed_paths="$RUNNER_TEMP/runtime-config-recovery-paths.txt"
+          git diff --name-only "$SOURCE_RELEASE" "$GITHUB_SHA" > "$changed_paths"
+
+          if grep -Ev \
+            '^(\.github/workflows/(backend-verify|production-pr79-rollout|stack-smoke)\.yml|infrastructure/production/compose\.app-overrides\.yml|make/validation\.mk|scripts/verify-production-app-overrides\.py)$' \
+            "$changed_paths" | grep -q .; then
+            echo "Runtime-config image promotion refused because the recovery contains unexpected paths:" >&2
+            cat "$changed_paths" >&2
+            exit 1
+          fi
+
+          if [ ! -s "$changed_paths" ]; then
+            echo "Runtime-config recovery unexpectedly contains no changes" >&2
+            exit 1
+          fi
+
+          echo "Config-only recovery boundary verified"
+
+      - name: Prepare isolated promotion credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-runtime-config-promotion-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-runtime-config-promotion-docker-auth
+
+      - name: Authenticate promotion to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-runtime-config-promotion-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Promote validated production images
+        shell: bash
+        env:
+          SOURCE_RELEASE: 8cf36034cb5228afbd656419bee94e5a00ac1237
+          TARGET_RELEASE: ${{ github.sha }}
+          IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          images="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          catalog = json.loads(
+              Path("infrastructure/production/service-catalog.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+
+          for specification in catalog["services"].values():
+              image = specification.get("image")
+              if not image:
+                  raise SystemExit("Production service catalog contains a missing image")
+              print(image)
+          PY
+          )"
+
+          if [ -z "$images" ]; then
+            echo "Production service catalog contains no images" >&2
+            exit 1
+          fi
+
+          for image in $images; do
+            source_image="${IMAGE_REGISTRY}/${image}:${SOURCE_RELEASE}"
+            target_image="${IMAGE_REGISTRY}/${image}:${TARGET_RELEASE}"
+
+            echo "Promoting ${image} from ${SOURCE_RELEASE} to ${TARGET_RELEASE}"
+
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-runtime-config-promotion-docker-auth \
+              docker pull "$source_image"
+
+            sudo -n docker tag "$source_image" "$target_image"
+
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-runtime-config-promotion-docker-auth \
+              docker push "$target_image"
+
+            sudo -n docker image rm "$target_image" >/dev/null 2>&1 || true
+          done
+
+      - name: Remove promotion credentials
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          sudo -n rm -rf /run/mnemos-runtime-config-promotion-docker-auth
+
   deploy-production:
     if: >-
-      contains(github.event.head_commit.message, 'feat/telegram-bot-service') ||
-      contains(github.event.head_commit.message, 'fix/production-writable-tmp') ||
-      contains(github.event.head_commit.message, 'fix/production-runtime-config')
+      always() &&
+      needs.migrate-production-env.result == 'success' &&
+      (
+        (
+          needs.publish-production-images.result == 'success' &&
+          needs.promote-production-images.result == 'skipped'
+        ) ||
+        (
+          needs.publish-production-images.result == 'skipped' &&
+          needs.promote-production-images.result == 'success'
+        )
+      )
     needs:
       - migrate-production-env
       - publish-production-images
+      - promote-production-images
     runs-on:
       - self-hosted
       - mnemos-production
