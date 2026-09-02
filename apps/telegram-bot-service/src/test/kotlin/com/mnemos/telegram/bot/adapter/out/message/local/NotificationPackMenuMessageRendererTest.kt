@@ -1,17 +1,24 @@
 package com.mnemos.telegram.bot.adapter.out.message.local
 
+import com.mnemos.personalization.contracts.shared.NotificationPackTemplateType
+import com.mnemos.personalization.contracts.shared.NotificationPackVariantField
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreen
 import com.mnemos.telegram.bot.application.menu.model.TelegramMenuScreenData
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramButtonStyle
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessage
 import com.mnemos.telegram.bot.application.message.model.OutboundTelegramMessageAction
 import com.mnemos.telegram.bot.application.pack.NotificationPackCallbackData
+import com.mnemos.telegram.bot.application.pack.model.NotificationPackAggregatePreviewMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuMode
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackMenuScreenData
 import com.mnemos.telegram.bot.application.pack.model.NotificationPackStoreResult
 import com.mnemos.telegram.bot.application.pack.model.OwnedNotificationPacksResult
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackPreview
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStoreItem
 import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationPackStorePage
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplate
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateCondition
+import com.mnemos.telegram.bot.application.pack.model.TelegramNotificationTemplateVariant
 import com.mnemos.telegram.bot.application.pack.model.TelegramOwnedNotificationPack
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -38,7 +45,6 @@ class NotificationPackMenuMessageRendererTest {
                         ),
                     owned = null,
                     selectedPersonalizationId = null,
-                    feedback = null,
                 ),
             )
 
@@ -57,12 +63,11 @@ class NotificationPackMenuMessageRendererTest {
     }
 
     @Test
-    fun `unowned pack detail renders escaped preview and primary purchase`() {
+    fun `pack detail shows standard and aggregate previews together with all template switches`() {
         val pack =
             storePack(
                 name = "Crystal <Pack>",
                 author = "Creator & Co",
-                samples = listOf("✨ <Rare> & lucky"),
             )
         val data = detailData(pack)
 
@@ -72,9 +77,72 @@ class NotificationPackMenuMessageRendererTest {
 
         assertTrue(message.text.contains("Crystal &lt;Pack&gt;"))
         assertTrue(message.text.contains("Creator &amp; Co"))
-        assertTrue(message.text.contains("✨ &lt;Rare&gt; &amp; lucky"))
+        assertTrue(message.text.contains("📨 <b>Обычное сообщение</b>"))
+        assertTrue(message.text.contains("🧩 <b>Агрегированное · один тип</b>"))
+        assertTrue(message.text.contains("📦 Дроп Вечный клинок"))
+        assertTrue(message.text.contains("north получил Вечный клинок"))
+        assertTrue(message.text.contains("📦 Дропы"))
+        assertTrue(message.text.contains("📦 Вечный клинок"))
         assertTrue(message.text.contains("25 PRIME"))
         assertEquals(OutboundTelegramButtonStyle.PRIMARY, purchase.style)
+
+        NotificationPackPreviewFormatter.templateTypes.forEach { type ->
+            assertTrue(
+                callbacks.any { action -> action.data == NotificationPackCallbackData.template(type) },
+                "Missing template switch for $type",
+            )
+        }
+    }
+
+    @Test
+    fun `selected conditional variant updates both standard and aggregate previews`() {
+        val pack = storePack()
+        val data =
+            detailData(
+                pack = pack,
+                selectedTemplateType = NotificationPackTemplateType.ITEM_DROP,
+                selectedVariantId = SECRET_VARIANT_ID,
+            )
+
+        val message = NotificationPackMenuMessageRenderer.render(data)
+        val callbacks = message.callbacks()
+        val variantAction =
+            callbacks.single { action ->
+                action.data == NotificationPackCallbackData.variant(SECRET_VARIANT_ID)
+            }
+
+        assertTrue(message.text.contains("Вариант: <b>Секретный</b>"))
+        assertTrue(message.text.contains("🔐 Секретный дроп Вечный клинок"))
+        assertTrue(message.text.contains("north нашёл секретный предмет"))
+        assertTrue(message.text.contains("🔐 Секретные дропы"))
+        assertTrue(message.text.contains("🔐 Вечный клинок · секрет"))
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, variantAction.style)
+        assertTrue(callbacks.any { action -> action.data == NotificationPackCallbackData.BASE_VARIANT })
+    }
+
+    @Test
+    fun `mixed aggregate preview keeps standard message visible and renders multiple compact types`() {
+        val data =
+            detailData(
+                pack = storePack(),
+                selectedTemplateType = NotificationPackTemplateType.GLOBAL,
+                aggregatePreviewMode = NotificationPackAggregatePreviewMode.MIXED,
+            )
+
+        val message = NotificationPackMenuMessageRenderer.render(data)
+        val mixedAction =
+            message.callbacks().single { action ->
+                action.data == NotificationPackCallbackData.aggregateMode(NotificationPackAggregatePreviewMode.MIXED)
+            }
+
+        assertTrue(message.text.contains("📨 <b>Обычное сообщение</b>"))
+        assertTrue(message.text.contains("🌌 Затмение началось"))
+        assertTrue(message.text.contains("🧩 <b>Агрегированное · смешанный</b>"))
+        assertTrue(message.text.contains("События Mnemos"))
+        assertTrue(message.text.contains("📦 Вечный клинок"))
+        assertTrue(message.text.contains("⚡ Удача"))
+        assertTrue(message.text.contains("🏰 Экспертное подземелье"))
+        assertEquals(OutboundTelegramButtonStyle.PRIMARY, mixedAction.style)
     }
 
     @Test
@@ -108,7 +176,6 @@ class NotificationPackMenuMessageRendererTest {
                             ),
                         ),
                     selectedPersonalizationId = null,
-                    feedback = null,
                 ),
             )
 
@@ -132,7 +199,6 @@ class NotificationPackMenuMessageRendererTest {
                     store = NotificationPackStoreResult.Unavailable,
                     owned = null,
                     selectedPersonalizationId = null,
-                    feedback = null,
                 ),
             )
 
@@ -144,7 +210,12 @@ class NotificationPackMenuMessageRendererTest {
         assertTrue(callbacks.any { action -> action.data == TelegramMenuScreen.BACK_CALLBACK_DATA })
     }
 
-    private fun detailData(pack: TelegramNotificationPackStoreItem): TelegramMenuScreenData.Packs =
+    private fun detailData(
+        pack: TelegramNotificationPackStoreItem,
+        selectedTemplateType: NotificationPackTemplateType = NotificationPackTemplateType.ITEM_DROP,
+        selectedVariantId: String? = null,
+        aggregatePreviewMode: NotificationPackAggregatePreviewMode = NotificationPackAggregatePreviewMode.SAME_TYPE,
+    ): TelegramMenuScreenData.Packs =
         TelegramMenuScreenData.Packs(
             NotificationPackMenuScreenData(
                 mode = NotificationPackMenuMode.DETAIL,
@@ -160,7 +231,9 @@ class NotificationPackMenuMessageRendererTest {
                     ),
                 owned = null,
                 selectedPersonalizationId = PACK_ID,
-                feedback = null,
+                selectedTemplateType = selectedTemplateType,
+                selectedVariantId = selectedVariantId,
+                aggregatePreviewMode = aggregatePreviewMode,
             ),
         )
 
@@ -169,7 +242,6 @@ class NotificationPackMenuMessageRendererTest {
         author: String = "Mnemos",
         owned: Boolean = false,
         active: Boolean = false,
-        samples: List<String> = listOf("✨ Rare drop"),
     ): TelegramNotificationPackStoreItem =
         TelegramNotificationPackStoreItem(
             personalizationId = PACK_ID,
@@ -179,7 +251,98 @@ class NotificationPackMenuMessageRendererTest {
             currency = "PRIME",
             owned = owned,
             active = active,
-            samples = samples,
+            preview = preview(),
+        )
+
+    private fun preview(): TelegramNotificationPackPreview =
+        TelegramNotificationPackPreview(
+            mixedAggregateTitle = "События Mnemos",
+            templates =
+                mapOf(
+                    NotificationPackTemplateType.ITEM_DROP to
+                        TelegramNotificationTemplate(
+                            emoji = "📦",
+                            soloTitle = "Дроп {item}",
+                            soloBody = "{player} получил {item}",
+                            compact = "{item}",
+                            aggregateTitle = "Дропы",
+                            variants =
+                                listOf(
+                                    TelegramNotificationTemplateVariant(
+                                        id = SECRET_VARIANT_ID,
+                                        conditions =
+                                            listOf(
+                                                TelegramNotificationTemplateCondition(
+                                                    field = NotificationPackVariantField.ITEM_RARITY,
+                                                    value = "SECRET",
+                                                ),
+                                            ),
+                                        emoji = "🔐",
+                                        soloTitle = "Секретный дроп {item}",
+                                        soloBody = "{player} нашёл секретный предмет",
+                                        compact = "{item} · секрет",
+                                        aggregateTitle = "Секретные дропы",
+                                    ),
+                                ),
+                        ),
+                    NotificationPackTemplateType.BOOSTER to
+                        template(
+                            emoji = "⚡",
+                            title = "Бустер {booster}",
+                            body = "{player} активировал {booster}",
+                            compact = "{booster}",
+                            aggregateTitle = "Бустеры",
+                        ),
+                    NotificationPackTemplateType.DUNGEON to
+                        template(
+                            emoji = "🏰",
+                            title = "Dungeon {dungeon}",
+                            body = "Открыт {dungeon}",
+                            compact = "{dungeon}",
+                            aggregateTitle = "Dungeon",
+                        ),
+                    NotificationPackTemplateType.RAID to
+                        template(
+                            emoji = "🛡",
+                            title = "RAID",
+                            body = "Локации {locations}",
+                            compact = "RAID · {locations}",
+                            aggregateTitle = "RAID",
+                        ),
+                    NotificationPackTemplateType.GLOBAL to
+                        template(
+                            emoji = "🌌",
+                            title = "{event} началось",
+                            body = "Глобальное событие {event}",
+                            compact = "{event}",
+                            aggregateTitle = "Глобальные события",
+                        ),
+                    NotificationPackTemplateType.PLAYER_OFFLINE to
+                        template(
+                            emoji = "👤",
+                            title = "{player} вышел",
+                            body = "{realm} · {lastSeen}",
+                            compact = "{player} · offline",
+                            aggregateTitle = "Игроки offline",
+                        ),
+                ),
+            valueMappings = emptyMap(),
+        )
+
+    private fun template(
+        emoji: String,
+        title: String,
+        body: String,
+        compact: String,
+        aggregateTitle: String,
+    ): TelegramNotificationTemplate =
+        TelegramNotificationTemplate(
+            emoji = emoji,
+            soloTitle = title,
+            soloBody = body,
+            compact = compact,
+            aggregateTitle = aggregateTitle,
+            variants = emptyList(),
         )
 
     private fun OutboundTelegramMessage.callbacks(): List<OutboundTelegramMessageAction.Callback> =
@@ -188,6 +351,7 @@ class NotificationPackMenuMessageRendererTest {
             .filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
     private companion object {
+        const val SECRET_VARIANT_ID = "secret"
         val PACK_ID: UUID = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b74")
     }
 }
