@@ -27,6 +27,9 @@ APPLICATION_SERVICES = (
     "wallet-service",
 )
 
+APPLICATION_TMPFS_TARGET = "/tmp"
+APPLICATION_TMPFS_SIZE_BYTES = 64 * 1024 * 1024
+APPLICATION_TMPFS_MODE = 0o1777
 CLOUDFLARED_SERVICE = "cloudflared"
 CLOUDFLARED_COMMAND = (
     "tunnel run --token-file /run/secrets/cloudflare_tunnel_token"
@@ -71,9 +74,58 @@ def read_stack(path: Path) -> dict[str, Any]:
     return stack
 
 
+def volume_target(volume: Any) -> str | None:
+    if isinstance(volume, dict):
+        target = volume.get("target")
+        return target if isinstance(target, str) else None
+
+    if isinstance(volume, str):
+        _, separator, target = volume.partition(":")
+
+        if not separator:
+            return volume
+
+        return target.split(":", maxsplit=1)[0]
+
+    return None
+
+
+def configure_application_tmpfs(service: dict[str, Any]) -> None:
+    service.pop("tmpfs", None)
+
+    volumes = service.get("volumes")
+
+    if volumes is None:
+        volumes = []
+    elif not isinstance(volumes, list):
+        raise SwarmStackNormalizationError(
+            "Application service volumes must be a list"
+        )
+
+    retained_volumes = [
+        volume
+        for volume in volumes
+        if volume_target(volume) != APPLICATION_TMPFS_TARGET
+    ]
+    retained_volumes.append(
+        {
+            "type": "tmpfs",
+            "target": APPLICATION_TMPFS_TARGET,
+            "tmpfs": {
+                "size": APPLICATION_TMPFS_SIZE_BYTES,
+                "mode": APPLICATION_TMPFS_MODE,
+            },
+        }
+    )
+
+    service["volumes"] = retained_volumes
+
+
 def normalize_application_service(service: dict[str, Any]) -> None:
     service.pop("command", None)
     service.pop("entrypoint", None)
+
+    configure_application_tmpfs(service)
 
 
 def normalize_cloudflared_service(service: dict[str, Any]) -> None:
