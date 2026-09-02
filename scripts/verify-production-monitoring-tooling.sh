@@ -75,6 +75,12 @@ grep -Fq 'MNEMOS_MONITOR_INODE_USAGE_LIMIT_PERCENT:-90' "$HEALTH_SCRIPT" \
 grep -Fq 'df -Pi /' "$HEALTH_SCRIPT" \
     || fail "health check does not inspect root filesystem inode usage"
 
+grep -Fq 'production_runtime_state.py' "$HEALTH_SCRIPT" \
+    || fail "health check does not verify structured production runtime state"
+
+grep -Fq 'current-state.json' "$HEALTH_SCRIPT" \
+    || fail "health check does not use the per-service deployment state when available"
+
 grep -Fq 'verify-production-infra.sh' "$HEALTH_SCRIPT" \
     || fail "health check does not verify stateful production infrastructure after deployment"
 
