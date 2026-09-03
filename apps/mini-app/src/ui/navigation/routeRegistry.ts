@@ -41,7 +41,10 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
 
   moderation: { area: "staff" },
   administration: { area: "staff" },
+  "moderation-users": { area: "staff" },
+  "moderation-accounts": { area: "staff" },
   "moderation-user": { area: "staff" },
+  "moderation-account": { area: "staff" },
   "personalization-review": { area: "staff" },
   "bet-admin": { area: "staff" },
   "badge-admin": { area: "staff" },
