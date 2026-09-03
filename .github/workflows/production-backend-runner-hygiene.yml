@@ -1,0 +1,38 @@
+name: Production Backend Runner Hygiene
+
+on:
+  push:
+    branches:
+      - fix/production-backend-workspace-hygiene
+    paths:
+      - .github/workflows/production-backend-runner-hygiene.yml
+
+permissions:
+  contents: read
+
+jobs:
+  clean-workspace:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    timeout-minutes: 5
+
+    steps:
+      - name: Repair runner workspace ownership and bytecode caches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
+          find "$GITHUB_WORKSPACE" \
+            -type d \
+            -name __pycache__ \
+            -prune \
+            -exec rm -rf {} +
+
+          if find "$GITHUB_WORKSPACE" -type d -name __pycache__ -print -quit | grep -q .; then
+            echo "Python bytecode cache remains in production runner workspace" >&2
+            exit 1
+          fi
