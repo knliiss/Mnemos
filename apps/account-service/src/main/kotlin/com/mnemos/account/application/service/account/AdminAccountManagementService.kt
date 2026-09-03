@@ -150,7 +150,7 @@ class AdminAccountManagementService(
     }
 
     @Transactional
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun deleteAccount(accountId: AccountId) {
         val account = requireAccountForUpdate(accountId)
         val now = Instant.now()
