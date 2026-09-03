@@ -47,11 +47,7 @@ export function BadgeAdmin({ back }: { back: () => void }) {
   const confirmAssignmentChange = async () => {
     const confirmation = assignmentConfirmation
 
-    if (
-      !confirmation ||
-      busy ||
-      assignments.selectedUser?.userId !== confirmation.userId
-    ) {
+    if (!confirmation || busy || assignments.selectedUser?.userId !== confirmation.userId) {
       return
     }
 

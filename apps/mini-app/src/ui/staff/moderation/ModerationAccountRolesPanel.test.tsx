@@ -123,7 +123,10 @@ afterEach(() => {
 describe("ModerationAccountRolesPanel", () => {
   it("requires explicit confirmation and focuses the destructive role action", async () => {
     render(
-      <ModerationAccountRolesPanel details={details} onChanged={vi.fn().mockResolvedValue(undefined)} />,
+      <ModerationAccountRolesPanel
+        details={details}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
     )
 
     const deleteButton = await screen.findByText("roleEditor.delete")
@@ -161,7 +164,10 @@ describe("ModerationAccountRolesPanel", () => {
 
   it("requires explicit confirmation before setting the base role", async () => {
     render(
-      <ModerationAccountRolesPanel details={details} onChanged={vi.fn().mockResolvedValue(undefined)} />,
+      <ModerationAccountRolesPanel
+        details={details}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
     )
 
     const baseRoleButton = await screen.findByRole("button", { name: "BASE" })
@@ -275,10 +281,7 @@ describe("ModerationAccountRolesPanel", () => {
     fireEvent.click(confirm)
 
     await waitFor(() => {
-      expect(mocks.updateAdminRoleHierarchy).toHaveBeenCalledWith(accountId, [
-        secondRoleId,
-        roleId,
-      ])
+      expect(mocks.updateAdminRoleHierarchy).toHaveBeenCalledWith(accountId, [secondRoleId, roleId])
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 

@@ -27,16 +27,22 @@ const CollectorAdmin = lazy(() =>
   import("./collectors/CollectorAdmin").then((module) => ({ default: module.CollectorAdmin })),
 )
 const ModerationAccount = lazy(() =>
-  import("./moderation/ModerationAccount").then((module) => ({ default: module.ModerationAccount })),
+  import("./moderation/ModerationAccount").then((module) => ({
+    default: module.ModerationAccount,
+  })),
 )
 const ModerationDirectory = lazy(() =>
-  import("./moderation/ModerationDirectory").then((module) => ({ default: module.ModerationDirectory })),
+  import("./moderation/ModerationDirectory").then((module) => ({
+    default: module.ModerationDirectory,
+  })),
 )
 const ModerationUser = lazy(() =>
   import("./moderation/ModerationUser").then((module) => ({ default: module.ModerationUser })),
 )
 const PersonalizationReview = lazy(() =>
-  import("./personalization/PersonalizationReview").then((module) => ({ default: module.PersonalizationReview })),
+  import("./personalization/PersonalizationReview").then((module) => ({
+    default: module.PersonalizationReview,
+  })),
 )
 const WipeAdmin = lazy(() =>
   import("./wipes/WipeAdmin").then((module) => ({ default: module.WipeAdmin })),
@@ -70,7 +76,9 @@ export function StaffArea(props: Props) {
       />
     )
   } else if (props.routeId === "personalization-review") {
-    content = <PersonalizationReview params={props.params} navigate={props.navigate} back={props.back} />
+    content = (
+      <PersonalizationReview params={props.params} navigate={props.navigate} back={props.back} />
+    )
   } else if (props.routeId === "bet-admin") {
     content = <BetAdmin params={props.params} navigate={props.navigate} back={props.back} />
   } else if (props.routeId === "badge-admin") {
@@ -80,7 +88,9 @@ export function StaffArea(props: Props) {
   } else if (props.routeId === "wipe-admin") {
     content = <WipeAdmin back={props.back} />
   } else {
-    return <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
+    return (
+      <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
+    )
   }
 
   return <Suspense fallback={<FeatureLoading />}>{content}</Suspense>

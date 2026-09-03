@@ -58,8 +58,7 @@ export const accountRolesEn = {
     confirmClearBaseRoleHint: "New members will no longer receive this role automatically.",
     clearBaseRole: "Clear base role",
     confirmHierarchyChange: "Confirm role priority change",
-    confirmHierarchyChangeHint:
-      "Changing role order changes permission priority for this account.",
+    confirmHierarchyChangeHint: "Changing role order changes permission priority for this account.",
     moveRoleUp: "Move {{name}} up in priority?",
     moveRoleDown: "Move {{name}} down in priority?",
     confirmHierarchyChangeAction: "Change priority",

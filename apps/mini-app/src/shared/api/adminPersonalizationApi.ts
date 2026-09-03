@@ -4,9 +4,7 @@ import type { OwnedPersonalizationResponse } from "@/shared/api/personalizationA
 export async function getAdminAccountPersonalizations(
   accountId: string,
 ): Promise<OwnedPersonalizationResponse[]> {
-  return api<OwnedPersonalizationResponse[]>(
-    `/api/v1/admin/accounts/${accountId}/personalizations`,
-  )
+  return api<OwnedPersonalizationResponse[]>(`/api/v1/admin/accounts/${accountId}/personalizations`)
 }
 
 export async function grantAdminAccountPersonalization(

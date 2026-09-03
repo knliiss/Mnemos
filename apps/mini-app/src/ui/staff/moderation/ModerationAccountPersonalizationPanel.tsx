@@ -27,7 +27,8 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
   const { t } = useTranslation()
   const [items, setItems] = useState<OwnedPersonalizationResponse[]>([])
   const [grantMode, setGrantMode] = useState<GrantMode>("CATALOG")
-  const [selectedPersonalization, setSelectedPersonalization] = useState<PersonalizationResponse | null>(null)
+  const [selectedPersonalization, setSelectedPersonalization] =
+    useState<PersonalizationResponse | null>(null)
   const [personalizationId, setPersonalizationId] = useState("")
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -121,7 +122,8 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
     }
   }
 
-  const grantId = grantMode === "CATALOG" ? selectedPersonalization?.id ?? "" : personalizationId.trim()
+  const grantId =
+    grantMode === "CATALOG" ? (selectedPersonalization?.id ?? "") : personalizationId.trim()
 
   const grant = async () => {
     if (!grantId || deleted) {
@@ -238,7 +240,9 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
       ) : visibleItems.length === 0 ? (
         <div className="moderation-admin-personalization-empty">
           <img src="/ui-illustrations/admin-review.svg" alt="" aria-hidden="true" />
-          <strong>{t("moderation.noAccountPersonalizations", "No account personalizations")}</strong>
+          <strong>
+            {t("moderation.noAccountPersonalizations", "No account personalizations")}
+          </strong>
           <small>
             {query
               ? t("moderation.nothingFound")
@@ -273,9 +277,15 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                     onClick={() =>
                       void runMutation(`active:${item.personalizationId}`, async () => {
                         if (item.active) {
-                          await deactivateAdminAccountPersonalization(accountId, item.personalizationId)
+                          await deactivateAdminAccountPersonalization(
+                            accountId,
+                            item.personalizationId,
+                          )
                         } else {
-                          await activateAdminAccountPersonalization(accountId, item.personalizationId)
+                          await activateAdminAccountPersonalization(
+                            accountId,
+                            item.personalizationId,
+                          )
                         }
                       })
                     }
@@ -289,7 +299,10 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                     <span
                       className="moderation-admin-personalization-revoke-confirmation"
                       role="alertdialog"
-                      aria-label={t("moderation.revokePersonalizationConfirm", "Revoke personalization?")}
+                      aria-label={t(
+                        "moderation.revokePersonalizationConfirm",
+                        "Revoke personalization?",
+                      )}
                       onKeyDown={(event) => {
                         if (event.key === "Escape") {
                           event.preventDefault()
@@ -304,7 +317,10 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                         disabled={Boolean(busyKey)}
                         onClick={() =>
                           void runMutation(`revoke:${item.personalizationId}`, async () => {
-                            await revokeAdminAccountPersonalization(accountId, item.personalizationId)
+                            await revokeAdminAccountPersonalization(
+                              accountId,
+                              item.personalizationId,
+                            )
                             setRevokeCandidateId(null)
                           })
                         }

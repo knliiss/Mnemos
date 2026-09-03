@@ -87,7 +87,8 @@ export const betAdminEn = {
     noMatchingParticipants: "No participants match these filters",
     cancel: "Cancel",
     cancelRaceTitle: "Cancel this Item race?",
-    cancelRaceWarning: "Cancellation stops the race and starts the configured refund flow for affected participants.",
+    cancelRaceWarning:
+      "Cancellation stops the race and starts the configured refund flow for affected participants.",
     confirmCancelRace: "Cancel race",
     keepRace: "Keep race",
     noRaces: "No races",

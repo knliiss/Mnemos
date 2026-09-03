@@ -167,9 +167,7 @@ describe("PersonalizationReviewDetail", () => {
       />,
     )
 
-    const reason = await screen.findByPlaceholderText(
-      "personalization.review.rejectionPlaceholder",
-    )
+    const reason = await screen.findByPlaceholderText("personalization.review.rejectionPlaceholder")
     fireEvent.change(reason, { target: { value: "Needs a cleaner preview" } })
     fireEvent.click(screen.getByText("personalization.review.reject"))
 

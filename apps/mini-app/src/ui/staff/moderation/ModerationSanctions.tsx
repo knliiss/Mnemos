@@ -325,10 +325,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
               }}
             >
               <span className="moderation-sanction-confirmation__mark" aria-hidden="true">
-                <Glyph
-                  name={controller.sanctionType === "BAN" ? "moderation" : "bell"}
-                  size={18}
-                />
+                <Glyph name={controller.sanctionType === "BAN" ? "moderation" : "bell"} size={18} />
               </span>
               <span className="moderation-sanction-confirmation__copy">
                 <small>{sanctionLabels[controller.sanctionType]}</small>

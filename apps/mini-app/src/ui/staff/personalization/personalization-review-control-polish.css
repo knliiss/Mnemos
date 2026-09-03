@@ -241,19 +241,30 @@
   box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
 }
 
-.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__art {
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__art {
   background: rgba(203, 255, 45, 0.025);
 }
 
-.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy small {
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  small {
   color: #a4b17e;
 }
 
-.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy strong {
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  strong {
   color: #e5ead7;
 }
 
-.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy p {
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  p {
   color: #858c7d;
 }
 
@@ -320,11 +331,15 @@
   background: rgba(255, 255, 255, 0.018);
 }
 
-.personalization-review-screen .review-decision-confirmation.is-approve .review-decision-confirmation__art {
+.personalization-review-screen
+  .review-decision-confirmation.is-approve
+  .review-decision-confirmation__art {
   background: rgba(203, 255, 45, 0.025);
 }
 
-.personalization-review-screen .review-decision-confirmation.is-reject .review-decision-confirmation__art {
+.personalization-review-screen
+  .review-decision-confirmation.is-reject
+  .review-decision-confirmation__art {
   background: rgba(188, 61, 68, 0.025);
 }
 
@@ -349,11 +364,17 @@
   letter-spacing: 0.09em;
 }
 
-.personalization-review-screen .review-decision-confirmation.is-approve .review-decision-confirmation__copy small {
+.personalization-review-screen
+  .review-decision-confirmation.is-approve
+  .review-decision-confirmation__copy
+  small {
   color: #a4b17e;
 }
 
-.personalization-review-screen .review-decision-confirmation.is-reject .review-decision-confirmation__copy small {
+.personalization-review-screen
+  .review-decision-confirmation.is-reject
+  .review-decision-confirmation__copy
+  small {
   color: #b0787c;
 }
 

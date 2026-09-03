@@ -57,8 +57,7 @@ export const accountRolesUk = {
     confirmClearBaseRoleHint: "Нові учасники більше не отримуватимуть цю роль автоматично.",
     clearBaseRole: "Прибрати базову роль",
     confirmHierarchyChange: "Підтвердити зміну пріоритету ролі",
-    confirmHierarchyChangeHint:
-      "Зміна порядку ролей змінює пріоритет дозволів у цьому акаунті.",
+    confirmHierarchyChangeHint: "Зміна порядку ролей змінює пріоритет дозволів у цьому акаунті.",
     moveRoleUp: "Підняти роль {{name}} вище?",
     moveRoleDown: "Опустити роль {{name}} нижче?",
     confirmHierarchyChangeAction: "Змінити пріоритет",

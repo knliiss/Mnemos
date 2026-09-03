@@ -1,9 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  listPersonalizations,
-  type PersonalizationResponse,
-} from "@/shared/api/personalizationApi"
+import { listPersonalizations, type PersonalizationResponse } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import type { PersonalizationType } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
@@ -213,7 +210,9 @@ export function AdminPersonalizationPicker({
             }
           }}
         />
-        {loading ? <span className="admin-personalization-picker__loading" aria-hidden="true" /> : null}
+        {loading ? (
+          <span className="admin-personalization-picker__loading" aria-hidden="true" />
+        ) : null}
         {query ? (
           <button type="button" aria-label={t("moderation.clear")} onClick={clear}>
             <Glyph name="close" size={12} />

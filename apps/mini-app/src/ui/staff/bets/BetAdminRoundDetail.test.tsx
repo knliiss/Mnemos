@@ -112,12 +112,7 @@ describe("BetAdminRoundDetail", () => {
     const onResolved = vi.fn().mockResolvedValue(undefined)
 
     render(
-      <BetAdminRoundDetail
-        round={round}
-        loading={false}
-        back={back}
-        onResolved={onResolved}
-      />,
+      <BetAdminRoundDetail round={round} loading={false} back={back} onResolved={onResolved} />,
     )
 
     fireEvent.change(screen.getByPlaceholderText("betAdmin.reasonPlaceholder"), {

@@ -97,11 +97,7 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
           className="moderation-admin-transactions__pagination"
           aria-label={t("moderation.transactionPagination", "Transaction history pages")}
         >
-          <button
-            type="button"
-            disabled={!canGoPrevious}
-            onClick={() => void loadPage(page - 1)}
-          >
+          <button type="button" disabled={!canGoPrevious} onClick={() => void loadPage(page - 1)}>
             <span aria-hidden="true">‹</span>
             {t("moderation.previous", "Previous")}
           </button>
@@ -111,11 +107,7 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
             <small>/ {totalPages}</small>
           </span>
 
-          <button
-            type="button"
-            disabled={!canGoNext}
-            onClick={() => void loadPage(page + 1)}
-          >
+          <button type="button" disabled={!canGoNext} onClick={() => void loadPage(page + 1)}>
             {t("moderation.next", "Next")}
             <span aria-hidden="true">›</span>
           </button>

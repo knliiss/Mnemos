@@ -179,7 +179,9 @@ export function ModerationAccount({ params, navigate, back }: Props) {
       {details.status !== "DELETED" ? (
         <div className="moderation-account-status-actions">
           {statusConfirmationVisible ? (
-            <div className={`moderation-account-status-confirmation ${deactivating ? "is-danger" : ""}`}>
+            <div
+              className={`moderation-account-status-confirmation ${deactivating ? "is-danger" : ""}`}
+            >
               <span>
                 <strong>
                   {deactivating

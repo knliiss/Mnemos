@@ -38,7 +38,9 @@ const identity = {
   ],
 } as unknown as IdentitySearchResponse
 
-function createController(overrides: Partial<ModerationUserController> = {}): ModerationUserController {
+function createController(
+  overrides: Partial<ModerationUserController> = {},
+): ModerationUserController {
   return {
     walletTarget: "ACCOUNT",
     accountTargetId: identity.accounts[0]?.accountId ?? "",
@@ -98,9 +100,7 @@ describe("ModerationWalletAdjustments", () => {
 
     await waitFor(() => {
       expect(controller.submitAdjustment).toHaveBeenCalledTimes(1)
-      expect(
-        screen.queryByRole("alertdialog", { name: "moderation.walletAdjustment" }),
-      ).toBeNull()
+      expect(screen.queryByRole("alertdialog", { name: "moderation.walletAdjustment" })).toBeNull()
     })
 
     expect(dialog).toBeDefined()

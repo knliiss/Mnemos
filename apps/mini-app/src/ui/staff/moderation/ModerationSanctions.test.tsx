@@ -35,7 +35,9 @@ const activeBan: SanctionResponse = {
   status: "ACTIVE",
 }
 
-function createController(overrides: Partial<ModerationUserController> = {}): ModerationUserController {
+function createController(
+  overrides: Partial<ModerationUserController> = {},
+): ModerationUserController {
   return {
     activeBan: undefined,
     busy: false,

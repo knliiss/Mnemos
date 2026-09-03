@@ -354,10 +354,7 @@ export function ModerationAccountControlPanel({
           <div className="moderation-account-control__picker-action">
             <AdminUserPicker
               label={t("moderation.transferOwnership", copy.transferOwner)}
-              placeholder={t(
-                "moderation.ownerPickerPlaceholder",
-                "Search for the new owner",
-              )}
+              placeholder={t("moderation.ownerPickerPlaceholder", "Search for the new owner")}
               disabled={Boolean(busyAction)}
               selected={newOwner}
               onSelect={(candidate) => {

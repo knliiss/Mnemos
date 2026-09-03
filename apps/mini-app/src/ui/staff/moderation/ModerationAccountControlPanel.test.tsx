@@ -199,9 +199,7 @@ describe("ModerationAccountControlPanel", () => {
     const dialog = screen.getByRole("alertdialog", { name: "Remove this account member?" })
     fireEvent.keyDown(dialog, { key: "Escape" })
 
-    expect(
-      screen.queryByRole("alertdialog", { name: "Remove this account member?" }),
-    ).toBeNull()
+    expect(screen.queryByRole("alertdialog", { name: "Remove this account member?" })).toBeNull()
     expect(mocks.removeAccountMember).not.toHaveBeenCalled()
   })
 

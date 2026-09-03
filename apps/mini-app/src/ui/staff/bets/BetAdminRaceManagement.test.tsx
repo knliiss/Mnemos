@@ -113,12 +113,7 @@ describe("BetAdminRaceManagement", () => {
     const onChanged = vi.fn().mockResolvedValue(undefined)
 
     render(
-      <BetAdminRaceManagement
-        races={[]}
-        loading={false}
-        back={vi.fn()}
-        onChanged={onChanged}
-      />,
+      <BetAdminRaceManagement races={[]} loading={false} back={vi.fn()} onChanged={onChanged} />,
     )
 
     fireEvent.click(screen.getByText("betAdmin.new"))

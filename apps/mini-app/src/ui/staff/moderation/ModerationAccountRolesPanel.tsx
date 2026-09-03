@@ -55,9 +55,8 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const [hierarchyConfirmation, setHierarchyConfirmation] = useState<HierarchyConfirmation | null>(
     null,
   )
-  const [memberRoleConfirmation, setMemberRoleConfirmation] = useState<MemberRoleConfirmation | null>(
-    null,
-  )
+  const [memberRoleConfirmation, setMemberRoleConfirmation] =
+    useState<MemberRoleConfirmation | null>(null)
   const hierarchyConfirmRef = useRef<HTMLButtonElement>(null)
   const memberRoleConfirmRef = useRef<HTMLButtonElement>(null)
 
@@ -69,10 +68,10 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const loadRoleState = useCallback(async () => {
     const loadedRoles = await getAdminAccountRoles(details.accountId)
     const assignments = await Promise.all(
-      details.members.map(async (member) => [
-        member.memberId,
-        await getAdminMemberRoles(details.accountId, member.memberId),
-      ] as const),
+      details.members.map(
+        async (member) =>
+          [member.memberId, await getAdminMemberRoles(details.accountId, member.memberId)] as const,
+      ),
     )
 
     return {

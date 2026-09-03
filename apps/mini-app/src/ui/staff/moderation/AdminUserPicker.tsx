@@ -1,9 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  searchUserDirectory,
-  type UserIdentityDirectoryResponse,
-} from "@/shared/api/moderationApi"
+import { searchUserDirectory, type UserIdentityDirectoryResponse } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { Glyph } from "../../shared/MnemosIcon"
 import "./moderation-admin-user-picker.css"
@@ -140,7 +137,8 @@ export function AdminUserPicker({
           <span>
             <strong>@{selected.username}</strong>
             <small>
-              {selected.telegramId} · {t("moderation.accountCount", { count: selected.accountCount })}
+              {selected.telegramId} ·{" "}
+              {t("moderation.accountCount", { count: selected.accountCount })}
             </small>
           </span>
           <button

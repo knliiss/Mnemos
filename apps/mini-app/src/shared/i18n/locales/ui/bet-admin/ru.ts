@@ -87,7 +87,8 @@ export const betAdminRu = {
     noMatchingParticipants: "Участников по этому фильтру нет",
     cancel: "Отменить",
     cancelRaceTitle: "Отменить эту гонку?",
-    cancelRaceWarning: "Отмена остановит гонку и запустит предусмотренный возврат средств затронутым участникам.",
+    cancelRaceWarning:
+      "Отмена остановит гонку и запустит предусмотренный возврат средств затронутым участникам.",
     confirmCancelRace: "Отменить гонку",
     keepRace: "Оставить гонку",
     noRaces: "Гонок нет",

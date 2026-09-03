@@ -132,7 +132,12 @@ export function ModerationDirectory({ mode, navigate, back }: Props) {
         <div className="moderation-directory-empty">
           <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
           <strong>{t("moderation.nothingFound")}</strong>
-          <small>{t("moderation.tryAnotherQuery", "Try another name, Telegram ID or Cristalix identity.")}</small>
+          <small>
+            {t(
+              "moderation.tryAnotherQuery",
+              "Try another name, Telegram ID or Cristalix identity.",
+            )}
+          </small>
         </div>
       ) : null}
 
@@ -239,7 +244,9 @@ function AccountDirectoryResults({ accounts, total, formatDate, navigate }: Acco
               navigate({ id: "moderation-account", params: { accountId: account.accountId } })
             }
           >
-            <span className="staff-search-results__avatar moderation-directory-account-mark">C</span>
+            <span className="staff-search-results__avatar moderation-directory-account-mark">
+              C
+            </span>
             <span>
               <strong>{account.cristalixNickname}</strong>
               <small>

@@ -372,7 +372,9 @@
   font-size: 10px;
 }
 
-.bet-admin-round-resolution-confirmation.is-refund .bet-admin-round-resolution-confirmation__copy > strong {
+.bet-admin-round-resolution-confirmation.is-refund
+  .bet-admin-round-resolution-confirmation__copy
+  > strong {
   color: #d6c18f;
 }
 
@@ -383,7 +385,9 @@
   line-height: 1.45;
 }
 
-.bet-admin-round-resolution-confirmation.is-refund .bet-admin-round-resolution-confirmation__copy > small {
+.bet-admin-round-resolution-confirmation.is-refund
+  .bet-admin-round-resolution-confirmation__copy
+  > small {
   color: #847b68;
 }
 
@@ -508,7 +512,10 @@
   .bet-admin-form-block:has(.bet-admin-choice) > header::before {
     width: 48px;
     height: 46px;
-    background-size: 46px 42px, auto, auto;
+    background-size:
+      46px 42px,
+      auto,
+      auto;
   }
 
   .bet-admin-race-cancel-confirmation,

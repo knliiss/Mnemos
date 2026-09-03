@@ -17,7 +17,11 @@
 .administration-workspace:hover {
   border-color: color-mix(in srgb, currentColor 24%, transparent);
   background:
-    radial-gradient(circle at 84% 18%, color-mix(in srgb, currentColor 7%, transparent), transparent 34%),
+    radial-gradient(
+      circle at 84% 18%,
+      color-mix(in srgb, currentColor 7%, transparent),
+      transparent 34%
+    ),
     rgba(255, 255, 255, 0.02);
   transform: translateY(-1px);
 }
