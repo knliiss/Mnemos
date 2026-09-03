@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from "react"
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
+import type { SanctionResponse } from "@/shared/api/moderationApi"
 import { ModerationSanctions } from "./ModerationSanctions"
 import type { ModerationUserController } from "./useModerationUser"
 
@@ -21,6 +22,18 @@ vi.mock("../../shared/Primitives", () => ({
   Field: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   Section: ({ children }: { children: ReactNode }) => <section>{children}</section>,
 }))
+
+const activeBan: SanctionResponse = {
+  id: "019c11d1-bb2a-7000-8000-000000000701",
+  userId: "019c11d1-bb2a-7000-8000-000000000702",
+  type: "BAN",
+  reason: "Repeated abuse",
+  internalNote: null,
+  createdByUserId: "019c11d1-bb2a-7000-8000-000000000703",
+  createdAt: "2026-09-03T18:00:00Z",
+  expiresAt: null,
+  status: "ACTIVE",
+}
 
 function createController(overrides: Partial<ModerationUserController> = {}): ModerationUserController {
   return {
@@ -86,5 +99,50 @@ describe("ModerationSanctions", () => {
 
     expect(screen.queryByRole("alertdialog", { name: "moderation.createSanction" })).toBeNull()
     expect(controller.submitSanction).not.toHaveBeenCalled()
+  })
+
+  it("requires explicit confirmation and focuses unban before revoking a ban", async () => {
+    const controller = createController({
+      activeBan,
+      sanctions: [activeBan],
+      sanctionFormOpen: false,
+    })
+
+    render(<ModerationSanctions controller={controller} language="en" canSanction />)
+
+    fireEvent.click(screen.getByRole("button", { name: /moderation\.unban/ }))
+
+    expect(controller.revoke).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: "moderation.unban" })
+    const confirm = within(dialog).getByRole("button", { name: "moderation.unban" })
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(screen.queryByRole("alertdialog", { name: "moderation.unban" })).toBeNull()
+    expect(controller.revoke).not.toHaveBeenCalled()
+  })
+
+  it("revokes a ban only after final confirmation", async () => {
+    const controller = createController({
+      activeBan,
+      sanctions: [activeBan],
+      sanctionFormOpen: false,
+    })
+
+    render(<ModerationSanctions controller={controller} language="en" canSanction />)
+
+    fireEvent.click(screen.getByRole("button", { name: /moderation\.unban/ }))
+
+    const dialog = screen.getByRole("alertdialog", { name: "moderation.unban" })
+    fireEvent.click(within(dialog).getByRole("button", { name: "moderation.unban" }))
+
+    await waitFor(() => {
+      expect(controller.revoke).toHaveBeenCalledWith(activeBan.id)
+    })
   })
 })
