@@ -16,6 +16,7 @@ import { ModerationAccountPersonalizationPanel } from "./ModerationAccountPerson
 import { ModerationAccountRolesPanel } from "./ModerationAccountRolesPanel"
 import { ModerationAccountTransactionPanel } from "./ModerationAccountTransactionPanel"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
+import "./moderation-account-control-polish.css"
 
 type Props = {
   params?: Record<string, string>
@@ -31,6 +32,7 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
+  const [statusConfirmationVisible, setStatusConfirmationVisible] = useState(false)
 
   const refresh = useCallback(async () => {
     if (!accountId) {
@@ -108,6 +110,7 @@ export function ModerationAccount({ params, navigate, back }: Props) {
         await reactivateAccount(details.accountId)
       }
 
+      setStatusConfirmationVisible(false)
       await refresh()
     } catch (error) {
       handleError(error)
@@ -130,6 +133,7 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   }
 
   const owner = details.members.find((member) => member.owner) ?? null
+  const deactivating = details.status === "ACTIVE"
 
   return (
     <div className="screen internal-user-screen">
@@ -174,18 +178,63 @@ export function ModerationAccount({ params, navigate, back }: Props) {
 
       {details.status !== "DELETED" ? (
         <div className="moderation-account-status-actions">
-          <button
-            type="button"
-            className="moderation-control-button moderation-control-button--neutral"
-            disabled={statusBusy}
-            onClick={() => void changeStatus()}
-          >
-            {statusBusy
-              ? copy.changingAccountStatus
-              : details.status === "ACTIVE"
-                ? copy.deactivateAccount
-                : copy.activateAccount}
-          </button>
+          {statusConfirmationVisible ? (
+            <div className={`moderation-account-status-confirmation ${deactivating ? "is-danger" : ""}`}>
+              <span>
+                <strong>
+                  {deactivating
+                    ? t("moderation.confirmDeactivateAccount", "Deactivate this account?")
+                    : t("moderation.confirmActivateAccount", "Reactivate this account?")}
+                </strong>
+                <small>
+                  {deactivating
+                    ? t(
+                        "moderation.deactivateAccountWarning",
+                        "Members will keep historical data, but this account cannot be used until reactivated.",
+                      )
+                    : t(
+                        "moderation.activateAccountWarning",
+                        "The account becomes usable immediately after reactivation.",
+                      )}
+                </small>
+              </span>
+              <div>
+                <button
+                  type="button"
+                  className={
+                    deactivating
+                      ? "moderation-control-button moderation-control-button--danger"
+                      : "moderation-control-button moderation-control-button--primary"
+                  }
+                  disabled={statusBusy}
+                  onClick={() => void changeStatus()}
+                >
+                  {statusBusy ? copy.changingAccountStatus : t("common.confirm", "Confirm")}
+                </button>
+                <button
+                  type="button"
+                  className="moderation-control-button moderation-control-button--neutral"
+                  disabled={statusBusy}
+                  onClick={() => setStatusConfirmationVisible(false)}
+                >
+                  {copy.cancel}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={
+                deactivating
+                  ? "moderation-control-button moderation-control-button--danger"
+                  : "moderation-control-button moderation-control-button--neutral"
+              }
+              disabled={statusBusy}
+              onClick={() => setStatusConfirmationVisible(true)}
+            >
+              {details.status === "ACTIVE" ? copy.deactivateAccount : copy.activateAccount}
+            </button>
+          )}
         </div>
       ) : null}
 
