@@ -52,6 +52,9 @@ export const collectorAdminUk = {
     },
     created: "Створено",
     updated: "Оновлено",
+    disableConfirmTitle: "Вимкнути цей колектор?",
+    disableConfirmCopy:
+      "Інсталяція перестане надсилати події та враховуватися серед активних спостерігачів, доки доступ не ввімкнуть знову.",
     revokeConfirmTitle: "Відкликати колектор?",
     revokeConfirmCopy: "Поточна інсталяція назавжди втратить доступ.",
     cancel: "Скасувати",
