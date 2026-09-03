@@ -195,8 +195,9 @@ class AdminRoleManagementService(
         )
     }
 
-    private fun requireAccount(accountId: AccountId) = accountRepository.findByIdForUpdate(accountId)
-        ?: throw AccountNotFoundException(accountId)
+    private fun requireAccount(accountId: AccountId) =
+        accountRepository.findByIdForUpdate(accountId)
+            ?: throw AccountNotFoundException(accountId)
 
     private fun requireRole(
         accountId: AccountId,
@@ -213,13 +214,14 @@ class AdminRoleManagementService(
     private fun requireMember(
         accountId: AccountId,
         memberId: AccountMemberId,
-    ) = accountMemberRepository.findByIdAndAccountId(
-        memberId = memberId,
-        accountId = accountId,
-    ) ?: throw AccountMemberNotFoundException(
-        accountId = accountId,
-        memberId = memberId,
-    )
+    ) =
+        accountMemberRepository.findByIdAndAccountId(
+            memberId = memberId,
+            accountId = accountId,
+        ) ?: throw AccountMemberNotFoundException(
+            accountId = accountId,
+            memberId = memberId,
+        )
 
     private fun validateRequestedOrder(
         accountId: AccountId,
