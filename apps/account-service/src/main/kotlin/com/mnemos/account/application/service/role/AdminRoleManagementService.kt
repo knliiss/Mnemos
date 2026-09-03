@@ -195,8 +195,9 @@ class AdminRoleManagementService(
         )
     }
 
-    private fun requireAccount(accountId: AccountId) = accountRepository.findByIdForUpdate(accountId)
-        ?: throw AccountNotFoundException(accountId)
+    private fun requireAccount(accountId: AccountId) =
+        accountRepository.findByIdForUpdate(accountId)
+            ?: throw AccountNotFoundException(accountId)
 
     private fun requireRole(
         accountId: AccountId,
