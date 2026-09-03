@@ -52,6 +52,9 @@ export const collectorAdminRu = {
     },
     created: "Создан",
     updated: "Обновлён",
+    disableConfirmTitle: "Отключить этот коллектор?",
+    disableConfirmCopy:
+      "Установка перестанет отправлять события и учитываться среди активных наблюдателей, пока доступ не включат снова.",
     revokeConfirmTitle: "Отозвать коллектор?",
     revokeConfirmCopy: "Текущая установка навсегда потеряет доступ.",
     cancel: "Отмена",
