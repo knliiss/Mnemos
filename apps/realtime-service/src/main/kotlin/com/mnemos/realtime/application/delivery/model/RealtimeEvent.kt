@@ -30,6 +30,18 @@ data class RealtimeEvent(
                 requireNotNull(operationId) {
                     "Domain operation events must expose their operationId"
                 }
+
+            RealtimeEventType.ACCOUNT_ACTIVATED,
+            RealtimeEventType.ACCOUNT_DEACTIVATED,
+            RealtimeEventType.ACCOUNT_DELETED,
+            RealtimeEventType.ACCOUNT_OWNER_TRANSFERRED,
+            RealtimeEventType.ACCOUNT_MEMBER_JOINED,
+            RealtimeEventType.ACCOUNT_MEMBER_LEFT,
+            RealtimeEventType.ACCOUNT_MEMBER_REMOVED,
+            ->
+                require(operationId == null) {
+                    "Account lifecycle events must not expose a domain operationId"
+                }
         }
     }
 }
