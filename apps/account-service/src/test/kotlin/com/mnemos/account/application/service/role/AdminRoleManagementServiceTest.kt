@@ -28,6 +28,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.Instant
 import java.util.UUID
 
 class AdminRoleManagementServiceTest {
@@ -133,9 +134,9 @@ class AdminRoleManagementServiceTest {
 
     @Test
     fun `deleting base role clears account base role before deleting role`() {
-        val roleId = RoleId.generate()
-        val account = createAccount(baseRoleId = roleId)
-        val role = createRole(account.id, id = roleId)
+        val accountId = AccountId.generate()
+        val role = createRole(accountId)
+        val account = createAccount(id = accountId, baseRoleId = role.id)
         val accountRepository = mock<AccountRepository>()
         val accountMemberRepository = mock<AccountMemberRepository>()
         val roleRepository = mock<RoleRepository>()
@@ -269,9 +270,12 @@ class AdminRoleManagementServiceTest {
             roleAssignmentRepository = roleAssignmentRepository,
         )
 
-    private fun createAccount(baseRoleId: RoleId? = null): Account =
+    private fun createAccount(
+        id: AccountId = AccountId.generate(),
+        baseRoleId: RoleId? = null,
+    ): Account =
         Account.create(
-            id = AccountId.generate(),
+            id = id,
             ownerMemberId = AccountMemberId.generate(),
             cristalixUuid = CristalixUuid(UUID.randomUUID()),
             cristalixNickname = CristalixNickname("admin-role-test"),
@@ -283,13 +287,18 @@ class AdminRoleManagementServiceTest {
         id: RoleId = RoleId.generate(),
         hierarchyRank: Long = Role.RANK_STEP,
         name: String = "Moderator",
-    ): Role =
-        Role.restore(
+    ): Role {
+        val now = Instant.parse("2026-09-03T10:00:00Z")
+
+        return Role.restore(
             id = id,
             accountId = accountId,
             hierarchyRank = hierarchyRank,
             roleColor = HexColor("#44AA88"),
             roleName = AccountRoleName(name),
-            permissions = mutableSetOf(RolePermission.MANAGE_MEMBERS),
+            permissions = setOf(RolePermission.MANAGE_MEMBERS),
+            createdAt = now,
+            updatedAt = now,
         )
+    }
 }
