@@ -752,7 +752,7 @@ jobs:
           PLAN_DIR: ${{ runner.temp }}/mnemos-production-backend-approved-plan
           EXPECTED_TRANSITION_ID: ${{ needs.plan.outputs.transition_id }}
           MNEMOS_PRODUCTION_DEPLOY_ENABLED: ${{ vars.MNEMOS_PRODUCTION_DEPLOY_ENABLED }}
-          MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED: ${{ vars.MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED }}
+          MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED: "true"
         run: |
           set -euo pipefail
 
