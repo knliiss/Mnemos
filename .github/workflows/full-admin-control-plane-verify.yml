@@ -26,13 +26,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Java
-        uses: actions/setup-java@7a445ee88d4e23b52c33d9c72d9d0a7f10c02b55 # v5
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9d33c3f2f2fdb5a7f4b9fc9559ee37b38e5c5329 # v5
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Verify account and realtime services
         run: ./gradlew :apps:account-service:check :apps:realtime-service:check
