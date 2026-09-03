@@ -39,7 +39,12 @@ vi.mock("../../shared/Primitives", () => ({
       {children}
     </label>
   ),
-  PageHeader: ({ title }: { title: string }) => <header>{title}</header>,
+  PageHeader: ({ title, actions }: { title: string; actions?: ReactNode }) => (
+    <>
+      <header>{title}</header>
+      {actions}
+    </>
+  ),
 }))
 
 const race: ItemRaceResponse = {
@@ -59,6 +64,7 @@ const race: ItemRaceResponse = {
 beforeEach(() => {
   Object.values(mocks).forEach((mock) => mock.mockReset())
   mocks.cancelItemRace.mockResolvedValue(undefined)
+  mocks.createItemRace.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -66,6 +72,80 @@ afterEach(() => {
 })
 
 describe("BetAdminRaceManagement", () => {
+  it("requires explicit review before creating an item race", async () => {
+    render(
+      <BetAdminRaceManagement
+        races={[]}
+        loading={false}
+        back={vi.fn()}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    fireEvent.click(screen.getByText("betAdmin.new"))
+    fireEvent.change(screen.getByLabelText("betAdmin.item"), {
+      target: { value: "Admin Blade" },
+    })
+    fireEvent.click(screen.getByText("betAdmin.reviewRace"))
+
+    expect(mocks.createItemRace).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", {
+      name: "betAdmin.createRaceConfirmTitle",
+    })
+    const confirm = screen.getByText("betAdmin.createRaceConfirmAction")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(
+      screen.queryByRole("alertdialog", {
+        name: "betAdmin.createRaceConfirmTitle",
+      }),
+    ).toBeNull()
+    expect(mocks.createItemRace).not.toHaveBeenCalled()
+  })
+
+  it("creates the reviewed race only after final confirmation", async () => {
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(
+      <BetAdminRaceManagement
+        races={[]}
+        loading={false}
+        back={vi.fn()}
+        onChanged={onChanged}
+      />,
+    )
+
+    fireEvent.click(screen.getByText("betAdmin.new"))
+    fireEvent.change(screen.getByLabelText("betAdmin.item"), {
+      target: { value: "  Admin Blade  " },
+    })
+    fireEvent.change(screen.getByLabelText("betAdmin.durationHours"), {
+      target: { value: "48" },
+    })
+    fireEvent.change(screen.getByLabelText("betAdmin.entry"), {
+      target: { value: "2500" },
+    })
+
+    fireEvent.click(screen.getByText("betAdmin.reviewRace"))
+    fireEvent.click(screen.getByText("betAdmin.createRaceConfirmAction"))
+
+    await waitFor(() => {
+      expect(mocks.createItemRace).toHaveBeenCalledWith({
+        itemName: "Admin Blade",
+        itemType: "SWORD",
+        durationHours: 48,
+        entryAmount: 2500,
+      })
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it("requires explicit confirmation before cancelling an active race", async () => {
     const onChanged = vi.fn().mockResolvedValue(undefined)
 
@@ -103,7 +183,9 @@ describe("BetAdminRaceManagement", () => {
 
     fireEvent.click(screen.getByText("betAdmin.cancel"))
 
-    const confirmation = screen.getByLabelText("betAdmin.cancelRaceTitle")
+    const confirmation = screen.getByRole("alertdialog", {
+      name: "betAdmin.cancelRaceTitle",
+    })
     fireEvent.keyDown(confirmation, { key: "Escape" })
 
     expect(screen.queryByText("betAdmin.cancelRaceTitle")).toBeNull()
