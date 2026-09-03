@@ -24,6 +24,17 @@ import { FeatureEmpty } from "../../system/FeatureEmpty"
 import { FeatureLoading } from "../../system/FeatureLoading"
 
 type ModerationView = "REVIEW" | "PUBLISHED" | "UNLISTED"
+type MarketplaceAction = "RELIST" | "UNLIST"
+
+type ReviewDecisionConfirmation =
+  | {
+      decision: "APPROVE"
+      price: number
+    }
+  | {
+      decision: "REJECT"
+      reason: string
+    }
 
 type Props = {
   personalizationId: string
@@ -41,10 +52,15 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [unlistConfirmationVisible, setUnlistConfirmationVisible] = useState(false)
+  const [decisionConfirmation, setDecisionConfirmation] =
+    useState<ReviewDecisionConfirmation | null>(null)
+  const [marketplaceConfirmation, setMarketplaceConfirmation] = useState<MarketplaceAction | null>(
+    null,
+  )
   const mountedRef = useRef(true)
   const busyRef = useRef(false)
-  const unlistConfirmRef = useRef<HTMLButtonElement>(null)
+  const decisionConfirmRef = useRef<HTMLButtonElement>(null)
+  const marketplaceConfirmRef = useRef<HTMLButtonElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -68,7 +84,8 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
       setSystemManaged(response?.origin === "SYSTEM")
       setPrice(next ? String(next.price) : "")
       setReason("")
-      setUnlistConfirmationVisible(false)
+      setDecisionConfirmation(null)
+      setMarketplaceConfirmation(null)
     } catch (error) {
       if (mountedRef.current) {
         setLoadError(true)
@@ -94,32 +111,63 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
   }, [load])
 
   useEffect(() => {
-    if (!unlistConfirmationVisible) {
+    if (!decisionConfirmation) {
       return
     }
 
     const frame = window.requestAnimationFrame(() => {
-      unlistConfirmRef.current?.focus()
+      decisionConfirmRef.current?.focus()
     })
 
     return () => {
       window.cancelAnimationFrame(frame)
     }
-  }, [unlistConfirmationVisible])
+  }, [decisionConfirmation])
+
+  useEffect(() => {
+    if (!marketplaceConfirmation) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      marketplaceConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [marketplaceConfirmation])
 
   const numericPrice = Number(price)
   const priceValid = Number.isInteger(numericPrice) && numericPrice > 0
 
-  const decide = async (decision: "APPROVE" | "REJECT") => {
+  const prepareDecision = (decision: "APPROVE" | "REJECT") => {
     if (!item || item.status !== "IN_REVIEW" || busyRef.current) {
       return
     }
 
-    if (decision === "APPROVE" && !priceValid) {
+    if (decision === "APPROVE") {
+      if (!priceValid) {
+        return
+      }
+
+      setDecisionConfirmation({ decision, price: numericPrice })
       return
     }
 
-    if (decision === "REJECT" && !reason.trim()) {
+    const trimmedReason = reason.trim()
+
+    if (!trimmedReason) {
+      return
+    }
+
+    setDecisionConfirmation({ decision, reason: trimmedReason })
+  }
+
+  const applyDecision = async () => {
+    const confirmation = decisionConfirmation
+
+    if (!item || item.status !== "IN_REVIEW" || !confirmation || busyRef.current) {
       return
     }
 
@@ -127,13 +175,14 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
     setBusy(true)
 
     try {
-      if (decision === "APPROVE") {
-        await approvePersonalization(item.id, item.currency, numericPrice)
+      if (confirmation.decision === "APPROVE") {
+        await approvePersonalization(item.id, item.currency, confirmation.price)
       } else {
-        await rejectPersonalization(item.id, reason.trim())
+        await rejectPersonalization(item.id, confirmation.reason)
       }
 
       if (mountedRef.current) {
+        setDecisionConfirmation(null)
         back()
       }
     } catch (error) {
@@ -148,12 +197,29 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
     }
   }
 
-  const changeListing = async () => {
+  const prepareMarketplaceChange = () => {
     if (!item || systemManaged || busyRef.current) {
       return
     }
 
-    if (item.status !== "PUBLISHED" && item.status !== "UNLISTED") {
+    if (item.status === "PUBLISHED") {
+      setMarketplaceConfirmation("UNLIST")
+    } else if (item.status === "UNLISTED") {
+      setMarketplaceConfirmation("RELIST")
+    }
+  }
+
+  const applyMarketplaceChange = async () => {
+    const confirmation = marketplaceConfirmation
+
+    if (!item || systemManaged || !confirmation || busyRef.current) {
+      return
+    }
+
+    if (
+      (confirmation === "UNLIST" && item.status !== "PUBLISHED") ||
+      (confirmation === "RELIST" && item.status !== "UNLISTED")
+    ) {
       return
     }
 
@@ -161,14 +227,14 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
     setBusy(true)
 
     try {
-      if (item.status === "PUBLISHED") {
+      if (confirmation === "UNLIST") {
         await unlistPersonalization(item.id)
       } else {
         await relistPersonalization(item.id)
       }
 
       if (mountedRef.current) {
-        setUnlistConfirmationVisible(false)
+        setMarketplaceConfirmation(null)
         back()
       }
     } catch (error) {
@@ -222,6 +288,9 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
     )
   }
 
+  const decisionIsApprove = decisionConfirmation?.decision === "APPROVE"
+  const marketplaceIsUnlist = marketplaceConfirmation === "UNLIST"
+
   return (
     <div className="screen personalization-review-screen personalization-review-detail-screen">
       <PageHeader title={item.name} back={back} />
@@ -268,100 +337,204 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
         </div>
 
         {item.status === "IN_REVIEW" ? (
-          <div className="review-decision-grid">
-            <section className="review-approve-panel">
-              <Field
-                label={t("personalization.review.approvedPrice")}
-                hint={
-                  !priceValid && price.length
-                    ? t("personalization.review.positiveInteger")
-                    : undefined
-                }
-              >
-                <div className="amount-input">
-                  <span>
-                    <CurrencyMark currency={item.currency} size={18} />
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={price}
-                    disabled={busy}
-                    onChange={(event) => setPrice(event.target.value)}
-                  />
-                </div>
-              </Field>
-              <button
-                type="button"
-                className="primary-action"
-                disabled={!priceValid || busy}
-                onClick={() => void decide("APPROVE")}
-              >
-                <Glyph name="check" size={16} />
-                {busy ? t("personalization.review.saving") : t("personalization.review.approve")}
-              </button>
-            </section>
+          <>
+            <div className="review-decision-grid">
+              <section className="review-approve-panel">
+                <Field
+                  label={t("personalization.review.approvedPrice")}
+                  hint={
+                    !priceValid && price.length
+                      ? t("personalization.review.positiveInteger")
+                      : undefined
+                  }
+                >
+                  <div className="amount-input">
+                    <span>
+                      <CurrencyMark currency={item.currency} size={18} />
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={price}
+                      disabled={busy || Boolean(decisionConfirmation)}
+                      onChange={(event) => setPrice(event.target.value)}
+                    />
+                  </div>
+                </Field>
+                <button
+                  type="button"
+                  className="primary-action"
+                  disabled={!priceValid || busy || Boolean(decisionConfirmation)}
+                  onClick={() => prepareDecision("APPROVE")}
+                >
+                  <Glyph name="check" size={16} />
+                  {busy ? t("personalization.review.saving") : t("personalization.review.approve")}
+                </button>
+              </section>
 
-            <section className="review-reject-panel">
-              <Field label={t("personalization.review.rejectionReason")}>
-                <textarea
-                  value={reason}
-                  maxLength={500}
-                  disabled={busy}
-                  onChange={(event) => setReason(event.target.value)}
-                  placeholder={t("personalization.review.rejectionPlaceholder")}
-                />
-              </Field>
-              <button
-                type="button"
-                className="destructive-action"
-                disabled={!reason.trim() || busy}
-                onClick={() => void decide("REJECT")}
-              >
-                <Glyph name="close" size={16} />
-                {busy ? t("personalization.review.saving") : t("personalization.review.reject")}
-              </button>
-            </section>
-          </div>
-        ) : systemManaged ? null : (
-          <section className="review-approve-panel review-listing-panel">
-            {item.status === "PUBLISHED" && unlistConfirmationVisible ? (
+              <section className="review-reject-panel">
+                <Field label={t("personalization.review.rejectionReason")}>
+                  <textarea
+                    value={reason}
+                    maxLength={500}
+                    disabled={busy || Boolean(decisionConfirmation)}
+                    onChange={(event) => setReason(event.target.value)}
+                    placeholder={t("personalization.review.rejectionPlaceholder")}
+                  />
+                </Field>
+                <button
+                  type="button"
+                  className="destructive-action"
+                  disabled={!reason.trim() || busy || Boolean(decisionConfirmation)}
+                  onClick={() => prepareDecision("REJECT")}
+                >
+                  <Glyph name="close" size={16} />
+                  {busy ? t("personalization.review.saving") : t("personalization.review.reject")}
+                </button>
+              </section>
+            </div>
+
+            {decisionConfirmation ? (
               <div
-                className="review-listing-confirmation"
+                className={
+                  decisionIsApprove
+                    ? "review-decision-confirmation is-approve"
+                    : "review-decision-confirmation is-reject"
+                }
                 role="alertdialog"
-                aria-label={t("personalization.review.unlistConfirmTitle")}
+                aria-label={t("personalization.review.decisionConfirmTitle")}
                 onKeyDown={(event) => {
-                  if (event.key === "Escape") {
+                  if (event.key === "Escape" && !busy) {
                     event.preventDefault()
-                    setUnlistConfirmationVisible(false)
+                    setDecisionConfirmation(null)
                   }
                 }}
               >
-                <span className="review-listing-confirmation__art" aria-hidden="true">
-                  <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
+                <span className="review-decision-confirmation__art" aria-hidden="true">
+                  <img
+                    src={
+                      decisionIsApprove
+                        ? "/ui-illustrations/mnemos-mascot-event.svg"
+                        : "/ui-illustrations/mnemos-mascot-search.svg"
+                    }
+                    alt=""
+                  />
                 </span>
-                <span className="review-listing-confirmation__copy">
-                  <small>{t("personalization.review.unlistConfirmEyebrow")}</small>
-                  <strong>{t("personalization.review.unlistConfirmTitle")}</strong>
-                  <p>{t("personalization.review.unlistConfirmCopy")}</p>
+                <span className="review-decision-confirmation__copy">
+                  <small>
+                    {decisionIsApprove
+                      ? t("personalization.review.approveConfirmEyebrow")
+                      : t("personalization.review.rejectConfirmEyebrow")}
+                  </small>
+                  <strong>
+                    {decisionIsApprove
+                      ? t("personalization.review.approveConfirmTitle")
+                      : t("personalization.review.rejectConfirmTitle")}
+                  </strong>
+                  <p>
+                    {decisionIsApprove
+                      ? t("personalization.review.approveConfirmCopy", {
+                          price: decisionConfirmation.price,
+                          currency: item.currency,
+                        })
+                      : t("personalization.review.rejectConfirmCopy", {
+                          reason: decisionConfirmation.reason,
+                        })}
+                  </p>
                 </span>
-                <div className="review-listing-confirmation__actions">
+                <div className="review-decision-confirmation__actions">
                   <button
-                    ref={unlistConfirmRef}
+                    ref={decisionConfirmRef}
                     type="button"
-                    className="destructive-action"
+                    className={decisionIsApprove ? "primary-action" : "destructive-action"}
                     disabled={busy}
-                    onClick={() => void changeListing()}
+                    onClick={() => void applyDecision()}
                   >
-                    <Glyph name="close" size={16} />
-                    {busy ? t("personalization.review.saving") : t("personalization.review.unlist")}
+                    <Glyph name={decisionIsApprove ? "check" : "close"} size={16} />
+                    {busy
+                      ? t("personalization.review.saving")
+                      : decisionIsApprove
+                        ? t("personalization.review.confirmApprove")
+                        : t("personalization.review.confirmReject")}
                   </button>
                   <button
                     type="button"
                     className="review-listing-cancel"
                     disabled={busy}
-                    onClick={() => setUnlistConfirmationVisible(false)}
+                    onClick={() => setDecisionConfirmation(null)}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : systemManaged ? null : (
+          <section className="review-approve-panel review-listing-panel">
+            {marketplaceConfirmation ? (
+              <div
+                className={
+                  marketplaceIsUnlist
+                    ? "review-listing-confirmation is-unlist"
+                    : "review-listing-confirmation is-relist"
+                }
+                role="alertdialog"
+                aria-label={
+                  marketplaceIsUnlist
+                    ? t("personalization.review.unlistConfirmTitle")
+                    : t("personalization.review.relistConfirmTitle")
+                }
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && !busy) {
+                    event.preventDefault()
+                    setMarketplaceConfirmation(null)
+                  }
+                }}
+              >
+                <span className="review-listing-confirmation__art" aria-hidden="true">
+                  <img
+                    src={
+                      marketplaceIsUnlist
+                        ? "/ui-illustrations/mnemos-mascot-event.svg"
+                        : "/ui-illustrations/mnemos-mascot-cat.svg"
+                    }
+                    alt=""
+                  />
+                </span>
+                <span className="review-listing-confirmation__copy">
+                  <small>{t("personalization.review.unlistConfirmEyebrow")}</small>
+                  <strong>
+                    {marketplaceIsUnlist
+                      ? t("personalization.review.unlistConfirmTitle")
+                      : t("personalization.review.relistConfirmTitle")}
+                  </strong>
+                  <p>
+                    {marketplaceIsUnlist
+                      ? t("personalization.review.unlistConfirmCopy")
+                      : t("personalization.review.relistConfirmCopy")}
+                  </p>
+                </span>
+                <div className="review-listing-confirmation__actions">
+                  <button
+                    ref={marketplaceConfirmRef}
+                    type="button"
+                    className={marketplaceIsUnlist ? "destructive-action" : "primary-action"}
+                    disabled={busy}
+                    onClick={() => void applyMarketplaceChange()}
+                  >
+                    <Glyph name={marketplaceIsUnlist ? "close" : "check"} size={16} />
+                    {busy
+                      ? t("personalization.review.saving")
+                      : marketplaceIsUnlist
+                        ? t("personalization.review.unlist")
+                        : t("personalization.review.relist")}
+                  </button>
+                  <button
+                    type="button"
+                    className="review-listing-cancel"
+                    disabled={busy}
+                    onClick={() => setMarketplaceConfirmation(null)}
                   >
                     {t("common.cancel")}
                   </button>
@@ -372,11 +545,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
                 type="button"
                 className={item.status === "PUBLISHED" ? "destructive-action" : "primary-action"}
                 disabled={busy}
-                onClick={() =>
-                  item.status === "PUBLISHED"
-                    ? setUnlistConfirmationVisible(true)
-                    : void changeListing()
-                }
+                onClick={prepareMarketplaceChange}
               >
                 <Glyph name={item.status === "PUBLISHED" ? "close" : "check"} size={16} />
                 {busy
