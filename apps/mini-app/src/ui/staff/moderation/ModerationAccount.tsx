@@ -12,6 +12,7 @@ import { PageHeader } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { ModerationAccountControlPanel } from "./ModerationAccountControlPanel"
+import { ModerationAccountPersonalizationPanel } from "./ModerationAccountPersonalizationPanel"
 import { ModerationAccountRolesPanel } from "./ModerationAccountRolesPanel"
 import { ModerationAccountTransactionPanel } from "./ModerationAccountTransactionPanel"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
@@ -198,6 +199,10 @@ export function ModerationAccount({ params, navigate, back }: Props) {
 
       <ModerationAccountRolesPanel details={details} onChanged={refresh} />
       <ModerationAccountTransactionPanel accountId={details.accountId} />
+      <ModerationAccountPersonalizationPanel
+        accountId={details.accountId}
+        deleted={details.status === "DELETED"}
+      />
     </div>
   )
 }
