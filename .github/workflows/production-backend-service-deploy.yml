@@ -1,0 +1,749 @@
+name: Production Backend Service Deploy
+
+on:
+  push:
+    branches:
+      - "deploy/production-backend/**"
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    permissions:
+      contents: read
+
+    timeout-minutes: 10
+
+    outputs:
+      service: ${{ steps.authorization.outputs.service }}
+      target_sha: ${{ steps.authorization.outputs.target_sha }}
+      current_source_sha: ${{ steps.state.outputs.current_source_sha }}
+      tooling_revision: ${{ steps.state.outputs.tooling_revision }}
+      has_action: ${{ steps.state.outputs.has_action }}
+      transition_id: ${{ steps.plan.outputs.transition_id }}
+      artifact_name: ${{ steps.plan.outputs.artifact_name }}
+
+    steps:
+      - name: Checkout exact authorized target
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate deploy branch authorization
+        id: authorization
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.sha }}
+          AUTHORIZATION_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          case "$AUTHORIZATION_REF" in
+            deploy/production-backend/*)
+              service="${AUTHORIZATION_REF#deploy/production-backend/}"
+              ;;
+            *)
+              echo "Unauthorized production backend ref: $AUTHORIZATION_REF" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ -z "$service" ] || printf '%s' "$service" | grep -Fq '/'; then
+            echo "Deploy branch must select exactly one service" >&2
+            exit 1
+          fi
+
+          if [ "$(git rev-parse HEAD)" != "$TARGET_SHA" ]; then
+            echo "Checked-out target does not match the immutable workflow SHA" >&2
+            exit 1
+          fi
+
+          python3 scripts/production_source_revision.py \
+            "$TARGET_SHA" \
+            --trusted-ref origin/master
+
+          service_json="$(python3 scripts/production_service_catalog.py show "$service")"
+
+          SERVICE_JSON="$service_json" python3 - <<'PY'
+          import json
+          import os
+
+          service = json.loads(os.environ["SERVICE_JSON"])
+
+          if service.get("kind") != "application":
+              raise SystemExit("Deploy branch only accepts application services")
+
+          deploy = service.get("deploy")
+
+          if not isinstance(deploy, dict):
+              raise SystemExit("Deploy branch service is not runtime-deployable")
+
+          if deploy.get("type") not in {"swarm", "compose"}:
+              raise SystemExit("Deploy branch service uses an unsupported runtime")
+          PY
+
+          echo "service=$service" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Capture and verify canonical production state
+        id: state
+        shell: bash
+        env:
+          SERVICE: ${{ steps.authorization.outputs.service }}
+          TARGET_SHA: ${{ steps.authorization.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+
+          state_file="$RUNNER_TEMP/mnemos-production-backend-current-state.json"
+
+          sudo -n test -f /var/lib/mnemos-deploy/current-state.json
+          sudo -n cp /var/lib/mnemos-deploy/current-state.json "$state_file"
+          sudo -n chown "$(id -u):$(id -g)" "$state_file"
+          chmod 0600 "$state_file"
+
+          python3 scripts/production_deployment_state.py \
+            state-validate \
+            --input "$state_file"
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state "$state_file"
+
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          current_source_sha="$(
+            jq -r \
+              --arg service "$SERVICE" \
+              '.release_manifest.services[$service].source_sha // empty' \
+              "$state_file"
+          )"
+          tooling_revision="$(jq -r '.tooling_revision // empty' "$state_file")"
+
+          if ! printf '%s' "$current_source_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Current production source SHA is invalid for $SERVICE" >&2
+            exit 1
+          fi
+
+          if ! printf '%s' "$tooling_revision" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Current production tooling revision is invalid" >&2
+            exit 1
+          fi
+
+          python3 scripts/production_source_revision.py \
+            "$tooling_revision" \
+            --trusted-ref origin/master
+
+          if ! git merge-base --is-ancestor "$current_source_sha" "$TARGET_SHA"; then
+            echo "Automatic production service rollback is not allowed" >&2
+            echo "Current: $current_source_sha" >&2
+            echo "Target:  $TARGET_SHA" >&2
+            exit 1
+          fi
+
+          if [ "$current_source_sha" = "$TARGET_SHA" ]; then
+            has_action=false
+          else
+            has_action=true
+          fi
+
+          echo "CURRENT_STATE_FILE=$state_file" >> "$GITHUB_ENV"
+          echo "current_source_sha=$current_source_sha" >> "$GITHUB_OUTPUT"
+          echo "tooling_revision=$tooling_revision" >> "$GITHUB_OUTPUT"
+          echo "has_action=$has_action" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pinned production deployment tooling
+        if: steps.state.outputs.has_action == 'true'
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ steps.state.outputs.tooling_revision }}
+        run: |
+          set -euo pipefail
+
+          git checkout --detach "$TOOLING_REVISION"
+
+          if [ "$(git rev-parse HEAD)" != "$TOOLING_REVISION" ]; then
+            echo "Checked-out deployment tooling does not match production state" >&2
+            exit 1
+          fi
+
+      - name: Create exact one-service audited plan
+        if: steps.state.outputs.has_action == 'true'
+        id: plan
+        shell: bash
+        env:
+          SERVICE: ${{ steps.authorization.outputs.service }}
+          TARGET_SHA: ${{ steps.authorization.outputs.target_sha }}
+          TOOLING_REVISION: ${{ steps.state.outputs.tooling_revision }}
+          TRANSITION_ACTOR: ${{ github.actor }}
+          AUTHORIZATION_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          output_dir="$RUNNER_TEMP/mnemos-production-backend-plan"
+          artifact_name="production-backend-plan-${GITHUB_RUN_ID}"
+
+          rm -rf "$output_dir"
+          install --directory --mode=0700 "$output_dir"
+
+          python3 scripts/production_release_plan.py \
+            --current-state "$CURRENT_STATE_FILE" \
+            --set "$SERVICE=$TARGET_SHA" \
+            --actor "$TRANSITION_ACTOR" \
+            --reason "Authorized by ${AUTHORIZATION_REF} -> ${TARGET_SHA}" \
+            --output-dir "$output_dir"
+
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$output_dir" \
+            --kind release-plan
+
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$output_dir" \
+            --kind release-plan
+
+          PLAN_DIR="$output_dir" \
+          SERVICE="$SERVICE" \
+          TARGET_SHA="$TARGET_SHA" \
+          TOOLING_REVISION="$TOOLING_REVISION" \
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          plan_dir = Path(os.environ["PLAN_DIR"])
+          service = os.environ["SERVICE"]
+          target_sha = os.environ["TARGET_SHA"]
+          tooling_revision = os.environ["TOOLING_REVISION"]
+
+          plan = json.loads(
+              (plan_dir / "deployment-plan.json").read_text(encoding="utf-8")
+          )
+          transition = json.loads(
+              (plan_dir / "transition.json").read_text(encoding="utf-8")
+          )
+          target_state = json.loads(
+              (plan_dir / "target-state.json").read_text(encoding="utf-8")
+          )
+
+          if plan.get("mode") != "scoped":
+              raise SystemExit("Backend deploy branch requires a scoped plan")
+
+          if plan.get("action_count") != 1:
+              raise SystemExit("Backend deploy branch requires exactly one action")
+
+          actions = plan.get("actions")
+
+          if not isinstance(actions, list) or len(actions) != 1:
+              raise SystemExit("Backend deploy branch plan has invalid actions")
+
+          action = actions[0]
+
+          if action.get("service") != service:
+              raise SystemExit("Plan service does not match deploy branch service")
+
+          if action.get("operation") != "image-update":
+              raise SystemExit("Backend deploy branch only accepts image updates")
+
+          if action.get("to", {}).get("source_sha") != target_sha:
+              raise SystemExit("Plan target source does not match authorized SHA")
+
+          if transition.get("from_tooling_revision") != tooling_revision:
+              raise SystemExit("Transition source tooling revision changed")
+
+          if transition.get("to_tooling_revision") != tooling_revision:
+              raise SystemExit("Scoped backend deploy cannot change tooling revision")
+
+          target_entry = (
+              target_state
+              .get("release_manifest", {})
+              .get("services", {})
+              .get(service, {})
+          )
+
+          if target_entry.get("source_sha") != target_sha:
+              raise SystemExit("Target state source does not match authorized SHA")
+          PY
+
+          transition_id="$(jq -r '.transition_id' "$output_dir/transition.json")"
+
+          if ! printf '%s' "$transition_id" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
+            echo "Generated transition ID is invalid" >&2
+            exit 1
+          fi
+
+          echo "PLAN_DIR=$output_dir" >> "$GITHUB_ENV"
+          echo "transition_id=$transition_id" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize authorized deployment
+        shell: bash
+        env:
+          SERVICE: ${{ steps.authorization.outputs.service }}
+          TARGET_SHA: ${{ steps.authorization.outputs.target_sha }}
+          CURRENT_SOURCE_SHA: ${{ steps.state.outputs.current_source_sha }}
+          HAS_ACTION: ${{ steps.state.outputs.has_action }}
+          TRANSITION_ID: ${{ steps.plan.outputs.transition_id }}
+        run: |
+          {
+            echo "## Production backend deploy authorization"
+            echo
+            echo "Service: \`$SERVICE\`"
+            echo "Current: \`$CURRENT_SOURCE_SHA\`"
+            echo "Target: \`$TARGET_SHA\`"
+            echo "Runtime action required: \`$HAS_ACTION\`"
+
+            if [ "$HAS_ACTION" = "true" ]; then
+              echo "Transition: \`$TRANSITION_ID\`"
+            fi
+
+            echo
+            echo "Authorization mechanism: movement of the service-specific deploy branch."
+            echo "The target SHA was verified as reachable from trusted master history."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload approved backend plan
+        if: steps.state.outputs.has_action == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.plan.outputs.artifact_name }}
+          path: ${{ env.PLAN_DIR }}
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs:
+      - plan
+
+    if: needs.plan.outputs.has_action == 'true'
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - mnemos-backend
+
+    permissions:
+      contents: read
+      packages: write
+
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout exact authorized target
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.plan.outputs.target_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Revalidate immutable target
+        shell: bash
+        env:
+          TARGET_SHA: ${{ needs.plan.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "$TARGET_SHA" ]; then
+            echo "Builder checkout does not match authorized target" >&2
+            exit 1
+          fi
+
+          python3 scripts/production_source_revision.py \
+            "$TARGET_SHA" \
+            --trusted-ref origin/master
+
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Verify production service catalog
+        run: python3 scripts/verify-production-service-catalog.py
+
+      - name: Verify selected service
+        shell: bash
+        env:
+          SERVICE: ${{ needs.plan.outputs.service }}
+        run: |
+          set -euo pipefail
+
+          ./gradlew ":apps:${SERVICE}:check"
+
+      - name: Configure isolated Docker publishing
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-backend-deploy-docker-auth
+        run: |
+          set -euo pipefail
+
+          rm -rf "$DOCKER_CONFIG"
+          install \
+            --directory \
+            --mode=0700 \
+            "$DOCKER_CONFIG"
+
+          docker buildx rm mnemos-backend-deploy-builder >/dev/null 2>&1 || true
+          docker buildx create \
+            --driver docker-container \
+            --name mnemos-backend-deploy-builder \
+            --use
+          docker buildx inspect --bootstrap
+
+      - name: Authenticate builder to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-backend-deploy-docker-auth
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      - name: Publish immutable selected service image
+        shell: bash
+        env:
+          SERVICE: ${{ needs.plan.outputs.service }}
+          TARGET_SHA: ${{ needs.plan.outputs.target_sha }}
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-backend-deploy-docker-auth
+        run: |
+          set -euo pipefail
+
+          python3 scripts/publish-production-service-image.py \
+            --service "$SERVICE" \
+            --registry "ghcr.io/${{ github.repository_owner }}" \
+            --tag "$TARGET_SHA" \
+            --push
+
+          docker buildx imagetools inspect \
+            "ghcr.io/${{ github.repository_owner }}/mnemos-${SERVICE}:${TARGET_SHA}" \
+            >/dev/null
+
+      - name: Remove builder credentials and builder
+        if: always()
+        shell: bash
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/mnemos-backend-deploy-docker-auth
+        run: |
+          set +e
+
+          docker buildx rm mnemos-backend-deploy-builder >/dev/null 2>&1 || true
+          rm -rf "$DOCKER_CONFIG"
+
+  execute:
+    needs:
+      - plan
+      - publish
+
+    if: >-
+      always() &&
+      needs.plan.result == 'success' &&
+      needs.plan.outputs.has_action == 'true' &&
+      needs.publish.result == 'success'
+
+    environment: production
+
+    runs-on:
+      - self-hosted
+      - mnemos-production
+
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout pinned production deployment tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.plan.outputs.tooling_revision }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify pinned tooling checkout
+        shell: bash
+        env:
+          TOOLING_REVISION: ${{ needs.plan.outputs.tooling_revision }}
+        run: |
+          set -euo pipefail
+
+          if [ "$(git rev-parse HEAD)" != "$TOOLING_REVISION" ]; then
+            echo "Execution tooling does not match production state" >&2
+            exit 1
+          fi
+
+      - name: Download approved one-service plan
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ needs.plan.outputs.artifact_name }}
+          path: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+
+      - name: Verify plan integrity and immutable authorization
+        shell: bash
+        env:
+          PLAN_DIR: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+          SERVICE: ${{ needs.plan.outputs.service }}
+          TARGET_SHA: ${{ needs.plan.outputs.target_sha }}
+          TOOLING_REVISION: ${{ needs.plan.outputs.tooling_revision }}
+          EXPECTED_TRANSITION_ID: ${{ needs.plan.outputs.transition_id }}
+        run: |
+          set -euo pipefail
+
+          python3 scripts/production_audit_bundle.py \
+            verify \
+            --directory "$PLAN_DIR" \
+            --kind release-plan
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          plan_dir = Path(os.environ["PLAN_DIR"])
+          service = os.environ["SERVICE"]
+          target_sha = os.environ["TARGET_SHA"]
+          tooling_revision = os.environ["TOOLING_REVISION"]
+          expected_transition_id = os.environ["EXPECTED_TRANSITION_ID"]
+
+          transition = json.loads(
+              (plan_dir / "transition.json").read_text(encoding="utf-8")
+          )
+          plan = transition.get("plan", {})
+
+          if transition.get("transition_id") != expected_transition_id:
+              raise SystemExit("Approved transition ID changed")
+
+          if transition.get("from_tooling_revision") != tooling_revision:
+              raise SystemExit("Approved source tooling revision changed")
+
+          if transition.get("to_tooling_revision") != tooling_revision:
+              raise SystemExit("Scoped backend deploy cannot change tooling")
+
+          if plan.get("mode") != "scoped" or plan.get("action_count") != 1:
+              raise SystemExit("Approved backend deploy is not exactly one scoped action")
+
+          action = plan.get("actions", [{}])[0]
+
+          if action.get("service") != service:
+              raise SystemExit("Approved action service changed")
+
+          if action.get("operation") != "image-update":
+              raise SystemExit("Approved action is not an image update")
+
+          if action.get("to", {}).get("source_sha") != target_sha:
+              raise SystemExit("Approved target source changed")
+          PY
+
+      - name: Verify current production state and render exact dry run
+        shell: bash
+        env:
+          PLAN_DIR: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+          SERVICE: ${{ needs.plan.outputs.service }}
+          EXPECTED_TRANSITION_ID: ${{ needs.plan.outputs.transition_id }}
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_deployment_executor.py \
+            --transition "$PLAN_DIR/transition.json" \
+            --target-state "$PLAN_DIR/target-state.json" \
+            --expected-transition-id "$EXPECTED_TRANSITION_ID" \
+            > "$RUNNER_TEMP/mnemos-production-backend-dry-run.json"
+
+          SERVICE="$SERVICE" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          dry_run = json.loads(
+              Path(
+                  os.environ["RUNNER_TEMP"],
+                  "mnemos-production-backend-dry-run.json",
+              ).read_text(encoding="utf-8")
+          )
+          service = os.environ["SERVICE"]
+
+          if dry_run.get("action_count") != 1:
+              raise SystemExit("Dry run is not exactly one action")
+
+          actions = dry_run.get("actions")
+
+          if not isinstance(actions, list) or len(actions) != 1:
+              raise SystemExit("Dry run action list is invalid")
+
+          if actions[0].get("service") != service:
+              raise SystemExit("Dry run service does not match authorization")
+          PY
+
+      - name: Prepare isolated production registry credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
+          sudo -n install \
+            --directory \
+            --owner=root \
+            --group=root \
+            --mode=0700 \
+            /run/mnemos-production-docker-auth
+
+      - name: Authenticate production Docker to GHCR
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$GHCR_TOKEN" | \
+            sudo -n env \
+              DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+              docker login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Execute exact one-service transition
+        shell: bash
+        env:
+          PLAN_DIR: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+          EXPECTED_TRANSITION_ID: ${{ needs.plan.outputs.transition_id }}
+          MNEMOS_PRODUCTION_DEPLOY_ENABLED: ${{ vars.MNEMOS_PRODUCTION_DEPLOY_ENABLED }}
+          MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED: ${{ vars.MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED }}
+        run: |
+          set -euo pipefail
+
+          sudo -n env \
+            DOCKER_CONFIG=/run/mnemos-production-docker-auth \
+            MNEMOS_PRODUCTION_DEPLOY_ENABLED="$MNEMOS_PRODUCTION_DEPLOY_ENABLED" \
+            MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED="$MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED" \
+            python3 scripts/production_deployment_executor.py \
+              --transition "$PLAN_DIR/transition.json" \
+              --target-state "$PLAN_DIR/target-state.json" \
+              --expected-transition-id "$EXPECTED_TRANSITION_ID" \
+              --execute
+
+      - name: Verify exact post-deploy production state
+        shell: bash
+        env:
+          SERVICE: ${{ needs.plan.outputs.service }}
+          TARGET_SHA: ${{ needs.plan.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+
+          sudo -n python3 scripts/production_runtime_state.py \
+            verify \
+            --state /var/lib/mnemos-deploy/current-state.json
+
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+          actual_source="$(
+            sudo -n jq -r \
+              --arg service "$SERVICE" \
+              '.release_manifest.services[$service].source_sha // empty' \
+              /var/lib/mnemos-deploy/current-state.json
+          )"
+
+          if [ "$actual_source" != "$TARGET_SHA" ]; then
+            echo "Canonical production state does not match authorized target" >&2
+            exit 1
+          fi
+
+      - name: Collect branch-authorized execution audit
+        if: always()
+        shell: bash
+        env:
+          PLAN_DIR: ${{ runner.temp }}/mnemos-production-backend-approved-plan
+          SERVICE: ${{ needs.plan.outputs.service }}
+          TARGET_SHA: ${{ needs.plan.outputs.target_sha }}
+          EXPECTED_TRANSITION_ID: ${{ needs.plan.outputs.transition_id }}
+          AUTHORIZATION_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          audit_dir="$RUNNER_TEMP/mnemos-production-backend-execution-audit"
+          transition_digest="${EXPECTED_TRANSITION_ID#sha256:}"
+
+          rm -rf "$audit_dir"
+          install --directory --mode=0700 "$audit_dir"
+
+          if sudo -n test -f /var/lib/mnemos-deploy/current-state.json; then
+            sudo -n cp \
+              /var/lib/mnemos-deploy/current-state.json \
+              "$audit_dir/current-state.json"
+          fi
+
+          if sudo -n test -d "/var/lib/mnemos-deploy/transitions/$transition_digest"; then
+            sudo -n cp -R \
+              "/var/lib/mnemos-deploy/transitions/$transition_digest" \
+              "$audit_dir/execution-attempts"
+          fi
+
+          sudo -n chown -R "$(id -u):$(id -g)" "$audit_dir"
+
+          cp "$PLAN_DIR/transition.json" "$audit_dir/approved-transition.json"
+          cp "$PLAN_DIR/audit-manifest.json" "$audit_dir/approved-plan-audit-manifest.json"
+
+          jq -n \
+            --arg workflow_run_id "$GITHUB_RUN_ID" \
+            --arg actor "$GITHUB_ACTOR" \
+            --arg authorization_ref "$AUTHORIZATION_REF" \
+            --arg service "$SERVICE" \
+            --arg target_sha "$TARGET_SHA" \
+            --arg transition_id "$EXPECTED_TRANSITION_ID" \
+            '{
+              workflow_run_id:$workflow_run_id,
+              actor:$actor,
+              authorization_mechanism:"service-deploy-branch",
+              authorization_ref:$authorization_ref,
+              service:$service,
+              target_sha:$target_sha,
+              transition_id:$transition_id
+            }' \
+            > "$audit_dir/workflow-execution.json"
+
+          python3 scripts/production_audit_bundle.py \
+            create \
+            --directory "$audit_dir" \
+            --kind execution-attempt
+
+          echo "EXECUTION_AUDIT_DIR=$audit_dir" >> "$GITHUB_ENV"
+
+      - name: Upload execution audit artifact
+        if: always() && env.EXECUTION_AUDIT_DIR != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-backend-execution-audit-${{ github.run_id }}
+          path: ${{ env.EXECUTION_AUDIT_DIR }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove production registry credentials
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n rm -rf /run/mnemos-production-docker-auth
