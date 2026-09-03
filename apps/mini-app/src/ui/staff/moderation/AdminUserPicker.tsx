@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   searchUserDirectory,
@@ -26,10 +26,12 @@ export function AdminUserPicker({
   onSelect,
 }: Props) {
   const { t } = useTranslation()
+  const listboxId = useId()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<UserIdentityDirectoryResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const excluded = useMemo(() => new Set(excludedUserIds), [excludedUserIds])
 
   useEffect(() => {
@@ -51,13 +53,17 @@ export function AdminUserPicker({
       })
         .then((page) => {
           if (active) {
-            setResults(page.content.filter((candidate) => !excluded.has(candidate.userId)))
+            const nextResults = page.content.filter((candidate) => !excluded.has(candidate.userId))
+
+            setResults(nextResults)
+            setActiveIndex(nextResults.length > 0 ? 0 : -1)
             setOpen(true)
           }
         })
         .catch((error: unknown) => {
           if (active) {
             setResults([])
+            setActiveIndex(-1)
             handleError(error)
           }
         })
@@ -80,17 +86,47 @@ export function AdminUserPicker({
     setResults([])
     setLoading(false)
     setOpen(false)
+    setActiveIndex(-1)
+  }
+
+  const selectCandidate = (candidate: UserIdentityDirectoryResponse) => {
+    onSelect(candidate)
+    setQuery("")
+    setResults([])
+    setOpen(false)
+    setActiveIndex(-1)
   }
 
   const changeQuery = (value: string) => {
     setQuery(value)
     setOpen(true)
+    setActiveIndex(-1)
 
     if (value.trim().length < 2) {
       setResults([])
       setLoading(false)
     }
   }
+
+  const moveActiveOption = (direction: -1 | 1) => {
+    if (results.length === 0) {
+      return
+    }
+
+    setOpen(true)
+    setActiveIndex((current) => {
+      if (current < 0) {
+        return direction > 0 ? 0 : results.length - 1
+      }
+
+      return (current + direction + results.length) % results.length
+    })
+  }
+
+  const activeOptionId =
+    open && activeIndex >= 0 && results[activeIndex]
+      ? `${listboxId}-option-${results[activeIndex].userId}`
+      : undefined
 
   return (
     <div className="admin-user-picker">
@@ -121,13 +157,37 @@ export function AdminUserPicker({
           <Glyph name="search" size={16} />
           <input
             type="search"
+            role="combobox"
             value={query}
             disabled={disabled}
             autoComplete="off"
             spellCheck={false}
             placeholder={placeholder}
+            aria-autocomplete="list"
+            aria-expanded={open && query.trim().length >= 2}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
             onFocus={() => setOpen(true)}
             onChange={(event) => changeQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown") {
+                event.preventDefault()
+                moveActiveOption(1)
+              } else if (event.key === "ArrowUp") {
+                event.preventDefault()
+                moveActiveOption(-1)
+              } else if (event.key === "Enter" && activeIndex >= 0) {
+                const candidate = results[activeIndex]
+
+                if (candidate) {
+                  event.preventDefault()
+                  selectCandidate(candidate)
+                }
+              } else if (event.key === "Escape") {
+                setOpen(false)
+                setActiveIndex(-1)
+              }
+            }}
           />
           {loading ? <span className="admin-user-picker__loading" aria-hidden="true" /> : null}
           {query ? (
@@ -139,7 +199,7 @@ export function AdminUserPicker({
       )}
 
       {!selected && open && query.trim().length >= 2 ? (
-        <div className="admin-user-picker__results">
+        <div id={listboxId} className="admin-user-picker__results" role="listbox">
           {loading && results.length === 0 ? (
             <div className="admin-user-picker__state">{t("common.loading")}</div>
           ) : results.length === 0 ? (
@@ -148,16 +208,17 @@ export function AdminUserPicker({
               <span>{t("moderation.nothingFound")}</span>
             </div>
           ) : (
-            results.map((candidate) => (
+            results.map((candidate, index) => (
               <button
                 type="button"
+                role="option"
+                tabIndex={-1}
+                id={`${listboxId}-option-${candidate.userId}`}
                 key={candidate.userId}
-                onClick={() => {
-                  onSelect(candidate)
-                  setQuery("")
-                  setResults([])
-                  setOpen(false)
-                }}
+                className={activeIndex === index ? "is-keyboard-active" : ""}
+                aria-selected={activeIndex === index}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => selectCandidate(candidate)}
               >
                 <span className="admin-user-picker__avatar" aria-hidden="true">
                   <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" />
