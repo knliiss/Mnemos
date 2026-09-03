@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
+import "./moderation-admin-navigation.css"
 import "./moderation-directory.css"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
 
