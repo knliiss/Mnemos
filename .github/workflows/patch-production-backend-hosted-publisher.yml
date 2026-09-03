@@ -1,0 +1,83 @@
+name: Patch Production Backend Hosted Publisher
+
+on:
+  push:
+    branches:
+      - fix/production-backend-hosted-publisher
+    paths:
+      - .github/workflows/patch-production-backend-hosted-publisher.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout patch branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: fix/production-backend-hosted-publisher
+          fetch-depth: 0
+
+      - name: Patch publisher runner exactly once
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/production-backend-service-deploy.yml')
+          content = path.read_text(encoding='utf-8')
+
+          old = '''    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - mnemos-backend
+'''
+          new = '''    runs-on: ubuntu-24.04
+'''
+
+          count = content.count(old)
+          if count != 1:
+              raise SystemExit(f'Expected exactly one backend publisher runner block, found {count}')
+
+          path.write_text(content.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          rm .github/workflows/patch-production-backend-hosted-publisher.yml
+
+      - name: Validate patched workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' \
+            .github/workflows/production-backend-service-deploy.yml
+
+          sh scripts/verify-production-backend-service-deploy-security.sh
+          git diff --check
+
+      - name: Commit exact patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add \
+            .github/workflows/production-backend-service-deploy.yml \
+            .github/workflows/patch-production-backend-hosted-publisher.yml
+
+          git diff --cached --exit-code && {
+            echo 'Patch produced no changes' >&2
+            exit 1
+          }
+
+          git commit -m 'Use hosted backend image publisher'
+          git push origin HEAD:fix/production-backend-hosted-publisher
