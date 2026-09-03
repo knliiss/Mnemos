@@ -153,6 +153,13 @@ jobs:
                   preserved.append((name, "default-or-protected"))
                   continue
 
+              if (
+                  name == "deploy/production-frontend"
+                  or name.startswith("deploy/production-backend/")
+              ):
+                  preserved.append((name, "persistent-production-deploy-ref"))
+                  continue
+
               if name in open_head_branches:
                   preserved.append((name, "open-pull-request"))
                   continue
