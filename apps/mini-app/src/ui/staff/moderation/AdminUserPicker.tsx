@@ -36,8 +36,6 @@ export function AdminUserPicker({
     const normalized = query.trim()
 
     if (disabled || selected || normalized.length < 2) {
-      setResults([])
-      setLoading(false)
       return
     }
 
@@ -80,7 +78,18 @@ export function AdminUserPicker({
     onSelect(null)
     setQuery("")
     setResults([])
+    setLoading(false)
     setOpen(false)
+  }
+
+  const changeQuery = (value: string) => {
+    setQuery(value)
+    setOpen(true)
+
+    if (value.trim().length < 2) {
+      setResults([])
+      setLoading(false)
+    }
   }
 
   return (
@@ -118,7 +127,7 @@ export function AdminUserPicker({
             spellCheck={false}
             placeholder={placeholder}
             onFocus={() => setOpen(true)}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => changeQuery(event.target.value)}
           />
           {loading ? <span className="admin-user-picker__loading" aria-hidden="true" /> : null}
           {query ? (
