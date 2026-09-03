@@ -1,0 +1,42 @@
+name: Production Backend Workspace Hygiene Verify
+
+on:
+  push:
+    branches:
+      - fix/production-backend-workspace-hygiene
+    paths:
+      - scripts/production_deployment_executor.py
+      - scripts/production_runtime_state.py
+      - scripts/verify-production-backend-service-deploy-security.sh
+      - .github/workflows/production-backend-workspace-hygiene-verify.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout exact verification head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify privileged Python workspace hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf scripts/__pycache__
+
+          python3 scripts/production_runtime_state.py --help >/dev/null
+          test ! -d scripts/__pycache__
+
+          python3 scripts/production_deployment_executor.py --help >/dev/null
+          test ! -d scripts/__pycache__
+
+          sh scripts/verify-production-backend-service-deploy-security.sh
+          make make-verify
