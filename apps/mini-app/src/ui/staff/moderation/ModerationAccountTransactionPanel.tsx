@@ -43,15 +43,12 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
   useEffect(() => {
     let active = true
 
-    setLoading(true)
-    setLoadError(false)
-    setPage(0)
-
     void getAdminAccountTransactions(accountId, 0, PAGE_SIZE)
       .then((response) => {
         if (active) {
           setResult(response)
           setPage(response.page)
+          setLoadError(false)
         }
       })
       .catch((error: unknown) => {
