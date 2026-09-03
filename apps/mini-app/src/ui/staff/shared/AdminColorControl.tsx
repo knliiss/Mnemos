@@ -37,7 +37,7 @@ export function AdminColorControl({
 
   return (
     <div className={compact ? "admin-color-control is-compact" : "admin-color-control"}>
-      <div className="admin-color-control__swatches" aria-label={label}>
+      <div className="admin-color-control__swatches" role="group" aria-label={label}>
         {swatches.map((color) => (
           <button
             type="button"
@@ -45,6 +45,7 @@ export function AdminColorControl({
             disabled={disabled}
             className={color === normalized ? "is-active" : ""}
             aria-label={color}
+            aria-pressed={color === normalized}
             title={color}
             onClick={() => onChange(color)}
           >
