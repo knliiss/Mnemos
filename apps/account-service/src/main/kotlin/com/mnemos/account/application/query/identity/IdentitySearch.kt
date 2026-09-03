@@ -1,5 +1,6 @@
 package com.mnemos.account.application.query.identity
 
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
 import java.util.UUID
@@ -20,7 +21,7 @@ data class IdentityAccount(
     val accountId: AccountId,
     val cristalixUuid: UUID,
     val cristalixNickname: String,
-    val active: Boolean,
+    val status: AccountStatus,
 )
 
 interface IdentitySearchRepository {
