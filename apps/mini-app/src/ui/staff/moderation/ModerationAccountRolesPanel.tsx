@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   assignAdminMemberRole,
@@ -365,6 +365,28 @@ function AdminRoleCard({
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
+  const deleteConfirmRef = useRef<HTMLButtonElement>(null)
+  const deleteConfirmationTitle = t("roleEditor.confirmDelete", "Delete this role?")
+
+  useEffect(() => {
+    if (!deleteConfirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      deleteConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [deleteConfirmationVisible])
+
+  const dismissDeleteConfirmation = () => {
+    if (!busy) {
+      setDeleteConfirmationVisible(false)
+    }
+  }
 
   return (
     <article className="moderation-admin-role-card">
@@ -434,13 +456,24 @@ function AdminRoleCard({
       </div>
 
       {deleteConfirmationVisible ? (
-        <div className="moderation-admin-role-delete-confirmation">
+        <div
+          className="moderation-admin-role-delete-confirmation"
+          role="alertdialog"
+          aria-label={deleteConfirmationTitle}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault()
+              dismissDeleteConfirmation()
+            }
+          }}
+        >
           <span>
-            <strong>{t("roleEditor.confirmDelete", "Delete this role?")}</strong>
+            <strong>{deleteConfirmationTitle}</strong>
             <small>{t("roleEditor.confirmDeleteHint", "Role assignments will be removed with it.")}</small>
           </span>
           <div>
             <button
+              ref={deleteConfirmRef}
               type="button"
               className="moderation-control-button moderation-control-button--danger"
               disabled={busy}
@@ -455,7 +488,7 @@ function AdminRoleCard({
               type="button"
               className="moderation-control-button moderation-control-button--neutral"
               disabled={busy}
-              onClick={() => setDeleteConfirmationVisible(false)}
+              onClick={dismissDeleteConfirmation}
             >
               {t("common.cancel", "Cancel")}
             </button>
