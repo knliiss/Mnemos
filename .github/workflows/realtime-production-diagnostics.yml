@@ -36,58 +36,67 @@ jobs:
           changed="$(git diff --name-only "$BASELINE_SHA" HEAD)"
           test "$changed" = ".github/workflows/realtime-production-diagnostics.yml"
 
-      - name: Capture service state
+      - name: Capture collector report counters
         shell: bash
         run: |
           set -euo pipefail
-          for service in realtime-service event-service notification-service telegram-bot-service; do
-            echo "=== $service ==="
-            sudo -n docker service inspect "mnemos_${service}" --format 'image={{.Spec.TaskTemplate.ContainerSpec.Image}} replicas={{.Spec.Mode.Replicated.Replicas}}' || true
-            sudo -n docker service ps "mnemos_${service}" --no-trunc --format 'task={{.Name}} desired={{.DesiredState}} current={{.CurrentState}} error={{.Error}}' || true
+          logs="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 || true)"
+          for pattern in 'EVENT_REPORT' 'REPORT_QUEUED' 'Failed to publish collector report' 'DELIVERY_UNAVAILABLE' 'NOT_OBSERVING' 'TOO_MANY_IN_FLIGHT'; do
+            printf '%s=' "$pattern"
+            printf '%s\n' "$logs" | grep -E -i -c "$pattern" || true
           done
 
-      - name: Capture realtime collector delivery logs
+      - name: Capture Kafka topics and consumer lag
         shell: bash
         run: |
           set -euo pipefail
-          sudo -n docker service logs --since 6h --timestamps --raw mnemos_realtime-service 2>&1 \
-            | grep -E -i -C 4 'collector|EVENT_REPORT|report|Kafka|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|Failed to publish|ERROR|Exception|WARN' \
-            | tail -n 5000 || true
+          container="$(sudo -n docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk 'tolower($0) ~ /kafka|redpanda/ {print $1; exit}')"
+          if [ -z "$container" ]; then
+            echo 'No Kafka/Redpanda container found'
+            exit 0
+          fi
 
-      - name: Capture event ingestion logs
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo -n docker service logs --since 6h --timestamps --raw mnemos_event-service 2>&1 \
-            | grep -E -i -C 4 'collector|ingress|event|Kafka|deserial|consumer|ERROR|Exception|WARN' \
-            | tail -n 5000 || true
+          echo "container=$container"
+          sudo -n docker exec "$container" sh -lc '
+            set -e
+            if [ -x /opt/kafka/bin/kafka-topics.sh ]; then
+              TOPICS=/opt/kafka/bin/kafka-topics.sh
+              GROUPS=/opt/kafka/bin/kafka-consumer-groups.sh
+            elif command -v kafka-topics.sh >/dev/null 2>&1; then
+              TOPICS=$(command -v kafka-topics.sh)
+              GROUPS=$(command -v kafka-consumer-groups.sh)
+            else
+              echo "Kafka CLI not found"
+              exit 0
+            fi
 
-      - name: Capture notification delivery logs
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo -n docker service logs --since 6h --timestamps --raw mnemos_notification-service 2>&1 \
-            | grep -E -i -C 4 'event|notification|Kafka|consumer|telegram|ERROR|Exception|WARN' \
-            | tail -n 5000 || true
+            echo "=== topics ==="
+            "$TOPICS" --bootstrap-server localhost:9092 --list | grep -E "collector|event|notification" || true
+            echo "=== collector ingress ==="
+            "$TOPICS" --bootstrap-server localhost:9092 --describe --topic mnemos.collector.ingress.v2 || true
+            echo "=== event collector consumer group ==="
+            "$GROUPS" --bootstrap-server localhost:9092 --describe --group mnemos-event-service-collector-ingress || true
+            echo "=== all event-service groups ==="
+            "$GROUPS" --bootstrap-server localhost:9092 --all-groups --describe 2>/dev/null | grep -E "mnemos-event-service|mnemos.collector.ingress.v2" || true
+          '
 
-      - name: Capture Telegram bot logs
+      - name: Capture focused pipeline logs
         shell: bash
         run: |
           set -euo pipefail
-          sudo -n docker service logs --since 6h --timestamps --raw mnemos_telegram-bot-service 2>&1 \
-            | grep -E -i -C 4 'notification|event|Kafka|409|telegram|ERROR|Exception|WARN' \
-            | tail -n 5000 || true
-
-      - name: Capture Kafka container and topic metadata
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo '=== kafka-like containers ==='
-          sudo -n docker ps --format '{{.Names}} {{.Image}}' | grep -E -i 'kafka|redpanda' || true
-          echo '=== recent kafka-like logs ==='
-          for container in $(sudo -n docker ps --format '{{.Names}}' | grep -E -i 'kafka|redpanda' || true); do
-            echo "--- $container ---"
-            sudo -n docker logs --since 2h --timestamps "$container" 2>&1 \
-              | grep -E -i -C 2 'ERROR|WARN|consumer|group|offset|auth|acl|denied' \
-              | tail -n 1500 || true
-          done
+          echo '=== realtime ==='
+          sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 \
+            | grep -E -i 'EVENT_REPORT|REPORT_QUEUED|publish collector report|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|collector transport response|observation lease renewed' \
+            | tail -n 2500 || true
+          echo '=== event-service ==='
+          sudo -n docker service logs --since 3h --timestamps --raw mnemos_event-service 2>&1 \
+            | grep -E -i 'collector|ingress|REPORT_QUEUED|dead.?letter|deserial|protocol|Kafka.*(error|warn)|ERROR|Exception' \
+            | tail -n 2500 || true
+          echo '=== notification-service ==='
+          sudo -n docker service logs --since 3h --timestamps --raw mnemos_notification-service 2>&1 \
+            | grep -E -i 'notification|event|dead.?letter|Kafka.*(error|warn)|ERROR|Exception' \
+            | tail -n 1500 || true
+          echo '=== bot ==='
+          sudo -n docker service logs --since 3h --timestamps --raw mnemos_telegram-bot-service 2>&1 \
+            | grep -E -i 'notification|409|telegram.*(error|warn)|ERROR|Exception' \
+            | tail -n 1500 || true
