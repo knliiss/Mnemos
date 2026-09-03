@@ -14,3 +14,49 @@
   border-color: rgba(112, 211, 142, 0.25);
   box-shadow: 0 0 0 2px rgba(112, 211, 142, 0.055);
 }
+
+.moderation-screen button,
+.moderation-screen input,
+.moderation-screen textarea,
+.internal-user-screen button,
+.internal-user-screen input,
+.internal-user-screen textarea {
+  font: inherit;
+}
+
+.moderation-screen button,
+.internal-user-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.moderation-screen input,
+.moderation-screen textarea,
+.internal-user-screen input,
+.internal-user-screen textarea {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.moderation-screen input[type="number"],
+.internal-user-screen input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.moderation-screen input[type="number"]::-webkit-inner-spin-button,
+.moderation-screen input[type="number"]::-webkit-outer-spin-button,
+.internal-user-screen input[type="number"]::-webkit-inner-spin-button,
+.internal-user-screen input[type="number"]::-webkit-outer-spin-button,
+.moderation-screen input[type="search"]::-webkit-search-cancel-button,
+.moderation-screen input[type="search"]::-webkit-search-decoration,
+.internal-user-screen input[type="search"]::-webkit-search-cancel-button,
+.internal-user-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.moderation-screen button:focus-visible,
+.internal-user-screen button:focus-visible {
+  outline: none;
+}
