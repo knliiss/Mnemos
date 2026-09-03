@@ -1,3 +1,50 @@
+.moderation-account-status-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 620px);
+  padding: 9px 10px;
+  border: 1px solid rgba(203, 255, 45, 0.08);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(203, 255, 45, 0.04), transparent 34%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.moderation-account-status-confirmation.is-danger {
+  border-color: rgba(223, 88, 80, 0.1);
+  background:
+    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.045), transparent 34%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-account-status-confirmation > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-account-status-confirmation strong {
+  color: #d2d8cd;
+  font-size: 9px;
+}
+
+.moderation-account-status-confirmation.is-danger strong {
+  color: #dba09c;
+}
+
+.moderation-account-status-confirmation small {
+  color: #747c71;
+  font-size: 7.5px;
+  line-height: 1.4;
+}
+
+.moderation-account-status-confirmation > div {
+  display: flex;
+  gap: 6px;
+}
+
 .moderation-account-control__picker-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -68,20 +115,22 @@
 }
 
 @media (max-width: 520px) {
+  .moderation-account-status-confirmation,
   .moderation-account-control__picker-action,
   .moderation-account-control__confirmation {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .moderation-account-control__picker-action > .moderation-control-button {
-    width: 100%;
-  }
-
+  .moderation-account-status-confirmation > div,
   .moderation-account-control__confirmation > div,
   .moderation-account-control__picker-confirmation > div {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moderation-account-control__picker-action > .moderation-control-button {
+    width: 100%;
   }
 
   .moderation-account-control__picker-confirmation {
