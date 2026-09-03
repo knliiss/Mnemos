@@ -21,6 +21,13 @@ type Props = {
 type ParticipantFilter = "ALL" | "WINNER" | "ACTIVE" | "FINISHED"
 type ParticipantSort = "DESC" | "ASC"
 
+type CreateRaceDraft = {
+  itemName: string
+  itemType: BetItemType
+  durationHours: number
+  entryAmount: number
+}
+
 export function BetAdminRaceManagement({ races, loading, back, onChanged }: Props) {
   const { t } = useTranslation()
   const [formOpen, setFormOpen] = useState(false)
@@ -28,6 +35,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
   const [itemType, setItemType] = useState<BetItemType>("SWORD")
   const [durationHours, setDurationHours] = useState("24")
   const [entryAmount, setEntryAmount] = useState("1000")
+  const [createDraft, setCreateDraft] = useState<CreateRaceDraft | null>(null)
   const [busy, setBusy] = useState(false)
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null)
   const [cancelConfirmationRaceId, setCancelConfirmationRaceId] = useState<string | null>(null)
@@ -36,6 +44,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
   const [participantSort, setParticipantSort] = useState<ParticipantSort>("DESC")
   const busyRef = useRef(false)
   const mountedRef = useRef(true)
+  const createConfirmButtonRef = useRef<HTMLButtonElement | null>(null)
   const cancelConfirmButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
@@ -45,6 +54,12 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       mountedRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    if (createDraft) {
+      createConfirmButtonRef.current?.focus()
+    }
+  }, [createDraft])
 
   useEffect(() => {
     if (cancelConfirmationRaceId) {
@@ -112,8 +127,23 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
     entry >= 1000 &&
     entry <= 5000
 
-  const create = async () => {
+  const reviewCreate = () => {
     if (!valid || busyRef.current) {
+      return
+    }
+
+    setCreateDraft({
+      itemName: itemName.trim(),
+      itemType,
+      durationHours: duration,
+      entryAmount: entry,
+    })
+  }
+
+  const create = async () => {
+    const draft = createDraft
+
+    if (!draft || busyRef.current) {
       return
     }
 
@@ -121,17 +151,14 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
     setBusy(true)
 
     try {
-      await createItemRace({
-        itemName: itemName.trim(),
-        itemType,
-        durationHours: duration,
-        entryAmount: entry,
-      })
+      await createItemRace(draft)
 
       if (mountedRef.current) {
         setItemName("")
+        setItemType("SWORD")
         setDurationHours("24")
         setEntryAmount("1000")
+        setCreateDraft(null)
         setFormOpen(false)
         await onChanged()
       }
@@ -192,7 +219,11 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
           <button
             type="button"
             className="bet-admin-header-action"
-            onClick={() => setFormOpen((value) => !value)}
+            disabled={busy}
+            onClick={() => {
+              setCreateDraft(null)
+              setFormOpen((value) => !value)
+            }}
           >
             <Glyph name={formOpen ? "close" : "plus"} size={15} />
             {formOpen ? t("betAdmin.close") : t("betAdmin.new")}
@@ -211,6 +242,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
             <input
               value={itemName}
               maxLength={24}
+              disabled={Boolean(createDraft) || busy}
               onChange={(event) => setItemName(event.target.value)}
             />
           </Field>
@@ -222,6 +254,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                   type="button"
                   key={value}
                   className={itemType === value ? "is-active" : ""}
+                  disabled={Boolean(createDraft) || busy}
                   onClick={() => setItemType(value)}
                 >
                   {betAdminItemLabel(t, value)}
@@ -236,6 +269,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
               min={1}
               max={168}
               value={durationHours}
+              disabled={Boolean(createDraft) || busy}
               onChange={(event) => setDurationHours(event.target.value)}
             />
           </Field>
@@ -246,6 +280,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
               min={1000}
               max={5000}
               value={entryAmount}
+              disabled={Boolean(createDraft) || busy}
               onChange={(event) => setEntryAmount(event.target.value)}
             />
           </Field>
@@ -253,11 +288,72 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
           <button
             type="button"
             className="primary-action"
-            disabled={!valid || busy}
-            onClick={() => void create()}
+            disabled={!valid || Boolean(createDraft) || busy}
+            onClick={reviewCreate}
           >
-            {busy ? t("betAdmin.creating") : t("betAdmin.create")}
+            {busy ? t("betAdmin.creating") : t("betAdmin.reviewRace")}
           </button>
+
+          {createDraft ? (
+            <section
+              className="bet-admin-race-create-confirmation"
+              role="alertdialog"
+              aria-label={t("betAdmin.createRaceConfirmTitle")}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && !busy) {
+                  setCreateDraft(null)
+                }
+              }}
+            >
+              <span className="bet-admin-race-create-confirmation__art" aria-hidden="true">
+                <ItemTypeArt itemType={createDraft.itemType} size={48} />
+              </span>
+
+              <span className="bet-admin-race-create-confirmation__copy">
+                <strong>{t("betAdmin.createRaceConfirmTitle")}</strong>
+                <small>{t("betAdmin.createRaceConfirmWarning")}</small>
+
+                <span className="bet-admin-race-create-confirmation__facts">
+                  <span>
+                    <small>{t("betAdmin.item")}</small>
+                    <strong>{createDraft.itemName}</strong>
+                  </span>
+                  <span>
+                    <small>{t("betAdmin.type")}</small>
+                    <strong>{betAdminItemLabel(t, createDraft.itemType)}</strong>
+                  </span>
+                  <span>
+                    <small>{t("betAdmin.durationHours")}</small>
+                    <strong>{createDraft.durationHours}</strong>
+                  </span>
+                  <span>
+                    <small>{t("betAdmin.entry")}</small>
+                    <CurrencyValue currency="COIN" value={createDraft.entryAmount} compact />
+                  </span>
+                </span>
+              </span>
+
+              <span className="bet-admin-race-create-confirmation__actions">
+                <button
+                  ref={createConfirmButtonRef}
+                  type="button"
+                  className="is-positive"
+                  disabled={busy}
+                  onClick={() => void create()}
+                >
+                  {busy ? t("betAdmin.creating") : t("betAdmin.createRaceConfirmAction")}
+                </button>
+                <button
+                  type="button"
+                  className="is-neutral"
+                  disabled={busy}
+                  onClick={() => setCreateDraft(null)}
+                >
+                  {t("betAdmin.createRaceKeepEditing")}
+                </button>
+              </span>
+            </section>
+          ) : null}
         </section>
       ) : null}
 
@@ -326,6 +422,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                 {cancellable && confirmingCancellation ? (
                   <section
                     className="bet-admin-race-cancel-confirmation"
+                    role="alertdialog"
                     aria-label={t("betAdmin.cancelRaceTitle")}
                     onKeyDown={(event) => {
                       if (event.key === "Escape" && !busy) {
