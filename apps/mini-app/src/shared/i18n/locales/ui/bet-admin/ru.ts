@@ -65,6 +65,12 @@ export const betAdminRu = {
     entry: "Вход",
     creating: "Создаём…",
     create: "Создать",
+    reviewRace: "Проверить гонку",
+    createRaceConfirmTitle: "Создать эту гонку предметов?",
+    createRaceConfirmWarning:
+      "Игроки смогут участвовать на этих условиях. Проверьте предмет, длительность и стоимость входа перед созданием гонки.",
+    createRaceConfirmAction: "Создать гонку",
+    createRaceKeepEditing: "Вернуться к редактированию",
     participantsShort: "Участников: {{count}}",
     bank: "банк",
     winner: "Победитель",
