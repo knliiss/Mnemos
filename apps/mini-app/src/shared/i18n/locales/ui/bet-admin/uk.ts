@@ -65,6 +65,12 @@ export const betAdminUk = {
     entry: "Вхід",
     creating: "Створюємо…",
     create: "Створити",
+    reviewRace: "Перевірити перегони",
+    createRaceConfirmTitle: "Створити ці перегони предметів?",
+    createRaceConfirmWarning:
+      "Гравці зможуть долучатися на цих умовах. Перевірте предмет, тривалість і вартість входу перед створенням перегонів.",
+    createRaceConfirmAction: "Створити перегони",
+    createRaceKeepEditing: "Повернутися до редагування",
     participantsShort: "{{count}} учасн.",
     bank: "банк",
     winner: "Переможець",
