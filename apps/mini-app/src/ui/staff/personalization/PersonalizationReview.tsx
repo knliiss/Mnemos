@@ -16,6 +16,7 @@ import { FeatureEmpty } from "../../system/FeatureEmpty"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { PersonalizationReviewDetail } from "./PersonalizationReviewDetail"
 import "./personalization-review.css"
+import "./personalization-review-control-polish.css"
 
 type ReviewScope = "ALL" | PersonalizationTarget
 type ModerationView = "REVIEW" | "PUBLISHED" | "UNLISTED"
