@@ -1,0 +1,163 @@
+.bet-admin-screen button,
+.bet-admin-screen input,
+.bet-admin-screen textarea {
+  font: inherit;
+}
+
+.bet-admin-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.bet-admin-screen button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.bet-admin-screen button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.bet-admin-screen button:disabled {
+  cursor: default;
+}
+
+.bet-admin-screen input,
+.bet-admin-screen textarea {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.bet-admin-screen input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.bet-admin-screen input[type="number"]::-webkit-inner-spin-button,
+.bet-admin-screen input[type="number"]::-webkit-outer-spin-button,
+.bet-admin-screen input[type="search"]::-webkit-search-cancel-button,
+.bet-admin-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bet-admin-header-action:hover:not(:disabled),
+.bet-admin-choice button:hover:not(:disabled),
+.bet-admin-form-block > .primary-action:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.16);
+  color: #e4e8df;
+  background: rgba(203, 255, 45, 0.035);
+}
+
+.bet-admin-nav-grid > button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.bet-admin-nav-grid > button:hover {
+  border-color: rgba(203, 255, 45, 0.12);
+  background: rgba(203, 255, 45, 0.022);
+}
+
+.bet-admin-nav-grid > button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.bet-admin-round-row {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.bet-admin-round-row:hover {
+  border-color: rgba(203, 255, 45, 0.1);
+  background: rgba(203, 255, 45, 0.018);
+}
+
+.bet-admin-round-row:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.bet-admin-form-block:has(.bet-admin-choice) > header {
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  min-height: 54px;
+}
+
+.bet-admin-form-block:has(.bet-admin-choice) > header::before {
+  content: "";
+  grid-row: 1 / span 2;
+  width: 58px;
+  height: 52px;
+  border-radius: 13px;
+  background:
+    url("/ui-illustrations/mnemos-mascot-race.svg") center / 54px 48px no-repeat,
+    radial-gradient(circle at 50% 72%, rgba(255, 179, 79, 0.1), transparent 56%),
+    rgba(255, 179, 79, 0.018);
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18));
+}
+
+.bet-admin-form-block:has(.bet-admin-choice) > header > small,
+.bet-admin-form-block:has(.bet-admin-choice) > header > strong {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.bet-admin-form-block input:hover:not(:disabled),
+.bet-admin-form-block textarea:hover:not(:disabled) {
+  border-color: rgba(235, 241, 213, 0.14);
+  background: rgba(255, 255, 255, 0.027);
+}
+
+.bet-admin-form-block input:focus-visible,
+.bet-admin-form-block textarea:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  background: rgba(203, 255, 45, 0.018);
+  box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
+}
+
+.bet-admin-race-card__actions button,
+.bet-admin-ledger__filter-choices button,
+.bet-admin-ledger__sort {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+}
+
+@media (max-width: 374px) {
+  .bet-admin-form-block:has(.bet-admin-choice) > header {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .bet-admin-form-block:has(.bet-admin-choice) > header::before {
+    width: 48px;
+    height: 46px;
+    background-size: 46px 42px, auto, auto;
+  }
+}
