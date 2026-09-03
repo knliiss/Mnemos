@@ -57,6 +57,7 @@ jobs:
           REQUEST_RUN_ID: ${{ github.event.workflow_run.id }}
           EVENT_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           EVENT_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT_ACTOR: ${{ github.event.workflow_run.actor.login }}
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
@@ -72,67 +73,12 @@ jobs:
             exit 1
           fi
 
-          run_json="$(
-            curl \
-              --fail-with-body \
-              --silent \
-              --show-error \
-              --header "Accept: application/vnd.github+json" \
-              --header "Authorization: Bearer $GH_TOKEN" \
-              --header "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${REPOSITORY}/actions/runs/${REQUEST_RUN_ID}"
-          )"
-
-          workflow_name="$(printf '%s' "$run_json" | jq -r '.name // empty')"
-          workflow_path="$(printf '%s' "$run_json" | jq -r '.path // empty')"
-          event_name="$(printf '%s' "$run_json" | jq -r '.event // empty')"
-          conclusion="$(printf '%s' "$run_json" | jq -r '.conclusion // empty')"
-          head_branch="$(printf '%s' "$run_json" | jq -r '.head_branch // empty')"
-          head_sha="$(printf '%s' "$run_json" | jq -r '.head_sha // empty')"
-          head_repository="$(printf '%s' "$run_json" | jq -r '.head_repository.full_name // empty')"
-          request_actor="$(printf '%s' "$run_json" | jq -r '.actor.login // empty')"
-
-          if [ "$workflow_name" != "Production Backend Deploy Request" ]; then
-            echo "Unexpected deploy request workflow name: $workflow_name" >&2
-            exit 1
-          fi
-
-          if [ "$workflow_path" != ".github/workflows/production-backend-deploy-request.yml" ]; then
-            echo "Deploy request used an unauthorized workflow path: $workflow_path" >&2
-            exit 1
-          fi
-
-          if [ "$event_name" != "push" ]; then
-            echo "Production backend deploy request must originate from a push event" >&2
-            exit 1
-          fi
-
-          if [ "$conclusion" != "success" ]; then
-            echo "Production backend deploy request did not succeed" >&2
-            exit 1
-          fi
-
-          if [ "$head_repository" != "$REPOSITORY" ]; then
-            echo "Production backend deploy request came from another repository" >&2
-            exit 1
-          fi
-
-          if [ "$head_branch" != "$EVENT_HEAD_BRANCH" ] || [ "$head_sha" != "$EVENT_HEAD_SHA" ]; then
-            echo "workflow_run event does not match fetched request provenance" >&2
-            exit 1
-          fi
-
-          if [ -z "$request_actor" ]; then
-            echo "Production backend deploy request has no actor" >&2
-            exit 1
-          fi
-
-          case "$head_branch" in
+          case "$EVENT_HEAD_BRANCH" in
             deploy/production-backend/*)
-              service="${head_branch#deploy/production-backend/}"
+              service="${EVENT_HEAD_BRANCH#deploy/production-backend/}"
               ;;
             *)
-              echo "Unauthorized production backend ref: $head_branch" >&2
+              echo "Unauthorized production backend ref: $EVENT_HEAD_BRANCH" >&2
               exit 1
               ;;
           esac
@@ -142,13 +88,91 @@ jobs:
             exit 1
           fi
 
-          if ! printf '%s' "$head_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+          if ! printf '%s' "$EVENT_HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
             echo "Deploy ref target must be an immutable full commit SHA" >&2
             exit 1
           fi
 
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          repository = os.environ["REPOSITORY"]
+          request_run_id = os.environ["REQUEST_RUN_ID"]
+          token = os.environ["GH_TOKEN"]
+          event_head_branch = os.environ["EVENT_HEAD_BRANCH"]
+          event_head_sha = os.environ["EVENT_HEAD_SHA"]
+          event_actor = os.environ["EVENT_ACTOR"]
+
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{repository}/actions/runs/{request_run_id}",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  run = json.load(response)
+          except (urllib.error.URLError, json.JSONDecodeError) as exception:
+              raise SystemExit(
+                  f"Could not fetch deploy request provenance: {exception}"
+              ) from exception
+
+          workflow_name = run.get("name")
+          workflow_path = run.get("path")
+          event_name = run.get("event")
+          conclusion = run.get("conclusion")
+          head_branch = run.get("head_branch")
+          head_sha = run.get("head_sha")
+          head_repository = (run.get("head_repository") or {}).get("full_name")
+          request_actor = (run.get("actor") or {}).get("login")
+
+          if workflow_name != "Production Backend Deploy Request":
+              raise SystemExit(
+                  f"Unexpected deploy request workflow name: {workflow_name}"
+              )
+
+          if workflow_path != ".github/workflows/production-backend-deploy-request.yml":
+              raise SystemExit(
+                  f"Deploy request used an unauthorized workflow path: {workflow_path}"
+              )
+
+          if event_name != "push":
+              raise SystemExit(
+                  "Production backend deploy request must originate from a push event"
+              )
+
+          if conclusion != "success":
+              raise SystemExit("Production backend deploy request did not succeed")
+
+          if head_repository != repository:
+              raise SystemExit(
+                  "Production backend deploy request came from another repository"
+              )
+
+          if head_branch != event_head_branch or head_sha != event_head_sha:
+              raise SystemExit(
+                  "workflow_run event does not match fetched request provenance"
+              )
+
+          if not request_actor or request_actor != event_actor:
+              raise SystemExit("Production backend deploy request actor is invalid")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"service={event_head_branch.removeprefix('deploy/production-backend/')}\n")
+              output.write(f"target_sha={event_head_sha}\n")
+              output.write(f"authorization_ref={event_head_branch}\n")
+              output.write(f"request_actor={request_actor}\n")
+              output.write(f"request_run_id={request_run_id}\n")
+          PY
+
           python3 scripts/production_source_revision.py \
-            "$head_sha" \
+            "$EVENT_HEAD_SHA" \
             --trusted-ref origin/master
 
           service_json="$(python3 scripts/production_service_catalog.py show "$service")"
@@ -170,12 +194,6 @@ jobs:
           if deploy.get("type") not in {"swarm", "compose"}:
               raise SystemExit("Deploy ref service uses an unsupported runtime")
           PY
-
-          echo "service=$service" >> "$GITHUB_OUTPUT"
-          echo "target_sha=$head_sha" >> "$GITHUB_OUTPUT"
-          echo "authorization_ref=$head_branch" >> "$GITHUB_OUTPUT"
-          echo "request_actor=$request_actor" >> "$GITHUB_OUTPUT"
-          echo "request_run_id=$REQUEST_RUN_ID" >> "$GITHUB_OUTPUT"
 
       - name: Capture and verify canonical production state
         id: state
@@ -206,12 +224,32 @@ jobs:
           sudo -n sh scripts/verify-production-telegram-poller.sh
 
           current_source_sha="$(
-            jq -r \
-              --arg service "$SERVICE" \
-              '.release_manifest.services[$service].source_sha // empty' \
-              "$state_file"
+            STATE_FILE="$state_file" SERVICE="$SERVICE" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          state = json.loads(Path(os.environ["STATE_FILE"]).read_text(encoding="utf-8"))
+          source_sha = (
+              state.get("release_manifest", {})
+              .get("services", {})
+              .get(os.environ["SERVICE"], {})
+              .get("source_sha", "")
+          )
+          print(source_sha)
+          PY
           )"
-          tooling_revision="$(jq -r '.tooling_revision // empty' "$state_file")"
+
+          tooling_revision="$(
+            STATE_FILE="$state_file" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          state = json.loads(Path(os.environ["STATE_FILE"]).read_text(encoding="utf-8"))
+          print(state.get("tooling_revision", ""))
+          PY
+          )"
 
           if ! printf '%s' "$current_source_sha" | grep -Eq '^[0-9a-f]{40}$'; then
             echo "Current production source SHA is invalid for $SERVICE" >&2
@@ -345,7 +383,18 @@ jobs:
               raise SystemExit("Target state source does not match authorized SHA")
           PY
 
-          transition_id="$(jq -r '.transition_id' "$output_dir/transition.json")"
+          transition_id="$(
+            PLAN_DIR="$output_dir" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          transition = json.loads(
+              (Path(os.environ["PLAN_DIR"]) / "transition.json").read_text(encoding="utf-8")
+          )
+          print(transition.get("transition_id", ""))
+          PY
+          )"
 
           if ! printf '%s' "$transition_id" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
             echo "Generated transition ID is invalid" >&2
@@ -736,10 +785,22 @@ jobs:
           sudo -n sh scripts/verify-production-telegram-poller.sh
 
           actual_source="$(
-            sudo -n jq -r \
-              --arg service "$SERVICE" \
-              '.release_manifest.services[$service].source_sha // empty' \
-              /var/lib/mnemos-deploy/current-state.json
+            sudo -n env SERVICE="$SERVICE" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          state = json.loads(
+              Path("/var/lib/mnemos-deploy/current-state.json").read_text(encoding="utf-8")
+          )
+          source_sha = (
+              state.get("release_manifest", {})
+              .get("services", {})
+              .get(os.environ["SERVICE"], {})
+              .get("source_sha", "")
+          )
+          print(source_sha)
+          PY
           )"
 
           if [ "$actual_source" != "$TARGET_SHA" ]; then
@@ -784,25 +845,36 @@ jobs:
           cp "$PLAN_DIR/transition.json" "$audit_dir/approved-transition.json"
           cp "$PLAN_DIR/audit-manifest.json" "$audit_dir/approved-plan-audit-manifest.json"
 
-          jq -n \
-            --arg workflow_run_id "$GITHUB_RUN_ID" \
-            --arg request_run_id "$REQUEST_RUN_ID" \
-            --arg request_actor "$REQUEST_ACTOR" \
-            --arg authorization_ref "$AUTHORIZATION_REF" \
-            --arg service "$SERVICE" \
-            --arg target_sha "$TARGET_SHA" \
-            --arg transition_id "$EXPECTED_TRANSITION_ID" \
-            '{
-              workflow_run_id:$workflow_run_id,
-              request_run_id:$request_run_id,
-              actor:$request_actor,
-              authorization_mechanism:"service-deploy-branch-workflow-run",
-              authorization_ref:$authorization_ref,
-              service:$service,
-              target_sha:$target_sha,
-              transition_id:$transition_id
-            }' \
-            > "$audit_dir/workflow-execution.json"
+          AUDIT_DIR="$audit_dir" \
+          WORKFLOW_RUN_ID="$GITHUB_RUN_ID" \
+          REQUEST_RUN_ID="$REQUEST_RUN_ID" \
+          REQUEST_ACTOR="$REQUEST_ACTOR" \
+          AUTHORIZATION_REF="$AUTHORIZATION_REF" \
+          SERVICE="$SERVICE" \
+          TARGET_SHA="$TARGET_SHA" \
+          EXPECTED_TRANSITION_ID="$EXPECTED_TRANSITION_ID" \
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              "workflow_run_id": os.environ["WORKFLOW_RUN_ID"],
+              "request_run_id": os.environ["REQUEST_RUN_ID"],
+              "actor": os.environ["REQUEST_ACTOR"],
+              "authorization_mechanism": "service-deploy-branch-workflow-run",
+              "authorization_ref": os.environ["AUTHORIZATION_REF"],
+              "service": os.environ["SERVICE"],
+              "target_sha": os.environ["TARGET_SHA"],
+              "transition_id": os.environ["EXPECTED_TRANSITION_ID"],
+          }
+
+          path = Path(os.environ["AUDIT_DIR"]) / "workflow-execution.json"
+          path.write_text(
+              json.dumps(payload, indent=2, sort_keys=False) + "\n",
+              encoding="utf-8",
+          )
+          PY
 
           python3 scripts/production_audit_bundle.py \
             create \
