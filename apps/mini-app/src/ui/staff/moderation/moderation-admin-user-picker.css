@@ -189,9 +189,14 @@
   cursor: pointer;
 }
 
-.admin-user-picker__results > button:hover {
+.admin-user-picker__results > button:hover,
+.admin-user-picker__results > button.is-keyboard-active {
   border-color: rgba(203, 255, 45, 0.08);
   background: rgba(203, 255, 45, 0.025);
+}
+
+.admin-user-picker__results > button.is-keyboard-active {
+  box-shadow: inset 0 0 0 1px rgba(203, 255, 45, 0.03);
 }
 
 .admin-user-picker__results > button:focus-visible {
