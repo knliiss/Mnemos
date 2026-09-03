@@ -1,0 +1,65 @@
+.administration-home-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.administration-workspace {
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.administration-workspace:hover {
+  border-color: color-mix(in srgb, currentColor 24%, transparent);
+  background:
+    radial-gradient(circle at 84% 18%, color-mix(in srgb, currentColor 7%, transparent), transparent 34%),
+    rgba(255, 255, 255, 0.02);
+  transform: translateY(-1px);
+}
+
+.administration-workspace:focus-visible {
+  border-color: color-mix(in srgb, currentColor 34%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.administration-workspace:active {
+  transform: translateY(0);
+}
+
+.administration-workspace__art {
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.administration-workspace:hover .administration-workspace__art {
+  background: color-mix(in srgb, currentColor 4%, transparent);
+  transform: translateY(-1px);
+}
+
+.administration-workspace__art img {
+  transition: transform 170ms ease;
+}
+
+.administration-workspace:hover .administration-workspace__art img {
+  transform: translateY(-2px) scale(1.025);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .administration-workspace,
+  .administration-workspace__art,
+  .administration-workspace__art img {
+    transition: none;
+  }
+
+  .administration-workspace:hover,
+  .administration-workspace:hover .administration-workspace__art,
+  .administration-workspace:hover .administration-workspace__art img {
+    transform: none;
+  }
+}
