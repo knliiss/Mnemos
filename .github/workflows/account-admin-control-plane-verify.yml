@@ -19,7 +19,7 @@ on:
       - "gradlew"
 
 concurrency:
-  group: account-admin-control-plane-${{ github.sha }}
+  group: account-admin-control-plane-final-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -77,13 +77,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Format and show required diff
-        run: |
-          npm run format
-          git diff -- src/shared/api/moderationApi.ts \
-            src/ui/data/MnemosDataProvider.tsx \
-            src/ui/staff/moderation/ModerationAccountControlPanel.test.tsx \
-            src/ui/staff/moderation/moderationDirectoryTranslations.ts
+      - name: Check formatting
+        run: npm run format:check
 
       - name: Test
         run: npm test
