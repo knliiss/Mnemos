@@ -6,6 +6,8 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 REQUEST_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-backend-deploy-request.yml"
 DEPLOY_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-backend-service-deploy.yml"
+DEPLOY_EXECUTOR="$REPOSITORY_ROOT/scripts/production_deployment_executor.py"
+RUNTIME_STATE="$REPOSITORY_ROOT/scripts/production_runtime_state.py"
 
 fail() {
     echo "$1" >&2
@@ -14,6 +16,8 @@ fail() {
 
 [ -f "$REQUEST_WORKFLOW" ] || fail "Production backend deploy request workflow is missing"
 [ -f "$DEPLOY_WORKFLOW" ] || fail "Production backend service deploy workflow is missing"
+[ -f "$DEPLOY_EXECUTOR" ] || fail "Production deployment executor is missing"
+[ -f "$RUNTIME_STATE" ] || fail "Production runtime state observer is missing"
 
 REQUEST_CONTENT="$(cat "$REQUEST_WORKFLOW")"
 DEPLOY_CONTENT="$(cat "$DEPLOY_WORKFLOW")"
@@ -163,6 +167,26 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"authorization_mechanism": "service-
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'retention-days: 90' ||
     fail "Backend deploy execution audit must use extended retention"
+
+executor_bytecode_line="$(grep -n -m1 -F 'sys.dont_write_bytecode = True' "$DEPLOY_EXECUTOR" | cut -d: -f1 || true)"
+executor_local_import_line="$(grep -n -m1 -F 'import production_deployment_executor_base as base' "$DEPLOY_EXECUTOR" | cut -d: -f1 || true)"
+
+[ -n "$executor_bytecode_line" ] ||
+    fail "Privileged deployment executor must disable Python bytecode caches"
+[ -n "$executor_local_import_line" ] ||
+    fail "Privileged deployment executor local import boundary is missing"
+[ "$executor_bytecode_line" -lt "$executor_local_import_line" ] ||
+    fail "Deployment executor must disable bytecode caches before local imports"
+
+runtime_bytecode_line="$(grep -n -m1 -F 'sys.dont_write_bytecode = True' "$RUNTIME_STATE" | cut -d: -f1 || true)"
+runtime_local_import_line="$(grep -n -m1 -F 'from production_deployment_state import' "$RUNTIME_STATE" | cut -d: -f1 || true)"
+
+[ -n "$runtime_bytecode_line" ] ||
+    fail "Privileged runtime state observer must disable Python bytecode caches"
+[ -n "$runtime_local_import_line" ] ||
+    fail "Privileged runtime state observer local import boundary is missing"
+[ "$runtime_bytecode_line" -lt "$runtime_local_import_line" ] ||
+    fail "Runtime state observer must disable bytecode caches before local imports"
 
 for forbidden in \
     'docker stack deploy' \
