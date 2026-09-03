@@ -3,7 +3,8 @@
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { CurrentContextResponse, UserResponse } from "@/shared/api/backendContracts"
-import { AppProvider } from "./AppProvider"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { AppProvider, useApp } from "./AppProvider"
 
 const mocks = vi.hoisted(() => {
   const changeLanguage = vi.fn()
@@ -68,6 +69,12 @@ const currentContext: CurrentContextResponse = {
   effectivePermissions: [],
 }
 
+function ContextProbe() {
+  const app = useApp()
+
+  return <div data-testid="context-username">{app.context?.user.username}</div>
+}
+
 function createDeferred<T>() {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((resolver) => {
@@ -124,5 +131,47 @@ describe("AppProvider bootstrap", () => {
     expect(screen.queryByTestId("loading-page")).toBeNull()
     expect(mocks.getToken).toHaveBeenCalledWith({ forceRefresh: true })
     expect(mocks.changeLanguage).toHaveBeenCalledWith("ru")
+  })
+
+  it("refreshes global account context after an account lifecycle event", async () => {
+    const refreshedContext: CurrentContextResponse = {
+      ...currentContext,
+      user: {
+        ...currentUser,
+        username: "refreshed-user",
+      },
+    }
+
+    mocks.getCurrentContext
+      .mockResolvedValueOnce(currentContext)
+      .mockResolvedValueOnce(refreshedContext)
+
+    render(
+      <AppProvider>
+        <ContextProbe />
+      </AppProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId("context-username").textContent).toBe("tester")
+    })
+
+    act(() => {
+      realtimeEvents.publish({
+        id: "019c1129-ef54-7000-8000-000000000411",
+        type: "account.deleted",
+        occurredAt: "2026-09-03T00:00:00Z",
+        operationId: null,
+        payload: {
+          accountId: "019c1129-ef54-7000-8000-000000000412",
+          status: "DELETED",
+        },
+      })
+    })
+
+    await waitFor(() => {
+      expect(mocks.getCurrentContext).toHaveBeenCalledTimes(2)
+      expect(screen.getByTestId("context-username").textContent).toBe("refreshed-user")
+    })
   })
 })
