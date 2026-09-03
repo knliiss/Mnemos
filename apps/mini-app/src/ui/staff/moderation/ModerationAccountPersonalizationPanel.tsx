@@ -117,7 +117,12 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
         <span>
           <small>{t("administration.personalizations")}</small>
           <strong>{t("moderation.accountPersonalizations", "Account personalizations")}</strong>
-          <p>{t("moderation.accountPersonalizationsDescription", "Manage ownership and the equipped account appearance without using the member-facing store.")}</p>
+          <p>
+            {t(
+              "moderation.accountPersonalizationsDescription",
+              "Manage ownership and the equipped account appearance without using the member-facing store.",
+            )}
+          </p>
         </span>
         <em>{items.length}</em>
       </header>
@@ -169,14 +174,21 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
         <div className="moderation-admin-personalization-empty">
           <img src="/ui-illustrations/admin-review.svg" alt="" aria-hidden="true" />
           <strong>{t("moderation.noAccountPersonalizations", "No account personalizations")}</strong>
-          <small>{query ? t("moderation.nothingFound") : t("moderation.personalizationEmptyHint", "Granted account cosmetics will appear here.")}</small>
+          <small>
+            {query
+              ? t("moderation.nothingFound")
+              : t(
+                  "moderation.personalizationEmptyHint",
+                  "Granted account cosmetics will appear here.",
+                )}
+          </small>
         </div>
       ) : (
         <div className="moderation-admin-personalization-list">
           {visibleItems.map((item) => (
             <article key={item.personalizationId} className="moderation-admin-personalization-row">
               <span className="moderation-admin-personalization-row__mark" aria-hidden="true">
-                <Glyph name="sparkles" size={16} />
+                <Glyph name="spark" size={16} />
               </span>
               <span className="moderation-admin-personalization-row__copy">
                 <strong>{item.type.replaceAll("_", " ")}</strong>
