@@ -1,0 +1,123 @@
+.moderation-admin-roles__heading--illustrated {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.moderation-admin-roles__mascot {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.moderation-admin-roles__mascot img {
+  width: 46px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.22));
+}
+
+.moderation-admin-role-create--custom,
+.moderation-admin-role-details--custom {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.65fr) minmax(260px, 1.35fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.moderation-admin-role-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.moderation-admin-role-field > span {
+  color: #747c71;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moderation-admin-role-create--custom > .moderation-control-button,
+.moderation-admin-role-details--custom > .moderation-control-button {
+  min-height: 36px;
+}
+
+.moderation-admin-role-empty--illustrated {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 18px 12px;
+}
+
+.moderation-admin-role-empty--illustrated img {
+  width: 74px;
+  height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.82;
+}
+
+.moderation-admin-role-delete-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px;
+  border: 1px solid rgba(223, 88, 80, 0.09);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.04), transparent 34%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-admin-role-delete-confirmation > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-admin-role-delete-confirmation strong {
+  color: #dba09c;
+  font-size: 8.5px;
+}
+
+.moderation-admin-role-delete-confirmation small {
+  color: #85706d;
+  font-size: 7.5px;
+}
+
+.moderation-admin-role-delete-confirmation > div {
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 760px) {
+  .moderation-admin-role-create--custom,
+  .moderation-admin-role-details--custom {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-admin-role-create--custom > .moderation-control-button,
+  .moderation-admin-role-details--custom > .moderation-control-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .moderation-admin-role-delete-confirmation {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-admin-role-delete-confirmation > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
