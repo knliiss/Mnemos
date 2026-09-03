@@ -119,7 +119,7 @@ describe("ModerationAccountControlPanel", () => {
     fireEvent.click(screen.getAllByText(copy.transferOwner)[0]!)
 
     expect(mocks.transferAccountOwnership).not.toHaveBeenCalled()
-    expect(screen.getByText("@member")).toBeDefined()
+    expect(screen.getAllByText("@member").length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByText("Confirm"))
 
