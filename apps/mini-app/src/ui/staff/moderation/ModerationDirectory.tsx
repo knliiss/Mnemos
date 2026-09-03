@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import type {
@@ -28,9 +29,9 @@ export function ModerationDirectory({ mode, navigate, back }: Props) {
     timeStyle: "short",
   })
 
-  if (directory.mode !== mode) {
+  useEffect(() => {
     directory.setMode(mode)
-  }
+  }, [mode, directory.setMode])
 
   const totalResults = directory.pagination.totalElements
   const title = mode === "USERS" ? copy.userDirectory : copy.accountDirectory
