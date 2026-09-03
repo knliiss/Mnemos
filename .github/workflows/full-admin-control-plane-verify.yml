@@ -1,3 +1,4 @@
+# Final exact-code verification trigger
 name: Full Admin Control Plane Verify
 
 on:
