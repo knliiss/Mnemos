@@ -42,37 +42,65 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     [roles],
   )
 
+  const loadRoleState = useCallback(async () => {
+    const loadedRoles = await getAdminAccountRoles(details.accountId)
+    const assignments = await Promise.all(
+      details.members.map(async (member) => [
+        member.memberId,
+        await getAdminMemberRoles(details.accountId, member.memberId),
+      ] as const),
+    )
+
+    return {
+      roles: loadedRoles,
+      memberRoles: Object.fromEntries(
+        assignments.map(([memberId, assignedRoles]) => [
+          memberId,
+          new Set(assignedRoles.map((role) => role.id)),
+        ]),
+      ) as MemberRoleState,
+    }
+  }, [details.accountId, details.members])
+
   const refresh = useCallback(async () => {
     setLoading(true)
 
     try {
-      const loadedRoles = await getAdminAccountRoles(details.accountId)
-      const assignments = await Promise.all(
-        details.members.map(async (member) => [
-          member.memberId,
-          await getAdminMemberRoles(details.accountId, member.memberId),
-        ] as const),
-      )
-
-      setRoles(loadedRoles)
-      setMemberRoles(
-        Object.fromEntries(
-          assignments.map(([memberId, assignedRoles]) => [
-            memberId,
-            new Set(assignedRoles.map((role) => role.id)),
-          ]),
-        ),
-      )
+      const state = await loadRoleState()
+      setRoles(state.roles)
+      setMemberRoles(state.memberRoles)
     } catch (error) {
       handleError(error)
     } finally {
       setLoading(false)
     }
-  }, [details.accountId, details.members])
+  }, [loadRoleState])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    void loadRoleState()
+      .then((state) => {
+        if (active) {
+          setRoles(state.roles)
+          setMemberRoles(state.memberRoles)
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [loadRoleState])
 
   const runMutation = async (key: string, mutation: () => Promise<void>) => {
     if (busyKey) {
@@ -224,7 +252,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
         <div className="moderation-admin-role-list">
           {sortedRoles.map((role, index) => (
             <AdminRoleCard
-              key={role.id}
+              key={`${role.id}:${role.updatedAt}`}
               role={role}
               index={index}
               roleCount={sortedRoles.length}
@@ -325,11 +353,6 @@ function AdminRoleCard({
   const { t } = useTranslation()
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
-
-  useEffect(() => {
-    setName(role.name)
-    setColor(role.color.slice(0, 7))
-  }, [role.color, role.name])
 
   return (
     <article className="moderation-admin-role-card">
