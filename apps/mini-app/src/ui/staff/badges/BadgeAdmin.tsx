@@ -8,6 +8,7 @@ import { BadgeAssignmentGrid } from "./BadgeAssignmentGrid"
 import { BadgeAssignmentSearch } from "./BadgeAssignmentSearch"
 import { BadgeCreateForm } from "./BadgeCreateForm"
 import "./badge-admin.css"
+import "./badge-admin-control-polish.css"
 import { useBadgeAssignments } from "./useBadgeAssignments"
 import { useBadgeCatalog } from "./useBadgeCatalog"
 
