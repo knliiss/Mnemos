@@ -2,12 +2,14 @@ package com.mnemos.account.application.service.member
 
 import com.mnemos.account.application.context.account.ActiveAccountContext
 import com.mnemos.account.application.context.account.ActiveAccountContextProvider
+import com.mnemos.account.application.event.account.AccountIntegrationEvents
 import com.mnemos.account.application.policy.role.RoleAccessGuard
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.permission.RolePermission
+import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -18,6 +20,7 @@ class KickAccountMemberService(
     private val roleAccessGuard: RoleAccessGuard,
     private val accountMemberRepository: AccountMemberRepository,
     private val userRepository: UserRepository,
+    private val integrationEventPublisher: IntegrationEventPublisher,
 ) {
     @Transactional
     fun kickMember(
@@ -48,6 +51,8 @@ class KickAccountMemberService(
             )
 
         val now = Instant.now()
+        val recipientUserIds =
+            accountMemberRepository.findUserIdsByAccountId(context.account.id)
 
         userRepository.clearActiveAccountIfMatches(
             userId = targetMember.userId,
@@ -56,5 +61,14 @@ class KickAccountMemberService(
         )
 
         accountMemberRepository.deleteById(targetMember.id)
+
+        integrationEventPublisher.publish(
+            AccountIntegrationEvents.memberRemoved(
+                account = context.account,
+                member = targetMember,
+                recipientUserIds = recipientUserIds,
+                occurredAt = now,
+            ),
+        )
     }
 }
