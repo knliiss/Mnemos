@@ -9,6 +9,7 @@ import { createSpotlightPreview, spotlightPreviews } from "@/shared/realtime/spo
 import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 import { LeaderboardExclusionAdmin } from "./leaderboards/LeaderboardExclusionAdmin"
+import "./administration-control-polish.css"
 
 type AdminStats = {
   review: number
