@@ -65,6 +65,12 @@ export const betAdminEn = {
     entry: "Entry",
     creating: "Creating…",
     create: "Create",
+    reviewRace: "Review race",
+    createRaceConfirmTitle: "Create this Item race?",
+    createRaceConfirmWarning:
+      "Players will be able to join under these conditions. Verify the item, duration and entry amount before creating the race.",
+    createRaceConfirmAction: "Create race",
+    createRaceKeepEditing: "Keep editing",
     participantsShort: "{{count}} participants",
     bank: "pool",
     winner: "Winner",
