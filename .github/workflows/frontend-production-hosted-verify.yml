@@ -1,0 +1,41 @@
+name: Frontend Production Hosted Verify
+
+on:
+  push:
+    branches:
+      - fix/frontend-production-hosted-runner
+    paths:
+      - .github/workflows/cloudflare-pages.yml
+      - .github/workflows/frontend-production-hosted-verify.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify production frontend workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' \
+            .github/workflows/cloudflare-pages.yml
+
+          workflow=.github/workflows/cloudflare-pages.yml
+
+          [ "$(grep -c 'runs-on: ubuntu-24.04' "$workflow")" -eq 2 ]
+          ! grep -Fq 'mnemos-frontend' "$workflow"
+          grep -Fq 'deploy/production-frontend must point exactly at the current master HEAD' "$workflow"
+          grep -Fq 'ref: ${{ env.SOURCE_SHA }}' "$workflow"
+          grep -Fq 'environment: production' "$workflow"
+          grep -Fq 'pages deploy apps/mini-app/dist --project-name=mnemos-mini-app --branch=master' "$workflow"
