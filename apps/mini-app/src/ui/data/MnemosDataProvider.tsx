@@ -1,8 +1,16 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react"
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react"
 import { useApp } from "@/app/providers/AppProvider"
 import type { DailyRewardStateResponse } from "@/shared/api/backendContracts"
 import type { EventFeedQuery } from "@/shared/api/eventApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import { useAccountData } from "../account/data/useAccountData"
 import { useEventFeedData } from "../events/feed/useEventFeedData"
 import { useSubscriptionData } from "../events/subscriptions/useSubscriptionData"
@@ -86,6 +94,28 @@ export function MnemosDataProvider({ children }: { children: ReactNode }) {
     claimReward,
     restoreReward,
   } = useAccountData(activeAccountId, currentMemberId)
+
+  useEffect(() => {
+    return realtimeEvents.subscribe((event) => {
+      if (
+        event.type !== "account.activated" &&
+        event.type !== "account.deactivated" &&
+        event.type !== "account.deleted" &&
+        event.type !== "account.owner.transferred" &&
+        event.type !== "account.member.joined" &&
+        event.type !== "account.member.left" &&
+        event.type !== "account.member.removed"
+      ) {
+        return
+      }
+
+      if (!activeAccountId || event.payload.accountId !== activeAccountId) {
+        return
+      }
+
+      void refreshAccount().catch(handleError)
+    })
+  }, [activeAccountId, refreshAccount])
 
   const {
     feed,
