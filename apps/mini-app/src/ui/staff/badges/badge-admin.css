@@ -3,6 +3,8 @@
 }
 
 .badge-admin-screen .bet-admin-header-action {
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -10,9 +12,28 @@
   padding: 0 10px;
   border: 1px solid rgba(235, 241, 213, 0.09);
   border-radius: 10px;
+  outline: none;
   color: #cbd1c6;
   background: rgba(255, 255, 255, 0.02);
+  font: inherit;
   font-size: 9px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.badge-admin-screen .bet-admin-header-action:hover {
+  border-color: rgba(203, 255, 45, 0.14);
+  color: #e0e5db;
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.badge-admin-screen .bet-admin-header-action:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
 }
 
 .badge-admin-screen .review-overview {
@@ -87,7 +108,9 @@
   padding: 14px;
   border: 1px solid rgba(235, 241, 213, 0.085);
   border-radius: 17px;
-  background: rgba(255, 255, 255, 0.015);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(203, 255, 45, 0.035), transparent 30%),
+    rgba(255, 255, 255, 0.015);
 }
 
 .badge-admin-screen .staff-form-block > header {
@@ -95,11 +118,46 @@
   gap: 3px;
 }
 
+.badge-create-form__header {
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px !important;
+  min-height: 54px;
+}
+
+.badge-create-form__header > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.badge-create-form__mascot {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 50% 70%, rgba(203, 255, 45, 0.11), transparent 55%),
+    rgba(203, 255, 45, 0.02);
+}
+
+.badge-create-form__mascot img {
+  width: 55px;
+  height: 49px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.24));
+}
+
 .badge-admin-screen .staff-form-block .field__label {
   font-size: 9px;
 }
 
-.badge-admin-screen input {
+.badge-admin-screen input:not([type="file"]) {
+  appearance: none;
+  -webkit-appearance: none;
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -110,16 +168,22 @@
   outline: none;
   color: #e4e8df;
   background: rgba(255, 255, 255, 0.02);
+  font: inherit;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
-.badge-admin-screen input:focus {
+.badge-admin-screen input:not([type="file"]):hover {
+  border-color: rgba(235, 241, 213, 0.14);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.badge-admin-screen input:not([type="file"]):focus-visible {
   border-color: rgba(203, 255, 45, 0.23);
+  background: rgba(203, 255, 45, 0.018);
   box-shadow: 0 0 0 3px rgba(203, 255, 45, 0.035);
-}
-
-.badge-admin-screen input[type="color"] {
-  height: 44px;
-  padding: 5px;
 }
 
 .badge-image-picker {
@@ -205,14 +269,19 @@
 }
 
 .badge-admin-screen .staff-form-block > .primary-action {
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 44px;
   border-radius: 12px;
+  outline: none;
+  font: inherit;
   font-size: 10px;
   font-weight: 750;
+  cursor: pointer;
 }
 
 .badge-admin-screen .staff-search-results > div > button.is-selected {
@@ -228,6 +297,8 @@
 }
 
 .badge-admin-screen .review-queue-card {
+  appearance: none;
+  -webkit-appearance: none;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
@@ -238,9 +309,22 @@
   padding: 10px;
   border: 1px solid rgba(235, 241, 213, 0.075);
   border-radius: 14px;
+  outline: none;
   color: #dfe3da;
   background: rgba(255, 255, 255, 0.014);
+  font: inherit;
   text-align: left;
+  cursor: pointer;
+}
+
+.badge-admin-screen .review-queue-card:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.11);
+  background: rgba(203, 255, 45, 0.02);
+}
+
+.badge-admin-screen .review-queue-card:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
 }
 
 .badge-admin-screen .review-queue-card.is-selected {
@@ -323,6 +407,20 @@
 }
 
 @media (max-width: 374px) {
+  .badge-create-form__header {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .badge-create-form__mascot {
+    width: 48px;
+    height: 46px;
+  }
+
+  .badge-create-form__mascot img {
+    width: 46px;
+    height: 43px;
+  }
+
   .badge-admin-screen .review-queue-card {
     grid-template-columns: 42px minmax(0, 1fr);
   }
