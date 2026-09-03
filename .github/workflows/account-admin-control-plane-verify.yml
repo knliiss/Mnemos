@@ -19,7 +19,7 @@ on:
       - "gradlew"
 
 concurrency:
-  group: account-admin-control-plane-${{ github.ref }}
+  group: account-admin-control-plane-${{ github.sha }}
   cancel-in-progress: true
 
 permissions:
