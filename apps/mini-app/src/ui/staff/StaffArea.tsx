@@ -4,6 +4,7 @@ import { FeatureLoading } from "../system/FeatureLoading"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import "./badges/badge-admin.css"
 import "./collectors/collector-admin.css"
+import "./moderation/moderation-admin-navigation.css"
 
 type Props = {
   routeId: Route["id"]
