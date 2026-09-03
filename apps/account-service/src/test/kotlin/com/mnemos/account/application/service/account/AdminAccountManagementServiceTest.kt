@@ -11,6 +11,7 @@ import com.mnemos.account.domain.repository.role.RoleAssignmentRepository
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.contracts.account.v1.AccountStatusChangedV1
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -56,7 +57,7 @@ class AdminAccountManagementServiceTest {
             now = account.deletedAt!!,
         )
         verify(accountRepository).update(account)
-        verify(integrationEventPublisher).publish(any())
+        verify(integrationEventPublisher).publish<AccountStatusChangedV1>(any(), any())
     }
 
     private fun createAccount(): Account =
