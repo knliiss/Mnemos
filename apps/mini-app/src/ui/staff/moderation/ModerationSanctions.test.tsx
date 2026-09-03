@@ -51,8 +51,8 @@ function createController(overrides: Partial<ModerationUserController> = {}): Mo
     setReason: vi.fn(),
     setInternalNote: vi.fn(),
     setDuration: vi.fn(),
-    submitSanction: vi.fn().mockResolvedValue(undefined),
-    revoke: vi.fn().mockResolvedValue(undefined),
+    submitSanction: vi.fn().mockResolvedValue(true),
+    revoke: vi.fn().mockResolvedValue(true),
     ...overrides,
   } as unknown as ModerationUserController
 }
@@ -82,9 +82,27 @@ describe("ModerationSanctions", () => {
 
     await waitFor(() => {
       expect(controller.submitSanction).toHaveBeenCalledTimes(1)
+      expect(screen.queryByRole("alertdialog", { name: "moderation.createSanction" })).toBeNull()
     })
 
     expect(dialog).toBeDefined()
+  })
+
+  it("keeps sanction confirmation open when the mutation fails", async () => {
+    const controller = createController({
+      submitSanction: vi.fn().mockResolvedValue(false),
+    })
+
+    render(<ModerationSanctions controller={controller} language="en" canSanction />)
+
+    fireEvent.click(screen.getByText("moderation.createSanction"))
+    fireEvent.click(screen.getByText("common.confirm"))
+
+    await waitFor(() => {
+      expect(controller.submitSanction).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.getByRole("alertdialog", { name: "moderation.createSanction" })).toBeDefined()
   })
 
   it("dismisses sanction confirmation with Escape", async () => {
@@ -143,6 +161,29 @@ describe("ModerationSanctions", () => {
 
     await waitFor(() => {
       expect(controller.revoke).toHaveBeenCalledWith(activeBan.id)
+      expect(screen.queryByRole("alertdialog", { name: "moderation.unban" })).toBeNull()
     })
+  })
+
+  it("keeps revoke confirmation open when the mutation fails", async () => {
+    const controller = createController({
+      activeBan,
+      sanctions: [activeBan],
+      sanctionFormOpen: false,
+      revoke: vi.fn().mockResolvedValue(false),
+    })
+
+    render(<ModerationSanctions controller={controller} language="en" canSanction />)
+
+    fireEvent.click(screen.getByRole("button", { name: /moderation\.unban/ }))
+
+    const dialog = screen.getByRole("alertdialog", { name: "moderation.unban" })
+    fireEvent.click(within(dialog).getByRole("button", { name: "moderation.unban" }))
+
+    await waitFor(() => {
+      expect(controller.revoke).toHaveBeenCalledWith(activeBan.id)
+    })
+
+    expect(screen.getByRole("alertdialog", { name: "moderation.unban" })).toBeDefined()
   })
 })
