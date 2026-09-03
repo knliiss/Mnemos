@@ -38,9 +38,11 @@ data class RealtimeEvent(
             RealtimeEventType.ACCOUNT_MEMBER_JOINED,
             RealtimeEventType.ACCOUNT_MEMBER_LEFT,
             RealtimeEventType.ACCOUNT_MEMBER_REMOVED,
+            RealtimeEventType.SANCTION_ACTIVATED,
+            RealtimeEventType.SANCTION_DEACTIVATED,
             ->
                 require(operationId == null) {
-                    "Account lifecycle events must not expose a domain operationId"
+                    "Lifecycle events must not expose a domain operationId"
                 }
         }
     }
