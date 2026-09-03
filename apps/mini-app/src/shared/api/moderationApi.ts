@@ -81,6 +81,16 @@ export type AdminAccountDetailsResponse = {
   members: AdminAccountMemberResponse[]
 }
 
+export type AdminAccountRoleResponse = {
+  id: string
+  name: string
+  color: string
+  hierarchyRank: number
+  permissions: Record<string, boolean>
+  createdAt: string
+  updatedAt: string
+}
+
 export type SanctionResponse = {
   id: string
   userId: string
@@ -161,6 +171,19 @@ export async function searchAccountDirectory(
 
 export async function getAdminAccount(accountId: string): Promise<AdminAccountDetailsResponse> {
   return api<AdminAccountDetailsResponse>(`/api/v1/admin/accounts/${accountId}`)
+}
+
+export async function getAdminAccountRoles(accountId: string): Promise<AdminAccountRoleResponse[]> {
+  return api<AdminAccountRoleResponse[]>(`/api/v1/admin/accounts/${accountId}/roles`)
+}
+
+export async function getAdminMemberRoles(
+  accountId: string,
+  memberId: string,
+): Promise<AdminAccountRoleResponse[]> {
+  return api<AdminAccountRoleResponse[]>(
+    `/api/v1/admin/accounts/${accountId}/members/${memberId}/roles`,
+  )
 }
 
 export async function reactivateAccount(accountId: string): Promise<void> {
