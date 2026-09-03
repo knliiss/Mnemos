@@ -41,8 +41,10 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [unlistConfirmationVisible, setUnlistConfirmationVisible] = useState(false)
   const mountedRef = useRef(true)
   const busyRef = useRef(false)
+  const unlistConfirmRef = useRef<HTMLButtonElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -66,6 +68,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
       setSystemManaged(response?.origin === "SYSTEM")
       setPrice(next ? String(next.price) : "")
       setReason("")
+      setUnlistConfirmationVisible(false)
     } catch (error) {
       if (mountedRef.current) {
         setLoadError(true)
@@ -89,6 +92,20 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
       window.cancelAnimationFrame(frame)
     }
   }, [load])
+
+  useEffect(() => {
+    if (!unlistConfirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      unlistConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [unlistConfirmationVisible])
 
   const numericPrice = Number(price)
   const priceValid = Number.isInteger(numericPrice) && numericPrice > 0
@@ -151,6 +168,7 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
       }
 
       if (mountedRef.current) {
+        setUnlistConfirmationVisible(false)
         back()
       }
     } catch (error) {
@@ -307,20 +325,67 @@ export function PersonalizationReviewDetail({ personalizationId, view, back }: P
             </section>
           </div>
         ) : systemManaged ? null : (
-          <section className="review-approve-panel">
-            <button
-              type="button"
-              className={item.status === "PUBLISHED" ? "destructive-action" : "primary-action"}
-              disabled={busy}
-              onClick={() => void changeListing()}
-            >
-              <Glyph name={item.status === "PUBLISHED" ? "close" : "check"} size={16} />
-              {busy
-                ? t("personalization.review.saving")
-                : item.status === "PUBLISHED"
-                  ? t("personalization.review.unlist")
-                  : t("personalization.review.relist")}
-            </button>
+          <section className="review-approve-panel review-listing-panel">
+            {item.status === "PUBLISHED" && unlistConfirmationVisible ? (
+              <div
+                className="review-listing-confirmation"
+                role="alertdialog"
+                aria-label={t("personalization.review.unlistConfirmTitle")}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault()
+                    setUnlistConfirmationVisible(false)
+                  }
+                }}
+              >
+                <span className="review-listing-confirmation__art" aria-hidden="true">
+                  <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
+                </span>
+                <span className="review-listing-confirmation__copy">
+                  <small>{t("personalization.review.unlistConfirmEyebrow")}</small>
+                  <strong>{t("personalization.review.unlistConfirmTitle")}</strong>
+                  <p>{t("personalization.review.unlistConfirmCopy")}</p>
+                </span>
+                <div className="review-listing-confirmation__actions">
+                  <button
+                    ref={unlistConfirmRef}
+                    type="button"
+                    className="destructive-action"
+                    disabled={busy}
+                    onClick={() => void changeListing()}
+                  >
+                    <Glyph name="close" size={16} />
+                    {busy ? t("personalization.review.saving") : t("personalization.review.unlist")}
+                  </button>
+                  <button
+                    type="button"
+                    className="review-listing-cancel"
+                    disabled={busy}
+                    onClick={() => setUnlistConfirmationVisible(false)}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={item.status === "PUBLISHED" ? "destructive-action" : "primary-action"}
+                disabled={busy}
+                onClick={() =>
+                  item.status === "PUBLISHED"
+                    ? setUnlistConfirmationVisible(true)
+                    : void changeListing()
+                }
+              >
+                <Glyph name={item.status === "PUBLISHED" ? "close" : "check"} size={16} />
+                {busy
+                  ? t("personalization.review.saving")
+                  : item.status === "PUBLISHED"
+                    ? t("personalization.review.unlist")
+                    : t("personalization.review.relist")}
+              </button>
+            )}
           </section>
         )}
       </section>
