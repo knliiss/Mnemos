@@ -8,6 +8,7 @@ import "./collectors/collector-admin-control-polish.css"
 import "./moderation/moderation-account-personalization-actions.css"
 import "./moderation/moderation-admin-navigation.css"
 import "./moderation/moderation-control-tones.css"
+import "./wipes/wipe-admin-control-polish.css"
 
 type Props = {
   routeId: Route["id"]
