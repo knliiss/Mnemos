@@ -60,9 +60,25 @@ jobs:
           sudo -n bash <<'BASH'
           set -euo pipefail
 
-          set -a
-          source /etc/mnemos/mnemos.env
-          set +a
+          read_env() {
+            local key="$1"
+
+            awk -v key="$key" '
+              index($0, key "=") == 1 {
+                print substr($0, length(key) + 2)
+                exit
+              }
+            ' /etc/mnemos/mnemos.env
+          }
+
+          app_postgres_db="$(read_env APP_POSTGRES_DB)"
+          app_postgres_user="$(read_env APP_POSTGRES_USER)"
+          app_postgres_password="$(read_env APP_POSTGRES_PASSWORD)"
+
+          if [ -z "$app_postgres_db" ] || [ -z "$app_postgres_user" ] || [ -z "$app_postgres_password" ]; then
+            echo 'Required application PostgreSQL settings are missing' >&2
+            exit 1
+          fi
 
           pg_container="$(docker ps --filter 'name=app-postgres' --format '{{.Names}}' | head -n 1)"
 
@@ -72,51 +88,50 @@ jobs:
           fi
 
           docker exec \
-            -e PGPASSWORD="$APP_POSTGRES_PASSWORD" \
+            -e PGPASSWORD="$app_postgres_password" \
             "$pg_container" \
             psql \
-              -U "$APP_POSTGRES_USER" \
-              -d "$APP_POSTGRES_DB" \
+              -U "$app_postgres_user" \
+              -d "$app_postgres_db" \
               -v ON_ERROR_STOP=1 \
               -At \
               -F '|' <<'SQL'
-          SET search_path TO event,public;
+          SELECT 'DATABASE_NOW', now()::text, 0;
 
           SELECT
               'ITEM_DROP',
               COALESCE(MAX(occurred_at)::text, 'null'),
               COUNT(*) FILTER (WHERE occurred_at >= now() - interval '20 minutes')
-          FROM item_drop_events;
+          FROM event.item_drop_events;
 
           SELECT
               'BOOSTER',
               COALESCE(MAX(activated_at)::text, 'null'),
               COUNT(*) FILTER (WHERE activated_at >= now() - interval '20 minutes')
-          FROM booster_events;
+          FROM event.booster_events;
 
           SELECT
               'RAID',
               COALESCE(MAX(started_at)::text, 'null'),
               COUNT(*) FILTER (WHERE started_at >= now() - interval '20 minutes')
-          FROM raid_events;
+          FROM event.raid_events;
 
           SELECT
               'GLOBAL',
               COALESCE(MAX(started_at)::text, 'null'),
               COUNT(*) FILTER (WHERE started_at >= now() - interval '20 minutes')
-          FROM global_events;
-
-          SET search_path TO notification,public;
+          FROM event.global_events;
 
           SELECT
               'NOTIFICATION_INBOX',
               COALESCE(MAX(recorded_at)::text, 'null'),
               COUNT(*) FILTER (WHERE recorded_at >= now() - interval '20 minutes')
-          FROM inbox_events;
+          FROM notification.inbox_events;
           SQL
           BASH
 
       - name: Capture collector pipeline counters
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
@@ -136,6 +151,7 @@ jobs:
           done
 
       - name: Capture focused post-deploy logs
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
