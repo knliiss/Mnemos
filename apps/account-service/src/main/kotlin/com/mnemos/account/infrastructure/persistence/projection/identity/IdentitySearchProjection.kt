@@ -15,5 +15,5 @@ interface IdentitySearchProjection {
 
     fun getCristalixNickname(): String?
 
-    fun getActive(): Boolean?
+    fun getStatus(): String?
 }
