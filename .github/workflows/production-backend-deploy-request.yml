@@ -1,0 +1,53 @@
+name: Production Backend Deploy Request
+
+on:
+  push:
+    branches:
+      - "deploy/production-backend/**"
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Record immutable deploy-ref request
+        shell: bash
+        env:
+          AUTHORIZATION_REF: ${{ github.ref_name }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          case "$AUTHORIZATION_REF" in
+            deploy/production-backend/*)
+              service="${AUTHORIZATION_REF#deploy/production-backend/}"
+              ;;
+            *)
+              echo "Unauthorized production backend ref: $AUTHORIZATION_REF" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ -z "$service" ] || printf '%s' "$service" | grep -Fq '/'; then
+            echo "Deploy ref must select exactly one service" >&2
+            exit 1
+          fi
+
+          if ! printf '%s' "$TARGET_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Deploy ref target must be an immutable full commit SHA" >&2
+            exit 1
+          fi
+
+          {
+            echo "## Production backend deploy request"
+            echo
+            echo "Ref: \`$AUTHORIZATION_REF\`"
+            echo "Service: \`$service\`"
+            echo "Target: \`$TARGET_SHA\`"
+            echo
+            echo "This workflow is a read-only signal. It has no production runner, package-write, secret, or runtime mutation capability."
+          } >> "$GITHUB_STEP_SUMMARY"
