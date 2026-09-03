@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ReactNode } from "react"
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PersonalizationReviewDetail } from "./PersonalizationReviewDetail"
@@ -77,7 +78,7 @@ vi.mock("../../shared/MnemosIcon", () => ({
 }))
 
 vi.mock("../../shared/Primitives", () => ({
-  Field: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Field: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   PageHeader: ({ title }: { title: string }) => <header>{title}</header>,
 }))
 
