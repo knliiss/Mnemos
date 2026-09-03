@@ -51,8 +51,45 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   }, [accountId])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    if (!accountId) {
+      queueMicrotask(() => {
+        if (active) {
+          setDetails(null)
+          setLoadError(true)
+          setLoading(false)
+        }
+      })
+
+      return () => {
+        active = false
+      }
+    }
+
+    void getAdminAccount(accountId)
+      .then((accountDetails) => {
+        if (active) {
+          setDetails(accountDetails)
+          setLoadError(false)
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(true)
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [accountId])
 
   const changeStatus = async () => {
     if (!details || details.status === "DELETED" || statusBusy) {
