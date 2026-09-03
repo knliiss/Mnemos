@@ -32,19 +32,14 @@ jobs:
 
           path = Path('.github/workflows/production-backend-service-deploy.yml')
           content = path.read_text(encoding='utf-8')
-
-          old = '''    runs-on:
-      - self-hosted
-      - Linux
-      - X64
-      - mnemos-backend
-'''
-          new = '''    runs-on: ubuntu-24.04
-'''
-
+          old = "    runs-on:\n      - self-hosted\n      - Linux\n      - X64\n      - mnemos-backend\n"
+          new = "    runs-on: ubuntu-24.04\n"
           count = content.count(old)
+
           if count != 1:
-              raise SystemExit(f'Expected exactly one backend publisher runner block, found {count}')
+              raise SystemExit(
+                  f'Expected exactly one backend publisher runner block, found {count}'
+              )
 
           path.write_text(content.replace(old, new, 1), encoding='utf-8')
           PY
@@ -74,10 +69,10 @@ jobs:
             .github/workflows/production-backend-service-deploy.yml \
             .github/workflows/patch-production-backend-hosted-publisher.yml
 
-          git diff --cached --exit-code && {
+          if git diff --cached --quiet; then
             echo 'Patch produced no changes' >&2
             exit 1
-          }
+          fi
 
           git commit -m 'Use hosted backend image publisher'
           git push origin HEAD:fix/production-backend-hosted-publisher
