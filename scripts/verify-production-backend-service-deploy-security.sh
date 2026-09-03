@@ -168,6 +168,30 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"authorization_mechanism": "service-
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'retention-days: 90' ||
     fail "Backend deploy execution audit must use extended retention"
 
+workspace_hygiene_count="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -Fc 'name: Prepare persistent production runner workspace' || true)"
+[ "$workspace_hygiene_count" -eq 2 ] ||
+    fail "Persistent production runner workspace hygiene must run before both production checkouts"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"' ||
+    fail "Persistent production runner workspace ownership repair is missing"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- '-name __pycache__' ||
+    fail "Persistent production runner bytecode cache cleanup is missing"
+
+first_hygiene_line="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -n -m1 -F 'name: Prepare persistent production runner workspace' | cut -d: -f1)"
+coordinator_checkout_line="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -n -m1 -F 'name: Checkout trusted deployment coordinator' | cut -d: -f1)"
+last_hygiene_line="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -n -F 'name: Prepare persistent production runner workspace' | tail -n 1 | cut -d: -f1)"
+pinned_checkout_line="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -n -m1 -F 'name: Checkout pinned production deployment tooling' | cut -d: -f1)"
+
+[ "$first_hygiene_line" -lt "$coordinator_checkout_line" ] ||
+    fail "Plan runner hygiene must execute before trusted coordinator checkout"
+[ "$last_hygiene_line" -lt "$pinned_checkout_line" ] ||
+    fail "Execution runner hygiene must execute before pinned tooling checkout"
+
+privileged_bytecode_env_count="$(printf '%s\n' "$DEPLOY_CONTENT" | grep -Fc 'PYTHONDONTWRITEBYTECODE=1' || true)"
+[ "$privileged_bytecode_env_count" -ge 5 ] ||
+    fail "Privileged production Python calls must disable bytecode writes for pinned tooling compatibility"
+
 executor_bytecode_line="$(grep -n -m1 -F 'sys.dont_write_bytecode = True' "$DEPLOY_EXECUTOR" | cut -d: -f1 || true)"
 executor_local_import_line="$(grep -n -m1 -F 'import production_deployment_executor_base as base' "$DEPLOY_EXECUTOR" | cut -d: -f1 || true)"
 
