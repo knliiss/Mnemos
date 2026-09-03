@@ -7,6 +7,7 @@ on:
     paths:
       - apps/account-service/**
       - apps/realtime-service/**
+      - apps/wallet-service/**
       - apps/mini-app/**
       - .github/workflows/full-admin-control-plane-verify.yml
 
@@ -34,8 +35,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
-      - name: Verify account and realtime services
-        run: ./gradlew :apps:account-service:check :apps:realtime-service:check
+      - name: Verify account, realtime and wallet services
+        run: ./gradlew :apps:account-service:check :apps:realtime-service:check :apps:wallet-service:check
 
   frontend:
     runs-on: ubuntu-24.04
