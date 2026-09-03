@@ -124,6 +124,10 @@ export const personalizationUk = {
       reject: "Відхилити",
       unlist: "Зняти з публікації",
       relist: "Повернути в маркетплейс",
+      unlistConfirmEyebrow: "ВИДИМІСТЬ У МАРКЕТПЛЕЙСІ",
+      unlistConfirmTitle: "Зняти цю персоналізацію з публікації?",
+      unlistConfirmCopy:
+        "Вона одразу зникне з маркетплейсу. У поточних власників вона залишиться, а пізніше її можна буде опублікувати знову.",
       selectApplication: "Обери персоналізацію",
       selectApplicationCopy: "Зʼявиться preview та інструменти модерації.",
     },
