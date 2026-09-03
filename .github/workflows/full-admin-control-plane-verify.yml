@@ -6,6 +6,7 @@ on:
       - feat/full-admin-control-plane
     paths:
       - apps/account-service/**
+      - apps/moderation-service/**
       - apps/realtime-service/**
       - apps/wallet-service/**
       - apps/personalization-service/**
@@ -18,7 +19,7 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout branch head
@@ -36,8 +37,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
-      - name: Verify account, realtime, wallet and personalization services
-        run: ./gradlew :apps:account-service:check :apps:realtime-service:check :apps:wallet-service:check :apps:personalization-service:check
+      - name: Verify administrative backend services
+        run: ./gradlew :apps:account-service:check :apps:moderation-service:check :apps:realtime-service:check :apps:wallet-service:check :apps:personalization-service:check
 
   frontend:
     runs-on: ubuntu-24.04
