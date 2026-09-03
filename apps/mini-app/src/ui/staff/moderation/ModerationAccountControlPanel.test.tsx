@@ -100,9 +100,7 @@ describe("ModerationAccountControlPanel", () => {
       deletedAt: "2026-09-03T00:06:00Z",
     }
 
-    mocks.getAdminAccount
-      .mockResolvedValueOnce(activeAccount)
-      .mockResolvedValueOnce(deletedAccount)
+    mocks.getAdminAccount.mockResolvedValueOnce(activeAccount).mockResolvedValueOnce(deletedAccount)
     mocks.deleteAccountPermanently.mockResolvedValue(undefined)
 
     render(
