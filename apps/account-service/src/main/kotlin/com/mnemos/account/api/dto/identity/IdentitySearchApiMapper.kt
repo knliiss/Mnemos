@@ -24,6 +24,6 @@ object IdentitySearchApiMapper {
             accountId = accountId.id,
             cristalixUuid = cristalixUuid,
             cristalixNickname = cristalixNickname,
-            active = active,
+            status = status.name,
         )
 }
