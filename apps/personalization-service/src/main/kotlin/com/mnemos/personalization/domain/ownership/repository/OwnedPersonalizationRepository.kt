@@ -42,4 +42,9 @@ interface OwnedPersonalizationRepository {
         owner: PersonalizationOwner,
         type: PersonalizationType,
     )
+
+    fun delete(
+        owner: PersonalizationOwner,
+        personalizationId: PersonalizationId,
+    )
 }
