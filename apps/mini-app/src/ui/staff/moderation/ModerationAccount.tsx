@@ -12,6 +12,7 @@ import { PageHeader } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
 import { ModerationAccountControlPanel } from "./ModerationAccountControlPanel"
+import { ModerationAccountRolesPanel } from "./ModerationAccountRolesPanel"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
 
 type Props = {
@@ -193,6 +194,8 @@ export function ModerationAccount({ params, navigate, back }: Props) {
         onChanged={refresh}
         onOpenUser={(userId) => navigate({ id: "moderation-user", params: { userId } })}
       />
+
+      <ModerationAccountRolesPanel details={details} onChanged={refresh} />
     </div>
   )
 }
