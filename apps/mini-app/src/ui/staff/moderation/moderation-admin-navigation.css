@@ -1,0 +1,249 @@
+.moderation-management-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.moderation-management-card {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 14px;
+  outline: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.014);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-management-card:hover {
+  border-color: rgba(203, 255, 45, 0.13);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.moderation-management-card:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-management-card__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.moderation-management-card__mark--user {
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.moderation-management-card__mark--user img {
+  width: 28px;
+  height: 28px;
+}
+
+.moderation-management-card__mark--account {
+  color: #a9c6eb;
+  background: rgba(100, 151, 217, 0.075);
+}
+
+.moderation-management-card > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.moderation-management-card small,
+.moderation-management-card p {
+  margin: 0;
+  color: #737a70;
+  font-size: 8px;
+}
+
+.moderation-management-card strong {
+  color: #d8ddd2;
+  font-size: 11px;
+}
+
+.moderation-management-card > b {
+  color: #7c8478;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.moderation-user-account-link {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 11px;
+  outline: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.01);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-user-account-link:hover {
+  border-color: rgba(203, 255, 45, 0.12);
+  background: rgba(203, 255, 45, 0.02);
+}
+
+.moderation-user-account-link:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-user-account-link > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+
+.moderation-user-account-link > span:first-child i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #696f67;
+}
+
+.moderation-user-account-link > span:first-child.is-active i {
+  background: #cbe86e;
+  box-shadow: 0 0 10px rgba(203, 255, 45, 0.22);
+}
+
+.moderation-user-account-link > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-user-account-link strong,
+.moderation-user-account-link small,
+.moderation-user-account-link em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-user-account-link strong {
+  color: #d8ddd2;
+  font-size: 10px;
+}
+
+.moderation-user-account-link small,
+.moderation-user-account-link em {
+  color: #6f766c;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.moderation-user-account-link > b {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #8b9188;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.moderation-user-account-link > b.is-active {
+  color: #cbe86e;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.moderation-user-account-link > span:last-child {
+  color: #767d72;
+  font-size: 15px;
+}
+
+.moderation-account-owner-link,
+.moderation-account-member__user-link {
+  appearance: none;
+  -webkit-appearance: none;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  color: #c7df78;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.moderation-account-owner-link:hover,
+.moderation-account-member__user-link:hover {
+  color: #ddf38f;
+}
+
+.moderation-account-owner-link:focus-visible,
+.moderation-account-member__user-link:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.08);
+}
+
+.moderation-account-status-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 9px 0 0;
+}
+
+.moderation-account-control__admin-actions {
+  display: grid;
+  gap: 7px;
+}
+
+@media (max-width: 420px) {
+  .moderation-management-card {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .moderation-management-card__mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  .moderation-user-account-link {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+  }
+
+  .moderation-user-account-link > span:last-child {
+    display: none;
+  }
+
+  .moderation-account-status-actions > .moderation-control-button {
+    width: 100%;
+  }
+}
