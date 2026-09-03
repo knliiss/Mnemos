@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ReactNode } from "react"
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { ItemRaceResponse } from "@/shared/api/betApi"
@@ -32,7 +33,7 @@ vi.mock("../../components/events/EventArt", () => ({
 
 vi.mock("../../shared/Primitives", () => ({
   CurrencyValue: ({ value }: { value: number }) => <span>{value}</span>,
-  Field: ({ label, children }: { label: string; children: React.ReactNode }) => (
+  Field: ({ label, children }: { label: string; children: ReactNode }) => (
     <label>
       <span>{label}</span>
       {children}
