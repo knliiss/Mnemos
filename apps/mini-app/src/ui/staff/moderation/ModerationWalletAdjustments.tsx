@@ -61,8 +61,11 @@ export function ModerationWalletAdjustments({
       return
     }
 
-    await controller.submitAdjustment()
-    setConfirmationVisible(false)
+    const succeeded = await controller.submitAdjustment()
+
+    if (succeeded) {
+      setConfirmationVisible(false)
+    }
   }
 
   const changeWalletTarget = (value: (typeof walletTargets)[number]) => {
