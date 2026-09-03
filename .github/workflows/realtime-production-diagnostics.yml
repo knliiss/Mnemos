@@ -36,12 +36,92 @@ jobs:
           changed="$(git diff --name-only "$BASELINE_SHA" HEAD)"
           test "$changed" = ".github/workflows/realtime-production-diagnostics.yml"
 
+      - name: Verify deployed event-service revision
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== event-service image ==='
+          sudo -n docker service inspect \
+            --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' \
+            mnemos_event-service
+
+          echo '=== event-service running tasks ==='
+          sudo -n docker service ps \
+            --filter desired-state=running \
+            --format '{{.Name}}|{{.Image}}|{{.CurrentState}}|{{.Error}}' \
+            mnemos_event-service
+
+      - name: Capture post-deploy database freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n bash <<'BASH'
+          set -euo pipefail
+
+          set -a
+          source /etc/mnemos/mnemos.env
+          set +a
+
+          pg_container="$(docker ps --filter 'name=app-postgres' --format '{{.Names}}' | head -n 1)"
+
+          if [ -z "$pg_container" ]; then
+            echo 'Application PostgreSQL container was not found' >&2
+            exit 1
+          fi
+
+          docker exec \
+            -e PGPASSWORD="$APP_POSTGRES_PASSWORD" \
+            "$pg_container" \
+            psql \
+              -U "$APP_POSTGRES_USER" \
+              -d "$APP_POSTGRES_DB" \
+              -v ON_ERROR_STOP=1 \
+              -At \
+              -F '|' <<'SQL'
+          SET search_path TO event,public;
+
+          SELECT
+              'ITEM_DROP',
+              COALESCE(MAX(occurred_at)::text, 'null'),
+              COUNT(*) FILTER (WHERE occurred_at >= now() - interval '20 minutes')
+          FROM item_drop_events;
+
+          SELECT
+              'BOOSTER',
+              COALESCE(MAX(activated_at)::text, 'null'),
+              COUNT(*) FILTER (WHERE activated_at >= now() - interval '20 minutes')
+          FROM booster_events;
+
+          SELECT
+              'RAID',
+              COALESCE(MAX(started_at)::text, 'null'),
+              COUNT(*) FILTER (WHERE started_at >= now() - interval '20 minutes')
+          FROM raid_events;
+
+          SELECT
+              'GLOBAL',
+              COALESCE(MAX(started_at)::text, 'null'),
+              COUNT(*) FILTER (WHERE started_at >= now() - interval '20 minutes')
+          FROM global_events;
+
+          SET search_path TO notification,public;
+
+          SELECT
+              'NOTIFICATION_INBOX',
+              COALESCE(MAX(recorded_at)::text, 'null'),
+              COUNT(*) FILTER (WHERE recorded_at >= now() - interval '20 minutes')
+          FROM inbox_events;
+          SQL
+          BASH
+
       - name: Capture collector pipeline counters
         shell: bash
         run: |
           set -euo pipefail
-          realtime="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 || true)"
-          event="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_event-service 2>&1 || true)"
+          realtime="$(sudo -n docker service logs --since 20m --timestamps --raw mnemos_realtime-service 2>&1 || true)"
+          event="$(sudo -n docker service logs --since 20m --timestamps --raw mnemos_event-service 2>&1 || true)"
 
           echo '=== realtime counters ==='
           for pattern in 'EVENT_REPORT' 'REPORT_QUEUED' 'Failed to publish collector report' 'DELIVERY_UNAVAILABLE' 'NOT_OBSERVING' 'TOO_MANY_IN_FLIGHT' 'observation lease renewed'; do
@@ -55,23 +135,27 @@ jobs:
             printf '%s\n' "$event" | grep -E -i -c "$pattern" || true
           done
 
-      - name: Capture focused pipeline logs
+      - name: Capture focused post-deploy logs
         shell: bash
         run: |
           set -euo pipefail
+
           echo '=== realtime ==='
-          sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 \
-            | grep -E -i 'EVENT_REPORT|REPORT_QUEUED|publish collector report|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|collector transport response|observation lease renewed' \
-            | tail -n 1500 || true
+          sudo -n docker service logs --since 20m --timestamps --raw mnemos_realtime-service 2>&1 \
+            | grep -E -i 'EVENT_REPORT|REPORT_QUEUED|publish collector report|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|collector transport response|observation lease renewed|ERROR|Exception|WARN' \
+            | tail -n 1000 || true
+
           echo '=== event-service ==='
-          sudo -n docker service logs --since 3h --timestamps --raw mnemos_event-service 2>&1 \
+          sudo -n docker service logs --since 20m --timestamps --raw mnemos_event-service 2>&1 \
             | grep -E -i 'collector|ingress|REPORT_QUEUED|dead.?letter|deserial|protocol|ERROR|Exception|WARN' \
-            | tail -n 1500 || true
+            | tail -n 1000 || true
+
           echo '=== notification-service ==='
-          sudo -n docker service logs --since 3h --timestamps --raw mnemos_notification-service 2>&1 \
+          sudo -n docker service logs --since 20m --timestamps --raw mnemos_notification-service 2>&1 \
             | grep -E -i 'notification|event|ERROR|Exception|WARN' \
             | tail -n 1000 || true
+
           echo '=== bot ==='
-          sudo -n docker service logs --since 3h --timestamps --raw mnemos_telegram-bot-service 2>&1 \
+          sudo -n docker service logs --since 20m --timestamps --raw mnemos_telegram-bot-service 2>&1 \
             | grep -E -i 'notification|409|telegram|ERROR|Exception|WARN' \
             | tail -n 1000 || true
