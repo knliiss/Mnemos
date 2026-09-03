@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { IdentitySearchResponse } from "@/shared/api/moderationApi"
 import { TRANSACTION_TYPES } from "../../contracts"
@@ -20,6 +21,8 @@ export function ModerationWalletAdjustments({
   canAdjustPrime,
 }: Props) {
   const { t } = useTranslation()
+  const [confirmationVisible, setConfirmationVisible] = useState(false)
+  const confirmButtonRef = useRef<HTMLButtonElement>(null)
   const walletTargets = canAdjustPrime ? (["USER", "ACCOUNT"] as const) : (["ACCOUNT"] as const)
   const writableAccounts = identity.accounts.filter((account) => account.status !== "DELETED")
   const numericAmount = Number(controller.amount)
@@ -27,6 +30,45 @@ export function ModerationWalletAdjustments({
     controller.operation === "DEBIT" &&
     (!controller.balance || numericAmount > controller.balance.amount)
   const amountAllowed = controller.amountValid && !debitExceedsBalance
+  const adjustmentAllowed =
+    Boolean(controller.targetId) &&
+    amountAllowed &&
+    Boolean(controller.walletReason.trim()) &&
+    !controller.busy
+
+  useEffect(() => {
+    if (!confirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      confirmButtonRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [confirmationVisible])
+
+  const dismissConfirmation = () => {
+    if (!controller.busy) {
+      setConfirmationVisible(false)
+    }
+  }
+
+  const submitConfirmedAdjustment = async () => {
+    if (!adjustmentAllowed) {
+      return
+    }
+
+    await controller.submitAdjustment()
+    setConfirmationVisible(false)
+  }
+
+  const changeWalletTarget = (value: (typeof walletTargets)[number]) => {
+    setConfirmationVisible(false)
+    controller.setWalletTarget(value)
+  }
 
   return (
     <section className="admin-wallet-panel">
@@ -44,7 +86,7 @@ export function ModerationWalletAdjustments({
         <Segmented
           value={controller.walletTarget}
           options={walletTargets}
-          onChange={controller.setWalletTarget}
+          onChange={changeWalletTarget}
           label={(value) =>
             value === "USER" ? t("moderation.userTarget") : t("moderation.accountTarget")
           }
@@ -56,7 +98,10 @@ export function ModerationWalletAdjustments({
           <ChoiceGrid
             value={controller.accountTargetId}
             options={writableAccounts.map((account) => account.accountId)}
-            onChange={controller.setAccountTargetId}
+            onChange={(value) => {
+              setConfirmationVisible(false)
+              controller.setAccountTargetId(value)
+            }}
             labels={Object.fromEntries(
               writableAccounts.map((account) => [account.accountId, account.cristalixNickname]),
             )}
@@ -81,7 +126,10 @@ export function ModerationWalletAdjustments({
         <Segmented
           value={controller.operation}
           options={TRANSACTION_TYPES}
-          onChange={controller.setOperation}
+          onChange={(value) => {
+            setConfirmationVisible(false)
+            controller.setOperation(value)
+          }}
           label={(value) => (value === "CREDIT" ? t("moderation.credit") : t("moderation.debit"))}
         />
       </Field>
@@ -106,7 +154,11 @@ export function ModerationWalletAdjustments({
             max={controller.operation === "DEBIT" ? controller.balance?.amount : undefined}
             step={1}
             value={controller.amount}
-            onChange={(event) => controller.setAmount(event.target.value)}
+            disabled={confirmationVisible || controller.busy}
+            onChange={(event) => {
+              setConfirmationVisible(false)
+              controller.setAmount(event.target.value)
+            }}
           />
         </div>
       </Field>
@@ -115,23 +167,74 @@ export function ModerationWalletAdjustments({
         <input
           value={controller.walletReason}
           maxLength={256}
-          onChange={(event) => controller.setWalletReason(event.target.value)}
+          disabled={confirmationVisible || controller.busy}
+          onChange={(event) => {
+            setConfirmationVisible(false)
+            controller.setWalletReason(event.target.value)
+          }}
         />
       </Field>
 
-      <button
-        type="button"
-        className="primary-action"
-        disabled={
-          !controller.targetId ||
-          !amountAllowed ||
-          !controller.walletReason.trim() ||
-          controller.busy
-        }
-        onClick={() => void controller.submitAdjustment()}
-      >
-        {controller.busy ? t("moderation.sending") : t("moderation.apply")}
-      </button>
+      {confirmationVisible ? (
+        <div
+          className={`moderation-wallet-confirmation is-${controller.operation.toLowerCase()}`}
+          role="alertdialog"
+          aria-label={t("moderation.walletAdjustment")}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault()
+              dismissConfirmation()
+            }
+          }}
+        >
+          <span className="moderation-wallet-confirmation__mark" aria-hidden="true">
+            <CurrencyMark currency={controller.currency} size={19} />
+          </span>
+          <span className="moderation-wallet-confirmation__copy">
+            <small>
+              {controller.operation === "CREDIT" ? t("moderation.credit") : t("moderation.debit")}
+            </small>
+            <strong>
+              {controller.operation === "CREDIT" ? "+" : "−"}
+              {numericAmount.toLocaleString()} {controller.currency}
+            </strong>
+            <em>{controller.targetId}</em>
+            <p>{controller.walletReason.trim()}</p>
+          </span>
+          <div className="moderation-wallet-confirmation__actions">
+            <button
+              ref={confirmButtonRef}
+              type="button"
+              className={
+                controller.operation === "DEBIT"
+                  ? "moderation-control-button moderation-control-button--danger"
+                  : "moderation-control-button moderation-control-button--positive"
+              }
+              disabled={!adjustmentAllowed}
+              onClick={() => void submitConfirmedAdjustment()}
+            >
+              {controller.busy ? t("moderation.sending") : t("common.confirm")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={controller.busy}
+              onClick={dismissConfirmation}
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="primary-action"
+          disabled={!adjustmentAllowed}
+          onClick={() => setConfirmationVisible(true)}
+        >
+          {controller.busy ? t("moderation.sending") : t("moderation.apply")}
+        </button>
+      )}
 
       <div className="wallet-adjustment-history">
         <h3>{t("moderation.operations")}</h3>
