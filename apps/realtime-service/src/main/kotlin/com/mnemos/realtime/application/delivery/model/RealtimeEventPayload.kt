@@ -83,6 +83,13 @@ data class AccountMemberChangedPayload(
     val change: String,
 ) : RealtimeEventPayload
 
+data class SanctionChangedPayload(
+    val sanctionId: UUID,
+    val userId: UUID,
+    val type: String,
+    val status: String,
+) : RealtimeEventPayload
+
 fun RealtimeEventPayload.eventType(): RealtimeEventType =
     when (this) {
         is WalletTransactionCompletedPayload ->
@@ -114,5 +121,15 @@ fun RealtimeEventPayload.eventType(): RealtimeEventType =
                 "LEFT" -> RealtimeEventType.ACCOUNT_MEMBER_LEFT
                 "REMOVED" -> RealtimeEventType.ACCOUNT_MEMBER_REMOVED
                 else -> throw IllegalArgumentException("Unsupported account membership change: $change")
+            }
+
+        is SanctionChangedPayload ->
+            when (status) {
+                "ACTIVE" -> RealtimeEventType.SANCTION_ACTIVATED
+                "REVOKED",
+                "EXPIRED",
+                -> RealtimeEventType.SANCTION_DEACTIVATED
+
+                else -> throw IllegalArgumentException("Unsupported sanction status: $status")
             }
     }
