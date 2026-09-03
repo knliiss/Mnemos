@@ -121,11 +121,20 @@ describe("ModerationAccountControlPanel", () => {
     expect(mocks.transferAccountOwnership).not.toHaveBeenCalled()
     expect(screen.getAllByText("@member").length).toBeGreaterThan(0)
 
-    fireEvent.click(screen.getByText("Confirm"))
+    const dialog = screen.getByRole("alertdialog", { name: "Transfer account ownership?" })
+    const confirm = screen.getByText("Confirm")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
 
     await waitFor(() => {
       expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, memberUserId)
     })
+
+    expect(dialog).toBeDefined()
   })
 
   it("requires confirmation before removing an account member", async () => {
@@ -152,5 +161,60 @@ describe("ModerationAccountControlPanel", () => {
     await waitFor(() => {
       expect(mocks.removeAccountMember).toHaveBeenCalledWith(accountId, memberId)
     })
+  })
+
+  it("dismisses a member mutation confirmation with Escape", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getByText(copy.removeMember))
+
+    const dialog = screen.getByRole("alertdialog", { name: "Remove this account member?" })
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(screen.queryByRole("alertdialog", { name: "Remove this account member?" })).toBeNull()
+    expect(mocks.removeAccountMember).not.toHaveBeenCalled()
+  })
+
+  it("requires confirmation before permanently deleting an account", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+    mocks.deleteAccountPermanently.mockResolvedValue(undefined)
+
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getByText(copy.irreversibleDelete))
+
+    expect(mocks.deleteAccountPermanently).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: copy.confirmDelete })
+    const confirm = screen.getByText(copy.confirmDelete)
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(screen.queryByRole("alertdialog", { name: copy.confirmDelete })).toBeNull()
+    expect(mocks.deleteAccountPermanently).not.toHaveBeenCalled()
   })
 })
