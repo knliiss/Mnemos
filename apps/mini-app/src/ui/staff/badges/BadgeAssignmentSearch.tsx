@@ -26,7 +26,7 @@ export function BadgeAssignmentSearch({
   const { t } = useTranslation()
 
   return (
-    <section className="staff-form-block">
+    <section className="staff-form-block badge-assignment-search">
       <header>
         <small>{t("badgeAdmin.assignmentEyebrow")}</small>
         <strong>{t("badgeAdmin.assignment")}</strong>
@@ -35,10 +35,13 @@ export function BadgeAssignmentSearch({
       <label className="staff-search">
         <Glyph name="search" size={18} />
         <input
+          type="search"
           value={query}
           disabled={busy}
           minLength={2}
           maxLength={64}
+          autoComplete="off"
+          spellCheck={false}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder={t("moderation.searchPlaceholder")}
         />
@@ -55,8 +58,8 @@ export function BadgeAssignmentSearch({
                 className={selectedUser?.userId === identity.userId ? "is-selected" : ""}
                 onClick={() => onSelectUser(identity)}
               >
-                <span className="staff-search-results__avatar">
-                  {identity.username.slice(0, 1).toUpperCase()}
+                <span className="staff-search-results__avatar staff-search-results__avatar--mnemos">
+                  <img src="/ui-illustrations/mnemos-user-mark.svg" alt="" aria-hidden="true" />
                 </span>
                 <span>
                   <strong>@{identity.username}</strong>
@@ -70,9 +73,15 @@ export function BadgeAssignmentSearch({
           </div>
         </section>
       ) : searchFailed ? (
-        <p className="inline-hint">{t("common.loadErrorTitle")}</p>
+        <div className="badge-assignment-empty is-error">
+          <img src="/ui-illustrations/mnemos-mascot-404.svg" alt="" aria-hidden="true" />
+          <span>{t("common.loadErrorTitle")}</span>
+        </div>
       ) : normalizedQuery.length >= 2 ? (
-        <p className="inline-hint">{t("moderation.nothingFound")}</p>
+        <div className="badge-assignment-empty">
+          <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
+          <span>{t("moderation.nothingFound")}</span>
+        </div>
       ) : null}
     </section>
   )
