@@ -25,7 +25,13 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
+    t: (key: string, fallback?: string | { defaultValue?: string }) => {
+      if (typeof fallback === "string") {
+        return fallback
+      }
+
+      return fallback?.defaultValue ?? key
+    },
   }),
 }))
 
@@ -147,13 +153,13 @@ describe("ModerationAccountRolesPanel", () => {
       <ModerationAccountRolesPanel details={details} onChanged={vi.fn().mockResolvedValue(undefined)} />,
     )
 
-    const baseRoleButton = await screen.findByRole("button", { name: "roleEditor.baseRole" })
+    const baseRoleButton = await screen.findByRole("button", { name: "BASE" })
     fireEvent.click(baseRoleButton)
 
     expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
 
-    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmSetBaseRole" })
-    const confirm = screen.getByText("roleEditor.setBaseRole")
+    const dialog = screen.getByRole("alertdialog", { name: "Set as base role?" })
+    const confirm = screen.getByText("Set base role")
 
     await waitFor(() => {
       expect(document.activeElement).toBe(confirm)
@@ -161,9 +167,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     fireEvent.keyDown(dialog, { key: "Escape" })
 
-    expect(
-      screen.queryByRole("alertdialog", { name: "roleEditor.confirmSetBaseRole" }),
-    ).toBeNull()
+    expect(screen.queryByRole("alertdialog", { name: "Set as base role?" })).toBeNull()
     expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
   })
 
@@ -172,8 +176,8 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    fireEvent.click(await screen.findByRole("button", { name: "roleEditor.baseRole" }))
-    fireEvent.click(screen.getByText("roleEditor.setBaseRole"))
+    fireEvent.click(await screen.findByRole("button", { name: "BASE" }))
+    fireEvent.click(screen.getByText("Set base role"))
 
     await waitFor(() => {
       expect(mocks.updateAdminBaseRole).toHaveBeenCalledWith(accountId, roleId)
@@ -191,12 +195,12 @@ describe("ModerationAccountRolesPanel", () => {
       />,
     )
 
-    fireEvent.click(await screen.findByRole("button", { name: "roleEditor.baseRole" }))
+    fireEvent.click(await screen.findByRole("button", { name: "BASE" }))
 
     expect(mocks.clearAdminBaseRole).not.toHaveBeenCalled()
 
-    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmClearBaseRole" })
-    const confirm = screen.getByText("roleEditor.clearBaseRole")
+    const dialog = screen.getByRole("alertdialog", { name: "Clear base role?" })
+    const confirm = screen.getByText("Clear base role")
 
     await waitFor(() => {
       expect(document.activeElement).toBe(confirm)
