@@ -1,5 +1,8 @@
 package com.mnemos.realtime.adapter.redis.delivery.serialization
 
+import com.mnemos.realtime.application.delivery.model.AccountMemberChangedPayload
+import com.mnemos.realtime.application.delivery.model.AccountOwnershipTransferredPayload
+import com.mnemos.realtime.application.delivery.model.AccountStatusChangedPayload
 import com.mnemos.realtime.application.delivery.model.BetOperationCompletedPayload
 import com.mnemos.realtime.application.delivery.model.PersonalizationPurchaseCompletedPayload
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
@@ -74,6 +77,30 @@ class RedisRealtimeEventCodec(
                 jsonMapper.treeToValue(
                     payload,
                     PersonalizationPurchaseCompletedPayload::class.java,
+                )
+
+            RealtimeEventType.ACCOUNT_ACTIVATED,
+            RealtimeEventType.ACCOUNT_DEACTIVATED,
+            RealtimeEventType.ACCOUNT_DELETED,
+            ->
+                jsonMapper.treeToValue(
+                    payload,
+                    AccountStatusChangedPayload::class.java,
+                )
+
+            RealtimeEventType.ACCOUNT_OWNER_TRANSFERRED ->
+                jsonMapper.treeToValue(
+                    payload,
+                    AccountOwnershipTransferredPayload::class.java,
+                )
+
+            RealtimeEventType.ACCOUNT_MEMBER_JOINED,
+            RealtimeEventType.ACCOUNT_MEMBER_LEFT,
+            RealtimeEventType.ACCOUNT_MEMBER_REMOVED,
+            ->
+                jsonMapper.treeToValue(
+                    payload,
+                    AccountMemberChangedPayload::class.java,
                 )
         }
 
