@@ -7,6 +7,13 @@ object AccountEventContract {
 
 object AccountEventType {
     const val ACCOUNT_CREATED = "account.created"
+    const val ACCOUNT_ACTIVATED = "account.activated"
+    const val ACCOUNT_DEACTIVATED = "account.deactivated"
+    const val ACCOUNT_DELETED = "account.deleted"
+    const val ACCOUNT_OWNER_TRANSFERRED = "account.owner.transferred"
+    const val ACCOUNT_MEMBER_JOINED = "account.member.joined"
+    const val ACCOUNT_MEMBER_LEFT = "account.member.left"
+    const val ACCOUNT_MEMBER_REMOVED = "account.member.removed"
     const val USER_CREATED = "user.created"
 }
 

@@ -13,5 +13,5 @@ data class IdentityAccountResponse(
     val accountId: UUID,
     val cristalixUuid: UUID,
     val cristalixNickname: String,
-    val active: Boolean,
+    val status: String,
 )

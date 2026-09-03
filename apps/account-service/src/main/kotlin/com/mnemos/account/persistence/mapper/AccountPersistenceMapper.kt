@@ -19,6 +19,7 @@ object AccountPersistenceMapper {
             updatedAt = updatedAt,
             status = status,
             deactivatedAt = deactivatedAt,
+            deletedAt = deletedAt,
             maxMembers = maxMembers,
             baseRoleId = baseRoleId?.id,
         )
@@ -33,6 +34,7 @@ object AccountPersistenceMapper {
             updatedAt = updatedAt,
             status = status,
             deactivatedAt = deactivatedAt,
+            deletedAt = deletedAt,
             maxMembers = maxMembers,
             baseRoleId = baseRoleId?.let { RoleId(it) },
         )
@@ -43,6 +45,7 @@ object AccountPersistenceMapper {
         updatedAt = account.updatedAt
         status = account.status
         deactivatedAt = account.deactivatedAt
+        deletedAt = account.deletedAt
         maxMembers = account.maxMembers
         baseRoleId = account.baseRoleId?.id
     }

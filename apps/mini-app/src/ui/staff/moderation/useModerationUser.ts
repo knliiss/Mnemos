@@ -103,13 +103,14 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
       return
     }
 
+    const writableAccounts = found.accounts.filter((account) => account.status !== "DELETED")
     const preferredAccount =
-      found.accounts.find((account) => account.active)?.accountId ??
-      found.accounts[0]?.accountId ??
+      writableAccounts.find((account) => account.status === "ACTIVE")?.accountId ??
+      writableAccounts[0]?.accountId ??
       ""
 
     setAccountTargetId((current) =>
-      current && found.accounts.some((account) => account.accountId === current)
+      current && writableAccounts.some((account) => account.accountId === current)
         ? current
         : preferredAccount,
     )

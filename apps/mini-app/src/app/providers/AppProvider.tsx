@@ -26,8 +26,10 @@ import {
   updateCurrentLanguage,
 } from "@/shared/api/userApi"
 import { handleError } from "@/shared/errors/errorHandler"
-import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
+import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import type { RealtimeEvent } from "@/shared/realtime/realtime.types"
 import type { LocalizationLanguage } from "@/ui/model"
+import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
 
 type AppState = {
   context: CurrentContextResponse | null
@@ -183,6 +185,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [bootstrap])
 
   useEffect(() => {
+    return realtimeEvents.subscribe((event) => {
+      if (!isAccountLifecycleEvent(event)) {
+        return
+      }
+
+      void refresh().catch(handleError)
+    })
+  }, [refresh])
+
+  useEffect(() => {
     if (!serviceUnavailable) {
       return
     }
@@ -228,6 +240,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+}
+
+function isAccountLifecycleEvent(event: RealtimeEvent): boolean {
+  return (
+    event.type === "account.activated" ||
+    event.type === "account.deactivated" ||
+    event.type === "account.deleted" ||
+    event.type === "account.owner.transferred" ||
+    event.type === "account.member.joined" ||
+    event.type === "account.member.left" ||
+    event.type === "account.member.removed"
+  )
 }
 
 export function useApp() {

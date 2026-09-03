@@ -1,6 +1,7 @@
 package com.mnemos.account.application.service.member
 
 import com.mnemos.account.application.context.CurrentUserProvider
+import com.mnemos.account.application.event.account.AccountIntegrationEvents
 import com.mnemos.account.domain.exception.account.member.AccountMemberAlreadyExistsException
 import com.mnemos.account.domain.exception.invite.AccountInviteUnavailableException
 import com.mnemos.account.domain.model.account.AccountMember
@@ -15,6 +16,7 @@ import com.mnemos.account.domain.repository.invite.AccountInviteRepository
 import com.mnemos.account.domain.repository.role.RoleAssignmentRepository
 import com.mnemos.account.domain.repository.user.UserRepository
 import com.mnemos.common.core.model.id.AccountId
+import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -27,6 +29,7 @@ class JoinAccountService(
     private val inviteRepository: AccountInviteRepository,
     private val userRepository: UserRepository,
     private val roleAssignmentRepository: RoleAssignmentRepository,
+    private val integrationEventPublisher: IntegrationEventPublisher,
 ) {
     @Transactional
     fun joinAccount(rawInviteCode: String): JoinAccountResult =
@@ -85,6 +88,15 @@ class JoinAccountService(
         user.changeActiveAccount(account.id)
         inviteRepository.update(invite)
         userRepository.update(user)
+
+        integrationEventPublisher.publish(
+            AccountIntegrationEvents.memberJoined(
+                account = account,
+                member = createdMember,
+                recipientUserIds = accountMemberRepository.findUserIdsByAccountId(account.id),
+                occurredAt = now,
+            ),
+        )
 
         return JoinAccountResult(
             accountId = account.id,

@@ -63,6 +63,26 @@ data class PersonalizationPurchaseCompletedPayload(
     }
 }
 
+data class AccountStatusChangedPayload(
+    val accountId: UUID,
+    val status: String,
+) : RealtimeEventPayload
+
+data class AccountOwnershipTransferredPayload(
+    val accountId: UUID,
+    val previousOwnerMemberId: UUID,
+    val previousOwnerUserId: UUID,
+    val newOwnerMemberId: UUID,
+    val newOwnerUserId: UUID,
+) : RealtimeEventPayload
+
+data class AccountMemberChangedPayload(
+    val accountId: UUID,
+    val memberId: UUID,
+    val userId: UUID,
+    val change: String,
+) : RealtimeEventPayload
+
 fun RealtimeEventPayload.eventType(): RealtimeEventType =
     when (this) {
         is WalletTransactionCompletedPayload ->
@@ -76,4 +96,23 @@ fun RealtimeEventPayload.eventType(): RealtimeEventType =
 
         is PersonalizationPurchaseCompletedPayload ->
             RealtimeEventType.PERSONALIZATION_PURCHASE_COMPLETED
+
+        is AccountStatusChangedPayload ->
+            when (status) {
+                "ACTIVE" -> RealtimeEventType.ACCOUNT_ACTIVATED
+                "DEACTIVATED" -> RealtimeEventType.ACCOUNT_DEACTIVATED
+                "DELETED" -> RealtimeEventType.ACCOUNT_DELETED
+                else -> throw IllegalArgumentException("Unsupported account status: $status")
+            }
+
+        is AccountOwnershipTransferredPayload ->
+            RealtimeEventType.ACCOUNT_OWNER_TRANSFERRED
+
+        is AccountMemberChangedPayload ->
+            when (change) {
+                "JOINED" -> RealtimeEventType.ACCOUNT_MEMBER_JOINED
+                "LEFT" -> RealtimeEventType.ACCOUNT_MEMBER_LEFT
+                "REMOVED" -> RealtimeEventType.ACCOUNT_MEMBER_REMOVED
+                else -> throw IllegalArgumentException("Unsupported account membership change: $change")
+            }
     }

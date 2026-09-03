@@ -21,6 +21,7 @@ export function ModerationWalletAdjustments({
 }: Props) {
   const { t } = useTranslation()
   const walletTargets = canAdjustPrime ? (["USER", "ACCOUNT"] as const) : (["ACCOUNT"] as const)
+  const writableAccounts = identity.accounts.filter((account) => account.status !== "DELETED")
   const numericAmount = Number(controller.amount)
   const debitExceedsBalance =
     controller.operation === "DEBIT" &&
@@ -54,10 +55,10 @@ export function ModerationWalletAdjustments({
         <Field label={t("moderation.account")}>
           <ChoiceGrid
             value={controller.accountTargetId}
-            options={identity.accounts.map((account) => account.accountId)}
+            options={writableAccounts.map((account) => account.accountId)}
             onChange={controller.setAccountTargetId}
             labels={Object.fromEntries(
-              identity.accounts.map((account) => [account.accountId, account.cristalixNickname]),
+              writableAccounts.map((account) => [account.accountId, account.cristalixNickname]),
             )}
           />
         </Field>

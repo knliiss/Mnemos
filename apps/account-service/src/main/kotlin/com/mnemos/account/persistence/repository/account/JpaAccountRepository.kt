@@ -1,5 +1,6 @@
 package com.mnemos.account.persistence.repository.account
 
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.persistence.entity.account.AccountEntity
 import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Pageable
@@ -10,7 +11,10 @@ import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
-    fun existsByCristalixUuid(cristalixUuid: UUID): Boolean
+    fun existsByCristalixUuidAndStatusNot(
+        cristalixUuid: UUID,
+        status: AccountStatus,
+    ): Boolean
 
     fun findAllByOrderByIdAsc(pageable: Pageable): List<AccountEntity>
 
@@ -56,9 +60,11 @@ interface JpaAccountRepository : JpaRepository<AccountEntity, UUID> {
             SELECT account
             FROM AccountEntity account
             WHERE account.cristalixUuid = :cristalixUuid
+              AND account.status <>
+                com.mnemos.account.domain.model.account.AccountStatus.DELETED
         """,
     )
-    fun findByCristalixUuidForUpdate(
+    fun findLiveByCristalixUuidForUpdate(
         @Param("cristalixUuid") cristalixUuid: UUID,
     ): AccountEntity?
 

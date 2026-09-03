@@ -46,7 +46,7 @@ interface JpaIdentitySearchRepository : JpaRepository<UserEntity, UUID> {
                 a.id AS "accountId",
                 a.cristalix_uuid AS "cristalixUuid",
                 a.cristalix_nickname AS "cristalixNickname",
-                (a.status = 'ACTIVE') AS "active"
+                a.status AS "status"
             FROM matched_users matched
             JOIN users u ON u.id = matched.id
             LEFT JOIN account_members am ON am.user_id = u.id

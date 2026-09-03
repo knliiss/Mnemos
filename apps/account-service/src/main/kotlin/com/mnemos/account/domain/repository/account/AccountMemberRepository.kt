@@ -14,6 +14,8 @@ interface AccountMemberRepository {
         userId: UserId,
     ): AccountMember?
 
+    fun findAllByAccountId(accountId: AccountId): List<AccountMember>
+
     fun findUserIdsByAccountId(accountId: AccountId): List<UserId>
 
     fun existsByAccountIdAndUserId(

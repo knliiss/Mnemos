@@ -13,6 +13,8 @@ interface UserRepository {
 
     fun update(user: User): User
 
+    fun findById(userId: UserId): User?
+
     fun findByTelegramId(telegramId: TelegramId): User?
 
     fun findByKeycloakId(keycloakId: KeycloakId): User?

@@ -18,7 +18,7 @@ class AccountEntity(
     var id: UUID,
     @Column(name = "owner_member_id", nullable = false)
     var ownerMemberId: UUID,
-    @Column(name = "cristalix_uuid", nullable = false, unique = true, updatable = false)
+    @Column(name = "cristalix_uuid", nullable = false, updatable = false)
     var cristalixUuid: UUID,
     @Column(name = "cristalix_nickname", nullable = false)
     var cristalixNickname: String,
@@ -31,6 +31,8 @@ class AccountEntity(
     var status: AccountStatus,
     @Column(name = "deactivated_at")
     var deactivatedAt: Instant?,
+    @Column(name = "deleted_at")
+    var deletedAt: Instant?,
     @Column(name = "max_members", nullable = false)
     var maxMembers: Int,
     @Column(name = "base_role_id")

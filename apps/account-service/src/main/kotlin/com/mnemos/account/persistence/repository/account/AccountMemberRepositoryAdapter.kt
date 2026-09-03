@@ -26,6 +26,11 @@ class AccountMemberRepositoryAdapter(
                 userId = userId.id,
             )?.toDomain()
 
+    override fun findAllByAccountId(accountId: AccountId): List<AccountMember> =
+        jpaAccountMemberRepository
+            .findAllByAccountIdOrderByJoinedAtAscIdAsc(accountId.id)
+            .map { entity -> entity.toDomain() }
+
     override fun findUserIdsByAccountId(accountId: AccountId): List<UserId> =
         jpaAccountMemberRepository
             .findUserIdsByAccountId(accountId.id)
@@ -40,12 +45,19 @@ class AccountMemberRepositoryAdapter(
             userId = userId.id,
         )
 
-    override fun countByAccountId(accountId: AccountId): Int = jpaAccountMemberRepository.countByAccountId(accountId = accountId.id).toInt()
+    override fun countByAccountId(accountId: AccountId): Int =
+        jpaAccountMemberRepository
+            .countByAccountId(accountId = accountId.id)
+            .toInt()
 
     override fun hasEffectivePermission(
         permission: RolePermission,
         memberId: AccountMemberId,
-    ): Boolean = jpaAccountMemberRepository.hasEffectivePermission(permission = permission.name, accountMemberId = memberId.id)
+    ): Boolean =
+        jpaAccountMemberRepository.hasEffectivePermission(
+            permission = permission.name,
+            accountMemberId = memberId.id,
+        )
 
     override fun deleteById(id: AccountMemberId) {
         jpaAccountMemberRepository.deleteById(id.id)
@@ -54,7 +66,10 @@ class AccountMemberRepositoryAdapter(
     override fun findByIdAndAccountId(
         memberId: AccountMemberId,
         accountId: AccountId,
-    ): AccountMember? = jpaAccountMemberRepository.findByIdAndAccountId(memberId.id, accountId.id)?.toDomain()
+    ): AccountMember? =
+        jpaAccountMemberRepository
+            .findByIdAndAccountId(memberId.id, accountId.id)
+            ?.toDomain()
 
     override fun findPermissions(memberId: AccountMemberId): Set<RolePermission> =
         jpaAccountMemberRepository.findAllPermissionByMemberId(memberId.id)

@@ -38,6 +38,48 @@ export function parseRealtimeEvent(data: string): RealtimeEvent | null {
           ? (candidate as RealtimeEvent)
           : null
 
+      case "account.activated":
+        return isAccountStatusChangedPayload(candidate.payload, "ACTIVE") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.deactivated":
+        return isAccountStatusChangedPayload(candidate.payload, "DEACTIVATED") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.deleted":
+        return isAccountStatusChangedPayload(candidate.payload, "DELETED") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.owner.transferred":
+        return isAccountOwnershipTransferredPayload(candidate.payload) &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.member.joined":
+        return isAccountMemberChangedPayload(candidate.payload, "JOINED") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.member.left":
+        return isAccountMemberChangedPayload(candidate.payload, "LEFT") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "account.member.removed":
+        return isAccountMemberChangedPayload(candidate.payload, "REMOVED") &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
       default:
         return null
     }
@@ -249,6 +291,36 @@ function isPersonalizationPurchaseCompletedPayload(payload: Record<string, unkno
   }
 
   return false
+}
+
+function isAccountStatusChangedPayload(
+  payload: Record<string, unknown>,
+  expectedStatus: "ACTIVE" | "DEACTIVATED" | "DELETED",
+): boolean {
+  return isUuid(payload.accountId) && payload.status === expectedStatus
+}
+
+function isAccountOwnershipTransferredPayload(payload: Record<string, unknown>): boolean {
+  return (
+    isUuid(payload.accountId) &&
+    isUuid(payload.previousOwnerMemberId) &&
+    isUuid(payload.previousOwnerUserId) &&
+    isUuid(payload.newOwnerMemberId) &&
+    isUuid(payload.newOwnerUserId) &&
+    payload.previousOwnerMemberId !== payload.newOwnerMemberId
+  )
+}
+
+function isAccountMemberChangedPayload(
+  payload: Record<string, unknown>,
+  expectedChange: "JOINED" | "LEFT" | "REMOVED",
+): boolean {
+  return (
+    isUuid(payload.accountId) &&
+    isUuid(payload.memberId) &&
+    isUuid(payload.userId) &&
+    payload.change === expectedChange
+  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

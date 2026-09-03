@@ -8,11 +8,13 @@ import type {
 } from "@/ui/model"
 import { api } from "@/shared/api/httpClient"
 
+export type AccountLifecycleStatus = "ACTIVE" | "DEACTIVATED" | "DELETED"
+
 export type IdentityAccountResponse = {
   accountId: string
   cristalixUuid: string
   cristalixNickname: string
-  active: boolean
+  status: AccountLifecycleStatus
 }
 
 export type IdentitySearchResponse = {
@@ -45,7 +47,7 @@ export type AccountIdentityDirectoryResponse = {
   accountId: string
   cristalixUuid: string
   cristalixNickname: string
-  status: "ACTIVE" | "DEACTIVATED"
+  status: AccountLifecycleStatus
   ownerUserId: string
   ownerUsername: string
   createdAt: string
@@ -56,6 +58,27 @@ export type IdentityDirectoryQuery = {
   page: number
   size?: number
   order: IdentityDirectoryOrder
+}
+
+export type AdminAccountMemberResponse = {
+  memberId: string
+  userId: string
+  username: string
+  owner: boolean
+  joinedAt: string
+}
+
+export type AdminAccountDetailsResponse = {
+  accountId: string
+  cristalixUuid: string
+  cristalixNickname: string
+  status: AccountLifecycleStatus
+  ownerMemberId: string
+  maxMembers: number
+  createdAt: string
+  deactivatedAt: string | null
+  deletedAt: string | null
+  members: AdminAccountMemberResponse[]
 }
 
 export type SanctionResponse = {
@@ -142,6 +165,10 @@ export async function searchAccountDirectory(
   )
 }
 
+export async function getAdminAccount(accountId: string): Promise<AdminAccountDetailsResponse> {
+  return api<AdminAccountDetailsResponse>(`/api/v1/admin/accounts/${accountId}`)
+}
+
 export async function reactivateAccount(accountId: string): Promise<void> {
   await api<void>(`/api/v1/admin/accounts/${accountId}/reactivate`, {
     method: "POST",
@@ -151,6 +178,30 @@ export async function reactivateAccount(accountId: string): Promise<void> {
 export async function deactivateAccount(accountId: string): Promise<void> {
   await api<void>(`/api/v1/admin/accounts/${accountId}/deactivate`, {
     method: "POST",
+  })
+}
+
+export async function addAccountMember(accountId: string, userId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${userId}`, {
+    method: "POST",
+  })
+}
+
+export async function removeAccountMember(accountId: string, memberId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${memberId}`, {
+    method: "DELETE",
+  })
+}
+
+export async function transferAccountOwnership(accountId: string, memberId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/owner/${memberId}`, {
+    method: "PUT",
+  })
+}
+
+export async function deleteAccountPermanently(accountId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}`, {
+    method: "DELETE",
   })
 }
 
