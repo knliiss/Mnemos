@@ -30,8 +30,7 @@ class AdminAccountController(
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun getDetails(
         @PathVariable accountId: UUID,
-    ): AdminAccountDetailsResponse =
-        adminAccountManagementService.getDetails(AccountId(accountId))
+    ): AdminAccountDetailsResponse = adminAccountManagementService.getDetails(AccountId(accountId))
 
     @PostMapping("/{accountId}/reactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
