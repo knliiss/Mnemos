@@ -137,3 +137,126 @@
   color: #efb0b4;
   background: rgba(188, 61, 68, 0.075);
 }
+
+.personalization-review-screen .review-listing-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.personalization-review-screen .review-listing-confirmation {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 11px;
+  width: 100%;
+  padding: 11px;
+  border: 1px solid rgba(222, 105, 112, 0.13);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 7% 50%, rgba(188, 61, 68, 0.07), transparent 28%),
+    rgba(188, 61, 68, 0.018);
+}
+
+.personalization-review-screen .review-listing-confirmation:focus-within {
+  border-color: rgba(222, 105, 112, 0.2);
+  box-shadow: 0 0 0 2px rgba(222, 105, 112, 0.035);
+}
+
+.personalization-review-screen .review-listing-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  min-height: 62px;
+  border-radius: 13px;
+  background: rgba(188, 61, 68, 0.025);
+}
+
+.personalization-review-screen .review-listing-confirmation__art img {
+  width: 54px;
+  height: 50px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.88;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy small {
+  color: #b0787c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy strong {
+  color: #e8d7d8;
+  font-size: 11px;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy p {
+  margin: 0;
+  color: #8c7c7d;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > button {
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > .destructive-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(222, 105, 112, 0.18);
+  color: #dda0a5;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+.personalization-review-screen .review-listing-cancel {
+  min-width: 92px;
+  padding: 0 12px;
+  border: 1px solid rgba(223, 232, 204, 0.08);
+  color: #989f94;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+@media (max-width: 374px) {
+  .personalization-review-screen .review-listing-confirmation {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .personalization-review-screen .review-listing-confirmation__art {
+    width: 52px;
+    min-height: 56px;
+  }
+
+  .personalization-review-screen .review-listing-confirmation__art img {
+    width: 46px;
+    height: 44px;
+  }
+
+  .personalization-review-screen .review-listing-confirmation__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-review-screen .review-listing-cancel {
+    min-width: 0;
+  }
+}
