@@ -1,0 +1,72 @@
+name: Full Admin Control Plane Verify
+
+on:
+  push:
+    branches:
+      - feat/full-admin-control-plane
+    paths:
+      - apps/account-service/**
+      - apps/realtime-service/**
+      - apps/mini-app/**
+      - .github/workflows/full-admin-control-plane-verify.yml
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@7a445ee88d4e23b52c33d9c72d9d0a7f10c02b55 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9d33c3f2f2fdb5a7f4b9fc9559ee37b38e5c5329 # v5
+
+      - name: Verify account and realtime services
+        run: ./gradlew :apps:account-service:check :apps:realtime-service:check
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: apps/mini-app
+
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test -- --run
+
+      - name: Build
+        run: npm run build
