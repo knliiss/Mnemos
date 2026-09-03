@@ -65,20 +65,36 @@
   opacity: 0.82;
 }
 
+.moderation-admin-role-base-confirmation,
 .moderation-admin-role-delete-confirmation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 8px 9px;
-  border: 1px solid rgba(223, 88, 80, 0.09);
   border-radius: 9px;
-  background:
-    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.04), transparent 34%),
-    rgba(223, 88, 80, 0.012);
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease;
+}
+
+.moderation-admin-role-base-confirmation {
+  border: 1px solid rgba(203, 255, 45, 0.09);
+  background:
+    radial-gradient(circle at 0% 50%, rgba(203, 255, 45, 0.04), transparent 34%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.moderation-admin-role-delete-confirmation {
+  border: 1px solid rgba(223, 88, 80, 0.09);
+  background:
+    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.04), transparent 34%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-admin-role-base-confirmation:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
 }
 
 .moderation-admin-role-delete-confirmation:focus-within {
@@ -86,10 +102,21 @@
   box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.035);
 }
 
+.moderation-admin-role-base-confirmation > span,
 .moderation-admin-role-delete-confirmation > span {
   display: grid;
   gap: 2px;
   min-width: 0;
+}
+
+.moderation-admin-role-base-confirmation strong {
+  color: #cedf91;
+  font-size: 8.5px;
+}
+
+.moderation-admin-role-base-confirmation small {
+  color: #78806f;
+  font-size: 7.5px;
 }
 
 .moderation-admin-role-delete-confirmation strong {
@@ -102,6 +129,7 @@
   font-size: 7.5px;
 }
 
+.moderation-admin-role-base-confirmation > div,
 .moderation-admin-role-delete-confirmation > div {
   display: flex;
   gap: 6px;
@@ -120,10 +148,12 @@
 }
 
 @media (max-width: 520px) {
+  .moderation-admin-role-base-confirmation,
   .moderation-admin-role-delete-confirmation {
     grid-template-columns: 1fr;
   }
 
+  .moderation-admin-role-base-confirmation > div,
   .moderation-admin-role-delete-confirmation > div {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
