@@ -39,7 +39,8 @@
   box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
 }
 
-.badge-assignment-empty {
+.badge-assignment-empty,
+.badge-catalog-empty {
   display: grid;
   justify-items: center;
   gap: 5px;
@@ -53,7 +54,8 @@
   text-align: center;
 }
 
-.badge-assignment-empty img {
+.badge-assignment-empty img,
+.badge-catalog-empty img {
   width: 70px;
   height: 58px;
   object-fit: contain;
@@ -66,4 +68,17 @@
   border-color: rgba(222, 105, 112, 0.1);
   color: #a98585;
   background: rgba(188, 61, 68, 0.018);
+}
+
+.badge-catalog-empty {
+  min-height: 128px;
+  color: #cbd1c6;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(203, 255, 45, 0.035), transparent 36%),
+    rgba(255, 255, 255, 0.01);
+}
+
+.badge-catalog-empty strong {
+  font-size: 9px;
+  font-weight: 700;
 }
