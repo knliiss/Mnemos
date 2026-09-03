@@ -49,17 +49,14 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
           setResult(response)
           setPage(response.page)
           setLoadError(false)
+          setLoading(false)
         }
       })
       .catch((error: unknown) => {
         if (active) {
           setLoadError(true)
-          handleError(error)
-        }
-      })
-      .finally(() => {
-        if (active) {
           setLoading(false)
+          handleError(error)
         }
       })
 
@@ -81,7 +78,7 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
         </span>
         <span>
           <small>{t("moderation.accountWalletHistory", "ACCOUNT WALLET")}</small>
-          <strong>{t("account.wallet.historyTitle", "Transaction history")}</strong>
+          <strong>{t("accountWallet.history")}</strong>
         </span>
         <em>{result?.totalItems ?? 0}</em>
       </header>
