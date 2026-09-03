@@ -1,0 +1,167 @@
+#!/usr/bin/env sh
+
+set -eu
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
+REQUEST_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-backend-deploy-request.yml"
+DEPLOY_WORKFLOW="$REPOSITORY_ROOT/.github/workflows/production-backend-service-deploy.yml"
+
+fail() {
+    echo "$1" >&2
+    exit 1
+}
+
+[ -f "$REQUEST_WORKFLOW" ] || fail "Production backend deploy request workflow is missing"
+[ -f "$DEPLOY_WORKFLOW" ] || fail "Production backend service deploy workflow is missing"
+
+REQUEST_CONTENT="$(cat "$REQUEST_WORKFLOW")"
+DEPLOY_CONTENT="$(cat "$DEPLOY_WORKFLOW")"
+
+printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'deploy/production-backend/**' ||
+    fail "Backend deploy request must only trigger from the production backend deploy namespace"
+
+printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'runs-on: ubuntu-latest' ||
+    fail "Backend deploy request must stay on a hosted non-production runner"
+
+if printf '%s\n' "$REQUEST_CONTENT" | grep -Fq 'workflow_dispatch:'; then
+    fail "Backend deploy request must not require manual workflow_dispatch authorization"
+fi
+
+for forbidden in \
+    'mnemos-production' \
+    'mnemos-backend' \
+    'packages: write' \
+    'environment: production' \
+    'docker login' \
+    'docker service update' \
+    'docker stack deploy' \
+    'production_deployment_executor.py' \
+    'production_release_plan.py' \
+    'publish-production-service-image.py'; do
+    if printf '%s\n' "$REQUEST_CONTENT" | grep -Fq "$forbidden"; then
+        fail "Read-only backend deploy request contains privileged capability: $forbidden"
+    fi
+done
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'workflow_run:' ||
+    fail "Backend deployment must be downstream of a workflow_run event from trusted master"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'Production Backend Deploy Request' ||
+    fail "Backend deployment must watch the read-only deploy request workflow"
+
+if printf '%s\n' "$DEPLOY_CONTENT" | grep -Eq '^[[:space:]]+(push|pull_request|schedule|workflow_dispatch):'; then
+    fail "Privileged backend deployment must not have a direct trigger"
+fi
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'group: mnemos-production-deploy' ||
+    fail "Backend deploy workflow must share the global production deployment concurrency lock"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'actions: read' ||
+    fail "Backend deploy workflow must have read access for request provenance verification"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'ref: ${{ github.sha }}' ||
+    fail "Backend deploy workflow must checkout the exact trusted coordinator revision"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'git merge-base --is-ancestor "$COORDINATOR_SHA" origin/master' ||
+    fail "Backend deploy coordinator must remain in trusted master history"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '/actions/runs/${REQUEST_RUN_ID}' ||
+    fail "Backend deploy workflow must independently fetch request run provenance"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '.github/workflows/production-backend-deploy-request.yml' ||
+    fail "Backend deploy workflow must require the exact authorized request workflow path"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if [ "$event_name" != "push" ]' ||
+    fail "Backend deploy workflow must require a push-origin request"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if [ "$head_repository" != "$REPOSITORY" ]' ||
+    fail "Backend deploy workflow must reject requests from another repository"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'deploy/production-backend/*)' ||
+    fail "Backend deploy workflow must derive exactly one service from the authorization ref"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'scripts/production_source_revision.py' ||
+    fail "Backend deploy workflow must validate immutable source revisions"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- '--trusted-ref origin/master' ||
+    fail "Backend deploy workflow must require target revisions from trusted master history"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_service_catalog.py show "$service"' ||
+    fail "Backend deploy workflow must validate the selected service through the production catalog"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'service.get("kind") != "application"' ||
+    fail "Backend deploy workflow must reject non-application services"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_runtime_state.py' ||
+    fail "Backend deploy workflow must verify canonical production runtime state"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'verify-production-availability.sh' ||
+    fail "Backend deploy workflow must verify production availability"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'check-production-health.sh' ||
+    fail "Backend deploy workflow must verify production health"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'verify-production-telegram-poller.sh' ||
+    fail "Backend deploy workflow must verify Telegram singleton state"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'git merge-base --is-ancestor "$current_source_sha" "$TARGET_SHA"' ||
+    fail "Backend deploy workflow must refuse automatic service rollback"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_release_plan.py' ||
+    fail "Backend deploy workflow must create an audited release plan"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'plan.get("action_count") != 1' ||
+    fail "Backend deploy workflow must require exactly one planned runtime action"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'action.get("service") != service' ||
+    fail "Backend deploy workflow must bind the plan action to the branch-selected service"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'action.get("operation") != "image-update"' ||
+    fail "Backend deploy workflow must only permit image-update actions"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq './gradlew ":apps:${SERVICE}:check"' ||
+    fail "Backend deploy workflow must verify the selected service before image publication"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'publish-production-service-image.py' ||
+    fail "Backend deploy workflow must publish the immutable selected service image"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'ref: ${{ needs.plan.outputs.tooling_revision }}' ||
+    fail "Backend deploy execution must use the tooling revision recorded by production state"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_audit_bundle.py' ||
+    fail "Backend deploy workflow must create and verify audit bundles"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_deployment_executor.py' ||
+    fail "Backend deploy workflow must use the scoped production executor"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- '--expected-transition-id "$EXPECTED_TRANSITION_ID"' ||
+    fail "Backend deploy workflow must pin execution to the audited transition ID"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- '--execute' ||
+    fail "Backend deploy workflow must contain the explicit scoped execution phase"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENABLED' ||
+    fail "Backend deploy workflow must preserve the production scoped execution gate"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'environment: production' ||
+    fail "Backend deploy mutation must remain behind the GitHub production environment"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'authorization_mechanism:"service-deploy-branch-workflow-run"' ||
+    fail "Backend deploy audit must record the trusted workflow_run authorization chain"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'retention-days: 90' ||
+    fail "Backend deploy execution audit must use extended retention"
+
+for forbidden in \
+    'docker stack deploy' \
+    'scripts/start-production-infra.sh' \
+    'scripts/deploy-production-apps.sh' \
+    '--allow-full-runtime-reconcile' \
+    '--requires-full-runtime-reconcile'; do
+    if printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq -- "$forbidden"; then
+        fail "Backend deploy workflow contains forbidden broad runtime capability: $forbidden"
+    fi
+done
+
+echo "Production backend service deploy security boundary verified"

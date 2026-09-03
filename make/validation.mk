@@ -68,6 +68,7 @@ make-verify:
 	@sh -n scripts/verify-production-deployment-executor-security.sh
 	@sh -n scripts/verify-production-deployment-workflow-boundary.sh
 	@sh -n scripts/verify-production-targeted-execution-security.sh
+	@sh -n scripts/verify-production-backend-service-deploy-security.sh
 	@python3 -m py_compile scripts/resolve_backend_ci_changes.py
 	@python3 -m py_compile scripts/verify-backend-ci-changes.py
 	@python3 -m py_compile scripts/production_audit_bundle.py
@@ -111,6 +112,7 @@ make-verify:
 	@sh scripts/verify-production-deployment-executor-security.sh
 	@sh scripts/verify-production-deployment-workflow-boundary.sh
 	@sh scripts/verify-production-targeted-execution-security.sh
+	@sh scripts/verify-production-backend-service-deploy-security.sh
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
 		python3 scripts/publish-production-service-image.py \
