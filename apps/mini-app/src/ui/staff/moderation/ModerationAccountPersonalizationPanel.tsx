@@ -7,9 +7,13 @@ import {
   grantAdminAccountPersonalization,
   revokeAdminAccountPersonalization,
 } from "@/shared/api/adminPersonalizationApi"
-import type { OwnedPersonalizationResponse } from "@/shared/api/personalizationApi"
+import type {
+  OwnedPersonalizationResponse,
+  PersonalizationResponse,
+} from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { Glyph } from "../../shared/MnemosIcon"
+import { AdminPersonalizationPicker } from "./AdminPersonalizationPicker"
 import "./moderation-account-personalizations.css"
 
 type Props = {
@@ -17,13 +21,18 @@ type Props = {
   deleted: boolean
 }
 
+type GrantMode = "CATALOG" | "ID"
+
 export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Props) {
   const { t } = useTranslation()
   const [items, setItems] = useState<OwnedPersonalizationResponse[]>([])
+  const [grantMode, setGrantMode] = useState<GrantMode>("CATALOG")
+  const [selectedPersonalization, setSelectedPersonalization] = useState<PersonalizationResponse | null>(null)
   const [personalizationId, setPersonalizationId] = useState("")
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [query, setQuery] = useState("")
+  const [revokeCandidateId, setRevokeCandidateId] = useState<string | null>(null)
 
   const load = useCallback(async () => getAdminAccountPersonalizations(accountId), [accountId])
 
@@ -78,6 +87,8 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
     )
   }, [items, query])
 
+  const ownedIds = useMemo(() => items.map((item) => item.personalizationId), [items])
+
   const runMutation = async (key: string, mutation: () => Promise<unknown>) => {
     if (busyKey) {
       return
@@ -95,15 +106,16 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
     }
   }
 
-  const grant = async () => {
-    const id = personalizationId.trim()
+  const grantId = grantMode === "CATALOG" ? selectedPersonalization?.id ?? "" : personalizationId.trim()
 
-    if (!id || deleted) {
+  const grant = async () => {
+    if (!grantId || deleted) {
       return
     }
 
-    await runMutation(`grant:${id}`, async () => {
-      await grantAdminAccountPersonalization(accountId, id)
+    await runMutation(`grant:${grantId}`, async () => {
+      await grantAdminAccountPersonalization(accountId, grantId)
+      setSelectedPersonalization(null)
       setPersonalizationId("")
     })
   }
@@ -128,27 +140,59 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
       </header>
 
       {!deleted ? (
-        <div className="moderation-admin-personalization-grant">
-          <label className="moderation-admin-field">
-            <span>{t("moderation.personalizationId", "Personalization ID")}</span>
-            <input
-              className="moderation-admin-input"
-              placeholder={t("moderation.personalizationIdPlaceholder", "Paste personalization ID")}
-              value={personalizationId}
-              autoComplete="off"
-              spellCheck={false}
-              onChange={(event) => setPersonalizationId(event.target.value)}
-            />
-          </label>
-          <button
-            type="button"
-            className="moderation-control-button moderation-control-button--positive"
-            disabled={!personalizationId.trim() || Boolean(busyKey)}
-            onClick={() => void grant()}
-          >
-            <Glyph name="plus" size={14} />
-            {t("moderation.grantPersonalization", "Grant")}
-          </button>
+        <div className="moderation-admin-personalization-grant-workspace">
+          <div className="moderation-admin-personalization-grant-mode">
+            <button
+              type="button"
+              className={grantMode === "CATALOG" ? "is-active" : ""}
+              onClick={() => setGrantMode("CATALOG")}
+            >
+              {t("moderation.personalizationCatalog", "Catalog")}
+            </button>
+            <button
+              type="button"
+              className={grantMode === "ID" ? "is-active" : ""}
+              onClick={() => setGrantMode("ID")}
+            >
+              {t("moderation.personalizationAdvancedId", "Advanced ID")}
+            </button>
+          </div>
+
+          <div className="moderation-admin-personalization-grant">
+            {grantMode === "CATALOG" ? (
+              <AdminPersonalizationPicker
+                disabled={Boolean(busyKey)}
+                excludedIds={ownedIds}
+                selected={selectedPersonalization}
+                onSelect={setSelectedPersonalization}
+              />
+            ) : (
+              <label className="moderation-admin-field">
+                <span>{t("moderation.personalizationId", "Personalization ID")}</span>
+                <input
+                  className="moderation-admin-input"
+                  placeholder={t(
+                    "moderation.personalizationIdPlaceholder",
+                    "Paste personalization ID",
+                  )}
+                  value={personalizationId}
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={(event) => setPersonalizationId(event.target.value)}
+                />
+              </label>
+            )}
+
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--positive"
+              disabled={!grantId || Boolean(busyKey)}
+              onClick={() => void grant()}
+            >
+              <Glyph name="plus" size={14} />
+              {t("moderation.grantPersonalization", "Grant")}
+            </button>
+          </div>
         </div>
       ) : null}
 
@@ -219,18 +263,40 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                       ? t("moderation.unequipPersonalization", "Unequip")
                       : t("moderation.equipPersonalization", "Equip")}
                   </button>
-                  <button
-                    type="button"
-                    className="is-danger"
-                    disabled={Boolean(busyKey)}
-                    onClick={() =>
-                      void runMutation(`revoke:${item.personalizationId}`, () =>
-                        revokeAdminAccountPersonalization(accountId, item.personalizationId),
-                      )
-                    }
-                  >
-                    {t("moderation.revokePersonalization", "Revoke")}
-                  </button>
+
+                  {revokeCandidateId === item.personalizationId ? (
+                    <span className="moderation-admin-personalization-revoke-confirmation">
+                      <button
+                        type="button"
+                        className="is-danger"
+                        disabled={Boolean(busyKey)}
+                        onClick={() =>
+                          void runMutation(`revoke:${item.personalizationId}`, async () => {
+                            await revokeAdminAccountPersonalization(accountId, item.personalizationId)
+                            setRevokeCandidateId(null)
+                          })
+                        }
+                      >
+                        {t("common.confirm", "Confirm")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={Boolean(busyKey)}
+                        onClick={() => setRevokeCandidateId(null)}
+                      >
+                        {t("common.cancel", "Cancel")}
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="is-danger"
+                      disabled={Boolean(busyKey)}
+                      onClick={() => setRevokeCandidateId(item.personalizationId)}
+                    >
+                      {t("moderation.revokePersonalization", "Revoke")}
+                    </button>
+                  )}
                 </div>
               ) : null}
             </article>
