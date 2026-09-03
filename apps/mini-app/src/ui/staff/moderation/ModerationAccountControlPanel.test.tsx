@@ -15,17 +15,22 @@ const mocks = vi.hoisted(() => ({
   transferAccountOwnership: vi.fn(),
 }))
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, fallback?: string | { defaultValue?: string }) => {
-      if (typeof fallback === "string") {
-        return fallback
-      }
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>()
 
-      return fallback?.defaultValue ?? key
-    },
-  }),
-}))
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string, fallback?: string | { defaultValue?: string }) => {
+        if (typeof fallback === "string") {
+          return fallback
+        }
+
+        return fallback?.defaultValue ?? key
+      },
+    }),
+  }
+})
 
 vi.mock("@/shared/api/moderationApi", () => ({
   addAccountMember: mocks.addAccountMember,
