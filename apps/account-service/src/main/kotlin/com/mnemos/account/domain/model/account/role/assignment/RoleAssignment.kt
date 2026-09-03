@@ -31,6 +31,21 @@ class RoleAssignment private constructor(
                 assignedAt = now,
             )
 
+        fun createAdministrative(
+            accountId: AccountId,
+            accountMemberId: AccountMemberId,
+            roleId: RoleId,
+            now: Instant,
+        ): RoleAssignment =
+            RoleAssignment(
+                accountId = accountId,
+                accountMemberId = accountMemberId,
+                roleId = roleId,
+                assignedBy = RoleAssignmentActor.System,
+                reason = RoleAssignmentReason.MANUAL,
+                assignedAt = now,
+            )
+
         fun createBaseRole(
             accountId: AccountId,
             accountMemberId: AccountMemberId,
