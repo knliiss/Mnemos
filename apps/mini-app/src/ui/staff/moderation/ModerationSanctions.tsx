@@ -86,8 +86,11 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
       return
     }
 
-    await controller.submitSanction()
-    setConfirmationVisible(false)
+    const succeeded = await controller.submitSanction()
+
+    if (succeeded) {
+      setConfirmationVisible(false)
+    }
   }
 
   const submitConfirmedRevoke = async () => {
@@ -97,8 +100,11 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
       return
     }
 
-    await controller.revoke(sanctionId)
-    setRevokeConfirmationId(null)
+    const succeeded = await controller.revoke(sanctionId)
+
+    if (succeeded) {
+      setRevokeConfirmationId(null)
+    }
   }
 
   return (
