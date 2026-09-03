@@ -85,6 +85,16 @@ export type AccountMemberChangedEvent = RealtimeEventEnvelope<
   }
 >
 
+export type SanctionChangedEvent = RealtimeEventEnvelope<
+  "moderation.sanction.activated" | "moderation.sanction.deactivated",
+  {
+    sanctionId: string
+    userId: string
+    type: "BAN" | "NOTIFICATION_SUSPENSION"
+    status: "ACTIVE" | "REVOKED" | "EXPIRED"
+  }
+>
+
 export type NotificationPackBroadcastTemplate = {
   type: string
   emoji: string | null
@@ -157,6 +167,7 @@ export type RealtimeEvent =
   | AccountStatusChangedEvent
   | AccountOwnershipTransferredEvent
   | AccountMemberChangedEvent
+  | SanctionChangedEvent
 
 export type RealtimeBroadcast = DropSpotlightBroadcast | GameEventBroadcast
 
