@@ -14,20 +14,21 @@ const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
 }))
 
-const badge: BadgeResponse = {
-  id: "019c11d1-bb2a-7000-8000-000000000501",
-  code: "EVENT_MASTER",
-  name: "Event Master",
-  imageUrl: "/badge.png",
-  color: "#CBE86E",
-}
-
-const selectedUser = {
-  userId: "019c11d1-bb2a-7000-8000-000000000502",
-  username: "knalis",
-  telegramId: 123456,
-  accounts: [],
-}
+const testData = vi.hoisted(() => ({
+  badge: {
+    id: "019c11d1-bb2a-7000-8000-000000000501",
+    code: "EVENT_MASTER",
+    name: "Event Master",
+    imageUrl: "/badge.png",
+    color: "#CBE86E",
+  },
+  selectedUser: {
+    userId: "019c11d1-bb2a-7000-8000-000000000502",
+    username: "knalis",
+    telegramId: 123456,
+    accounts: [],
+  },
+}))
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -37,7 +38,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("./useBadgeCatalog", () => ({
   useBadgeCatalog: () => ({
-    badges: [badge],
+    badges: [testData.badge],
     loading: false,
     loadError: false,
     creating: false,
@@ -53,7 +54,7 @@ vi.mock("./useBadgeAssignments", () => ({
     normalizedQuery: "",
     visibleResults: [],
     searchFailed: false,
-    selectedUser,
+    selectedUser: testData.selectedUser,
     setSelectedUser: mocks.setSelectedUser,
     userBadges: [],
     assignedIds: new Set<string>(),
@@ -134,7 +135,7 @@ describe("BadgeAdmin", () => {
     fireEvent.click(confirm)
 
     await waitFor(() => {
-      expect(mocks.toggleAssignment).toHaveBeenCalledWith(badge)
+      expect(mocks.toggleAssignment).toHaveBeenCalledWith(testData.badge)
     })
 
     expect(dialog).toBeDefined()
