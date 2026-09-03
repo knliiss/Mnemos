@@ -156,28 +156,48 @@
   background: rgba(188, 61, 68, 0.055);
 }
 
-.bet-admin-race-cancel-confirmation {
+.bet-admin-race-cancel-confirmation,
+.bet-admin-race-create-confirmation {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   margin-top: 7px;
   padding: 9px 10px 9px 8px;
-  border: 1px solid rgba(229, 122, 126, 0.13);
   border-radius: 13px;
+}
+
+.bet-admin-race-cancel-confirmation {
+  border: 1px solid rgba(229, 122, 126, 0.13);
   background:
     radial-gradient(circle at 5% 50%, rgba(229, 122, 126, 0.07), transparent 30%),
     rgba(188, 61, 68, 0.018);
 }
 
-.bet-admin-race-cancel-confirmation__art {
+.bet-admin-race-create-confirmation {
+  border: 1px solid rgba(112, 211, 142, 0.13);
+  background:
+    radial-gradient(circle at 5% 50%, rgba(112, 211, 142, 0.07), transparent 30%),
+    rgba(112, 211, 142, 0.015);
+}
+
+.bet-admin-race-cancel-confirmation__art,
+.bet-admin-race-create-confirmation__art {
   display: grid;
   place-items: center;
   width: 58px;
   height: 50px;
   overflow: hidden;
   border-radius: 12px;
+}
+
+.bet-admin-race-cancel-confirmation__art {
   background: rgba(229, 122, 126, 0.025);
+}
+
+.bet-admin-race-create-confirmation__art {
+  color: #a8d8b2;
+  background: rgba(112, 211, 142, 0.025);
 }
 
 .bet-admin-race-cancel-confirmation__art img {
@@ -188,7 +208,8 @@
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
 }
 
-.bet-admin-race-cancel-confirmation__copy {
+.bet-admin-race-cancel-confirmation__copy,
+.bet-admin-race-create-confirmation__copy {
   display: grid;
   gap: 3px;
   min-width: 0;
@@ -199,20 +220,62 @@
   font-size: 10px;
 }
 
-.bet-admin-race-cancel-confirmation__copy small {
+.bet-admin-race-create-confirmation__copy > strong {
+  color: #b6dfbe;
+  font-size: 10px;
+}
+
+.bet-admin-race-cancel-confirmation__copy small,
+.bet-admin-race-create-confirmation__copy > small {
   max-width: 480px;
-  color: #8e7777;
   font-size: 8px;
   line-height: 1.45;
 }
 
-.bet-admin-race-cancel-confirmation__actions {
+.bet-admin-race-cancel-confirmation__copy small {
+  color: #8e7777;
+}
+
+.bet-admin-race-create-confirmation__copy > small {
+  color: #78877b;
+}
+
+.bet-admin-race-create-confirmation__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.bet-admin-race-create-confirmation__facts > span {
+  display: grid;
+  gap: 1px;
+  min-width: 78px;
+  padding: 5px 7px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.bet-admin-race-create-confirmation__facts small {
+  color: #747b70;
+  font-size: 7px;
+}
+
+.bet-admin-race-create-confirmation__facts strong {
+  color: #d8ddd2;
+  font-size: 8.5px;
+}
+
+.bet-admin-race-cancel-confirmation__actions,
+.bet-admin-race-create-confirmation__actions {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.bet-admin-race-cancel-confirmation__actions button {
+.bet-admin-race-cancel-confirmation__actions button,
+.bet-admin-race-create-confirmation__actions button {
   min-height: 34px;
   padding: 0 10px;
   border: 1px solid rgba(235, 241, 213, 0.07);
@@ -230,13 +293,26 @@
   background: rgba(188, 61, 68, 0.04);
 }
 
+.bet-admin-race-create-confirmation__actions .is-positive {
+  border-color: rgba(112, 211, 142, 0.16);
+  color: #acdcb6;
+  background: rgba(112, 211, 142, 0.04);
+}
+
 .bet-admin-race-cancel-confirmation__actions .is-danger:hover:not(:disabled) {
   border-color: rgba(229, 122, 126, 0.25);
   color: #f2b4b6;
   background: rgba(188, 61, 68, 0.075);
 }
 
-.bet-admin-race-cancel-confirmation__actions .is-neutral:hover:not(:disabled) {
+.bet-admin-race-create-confirmation__actions .is-positive:hover:not(:disabled) {
+  border-color: rgba(112, 211, 142, 0.25);
+  color: #c1ecc9;
+  background: rgba(112, 211, 142, 0.07);
+}
+
+.bet-admin-race-cancel-confirmation__actions .is-neutral:hover:not(:disabled),
+.bet-admin-race-create-confirmation__actions .is-neutral:hover:not(:disabled) {
   border-color: rgba(235, 241, 213, 0.13);
   color: #ccd2c7;
   background: rgba(255, 255, 255, 0.025);
@@ -397,11 +473,13 @@
 
 @media (max-width: 620px) {
   .bet-admin-race-cancel-confirmation,
+  .bet-admin-race-create-confirmation,
   .bet-admin-round-resolution-confirmation {
     grid-template-columns: 52px minmax(0, 1fr);
   }
 
   .bet-admin-race-cancel-confirmation__art,
+  .bet-admin-race-create-confirmation__art,
   .bet-admin-round-resolution-confirmation__art {
     width: 52px;
     height: 48px;
@@ -414,6 +492,7 @@
   }
 
   .bet-admin-race-cancel-confirmation__actions,
+  .bet-admin-race-create-confirmation__actions,
   .bet-admin-round-resolution-confirmation__actions {
     grid-column: 1 / -1;
     display: grid;
@@ -433,11 +512,13 @@
   }
 
   .bet-admin-race-cancel-confirmation,
+  .bet-admin-race-create-confirmation,
   .bet-admin-round-resolution-confirmation {
     grid-template-columns: 44px minmax(0, 1fr);
   }
 
   .bet-admin-race-cancel-confirmation__art,
+  .bet-admin-race-create-confirmation__art,
   .bet-admin-round-resolution-confirmation__art {
     width: 44px;
     height: 42px;
