@@ -61,7 +61,7 @@ function createController(overrides: Partial<ModerationUserController> = {}): Mo
     setOperation: vi.fn(),
     setAmount: vi.fn(),
     setWalletReason: vi.fn(),
-    submitAdjustment: vi.fn().mockResolvedValue(undefined),
+    submitAdjustment: vi.fn().mockResolvedValue(true),
     ...overrides,
   } as unknown as ModerationUserController
 }
@@ -98,9 +98,36 @@ describe("ModerationWalletAdjustments", () => {
 
     await waitFor(() => {
       expect(controller.submitAdjustment).toHaveBeenCalledTimes(1)
+      expect(
+        screen.queryByRole("alertdialog", { name: "moderation.walletAdjustment" }),
+      ).toBeNull()
     })
 
     expect(dialog).toBeDefined()
+  })
+
+  it("keeps wallet confirmation open when the adjustment fails", async () => {
+    const controller = createController({
+      submitAdjustment: vi.fn().mockResolvedValue(false),
+    })
+
+    render(
+      <ModerationWalletAdjustments
+        controller={controller}
+        identity={identity}
+        language="en"
+        canAdjustPrime
+      />,
+    )
+
+    fireEvent.click(screen.getByText("moderation.apply"))
+    fireEvent.click(screen.getByText("common.confirm"))
+
+    await waitFor(() => {
+      expect(controller.submitAdjustment).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.getByRole("alertdialog", { name: "moderation.walletAdjustment" })).toBeDefined()
   })
 
   it("dismisses wallet confirmation with Escape", () => {
