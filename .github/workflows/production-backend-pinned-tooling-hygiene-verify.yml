@@ -1,0 +1,36 @@
+name: Production Backend Pinned Tooling Hygiene Verify
+
+on:
+  push:
+    branches:
+      - fix/production-backend-pinned-tooling-hygiene
+    paths:
+      - .github/workflows/production-backend-service-deploy.yml
+      - scripts/verify-production-backend-service-deploy-security.sh
+      - .github/workflows/production-backend-pinned-tooling-hygiene-verify.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout exact verification head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify pinned tooling compatibility boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' \
+            .github/workflows/production-backend-service-deploy.yml
+
+          sh scripts/verify-production-backend-service-deploy-security.sh
+          make make-verify
