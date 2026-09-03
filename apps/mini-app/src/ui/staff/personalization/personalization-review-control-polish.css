@@ -229,6 +229,44 @@
   background: rgba(188, 61, 68, 0.055);
 }
 
+.personalization-review-screen .review-listing-confirmation.is-relist {
+  border-color: rgba(203, 255, 45, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(203, 255, 45, 0.055), transparent 28%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__art {
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy small {
+  color: #a4b17e;
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy strong {
+  color: #e5ead7;
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist .review-listing-confirmation__copy p {
+  color: #858c7d;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > .primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(203, 255, 45, 0.16);
+  color: #dbeaa9;
+  background: rgba(203, 255, 45, 0.055);
+}
+
 .personalization-review-screen .review-listing-cancel {
   min-width: 92px;
   padding: 0 12px;
@@ -237,22 +275,155 @@
   background: rgba(255, 255, 255, 0.018);
 }
 
+.personalization-review-screen .review-decision-confirmation {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 11px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid rgba(223, 232, 204, 0.09);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve {
+  border-color: rgba(203, 255, 45, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(203, 255, 45, 0.055), transparent 28%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject {
+  border-color: rgba(222, 105, 112, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(188, 61, 68, 0.07), transparent 28%),
+    rgba(188, 61, 68, 0.018);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject:focus-within {
+  border-color: rgba(222, 105, 112, 0.2);
+  box-shadow: 0 0 0 2px rgba(222, 105, 112, 0.035);
+}
+
+.personalization-review-screen .review-decision-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  min-height: 62px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve .review-decision-confirmation__art {
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject .review-decision-confirmation__art {
+  background: rgba(188, 61, 68, 0.025);
+}
+
+.personalization-review-screen .review-decision-confirmation__art img {
+  width: 54px;
+  height: 50px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.88;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve .review-decision-confirmation__copy small {
+  color: #a4b17e;
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject .review-decision-confirmation__copy small {
+  color: #b0787c;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy strong {
+  color: #e5eadf;
+  font-size: 11px;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy p {
+  margin: 0;
+  color: #858c7f;
+  font-size: 9px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > button {
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .primary-action,
+.personalization-review-screen .review-decision-confirmation__actions > .destructive-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .primary-action {
+  border: 1px solid rgba(203, 255, 45, 0.16);
+  color: #dbeaa9;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .destructive-action {
+  border: 1px solid rgba(222, 105, 112, 0.18);
+  color: #dda0a5;
+  background: rgba(188, 61, 68, 0.055);
+}
+
 @media (max-width: 374px) {
-  .personalization-review-screen .review-listing-confirmation {
+  .personalization-review-screen .review-listing-confirmation,
+  .personalization-review-screen .review-decision-confirmation {
     grid-template-columns: 52px minmax(0, 1fr);
   }
 
-  .personalization-review-screen .review-listing-confirmation__art {
+  .personalization-review-screen .review-listing-confirmation__art,
+  .personalization-review-screen .review-decision-confirmation__art {
     width: 52px;
     min-height: 56px;
   }
 
-  .personalization-review-screen .review-listing-confirmation__art img {
+  .personalization-review-screen .review-listing-confirmation__art img,
+  .personalization-review-screen .review-decision-confirmation__art img {
     width: 46px;
     height: 44px;
   }
 
-  .personalization-review-screen .review-listing-confirmation__actions {
+  .personalization-review-screen .review-listing-confirmation__actions,
+  .personalization-review-screen .review-decision-confirmation__actions {
     grid-template-columns: 1fr;
   }
 
