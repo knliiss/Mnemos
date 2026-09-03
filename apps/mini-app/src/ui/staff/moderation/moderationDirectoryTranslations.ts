@@ -67,7 +67,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     removeMember: "Remove",
     owner: "Owner",
     irreversibleDelete: "Delete account permanently",
-    deleteWarning: "This creates an irreversible tombstone. The historical record remains in Mnemos and cannot be reactivated.",
+    deleteWarning:
+      "This creates an irreversible tombstone. The historical record remains in Mnemos and cannot be reactivated.",
     confirmDelete: "Confirm permanent deletion",
     cancel: "Cancel",
     loadingAccount: "Loading account…",
@@ -103,7 +104,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     removeMember: "Удалить",
     owner: "Владелец",
     irreversibleDelete: "Удалить аккаунт навсегда",
-    deleteWarning: "Операция необратима. Историческая запись останется в Mnemos со статусом DELETED и больше не сможет быть активирована.",
+    deleteWarning:
+      "Операция необратима. Историческая запись останется в Mnemos со статусом DELETED и больше не сможет быть активирована.",
     confirmDelete: "Подтвердить удаление навсегда",
     cancel: "Отмена",
     loadingAccount: "Загружаем аккаунт…",
@@ -139,7 +141,8 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     removeMember: "Видалити",
     owner: "Власник",
     irreversibleDelete: "Видалити аккаунт назавжди",
-    deleteWarning: "Операція незворотна. Історичний запис залишиться в Mnemos зі статусом DELETED і більше не зможе бути активований.",
+    deleteWarning:
+      "Операція незворотна. Історичний запис залишиться в Mnemos зі статусом DELETED і більше не зможе бути активований.",
     confirmDelete: "Підтвердити остаточне видалення",
     cancel: "Скасувати",
     loadingAccount: "Завантажуємо аккаунт…",
