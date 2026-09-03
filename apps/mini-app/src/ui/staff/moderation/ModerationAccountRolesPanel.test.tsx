@@ -94,7 +94,9 @@ beforeEach(() => {
   Object.values(mocks).forEach((mock) => mock.mockReset())
   mocks.getAdminAccountRoles.mockResolvedValue([role])
   mocks.getAdminMemberRoles.mockResolvedValue([])
+  mocks.clearAdminBaseRole.mockResolvedValue(undefined)
   mocks.deleteAdminRole.mockResolvedValue(undefined)
+  mocks.updateAdminBaseRole.mockResolvedValue(undefined)
 })
 
 afterEach(() => {
@@ -138,5 +140,75 @@ describe("ModerationAccountRolesPanel", () => {
       expect(mocks.deleteAdminRole).toHaveBeenCalledWith(accountId, roleId)
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
+  })
+
+  it("requires explicit confirmation before setting the base role", async () => {
+    render(
+      <ModerationAccountRolesPanel details={details} onChanged={vi.fn().mockResolvedValue(undefined)} />,
+    )
+
+    const baseRoleButton = await screen.findByRole("button", { name: "roleEditor.baseRole" })
+    fireEvent.click(baseRoleButton)
+
+    expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmSetBaseRole" })
+    const confirm = screen.getByText("roleEditor.setBaseRole")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(
+      screen.queryByRole("alertdialog", { name: "roleEditor.confirmSetBaseRole" }),
+    ).toBeNull()
+    expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
+  })
+
+  it("sets the base role only after confirmation", async () => {
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
+
+    fireEvent.click(await screen.findByRole("button", { name: "roleEditor.baseRole" }))
+    fireEvent.click(screen.getByText("roleEditor.setBaseRole"))
+
+    await waitFor(() => {
+      expect(mocks.updateAdminBaseRole).toHaveBeenCalledWith(accountId, roleId)
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it("clears the base role only after confirmation", async () => {
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(
+      <ModerationAccountRolesPanel
+        details={{ ...details, baseRoleId: roleId }}
+        onChanged={onChanged}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole("button", { name: "roleEditor.baseRole" }))
+
+    expect(mocks.clearAdminBaseRole).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmClearBaseRole" })
+    const confirm = screen.getByText("roleEditor.clearBaseRole")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
+
+    await waitFor(() => {
+      expect(mocks.clearAdminBaseRole).toHaveBeenCalledWith(accountId)
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
   })
 })
