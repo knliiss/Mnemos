@@ -82,3 +82,181 @@
   font-size: 9px;
   font-weight: 700;
 }
+
+.badge-assignment-confirmation {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  padding: 9px 10px 9px 8px;
+  border: 1px solid rgba(203, 255, 45, 0.1);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(203, 255, 45, 0.05), transparent 30%),
+    rgba(203, 255, 45, 0.012);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.badge-assignment-confirmation.is-revoke {
+  border-color: rgba(225, 116, 121, 0.12);
+  background:
+    radial-gradient(circle at 4% 50%, rgba(225, 116, 121, 0.055), transparent 30%),
+    rgba(188, 61, 68, 0.014);
+}
+
+.badge-assignment-confirmation:focus-within {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.badge-assignment-confirmation.is-revoke:focus-within {
+  border-color: rgba(225, 116, 121, 0.24);
+  box-shadow: 0 0 0 2px rgba(225, 116, 121, 0.04);
+}
+
+.badge-assignment-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(203, 255, 45, 0.022);
+}
+
+.badge-assignment-confirmation.is-revoke .badge-assignment-confirmation__art {
+  background: rgba(225, 116, 121, 0.022);
+}
+
+.badge-assignment-confirmation__art img {
+  width: 53px;
+  height: 47px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
+}
+
+.badge-assignment-confirmation__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.badge-assignment-confirmation__copy small {
+  color: #7c856f;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-assignment-confirmation.is-revoke .badge-assignment-confirmation__copy small {
+  color: #947575;
+}
+
+.badge-assignment-confirmation__copy strong {
+  color: #dce3d5;
+  font-size: 10px;
+}
+
+.badge-assignment-confirmation__copy em {
+  color: #7c8378;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.badge-assignment-confirmation__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.badge-assignment-confirmation__actions button {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 9px;
+  outline: none;
+  color: #9da498;
+  background: rgba(255, 255, 255, 0.014);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.badge-assignment-confirmation__actions button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.badge-assignment-confirmation__actions button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.badge-assignment-confirmation__actions button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.badge-assignment-confirmation__actions .is-primary {
+  border-color: rgba(203, 255, 45, 0.15);
+  color: #cddd91;
+  background: rgba(203, 255, 45, 0.035);
+}
+
+.badge-assignment-confirmation__actions .is-danger {
+  border-color: rgba(225, 116, 121, 0.17);
+  color: #dda4a6;
+  background: rgba(188, 61, 68, 0.04);
+}
+
+.badge-assignment-confirmation__actions .is-primary:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.25);
+  color: #e3efa8;
+  background: rgba(203, 255, 45, 0.065);
+}
+
+.badge-assignment-confirmation__actions .is-danger:hover:not(:disabled) {
+  border-color: rgba(225, 116, 121, 0.27);
+  color: #f0b5b7;
+  background: rgba(188, 61, 68, 0.075);
+}
+
+.badge-assignment-confirmation__actions .is-neutral:hover:not(:disabled) {
+  border-color: rgba(235, 241, 213, 0.13);
+  color: #cdd3c8;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+@media (max-width: 560px) {
+  .badge-assignment-confirmation {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
+  .badge-assignment-confirmation__art {
+    width: 50px;
+    height: 46px;
+  }
+
+  .badge-assignment-confirmation__art img {
+    width: 47px;
+    height: 43px;
+  }
+
+  .badge-assignment-confirmation__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
