@@ -32,6 +32,7 @@ const activeAccount: AdminAccountDetailsResponse = {
   cristalixNickname: "knaliz",
   status: "ACTIVE",
   ownerMemberId,
+  baseRoleId: null,
   maxMembers: 10,
   createdAt: "2026-09-03T00:00:00Z",
   deactivatedAt: null,
@@ -69,8 +70,7 @@ describe("ModerationAccountControlPanel", () => {
     mocks.getAdminAccount.mockResolvedValue({
       ...activeAccount,
       status: "DELETED",
-      deactivatedAt: "2026-09-03T00:05:00Z",
-      deletedAt: "2026-09-03T00:06:00Z",
+      deletedAt: "2026-09-03T00:02:00Z",
     })
 
     render(
@@ -79,52 +79,41 @@ describe("ModerationAccountControlPanel", () => {
         canDelete
         copy={copy}
         onChanged={vi.fn()}
+        onOpenUser={vi.fn()}
       />,
     )
 
-    await screen.findByText("DELETED")
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    expect(screen.getByText("Owner")).toBeTruthy()
-    expect(screen.queryByPlaceholderText("Mnemos User ID")).toBeNull()
-    expect(screen.queryByText("Transfer owner")).toBeNull()
-    expect(screen.queryByText("Remove")).toBeNull()
-    expect(screen.queryByText("Delete account permanently")).toBeNull()
+    expect(screen.queryByText(copy.addMember)).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.transferOwnership)).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.deleteAccount)).not.toBeInTheDocument()
   })
 
-  it("requires explicit confirmation before permanent deletion", async () => {
-    const onChanged = vi.fn().mockResolvedValue(undefined)
-    const deletedAccount: AdminAccountDetailsResponse = {
-      ...activeAccount,
-      status: "DELETED",
-      deactivatedAt: "2026-09-03T00:05:00Z",
-      deletedAt: "2026-09-03T00:06:00Z",
-    }
-
-    mocks.getAdminAccount.mockResolvedValueOnce(activeAccount).mockResolvedValueOnce(deletedAccount)
-    mocks.deleteAccountPermanently.mockResolvedValue(undefined)
+  it("transfers ownership using user id instead of account member id", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+    mocks.transferAccountOwnership.mockResolvedValue(undefined)
 
     render(
       <ModerationAccountControlPanel
         accountId={accountId}
         canDelete
         copy={copy}
-        onChanged={onChanged}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+        onOpenUser={vi.fn()}
       />,
     )
 
-    const deleteButton = await screen.findByText("Delete account permanently")
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    fireEvent.click(deleteButton)
+    const targetUserId = "019c1129-ef54-7000-8000-000000000437"
+    const transferInput = screen.getByPlaceholderText(copy.transferOwnershipPlaceholder)
 
-    expect(mocks.deleteAccountPermanently).not.toHaveBeenCalled()
-    expect(screen.getByText("Confirm permanent deletion")).toBeTruthy()
-
-    fireEvent.click(screen.getByText("Confirm permanent deletion"))
+    fireEvent.change(transferInput, { target: { value: targetUserId } })
+    fireEvent.click(screen.getByText(copy.transferOwnership))
 
     await waitFor(() => {
-      expect(mocks.deleteAccountPermanently).toHaveBeenCalledWith(accountId)
-      expect(onChanged).toHaveBeenCalledOnce()
-      expect(screen.getByText("DELETED")).toBeTruthy()
+      expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, targetUserId)
     })
   })
 })
