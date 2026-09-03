@@ -104,7 +104,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     }
 
     const preferredAccount =
-      found.accounts.find((account) => account.active)?.accountId ??
+      found.accounts.find((account) => account.status === "ACTIVE")?.accountId ??
       found.accounts[0]?.accountId ??
       ""
 
