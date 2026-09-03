@@ -76,6 +76,14 @@
   background:
     radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.04), transparent 34%),
     rgba(223, 88, 80, 0.012);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-admin-role-delete-confirmation:focus-within {
+  border-color: rgba(223, 88, 80, 0.2);
+  box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.035);
 }
 
 .moderation-admin-role-delete-confirmation > span {
