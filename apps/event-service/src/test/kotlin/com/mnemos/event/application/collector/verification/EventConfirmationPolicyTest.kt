@@ -1,27 +1,17 @@
 package com.mnemos.event.application.collector.verification
 
-import com.mnemos.event.configuration.collector.EventVerificationProperties
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 
 class EventConfirmationPolicyTest {
-    private val policy = EventConfirmationPolicy(EventVerificationProperties())
+    private val policy = EventConfirmationPolicy()
 
     @ParameterizedTest
-    @CsvSource(
-        "1, 1",
-        "2, 2",
-        "3, 2",
-        "4, 2",
-        "5, 3",
-    )
-    fun `balanced quorum keeps a single trusted collector available`(
-        activeCollectors: Int,
-        expectedConfirmations: Int,
-    ) {
+    @ValueSource(ints = [1, 2, 3, 5, 20])
+    fun `global active collector count does not create a cross-stream quorum`(activeCollectors: Int) {
         assertEquals(
-            expectedConfirmations,
+            1,
             policy.requiredConfirmations(activeCollectors),
         )
     }
