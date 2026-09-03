@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+sys.dont_write_bytecode = True
+
 from production_deployment_state import ProductionDeploymentStateError
 from production_deployment_state import build_state
 from production_deployment_state import read_state
