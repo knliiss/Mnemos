@@ -1,0 +1,48 @@
+name: Production Backend Runner Dependencies Hosted Verify
+
+on:
+  push:
+    branches:
+      - fix/production-backend-runner-dependencies
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout exact verification head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify workflow YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ruby -e '
+            require "yaml"
+            ARGV.each do |path|
+              YAML.load_file(path)
+              puts "YAML parsed: #{path}"
+            end
+          ' \
+            .github/workflows/production-backend-deploy-request.yml \
+            .github/workflows/production-backend-service-deploy.yml
+
+      - name: Verify backend deploy security boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sh -n scripts/verify-production-backend-service-deploy-security.sh
+          sh scripts/verify-production-backend-service-deploy-security.sh
+
+      - name: Verify repository production tooling
+        shell: bash
+        run: make make-verify
