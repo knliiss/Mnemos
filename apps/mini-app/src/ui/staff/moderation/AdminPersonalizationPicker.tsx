@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   listPersonalizations,
@@ -32,44 +32,23 @@ export function AdminPersonalizationPicker({
   onSelect,
 }: Props) {
   const { t } = useTranslation()
+  const listboxId = useId()
   const [query, setQuery] = useState("")
   const [items, setItems] = useState<PersonalizationResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const loadRevision = useRef(0)
+  const loadingRef = useRef(false)
   const excluded = useMemo(() => new Set(excludedIds), [excludedIds])
 
-  useEffect(() => {
-    if (!open || loaded || disabled) {
-      return
-    }
-
-    let active = true
-
-    void Promise.all(
-      PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
-    )
-      .then((pages) => {
-        if (active) {
-          setItems(pages.flatMap((page) => page.items))
-          setLoaded(true)
-        }
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          handleError(error)
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false)
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [disabled, loaded, open])
+  useEffect(
+    () => () => {
+      loadRevision.current += 1
+    },
+    [],
+  )
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -88,19 +67,78 @@ export function AdminPersonalizationPicker({
       .slice(0, 12)
   }, [excluded, items, query])
 
+  const loadCatalog = async () => {
+    if (loaded || loadingRef.current || disabled) {
+      return
+    }
+
+    loadingRef.current = true
+    setLoading(true)
+    const revision = loadRevision.current + 1
+    loadRevision.current = revision
+
+    try {
+      const pages = await Promise.all(
+        PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
+      )
+
+      if (revision === loadRevision.current) {
+        const nextItems = pages.flatMap((page) => page.items)
+
+        setItems(nextItems)
+        setLoaded(true)
+        setActiveIndex(nextItems.length > 0 ? 0 : -1)
+      }
+    } catch (error) {
+      if (revision === loadRevision.current) {
+        handleError(error)
+      }
+    } finally {
+      loadingRef.current = false
+
+      if (revision === loadRevision.current) {
+        setLoading(false)
+      }
+    }
+  }
+
   const openPicker = () => {
     setOpen(true)
-
-    if (!loaded && !disabled) {
-      setLoading(true)
-    }
+    void loadCatalog()
   }
 
   const clear = () => {
     onSelect(null)
     setQuery("")
     setOpen(false)
+    setActiveIndex(-1)
   }
+
+  const selectItem = (item: PersonalizationResponse) => {
+    onSelect(item)
+    setQuery("")
+    setOpen(false)
+    setActiveIndex(-1)
+  }
+
+  const moveActiveOption = (direction: -1 | 1) => {
+    if (visible.length === 0) {
+      openPicker()
+      return
+    }
+
+    setOpen(true)
+    setActiveIndex((current) => {
+      if (current < 0 || current >= visible.length) {
+        return direction > 0 ? 0 : visible.length - 1
+      }
+
+      return (current + direction + visible.length) % visible.length
+    })
+  }
+
+  const activeItem = open && activeIndex >= 0 ? visible[activeIndex] : undefined
+  const activeOptionId = activeItem ? `${listboxId}-option-${activeItem.id}` : undefined
 
   if (selected) {
     return (
@@ -140,6 +178,7 @@ export function AdminPersonalizationPicker({
         <Glyph name="search" size={16} />
         <input
           type="search"
+          role="combobox"
           value={query}
           disabled={disabled}
           autoComplete="off"
@@ -148,10 +187,30 @@ export function AdminPersonalizationPicker({
             "moderation.personalizationPickerPlaceholder",
             "Search catalog by name or type",
           )}
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-activedescendant={activeOptionId}
           onFocus={openPicker}
           onChange={(event) => {
             setQuery(event.target.value)
+            setActiveIndex(0)
             openPicker()
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowDown") {
+              event.preventDefault()
+              moveActiveOption(1)
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault()
+              moveActiveOption(-1)
+            } else if (event.key === "Enter" && activeItem) {
+              event.preventDefault()
+              selectItem(activeItem)
+            } else if (event.key === "Escape") {
+              setOpen(false)
+              setActiveIndex(-1)
+            }
           }}
         />
         {loading ? <span className="admin-personalization-picker__loading" aria-hidden="true" /> : null}
@@ -163,7 +222,7 @@ export function AdminPersonalizationPicker({
       </div>
 
       {open ? (
-        <div className="admin-personalization-picker__results">
+        <div id={listboxId} className="admin-personalization-picker__results" role="listbox">
           {loading && visible.length === 0 ? (
             <div className="admin-personalization-picker__state">{t("common.loading")}</div>
           ) : visible.length === 0 ? (
@@ -178,15 +237,17 @@ export function AdminPersonalizationPicker({
               </small>
             </div>
           ) : (
-            visible.map((item) => (
+            visible.map((item, index) => (
               <button
                 type="button"
+                role="option"
+                tabIndex={-1}
+                id={`${listboxId}-option-${item.id}`}
                 key={item.id}
-                onClick={() => {
-                  onSelect(item)
-                  setQuery("")
-                  setOpen(false)
-                }}
+                className={activeIndex === index ? "is-keyboard-active" : ""}
+                aria-selected={activeIndex === index}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => selectItem(item)}
               >
                 <span className="admin-personalization-picker__mark" aria-hidden="true">
                   <Glyph name="spark" size={14} />
