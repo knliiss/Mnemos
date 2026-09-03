@@ -164,7 +164,9 @@ jobs:
               raise SystemExit("Production backend deploy request actor is invalid")
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"service={event_head_branch.removeprefix('deploy/production-backend/')}\n")
+              output.write(
+                  f"service={event_head_branch.removeprefix('deploy/production-backend/')}\n"
+              )
               output.write(f"target_sha={event_head_sha}\n")
               output.write(f"authorization_ref={event_head_branch}\n")
               output.write(f"request_actor={request_actor}\n")
@@ -450,11 +452,7 @@ jobs:
 
     if: needs.plan.outputs.has_action == 'true'
 
-    runs-on:
-      - self-hosted
-      - Linux
-      - X64
-      - mnemos-backend
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: read
