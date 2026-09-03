@@ -1,0 +1,55 @@
+name: Fix Personalization Test Spacing
+
+on:
+  push:
+    branches:
+      - feat/full-admin-control-plane
+    paths:
+      - .github/workflows/fix-personalization-test-spacing.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: feat/full-admin-control-plane
+
+      - name: Add declaration spacing
+        shell: python
+        run: |
+          from pathlib import Path
+
+          files = [
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/builtin/SynchronizeBuiltinPersonalizationCatalogServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/lifecycle/PersonalizationLifecycleUseCasesTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/usecase/createcustompack/CreateCustomNotificationPackServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchasePersonalizationServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchaseWalletUseCasesTest.kt"),
+          ]
+
+          needle = "\n        override fun delete(\n"
+          replacement = "\n\n        override fun delete(\n"
+
+          for path in files:
+              text = path.read_text()
+              if text.count(needle) != 1:
+                  raise RuntimeError(f"Expected one delete override in {path}")
+              path.write_text(text.replace(needle, replacement, 1))
+
+      - name: Commit spacing fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git config user.name knalis
+          git config user.email vitallot21@gmail.com
+          git add apps/personalization-service/src/test/kotlin
+          git commit -m "Fix personalization test declaration spacing"
+          git push origin HEAD:feat/full-admin-control-plane
