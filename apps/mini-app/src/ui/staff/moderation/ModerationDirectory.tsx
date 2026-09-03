@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import type {
@@ -22,17 +21,12 @@ type Props = {
 
 export function ModerationDirectory({ mode, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
-  const directory = useIdentityDirectory()
+  const directory = useIdentityDirectory(mode)
   const copy = resolveModerationDirectoryCopy(i18n.language)
   const dateFormatter = new Intl.DateTimeFormat(i18n.language, {
     dateStyle: "medium",
     timeStyle: "short",
   })
-
-  useEffect(() => {
-    directory.setMode(mode)
-  }, [mode, directory.setMode])
-
   const totalResults = directory.pagination.totalElements
   const title = mode === "USERS" ? copy.userDirectory : copy.accountDirectory
   const placeholder = mode === "USERS" ? copy.userSearchPlaceholder : copy.accountSearchPlaceholder
