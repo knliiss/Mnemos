@@ -55,7 +55,7 @@ function identityWithAccount(userId: string, accountId: string): IdentitySearchR
         accountId,
         cristalixUuid: "019c1129-ef54-7000-8000-000000000401",
         cristalixNickname: "north",
-        active: true,
+        status: "ACTIVE",
       },
     ],
   }
