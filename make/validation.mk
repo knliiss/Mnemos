@@ -17,7 +17,7 @@ require-compose: require-docker require-env
 require-node:
 	@command -v node >/dev/null 2>&1 || { printf "\033[31m✗\033[0m Node.js is required\n" >&2; exit 2; }
 	@command -v npm >/dev/null 2>&1 || { printf "\033[31m✗\033[0m npm is required\n" >&2; exit 2; }
-	@test -f "$(MINI_APP_NODE_VERSION_FILE)" || { printf "\033[31m✗\033[0m %s not found\n" "$(MINI_APP_NODE_VERSION_FILE)" >&2; exit 2; }
+	@test -f "$(MINI_APP_NODE_VERSION_FILE)" || { printf "\033[31m✗\033[0m Mini App requires Node.js version file: %s\n" "$(MINI_APP_NODE_VERSION_FILE)" >&2; exit 2; }
 	@expected="$$(tr -d '[:space:]' < "$(MINI_APP_NODE_VERSION_FILE)")"; \
 	actual="$$(node -p 'process.versions.node')"; \
 	if [ "$$actual" != "$$expected" ]; then \
@@ -68,6 +68,7 @@ make-verify:
 	@sh -n scripts/verify-production-deployment-executor-security.sh
 	@sh -n scripts/verify-production-deployment-workflow-boundary.sh
 	@sh -n scripts/verify-production-targeted-execution-security.sh
+	@sh -n scripts/verify-production-backend-service-deploy-security.sh
 	@python3 -m py_compile scripts/resolve_backend_ci_changes.py
 	@python3 -m py_compile scripts/verify-backend-ci-changes.py
 	@python3 -m py_compile scripts/production_audit_bundle.py
@@ -111,6 +112,7 @@ make-verify:
 	@sh scripts/verify-production-deployment-executor-security.sh
 	@sh scripts/verify-production-deployment-workflow-boundary.sh
 	@sh scripts/verify-production-targeted-execution-security.sh
+	@sh scripts/verify-production-backend-service-deploy-security.sh
 	@set -e; \
 	for service in $$(python3 scripts/production_service_catalog.py list); do \
 		python3 scripts/publish-production-service-image.py \
