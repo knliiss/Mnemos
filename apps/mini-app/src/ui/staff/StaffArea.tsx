@@ -6,6 +6,7 @@ import "./badges/badge-admin.css"
 import "./collectors/collector-admin.css"
 import "./moderation/moderation-account-personalization-actions.css"
 import "./moderation/moderation-admin-navigation.css"
+import "./moderation/moderation-control-tones.css"
 
 type Props = {
   routeId: Route["id"]
