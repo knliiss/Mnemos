@@ -25,8 +25,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, options?: string | { defaultValue?: string }) =>
-      typeof options === "string" ? options : options?.defaultValue ?? key,
+    t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
   }),
 }))
 
@@ -108,8 +107,8 @@ describe("ModerationAccountRolesPanel", () => {
       <ModerationAccountRolesPanel details={details} onChanged={vi.fn().mockResolvedValue(undefined)} />,
     )
 
-    await screen.findByText("Moderator")
-    fireEvent.click(screen.getByText("roleEditor.delete"))
+    const deleteButton = await screen.findByText("roleEditor.delete")
+    fireEvent.click(deleteButton)
 
     expect(mocks.deleteAdminRole).not.toHaveBeenCalled()
 
@@ -131,8 +130,8 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findByText("Moderator")
-    fireEvent.click(screen.getByText("roleEditor.delete"))
+    const deleteButton = await screen.findByText("roleEditor.delete")
+    fireEvent.click(deleteButton)
     fireEvent.click(screen.getByText("Confirm"))
 
     await waitFor(() => {
