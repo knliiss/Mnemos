@@ -1,0 +1,78 @@
+.moderation-admin-personalization-grant-workspace {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(235, 241, 213, 0.05);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.moderation-admin-personalization-grant-mode {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-self: start;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.moderation-admin-personalization-grant-mode button {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 27px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  outline: none;
+  color: #747c71;
+  background: transparent;
+  font: inherit;
+  font-size: 7.5px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-admin-personalization-grant-mode button:hover {
+  color: #bfc7ba;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.moderation-admin-personalization-grant-mode button:focus-visible {
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-admin-personalization-grant-mode button.is-active {
+  color: #cce879;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.moderation-admin-personalization-revoke-confirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(223, 88, 80, 0.07);
+  border-radius: 8px;
+  background: rgba(223, 88, 80, 0.014);
+}
+
+.moderation-admin-personalization-revoke-confirmation button {
+  min-height: 24px;
+}
+
+@media (max-width: 420px) {
+  .moderation-admin-personalization-grant-mode {
+    justify-self: stretch;
+  }
+
+  .moderation-admin-personalization-revoke-confirmation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+}
