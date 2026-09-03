@@ -150,6 +150,120 @@
   font: inherit;
 }
 
+.bet-admin-race-card__actions .is-cancel.is-confirming {
+  border-color: rgba(229, 122, 126, 0.22);
+  color: #ecacad;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+.bet-admin-race-cancel-confirmation {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 7px;
+  padding: 9px 10px 9px 8px;
+  border: 1px solid rgba(229, 122, 126, 0.13);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 5% 50%, rgba(229, 122, 126, 0.07), transparent 30%),
+    rgba(188, 61, 68, 0.018);
+}
+
+.bet-admin-race-cancel-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(229, 122, 126, 0.025);
+}
+
+.bet-admin-race-cancel-confirmation__art img {
+  width: 54px;
+  height: 46px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
+}
+
+.bet-admin-race-cancel-confirmation__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bet-admin-race-cancel-confirmation__copy strong {
+  color: #dfb4b4;
+  font-size: 10px;
+}
+
+.bet-admin-race-cancel-confirmation__copy small {
+  max-width: 480px;
+  color: #8e7777;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.bet-admin-race-cancel-confirmation__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bet-admin-race-cancel-confirmation__actions button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 9px;
+  color: #9ca398;
+  background: rgba(255, 255, 255, 0.014);
+  font-size: 8px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.bet-admin-race-cancel-confirmation__actions .is-danger {
+  border-color: rgba(229, 122, 126, 0.16);
+  color: #dfa0a2;
+  background: rgba(188, 61, 68, 0.04);
+}
+
+.bet-admin-race-cancel-confirmation__actions .is-danger:hover:not(:disabled) {
+  border-color: rgba(229, 122, 126, 0.25);
+  color: #f2b4b6;
+  background: rgba(188, 61, 68, 0.075);
+}
+
+.bet-admin-race-cancel-confirmation__actions .is-neutral:hover:not(:disabled) {
+  border-color: rgba(235, 241, 213, 0.13);
+  color: #ccd2c7;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+@media (max-width: 620px) {
+  .bet-admin-race-cancel-confirmation {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .bet-admin-race-cancel-confirmation__art {
+    width: 52px;
+    height: 48px;
+  }
+
+  .bet-admin-race-cancel-confirmation__art img {
+    width: 49px;
+    height: 44px;
+  }
+
+  .bet-admin-race-cancel-confirmation__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 374px) {
   .bet-admin-form-block:has(.bet-admin-choice) > header {
     grid-template-columns: 48px minmax(0, 1fr);
@@ -159,5 +273,19 @@
     width: 48px;
     height: 46px;
     background-size: 46px 42px, auto, auto;
+  }
+
+  .bet-admin-race-cancel-confirmation {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .bet-admin-race-cancel-confirmation__art {
+    width: 44px;
+    height: 42px;
+  }
+
+  .bet-admin-race-cancel-confirmation__art img {
+    width: 42px;
+    height: 38px;
   }
 }
