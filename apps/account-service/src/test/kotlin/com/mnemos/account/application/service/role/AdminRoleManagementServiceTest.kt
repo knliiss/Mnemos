@@ -8,7 +8,6 @@ import com.mnemos.account.domain.model.account.CristalixUuid
 import com.mnemos.account.domain.model.account.role.AccountRoleName
 import com.mnemos.account.domain.model.account.role.HexColor
 import com.mnemos.account.domain.model.account.role.Role
-import com.mnemos.account.domain.model.account.role.RoleId
 import com.mnemos.account.domain.model.account.role.assignment.RoleAssignment
 import com.mnemos.account.domain.model.account.role.assignment.RoleAssignmentActor
 import com.mnemos.account.domain.model.account.role.assignment.RoleAssignmentReason
@@ -146,7 +145,6 @@ class AdminRoleManagementServiceTest {
 
     private fun createRole(accountId: AccountId): Role =
         Role.create(
-            id = RoleId.generate(),
             accountId = accountId,
             hierarchyRank = Role.RANK_STEP,
             roleColor = HexColor("#44AA88"),
