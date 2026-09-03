@@ -32,6 +32,12 @@ class UserRepositoryAdapter(
         return jpaUserRepository.save(entity).toDomain()
     }
 
+    override fun findById(userId: UserId): User? =
+        jpaUserRepository
+            .findById(userId.id)
+            .map { entity -> entity.toDomain() }
+            .orElse(null)
+
     override fun findByTelegramId(telegramId: TelegramId): User? = jpaUserRepository.findByTelegramId(telegramId)?.toDomain()
 
     override fun findByKeycloakId(keycloakId: KeycloakId): User? = jpaUserRepository.findByKeycloakId(keycloakId)?.toDomain()
