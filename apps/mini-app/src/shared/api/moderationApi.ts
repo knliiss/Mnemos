@@ -74,6 +74,7 @@ export type AdminAccountDetailsResponse = {
   cristalixNickname: string
   status: AccountLifecycleStatus
   ownerMemberId: string
+  baseRoleId: string | null
   maxMembers: number
   createdAt: string
   deactivatedAt: string | null
