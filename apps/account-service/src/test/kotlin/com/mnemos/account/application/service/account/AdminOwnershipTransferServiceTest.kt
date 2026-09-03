@@ -14,8 +14,8 @@ import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.KeycloakId
 import com.mnemos.common.core.model.id.TelegramId
 import com.mnemos.common.core.model.user.Username
-import com.mnemos.contracts.account.v1.AccountMemberChangedV1
-import com.mnemos.contracts.account.v1.AccountOwnershipTransferredV1
+import com.mnemos.contracts.account.AccountEventType
+import com.mnemos.messaging.core.event.IntegrationEvent
 import com.mnemos.messaging.core.publisher.IntegrationEventPublisher
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -24,6 +24,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.UUID
@@ -94,8 +95,16 @@ class AdminOwnershipTransferServiceTest {
         assertNotEquals(previousOwnerMemberId, account.ownerMemberId)
         assertEquals(2, account.maxMembers)
 
-        verify(eventPublisher).publish<AccountMemberChangedV1>(any(), any())
-        verify(eventPublisher).publish<AccountOwnershipTransferredV1>(any(), any())
+        val eventCaptor = argumentCaptor<IntegrationEvent<Any>>()
+        verify(eventPublisher, times(2)).publish(eventCaptor.capture(), any())
+
+        assertEquals(
+            listOf(
+                AccountEventType.ACCOUNT_MEMBER_JOINED,
+                AccountEventType.ACCOUNT_OWNER_TRANSFERRED,
+            ),
+            eventCaptor.allValues.map { event -> event.type },
+        )
     }
 
     @Test
@@ -157,8 +166,14 @@ class AdminOwnershipTransferServiceTest {
 
         assertEquals(newOwnerMemberId, account.ownerMemberId)
         verify(accountMemberRepository, never()).create(any())
-        verify(eventPublisher, never()).publish<AccountMemberChangedV1>(any(), any())
-        verify(eventPublisher).publish<AccountOwnershipTransferredV1>(any(), any())
+
+        val eventCaptor = argumentCaptor<IntegrationEvent<Any>>()
+        verify(eventPublisher).publish(eventCaptor.capture(), any())
+
+        assertEquals(
+            AccountEventType.ACCOUNT_OWNER_TRANSFERRED,
+            eventCaptor.firstValue.type,
+        )
     }
 
     private fun createAccount(
