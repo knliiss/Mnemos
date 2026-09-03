@@ -24,8 +24,7 @@ class AdminAccountPersonalizationService(
     private val clock: Clock,
 ) {
     @Transactional(readOnly = true)
-    fun list(accountId: AccountId): List<OwnedPersonalization> =
-        ownershipRepository.findAll(PersonalizationOwner.Account(accountId))
+    fun list(accountId: AccountId): List<OwnedPersonalization> = ownershipRepository.findAll(PersonalizationOwner.Account(accountId))
 
     @Transactional
     fun grant(
