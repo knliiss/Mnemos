@@ -8,6 +8,7 @@ import {
 } from "@/shared/api/adminPersonalizationApi"
 import type { OwnedPersonalizationResponse } from "@/shared/api/personalizationApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import "./moderation-account-personalizations.css"
 
 type Props = {
   accountId: string
