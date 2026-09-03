@@ -90,6 +90,76 @@ class SubmitEventReportServiceTest {
         verify(recorder, times(1)).record(any(), any())
     }
 
+    @Test
+    fun `second collector cannot record the same booster outside matching window`() {
+        val observedAt = Instant.parse("2026-09-03T13:30:00Z")
+        val report =
+            BoosterCollectorEventReport(
+                type = DomainBoosterType.POWER,
+                activatedBy = "Knalis",
+            )
+
+        val first =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-1"),
+                    messageId = UUID.fromString("019c4fd4-f000-7000-8000-000000000001"),
+                    observedAt = observedAt,
+                    activeCollectorCount = 2,
+                    report = report,
+                ),
+            )
+        val duplicate =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-2"),
+                    messageId = UUID.fromString("019c4fd4-f000-7000-8000-000000000002"),
+                    observedAt = observedAt.plusSeconds(8),
+                    activeCollectorCount = 2,
+                    report = report,
+                ),
+            )
+
+        assertEquals(SubmitEventReportStatus.RECORDED, first.status)
+        assertEquals(SubmitEventReportStatus.ALREADY_RECORDED, duplicate.status)
+        verify(recorder, times(1)).record(any(), any())
+    }
+
+    @Test
+    fun `same fingerprint can record again after cross collector duplicate window`() {
+        val observedAt = Instant.parse("2026-09-03T14:00:00Z")
+        val report =
+            BoosterCollectorEventReport(
+                type = DomainBoosterType.POWER,
+                activatedBy = "Knalis",
+            )
+
+        val first =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-1"),
+                    messageId = UUID.fromString("019c4ff0-6800-7000-8000-000000000001"),
+                    observedAt = observedAt,
+                    activeCollectorCount = 2,
+                    report = report,
+                ),
+            )
+        val laterEvent =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-2"),
+                    messageId = UUID.fromString("019c4ff0-6800-7000-8000-000000000002"),
+                    observedAt = observedAt.plusSeconds(31),
+                    activeCollectorCount = 2,
+                    report = report,
+                ),
+            )
+
+        assertEquals(SubmitEventReportStatus.RECORDED, first.status)
+        assertEquals(SubmitEventReportStatus.RECORDED, laterEvent.status)
+        verify(recorder, times(2)).record(any(), any())
+    }
+
     private fun command(
         collectorId: CollectorId,
         messageId: UUID,
