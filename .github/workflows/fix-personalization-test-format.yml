@@ -1,0 +1,78 @@
+name: Fix Personalization Test Format
+
+on:
+  push:
+    branches:
+      - feat/full-admin-control-plane
+    paths:
+      - .github/workflows/fix-personalization-test-format.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: feat/full-admin-control-plane
+
+      - name: Normalize delete override formatting
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          files = [
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/builtin/SynchronizeBuiltinPersonalizationCatalogServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/lifecycle/PersonalizationLifecycleUseCasesTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/usecase/createcustompack/CreateCustomNotificationPackServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchasePersonalizationServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchaseWalletUseCasesTest.kt"),
+          ]
+
+          pattern = re.compile(
+              r"\n\s*override fun delete\(\n"
+              r"\s*owner: PersonalizationOwner,\n"
+              r"\s*personalizationId: PersonalizationId,\n"
+              r"\s*\) = Unit\n+"
+          )
+          replacement = (
+              "\n        override fun delete(\n"
+              "            owner: PersonalizationOwner,\n"
+              "            personalizationId: PersonalizationId,\n"
+              "        ) = Unit\n"
+          )
+
+          for path in files:
+              text = path.read_text()
+              updated, count = pattern.subn(replacement, text, count=1)
+              if count != 1:
+                  raise RuntimeError(f"Expected one delete override in {path}, found {count}")
+              path.write_text(updated)
+
+      - name: Commit formatting fix
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git diff --check
+
+          if git diff --quiet; then
+            exit 0
+          fi
+
+          git config user.name knalis
+          git config user.email vitallot21@gmail.com
+          git add \
+            apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/builtin/SynchronizeBuiltinPersonalizationCatalogServiceTest.kt \
+            apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/lifecycle/PersonalizationLifecycleUseCasesTest.kt \
+            apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/usecase/createcustompack/CreateCustomNotificationPackServiceTest.kt \
+            apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchasePersonalizationServiceTest.kt \
+            apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchaseWalletUseCasesTest.kt
+          git commit -m "Format personalization repository test doubles"
+          git push origin HEAD:feat/full-admin-control-plane
