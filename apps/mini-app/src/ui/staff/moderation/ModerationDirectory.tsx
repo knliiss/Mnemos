@@ -35,6 +35,34 @@ export function ModerationDirectory({ mode, navigate, back }: Props) {
     <div className="screen moderation-screen">
       <PageHeader title={title} back={back} />
 
+      <section className={`moderation-directory-context is-${mode.toLowerCase()}`}>
+        <span className="moderation-directory-context__art" aria-hidden="true">
+          <img
+            src={
+              mode === "USERS"
+                ? "/ui-illustrations/mnemos-mascot-search.svg"
+                : "/ui-illustrations/mnemos-mascot-cat.svg"
+            }
+            alt=""
+          />
+        </span>
+        <span>
+          <small>{t("administration.title")}</small>
+          <strong>{title}</strong>
+          <p>
+            {mode === "USERS"
+              ? t(
+                  "moderation.userDirectoryDescription",
+                  "Find a Mnemos identity, inspect sanctions and wallet operations, then move to any linked Cristalix account.",
+                )
+              : t(
+                  "moderation.accountDirectoryDescription",
+                  "Inspect Cristalix accounts independently from their owners and manage lifecycle, members, roles and account assets.",
+                )}
+          </p>
+        </span>
+      </section>
+
       <label className="staff-search">
         <Glyph name="search" size={19} />
         <input
@@ -101,7 +129,11 @@ export function ModerationDirectory({ mode, navigate, back }: Props) {
       ) : null}
 
       {!directory.loading && !directory.error && totalResults === 0 ? (
-        <p className="moderation-empty">{t("moderation.nothingFound")}</p>
+        <div className="moderation-directory-empty">
+          <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
+          <strong>{t("moderation.nothingFound")}</strong>
+          <small>{t("moderation.tryAnotherQuery", "Try another name, Telegram ID or Cristalix identity.")}</small>
+        </div>
       ) : null}
 
       {!directory.loading && !directory.error && directory.pagination.totalPages > 1 ? (
@@ -214,14 +246,8 @@ function AccountDirectoryResults({ accounts, total, formatDate, navigate }: Acco
                 @{account.ownerUsername} · {formatDate(account.createdAt)}
               </small>
             </span>
-            <span
-              className={
-                account.status === "ACTIVE"
-                  ? "moderation-directory-status is-active"
-                  : "moderation-directory-status"
-              }
-            >
-              {account.status === "ACTIVE" ? t("moderation.active") : t("moderation.inactive")}
+            <span className={`moderation-directory-status is-${account.status.toLowerCase()}`}>
+              {accountStatusLabel(account.status, t)}
             </span>
             <b>›</b>
           </motion.button>
@@ -229,4 +255,19 @@ function AccountDirectoryResults({ accounts, total, formatDate, navigate }: Acco
       </div>
     </section>
   )
+}
+
+function accountStatusLabel(
+  status: AccountIdentityDirectoryResponse["status"],
+  t: ReturnType<typeof useTranslation>["t"],
+): string {
+  if (status === "ACTIVE") {
+    return t("moderation.active")
+  }
+
+  if (status === "DEACTIVATED") {
+    return t("moderation.inactive")
+  }
+
+  return t("moderation.deleted", "Deleted")
 }
