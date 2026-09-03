@@ -7,6 +7,7 @@ import {
   listSanctions,
   listWalletAdjustments,
   searchIdentities,
+  type AccountLifecycleStatus,
   type IdentitySearchResponse,
 } from "@/shared/api/moderationApi"
 import { useModerationUser } from "./useModerationUser"
@@ -45,7 +46,11 @@ function identity(userId: string): IdentitySearchResponse {
   }
 }
 
-function identityWithAccount(userId: string, accountId: string): IdentitySearchResponse {
+function identityWithAccount(
+  userId: string,
+  accountId: string,
+  status: AccountLifecycleStatus = "ACTIVE",
+): IdentitySearchResponse {
   return {
     userId,
     username: userId,
@@ -55,7 +60,7 @@ function identityWithAccount(userId: string, accountId: string): IdentitySearchR
         accountId,
         cristalixUuid: "019c1129-ef54-7000-8000-000000000401",
         cristalixNickname: "north",
-        status: "ACTIVE",
+        status,
       },
     ],
   }
@@ -170,5 +175,28 @@ describe("useModerationUser", () => {
     expect(result.current.currency).toBe("COIN")
     expect(getWalletBalance).not.toHaveBeenCalledWith("USER", "user-a")
     expect(listWalletAdjustments).not.toHaveBeenCalledWith("USER", "user-a")
+  })
+
+  it("does not target a permanently deleted account wallet", async () => {
+    const accountId = "019c1129-ef54-7000-8000-000000000403"
+
+    vi.mocked(searchIdentities).mockResolvedValueOnce([
+      identityWithAccount("user-a", accountId, "DELETED"),
+    ])
+
+    const { result } = renderHook(() =>
+      useModerationUser({
+        userId: "user-a",
+        canAdjustWallet: true,
+        canAdjustPrime: false,
+      }),
+    )
+
+    await waitFor(() => expect(result.current.identity?.userId).toBe("user-a"))
+
+    expect(result.current.accountTargetId).toBe("")
+    expect(result.current.targetId).toBe("")
+    expect(getWalletBalance).not.toHaveBeenCalled()
+    expect(listWalletAdjustments).not.toHaveBeenCalled()
   })
 })
