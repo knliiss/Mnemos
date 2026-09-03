@@ -46,6 +46,15 @@ export const betAdminUk = {
     reasonPlaceholder: "Чому результат підтверджується вручну",
     saving: "Зберігаємо…",
     confirmResult: "Підтвердити результат",
+    resolutionConfirmTitle: "Підтвердити завершення раунду?",
+    resolutionConfirmWarning:
+      "Раунд буде завершено, після чого можуть початися виплати. Перевірте результат і причину перед продовженням.",
+    resolutionRefundWarning:
+      "Для заторкнутих ставок буде запущено повернення. Перевірте вибраний результат і причину перед продовженням.",
+    resolutionOutcome: "Результат",
+    resolutionPool: "Банк раунду",
+    resolutionConfirmAction: "Завершити раунд",
+    resolutionKeepEditing: "Повернутися до редагування",
     close: "Закрити",
     new: "Нові",
     newRace: "Нові перегони предметів",
