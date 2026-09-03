@@ -147,6 +147,188 @@
   opacity: 0.45;
 }
 
+.moderation-control-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.moderation-control-list {
+  display: grid;
+  gap: 7px;
+}
+
+.moderation-control-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.moderation-control-member__summary {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.moderation-control-member__summary strong,
+.moderation-control-member__summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-control-member__summary strong {
+  color: #d8ddd2;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.moderation-control-member__summary span {
+  color: #747b70;
+  font-size: 8px;
+}
+
+.moderation-control-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.moderation-control-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 0 11px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 10px;
+  outline: none;
+  color: #d8ddd2;
+  background: rgba(255, 255, 255, 0.018);
+  font: inherit;
+  font-size: 10px;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-control-input::placeholder {
+  color: #656c62;
+  opacity: 1;
+}
+
+.moderation-control-input:hover:not(:disabled) {
+  border-color: rgba(235, 241, 213, 0.13);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.moderation-control-input:focus-visible {
+  border-color: rgba(203, 255, 45, 0.24);
+  background: rgba(203, 255, 45, 0.022);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.055);
+}
+
+.moderation-control-input:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.moderation-control-action {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid rgba(235, 241, 213, 0.08);
+  border-radius: 10px;
+  outline: none;
+  color: #aeb5aa;
+  background: rgba(255, 255, 255, 0.018);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.moderation-control-action:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.14);
+  color: #cce879;
+  background: rgba(203, 255, 45, 0.04);
+}
+
+.moderation-control-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.moderation-control-action:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.055);
+}
+
+.moderation-control-action:disabled {
+  cursor: default;
+  opacity: 0.4;
+  transform: none;
+}
+
+.moderation-control-action--danger {
+  border-color: rgba(255, 102, 102, 0.14);
+  color: #d99191;
+  background: rgba(255, 92, 92, 0.025);
+}
+
+.moderation-control-action--danger:hover:not(:disabled) {
+  border-color: rgba(255, 102, 102, 0.24);
+  color: #f0abab;
+  background: rgba(255, 92, 92, 0.055);
+}
+
+.moderation-control-action--danger:focus-visible {
+  border-color: rgba(255, 102, 102, 0.28);
+  box-shadow: 0 0 0 2px rgba(255, 92, 92, 0.06);
+}
+
+.moderation-control-danger-zone {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid rgba(255, 102, 102, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 92, 92, 0.018);
+}
+
+.moderation-control-danger-zone > p {
+  margin: 0;
+  color: #9a7777;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.moderation-control-danger-zone > .moderation-control-action {
+  justify-self: start;
+}
+
 @media (max-width: 420px) {
   .moderation-directory-toolbar {
     align-items: stretch;
@@ -173,5 +355,22 @@
   .internal-account-list__actions {
     grid-column: 2;
     justify-items: stretch;
+  }
+
+  .moderation-control-member {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .moderation-control-member > .moderation-control-action {
+    width: 100%;
+  }
+
+  .moderation-control-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .moderation-control-danger-zone > .moderation-control-action {
+    width: 100%;
   }
 }
