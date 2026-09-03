@@ -16,8 +16,12 @@ type Props = {
 export function ModerationSanctions({ controller, language, canSanction }: Props) {
   const { t } = useTranslation()
   const [confirmationVisible, setConfirmationVisible] = useState(false)
+  const [revokeConfirmationId, setRevokeConfirmationId] = useState<string | null>(null)
   const confirmButtonRef = useRef<HTMLButtonElement>(null)
+  const revokeConfirmButtonRef = useRef<HTMLButtonElement>(null)
   const activeBan = controller.activeBan
+  const revokeCandidate =
+    controller.sanctions.find((sanction) => sanction.id === revokeConfirmationId) ?? null
   const sanctionLabels: Record<SanctionType, string> = {
     BAN: t("moderation.sanctionBan"),
     NOTIFICATION_SUSPENSION: t("moderation.sanctionNotification"),
@@ -37,6 +41,20 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
     }
   }, [confirmationVisible])
 
+  useEffect(() => {
+    if (!revokeCandidate) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      revokeConfirmButtonRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [revokeCandidate])
+
   const closeSanctionForm = () => {
     setConfirmationVisible(false)
     controller.setSanctionFormOpen(false)
@@ -48,6 +66,21 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
     }
   }
 
+  const dismissRevokeConfirmation = () => {
+    if (!controller.busy) {
+      setRevokeConfirmationId(null)
+    }
+  }
+
+  const reviewRevoke = (sanctionId: string) => {
+    if (controller.busy) {
+      return
+    }
+
+    setConfirmationVisible(false)
+    setRevokeConfirmationId(sanctionId)
+  }
+
   const submitConfirmedSanction = async () => {
     if (controller.busy) {
       return
@@ -55,6 +88,17 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
 
     await controller.submitSanction()
     setConfirmationVisible(false)
+  }
+
+  const submitConfirmedRevoke = async () => {
+    const sanctionId = revokeConfirmationId
+
+    if (!sanctionId || controller.busy) {
+      return
+    }
+
+    await controller.revoke(sanctionId)
+    setRevokeConfirmationId(null)
   }
 
   return (
@@ -67,6 +111,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
               onClick={() => {
                 controller.setSanctionType("BAN")
                 setConfirmationVisible(false)
+                setRevokeConfirmationId(null)
                 controller.setSanctionFormOpen(true)
               }}
             >
@@ -81,7 +126,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
               type="button"
               className="moderation-action-revoke"
               disabled={controller.busy}
-              onClick={() => void controller.revoke(activeBan.id)}
+              onClick={() => reviewRevoke(activeBan.id)}
             >
               <Glyph name="check" size={18} />
               <span>
@@ -96,6 +141,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
             onClick={() => {
               controller.setSanctionType("NOTIFICATION_SUSPENSION")
               setConfirmationVisible(false)
+              setRevokeConfirmationId(null)
               controller.setSanctionFormOpen(true)
             }}
           >
@@ -106,6 +152,58 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
             </span>
           </button>
         </section>
+      ) : null}
+
+      {canSanction && revokeCandidate ? (
+        <div
+          className="moderation-sanction-confirmation moderation-sanction-confirmation--revoke"
+          role="alertdialog"
+          aria-label={
+            revokeCandidate.type === "BAN" ? t("moderation.unban") : t("moderation.revoke")
+          }
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault()
+              dismissRevokeConfirmation()
+            }
+          }}
+        >
+          <span className="moderation-sanction-confirmation__mark" aria-hidden="true">
+            <Glyph name={revokeCandidate.type === "BAN" ? "check" : "bell"} size={18} />
+          </span>
+          <span className="moderation-sanction-confirmation__copy">
+            <small>{sanctionLabels[revokeCandidate.type]}</small>
+            <strong>{revokeCandidate.reason}</strong>
+            <em>
+              {revokeCandidate.expiresAt
+                ? formatModerationDate(revokeCandidate.expiresAt, language)
+                : t("moderation.indefinite")}
+            </em>
+          </span>
+          <div className="moderation-sanction-confirmation__actions">
+            <button
+              ref={revokeConfirmButtonRef}
+              type="button"
+              className="moderation-control-button moderation-control-button--danger"
+              disabled={controller.busy}
+              onClick={() => void submitConfirmedRevoke()}
+            >
+              {controller.busy
+                ? t("moderation.saving")
+                : revokeCandidate.type === "BAN"
+                  ? t("moderation.unban")
+                  : t("moderation.revoke")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={controller.busy}
+              onClick={dismissRevokeConfirmation}
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
+        </div>
       ) : null}
 
       <Section title={t("moderation.sanctions")}>
@@ -130,7 +228,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
                 <button
                   type="button"
                   disabled={controller.busy}
-                  onClick={() => void controller.revoke(sanction.id)}
+                  onClick={() => reviewRevoke(sanction.id)}
                 >
                   {t("moderation.revoke")}
                 </button>
