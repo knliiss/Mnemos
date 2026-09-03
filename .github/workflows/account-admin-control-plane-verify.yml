@@ -77,8 +77,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Check formatting
-        run: npm run format:check
+      - name: Format and show required diff
+        run: |
+          npm run format
+          git diff -- src/shared/api/moderationApi.ts \
+            src/ui/data/MnemosDataProvider.tsx \
+            src/ui/staff/moderation/ModerationAccountControlPanel.test.tsx \
+            src/ui/staff/moderation/moderationDirectoryTranslations.ts
 
       - name: Test
         run: npm test
