@@ -125,6 +125,10 @@ export const personalizationEn = {
       reject: "Reject",
       unlist: "Unlist from marketplace",
       relist: "Relist in marketplace",
+      unlistConfirmEyebrow: "MARKETPLACE VISIBILITY",
+      unlistConfirmTitle: "Unlist this personalization?",
+      unlistConfirmCopy:
+        "It will disappear from the marketplace immediately. Existing owners keep it, and you can relist it later.",
       selectApplication: "Select a personalization",
       selectApplicationCopy: "Its preview and moderation tools will appear here.",
     },
