@@ -16,6 +16,23 @@ type ModerationDirectoryCopy = {
   activateAccount: string
   deactivateAccount: string
   changingAccountStatus: string
+  activeAccount: string
+  deactivatedAccount: string
+  deletedAccount: string
+  manageAccount: string
+  closeAccount: string
+  accountMembers: string
+  addMember: string
+  addingMember: string
+  userIdPlaceholder: string
+  transferOwner: string
+  removeMember: string
+  owner: string
+  irreversibleDelete: string
+  deleteWarning: string
+  confirmDelete: string
+  cancel: string
+  loadingAccount: string
 }
 
 const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
@@ -37,6 +54,23 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     activateAccount: "Activate",
     deactivateAccount: "Deactivate",
     changingAccountStatus: "Saving…",
+    activeAccount: "Active",
+    deactivatedAccount: "Deactivated",
+    deletedAccount: "Deleted",
+    manageAccount: "Manage",
+    closeAccount: "Close",
+    accountMembers: "Account members",
+    addMember: "Add member",
+    addingMember: "Adding…",
+    userIdPlaceholder: "Mnemos User ID",
+    transferOwner: "Transfer owner",
+    removeMember: "Remove",
+    owner: "Owner",
+    irreversibleDelete: "Delete account permanently",
+    deleteWarning: "This creates an irreversible tombstone. The historical record remains in Mnemos and cannot be reactivated.",
+    confirmDelete: "Confirm permanent deletion",
+    cancel: "Cancel",
+    loadingAccount: "Loading account…",
   },
   ru: {
     searchMode: "Режим каталога",
@@ -56,6 +90,23 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     activateAccount: "Активировать",
     deactivateAccount: "Деактивировать",
     changingAccountStatus: "Сохраняем…",
+    activeAccount: "Активен",
+    deactivatedAccount: "Деактивирован",
+    deletedAccount: "Удалён",
+    manageAccount: "Управление",
+    closeAccount: "Закрыть",
+    accountMembers: "Участники аккаунта",
+    addMember: "Добавить участника",
+    addingMember: "Добавляем…",
+    userIdPlaceholder: "Mnemos User ID",
+    transferOwner: "Передать владельца",
+    removeMember: "Удалить",
+    owner: "Владелец",
+    irreversibleDelete: "Удалить аккаунт навсегда",
+    deleteWarning: "Операция необратима. Историческая запись останется в Mnemos со статусом DELETED и больше не сможет быть активирована.",
+    confirmDelete: "Подтвердить удаление навсегда",
+    cancel: "Отмена",
+    loadingAccount: "Загружаем аккаунт…",
   },
   uk: {
     searchMode: "Режим каталогу",
@@ -75,6 +126,23 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     activateAccount: "Активувати",
     deactivateAccount: "Деактивувати",
     changingAccountStatus: "Зберігаємо…",
+    activeAccount: "Активний",
+    deactivatedAccount: "Деактивований",
+    deletedAccount: "Видалений",
+    manageAccount: "Керування",
+    closeAccount: "Закрити",
+    accountMembers: "Учасники аккаунта",
+    addMember: "Додати учасника",
+    addingMember: "Додаємо…",
+    userIdPlaceholder: "Mnemos User ID",
+    transferOwner: "Передати власника",
+    removeMember: "Видалити",
+    owner: "Власник",
+    irreversibleDelete: "Видалити аккаунт назавжди",
+    deleteWarning: "Операція незворотна. Історичний запис залишиться в Mnemos зі статусом DELETED і більше не зможе бути активований.",
+    confirmDelete: "Підтвердити остаточне видалення",
+    cancel: "Скасувати",
+    loadingAccount: "Завантажуємо аккаунт…",
   },
 }
 
