@@ -1,0 +1,16 @@
+.moderation-control-button--positive {
+  border-color: rgba(112, 211, 142, 0.13);
+  color: #9fd5ac;
+  background: rgba(112, 211, 142, 0.025);
+}
+
+.moderation-control-button--positive:hover:not(:disabled) {
+  border-color: rgba(112, 211, 142, 0.21);
+  color: #b7e8c1;
+  background: rgba(112, 211, 142, 0.05);
+}
+
+.moderation-control-button--positive:focus-visible {
+  border-color: rgba(112, 211, 142, 0.25);
+  box-shadow: 0 0 0 2px rgba(112, 211, 142, 0.055);
+}
