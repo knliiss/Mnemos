@@ -37,8 +37,29 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
   }, [accountId])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    void getAdminAccount(accountId)
+      .then((accountDetails) => {
+        if (active) {
+          setDetails(accountDetails)
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [accountId])
 
   const runMutation = useCallback(
     async (actionId: string, mutation: () => Promise<void>) => {
