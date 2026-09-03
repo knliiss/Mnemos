@@ -9,6 +9,7 @@ data class AdminAccountDetailsResponse(
     val cristalixNickname: String,
     val status: String,
     val ownerMemberId: UUID,
+    val baseRoleId: UUID?,
     val maxMembers: Int,
     val createdAt: Instant,
     val deactivatedAt: Instant?,
