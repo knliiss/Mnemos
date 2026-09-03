@@ -338,6 +338,7 @@ class PurchasePersonalizationServiceTest {
             owner: PersonalizationOwner,
             type: PersonalizationType,
         ) = Unit
+
         override fun delete(
             owner: PersonalizationOwner,
             personalizationId: PersonalizationId,

@@ -402,6 +402,7 @@ class PurchaseWalletUseCasesTest {
                 .filter { ownership -> ownership.owner == owner && ownership.type == type }
                 .forEach(OwnedPersonalization::deactivate)
         }
+
         override fun delete(
             owner: PersonalizationOwner,
             personalizationId: PersonalizationId,

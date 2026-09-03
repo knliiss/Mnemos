@@ -325,6 +325,7 @@ class SynchronizeBuiltinPersonalizationCatalogServiceTest {
             owner: PersonalizationOwner,
             type: PersonalizationType,
         ) = Unit
+
         override fun delete(
             owner: PersonalizationOwner,
             personalizationId: PersonalizationId,
