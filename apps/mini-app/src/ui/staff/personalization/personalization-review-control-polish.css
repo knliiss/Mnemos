@@ -1,0 +1,139 @@
+.personalization-review-screen button,
+.personalization-review-screen input,
+.personalization-review-screen textarea {
+  font: inherit;
+}
+
+.personalization-review-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.personalization-review-screen button:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.14);
+}
+
+.personalization-review-screen button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.personalization-review-screen button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.personalization-review-screen button:disabled {
+  cursor: default;
+}
+
+.personalization-review-screen input,
+.personalization-review-screen textarea {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.personalization-review-screen input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.personalization-review-screen input[type="number"]::-webkit-inner-spin-button,
+.personalization-review-screen input[type="number"]::-webkit-outer-spin-button,
+.personalization-review-screen input[type="search"]::-webkit-search-cancel-button,
+.personalization-review-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.personalization-review-screen .review-overview__mark {
+  overflow: hidden;
+  color: transparent;
+  background:
+    url("/ui-illustrations/mnemos-mascot-event.svg") center / 40px 36px no-repeat,
+    radial-gradient(circle at 50% 72%, rgba(206, 145, 210, 0.12), transparent 58%),
+    rgba(206, 145, 210, 0.035);
+}
+
+.personalization-review-screen .review-overview__mark > svg {
+  display: none;
+}
+
+.personalization-review-screen .review-scope button:hover:not(:disabled) {
+  color: #c7ccc2;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.personalization-review-screen .review-scope button.is-active:hover:not(:disabled) {
+  color: #e7ebdf;
+  background: rgba(203, 255, 45, 0.075);
+}
+
+.personalization-review-screen .review-queue-card {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.personalization-review-screen .review-queue-card:hover:not(:disabled) {
+  border-color: rgba(206, 145, 210, 0.15);
+  background: rgba(206, 145, 210, 0.025);
+}
+
+.personalization-review-screen .review-queue-card:focus-visible {
+  border-color: rgba(206, 145, 210, 0.24);
+  box-shadow: 0 0 0 2px rgba(206, 145, 210, 0.05);
+}
+
+.personalization-review-screen .review-queue-grid > .inline-hint {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-height: 126px;
+  margin: 0;
+  padding: 16px 12px 14px;
+  border: 1px dashed rgba(223, 232, 204, 0.08);
+  border-radius: 15px;
+  color: #777e73;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(206, 145, 210, 0.04), transparent 36%),
+    rgba(255, 255, 255, 0.01);
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.personalization-review-screen .review-queue-grid > .inline-hint::before {
+  content: "";
+  width: 78px;
+  height: 62px;
+  background: url("/ui-illustrations/mnemos-mascot-search.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+  opacity: 0.82;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.2));
+}
+
+.personalization-review-screen .review-approve-panel > .primary-action:hover:not(:disabled) {
+  color: #e2f5a8;
+  background: rgba(203, 255, 45, 0.075);
+}
+
+.personalization-review-screen .review-reject-panel > .destructive-action:hover:not(:disabled),
+.personalization-review-screen .review-approve-panel > .destructive-action:hover:not(:disabled) {
+  border-color: rgba(222, 105, 112, 0.25);
+  color: #efb0b4;
+  background: rgba(188, 61, 68, 0.075);
+}
