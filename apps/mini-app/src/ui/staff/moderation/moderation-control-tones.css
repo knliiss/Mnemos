@@ -137,17 +137,117 @@
   font-size: 8px;
 }
 
+.moderation-wallet-confirmation {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(112, 211, 142, 0.11);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(112, 211, 142, 0.055), transparent 28%),
+    rgba(112, 211, 142, 0.012);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-wallet-confirmation.is-debit {
+  border-color: rgba(223, 88, 80, 0.12);
+  background:
+    radial-gradient(circle at 4% 50%, rgba(223, 88, 80, 0.055), transparent 28%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-wallet-confirmation:focus-within {
+  border-color: rgba(112, 211, 142, 0.22);
+  box-shadow: 0 0 0 2px rgba(112, 211, 142, 0.04);
+}
+
+.moderation-wallet-confirmation.is-debit:focus-within {
+  border-color: rgba(223, 88, 80, 0.23);
+  box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.04);
+}
+
+.moderation-wallet-confirmation__mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #9fd5ac;
+  background: rgba(112, 211, 142, 0.04);
+}
+
+.moderation-wallet-confirmation.is-debit .moderation-wallet-confirmation__mark {
+  color: #d6908b;
+  background: rgba(223, 88, 80, 0.045);
+}
+
+.moderation-wallet-confirmation__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-wallet-confirmation__copy small {
+  color: #788176;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moderation-wallet-confirmation__copy strong {
+  color: #dce3d8;
+  font-size: 11px;
+}
+
+.moderation-wallet-confirmation__copy em {
+  overflow: hidden;
+  color: #6f786d;
+  font-size: 7px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-wallet-confirmation__copy p {
+  overflow: hidden;
+  margin: 1px 0 0;
+  color: #858d82;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-wallet-confirmation__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.moderation-wallet-confirmation__actions > button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 8px;
+}
+
 @media (max-width: 520px) {
-  .moderation-sanction-confirmation {
+  .moderation-sanction-confirmation,
+  .moderation-wallet-confirmation {
     grid-template-columns: 36px minmax(0, 1fr);
   }
 
-  .moderation-sanction-confirmation__mark {
+  .moderation-sanction-confirmation__mark,
+  .moderation-wallet-confirmation__mark {
     width: 36px;
     height: 36px;
   }
 
-  .moderation-sanction-confirmation__actions {
+  .moderation-sanction-confirmation__actions,
+  .moderation-wallet-confirmation__actions {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
