@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   activateAdminAccountPersonalization,
@@ -33,6 +33,7 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [query, setQuery] = useState("")
   const [revokeCandidateId, setRevokeCandidateId] = useState<string | null>(null)
+  const revokeConfirmRef = useRef<HTMLButtonElement>(null)
 
   const load = useCallback(async () => getAdminAccountPersonalizations(accountId), [accountId])
 
@@ -72,6 +73,20 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
       active = false
     }
   }, [load])
+
+  useEffect(() => {
+    if (!revokeCandidateId) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      revokeConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [revokeCandidateId])
 
   const visibleItems = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -118,6 +133,12 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
       setSelectedPersonalization(null)
       setPersonalizationId("")
     })
+  }
+
+  const dismissRevokeConfirmation = () => {
+    if (!busyKey) {
+      setRevokeCandidateId(null)
+    }
   }
 
   return (
@@ -265,8 +286,19 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                   </button>
 
                   {revokeCandidateId === item.personalizationId ? (
-                    <span className="moderation-admin-personalization-revoke-confirmation">
+                    <span
+                      className="moderation-admin-personalization-revoke-confirmation"
+                      role="alertdialog"
+                      aria-label={t("moderation.revokePersonalizationConfirm", "Revoke personalization?")}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                          event.preventDefault()
+                          dismissRevokeConfirmation()
+                        }
+                      }}
+                    >
                       <button
+                        ref={revokeConfirmRef}
                         type="button"
                         className="is-danger"
                         disabled={Boolean(busyKey)}
@@ -282,7 +314,7 @@ export function ModerationAccountPersonalizationPanel({ accountId, deleted }: Pr
                       <button
                         type="button"
                         disabled={Boolean(busyKey)}
-                        onClick={() => setRevokeCandidateId(null)}
+                        onClick={dismissRevokeConfirmation}
                       >
                         {t("common.cancel", "Cancel")}
                       </button>
