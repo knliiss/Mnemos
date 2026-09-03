@@ -232,7 +232,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findByText("Moderator")
+    await screen.findAllByText("Moderator")
 
     const permissionButtons = screen.getAllByRole("button", {
       name: "roleEditor.permissions.MANAGE_MEMBERS",
@@ -258,7 +258,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findByText("Observer")
+    await screen.findAllByText("Observer")
 
     const downButtons = screen.getAllByRole("button", { name: "↓" })
     fireEvent.click(downButtons[0]!)
