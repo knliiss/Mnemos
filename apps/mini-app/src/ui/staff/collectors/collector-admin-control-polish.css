@@ -95,3 +95,32 @@
   appearance: none;
   -webkit-appearance: none;
 }
+
+.collector-revoke-confirmation {
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.collector-revoke-confirmation:focus-within {
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.collector-revoke-confirmation.is-disable {
+  border-color: rgba(226, 177, 89, 0.14);
+  background: rgba(196, 140, 47, 0.025);
+}
+
+.collector-revoke-confirmation button.is-warning {
+  border-color: rgba(226, 177, 89, 0.16);
+  color: #d7b979;
+  background: rgba(196, 140, 47, 0.035);
+}
+
+.collector-revoke-confirmation button.is-warning:hover:not(:disabled),
+.collector-revoke-confirmation button.is-warning:focus-visible {
+  border-color: rgba(226, 177, 89, 0.28);
+  color: #ead098;
+  background: rgba(196, 140, 47, 0.065);
+}
