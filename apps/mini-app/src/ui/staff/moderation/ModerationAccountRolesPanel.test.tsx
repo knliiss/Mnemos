@@ -25,7 +25,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
+    t: (key: string, options?: string | { defaultValue?: string }) =>
+      typeof options === "string" ? options : options?.defaultValue ?? key,
   }),
 }))
 
