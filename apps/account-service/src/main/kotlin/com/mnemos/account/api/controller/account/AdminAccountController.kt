@@ -91,7 +91,7 @@ class AdminAccountController(
 
     @DeleteMapping("/{accountId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun deleteAccount(
         @PathVariable accountId: UUID,
     ) {
