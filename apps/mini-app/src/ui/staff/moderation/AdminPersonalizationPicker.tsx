@@ -39,31 +39,38 @@ export function AdminPersonalizationPicker({
   const [open, setOpen] = useState(false)
   const excluded = useMemo(() => new Set(excludedIds), [excludedIds])
 
-  const loadCatalog = async () => {
-    if (loaded || loading || disabled) {
+  useEffect(() => {
+    if (!open || loaded || disabled) {
       return
     }
 
+    let active = true
     setLoading(true)
 
-    try {
-      const pages = await Promise.all(
-        PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
-      )
-      setItems(pages.flatMap((page) => page.items))
-      setLoaded(true)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    void Promise.all(
+      PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
+    )
+      .then((pages) => {
+        if (active) {
+          setItems(pages.flatMap((page) => page.items))
+          setLoaded(true)
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
 
-  useEffect(() => {
-    if (open && !loaded && !loading) {
-      void loadCatalog()
+    return () => {
+      active = false
     }
-  })
+  }, [disabled, loaded, open])
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -75,8 +82,9 @@ export function AdminPersonalizationPicker({
           return true
         }
 
-        return [item.name, item.type, item.catalogKey ?? "", item.id]
-          .some((value) => value.toLowerCase().includes(normalized))
+        return [item.name, item.type, item.catalogKey ?? "", item.id].some((value) =>
+          value.toLowerCase().includes(normalized),
+        )
       })
       .slice(0, 12)
   }, [excluded, items, query])
@@ -103,7 +111,12 @@ export function AdminPersonalizationPicker({
               {selected.type.replaceAll("_", " ")} · {selected.status}
             </small>
           </span>
-          <button type="button" disabled={disabled} aria-label={t("moderation.clear")} onClick={clear}>
+          <button
+            type="button"
+            disabled={disabled}
+            aria-label={t("moderation.clear")}
+            onClick={clear}
+          >
             <Glyph name="close" size={12} />
           </button>
         </div>
