@@ -46,6 +46,15 @@ export const betAdminEn = {
     reasonPlaceholder: "Why this result is being confirmed manually",
     saving: "Saving…",
     confirmResult: "Confirm result",
+    resolutionConfirmTitle: "Confirm round resolution?",
+    resolutionConfirmWarning:
+      "This settles the round and may trigger payouts. Verify the outcome and reason before continuing.",
+    resolutionRefundWarning:
+      "This refunds affected bets. Verify the selected outcome and reason before continuing.",
+    resolutionOutcome: "Outcome",
+    resolutionPool: "Round pool",
+    resolutionConfirmAction: "Resolve round",
+    resolutionKeepEditing: "Keep editing",
     close: "Close",
     new: "New",
     newRace: "New Item race",
