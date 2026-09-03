@@ -63,6 +63,7 @@ vi.mock("./AdminRoleColorControl", () => ({
 const accountId = "019c11d1-bb2a-7000-8000-000000000401"
 const memberId = "019c11d1-bb2a-7000-8000-000000000402"
 const roleId = "019c11d1-bb2a-7000-8000-000000000403"
+const secondRoleId = "019c11d1-bb2a-7000-8000-000000000406"
 
 const details: AdminAccountDetailsResponse = {
   accountId,
@@ -96,13 +97,23 @@ const role: AdminAccountRoleResponse = {
   updatedAt: "2026-09-03T18:00:00Z",
 }
 
+const secondRole: AdminAccountRoleResponse = {
+  ...role,
+  id: secondRoleId,
+  name: "Observer",
+  hierarchyRank: 2,
+}
+
 beforeEach(() => {
   Object.values(mocks).forEach((mock) => mock.mockReset())
   mocks.getAdminAccountRoles.mockResolvedValue([role])
   mocks.getAdminMemberRoles.mockResolvedValue([])
+  mocks.assignAdminMemberRole.mockResolvedValue(undefined)
   mocks.clearAdminBaseRole.mockResolvedValue(undefined)
   mocks.deleteAdminRole.mockResolvedValue(undefined)
   mocks.updateAdminBaseRole.mockResolvedValue(undefined)
+  mocks.updateAdminRoleHierarchy.mockResolvedValue([])
+  mocks.updateAdminRolePermissions.mockResolvedValue(role)
 })
 
 afterEach(() => {
@@ -210,6 +221,91 @@ describe("ModerationAccountRolesPanel", () => {
 
     await waitFor(() => {
       expect(mocks.clearAdminBaseRole).toHaveBeenCalledWith(accountId)
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
+  })
+
+  it("keeps permission toggles local until the draft is applied", async () => {
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
+
+    await screen.findByText("Moderator")
+
+    const permissionButtons = screen.getAllByRole("button", {
+      name: "roleEditor.permissions.MANAGE_MEMBERS",
+    })
+    fireEvent.click(permissionButtons[1]!)
+
+    expect(mocks.updateAdminRolePermissions).not.toHaveBeenCalled()
+    expect(screen.getByText("roleEditor.applyPermissionChanges")).toBeDefined()
+
+    fireEvent.click(screen.getByText("roleEditor.applyPermissionChanges"))
+
+    await waitFor(() => {
+      expect(mocks.updateAdminRolePermissions).toHaveBeenCalledWith(accountId, roleId, {
+        permissions: { MANAGE_MEMBERS: true },
+      })
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it("requires confirmation before changing the role hierarchy", async () => {
+    mocks.getAdminAccountRoles.mockResolvedValue([role, secondRole])
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
+
+    await screen.findByText("Observer")
+
+    const downButtons = screen.getAllByRole("button", { name: "↓" })
+    fireEvent.click(downButtons[0]!)
+
+    expect(mocks.updateAdminRoleHierarchy).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmHierarchyChange" })
+    const confirm = screen.getByText("roleEditor.confirmHierarchyChangeAction")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
+
+    await waitFor(() => {
+      expect(mocks.updateAdminRoleHierarchy).toHaveBeenCalledWith(accountId, [
+        secondRoleId,
+        roleId,
+      ])
+      expect(onChanged).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
+  })
+
+  it("requires confirmation before assigning a role to a member", async () => {
+    const onChanged = vi.fn().mockResolvedValue(undefined)
+
+    render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
+
+    const memberRoleButton = await screen.findByRole("button", { name: "Moderator" })
+    fireEvent.click(memberRoleButton)
+
+    expect(mocks.assignAdminMemberRole).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmMemberRoleChange" })
+    const confirm = screen.getByText("roleEditor.assignMemberRole")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
+
+    await waitFor(() => {
+      expect(mocks.assignAdminMemberRole).toHaveBeenCalledWith(accountId, memberId, roleId)
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 
