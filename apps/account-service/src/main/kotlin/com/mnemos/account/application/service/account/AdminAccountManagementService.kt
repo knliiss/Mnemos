@@ -264,6 +264,7 @@ class AdminAccountManagementService(
             cristalixNickname = cristalixNickname.value,
             status = status.name,
             ownerMemberId = ownerMemberId.id,
+            baseRoleId = baseRoleId?.id,
             maxMembers = maxMembers,
             createdAt = createdAt,
             deactivatedAt = deactivatedAt,
