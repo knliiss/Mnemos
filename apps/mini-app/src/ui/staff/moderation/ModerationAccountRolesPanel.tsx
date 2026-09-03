@@ -29,6 +29,20 @@ type Props = {
 
 type MemberRoleState = Record<string, Set<string>>
 
+type HierarchyConfirmation = {
+  roleId: string
+  roleName: string
+  direction: -1 | 1
+}
+
+type MemberRoleConfirmation = {
+  memberId: string
+  username: string
+  roleId: string
+  roleName: string
+  assigned: boolean
+}
+
 export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const { t } = useTranslation()
   const [roles, setRoles] = useState<AdminAccountRoleResponse[]>([])
@@ -38,6 +52,14 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const [newRoleName, setNewRoleName] = useState("")
   const [newRoleColor, setNewRoleColor] = useState("#4BAF8A")
   const [newPermissions, setNewPermissions] = useState<Set<string>>(new Set())
+  const [hierarchyConfirmation, setHierarchyConfirmation] = useState<HierarchyConfirmation | null>(
+    null,
+  )
+  const [memberRoleConfirmation, setMemberRoleConfirmation] = useState<MemberRoleConfirmation | null>(
+    null,
+  )
+  const hierarchyConfirmRef = useRef<HTMLButtonElement>(null)
+  const memberRoleConfirmRef = useRef<HTMLButtonElement>(null)
 
   const sortedRoles = useMemo(
     () => [...roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
@@ -104,6 +126,34 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     }
   }, [loadRoleState])
 
+  useEffect(() => {
+    if (!hierarchyConfirmation) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      hierarchyConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [hierarchyConfirmation])
+
+  useEffect(() => {
+    if (!memberRoleConfirmation) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      memberRoleConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [memberRoleConfirmation])
+
   const runMutation = async (key: string, mutation: () => Promise<void>) => {
     if (busyKey) {
       return
@@ -160,24 +210,31 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     })
   }
 
-  const togglePermission = async (role: AdminAccountRoleResponse, permission: string) => {
-    await runMutation(`permission:${role.id}:${permission}`, async () => {
-      await updateAdminRolePermissions(details.accountId, role.id, {
-        permissions: {
-          [permission]: !role.permissions[permission],
-        },
-      })
-    })
+  const applyHierarchyChange = async () => {
+    const confirmation = hierarchyConfirmation
+
+    if (!confirmation || busyKey) {
+      return
+    }
+
+    setHierarchyConfirmation(null)
+    await moveRole(confirmation.roleId, confirmation.direction)
   }
 
-  const toggleMemberRole = async (memberId: string, roleId: string) => {
-    const assigned = memberRoles[memberId]?.has(roleId) ?? false
+  const applyMemberRoleChange = async () => {
+    const confirmation = memberRoleConfirmation
 
-    await runMutation(`member:${memberId}:${roleId}`, async () => {
-      if (assigned) {
-        await revokeAdminMemberRole(details.accountId, memberId, roleId)
+    if (!confirmation || busyKey) {
+      return
+    }
+
+    setMemberRoleConfirmation(null)
+
+    await runMutation(`member:${confirmation.memberId}:${confirmation.roleId}`, async () => {
+      if (confirmation.assigned) {
+        await revokeAdminMemberRole(details.accountId, confirmation.memberId, confirmation.roleId)
       } else {
-        await assignAdminMemberRole(details.accountId, memberId, roleId)
+        await assignAdminMemberRole(details.accountId, confirmation.memberId, confirmation.roleId)
       }
     })
   }
@@ -212,10 +269,10 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
           />
         </label>
 
-        <label className="moderation-admin-role-field">
+        <div className="moderation-admin-role-field">
           <span>{t("roleEditor.color")}</span>
           <AdminRoleColorControl value={newRoleColor} onChange={setNewRoleColor} />
-        </label>
+        </div>
 
         <button
           type="button"
@@ -233,6 +290,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
             key={permission}
             type="button"
             className={newPermissions.has(permission) ? "is-active" : ""}
+            aria-pressed={newPermissions.has(permission)}
             onClick={() =>
               setNewPermissions((current) => {
                 const next = new Set(current)
@@ -269,8 +327,19 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
               roleCount={sortedRoles.length}
               isBaseRole={details.baseRoleId === role.id}
               busy={Boolean(busyKey)}
-              onMove={(direction) => void moveRole(role.id, direction)}
-              onTogglePermission={(permission) => void togglePermission(role, permission)}
+              onMove={(direction) => {
+                setMemberRoleConfirmation(null)
+                setHierarchyConfirmation({
+                  roleId: role.id,
+                  roleName: role.name,
+                  direction,
+                })
+              }}
+              onSavePermissions={(permissions) =>
+                void runMutation(`permissions:${role.id}`, async () => {
+                  await updateAdminRolePermissions(details.accountId, role.id, { permissions })
+                })
+              }
               onSaveDetails={(name, color) =>
                 void runMutation(`details:${role.id}`, async () => {
                   await updateAdminRoleDetails(details.accountId, role.id, { name, color })
@@ -294,6 +363,54 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
           ))}
         </div>
       )}
+
+      {hierarchyConfirmation ? (
+        <div
+          className="moderation-admin-role-hierarchy-confirmation"
+          role="alertdialog"
+          aria-label={t("roleEditor.confirmHierarchyChange")}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && !busyKey) {
+              event.preventDefault()
+              setHierarchyConfirmation(null)
+            }
+          }}
+        >
+          <span className="moderation-admin-role-confirmation__art" aria-hidden="true">
+            <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
+          </span>
+          <span className="moderation-admin-role-confirmation__copy">
+            <strong>
+              {t(
+                hierarchyConfirmation.direction === -1
+                  ? "roleEditor.moveRoleUp"
+                  : "roleEditor.moveRoleDown",
+                { name: hierarchyConfirmation.roleName },
+              )}
+            </strong>
+            <small>{t("roleEditor.confirmHierarchyChangeHint")}</small>
+          </span>
+          <div className="moderation-admin-role-confirmation__actions">
+            <button
+              ref={hierarchyConfirmRef}
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={Boolean(busyKey)}
+              onClick={() => void applyHierarchyChange()}
+            >
+              {t("roleEditor.confirmHierarchyChangeAction")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={Boolean(busyKey)}
+              onClick={() => setHierarchyConfirmation(null)}
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {sortedRoles.length > 0 ? (
         <div className="moderation-admin-member-roles">
@@ -319,8 +436,19 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
                       key={role.id}
                       type="button"
                       className={assigned ? "is-active" : ""}
+                      aria-pressed={assigned}
+                      aria-haspopup="dialog"
                       disabled={Boolean(busyKey)}
-                      onClick={() => void toggleMemberRole(member.memberId, role.id)}
+                      onClick={() => {
+                        setHierarchyConfirmation(null)
+                        setMemberRoleConfirmation({
+                          memberId: member.memberId,
+                          username: member.username,
+                          roleId: role.id,
+                          roleName: role.name,
+                          assigned,
+                        })
+                      }}
                     >
                       <i style={{ background: role.color }} />
                       {role.name}
@@ -330,6 +458,62 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
               </div>
             </article>
           ))}
+        </div>
+      ) : null}
+
+      {memberRoleConfirmation ? (
+        <div
+          className="moderation-admin-member-role-confirmation"
+          role="alertdialog"
+          aria-label={t("roleEditor.confirmMemberRoleChange")}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && !busyKey) {
+              event.preventDefault()
+              setMemberRoleConfirmation(null)
+            }
+          }}
+        >
+          <span className="moderation-admin-role-confirmation__art" aria-hidden="true">
+            <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          </span>
+          <span className="moderation-admin-role-confirmation__copy">
+            <strong>
+              {memberRoleConfirmation.assigned
+                ? t("roleEditor.confirmRevokeMemberRole")
+                : t("roleEditor.confirmAssignMemberRole")}
+            </strong>
+            <small>
+              {t("roleEditor.memberRoleChangeHint", {
+                username: memberRoleConfirmation.username,
+                role: memberRoleConfirmation.roleName,
+              })}
+            </small>
+          </span>
+          <div className="moderation-admin-role-confirmation__actions">
+            <button
+              ref={memberRoleConfirmRef}
+              type="button"
+              className={
+                memberRoleConfirmation.assigned
+                  ? "moderation-control-button moderation-control-button--danger"
+                  : "moderation-control-button moderation-control-button--primary"
+              }
+              disabled={Boolean(busyKey)}
+              onClick={() => void applyMemberRoleChange()}
+            >
+              {memberRoleConfirmation.assigned
+                ? t("roleEditor.revokeMemberRole")
+                : t("roleEditor.assignMemberRole")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={Boolean(busyKey)}
+              onClick={() => setMemberRoleConfirmation(null)}
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
         </div>
       ) : null}
     </section>
@@ -343,7 +527,7 @@ type AdminRoleCardProps = {
   isBaseRole: boolean
   busy: boolean
   onMove: (direction: -1 | 1) => void
-  onTogglePermission: (permission: string) => void
+  onSavePermissions: (permissions: Record<string, boolean>) => void
   onSaveDetails: (name: string, color: string) => void
   onToggleBase: () => void
   onDelete: () => void
@@ -356,7 +540,7 @@ function AdminRoleCard({
   isBaseRole,
   busy,
   onMove,
-  onTogglePermission,
+  onSavePermissions,
   onSaveDetails,
   onToggleBase,
   onDelete,
@@ -364,6 +548,9 @@ function AdminRoleCard({
   const { t } = useTranslation()
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
+  const [permissionDraft, setPermissionDraft] = useState<Record<string, boolean>>(() =>
+    rolePermissionState(role),
+  )
   const [baseConfirmationVisible, setBaseConfirmationVisible] = useState(false)
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
   const baseConfirmRef = useRef<HTMLButtonElement>(null)
@@ -372,6 +559,8 @@ function AdminRoleCard({
     ? t("roleEditor.confirmClearBaseRole", "Clear base role?")
     : t("roleEditor.confirmSetBaseRole", "Set as base role?")
   const deleteConfirmationTitle = t("roleEditor.confirmDelete", "Delete this role?")
+  const permissionChanges = rolePermissionChanges(role, permissionDraft)
+  const permissionChangesCount = Object.keys(permissionChanges).length
 
   useEffect(() => {
     if (!baseConfirmationVisible) {
@@ -440,10 +629,10 @@ function AdminRoleCard({
           />
         </label>
 
-        <label className="moderation-admin-role-field">
+        <div className="moderation-admin-role-field">
           <span>{t("roleEditor.color")}</span>
           <AdminRoleColorControl compact value={color} disabled={busy} onChange={setColor} />
-        </label>
+        </div>
 
         <button
           type="button"
@@ -553,7 +742,12 @@ function AdminRoleCard({
         >
           <span>
             <strong>{deleteConfirmationTitle}</strong>
-            <small>{t("roleEditor.confirmDeleteHint", "Role assignments will be removed with it.")}</small>
+            <small>
+              {t(
+                "roleEditor.confirmDeleteHint",
+                "Deleting this role changes the account access configuration. Review the target role before continuing.",
+              )}
+            </small>
           </span>
           <div>
             <button
@@ -581,20 +775,79 @@ function AdminRoleCard({
       ) : null}
 
       <div className="moderation-admin-role-permissions">
-        {allRolePermissions.map((permission) => (
-          <button
-            key={permission}
-            type="button"
-            className={role.permissions[permission] ? "is-active" : ""}
-            disabled={busy}
-            onClick={() => onTogglePermission(permission)}
-          >
-            {t(`roleEditor.permissions.${permission}`)}
-          </button>
-        ))}
+        {allRolePermissions.map((permission) => {
+          const enabled = permissionDraft[permission] ?? false
+
+          return (
+            <button
+              key={permission}
+              type="button"
+              className={enabled ? "is-active" : ""}
+              aria-pressed={enabled}
+              disabled={busy}
+              onClick={() =>
+                setPermissionDraft((current) => ({
+                  ...current,
+                  [permission]: !enabled,
+                }))
+              }
+            >
+              {t(`roleEditor.permissions.${permission}`)}
+            </button>
+          )
+        })}
       </div>
+
+      {permissionChangesCount > 0 ? (
+        <div className="moderation-admin-role-permission-actions" role="status">
+          <span>
+            <strong>{t("roleEditor.permissionChanges", { count: permissionChangesCount })}</strong>
+            <small>{t("roleEditor.permissionChangesHint")}</small>
+          </span>
+          <div>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={busy}
+              onClick={() => onSavePermissions(permissionChanges)}
+            >
+              {t("roleEditor.applyPermissionChanges")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={busy}
+              onClick={() => setPermissionDraft(rolePermissionState(role))}
+            >
+              {t("roleEditor.discardPermissionChanges")}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </article>
   )
+}
+
+function rolePermissionState(role: AdminAccountRoleResponse): Record<string, boolean> {
+  return Object.fromEntries(
+    allRolePermissions.map((permission) => [permission, Boolean(role.permissions[permission])]),
+  ) as Record<string, boolean>
+}
+
+function rolePermissionChanges(
+  role: AdminAccountRoleResponse,
+  draft: Record<string, boolean>,
+): Record<string, boolean> {
+  return allRolePermissions.reduce<Record<string, boolean>>((changes, permission) => {
+    const current = Boolean(role.permissions[permission])
+    const next = Boolean(draft[permission])
+
+    if (current !== next) {
+      changes[permission] = next
+    }
+
+    return changes
+  }, {})
 }
 
 function isRoleColor(value: string): boolean {
