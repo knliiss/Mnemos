@@ -17,7 +17,7 @@ jobs:
     runs-on:
       - self-hosted
       - mnemos-production
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - name: Checkout diagnostics branch
@@ -36,49 +36,24 @@ jobs:
           changed="$(git diff --name-only "$BASELINE_SHA" HEAD)"
           test "$changed" = ".github/workflows/realtime-production-diagnostics.yml"
 
-      - name: Capture collector report counters
+      - name: Capture collector pipeline counters
         shell: bash
         run: |
           set -euo pipefail
-          logs="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 || true)"
-          for pattern in 'EVENT_REPORT' 'REPORT_QUEUED' 'Failed to publish collector report' 'DELIVERY_UNAVAILABLE' 'NOT_OBSERVING' 'TOO_MANY_IN_FLIGHT'; do
+          realtime="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 || true)"
+          event="$(sudo -n docker service logs --since 3h --timestamps --raw mnemos_event-service 2>&1 || true)"
+
+          echo '=== realtime counters ==='
+          for pattern in 'EVENT_REPORT' 'REPORT_QUEUED' 'Failed to publish collector report' 'DELIVERY_UNAVAILABLE' 'NOT_OBSERVING' 'TOO_MANY_IN_FLIGHT' 'observation lease renewed'; do
             printf '%s=' "$pattern"
-            printf '%s\n' "$logs" | grep -E -i -c "$pattern" || true
+            printf '%s\n' "$realtime" | grep -E -i -c "$pattern" || true
           done
 
-      - name: Capture Kafka topics and consumer lag
-        shell: bash
-        run: |
-          set -euo pipefail
-          container="$(sudo -n docker ps --format '{{.ID}} {{.Names}} {{.Image}}' | awk 'tolower($0) ~ /kafka|redpanda/ {print $1; exit}')"
-          if [ -z "$container" ]; then
-            echo 'No Kafka/Redpanda container found'
-            exit 0
-          fi
-
-          echo "container=$container"
-          sudo -n docker exec "$container" sh -lc '
-            set -e
-            if [ -x /opt/kafka/bin/kafka-topics.sh ]; then
-              TOPICS=/opt/kafka/bin/kafka-topics.sh
-              GROUPS=/opt/kafka/bin/kafka-consumer-groups.sh
-            elif command -v kafka-topics.sh >/dev/null 2>&1; then
-              TOPICS=$(command -v kafka-topics.sh)
-              GROUPS=$(command -v kafka-consumer-groups.sh)
-            else
-              echo "Kafka CLI not found"
-              exit 0
-            fi
-
-            echo "=== topics ==="
-            "$TOPICS" --bootstrap-server localhost:9092 --list | grep -E "collector|event|notification" || true
-            echo "=== collector ingress ==="
-            "$TOPICS" --bootstrap-server localhost:9092 --describe --topic mnemos.collector.ingress.v2 || true
-            echo "=== event collector consumer group ==="
-            "$GROUPS" --bootstrap-server localhost:9092 --describe --group mnemos-event-service-collector-ingress || true
-            echo "=== all event-service groups ==="
-            "$GROUPS" --bootstrap-server localhost:9092 --all-groups --describe 2>/dev/null | grep -E "mnemos-event-service|mnemos.collector.ingress.v2" || true
-          '
+          echo '=== event-service counters ==='
+          for pattern in 'REPORT_QUEUED' 'collector ingress' 'dead.?letter' 'deserial' 'protocol' 'Exception'; do
+            printf '%s=' "$pattern"
+            printf '%s\n' "$event" | grep -E -i -c "$pattern" || true
+          done
 
       - name: Capture focused pipeline logs
         shell: bash
@@ -87,16 +62,16 @@ jobs:
           echo '=== realtime ==='
           sudo -n docker service logs --since 3h --timestamps --raw mnemos_realtime-service 2>&1 \
             | grep -E -i 'EVENT_REPORT|REPORT_QUEUED|publish collector report|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|collector transport response|observation lease renewed' \
-            | tail -n 2500 || true
+            | tail -n 1500 || true
           echo '=== event-service ==='
           sudo -n docker service logs --since 3h --timestamps --raw mnemos_event-service 2>&1 \
-            | grep -E -i 'collector|ingress|REPORT_QUEUED|dead.?letter|deserial|protocol|Kafka.*(error|warn)|ERROR|Exception' \
-            | tail -n 2500 || true
+            | grep -E -i 'collector|ingress|REPORT_QUEUED|dead.?letter|deserial|protocol|ERROR|Exception|WARN' \
+            | tail -n 1500 || true
           echo '=== notification-service ==='
           sudo -n docker service logs --since 3h --timestamps --raw mnemos_notification-service 2>&1 \
-            | grep -E -i 'notification|event|dead.?letter|Kafka.*(error|warn)|ERROR|Exception' \
-            | tail -n 1500 || true
+            | grep -E -i 'notification|event|ERROR|Exception|WARN' \
+            | tail -n 1000 || true
           echo '=== bot ==='
           sudo -n docker service logs --since 3h --timestamps --raw mnemos_telegram-bot-service 2>&1 \
-            | grep -E -i 'notification|409|telegram.*(error|warn)|ERROR|Exception' \
-            | tail -n 1500 || true
+            | grep -E -i 'notification|409|telegram|ERROR|Exception|WARN' \
+            | tail -n 1000 || true
