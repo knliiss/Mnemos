@@ -42,7 +42,7 @@ expected_pool_sizes = {
     "notification-service": 3,
     "reward-service": 3,
     "bet-service": 3,
-    "moderation-service": 2,
+    "moderation-service": 4,
     "realtime-service": 3,
     "personalization-service": 3,
     "social-service": 3,
