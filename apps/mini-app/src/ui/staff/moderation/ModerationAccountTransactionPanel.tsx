@@ -6,6 +6,7 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { localeForLanguage } from "../../account/accountPresentation"
 import { WalletHistoryPanel } from "../../account/wallet/WalletHistoryPanel"
 import { Glyph } from "../../shared/MnemosIcon"
+import "./moderation-admin-transactions.css"
 
 type Props = {
   accountId: string
