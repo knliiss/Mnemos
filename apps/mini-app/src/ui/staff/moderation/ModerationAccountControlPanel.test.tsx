@@ -85,9 +85,9 @@ describe("ModerationAccountControlPanel", () => {
 
     await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    expect(screen.queryByText(copy.addMember)).not.toBeInTheDocument()
-    expect(screen.queryByText(copy.transferOwnership)).not.toBeInTheDocument()
-    expect(screen.queryByText(copy.deleteAccount)).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.addMember)).toBeNull()
+    expect(screen.queryByText(copy.transferOwner)).toBeNull()
+    expect(screen.queryByText(copy.irreversibleDelete)).toBeNull()
   })
 
   it("transfers ownership using user id instead of account member id", async () => {
@@ -107,10 +107,13 @@ describe("ModerationAccountControlPanel", () => {
     await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
     const targetUserId = "019c1129-ef54-7000-8000-000000000437"
-    const transferInput = screen.getByPlaceholderText(copy.transferOwnershipPlaceholder)
+    const userIdInputs = screen.getAllByPlaceholderText(copy.userIdPlaceholder)
+    const transferInput = userIdInputs[1]
 
-    fireEvent.change(transferInput, { target: { value: targetUserId } })
-    fireEvent.click(screen.getByText(copy.transferOwnership))
+    expect(transferInput).toBeDefined()
+
+    fireEvent.change(transferInput!, { target: { value: targetUserId } })
+    fireEvent.click(screen.getAllByText(copy.transferOwner).at(-1)!)
 
     await waitFor(() => {
       expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, targetUserId)
