@@ -19,6 +19,8 @@ import {
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { allRolePermissions } from "../../rolePermissions"
+import { AdminRoleColorControl } from "./AdminRoleColorControl"
+import "./moderation-admin-role-polish.css"
 
 type Props = {
   details: AdminAccountDetailsResponse
@@ -122,7 +124,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const submitNewRole = async () => {
     const name = newRoleName.trim()
 
-    if (!name || busyKey) {
+    if (!name || !isRoleColor(newRoleColor) || busyKey) {
       return
     }
 
@@ -133,6 +135,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
         permissions: [...newPermissions],
       })
       setNewRoleName("")
+      setNewRoleColor("#4BAF8A")
       setNewPermissions(new Set())
     })
   }
@@ -185,7 +188,10 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
 
   return (
     <section className="moderation-admin-roles">
-      <div className="moderation-admin-roles__heading">
+      <div className="moderation-admin-roles__heading moderation-admin-roles__heading--illustrated">
+        <span className="moderation-admin-roles__mascot" aria-hidden="true">
+          <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
+        </span>
         <span>
           <small>{t("rolesOverview.hierarchyEyebrow")}</small>
           <strong>{t("rolesOverview.title")}</strong>
@@ -193,26 +199,28 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
         <em>{sortedRoles.length}</em>
       </div>
 
-      <div className="moderation-admin-role-create">
-        <input
-          aria-label={t("roleEditor.name")}
-          className="moderation-admin-input"
-          maxLength={32}
-          placeholder={t("roleEditor.namePlaceholder")}
-          value={newRoleName}
-          onChange={(event) => setNewRoleName(event.target.value)}
-        />
-        <input
-          aria-label={t("roleEditor.color")}
-          className="moderation-admin-color"
-          type="color"
-          value={newRoleColor}
-          onChange={(event) => setNewRoleColor(event.target.value.toUpperCase())}
-        />
+      <div className="moderation-admin-role-create moderation-admin-role-create--custom">
+        <label className="moderation-admin-role-field">
+          <span>{t("roleEditor.name")}</span>
+          <input
+            aria-label={t("roleEditor.name")}
+            className="moderation-admin-input"
+            maxLength={32}
+            placeholder={t("roleEditor.namePlaceholder")}
+            value={newRoleName}
+            onChange={(event) => setNewRoleName(event.target.value)}
+          />
+        </label>
+
+        <label className="moderation-admin-role-field">
+          <span>{t("roleEditor.color")}</span>
+          <AdminRoleColorControl value={newRoleColor} onChange={setNewRoleColor} />
+        </label>
+
         <button
           type="button"
           className="moderation-control-button moderation-control-button--positive"
-          disabled={!newRoleName.trim() || Boolean(busyKey)}
+          disabled={!newRoleName.trim() || !isRoleColor(newRoleColor) || Boolean(busyKey)}
           onClick={() => void submitNewRole()}
         >
           {busyKey === "create" ? t("roleEditor.saving") : t("roleEditor.create")}
@@ -247,7 +255,10 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
       {loading ? (
         <div className="moderation-admin-role-empty">{t("common.loading")}</div>
       ) : sortedRoles.length === 0 ? (
-        <div className="moderation-admin-role-empty">{t("rolesOverview.emptyTitle")}</div>
+        <div className="moderation-admin-role-empty moderation-admin-role-empty--illustrated">
+          <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
+          <strong>{t("rolesOverview.emptyTitle")}</strong>
+        </div>
       ) : (
         <div className="moderation-admin-role-list">
           {sortedRoles.map((role, index) => (
@@ -297,7 +308,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
             <article key={member.memberId} className="moderation-admin-member-role-row">
               <span>
                 <strong>@{member.username}</strong>
-                <small>{member.owner ? "OWNER" : member.memberId}</small>
+                <small>{member.owner ? t("moderation.owner") : member.memberId}</small>
               </span>
               <div>
                 {sortedRoles.map((role) => {
@@ -353,6 +364,7 @@ function AdminRoleCard({
   const { t } = useTranslation()
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
+  const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
 
   return (
     <article className="moderation-admin-role-card">
@@ -360,31 +372,36 @@ function AdminRoleCard({
         <span className="moderation-admin-role-swatch" style={{ background: role.color }} />
         <span>
           <strong>{role.name}</strong>
-          <small>{t("rolesOverview.permissionSummary", {
-            count: Object.values(role.permissions).filter(Boolean).length,
-            rank: role.hierarchyRank,
-          })}</small>
+          <small>
+            {t("rolesOverview.permissionSummary", {
+              count: Object.values(role.permissions).filter(Boolean).length,
+              rank: role.hierarchyRank,
+            })}
+          </small>
         </span>
-        {isBaseRole ? <em>BASE</em> : null}
+        {isBaseRole ? <em>{t("roleEditor.baseRole", "BASE")}</em> : null}
       </header>
 
-      <div className="moderation-admin-role-details">
-        <input
-          className="moderation-admin-input"
-          maxLength={32}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <input
-          className="moderation-admin-color"
-          type="color"
-          value={color}
-          onChange={(event) => setColor(event.target.value.toUpperCase())}
-        />
+      <div className="moderation-admin-role-details moderation-admin-role-details--custom">
+        <label className="moderation-admin-role-field">
+          <span>{t("roleEditor.name")}</span>
+          <input
+            className="moderation-admin-input"
+            maxLength={32}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </label>
+
+        <label className="moderation-admin-role-field">
+          <span>{t("roleEditor.color")}</span>
+          <AdminRoleColorControl compact value={color} disabled={busy} onChange={setColor} />
+        </label>
+
         <button
           type="button"
           className="moderation-control-button moderation-control-button--neutral"
-          disabled={busy || !name.trim()}
+          disabled={busy || !name.trim() || !isRoleColor(color)}
           onClick={() => onSaveDetails(name.trim(), color)}
         >
           {t("roleEditor.save")}
@@ -392,15 +409,59 @@ function AdminRoleCard({
       </div>
 
       <div className="moderation-admin-role-actions">
-        <button type="button" disabled={busy || index === 0} onClick={() => onMove(-1)}>↑</button>
-        <button type="button" disabled={busy || index === roleCount - 1} onClick={() => onMove(1)}>↓</button>
-        <button type="button" className={isBaseRole ? "is-active" : ""} disabled={busy} onClick={onToggleBase}>
-          BASE
+        <button type="button" disabled={busy || index === 0} onClick={() => onMove(-1)}>
+          ↑
         </button>
-        <button type="button" className="is-danger" disabled={busy} onClick={onDelete}>
+        <button type="button" disabled={busy || index === roleCount - 1} onClick={() => onMove(1)}>
+          ↓
+        </button>
+        <button
+          type="button"
+          className={isBaseRole ? "is-active" : ""}
+          disabled={busy}
+          onClick={onToggleBase}
+        >
+          {t("roleEditor.baseRole", "BASE")}
+        </button>
+        <button
+          type="button"
+          className="is-danger"
+          disabled={busy}
+          onClick={() => setDeleteConfirmationVisible(true)}
+        >
           {t("roleEditor.delete")}
         </button>
       </div>
+
+      {deleteConfirmationVisible ? (
+        <div className="moderation-admin-role-delete-confirmation">
+          <span>
+            <strong>{t("roleEditor.confirmDelete", "Delete this role?")}</strong>
+            <small>{t("roleEditor.confirmDeleteHint", "Role assignments will be removed with it.")}</small>
+          </span>
+          <div>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--danger"
+              disabled={busy}
+              onClick={() => {
+                setDeleteConfirmationVisible(false)
+                onDelete()
+              }}
+            >
+              {t("common.confirm", "Confirm")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={busy}
+              onClick={() => setDeleteConfirmationVisible(false)}
+            >
+              {t("common.cancel", "Cancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="moderation-admin-role-permissions">
         {allRolePermissions.map((permission) => (
@@ -417,4 +478,8 @@ function AdminRoleCard({
       </div>
     </article>
   )
+}
+
+function isRoleColor(value: string): boolean {
+  return /^#[0-9A-F]{6}$/.test(value.trim().toUpperCase())
 }
