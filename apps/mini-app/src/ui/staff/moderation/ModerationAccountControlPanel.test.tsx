@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   deleteAccountPermanently: vi.fn(),
   getAdminAccount: vi.fn(),
   removeAccountMember: vi.fn(),
+  searchUserDirectory: vi.fn(),
   transferAccountOwnership: vi.fn(),
 }))
 
@@ -19,12 +20,14 @@ vi.mock("@/shared/api/moderationApi", () => ({
   deleteAccountPermanently: mocks.deleteAccountPermanently,
   getAdminAccount: mocks.getAdminAccount,
   removeAccountMember: mocks.removeAccountMember,
+  searchUserDirectory: mocks.searchUserDirectory,
   transferAccountOwnership: mocks.transferAccountOwnership,
 }))
 
 const accountId = "019c1129-ef54-7000-8000-000000000431"
 const ownerMemberId = "019c1129-ef54-7000-8000-000000000432"
 const memberId = "019c1129-ef54-7000-8000-000000000433"
+const memberUserId = "019c1129-ef54-7000-8000-000000000436"
 
 const activeAccount: AdminAccountDetailsResponse = {
   accountId,
@@ -47,7 +50,7 @@ const activeAccount: AdminAccountDetailsResponse = {
     },
     {
       memberId,
-      userId: "019c1129-ef54-7000-8000-000000000436",
+      userId: memberUserId,
       username: "member",
       owner: false,
       joinedAt: "2026-09-03T00:01:00Z",
@@ -59,6 +62,13 @@ const copy = resolveModerationDirectoryCopy("en")
 
 beforeEach(() => {
   Object.values(mocks).forEach((mock) => mock.mockReset())
+  mocks.searchUserDirectory.mockResolvedValue({
+    content: [],
+    page: 0,
+    size: 6,
+    totalElements: 0,
+    totalPages: 0,
+  })
 })
 
 afterEach(() => {
@@ -90,7 +100,7 @@ describe("ModerationAccountControlPanel", () => {
     expect(screen.queryByText(copy.irreversibleDelete)).toBeNull()
   })
 
-  it("transfers ownership using user id instead of account member id", async () => {
+  it("requires confirmation before transferring ownership and sends the user id", async () => {
     mocks.getAdminAccount.mockResolvedValue(activeAccount)
     mocks.transferAccountOwnership.mockResolvedValue(undefined)
 
@@ -106,17 +116,41 @@ describe("ModerationAccountControlPanel", () => {
 
     await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    const targetUserId = "019c1129-ef54-7000-8000-000000000437"
-    const userIdInputs = screen.getAllByPlaceholderText(copy.userIdPlaceholder)
-    const transferInput = userIdInputs[1]
+    fireEvent.click(screen.getAllByText(copy.transferOwner)[0]!)
 
-    expect(transferInput).toBeDefined()
+    expect(mocks.transferAccountOwnership).not.toHaveBeenCalled()
+    expect(screen.getByText("@member")).toBeDefined()
 
-    fireEvent.change(transferInput!, { target: { value: targetUserId } })
-    fireEvent.click(screen.getAllByText(copy.transferOwner).at(-1)!)
+    fireEvent.click(screen.getByText("Confirm"))
 
     await waitFor(() => {
-      expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, targetUserId)
+      expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, memberUserId)
+    })
+  })
+
+  it("requires confirmation before removing an account member", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+    mocks.removeAccountMember.mockResolvedValue(undefined)
+
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getByText(copy.removeMember))
+
+    expect(mocks.removeAccountMember).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByText("Confirm"))
+
+    await waitFor(() => {
+      expect(mocks.removeAccountMember).toHaveBeenCalledWith(accountId, memberId)
     })
   })
 })
