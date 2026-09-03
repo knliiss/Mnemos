@@ -15,9 +15,16 @@ type Props = {
   canDelete: boolean
   copy: ReturnType<typeof resolveModerationDirectoryCopy>
   onChanged(): Promise<void>
+  onOpenUser?: (userId: string) => void
 }
 
-export function ModerationAccountControlPanel({ accountId, canDelete, copy, onChanged }: Props) {
+export function ModerationAccountControlPanel({
+  accountId,
+  canDelete,
+  copy,
+  onChanged,
+  onOpenUser,
+}: Props) {
   const [details, setDetails] = useState<AdminAccountDetailsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [busyAction, setBusyAction] = useState<string | null>(null)
@@ -108,7 +115,17 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
         {details.members.map((member) => (
           <article key={member.memberId} className="moderation-account-member">
             <div>
-              <strong>@{member.username}</strong>
+              {onOpenUser ? (
+                <button
+                  type="button"
+                  className="moderation-account-member__user-link"
+                  onClick={() => onOpenUser(member.userId)}
+                >
+                  @{member.username}
+                </button>
+              ) : (
+                <strong>@{member.username}</strong>
+              )}
               <small>{member.userId}</small>
               <em>{member.memberId}</em>
             </div>
