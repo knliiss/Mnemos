@@ -1,0 +1,140 @@
+.moderation-admin-personalizations {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.moderation-admin-personalization-grant {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.moderation-admin-personalization-list {
+  display: grid;
+  gap: 7px;
+}
+
+.moderation-admin-personalization-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.moderation-admin-personalization-row > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-admin-personalization-row strong,
+.moderation-admin-personalization-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-admin-personalization-row strong {
+  color: #d9ded4;
+  font-size: 9px;
+}
+
+.moderation-admin-personalization-row small {
+  color: #70776d;
+  font-size: 7px;
+}
+
+.moderation-admin-personalization-row > em {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #858c82;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.moderation-admin-personalization-row > em.is-active {
+  color: #cbe86e;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.moderation-admin-personalization-row > div {
+  display: flex;
+  gap: 5px;
+}
+
+.moderation-admin-personalization-row button {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(235, 241, 213, 0.06);
+  border-radius: 8px;
+  outline: none;
+  color: #858c82;
+  background: rgba(255, 255, 255, 0.016);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-admin-personalization-row button:hover {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #c5ccc0;
+}
+
+.moderation-admin-personalization-row button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.moderation-admin-personalization-row button.is-active {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #cbe86e;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.moderation-admin-personalization-row button.is-danger {
+  color: #d88b87;
+  background: rgba(223, 88, 80, 0.035);
+}
+
+.moderation-admin-personalization-row button:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+@media (max-width: 420px) {
+  .moderation-admin-personalization-grant,
+  .moderation-admin-personalization-row {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-admin-personalization-grant .moderation-control-button {
+    width: 100%;
+  }
+
+  .moderation-admin-personalization-row > div {
+    width: 100%;
+  }
+
+  .moderation-admin-personalization-row button {
+    flex: 1;
+  }
+}
