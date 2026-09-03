@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SANCTION_TYPES } from "../../contracts"
 import type { SanctionType } from "../../model"
@@ -14,10 +15,46 @@ type Props = {
 
 export function ModerationSanctions({ controller, language, canSanction }: Props) {
   const { t } = useTranslation()
+  const [confirmationVisible, setConfirmationVisible] = useState(false)
+  const confirmButtonRef = useRef<HTMLButtonElement>(null)
   const activeBan = controller.activeBan
   const sanctionLabels: Record<SanctionType, string> = {
     BAN: t("moderation.sanctionBan"),
     NOTIFICATION_SUSPENSION: t("moderation.sanctionNotification"),
+  }
+
+  useEffect(() => {
+    if (!confirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      confirmButtonRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [confirmationVisible])
+
+  const closeSanctionForm = () => {
+    setConfirmationVisible(false)
+    controller.setSanctionFormOpen(false)
+  }
+
+  const dismissConfirmation = () => {
+    if (!controller.busy) {
+      setConfirmationVisible(false)
+    }
+  }
+
+  const submitConfirmedSanction = async () => {
+    if (controller.busy) {
+      return
+    }
+
+    await controller.submitSanction()
+    setConfirmationVisible(false)
   }
 
   return (
@@ -29,6 +66,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
               type="button"
               onClick={() => {
                 controller.setSanctionType("BAN")
+                setConfirmationVisible(false)
                 controller.setSanctionFormOpen(true)
               }}
             >
@@ -57,6 +95,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
             type="button"
             onClick={() => {
               controller.setSanctionType("NOTIFICATION_SUSPENSION")
+              setConfirmationVisible(false)
               controller.setSanctionFormOpen(true)
             }}
           >
@@ -109,11 +148,7 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
         <section className="moderation-form">
           <div className="section__head">
             <h2>{t("moderation.newSanction")}</h2>
-            <button
-              type="button"
-              aria-label={t("moderation.close")}
-              onClick={() => controller.setSanctionFormOpen(false)}
-            >
+            <button type="button" aria-label={t("moderation.close")} onClick={closeSanctionForm}>
               <Glyph name="close" size={15} />
             </button>
           </div>
@@ -122,7 +157,10 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
             <ChoiceGrid
               value={controller.sanctionType}
               options={SANCTION_TYPES}
-              onChange={controller.setSanctionType}
+              onChange={(value) => {
+                setConfirmationVisible(false)
+                controller.setSanctionType(value)
+              }}
               labels={sanctionLabels}
             />
           </Field>
@@ -130,14 +168,22 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
           <Field label={t("moderation.reason")}>
             <input
               value={controller.reason}
-              onChange={(event) => controller.setReason(event.target.value)}
+              disabled={confirmationVisible || controller.busy}
+              onChange={(event) => {
+                setConfirmationVisible(false)
+                controller.setReason(event.target.value)
+              }}
             />
           </Field>
 
           <Field label={t("moderation.internalNote")}>
             <input
               value={controller.internalNote}
-              onChange={(event) => controller.setInternalNote(event.target.value)}
+              disabled={confirmationVisible || controller.busy}
+              onChange={(event) => {
+                setConfirmationVisible(false)
+                controller.setInternalNote(event.target.value)
+              }}
             />
           </Field>
 
@@ -154,18 +200,71 @@ export function ModerationSanctions({ controller, language, canSanction }: Props
               min={1}
               step={1}
               value={controller.duration}
-              onChange={(event) => controller.setDuration(event.target.value)}
+              disabled={confirmationVisible || controller.busy}
+              onChange={(event) => {
+                setConfirmationVisible(false)
+                controller.setDuration(event.target.value)
+              }}
             />
           </Field>
 
-          <button
-            type="button"
-            className="destructive-action"
-            disabled={!controller.reason.trim() || !controller.durationValid || controller.busy}
-            onClick={() => void controller.submitSanction()}
-          >
-            {controller.busy ? t("moderation.saving") : t("moderation.createSanction")}
-          </button>
+          {confirmationVisible ? (
+            <div
+              className="moderation-sanction-confirmation"
+              role="alertdialog"
+              aria-label={t("moderation.createSanction")}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault()
+                  dismissConfirmation()
+                }
+              }}
+            >
+              <span className="moderation-sanction-confirmation__mark" aria-hidden="true">
+                <Glyph
+                  name={controller.sanctionType === "BAN" ? "moderation" : "bell"}
+                  size={18}
+                />
+              </span>
+              <span className="moderation-sanction-confirmation__copy">
+                <small>{sanctionLabels[controller.sanctionType]}</small>
+                <strong>{controller.reason.trim()}</strong>
+                <em>
+                  {controller.duration
+                    ? `${controller.duration} ${t("moderation.durationHours")}`
+                    : t("moderation.indefinite")}
+                </em>
+              </span>
+              <div className="moderation-sanction-confirmation__actions">
+                <button
+                  ref={confirmButtonRef}
+                  type="button"
+                  className="destructive-action"
+                  disabled={controller.busy}
+                  onClick={() => void submitConfirmedSanction()}
+                >
+                  {controller.busy ? t("moderation.saving") : t("common.confirm")}
+                </button>
+                <button
+                  type="button"
+                  className="moderation-control-button moderation-control-button--neutral"
+                  disabled={controller.busy}
+                  onClick={dismissConfirmation}
+                >
+                  {t("common.cancel")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="destructive-action"
+              disabled={!controller.reason.trim() || !controller.durationValid || controller.busy}
+              onClick={() => setConfirmationVisible(true)}
+            >
+              {controller.busy ? t("moderation.saving") : t("moderation.createSanction")}
+            </button>
+          )}
         </section>
       ) : null}
     </>
