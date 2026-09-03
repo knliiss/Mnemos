@@ -32,7 +32,15 @@
   gap: 8px;
 }
 
+.administration-workspace-grid--identity {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.045);
+}
+
 .administration-workspace {
+  appearance: none;
+  -webkit-appearance: none;
   position: relative;
   display: grid;
   grid-template-rows: 82px auto;
@@ -43,9 +51,30 @@
   padding: 10px;
   border: 1px solid rgba(235, 241, 213, 0.08);
   border-radius: 16px;
+  outline: none;
   color: #dfe3da;
   background: rgba(255, 255, 255, 0.015);
+  font: inherit;
   text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.administration-workspace:hover {
+  border-color: color-mix(in srgb, currentColor 22%, transparent);
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.administration-workspace:active {
+  transform: translateY(1px);
+}
+
+.administration-workspace:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 10%, transparent);
 }
 
 .administration-workspace::after {
@@ -66,6 +95,7 @@
   place-items: center;
   width: 100%;
   height: 82px;
+  overflow: hidden;
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.018);
 }
@@ -74,7 +104,13 @@
   width: 76px;
   height: 68px;
   object-fit: contain;
+  image-rendering: pixelated;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.22));
+  transition: transform 160ms ease;
+}
+
+.administration-workspace:hover .administration-workspace__art img {
+  transform: translateY(-2px);
 }
 
 .administration-workspace__copy {
@@ -114,6 +150,14 @@
 .administration-workspace.is-users {
   border-color: rgba(255, 104, 115, 0.12);
   color: #dda0a5;
+}
+
+.administration-workspace.is-accounts {
+  border-color: rgba(107, 163, 228, 0.15);
+  color: #a8c9ef;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(107, 163, 228, 0.055), transparent 38%),
+    rgba(255, 255, 255, 0.015);
 }
 
 .administration-workspace.is-review {
