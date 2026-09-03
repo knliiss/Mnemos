@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       target_assignments:
-        description: One SERVICE=FULL_COMMIT_SHA assignment per line
+        description: SERVICE=FULL_COMMIT_SHA assignments separated by whitespace or new lines
         required: false
         type: string
       target_tooling_revision:
@@ -90,13 +90,29 @@ jobs:
 
           echo "CURRENT_STATE_FILE=$state_file" >> "$GITHUB_ENV"
 
-      - name: Validate trusted target revisions
+      - name: Normalize and validate trusted target revisions
         shell: bash
         env:
           TARGET_ASSIGNMENTS: ${{ inputs.target_assignments }}
           TARGET_TOOLING_REVISION: ${{ inputs.target_tooling_revision }}
         run: |
           set -euo pipefail
+
+          assignments_file="$RUNNER_TEMP/mnemos-target-assignments.txt"
+          umask 077
+
+          python3 - "$assignments_file" <<'PY'
+          import os
+          import sys
+
+          assignments = os.environ["TARGET_ASSIGNMENTS"].split()
+
+          with open(sys.argv[1], "w", encoding="utf-8") as output:
+              for assignment in assignments:
+                  output.write(f"{assignment}\n")
+          PY
+
+          echo "TARGET_ASSIGNMENTS_FILE=$assignments_file" >> "$GITHUB_ENV"
 
           if [ -n "$TARGET_TOOLING_REVISION" ]; then
             python3 scripts/production_source_revision.py \
@@ -118,14 +134,11 @@ jobs:
             python3 scripts/production_source_revision.py \
               "$source_sha" \
               --trusted-ref origin/master
-          done <<EOF
-          $TARGET_ASSIGNMENTS
-          EOF
+          done < "$assignments_file"
 
       - name: Create audited release plan bundle
         shell: bash
         env:
-          TARGET_ASSIGNMENTS: ${{ inputs.target_assignments }}
           TARGET_TOOLING_REVISION: ${{ inputs.target_tooling_revision }}
           REQUIRES_FULL_RUNTIME_RECONCILE: ${{ inputs.requires_full_runtime_reconcile }}
           ALLOW_FULL_RUNTIME_RECONCILE: ${{ inputs.allow_full_runtime_reconcile }}
@@ -159,9 +172,7 @@ jobs:
           while IFS= read -r assignment; do
             [ -n "$assignment" ] || continue
             set -- "$@" --set "$assignment"
-          done <<EOF
-          $TARGET_ASSIGNMENTS
-          EOF
+          done < "$TARGET_ASSIGNMENTS_FILE"
 
           python3 scripts/production_release_plan.py "$@"
           python3 scripts/production_audit_bundle.py \
