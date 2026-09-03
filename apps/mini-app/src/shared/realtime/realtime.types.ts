@@ -56,6 +56,35 @@ export type PersonalizationPurchaseCompletedEvent = RealtimeEventEnvelope<
   }
 >
 
+export type AccountStatusChangedEvent = RealtimeEventEnvelope<
+  "account.activated" | "account.deactivated" | "account.deleted",
+  {
+    accountId: string
+    status: "ACTIVE" | "DEACTIVATED" | "DELETED"
+  }
+>
+
+export type AccountOwnershipTransferredEvent = RealtimeEventEnvelope<
+  "account.owner.transferred",
+  {
+    accountId: string
+    previousOwnerMemberId: string
+    previousOwnerUserId: string
+    newOwnerMemberId: string
+    newOwnerUserId: string
+  }
+>
+
+export type AccountMemberChangedEvent = RealtimeEventEnvelope<
+  "account.member.joined" | "account.member.left" | "account.member.removed",
+  {
+    accountId: string
+    memberId: string
+    userId: string
+    change: "JOINED" | "LEFT" | "REMOVED"
+  }
+>
+
 export type NotificationPackBroadcastTemplate = {
   type: string
   emoji: string | null
@@ -125,6 +154,9 @@ export type RealtimeEvent =
   | WalletTransactionFailedEvent
   | BetOperationCompletedEvent
   | PersonalizationPurchaseCompletedEvent
+  | AccountStatusChangedEvent
+  | AccountOwnershipTransferredEvent
+  | AccountMemberChangedEvent
 
 export type RealtimeBroadcast = DropSpotlightBroadcast | GameEventBroadcast
 
