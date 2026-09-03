@@ -29,6 +29,7 @@ export function ModerationAccountControlPanel({
   const [loading, setLoading] = useState(true)
   const [busyAction, setBusyAction] = useState<string | null>(null)
   const [newMemberUserId, setNewMemberUserId] = useState("")
+  const [newOwnerUserId, setNewOwnerUserId] = useState("")
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -98,6 +99,7 @@ export function ModerationAccountControlPanel({
 
   const deleted = details.status === "DELETED"
   const normalizedNewMemberUserId = newMemberUserId.trim()
+  const normalizedNewOwnerUserId = newOwnerUserId.trim()
 
   return (
     <section className="moderation-account-control" aria-busy={Boolean(busyAction)}>
@@ -140,8 +142,8 @@ export function ModerationAccountControlPanel({
                     className="moderation-control-button moderation-control-button--primary"
                     disabled={Boolean(busyAction)}
                     onClick={() =>
-                      void runMutation(`owner:${member.memberId}`, () =>
-                        transferAccountOwnership(accountId, member.memberId),
+                      void runMutation(`owner:${member.userId}`, () =>
+                        transferAccountOwnership(accountId, member.userId),
                       )
                     }
                   >
@@ -167,29 +169,56 @@ export function ModerationAccountControlPanel({
       </div>
 
       {!deleted ? (
-        <div className="moderation-account-control__add-member">
-          <input
-            type="text"
-            value={newMemberUserId}
-            className="moderation-control-input"
-            placeholder={copy.userIdPlaceholder}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(event) => setNewMemberUserId(event.target.value)}
-          />
-          <button
-            type="button"
-            className="moderation-control-button moderation-control-button--primary"
-            disabled={!normalizedNewMemberUserId || Boolean(busyAction)}
-            onClick={() =>
-              void runMutation("add-member", async () => {
-                await addAccountMember(accountId, normalizedNewMemberUserId)
-                setNewMemberUserId("")
-              })
-            }
-          >
-            {busyAction === "add-member" ? copy.addingMember : copy.addMember}
-          </button>
+        <div className="moderation-account-control__admin-actions">
+          <div className="moderation-account-control__add-member">
+            <input
+              type="text"
+              value={newMemberUserId}
+              className="moderation-control-input"
+              placeholder={copy.userIdPlaceholder}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setNewMemberUserId(event.target.value)}
+            />
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={!normalizedNewMemberUserId || Boolean(busyAction)}
+              onClick={() =>
+                void runMutation("add-member", async () => {
+                  await addAccountMember(accountId, normalizedNewMemberUserId)
+                  setNewMemberUserId("")
+                })
+              }
+            >
+              {busyAction === "add-member" ? copy.addingMember : copy.addMember}
+            </button>
+          </div>
+
+          <div className="moderation-account-control__add-member">
+            <input
+              type="text"
+              value={newOwnerUserId}
+              className="moderation-control-input"
+              placeholder={copy.userIdPlaceholder}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setNewOwnerUserId(event.target.value)}
+            />
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={!normalizedNewOwnerUserId || Boolean(busyAction)}
+              onClick={() =>
+                void runMutation("transfer-owner", async () => {
+                  await transferAccountOwnership(accountId, normalizedNewOwnerUserId)
+                  setNewOwnerUserId("")
+                })
+              }
+            >
+              {copy.transferOwner}
+            </button>
+          </div>
         </div>
       ) : null}
 
