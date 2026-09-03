@@ -45,7 +45,6 @@ export function AdminPersonalizationPicker({
     }
 
     let active = true
-    setLoading(true)
 
     void Promise.all(
       PERSONALIZATION_TYPES.map((type) => listPersonalizations(type, undefined, 0, 100)),
@@ -88,6 +87,14 @@ export function AdminPersonalizationPicker({
       })
       .slice(0, 12)
   }, [excluded, items, query])
+
+  const openPicker = () => {
+    setOpen(true)
+
+    if (!loaded && !disabled) {
+      setLoading(true)
+    }
+  }
 
   const clear = () => {
     onSelect(null)
@@ -141,10 +148,10 @@ export function AdminPersonalizationPicker({
             "moderation.personalizationPickerPlaceholder",
             "Search catalog by name or type",
           )}
-          onFocus={() => setOpen(true)}
+          onFocus={openPicker}
           onChange={(event) => {
             setQuery(event.target.value)
-            setOpen(true)
+            openPicker()
           }}
         />
         {loading ? <span className="admin-personalization-picker__loading" aria-hidden="true" /> : null}
