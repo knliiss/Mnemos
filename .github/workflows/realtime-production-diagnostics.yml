@@ -17,7 +17,7 @@ jobs:
     runs-on:
       - self-hosted
       - mnemos-production
-    timeout-minutes: 5
+    timeout-minutes: 3
 
     steps:
       - name: Checkout diagnostics branch
@@ -130,48 +130,19 @@ jobs:
           SQL
           BASH
 
-      - name: Capture collector pipeline counters
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          realtime="$(sudo -n docker service logs --since 20m --timestamps --raw mnemos_realtime-service 2>&1 || true)"
-          event="$(sudo -n docker service logs --since 20m --timestamps --raw mnemos_event-service 2>&1 || true)"
-
-          echo '=== realtime counters ==='
-          for pattern in 'EVENT_REPORT' 'REPORT_QUEUED' 'Failed to publish collector report' 'DELIVERY_UNAVAILABLE' 'NOT_OBSERVING' 'TOO_MANY_IN_FLIGHT' 'observation lease renewed'; do
-            printf '%s=' "$pattern"
-            printf '%s\n' "$realtime" | grep -E -i -c "$pattern" || true
-          done
-
-          echo '=== event-service counters ==='
-          for pattern in 'REPORT_QUEUED' 'collector ingress' 'dead.?letter' 'deserial' 'protocol' 'Exception'; do
-            printf '%s=' "$pattern"
-            printf '%s\n' "$event" | grep -E -i -c "$pattern" || true
-          done
-
-      - name: Capture focused post-deploy logs
-        if: always()
+      - name: Capture bounded post-deploy errors
         shell: bash
         run: |
           set -euo pipefail
 
-          echo '=== realtime ==='
-          sudo -n docker service logs --since 20m --timestamps --raw mnemos_realtime-service 2>&1 \
-            | grep -E -i 'EVENT_REPORT|REPORT_QUEUED|publish collector report|DELIVERY_UNAVAILABLE|NOT_OBSERVING|TOO_MANY_IN_FLIGHT|collector transport response|observation lease renewed|ERROR|Exception|WARN' \
-            | tail -n 1000 || true
-
-          echo '=== event-service ==='
-          sudo -n docker service logs --since 20m --timestamps --raw mnemos_event-service 2>&1 \
-            | grep -E -i 'collector|ingress|REPORT_QUEUED|dead.?letter|deserial|protocol|ERROR|Exception|WARN' \
-            | tail -n 1000 || true
-
-          echo '=== notification-service ==='
-          sudo -n docker service logs --since 20m --timestamps --raw mnemos_notification-service 2>&1 \
-            | grep -E -i 'notification|event|ERROR|Exception|WARN' \
-            | tail -n 1000 || true
-
-          echo '=== bot ==='
-          sudo -n docker service logs --since 20m --timestamps --raw mnemos_telegram-bot-service 2>&1 \
-            | grep -E -i 'notification|409|telegram|ERROR|Exception|WARN' \
-            | tail -n 1000 || true
+          for service in event-service notification-service telegram-bot-service; do
+            echo "=== $service recent errors ==="
+            timeout 15s sudo -n docker service logs \
+              --since 10m \
+              --tail 300 \
+              --timestamps \
+              --raw \
+              "mnemos_${service}" 2>&1 \
+              | grep -E -i 'ERROR|Exception|409|dead.?letter|deserial|protocol' \
+              | tail -n 100 || true
+          done
