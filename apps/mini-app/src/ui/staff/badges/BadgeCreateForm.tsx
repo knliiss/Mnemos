@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Field } from "../../shared/Primitives"
+import { AdminColorControl } from "../shared/AdminColorControl"
 import { validateBadgeImageFile } from "./badgeImageValidation"
 import type { BadgeDraft } from "./useBadgeCatalog"
 
@@ -20,12 +21,14 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
   const [color, setColor] = useState("#C7F24A")
 
   const codeValid = /^[A-Z][A-Z0-9_]{1,31}$/.test(code)
+  const colorValid = /^#[0-9A-F]{6}$/.test(color.trim().toUpperCase())
   const createValid =
     codeValid &&
     name.trim().length > 0 &&
     name.trim().length <= 64 &&
     image !== null &&
     imageValid &&
+    colorValid &&
     !checkingImage
   const imagePreviewUrl = useMemo(() => (image ? URL.createObjectURL(image) : null), [image])
 
@@ -74,7 +77,7 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
       code,
       name: name.trim(),
       image,
-      color,
+      color: color.trim().toUpperCase(),
     })
 
     if (created) {
@@ -84,9 +87,14 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
 
   return (
     <section className="staff-form-block badge-create-form">
-      <header>
-        <small>{t("badgeAdmin.newEyebrow")}</small>
-        <strong>{t("badgeAdmin.newBadge")}</strong>
+      <header className="badge-create-form__header">
+        <span className="badge-create-form__mascot" aria-hidden="true">
+          <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
+        </span>
+        <span>
+          <small>{t("badgeAdmin.newEyebrow")}</small>
+          <strong>{t("badgeAdmin.newBadge")}</strong>
+        </span>
       </header>
 
       <Field
@@ -94,8 +102,11 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
         hint={code && !codeValid ? t("badgeAdmin.codeHint") : undefined}
       >
         <input
+          type="text"
           value={code}
           maxLength={32}
+          autoComplete="off"
+          spellCheck={false}
           onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
           placeholder={t("badgeAdmin.codePlaceholder")}
         />
@@ -103,8 +114,10 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
 
       <Field label={t("badgeAdmin.name")}>
         <input
+          type="text"
           value={name}
           maxLength={64}
+          autoComplete="off"
           onChange={(event) => setName(event.target.value)}
           placeholder={t("badgeAdmin.namePlaceholder")}
         />
@@ -134,10 +147,11 @@ export function BadgeCreateForm({ busy, onCreate, onCreated }: BadgeCreateFormPr
       </Field>
 
       <Field label={t("badgeAdmin.color")}>
-        <input
-          type="color"
+        <AdminColorControl
           value={color}
-          onChange={(event) => setColor(event.target.value.toUpperCase())}
+          label={t("badgeAdmin.color")}
+          disabled={busy}
+          onChange={setColor}
         />
       </Field>
 
