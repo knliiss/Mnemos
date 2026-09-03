@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { ModerationAccountTransactionPanel } from "./ModerationAccountTransactionPanel"
@@ -69,7 +69,12 @@ describe("ModerationAccountTransactionPanel", () => {
 
     expect(screen.getByTestId("transaction-count").textContent).toBe("1")
 
-    fireEvent.click(screen.getByRole("button", { name: /next/i }))
+    const pagination = screen.getByRole("navigation")
+    const paginationButtons = within(pagination).getAllByRole("button")
+    const nextButton = paginationButtons[1]
+
+    expect(nextButton).toBeDefined()
+    fireEvent.click(nextButton!)
 
     await waitFor(() => {
       expect(mocks.getAdminAccountTransactions).toHaveBeenCalledWith(accountId, 1, 30)
