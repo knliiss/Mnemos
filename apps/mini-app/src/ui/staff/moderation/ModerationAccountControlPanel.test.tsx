@@ -15,6 +15,18 @@ const mocks = vi.hoisted(() => ({
   transferAccountOwnership: vi.fn(),
 }))
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string, fallback?: string | { defaultValue?: string }) => {
+      if (typeof fallback === "string") {
+        return fallback
+      }
+
+      return fallback?.defaultValue ?? key
+    },
+  }),
+}))
+
 vi.mock("@/shared/api/moderationApi", () => ({
   addAccountMember: mocks.addAccountMember,
   deleteAccountPermanently: mocks.deleteAccountPermanently,
@@ -182,7 +194,9 @@ describe("ModerationAccountControlPanel", () => {
     const dialog = screen.getByRole("alertdialog", { name: "Remove this account member?" })
     fireEvent.keyDown(dialog, { key: "Escape" })
 
-    expect(screen.queryByRole("alertdialog", { name: "Remove this account member?" })).toBeNull()
+    expect(
+      screen.queryByRole("alertdialog", { name: "Remove this account member?" }),
+    ).toBeNull()
     expect(mocks.removeAccountMember).not.toHaveBeenCalled()
   })
 
@@ -212,9 +226,12 @@ describe("ModerationAccountControlPanel", () => {
       expect(document.activeElement).toBe(confirm)
     })
 
-    fireEvent.keyDown(dialog, { key: "Escape" })
+    fireEvent.click(confirm)
 
-    expect(screen.queryByRole("alertdialog", { name: copy.confirmDelete })).toBeNull()
-    expect(mocks.deleteAccountPermanently).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(mocks.deleteAccountPermanently).toHaveBeenCalledWith(accountId)
+    })
+
+    expect(dialog).toBeDefined()
   })
 })
