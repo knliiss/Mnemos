@@ -66,16 +66,19 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'ref: ${{ github.sha }}' ||
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'git merge-base --is-ancestor "$COORDINATOR_SHA" origin/master' ||
     fail "Backend deploy coordinator must remain in trusted master history"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '/actions/runs/${REQUEST_RUN_ID}' ||
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'urllib.request.Request' ||
+    fail "Backend deploy workflow must use Python stdlib for request provenance retrieval"
+
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '/actions/runs/{request_run_id}' ||
     fail "Backend deploy workflow must independently fetch request run provenance"
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '.github/workflows/production-backend-deploy-request.yml' ||
     fail "Backend deploy workflow must require the exact authorized request workflow path"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if [ "$event_name" != "push" ]' ||
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if event_name != "push":' ||
     fail "Backend deploy workflow must require a push-origin request"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if [ "$head_repository" != "$REPOSITORY" ]' ||
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'if head_repository != repository:' ||
     fail "Backend deploy workflow must reject requests from another repository"
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'deploy/production-backend/*)' ||
@@ -92,6 +95,14 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_service_catalog.py show "
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'service.get("kind") != "application"' ||
     fail "Backend deploy workflow must reject non-application services"
+
+if printf '%s\n' "$DEPLOY_CONTENT" | grep -Eq '(^|[^[:alnum:]_])jq([^[:alnum:]_]|$)'; then
+    fail "Backend deploy workflow must not depend on jq being installed on a runner"
+fi
+
+if printf '%s\n' "$DEPLOY_CONTENT" | grep -Eq '(^|[[:space:]])curl([[:space:]]|$)'; then
+    fail "Backend deploy provenance path must not depend on curl being installed"
+fi
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'production_runtime_state.py' ||
     fail "Backend deploy workflow must verify canonical production runtime state"
@@ -147,7 +158,7 @@ printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'MNEMOS_PRODUCTION_SCOPED_DEPLOY_ENAB
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'environment: production' ||
     fail "Backend deploy mutation must remain behind the GitHub production environment"
 
-printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'authorization_mechanism:"service-deploy-branch-workflow-run"' ||
+printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq '"authorization_mechanism": "service-deploy-branch-workflow-run"' ||
     fail "Backend deploy audit must record the trusted workflow_run authorization chain"
 
 printf '%s\n' "$DEPLOY_CONTENT" | grep -Fq 'retention-days: 90' ||
