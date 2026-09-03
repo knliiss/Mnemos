@@ -5,6 +5,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { PersonalizationReviewDetail } from "./PersonalizationReviewDetail"
 
+const personalizationId = "019c11d1-bb2a-7000-8000-000000000302"
+
 const mocks = vi.hoisted(() => ({
   listManagedPersonalizations: vi.fn(),
   listPersonalizationReviewQueue: vi.fn(),
@@ -44,15 +46,15 @@ vi.mock("../../data/MnemosDataProvider", () => ({
 }))
 
 vi.mock("../../personalization/data/personalizationMappers", () => ({
-  toPersonalization: () => ({
-    id: "019c11d1-bb2a-7000-8000-000000000302",
-    name: "Published Theme",
+  toPersonalization: (response: { status?: string; price?: number }) => ({
+    id: personalizationId,
+    name: "Moderated Theme",
     creator: "creator",
     type: "PROFILE_THEME",
     target: "ACCOUNT",
-    status: "PUBLISHED",
+    status: response.status ?? "PUBLISHED",
     currency: "COIN",
-    price: 1200,
+    price: response.price ?? 1200,
     content: null,
   }),
 }))
@@ -95,11 +97,24 @@ beforeEach(() => {
 
   mocks.listManagedPersonalizations.mockResolvedValue([
     {
-      id: "019c11d1-bb2a-7000-8000-000000000302",
+      id: personalizationId,
       origin: "CREATOR",
+      status: "PUBLISHED",
+      price: 1200,
+    },
+  ])
+  mocks.listPersonalizationReviewQueue.mockResolvedValue([
+    {
+      id: personalizationId,
+      origin: "CREATOR",
+      status: "IN_REVIEW",
+      price: 1200,
     },
   ])
   mocks.unlistPersonalization.mockResolvedValue({})
+  mocks.relistPersonalization.mockResolvedValue({})
+  mocks.approvePersonalization.mockResolvedValue({})
+  mocks.rejectPersonalization.mockResolvedValue({})
 })
 
 afterEach(() => {
@@ -107,12 +122,111 @@ afterEach(() => {
 })
 
 describe("PersonalizationReviewDetail", () => {
+  it("requires explicit confirmation before approving a personalization", async () => {
+    const back = vi.fn()
+
+    render(
+      <PersonalizationReviewDetail
+        personalizationId={personalizationId}
+        view="REVIEW"
+        back={back}
+      />,
+    )
+
+    fireEvent.click(await screen.findByText("personalization.review.approve"))
+
+    expect(mocks.approvePersonalization).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", {
+      name: "personalization.review.decisionConfirmTitle",
+    })
+    const confirmButton = screen.getByText("personalization.review.confirmApprove")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirmButton)
+    })
+
+    fireEvent.click(confirmButton)
+
+    await waitFor(() => {
+      expect(mocks.approvePersonalization).toHaveBeenCalledWith(personalizationId, "COIN", 1200)
+      expect(back).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
+  })
+
+  it("requires explicit confirmation before rejecting a personalization", async () => {
+    const back = vi.fn()
+
+    render(
+      <PersonalizationReviewDetail
+        personalizationId={personalizationId}
+        view="REVIEW"
+        back={back}
+      />,
+    )
+
+    const reason = await screen.findByPlaceholderText(
+      "personalization.review.rejectionPlaceholder",
+    )
+    fireEvent.change(reason, { target: { value: "Needs a cleaner preview" } })
+    fireEvent.click(screen.getByText("personalization.review.reject"))
+
+    expect(mocks.rejectPersonalization).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", {
+      name: "personalization.review.decisionConfirmTitle",
+    })
+    const confirmButton = screen.getByText("personalization.review.confirmReject")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirmButton)
+    })
+
+    fireEvent.click(confirmButton)
+
+    await waitFor(() => {
+      expect(mocks.rejectPersonalization).toHaveBeenCalledWith(
+        personalizationId,
+        "Needs a cleaner preview",
+      )
+      expect(back).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
+  })
+
+  it("dismisses a prepared moderation decision with Escape", async () => {
+    render(
+      <PersonalizationReviewDetail
+        personalizationId={personalizationId}
+        view="REVIEW"
+        back={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(await screen.findByText("personalization.review.approve"))
+
+    const dialog = screen.getByRole("alertdialog", {
+      name: "personalization.review.decisionConfirmTitle",
+    })
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(
+      screen.queryByRole("alertdialog", {
+        name: "personalization.review.decisionConfirmTitle",
+      }),
+    ).toBeNull()
+    expect(mocks.approvePersonalization).not.toHaveBeenCalled()
+  })
+
   it("requires explicit confirmation before unlisting from the marketplace", async () => {
     const back = vi.fn()
 
     render(
       <PersonalizationReviewDetail
-        personalizationId="019c11d1-bb2a-7000-8000-000000000302"
+        personalizationId={personalizationId}
         view="PUBLISHED"
         back={back}
       />,
@@ -135,9 +249,7 @@ describe("PersonalizationReviewDetail", () => {
     fireEvent.click(confirmButton)
 
     await waitFor(() => {
-      expect(mocks.unlistPersonalization).toHaveBeenCalledWith(
-        "019c11d1-bb2a-7000-8000-000000000302",
-      )
+      expect(mocks.unlistPersonalization).toHaveBeenCalledWith(personalizationId)
       expect(back).toHaveBeenCalledTimes(1)
     })
 
@@ -147,7 +259,7 @@ describe("PersonalizationReviewDetail", () => {
   it("dismisses marketplace unlisting confirmation with Escape", async () => {
     render(
       <PersonalizationReviewDetail
-        personalizationId="019c11d1-bb2a-7000-8000-000000000302"
+        personalizationId={personalizationId}
         view="PUBLISHED"
         back={vi.fn()}
       />,
@@ -168,5 +280,47 @@ describe("PersonalizationReviewDetail", () => {
       }),
     ).toBeNull()
     expect(mocks.unlistPersonalization).not.toHaveBeenCalled()
+  })
+
+  it("requires explicit confirmation before relisting in the marketplace", async () => {
+    mocks.listManagedPersonalizations.mockResolvedValue([
+      {
+        id: personalizationId,
+        origin: "CREATOR",
+        status: "UNLISTED",
+        price: 1200,
+      },
+    ])
+    const back = vi.fn()
+
+    render(
+      <PersonalizationReviewDetail
+        personalizationId={personalizationId}
+        view="UNLISTED"
+        back={back}
+      />,
+    )
+
+    fireEvent.click(await screen.findByText("personalization.review.relist"))
+
+    expect(mocks.relistPersonalization).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole("alertdialog", {
+      name: "personalization.review.relistConfirmTitle",
+    })
+    const confirmButton = screen.getByText("personalization.review.relist")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirmButton)
+    })
+
+    fireEvent.click(confirmButton)
+
+    await waitFor(() => {
+      expect(mocks.relistPersonalization).toHaveBeenCalledWith(personalizationId)
+      expect(back).toHaveBeenCalledTimes(1)
+    })
+
+    expect(dialog).toBeDefined()
   })
 })
