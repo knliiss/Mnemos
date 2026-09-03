@@ -2,6 +2,7 @@ package com.mnemos.account.infrastructure.persistence.adapter.identity
 
 import com.mnemos.account.application.query.identity.IdentityAccount
 import com.mnemos.account.application.query.identity.IdentitySearchResult
+import com.mnemos.account.domain.model.account.AccountStatus
 import com.mnemos.account.infrastructure.persistence.projection.identity.IdentitySearchProjection
 import com.mnemos.common.core.model.id.AccountId
 import com.mnemos.common.core.model.id.UserId
@@ -23,12 +24,13 @@ object IdentitySearchPersistenceMapper {
         val accountId = getAccountId() ?: return null
         val cristalixUuid = getCristalixUuid() ?: return null
         val cristalixNickname = getCristalixNickname() ?: return null
+        val status = getStatus() ?: return null
 
         return IdentityAccount(
             accountId = AccountId(accountId),
             cristalixUuid = cristalixUuid,
             cristalixNickname = cristalixNickname,
-            active = getActive() == true,
+            status = AccountStatus.valueOf(status),
         )
     }
 }
