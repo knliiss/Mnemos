@@ -25,7 +25,7 @@ class SubmitEventReportServiceTest {
         SubmitEventReportService(
             candidateRepository = InMemoryEventCandidateRepository(),
             candidateLock = DirectEventCandidateLock(),
-            confirmationPolicy = EventConfirmationPolicy(properties),
+            confirmationPolicy = EventConfirmationPolicy(),
             confirmedEventRecorder = recorder,
             properties = properties,
         )
@@ -64,18 +64,45 @@ class SubmitEventReportServiceTest {
         verify(recorder, times(1)).record(any(), any())
     }
 
+    @Test
+    fun `another globally active collector does not block recording`() {
+        val observedAt = Instant.parse("2026-09-03T13:12:06Z")
+        val report =
+            BoosterCollectorEventReport(
+                type = DomainBoosterType.POWER,
+                activatedBy = "Knalis",
+            )
+
+        val result =
+            service.execute(
+                command(
+                    collectorId = CollectorId("collector-1"),
+                    messageId = UUID.fromString("019c4fc3-8c70-7000-8000-000000000001"),
+                    observedAt = observedAt,
+                    activeCollectorCount = 2,
+                    report = report,
+                ),
+            )
+
+        assertEquals(SubmitEventReportStatus.RECORDED, result.status)
+        assertEquals(1, result.confirmations)
+        assertEquals(1, result.requiredConfirmations)
+        verify(recorder, times(1)).record(any(), any())
+    }
+
     private fun command(
         collectorId: CollectorId,
         messageId: UUID,
         observedAt: Instant,
         report: BoosterCollectorEventReport,
+        activeCollectorCount: Int = 1,
     ): SubmitEventReportCommand =
         SubmitEventReportCommand(
             collectorId = collectorId,
             messageId = messageId,
             observedAt = observedAt,
             receivedAt = observedAt.plusMillis(25),
-            activeCollectorCount = 1,
+            activeCollectorCount = activeCollectorCount,
             report = report,
         )
 
