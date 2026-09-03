@@ -13,52 +13,59 @@ type Props = {
 }
 
 const BadgeAdmin = lazy(() =>
-  import("./badges/BadgeAdmin").then((module) => ({
-    default: module.BadgeAdmin,
-  })),
+  import("./badges/BadgeAdmin").then((module) => ({ default: module.BadgeAdmin })),
 )
-
 const BetAdmin = lazy(() =>
-  import("./bets/BetAdmin").then((module) => ({
-    default: module.BetAdmin,
-  })),
+  import("./bets/BetAdmin").then((module) => ({ default: module.BetAdmin })),
 )
-
 const CollectorAdmin = lazy(() =>
-  import("./collectors/CollectorAdmin").then((module) => ({
-    default: module.CollectorAdmin,
-  })),
+  import("./collectors/CollectorAdmin").then((module) => ({ default: module.CollectorAdmin })),
 )
-
+const ModerationAccount = lazy(() =>
+  import("./moderation/ModerationAccount").then((module) => ({ default: module.ModerationAccount })),
+)
+const ModerationDirectory = lazy(() =>
+  import("./moderation/ModerationDirectory").then((module) => ({ default: module.ModerationDirectory })),
+)
 const ModerationUser = lazy(() =>
-  import("./moderation/ModerationUser").then((module) => ({
-    default: module.ModerationUser,
-  })),
+  import("./moderation/ModerationUser").then((module) => ({ default: module.ModerationUser })),
 )
-
 const PersonalizationReview = lazy(() =>
-  import("./personalization/PersonalizationReview").then((module) => ({
-    default: module.PersonalizationReview,
-  })),
+  import("./personalization/PersonalizationReview").then((module) => ({ default: module.PersonalizationReview })),
 )
-
 const WipeAdmin = lazy(() =>
-  import("./wipes/WipeAdmin").then((module) => ({
-    default: module.WipeAdmin,
-  })),
+  import("./wipes/WipeAdmin").then((module) => ({ default: module.WipeAdmin })),
 )
 
 export function StaffArea(props: Props) {
   let content
 
-  if (props.routeId === "moderation-user") {
+  if (props.routeId === "moderation-users") {
+    content = <ModerationDirectory mode="USERS" navigate={props.navigate} back={props.back} />
+  } else if (props.routeId === "moderation-accounts") {
+    content = <ModerationDirectory mode="ACCOUNTS" navigate={props.navigate} back={props.back} />
+  } else if (props.routeId === "moderation-user") {
     const userId = props.params?.userId ?? ""
-
-    content = <ModerationUser key={userId} params={props.params} back={props.back} />
-  } else if (props.routeId === "personalization-review") {
     content = (
-      <PersonalizationReview params={props.params} navigate={props.navigate} back={props.back} />
+      <ModerationUser
+        key={userId}
+        params={props.params}
+        navigate={props.navigate}
+        back={props.back}
+      />
     )
+  } else if (props.routeId === "moderation-account") {
+    const accountId = props.params?.accountId ?? ""
+    content = (
+      <ModerationAccount
+        key={accountId}
+        params={props.params}
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
+  } else if (props.routeId === "personalization-review") {
+    content = <PersonalizationReview params={props.params} navigate={props.navigate} back={props.back} />
   } else if (props.routeId === "bet-admin") {
     content = <BetAdmin params={props.params} navigate={props.navigate} back={props.back} />
   } else if (props.routeId === "badge-admin") {
@@ -68,9 +75,7 @@ export function StaffArea(props: Props) {
   } else if (props.routeId === "wipe-admin") {
     content = <WipeAdmin back={props.back} />
   } else {
-    return (
-      <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
-    )
+    return <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
   }
 
   return <Suspense fallback={<FeatureLoading />}>{content}</Suspense>
