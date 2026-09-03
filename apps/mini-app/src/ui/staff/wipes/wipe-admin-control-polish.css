@@ -1,0 +1,57 @@
+.wipe-admin-screen button,
+.wipe-admin-screen input {
+  font: inherit;
+}
+
+.wipe-admin-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.wipe-admin-screen button:hover:not(:disabled) {
+  border-color: rgba(124, 226, 183, 0.24);
+  background: rgba(124, 226, 183, 0.075);
+}
+
+.wipe-admin-screen button:focus-visible {
+  border-color: rgba(124, 226, 183, 0.3);
+  box-shadow: 0 0 0 2px rgba(124, 226, 183, 0.045);
+}
+
+.wipe-admin-screen button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.wipe-admin-screen button:disabled {
+  cursor: default;
+}
+
+.wipe-admin-screen input {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.wipe-admin-form input:hover:not(:disabled) {
+  border-color: rgba(124, 226, 183, 0.18);
+  background: rgba(124, 226, 183, 0.018);
+}
+
+.wipe-admin-form input:focus-visible {
+  border-color: rgba(124, 226, 183, 0.34);
+  background: rgba(124, 226, 183, 0.018);
+  box-shadow: 0 0 0 2px rgba(124, 226, 183, 0.035);
+}
+
+.wipe-admin-confirm button.is-danger:hover:not(:disabled) {
+  border-color: rgba(255, 105, 115, 0.26);
+  color: #ffc0c5;
+  background: rgba(255, 105, 115, 0.085);
+}
