@@ -24,6 +24,7 @@ type AdministrationWorkspaceProps = {
   description: string
   tone:
     | "users"
+    | "accounts"
     | "review"
     | "bets"
     | "badges"
@@ -131,15 +132,28 @@ export function AdministrationHome({
         </div>
       </section>
 
-      <div className="administration-workspace-grid">
+      <div className="administration-workspace-grid administration-workspace-grid--identity">
         <AdministrationWorkspace
-          illustration="/ui-illustrations/admin-users.svg"
+          illustration="/ui-illustrations/mnemos-mascot-search.svg"
           title={t("administration.users")}
           description={t("administration.usersDescription")}
           tone="users"
-          onClick={() => navigate({ id: "moderation" })}
+          onClick={() => navigate({ id: "moderation-users" })}
         />
 
+        <AdministrationWorkspace
+          illustration="/ui-illustrations/mnemos-mascot-cat.svg"
+          title={t("moderation.accounts")}
+          description={t(
+            "administration.accountsDescription",
+            "Account lifecycle, ownership, members, roles, wallet history and owned personalization.",
+          )}
+          tone="accounts"
+          onClick={() => navigate({ id: "moderation-accounts" })}
+        />
+      </div>
+
+      <div className="administration-workspace-grid">
         <AdministrationWorkspace
           illustration="/ui-illustrations/admin-review.svg"
           title={t("administration.personalizations")}
@@ -194,7 +208,7 @@ export function AdministrationHome({
         />
 
         <AdministrationWorkspace
-          illustration="/ui-illustrations/admin-review.svg"
+          illustration="/ui-illustrations/mnemos-mascot-event.svg"
           title={t("administration.spotlightPreviewTitle")}
           description={t("administration.spotlightPreviewDescription")}
           tone="spotlight"
@@ -211,7 +225,7 @@ export function AdministrationHome({
         />
 
         <AdministrationWorkspace
-          illustration="/ui-illustrations/mnemos-mascot-cat.svg"
+          illustration="/ui-illustrations/mnemos-mascot-race.svg"
           title={t("collectorAdmin.workspaceTitle")}
           description={t("collectorAdmin.workspaceDescription")}
           tone="collectors"
