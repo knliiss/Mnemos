@@ -47,7 +47,7 @@ vi.mock("../../data/MnemosDataProvider", () => ({
 
 vi.mock("../../personalization/data/personalizationMappers", () => ({
   toPersonalization: (response: { status?: string; price?: number }) => ({
-    id: personalizationId,
+    id: "019c11d1-bb2a-7000-8000-000000000302",
     name: "Moderated Theme",
     creator: "creator",
     type: "PROFILE_THEME",
