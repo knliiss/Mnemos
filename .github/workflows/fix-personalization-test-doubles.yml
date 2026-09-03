@@ -1,0 +1,86 @@
+name: Fix Personalization Test Doubles
+
+on:
+  push:
+    branches:
+      - feat/full-admin-control-plane
+    paths:
+      - .github/workflows/fix-personalization-test-doubles.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: feat/full-admin-control-plane
+
+      - name: Add missing repository delete implementations
+        shell: python
+        run: |
+          from pathlib import Path
+
+          files = [
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/builtin/SynchronizeBuiltinPersonalizationCatalogServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/lifecycle/PersonalizationLifecycleUseCasesTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/personalization/usecase/createcustompack/CreateCustomNotificationPackServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchasePersonalizationServiceTest.kt"),
+              Path("apps/personalization-service/src/test/kotlin/com/mnemos/personalization/application/purchase/PurchaseWalletUseCasesTest.kt"),
+          ]
+
+          class_names = {
+              files[0]: "EmptyOwnedPersonalizationRepository",
+              files[1]: "FakeOwnedPersonalizationRepository",
+              files[2]: "FakeOwnedPersonalizationRepository",
+              files[3]: "FakeOwnedPersonalizationRepository",
+              files[4]: "FakeOwnedPersonalizationRepository",
+          }
+
+          method = """
+
+              override fun delete(
+                  owner: PersonalizationOwner,
+                  personalizationId: PersonalizationId,
+              ) = Unit
+          """
+
+          for path in files:
+              text = path.read_text()
+              class_name = class_names[path]
+              class_start = text.index(f"private class {class_name}")
+              next_class = text.find("\n    private class ", class_start + 1)
+              companion = text.find("\n    private companion object", class_start + 1)
+              boundaries = [value for value in (next_class, companion) if value != -1]
+              class_end = min(boundaries) if boundaries else text.rfind("\n}")
+              section = text[class_start:class_end]
+
+              if "override fun delete(" in section:
+                  continue
+
+              closing = section.rfind("\n    }")
+              if closing == -1:
+                  raise RuntimeError(f"Could not locate closing brace for {class_name} in {path}")
+
+              section = section[:closing] + method + section[closing:]
+              path.write_text(text[:class_start] + section + text[class_end:])
+
+      - name: Commit test fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            exit 0
+          fi
+
+          git config user.name knalis
+          git config user.email vitallot21@gmail.com
+          git add apps/personalization-service/src/test/kotlin
+          git commit -m "Fix personalization repository test doubles"
+          git push origin HEAD:feat/full-admin-control-plane
