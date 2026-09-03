@@ -364,9 +364,28 @@ function AdminRoleCard({
   const { t } = useTranslation()
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
+  const [baseConfirmationVisible, setBaseConfirmationVisible] = useState(false)
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
+  const baseConfirmRef = useRef<HTMLButtonElement>(null)
   const deleteConfirmRef = useRef<HTMLButtonElement>(null)
+  const baseConfirmationTitle = isBaseRole
+    ? t("roleEditor.confirmClearBaseRole", "Clear base role?")
+    : t("roleEditor.confirmSetBaseRole", "Set as base role?")
   const deleteConfirmationTitle = t("roleEditor.confirmDelete", "Delete this role?")
+
+  useEffect(() => {
+    if (!baseConfirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      baseConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [baseConfirmationVisible])
 
   useEffect(() => {
     if (!deleteConfirmationVisible) {
@@ -381,6 +400,12 @@ function AdminRoleCard({
       window.cancelAnimationFrame(frame)
     }
   }, [deleteConfirmationVisible])
+
+  const dismissBaseConfirmation = () => {
+    if (!busy) {
+      setBaseConfirmationVisible(false)
+    }
+  }
 
   const dismissDeleteConfirmation = () => {
     if (!busy) {
@@ -441,7 +466,10 @@ function AdminRoleCard({
           type="button"
           className={isBaseRole ? "is-active" : ""}
           disabled={busy}
-          onClick={onToggleBase}
+          onClick={() => {
+            setDeleteConfirmationVisible(false)
+            setBaseConfirmationVisible(true)
+          }}
         >
           {t("roleEditor.baseRole", "BASE")}
         </button>
@@ -449,11 +477,67 @@ function AdminRoleCard({
           type="button"
           className="is-danger"
           disabled={busy}
-          onClick={() => setDeleteConfirmationVisible(true)}
+          onClick={() => {
+            setBaseConfirmationVisible(false)
+            setDeleteConfirmationVisible(true)
+          }}
         >
           {t("roleEditor.delete")}
         </button>
       </div>
+
+      {baseConfirmationVisible ? (
+        <div
+          className="moderation-admin-role-base-confirmation"
+          role="alertdialog"
+          aria-label={baseConfirmationTitle}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault()
+              dismissBaseConfirmation()
+            }
+          }}
+        >
+          <span>
+            <strong>{baseConfirmationTitle}</strong>
+            <small>
+              {isBaseRole
+                ? t(
+                    "roleEditor.confirmClearBaseRoleHint",
+                    "New members will no longer receive this role automatically.",
+                  )
+                : t(
+                    "roleEditor.confirmSetBaseRoleHint",
+                    "New members will receive this role automatically. Existing assignments stay unchanged.",
+                  )}
+            </small>
+          </span>
+          <div>
+            <button
+              ref={baseConfirmRef}
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={busy}
+              onClick={() => {
+                setBaseConfirmationVisible(false)
+                onToggleBase()
+              }}
+            >
+              {isBaseRole
+                ? t("roleEditor.clearBaseRole", "Clear base role")
+                : t("roleEditor.setBaseRole", "Set base role")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={busy}
+              onClick={dismissBaseConfirmation}
+            >
+              {t("common.cancel", "Cancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {deleteConfirmationVisible ? (
         <div
