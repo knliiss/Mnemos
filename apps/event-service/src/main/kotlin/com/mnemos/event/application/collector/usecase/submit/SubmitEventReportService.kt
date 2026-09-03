@@ -66,6 +66,20 @@ class SubmitEventReportService(
             return processRetry(retryCandidate)
         }
 
+        val crossCollectorRecordedDuplicate =
+            candidates.firstOrNull {
+                it.status == EventCandidateStatus.RECORDED &&
+                    !it.hasCollector(command.collectorId) &&
+                    it.matchesTime(
+                        observedAt = command.observedAt,
+                        matchingWindow = properties.crossCollectorDuplicateWindow,
+                    )
+            }
+
+        if (crossCollectorRecordedDuplicate != null) {
+            return processRetry(crossCollectorRecordedDuplicate)
+        }
+
         val repeatedObservationCandidate =
             if (command.report.allowsRepeatedObservationFromSameCollector()) {
                 null
