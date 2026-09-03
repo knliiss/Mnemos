@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { getAdminAccountTransactions } from "@/shared/api/adminWalletApi"
+import type { WalletTransactionResponse } from "@/shared/api/backendContracts"
 import { handleError } from "@/shared/errors/errorHandler"
 import { localeForLanguage } from "../../account/accountPresentation"
 import { WalletHistoryPanel } from "../../account/wallet/WalletHistoryPanel"
@@ -32,8 +32,31 @@ export function ModerationAccountTransactionPanel({ accountId }: Props) {
   }, [accountId])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let active = true
+
+    void getAdminAccountTransactions(accountId, 0, 50)
+      .then((firstPage) => {
+        if (active) {
+          setTransactions(firstPage.items)
+          setLoadError(false)
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(true)
+          handleError(error)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [accountId])
 
   return (
     <div className="moderation-admin-transactions">
