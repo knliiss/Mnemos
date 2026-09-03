@@ -30,11 +30,13 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
   const [entryAmount, setEntryAmount] = useState("1000")
   const [busy, setBusy] = useState(false)
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null)
+  const [cancelConfirmationRaceId, setCancelConfirmationRaceId] = useState<string | null>(null)
   const [participantSearch, setParticipantSearch] = useState("")
   const [participantFilter, setParticipantFilter] = useState<ParticipantFilter>("ALL")
   const [participantSort, setParticipantSort] = useState<ParticipantSort>("DESC")
   const busyRef = useRef(false)
   const mountedRef = useRef(true)
+  const cancelConfirmButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
@@ -43,6 +45,12 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       mountedRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    if (cancelConfirmationRaceId) {
+      cancelConfirmButtonRef.current?.focus()
+    }
+  }, [cancelConfirmationRaceId])
 
   const selectedRace = useMemo(
     () => races.find((race) => race.id === selectedRaceId) ?? null,
@@ -152,6 +160,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
       await cancelItemRace(raceId)
 
       if (mountedRef.current) {
+        setCancelConfirmationRaceId(null)
         await onChanged()
       }
     } catch (error) {
@@ -263,6 +272,7 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
             )
             const cancellable = race.status === "REGISTRATION" || race.status === "ACTIVE"
             const expanded = race.id === selectedRace?.id
+            const confirmingCancellation = cancelConfirmationRaceId === race.id
             const winner = race.participants.find((participant) => isRaceWinner(race, participant))
 
             return (
@@ -302,15 +312,55 @@ export function BetAdminRaceManagement({ races, loading, back, onChanged }: Prop
                     {cancellable ? (
                       <button
                         type="button"
-                        className="is-cancel"
+                        className={confirmingCancellation ? "is-cancel is-confirming" : "is-cancel"}
                         disabled={busy}
-                        onClick={() => void cancel(race.id)}
+                        aria-expanded={confirmingCancellation}
+                        onClick={() => setCancelConfirmationRaceId(race.id)}
                       >
                         {t("betAdmin.cancel")}
                       </button>
                     ) : null}
                   </span>
                 </article>
+
+                {cancellable && confirmingCancellation ? (
+                  <section
+                    className="bet-admin-race-cancel-confirmation"
+                    aria-label={t("betAdmin.cancelRaceTitle")}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape" && !busy) {
+                        setCancelConfirmationRaceId(null)
+                      }
+                    }}
+                  >
+                    <span className="bet-admin-race-cancel-confirmation__art" aria-hidden="true">
+                      <img src="/ui-illustrations/mnemos-mascot-race.svg" alt="" />
+                    </span>
+                    <span className="bet-admin-race-cancel-confirmation__copy">
+                      <strong>{t("betAdmin.cancelRaceTitle")}</strong>
+                      <small>{t("betAdmin.cancelRaceWarning")}</small>
+                    </span>
+                    <span className="bet-admin-race-cancel-confirmation__actions">
+                      <button
+                        ref={cancelConfirmButtonRef}
+                        type="button"
+                        className="is-danger"
+                        disabled={busy}
+                        onClick={() => void cancel(race.id)}
+                      >
+                        {busy ? t("betAdmin.saving") : t("betAdmin.confirmCancelRace")}
+                      </button>
+                      <button
+                        type="button"
+                        className="is-neutral"
+                        disabled={busy}
+                        onClick={() => setCancelConfirmationRaceId(null)}
+                      >
+                        {t("betAdmin.keepRace")}
+                      </button>
+                    </span>
+                  </section>
+                ) : null}
 
                 {expanded ? (
                   <section className="bet-admin-ledger bet-admin-race-ledger">
