@@ -193,10 +193,7 @@ export async function removeAccountMember(accountId: string, memberId: string): 
   })
 }
 
-export async function transferAccountOwnership(
-  accountId: string,
-  memberId: string,
-): Promise<void> {
+export async function transferAccountOwnership(accountId: string, memberId: string): Promise<void> {
   await api<void>(`/api/v1/admin/accounts/${accountId}/owner/${memberId}`, {
     method: "PUT",
   })
