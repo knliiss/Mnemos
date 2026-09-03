@@ -14,6 +14,8 @@ enum class RealtimeEventType(
     ACCOUNT_MEMBER_JOINED("account.member.joined"),
     ACCOUNT_MEMBER_LEFT("account.member.left"),
     ACCOUNT_MEMBER_REMOVED("account.member.removed"),
+    SANCTION_ACTIVATED("moderation.sanction.activated"),
+    SANCTION_DEACTIVATED("moderation.sanction.deactivated"),
     ;
 
     companion object {
