@@ -28,7 +28,7 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     env:
@@ -123,7 +123,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: [self-hosted, Linux, X64, mnemos-frontend]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: production
 
