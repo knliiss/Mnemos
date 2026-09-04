@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   assignAdminMemberRole,
@@ -15,6 +15,7 @@ import {
   getAdminAccountRoles,
   getAdminMemberRoles,
   type AdminAccountDetailsResponse,
+  type AdminAccountMemberResponse,
   type AdminAccountRoleResponse,
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -27,87 +28,96 @@ type Props = {
   onChanged: () => Promise<void>
 }
 
+type Workspace = "roles" | "members"
 type MemberRoleState = Record<string, Set<string>>
 
-type HierarchyConfirmation = {
-  roleId: string
-  roleName: string
-  direction: -1 | 1
-}
-
-type MemberRoleConfirmation = {
-  memberId: string
-  username: string
-  roleId: string
-  roleName: string
-  assigned: boolean
-}
+type Confirmation =
+  | {
+      type: "base"
+      roleId: string
+      clear: boolean
+    }
+  | {
+      type: "delete"
+      roleId: string
+    }
 
 export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   const { t } = useTranslation()
   const [roles, setRoles] = useState<AdminAccountRoleResponse[]>([])
   const [memberRoles, setMemberRoles] = useState<MemberRoleState>({})
+  const [workspace, setWorkspace] = useState<Workspace>("roles")
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
+    details.members[0]?.memberId ?? null,
+  )
+  const [creating, setCreating] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingMemberId, setLoadingMemberId] = useState<string | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [newRoleName, setNewRoleName] = useState("")
   const [newRoleColor, setNewRoleColor] = useState("#4BAF8A")
   const [newPermissions, setNewPermissions] = useState<Set<string>>(new Set())
-  const [hierarchyConfirmation, setHierarchyConfirmation] = useState<HierarchyConfirmation | null>(
-    null,
-  )
-  const [memberRoleConfirmation, setMemberRoleConfirmation] =
-    useState<MemberRoleConfirmation | null>(null)
-  const hierarchyConfirmRef = useRef<HTMLButtonElement>(null)
-  const memberRoleConfirmRef = useRef<HTMLButtonElement>(null)
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const confirmationRef = useRef<HTMLButtonElement>(null)
 
   const sortedRoles = useMemo(
     () => [...roles].sort((left, right) => left.hierarchyRank - right.hierarchyRank),
     [roles],
   )
 
-  const loadRoleState = useCallback(async () => {
-    const loadedRoles = await getAdminAccountRoles(details.accountId)
-    const assignments = await Promise.all(
-      details.members.map(
-        async (member) =>
-          [member.memberId, await getAdminMemberRoles(details.accountId, member.memberId)] as const,
-      ),
-    )
+  const selectedRole =
+    sortedRoles.find((role) => role.id === selectedRoleId) ?? sortedRoles[0] ?? null
+  const selectedMember =
+    details.members.find((member) => member.memberId === selectedMemberId) ??
+    details.members[0] ??
+    null
 
-    return {
-      roles: loadedRoles,
-      memberRoles: Object.fromEntries(
-        assignments.map(([memberId, assignedRoles]) => [
-          memberId,
-          new Set(assignedRoles.map((role) => role.id)),
-        ]),
-      ) as MemberRoleState,
-    }
-  }, [details.accountId, details.members])
+  const loadRoles = useCallback(async () => {
+    const loaded = await getAdminAccountRoles(details.accountId)
+    const sorted = [...loaded].sort((left, right) => left.hierarchyRank - right.hierarchyRank)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
+    setRoles(sorted)
+    setSelectedRoleId((current) => {
+      if (current && sorted.some((role) => role.id === current)) {
+        return current
+      }
 
-    try {
-      const state = await loadRoleState()
-      setRoles(state.roles)
-      setMemberRoles(state.memberRoles)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setLoading(false)
-    }
-  }, [loadRoleState])
+      return sorted[0]?.id ?? null
+    })
+  }, [details.accountId])
+
+  const loadMemberRoles = useCallback(
+    async (memberId: string) => {
+      setLoadingMemberId(memberId)
+
+      try {
+        const assigned = await getAdminMemberRoles(details.accountId, memberId)
+
+        setMemberRoles((current) => ({
+          ...current,
+          [memberId]: new Set(assigned.map((role) => role.id)),
+        }))
+      } finally {
+        setLoadingMemberId((current) => (current === memberId ? null : current))
+      }
+    },
+    [details.accountId],
+  )
 
   useEffect(() => {
     let active = true
 
-    void loadRoleState()
-      .then((state) => {
-        if (active) {
-          setRoles(state.roles)
-          setMemberRoles(state.memberRoles)
+    void getAdminAccountRoles(details.accountId)
+      .then((loaded) => {
+        if (!active) {
+          return
         }
+
+        const sorted = [...loaded].sort((left, right) => left.hierarchyRank - right.hierarchyRank)
+
+        setRoles(sorted)
+        setSelectedRoleId(sorted[0]?.id ?? null)
       })
       .catch((error: unknown) => {
         if (active) {
@@ -123,37 +133,35 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     return () => {
       active = false
     }
-  }, [loadRoleState])
+  }, [details.accountId])
 
   useEffect(() => {
-    if (!hierarchyConfirmation) {
+    if (workspace !== "members" || !selectedMemberId || memberRoles[selectedMemberId]) {
+      return
+    }
+
+    void Promise.resolve()
+      .then(() => loadMemberRoles(selectedMemberId))
+      .catch(handleError)
+  }, [loadMemberRoles, memberRoles, selectedMemberId, workspace])
+
+  useEffect(() => {
+    if (!confirmation) {
       return
     }
 
     const frame = window.requestAnimationFrame(() => {
-      hierarchyConfirmRef.current?.focus()
+      confirmationRef.current?.focus()
     })
 
-    return () => {
-      window.cancelAnimationFrame(frame)
-    }
-  }, [hierarchyConfirmation])
+    return () => window.cancelAnimationFrame(frame)
+  }, [confirmation])
 
-  useEffect(() => {
-    if (!memberRoleConfirmation) {
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      memberRoleConfirmRef.current?.focus()
-    })
-
-    return () => {
-      window.cancelAnimationFrame(frame)
-    }
-  }, [memberRoleConfirmation])
-
-  const runMutation = async (key: string, mutation: () => Promise<void>) => {
+  const runMutation = async (
+    key: string,
+    mutation: () => Promise<void>,
+    memberId?: string | null,
+  ) => {
     if (busyKey) {
       return
     }
@@ -162,7 +170,13 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
 
     try {
       await mutation()
-      await Promise.all([refresh(), onChanged()])
+      await loadRoles()
+
+      if (memberId) {
+        await loadMemberRoles(memberId)
+      }
+
+      await onChanged()
     } catch (error) {
       handleError(error)
     } finally {
@@ -178,11 +192,14 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     }
 
     await runMutation("create", async () => {
-      await createAdminRole(details.accountId, {
+      const created = await createAdminRole(details.accountId, {
         name,
         color: newRoleColor,
         permissions: [...newPermissions],
       })
+
+      setSelectedRoleId(created.id)
+      setCreating(false)
       setNewRoleName("")
       setNewRoleColor("#4BAF8A")
       setNewPermissions(new Set())
@@ -209,32 +226,51 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
     })
   }
 
-  const applyHierarchyChange = async () => {
-    const confirmation = hierarchyConfirmation
-
-    if (!confirmation || busyKey) {
+  const toggleMemberRole = async (
+    member: AdminAccountMemberResponse,
+    role: AdminAccountRoleResponse,
+  ) => {
+    if (member.owner || busyKey) {
       return
     }
 
-    setHierarchyConfirmation(null)
-    await moveRole(confirmation.roleId, confirmation.direction)
+    const assigned = memberRoles[member.memberId]?.has(role.id) ?? false
+
+    await runMutation(
+      `member:${member.memberId}:${role.id}`,
+      async () => {
+        if (assigned) {
+          await revokeAdminMemberRole(details.accountId, member.memberId, role.id)
+        } else {
+          await assignAdminMemberRole(details.accountId, member.memberId, role.id)
+        }
+      },
+      member.memberId,
+    )
   }
 
-  const applyMemberRoleChange = async () => {
-    const confirmation = memberRoleConfirmation
+  const applyConfirmation = async () => {
+    const pending = confirmation
 
-    if (!confirmation || busyKey) {
+    if (!pending || busyKey) {
       return
     }
 
-    setMemberRoleConfirmation(null)
+    setConfirmation(null)
 
-    await runMutation(`member:${confirmation.memberId}:${confirmation.roleId}`, async () => {
-      if (confirmation.assigned) {
-        await revokeAdminMemberRole(details.accountId, confirmation.memberId, confirmation.roleId)
-      } else {
-        await assignAdminMemberRole(details.accountId, confirmation.memberId, confirmation.roleId)
-      }
+    if (pending.type === "base") {
+      await runMutation(`base:${pending.roleId}`, async () => {
+        if (pending.clear) {
+          await clearAdminBaseRole(details.accountId)
+        } else {
+          await updateAdminBaseRole(details.accountId, pending.roleId)
+        }
+      })
+      return
+    }
+
+    await runMutation(`delete:${pending.roleId}`, async () => {
+      await deleteAdminRole(details.accountId, pending.roleId)
     })
   }
 
@@ -243,19 +279,214 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
   }
 
   return (
-    <section className="moderation-admin-roles">
-      <div className="moderation-admin-roles__heading moderation-admin-roles__heading--illustrated">
+    <section className="moderation-admin-roles moderation-admin-roles--workspace">
+      <header className="moderation-admin-roles__hero">
         <span className="moderation-admin-roles__mascot" aria-hidden="true">
           <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
         </span>
         <span>
           <small>{t("rolesOverview.hierarchyEyebrow")}</small>
           <strong>{t("rolesOverview.title")}</strong>
+          <p>
+            {t("rolesOverview.hierarchySummary", {
+              roles: sortedRoles.length,
+              permissions: allRolePermissions.length,
+            })}
+          </p>
         </span>
-        <em>{sortedRoles.length}</em>
-      </div>
+        <button
+          type="button"
+          className="moderation-control-button moderation-control-button--positive"
+          disabled={Boolean(busyKey)}
+          onClick={() => {
+            setWorkspace("roles")
+            setCreating((current) => !current)
+          }}
+        >
+          + {t("rolesOverview.new")}
+        </button>
+      </header>
 
-      <div className="moderation-admin-role-create moderation-admin-role-create--custom">
+      <nav className="moderation-admin-role-tabs" aria-label={t("rolesOverview.title")}>
+        <button
+          type="button"
+          className={workspace === "roles" ? "is-active" : ""}
+          onClick={() => setWorkspace("roles")}
+        >
+          <span>{t("rolesOverview.title")}</span>
+          <em>{sortedRoles.length}</em>
+        </button>
+        <button
+          type="button"
+          className={workspace === "members" ? "is-active" : ""}
+          onClick={() => setWorkspace("members")}
+        >
+          <span>{t("roleEditor.groups.members")}</span>
+          <em>{details.members.length}</em>
+        </button>
+      </nav>
+
+      {creating ? (
+        <CreateRolePanel
+          name={newRoleName}
+          color={newRoleColor}
+          permissions={newPermissions}
+          busy={Boolean(busyKey)}
+          onNameChange={setNewRoleName}
+          onColorChange={setNewRoleColor}
+          onPermissionsChange={setNewPermissions}
+          onCancel={() => setCreating(false)}
+          onSubmit={() => void submitNewRole()}
+        />
+      ) : null}
+
+      {workspace === "roles" ? (
+        <div className="moderation-admin-role-workspace">
+          <aside className="moderation-admin-role-directory">
+            {loading ? (
+              <div className="moderation-admin-role-empty">{t("common.loading")}</div>
+            ) : sortedRoles.length === 0 ? (
+              <div className="moderation-admin-role-empty moderation-admin-role-empty--illustrated">
+                <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
+                <strong>{t("rolesOverview.emptyTitle")}</strong>
+                <small>{t("rolesOverview.emptyCopy")}</small>
+              </div>
+            ) : (
+              sortedRoles.map((role, index) => (
+                <button
+                  key={role.id}
+                  type="button"
+                  className={`moderation-admin-role-directory__item ${
+                    selectedRole?.id === role.id ? "is-active" : ""
+                  }`}
+                  onClick={() => setSelectedRoleId(role.id)}
+                >
+                  <i style={{ background: role.color }} />
+                  <span>
+                    <strong>{role.name}</strong>
+                    <small>
+                      {t("rolesOverview.permissionSummary", {
+                        count: enabledPermissionCount(role),
+                        rank: role.hierarchyRank,
+                      })}
+                    </small>
+                  </span>
+                  <span className="moderation-admin-role-directory__badges">
+                    {details.baseRoleId === role.id ? <em>BASE</em> : null}
+                    <b>{index + 1}</b>
+                  </span>
+                </button>
+              ))
+            )}
+          </aside>
+
+          <main className="moderation-admin-role-editor-stage">
+            {selectedRole ? (
+              <AdminRoleEditor
+                key={`${selectedRole.id}:${selectedRole.updatedAt}`}
+                role={selectedRole}
+                index={sortedRoles.findIndex((role) => role.id === selectedRole.id)}
+                roleCount={sortedRoles.length}
+                isBaseRole={details.baseRoleId === selectedRole.id}
+                busy={Boolean(busyKey)}
+                onMove={(direction) => void moveRole(selectedRole.id, direction)}
+                onSavePermissions={(permissions) =>
+                  void runMutation(`permissions:${selectedRole.id}`, async () => {
+                    await updateAdminRolePermissions(details.accountId, selectedRole.id, {
+                      permissions,
+                    })
+                  })
+                }
+                onSaveDetails={(name, color) =>
+                  void runMutation(`details:${selectedRole.id}`, async () => {
+                    await updateAdminRoleDetails(details.accountId, selectedRole.id, {
+                      name,
+                      color,
+                    })
+                  })
+                }
+                onToggleBase={() =>
+                  setConfirmation({
+                    type: "base",
+                    roleId: selectedRole.id,
+                    clear: details.baseRoleId === selectedRole.id,
+                  })
+                }
+                onDelete={() =>
+                  setConfirmation({
+                    type: "delete",
+                    roleId: selectedRole.id,
+                  })
+                }
+              />
+            ) : null}
+          </main>
+        </div>
+      ) : (
+        <MemberRoleWorkspace
+          members={details.members}
+          roles={sortedRoles}
+          selectedMember={selectedMember}
+          memberRoles={memberRoles}
+          loadingMemberId={loadingMemberId}
+          busy={Boolean(busyKey)}
+          onSelectMember={setSelectedMemberId}
+          onToggleRole={(member, role) => void toggleMemberRole(member, role)}
+        />
+      )}
+
+      {confirmation ? (
+        <RoleConfirmation
+          confirmation={confirmation}
+          busy={Boolean(busyKey)}
+          confirmRef={confirmationRef}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => void applyConfirmation()}
+        />
+      ) : null}
+    </section>
+  )
+}
+
+type CreateRolePanelProps = {
+  name: string
+  color: string
+  permissions: Set<string>
+  busy: boolean
+  onNameChange: (value: string) => void
+  onColorChange: (value: string) => void
+  onPermissionsChange: (value: Set<string>) => void
+  onCancel: () => void
+  onSubmit: () => void
+}
+
+function CreateRolePanel({
+  name,
+  color,
+  permissions,
+  busy,
+  onNameChange,
+  onColorChange,
+  onPermissionsChange,
+  onCancel,
+  onSubmit,
+}: CreateRolePanelProps) {
+  const { t } = useTranslation()
+
+  return (
+    <section className="moderation-admin-role-create-panel">
+      <header>
+        <span>
+          <small>{t("roleEditor.newEyebrow")}</small>
+          <strong>{t("rolesOverview.createTitle")}</strong>
+          <p>{t("rolesOverview.createCopy")}</p>
+        </span>
+        <button type="button" disabled={busy} onClick={onCancel} aria-label={t("common.cancel")}>
+          ×
+        </button>
+      </header>
+
+      <div className="moderation-admin-role-create-panel__fields">
         <label className="moderation-admin-role-field">
           <span>{t("roleEditor.name")}</span>
           <input
@@ -263,263 +494,64 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
             className="moderation-admin-input"
             maxLength={32}
             placeholder={t("roleEditor.namePlaceholder")}
-            value={newRoleName}
-            onChange={(event) => setNewRoleName(event.target.value)}
+            value={name}
+            disabled={busy}
+            onChange={(event) => onNameChange(event.target.value)}
           />
         </label>
 
         <div className="moderation-admin-role-field">
           <span>{t("roleEditor.color")}</span>
-          <AdminRoleColorControl value={newRoleColor} onChange={setNewRoleColor} />
+          <AdminRoleColorControl value={color} disabled={busy} onChange={onColorChange} />
         </div>
-
-        <button
-          type="button"
-          className="moderation-control-button moderation-control-button--positive"
-          disabled={!newRoleName.trim() || !isRoleColor(newRoleColor) || Boolean(busyKey)}
-          onClick={() => void submitNewRole()}
-        >
-          {busyKey === "create" ? t("roleEditor.saving") : t("roleEditor.create")}
-        </button>
       </div>
 
-      <div className="moderation-admin-permission-picker">
-        {allRolePermissions.map((permission) => (
+      <PermissionPicker
+        values={Object.fromEntries(
+          allRolePermissions.map((permission) => [permission, permissions.has(permission)]),
+        )}
+        disabled={busy}
+        onToggle={(permission) => {
+          const next = new Set(permissions)
+
+          if (next.has(permission)) {
+            next.delete(permission)
+          } else {
+            next.add(permission)
+          }
+
+          onPermissionsChange(next)
+        }}
+      />
+
+      <footer>
+        <span>
+          {t("roleEditor.enabledCount", { count: permissions.size })} / {allRolePermissions.length}
+        </span>
+        <div>
           <button
-            key={permission}
             type="button"
-            className={newPermissions.has(permission) ? "is-active" : ""}
-            aria-pressed={newPermissions.has(permission)}
-            onClick={() =>
-              setNewPermissions((current) => {
-                const next = new Set(current)
-
-                if (next.has(permission)) {
-                  next.delete(permission)
-                } else {
-                  next.add(permission)
-                }
-
-                return next
-              })
-            }
+            className="moderation-control-button moderation-control-button--neutral"
+            disabled={busy}
+            onClick={onCancel}
           >
-            {t(`roleEditor.permissions.${permission}`)}
+            {t("common.cancel")}
           </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div className="moderation-admin-role-empty">{t("common.loading")}</div>
-      ) : sortedRoles.length === 0 ? (
-        <div className="moderation-admin-role-empty moderation-admin-role-empty--illustrated">
-          <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
-          <strong>{t("rolesOverview.emptyTitle")}</strong>
+          <button
+            type="button"
+            className="moderation-control-button moderation-control-button--positive"
+            disabled={busy || !name.trim() || !isRoleColor(color)}
+            onClick={onSubmit}
+          >
+            {busy ? t("roleEditor.saving") : t("roleEditor.create")}
+          </button>
         </div>
-      ) : (
-        <div className="moderation-admin-role-list">
-          {sortedRoles.map((role, index) => (
-            <AdminRoleCard
-              key={`${role.id}:${role.updatedAt}`}
-              role={role}
-              index={index}
-              roleCount={sortedRoles.length}
-              isBaseRole={details.baseRoleId === role.id}
-              busy={Boolean(busyKey)}
-              onMove={(direction) => {
-                setMemberRoleConfirmation(null)
-                setHierarchyConfirmation({
-                  roleId: role.id,
-                  roleName: role.name,
-                  direction,
-                })
-              }}
-              onSavePermissions={(permissions) =>
-                void runMutation(`permissions:${role.id}`, async () => {
-                  await updateAdminRolePermissions(details.accountId, role.id, { permissions })
-                })
-              }
-              onSaveDetails={(name, color) =>
-                void runMutation(`details:${role.id}`, async () => {
-                  await updateAdminRoleDetails(details.accountId, role.id, { name, color })
-                })
-              }
-              onToggleBase={() =>
-                void runMutation(`base:${role.id}`, async () => {
-                  if (details.baseRoleId === role.id) {
-                    await clearAdminBaseRole(details.accountId)
-                  } else {
-                    await updateAdminBaseRole(details.accountId, role.id)
-                  }
-                })
-              }
-              onDelete={() =>
-                void runMutation(`delete:${role.id}`, async () => {
-                  await deleteAdminRole(details.accountId, role.id)
-                })
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {hierarchyConfirmation ? (
-        <div
-          className="moderation-admin-role-hierarchy-confirmation"
-          role="alertdialog"
-          aria-label={t("roleEditor.confirmHierarchyChange")}
-          onKeyDown={(event) => {
-            if (event.key === "Escape" && !busyKey) {
-              event.preventDefault()
-              setHierarchyConfirmation(null)
-            }
-          }}
-        >
-          <span className="moderation-admin-role-confirmation__art" aria-hidden="true">
-            <img src="/ui-illustrations/mnemos-mascot-event.svg" alt="" />
-          </span>
-          <span className="moderation-admin-role-confirmation__copy">
-            <strong>
-              {t(
-                hierarchyConfirmation.direction === -1
-                  ? "roleEditor.moveRoleUp"
-                  : "roleEditor.moveRoleDown",
-                { name: hierarchyConfirmation.roleName },
-              )}
-            </strong>
-            <small>{t("roleEditor.confirmHierarchyChangeHint")}</small>
-          </span>
-          <div className="moderation-admin-role-confirmation__actions">
-            <button
-              ref={hierarchyConfirmRef}
-              type="button"
-              className="moderation-control-button moderation-control-button--primary"
-              disabled={Boolean(busyKey)}
-              onClick={() => void applyHierarchyChange()}
-            >
-              {t("roleEditor.confirmHierarchyChangeAction")}
-            </button>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--neutral"
-              disabled={Boolean(busyKey)}
-              onClick={() => setHierarchyConfirmation(null)}
-            >
-              {t("common.cancel")}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {sortedRoles.length > 0 ? (
-        <div className="moderation-admin-member-roles">
-          <div className="moderation-admin-roles__heading">
-            <span>
-              <small>{t("roleEditor.groups.members")}</small>
-              <strong>{t("roleEditor.permissions.ASSIGN_MEMBER_ROLES")}</strong>
-            </span>
-          </div>
-
-          {details.members.map((member) => (
-            <article key={member.memberId} className="moderation-admin-member-role-row">
-              <span>
-                <strong>@{member.username}</strong>
-                <small>{member.owner ? t("moderation.owner") : member.memberId}</small>
-              </span>
-              <div>
-                {sortedRoles.map((role) => {
-                  const assigned = memberRoles[member.memberId]?.has(role.id) ?? false
-
-                  return (
-                    <button
-                      key={role.id}
-                      type="button"
-                      className={assigned ? "is-active" : ""}
-                      aria-pressed={assigned}
-                      aria-haspopup="dialog"
-                      disabled={Boolean(busyKey)}
-                      onClick={() => {
-                        setHierarchyConfirmation(null)
-                        setMemberRoleConfirmation({
-                          memberId: member.memberId,
-                          username: member.username,
-                          roleId: role.id,
-                          roleName: role.name,
-                          assigned,
-                        })
-                      }}
-                    >
-                      <i style={{ background: role.color }} />
-                      {role.name}
-                    </button>
-                  )
-                })}
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : null}
-
-      {memberRoleConfirmation ? (
-        <div
-          className="moderation-admin-member-role-confirmation"
-          role="alertdialog"
-          aria-label={t("roleEditor.confirmMemberRoleChange")}
-          onKeyDown={(event) => {
-            if (event.key === "Escape" && !busyKey) {
-              event.preventDefault()
-              setMemberRoleConfirmation(null)
-            }
-          }}
-        >
-          <span className="moderation-admin-role-confirmation__art" aria-hidden="true">
-            <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
-          </span>
-          <span className="moderation-admin-role-confirmation__copy">
-            <strong>
-              {memberRoleConfirmation.assigned
-                ? t("roleEditor.confirmRevokeMemberRole")
-                : t("roleEditor.confirmAssignMemberRole")}
-            </strong>
-            <small>
-              {t("roleEditor.memberRoleChangeHint", {
-                username: memberRoleConfirmation.username,
-                role: memberRoleConfirmation.roleName,
-              })}
-            </small>
-          </span>
-          <div className="moderation-admin-role-confirmation__actions">
-            <button
-              ref={memberRoleConfirmRef}
-              type="button"
-              className={
-                memberRoleConfirmation.assigned
-                  ? "moderation-control-button moderation-control-button--danger"
-                  : "moderation-control-button moderation-control-button--primary"
-              }
-              disabled={Boolean(busyKey)}
-              onClick={() => void applyMemberRoleChange()}
-            >
-              {memberRoleConfirmation.assigned
-                ? t("roleEditor.revokeMemberRole")
-                : t("roleEditor.assignMemberRole")}
-            </button>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--neutral"
-              disabled={Boolean(busyKey)}
-              onClick={() => setMemberRoleConfirmation(null)}
-            >
-              {t("common.cancel")}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      </footer>
     </section>
   )
 }
 
-type AdminRoleCardProps = {
+type AdminRoleEditorProps = {
   role: AdminAccountRoleResponse
   index: number
   roleCount: number
@@ -532,7 +564,7 @@ type AdminRoleCardProps = {
   onDelete: () => void
 }
 
-function AdminRoleCard({
+function AdminRoleEditor({
   role,
   index,
   roleCount,
@@ -543,312 +575,425 @@ function AdminRoleCard({
   onSaveDetails,
   onToggleBase,
   onDelete,
-}: AdminRoleCardProps) {
+}: AdminRoleEditorProps) {
   const { t } = useTranslation()
   const [name, setName] = useState(role.name)
   const [color, setColor] = useState(role.color.slice(0, 7))
   const [permissionDraft, setPermissionDraft] = useState<Record<string, boolean>>(() =>
     rolePermissionState(role),
   )
-  const [baseConfirmationVisible, setBaseConfirmationVisible] = useState(false)
-  const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
-  const baseConfirmRef = useRef<HTMLButtonElement>(null)
-  const deleteConfirmRef = useRef<HTMLButtonElement>(null)
-  const baseConfirmationTitle = isBaseRole
-    ? t("roleEditor.confirmClearBaseRole", "Clear base role?")
-    : t("roleEditor.confirmSetBaseRole", "Set as base role?")
-  const deleteConfirmationTitle = t("roleEditor.confirmDelete", "Delete this role?")
   const permissionChanges = rolePermissionChanges(role, permissionDraft)
   const permissionChangesCount = Object.keys(permissionChanges).length
-
-  useEffect(() => {
-    if (!baseConfirmationVisible) {
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      baseConfirmRef.current?.focus()
-    })
-
-    return () => {
-      window.cancelAnimationFrame(frame)
-    }
-  }, [baseConfirmationVisible])
-
-  useEffect(() => {
-    if (!deleteConfirmationVisible) {
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      deleteConfirmRef.current?.focus()
-    })
-
-    return () => {
-      window.cancelAnimationFrame(frame)
-    }
-  }, [deleteConfirmationVisible])
-
-  const dismissBaseConfirmation = () => {
-    if (!busy) {
-      setBaseConfirmationVisible(false)
-    }
-  }
-
-  const dismissDeleteConfirmation = () => {
-    if (!busy) {
-      setDeleteConfirmationVisible(false)
-    }
-  }
+  const detailsChanged =
+    name.trim() !== role.name || color.toUpperCase() !== role.color.toUpperCase()
 
   return (
-    <article className="moderation-admin-role-card">
-      <header>
-        <span className="moderation-admin-role-swatch" style={{ background: role.color }} />
+    <article className="moderation-admin-role-editor-card">
+      <header className="moderation-admin-role-editor-card__header">
+        <span
+          className="moderation-admin-role-editor-card__swatch"
+          style={{ background: role.color }}
+        />
         <span>
+          <small>{t("roleEditor.editEyebrow")}</small>
           <strong>{role.name}</strong>
-          <small>
+          <p>
             {t("rolesOverview.permissionSummary", {
-              count: Object.values(role.permissions).filter(Boolean).length,
+              count: enabledPermissionCount(role),
               rank: role.hierarchyRank,
             })}
-          </small>
+          </p>
         </span>
-        {isBaseRole ? <em>{t("roleEditor.baseRole", "BASE")}</em> : null}
+        {isBaseRole ? <em>{t("roleEditor.baseRole")}</em> : null}
       </header>
 
-      <div className="moderation-admin-role-details moderation-admin-role-details--custom">
-        <label className="moderation-admin-role-field">
-          <span>{t("roleEditor.name")}</span>
-          <input
-            className="moderation-admin-input"
-            maxLength={32}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-        </label>
-
-        <div className="moderation-admin-role-field">
-          <span>{t("roleEditor.color")}</span>
-          <AdminRoleColorControl compact value={color} disabled={busy} onChange={setColor} />
+      <section className="moderation-admin-role-editor-card__section">
+        <div className="moderation-admin-role-editor-card__section-heading">
+          <span>
+            <small>{t("roleEditor.appearance")}</small>
+            <strong>{t("roleEditor.nameAndColor")}</strong>
+          </span>
         </div>
 
-        <button
-          type="button"
-          className="moderation-control-button moderation-control-button--neutral"
-          disabled={busy || !name.trim() || !isRoleColor(color)}
-          onClick={() => onSaveDetails(name.trim(), color)}
-        >
-          {t("roleEditor.save")}
-        </button>
-      </div>
+        <div className="moderation-admin-role-details moderation-admin-role-details--custom">
+          <label className="moderation-admin-role-field">
+            <span>{t("roleEditor.name")}</span>
+            <input
+              className="moderation-admin-input"
+              maxLength={32}
+              value={name}
+              disabled={busy}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </label>
 
-      <div className="moderation-admin-role-actions">
-        <button type="button" disabled={busy || index === 0} onClick={() => onMove(-1)}>
-          ↑
-        </button>
-        <button type="button" disabled={busy || index === roleCount - 1} onClick={() => onMove(1)}>
-          ↓
-        </button>
-        <button
-          type="button"
-          className={isBaseRole ? "is-active" : ""}
-          disabled={busy}
-          onClick={() => {
-            setDeleteConfirmationVisible(false)
-            setBaseConfirmationVisible(true)
-          }}
-        >
-          {t("roleEditor.baseRole", "BASE")}
-        </button>
-        <button
-          type="button"
-          className="is-danger"
-          disabled={busy}
-          onClick={() => {
-            setBaseConfirmationVisible(false)
-            setDeleteConfirmationVisible(true)
-          }}
-        >
-          {t("roleEditor.delete")}
-        </button>
-      </div>
+          <div className="moderation-admin-role-field">
+            <span>{t("roleEditor.color")}</span>
+            <AdminRoleColorControl compact value={color} disabled={busy} onChange={setColor} />
+          </div>
 
-      {baseConfirmationVisible ? (
-        <div
-          className="moderation-admin-role-base-confirmation"
-          role="alertdialog"
-          aria-label={baseConfirmationTitle}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.preventDefault()
-              dismissBaseConfirmation()
-            }
-          }}
-        >
+          <button
+            type="button"
+            className="moderation-control-button moderation-control-button--primary"
+            disabled={busy || !detailsChanged || !name.trim() || !isRoleColor(color)}
+            onClick={() => onSaveDetails(name.trim(), color)}
+          >
+            {t("roleEditor.save")}
+          </button>
+        </div>
+      </section>
+
+      <section className="moderation-admin-role-editor-card__section">
+        <div className="moderation-admin-role-editor-card__section-heading">
           <span>
-            <strong>{baseConfirmationTitle}</strong>
+            <small>{t("rolesOverview.hierarchyEyebrow")}</small>
+            <strong>{t("rolesOverview.title")}</strong>
+          </span>
+          <div className="moderation-admin-role-priority-actions">
+            <button type="button" disabled={busy || index === 0} onClick={() => onMove(-1)}>
+              ↑
+            </button>
+            <button
+              type="button"
+              disabled={busy || index === roleCount - 1}
+              onClick={() => onMove(1)}
+            >
+              ↓
+            </button>
+          </div>
+        </div>
+
+        <div className="moderation-admin-role-structural-actions">
+          <button
+            type="button"
+            className={isBaseRole ? "is-active" : ""}
+            disabled={busy}
+            onClick={onToggleBase}
+          >
+            <span>{t("roleEditor.baseRole")}</span>
             <small>
               {isBaseRole
-                ? t(
-                    "roleEditor.confirmClearBaseRoleHint",
-                    "New members will no longer receive this role automatically.",
-                  )
-                : t(
-                    "roleEditor.confirmSetBaseRoleHint",
-                    "New members will receive this role automatically. Existing assignments stay unchanged.",
-                  )}
+                ? t("roleEditor.confirmClearBaseRoleHint")
+                : t("roleEditor.confirmSetBaseRoleHint")}
             </small>
-          </span>
-          <div>
-            <button
-              ref={baseConfirmRef}
-              type="button"
-              className="moderation-control-button moderation-control-button--primary"
-              disabled={busy}
-              onClick={() => {
-                setBaseConfirmationVisible(false)
-                onToggleBase()
-              }}
-            >
-              {isBaseRole
-                ? t("roleEditor.clearBaseRole", "Clear base role")
-                : t("roleEditor.setBaseRole", "Set base role")}
-            </button>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--neutral"
-              disabled={busy}
-              onClick={dismissBaseConfirmation}
-            >
-              {t("common.cancel", "Cancel")}
-            </button>
-          </div>
+          </button>
+          <button type="button" className="is-danger" disabled={busy} onClick={onDelete}>
+            <span>{t("roleEditor.deleteTitle")}</span>
+            <small>{t("roleEditor.deleteCopy")}</small>
+          </button>
         </div>
-      ) : null}
+      </section>
 
-      {deleteConfirmationVisible ? (
-        <div
-          className="moderation-admin-role-delete-confirmation"
-          role="alertdialog"
-          aria-label={deleteConfirmationTitle}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.preventDefault()
-              dismissDeleteConfirmation()
-            }
-          }}
-        >
+      <section className="moderation-admin-role-editor-card__section">
+        <div className="moderation-admin-role-editor-card__section-heading">
           <span>
-            <strong>{deleteConfirmationTitle}</strong>
-            <small>
-              {t(
-                "roleEditor.confirmDeleteHint",
-                "Deleting this role changes the account access configuration. Review the target role before continuing.",
-              )}
-            </small>
+            <small>{t("roleEditor.permissionsEyebrow")}</small>
+            <strong>
+              {t("roleEditor.enabledSummary", {
+                selected: Object.values(permissionDraft).filter(Boolean).length,
+                total: allRolePermissions.length,
+              })}
+            </strong>
           </span>
-          <div>
-            <button
-              ref={deleteConfirmRef}
-              type="button"
-              className="moderation-control-button moderation-control-button--danger"
-              disabled={busy}
-              onClick={() => {
-                setDeleteConfirmationVisible(false)
-                onDelete()
-              }}
-            >
-              {t("common.confirm", "Confirm")}
-            </button>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--neutral"
-              disabled={busy}
-              onClick={dismissDeleteConfirmation}
-            >
-              {t("common.cancel", "Cancel")}
-            </button>
-          </div>
         </div>
-      ) : null}
 
-      <div className="moderation-admin-role-permissions">
-        {allRolePermissions.map((permission) => {
-          const enabled = permissionDraft[permission] ?? false
+        <PermissionPicker
+          values={permissionDraft}
+          disabled={busy}
+          onToggle={(permission) =>
+            setPermissionDraft((current) => ({
+              ...current,
+              [permission]: !(current[permission] ?? false),
+            }))
+          }
+        />
 
-          return (
-            <button
-              key={permission}
-              type="button"
-              className={enabled ? "is-active" : ""}
-              aria-pressed={enabled}
-              disabled={busy}
-              onClick={() =>
-                setPermissionDraft((current) => ({
-                  ...current,
-                  [permission]: !enabled,
-                }))
-              }
-            >
-              {t(`roleEditor.permissions.${permission}`)}
-            </button>
-          )
-        })}
-      </div>
-
-      {permissionChangesCount > 0 ? (
-        <div className="moderation-admin-role-permission-actions" role="status">
-          <span>
-            <strong>{t("roleEditor.permissionChanges", { count: permissionChangesCount })}</strong>
-            <small>{t("roleEditor.permissionChangesHint")}</small>
-          </span>
-          <div>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--primary"
-              disabled={busy}
-              onClick={() => onSavePermissions(permissionChanges)}
-            >
-              {t("roleEditor.applyPermissionChanges")}
-            </button>
-            <button
-              type="button"
-              className="moderation-control-button moderation-control-button--neutral"
-              disabled={busy}
-              onClick={() => setPermissionDraft(rolePermissionState(role))}
-            >
-              {t("roleEditor.discardPermissionChanges")}
-            </button>
+        {permissionChangesCount > 0 ? (
+          <div className="moderation-admin-role-permission-actions" role="status">
+            <span>
+              <strong>
+                {t("roleEditor.permissionChanges", { count: permissionChangesCount })}
+              </strong>
+              <small>{t("roleEditor.permissionChangesHint")}</small>
+            </span>
+            <div>
+              <button
+                type="button"
+                className="moderation-control-button moderation-control-button--neutral"
+                disabled={busy}
+                onClick={() => setPermissionDraft(rolePermissionState(role))}
+              >
+                {t("roleEditor.discardPermissionChanges")}
+              </button>
+              <button
+                type="button"
+                className="moderation-control-button moderation-control-button--primary"
+                disabled={busy}
+                onClick={() => onSavePermissions(permissionChanges)}
+              >
+                {t("roleEditor.applyPermissionChanges")}
+              </button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </section>
     </article>
   )
 }
 
+type PermissionPickerProps = {
+  values: Record<string, boolean>
+  disabled: boolean
+  onToggle: (permission: string) => void
+}
+
+function PermissionPicker({ values, disabled, onToggle }: PermissionPickerProps) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="moderation-admin-permission-picker moderation-admin-permission-picker--focused">
+      {allRolePermissions.map((permission) => {
+        const enabled = values[permission] ?? false
+
+        return (
+          <button
+            key={permission}
+            type="button"
+            className={enabled ? "is-active" : ""}
+            aria-pressed={enabled}
+            disabled={disabled}
+            onClick={() => onToggle(permission)}
+          >
+            <i aria-hidden="true">{enabled ? "✓" : "+"}</i>
+            <span>{t(`roleEditor.permissions.${permission}`)}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+type MemberRoleWorkspaceProps = {
+  members: AdminAccountMemberResponse[]
+  roles: AdminAccountRoleResponse[]
+  selectedMember: AdminAccountMemberResponse | null
+  memberRoles: MemberRoleState
+  loadingMemberId: string | null
+  busy: boolean
+  onSelectMember: (memberId: string) => void
+  onToggleRole: (member: AdminAccountMemberResponse, role: AdminAccountRoleResponse) => void
+}
+
+function MemberRoleWorkspace({
+  members,
+  roles,
+  selectedMember,
+  memberRoles,
+  loadingMemberId,
+  busy,
+  onSelectMember,
+  onToggleRole,
+}: MemberRoleWorkspaceProps) {
+  const { t } = useTranslation()
+  const assigned = selectedMember
+    ? (memberRoles[selectedMember.memberId] ?? new Set<string>())
+    : new Set<string>()
+
+  return (
+    <div className="moderation-admin-member-workspace">
+      <aside className="moderation-admin-member-directory">
+        {members.map((member) => (
+          <button
+            key={member.memberId}
+            type="button"
+            className={selectedMember?.memberId === member.memberId ? "is-active" : ""}
+            onClick={() => onSelectMember(member.memberId)}
+          >
+            <span className="moderation-admin-member-avatar" aria-hidden="true">
+              {member.username.slice(0, 1).toUpperCase()}
+            </span>
+            <span>
+              <strong>@{member.username}</strong>
+              <small>{member.owner ? t("moderation.owner") : member.memberId}</small>
+            </span>
+            <em>{member.owner ? "★" : "→"}</em>
+          </button>
+        ))}
+      </aside>
+
+      <main className="moderation-admin-member-role-editor">
+        {selectedMember ? (
+          <>
+            <header>
+              <span className="moderation-admin-member-avatar moderation-admin-member-avatar--large">
+                {selectedMember.username.slice(0, 1).toUpperCase()}
+              </span>
+              <span>
+                <small>{t("roleEditor.groups.members")}</small>
+                <strong>@{selectedMember.username}</strong>
+                <p>
+                  {selectedMember.owner
+                    ? t("moderation.owner")
+                    : `${assigned.size} / ${roles.length}`}
+                </p>
+              </span>
+            </header>
+
+            {selectedMember.owner ? (
+              <div className="moderation-admin-member-role-owner-note">
+                <strong>{t("moderation.owner")}</strong>
+                <small>{t("rolesOverview.hierarchyNote")}</small>
+              </div>
+            ) : loadingMemberId === selectedMember.memberId ? (
+              <div className="moderation-admin-role-empty">{t("common.loading")}</div>
+            ) : roles.length === 0 ? (
+              <div className="moderation-admin-role-empty">{t("rolesOverview.emptyTitle")}</div>
+            ) : (
+              <div className="moderation-admin-member-role-choices">
+                {roles.map((role) => {
+                  const active = assigned.has(role.id)
+
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      className={active ? "is-active" : ""}
+                      aria-pressed={active}
+                      disabled={busy}
+                      onClick={() => onToggleRole(selectedMember, role)}
+                    >
+                      <i style={{ background: role.color }} />
+                      <span>
+                        <strong>{role.name}</strong>
+                        <small>
+                          {t("rolesOverview.permissionSummary", {
+                            count: enabledPermissionCount(role),
+                            rank: role.hierarchyRank,
+                          })}
+                        </small>
+                      </span>
+                      <em>{active ? "✓" : "+"}</em>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        ) : null}
+      </main>
+    </div>
+  )
+}
+
+type RoleConfirmationProps = {
+  confirmation: Confirmation
+  busy: boolean
+  confirmRef: RefObject<HTMLButtonElement | null>
+  onCancel: () => void
+  onConfirm: () => void
+}
+
+function RoleConfirmation({
+  confirmation,
+  busy,
+  confirmRef,
+  onCancel,
+  onConfirm,
+}: RoleConfirmationProps) {
+  const { t } = useTranslation()
+  const isDelete = confirmation.type === "delete"
+  const clearBase = confirmation.type === "base" && confirmation.clear
+  const title = isDelete
+    ? t("roleEditor.confirmDelete", "Delete this role?")
+    : clearBase
+      ? t("roleEditor.confirmClearBaseRole", "Clear base role?")
+      : t("roleEditor.confirmSetBaseRole", "Set as base role?")
+  const hint = isDelete
+    ? t("roleEditor.confirmDeleteHint")
+    : clearBase
+      ? t("roleEditor.confirmClearBaseRoleHint")
+      : t("roleEditor.confirmSetBaseRoleHint")
+
+  return (
+    <div
+      className={`moderation-admin-role-confirmation ${isDelete ? "is-danger" : ""}`}
+      role="alertdialog"
+      aria-label={title}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !busy) {
+          event.preventDefault()
+          onCancel()
+        }
+      }}
+    >
+      <span className="moderation-admin-role-confirmation__art" aria-hidden="true">
+        <img
+          src={
+            isDelete
+              ? "/ui-illustrations/mnemos-mascot-search.svg"
+              : "/ui-illustrations/mnemos-mascot-event.svg"
+          }
+          alt=""
+        />
+      </span>
+      <span className="moderation-admin-role-confirmation__copy">
+        <strong>{title}</strong>
+        <small>{hint}</small>
+      </span>
+      <div className="moderation-admin-role-confirmation__actions">
+        <button
+          ref={confirmRef}
+          type="button"
+          className={
+            isDelete
+              ? "moderation-control-button moderation-control-button--danger"
+              : "moderation-control-button moderation-control-button--primary"
+          }
+          disabled={busy}
+          onClick={onConfirm}
+        >
+          {isDelete
+            ? t("common.confirm", "Confirm")
+            : clearBase
+              ? t("roleEditor.clearBaseRole")
+              : t("roleEditor.setBaseRole")}
+        </button>
+        <button
+          type="button"
+          className="moderation-control-button moderation-control-button--neutral"
+          disabled={busy}
+          onClick={onCancel}
+        >
+          {t("common.cancel")}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function enabledPermissionCount(role: AdminAccountRoleResponse): number {
+  return Object.values(role.permissions).filter(Boolean).length
+}
+
 function rolePermissionState(role: AdminAccountRoleResponse): Record<string, boolean> {
   return Object.fromEntries(
-    allRolePermissions.map((permission) => [permission, Boolean(role.permissions[permission])]),
-  ) as Record<string, boolean>
+    allRolePermissions.map((permission) => [permission, role.permissions[permission] === true]),
+  )
 }
 
 function rolePermissionChanges(
   role: AdminAccountRoleResponse,
   draft: Record<string, boolean>,
 ): Record<string, boolean> {
-  return allRolePermissions.reduce<Record<string, boolean>>((changes, permission) => {
-    const current = Boolean(role.permissions[permission])
-    const next = Boolean(draft[permission])
-
-    if (current !== next) {
-      changes[permission] = next
-    }
-
-    return changes
-  }, {})
+  return Object.fromEntries(
+    allRolePermissions
+      .filter(
+        (permission) => (draft[permission] ?? false) !== (role.permissions[permission] === true),
+      )
+      .map((permission) => [permission, draft[permission] ?? false]),
+  )
 }
 
 function isRoleColor(value: string): boolean {
-  return /^#[0-9A-F]{6}$/.test(value.trim().toUpperCase())
+  return /^#[0-9A-Fa-f]{6}$/.test(value)
 }

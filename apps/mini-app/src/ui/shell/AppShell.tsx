@@ -34,6 +34,7 @@ export function AppShell() {
   const routeStageRef = useRef<HTMLDivElement>(null)
   const scrollPositions = useRef<Record<string, number>>({})
   const accountSwitchInProgress = useRef(false)
+  const previousActiveAccountId = useRef<string | null>(null)
 
   const current = stack[stack.length - 1]
   const notFound = current.id === "account" && current.params?.notFound === "true"
@@ -70,6 +71,23 @@ export function AppShell() {
     setAccountPickerOpen(false)
     setStack([{ id: route }])
   }
+
+  useEffect(() => {
+    const currentActiveAccountId = activeAccount?.id ?? null
+    const previous = previousActiveAccountId.current
+
+    previousActiveAccountId.current = currentActiveAccountId
+
+    if (previous === null || currentActiveAccountId !== null) {
+      return
+    }
+
+    accountSwitchInProgress.current = false
+    setSwitchingAccountId(null)
+    setUserHubOpen(false)
+    setAccountPickerOpen(false)
+    setStack([{ id: "account" }])
+  }, [activeAccount?.id])
 
   useEffect(() => {
     const element = routeStageRef.current

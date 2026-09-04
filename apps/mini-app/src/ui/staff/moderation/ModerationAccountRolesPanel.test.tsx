@@ -61,7 +61,8 @@ vi.mock("./AdminRoleColorControl", () => ({
 }))
 
 const accountId = "019c11d1-bb2a-7000-8000-000000000401"
-const memberId = "019c11d1-bb2a-7000-8000-000000000402"
+const ownerMemberId = "019c11d1-bb2a-7000-8000-000000000402"
+const memberId = "019c11d1-bb2a-7000-8000-000000000407"
 const roleId = "019c11d1-bb2a-7000-8000-000000000403"
 const secondRoleId = "019c11d1-bb2a-7000-8000-000000000406"
 
@@ -70,7 +71,7 @@ const details: AdminAccountDetailsResponse = {
   cristalixUuid: "019c11d1-bb2a-7000-8000-000000000404",
   cristalixNickname: "AdminAccount",
   status: "ACTIVE",
-  ownerMemberId: memberId,
+  ownerMemberId,
   baseRoleId: null,
   maxMembers: 10,
   createdAt: "2026-09-03T18:00:00Z",
@@ -78,11 +79,18 @@ const details: AdminAccountDetailsResponse = {
   deletedAt: null,
   members: [
     {
-      memberId,
+      memberId: ownerMemberId,
       userId: "019c11d1-bb2a-7000-8000-000000000405",
       username: "owner",
       owner: true,
       joinedAt: "2026-09-03T18:00:00Z",
+    },
+    {
+      memberId,
+      userId: "019c11d1-bb2a-7000-8000-000000000408",
+      username: "member",
+      owner: false,
+      joinedAt: "2026-09-03T18:01:00Z",
     },
   ],
 }
@@ -110,8 +118,11 @@ beforeEach(() => {
   mocks.getAdminMemberRoles.mockResolvedValue([])
   mocks.assignAdminMemberRole.mockResolvedValue(undefined)
   mocks.clearAdminBaseRole.mockResolvedValue(undefined)
+  mocks.createAdminRole.mockResolvedValue(role)
   mocks.deleteAdminRole.mockResolvedValue(undefined)
+  mocks.revokeAdminMemberRole.mockResolvedValue(undefined)
   mocks.updateAdminBaseRole.mockResolvedValue(undefined)
+  mocks.updateAdminRoleDetails.mockResolvedValue(role)
   mocks.updateAdminRoleHierarchy.mockResolvedValue([])
   mocks.updateAdminRolePermissions.mockResolvedValue(role)
 })
@@ -121,7 +132,9 @@ afterEach(() => {
 })
 
 describe("ModerationAccountRolesPanel", () => {
-  it("requires explicit confirmation and focuses the destructive role action", async () => {
+  it("shows one compact role workspace instead of expanding every role", async () => {
+    mocks.getAdminAccountRoles.mockResolvedValue([role, secondRole])
+
     render(
       <ModerationAccountRolesPanel
         details={details}
@@ -129,8 +142,23 @@ describe("ModerationAccountRolesPanel", () => {
       />,
     )
 
-    const deleteButton = await screen.findByText("roleEditor.delete")
-    fireEvent.click(deleteButton)
+    const moderatorLabels = await screen.findAllByText("Moderator")
+
+    expect(moderatorLabels).toHaveLength(2)
+    expect(screen.getByText("Observer")).toBeDefined()
+    expect(screen.getAllByText("roleEditor.name")).toHaveLength(1)
+    expect(mocks.getAdminMemberRoles).not.toHaveBeenCalled()
+  })
+
+  it("keeps destructive delete behind an explicit focused confirmation", async () => {
+    render(
+      <ModerationAccountRolesPanel
+        details={details}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    fireEvent.click(await screen.findByText("roleEditor.deleteTitle"))
 
     expect(mocks.deleteAdminRole).not.toHaveBeenCalled()
 
@@ -152,8 +180,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    const deleteButton = await screen.findByText("roleEditor.delete")
-    fireEvent.click(deleteButton)
+    fireEvent.click(await screen.findByText("roleEditor.deleteTitle"))
     fireEvent.click(screen.getByText("Confirm"))
 
     await waitFor(() => {
@@ -162,62 +189,16 @@ describe("ModerationAccountRolesPanel", () => {
     })
   })
 
-  it("requires explicit confirmation before setting the base role", async () => {
-    render(
-      <ModerationAccountRolesPanel
-        details={details}
-        onChanged={vi.fn().mockResolvedValue(undefined)}
-      />,
-    )
-
-    const baseRoleButton = await screen.findByRole("button", { name: "BASE" })
-    fireEvent.click(baseRoleButton)
-
-    expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
-
-    const dialog = screen.getByRole("alertdialog", { name: "Set as base role?" })
-    const confirm = screen.getByText("Set base role")
-
-    await waitFor(() => {
-      expect(document.activeElement).toBe(confirm)
-    })
-
-    fireEvent.keyDown(dialog, { key: "Escape" })
-
-    expect(screen.queryByRole("alertdialog", { name: "Set as base role?" })).toBeNull()
-    expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
-  })
-
-  it("sets the base role only after confirmation", async () => {
+  it("keeps base role changes behind confirmation", async () => {
     const onChanged = vi.fn().mockResolvedValue(undefined)
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    fireEvent.click(await screen.findByRole("button", { name: "BASE" }))
-    fireEvent.click(screen.getByText("Set base role"))
+    fireEvent.click(await screen.findByText("roleEditor.baseRole"))
 
-    await waitFor(() => {
-      expect(mocks.updateAdminBaseRole).toHaveBeenCalledWith(accountId, roleId)
-      expect(onChanged).toHaveBeenCalledTimes(1)
-    })
-  })
+    expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
 
-  it("clears the base role only after confirmation", async () => {
-    const onChanged = vi.fn().mockResolvedValue(undefined)
-
-    render(
-      <ModerationAccountRolesPanel
-        details={{ ...details, baseRoleId: roleId }}
-        onChanged={onChanged}
-      />,
-    )
-
-    fireEvent.click(await screen.findByRole("button", { name: "BASE" }))
-
-    expect(mocks.clearAdminBaseRole).not.toHaveBeenCalled()
-
-    const dialog = screen.getByRole("alertdialog", { name: "Clear base role?" })
-    const confirm = screen.getByText("Clear base role")
+    const confirm = screen.getByText("roleEditor.setBaseRole")
 
     await waitFor(() => {
       expect(document.activeElement).toBe(confirm)
@@ -226,11 +207,9 @@ describe("ModerationAccountRolesPanel", () => {
     fireEvent.click(confirm)
 
     await waitFor(() => {
-      expect(mocks.clearAdminBaseRole).toHaveBeenCalledWith(accountId)
+      expect(mocks.updateAdminBaseRole).toHaveBeenCalledWith(accountId, roleId)
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
-
-    expect(dialog).toBeDefined()
   })
 
   it("keeps permission toggles local until the draft is applied", async () => {
@@ -240,13 +219,13 @@ describe("ModerationAccountRolesPanel", () => {
 
     await screen.findAllByText("Moderator")
 
-    const permissionButtons = screen.getAllByRole("button", {
-      name: "roleEditor.permissions.MANAGE_MEMBERS",
-    })
-    fireEvent.click(permissionButtons[1]!)
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "roleEditor.permissions.MANAGE_MEMBERS",
+      }),
+    )
 
     expect(mocks.updateAdminRolePermissions).not.toHaveBeenCalled()
-    expect(screen.getByText("roleEditor.applyPermissionChanges")).toBeDefined()
 
     fireEvent.click(screen.getByText("roleEditor.applyPermissionChanges"))
 
@@ -258,60 +237,52 @@ describe("ModerationAccountRolesPanel", () => {
     })
   })
 
-  it("requires confirmation before changing the role hierarchy", async () => {
+  it("changes hierarchy directly without a confirmation dialog", async () => {
     mocks.getAdminAccountRoles.mockResolvedValue([role, secondRole])
     const onChanged = vi.fn().mockResolvedValue(undefined)
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findAllByText("Observer")
-
-    const downButtons = screen.getAllByRole("button", { name: "↓" })
-    fireEvent.click(downButtons[0]!)
-
-    expect(mocks.updateAdminRoleHierarchy).not.toHaveBeenCalled()
-
-    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmHierarchyChange" })
-    const confirm = screen.getByText("roleEditor.confirmHierarchyChangeAction")
-
-    await waitFor(() => {
-      expect(document.activeElement).toBe(confirm)
-    })
-
-    fireEvent.click(confirm)
+    await screen.findByText("Observer")
+    fireEvent.click(screen.getByRole("button", { name: "↓" }))
 
     await waitFor(() => {
       expect(mocks.updateAdminRoleHierarchy).toHaveBeenCalledWith(accountId, [secondRoleId, roleId])
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 
-    expect(dialog).toBeDefined()
+    expect(
+      screen.queryByRole("alertdialog", { name: "roleEditor.confirmHierarchyChange" }),
+    ).toBeNull()
   })
 
-  it("requires confirmation before assigning a role to a member", async () => {
+  it("loads roles only for the selected member and assigns them directly", async () => {
     const onChanged = vi.fn().mockResolvedValue(undefined)
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    const memberRoleButton = await screen.findByRole("button", { name: "Moderator" })
-    fireEvent.click(memberRoleButton)
-
-    expect(mocks.assignAdminMemberRole).not.toHaveBeenCalled()
-
-    const dialog = screen.getByRole("alertdialog", { name: "roleEditor.confirmMemberRoleChange" })
-    const confirm = screen.getByText("roleEditor.assignMemberRole")
+    await screen.findAllByText("Moderator")
+    fireEvent.click(screen.getByText("roleEditor.groups.members"))
 
     await waitFor(() => {
-      expect(document.activeElement).toBe(confirm)
+      expect(mocks.getAdminMemberRoles).toHaveBeenCalledWith(accountId, ownerMemberId)
     })
 
-    fireEvent.click(confirm)
+    fireEvent.click(screen.getByText("@member"))
+
+    await waitFor(() => {
+      expect(mocks.getAdminMemberRoles).toHaveBeenCalledWith(accountId, memberId)
+    })
+
+    fireEvent.click(screen.getByRole("button", { name: /Moderator/ }))
 
     await waitFor(() => {
       expect(mocks.assignAdminMemberRole).toHaveBeenCalledWith(accountId, memberId, roleId)
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 
-    expect(dialog).toBeDefined()
+    expect(
+      screen.queryByRole("alertdialog", { name: "roleEditor.confirmMemberRoleChange" }),
+    ).toBeNull()
   })
 })
