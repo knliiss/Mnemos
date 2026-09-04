@@ -21,24 +21,33 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo '=== REALTIME SERVICE TASKS ==='
-          sudo -n docker service ps \
-            --no-trunc \
-            --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
-            mnemos_realtime-service
+          for service in \
+            mnemos_gateway-service \
+            mnemos_realtime-service \
+            mnemos_cloudflared; do
+            echo "=== ${service} TASKS ==="
+            sudo -n docker service ps \
+              --no-trunc \
+              --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+              "$service"
+          done
 
-          echo '=== CLOUDFLARED TASKS ==='
-          sudo -n docker service ps \
-            --no-trunc \
-            --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
-            mnemos_cloudflared
+          echo '=== GATEWAY LOGS ==='
+          sudo -n docker service logs \
+            --since 20m \
+            --timestamps \
+            mnemos_gateway-service 2>&1 \
+            | grep -Ei 'websocket|protocol|premature|connection|close|error|exception|collector' \
+            | tail -n 800 \
+            || true
 
           echo '=== REALTIME LOGS ==='
           sudo -n docker service logs \
             --since 20m \
             --timestamps \
             mnemos_realtime-service 2>&1 \
-            | tail -n 600 \
+            | grep -Ei 'websocket|protocol|collector|transport|error|exception' \
+            | tail -n 800 \
             || true
 
           echo '=== CLOUDFLARED LOGS ==='
@@ -46,5 +55,6 @@ jobs:
             --since 20m \
             --timestamps \
             mnemos_cloudflared 2>&1 \
-            | tail -n 600 \
+            | grep -Ei 'websocket|protocol|connection|stream|error|warn' \
+            | tail -n 800 \
             || true
