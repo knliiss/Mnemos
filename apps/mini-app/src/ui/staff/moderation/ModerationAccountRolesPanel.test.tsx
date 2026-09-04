@@ -142,8 +142,9 @@ describe("ModerationAccountRolesPanel", () => {
       />,
     )
 
-    await screen.findByText("Moderator")
+    const moderatorLabels = await screen.findAllByText("Moderator")
 
+    expect(moderatorLabels).toHaveLength(2)
     expect(screen.getByText("Observer")).toBeDefined()
     expect(screen.getAllByText("roleEditor.name")).toHaveLength(1)
     expect(mocks.getAdminMemberRoles).not.toHaveBeenCalled()
@@ -193,11 +194,11 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    fireEvent.click(await screen.findByText("BASE"))
+    fireEvent.click(await screen.findByText("roleEditor.baseRole"))
 
     expect(mocks.updateAdminBaseRole).not.toHaveBeenCalled()
 
-    const confirm = screen.getByText("Set base role")
+    const confirm = screen.getByText("roleEditor.setBaseRole")
 
     await waitFor(() => {
       expect(document.activeElement).toBe(confirm)
@@ -216,7 +217,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findByText("Moderator")
+    await screen.findAllByText("Moderator")
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -260,7 +261,7 @@ describe("ModerationAccountRolesPanel", () => {
 
     render(<ModerationAccountRolesPanel details={details} onChanged={onChanged} />)
 
-    await screen.findByText("Moderator")
+    await screen.findAllByText("Moderator")
     fireEvent.click(screen.getByText("roleEditor.groups.members"))
 
     await waitFor(() => {
