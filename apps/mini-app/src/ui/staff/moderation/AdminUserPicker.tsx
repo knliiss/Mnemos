@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { searchUserDirectory, type UserIdentityDirectoryResponse } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -24,6 +24,7 @@ export function AdminUserPicker({
 }: Props) {
   const { t } = useTranslation()
   const listboxId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<UserIdentityDirectoryResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -77,21 +78,54 @@ export function AdminUserPicker({
     }
   }, [disabled, excluded, query, selected])
 
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+
+      if (target instanceof Node && rootRef.current?.contains(target)) {
+        return
+      }
+
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer)
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+  }, [disabled])
+
+  const closePicker = () => {
+    setOpen(false)
+    setActiveIndex(-1)
+  }
+
   const clear = () => {
     onSelect(null)
     setQuery("")
     setResults([])
     setLoading(false)
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const selectCandidate = (candidate: UserIdentityDirectoryResponse) => {
     onSelect(candidate)
     setQuery("")
     setResults([])
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const changeQuery = (value: string) => {
@@ -126,7 +160,17 @@ export function AdminUserPicker({
       : undefined
 
   return (
-    <div className="admin-user-picker">
+    <div
+      ref={rootRef}
+      className="admin-user-picker"
+      onBlur={(event) => {
+        const nextFocus = event.relatedTarget
+
+        if (!(nextFocus instanceof Node) || !event.currentTarget.contains(nextFocus)) {
+          closePicker()
+        }
+      }}
+    >
       <span className="admin-user-picker__label">{label}</span>
 
       {selected ? (
@@ -182,8 +226,7 @@ export function AdminUserPicker({
                   selectCandidate(candidate)
                 }
               } else if (event.key === "Escape") {
-                setOpen(false)
-                setActiveIndex(-1)
+                closePicker()
               }
             }}
           />
@@ -227,7 +270,7 @@ export function AdminUserPicker({
                 </span>
                 <em>{t("moderation.accountCount", { count: candidate.accountCount })}</em>
               </button>
-            ))
+            ))}
           )}
         </div>
       ) : null}
