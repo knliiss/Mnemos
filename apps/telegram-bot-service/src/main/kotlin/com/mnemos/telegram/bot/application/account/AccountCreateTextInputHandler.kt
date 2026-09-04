@@ -26,7 +26,7 @@ class AccountCreateTextInputHandler(
             return updatePending(context.telegramId, AccountMenuContext.createInvalid())
         }
 
-        return when (gateway.createAccount(context.telegramId, nickname)) {
+        return when (val result = gateway.createAccount(context.telegramId, nickname)) {
             TelegramAccountMutationResult.Updated ->
                 menuService.completeTextInput(
                     telegramId = context.telegramId,
@@ -36,13 +36,23 @@ class AccountCreateTextInputHandler(
                     AccountMenuContext.created()
                 }
 
-            TelegramAccountMutationResult.Invalid ->
-                updatePending(context.telegramId, AccountMenuContext.createInvalid())
+            is TelegramAccountMutationResult.Invalid ->
+                updatePending(
+                    telegramId = context.telegramId,
+                    screenContext = createFailureContext(result.code),
+                )
 
             TelegramAccountMutationResult.Unavailable ->
                 updatePending(context.telegramId, AccountMenuContext.unavailable())
         }
     }
+
+    private fun createFailureContext(code: String?): Map<String, String> =
+        when (code) {
+            ACCOUNT_IDENTITY_CONFLICT -> AccountMenuContext.createIdentityConflict()
+            CRISTALIX_PLAYER_NOT_FOUND -> AccountMenuContext.createPlayerNotFound()
+            else -> AccountMenuContext.createInvalid()
+        }
 
     private fun updatePending(
         telegramId: Long,
@@ -54,4 +64,9 @@ class AccountCreateTextInputHandler(
             expectedInput = pendingInput,
             updateContext = { screenContext },
         )
+
+    private companion object {
+        const val ACCOUNT_IDENTITY_CONFLICT = "ACCOUNT_IDENTITY_CONFLICT"
+        const val CRISTALIX_PLAYER_NOT_FOUND = "CRISTALIX_PLAYER_NOT_FOUND"
+    }
 }
