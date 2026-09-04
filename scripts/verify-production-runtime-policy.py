@@ -239,6 +239,27 @@ def verify_reconciler() -> None:
         fail("Normalizer and runtime reconciler disagree on the cloudflared command")
 
 
+def verify_workflow_workspace_hygiene() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+    ownership_repair = 'sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"'
+    checkout = "- name: Checkout approved production tooling"
+
+    if ownership_repair not in workflow:
+        fail("Production runtime policy must repair persistent-runner workspace ownership")
+
+    if workflow.index(ownership_repair) > workflow.index(checkout):
+        fail("Production runner workspace ownership must be repaired before checkout")
+
+    if workflow.count("PYTHONDONTWRITEBYTECODE=1") < 3:
+        fail("Privileged production Python calls must disable bytecode writes")
+
+    if "sudo -n python3 scripts/reconcile-production-runtime-policy.py" in workflow:
+        fail("Runtime reconciliation must not create root-owned Python bytecode")
+
+    if "sudo -n python3 scripts/production_runtime_state.py" in workflow:
+        fail("Runtime state observation must not create root-owned Python bytecode")
+
+
 def verify_workflow_state_recording() -> None:
     workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
     root_owned_temp = 'state_tmp="$(sudo -n mktemp)"'
@@ -270,6 +291,7 @@ def main() -> int:
         verify_moderation_pool()
         verify_normalizer()
         verify_reconciler()
+        verify_workflow_workspace_hygiene()
         verify_workflow_state_recording()
         verify_executor()
     except (AssertionError, OSError, ValueError) as exception:
