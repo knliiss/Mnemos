@@ -16,7 +16,9 @@ class BanCache {
             activate(
                 sanctionId = ban.sanctionId,
                 userId = ban.userId,
+                reason = ban.reason,
                 occurredAt = ban.occurredAt,
+                expiresAt = ban.expiresAt,
             )
         }
     }
@@ -24,13 +26,17 @@ class BanCache {
     fun activate(
         sanctionId: UUID,
         userId: UUID,
+        reason: String,
         occurredAt: Instant,
+        expiresAt: Instant?,
     ) {
         bansByUserId.compute(userId) { _, current ->
             if (current == null || !occurredAt.isBefore(current.occurredAt)) {
                 BanState(
                     sanctionId = sanctionId,
+                    reason = reason,
                     occurredAt = occurredAt,
+                    expiresAt = expiresAt,
                 )
             } else {
                 current
@@ -52,5 +58,17 @@ class BanCache {
         }
     }
 
-    fun isBanned(userId: UUID): Boolean = bansByUserId.containsKey(userId)
+    fun findActiveBan(userId: UUID): BanState? {
+        val ban = bansByUserId[userId] ?: return null
+        val expiresAt = ban.expiresAt
+
+        if (expiresAt != null && !expiresAt.isAfter(Instant.now())) {
+            bansByUserId.remove(userId, ban)
+            return null
+        }
+
+        return ban
+    }
+
+    fun isBanned(userId: UUID): Boolean = findActiveBan(userId) != null
 }
