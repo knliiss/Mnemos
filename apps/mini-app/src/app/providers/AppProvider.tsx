@@ -19,7 +19,11 @@ import {
   selectActiveAccount,
 } from "@/shared/api/accountApi"
 import type { CurrentContextResponse } from "@/shared/api/backendContracts"
-import { isServiceUnavailableError } from "@/shared/api/httpClient"
+import {
+  getUserBanDetails,
+  isServiceUnavailableError,
+  type UserBanDetails,
+} from "@/shared/api/httpClient"
 import {
   getCurrentContext,
   initializeCurrentUser,
@@ -29,6 +33,7 @@ import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import type { RealtimeEvent } from "@/shared/realtime/realtime.types"
 import type { LocalizationLanguage } from "@/ui/model"
+import { BanScreen } from "@/ui/system/BanScreen"
 import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
 
 type AppState = {
@@ -50,6 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [context, setContext] = useState<CurrentContextResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [serviceUnavailable, setServiceUnavailable] = useState(false)
+  const [activeBan, setActiveBan] = useState<UserBanDetails | null>(null)
   const contextRevision = useRef(0)
   const mountedRef = useRef(true)
   const bootstrapPromiseRef = useRef<Promise<void> | null>(null)
@@ -85,9 +91,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      setActiveBan(null)
       setServiceUnavailable(false)
     } catch (error) {
       if (!mountedRef.current) {
+        return
+      }
+
+      const ban = getUserBanDetails(error)
+
+      if (ban) {
+        setActiveBan(ban)
+        setServiceUnavailable(false)
         return
       }
 
@@ -186,16 +201,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return realtimeEvents.subscribe((event) => {
+      if (event.type === "moderation.sanction.activated" && event.payload.type === "BAN") {
+        setActiveBan({
+          sanctionId: event.payload.sanctionId,
+          reason: event.payload.reason?.trim() ?? "",
+          occurredAt: event.occurredAt,
+          expiresAt: event.payload.expiresAt ?? null,
+        })
+        setServiceUnavailable(false)
+        setLoading(false)
+        return
+      }
+
+      if (event.type === "moderation.sanction.deactivated" && event.payload.type === "BAN") {
+        setActiveBan((current) =>
+          current?.sanctionId === event.payload.sanctionId ? null : current,
+        )
+        void bootstrap()
+        return
+      }
+
       if (!isAccountLifecycleEvent(event)) {
         return
       }
 
-      void refresh().catch(handleError)
+      void refresh().catch((error) => {
+        const ban = getUserBanDetails(error)
+
+        if (ban) {
+          setActiveBan(ban)
+          setServiceUnavailable(false)
+          return
+        }
+
+        handleError(error)
+      })
     })
-  }, [refresh])
+  }, [bootstrap, refresh])
 
   useEffect(() => {
-    if (!serviceUnavailable) {
+    if (!serviceUnavailable || activeBan) {
       return
     }
 
@@ -206,7 +251,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       window.clearTimeout(retryTimer)
     }
-  }, [bootstrap, serviceUnavailable])
+  }, [activeBan, bootstrap, serviceUnavailable])
 
   const value = useMemo<AppState>(
     () => ({
@@ -230,6 +275,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLanguage,
     ],
   )
+
+  if (activeBan) {
+    return <BanScreen ban={activeBan} onRefresh={bootstrap} />
+  }
 
   if (serviceUnavailable) {
     return <ServiceUnavailableScreen reason="service" onRetry={bootstrap} />
