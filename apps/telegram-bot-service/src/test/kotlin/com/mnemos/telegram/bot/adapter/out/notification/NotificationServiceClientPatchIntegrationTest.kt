@@ -1,6 +1,5 @@
 package com.mnemos.telegram.bot.adapter.out.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateRaidSubscriptionRequest
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import tools.jackson.databind.ObjectMapper
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.UUID
