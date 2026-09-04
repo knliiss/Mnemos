@@ -18,7 +18,7 @@ APPLICATION_TMPFS_SIZE_BYTES = 64 * 1024 * 1024
 APPLICATION_TMPFS_MODE = 0o1777
 CLOUDFLARED_SERVICE = "cloudflared"
 CLOUDFLARED_COMMAND = (
-    "tunnel run --token-file /run/secrets/cloudflare_tunnel_token"
+    "tunnel --protocol http2 run --token-file /run/secrets/cloudflare_tunnel_token"
 )
 
 
