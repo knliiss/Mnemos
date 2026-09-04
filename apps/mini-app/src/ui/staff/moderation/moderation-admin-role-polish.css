@@ -257,8 +257,7 @@
 .moderation-admin-member-directory > button.is-active {
   border-color: rgba(203, 255, 45, 0.105);
   background:
-    linear-gradient(90deg, rgba(203, 255, 45, 0.045), transparent 72%),
-    rgba(255, 255, 255, 0.012);
+    linear-gradient(90deg, rgba(203, 255, 45, 0.045), transparent 72%), rgba(255, 255, 255, 0.012);
 }
 
 .moderation-admin-role-directory__item > i {
