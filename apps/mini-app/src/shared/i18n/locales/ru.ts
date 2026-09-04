@@ -17,6 +17,7 @@ export const ru = {
     back: "Назад",
     save: "Сохранить",
     cancel: "Отмена",
+    confirm: "Подтвердить",
     clear: "Очистить",
     soon: "Скоро",
     unavailable: "Временно недоступно",
@@ -148,6 +149,10 @@ export const ru = {
     codes: errorCodesRu,
   },
   ...uiRu,
+  moderation: {
+    ...uiRu.moderation,
+    owner: "Владелец",
+  },
   accountHome: {
     ...uiRu.accountHome,
     globalEventRemaining: "Осталось {{time}}",

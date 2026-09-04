@@ -17,6 +17,7 @@ export const uk = {
     back: "Назад",
     save: "Зберегти",
     cancel: "Скасувати",
+    confirm: "Підтвердити",
     clear: "Очистити",
     soon: "Незабаром",
     unavailable: "Тимчасово недоступно",
@@ -148,6 +149,10 @@ export const uk = {
     codes: errorCodesUk,
   },
   ...uiUk,
+  moderation: {
+    ...uiUk.moderation,
+    owner: "Власник",
+  },
   accountHome: {
     ...uiUk.accountHome,
     globalEventRemaining: "Залишилось {{time}}",
