@@ -8,6 +8,7 @@ import type { Route } from "../../model"
 import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import "./moderation-directory.css"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
 import { useIdentityDirectory } from "./useIdentityDirectory"
 
