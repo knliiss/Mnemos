@@ -13,15 +13,15 @@ export function App() {
       <NotificationHost />
       <RootErrorBoundary>
         <AuthGate>
-          <AppProvider>
-            <RealtimeProvider>
+          <RealtimeProvider>
+            <AppProvider>
               <MnemosDataProvider>
                 <LanguageSync>
                   <AppShell />
                 </LanguageSync>
               </MnemosDataProvider>
-            </RealtimeProvider>
-          </AppProvider>
+            </AppProvider>
+          </RealtimeProvider>
         </AuthGate>
       </RootErrorBoundary>
     </>
