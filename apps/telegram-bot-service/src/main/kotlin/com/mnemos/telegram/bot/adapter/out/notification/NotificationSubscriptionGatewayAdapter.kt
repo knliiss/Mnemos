@@ -15,6 +15,7 @@ import com.mnemos.telegram.bot.application.notification.model.NotificationSubscr
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionCreationGateway
 import com.mnemos.telegram.bot.application.notification.port.out.NotificationSubscriptionGateway
 import com.mnemos.telegram.bot.contracts.internal.subscription.TelegramCreateSubscriptionResponse
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.UUID
 
@@ -54,7 +55,8 @@ class NotificationSubscriptionGatewayAdapter(
                         subscription.type == NotificationSubscriptionType.RAID
                     },
             )
-        } catch (_: RuntimeException) {
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not load notification subscriptions from notification-service", exception)
             NotificationSubscriptionResult.Unavailable
         }
 
@@ -62,7 +64,7 @@ class NotificationSubscriptionGatewayAdapter(
         telegramId: Long,
         draft: NotificationItemDropSubscriptionDraft,
     ): NotificationSubscriptionCreationResult =
-        create {
+        create("create item-drop subscription") {
             client.createItemDropSubscription(
                 telegramId = telegramId,
                 request = draft.toContract(),
@@ -73,7 +75,7 @@ class NotificationSubscriptionGatewayAdapter(
         telegramId: Long,
         boosterType: NotificationBoosterType,
     ): NotificationSubscriptionCreationResult =
-        create {
+        create("create booster subscription") {
             client.createBoosterSubscription(
                 telegramId = telegramId,
                 request = boosterType.toContract(),
@@ -84,7 +86,7 @@ class NotificationSubscriptionGatewayAdapter(
         telegramId: Long,
         dungeonType: NotificationDungeonType,
     ): NotificationSubscriptionCreationResult =
-        create {
+        create("create dungeon subscription") {
             client.createDungeonSubscription(
                 telegramId = telegramId,
                 request = dungeonType.toContract(),
@@ -95,7 +97,7 @@ class NotificationSubscriptionGatewayAdapter(
         telegramId: Long,
         draft: NotificationRaidSubscriptionDraft,
     ): NotificationSubscriptionCreationResult =
-        create {
+        create("update raid subscription") {
             client.updateRaidSubscription(
                 telegramId = telegramId,
                 request = draft.toContract(),
@@ -106,7 +108,7 @@ class NotificationSubscriptionGatewayAdapter(
         telegramId: Long,
         eventType: NotificationGlobalType,
     ): NotificationSubscriptionCreationResult =
-        create {
+        create("create global subscription") {
             client.createGlobalSubscription(
                 telegramId = telegramId,
                 request = eventType.toContract(),
@@ -123,7 +125,8 @@ class NotificationSubscriptionGatewayAdapter(
                 subscriptionId = subscriptionId,
             )
             true
-        } catch (_: RuntimeException) {
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not delete notification subscription in notification-service", exception)
             false
         }
 
@@ -197,18 +200,24 @@ class NotificationSubscriptionGatewayAdapter(
     private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
         enumValues<T>().firstOrNull { enumValue -> enumValue.name == value.uppercase() }
 
-    private fun create(request: () -> TelegramCreateSubscriptionResponse): NotificationSubscriptionCreationResult =
+    private fun create(
+        operation: String,
+        request: () -> TelegramCreateSubscriptionResponse,
+    ): NotificationSubscriptionCreationResult =
         try {
             if (request().subscriptionId != null) {
                 NotificationSubscriptionCreationResult.APPLIED
             } else {
                 NotificationSubscriptionCreationResult.USER_NOT_FOUND
             }
-        } catch (_: RuntimeException) {
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not {} in notification-service", operation, exception)
             NotificationSubscriptionCreationResult.UNAVAILABLE
         }
 
     private companion object {
         const val INTERNAL_PAGE_SIZE = 20
+
+        val logger = LoggerFactory.getLogger(NotificationSubscriptionGatewayAdapter::class.java)
     }
 }

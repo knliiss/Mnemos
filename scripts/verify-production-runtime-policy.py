@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 NORMALIZER = ROOT / "scripts" / "normalize-production-swarm-stack.py"
 RECONCILER = ROOT / "scripts" / "reconcile-production-runtime-policy.py"
 OVERRIDES = ROOT / "infrastructure" / "production" / "compose.app-overrides.yml"
+RUNTIME_POLICY_WORKFLOW = ROOT / ".github" / "workflows" / "production-runtime-policy.yml"
 
 EXPECTED_ACTIVE_ACTIVE = {
     "account-service",
@@ -200,6 +201,76 @@ def verify_reconciler() -> None:
     if telegram[telegram.index("--update-order") + 1] != "stop-first":
         fail("Telegram bot updates must not overlap pollers")
 
+    cloudflared = reconciler.cloudflared_update_command("mnemos_cloudflared")
+
+    if "--image" in cloudflared:
+        fail("Cloudflared runtime reconciliation must not replace the image")
+
+    if cloudflared[cloudflared.index("--args") + 1] != reconciler.CLOUDFLARED_COMMAND:
+        fail("Cloudflared runtime reconciliation must apply the HTTP/2 command")
+
+    current_cloudflared = {
+        "TaskTemplate": {
+            "ContainerSpec": {
+                "Args": reconciler.CLOUDFLARED_COMMAND.split(),
+            }
+        }
+    }
+    legacy_cloudflared = {
+        "TaskTemplate": {
+            "ContainerSpec": {
+                "Args": [
+                    "tunnel",
+                    "run",
+                    "--token-file",
+                    "/run/secrets/cloudflare_tunnel_token",
+                ],
+            }
+        }
+    }
+
+    if not reconciler.cloudflared_policy_matches(current_cloudflared):
+        fail("Cloudflared HTTP/2 runtime must be recognized as reconciled")
+
+    if reconciler.cloudflared_policy_matches(legacy_cloudflared):
+        fail("Legacy Cloudflare Tunnel transport must require reconciliation")
+
+    if reconciler.CLOUDFLARED_COMMAND not in NORMALIZER.read_text(encoding="utf-8"):
+        fail("Normalizer and runtime reconciler disagree on the cloudflared command")
+
+
+def verify_workflow_workspace_hygiene() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+    ownership_repair = 'sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"'
+    checkout = "- name: Checkout approved production tooling"
+
+    if ownership_repair not in workflow:
+        fail("Production runtime policy must repair persistent-runner workspace ownership")
+
+    if workflow.index(ownership_repair) > workflow.index(checkout):
+        fail("Production runner workspace ownership must be repaired before checkout")
+
+    if workflow.count("PYTHONDONTWRITEBYTECODE=1") < 3:
+        fail("Privileged production Python calls must disable bytecode writes")
+
+    if "sudo -n python3 scripts/reconcile-production-runtime-policy.py" in workflow:
+        fail("Runtime reconciliation must not create root-owned Python bytecode")
+
+    if "sudo -n python3 scripts/production_runtime_state.py" in workflow:
+        fail("Runtime state observation must not create root-owned Python bytecode")
+
+
+def verify_workflow_state_recording() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+    root_owned_temp = 'state_tmp="$(sudo -n mktemp)"'
+    runner_owned_temp = 'state_tmp="$(mktemp)"'
+
+    if root_owned_temp not in workflow:
+        fail("Production runtime state recording must create its temp file as root")
+
+    if runner_owned_temp in workflow:
+        fail("Production runtime state recording must not pass a runner-owned /tmp file to root")
+
 
 def verify_executor() -> None:
     steps = production_deployment_executor.availability_steps()
@@ -220,6 +291,8 @@ def main() -> int:
         verify_moderation_pool()
         verify_normalizer()
         verify_reconciler()
+        verify_workflow_workspace_hygiene()
+        verify_workflow_state_recording()
         verify_executor()
     except (AssertionError, OSError, ValueError) as exception:
         print(f"Production runtime policy verification failed: {exception}", file=sys.stderr)

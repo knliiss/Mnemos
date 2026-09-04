@@ -4,7 +4,7 @@ set -eu
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 REPOSITORY_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 WORKFLOW="$REPOSITORY_ROOT/.github/workflows/cloudflare-pages.yml"
-FRONTEND_RUNNER='runs-on: [self-hosted, Linux, X64, mnemos-frontend]'
+FRONTEND_RUNNER='runs-on: ubuntu-24.04'
 DEPLOY_BRANCH='deploy/production-frontend'
 
 fail() {
@@ -100,10 +100,10 @@ if printf '%s\n' "$top_level_permissions" | grep -Eq '(deployments|statuses):[[:
 fi
 
 printf '%s\n' "$build_job" | grep -Fq "$FRONTEND_RUNNER" ||
-    fail "Cloudflare production build must use the trusted frontend runner"
+    fail "Cloudflare production build must use the pinned GitHub-hosted runner"
 
 printf '%s\n' "$deploy_job" | grep -Fq "$FRONTEND_RUNNER" ||
-    fail "Cloudflare production deploy must use the trusted frontend runner"
+    fail "Cloudflare production deploy must use the pinned GitHub-hosted runner"
 
 printf '%s\n' "$deploy_job" | grep -Fq 'environment: production' ||
     fail "Cloudflare production deploy must require the production environment boundary"
