@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { RefObject } from "react"
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   assignAdminMemberRole,
@@ -143,7 +142,9 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
       return
     }
 
-    void loadMemberRoles(selectedMemberId).catch(handleError)
+    void Promise.resolve()
+      .then(() => loadMemberRoles(selectedMemberId))
+      .catch(handleError)
   }, [loadMemberRoles, memberRoles, selectedMemberId, workspace])
 
   useEffect(() => {
