@@ -300,8 +300,8 @@ jobs:
               --realm mnemos \
               --client "$moderation_client_id" \
               --secret "$moderation_client_secret" \
-              --query "q=mnemos_user_id:__mnemos_permission_probe__" \
-              --query "max=1" \
+              -q "q=mnemos_user_id:__mnemos_permission_probe__" \
+              -q "max=1" \
               >/dev/null
 
           echo "Moderation Keycloak query permission verified"
