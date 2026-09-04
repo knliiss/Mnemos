@@ -92,6 +92,8 @@ export type SanctionChangedEvent = RealtimeEventEnvelope<
     userId: string
     type: "BAN" | "NOTIFICATION_SUSPENSION"
     status: "ACTIVE" | "REVOKED" | "EXPIRED"
+    reason?: string | null
+    expiresAt?: string | null
   }
 >
 

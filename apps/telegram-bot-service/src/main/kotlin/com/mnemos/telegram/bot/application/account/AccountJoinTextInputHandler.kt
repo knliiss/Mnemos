@@ -36,7 +36,7 @@ class AccountJoinTextInputHandler(
                     AccountMenuContext.joined()
                 }
 
-            TelegramAccountMutationResult.Invalid ->
+            is TelegramAccountMutationResult.Invalid ->
                 updatePending(context.telegramId, AccountMenuContext.joinInvalid())
 
             TelegramAccountMutationResult.Unavailable ->

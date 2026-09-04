@@ -7,5 +7,7 @@ import java.time.Instant
 data class ActiveBanView(
     val sanctionId: SanctionId,
     val userId: UserId,
+    val reason: String,
     val occurredAt: Instant,
+    val expiresAt: Instant?,
 )

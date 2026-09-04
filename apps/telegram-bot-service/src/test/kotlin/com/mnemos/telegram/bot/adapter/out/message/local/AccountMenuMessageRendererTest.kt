@@ -113,8 +113,9 @@ class AccountMenuMessageRendererTest {
         val message = AccountMenuMessageRenderer.render(data)
         val callbacks = message.actions.filterIsInstance<OutboundTelegramMessageAction.Callback>()
 
-        assertTrue(message.text.contains("ник Cristalix"))
-        assertTrue(message.text.contains("отправьте его ещё раз"))
+        assertTrue(message.text.contains("Отправьте <b>ник Cristalix</b> обычным сообщением."))
+        assertTrue(message.text.contains("Ник Cristalix имеет неверный формат"))
+        assertTrue(message.text.contains("4–20 букв, цифр или <code>_</code>"))
         assertTrue(callbacks.any { action -> action.data == AccountCallbackData.CANCEL_INPUT })
         assertFalse(callbacks.any { action -> action.data == AccountCallbackData.JOIN })
     }

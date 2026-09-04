@@ -13,7 +13,7 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer
 
 @Configuration(proxyBeanMethods = false)
 class RealtimeDeliveryConfiguration {
-    @Bean
+    @Bean(initMethod = "start", destroyMethod = "stop")
     fun realtimeEventStreamListenerContainer(
         connectionFactory: RedisConnectionFactory,
         listener: RedisRealtimeEventStreamListener,

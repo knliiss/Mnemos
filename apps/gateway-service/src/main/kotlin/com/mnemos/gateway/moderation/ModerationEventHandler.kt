@@ -34,7 +34,13 @@ class ModerationEventHandler(
         cache.activate(
             sanctionId = sanction.sanctionId,
             userId = sanction.userId,
+            reason = sanction.reason ?: DEFAULT_REASON,
             occurredAt = sanction.occurredAt,
+            expiresAt = sanction.expiresAt,
         )
+    }
+
+    private companion object {
+        const val DEFAULT_REASON = "Ban reason is unavailable"
     }
 }

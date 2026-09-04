@@ -18,7 +18,9 @@ class GetActiveBansService(
                 ActiveBanView(
                     sanctionId = sanction.id,
                     userId = sanction.userId,
+                    reason = sanction.reason,
                     occurredAt = sanction.createdAt,
+                    expiresAt = sanction.expiresAt,
                 )
             }
 }

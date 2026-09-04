@@ -11,6 +11,13 @@ export interface ApiErrorBody {
   timestamp?: string
 }
 
+export type UserBanDetails = {
+  sanctionId: string
+  reason: string
+  occurredAt: string
+  expiresAt: string | null
+}
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -55,6 +62,38 @@ export async function apiBlob(path: string, options: RequestInit = {}): Promise<
   const response = await authenticatedResponse(path, options)
 
   return response.blob()
+}
+
+export function getUserBanDetails(error: unknown): UserBanDetails | null {
+  if (!(error instanceof ApiError) || error.status !== 403 || typeof error.body === "string") {
+    return null
+  }
+
+  if (error.body.code !== "USER_BANNED" || !error.body.details) {
+    return null
+  }
+
+  const details = error.body.details
+  const sanctionId = details.sanctionId
+  const reason = details.reason
+  const occurredAt = details.occurredAt
+  const expiresAt = details.expiresAt
+
+  if (
+    typeof sanctionId !== "string" ||
+    typeof reason !== "string" ||
+    typeof occurredAt !== "string" ||
+    (typeof expiresAt !== "string" && expiresAt !== null)
+  ) {
+    return null
+  }
+
+  return {
+    sanctionId,
+    reason,
+    occurredAt,
+    expiresAt,
+  }
 }
 
 export function isServiceUnavailableError(error: unknown): boolean {

@@ -38,6 +38,8 @@ object SanctionIntegrationEventMapper {
                     type = type.toContract(),
                     status = status.toContract(),
                     occurredAt = occurredAt,
+                    reason = reason,
+                    expiresAt = expiresAt,
                 ),
         )
 

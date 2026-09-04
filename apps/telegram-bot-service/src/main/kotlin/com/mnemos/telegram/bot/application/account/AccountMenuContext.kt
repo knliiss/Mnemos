@@ -19,6 +19,10 @@ object AccountMenuContext {
 
     fun createInvalid(): Map<String, String> = feedback(AccountMenuFeedbackType.CREATE_INVALID)
 
+    fun createIdentityConflict(): Map<String, String> = feedback(AccountMenuFeedbackType.CREATE_IDENTITY_CONFLICT)
+
+    fun createPlayerNotFound(): Map<String, String> = feedback(AccountMenuFeedbackType.CREATE_PLAYER_NOT_FOUND)
+
     fun joinInvalid(): Map<String, String> = feedback(AccountMenuFeedbackType.JOIN_INVALID)
 
     fun unavailable(): Map<String, String> = feedback(AccountMenuFeedbackType.UNAVAILABLE)

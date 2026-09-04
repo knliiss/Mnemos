@@ -309,7 +309,13 @@ object AccountMenuMessageRenderer {
             AccountMenuFeedbackType.CREATED -> "✅ Cristalix-аккаунт создан и выбран активным."
             AccountMenuFeedbackType.JOINED -> "✅ Вы присоединились к аккаунту, он выбран активным."
             AccountMenuFeedbackType.CREATE_INVALID ->
-                "⚠️ Не удалось создать аккаунт. Проверьте ник Cristalix и отправьте его ещё раз."
+                "⚠️ Ник Cristalix имеет неверный формат. Отправьте ник из 4–20 букв, цифр или <code>_</code>."
+
+            AccountMenuFeedbackType.CREATE_IDENTITY_CONFLICT ->
+                "⚠️ Этот Cristalix-аккаунт уже зарегистрирован в Mnemos и не может быть создан повторно. Если это ваш аккаунт, присоединитесь к нему по приглашению."
+
+            AccountMenuFeedbackType.CREATE_PLAYER_NOT_FOUND ->
+                "⚠️ Игрок Cristalix с таким ником не найден. Проверьте написание и отправьте ник ещё раз."
 
             AccountMenuFeedbackType.JOIN_INVALID ->
                 "⚠️ Код приглашения недействителен или больше недоступен. Отправьте другой код."

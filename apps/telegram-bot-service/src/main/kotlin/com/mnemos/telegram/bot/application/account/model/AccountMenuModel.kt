@@ -61,7 +61,9 @@ sealed interface TelegramAccountSwitchResult {
 sealed interface TelegramAccountMutationResult {
     data object Updated : TelegramAccountMutationResult
 
-    data object Invalid : TelegramAccountMutationResult
+    data class Invalid(
+        val code: String? = null,
+    ) : TelegramAccountMutationResult
 
     data object Unavailable : TelegramAccountMutationResult
 }
@@ -82,6 +84,8 @@ enum class AccountMenuFeedbackType {
     CREATED,
     JOINED,
     CREATE_INVALID,
+    CREATE_IDENTITY_CONFLICT,
+    CREATE_PLAYER_NOT_FOUND,
     JOIN_INVALID,
     UNAVAILABLE,
 }
