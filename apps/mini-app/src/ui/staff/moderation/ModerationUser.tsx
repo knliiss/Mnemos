@@ -57,7 +57,9 @@ export function ModerationUser({ params, navigate, back }: Props) {
   }
 
   const identity = controller.identity
-  const activeSanctions = controller.sanctions.filter((sanction) => sanction.status === "ACTIVE").length
+  const activeSanctions = controller.sanctions.filter(
+    (sanction) => sanction.status === "ACTIVE",
+  ).length
   const tabs = [
     { id: "overview", label: copy.overviewTab },
     { id: "sanctions", label: copy.sanctionsTab, badge: activeSanctions },
