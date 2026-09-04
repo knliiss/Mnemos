@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 NORMALIZER = ROOT / "scripts" / "normalize-production-swarm-stack.py"
 RECONCILER = ROOT / "scripts" / "reconcile-production-runtime-policy.py"
 OVERRIDES = ROOT / "infrastructure" / "production" / "compose.app-overrides.yml"
+RUNTIME_POLICY_WORKFLOW = ROOT / ".github" / "workflows" / "production-runtime-policy.yml"
 
 EXPECTED_ACTIVE_ACTIVE = {
     "account-service",
@@ -238,6 +239,18 @@ def verify_reconciler() -> None:
         fail("Normalizer and runtime reconciler disagree on the cloudflared command")
 
 
+def verify_workflow_state_recording() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+    root_owned_temp = 'state_tmp="$(sudo -n mktemp)"'
+    runner_owned_temp = 'state_tmp="$(mktemp)"'
+
+    if root_owned_temp not in workflow:
+        fail("Production runtime state recording must create its temp file as root")
+
+    if runner_owned_temp in workflow:
+        fail("Production runtime state recording must not pass a runner-owned /tmp file to root")
+
+
 def verify_executor() -> None:
     steps = production_deployment_executor.availability_steps()
 
@@ -257,6 +270,7 @@ def main() -> int:
         verify_moderation_pool()
         verify_normalizer()
         verify_reconciler()
+        verify_workflow_state_recording()
         verify_executor()
     except (AssertionError, OSError, ValueError) as exception:
         print(f"Production runtime policy verification failed: {exception}", file=sys.stderr)
