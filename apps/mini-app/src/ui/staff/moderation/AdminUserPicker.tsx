@@ -31,6 +31,7 @@ export function AdminUserPicker({
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const excluded = useMemo(() => new Set(excludedUserIds), [excludedUserIds])
+  const pickerOpen = open && !disabled
 
   useEffect(() => {
     const normalized = query.trim()
@@ -79,7 +80,7 @@ export function AdminUserPicker({
   }, [disabled, excluded, query, selected])
 
   useEffect(() => {
-    if (!open) {
+    if (!pickerOpen) {
       return
     }
 
@@ -99,14 +100,7 @@ export function AdminUserPicker({
     return () => {
       document.removeEventListener("pointerdown", closeOnOutsidePointer)
     }
-  }, [open])
-
-  useEffect(() => {
-    if (disabled) {
-      setOpen(false)
-      setActiveIndex(-1)
-    }
-  }, [disabled])
+  }, [pickerOpen])
 
   const closePicker = () => {
     setOpen(false)
@@ -155,7 +149,7 @@ export function AdminUserPicker({
   }
 
   const activeOptionId =
-    open && activeIndex >= 0 && results[activeIndex]
+    pickerOpen && activeIndex >= 0 && results[activeIndex]
       ? `${listboxId}-option-${results[activeIndex].userId}`
       : undefined
 
@@ -206,7 +200,7 @@ export function AdminUserPicker({
             spellCheck={false}
             placeholder={placeholder}
             aria-autocomplete="list"
-            aria-expanded={open && query.trim().length >= 2}
+            aria-expanded={pickerOpen && query.trim().length >= 2}
             aria-controls={listboxId}
             aria-activedescendant={activeOptionId}
             onFocus={() => setOpen(true)}
@@ -239,7 +233,7 @@ export function AdminUserPicker({
         </div>
       )}
 
-      {!selected && open && query.trim().length >= 2 ? (
+      {!selected && pickerOpen && query.trim().length >= 2 ? (
         <div id={listboxId} className="admin-user-picker__results" role="listbox">
           {loading && results.length === 0 ? (
             <div className="admin-user-picker__state">{t("common.loading")}</div>
@@ -270,7 +264,7 @@ export function AdminUserPicker({
                 </span>
                 <em>{t("moderation.accountCount", { count: candidate.accountCount })}</em>
               </button>
-            ))}
+            )))
           )}
         </div>
       ) : null}
