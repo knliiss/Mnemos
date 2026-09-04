@@ -50,7 +50,12 @@ class NotificationServiceClientPatchIntegrationTest {
             )
 
         val body = objectMapper.readTree(requestBodies.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-        val locations = body.path("locations").map { node -> node.asInt() }.toSet()
+        val locationsNode = body.path("locations")
+        val locations =
+            setOf(
+                locationsNode.path(0).asInt(),
+                locationsNode.path(1).asInt(),
+            )
 
         assertEquals(SUBSCRIPTION_ID, response.subscriptionId)
         assertEquals("PATCH", requestMethods.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
