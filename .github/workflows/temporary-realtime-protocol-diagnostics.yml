@@ -16,15 +16,10 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Inspect affected collector credential state
+      - name: Inspect affected collector credential metadata
         shell: bash
         run: |
           set -euo pipefail
-
-          echo '=== PRODUCTION DATABASE CONTAINERS ==='
-          sudo -n docker ps \
-            --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' \
-            | grep -E 'NAMES|postgres'
 
           postgres_container="$(
             sudo -n docker ps --format '{{.Names}}' \
@@ -37,13 +32,10 @@ jobs:
             exit 1
           fi
 
-          echo "Using PostgreSQL container: $postgres_container"
-          echo '=== COLLECTOR CREDENTIAL STATE ==='
-
           sudo -n docker exec "$postgres_container" sh -lc '
             psql \
               -U "$POSTGRES_USER" \
               -d "$POSTGRES_DB" \
-              -At \
-              -c "SELECT id, enabled, revoked_at IS NOT NULL FROM realtime.collector_credentials WHERE id = '\''01a04aaf-73b2-7ff4-a422-90a13e3503d7'\'';"
+              -P pager=off \
+              -c "SELECT id, name, enabled, created_at, updated_at, revoked_at FROM realtime.collector_credentials WHERE id = '\''01a04aaf-73b2-7ff4-a422-90a13e3503d7'\'';"
           '
