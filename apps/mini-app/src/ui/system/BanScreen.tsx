@@ -142,5 +142,10 @@ function calculateCountdown(expiresAt: string | null, currentTime: number): Coun
 }
 
 function isFinished(countdown: Countdown): boolean {
-  return countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 && countdown.seconds === 0
+  return (
+    countdown.days === 0 &&
+    countdown.hours === 0 &&
+    countdown.minutes === 0 &&
+    countdown.seconds === 0
+  )
 }
