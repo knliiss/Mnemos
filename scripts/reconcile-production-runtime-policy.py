@@ -19,6 +19,10 @@ REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 STACK_NAME = os.environ.get("MNEMOS_SWARM_STACK_NAME", "mnemos").strip() or "mnemos"
 WAIT_SCRIPT = REPOSITORY_ROOT / "scripts" / "wait-production-service.sh"
 AVAILABILITY_SCRIPT = REPOSITORY_ROOT / "scripts" / "verify-production-availability.sh"
+CLOUDFLARED_SERVICE = "cloudflared"
+CLOUDFLARED_COMMAND = (
+    "tunnel --protocol http2 run --token-file /run/secrets/cloudflare_tunnel_token"
+)
 
 
 class ProductionRuntimePolicyError(RuntimeError):
@@ -97,6 +101,18 @@ def service_image(specification: dict[str, Any], runtime_name: str) -> str:
     return image
 
 
+def service_arguments(specification: dict[str, Any]) -> list[str]:
+    try:
+        arguments = specification["TaskTemplate"]["ContainerSpec"].get("Args", [])
+    except (KeyError, TypeError):
+        return []
+
+    if not isinstance(arguments, list):
+        return []
+
+    return [argument for argument in arguments if isinstance(argument, str)]
+
+
 def service_environment(specification: dict[str, Any]) -> dict[str, str]:
     try:
         raw_environment = specification["TaskTemplate"]["ContainerSpec"].get("Env", [])
@@ -171,6 +187,10 @@ def policy_matches(
     )
 
 
+def cloudflared_policy_matches(specification: dict[str, Any]) -> bool:
+    return " ".join(service_arguments(specification)).strip() == CLOUDFLARED_COMMAND
+
+
 def run_availability_guard() -> None:
     subprocess.run(
         ["sh", str(AVAILABILITY_SCRIPT)],
@@ -221,6 +241,33 @@ def update_command(
     return command
 
 
+def cloudflared_update_command(runtime_name: str) -> list[str]:
+    return [
+        "docker",
+        "service",
+        "update",
+        "--detach=true",
+        "--args",
+        CLOUDFLARED_COMMAND,
+        runtime_name,
+    ]
+
+
+def wait_for_service(runtime_name: str, image: str) -> None:
+    subprocess.run(
+        [
+            "sh",
+            str(WAIT_SCRIPT),
+            runtime_name,
+            image,
+            "300",
+            "15",
+        ],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+    )
+
+
 def reconcile_service(service_name: str) -> bool:
     runtime_name = f"{STACK_NAME}_{service_name}"
     before = inspect_service(runtime_name)
@@ -245,18 +292,7 @@ def reconcile_service(service_name: str) -> bool:
         check=True,
     )
 
-    subprocess.run(
-        [
-            "sh",
-            str(WAIT_SCRIPT),
-            runtime_name,
-            image,
-            "300",
-            "15",
-        ],
-        cwd=REPOSITORY_ROOT,
-        check=True,
-    )
+    wait_for_service(runtime_name, image)
 
     after = inspect_service(runtime_name)
     after_image = service_image(after, runtime_name)
@@ -276,6 +312,43 @@ def reconcile_service(service_name: str) -> bool:
     return True
 
 
+def reconcile_cloudflared() -> bool:
+    runtime_name = f"{STACK_NAME}_{CLOUDFLARED_SERVICE}"
+    before = inspect_service(runtime_name)
+    image = service_image(before, runtime_name)
+
+    if cloudflared_policy_matches(before):
+        print("Production runtime policy already current: cloudflared")
+        return False
+
+    print("Reconciling production runtime policy: cloudflared transport=http2")
+
+    subprocess.run(
+        cloudflared_update_command(runtime_name),
+        cwd=REPOSITORY_ROOT,
+        check=True,
+    )
+
+    wait_for_service(runtime_name, image)
+
+    after = inspect_service(runtime_name)
+    after_image = service_image(after, runtime_name)
+
+    if after_image != image:
+        raise ProductionRuntimePolicyError(
+            "Runtime policy reconciliation changed the cloudflared image: "
+            f"before={image} after={after_image}"
+        )
+
+    if not cloudflared_policy_matches(after):
+        raise ProductionRuntimePolicyError(
+            "Runtime policy did not converge for cloudflared HTTP/2 transport"
+        )
+
+    run_availability_guard()
+    return True
+
+
 def main() -> int:
     try:
         require_root()
@@ -287,6 +360,9 @@ def main() -> int:
         for service_name in APPLICATION_SERVICES:
             if reconcile_service(service_name):
                 changed.append(service_name)
+
+        if reconcile_cloudflared():
+            changed.append(CLOUDFLARED_SERVICE)
 
         run_availability_guard()
 

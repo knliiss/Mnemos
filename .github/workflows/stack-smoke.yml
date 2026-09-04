@@ -85,7 +85,35 @@ jobs:
             set_env "$key" "ci-${GITHUB_RUN_ID}-${key}-secure-value"
           done
 
-          port_base=$((40000 + GITHUB_RUN_ID % 10000))
+          preferred_port_base=$((40000 + GITHUB_RUN_ID % 18000))
+          port_base=""
+
+          for attempt in $(seq 0 199); do
+            candidate=$((40000 + (preferred_port_base - 40000 + attempt * 7) % 18000))
+            candidate=$((candidate - candidate % 7))
+            block_free=true
+
+            for offset in $(seq 0 6); do
+              port=$((candidate + offset))
+
+              if [ "$port" -gt 65535 ] || ss -H -ltn "sport = :$port" | grep -q .; then
+                block_free=false
+                break
+              fi
+            done
+
+            if [ "$block_free" = true ]; then
+              port_base="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$port_base" ]; then
+            echo "Could not find a free seven-port block for Stack Smoke" >&2
+            exit 1
+          fi
+
+          echo "Using isolated host port block ${port_base}-$((port_base + 6))"
 
           set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
           set_env APP_POSTGRES_HOST_PORT "$port_base"

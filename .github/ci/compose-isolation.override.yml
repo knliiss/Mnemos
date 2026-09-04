@@ -54,6 +54,10 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}-social-service"
     image: "${COMPOSE_PROJECT_NAME}/social-service:${SOCIAL_SERVICE_VERSION:-local}"
 
+  telegram-bot-service:
+    container_name: "${COMPOSE_PROJECT_NAME}-telegram-bot-service"
+    image: "${COMPOSE_PROJECT_NAME}/telegram-bot-service:${TELEGRAM_BOT_SERVICE_VERSION:-local}"
+
   wallet-service:
     container_name: "${COMPOSE_PROJECT_NAME}-wallet-service"
     image: "${COMPOSE_PROJECT_NAME}/wallet-service:${WALLET_SERVICE_VERSION:-local}"
