@@ -1,0 +1,37 @@
+name: Temporary Realtime Protocol Diagnostics
+
+on:
+  push:
+    branches:
+      - diagnostics/realtime-protocol-error
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+
+    steps:
+      - name: Inspect recent realtime-service protocol failures
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo '=== REALTIME SERVICE TASKS ==='
+          docker service ps \
+            --no-trunc \
+            --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+            mnemos_realtime-service
+
+          echo '=== MATCHING REALTIME LOGS ==='
+          docker service logs \
+            --since 30m \
+            --timestamps \
+            mnemos_realtime-service 2>&1 \
+            | grep -E '01a04aaf-73b2-7ff4-a422-90a13e3503d7|Collector WebSocket transport error|Protocol error|WebSocket|sessionId=' \
+            | tail -n 500 \
+            || true
