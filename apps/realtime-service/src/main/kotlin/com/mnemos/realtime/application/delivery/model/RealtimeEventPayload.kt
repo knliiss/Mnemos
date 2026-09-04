@@ -1,5 +1,6 @@
 package com.mnemos.realtime.application.delivery.model
 
+import java.time.Instant
 import java.util.UUID
 
 sealed interface RealtimeEventPayload
@@ -88,6 +89,8 @@ data class SanctionChangedPayload(
     val userId: UUID,
     val type: String,
     val status: String,
+    val reason: String?,
+    val expiresAt: Instant?,
 ) : RealtimeEventPayload
 
 fun RealtimeEventPayload.eventType(): RealtimeEventType =
