@@ -85,7 +85,7 @@ jobs:
             set_env "$key" "ci-${GITHUB_RUN_ID}-${key}-secure-value"
           done
 
-          preferred_port_base=$((40000 + GITHUB_RUN_ID % 18000))
+          preferred_port_base=$((40000 + (GITHUB_RUN_ID + GITHUB_RUN_ATTEMPT * 7919) % 18000))
           port_base=""
 
           for attempt in $(seq 0 199); do
@@ -115,7 +115,7 @@ jobs:
 
           echo "Using isolated host port block ${port_base}-$((port_base + 6))"
 
-          set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}"
+          set_env COMPOSE_PROJECT_NAME "mnemos-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           set_env APP_POSTGRES_HOST_PORT "$port_base"
           set_env KEYCLOAK_POSTGRES_HOST_PORT "$((port_base + 1))"
           set_env KEYCLOAK_HOST_PORT "$((port_base + 2))"

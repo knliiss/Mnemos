@@ -28,6 +28,16 @@ spring:
               predicates:
                 - Path=/api/v1/accounts/*/balances/**,/api/v1/accounts/*/transactions/**,/api/v1/accounts/*/coin-purchases/**,/api/v1/users/me/balances/**,/api/v1/users/me/transactions/**,/api/v1/wallet/leaderboards/**
 
+            - id: wallet-admin-account-transactions
+              uri: ${WALLET_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/admin/accounts/*/transactions,/api/v1/admin/accounts/*/transactions/**
+
+            - id: personalization-admin-account
+              uri: ${PERSONALIZATION_SERVICE_URL:http://localhost:8089}
+              predicates:
+                - Path=/api/v1/admin/accounts/*/personalizations,/api/v1/admin/accounts/*/personalizations/**
+
             - id: social-api
               uri: ${SOCIAL_SERVICE_URL:http://localhost:8090}
               predicates:
