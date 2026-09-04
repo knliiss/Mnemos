@@ -155,10 +155,11 @@ public final class TelegramAuthenticator implements Authenticator {
                 throw new IllegalArgumentException("Telegram user is disabled");
             }
 
+            synchronizeGeneratedUsername(session, realm, existingUser, telegramUser);
             return existingUser;
         }
 
-        String username = resolveUsername(telegramUser);
+        String username = resolveAvailableUsername(session, realm, telegramUser, null);
         UserModel user = session.users().addUser(realm, username);
 
         user.setEnabled(true);
@@ -171,6 +172,76 @@ public final class TelegramAuthenticator implements Authenticator {
         );
 
         return user;
+    }
+
+    private void synchronizeGeneratedUsername(
+            KeycloakSession session,
+            RealmModel realm,
+            UserModel user,
+            TelegramUser telegramUser
+    ) {
+        if (!isGeneratedUsername(user.getUsername(), telegramUser.id())) {
+            return;
+        }
+
+        String username = resolveAvailableUsername(session, realm, telegramUser, user);
+
+        if (!user.getUsername().equals(username)) {
+            user.setUsername(username);
+        }
+    }
+
+    private String resolveAvailableUsername(
+            KeycloakSession session,
+            RealmModel realm,
+            TelegramUser telegramUser,
+            UserModel currentUser
+    ) {
+        String preferred = resolveUsername(telegramUser);
+
+        if (isUsernameAvailable(session, realm, preferred, currentUser)) {
+            return preferred;
+        }
+
+        String collisionUsername = preferred + "_" + telegramUser.id();
+
+        if (isUsernameAvailable(session, realm, collisionUsername, currentUser)) {
+            return collisionUsername;
+        }
+
+        throw new IllegalArgumentException(
+                "No Keycloak username is available for Telegram user " + telegramUser.id()
+        );
+    }
+
+    private boolean isUsernameAvailable(
+            KeycloakSession session,
+            RealmModel realm,
+            String username,
+            UserModel currentUser
+    ) {
+        UserModel existingUser = session.users().getUserByUsername(realm, username);
+
+        if (existingUser == null) {
+            return true;
+        }
+
+        return currentUser != null && existingUser.getId().equals(currentUser.getId());
+    }
+
+    private boolean isGeneratedUsername(String username, long telegramUserId) {
+        return username.equalsIgnoreCase("telegram_" + telegramUserId)
+                || username.equals(Long.toString(telegramUserId));
+    }
+
+    private String resolveUsername(TelegramUser telegramUser) {
+        String telegramUsername = telegramUser.username();
+
+        if (telegramUsername != null && !telegramUsername.isBlank()) {
+            return telegramUsername.trim();
+        }
+
+        return Long.toString(telegramUser.id());
     }
 
     private void updateUser(UserModel user, TelegramUser telegramUser) {
@@ -265,41 +336,6 @@ public final class TelegramAuthenticator implements Authenticator {
                         .entity(message)
                         .build()
         );
-    }
-
-    private String resolveUsername(TelegramUser telegramUser) {
-        String telegramUsername = telegramUser.username();
-
-        if (telegramUsername != null && !telegramUsername.isBlank()) {
-            return telegramUsername;
-        }
-
-        String baseName = firstNonBlank(
-                telegramUser.firstName(),
-                telegramUser.lastName(),
-                "unknown"
-        );
-
-        return normalizeUsername(baseName) + "_" + telegramUser.id();
-    }
-
-    private String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-
-        return "unknown";
-    }
-
-    private String normalizeUsername(String value) {
-        String normalized = value.trim()
-                .toLowerCase()
-                .replaceAll("\\s+", "_")
-                .replaceAll("[^a-z0-9._-]", "");
-
-        return normalized.isBlank() ? "unknown" : normalized;
     }
 
     @Override
