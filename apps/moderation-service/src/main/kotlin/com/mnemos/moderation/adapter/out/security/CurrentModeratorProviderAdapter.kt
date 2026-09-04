@@ -13,7 +13,7 @@ class CurrentModeratorProviderAdapter(
 ) : CurrentModeratorProvider {
     override fun current(): ModeratorActor {
         val principal = currentMnemosUser.get()
-        val userId = requireNotNull(principal.userId)
+        val userId = currentMnemosUser.requireUserId()
         val role =
             when {
                 UserRole.SUPER_ADMIN in principal.roles -> UserRole.SUPER_ADMIN
