@@ -48,6 +48,15 @@ vi.mock("@/pages/loading/LoadingPage", () => ({
   LoadingPage: ({ label }: { label: string }) => <div data-testid="loading-page">{label}</div>,
 }))
 
+vi.mock("@/ui/system/BanScreen", () => ({
+  BanScreen: ({ ban }: { ban: { reason: string; expiresAt: string | null } }) => (
+    <div data-testid="ban-screen">
+      <span data-testid="ban-reason">{ban.reason}</span>
+      <span data-testid="ban-expiry">{ban.expiresAt ?? "permanent"}</span>
+    </div>
+  ),
+}))
+
 vi.mock("@/ui/system/ServiceUnavailableScreen", () => ({
   ServiceUnavailableScreen: () => <div data-testid="service-unavailable" />,
 }))
@@ -173,5 +182,44 @@ describe("AppProvider bootstrap", () => {
       expect(mocks.getCurrentContext).toHaveBeenCalledTimes(2)
       expect(screen.getByTestId("context-username").textContent).toBe("refreshed-user")
     })
+  })
+
+  it("shows ban screen immediately after realtime ban activation", async () => {
+    mocks.getCurrentContext.mockResolvedValue(currentContext)
+
+    render(
+      <AppProvider>
+        <ContextProbe />
+      </AppProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId("context-username").textContent).toBe("tester")
+    })
+
+    act(() => {
+      realtimeEvents.publish({
+        id: "019c1129-ef54-7000-8000-000000000421",
+        type: "moderation.sanction.activated",
+        occurredAt: "2026-09-03T01:00:00Z",
+        operationId: null,
+        payload: {
+          sanctionId: "019c1129-ef54-7000-8000-000000000422",
+          userId: "019c1129-ef54-7000-8000-000000000423",
+          type: "BAN",
+          status: "ACTIVE",
+          reason: "Repeated abuse",
+          expiresAt: "2026-09-04T01:00:00Z",
+        },
+      })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ban-screen")).toBeTruthy()
+      expect(screen.getByTestId("ban-reason").textContent).toBe("Repeated abuse")
+      expect(screen.getByTestId("ban-expiry").textContent).toBe("2026-09-04T01:00:00Z")
+    })
+
+    expect(screen.queryByTestId("context-username")).toBeNull()
   })
 })
