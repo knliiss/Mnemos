@@ -26,7 +26,8 @@ export const systemEn = {
   ban: {
     eyebrow: "ACCESS SUSPENDED",
     title: "Your Mnemos access is blocked",
-    description: "This restriction applies to your Mnemos user account until the sanction is lifted.",
+    description:
+      "This restriction applies to your Mnemos user account until the sanction is lifted.",
     reason: "Reason",
     reasonUnavailable: "No reason was provided.",
     remaining: "Time until unban",
