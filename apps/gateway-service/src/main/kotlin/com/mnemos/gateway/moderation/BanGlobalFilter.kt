@@ -1,6 +1,5 @@
 package com.mnemos.gateway.moderation
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.GlobalFilter
 import org.springframework.core.Ordered
@@ -11,6 +10,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
+import tools.jackson.databind.ObjectMapper
 import java.util.Optional
 import java.util.UUID
 
