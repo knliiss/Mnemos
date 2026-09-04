@@ -32,7 +32,7 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
   }
 
   const selectAccount = async (account: Account) => {
-    if (!account.active || switchingAccountId) {
+    if (account.active === false || switchingAccountId) {
       return
     }
 
@@ -68,14 +68,15 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
           <div className="account-access-landing__account-list">
             {data.accounts.map((account) => {
               const switching = switchingAccountId === account.id
+              const selectable = account.active !== false
 
               return (
                 <motion.button
                   key={account.id}
                   type="button"
                   className="account-access-landing__account"
-                  whileTap={account.active ? { scale: 0.985 } : undefined}
-                  disabled={!account.active || Boolean(switchingAccountId)}
+                  whileTap={selectable ? { scale: 0.985 } : undefined}
+                  disabled={!selectable || Boolean(switchingAccountId)}
                   onClick={() => void selectAccount(account)}
                 >
                   <span className="account-access-landing__skin" aria-hidden="true">
@@ -93,12 +94,12 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
 
                   <span
                     className={`account-access-landing__account-state ${
-                      account.active ? "is-active" : "is-inactive"
+                      selectable ? "is-active" : "is-inactive"
                     }`}
                   >
                     {switching
                       ? t("appShell.userMenu.switching")
-                      : account.active
+                      : selectable
                         ? "→"
                         : t("appShell.userMenu.inactive")}
                   </span>
