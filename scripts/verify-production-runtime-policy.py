@@ -71,7 +71,7 @@ def verify_classification() -> None:
             fail(f"Unexpected replica policy for {service_name}")
 
         if production_runtime_policy.update_order(service_name) != expected_order:
-            fail(f"Unexpected update order for {service_name}")
+            fail(f"Unexpected update policy for {service_name}")
 
 
 def verify_ordering() -> None:
@@ -263,6 +263,26 @@ def verify_workflow_workspace_hygiene() -> None:
         fail("Runtime state observation must not create root-owned Python bytecode")
 
 
+def verify_workflow_env_reading() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+
+    if ". /etc/mnemos/mnemos.env" in workflow:
+        fail("Production runtime policy must not source the full production env file")
+
+    required_fragments = (
+        "read_env_value()",
+        'sudo -n awk -v key="$key"',
+        'host_bind_address="$(read_env_value MNEMOS_HOST_BIND_ADDRESS)"',
+        'keycloak_host_port="$(read_env_value KEYCLOAK_HOST_PORT)"',
+        'moderation_client_id="$(read_env_value MNEMOS_MODERATION_SERVICE_CLIENT_ID)"',
+        'moderation_client_secret="$(read_env_value KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET)"',
+    )
+
+    for fragment in required_fragments:
+        if fragment not in workflow:
+            fail(f"Production runtime policy is missing safe env read guard: {fragment}")
+
+
 def verify_workflow_state_recording() -> None:
     workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
     root_owned_temp = 'state_tmp="$(sudo -n mktemp)"'
@@ -351,6 +371,7 @@ def main() -> int:
         verify_normalizer()
         verify_reconciler()
         verify_workflow_workspace_hygiene()
+        verify_workflow_env_reading()
         verify_workflow_state_recording()
         verify_workflow_authorization_boundary()
         verify_executor()
