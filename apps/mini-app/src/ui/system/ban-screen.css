@@ -13,8 +13,7 @@
   border: 1px solid rgba(226, 99, 99, 0.2);
   border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(80, 24, 30, 0.16), rgba(13, 17, 14, 0.9)),
-    rgba(13, 17, 14, 0.92);
+    linear-gradient(180deg, rgba(80, 24, 30, 0.16), rgba(13, 17, 14, 0.9)), rgba(13, 17, 14, 0.92);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
 }
 
@@ -27,11 +26,7 @@
   border-radius: 18px;
   background:
     radial-gradient(circle at 50% 76%, rgba(214, 173, 104, 0.12), transparent 36%),
-    repeating-linear-gradient(
-      135deg,
-      rgba(234, 194, 74, 0.035) 0 12px,
-      transparent 12px 24px
-    );
+    repeating-linear-gradient(135deg, rgba(234, 194, 74, 0.035) 0 12px, transparent 12px 24px);
 }
 
 .ban-screen__illustration img {
