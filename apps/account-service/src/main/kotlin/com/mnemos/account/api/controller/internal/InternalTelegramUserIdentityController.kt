@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -39,12 +40,18 @@ class InternalTelegramUserIdentityController(
     @PostMapping("/{telegramId}/identity/bootstrap")
     @PreAuthorize(
         "authentication.name == 'payment-service' or " +
-            "authentication.name == 'notification-service'",
+            "authentication.name == 'notification-service' or " +
+            "authentication.name == 'telegram-bot-service'",
     )
     fun bootstrapIdentity(
         @PathVariable telegramId: Long,
+        @RequestParam(required = false) username: String?,
     ): InternalTelegramUserIdentityResponse {
-        val user = bootstrapService.getOrCreate(telegramId)
+        val user =
+            bootstrapService.getOrCreate(
+                telegramId = telegramId,
+                telegramUsername = username,
+            )
 
         return InternalTelegramUserIdentityResponse(userId = user.id.id)
     }

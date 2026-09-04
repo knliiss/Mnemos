@@ -6,6 +6,7 @@ import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountInv
 import com.mnemos.contracts.account.internal.v1.CreateInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountInvitesResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserIdentityResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramUserSettingsResponse
 import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.UpdateInternalTelegramUserLocalizationRequest
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @FeignClient(
@@ -26,6 +28,12 @@ import java.util.UUID
     dismiss404 = true,
 )
 interface AccountServiceClient {
+    @PostMapping("/internal/v1/users/telegram/{telegramId}/identity/bootstrap")
+    fun bootstrapUserIdentity(
+        @PathVariable telegramId: Long,
+        @RequestParam(required = false) username: String?,
+    ): InternalTelegramUserIdentityResponse
+
     @GetMapping("/internal/v1/users/telegram/{telegramId}/accounts")
     fun getAccounts(
         @PathVariable telegramId: Long,

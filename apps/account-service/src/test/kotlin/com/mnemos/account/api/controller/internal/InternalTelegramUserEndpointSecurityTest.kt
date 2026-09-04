@@ -29,18 +29,19 @@ class InternalTelegramUserEndpointSecurityTest {
     }
 
     @Test
-    fun `Telegram identity bootstrap is restricted to payment and notification services`() {
+    fun `Telegram identity bootstrap is available only to bootstrap clients`() {
         val method =
             InternalTelegramUserIdentityController::class.java.getDeclaredMethod(
                 "bootstrapIdentity",
                 java.lang.Long.TYPE,
+                String::class.java,
             )
         val authorization = requireNotNull(method.getAnnotation(PreAuthorize::class.java)).value
 
         assertTrue(authorization.contains("payment-service"))
         assertTrue(authorization.contains("notification-service"))
+        assertTrue(authorization.contains("telegram-bot-service"))
         assertFalse(authorization.contains("personalization-service"))
-        assertFalse(authorization.contains("telegram-bot-service"))
         assertFalse(authorization.contains("bet-service"))
         assertFalse(authorization.contains("reward-service"))
     }
