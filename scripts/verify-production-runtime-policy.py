@@ -200,6 +200,43 @@ def verify_reconciler() -> None:
     if telegram[telegram.index("--update-order") + 1] != "stop-first":
         fail("Telegram bot updates must not overlap pollers")
 
+    cloudflared = reconciler.cloudflared_update_command("mnemos_cloudflared")
+
+    if "--image" in cloudflared:
+        fail("Cloudflared runtime reconciliation must not replace the image")
+
+    if cloudflared[cloudflared.index("--args") + 1] != reconciler.CLOUDFLARED_COMMAND:
+        fail("Cloudflared runtime reconciliation must apply the HTTP/2 command")
+
+    current_cloudflared = {
+        "TaskTemplate": {
+            "ContainerSpec": {
+                "Args": reconciler.CLOUDFLARED_COMMAND.split(),
+            }
+        }
+    }
+    legacy_cloudflared = {
+        "TaskTemplate": {
+            "ContainerSpec": {
+                "Args": [
+                    "tunnel",
+                    "run",
+                    "--token-file",
+                    "/run/secrets/cloudflare_tunnel_token",
+                ],
+            }
+        }
+    }
+
+    if not reconciler.cloudflared_policy_matches(current_cloudflared):
+        fail("Cloudflared HTTP/2 runtime must be recognized as reconciled")
+
+    if reconciler.cloudflared_policy_matches(legacy_cloudflared):
+        fail("Legacy Cloudflare Tunnel transport must require reconciliation")
+
+    if reconciler.CLOUDFLARED_COMMAND not in NORMALIZER.read_text(encoding="utf-8"):
+        fail("Normalizer and runtime reconciler disagree on the cloudflared command")
+
 
 def verify_executor() -> None:
     steps = production_deployment_executor.availability_steps()
