@@ -21,12 +21,13 @@ import java.util.UUID
 
 class ModerationRealtimeHandlersTest {
     @Test
-    fun `active ban is delivered to affected user`() {
+    fun `active ban is delivered to affected user with public details`() {
         val eventSink = RecordingRealtimeEventSink()
         val handler = SanctionActivatedHandler(createPublisher(eventSink))
         val userId = UUID.fromString("019c1129-ef54-7000-8000-000000000501")
         val sanctionId = UUID.fromString("019c1129-ef54-7000-8000-000000000502")
         val occurredAt = Instant.parse("2026-09-03T04:15:00Z")
+        val expiresAt = Instant.parse("2026-09-04T04:15:00Z")
 
         handler.handle(
             sanctionMessage(
@@ -35,6 +36,8 @@ class ModerationRealtimeHandlersTest {
                 userId = userId,
                 status = SanctionStatus.ACTIVE,
                 occurredAt = occurredAt,
+                reason = "Abusive behavior",
+                expiresAt = expiresAt,
             ),
         )
 
@@ -52,6 +55,8 @@ class ModerationRealtimeHandlersTest {
         assertEquals(userId, payload.userId)
         assertEquals("BAN", payload.type)
         assertEquals("ACTIVE", payload.status)
+        assertEquals("Abusive behavior", payload.reason)
+        assertEquals(expiresAt, payload.expiresAt)
     }
 
     @Test
@@ -69,6 +74,8 @@ class ModerationRealtimeHandlersTest {
                 userId = userId,
                 status = SanctionStatus.REVOKED,
                 occurredAt = occurredAt,
+                reason = "Abusive behavior",
+                expiresAt = null,
             ),
         )
 
@@ -78,6 +85,8 @@ class ModerationRealtimeHandlersTest {
         assertEquals(userId, event.userId)
         assertEquals(RealtimeEventType.SANCTION_DEACTIVATED, event.type)
         assertEquals("REVOKED", payload.status)
+        assertEquals("Abusive behavior", payload.reason)
+        assertNull(payload.expiresAt)
     }
 
     private fun createPublisher(eventSink: RecordingRealtimeEventSink): ModerationRealtimeEventPublisher =
@@ -96,6 +105,8 @@ class ModerationRealtimeHandlersTest {
         userId: UUID,
         status: SanctionStatus,
         occurredAt: Instant,
+        reason: String?,
+        expiresAt: Instant?,
     ): ConsumedMessage<SanctionStateV1> =
         ConsumedMessage(
             messageId = UUID.randomUUID(),
@@ -113,6 +124,8 @@ class ModerationRealtimeHandlersTest {
                     type = SanctionType.BAN,
                     status = status,
                     occurredAt = occurredAt,
+                    reason = reason,
+                    expiresAt = expiresAt,
                 ),
         )
 }
