@@ -36,7 +36,7 @@ class TelegramUsernameResolver(
             details =
                 mapOf(
                     "telegramId" to telegramId.id,
-                    "telegramUsername" to telegramUsername,
+                    "telegramUsername" to telegramUsername.orEmpty(),
                 ),
         )
     }
