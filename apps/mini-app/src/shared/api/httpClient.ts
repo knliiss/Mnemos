@@ -1,5 +1,8 @@
 import { getToken } from "@/features/auth/api/auth"
 import { runtimeConfig } from "@/shared/config/runtimeConfig"
+import { userBanEvents, type UserBanDetails } from "@/shared/session/userBanEvents"
+
+export type { UserBanDetails } from "@/shared/session/userBanEvents"
 
 export interface ApiErrorBody {
   message?: string
@@ -9,13 +12,6 @@ export interface ApiErrorBody {
   path?: string
   requestId?: string
   timestamp?: string
-}
-
-export type UserBanDetails = {
-  sanctionId: string
-  reason: string
-  occurredAt: string
-  expiresAt: string | null
 }
 
 export class ApiError extends Error {
@@ -83,7 +79,7 @@ export function getUserBanDetails(error: unknown): UserBanDetails | null {
     typeof sanctionId !== "string" ||
     typeof reason !== "string" ||
     typeof occurredAt !== "string" ||
-    (typeof expiresAt !== "string" && expiresAt !== null)
+    (expiresAt !== undefined && expiresAt !== null && typeof expiresAt !== "string")
   ) {
     return null
   }
@@ -92,7 +88,7 @@ export function getUserBanDetails(error: unknown): UserBanDetails | null {
     sanctionId,
     reason,
     occurredAt,
-    expiresAt,
+    expiresAt: typeof expiresAt === "string" ? expiresAt : null,
   }
 }
 
@@ -111,7 +107,14 @@ async function authenticatedResponse(path: string, options: RequestInit): Promis
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await readResponseBody(response))
+    const error = new ApiError(response.status, await readResponseBody(response))
+    const ban = getUserBanDetails(error)
+
+    if (ban) {
+      userBanEvents.publish(ban)
+    }
+
+    throw error
   }
 
   return response

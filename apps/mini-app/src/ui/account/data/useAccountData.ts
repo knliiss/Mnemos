@@ -5,6 +5,7 @@ import { claimDailyReward, getDailyRewardState, restoreDailyReward } from "@/sha
 import { getAccountBalances, getCurrentUserBalances } from "@/shared/api/walletApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeConnectionEvents, realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import type { RealtimeEvent } from "@/shared/realtime/realtime.types"
 import { toMember, toRole } from "../../data/dataMappers"
 import type { AccountRole, Member } from "../../model"
 
@@ -188,42 +189,50 @@ export function useAccountData(
 
   useEffect(() => {
     const unsubscribe = realtimeEvents.subscribe((event) => {
-      if (event.type !== "wallet.transaction.completed") {
-        return
-      }
+      if (event.type === "wallet.transaction.completed") {
+        if (event.payload.ownerType === "USER") {
+          void refreshUserBalance().catch(handleError)
+          return
+        }
 
-      if (event.payload.ownerType === "USER") {
-        void refreshUserBalance().catch(handleError)
+        const currentAccountId = activeAccountId.current
+
+        if (
+          currentAccountId &&
+          event.payload.ownerType === "ACCOUNT" &&
+          event.payload.ownerId === currentAccountId
+        ) {
+          void refreshAccountBalance(currentAccountId).catch(handleError)
+        }
+
         return
       }
 
       const currentAccountId = activeAccountId.current
 
-      if (
-        currentAccountId &&
-        event.payload.ownerType === "ACCOUNT" &&
-        event.payload.ownerId === currentAccountId
-      ) {
-        void refreshAccountBalance(currentAccountId).catch(handleError)
+      if (!currentAccountId || !isAccountLifecycleEventForAccount(event, currentAccountId)) {
+        return
       }
+
+      void refreshAccount().catch(handleError)
     })
 
     return () => {
       unsubscribe()
     }
-  }, [refreshAccountBalance, refreshUserBalance])
+  }, [refreshAccount, refreshAccountBalance, refreshUserBalance])
 
   useEffect(() => {
     const unsubscribe = realtimeConnectionEvents.subscribe((state) => {
       if (state === "CONNECTED") {
-        void reconcileBalances().catch(handleError)
+        void refreshAccount().catch(handleError)
       }
     })
 
     return () => {
       unsubscribe()
     }
-  }, [reconcileBalances])
+  }, [refreshAccount])
 
   useEffect(() => {
     const reconcile = () => {
@@ -306,5 +315,21 @@ export function useAccountData(
     refreshAccount,
     claimReward,
     restoreReward,
+  }
+}
+
+function isAccountLifecycleEventForAccount(event: RealtimeEvent, accountId: string): boolean {
+  switch (event.type) {
+    case "account.activated":
+    case "account.deactivated":
+    case "account.deleted":
+    case "account.owner.transferred":
+    case "account.member.joined":
+    case "account.member.left":
+    case "account.member.removed":
+      return event.payload.accountId === accountId
+
+    default:
+      return false
   }
 }

@@ -4,6 +4,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { CurrentContextResponse, UserResponse } from "@/shared/api/backendContracts"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
+import { userBanEvents } from "@/shared/session/userBanEvents"
 import { AppProvider, useApp } from "./AppProvider"
 
 const mocks = vi.hoisted(() => {
@@ -94,6 +95,7 @@ function createDeferred<T>() {
 }
 
 beforeEach(() => {
+  userBanEvents.clear()
   mocks.changeLanguage.mockReset().mockResolvedValue(undefined)
   mocks.getCurrentContext.mockReset()
   mocks.getToken.mockReset().mockResolvedValue("access-token")
@@ -107,6 +109,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  userBanEvents.clear()
   cleanup()
   vi.restoreAllMocks()
 })
@@ -221,5 +224,37 @@ describe("AppProvider bootstrap", () => {
     })
 
     expect(screen.queryByTestId("context-username")).toBeNull()
+  })
+
+  it("shows ban screen when any API request promotes a structured ban", async () => {
+    mocks.getCurrentContext.mockResolvedValue(currentContext)
+
+    render(
+      <AppProvider>
+        <ContextProbe />
+      </AppProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId("context-username").textContent).toBe("tester")
+    })
+
+    act(() => {
+      userBanEvents.publish({
+        sanctionId: "019c1129-ef54-7000-8000-000000000431",
+        reason: "API detected ban",
+        occurredAt: "2026-09-03T02:00:00Z",
+        expiresAt: null,
+      })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ban-screen")).toBeTruthy()
+      expect(screen.getByTestId("ban-reason").textContent).toBe("API detected ban")
+      expect(screen.getByTestId("ban-expiry").textContent).toBe("permanent")
+    })
+
+    expect(screen.queryByTestId("context-username")).toBeNull()
+    expect(screen.queryByTestId("service-unavailable")).toBeNull()
   })
 })

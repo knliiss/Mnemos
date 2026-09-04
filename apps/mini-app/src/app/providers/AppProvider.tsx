@@ -32,6 +32,7 @@ import {
 import { handleError } from "@/shared/errors/errorHandler"
 import { realtimeEvents } from "@/shared/realtime/realtimeEventBus"
 import type { RealtimeEvent } from "@/shared/realtime/realtime.types"
+import { userBanEvents } from "@/shared/session/userBanEvents"
 import type { LocalizationLanguage } from "@/ui/model"
 import { BanScreen } from "@/ui/system/BanScreen"
 import { ServiceUnavailableScreen } from "@/ui/system/ServiceUnavailableScreen"
@@ -91,6 +92,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       await i18n.changeLanguage(next.user.localizationLanguage.toLowerCase())
+      userBanEvents.clear()
       setActiveBan(null)
       setServiceUnavailable(false)
     } catch (error) {
@@ -101,7 +103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const ban = getUserBanDetails(error)
 
       if (ban) {
-        setActiveBan(ban)
+        userBanEvents.publish(ban)
         setServiceUnavailable(false)
         return
       }
@@ -200,20 +202,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [bootstrap])
 
   useEffect(() => {
+    return userBanEvents.subscribe((ban) => {
+      setActiveBan(ban)
+      setServiceUnavailable(false)
+      setLoading(false)
+    })
+  }, [])
+
+  useEffect(() => {
     return realtimeEvents.subscribe((event) => {
       if (event.type === "moderation.sanction.activated" && event.payload.type === "BAN") {
-        setActiveBan({
+        userBanEvents.publish({
           sanctionId: event.payload.sanctionId,
           reason: event.payload.reason?.trim() ?? "",
           occurredAt: event.occurredAt,
           expiresAt: event.payload.expiresAt ?? null,
         })
-        setServiceUnavailable(false)
-        setLoading(false)
         return
       }
 
       if (event.type === "moderation.sanction.deactivated" && event.payload.type === "BAN") {
+        userBanEvents.clear()
         setActiveBan((current) =>
           current?.sanctionId === event.payload.sanctionId ? null : current,
         )
@@ -229,8 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const ban = getUserBanDetails(error)
 
         if (ban) {
-          setActiveBan(ban)
-          setServiceUnavailable(false)
+          userBanEvents.publish(ban)
           return
         }
 

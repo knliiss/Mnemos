@@ -60,10 +60,10 @@ class BanGlobalFilter(
                     "code" to USER_BANNED_CODE,
                     "details" to
                         mapOf(
-                            "sanctionId" to ban.sanctionId,
+                            "sanctionId" to ban.sanctionId.toString(),
                             "reason" to ban.reason,
-                            "occurredAt" to ban.occurredAt,
-                            "expiresAt" to ban.expiresAt,
+                            "occurredAt" to ban.occurredAt.toString(),
+                            "expiresAt" to ban.expiresAt?.toString(),
                         ),
                 ),
             )
