@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   addAccountMember,
   deleteAccountPermanently,
@@ -6,8 +7,10 @@ import {
   removeAccountMember,
   transferAccountOwnership,
   type AdminAccountDetailsResponse,
+  type UserIdentityDirectoryResponse,
 } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
+import { AdminUserPicker } from "./AdminUserPicker"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
 
 type Props = {
@@ -15,14 +18,33 @@ type Props = {
   canDelete: boolean
   copy: ReturnType<typeof resolveModerationDirectoryCopy>
   onChanged(): Promise<void>
+  onOpenUser?: (userId: string) => void
 }
 
-export function ModerationAccountControlPanel({ accountId, canDelete, copy, onChanged }: Props) {
+type MemberConfirmation =
+  | { kind: "OWNER"; memberId: string; userId: string; username: string }
+  | { kind: "REMOVE"; memberId: string; userId: string; username: string }
+  | null
+
+export function ModerationAccountControlPanel({
+  accountId,
+  canDelete,
+  copy,
+  onChanged,
+  onOpenUser,
+}: Props) {
+  const { t } = useTranslation()
   const [details, setDetails] = useState<AdminAccountDetailsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [busyAction, setBusyAction] = useState<string | null>(null)
-  const [newMemberUserId, setNewMemberUserId] = useState("")
+  const [newMember, setNewMember] = useState<UserIdentityDirectoryResponse | null>(null)
+  const [newOwner, setNewOwner] = useState<UserIdentityDirectoryResponse | null>(null)
+  const [memberConfirmation, setMemberConfirmation] = useState<MemberConfirmation>(null)
+  const [ownerConfirmationVisible, setOwnerConfirmationVisible] = useState(false)
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
+  const memberConfirmRef = useRef<HTMLButtonElement>(null)
+  const ownerConfirmRef = useRef<HTMLButtonElement>(null)
+  const deleteConfirmRef = useRef<HTMLButtonElement>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -61,6 +83,48 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
     }
   }, [accountId])
 
+  useEffect(() => {
+    if (!memberConfirmation) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      memberConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [memberConfirmation])
+
+  useEffect(() => {
+    if (!ownerConfirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      ownerConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [ownerConfirmationVisible])
+
+  useEffect(() => {
+    if (!deleteConfirmationVisible) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      deleteConfirmRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [deleteConfirmationVisible])
+
   const runMutation = useCallback(
     async (actionId: string, mutation: () => Promise<void>) => {
       if (busyAction) {
@@ -81,6 +145,11 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
     [busyAction, onChanged, refresh],
   )
 
+  const memberUserIds = useMemo(
+    () => details?.members.map((member) => member.userId) ?? [],
+    [details?.members],
+  )
+
   if (loading && !details) {
     return <div className="moderation-account-control__loading">{copy.loadingAccount}</div>
   }
@@ -90,7 +159,49 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
   }
 
   const deleted = details.status === "DELETED"
-  const normalizedNewMemberUserId = newMemberUserId.trim()
+  const memberConfirmationTitle = memberConfirmation
+    ? memberConfirmation.kind === "OWNER"
+      ? t("moderation.confirmOwnershipTransfer", "Transfer account ownership?")
+      : t("moderation.confirmMemberRemoval", "Remove this account member?")
+    : ""
+
+  const confirmMemberAction = async () => {
+    if (!memberConfirmation) {
+      return
+    }
+
+    const confirmation = memberConfirmation
+    setMemberConfirmation(null)
+
+    if (confirmation.kind === "OWNER") {
+      await runMutation(`owner:${confirmation.userId}`, () =>
+        transferAccountOwnership(accountId, confirmation.userId),
+      )
+      return
+    }
+
+    await runMutation(`remove:${confirmation.memberId}`, () =>
+      removeAccountMember(accountId, confirmation.memberId),
+    )
+  }
+
+  const dismissMemberConfirmation = () => {
+    if (!busyAction) {
+      setMemberConfirmation(null)
+    }
+  }
+
+  const dismissOwnerConfirmation = () => {
+    if (!busyAction) {
+      setOwnerConfirmationVisible(false)
+    }
+  }
+
+  const dismissDeleteConfirmation = () => {
+    if (!busyAction) {
+      setDeleteConfirmationVisible(false)
+    }
+  }
 
   return (
     <section className="moderation-account-control" aria-busy={Boolean(busyAction)}>
@@ -108,7 +219,17 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
         {details.members.map((member) => (
           <article key={member.memberId} className="moderation-account-member">
             <div>
-              <strong>@{member.username}</strong>
+              {onOpenUser ? (
+                <button
+                  type="button"
+                  className="moderation-account-member__user-link"
+                  onClick={() => onOpenUser(member.userId)}
+                >
+                  @{member.username}
+                </button>
+              ) : (
+                <strong>@{member.username}</strong>
+              )}
               <small>{member.userId}</small>
               <em>{member.memberId}</em>
             </div>
@@ -123,9 +244,12 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
                     className="moderation-control-button moderation-control-button--primary"
                     disabled={Boolean(busyAction)}
                     onClick={() =>
-                      void runMutation(`owner:${member.memberId}`, () =>
-                        transferAccountOwnership(accountId, member.memberId),
-                      )
+                      setMemberConfirmation({
+                        kind: "OWNER",
+                        memberId: member.memberId,
+                        userId: member.userId,
+                        username: member.username,
+                      })
                     }
                   >
                     {copy.transferOwner}
@@ -135,9 +259,12 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
                     className="moderation-control-button moderation-control-button--danger"
                     disabled={Boolean(busyAction)}
                     onClick={() =>
-                      void runMutation(`remove:${member.memberId}`, () =>
-                        removeAccountMember(accountId, member.memberId),
-                      )
+                      setMemberConfirmation({
+                        kind: "REMOVE",
+                        memberId: member.memberId,
+                        userId: member.userId,
+                        username: member.username,
+                      })
                     }
                   >
                     {copy.removeMember}
@@ -149,40 +276,169 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
         ))}
       </div>
 
-      {!deleted ? (
-        <div className="moderation-account-control__add-member">
-          <input
-            type="text"
-            value={newMemberUserId}
-            className="moderation-control-input"
-            placeholder={copy.userIdPlaceholder}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(event) => setNewMemberUserId(event.target.value)}
-          />
-          <button
-            type="button"
-            className="moderation-control-button moderation-control-button--primary"
-            disabled={!normalizedNewMemberUserId || Boolean(busyAction)}
-            onClick={() =>
-              void runMutation("add-member", async () => {
-                await addAccountMember(accountId, normalizedNewMemberUserId)
-                setNewMemberUserId("")
-              })
+      {memberConfirmation ? (
+        <div
+          className="moderation-account-control__confirmation"
+          role="alertdialog"
+          aria-label={memberConfirmationTitle}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault()
+              dismissMemberConfirmation()
             }
-          >
-            {busyAction === "add-member" ? copy.addingMember : copy.addMember}
-          </button>
+          }}
+        >
+          <span>
+            <strong>{memberConfirmationTitle}</strong>
+            <small>@{memberConfirmation.username}</small>
+          </span>
+          <div>
+            <button
+              ref={memberConfirmRef}
+              type="button"
+              className={
+                memberConfirmation.kind === "REMOVE"
+                  ? "moderation-control-button moderation-control-button--danger"
+                  : "moderation-control-button moderation-control-button--primary"
+              }
+              disabled={Boolean(busyAction)}
+              onClick={() => void confirmMemberAction()}
+            >
+              {t("common.confirm", "Confirm")}
+            </button>
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--neutral"
+              disabled={Boolean(busyAction)}
+              onClick={dismissMemberConfirmation}
+            >
+              {copy.cancel}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!deleted ? (
+        <div className="moderation-account-control__admin-actions">
+          <div className="moderation-account-control__picker-action">
+            <AdminUserPicker
+              label={t("moderation.addMember", copy.addMember)}
+              placeholder={t(
+                "moderation.userPickerPlaceholder",
+                "Search by username or Telegram ID",
+              )}
+              disabled={Boolean(busyAction)}
+              excludedUserIds={memberUserIds}
+              selected={newMember}
+              onSelect={setNewMember}
+            />
+            <button
+              type="button"
+              className="moderation-control-button moderation-control-button--primary"
+              disabled={!newMember || Boolean(busyAction)}
+              onClick={() =>
+                void runMutation("add-member", async () => {
+                  if (!newMember) {
+                    return
+                  }
+
+                  await addAccountMember(accountId, newMember.userId)
+                  setNewMember(null)
+                })
+              }
+            >
+              {busyAction === "add-member" ? copy.addingMember : copy.addMember}
+            </button>
+          </div>
+
+          <div className="moderation-account-control__picker-action">
+            <AdminUserPicker
+              label={t("moderation.transferOwnership", copy.transferOwner)}
+              placeholder={t("moderation.ownerPickerPlaceholder", "Search for the new owner")}
+              disabled={Boolean(busyAction)}
+              selected={newOwner}
+              onSelect={(candidate) => {
+                setNewOwner(candidate)
+                setOwnerConfirmationVisible(false)
+              }}
+            />
+
+            {ownerConfirmationVisible && newOwner ? (
+              <div
+                className="moderation-account-control__picker-confirmation"
+                role="alertdialog"
+                aria-label={t("moderation.confirmOwnershipTransfer", "Transfer account ownership?")}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault()
+                    dismissOwnerConfirmation()
+                  }
+                }}
+              >
+                <span>
+                  {t(
+                    "moderation.ownerTransferWarning",
+                    "The selected user will become the account owner immediately.",
+                  )}
+                </span>
+                <div>
+                  <button
+                    ref={ownerConfirmRef}
+                    type="button"
+                    className="moderation-control-button moderation-control-button--primary"
+                    disabled={Boolean(busyAction)}
+                    onClick={() =>
+                      void runMutation("transfer-owner", async () => {
+                        await transferAccountOwnership(accountId, newOwner.userId)
+                        setNewOwner(null)
+                        setOwnerConfirmationVisible(false)
+                      })
+                    }
+                  >
+                    {t("common.confirm", "Confirm")}
+                  </button>
+                  <button
+                    type="button"
+                    className="moderation-control-button moderation-control-button--neutral"
+                    disabled={Boolean(busyAction)}
+                    onClick={dismissOwnerConfirmation}
+                  >
+                    {copy.cancel}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="moderation-control-button moderation-control-button--primary"
+                disabled={!newOwner || Boolean(busyAction)}
+                onClick={() => setOwnerConfirmationVisible(true)}
+              >
+                {copy.transferOwner}
+              </button>
+            )}
+          </div>
         </div>
       ) : null}
 
       {canDelete && !deleted ? (
         <div className="moderation-account-control__danger-zone">
           {deleteConfirmationVisible ? (
-            <>
+            <div
+              className="moderation-account-delete-confirmation"
+              role="alertdialog"
+              aria-label={copy.confirmDelete}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault()
+                  dismissDeleteConfirmation()
+                }
+              }}
+            >
               <p>{copy.deleteWarning}</p>
               <div>
                 <button
+                  ref={deleteConfirmRef}
                   type="button"
                   className="moderation-control-button moderation-control-button--danger"
                   disabled={Boolean(busyAction)}
@@ -199,12 +455,12 @@ export function ModerationAccountControlPanel({ accountId, canDelete, copy, onCh
                   type="button"
                   className="moderation-control-button moderation-control-button--neutral"
                   disabled={Boolean(busyAction)}
-                  onClick={() => setDeleteConfirmationVisible(false)}
+                  onClick={dismissDeleteConfirmation}
                 >
                   {copy.cancel}
                 </button>
               </div>
-            </>
+            </div>
           ) : (
             <button
               type="button"

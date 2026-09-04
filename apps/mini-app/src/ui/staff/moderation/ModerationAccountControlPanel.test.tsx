@@ -11,20 +11,40 @@ const mocks = vi.hoisted(() => ({
   deleteAccountPermanently: vi.fn(),
   getAdminAccount: vi.fn(),
   removeAccountMember: vi.fn(),
+  searchUserDirectory: vi.fn(),
   transferAccountOwnership: vi.fn(),
 }))
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>()
+
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string, fallback?: string | { defaultValue?: string }) => {
+        if (typeof fallback === "string") {
+          return fallback
+        }
+
+        return fallback?.defaultValue ?? key
+      },
+    }),
+  }
+})
 
 vi.mock("@/shared/api/moderationApi", () => ({
   addAccountMember: mocks.addAccountMember,
   deleteAccountPermanently: mocks.deleteAccountPermanently,
   getAdminAccount: mocks.getAdminAccount,
   removeAccountMember: mocks.removeAccountMember,
+  searchUserDirectory: mocks.searchUserDirectory,
   transferAccountOwnership: mocks.transferAccountOwnership,
 }))
 
 const accountId = "019c1129-ef54-7000-8000-000000000431"
 const ownerMemberId = "019c1129-ef54-7000-8000-000000000432"
 const memberId = "019c1129-ef54-7000-8000-000000000433"
+const memberUserId = "019c1129-ef54-7000-8000-000000000436"
 
 const activeAccount: AdminAccountDetailsResponse = {
   accountId,
@@ -32,6 +52,7 @@ const activeAccount: AdminAccountDetailsResponse = {
   cristalixNickname: "knaliz",
   status: "ACTIVE",
   ownerMemberId,
+  baseRoleId: null,
   maxMembers: 10,
   createdAt: "2026-09-03T00:00:00Z",
   deactivatedAt: null,
@@ -46,7 +67,7 @@ const activeAccount: AdminAccountDetailsResponse = {
     },
     {
       memberId,
-      userId: "019c1129-ef54-7000-8000-000000000436",
+      userId: memberUserId,
       username: "member",
       owner: false,
       joinedAt: "2026-09-03T00:01:00Z",
@@ -58,6 +79,13 @@ const copy = resolveModerationDirectoryCopy("en")
 
 beforeEach(() => {
   Object.values(mocks).forEach((mock) => mock.mockReset())
+  mocks.searchUserDirectory.mockResolvedValue({
+    content: [],
+    page: 0,
+    size: 6,
+    totalElements: 0,
+    totalPages: 0,
+  })
 })
 
 afterEach(() => {
@@ -69,8 +97,7 @@ describe("ModerationAccountControlPanel", () => {
     mocks.getAdminAccount.mockResolvedValue({
       ...activeAccount,
       status: "DELETED",
-      deactivatedAt: "2026-09-03T00:05:00Z",
-      deletedAt: "2026-09-03T00:06:00Z",
+      deletedAt: "2026-09-03T00:02:00Z",
     })
 
     render(
@@ -79,28 +106,105 @@ describe("ModerationAccountControlPanel", () => {
         canDelete
         copy={copy}
         onChanged={vi.fn()}
+        onOpenUser={vi.fn()}
       />,
     )
 
-    await screen.findByText("DELETED")
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    expect(screen.getByText("Owner")).toBeTruthy()
-    expect(screen.queryByPlaceholderText("Mnemos User ID")).toBeNull()
-    expect(screen.queryByText("Transfer owner")).toBeNull()
-    expect(screen.queryByText("Remove")).toBeNull()
-    expect(screen.queryByText("Delete account permanently")).toBeNull()
+    expect(screen.queryByText(copy.addMember)).toBeNull()
+    expect(screen.queryByText(copy.transferOwner)).toBeNull()
+    expect(screen.queryByText(copy.irreversibleDelete)).toBeNull()
   })
 
-  it("requires explicit confirmation before permanent deletion", async () => {
-    const onChanged = vi.fn().mockResolvedValue(undefined)
-    const deletedAccount: AdminAccountDetailsResponse = {
-      ...activeAccount,
-      status: "DELETED",
-      deactivatedAt: "2026-09-03T00:05:00Z",
-      deletedAt: "2026-09-03T00:06:00Z",
-    }
+  it("requires confirmation before transferring ownership and sends the user id", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+    mocks.transferAccountOwnership.mockResolvedValue(undefined)
 
-    mocks.getAdminAccount.mockResolvedValueOnce(activeAccount).mockResolvedValueOnce(deletedAccount)
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+        onOpenUser={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getAllByText(copy.transferOwner)[0]!)
+
+    expect(mocks.transferAccountOwnership).not.toHaveBeenCalled()
+    expect(screen.getAllByText("@member").length).toBeGreaterThan(0)
+
+    const dialog = screen.getByRole("alertdialog", { name: "Transfer account ownership?" })
+    const confirm = screen.getByText("Confirm")
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
+
+    await waitFor(() => {
+      expect(mocks.transferAccountOwnership).toHaveBeenCalledWith(accountId, memberUserId)
+    })
+
+    expect(dialog).toBeDefined()
+  })
+
+  it("requires confirmation before removing an account member", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+    mocks.removeAccountMember.mockResolvedValue(undefined)
+
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getByText(copy.removeMember))
+
+    expect(mocks.removeAccountMember).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByText("Confirm"))
+
+    await waitFor(() => {
+      expect(mocks.removeAccountMember).toHaveBeenCalledWith(accountId, memberId)
+    })
+  })
+
+  it("dismisses a member mutation confirmation with Escape", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
+
+    render(
+      <ModerationAccountControlPanel
+        accountId={accountId}
+        canDelete
+        copy={copy}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
+
+    fireEvent.click(screen.getByText(copy.removeMember))
+
+    const dialog = screen.getByRole("alertdialog", { name: "Remove this account member?" })
+    fireEvent.keyDown(dialog, { key: "Escape" })
+
+    expect(screen.queryByRole("alertdialog", { name: "Remove this account member?" })).toBeNull()
+    expect(mocks.removeAccountMember).not.toHaveBeenCalled()
+  })
+
+  it("requires confirmation before permanently deleting an account", async () => {
+    mocks.getAdminAccount.mockResolvedValue(activeAccount)
     mocks.deleteAccountPermanently.mockResolvedValue(undefined)
 
     render(
@@ -108,23 +212,29 @@ describe("ModerationAccountControlPanel", () => {
         accountId={accountId}
         canDelete
         copy={copy}
-        onChanged={onChanged}
+        onChanged={vi.fn().mockResolvedValue(undefined)}
       />,
     )
 
-    const deleteButton = await screen.findByText("Delete account permanently")
+    await waitFor(() => expect(mocks.getAdminAccount).toHaveBeenCalledWith(accountId))
 
-    fireEvent.click(deleteButton)
+    fireEvent.click(screen.getByText(copy.irreversibleDelete))
 
     expect(mocks.deleteAccountPermanently).not.toHaveBeenCalled()
-    expect(screen.getByText("Confirm permanent deletion")).toBeTruthy()
 
-    fireEvent.click(screen.getByText("Confirm permanent deletion"))
+    const dialog = screen.getByRole("alertdialog", { name: copy.confirmDelete })
+    const confirm = screen.getByText(copy.confirmDelete)
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(confirm)
+    })
+
+    fireEvent.click(confirm)
 
     await waitFor(() => {
       expect(mocks.deleteAccountPermanently).toHaveBeenCalledWith(accountId)
-      expect(onChanged).toHaveBeenCalledOnce()
-      expect(screen.getByText("DELETED")).toBeTruthy()
     })
+
+    expect(dialog).toBeDefined()
   })
 })

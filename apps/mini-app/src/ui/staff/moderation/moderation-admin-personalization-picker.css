@@ -1,0 +1,244 @@
+.admin-personalization-picker {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.admin-personalization-picker__label {
+  color: #747c71;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-personalization-picker__control,
+.admin-personalization-picker__selected {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 9px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 10px;
+  color: #798276;
+  background: rgba(0, 0, 0, 0.14);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.admin-personalization-picker__control:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(203, 255, 45, 0.018);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.admin-personalization-picker__control input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: #d8ded3;
+  background: transparent;
+  font: inherit;
+  font-size: 9px;
+}
+
+.admin-personalization-picker__control input::-webkit-search-cancel-button,
+.admin-personalization-picker__control input::-webkit-search-decoration {
+  display: none;
+}
+
+.admin-personalization-picker__control input::placeholder {
+  color: #626a60;
+}
+
+.admin-personalization-picker__control > button,
+.admin-personalization-picker__selected > button {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  outline: none;
+  color: #747d71;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-personalization-picker__control > button:hover,
+.admin-personalization-picker__selected > button:hover {
+  color: #c9d1c4;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-personalization-picker__control > button:focus-visible,
+.admin-personalization-picker__selected > button:focus-visible {
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.055);
+}
+
+.admin-personalization-picker__selected {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  min-height: 48px;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(203, 255, 45, 0.045), transparent 28%),
+    rgba(0, 0, 0, 0.12);
+}
+
+.admin-personalization-picker__selected > span:nth-child(2),
+.admin-personalization-picker__results button > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-personalization-picker__selected strong,
+.admin-personalization-picker__results strong {
+  overflow: hidden;
+  color: #d8ded3;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-personalization-picker__selected small,
+.admin-personalization-picker__results small {
+  overflow: hidden;
+  color: #70786d;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-personalization-picker__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: #bddb72;
+  background: rgba(203, 255, 45, 0.04);
+}
+
+.admin-personalization-picker__loading {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(203, 255, 45, 0.16);
+  border-top-color: #bfd66f;
+  border-radius: 50%;
+  animation: admin-personalization-picker-spin 700ms linear infinite;
+}
+
+.admin-personalization-picker__results {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 310px;
+  overflow: auto;
+  padding: 5px;
+  border: 1px solid rgba(235, 241, 213, 0.09);
+  border-radius: 12px;
+  background: rgba(18, 21, 18, 0.98);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(14px);
+}
+
+.admin-personalization-picker__results > button {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  outline: none;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-personalization-picker__results > button:hover,
+.admin-personalization-picker__results > button.is-keyboard-active {
+  border-color: rgba(203, 255, 45, 0.08);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.admin-personalization-picker__results > button.is-keyboard-active {
+  box-shadow: inset 0 0 0 1px rgba(203, 255, 45, 0.03);
+}
+
+.admin-personalization-picker__results > button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.16);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.admin-personalization-picker__results em {
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: #90978d;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 7px;
+  font-style: normal;
+}
+
+.admin-personalization-picker__results em.is-published,
+.admin-personalization-picker__results em.is-approved {
+  color: #c9e679;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.admin-personalization-picker__state {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 13px;
+  color: #737b70;
+  font-size: 8px;
+  text-align: center;
+}
+
+.admin-personalization-picker__state img {
+  width: 58px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.8;
+}
+
+.admin-personalization-picker__state strong {
+  color: #c6cdc1;
+}
+
+.admin-personalization-picker__state small {
+  max-width: 260px;
+  line-height: 1.4;
+}
+
+@keyframes admin-personalization-picker-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,255 @@
+.moderation-control-button--positive {
+  border-color: rgba(112, 211, 142, 0.13);
+  color: #9fd5ac;
+  background: rgba(112, 211, 142, 0.025);
+}
+
+.moderation-control-button--positive:hover:not(:disabled) {
+  border-color: rgba(112, 211, 142, 0.21);
+  color: #b7e8c1;
+  background: rgba(112, 211, 142, 0.05);
+}
+
+.moderation-control-button--positive:focus-visible {
+  border-color: rgba(112, 211, 142, 0.25);
+  box-shadow: 0 0 0 2px rgba(112, 211, 142, 0.055);
+}
+
+.moderation-screen button,
+.moderation-screen input,
+.moderation-screen textarea,
+.internal-user-screen button,
+.internal-user-screen input,
+.internal-user-screen textarea {
+  font: inherit;
+}
+
+.moderation-screen button,
+.internal-user-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.moderation-screen input,
+.moderation-screen textarea,
+.internal-user-screen input,
+.internal-user-screen textarea {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.moderation-screen input[type="number"],
+.internal-user-screen input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.moderation-screen input[type="number"]::-webkit-inner-spin-button,
+.moderation-screen input[type="number"]::-webkit-outer-spin-button,
+.internal-user-screen input[type="number"]::-webkit-inner-spin-button,
+.internal-user-screen input[type="number"]::-webkit-outer-spin-button,
+.moderation-screen input[type="search"]::-webkit-search-cancel-button,
+.moderation-screen input[type="search"]::-webkit-search-decoration,
+.internal-user-screen input[type="search"]::-webkit-search-cancel-button,
+.internal-user-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.moderation-screen button:focus-visible,
+.internal-user-screen button:focus-visible {
+  outline: none;
+}
+
+.moderation-sanction-confirmation {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  border: 1px solid rgba(223, 88, 80, 0.12);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(223, 88, 80, 0.06), transparent 26%),
+    rgba(223, 88, 80, 0.014);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-sanction-confirmation:focus-within {
+  border-color: rgba(223, 88, 80, 0.22);
+  box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.04);
+}
+
+.moderation-sanction-confirmation__mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: #d6908b;
+  background: rgba(223, 88, 80, 0.045);
+}
+
+.moderation-sanction-confirmation__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-sanction-confirmation__copy small,
+.moderation-sanction-confirmation__copy strong,
+.moderation-sanction-confirmation__copy em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-sanction-confirmation__copy small {
+  color: #9f7774;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moderation-sanction-confirmation__copy strong {
+  color: #e0c7c5;
+  font-size: 9px;
+}
+
+.moderation-sanction-confirmation__copy em {
+  color: #807271;
+  font-size: 7.5px;
+  font-style: normal;
+}
+
+.moderation-sanction-confirmation__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.moderation-sanction-confirmation__actions > button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 8px;
+}
+
+.moderation-wallet-confirmation {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(112, 211, 142, 0.11);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 4% 50%, rgba(112, 211, 142, 0.055), transparent 28%),
+    rgba(112, 211, 142, 0.012);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-wallet-confirmation.is-debit {
+  border-color: rgba(223, 88, 80, 0.12);
+  background:
+    radial-gradient(circle at 4% 50%, rgba(223, 88, 80, 0.055), transparent 28%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-wallet-confirmation:focus-within {
+  border-color: rgba(112, 211, 142, 0.22);
+  box-shadow: 0 0 0 2px rgba(112, 211, 142, 0.04);
+}
+
+.moderation-wallet-confirmation.is-debit:focus-within {
+  border-color: rgba(223, 88, 80, 0.23);
+  box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.04);
+}
+
+.moderation-wallet-confirmation__mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #9fd5ac;
+  background: rgba(112, 211, 142, 0.04);
+}
+
+.moderation-wallet-confirmation.is-debit .moderation-wallet-confirmation__mark {
+  color: #d6908b;
+  background: rgba(223, 88, 80, 0.045);
+}
+
+.moderation-wallet-confirmation__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-wallet-confirmation__copy small {
+  color: #788176;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moderation-wallet-confirmation__copy strong {
+  color: #dce3d8;
+  font-size: 11px;
+}
+
+.moderation-wallet-confirmation__copy em {
+  overflow: hidden;
+  color: #6f786d;
+  font-size: 7px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-wallet-confirmation__copy p {
+  overflow: hidden;
+  margin: 1px 0 0;
+  color: #858d82;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-wallet-confirmation__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.moderation-wallet-confirmation__actions > button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 8px;
+}
+
+@media (max-width: 520px) {
+  .moderation-sanction-confirmation,
+  .moderation-wallet-confirmation {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .moderation-sanction-confirmation__mark,
+  .moderation-wallet-confirmation__mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .moderation-sanction-confirmation__actions,
+  .moderation-wallet-confirmation__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

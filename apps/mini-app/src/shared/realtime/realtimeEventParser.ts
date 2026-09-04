@@ -80,6 +80,18 @@ export function parseRealtimeEvent(data: string): RealtimeEvent | null {
           ? (candidate as RealtimeEvent)
           : null
 
+      case "moderation.sanction.activated":
+        return isSanctionChangedPayload(candidate.payload, ["ACTIVE"]) &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
+      case "moderation.sanction.deactivated":
+        return isSanctionChangedPayload(candidate.payload, ["REVOKED", "EXPIRED"]) &&
+          candidate.operationId === null
+          ? (candidate as RealtimeEvent)
+          : null
+
       default:
         return null
     }
@@ -320,6 +332,18 @@ function isAccountMemberChangedPayload(
     isUuid(payload.memberId) &&
     isUuid(payload.userId) &&
     payload.change === expectedChange
+  )
+}
+
+function isSanctionChangedPayload(
+  payload: Record<string, unknown>,
+  expectedStatuses: Array<"ACTIVE" | "REVOKED" | "EXPIRED">,
+): boolean {
+  return (
+    isUuid(payload.sanctionId) &&
+    isUuid(payload.userId) &&
+    (payload.type === "BAN" || payload.type === "NOTIFICATION_SUSPENSION") &&
+    expectedStatuses.includes(payload.status as "ACTIVE" | "REVOKED" | "EXPIRED")
   )
 }
 

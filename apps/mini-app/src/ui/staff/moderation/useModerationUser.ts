@@ -257,11 +257,11 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     (sanction) => sanction.type === "BAN" && sanction.status === "ACTIVE",
   )
 
-  const submitSanction = async () => {
+  const submitSanction = async (): Promise<boolean> => {
     const actionScope = userId
 
     if (!userId || !reason.trim() || !durationValid || busyScopeRef.current === actionScope) {
-      return
+      return false
     }
 
     setScopeBusy(actionScope, true)
@@ -275,20 +275,26 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
         durationHours: duration ? numericDuration : null,
       })
 
-      if (!mountedRef.current || userIdRef.current !== actionScope) {
-        return
+      if (mountedRef.current && userIdRef.current === actionScope) {
+        setReason("")
+        setInternalNote("")
+        setDuration("")
+        setSanctionFormOpen(false)
+
+        try {
+          await refreshSanctions()
+        } catch (error) {
+          handleError(error)
+        }
       }
 
-      setReason("")
-      setInternalNote("")
-      setDuration("")
-      setSanctionFormOpen(false)
-
-      await refreshSanctions()
+      return true
     } catch (error) {
       if (mountedRef.current && userIdRef.current === actionScope) {
         handleError(error)
       }
+
+      return false
     } finally {
       if (mountedRef.current) {
         setScopeBusy(actionScope, false)
@@ -296,11 +302,11 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     }
   }
 
-  const revoke = async (sanctionId: string) => {
+  const revoke = async (sanctionId: string): Promise<boolean> => {
     const actionScope = userId
 
     if (!actionScope || busyScopeRef.current === actionScope) {
-      return
+      return false
     }
 
     setScopeBusy(actionScope, true)
@@ -309,12 +315,20 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
       await revokeSanction(sanctionId)
 
       if (mountedRef.current && userIdRef.current === actionScope) {
-        await refreshSanctions()
+        try {
+          await refreshSanctions()
+        } catch (error) {
+          handleError(error)
+        }
       }
+
+      return true
     } catch (error) {
       if (mountedRef.current && userIdRef.current === actionScope) {
         handleError(error)
       }
+
+      return false
     } finally {
       if (mountedRef.current) {
         setScopeBusy(actionScope, false)
@@ -351,7 +365,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
     }
   }
 
-  const submitAdjustment = async () => {
+  const submitAdjustment = async (): Promise<boolean> => {
     const actionScope = userId
 
     if (
@@ -361,7 +375,7 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
       !walletReason.trim() ||
       busyScopeRef.current === actionScope
     ) {
-      return
+      return false
     }
 
     const targetType = walletTarget
@@ -394,10 +408,14 @@ export function useModerationUser({ userId, canAdjustWallet, canAdjustPrime }: O
           }
         })
       }
+
+      return true
     } catch (error) {
       if (mountedRef.current && userIdRef.current === actionScope) {
         handleError(error)
       }
+
+      return false
     } finally {
       if (mountedRef.current) {
         setScopeBusy(actionScope, false)

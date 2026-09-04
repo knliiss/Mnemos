@@ -8,6 +8,7 @@ import com.mnemos.realtime.application.delivery.model.PersonalizationPurchaseCom
 import com.mnemos.realtime.application.delivery.model.RealtimeEvent
 import com.mnemos.realtime.application.delivery.model.RealtimeEventPayload
 import com.mnemos.realtime.application.delivery.model.RealtimeEventType
+import com.mnemos.realtime.application.delivery.model.SanctionChangedPayload
 import com.mnemos.realtime.application.delivery.model.WalletTransactionCompletedPayload
 import com.mnemos.realtime.application.delivery.model.WalletTransactionFailedPayload
 import org.springframework.stereotype.Component
@@ -101,6 +102,14 @@ class RedisRealtimeEventCodec(
                 jsonMapper.treeToValue(
                     payload,
                     AccountMemberChangedPayload::class.java,
+                )
+
+            RealtimeEventType.SANCTION_ACTIVATED,
+            RealtimeEventType.SANCTION_DEACTIVATED,
+            ->
+                jsonMapper.treeToValue(
+                    payload,
+                    SanctionChangedPayload::class.java,
                 )
         }
 

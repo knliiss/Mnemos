@@ -52,6 +52,9 @@ export const collectorAdminEn = {
     },
     created: "Created",
     updated: "Updated",
+    disableConfirmTitle: "Disable this collector?",
+    disableConfirmCopy:
+      "The installation will stop contributing reports and observer presence until it is enabled again.",
     revokeConfirmTitle: "Revoke this collector?",
     revokeConfirmCopy: "The current installation will lose access permanently.",
     cancel: "Cancel",

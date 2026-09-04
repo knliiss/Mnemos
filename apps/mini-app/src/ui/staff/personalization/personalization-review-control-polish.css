@@ -1,0 +1,454 @@
+.personalization-review-screen button,
+.personalization-review-screen input,
+.personalization-review-screen textarea {
+  font: inherit;
+}
+
+.personalization-review-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.personalization-review-screen button:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.14);
+}
+
+.personalization-review-screen button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.personalization-review-screen button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.personalization-review-screen button:disabled {
+  cursor: default;
+}
+
+.personalization-review-screen input,
+.personalization-review-screen textarea {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.personalization-review-screen input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.personalization-review-screen input[type="number"]::-webkit-inner-spin-button,
+.personalization-review-screen input[type="number"]::-webkit-outer-spin-button,
+.personalization-review-screen input[type="search"]::-webkit-search-cancel-button,
+.personalization-review-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.personalization-review-screen .review-overview__mark {
+  overflow: hidden;
+  color: transparent;
+  background:
+    url("/ui-illustrations/mnemos-mascot-event.svg") center / 40px 36px no-repeat,
+    radial-gradient(circle at 50% 72%, rgba(206, 145, 210, 0.12), transparent 58%),
+    rgba(206, 145, 210, 0.035);
+}
+
+.personalization-review-screen .review-overview__mark > svg {
+  display: none;
+}
+
+.personalization-review-screen .review-scope button:hover:not(:disabled) {
+  color: #c7ccc2;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.personalization-review-screen .review-scope button.is-active:hover:not(:disabled) {
+  color: #e7ebdf;
+  background: rgba(203, 255, 45, 0.075);
+}
+
+.personalization-review-screen .review-queue-card {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.personalization-review-screen .review-queue-card:hover:not(:disabled) {
+  border-color: rgba(206, 145, 210, 0.15);
+  background: rgba(206, 145, 210, 0.025);
+}
+
+.personalization-review-screen .review-queue-card:focus-visible {
+  border-color: rgba(206, 145, 210, 0.24);
+  box-shadow: 0 0 0 2px rgba(206, 145, 210, 0.05);
+}
+
+.personalization-review-screen .review-queue-grid > .inline-hint {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-height: 126px;
+  margin: 0;
+  padding: 16px 12px 14px;
+  border: 1px dashed rgba(223, 232, 204, 0.08);
+  border-radius: 15px;
+  color: #777e73;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(206, 145, 210, 0.04), transparent 36%),
+    rgba(255, 255, 255, 0.01);
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.personalization-review-screen .review-queue-grid > .inline-hint::before {
+  content: "";
+  width: 78px;
+  height: 62px;
+  background: url("/ui-illustrations/mnemos-mascot-search.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+  opacity: 0.82;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.2));
+}
+
+.personalization-review-screen .review-approve-panel > .primary-action:hover:not(:disabled) {
+  color: #e2f5a8;
+  background: rgba(203, 255, 45, 0.075);
+}
+
+.personalization-review-screen .review-reject-panel > .destructive-action:hover:not(:disabled),
+.personalization-review-screen .review-approve-panel > .destructive-action:hover:not(:disabled) {
+  border-color: rgba(222, 105, 112, 0.25);
+  color: #efb0b4;
+  background: rgba(188, 61, 68, 0.075);
+}
+
+.personalization-review-screen .review-listing-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.personalization-review-screen .review-listing-confirmation {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 11px;
+  width: 100%;
+  padding: 11px;
+  border: 1px solid rgba(222, 105, 112, 0.13);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 7% 50%, rgba(188, 61, 68, 0.07), transparent 28%),
+    rgba(188, 61, 68, 0.018);
+}
+
+.personalization-review-screen .review-listing-confirmation:focus-within {
+  border-color: rgba(222, 105, 112, 0.2);
+  box-shadow: 0 0 0 2px rgba(222, 105, 112, 0.035);
+}
+
+.personalization-review-screen .review-listing-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  min-height: 62px;
+  border-radius: 13px;
+  background: rgba(188, 61, 68, 0.025);
+}
+
+.personalization-review-screen .review-listing-confirmation__art img {
+  width: 54px;
+  height: 50px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.88;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy small {
+  color: #b0787c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy strong {
+  color: #e8d7d8;
+  font-size: 11px;
+}
+
+.personalization-review-screen .review-listing-confirmation__copy p {
+  margin: 0;
+  color: #8c7c7d;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > button {
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > .destructive-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(222, 105, 112, 0.18);
+  color: #dda0a5;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist {
+  border-color: rgba(203, 255, 45, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(203, 255, 45, 0.055), transparent 28%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.personalization-review-screen .review-listing-confirmation.is-relist:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__art {
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  small {
+  color: #a4b17e;
+}
+
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  strong {
+  color: #e5ead7;
+}
+
+.personalization-review-screen
+  .review-listing-confirmation.is-relist
+  .review-listing-confirmation__copy
+  p {
+  color: #858c7d;
+}
+
+.personalization-review-screen .review-listing-confirmation__actions > .primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(203, 255, 45, 0.16);
+  color: #dbeaa9;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.personalization-review-screen .review-listing-cancel {
+  min-width: 92px;
+  padding: 0 12px;
+  border: 1px solid rgba(223, 232, 204, 0.08);
+  color: #989f94;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.personalization-review-screen .review-decision-confirmation {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 11px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid rgba(223, 232, 204, 0.09);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve {
+  border-color: rgba(203, 255, 45, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(203, 255, 45, 0.055), transparent 28%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject {
+  border-color: rgba(222, 105, 112, 0.13);
+  background:
+    radial-gradient(circle at 7% 50%, rgba(188, 61, 68, 0.07), transparent 28%),
+    rgba(188, 61, 68, 0.018);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-approve:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.personalization-review-screen .review-decision-confirmation.is-reject:focus-within {
+  border-color: rgba(222, 105, 112, 0.2);
+  box-shadow: 0 0 0 2px rgba(222, 105, 112, 0.035);
+}
+
+.personalization-review-screen .review-decision-confirmation__art {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  min-height: 62px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.personalization-review-screen
+  .review-decision-confirmation.is-approve
+  .review-decision-confirmation__art {
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.personalization-review-screen
+  .review-decision-confirmation.is-reject
+  .review-decision-confirmation__art {
+  background: rgba(188, 61, 68, 0.025);
+}
+
+.personalization-review-screen .review-decision-confirmation__art img {
+  width: 54px;
+  height: 50px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0.88;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.personalization-review-screen
+  .review-decision-confirmation.is-approve
+  .review-decision-confirmation__copy
+  small {
+  color: #a4b17e;
+}
+
+.personalization-review-screen
+  .review-decision-confirmation.is-reject
+  .review-decision-confirmation__copy
+  small {
+  color: #b0787c;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy strong {
+  color: #e5eadf;
+  font-size: 11px;
+}
+
+.personalization-review-screen .review-decision-confirmation__copy p {
+  margin: 0;
+  color: #858c7f;
+  font-size: 9px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > button {
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 760;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .primary-action,
+.personalization-review-screen .review-decision-confirmation__actions > .destructive-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .primary-action {
+  border: 1px solid rgba(203, 255, 45, 0.16);
+  color: #dbeaa9;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.personalization-review-screen .review-decision-confirmation__actions > .destructive-action {
+  border: 1px solid rgba(222, 105, 112, 0.18);
+  color: #dda0a5;
+  background: rgba(188, 61, 68, 0.055);
+}
+
+@media (max-width: 374px) {
+  .personalization-review-screen .review-listing-confirmation,
+  .personalization-review-screen .review-decision-confirmation {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .personalization-review-screen .review-listing-confirmation__art,
+  .personalization-review-screen .review-decision-confirmation__art {
+    width: 52px;
+    min-height: 56px;
+  }
+
+  .personalization-review-screen .review-listing-confirmation__art img,
+  .personalization-review-screen .review-decision-confirmation__art img {
+    width: 46px;
+    height: 44px;
+  }
+
+  .personalization-review-screen .review-listing-confirmation__actions,
+  .personalization-review-screen .review-decision-confirmation__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-review-screen .review-listing-cancel {
+    min-width: 0;
+  }
+}

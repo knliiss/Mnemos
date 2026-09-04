@@ -183,4 +183,11 @@ interface OwnedPersonalizationJpaRepository : JpaRepository<OwnedPersonalization
         ownerId: UUID,
         personalizationType: PersonalizationType,
     ): Int
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    fun deleteByOwnerTypeAndOwnerIdAndPersonalizationId(
+        ownerType: PersonalizationTarget,
+        ownerId: UUID,
+        personalizationId: UUID,
+    ): Int
 }

@@ -119,4 +119,15 @@ class OwnedPersonalizationRepositoryAdapter(
             personalizationType = type,
         )
     }
+
+    override fun delete(
+        owner: PersonalizationOwner,
+        personalizationId: PersonalizationId,
+    ) {
+        repository.deleteByOwnerTypeAndOwnerIdAndPersonalizationId(
+            ownerType = owner.target,
+            ownerId = owner.id,
+            personalizationId = personalizationId.id,
+        )
+    }
 }

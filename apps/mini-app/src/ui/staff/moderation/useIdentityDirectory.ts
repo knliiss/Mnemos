@@ -11,8 +11,8 @@ import { handleError } from "@/shared/errors/errorHandler"
 
 export type IdentityDirectoryMode = "USERS" | "ACCOUNTS"
 
-export function useIdentityDirectory() {
-  const [mode, setModeState] = useState<IdentityDirectoryMode>("USERS")
+export function useIdentityDirectory(initialMode: IdentityDirectoryMode = "USERS") {
+  const [mode, setModeState] = useState<IdentityDirectoryMode>(initialMode)
   const [query, setQueryState] = useState("")
   const [order, setOrderState] = useState<IdentityDirectoryOrder>("NEWEST")
   const [page, setPage] = useState(0)

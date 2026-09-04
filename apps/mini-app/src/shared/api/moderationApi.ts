@@ -74,11 +74,22 @@ export type AdminAccountDetailsResponse = {
   cristalixNickname: string
   status: AccountLifecycleStatus
   ownerMemberId: string
+  baseRoleId: string | null
   maxMembers: number
   createdAt: string
   deactivatedAt: string | null
   deletedAt: string | null
   members: AdminAccountMemberResponse[]
+}
+
+export type AdminAccountRoleResponse = {
+  id: string
+  name: string
+  color: string
+  hierarchyRank: number
+  permissions: Record<string, boolean>
+  createdAt: string
+  updatedAt: string
 }
 
 export type SanctionResponse = {
@@ -137,11 +148,7 @@ export async function searchIdentities(
   query: string,
   limit = 20,
 ): Promise<IdentitySearchResponse[]> {
-  const params = new URLSearchParams({
-    query,
-    limit: String(limit),
-  })
-
+  const params = new URLSearchParams({ query, limit: String(limit) })
   return api<IdentitySearchResponse[]>(`/api/v1/admin/identities?${params}`)
 }
 
@@ -149,7 +156,6 @@ export async function searchUserDirectory(
   query: IdentityDirectoryQuery,
 ): Promise<IdentityDirectoryPage<UserIdentityDirectoryResponse>> {
   const params = createIdentityDirectoryParams(query)
-
   return api<IdentityDirectoryPage<UserIdentityDirectoryResponse>>(
     `/api/v1/admin/identities/users?${params}`,
   )
@@ -159,7 +165,6 @@ export async function searchAccountDirectory(
   query: IdentityDirectoryQuery,
 ): Promise<IdentityDirectoryPage<AccountIdentityDirectoryResponse>> {
   const params = createIdentityDirectoryParams(query)
-
   return api<IdentityDirectoryPage<AccountIdentityDirectoryResponse>>(
     `/api/v1/admin/identities/accounts?${params}`,
   )
@@ -169,40 +174,41 @@ export async function getAdminAccount(accountId: string): Promise<AdminAccountDe
   return api<AdminAccountDetailsResponse>(`/api/v1/admin/accounts/${accountId}`)
 }
 
+export async function getAdminAccountRoles(accountId: string): Promise<AdminAccountRoleResponse[]> {
+  return api<AdminAccountRoleResponse[]>(`/api/v1/admin/accounts/${accountId}/roles`)
+}
+
+export async function getAdminMemberRoles(
+  accountId: string,
+  memberId: string,
+): Promise<AdminAccountRoleResponse[]> {
+  return api<AdminAccountRoleResponse[]>(
+    `/api/v1/admin/accounts/${accountId}/members/${memberId}/roles`,
+  )
+}
+
 export async function reactivateAccount(accountId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}/reactivate`, {
-    method: "POST",
-  })
+  await api<void>(`/api/v1/admin/accounts/${accountId}/reactivate`, { method: "POST" })
 }
 
 export async function deactivateAccount(accountId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}/deactivate`, {
-    method: "POST",
-  })
+  await api<void>(`/api/v1/admin/accounts/${accountId}/deactivate`, { method: "POST" })
 }
 
 export async function addAccountMember(accountId: string, userId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${userId}`, {
-    method: "POST",
-  })
+  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${userId}`, { method: "POST" })
 }
 
 export async function removeAccountMember(accountId: string, memberId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${memberId}`, {
-    method: "DELETE",
-  })
+  await api<void>(`/api/v1/admin/accounts/${accountId}/members/${memberId}`, { method: "DELETE" })
 }
 
-export async function transferAccountOwnership(accountId: string, memberId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}/owner/${memberId}`, {
-    method: "PUT",
-  })
+export async function transferAccountOwnership(accountId: string, userId: string): Promise<void> {
+  await api<void>(`/api/v1/admin/accounts/${accountId}/owner/${userId}`, { method: "PUT" })
 }
 
 export async function deleteAccountPermanently(accountId: string): Promise<void> {
-  await api<void>(`/api/v1/admin/accounts/${accountId}`, {
-    method: "DELETE",
-  })
+  await api<void>(`/api/v1/admin/accounts/${accountId}`, { method: "DELETE" })
 }
 
 export async function listSanctions(userId: string): Promise<SanctionResponse[]> {
@@ -219,9 +225,7 @@ export async function createSanction(request: CreateSanctionRequest): Promise<Sa
 }
 
 export async function revokeSanction(sanctionId: string): Promise<void> {
-  await api<void>(`/api/v1/moderation/sanctions/${sanctionId}`, {
-    method: "DELETE",
-  })
+  await api<void>(`/api/v1/moderation/sanctions/${sanctionId}`, { method: "DELETE" })
 }
 
 export async function getWalletBalance(

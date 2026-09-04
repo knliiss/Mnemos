@@ -235,6 +235,11 @@ class CreateCustomNotificationPackServiceTest {
             owner: PersonalizationOwner,
             type: PersonalizationType,
         ) = Unit
+
+        override fun delete(
+            owner: PersonalizationOwner,
+            personalizationId: PersonalizationId,
+        ) = Unit
     }
 
     private companion object {

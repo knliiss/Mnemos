@@ -1,0 +1,186 @@
+.moderation-account-status-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 620px);
+  padding: 9px 10px;
+  border: 1px solid rgba(203, 255, 45, 0.08);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(203, 255, 45, 0.04), transparent 34%),
+    rgba(203, 255, 45, 0.012);
+}
+
+.moderation-account-status-confirmation.is-danger {
+  border-color: rgba(223, 88, 80, 0.1);
+  background:
+    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.045), transparent 34%),
+    rgba(223, 88, 80, 0.012);
+}
+
+.moderation-account-status-confirmation > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-account-status-confirmation strong {
+  color: #d2d8cd;
+  font-size: 9px;
+}
+
+.moderation-account-status-confirmation.is-danger strong {
+  color: #dba09c;
+}
+
+.moderation-account-status-confirmation small {
+  color: #747c71;
+  font-size: 7.5px;
+  line-height: 1.4;
+}
+
+.moderation-account-status-confirmation > div {
+  display: flex;
+  gap: 6px;
+}
+
+.moderation-account-control__picker-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(235, 241, 213, 0.05);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.moderation-account-control__picker-action > .moderation-control-button {
+  min-height: 38px;
+}
+
+.moderation-account-control__confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(218, 178, 100, 0.11);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(218, 178, 100, 0.045), transparent 34%),
+    rgba(218, 178, 100, 0.012);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-account-control__confirmation:focus-within {
+  border-color: rgba(218, 178, 100, 0.2);
+  box-shadow: 0 0 0 2px rgba(218, 178, 100, 0.035);
+}
+
+.moderation-account-control__confirmation > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-account-control__confirmation strong {
+  color: #d6c18f;
+  font-size: 9px;
+}
+
+.moderation-account-control__confirmation small {
+  overflow: hidden;
+  color: #847b68;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-account-control__confirmation > div,
+.moderation-account-control__picker-confirmation > div,
+.moderation-account-delete-confirmation > div {
+  display: flex;
+  gap: 6px;
+}
+
+.moderation-account-control__picker-confirmation {
+  display: grid;
+  gap: 7px;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid rgba(203, 255, 45, 0.08);
+  border-radius: 9px;
+  background: rgba(203, 255, 45, 0.018);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-account-control__picker-confirmation:focus-within {
+  border-color: rgba(203, 255, 45, 0.16);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.moderation-account-control__picker-confirmation > span {
+  color: #7e8779;
+  font-size: 7.5px;
+  line-height: 1.4;
+}
+
+.moderation-account-delete-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(223, 88, 80, 0.13);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(223, 88, 80, 0.05), transparent 34%),
+    rgba(223, 88, 80, 0.015);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-account-delete-confirmation:focus-within {
+  border-color: rgba(223, 88, 80, 0.23);
+  box-shadow: 0 0 0 2px rgba(223, 88, 80, 0.04);
+}
+
+.moderation-account-delete-confirmation > p {
+  margin: 0;
+  color: #a98582;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .moderation-account-status-confirmation,
+  .moderation-account-control__picker-action,
+  .moderation-account-control__confirmation,
+  .moderation-account-delete-confirmation {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .moderation-account-status-confirmation > div,
+  .moderation-account-control__confirmation > div,
+  .moderation-account-control__picker-confirmation > div,
+  .moderation-account-delete-confirmation > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moderation-account-control__picker-action > .moderation-control-button {
+    width: 100%;
+  }
+
+  .moderation-account-control__picker-confirmation {
+    min-width: 0;
+  }
+}

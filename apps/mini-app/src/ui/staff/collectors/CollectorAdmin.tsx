@@ -40,6 +40,7 @@ export function CollectorAdmin({ back }: { back: () => void }) {
   const [creatingActivation, setCreatingActivation] = useState(false)
   const [copied, setCopied] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [disableCandidate, setDisableCandidate] = useState<string | null>(null)
   const [revokeCandidate, setRevokeCandidate] = useState<string | null>(null)
   const [filter, setFilter] = useState<CollectorFilter>("ALL")
   const [sort, setSort] = useState<CollectorSort>("STATUS")
@@ -195,8 +196,24 @@ export function CollectorAdmin({ back }: { back: () => void }) {
       handleError(mutationError)
     } finally {
       setBusyId(null)
+      setDisableCandidate(null)
       setRevokeCandidate(null)
     }
+  }
+
+  const requestDisable = (credentialId: string) => {
+    setRevokeCandidate(null)
+    setDisableCandidate(credentialId)
+  }
+
+  const requestRevoke = (credentialId: string) => {
+    setDisableCandidate(null)
+    setRevokeCandidate(credentialId)
+  }
+
+  const cancelCredentialConfirmation = () => {
+    setDisableCandidate(null)
+    setRevokeCandidate(null)
   }
 
   return (
@@ -339,16 +356,19 @@ export function CollectorAdmin({ back }: { back: () => void }) {
           <CollectorCredentialList
             credentials={visibleCredentials}
             busyId={busyId}
+            disableCandidate={disableCandidate}
             revokeCandidate={revokeCandidate}
             dateFormatter={dateFormatter}
             onEnable={(credentialId) =>
               void mutateCredential(credentialId, enableCollectorCredential)
             }
-            onDisable={(credentialId) =>
+            onRequestDisable={requestDisable}
+            onCancelDisable={cancelCredentialConfirmation}
+            onConfirmDisable={(credentialId) =>
               void mutateCredential(credentialId, disableCollectorCredential)
             }
-            onRequestRevoke={setRevokeCandidate}
-            onCancelRevoke={() => setRevokeCandidate(null)}
+            onRequestRevoke={requestRevoke}
+            onCancelRevoke={cancelCredentialConfirmation}
             onConfirmRevoke={(credentialId) =>
               void mutateCredential(credentialId, revokeCollectorCredential)
             }

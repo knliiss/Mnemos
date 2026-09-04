@@ -76,22 +76,22 @@ class AdminAccountController(
         )
     }
 
-    @PutMapping("/{accountId}/owner/{memberId}")
+    @PutMapping("/{accountId}/owner/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun transferOwnership(
         @PathVariable accountId: UUID,
-        @PathVariable memberId: UUID,
+        @PathVariable userId: UUID,
     ) {
         adminAccountManagementService.transferOwnership(
             accountId = AccountId(accountId),
-            newOwnerMemberId = AccountMemberId(memberId),
+            newOwnerUserId = UserId(userId),
         )
     }
 
     @DeleteMapping("/{accountId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun deleteAccount(
         @PathVariable accountId: UUID,
     ) {

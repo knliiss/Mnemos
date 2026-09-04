@@ -67,7 +67,12 @@ export function BadgeAssignmentGrid({
         )
       })}
 
-      {!badges.length ? <p className="inline-hint">{t("badgeAdmin.noBadges")}</p> : null}
+      {!badges.length ? (
+        <div className="badge-catalog-empty">
+          <img src="/ui-illustrations/mnemos-mascot-search.svg" alt="" aria-hidden="true" />
+          <strong>{t("badgeAdmin.noBadges")}</strong>
+        </div>
+      ) : null}
     </section>
   )
 }

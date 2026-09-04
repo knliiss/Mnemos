@@ -1,0 +1,535 @@
+.moderation-management-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.moderation-management-card {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(235, 241, 213, 0.07);
+  border-radius: 14px;
+  outline: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.014);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-management-card:hover {
+  border-color: rgba(203, 255, 45, 0.13);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.moderation-management-card:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-management-card__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.moderation-management-card__mark--user {
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.moderation-management-card__mark--user img {
+  width: 28px;
+  height: 28px;
+}
+
+.moderation-management-card__mark--account {
+  color: #a9c6eb;
+  background: rgba(100, 151, 217, 0.075);
+}
+
+.moderation-management-card > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.moderation-management-card small,
+.moderation-management-card p {
+  margin: 0;
+  color: #737a70;
+  font-size: 8px;
+}
+
+.moderation-management-card strong {
+  color: #d8ddd2;
+  font-size: 11px;
+}
+
+.moderation-management-card > b {
+  color: #7c8478;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.moderation-user-account-link {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 11px;
+  outline: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.01);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-user-account-link:hover {
+  border-color: rgba(203, 255, 45, 0.12);
+  background: rgba(203, 255, 45, 0.02);
+}
+
+.moderation-user-account-link:focus-visible {
+  border-color: rgba(203, 255, 45, 0.2);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-user-account-link > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+
+.moderation-user-account-link > span:first-child i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #696f67;
+}
+
+.moderation-user-account-link > span:first-child.is-active i {
+  background: #cbe86e;
+  box-shadow: 0 0 10px rgba(203, 255, 45, 0.22);
+}
+
+.moderation-user-account-link > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-user-account-link strong,
+.moderation-user-account-link small,
+.moderation-user-account-link em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-user-account-link strong {
+  color: #d8ddd2;
+  font-size: 10px;
+}
+
+.moderation-user-account-link small,
+.moderation-user-account-link em {
+  color: #6f766c;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.moderation-user-account-link > b {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #8b9188;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.moderation-user-account-link > b.is-active {
+  color: #cbe86e;
+  background: rgba(203, 255, 45, 0.055);
+}
+
+.moderation-user-account-link > span:last-child {
+  color: #767d72;
+  font-size: 15px;
+}
+
+.moderation-account-owner-link,
+.moderation-account-member__user-link {
+  appearance: none;
+  -webkit-appearance: none;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  color: #c7df78;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.moderation-account-owner-link:hover,
+.moderation-account-member__user-link:hover {
+  color: #ddf38f;
+}
+
+.moderation-account-owner-link:focus-visible,
+.moderation-account-member__user-link:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.08);
+}
+
+.moderation-account-status-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 9px 0 0;
+}
+
+.moderation-account-control__admin-actions {
+  display: grid;
+  gap: 7px;
+}
+
+.moderation-admin-roles {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(235, 241, 213, 0.065);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.moderation-admin-roles__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.moderation-admin-roles__heading > span {
+  display: grid;
+  gap: 2px;
+}
+
+.moderation-admin-roles__heading small {
+  color: #72796f;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.moderation-admin-roles__heading strong {
+  color: #dce1d7;
+  font-size: 12px;
+}
+
+.moderation-admin-roles__heading em {
+  min-width: 24px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #b9d168;
+  background: rgba(203, 255, 45, 0.055);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  text-align: center;
+}
+
+.moderation-admin-role-create,
+.moderation-admin-role-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px auto;
+  gap: 7px;
+  align-items: center;
+}
+
+.moderation-admin-input,
+.moderation-admin-color {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 10px;
+  outline: none;
+  color: #d8ddd2;
+  background: rgba(0, 0, 0, 0.16);
+  font: inherit;
+  font-size: 10px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.moderation-admin-input {
+  padding: 0 10px;
+}
+
+.moderation-admin-color {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.moderation-admin-input:hover,
+.moderation-admin-color:hover {
+  border-color: rgba(203, 255, 45, 0.14);
+}
+
+.moderation-admin-input:focus-visible,
+.moderation-admin-color:focus-visible {
+  border-color: rgba(203, 255, 45, 0.25);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.05);
+}
+
+.moderation-admin-permission-picker,
+.moderation-admin-role-permissions,
+.moderation-admin-role-actions,
+.moderation-admin-member-role-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.moderation-admin-permission-picker button,
+.moderation-admin-role-permissions button,
+.moderation-admin-role-actions button,
+.moderation-admin-member-role-row button {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(235, 241, 213, 0.06);
+  border-radius: 8px;
+  outline: none;
+  color: #858c82;
+  background: rgba(255, 255, 255, 0.016);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.moderation-admin-permission-picker button:hover,
+.moderation-admin-role-permissions button:hover,
+.moderation-admin-role-actions button:hover,
+.moderation-admin-member-role-row button:hover {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #c5ccc0;
+}
+
+.moderation-admin-permission-picker button:focus-visible,
+.moderation-admin-role-permissions button:focus-visible,
+.moderation-admin-role-actions button:focus-visible,
+.moderation-admin-member-role-row button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.moderation-admin-permission-picker button.is-active,
+.moderation-admin-role-permissions button.is-active,
+.moderation-admin-role-actions button.is-active,
+.moderation-admin-member-role-row button.is-active {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #cce978;
+  background: rgba(203, 255, 45, 0.045);
+}
+
+.moderation-admin-role-actions button.is-danger {
+  color: #d88b87;
+  background: rgba(223, 88, 80, 0.035);
+}
+
+.moderation-admin-permission-picker button:disabled,
+.moderation-admin-role-permissions button:disabled,
+.moderation-admin-role-actions button:disabled,
+.moderation-admin-member-role-row button:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.moderation-admin-role-list,
+.moderation-admin-member-roles {
+  display: grid;
+  gap: 8px;
+}
+
+.moderation-admin-role-card {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(235, 241, 213, 0.055);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.moderation-admin-role-card > header {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.moderation-admin-role-swatch {
+  width: 8px;
+  height: 30px;
+  border-radius: 999px;
+}
+
+.moderation-admin-role-card > header > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.moderation-admin-role-card > header strong {
+  color: #d8ddd2;
+  font-size: 10px;
+}
+
+.moderation-admin-role-card > header small {
+  color: #71786e;
+  font-size: 7px;
+}
+
+.moderation-admin-role-card > header em {
+  padding: 4px 6px;
+  border-radius: 7px;
+  color: #cbe86e;
+  background: rgba(203, 255, 45, 0.05);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.moderation-admin-role-empty {
+  padding: 16px;
+  border: 1px dashed rgba(235, 241, 213, 0.07);
+  border-radius: 11px;
+  color: #767d72;
+  font-size: 9px;
+  text-align: center;
+}
+
+.moderation-admin-member-role-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1.3fr);
+  gap: 10px;
+  align-items: start;
+  padding: 9px 0;
+  border-top: 1px solid rgba(235, 241, 213, 0.045);
+}
+
+.moderation-admin-member-role-row > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-admin-member-role-row strong,
+.moderation-admin-member-role-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moderation-admin-member-role-row strong {
+  color: #d5dbd0;
+  font-size: 9px;
+}
+
+.moderation-admin-member-role-row small {
+  color: #6f766c;
+  font-size: 7px;
+}
+
+.moderation-admin-member-role-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.moderation-admin-member-role-row button i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+@media (max-width: 420px) {
+  .moderation-management-card {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+
+  .moderation-management-card__mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  .moderation-user-account-link {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+  }
+
+  .moderation-user-account-link > span:last-child {
+    display: none;
+  }
+
+  .moderation-account-status-actions > .moderation-control-button {
+    width: 100%;
+  }
+
+  .moderation-admin-role-create,
+  .moderation-admin-role-details,
+  .moderation-admin-member-role-row {
+    grid-template-columns: 1fr;
+  }
+
+  .moderation-admin-role-create .moderation-control-button,
+  .moderation-admin-role-details .moderation-control-button {
+    width: 100%;
+  }
+
+  .moderation-admin-color {
+    width: 100%;
+  }
+}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import type { CollectorCredentialResponse } from "@/shared/api/collectorAdminApi"
 import { Glyph } from "../../shared/MnemosIcon"
@@ -6,10 +7,13 @@ import { collectorCredentialState } from "./collectorAdminPresentation"
 type CollectorCredentialListProps = {
   credentials: CollectorCredentialResponse[]
   busyId: string | null
+  disableCandidate: string | null
   revokeCandidate: string | null
   dateFormatter: Intl.DateTimeFormat
   onEnable(credentialId: string): void
-  onDisable(credentialId: string): void
+  onRequestDisable(credentialId: string): void
+  onCancelDisable(): void
+  onConfirmDisable(credentialId: string): void
   onRequestRevoke(credentialId: string): void
   onCancelRevoke(): void
   onConfirmRevoke(credentialId: string): void
@@ -18,22 +22,58 @@ type CollectorCredentialListProps = {
 export function CollectorCredentialList({
   credentials,
   busyId,
+  disableCandidate,
   revokeCandidate,
   dateFormatter,
   onEnable,
-  onDisable,
+  onRequestDisable,
+  onCancelDisable,
+  onConfirmDisable,
   onRequestRevoke,
   onCancelRevoke,
   onConfirmRevoke,
 }: CollectorCredentialListProps) {
   const { t } = useTranslation()
+  const confirmButtonRef = useRef<HTMLButtonElement>(null)
+  const activeConfirmation = disableCandidate ?? revokeCandidate
+
+  useEffect(() => {
+    if (!activeConfirmation) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      confirmButtonRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [activeConfirmation])
+
+  const cancelConfirmation = () => {
+    if (disableCandidate) {
+      onCancelDisable()
+      return
+    }
+
+    onCancelRevoke()
+  }
 
   return (
     <div className="collector-credential-grid">
       {credentials.map((credential) => {
         const state = collectorCredentialState(credential)
         const busy = busyId === credential.id
+        const confirmingDisable = disableCandidate === credential.id
         const confirmingRevoke = revokeCandidate === credential.id
+        const confirmingAction = confirmingDisable || confirmingRevoke
+        const confirmationTitle = confirmingDisable
+          ? t("collectorAdmin.disableConfirmTitle")
+          : t("collectorAdmin.revokeConfirmTitle")
+        const confirmationCopy = confirmingDisable
+          ? t("collectorAdmin.disableConfirmCopy")
+          : t("collectorAdmin.revokeConfirmCopy")
 
         return (
           <article
@@ -66,23 +106,42 @@ export function CollectorCredentialList({
               </div>
             </dl>
 
-            {confirmingRevoke ? (
-              <div className="collector-revoke-confirmation">
+            {confirmingAction ? (
+              <div
+                className={`collector-revoke-confirmation ${confirmingDisable ? "is-disable" : "is-revoke"}`}
+                role="alertdialog"
+                aria-label={confirmationTitle}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault()
+                    cancelConfirmation()
+                  }
+                }}
+              >
                 <span>
-                  <strong>{t("collectorAdmin.revokeConfirmTitle")}</strong>
-                  <small>{t("collectorAdmin.revokeConfirmCopy")}</small>
+                  <strong>{confirmationTitle}</strong>
+                  <small>{confirmationCopy}</small>
                 </span>
                 <div>
-                  <button type="button" disabled={busy} onClick={onCancelRevoke}>
+                  <button type="button" disabled={busy} onClick={cancelConfirmation}>
                     {t("collectorAdmin.cancel")}
                   </button>
                   <button
+                    ref={confirmButtonRef}
                     type="button"
-                    className="is-danger"
+                    className={confirmingDisable ? "is-warning" : "is-danger"}
                     disabled={busy}
-                    onClick={() => onConfirmRevoke(credential.id)}
+                    onClick={() =>
+                      confirmingDisable
+                        ? onConfirmDisable(credential.id)
+                        : onConfirmRevoke(credential.id)
+                    }
                   >
-                    {busy ? t("collectorAdmin.working") : t("collectorAdmin.revoke")}
+                    {busy
+                      ? t("collectorAdmin.working")
+                      : confirmingDisable
+                        ? t("collectorAdmin.disable")
+                        : t("collectorAdmin.revoke")}
                   </button>
                 </div>
               </div>
@@ -95,7 +154,9 @@ export function CollectorCredentialList({
                     type="button"
                     disabled={busy}
                     onClick={() =>
-                      state === "ENABLED" ? onDisable(credential.id) : onEnable(credential.id)
+                      state === "ENABLED"
+                        ? onRequestDisable(credential.id)
+                        : onEnable(credential.id)
                     }
                   >
                     <Glyph name={state === "ENABLED" ? "close" : "check"} size={15} />

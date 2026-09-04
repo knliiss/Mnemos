@@ -12,6 +12,7 @@ import com.mnemos.account.domain.model.account.Account
 import com.mnemos.account.domain.model.account.AccountMember
 import com.mnemos.account.domain.model.account.AccountMemberId
 import com.mnemos.account.domain.model.account.role.assignment.RoleAssignment
+import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.account.AccountMemberRepository
 import com.mnemos.account.domain.repository.account.AccountRepository
 import com.mnemos.account.domain.repository.role.RoleAssignmentRepository
@@ -51,42 +52,19 @@ class AdminAccountManagementService(
         userId: UserId,
     ) {
         val account = requireAccountForUpdate(accountId)
-        val user = userRepository.findById(userId) ?: throw UserIdNotFoundException(userId)
+        val user = requireUser(userId)
 
         if (accountMemberRepository.existsByAccountIdAndUserId(accountId, userId)) {
             throw AccountMemberAlreadyExistsException(accountId, userId)
         }
 
-        account.requireAvailableMemberSlot(accountMemberRepository.countByAccountId(accountId))
-
         val now = Instant.now()
-        val member =
-            accountMemberRepository.create(
-                AccountMember.create(
-                    id = AccountMemberId.generate(),
-                    accountId = accountId,
-                    userId = user.id,
-                ),
-            )
+        val member = createAdministrativeMember(account, user, now)
 
-        account.baseRoleId?.let { baseRoleId ->
-            roleAssignmentRepository.create(
-                RoleAssignment.createBaseRole(
-                    accountId = accountId,
-                    accountMemberId = member.id,
-                    roleId = baseRoleId,
-                    now = now,
-                ),
-            )
-        }
-
-        integrationEventPublisher.publish(
-            AccountIntegrationEvents.memberJoined(
-                account = account,
-                member = member,
-                recipientUserIds = accountMemberRepository.findUserIdsByAccountId(accountId),
-                occurredAt = now,
-            ),
+        publishMemberJoined(
+            account = account,
+            member = member,
+            now = now,
         )
     }
 
@@ -127,24 +105,38 @@ class AdminAccountManagementService(
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun transferOwnership(
         accountId: AccountId,
-        newOwnerMemberId: AccountMemberId,
+        newOwnerUserId: UserId,
     ) {
         val account = requireAccountForUpdate(accountId)
+        val newOwnerUser = requireUser(newOwnerUserId)
+        val existingMember =
+            accountMemberRepository.findByAccountIdAndUserId(
+                accountId = accountId,
+                userId = newOwnerUserId,
+            )
 
-        if (account.ownerMemberId == newOwnerMemberId) {
+        if (existingMember != null && account.isOwner(existingMember.id)) {
             return
         }
 
         val previousOwner = requireMember(accountId, account.ownerMemberId)
-        val newOwner = requireMember(accountId, newOwnerMemberId)
         val now = Instant.now()
-        val recipientUserIds = accountMemberRepository.findUserIdsByAccountId(accountId)
+        val newOwner = existingMember ?: createAdministrativeMember(account, newOwnerUser, now)
+
+        if (existingMember == null) {
+            publishMemberJoined(
+                account = account,
+                member = newOwner,
+                now = now,
+            )
+        }
 
         if (!account.transferOwnership(newOwner.id, now)) {
             return
         }
 
         val updatedAccount = accountRepository.update(account)
+        val recipientUserIds = accountMemberRepository.findUserIdsByAccountId(accountId)
 
         integrationEventPublisher.publish(
             AccountIntegrationEvents.ownershipTransferred(
@@ -158,7 +150,7 @@ class AdminAccountManagementService(
     }
 
     @Transactional
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun deleteAccount(accountId: AccountId) {
         val account = requireAccountForUpdate(accountId)
         val now = Instant.now()
@@ -182,9 +174,76 @@ class AdminAccountManagementService(
         )
     }
 
+    private fun createAdministrativeMember(
+        account: Account,
+        user: User,
+        now: Instant,
+    ): AccountMember {
+        ensureAdministrativeMemberCapacity(account, now)
+
+        val member =
+            accountMemberRepository.create(
+                AccountMember.create(
+                    id = AccountMemberId.generate(),
+                    accountId = account.id,
+                    userId = user.id,
+                ),
+            )
+
+        account.baseRoleId?.let { baseRoleId ->
+            roleAssignmentRepository.create(
+                RoleAssignment.createBaseRole(
+                    accountId = account.id,
+                    accountMemberId = member.id,
+                    roleId = baseRoleId,
+                    now = now,
+                ),
+            )
+        }
+
+        return member
+    }
+
+    private fun ensureAdministrativeMemberCapacity(
+        account: Account,
+        now: Instant,
+    ) {
+        val currentMemberCount = accountMemberRepository.countByAccountId(account.id)
+
+        if (currentMemberCount < account.maxMembers) {
+            return
+        }
+
+        account.updateMaxMembers(
+            maxMembers = Math.addExact(currentMemberCount, 1),
+            currentMemberCount = currentMemberCount,
+            now = now,
+        )
+        accountRepository.update(account)
+    }
+
+    private fun publishMemberJoined(
+        account: Account,
+        member: AccountMember,
+        now: Instant,
+    ) {
+        integrationEventPublisher.publish(
+            AccountIntegrationEvents.memberJoined(
+                account = account,
+                member = member,
+                recipientUserIds = accountMemberRepository.findUserIdsByAccountId(account.id),
+                occurredAt = now,
+            ),
+        )
+    }
+
     private fun requireAccountForUpdate(accountId: AccountId): Account =
         accountRepository.findByIdForUpdate(accountId)
             ?: throw AccountNotFoundException(accountId)
+
+    private fun requireUser(userId: UserId): User =
+        userRepository.findById(userId)
+            ?: throw UserIdNotFoundException(userId)
 
     private fun requireMember(
         accountId: AccountId,
@@ -205,6 +264,7 @@ class AdminAccountManagementService(
             cristalixNickname = cristalixNickname.value,
             status = status.name,
             ownerMemberId = ownerMemberId.id,
+            baseRoleId = baseRoleId?.id,
             maxMembers = maxMembers,
             createdAt = createdAt,
             deactivatedAt = deactivatedAt,
@@ -213,7 +273,7 @@ class AdminAccountManagementService(
         )
 
     private fun AccountMember.toResponse(account: Account): AdminAccountMemberResponse {
-        val user = userRepository.findById(userId) ?: throw UserIdNotFoundException(userId)
+        val user = requireUser(userId)
 
         return AdminAccountMemberResponse(
             memberId = id.id,

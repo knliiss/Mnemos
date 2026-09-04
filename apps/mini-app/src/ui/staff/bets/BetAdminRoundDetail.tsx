@@ -29,10 +29,16 @@ type Props = {
 type BetSideFilter = "ALL" | BetSide
 type BetAmountSort = "DESC" | "ASC"
 
+type ResolutionDraft = {
+  outcome: EventBetOutcome
+  reason: string
+}
+
 export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props) {
   const { t, i18n } = useTranslation()
   const [outcome, setOutcome] = useState<EventBetOutcome>("YES")
   const [reason, setReason] = useState("")
+  const [resolutionDraft, setResolutionDraft] = useState<ResolutionDraft | null>(null)
   const [busy, setBusy] = useState(false)
   const [bets, setBets] = useState<AdminEventBetResponse[]>([])
   const [betsLoading, setBetsLoading] = useState(true)
@@ -41,6 +47,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
   const [amountSort, setAmountSort] = useState<BetAmountSort>("DESC")
   const busyRef = useRef(false)
   const mountedRef = useRef(true)
+  const resolutionConfirmButtonRef = useRef<HTMLButtonElement | null>(null)
   const roundId = round?.id ?? null
 
   useEffect(() => {
@@ -50,6 +57,12 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
       mountedRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    if (resolutionDraft) {
+      resolutionConfirmButtonRef.current?.focus()
+    }
+  }, [resolutionDraft])
 
   useEffect(() => {
     if (!roundId) {
@@ -144,8 +157,23 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
   const canResolve =
     round.status === "AWAITING_RESULT" || round.status === "AWAITING_ADMIN_CONFIRMATION"
 
+  const reviewResolution = () => {
+    const normalizedReason = reason.trim()
+
+    if (!canResolve || !normalizedReason || busyRef.current) {
+      return
+    }
+
+    setResolutionDraft({
+      outcome,
+      reason: normalizedReason,
+    })
+  }
+
   const resolve = async () => {
-    if (!canResolve || !reason.trim() || busyRef.current) {
+    const draft = resolutionDraft
+
+    if (!canResolve || !draft || busyRef.current) {
       return
     }
 
@@ -153,9 +181,10 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
     setBusy(true)
 
     try {
-      await resolveEventBetRound(round.id, outcome, reason.trim())
+      await resolveEventBetRound(round.id, draft.outcome, draft.reason)
 
       if (mountedRef.current) {
+        setResolutionDraft(null)
         await onResolved()
       }
 
@@ -306,6 +335,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
                 type="button"
                 key={value}
                 className={outcome === value ? "is-active" : ""}
+                disabled={Boolean(resolutionDraft) || busy}
                 onClick={() => setOutcome(value)}
               >
                 <strong>{betAdminOutcomeLabel(t, value)}</strong>
@@ -317,6 +347,7 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
             <textarea
               value={reason}
               maxLength={500}
+              disabled={Boolean(resolutionDraft) || busy}
               onChange={(event) => setReason(event.target.value)}
               placeholder={t("betAdmin.reasonPlaceholder")}
             />
@@ -325,11 +356,72 @@ export function BetAdminRoundDetail({ round, loading, back, onResolved }: Props)
           <button
             type="button"
             className="primary-action"
-            disabled={!reason.trim() || busy}
-            onClick={() => void resolve()}
+            disabled={!reason.trim() || Boolean(resolutionDraft) || busy}
+            onClick={reviewResolution}
           >
             {busy ? t("betAdmin.saving") : t("betAdmin.confirmResult")}
           </button>
+
+          {resolutionDraft ? (
+            <section
+              className={`bet-admin-round-resolution-confirmation ${
+                resolutionDraft.outcome === "REFUND" ? "is-refund" : ""
+              }`}
+              role="alertdialog"
+              aria-label={t("betAdmin.resolutionConfirmTitle")}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && !busy) {
+                  setResolutionDraft(null)
+                }
+              }}
+            >
+              <span className="bet-admin-round-resolution-confirmation__art" aria-hidden="true">
+                <img src="/ui-illustrations/mnemos-mascot-race.svg" alt="" />
+              </span>
+
+              <span className="bet-admin-round-resolution-confirmation__copy">
+                <strong>{t("betAdmin.resolutionConfirmTitle")}</strong>
+                <small>
+                  {resolutionDraft.outcome === "REFUND"
+                    ? t("betAdmin.resolutionRefundWarning")
+                    : t("betAdmin.resolutionConfirmWarning")}
+                </small>
+
+                <span className="bet-admin-round-resolution-confirmation__facts">
+                  <span>
+                    <small>{t("betAdmin.resolutionOutcome")}</small>
+                    <strong>{betAdminOutcomeLabel(t, resolutionDraft.outcome)}</strong>
+                  </span>
+                  <span>
+                    <small>{t("betAdmin.resolutionPool")}</small>
+                    <CurrencyValue currency="COIN" value={betTotals.total} compact />
+                  </span>
+                </span>
+
+                <p>{resolutionDraft.reason}</p>
+              </span>
+
+              <span className="bet-admin-round-resolution-confirmation__actions">
+                <button
+                  ref={resolutionConfirmButtonRef}
+                  type="button"
+                  className={resolutionDraft.outcome === "REFUND" ? "is-refund" : "is-danger"}
+                  disabled={busy}
+                  onClick={() => void resolve()}
+                >
+                  {busy ? t("betAdmin.saving") : t("betAdmin.resolutionConfirmAction")}
+                </button>
+                <button
+                  type="button"
+                  className="is-neutral"
+                  disabled={busy}
+                  onClick={() => setResolutionDraft(null)}
+                >
+                  {t("betAdmin.resolutionKeepEditing")}
+                </button>
+              </span>
+            </section>
+          ) : null}
         </section>
       ) : null}
     </div>

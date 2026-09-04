@@ -1,0 +1,126 @@
+.collector-admin-screen button,
+.collector-admin-screen input {
+  font: inherit;
+}
+
+.collector-admin-screen button {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.collector-admin-screen button:focus-visible {
+  border-color: rgba(203, 255, 45, 0.22);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.collector-admin-screen button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.collector-admin-screen button:disabled {
+  cursor: default;
+}
+
+.collector-admin-screen input {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.collector-admin-screen input[type="search"]::-webkit-search-cancel-button,
+.collector-admin-screen input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+.collector-admin-hero__copy > button:hover:not(:disabled) {
+  border-color: rgba(220, 255, 98, 0.34);
+  background: linear-gradient(180deg, #e4ff82, #cff540);
+  box-shadow: 0 8px 18px rgba(203, 255, 45, 0.08);
+}
+
+.collector-admin-hero__art img {
+  content: url("/ui-illustrations/mnemos-mascot-event.svg");
+}
+
+.collector-activation-token {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.collector-activation-token:hover {
+  border-color: rgba(203, 255, 45, 0.28);
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.collector-activation-token:focus-visible {
+  border-color: rgba(203, 255, 45, 0.3);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.045);
+}
+
+.collector-refresh:hover:not(:disabled),
+.collector-admin-filters button:hover:not(:disabled) {
+  border-color: rgba(203, 255, 45, 0.13);
+  color: #c8cec3;
+  background: rgba(203, 255, 45, 0.025);
+}
+
+.collector-admin-search {
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.collector-admin-search:focus-within {
+  border-color: rgba(203, 255, 45, 0.2);
+  background: rgba(203, 255, 45, 0.018);
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.04);
+}
+
+.collector-admin-sort select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.collector-revoke-confirmation {
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.collector-revoke-confirmation:focus-within {
+  box-shadow: 0 0 0 2px rgba(203, 255, 45, 0.035);
+}
+
+.collector-revoke-confirmation.is-disable {
+  border-color: rgba(226, 177, 89, 0.14);
+  background: rgba(196, 140, 47, 0.025);
+}
+
+.collector-revoke-confirmation button.is-warning {
+  border-color: rgba(226, 177, 89, 0.16);
+  color: #d7b979;
+  background: rgba(196, 140, 47, 0.035);
+}
+
+.collector-revoke-confirmation button.is-warning:hover:not(:disabled),
+.collector-revoke-confirmation button.is-warning:focus-visible {
+  border-color: rgba(226, 177, 89, 0.28);
+  color: #ead098;
+  background: rgba(196, 140, 47, 0.065);
+}

@@ -440,6 +440,11 @@ class PersonalizationLifecycleUseCasesTest {
                 ownership.deactivate()
             }
         }
+
+        override fun delete(
+            owner: PersonalizationOwner,
+            personalizationId: PersonalizationId,
+        ) = Unit
     }
 
     private class RecordingIntegrationEventPublisher : IntegrationEventPublisher {
