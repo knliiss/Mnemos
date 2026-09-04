@@ -17,6 +17,7 @@ export const en = {
     back: "Back",
     save: "Save",
     cancel: "Cancel",
+    confirm: "Confirm",
     clear: "Clear",
     soon: "Soon",
     unavailable: "Temporarily unavailable",
@@ -148,6 +149,10 @@ export const en = {
     codes: errorCodesEn,
   },
   ...uiEn,
+  moderation: {
+    ...uiEn.moderation,
+    owner: "Owner",
+  },
   accountHome: {
     ...uiEn.accountHome,
     globalEventRemaining: "{{time}} remaining",
