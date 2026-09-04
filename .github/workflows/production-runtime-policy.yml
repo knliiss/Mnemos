@@ -15,6 +15,9 @@ on:
         description: Reason for the production policy reconciliation
         required: true
         type: string
+  push:
+    branches:
+      - deploy/production-runtime-policy
 
 concurrency:
   group: mnemos-production-deploy
@@ -22,6 +25,11 @@ concurrency:
 
 permissions:
   contents: read
+
+env:
+  TOOLING_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.tooling_revision || github.sha }}
+  AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || '' }}
+  RECONCILIATION_REASON: ${{ github.event_name == 'workflow_dispatch' && inputs.reason || 'Authorized by deploy/production-runtime-policy' }}
 
 jobs:
   reconcile:
@@ -31,34 +39,6 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Validate explicit production authorization
-        shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
-          AUTHORIZATION: ${{ inputs.authorization }}
-        run: |
-          set -euo pipefail
-
-          if ! printf '%s' "$TOOLING_REVISION" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "tooling_revision must be a full 40-character commit SHA" >&2
-            exit 1
-          fi
-
-          if [ "$AUTHORIZATION" != "APPLY $TOOLING_REVISION" ]; then
-            echo "authorization must exactly equal: APPLY <tooling_revision>" >&2
-            exit 1
-          fi
-
-          if [ "$GITHUB_REF" != "refs/heads/master" ]; then
-            echo "Production runtime policy can only run from master" >&2
-            exit 1
-          fi
-
-          if [ "$GITHUB_SHA" != "$TOOLING_REVISION" ]; then
-            echo "Dispatched master revision does not match the approved tooling SHA" >&2
-            exit 1
-          fi
-
       - name: Repair production runner workspace ownership
         shell: bash
         run: |
@@ -68,17 +48,73 @@ jobs:
             sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
           fi
 
-      - name: Checkout approved production tooling
+      - name: Checkout trusted master history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ inputs.tooling_revision }}
-          fetch-depth: 1
+          ref: master
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Validate explicit production authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$TOOLING_REVISION" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "tooling_revision must be a full 40-character commit SHA" >&2
+            exit 1
+          fi
+
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch)
+              if [ "$AUTHORIZATION" != "APPLY $TOOLING_REVISION" ]; then
+                echo "authorization must exactly equal: APPLY <tooling_revision>" >&2
+                exit 1
+              fi
+
+              if [ "$GITHUB_REF" != "refs/heads/master" ]; then
+                echo "Manually dispatched production runtime policy can only run from master" >&2
+                exit 1
+              fi
+
+              if [ "$GITHUB_SHA" != "$TOOLING_REVISION" ]; then
+                echo "Dispatched master revision does not match the approved tooling SHA" >&2
+                exit 1
+              fi
+              ;;
+            push)
+              if [ "$GITHUB_REF" != "refs/heads/deploy/production-runtime-policy" ]; then
+                echo "Push-triggered runtime policy is restricted to deploy/production-runtime-policy" >&2
+                exit 1
+              fi
+
+              master_sha="$(git rev-parse origin/master)"
+
+              if [ "$TOOLING_REVISION" != "$master_sha" ]; then
+                echo "deploy/production-runtime-policy must point exactly at current master HEAD" >&2
+                echo "tooling_revision=$TOOLING_REVISION" >&2
+                echo "master_sha=$master_sha" >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Unsupported production runtime policy event: $GITHUB_EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          python3 scripts/production_source_revision.py \
+            "$TOOLING_REVISION" \
+            --trusted-ref origin/master
+
+      - name: Checkout approved production tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout --detach "$TOOLING_REVISION"
 
       - name: Verify checked-out tooling revision
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TOOLING_REVISION"
@@ -89,6 +125,7 @@ jobs:
           set -euo pipefail
           sudo -n sh scripts/validate-production-env.sh
           sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
 
       - name: Reconcile runtime policy without image replacement
         shell: bash
@@ -107,16 +144,78 @@ jobs:
 
       - name: Install approved production tooling
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
           sudo -n sh scripts/install-production-runtime.sh "$TOOLING_REVISION"
 
+      - name: Reconcile declarative Keycloak configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/production-infra.sh \
+            run \
+            --rm \
+            --no-deps \
+            keycloak-config
+
+      - name: Verify moderation Keycloak query permission
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh -c '
+            set -eu
+            set -a
+            . /etc/mnemos/mnemos.env
+            set +a
+
+            token_json="$(
+              curl \
+                --fail-with-body \
+                --silent \
+                --show-error \
+                --request POST \
+                --data-urlencode grant_type=client_credentials \
+                --data-urlencode "client_id=$MNEMOS_MODERATION_SERVICE_CLIENT_ID" \
+                --data-urlencode "client_secret=$KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET" \
+                "http://${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}/realms/mnemos/protocol/openid-connect/token"
+            )"
+
+            access_token="$(printf "%s" "$token_json" | jq -r ".access_token // empty")"
+
+            if [ -z "$access_token" ]; then
+              echo "Moderation service account token was not issued" >&2
+              exit 1
+            fi
+
+            ACCESS_TOKEN="$access_token" python3 - <<"PY"
+import base64
+import json
+import os
+
+parts = os.environ["ACCESS_TOKEN"].split(".")
+
+if len(parts) != 3:
+    raise SystemExit("Moderation service account token is not a JWT")
+
+payload_segment = parts[1]
+payload_segment += "=" * (-len(payload_segment) % 4)
+payload = json.loads(base64.urlsafe_b64decode(payload_segment).decode("utf-8"))
+roles = (
+    payload.get("resource_access", {})
+    .get("realm-management", {})
+    .get("roles", [])
+)
+
+if "query-users" not in roles:
+    raise SystemExit("Moderation service account token is missing realm-management/query-users")
+
+print("Moderation Keycloak query permission verified")
+PY
+          '
+
       - name: Record exact live production state
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
 
@@ -150,3 +249,17 @@ jobs:
           set -euo pipefail
           sudo -n sh scripts/verify-production-availability.sh
           sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+      - name: Summarize production reconciliation
+        shell: bash
+        run: |
+          {
+            echo "## Production runtime policy"
+            echo
+            echo "Tooling revision: \`$TOOLING_REVISION\`"
+            echo "Authorization event: \`$GITHUB_EVENT_NAME\`"
+            echo "Reason: $RECONCILIATION_REASON"
+            echo
+            echo "Runtime policy, declarative Keycloak configuration, canonical state, and final health were reconciled and verified."
+          } >> "$GITHUB_STEP_SUMMARY"
