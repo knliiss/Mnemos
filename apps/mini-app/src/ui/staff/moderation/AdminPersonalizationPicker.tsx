@@ -40,6 +40,7 @@ export function AdminPersonalizationPicker({
   const loadRevision = useRef(0)
   const loadingRef = useRef(false)
   const excluded = useMemo(() => new Set(excludedIds), [excludedIds])
+  const pickerOpen = open && !disabled
 
   useEffect(
     () => () => {
@@ -49,7 +50,7 @@ export function AdminPersonalizationPicker({
   )
 
   useEffect(() => {
-    if (!open) {
+    if (!pickerOpen) {
       return
     }
 
@@ -69,14 +70,7 @@ export function AdminPersonalizationPicker({
     return () => {
       document.removeEventListener("pointerdown", closeOnOutsidePointer)
     }
-  }, [open])
-
-  useEffect(() => {
-    if (disabled) {
-      setOpen(false)
-      setActiveIndex(-1)
-    }
-  }, [disabled])
+  }, [pickerOpen])
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -168,7 +162,7 @@ export function AdminPersonalizationPicker({
     })
   }
 
-  const activeItem = open && activeIndex >= 0 ? visible[activeIndex] : undefined
+  const activeItem = pickerOpen && activeIndex >= 0 ? visible[activeIndex] : undefined
   const activeOptionId = activeItem ? `${listboxId}-option-${activeItem.id}` : undefined
 
   if (selected) {
@@ -229,7 +223,7 @@ export function AdminPersonalizationPicker({
             "Search catalog by name or type",
           )}
           aria-autocomplete="list"
-          aria-expanded={open}
+          aria-expanded={pickerOpen}
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId}
           onFocus={openPicker}
@@ -263,7 +257,7 @@ export function AdminPersonalizationPicker({
         ) : null}
       </div>
 
-      {open ? (
+      {pickerOpen ? (
         <div id={listboxId} className="admin-personalization-picker__results" role="listbox">
           {loading && visible.length === 0 ? (
             <div className="admin-personalization-picker__state">{t("common.loading")}</div>
