@@ -1,0 +1,71 @@
+name: Production Runtime Policy Request
+
+on:
+  push:
+    branches:
+      - deploy/production-runtime-policy
+
+concurrency:
+  group: production-runtime-policy-request
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  request:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout trusted master history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate production authorization ref
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.sha }}
+          AUTHORIZATION_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [ "$AUTHORIZATION_REF" != "deploy/production-runtime-policy" ]; then
+            echo "Runtime policy request used an unauthorized ref: $AUTHORIZATION_REF" >&2
+            exit 1
+          fi
+
+          if ! printf '%s' "$TARGET_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Runtime policy request target must be a full lowercase Git SHA" >&2
+            exit 1
+          fi
+
+          master_sha="$(git rev-parse origin/master)"
+
+          if [ "$TARGET_SHA" != "$master_sha" ]; then
+            echo "deploy/production-runtime-policy must point exactly at current master HEAD" >&2
+            echo "target_sha=$TARGET_SHA" >&2
+            echo "master_sha=$master_sha" >&2
+            exit 1
+          fi
+
+          python3 scripts/production_source_revision.py \
+            "$TARGET_SHA" \
+            --trusted-ref origin/master
+
+      - name: Summarize authorized request
+        shell: bash
+        env:
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          {
+            echo "## Production runtime policy request"
+            echo
+            echo "Authorization ref: \`deploy/production-runtime-policy\`"
+            echo "Target master SHA: \`$TARGET_SHA\`"
+            echo
+            echo "This workflow only validates the request. It has no production runtime access or mutation capability."
+          } >> "$GITHUB_STEP_SUMMARY"
