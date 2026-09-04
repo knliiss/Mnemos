@@ -19,6 +19,9 @@ NORMALIZER = ROOT / "scripts" / "normalize-production-swarm-stack.py"
 RECONCILER = ROOT / "scripts" / "reconcile-production-runtime-policy.py"
 OVERRIDES = ROOT / "infrastructure" / "production" / "compose.app-overrides.yml"
 RUNTIME_POLICY_WORKFLOW = ROOT / ".github" / "workflows" / "production-runtime-policy.yml"
+RUNTIME_POLICY_REQUEST_WORKFLOW = (
+    ROOT / ".github" / "workflows" / "production-runtime-policy-request.yml"
+)
 
 EXPECTED_ACTIVE_ACTIVE = {
     "account-service",
@@ -272,6 +275,62 @@ def verify_workflow_state_recording() -> None:
         fail("Production runtime state recording must not pass a runner-owned /tmp file to root")
 
 
+def verify_workflow_authorization_boundary() -> None:
+    workflow = RUNTIME_POLICY_WORKFLOW.read_text(encoding="utf-8")
+    request = RUNTIME_POLICY_REQUEST_WORKFLOW.read_text(encoding="utf-8")
+
+    required_request_fragments = (
+        "deploy/production-runtime-policy",
+        "runs-on: ubuntu-24.04",
+        "scripts/production_source_revision.py",
+        "--trusted-ref origin/master",
+    )
+
+    for fragment in required_request_fragments:
+        if fragment not in request:
+            fail(f"Runtime policy request is missing authorization guard: {fragment}")
+
+    if "mnemos-production" in request:
+        fail("Runtime policy request must not have production runner access")
+
+    for forbidden in (
+        "scripts/production-infra.sh",
+        "scripts/reconcile-production-runtime-policy.py",
+        "scripts/install-production-runtime.sh",
+        "docker service update",
+        "docker stack deploy",
+        "/etc/mnemos",
+    ):
+        if forbidden in request:
+            fail(f"Runtime policy request contains production mutation capability: {forbidden}")
+
+    if "\n  push:\n" in workflow:
+        fail("Production runtime mutation workflow must not run directly from deploy ref pushes")
+
+    required_runtime_fragments = (
+        "workflow_run:",
+        "Production Runtime Policy Request",
+        ".github/workflows/production-runtime-policy-request.yml",
+        "actions: read",
+        "scripts/production_source_revision.py",
+        "--trusted-ref origin/master",
+        "scripts/production-infra.sh",
+        "keycloak-config",
+        "mnemos_user_id:__mnemos_permission_probe__",
+        "verify-production-telegram-poller.sh",
+    )
+
+    for fragment in required_runtime_fragments:
+        if fragment not in workflow:
+            fail(f"Production runtime policy is missing required guard: {fragment}")
+
+    request_validation = workflow.index("- name: Validate explicit production authorization")
+    keycloak_reconcile = workflow.index("- name: Reconcile declarative Keycloak configuration")
+
+    if request_validation > keycloak_reconcile:
+        fail("Keycloak reconciliation must occur only after request authorization")
+
+
 def verify_executor() -> None:
     steps = production_deployment_executor.availability_steps()
 
@@ -293,6 +352,7 @@ def main() -> int:
         verify_reconciler()
         verify_workflow_workspace_hygiene()
         verify_workflow_state_recording()
+        verify_workflow_authorization_boundary()
         verify_executor()
     except (AssertionError, OSError, ValueError) as exception:
         print(f"Production runtime policy verification failed: {exception}", file=sys.stderr)
