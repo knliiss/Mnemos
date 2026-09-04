@@ -15,50 +15,36 @@ on:
         description: Reason for the production policy reconciliation
         required: true
         type: string
+  workflow_run:
+    workflows:
+      - Production Runtime Policy Request
+    types:
+      - completed
 
 concurrency:
   group: mnemos-production-deploy
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: read
+
+env:
+  TOOLING_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.tooling_revision || github.event.workflow_run.head_sha }}
+  AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || '' }}
+  RECONCILIATION_REASON: ${{ github.event_name == 'workflow_dispatch' && inputs.reason || 'Authorized by deploy/production-runtime-policy' }}
 
 jobs:
   reconcile:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on:
       - self-hosted
       - mnemos-production
     timeout-minutes: 30
 
     steps:
-      - name: Validate explicit production authorization
-        shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
-          AUTHORIZATION: ${{ inputs.authorization }}
-        run: |
-          set -euo pipefail
-
-          if ! printf '%s' "$TOOLING_REVISION" | grep -Eq '^[0-9a-f]{40}$'; then
-            echo "tooling_revision must be a full 40-character commit SHA" >&2
-            exit 1
-          fi
-
-          if [ "$AUTHORIZATION" != "APPLY $TOOLING_REVISION" ]; then
-            echo "authorization must exactly equal: APPLY <tooling_revision>" >&2
-            exit 1
-          fi
-
-          if [ "$GITHUB_REF" != "refs/heads/master" ]; then
-            echo "Production runtime policy can only run from master" >&2
-            exit 1
-          fi
-
-          if [ "$GITHUB_SHA" != "$TOOLING_REVISION" ]; then
-            echo "Dispatched master revision does not match the approved tooling SHA" >&2
-            exit 1
-          fi
-
       - name: Repair production runner workspace ownership
         shell: bash
         run: |
@@ -68,17 +54,126 @@ jobs:
             sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
           fi
 
-      - name: Checkout approved production tooling
+      - name: Checkout trusted master history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ inputs.tooling_revision }}
-          fetch-depth: 1
+          ref: master
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Validate explicit production authorization
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_RUN_ID: ${{ github.event.workflow_run.id }}
+          REQUEST_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          REQUEST_WORKFLOW_PATH: ${{ github.event.workflow_run.path }}
+          REQUEST_EVENT: ${{ github.event.workflow_run.event }}
+          REQUEST_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          REQUEST_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REQUEST_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$TOOLING_REVISION" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "tooling_revision must be a full 40-character commit SHA" >&2
+            exit 1
+          fi
+
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch)
+              if [ "$AUTHORIZATION" != "APPLY $TOOLING_REVISION" ]; then
+                echo "authorization must exactly equal: APPLY <tooling_revision>" >&2
+                exit 1
+              fi
+
+              if [ "$GITHUB_REF" != "refs/heads/master" ]; then
+                echo "Production runtime policy can only be manually dispatched from master" >&2
+                exit 1
+              fi
+
+              if [ "$GITHUB_SHA" != "$TOOLING_REVISION" ]; then
+                echo "Dispatched master revision does not match the approved tooling SHA" >&2
+                exit 1
+              fi
+              ;;
+            workflow_run)
+              if [ "$REQUEST_WORKFLOW_NAME" != "Production Runtime Policy Request" ]; then
+                echo "Unexpected upstream workflow: $REQUEST_WORKFLOW_NAME" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_WORKFLOW_PATH" != ".github/workflows/production-runtime-policy-request.yml" ]; then
+                echo "Unexpected upstream workflow path: $REQUEST_WORKFLOW_PATH" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_EVENT" != "push" ]; then
+                echo "Runtime policy request must originate from a push" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_BRANCH" != "deploy/production-runtime-policy" ]; then
+                echo "Runtime policy request used an unauthorized ref: $REQUEST_BRANCH" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_HEAD_SHA" != "$TOOLING_REVISION" ]; then
+                echo "Runtime policy request head SHA changed" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_CONCLUSION" != "success" ]; then
+                echo "Runtime policy request did not succeed" >&2
+                exit 1
+              fi
+
+              run_json="$(
+                curl \
+                  --fail-with-body \
+                  --silent \
+                  --show-error \
+                  --header "Accept: application/vnd.github+json" \
+                  --header "Authorization: Bearer $GH_TOKEN" \
+                  --header "X-GitHub-Api-Version: 2022-11-28" \
+                  "https://api.github.com/repos/${REPOSITORY}/actions/runs/${REQUEST_RUN_ID}"
+              )"
+
+              [ "$(printf '%s' "$run_json" | jq -r '.name // empty')" = "Production Runtime Policy Request" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.path // empty')" = ".github/workflows/production-runtime-policy-request.yml" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.event // empty')" = "push" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.head_branch // empty')" = "deploy/production-runtime-policy" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.head_sha // empty')" = "$TOOLING_REVISION" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.conclusion // empty')" = "success" ]
+
+              master_sha="$(git rev-parse origin/master)"
+
+              if [ "$TOOLING_REVISION" != "$master_sha" ]; then
+                echo "deploy/production-runtime-policy must point exactly at current master HEAD" >&2
+                echo "tooling_revision=$TOOLING_REVISION" >&2
+                echo "master_sha=$master_sha" >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Unsupported production runtime policy event: $GITHUB_EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          python3 scripts/production_source_revision.py \
+            "$TOOLING_REVISION" \
+            --trusted-ref origin/master
+
+      - name: Checkout approved production tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout --detach "$TOOLING_REVISION"
 
       - name: Verify checked-out tooling revision
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TOOLING_REVISION"
@@ -89,6 +184,7 @@ jobs:
           set -euo pipefail
           sudo -n sh scripts/validate-production-env.sh
           sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
 
       - name: Reconcile runtime policy without image replacement
         shell: bash
@@ -107,16 +203,68 @@ jobs:
 
       - name: Install approved production tooling
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
           sudo -n sh scripts/install-production-runtime.sh "$TOOLING_REVISION"
 
+      - name: Reconcile declarative Keycloak configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/production-infra.sh \
+            run \
+            --rm \
+            --no-deps \
+            keycloak-config
+
+      - name: Verify moderation Keycloak query permission
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n sh -c '
+            set -eu
+            set -a
+            . /etc/mnemos/mnemos.env
+            set +a
+
+            keycloak_origin="http://${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}"
+
+            token_json="$(
+              curl \
+                --fail-with-body \
+                --silent \
+                --show-error \
+                --request POST \
+                --data-urlencode grant_type=client_credentials \
+                --data-urlencode "client_id=$MNEMOS_MODERATION_SERVICE_CLIENT_ID" \
+                --data-urlencode "client_secret=$KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET" \
+                "$keycloak_origin/realms/mnemos/protocol/openid-connect/token"
+            )"
+
+            access_token="$(printf "%s" "$token_json" | jq -r ".access_token // empty")"
+
+            if [ -z "$access_token" ]; then
+              echo "Moderation service account token was not issued" >&2
+              exit 1
+            fi
+
+            curl \
+              --fail-with-body \
+              --silent \
+              --show-error \
+              --get \
+              --header "Authorization: Bearer $access_token" \
+              --data-urlencode "q=mnemos_user_id:__mnemos_permission_probe__" \
+              --data-urlencode "max=1" \
+              "$keycloak_origin/admin/realms/mnemos/users" \
+              >/dev/null
+
+            echo "Moderation Keycloak query permission verified"
+          '
+
       - name: Record exact live production state
         shell: bash
-        env:
-          TOOLING_REVISION: ${{ inputs.tooling_revision }}
         run: |
           set -euo pipefail
 
@@ -150,3 +298,17 @@ jobs:
           set -euo pipefail
           sudo -n sh scripts/verify-production-availability.sh
           sudo -n sh scripts/check-production-health.sh
+          sudo -n sh scripts/verify-production-telegram-poller.sh
+
+      - name: Summarize production reconciliation
+        shell: bash
+        run: |
+          {
+            echo "## Production runtime policy"
+            echo
+            echo "Tooling revision: \`$TOOLING_REVISION\`"
+            echo "Authorization event: \`$GITHUB_EVENT_NAME\`"
+            echo "Reason: $RECONCILIATION_REASON"
+            echo
+            echo "Runtime policy, declarative Keycloak configuration, canonical state, and final health were reconciled and verified."
+          } >> "$GITHUB_STEP_SUMMARY"
