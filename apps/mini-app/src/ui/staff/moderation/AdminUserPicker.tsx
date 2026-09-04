@@ -264,7 +264,7 @@ export function AdminUserPicker({
                 </span>
                 <em>{t("moderation.accountCount", { count: candidate.accountCount })}</em>
               </button>
-            )))
+            ))
           )}
         </div>
       ) : null}
