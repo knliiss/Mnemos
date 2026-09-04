@@ -1,0 +1,83 @@
+name: Temporary Dispatch Cloudflared HTTP2 Production
+
+on:
+  push:
+    branches:
+      - chore/dispatch-cloudflared-http2-production
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  TOOLING_REVISION: 86093a82a3369d3c1c35397ff7d6ddd17bc227df
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify production target is still exact master
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          master_json="$(
+            curl \
+              --fail-with-body \
+              --silent \
+              --show-error \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPOSITORY}/git/ref/heads/master"
+          )"
+          master_sha="$(printf '%s' "$master_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
+
+          if [ "$master_sha" != "$TOOLING_REVISION" ]; then
+            echo "master moved before production dispatch: expected=$TOOLING_REVISION actual=$master_sha" >&2
+            exit 1
+          fi
+
+      - name: Dispatch trusted production runtime policy
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          payload="$(python3 - "$TOOLING_REVISION" <<'PY'
+          import json
+          import sys
+
+          revision = sys.argv[1]
+          print(
+              json.dumps(
+                  {
+                      "ref": "master",
+                      "inputs": {
+                          "tooling_revision": revision,
+                          "authorization": f"APPLY {revision}",
+                          "reason": "Finalize user-authorized Cloudflare Tunnel HTTP/2 Collector WebSocket remediation after production-runner hygiene hardening",
+                      },
+                  }
+              )
+          )
+          PY
+          )"
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/workflows/production-runtime-policy.yml/dispatches"
