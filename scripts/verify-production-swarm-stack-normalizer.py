@@ -13,7 +13,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 NORMALIZER = REPOSITORY_ROOT / "scripts" / "normalize-production-swarm-stack.py"
 EXPECTED_CLOUDFLARED_COMMAND = (
-    "tunnel run --token-file /run/secrets/cloudflare_tunnel_token"
+    "tunnel --protocol http2 run --token-file /run/secrets/cloudflare_tunnel_token"
 )
 EXPECTED_TMPFS_SIZE_BYTES = 64 * 1024 * 1024
 EXPECTED_TMPFS_MODE = 0o1777
@@ -158,7 +158,7 @@ def verify_normalized_model(stack: dict[str, object]) -> None:
         fail("cloudflared is missing from normalized stack")
 
     if cloudflared.get("command") != EXPECTED_CLOUDFLARED_COMMAND:
-        fail("cloudflared command is not normalized to a Swarm-compatible string")
+        fail("cloudflared command is not normalized to the WebSocket-safe HTTP/2 transport")
 
 
 def verify_docker_stack_schema(stack: dict[str, object]) -> None:
