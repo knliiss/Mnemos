@@ -17,10 +17,12 @@ import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+private const val TEST_NOTIFICATION_API_KEY = "raid-patch-test-api-key"
+
 @SpringBootTest(
     properties = [
         "mnemos.telegram-bot.telegram.enabled=false",
-        "mnemos.clients.notification-service.api-key=$API_KEY",
+        "mnemos.clients.notification-service.api-key=$TEST_NOTIFICATION_API_KEY",
     ],
 )
 class NotificationServiceClientPatchIntegrationTest {
@@ -58,12 +60,11 @@ class NotificationServiceClientPatchIntegrationTest {
         )
         assertEquals(setOf(3, 12), locations)
         assertEquals("telegram-bot-service", requestServiceNames.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-        assertEquals(API_KEY, requestApiKeys.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+        assertEquals(TEST_NOTIFICATION_API_KEY, requestApiKeys.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
     }
 
     private companion object {
         const val TELEGRAM_ID = 931458258L
-        const val API_KEY = "raid-patch-test-api-key"
         const val REQUEST_TIMEOUT_SECONDS = 2L
 
         val SUBSCRIPTION_ID: UUID = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b75")
@@ -77,7 +78,9 @@ class NotificationServiceClientPatchIntegrationTest {
             HttpServer
                 .create(InetSocketAddress("127.0.0.1", 0), 0)
                 .apply {
-                    createContext("/internal/v1/telegram/subscriptions/$TELEGRAM_ID/raid", ::handleRaidUpdate)
+                    createContext("/internal/v1/telegram/subscriptions/$TELEGRAM_ID/raid") { exchange ->
+                        handleRaidUpdate(exchange)
+                    }
                     start()
                 }
 
@@ -103,8 +106,8 @@ class NotificationServiceClientPatchIntegrationTest {
                     .bufferedReader(StandardCharsets.UTF_8)
                     .use { reader -> reader.readText() },
             )
-            requestServiceNames.add(exchange.requestHeaders.getFirst("X-Mnemos-Service"))
-            requestApiKeys.add(exchange.requestHeaders.getFirst("X-Mnemos-API-Key"))
+            requestServiceNames.add(exchange.requestHeaders.getFirst("X-Mnemos-Service").orEmpty())
+            requestApiKeys.add(exchange.requestHeaders.getFirst("X-Mnemos-API-Key").orEmpty())
 
             val response = "{\"subscriptionId\":\"$SUBSCRIPTION_ID\"}"
             val responseBytes = response.toByteArray(StandardCharsets.UTF_8)
