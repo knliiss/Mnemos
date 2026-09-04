@@ -35,9 +35,7 @@ class AccountLocalizedTelegramMenuMessageRenderer(
         )
     }
 
-    private fun OutboundTelegramMessageAction.localized(
-        language: TelegramSettingsLanguage,
-    ): OutboundTelegramMessageAction =
+    private fun OutboundTelegramMessageAction.localized(language: TelegramSettingsLanguage): OutboundTelegramMessageAction =
         when (this) {
             is OutboundTelegramMessageAction.Callback ->
                 copy(label = AccountMenuTranslations.translate(label, language))
