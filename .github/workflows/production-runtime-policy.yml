@@ -244,49 +244,84 @@ jobs:
         run: |
           set -euo pipefail
 
-          sudo -n sh -c '
-            set -eu
-            set -a
-            . /etc/mnemos/mnemos.env
-            set +a
+          read_env_value() {
+            key="$1"
 
-            keycloak_origin="http://${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}"
-
-            token_json="$(
-              curl \
-                --fail-with-body \
-                --silent \
-                --show-error \
-                --request POST \
-                --data-urlencode grant_type=client_credentials \
-                --data-urlencode "client_id=$MNEMOS_MODERATION_SERVICE_CLIENT_ID" \
-                --data-urlencode "client_secret=$KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET" \
-                "$keycloak_origin/realms/mnemos/protocol/openid-connect/token"
+            value="$(
+              sudo -n awk -v key="$key" '
+                index($0, key "=") == 1 {
+                  count++
+                  value = substr($0, length(key) + 2)
+                }
+                END {
+                  if (count != 1) {
+                    exit 1
+                  }
+                  print value
+                }
+              ' /etc/mnemos/mnemos.env
             )"
 
-            access_token="$(
-              TOKEN_JSON="$token_json" python3 -c \
-                "import json, os; print(json.loads(os.environ[\"TOKEN_JSON\"]).get(\"access_token\", \"\"))"
-            )"
+            case "$value" in
+              \"*\")
+                value="${value#\"}"
+                value="${value%\"}"
+                ;;
+              \'*\')
+                value="${value#\'}"
+                value="${value%\'}"
+                ;;
+            esac
 
-            if [ -z "$access_token" ]; then
-              echo "Moderation service account token was not issued" >&2
+            if [ -z "$value" ]; then
+              echo "Production env value is missing or blank: $key" >&2
               exit 1
             fi
 
+            printf '%s' "$value"
+          }
+
+          host_bind_address="$(read_env_value MNEMOS_HOST_BIND_ADDRESS)"
+          keycloak_host_port="$(read_env_value KEYCLOAK_HOST_PORT)"
+          moderation_client_id="$(read_env_value MNEMOS_MODERATION_SERVICE_CLIENT_ID)"
+          moderation_client_secret="$(read_env_value KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET)"
+
+          keycloak_origin="http://${host_bind_address}:${keycloak_host_port}"
+
+          token_json="$(
             curl \
               --fail-with-body \
               --silent \
               --show-error \
-              --get \
-              --header "Authorization: Bearer $access_token" \
-              --data-urlencode "q=mnemos_user_id:__mnemos_permission_probe__" \
-              --data-urlencode "max=1" \
-              "$keycloak_origin/admin/realms/mnemos/users" \
-              >/dev/null
+              --request POST \
+              --data-urlencode grant_type=client_credentials \
+              --data-urlencode "client_id=$moderation_client_id" \
+              --data-urlencode "client_secret=$moderation_client_secret" \
+              "$keycloak_origin/realms/mnemos/protocol/openid-connect/token"
+          )"
 
-            echo "Moderation Keycloak query permission verified"
-          '
+          access_token="$(
+            TOKEN_JSON="$token_json" python3 -c \
+              'import json, os; print(json.loads(os.environ["TOKEN_JSON"]).get("access_token", ""))'
+          )"
+
+          if [ -z "$access_token" ]; then
+            echo "Moderation service account token was not issued" >&2
+            exit 1
+          fi
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --get \
+            --header "Authorization: Bearer $access_token" \
+            --data-urlencode "q=mnemos_user_id:__mnemos_permission_probe__" \
+            --data-urlencode "max=1" \
+            "$keycloak_origin/admin/realms/mnemos/users" \
+            >/dev/null
+
+          echo "Moderation Keycloak query permission verified"
 
       - name: Record exact live production state
         shell: bash
