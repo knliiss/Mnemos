@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Inspect recent realtime-service protocol failures
+      - name: Inspect recent realtime transport failures
         shell: bash
         run: |
           set -euo pipefail
@@ -27,11 +27,24 @@ jobs:
             --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
             mnemos_realtime-service
 
-          echo '=== MATCHING REALTIME LOGS ==='
+          echo '=== CLOUDFLARED TASKS ==='
+          sudo -n docker service ps \
+            --no-trunc \
+            --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
+            mnemos_cloudflared
+
+          echo '=== REALTIME LOGS ==='
           sudo -n docker service logs \
-            --since 30m \
+            --since 20m \
             --timestamps \
             mnemos_realtime-service 2>&1 \
-            | grep -E '01a04aaf-73b2-7ff4-a422-90a13e3503d7|Collector WebSocket transport error|Protocol error|WebSocket|sessionId=' \
-            | tail -n 500 \
+            | tail -n 600 \
+            || true
+
+          echo '=== CLOUDFLARED LOGS ==='
+          sudo -n docker service logs \
+            --since 20m \
+            --timestamps \
+            mnemos_cloudflared 2>&1 \
+            | tail -n 600 \
             || true
