@@ -27,7 +27,7 @@ class TelegramKeycloakIdentityService(
 
         if (existingUser != null) {
             val synchronizedUser =
-                synchronizeLegacyUsername(
+                synchronizeGeneratedUsername(
                     authorization = authorization,
                     telegramId = telegramId,
                     user = existingUser,
@@ -90,14 +90,14 @@ class TelegramKeycloakIdentityService(
         error("No Keycloak username is available for Telegram identity: $telegramId")
     }
 
-    private fun synchronizeLegacyUsername(
+    private fun synchronizeGeneratedUsername(
         authorization: String,
         telegramId: Long,
         user: KeycloakUserResponse,
         username: Username,
         fallbackUsername: Username?,
     ): KeycloakUserResponse {
-        if (!isLegacyUsername(user.username, telegramId)) {
+        if (!isGeneratedUsername(user.username, telegramId)) {
             return user
         }
 
@@ -133,7 +133,7 @@ class TelegramKeycloakIdentityService(
             return user.copy(username = candidate.value)
         }
 
-        error("No Keycloak username is available to replace legacy Telegram identity: $telegramId")
+        error("No Keycloak username is available to replace generated Telegram identity: $telegramId")
     }
 
     private fun findUser(
@@ -168,10 +168,12 @@ class TelegramKeycloakIdentityService(
     ): List<Username> =
         listOfNotNull(username, fallbackUsername).distinct()
 
-    private fun isLegacyUsername(
+    private fun isGeneratedUsername(
         username: String,
         telegramId: Long,
-    ): Boolean = username.equals("telegram_$telegramId", ignoreCase = true)
+    ): Boolean =
+        username.equals("telegram_$telegramId", ignoreCase = true) ||
+            username == telegramId.toString()
 
     private fun authorization(): String = "Bearer ${keycloakTokenProvider.token()}"
 
