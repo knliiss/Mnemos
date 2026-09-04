@@ -206,11 +206,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sudo -n sh scripts/production-infra.sh \
-            run \
-            --rm \
-            --no-deps \
-            keycloak-config
+
+          keycloak_image="$(
+            sudo -n docker inspect \
+              --format '{{.Config.Image}}' \
+              mnemos-keycloak
+          )"
+
+          case "$keycloak_image" in
+            */mnemos-keycloak:*)
+              image_registry="${keycloak_image%/mnemos-keycloak:*}"
+              release_tag="${keycloak_image##*:}"
+              ;;
+            *)
+              echo "Could not derive production infrastructure image coordinates from: $keycloak_image" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ -z "$image_registry" ] || [ -z "$release_tag" ]; then
+            echo "Production infrastructure image coordinates are empty" >&2
+            exit 1
+          fi
+
+          sudo -n env \
+            MNEMOS_IMAGE_REGISTRY="$image_registry" \
+            MNEMOS_RELEASE_TAG="$release_tag" \
+            sh scripts/production-infra.sh \
+              run \
+              --rm \
+              --no-deps \
+              --volume "$GITHUB_WORKSPACE/infrastructure/keycloak/config:/config:ro" \
+              keycloak-config
 
       - name: Verify moderation Keycloak query permission
         shell: bash
