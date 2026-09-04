@@ -8,6 +8,7 @@ import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountContextRe
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountInvitesResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountStatus
 import com.mnemos.contracts.account.internal.v1.InternalTelegramAccountSummaryResponse
+import com.mnemos.contracts.account.internal.v1.InternalTelegramUserIdentityResponse
 import com.mnemos.contracts.account.internal.v1.InternalTelegramUserSettingsResponse
 import com.mnemos.contracts.account.internal.v1.JoinInternalTelegramAccountRequest
 import com.mnemos.contracts.account.internal.v1.UpdateInternalTelegramUserLocalizationRequest
@@ -111,6 +112,14 @@ class AccountGatewayAdapterTest {
     private class FakeAccountServiceClient(
         private val context: InternalTelegramAccountContextResponse?,
     ) : AccountServiceClient {
+        override fun bootstrapUserIdentity(
+            telegramId: Long,
+            username: String?,
+        ): InternalTelegramUserIdentityResponse =
+            InternalTelegramUserIdentityResponse(
+                userId = UUID.fromString("019c11d1-bb2a-7000-8000-000000000001"),
+            )
+
         override fun getAccounts(telegramId: Long): InternalTelegramAccountContextResponse? = context
 
         override fun createAccount(
@@ -149,6 +158,11 @@ class AccountGatewayAdapterTest {
     }
 
     private class FailingAccountServiceClient : AccountServiceClient {
+        override fun bootstrapUserIdentity(
+            telegramId: Long,
+            username: String?,
+        ): InternalTelegramUserIdentityResponse = error("account unavailable")
+
         override fun getAccounts(telegramId: Long): InternalTelegramAccountContextResponse = error("account unavailable")
 
         override fun createAccount(
