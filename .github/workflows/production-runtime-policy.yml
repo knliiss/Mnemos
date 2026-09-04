@@ -140,27 +140,7 @@ jobs:
                   "https://api.github.com/repos/${REPOSITORY}/actions/runs/${REQUEST_RUN_ID}"
               )"
 
-              RUN_JSON="$run_json" python3 - <<'PY'
-              import json
-              import os
-
-              run = json.loads(os.environ["RUN_JSON"])
-              tooling_revision = os.environ["TOOLING_REVISION"]
-              expected = {
-                  "name": "Production Runtime Policy Request",
-                  "path": ".github/workflows/production-runtime-policy-request.yml",
-                  "event": "push",
-                  "head_branch": "deploy/production-runtime-policy",
-                  "head_sha": tooling_revision,
-                  "conclusion": "success",
-              }
-
-              for key, value in expected.items():
-                  if run.get(key) != value:
-                      raise SystemExit(
-                          f"Runtime policy request metadata mismatch: {key}"
-                      )
-              PY
+              RUN_JSON="$run_json" python3 -c 'import json, os, sys; run = json.loads(os.environ["RUN_JSON"]); expected = {"name": "Production Runtime Policy Request", "path": ".github/workflows/production-runtime-policy-request.yml", "event": "push", "head_branch": "deploy/production-runtime-policy", "head_sha": os.environ["TOOLING_REVISION"], "conclusion": "success"}; mismatches = [key for key, value in expected.items() if run.get(key) != value]; sys.exit(f"Runtime policy request metadata mismatch: {mismatches[0]}") if mismatches else None'
 
               master_sha="$(git rev-parse origin/master)"
 
