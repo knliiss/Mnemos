@@ -22,13 +22,13 @@ jobs:
           set -euo pipefail
 
           echo '=== REALTIME SERVICE TASKS ==='
-          docker service ps \
+          sudo -n docker service ps \
             --no-trunc \
             --format 'table {{.Name}}\t{{.Image}}\t{{.CurrentState}}\t{{.Error}}' \
             mnemos_realtime-service
 
           echo '=== MATCHING REALTIME LOGS ==='
-          docker service logs \
+          sudo -n docker service logs \
             --since 30m \
             --timestamps \
             mnemos_realtime-service 2>&1 \
