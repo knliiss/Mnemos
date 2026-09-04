@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Inspect affected collector credential metadata
+      - name: Inspect collector credential replacement history
         shell: bash
         run: |
           set -euo pipefail
@@ -37,5 +37,5 @@ jobs:
               -U "$POSTGRES_USER" \
               -d "$POSTGRES_DB" \
               -P pager=off \
-              -c "SELECT id, name, enabled, created_at, updated_at, revoked_at FROM realtime.collector_credentials WHERE id = '\''01a04aaf-73b2-7ff4-a422-90a13e3503d7'\'';"
+              -c "WITH affected AS (SELECT owner_user_id FROM realtime.collector_credentials WHERE id = '\''01a04aaf-73b2-7ff4-a422-90a13e3503d7'\'') SELECT id, name, enabled, created_at, revoked_at FROM realtime.collector_credentials WHERE owner_user_id IS NOT DISTINCT FROM (SELECT owner_user_id FROM affected) ORDER BY created_at DESC LIMIT 20;"
           '
