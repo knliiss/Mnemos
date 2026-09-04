@@ -79,7 +79,7 @@ export function getUserBanDetails(error: unknown): UserBanDetails | null {
     typeof sanctionId !== "string" ||
     typeof reason !== "string" ||
     typeof occurredAt !== "string" ||
-    (typeof expiresAt !== "string" && expiresAt !== null)
+    (expiresAt !== undefined && expiresAt !== null && typeof expiresAt !== "string")
   ) {
     return null
   }
@@ -88,7 +88,7 @@ export function getUserBanDetails(error: unknown): UserBanDetails | null {
     sanctionId,
     reason,
     occurredAt,
-    expiresAt,
+    expiresAt: typeof expiresAt === "string" ? expiresAt : null,
   }
 }
 
