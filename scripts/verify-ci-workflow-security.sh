@@ -67,7 +67,7 @@ verify_read_only_pr_job() {
 
     printf '%s\n' "$job" |
         grep -Fq "github.event.pull_request.head.repo.full_name == github.repository" ||
-        fail "$description self-hosted PR job must reject fork repositories"
+        fail "$description PR verification job must reject fork repositories"
 }
 
 verify_push_only_report_job() {
@@ -95,10 +95,16 @@ verify_read_only_pr_job "$BACKEND_WORKFLOW" check "Backend Verify"
 verify_read_only_pr_job "$MINI_APP_WORKFLOW" verify "Mini App Verify"
 verify_read_only_pr_job "$STACK_WORKFLOW" smoke "Stack Smoke"
 
+printf '%s\n' "$(extract_job "$BACKEND_WORKFLOW" check)" | grep -Fq 'runs-on: ubuntu-24.04' ||
+    fail "Backend Verify must use the pinned GitHub-hosted runner"
+
+printf '%s\n' "$(extract_job "$STACK_WORKFLOW" smoke)" | grep -Fq 'runs-on: ubuntu-24.04' ||
+    fail "Stack Smoke must use the pinned GitHub-hosted runner"
+
 verify_push_only_report_job \
     "$BACKEND_WORKFLOW" \
     "Backend Verify" \
-    'runs-on: [self-hosted, Linux, X64, mnemos-backend]'
+    'runs-on: ubuntu-24.04'
 
 verify_push_only_report_job \
     "$MINI_APP_WORKFLOW" \
