@@ -56,7 +56,10 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
       </header>
 
       {data.accounts.length > 0 ? (
-        <section className="account-access-landing__existing" aria-label={t("appShell.onboarding.title")}>
+        <section
+          className="account-access-landing__existing"
+          aria-label={t("appShell.onboarding.title")}
+        >
           <div className="account-access-landing__existing-heading">
             <span>
               <small>{t("appShell.userMenu.activeAccount")}</small>
