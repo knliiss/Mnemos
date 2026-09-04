@@ -44,6 +44,8 @@ class SanctionActivatedHandler(
                     userId = payload.userId,
                     type = payload.type.name,
                     status = payload.status.name,
+                    reason = payload.reason,
+                    expiresAt = payload.expiresAt,
                 ),
         )
     }
