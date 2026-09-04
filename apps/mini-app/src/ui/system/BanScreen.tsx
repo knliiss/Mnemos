@@ -18,7 +18,12 @@ type Countdown = {
 export function BanScreen({ ban, onRefresh }: Props) {
   const { i18n, t } = useTranslation()
   const refreshRequested = useRef(false)
-  const [countdown, setCountdown] = useState<Countdown | null>(() => calculateCountdown(ban.expiresAt))
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
+
+  const countdown = useMemo(
+    () => calculateCountdown(ban.expiresAt, currentTime),
+    [ban.expiresAt, currentTime],
+  )
 
   const expiresAtLabel = useMemo(() => {
     if (!ban.expiresAt) {
@@ -35,22 +40,20 @@ export function BanScreen({ ban, onRefresh }: Props) {
     refreshRequested.current = false
 
     if (!ban.expiresAt) {
-      setCountdown(null)
       return
     }
 
-    const update = () => {
-      const next = calculateCountdown(ban.expiresAt)
-      setCountdown(next)
+    const timer = window.setInterval(() => {
+      const now = Date.now()
+      const next = calculateCountdown(ban.expiresAt, now)
+
+      setCurrentTime(now)
 
       if (next && isFinished(next) && !refreshRequested.current) {
         refreshRequested.current = true
         void Promise.resolve(onRefresh())
       }
-    }
-
-    update()
-    const timer = window.setInterval(update, 1_000)
+    }, 1_000)
 
     return () => {
       window.clearInterval(timer)
@@ -124,12 +127,12 @@ function CountdownView({ countdown }: { countdown: Countdown }) {
   )
 }
 
-function calculateCountdown(expiresAt: string | null): Countdown | null {
+function calculateCountdown(expiresAt: string | null, currentTime: number): Countdown | null {
   if (!expiresAt) {
     return null
   }
 
-  const remainingSeconds = Math.max(0, Math.floor((Date.parse(expiresAt) - Date.now()) / 1_000))
+  const remainingSeconds = Math.max(0, Math.floor((Date.parse(expiresAt) - currentTime) / 1_000))
   const days = Math.floor(remainingSeconds / 86_400)
   const hours = Math.floor((remainingSeconds % 86_400) / 3_600)
   const minutes = Math.floor((remainingSeconds % 3_600) / 60)
