@@ -165,8 +165,7 @@ class TelegramKeycloakIdentityService(
     private fun usernameCandidates(
         username: Username,
         fallbackUsername: Username?,
-    ): List<Username> =
-        listOfNotNull(username, fallbackUsername).distinct()
+    ): List<Username> = listOfNotNull(username, fallbackUsername).distinct()
 
     private fun isGeneratedUsername(
         username: String,
