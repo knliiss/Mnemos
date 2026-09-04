@@ -30,6 +30,7 @@ export function AdminPersonalizationPicker({
 }: Props) {
   const { t } = useTranslation()
   const listboxId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState("")
   const [items, setItems] = useState<PersonalizationResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -46,6 +47,36 @@ export function AdminPersonalizationPicker({
     },
     [],
   )
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+
+      if (target instanceof Node && rootRef.current?.contains(target)) {
+        return
+      }
+
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer)
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+  }, [disabled])
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -104,18 +135,21 @@ export function AdminPersonalizationPicker({
     void loadCatalog()
   }
 
+  const closePicker = () => {
+    setOpen(false)
+    setActiveIndex(-1)
+  }
+
   const clear = () => {
     onSelect(null)
     setQuery("")
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const selectItem = (item: PersonalizationResponse) => {
     onSelect(item)
     setQuery("")
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const moveActiveOption = (direction: -1 | 1) => {
@@ -167,7 +201,17 @@ export function AdminPersonalizationPicker({
   }
 
   return (
-    <div className="admin-personalization-picker">
+    <div
+      ref={rootRef}
+      className="admin-personalization-picker"
+      onBlur={(event) => {
+        const nextFocus = event.relatedTarget
+
+        if (!(nextFocus instanceof Node) || !event.currentTarget.contains(nextFocus)) {
+          closePicker()
+        }
+      }}
+    >
       <span className="admin-personalization-picker__label">
         {t("moderation.personalization", "Personalization")}
       </span>
@@ -205,8 +249,7 @@ export function AdminPersonalizationPicker({
               event.preventDefault()
               selectItem(activeItem)
             } else if (event.key === "Escape") {
-              setOpen(false)
-              setActiveIndex(-1)
+              closePicker()
             }
           }}
         />
