@@ -20,7 +20,9 @@ class ModerationInternalController(
                 ActiveBanResponse(
                     sanctionId = ban.sanctionId.id,
                     userId = ban.userId.id,
+                    reason = ban.reason,
                     occurredAt = ban.occurredAt,
+                    expiresAt = ban.expiresAt,
                 )
             }
 }
