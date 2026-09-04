@@ -182,12 +182,7 @@ export function ModerationAccount({ params, navigate, back }: Props) {
 
       <div className="moderation-detail-content">
         {activeTab === "overview" ? (
-          <AccountOverview
-            details={details}
-            owner={owner}
-            navigate={navigate}
-            copy={copy}
-          />
+          <AccountOverview details={details} owner={owner} navigate={navigate} copy={copy} />
         ) : null}
 
         {activeTab === "members" ? (
