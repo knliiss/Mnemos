@@ -1,3 +1,158 @@
+.account-access-landing__existing {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(207, 255, 53, 0.07), transparent 38%),
+    rgba(9, 13, 8, 0.72);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+}
+
+.account-access-landing__existing-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 4px;
+}
+
+.account-access-landing__existing-heading > span {
+  display: grid;
+  gap: 2px;
+}
+
+.account-access-landing__existing-heading small {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.account-access-landing__existing-heading strong {
+  font-size: 15px;
+}
+
+.account-access-landing__existing-heading em {
+  display: grid;
+  place-items: center;
+  min-width: 29px;
+  height: 29px;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: rgba(207, 255, 53, 0.08);
+  color: var(--onboarding-accent);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.account-access-landing__account-list {
+  display: grid;
+  gap: 7px;
+}
+
+.account-access-landing__account {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  padding: 7px 9px 7px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.025);
+  color: inherit;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.account-access-landing__account:not(:disabled) {
+  cursor: pointer;
+}
+
+.account-access-landing__account:not(:disabled):hover {
+  border-color: rgba(207, 255, 53, 0.18);
+  background: rgba(207, 255, 53, 0.045);
+}
+
+.account-access-landing__account:disabled {
+  opacity: 0.52;
+}
+
+.account-access-landing__skin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(207, 255, 53, 0.09), transparent 58%),
+    rgba(4, 7, 4, 0.72);
+}
+
+.account-access-landing__skin img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.account-access-landing__account-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.account-access-landing__account-copy strong,
+.account-access-landing__account-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-access-landing__account-copy strong {
+  font-size: 13px;
+}
+
+.account-access-landing__account-copy small {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.account-access-landing__account-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.account-access-landing__account-state.is-active {
+  background: rgba(207, 255, 53, 0.08);
+  color: var(--onboarding-accent);
+}
+
+.account-access-landing__account-state.is-inactive {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
 .account-access-landing__actions > button {
   position: relative;
   isolation: isolate;
@@ -71,6 +226,26 @@
 }
 
 @media (min-width: 700px) {
+  .account-access-landing__existing {
+    padding: 14px;
+  }
+
+  .account-access-landing__account {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    min-height: 70px;
+    padding: 8px 11px 8px 8px;
+  }
+
+  .account-access-landing__skin {
+    width: 54px;
+    height: 54px;
+  }
+
+  .account-access-landing__skin img {
+    width: 50px;
+    height: 50px;
+  }
+
   .account-access-landing__actions > button {
     grid-template-columns: 94px minmax(0, 1fr);
     min-height: 116px;
@@ -89,6 +264,35 @@
 }
 
 @media (max-width: 520px) {
+  .account-access-landing__existing {
+    padding: 9px;
+    border-radius: 18px;
+  }
+
+  .account-access-landing__account {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    min-height: 56px;
+    border-radius: 15px;
+  }
+
+  .account-access-landing__skin {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .account-access-landing__skin img {
+    width: 41px;
+    height: 41px;
+  }
+
+  .account-access-landing__account-state {
+    min-width: 30px;
+    min-height: 28px;
+    padding: 0 6px;
+  }
+
   .account-access-landing__actions > button {
     grid-template-columns: 76px minmax(0, 1fr);
     min-height: 88px;
@@ -107,6 +311,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .account-access-landing__account,
   .account-access-landing__action-art > img {
     transition: none;
   }
