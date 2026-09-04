@@ -69,6 +69,8 @@ jobs:
             exit 0
           fi
 
+          sudo -n chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
           find "$GITHUB_WORKSPACE" \
             -type d \
             \( \
