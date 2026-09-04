@@ -13,6 +13,20 @@ type ModerationDirectoryCopy = {
   previous: string
   next: string
   pageOf: (page: number, total: number) => string
+  overviewTab: string
+  sanctionsTab: string
+  walletTab: string
+  membersTab: string
+  rolesTab: string
+  transactionsTab: string
+  personalizationsTab: string
+  settingsTab: string
+  userOverview: string
+  userOverviewHint: string
+  accountOverview: string
+  accountOverviewHint: string
+  accountSettings: string
+  accountSettingsHint: string
   activateAccount: string
   deactivateAccount: string
   changingAccountStatus: string
@@ -51,6 +65,20 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     previous: "Previous",
     next: "Next",
     pageOf: (page, total) => `Page ${page} of ${total}`,
+    overviewTab: "Overview",
+    sanctionsTab: "Access",
+    walletTab: "Wallet",
+    membersTab: "Members",
+    rolesTab: "Roles",
+    transactionsTab: "Transactions",
+    personalizationsTab: "Personalizations",
+    settingsTab: "Settings",
+    userOverview: "User overview",
+    userOverviewHint: "Identity, linked Cristalix accounts and current moderation state.",
+    accountOverview: "Account overview",
+    accountOverviewHint: "Identity, ownership, membership capacity and lifecycle state.",
+    accountSettings: "Account settings",
+    accountSettingsHint: "Lifecycle, ownership and irreversible account operations.",
     activateAccount: "Activate",
     deactivateAccount: "Deactivate",
     changingAccountStatus: "Saving…",
@@ -88,6 +116,20 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     previous: "Назад",
     next: "Дальше",
     pageOf: (page, total) => `Страница ${page} из ${total}`,
+    overviewTab: "Обзор",
+    sanctionsTab: "Доступ",
+    walletTab: "Кошелёк",
+    membersTab: "Участники",
+    rolesTab: "Роли",
+    transactionsTab: "Операции",
+    personalizationsTab: "Персонализации",
+    settingsTab: "Настройки",
+    userOverview: "Обзор пользователя",
+    userOverviewHint: "Профиль Mnemos, связанные Cristalix аккаунты и текущее состояние модерации.",
+    accountOverview: "Обзор аккаунта",
+    accountOverviewHint: "Идентификаторы, владелец, участники и текущее состояние аккаунта.",
+    accountSettings: "Настройки аккаунта",
+    accountSettingsHint: "Статус, передача владельца и необратимые операции вынесены отдельно.",
     activateAccount: "Активировать",
     deactivateAccount: "Деактивировать",
     changingAccountStatus: "Сохраняем…",
@@ -125,6 +167,20 @@ const copyByLanguage: Record<"en" | "ru" | "uk", ModerationDirectoryCopy> = {
     previous: "Назад",
     next: "Далі",
     pageOf: (page, total) => `Сторінка ${page} з ${total}`,
+    overviewTab: "Огляд",
+    sanctionsTab: "Доступ",
+    walletTab: "Гаманець",
+    membersTab: "Учасники",
+    rolesTab: "Ролі",
+    transactionsTab: "Операції",
+    personalizationsTab: "Персоналізації",
+    settingsTab: "Налаштування",
+    userOverview: "Огляд користувача",
+    userOverviewHint: "Профіль Mnemos, пов'язані Cristalix аккаунти та поточний стан модерації.",
+    accountOverview: "Огляд аккаунта",
+    accountOverviewHint: "Ідентифікатори, власник, учасники та поточний стан аккаунта.",
+    accountSettings: "Налаштування аккаунта",
+    accountSettingsHint: "Статус, передавання власника та незворотні операції винесені окремо.",
     activateAccount: "Активувати",
     deactivateAccount: "Деактивувати",
     changingAccountStatus: "Зберігаємо…",

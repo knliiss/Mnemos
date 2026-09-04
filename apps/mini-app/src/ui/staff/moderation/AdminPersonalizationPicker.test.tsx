@@ -64,6 +64,42 @@ describe("AdminPersonalizationPicker", () => {
     expect(onSelect).toHaveBeenCalledWith(secondPersonalization)
   })
 
+  it("closes the catalog when focus leaves the picker", async () => {
+    mockCatalog([firstPersonalization])
+
+    render(
+      <div>
+        <AdminPersonalizationPicker selected={null} onSelect={vi.fn()} />
+        <button type="button">Outside</button>
+      </div>,
+    )
+
+    const input = screen.getByRole("combobox")
+    const outside = screen.getByRole("button", { name: "Outside" })
+
+    fireEvent.focus(input)
+    await screen.findByText("Aurora")
+
+    fireEvent.blur(input, { relatedTarget: outside })
+
+    expect(screen.queryByRole("listbox")).toBeNull()
+  })
+
+  it("closes the catalog when the user clicks outside", async () => {
+    mockCatalog([firstPersonalization])
+
+    render(<AdminPersonalizationPicker selected={null} onSelect={vi.fn()} />)
+
+    const input = screen.getByRole("combobox")
+
+    fireEvent.focus(input)
+    await screen.findByText("Aurora")
+
+    fireEvent.pointerDown(document.body)
+
+    expect(screen.queryByRole("listbox")).toBeNull()
+  })
+
   it("can retry catalog loading after an initial failure", async () => {
     let calls = 0
 

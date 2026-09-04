@@ -11,18 +11,29 @@ import type { Route } from "../../model"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
+import "./moderation-account-control-polish.css"
+import "./moderation-detail.css"
+import "./moderation-directory.css"
 import { ModerationAccountControlPanel } from "./ModerationAccountControlPanel"
 import { ModerationAccountPersonalizationPanel } from "./ModerationAccountPersonalizationPanel"
 import { ModerationAccountRolesPanel } from "./ModerationAccountRolesPanel"
 import { ModerationAccountTransactionPanel } from "./ModerationAccountTransactionPanel"
+import { ModerationDetailTabs } from "./ModerationDetailTabs"
 import { resolveModerationDirectoryCopy } from "./moderationDirectoryTranslations"
-import "./moderation-account-control-polish.css"
 
 type Props = {
   params?: Record<string, string>
   navigate: (route: Route) => void
   back: () => void
 }
+
+type AccountTab =
+  | "overview"
+  | "members"
+  | "roles"
+  | "transactions"
+  | "personalizations"
+  | "settings"
 
 export function ModerationAccount({ params, navigate, back }: Props) {
   const { t, i18n } = useTranslation()
@@ -33,6 +44,7 @@ export function ModerationAccount({ params, navigate, back }: Props) {
   const [loadError, setLoadError] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
   const [statusConfirmationVisible, setStatusConfirmationVisible] = useState(false)
+  const [activeTab, setActiveTab] = useState<AccountTab>("overview")
 
   const refresh = useCallback(async () => {
     if (!accountId) {
@@ -134,38 +146,129 @@ export function ModerationAccount({ params, navigate, back }: Props) {
 
   const owner = details.members.find((member) => member.owner) ?? null
   const deactivating = details.status === "ACTIVE"
+  const tabs = [
+    { id: "overview", label: copy.overviewTab },
+    { id: "members", label: copy.membersTab, badge: details.members.length },
+    { id: "roles", label: copy.rolesTab },
+    { id: "transactions", label: copy.transactionsTab },
+    { id: "personalizations", label: copy.personalizationsTab },
+    { id: "settings", label: copy.settingsTab },
+  ]
 
   return (
-    <div className="screen internal-user-screen">
+    <div className="screen internal-user-screen moderation-detail-page">
       <PageHeader title={details.cristalixNickname} back={back} />
 
-      <section className="internal-user-hero moderation-account-hero">
-        <span className="internal-user-hero__avatar moderation-directory-account-mark">C</span>
-        <span>
+      <section className="moderation-detail-hero is-account">
+        <span className="moderation-detail-hero__avatar" aria-hidden="true">
+          C
+        </span>
+        <span className="moderation-detail-hero__identity">
           <small>{t("moderation.accounts")}</small>
           <strong>{details.cristalixNickname}</strong>
           <em>{details.accountId}</em>
         </span>
-        <span
-          className={
-            details.status === "ACTIVE" ? "internal-user-state" : "internal-user-state is-banned"
-          }
-        >
+        <span className={`moderation-detail-state is-${details.status.toLowerCase()}`}>
           {resolveStatusLabel(details.status, copy)}
         </span>
       </section>
 
-      <section className="internal-info-grid">
-        <article>
+      <ModerationDetailTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        ariaLabel={copy.accountOverview}
+        onChange={(tabId) => setActiveTab(tabId as AccountTab)}
+      />
+
+      <div className="moderation-detail-content">
+        {activeTab === "overview" ? (
+          <AccountOverview details={details} owner={owner} navigate={navigate} copy={copy} />
+        ) : null}
+
+        {activeTab === "members" ? (
+          <ModerationAccountControlPanel
+            mode="MEMBERS"
+            accountId={details.accountId}
+            canDelete
+            copy={copy}
+            onChanged={refresh}
+            onOpenUser={(userId) => navigate({ id: "moderation-user", params: { userId } })}
+          />
+        ) : null}
+
+        {activeTab === "roles" ? (
+          <ModerationAccountRolesPanel details={details} onChanged={refresh} />
+        ) : null}
+
+        {activeTab === "transactions" ? (
+          <ModerationAccountTransactionPanel accountId={details.accountId} />
+        ) : null}
+
+        {activeTab === "personalizations" ? (
+          <ModerationAccountPersonalizationPanel
+            accountId={details.accountId}
+            deleted={details.status === "DELETED"}
+          />
+        ) : null}
+
+        {activeTab === "settings" ? (
+          <div className="moderation-detail-settings">
+            <section className="moderation-detail-settings__status">
+              <span>
+                <strong>{copy.accountSettings}</strong>
+                <small>{copy.accountSettingsHint}</small>
+              </span>
+
+              {details.status !== "DELETED" ? (
+                <AccountStatusAction
+                  copy={copy}
+                  deactivating={deactivating}
+                  statusBusy={statusBusy}
+                  confirmationVisible={statusConfirmationVisible}
+                  onRequestConfirmation={() => setStatusConfirmationVisible(true)}
+                  onCancel={() => setStatusConfirmationVisible(false)}
+                  onConfirm={() => void changeStatus()}
+                />
+              ) : (
+                <div className="moderation-detail-empty">{copy.deletedAccount}</div>
+              )}
+            </section>
+
+            <ModerationAccountControlPanel
+              mode="SETTINGS"
+              accountId={details.accountId}
+              canDelete
+              copy={copy}
+              onChanged={refresh}
+              onOpenUser={(userId) => navigate({ id: "moderation-user", params: { userId } })}
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+type AccountOverviewProps = {
+  details: AdminAccountDetailsResponse
+  owner: AdminAccountDetailsResponse["members"][number] | null
+  navigate: (route: Route) => void
+  copy: ReturnType<typeof resolveModerationDirectoryCopy>
+}
+
+function AccountOverview({ details, owner, navigate, copy }: AccountOverviewProps) {
+  return (
+    <div className="moderation-detail-overview">
+      <div className="moderation-detail-stat-grid">
+        <article className="moderation-detail-stat">
           <small>Cristalix UUID</small>
           <strong>{details.cristalixUuid}</strong>
         </article>
-        <article>
+        <article className="moderation-detail-stat">
           <small>{copy.owner}</small>
           {owner ? (
             <button
               type="button"
-              className="moderation-account-owner-link"
               onClick={() => navigate({ id: "moderation-user", params: { userId: owner.userId } })}
             >
               @{owner.username}
@@ -174,86 +277,112 @@ export function ModerationAccount({ params, navigate, back }: Props) {
             <strong>—</strong>
           )}
         </article>
+        <article className="moderation-detail-stat">
+          <small>{copy.membersTab}</small>
+          <strong>
+            {details.members.length}/{details.maxMembers}
+          </strong>
+        </article>
+        <article className="moderation-detail-stat">
+          <small>{copy.settingsTab}</small>
+          <strong>{resolveStatusLabel(details.status, copy)}</strong>
+        </article>
+      </div>
+
+      <section className="moderation-detail-section">
+        <header className="moderation-detail-section__head">
+          <span>
+            <small>{copy.accountOverview}</small>
+            <strong>{details.cristalixNickname}</strong>
+          </span>
+          <em>{details.members.length}</em>
+        </header>
+        <div className="moderation-detail-empty">{copy.accountOverviewHint}</div>
       </section>
+    </div>
+  )
+}
 
-      {details.status !== "DELETED" ? (
-        <div className="moderation-account-status-actions">
-          {statusConfirmationVisible ? (
-            <div
-              className={`moderation-account-status-confirmation ${deactivating ? "is-danger" : ""}`}
-            >
-              <span>
-                <strong>
-                  {deactivating
-                    ? t("moderation.confirmDeactivateAccount", "Deactivate this account?")
-                    : t("moderation.confirmActivateAccount", "Reactivate this account?")}
-                </strong>
-                <small>
-                  {deactivating
-                    ? t(
-                        "moderation.deactivateAccountWarning",
-                        "Members will keep historical data, but this account cannot be used until reactivated.",
-                      )
-                    : t(
-                        "moderation.activateAccountWarning",
-                        "The account becomes usable immediately after reactivation.",
-                      )}
-                </small>
-              </span>
-              <div>
-                <button
-                  type="button"
-                  className={
-                    deactivating
-                      ? "moderation-control-button moderation-control-button--danger"
-                      : "moderation-control-button moderation-control-button--primary"
-                  }
-                  disabled={statusBusy}
-                  onClick={() => void changeStatus()}
-                >
-                  {statusBusy ? copy.changingAccountStatus : t("common.confirm", "Confirm")}
-                </button>
-                <button
-                  type="button"
-                  className="moderation-control-button moderation-control-button--neutral"
-                  disabled={statusBusy}
-                  onClick={() => setStatusConfirmationVisible(false)}
-                >
-                  {copy.cancel}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className={
-                deactivating
-                  ? "moderation-control-button moderation-control-button--danger"
-                  : "moderation-control-button moderation-control-button--neutral"
-              }
-              disabled={statusBusy}
-              onClick={() => setStatusConfirmationVisible(true)}
-            >
-              {details.status === "ACTIVE" ? copy.deactivateAccount : copy.activateAccount}
-            </button>
-          )}
-        </div>
-      ) : null}
+type AccountStatusActionProps = {
+  copy: ReturnType<typeof resolveModerationDirectoryCopy>
+  deactivating: boolean
+  statusBusy: boolean
+  confirmationVisible: boolean
+  onRequestConfirmation(): void
+  onCancel(): void
+  onConfirm(): void
+}
 
-      <ModerationAccountControlPanel
-        accountId={details.accountId}
-        canDelete
-        copy={copy}
-        onChanged={refresh}
-        onOpenUser={(userId) => navigate({ id: "moderation-user", params: { userId } })}
-      />
+function AccountStatusAction({
+  copy,
+  deactivating,
+  statusBusy,
+  confirmationVisible,
+  onRequestConfirmation,
+  onCancel,
+  onConfirm,
+}: AccountStatusActionProps) {
+  const { t } = useTranslation()
 
-      <ModerationAccountRolesPanel details={details} onChanged={refresh} />
-      <ModerationAccountTransactionPanel accountId={details.accountId} />
-      <ModerationAccountPersonalizationPanel
-        accountId={details.accountId}
-        deleted={details.status === "DELETED"}
-      />
+  if (!confirmationVisible) {
+    return (
+      <button
+        type="button"
+        className={
+          deactivating
+            ? "moderation-control-button moderation-control-button--danger"
+            : "moderation-control-button moderation-control-button--primary"
+        }
+        disabled={statusBusy}
+        onClick={onRequestConfirmation}
+      >
+        {deactivating ? copy.deactivateAccount : copy.activateAccount}
+      </button>
+    )
+  }
+
+  return (
+    <div className={`moderation-account-status-confirmation ${deactivating ? "is-danger" : ""}`}>
+      <span>
+        <strong>
+          {deactivating
+            ? t("moderation.confirmDeactivateAccount", "Deactivate this account?")
+            : t("moderation.confirmActivateAccount", "Reactivate this account?")}
+        </strong>
+        <small>
+          {deactivating
+            ? t(
+                "moderation.deactivateAccountWarning",
+                "Members will keep historical data, but this account cannot be used until reactivated.",
+              )
+            : t(
+                "moderation.activateAccountWarning",
+                "The account becomes usable immediately after reactivation.",
+              )}
+        </small>
+      </span>
+      <div>
+        <button
+          type="button"
+          className={
+            deactivating
+              ? "moderation-control-button moderation-control-button--danger"
+              : "moderation-control-button moderation-control-button--primary"
+          }
+          disabled={statusBusy}
+          onClick={onConfirm}
+        >
+          {statusBusy ? copy.changingAccountStatus : t("common.confirm", "Confirm")}
+        </button>
+        <button
+          type="button"
+          className="moderation-control-button moderation-control-button--neutral"
+          disabled={statusBusy}
+          onClick={onCancel}
+        >
+          {copy.cancel}
+        </button>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { searchUserDirectory, type UserIdentityDirectoryResponse } from "@/shared/api/moderationApi"
 import { handleError } from "@/shared/errors/errorHandler"
@@ -24,12 +24,14 @@ export function AdminUserPicker({
 }: Props) {
   const { t } = useTranslation()
   const listboxId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<UserIdentityDirectoryResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const excluded = useMemo(() => new Set(excludedUserIds), [excludedUserIds])
+  const pickerOpen = open && !disabled
 
   useEffect(() => {
     const normalized = query.trim()
@@ -77,21 +79,47 @@ export function AdminUserPicker({
     }
   }, [disabled, excluded, query, selected])
 
+  useEffect(() => {
+    if (!pickerOpen) {
+      return
+    }
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+
+      if (target instanceof Node && rootRef.current?.contains(target)) {
+        return
+      }
+
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer)
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer)
+    }
+  }, [pickerOpen])
+
+  const closePicker = () => {
+    setOpen(false)
+    setActiveIndex(-1)
+  }
+
   const clear = () => {
     onSelect(null)
     setQuery("")
     setResults([])
     setLoading(false)
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const selectCandidate = (candidate: UserIdentityDirectoryResponse) => {
     onSelect(candidate)
     setQuery("")
     setResults([])
-    setOpen(false)
-    setActiveIndex(-1)
+    closePicker()
   }
 
   const changeQuery = (value: string) => {
@@ -121,12 +149,22 @@ export function AdminUserPicker({
   }
 
   const activeOptionId =
-    open && activeIndex >= 0 && results[activeIndex]
+    pickerOpen && activeIndex >= 0 && results[activeIndex]
       ? `${listboxId}-option-${results[activeIndex].userId}`
       : undefined
 
   return (
-    <div className="admin-user-picker">
+    <div
+      ref={rootRef}
+      className="admin-user-picker"
+      onBlur={(event) => {
+        const nextFocus = event.relatedTarget
+
+        if (!(nextFocus instanceof Node) || !event.currentTarget.contains(nextFocus)) {
+          closePicker()
+        }
+      }}
+    >
       <span className="admin-user-picker__label">{label}</span>
 
       {selected ? (
@@ -162,7 +200,7 @@ export function AdminUserPicker({
             spellCheck={false}
             placeholder={placeholder}
             aria-autocomplete="list"
-            aria-expanded={open && query.trim().length >= 2}
+            aria-expanded={pickerOpen && query.trim().length >= 2}
             aria-controls={listboxId}
             aria-activedescendant={activeOptionId}
             onFocus={() => setOpen(true)}
@@ -182,8 +220,7 @@ export function AdminUserPicker({
                   selectCandidate(candidate)
                 }
               } else if (event.key === "Escape") {
-                setOpen(false)
-                setActiveIndex(-1)
+                closePicker()
               }
             }}
           />
@@ -196,7 +233,7 @@ export function AdminUserPicker({
         </div>
       )}
 
-      {!selected && open && query.trim().length >= 2 ? (
+      {!selected && pickerOpen && query.trim().length >= 2 ? (
         <div id={listboxId} className="admin-user-picker__results" role="listbox">
           {loading && results.length === 0 ? (
             <div className="admin-user-picker__state">{t("common.loading")}</div>
