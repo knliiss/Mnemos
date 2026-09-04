@@ -1,7 +1,5 @@
 services:
   telegram-bot-service:
-    container_name: mnemos-telegram-bot-service
-
     build:
       context: ../..
       dockerfile: apps/telegram-bot-service/Dockerfile
