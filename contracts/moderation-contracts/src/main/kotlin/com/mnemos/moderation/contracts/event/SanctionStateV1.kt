@@ -11,4 +11,6 @@ data class SanctionStateV1(
     val type: SanctionType,
     val status: SanctionStatus,
     val occurredAt: Instant,
+    val reason: String? = null,
+    val expiresAt: Instant? = null,
 )
