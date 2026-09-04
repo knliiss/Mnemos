@@ -1,6 +1,7 @@
 package com.mnemos.account.application.service.user
 
 import com.mnemos.account.application.service.user.UserIntegrationEvents.created
+import com.mnemos.account.domain.exception.user.UserIdentityConflictException
 import com.mnemos.account.domain.model.user.User
 import com.mnemos.account.domain.repository.user.UserCreationResult
 import com.mnemos.account.domain.repository.user.UserRepository
@@ -16,29 +17,53 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class InternalTelegramUserBootstrapService(
     private val userRepository: UserRepository,
+    private val usernameResolver: TelegramUsernameResolver,
     private val telegramKeycloakIdentityService: TelegramKeycloakIdentityService,
     private val keycloakUserIdentitySynchronizer: KeycloakUserIdentitySynchronizer,
     private val publisher: IntegrationEventPublisher,
 ) {
     @Transactional
-    fun getOrCreate(telegramId: Long): User {
+    fun getOrCreate(
+        telegramId: Long,
+        telegramUsername: String? = null,
+    ): User {
         val domainTelegramId = TelegramId(telegramId)
+        val existingUser = userRepository.findByTelegramId(domainTelegramId)
 
-        userRepository.findByTelegramId(domainTelegramId)?.let { user -> return user }
+        if (existingUser != null) {
+            return synchronizeGeneratedUsername(
+                user = existingUser,
+                telegramUsername = telegramUsername,
+            )
+        }
 
-        val keycloakId = telegramKeycloakIdentityService.resolveOrCreate(telegramId)
-        val existingByKeycloak = userRepository.findByKeycloakId(keycloakId)
+        val resolution = usernameResolver.resolve(domainTelegramId, telegramUsername)
+        val keycloakIdentity =
+            telegramKeycloakIdentityService.resolveOrCreate(
+                telegramId = telegramId,
+                username = resolution.selected,
+                fallbackUsername = resolution.keycloakFallback,
+            )
+        val existingByKeycloak = userRepository.findByKeycloakId(keycloakIdentity.keycloakId)
 
         if (existingByKeycloak != null) {
-            return existingByKeycloak
+            return synchronizeGeneratedUsername(
+                user = existingByKeycloak,
+                telegramUsername = telegramUsername,
+            )
         }
+
+        ensureUsernameAvailable(
+            username = keycloakIdentity.username,
+            expectedUsername = resolution.selected,
+        )
 
         val creation =
             userRepository.createIfAbsentByKeycloakId(
                 User.create(
                     telegramId = domainTelegramId,
-                    username = Username("telegram_$telegramId"),
-                    keycloakId = keycloakId,
+                    username = keycloakIdentity.username,
+                    keycloakId = keycloakIdentity.keycloakId,
                 ),
             )
         val synchronizedUser = keycloakUserIdentitySynchronizer.synchronize(creation.user)
@@ -46,6 +71,68 @@ class InternalTelegramUserBootstrapService(
         publishCreatedUser(creation, synchronizedUser)
 
         return synchronizedUser
+    }
+
+    private fun synchronizeGeneratedUsername(
+        user: User,
+        telegramUsername: String?,
+    ): User {
+        if (!shouldSynchronizeGeneratedUsername(user, telegramUsername)) {
+            return user
+        }
+
+        val resolution = usernameResolver.resolve(user.telegramId, telegramUsername)
+        val keycloakIdentity =
+            telegramKeycloakIdentityService.resolveOrCreate(
+                telegramId = user.telegramId.id,
+                username = resolution.selected,
+                fallbackUsername = resolution.keycloakFallback,
+            )
+        val resolvedUsername = keycloakIdentity.username
+
+        ensureUsernameAvailable(
+            username = resolvedUsername,
+            expectedUsername = resolution.selected,
+        )
+
+        if (user.username == resolvedUsername) {
+            return user
+        }
+
+        user.updateUsername(
+            user = user,
+            newUsername = resolvedUsername,
+        )
+
+        return userRepository.update(user)
+    }
+
+    private fun shouldSynchronizeGeneratedUsername(
+        user: User,
+        telegramUsername: String?,
+    ): Boolean {
+        val telegramId = user.telegramId.id
+        val currentUsername = user.username.value
+
+        if (currentUsername.equals("telegram_$telegramId", ignoreCase = true)) {
+            return true
+        }
+
+        return currentUsername == telegramId.toString() && !telegramUsername.isNullOrBlank()
+    }
+
+    private fun ensureUsernameAvailable(
+        username: Username,
+        expectedUsername: Username,
+    ) {
+        if (username == expectedUsername || !userRepository.existsByUsername(username)) {
+            return
+        }
+
+        throw UserIdentityConflictException(
+            message = "Keycloak resolved a username already used by another Mnemos user",
+            details = mapOf("username" to username.value),
+        )
     }
 
     private fun publishCreatedUser(
