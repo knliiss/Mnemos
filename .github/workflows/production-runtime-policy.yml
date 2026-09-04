@@ -15,24 +15,30 @@ on:
         description: Reason for the production policy reconciliation
         required: true
         type: string
-  push:
-    branches:
-      - deploy/production-runtime-policy
+  workflow_run:
+    workflows:
+      - Production Runtime Policy Request
+    types:
+      - completed
 
 concurrency:
   group: mnemos-production-deploy
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: read
 
 env:
-  TOOLING_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.tooling_revision || github.sha }}
+  TOOLING_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.tooling_revision || github.event.workflow_run.head_sha }}
   AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || '' }}
   RECONCILIATION_REASON: ${{ github.event_name == 'workflow_dispatch' && inputs.reason || 'Authorized by deploy/production-runtime-policy' }}
 
 jobs:
   reconcile:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on:
       - self-hosted
       - mnemos-production
@@ -57,6 +63,16 @@ jobs:
 
       - name: Validate explicit production authorization
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_RUN_ID: ${{ github.event.workflow_run.id }}
+          REQUEST_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          REQUEST_WORKFLOW_PATH: ${{ github.event.workflow_run.path }}
+          REQUEST_EVENT: ${{ github.event.workflow_run.event }}
+          REQUEST_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          REQUEST_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REQUEST_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -73,7 +89,7 @@ jobs:
               fi
 
               if [ "$GITHUB_REF" != "refs/heads/master" ]; then
-                echo "Manually dispatched production runtime policy can only run from master" >&2
+                echo "Production runtime policy can only be manually dispatched from master" >&2
                 exit 1
               fi
 
@@ -82,11 +98,54 @@ jobs:
                 exit 1
               fi
               ;;
-            push)
-              if [ "$GITHUB_REF" != "refs/heads/deploy/production-runtime-policy" ]; then
-                echo "Push-triggered runtime policy is restricted to deploy/production-runtime-policy" >&2
+            workflow_run)
+              if [ "$REQUEST_WORKFLOW_NAME" != "Production Runtime Policy Request" ]; then
+                echo "Unexpected upstream workflow: $REQUEST_WORKFLOW_NAME" >&2
                 exit 1
               fi
+
+              if [ "$REQUEST_WORKFLOW_PATH" != ".github/workflows/production-runtime-policy-request.yml" ]; then
+                echo "Unexpected upstream workflow path: $REQUEST_WORKFLOW_PATH" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_EVENT" != "push" ]; then
+                echo "Runtime policy request must originate from a push" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_BRANCH" != "deploy/production-runtime-policy" ]; then
+                echo "Runtime policy request used an unauthorized ref: $REQUEST_BRANCH" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_HEAD_SHA" != "$TOOLING_REVISION" ]; then
+                echo "Runtime policy request head SHA changed" >&2
+                exit 1
+              fi
+
+              if [ "$REQUEST_CONCLUSION" != "success" ]; then
+                echo "Runtime policy request did not succeed" >&2
+                exit 1
+              fi
+
+              run_json="$(
+                curl \
+                  --fail-with-body \
+                  --silent \
+                  --show-error \
+                  --header "Accept: application/vnd.github+json" \
+                  --header "Authorization: Bearer $GH_TOKEN" \
+                  --header "X-GitHub-Api-Version: 2022-11-28" \
+                  "https://api.github.com/repos/${REPOSITORY}/actions/runs/${REQUEST_RUN_ID}"
+              )"
+
+              [ "$(printf '%s' "$run_json" | jq -r '.name // empty')" = "Production Runtime Policy Request" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.path // empty')" = ".github/workflows/production-runtime-policy-request.yml" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.event // empty')" = "push" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.head_branch // empty')" = "deploy/production-runtime-policy" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.head_sha // empty')" = "$TOOLING_REVISION" ]
+              [ "$(printf '%s' "$run_json" | jq -r '.conclusion // empty')" = "success" ]
 
               master_sha="$(git rev-parse origin/master)"
 
@@ -169,6 +228,8 @@ jobs:
             . /etc/mnemos/mnemos.env
             set +a
 
+            keycloak_origin="http://${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}"
+
             token_json="$(
               curl \
                 --fail-with-body \
@@ -178,7 +239,7 @@ jobs:
                 --data-urlencode grant_type=client_credentials \
                 --data-urlencode "client_id=$MNEMOS_MODERATION_SERVICE_CLIENT_ID" \
                 --data-urlencode "client_secret=$KEYCLOAK_MODERATION_SERVICE_CLIENT_SECRET" \
-                "http://${MNEMOS_HOST_BIND_ADDRESS:-127.0.0.1}:${KEYCLOAK_HOST_PORT:-8079}/realms/mnemos/protocol/openid-connect/token"
+                "$keycloak_origin/realms/mnemos/protocol/openid-connect/token"
             )"
 
             access_token="$(printf "%s" "$token_json" | jq -r ".access_token // empty")"
@@ -188,30 +249,18 @@ jobs:
               exit 1
             fi
 
-            ACCESS_TOKEN="$access_token" python3 - <<"PY"
-import base64
-import json
-import os
+            curl \
+              --fail-with-body \
+              --silent \
+              --show-error \
+              --get \
+              --header "Authorization: Bearer $access_token" \
+              --data-urlencode "q=mnemos_user_id:__mnemos_permission_probe__" \
+              --data-urlencode "max=1" \
+              "$keycloak_origin/admin/realms/mnemos/users" \
+              >/dev/null
 
-parts = os.environ["ACCESS_TOKEN"].split(".")
-
-if len(parts) != 3:
-    raise SystemExit("Moderation service account token is not a JWT")
-
-payload_segment = parts[1]
-payload_segment += "=" * (-len(payload_segment) % 4)
-payload = json.loads(base64.urlsafe_b64decode(payload_segment).decode("utf-8"))
-roles = (
-    payload.get("resource_access", {})
-    .get("realm-management", {})
-    .get("roles", [])
-)
-
-if "query-users" not in roles:
-    raise SystemExit("Moderation service account token is missing realm-management/query-users")
-
-print("Moderation Keycloak query permission verified")
-PY
+            echo "Moderation Keycloak query permission verified"
           '
 
       - name: Record exact live production state
