@@ -114,9 +114,7 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
           return
         }
 
-        const sorted = [...loaded].sort(
-          (left, right) => left.hierarchyRank - right.hierarchyRank,
-        )
+        const sorted = [...loaded].sort((left, right) => left.hierarchyRank - right.hierarchyRank)
 
         setRoles(sorted)
         setSelectedRoleId(sorted[0]?.id ?? null)
@@ -401,7 +399,10 @@ export function ModerationAccountRolesPanel({ details, onChanged }: Props) {
                 }
                 onSaveDetails={(name, color) =>
                   void runMutation(`details:${selectedRole.id}`, async () => {
-                    await updateAdminRoleDetails(details.accountId, selectedRole.id, { name, color })
+                    await updateAdminRoleDetails(details.accountId, selectedRole.id, {
+                      name,
+                      color,
+                    })
                   })
                 }
                 onToggleBase={() =>
@@ -589,7 +590,10 @@ function AdminRoleEditor({
   return (
     <article className="moderation-admin-role-editor-card">
       <header className="moderation-admin-role-editor-card__header">
-        <span className="moderation-admin-role-editor-card__swatch" style={{ background: role.color }} />
+        <span
+          className="moderation-admin-role-editor-card__swatch"
+          style={{ background: role.color }}
+        />
         <span>
           <small>{t("roleEditor.editEyebrow")}</small>
           <strong>{role.name}</strong>
@@ -707,7 +711,9 @@ function AdminRoleEditor({
         {permissionChangesCount > 0 ? (
           <div className="moderation-admin-role-permission-actions" role="status">
             <span>
-              <strong>{t("roleEditor.permissionChanges", { count: permissionChangesCount })}</strong>
+              <strong>
+                {t("roleEditor.permissionChanges", { count: permissionChangesCount })}
+              </strong>
               <small>{t("roleEditor.permissionChangesHint")}</small>
             </span>
             <div>
@@ -790,7 +796,7 @@ function MemberRoleWorkspace({
 }: MemberRoleWorkspaceProps) {
   const { t } = useTranslation()
   const assigned = selectedMember
-    ? memberRoles[selectedMember.memberId] ?? new Set<string>()
+    ? (memberRoles[selectedMember.memberId] ?? new Set<string>())
     : new Set<string>()
 
   return (
@@ -981,7 +987,9 @@ function rolePermissionChanges(
 ): Record<string, boolean> {
   return Object.fromEntries(
     allRolePermissions
-      .filter((permission) => (draft[permission] ?? false) !== (role.permissions[permission] === true))
+      .filter(
+        (permission) => (draft[permission] ?? false) !== (role.permissions[permission] === true),
+      )
       .map((permission) => [permission, draft[permission] ?? false]),
   )
 }
