@@ -250,7 +250,9 @@ describe("ModerationAccountRolesPanel", () => {
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 
-    expect(screen.queryByRole("alertdialog", { name: "roleEditor.confirmHierarchyChange" })).toBeNull()
+    expect(
+      screen.queryByRole("alertdialog", { name: "roleEditor.confirmHierarchyChange" }),
+    ).toBeNull()
   })
 
   it("loads roles only for the selected member and assigns them directly", async () => {
@@ -278,6 +280,8 @@ describe("ModerationAccountRolesPanel", () => {
       expect(onChanged).toHaveBeenCalledTimes(1)
     })
 
-    expect(screen.queryByRole("alertdialog", { name: "roleEditor.confirmMemberRoleChange" })).toBeNull()
+    expect(
+      screen.queryByRole("alertdialog", { name: "roleEditor.confirmMemberRoleChange" }),
+    ).toBeNull()
   })
 })
