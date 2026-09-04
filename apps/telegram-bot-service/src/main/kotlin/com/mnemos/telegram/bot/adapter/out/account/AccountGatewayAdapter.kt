@@ -77,17 +77,27 @@ class AccountGatewayAdapter(
     private fun mutate(action: () -> Any?): TelegramAccountMutationResult =
         try {
             if (action() == null) {
-                TelegramAccountMutationResult.Invalid
+                TelegramAccountMutationResult.Invalid()
             } else {
                 TelegramAccountMutationResult.Updated
             }
         } catch (exception: FeignException) {
             if (exception.status() in 400..499) {
-                TelegramAccountMutationResult.Invalid
+                TelegramAccountMutationResult.Invalid(exception.errorCode())
             } else {
                 TelegramAccountMutationResult.Unavailable
             }
         } catch (_: RuntimeException) {
             TelegramAccountMutationResult.Unavailable
         }
+
+    private fun FeignException.errorCode(): String? =
+        ERROR_CODE_PATTERN
+            .find(contentUTF8())
+            ?.groupValues
+            ?.getOrNull(1)
+
+    private companion object {
+        val ERROR_CODE_PATTERN = Regex("\"code\"\\s*:\\s*\"([^\"]+)\"")
+    }
 }
