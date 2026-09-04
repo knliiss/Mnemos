@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import tools.jackson.databind.ObjectMapper
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -29,9 +28,6 @@ class NotificationServiceClientPatchIntegrationTest {
     @Autowired
     private lateinit var client: NotificationServiceClient
 
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
-
     @Test
     fun `raid update reaches notification service as authenticated PATCH`() {
         requestMethods.clear()
@@ -49,13 +45,7 @@ class NotificationServiceClientPatchIntegrationTest {
                     ),
             )
 
-        val body = objectMapper.readTree(requestBodies.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-        val locationsNode = body.path("locations")
-        val locations =
-            setOf(
-                locationsNode.path(0).asInt(),
-                locationsNode.path(1).asInt(),
-            )
+        val requestBody = requestBodies.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         assertEquals(SUBSCRIPTION_ID, response.subscriptionId)
         assertEquals("PATCH", requestMethods.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
@@ -63,9 +53,21 @@ class NotificationServiceClientPatchIntegrationTest {
             "/internal/v1/telegram/subscriptions/$TELEGRAM_ID/raid",
             requestPaths.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS),
         )
-        assertEquals(setOf(3, 12), locations)
+        assertEquals(setOf(3, 12), parseLocations(requestBody))
         assertEquals("telegram-bot-service", requestServiceNames.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
         assertEquals(TEST_NOTIFICATION_API_KEY, requestApiKeys.poll(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+    }
+
+    private fun parseLocations(requestBody: String): Set<Int> {
+        val match =
+            checkNotNull(LOCATIONS_PATTERN.find(requestBody)) {
+                "Request body does not contain a locations array: $requestBody"
+            }
+
+        return match.groupValues[1]
+            .split(',')
+            .map { value -> value.trim().toInt() }
+            .toSet()
     }
 
     private companion object {
@@ -73,6 +75,7 @@ class NotificationServiceClientPatchIntegrationTest {
         const val REQUEST_TIMEOUT_SECONDS = 2L
 
         val SUBSCRIPTION_ID: UUID = UUID.fromString("01a02e75-2603-7a67-b5f1-98b432273b75")
+        val LOCATIONS_PATTERN = Regex("\\\"locations\\\"\\s*:\\s*\\[([^]]*)]")
         val requestMethods = LinkedBlockingQueue<String>()
         val requestPaths = LinkedBlockingQueue<String>()
         val requestBodies = LinkedBlockingQueue<String>()
