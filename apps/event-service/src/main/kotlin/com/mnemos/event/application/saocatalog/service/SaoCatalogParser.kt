@@ -73,7 +73,8 @@ class SaoCatalogParser {
             .sortedBy(SaoLocalizationPack::locale)
             .mapNotNull { pack ->
                 pack.properties[gameKey]?.let { value -> LocalizedValue(pack, value) }
-            }.firstOrNull()
+            }
+            .firstOrNull()
     }
 
     private fun buildUnambiguousAliases(
@@ -110,7 +111,13 @@ class SaoCatalogParser {
         packs
             .asSequence()
             .flatMap { pack -> pack.properties.keys.asSequence() }
-            .mapNotNull { key -> LOCATION_NAME_KEY.matchEntire(key)?.groupValues?.get(1)?.toIntOrNull() }
+            .mapNotNull { key ->
+                LOCATION_NAME_KEY
+                    .matchEntire(key)
+                    ?.groupValues
+                    ?.get(1)
+                    ?.toIntOrNull()
+            }
             .toSet()
 
     private fun resolveLocations(
@@ -121,14 +128,26 @@ class SaoCatalogParser {
         val itemId = gameKey.removePrefix(ITEM_PREFIX).removeSuffix(NAME_SUFFIX)
         val candidate =
             when (type) {
-                SaoCatalogItemType.WEAPON -> WEAPON_LOCATION.matchEntire(itemId)?.groupValues?.get(1)?.toIntOrNull()
-                SaoCatalogItemType.PET -> PET_LOCATION.matchEntire(itemId)?.groupValues?.get(1)?.toIntOrNull()
+                SaoCatalogItemType.WEAPON ->
+                    WEAPON_LOCATION
+                        .matchEntire(itemId)
+                        ?.groupValues
+                        ?.get(1)
+                        ?.toIntOrNull()
+
+                SaoCatalogItemType.PET ->
+                    PET_LOCATION
+                        .matchEntire(itemId)
+                        ?.groupValues
+                        ?.get(1)
+                        ?.toIntOrNull()
+
                 else -> null
             }
 
         return candidate
             ?.takeIf(knownLocations::contains)
-            ?.let(::setOf)
+            ?.let { locationId -> setOf(locationId) }
             .orEmpty()
     }
 
@@ -146,7 +165,13 @@ class SaoCatalogParser {
     }
 
     private fun resolveRarity(value: String): SaoCatalogItemRarity? {
-        val style = STYLE_PREFIX.find(value)?.groupValues?.get(1)?.lowercase() ?: return null
+        val style =
+            STYLE_PREFIX
+                .find(value)
+                ?.groupValues
+                ?.get(1)
+                ?.lowercase()
+                ?: return null
 
         return RARITY_BY_STYLE[style]
     }
@@ -193,8 +218,7 @@ class SaoCatalogParser {
                 "22ae49" to SaoCatalogItemRarity.OTHER,
             )
 
-        private fun isItemNameKey(key: String): Boolean =
-            key.startsWith(ITEM_PREFIX) && key.endsWith(NAME_SUFFIX)
+        private fun isItemNameKey(key: String): Boolean = key.startsWith(ITEM_PREFIX) && key.endsWith(NAME_SUFFIX)
     }
 
     private data class LocalizedValue(
