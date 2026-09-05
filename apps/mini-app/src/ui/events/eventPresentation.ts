@@ -22,6 +22,10 @@ export function eventKindLabel(t: TFunction, kind: EventKind) {
 }
 
 export function eventTitle(t: TFunction, event: FeedEvent) {
+  if (event.kind === "ITEM_DROP" && event.localizationKey) {
+    return t(event.localizationKey, { defaultValue: event.title })
+  }
+
   if (event.kind === "GLOBAL") {
     return t(`events.globals.${event.title}`, { defaultValue: event.title })
   }
@@ -120,7 +124,7 @@ export function belongsToAccount(event: FeedEvent, account: Account) {
 
 export function notificationRuleDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return t("events.detail.itemRule", { item: event.title })
+    return t("events.detail.itemRule", { item: eventTitle(t, event) })
   }
 
   if (event.kind === "BOOSTER") {
