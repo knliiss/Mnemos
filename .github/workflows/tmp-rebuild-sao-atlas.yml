@@ -1,0 +1,71 @@
+name: Temporary Rebuild SAO Atlas
+
+on:
+  push:
+    branches:
+      - fix/restore-sao-item-atlas
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/restore-sao-item-atlas
+          fetch-depth: 0
+
+      - name: Rebuild and commit SAO atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat .tmp/sao-atlas/00.b64 \
+              .tmp/sao-atlas/01.b64 \
+              .tmp/sao-atlas/02.b64 \
+              .tmp/sao-atlas/03.b64 \
+              .tmp/sao-atlas/04.b64 \
+              .tmp/sao-atlas/05.b64 \
+            | base64 --decode \
+            > apps/mini-app/public/event-icons/sao-tracked-items.webp
+
+          expected="55c95369ce14d16b13956075d9c4959ba3b2d345d1af9c28760156f464348382"
+          actual="$(sha256sum apps/mini-app/public/event-icons/sao-tracked-items.webp | awk '{print $1}')"
+          test "$actual" = "$expected"
+
+          file apps/mini-app/public/event-icons/sao-tracked-items.webp
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          artwork = Path("apps/mini-app/src/ui/components/events/saoTrackedItemArtwork.ts")
+          text = artwork.read_text()
+          text = text.replace(
+              '/event-icons/sao-tracked-items.png',
+              '/event-icons/sao-tracked-items.webp',
+          )
+          artwork.write_text(text)
+
+          test = Path("apps/mini-app/src/ui/components/events/saoTrackedItemArtwork.test.ts")
+          text = test.read_text()
+          text = text.replace("uses the rebuilt PNG atlas", "uses the rebuilt WebP atlas")
+          text = text.replace(
+              '/event-icons/sao-tracked-items.png',
+              '/event-icons/sao-tracked-items.webp',
+          )
+          test.write_text(text)
+          PY
+
+          rm -rf .tmp/sao-atlas
+          rm .github/workflows/tmp-rebuild-sao-atlas.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Rebuild tracked item WebP atlas"
+          git push origin HEAD:fix/restore-sao-item-atlas
