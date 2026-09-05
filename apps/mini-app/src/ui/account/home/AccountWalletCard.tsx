@@ -47,11 +47,7 @@ export function AccountWalletCard({ account, locale, navigate }: AccountWalletCa
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        <img
-          className="account-home-wallet__coins"
-          src="/ui-illustrations/coin-vault.png"
-          alt=""
-        />
+        <img className="account-home-wallet__coins" src="/ui-illustrations/coin-vault.png" alt="" />
 
         <i className="account-home-wallet__spark account-home-wallet__spark--one" />
         <i className="account-home-wallet__spark account-home-wallet__spark--two" />
