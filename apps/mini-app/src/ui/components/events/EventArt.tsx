@@ -2,6 +2,7 @@ import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
 import "../../events/event-art.css"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
+import { resolveSaoPetAtlasSprite } from "./saoPetArtwork"
 import { resolveSaoItemAtlasSprite, type SaoItemAtlasSprite } from "./saoTrackedItemArtwork"
 
 type Props = {
@@ -14,10 +15,7 @@ export function EventArt({ event, size = 46 }: Props) {
     event.kind === "ITEM_DROP" && event.rarity
       ? `event-art--rarity-${event.rarity.toLowerCase()}`
       : ""
-  const itemSprite =
-    event.kind === "ITEM_DROP" && event.meta !== "PET"
-      ? resolveSaoItemAtlasSprite(event.localizationKey)
-      : null
+  const itemSprite = resolveEventItemSprite(event)
 
   return (
     <ArtFrame
@@ -27,6 +25,18 @@ export function EventArt({ event, size = 46 }: Props) {
       itemSprite={itemSprite}
     />
   )
+}
+
+function resolveEventItemSprite(event: FeedEvent): SaoItemAtlasSprite | null {
+  if (event.kind !== "ITEM_DROP") {
+    return null
+  }
+
+  if (event.meta === "PET") {
+    return resolveSaoPetAtlasSprite(event.localizationKey)
+  }
+
+  return resolveSaoItemAtlasSprite(event.localizationKey)
 }
 
 export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
