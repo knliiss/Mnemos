@@ -17,6 +17,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = ROOT / "scripts" / "sao-artwork" / "pet-model.json"
+IDLE_POSE_PATH = ROOT / "scripts" / "sao-artwork" / "pet-idle-pose.json"
 ATLAS_PATH = ROOT / "apps" / "mini-app" / "public" / "event-icons" / "sao-pets.webp"
 TYPESCRIPT_PATH = (
     ROOT
@@ -37,6 +38,8 @@ CELL_SIZE = 64
 ATLAS_COLUMNS = 16
 RENDER_SIZE = 128
 RENDER_MARGIN = 10
+PET_INVENTORY_Y_ROTATION = 220
+CAMERA_DIRECTION_CORRECTION = 180
 
 
 def fetch_bytes(url: str) -> bytes:
@@ -140,7 +143,10 @@ def rotation_xyz(rotation: list[float] | None) -> np.ndarray:
     return rotation_z(z) @ rotation_y(y) @ rotation_x(x)
 
 
-def build_bone_matrices(bones: list[dict]) -> dict[str, np.ndarray]:
+def build_bone_matrices(
+    bones: list[dict],
+    idle_pose: dict[str, dict[str, list[float]]],
+) -> dict[str, np.ndarray]:
     by_name = {bone["name"]: bone for bone in bones}
     cache: dict[str, np.ndarray] = {}
 
@@ -153,11 +159,24 @@ def build_bone_matrices(bones: list[dict]) -> dict[str, np.ndarray]:
         if parent_name := bone.get("parent"):
             parent = resolve(parent_name)
 
+        pose = idle_pose.get(name, {})
         pivot = np.asarray(bone.get("pivot", [0, 0, 0]), dtype=float)
+        position = np.asarray(pose.get("position", [0, 0, 0]), dtype=float)
+        base_rotation = np.asarray(bone.get("rotation", [0, 0, 0]), dtype=float)
+        pose_rotation = np.asarray(pose.get("rotation", [0, 0, 0]), dtype=float)
+        scale = np.asarray(pose.get("scale", [1, 1, 1]), dtype=float)
+
+        scale_matrix = np.eye(4, dtype=float)
+        scale_matrix[0, 0] = scale[0]
+        scale_matrix[1, 1] = scale[1]
+        scale_matrix[2, 2] = scale[2]
+
         matrix = (
             parent
+            @ translation(position)
             @ translation(pivot)
-            @ rotation_xyz(bone.get("rotation"))
+            @ rotation_xyz((base_rotation + pose_rotation).tolist())
+            @ scale_matrix
             @ translation(-pivot)
         )
         cache[name] = matrix
@@ -167,6 +186,7 @@ def build_bone_matrices(bones: list[dict]) -> dict[str, np.ndarray]:
         resolve(bone_name)
 
     return cache
+
 
 def face_vertices(name: str, low: np.ndarray, high: np.ndarray) -> list[tuple[float, float, float]]:
     x0, y0, z0 = low
@@ -203,10 +223,13 @@ def face_uv(face: dict) -> np.ndarray:
     return np.asarray(corners, dtype=float)
 
 
-def prepare_faces(model: dict) -> list[tuple[np.ndarray, np.ndarray]]:
+def prepare_faces(
+    model: dict,
+    idle_pose: dict[str, dict[str, list[float]]],
+) -> list[tuple[np.ndarray, np.ndarray]]:
     geometry = model["minecraft:geometry"][0]
     bones = geometry["bones"]
-    bone_matrices = build_bone_matrices(bones)
+    bone_matrices = build_bone_matrices(bones, idle_pose)
     prepared = []
 
     for bone in bones:
@@ -245,7 +268,8 @@ def prepare_faces(model: dict) -> list[tuple[np.ndarray, np.ndarray]]:
 def scene_transform(faces: list[tuple[np.ndarray, np.ndarray]]) -> list[tuple[np.ndarray, np.ndarray]]:
     all_vertices = np.concatenate([vertices for vertices, _ in faces], axis=0)
     center = (all_vertices.min(axis=0) + all_vertices.max(axis=0)) / 2
-    matrix = translation(center) @ rotation_y(-28) @ rotation_x(10) @ translation(-center)
+    y_rotation = PET_INVENTORY_Y_ROTATION + CAMERA_DIRECTION_CORRECTION
+    matrix = translation(center) @ rotation_y(y_rotation) @ translation(-center)
 
     transformed = []
     for vertices, uv in faces:
@@ -307,8 +331,12 @@ def rasterize_triangle(
     region_depth[visible] = depth[visible]
 
 
-def render_pet(model: dict, texture_image: Image.Image) -> Image.Image:
-    faces = scene_transform(prepare_faces(model))
+def render_pet(
+    model: dict,
+    idle_pose: dict[str, dict[str, list[float]]],
+    texture_image: Image.Image,
+) -> Image.Image:
+    faces = scene_transform(prepare_faces(model, idle_pose))
     all_vertices = np.concatenate([vertices for vertices, _ in faces], axis=0)
     minimum = all_vertices.min(axis=0)
     maximum = all_vertices.max(axis=0)
@@ -368,10 +396,16 @@ def render_pet(model: dict, texture_image: Image.Image) -> Image.Image:
     return square.resize((CELL_SIZE, CELL_SIZE), Image.Resampling.NEAREST)
 
 
-def render_pet_file(model_path: str, skin_path: str, output_path: str) -> str:
+def render_pet_file(
+    model_path: str,
+    idle_pose_path: str,
+    skin_path: str,
+    output_path: str,
+) -> str:
     model = json.loads(Path(model_path).read_text(encoding="utf-8"))
+    idle_pose = json.loads(Path(idle_pose_path).read_text(encoding="utf-8"))
     texture = Image.open(skin_path)
-    rendered = render_pet(model, texture)
+    rendered = render_pet(model, idle_pose, texture)
     rendered.save(output_path, format="PNG", optimize=True)
     return output_path
 
@@ -385,6 +419,7 @@ def render_all(item_ids: list[str], skins_dir: Path, cells_dir: Path) -> None:
             executor.submit(
                 render_pet_file,
                 str(MODEL_PATH),
+                str(IDLE_POSE_PATH),
                 str(skins_dir / f"{item_id}.png"),
                 str(cells_dir / f"{item_id}.png"),
             )
@@ -457,6 +492,9 @@ export function resolveSaoPetAtlasSprite(localizationKey?: string): SaoItemAtlas
 def main() -> None:
     if not MODEL_PATH.exists():
         raise SystemExit(f"Missing pet model: {MODEL_PATH}")
+
+    if not IDLE_POSE_PATH.exists():
+        raise SystemExit(f"Missing pet idle pose: {IDLE_POSE_PATH}")
 
     item_ids = discover_pet_ids()
     if not item_ids:
