@@ -10,6 +10,7 @@ import com.mnemos.event.contracts.shared.ContractItemRarity
 import com.mnemos.event.contracts.shared.ContractItemType
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
@@ -47,4 +48,9 @@ interface EventServiceClient {
 
     @GetMapping("/internal/v1/wipes")
     fun listWipes(): InternalWipeListResponse
+
+    @GetMapping("/internal/v1/events/localizations/sao/{locale}")
+    fun getSaoLocalization(
+        @PathVariable locale: String,
+    ): TelegramSaoLocalizationResponse
 }
