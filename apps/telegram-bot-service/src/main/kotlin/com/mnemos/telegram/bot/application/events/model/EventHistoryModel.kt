@@ -55,6 +55,7 @@ data class EventHistoryQuery(
     val globalType: EventHistoryGlobalType? = null,
     val raidLocation: Int? = null,
     val wipeId: UUID? = null,
+    val telegramId: Long? = null,
 )
 
 sealed interface EventHistoryItem {
@@ -87,7 +88,7 @@ sealed interface EventHistoryItem {
     data class Raid(
         override val eventId: UUID,
         override val occurredAt: Instant,
-        val locations: List<Int>,
+        val locations: List<String>,
     ) : EventHistoryItem
 }
 

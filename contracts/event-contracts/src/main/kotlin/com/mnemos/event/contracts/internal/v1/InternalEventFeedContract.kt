@@ -23,6 +23,7 @@ data class InternalEventFeedItemResponse(
     val eventId: UUID,
     val occurredAt: Instant,
     val itemId: UUID? = null,
+    val itemKey: String? = null,
     val itemName: String? = null,
     val itemRarity: ContractItemRarity? = null,
     val itemType: String? = null,

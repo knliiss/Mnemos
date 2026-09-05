@@ -67,6 +67,7 @@ object InternalEventFeedApiMapper {
                     eventId = eventId.id,
                     occurredAt = occurredAt,
                     itemId = itemId.id,
+                    itemKey = itemKey,
                     itemName = itemName,
                     itemRarity = ContractItemRarity.valueOf(itemRarity.name),
                     itemType = itemType,

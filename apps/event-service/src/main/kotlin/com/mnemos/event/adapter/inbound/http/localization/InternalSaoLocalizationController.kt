@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException
 @Validated
 @RestController
 @RequestMapping("/internal/v1/events/localizations/sao")
-@PreAuthorize("authentication.name == 'notification-service'")
+@PreAuthorize("authentication.name == 'notification-service' || authentication.name == 'telegram-bot-service'")
 class InternalSaoLocalizationController(
     private val catalogService: SaoLocalizationCatalogService,
 ) {

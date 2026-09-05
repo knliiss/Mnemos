@@ -16,12 +16,15 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import com.mnemos.telegram.bot.application.events.port.out.EventHistoryGateway
+import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageResolver
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class EventHistoryGatewayAdapter(
     private val client: EventServiceClient,
+    private val languageResolver: TelegramSettingsLanguageResolver,
 ) : EventHistoryGateway {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -42,8 +45,10 @@ class EventHistoryGatewayAdapter(
                         sort = query.sort.toInternalSort(),
                         limit = PAGE_SIZE,
                     )
+                val locale = query.telegramId?.let(languageResolver::resolve)?.let(::saoLocale) ?: DEFAULT_LOCALE
+                val localization = loadLocalization(locale)
 
-                EventHistoryResult.Available(response.toModel())
+                EventHistoryResult.Available(response.toModel(localization))
             } catch (exception: RuntimeException) {
                 logger.warn("Could not load event history from event-service", exception)
                 EventHistoryResult.Unavailable
@@ -51,6 +56,14 @@ class EventHistoryGatewayAdapter(
 
         return result
     }
+
+    private fun loadLocalization(locale: String): Map<String, String> =
+        try {
+            client.getSaoLocalization(locale).properties
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not load SAO localization for event history: locale={}", locale, exception)
+            emptyMap()
+        }
 
     private fun EventHistoryFilter.toInternalType(): InternalEventFeedType? =
         when (this) {
@@ -75,7 +88,15 @@ class EventHistoryGatewayAdapter(
 
     private fun EventHistoryGlobalType.toContract(): ContractGlobalEventType = ContractGlobalEventType.valueOf(name)
 
+    private fun saoLocale(language: TelegramSettingsLanguage): String =
+        when (language) {
+            TelegramSettingsLanguage.EN -> "en_US"
+            TelegramSettingsLanguage.RU -> "ru_RU"
+            TelegramSettingsLanguage.UK -> "uk_UA"
+        }
+
     private companion object {
         const val PAGE_SIZE = 8
+        const val DEFAULT_LOCALE = "ru_RU"
     }
 }

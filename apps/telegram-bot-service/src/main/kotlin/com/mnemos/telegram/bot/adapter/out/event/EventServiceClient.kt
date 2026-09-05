@@ -12,6 +12,7 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
+import java.time.Instant
 import java.util.UUID
 
 @FeignClient(
@@ -46,11 +47,18 @@ interface EventServiceClient {
         limit: Int,
     ): InternalEventFeedResponse
 
-    @GetMapping("/internal/v1/wipes")
-    fun listWipes(): InternalWipeListResponse
-
     @GetMapping("/internal/v1/events/localizations/sao/{locale}")
     fun getSaoLocalization(
         @PathVariable locale: String,
     ): TelegramSaoLocalizationResponse
+
+    @GetMapping("/internal/v1/wipes")
+    fun listWipes(): InternalWipeListResponse
 }
+
+data class TelegramSaoLocalizationResponse(
+    val locale: String,
+    val hash: String,
+    val properties: Map<String, String>,
+    val updatedAt: Instant,
+)
