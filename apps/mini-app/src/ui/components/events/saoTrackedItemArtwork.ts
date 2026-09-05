@@ -3,7 +3,7 @@ export type SaoItemAtlasSprite = {
   row: number
 }
 
-export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.png"
+export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.webp"
 export const SAO_ITEM_ATLAS_COLUMNS = 16
 export const SAO_ITEM_ATLAS_ROWS = 11
 

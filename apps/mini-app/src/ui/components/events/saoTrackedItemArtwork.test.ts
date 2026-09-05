@@ -24,7 +24,7 @@ describe("SAO tracked item artwork", () => {
     expect(resolveSaoItemAtlasSprite("sao.item.unknown.name")).toBeNull()
   })
 
-  it("uses the rebuilt PNG atlas", () => {
-    expect(SAO_ITEM_ATLAS_PATH).toBe("/event-icons/sao-tracked-items.png")
+  it("uses the rebuilt WebP atlas", () => {
+    expect(SAO_ITEM_ATLAS_PATH).toBe("/event-icons/sao-tracked-items.webp")
   })
 })
