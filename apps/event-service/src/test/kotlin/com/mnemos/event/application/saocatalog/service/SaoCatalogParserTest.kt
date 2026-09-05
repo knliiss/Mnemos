@@ -1,0 +1,127 @@
+package com.mnemos.event.application.saocatalog.service
+
+import com.mnemos.event.application.localization.model.SaoLocalizationPack
+import com.mnemos.event.application.saocatalog.model.SaoCatalogItemRarity
+import com.mnemos.event.application.saocatalog.model.SaoCatalogItemType
+import com.mnemos.event.domain.item.model.DomainItemType
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import java.time.Instant
+
+class SaoCatalogParserTest {
+    private val parser = SaoCatalogParser()
+    private val now = Instant.parse("2026-09-05T00:00:00Z")
+
+    @Test
+    fun `catalog derives explicit rarity and safe locations without guessing`() {
+        val parsed =
+            parser.parse(
+                packs =
+                    listOf(
+                        pack(
+                            locale = "ru_RU",
+                            properties =
+                                mapOf(
+                                    "sao.location.17.name" to "Подводный храм",
+                                    "sao.item.l17_1.name" to "¨37efefКлинок глубин",
+                                    "sao.item.pet_l17_1.name" to "¨a91925Морской дракон",
+                                    "sao.item.book_l17_1.name" to "¨efac00Книга прилива",
+                                    "sao.item.auraDeep.name" to "¨707070Глубокая аура",
+                                    "sao.item.d1_1.name" to "¨2a66bdРеликвия",
+                                ),
+                        ),
+                    ),
+                now = now,
+            )
+
+        val weapon = parsed.items.single { item -> item.gameKey == "sao.item.l17_1.name" }
+        val pet = parsed.items.single { item -> item.gameKey == "sao.item.pet_l17_1.name" }
+        val book = parsed.items.single { item -> item.gameKey == "sao.item.book_l17_1.name" }
+        val aura = parsed.items.single { item -> item.gameKey == "sao.item.auraDeep.name" }
+        val jewelry = parsed.items.single { item -> item.gameKey == "sao.item.d1_1.name" }
+
+        assertEquals(SaoCatalogItemType.WEAPON, weapon.type)
+        assertEquals(SaoCatalogItemRarity.SECRET, weapon.rarity)
+        assertEquals(setOf(17), weapon.locationIds)
+
+        assertEquals(SaoCatalogItemType.PET, pet.type)
+        assertEquals(SaoCatalogItemRarity.MYTHICAL, pet.rarity)
+        assertEquals(setOf(17), pet.locationIds)
+
+        assertEquals(SaoCatalogItemRarity.LEGENDARY, book.rarity)
+        assertTrue(book.locationIds.isEmpty())
+        assertTrue(aura.locationIds.isEmpty())
+        assertTrue(jewelry.locationIds.isEmpty())
+    }
+
+    @Test
+    fun `unknown rarity stays unresolved instead of being invented`() {
+        val parsed =
+            parser.parse(
+                packs =
+                    listOf(
+                        pack(
+                            locale = "ru_RU",
+                            properties = mapOf("sao.item.l1_1.name" to "Без цветового кода"),
+                        ),
+                    ),
+                now = now,
+            )
+
+        val item = parsed.items.single()
+
+        assertNull(item.rarity)
+        assertEquals(setOf(item.gameKey), parsed.unresolvedRarityKeys)
+    }
+
+    @Test
+    fun `historical aliases resolve names from every localization`() {
+        val parsed =
+            parser.parse(
+                packs =
+                    listOf(
+                        pack(
+                            locale = "ru_RU",
+                            properties = mapOf("sao.item.l1_1.name" to "¨37efefТень леса"),
+                        ),
+                        pack(
+                            locale = "en_US",
+                            properties = mapOf("sao.item.l1_1.name" to "¨37efefForest Shadow"),
+                        ),
+                    ),
+                now = now,
+            )
+
+        assertEquals(
+            "sao.item.l1_1.name",
+            parsed.aliases[
+                LegacyItemAlias(
+                    normalizedName = "тень леса",
+                    type = DomainItemType.SWORD,
+                ),
+            ],
+        )
+        assertEquals(
+            "sao.item.l1_1.name",
+            parsed.aliases[
+                LegacyItemAlias(
+                    normalizedName = "forest shadow",
+                    type = DomainItemType.SWORD,
+                ),
+            ],
+        )
+    }
+
+    private fun pack(
+        locale: String,
+        properties: Map<String, String>,
+    ): SaoLocalizationPack =
+        SaoLocalizationPack(
+            locale = locale,
+            hash = "hash-$locale",
+            properties = properties,
+            updatedAt = now,
+        )
+}
