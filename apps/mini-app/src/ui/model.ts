@@ -89,6 +89,7 @@ export type RouteId =
   | "account-create"
   | "account-join"
   | "public-profile"
+  | "profile-activity"
   | "sao-realms"
   | "personalization-owned"
   | "personalization-store-category"

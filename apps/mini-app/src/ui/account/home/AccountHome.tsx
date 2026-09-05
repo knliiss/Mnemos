@@ -9,6 +9,8 @@ import { resolveActorMember } from "../roleAccessPolicy"
 import { useLatestAccountDrops } from "../data/useLatestAccountDrops"
 import "./account-home.css"
 import "./account-home-visuals.css"
+import "./account-home-dashboard.css"
+import "./account-home-activity-preview.css"
 import { AccountDropsPanel } from "./AccountDropsPanel"
 import { AccountMembersPanel } from "./AccountMembersPanel"
 import { AccountOverview } from "./AccountOverview"
@@ -74,7 +76,13 @@ export function AccountHome({
         navigate={navigate}
       />
 
-      <AccountDropsPanel drops={drops} locale={locale} navigate={navigate} />
+      <AccountDropsPanel
+        accountId={activeAccount.id}
+        accountNickname={activeAccount.nickname}
+        drops={drops}
+        locale={locale}
+        navigate={navigate}
+      />
     </div>
   )
 }

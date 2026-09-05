@@ -5,19 +5,34 @@ import { eventVisualTone } from "../../../eventVisualTone"
 import type { FeedEvent, Route } from "../../../model"
 import { formatOccurredAt } from "../../../timePresentation"
 import { rarityLabel } from "../profilePresentation"
+import "./public-profile-drops-actions.css"
 
 type PublicProfileDropsSectionProps = {
+  accountId: string
+  nickname: string
   drops: FeedEvent[]
   locale: string
   navigate: (route: Route) => void
 }
 
 export function PublicProfileDropsSection({
+  accountId,
+  nickname,
   drops,
   locale,
   navigate,
 }: PublicProfileDropsSectionProps) {
   const { t } = useTranslation()
+
+  const openActivity = () => {
+    navigate({
+      id: "profile-activity",
+      params: {
+        accountId,
+        nickname,
+      },
+    })
+  }
 
   return (
     <section className="public-profile-section">
@@ -26,7 +41,11 @@ export function PublicProfileDropsSection({
           <small>{t("people.profile.activity")}</small>
           <strong>{t("people.profile.latestDrops")}</strong>
         </span>
-        <b>{drops.length}</b>
+
+        <button type="button" className="public-profile-section-head__more" onClick={openActivity}>
+          {t("people.profile.viewAll")}
+          <span aria-hidden="true">›</span>
+        </button>
       </header>
 
       <div className="public-profile-drops">
@@ -64,10 +83,15 @@ export function PublicProfileDropsSection({
         ))}
 
         {!drops.length ? (
-          <div className="public-profile-state public-profile-state--compact public-profile-drops-empty">
+          <button
+            type="button"
+            className="public-profile-state public-profile-state--compact public-profile-drops-empty public-profile-drops-empty--action"
+            onClick={openActivity}
+          >
             <img src="/ui-illustrations/account-activity.svg" alt="" aria-hidden="true" />
             <strong>{t("people.profile.noDrops")}</strong>
-          </div>
+            <small>{t("people.profile.viewAll")} ›</small>
+          </button>
         ) : null}
       </div>
     </section>

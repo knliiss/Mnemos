@@ -1,0 +1,371 @@
+.account-home-profile {
+  min-height: 112px;
+  margin-bottom: 8px;
+}
+
+.account-home-profile__account {
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 11px;
+  min-height: 110px;
+  padding: 12px 14px;
+}
+
+.account-home-profile__head {
+  width: 76px;
+  height: 76px;
+}
+
+.account-home-profile__copy {
+  gap: 4px;
+  padding-right: 52px;
+}
+
+.account-home-profile__copy > strong {
+  font-size: clamp(23px, 6.6vw, 30px);
+}
+
+.account-home-profile__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 18px;
+}
+
+.account-home-profile__pulse {
+  height: 13px;
+  margin-top: 0;
+}
+
+.account-home-profile__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 2px 7px 2px 4px;
+  border: 1px solid rgba(255, 179, 79, 0.11);
+  border-radius: 999px;
+  color: #b9bcae;
+  background: rgba(255, 179, 79, 0.045);
+  font-family: var(--font-meta);
+}
+
+.account-home-profile__streak img {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.account-home-profile__streak strong {
+  color: #eef1e8;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-home-profile__streak small {
+  color: #858b80;
+  font-size: 8px;
+}
+
+.account-home-global-events.is-loading,
+.account-home-global-events.is-empty,
+.account-home-reward.is-claimed {
+  display: none;
+}
+
+.account-home-reward {
+  min-height: 86px;
+  margin: 8px 0;
+  padding: 11px 13px;
+}
+
+.account-home-reward__flame {
+  width: 46px;
+  height: 46px;
+}
+
+.account-home-reward__flame > img {
+  width: 39px;
+  height: 39px;
+}
+
+.account-home-reward__streak strong {
+  font-size: 26px;
+}
+
+.account-home-wallet--wide {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  overflow: hidden;
+  margin: 9px 0 10px;
+  padding: 15px 154px 15px 15px;
+  border: 1px solid rgba(215, 163, 79, 0.13);
+  border-radius: 18px;
+  color: #e9ece4;
+  background:
+    radial-gradient(circle at 84% 62%, rgba(215, 163, 79, 0.1), transparent 29%),
+    radial-gradient(circle at 68% 110%, rgba(203, 255, 45, 0.045), transparent 35%),
+    linear-gradient(145deg, rgba(215, 163, 79, 0.025), rgba(255, 255, 255, 0.012));
+  text-align: left;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.account-home-wallet__copy {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.account-home-wallet__copy > small {
+  color: #8b826e;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 680;
+  letter-spacing: 0.11em;
+}
+
+.account-home-wallet__copy > span:last-child {
+  color: #7d8278;
+  font-size: 9.5px;
+}
+
+.account-home-wallet--wide .account-home-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  overflow: visible;
+  color: #f1f0e9;
+  font-size: clamp(23px, 6.4vw, 29px);
+  line-height: 1;
+}
+
+.account-home-wallet__scene {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  bottom: 0;
+  width: 148px;
+  height: 108px;
+  pointer-events: none;
+}
+
+.account-home-wallet__coins {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  width: 91px;
+  height: 78px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 7px 10px rgba(0, 0, 0, 0.22));
+}
+
+.account-home-wallet__mascot {
+  position: absolute;
+  z-index: 2;
+  right: 68px;
+  bottom: 12px;
+  width: 72px;
+  height: 76px;
+  object-fit: contain;
+  transform-origin: 75% 90%;
+  filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.2));
+}
+
+.account-home-wallet__play-coin {
+  position: absolute;
+  z-index: 5;
+  right: 62px;
+  top: 13px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #f1c05b;
+  border-radius: 50%;
+  background: #bc7b1f;
+  box-shadow:
+    inset 0 0 0 2px #d89b32,
+    0 4px 10px rgba(215, 163, 79, 0.18);
+}
+
+.account-home-wallet__play-coin i {
+  width: 5px;
+  height: 8px;
+  border: 2px solid #ffd978;
+  border-block-width: 0;
+}
+
+.account-home-wallet__spark {
+  position: absolute;
+  z-index: 4;
+  width: 4px;
+  height: 4px;
+  background: #cbff2d;
+}
+
+.account-home-wallet__spark--one {
+  right: 18px;
+  top: 24px;
+}
+
+.account-home-wallet__spark--two {
+  right: 37px;
+  top: 11px;
+  width: 3px;
+  height: 3px;
+  opacity: 0.55;
+}
+
+.account-home-wallet__spark--three {
+  right: 9px;
+  top: 46px;
+  width: 2px;
+  height: 7px;
+  opacity: 0.42;
+}
+
+.account-home-actions--dashboard {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 14px;
+}
+
+.account-home-actions--dashboard > .account-home-action {
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 66px;
+  padding: 9px 10px;
+}
+
+.account-home-action:nth-child(-n + 3) {
+  grid-column: span 2;
+}
+
+.account-home-action:nth-child(n + 4) {
+  grid-column: span 3;
+}
+
+.account-home-action__art {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.account-home-action__art img {
+  width: 45px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.account-home-action__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.account-home-action__copy strong {
+  overflow: hidden;
+  color: #e1e5dc;
+  font-size: 10.5px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-action__copy small {
+  overflow: hidden;
+  color: #72796f;
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-home-action--guides:disabled {
+  opacity: 0.74;
+}
+
+.account-home-action--guides:disabled .account-home-action__copy small {
+  color: #879d55;
+}
+
+@media (max-width: 430px) {
+  .account-home-profile__account {
+    grid-template-columns: 70px minmax(0, 1fr);
+    padding-inline: 10px;
+  }
+
+  .account-home-profile__head {
+    width: 70px;
+    height: 70px;
+  }
+
+  .account-home-profile__copy {
+    padding-right: 48px;
+  }
+
+  .account-home-wallet--wide {
+    padding-right: 132px;
+  }
+
+  .account-home-wallet__scene {
+    right: 2px;
+    width: 132px;
+  }
+
+  .account-home-wallet__coins {
+    width: 80px;
+  }
+
+  .account-home-wallet__mascot {
+    right: 58px;
+    width: 64px;
+  }
+
+  .account-home-actions--dashboard > .account-home-action {
+    grid-template-columns: 36px minmax(0, 1fr);
+    padding-inline: 8px;
+  }
+
+  .account-home-action__art {
+    width: 36px;
+    height: 38px;
+  }
+
+  .account-home-action__art img {
+    width: 39px;
+  }
+}
+
+@media (max-width: 365px) {
+  .account-home-wallet--wide {
+    padding-right: 112px;
+  }
+
+  .account-home-wallet__scene {
+    right: -12px;
+    transform: scale(0.9);
+    transform-origin: bottom right;
+  }
+
+  .account-home-actions--dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-home-action:nth-child(n) {
+    grid-column: span 1;
+  }
+
+  .account-home-action:last-child {
+    grid-column: 1 / -1;
+  }
+}

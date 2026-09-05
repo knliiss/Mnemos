@@ -3,17 +3,17 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { PersonalizationVisualLayers } from "../../components/personalization/PersonalizationVisualLayers"
 import { CristalixHead } from "../../components/profile/CristalixHead"
+import { useMnemosData } from "../../data/MnemosDataProvider"
 import type { Account, Route } from "../../model"
 import {
   nicknameStyleForAppearance,
   profileCardStyleForAppearance,
   profileHeadStyleForAppearance,
 } from "../../people/profile/profilePresentation"
-import { CurrencyMark } from "../../shared/MnemosIcon"
-import { RoleSigil } from "../../shared/RoleSigil"
 import { AccountDailyReward } from "../AccountDailyReward"
+import { AccountQuickActions } from "./AccountQuickActions"
+import { AccountWalletCard } from "./AccountWalletCard"
 import { CurrentGlobalEventsPanel } from "./CurrentGlobalEventsPanel"
-import { LeaderboardPromoCard } from "./LeaderboardPromoCard"
 import { useAccountHomeAppearance } from "./useAccountHomeAppearance"
 import "./account-home-personalization.css"
 import "./current-global-events.css"
@@ -32,7 +32,10 @@ export function AccountOverview({
   navigate,
 }: AccountOverviewProps) {
   const { t } = useTranslation()
+  const data = useMnemosData()
   const appearance = useAccountHomeAppearance(account.id)
+  const reward = data.dailyReward
+  const streak = reward?.currentStreak || reward?.recoverableStreak || 0
   const cardLayers = [
     ...(appearance?.profileTheme?.layers ?? []),
     ...(appearance?.profileEffect?.layers ?? []),
@@ -90,7 +93,7 @@ export function AccountOverview({
             className={headClassName}
             style={appearance ? profileHeadStyleForAppearance(appearance) : undefined}
           >
-            <CristalixHead skinUrl={account.skinUrl} size={82} />
+            <CristalixHead skinUrl={account.skinUrl} size={76} />
             <PersonalizationVisualLayers
               layers={frameLayers}
               className="account-home-profile__frame-layers"
@@ -102,19 +105,29 @@ export function AccountOverview({
             <strong style={appearance ? nicknameStyleForAppearance(appearance) : undefined}>
               {account.nickname}
             </strong>
-            <span className="account-home-profile__pulse" aria-hidden="true">
-              <i />
-              <i />
-              <i />
+
+            <span className="account-home-profile__meta">
+              <span className="account-home-profile__pulse" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+
+              {reward?.claimedToday ? (
+                <span className="account-home-profile__streak">
+                  <motion.img
+                    src="/ui-icons/flame.png"
+                    alt=""
+                    aria-hidden="true"
+                    animate={{ y: [0, -1.5, 0], scale: [1, 1.04, 1] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <strong>{streak}</strong>
+                  <small>{t("accountHome.streakCompact")}</small>
+                </span>
+              ) : null}
             </span>
           </span>
-
-          <img
-            className="account-home-profile__art"
-            src="/ui-illustrations/mnemos-mascot-cat.svg"
-            alt=""
-            aria-hidden="true"
-          />
         </motion.button>
 
         {userHubTrigger ? (
@@ -126,84 +139,9 @@ export function AccountOverview({
 
       <AccountDailyReward />
 
-      <section className="account-home-feature-grid">
-        <motion.button
-          type="button"
-          className="account-home-wallet"
-          whileTap={{ scale: 0.985 }}
-          onClick={() => navigate({ id: "account-wallet" })}
-        >
-          <span className="account-home-feature-copy">
-            <small>{t("accountHome.wallet")}</small>
-            <strong className="account-home-balance">
-              <CurrencyMark currency="COIN" size={19} />
-              {account.coin.toLocaleString(locale)}
-            </strong>
-            <span>COIN</span>
-          </span>
-          <img src="/ui-illustrations/coin-vault.png" alt="" aria-hidden="true" />
-        </motion.button>
+      <AccountWalletCard account={account} locale={locale} navigate={navigate} />
 
-        <motion.button
-          type="button"
-          className="account-home-personalization"
-          whileTap={{ scale: 0.985 }}
-          onClick={() => navigate({ id: "personalization-owned", params: { target: "ACCOUNT" } })}
-        >
-          <span className="account-home-feature-copy">
-            <small>{t("accountHome.appearance")}</small>
-            <strong>{t("accountHome.personalization")}</strong>
-            <span>{t("accountHome.personalizationSummary")}</span>
-          </span>
-          <img src="/ui-illustrations/personalization-studio.svg" alt="" aria-hidden="true" />
-        </motion.button>
-      </section>
-
-      <LeaderboardPromoCard navigate={navigate} />
-
-      <nav className="account-home-actions" aria-label={t("accountHome.managementAria")}>
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate({ id: "roles" })}
-        >
-          <span className="account-home-actions__icon account-home-actions__icon--role">
-            <RoleSigil color="#A985A8" size={27} compact />
-          </span>
-          <span>
-            <strong>{t("accountHome.roles")}</strong>
-            <small>{t("accountHome.accessRights")}</small>
-          </span>
-        </motion.button>
-
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate({ id: "account-invites" })}
-        >
-          <span className="account-home-actions__icon account-home-actions__icon--illustrated">
-            <img src="/ui-illustrations/account-invites.svg" alt="" aria-hidden="true" />
-          </span>
-          <span>
-            <strong>{t("accountHome.invites")}</strong>
-            <small>{t("accountHome.invitations")}</small>
-          </span>
-        </motion.button>
-
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate({ id: "account-settings" })}
-        >
-          <span className="account-home-actions__icon account-home-actions__icon--illustrated">
-            <img src="/ui-illustrations/account-settings.svg" alt="" aria-hidden="true" />
-          </span>
-          <span>
-            <strong>{t("accountHome.settings")}</strong>
-            <small>{t("accountHome.account")}</small>
-          </span>
-        </motion.button>
-      </nav>
+      <AccountQuickActions navigate={navigate} />
     </>
   )
 }

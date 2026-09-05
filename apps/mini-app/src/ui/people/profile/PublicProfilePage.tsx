@@ -96,7 +96,13 @@ export function PublicProfilePage({ activeAccount, accountId, navigate, back }: 
 
       <PublicProfilePresencePanel profile={profile} />
 
-      <PublicProfileDropsSection drops={drops} locale={locale} navigate={navigate} />
+      <PublicProfileDropsSection
+        accountId={profile.accountId}
+        nickname={profile.cristalixNickname}
+        drops={drops}
+        locale={locale}
+        navigate={navigate}
+      />
 
       <PublicProfileCommentsPreview
         totalCount={profile.comments}

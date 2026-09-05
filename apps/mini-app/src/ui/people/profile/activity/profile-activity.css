@@ -1,0 +1,217 @@
+.profile-activity-screen {
+  padding-bottom: 34px;
+}
+
+.profile-activity-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  align-items: center;
+  gap: 12px;
+  min-height: 126px;
+  overflow: hidden;
+  margin: 10px 0 12px;
+  padding: 16px;
+  border: 1px solid rgba(203, 255, 45, 0.09);
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 88% 50%, rgba(203, 255, 45, 0.07), transparent 34%),
+    rgba(255, 255, 255, 0.014);
+}
+
+.profile-activity-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profile-activity-hero__copy > small {
+  color: #7d8478;
+  font-family: var(--font-meta);
+  font-size: 9px;
+  font-weight: 680;
+  letter-spacing: 0.11em;
+}
+
+.profile-activity-hero__copy > strong {
+  color: #edf0e8;
+  font-size: 21px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.profile-activity-hero__copy > span {
+  overflow: hidden;
+  color: #b9d669;
+  font-family: var(--font-meta);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-activity-hero__copy > p {
+  max-width: 330px;
+  margin: 3px 0 0;
+  color: #747b70;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.profile-activity-hero > img {
+  position: relative;
+  z-index: 1;
+  width: 112px;
+  height: 82px;
+  object-fit: contain;
+  opacity: 0.92;
+}
+
+.profile-activity-list {
+  overflow: hidden;
+  border: 1px solid rgba(235, 241, 213, 0.075);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.profile-activity-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 70px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(235, 241, 213, 0.05);
+  color: #dce1d8;
+  background: transparent;
+  text-align: left;
+}
+
+.profile-activity-row:last-of-type {
+  border-bottom: 0;
+}
+
+.profile-activity-row__art {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+}
+
+.profile-activity-row__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-activity-row__copy small {
+  color: #7e857a;
+  font-family: var(--font-meta);
+  font-size: 8px;
+  font-weight: 680;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.profile-activity-row__copy strong {
+  overflow: hidden;
+  color: #e8ece4;
+  font-size: 11.5px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-activity-row__copy em {
+  overflow: hidden;
+  color: #70776d;
+  font-size: 8.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-activity-row time {
+  align-self: start;
+  margin-top: 10px;
+  color: #7a8176;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+  white-space: nowrap;
+}
+
+.profile-activity-row__open {
+  color: #5f665d;
+  font-size: 18px;
+}
+
+.profile-activity-empty {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 210px;
+  padding: 24px;
+  text-align: center;
+}
+
+.profile-activity-empty img {
+  width: 92px;
+  height: 64px;
+  margin-bottom: 4px;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
+.profile-activity-empty strong {
+  color: #d6dbd2;
+  font-size: 12px;
+}
+
+.profile-activity-empty small {
+  max-width: 260px;
+  color: #737a70;
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.profile-activity-load-more {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  color: #70776d;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+}
+
+@media (max-width: 390px) {
+  .profile-activity-hero {
+    grid-template-columns: minmax(0, 1fr) 88px;
+    padding-inline: 13px;
+  }
+
+  .profile-activity-hero > img {
+    width: 88px;
+  }
+
+  .profile-activity-row {
+    grid-template-columns: 48px minmax(0, 1fr) 13px;
+    gap: 8px;
+    padding-inline: 9px;
+  }
+
+  .profile-activity-row time {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: -13px;
+    justify-self: end;
+  }
+
+  .profile-activity-row__open {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}

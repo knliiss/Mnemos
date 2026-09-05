@@ -32,6 +32,25 @@ describe("product route bootstrap", () => {
     ])
   })
 
+  it("restores a profile activity deep link inside the people area", () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/?screen=profile-activity&p.accountId=account-42&p.nickname=knalis",
+    )
+
+    expect(initialStack()).toEqual([
+      { id: "search" },
+      {
+        id: "profile-activity",
+        params: {
+          accountId: "account-42",
+          nickname: "knalis",
+        },
+      },
+    ])
+  })
+
   it("routes unknown screens to the Mnemos 404 state", () => {
     window.history.replaceState({}, "", "/?screen=totally-lost")
 

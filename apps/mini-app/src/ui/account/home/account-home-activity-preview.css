@@ -1,0 +1,65 @@
+.account-home-drops__head {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.account-home-panel__more {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  margin-right: 72px;
+  padding: 0 8px;
+  border: 1px solid rgba(203, 255, 45, 0.08);
+  border-radius: 9px;
+  color: #9aa681;
+  background: rgba(203, 255, 45, 0.025);
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+}
+
+.account-home-panel__more span {
+  color: #cbff2d;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.account-home-drops__empty {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  width: 100%;
+  min-height: 66px;
+  padding: 14px 13px;
+  border: 0;
+  color: #8b9187;
+  background: transparent;
+  text-align: left;
+}
+
+.account-home-drops__empty span {
+  font-size: 10px;
+}
+
+.account-home-drops__empty small {
+  color: #879b52;
+  font-family: var(--font-meta);
+  font-size: 8.5px;
+}
+
+@media (max-width: 430px) {
+  .account-home-panel__more {
+    margin-right: 58px;
+  }
+}
+
+@media (max-width: 365px) {
+  .account-home-panel__more {
+    margin-right: 0;
+  }
+
+  .account-home-drops__activity-art {
+    opacity: 0.28;
+  }
+}
