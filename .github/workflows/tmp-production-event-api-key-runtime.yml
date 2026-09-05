@@ -1,4 +1,4 @@
-name: Temporary Production Ingress Probe
+name: Temporary Production Event Startup Diagnostics
 
 on:
   push:
@@ -23,59 +23,59 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Probe external production ingress
+      - name: Inspect failed event-service startup
         shell: bash
         run: |
           set -euo pipefail
 
-          probe() {
-            url="$1"
-            name="$2"
+          service="mnemos_event-service"
+          target_image="ghcr.io/knliiss/mnemos-event-service:e83985a9c5f1856aa9e2a7648f286f2dbe2bfa52"
 
-            echo "===== $name: $url ====="
-            curl \
-              --silent \
-              --show-error \
-              --location \
-              --connect-timeout 5 \
-              --max-time 15 \
-              --output /tmp/mnemos-probe-body \
-              --write-out 'http=%{http_code} remote_ip=%{remote_ip} time=%{time_total}\n' \
-              "$url" || true
-
-            head -c 500 /tmp/mnemos-probe-body 2>/dev/null || true
-            echo
-          }
-
-          probe "https://app.knalis.rest" "APP"
-          probe "https://api.knalis.rest" "API"
-          probe "https://auth.knalis.rest/realms/mnemos/.well-known/openid-configuration" "AUTH"
-
-          echo "===== CLOUDFLARED ====="
-          sudo -n docker service ps \
-            --no-trunc \
-            --format '{{.Name}}|{{.CurrentState}}|{{.Error}}|{{.Image}}' \
-            mnemos_cloudflared
-
-          echo "===== CLOUDFLARED RECENT LOGS ====="
-          sudo -n docker service logs \
-            --since 10m \
-            --tail 100 \
-            mnemos_cloudflared 2>&1 |
-            sed -E \
-              -e 's/[0-9a-f]{64}/<redacted-hex64>/g' \
-              -e 's/(token|secret|password)([=:][^[:space:]]*)/\1=<redacted>/Ig' || true
-
-          echo "===== INTERNAL GATEWAY ====="
-          gateway_task="$(
-            sudo -n docker ps \
-              --filter label=com.docker.swarm.service.name=mnemos_gateway-service \
-              --format '{{.ID}}' |
-              head -n 1
+          task_id="$(
+            sudo -n docker service ps \
+              --no-trunc \
+              --format '{{.ID}}|{{.Image}}|{{.CurrentState}}' \
+              "$service" |
+              awk -F'|' -v image="$target_image" '$2 == image && $3 ~ /^Failed / { print $1; exit }'
           )"
 
-          if [ -n "$gateway_task" ]; then
-            sudo -n docker exec "$gateway_task" \
-              wget -q -O - http://127.0.0.1:8080/actuator/health/readiness || true
-            echo
+          if [ -z "$task_id" ]; then
+            echo "No failed task found for target image" >&2
+            sudo -n docker service ps \
+              --no-trunc \
+              --format '{{.ID}} {{.Image}} {{.CurrentState}} {{.Error}}' \
+              "$service"
+            exit 1
           fi
+
+          container_id="$(
+            sudo -n docker inspect \
+              --format '{{.Status.ContainerStatus.ContainerID}}' \
+              "$task_id"
+          )"
+
+          if [ -z "$container_id" ]; then
+            echo "Failed task has no container id" >&2
+            sudo -n docker inspect \
+              --format 'task={{.ID}} state={{.Status.State}} message={{.Status.Message}} error={{.Status.Err}}' \
+              "$task_id"
+            exit 1
+          fi
+
+          echo "Failed task: $task_id"
+          sudo -n docker inspect \
+            --format 'state={{.Status.State}} message={{.Status.Message}} error={{.Status.Err}}' \
+            "$task_id"
+
+          echo "===== EVENT SERVICE STARTUP LOG ====="
+          sudo -n docker logs \
+            --tail 350 \
+            "$container_id" 2>&1 |
+            sed -E \
+              -e 's/(password|secret|token|api[-_]?key)([=:][^[:space:]]*)/\1=<redacted>/Ig' \
+              -e 's/[0-9a-f]{64}/<redacted-hex64>/g' \
+              -e 's/(password=\")[^\"]+(\")/\1<redacted>\2/Ig'
+
+          echo "===== CURRENT PRODUCTION HEALTH ====="
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
