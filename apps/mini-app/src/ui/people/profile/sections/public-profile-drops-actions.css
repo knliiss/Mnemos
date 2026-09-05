@@ -20,6 +20,30 @@
   line-height: 1;
 }
 
+.public-profile-drop {
+  border-color: color-mix(in srgb, var(--event-accent, #9aa295) 16%, rgba(225, 232, 208, 0.09));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--event-accent, #9aa295) 7%, transparent),
+      transparent 32%
+    ),
+    rgba(15, 18, 13, 0.88);
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent, #9aa295) 44%, transparent);
+}
+
+.public-profile-drop__copy small {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 58%, #7b8377);
+}
+
+.public-profile-drop__copy strong {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 18%, #e9ece4);
+}
+
+.public-profile-drop__open {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 38%, #697066);
+}
+
 .public-profile-drops-empty--action {
   width: 100%;
   border: 0;

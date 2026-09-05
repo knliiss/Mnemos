@@ -85,10 +85,16 @@
   min-height: 70px;
   padding: 9px 12px;
   border: 0;
-  border-bottom: 1px solid rgba(235, 241, 213, 0.05);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--event-accent, #9aa295) 12%, rgba(235, 241, 213, 0.05));
   color: #dce1d8;
-  background: transparent;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--event-accent, #9aa295) 6%, transparent),
+    transparent 34%
+  );
   text-align: left;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent, #9aa295) 42%, transparent);
 }
 
 .profile-activity-row:last-of-type {
@@ -109,7 +115,7 @@
 }
 
 .profile-activity-row__copy small {
-  color: #7e857a;
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 58%, #737c70);
   font-family: var(--font-meta);
   font-size: 8px;
   font-weight: 680;
@@ -119,7 +125,7 @@
 
 .profile-activity-row__copy strong {
   overflow: hidden;
-  color: #e8ece4;
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 18%, #e8ece4);
   font-size: 11.5px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -128,7 +134,7 @@
 
 .profile-activity-row__copy em {
   overflow: hidden;
-  color: #70776d;
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 24%, #70776d);
   font-size: 8.5px;
   font-style: normal;
   text-overflow: ellipsis;
@@ -138,14 +144,14 @@
 .profile-activity-row time {
   align-self: start;
   margin-top: 10px;
-  color: #7a8176;
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 20%, #7a8176);
   font-family: var(--font-meta);
   font-size: 8.5px;
   white-space: nowrap;
 }
 
 .profile-activity-row__open {
-  color: #5f665d;
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 38%, #5f665d);
   font-size: 18px;
 }
 
