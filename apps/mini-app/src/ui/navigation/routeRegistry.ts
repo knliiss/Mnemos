@@ -61,6 +61,10 @@ const areaRoots: Record<FeatureArea, RootRoute> = {
   staff: "account",
 }
 
+export function isRouteId(value: unknown): value is RouteId {
+  return typeof value === "string" && value in routeRegistry
+}
+
 export function isRootRoute(id: RouteId): id is RootRoute {
   return routeRegistry[id].root === true
 }
@@ -77,7 +81,7 @@ export function initialStack(): Route[] {
     return [{ id: "account" }]
   }
 
-  if (!(requestedRaw in routeRegistry)) {
+  if (!isRouteId(requestedRaw)) {
     return [
       {
         id: "account",
@@ -89,7 +93,6 @@ export function initialStack(): Route[] {
     ]
   }
 
-  const requested = requestedRaw as RouteId
   const routeParams = Object.fromEntries(
     [...params.entries()]
       .filter(([key]) => key.startsWith("p."))
@@ -97,13 +100,13 @@ export function initialStack(): Route[] {
   )
 
   const route: Route = {
-    id: requested,
+    id: requestedRaw,
     params: Object.keys(routeParams).length ? routeParams : undefined,
   }
 
-  if (isRootRoute(requested)) {
+  if (isRootRoute(requestedRaw)) {
     return [route]
   }
 
-  return [{ id: areaRoots[routeRegistry[requested].area] }, route]
+  return [{ id: areaRoots[routeRegistry[requestedRaw].area] }, route]
 }
