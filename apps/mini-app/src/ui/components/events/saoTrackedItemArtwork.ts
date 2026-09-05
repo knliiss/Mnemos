@@ -13,7 +13,7 @@ export type SaoItemAtlasSprite = {
 export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.webp"
 export const SAO_ITEM_ATLAS_COLUMNS = 16
 export const SAO_ITEM_ATLAS_ROWS = 11
-export const SAO_MODEL_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-item-models.webp"
+export const SAO_MODEL_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-item-models-inventory-v2.webp"
 export const SAO_MODEL_ITEM_ATLAS_COLUMNS = 8
 export const SAO_MODEL_ITEM_ATLAS_ROWS = 8
 

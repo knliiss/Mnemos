@@ -31,7 +31,7 @@ describe("SAO tracked item artwork", () => {
       column: 4,
       row: 2,
       atlas: {
-        path: "/event-icons/sao-tracked-item-models.webp",
+        path: "/event-icons/sao-tracked-item-models-inventory-v2.webp",
         columns: 8,
         rows: 8,
       },
