@@ -19,6 +19,7 @@ object EventFeedPersistenceMapper {
                     eventId = EventId(getEventId()),
                     occurredAt = getOccurredAt(),
                     itemId = ItemId(requireNotNull(getItemId())),
+                    itemKey = getItemKey(),
                     itemName = requireNotNull(getItemName()),
                     itemRarity = DomainItemRarity.valueOf(requireNotNull(getItemRarity())),
                     itemType = requireNotNull(getItemType()),
