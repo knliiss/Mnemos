@@ -21,11 +21,7 @@
 }
 
 .public-profile-drop {
-  border-color: color-mix(
-    in srgb,
-    var(--event-accent, #9aa295) 16%,
-    rgba(225, 232, 208, 0.09)
-  );
+  border-color: color-mix(in srgb, var(--event-accent, #9aa295) 16%, rgba(225, 232, 208, 0.09));
   background:
     linear-gradient(
       90deg,
