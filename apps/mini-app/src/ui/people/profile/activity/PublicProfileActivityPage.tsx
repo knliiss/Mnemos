@@ -41,14 +41,8 @@ export function PublicProfileActivityPage({
   const [failedAccountId, setFailedAccountId] = useState<string | null>(null)
   const [resolutionRevision, setResolutionRevision] = useState(0)
   const loadMoreAnchor = useRef<HTMLDivElement | null>(null)
-  const {
-    feed,
-    eventsHasMore,
-    loadingEvents,
-    eventsError,
-    refreshEvents,
-    loadMoreEvents,
-  } = useEventFeedData()
+  const { feed, eventsHasMore, loadingEvents, eventsError, refreshEvents, loadMoreEvents } =
+    useEventFeedData()
 
   const resolvedNickname =
     directNickname ??
@@ -145,12 +139,7 @@ export function PublicProfileActivityPage({
   }
 
   if (resolutionFailed || !resolvedNickname) {
-    return (
-      <FeatureError
-        back={back}
-        onRetry={() => setResolutionRevision((value) => value + 1)}
-      />
-    )
+    return <FeatureError back={back} onRetry={() => setResolutionRevision((value) => value + 1)} />
   }
 
   if (eventsError && !feed.length) {
