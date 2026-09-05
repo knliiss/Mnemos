@@ -26,11 +26,10 @@ export function PublicProfileDropsSection({
 
   const openActivity = () => {
     navigate({
-      id: "public-profile",
+      id: "profile-activity",
       params: {
         accountId,
         nickname,
-        section: "activity",
       },
     })
   }
