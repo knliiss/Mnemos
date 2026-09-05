@@ -126,20 +126,9 @@ class SaoCatalogParser {
         val itemId = gameKey.removePrefix(ITEM_PREFIX).removeSuffix(NAME_SUFFIX)
         val candidate =
             when (type) {
-                SaoCatalogItemType.WEAPON ->
-                    WEAPON_LOCATION
-                        .matchEntire(itemId)
-                        ?.groupValues
-                        ?.get(1)
-                        ?.toIntOrNull()
-
-                SaoCatalogItemType.PET ->
-                    PET_LOCATION
-                        .matchEntire(itemId)
-                        ?.groupValues
-                        ?.get(1)
-                        ?.toIntOrNull()
-
+                SaoCatalogItemType.WEAPON -> resolveLocationId(itemId, WEAPON_LOCATION)
+                SaoCatalogItemType.PET -> resolveLocationId(itemId, PET_LOCATION)
+                SaoCatalogItemType.BOOK -> resolveLocationId(itemId, BOOK_LOCATION)
                 else -> null
             }
 
@@ -148,6 +137,16 @@ class SaoCatalogParser {
             ?.let { locationId -> setOf(locationId) }
             .orEmpty()
     }
+
+    private fun resolveLocationId(
+        itemId: String,
+        pattern: Regex,
+    ): Int? =
+        pattern
+            .matchEntire(itemId)
+            ?.groupValues
+            ?.get(1)
+            ?.toIntOrNull()
 
     private fun resolveType(gameKey: String): SaoCatalogItemType {
         val itemId = gameKey.removePrefix(ITEM_PREFIX).removeSuffix(NAME_SUFFIX)
@@ -203,6 +202,7 @@ class SaoCatalogParser {
         private val JEWELRY_ID = Regex("^d\\d+(?:_|$).*")
         private val WEAPON_LOCATION = Regex("^l(\\d+)(?:_|$).*")
         private val PET_LOCATION = Regex("^pet_l(\\d+)(?:_|$).*")
+        private val BOOK_LOCATION = Regex("^book_l(\\d+)(?:_|$).*")
         private val LOCATION_NAME_KEY = Regex("^sao\\.location\\.(-?\\d+)\\.name$")
 
         private val RARITY_BY_STYLE =
