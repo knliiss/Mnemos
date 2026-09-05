@@ -1,6 +1,9 @@
 package com.mnemos.notification.adapter.out.message.local
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.common.core.model.user.LocalizationLanguage
+import com.mnemos.notification.application.notification.localization.model.NotificationLocalizationContext
+import com.mnemos.notification.application.notification.localization.service.NotificationLocalizationResolver
 import com.mnemos.notification.application.notification.model.BoosterNotificationPayload
 import com.mnemos.notification.application.notification.model.ItemDropNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
@@ -12,6 +15,7 @@ import com.mnemos.notification.application.notification.personalization.model.No
 import com.mnemos.notification.application.notification.personalization.port.out.ActiveNotificationPackRepository
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -19,11 +23,17 @@ import java.util.UUID
 
 class LocalNotificationMessageRendererTest {
     private val repository = FakeActiveNotificationPackRepository()
+    private var localization =
+        NotificationLocalizationContext(
+            language = LocalizationLanguage.RU,
+            saoProperties = emptyMap(),
+        )
     private val renderer =
         LocalNotificationMessageRenderer(
             resolver = StandardMessageResolver(),
             personalizedResolver = PersonalizedMessageResolver(),
             activeNotificationPackRepository = repository,
+            localizationResolver = NotificationLocalizationResolver { localization },
         )
 
     @Test
@@ -38,6 +48,33 @@ class LocalNotificationMessageRendererTest {
                 "Игрок <b>Knalis</b> выбил секретное оружие <b>«Elucidator»</b>.",
             message.text,
         )
+    }
+
+    @Test
+    fun `item key is rendered from the users SAO localization`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        localization =
+            NotificationLocalizationContext(
+                language = LocalizationLanguage.EN,
+                saoProperties =
+                    mapOf(
+                        "sao.item.l1_1.name" to "¨efac00Elucidator",
+                    ),
+            )
+        val item =
+            itemDrop(
+                now = now,
+                player = "Knalis",
+                item = "Элюцидатор",
+                rarity = NotificationItemRarity.SECRET,
+                itemKey = "sao.item.l1_1.name",
+            )
+
+        val message = renderer.renderNotification(UserId.generate(), listOf(item))
+
+        assertTrue(message.text.contains("<b>“Elucidator”</b>"))
+        assertTrue(message.text.contains("Player <b>Knalis</b> dropped"))
+        assertFalse(message.text.contains("Элюцидатор"))
     }
 
     @Test
@@ -95,6 +132,30 @@ class LocalNotificationMessageRendererTest {
         assertTrue(message.text.startsWith("❄️ &lt;b&gt;Custom loot&lt;/b&gt;"))
         assertTrue(message.text.contains("&lt;Knalis&gt;"))
         assertTrue(message.text.contains("Sword &amp; Shield"))
+    }
+
+    @Test
+    fun `custom pack text stays untouched while canonical item value is localized`() {
+        val now = Instant.parse("2026-08-11T16:00:00Z")
+        val userId = UserId.generate()
+        repository.active = activePack(userId)
+        localization =
+            NotificationLocalizationContext(
+                language = LocalizationLanguage.UK,
+                saoProperties = mapOf("sao.item.l1_1.name" to "¨37efefЕлюцидатор"),
+            )
+        val item =
+            itemDrop(
+                now = now,
+                player = "Knalis",
+                item = "Legacy name",
+                rarity = NotificationItemRarity.SECRET,
+                itemKey = "sao.item.l1_1.name",
+            )
+
+        val message = renderer.renderNotification(userId, listOf(item))
+
+        assertEquals("❄️ &lt;b&gt;Custom drop&lt;/b&gt;\nKnalis found Елюцидатор", message.text)
     }
 
     @Test
@@ -158,12 +219,14 @@ class LocalNotificationMessageRendererTest {
         player: String,
         item: String,
         rarity: NotificationItemRarity,
+        itemKey: String? = null,
     ): NotificationItem =
         NotificationItem(
             sourceId = UUID.randomUUID(),
             payload =
                 ItemDropNotificationPayload(
                     droppedFor = player,
+                    itemKey = itemKey,
                     itemName = item,
                     itemType = NotificationItemType.SWORD,
                     itemRarity = rarity,
