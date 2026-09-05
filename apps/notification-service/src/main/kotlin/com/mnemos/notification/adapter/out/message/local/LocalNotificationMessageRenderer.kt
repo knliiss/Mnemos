@@ -1,8 +1,11 @@
 package com.mnemos.notification.adapter.out.message.local
 
 import com.mnemos.common.core.model.id.UserId
+import com.mnemos.common.core.model.user.LocalizationLanguage
 import com.mnemos.notification.application.notification.delivery.model.RenderedMessage
 import com.mnemos.notification.application.notification.delivery.port.out.NotificationMessageRenderer
+import com.mnemos.notification.application.notification.localization.model.NotificationLocalizationContext
+import com.mnemos.notification.application.notification.localization.service.NotificationLocalizationResolver
 import com.mnemos.notification.application.notification.model.BoosterNotificationPayload
 import com.mnemos.notification.application.notification.model.NotificationItem
 import com.mnemos.notification.application.notification.model.NotificationType
@@ -23,6 +26,7 @@ class LocalNotificationMessageRenderer(
     private val resolver: StandardMessageResolver,
     private val personalizedResolver: PersonalizedMessageResolver,
     private val activeNotificationPackRepository: ActiveNotificationPackRepository,
+    private val localizationResolver: NotificationLocalizationResolver,
 ) : NotificationMessageRenderer {
     override fun renderNotification(
         userId: UserId,
@@ -32,7 +36,8 @@ class LocalNotificationMessageRenderer(
 
         val deduplicatedItems = deduplicateBoosterItems(items)
         val activePack = activeNotificationPackRepository.find(userId)
-        val resolution = resolveNotifications(userId, deduplicatedItems, activePack)
+        val localization = localizationResolver.resolve(userId)
+        val resolution = resolveNotifications(userId, deduplicatedItems, activePack, localization)
 
         return RenderedMessage(
             text =
@@ -42,6 +47,7 @@ class LocalNotificationMessageRenderer(
                     renderAggregated(
                         notifications = resolution.notifications,
                         pack = resolution.pack,
+                        language = localization.language,
                     )
                 },
         )
@@ -61,17 +67,25 @@ class LocalNotificationMessageRenderer(
         userId: UserId,
         items: List<NotificationItem>,
         pack: ActiveNotificationPack?,
+        localization: NotificationLocalizationContext,
     ): NotificationResolution {
         if (pack == null) {
             return NotificationResolution(
-                notifications = items.map(resolver::resolve),
+                notifications = items.map { item -> resolver.resolve(item, localization) },
                 pack = null,
             )
         }
 
         return try {
             NotificationResolution(
-                notifications = items.map { item -> personalizedResolver.resolve(item, pack) },
+                notifications =
+                    items.map { item ->
+                        personalizedResolver.resolve(
+                            item = item,
+                            pack = pack,
+                            localization = localization,
+                        )
+                    },
                 pack = pack,
             )
         } catch (exception: RuntimeException) {
@@ -83,7 +97,7 @@ class LocalNotificationMessageRenderer(
             )
 
             NotificationResolution(
-                notifications = items.map(resolver::resolve),
+                notifications = items.map { item -> resolver.resolve(item, localization) },
                 pack = null,
             )
         }
@@ -94,8 +108,10 @@ class LocalNotificationMessageRenderer(
     private fun renderAggregated(
         notifications: List<ResolvedNotification>,
         pack: ActiveNotificationPack?,
+        language: LocalizationLanguage,
     ): String {
-        val header = resolveAggregateHeader(notifications, pack)
+        val header = resolveAggregateHeader(notifications, pack, language)
+        val truncationSuffix = truncationSuffix(language)
 
         return buildString {
             append(header)
@@ -103,8 +119,8 @@ class LocalNotificationMessageRenderer(
             notifications.forEach { notification ->
                 val entry = "\n\n${notification.compact}"
 
-                if (length + entry.length > MAX_MESSAGE_LENGTH - TRUNCATION_SUFFIX.length) {
-                    append(TRUNCATION_SUFFIX)
+                if (length + entry.length > MAX_MESSAGE_LENGTH - truncationSuffix.length) {
+                    append(truncationSuffix)
                     return@buildString
                 }
 
@@ -116,6 +132,7 @@ class LocalNotificationMessageRenderer(
     private fun resolveAggregateHeader(
         notifications: List<ResolvedNotification>,
         pack: ActiveNotificationPack?,
+        language: LocalizationLanguage,
     ): String {
         val types = notifications.map { it.type }.toSet()
 
@@ -135,18 +152,58 @@ class LocalNotificationMessageRenderer(
         }
 
         if (types.size > 1) {
-            return "🔔 <b>Сразу несколько событий</b>"
+            return when (language) {
+                LocalizationLanguage.EN -> "🔔 <b>Several events at once</b>"
+                LocalizationLanguage.RU -> "🔔 <b>Сразу несколько событий</b>"
+                LocalizationLanguage.UK -> "🔔 <b>Одразу кілька подій</b>"
+            }
         }
 
-        return when (types.single()) {
-            NotificationType.ITEM_DROP -> "🎁 <b>Новые находки</b>"
-            NotificationType.BOOSTER -> "⚡ <b>Активированы бустеры</b>"
-            NotificationType.DUNGEON -> "🏰 <b>Открылись подземелья</b>"
-            NotificationType.RAID -> "⚔️ <b>Начались рейды</b>"
-            NotificationType.GLOBAL -> "🌍 <b>События мира</b>"
-            NotificationType.PLAYER_OFFLINE -> "🌙 <b>Игроки вышли из игры</b>"
-        }
+        return resolveStandardAggregateHeader(types.single(), language)
     }
+
+    private fun resolveStandardAggregateHeader(
+        type: NotificationType,
+        language: LocalizationLanguage,
+    ): String =
+        when (language) {
+            LocalizationLanguage.EN ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>New drops</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Boosters activated</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Dungeons opened</b>"
+                    NotificationType.RAID -> "⚔️ <b>Raids started</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>World events</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Players went offline</b>"
+                }
+
+            LocalizationLanguage.RU ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>Новые находки</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Активированы бустеры</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Открылись подземелья</b>"
+                    NotificationType.RAID -> "⚔️ <b>Начались рейды</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>События мира</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Игроки вышли из игры</b>"
+                }
+
+            LocalizationLanguage.UK ->
+                when (type) {
+                    NotificationType.ITEM_DROP -> "🎁 <b>Нові знахідки</b>"
+                    NotificationType.BOOSTER -> "⚡ <b>Бустери активовано</b>"
+                    NotificationType.DUNGEON -> "🏰 <b>Відкрилися підземелля</b>"
+                    NotificationType.RAID -> "⚔️ <b>Почалися рейди</b>"
+                    NotificationType.GLOBAL -> "🌍 <b>Події світу</b>"
+                    NotificationType.PLAYER_OFFLINE -> "🌙 <b>Гравці вийшли з гри</b>"
+                }
+        }
+
+    private fun truncationSuffix(language: LocalizationLanguage): String =
+        when (language) {
+            LocalizationLanguage.EN -> "\n\n…and several more events"
+            LocalizationLanguage.RU -> "\n\n…и ещё несколько событий"
+            LocalizationLanguage.UK -> "\n\n…і ще кілька подій"
+        }
 
     private data class NotificationResolution(
         val notifications: List<ResolvedNotification>,
@@ -155,7 +212,6 @@ class LocalNotificationMessageRenderer(
 
     private companion object {
         const val MAX_MESSAGE_LENGTH = 4096
-        const val TRUNCATION_SUFFIX = "\n\n…и ещё несколько событий"
 
         val logger = LoggerFactory.getLogger(LocalNotificationMessageRenderer::class.java)
     }
