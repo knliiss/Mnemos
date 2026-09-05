@@ -208,6 +208,7 @@ export type SaoCatalogItemResponse = {
   defaultName: string
   type: SaoCatalogItemType
   rarity: SaoCatalogItemRarity | null
+  styleColor: string | null
   locations: SaoCatalogItemLocationResponse[]
 }
 

@@ -23,7 +23,6 @@ import {
   eventTypeLabel,
   localeForLanguage,
   notificationRuleDescription,
-  rarityLabel,
 } from "./eventPresentation"
 import { createSubscriptionForEvent, subscriptionMatchesEvent } from "./eventSubscriptions"
 
@@ -296,8 +295,8 @@ export function EventDetail({ eventId, activeAccount, navigate, back }: Props) {
         </article>
 
         <article>
-          <small>{event.rarity ? t("events.detail.rarity") : t("events.detail.source")}</small>
-          <strong>{event.rarity ? rarityLabel(t, event.rarity) : "Cristalix"}</strong>
+          <small>{t("events.detail.source")}</small>
+          <strong>Cristalix</strong>
         </article>
       </section>
     </div>

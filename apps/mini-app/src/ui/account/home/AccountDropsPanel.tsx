@@ -48,11 +48,7 @@ export function AccountDropsPanel({ drops, locale, navigate }: AccountDropsPanel
                 <EventArt event={drop} size={42} />
                 <span className="account-home-drop__copy">
                   <strong>{drop.title}</strong>
-                  <small>
-                    {drop.rarity
-                      ? t(`events.rarities.${drop.rarity}`, { defaultValue: drop.rarity })
-                      : drop.meta}
-                  </small>
+                  <small>{drop.meta}</small>
                 </span>
                 <time>{formatOccurredAt(drop.occurredAt, locale)}</time>
               </motion.button>

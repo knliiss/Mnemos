@@ -43,7 +43,7 @@ export function eventTitle(t: TFunction, event: FeedEvent) {
 
 export function eventFeedDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return [event.detail, event.rarity].filter(Boolean).join(" · ")
+    return event.detail
   }
 
   if (event.kind === "BOOSTER") {
@@ -79,7 +79,7 @@ export function eventSubject(t: TFunction, event: FeedEvent) {
 
 export function eventDetailDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return `${eventTitle(t, event)} · ${rarityLabel(t, event.rarity) ?? eventTypeLabel(t, event)}`
+    return `${eventTitle(t, event)} · ${eventTypeLabel(t, event)}`
   }
 
   if (event.kind === "BOOSTER" || event.kind === "GLOBAL") {

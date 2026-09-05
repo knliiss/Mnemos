@@ -14,7 +14,7 @@ import { EventArt } from "../components/events/EventArt"
 import { eventVisualTone } from "../eventVisualTone"
 import type { Account, FeedEvent } from "../model"
 import { CurrencyMark, Glyph } from "../shared/MnemosIcon"
-import { eventTitle, eventTypeLabel, rarityLabel } from "./eventPresentation"
+import { eventTitle, eventTypeLabel } from "./eventPresentation"
 
 const SPOTLIGHT_POLL_INTERVAL_MS = 700
 const SPOTLIGHT_POLL_ATTEMPTS = 12
@@ -69,7 +69,6 @@ export function DropSpotlightPurchase({ event, activeAccount, locale }: Props) {
   const canOpen = Boolean(offer && purchaseWindowOpen && !offerUnavailable && !busy && !purchased)
   const tone = eventVisualTone(event)
   const price = offer?.pricePrime ?? purchase?.pricePrime
-  const rarity = rarityLabel(t, event.rarity)
   const itemType = eventTypeLabel(t, event)
 
   const purchaseSpotlight = async () => {
@@ -243,7 +242,7 @@ export function DropSpotlightPurchase({ event, activeAccount, locale }: Props) {
 
                 <span className="spotlight-purchase-preview__copy">
                   <small>
-                    <i /> SPOTLIGHT{rarity ? ` · ${rarity}` : ""}
+                    <i /> SPOTLIGHT
                   </small>
                   <strong>{eventTitle(t, event)}</strong>
                   <em>
