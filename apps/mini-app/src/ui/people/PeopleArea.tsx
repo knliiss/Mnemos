@@ -45,6 +45,7 @@ export function PeopleArea(props: Props) {
         activeAccount={props.activeAccount}
         accountId={props.params?.accountId}
         nickname={props.params?.nickname}
+        section={props.params?.section}
         navigate={props.navigate}
         back={props.back}
       />
