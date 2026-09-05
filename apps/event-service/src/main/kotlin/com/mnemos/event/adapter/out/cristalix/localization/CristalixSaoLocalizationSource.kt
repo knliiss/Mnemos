@@ -10,9 +10,11 @@ import org.springframework.web.client.RestClient
 import java.security.MessageDigest
 
 @Component
-class CristalixSaoLocalizationSource(
-    private val objectMapper: ObjectMapper,
-) : SaoLocalizationSource {
+class CristalixSaoLocalizationSource : SaoLocalizationSource {
+    private val objectMapper =
+        ObjectMapper()
+            .findAndRegisterModules()
+
     private val restClient =
         RestClient
             .builder()
