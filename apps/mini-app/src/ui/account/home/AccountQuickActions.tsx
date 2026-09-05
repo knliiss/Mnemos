@@ -54,7 +54,10 @@ export function AccountQuickActions({ navigate }: AccountQuickActionsProps) {
   ]
 
   return (
-    <nav className="account-home-actions account-home-actions--dashboard" aria-label={t("accountHome.managementAria")}>
+    <nav
+      className="account-home-actions account-home-actions--dashboard"
+      aria-label={t("accountHome.managementAria")}
+    >
       {actions.map((action) => (
         <motion.button
           type="button"
