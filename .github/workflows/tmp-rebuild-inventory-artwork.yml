@@ -37,11 +37,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          source_file=".tmp/inventory-artwork/weapon-atlas.part00"
           target_file="apps/mini-app/public/event-icons/sao-tracked-item-models.webp"
 
-          test -s "$source_file"
-          base64 --decode "$source_file" > "$target_file"
+          cat .tmp/inventory-artwork/weapon-atlas.part* \
+            | base64 --decode \
+            > "$target_file"
+
+          test "$(stat -c '%s' "$target_file")" = "30280"
+          test "$(sha256sum "$target_file" | awk '{print $1}')" = \
+            "50ee039550e4294cd4e456cc55892c8c75a3b6577a956a337daa67f778dc00db"
 
       - name: Rebuild pet inventory atlas
         shell: bash
