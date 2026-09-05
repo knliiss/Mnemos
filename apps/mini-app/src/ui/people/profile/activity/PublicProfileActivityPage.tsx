@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import type { EventFeedQuery } from "@/shared/api/eventApi"
 import { getPublicProfile } from "@/shared/api/profileSocialApi"
 import { handleError } from "@/shared/errors/errorHandler"
 import { EventArt } from "../../../components/events/EventArt"
@@ -45,11 +46,11 @@ export function PublicProfileActivityPage({
     loadMoreEvents,
   } = useEventFeedData()
 
-  const feedQuery = useMemo(
+  const feedQuery = useMemo<EventFeedQuery>(
     () => ({
-      types: ["ITEM_DROP"] as const,
+      types: ["ITEM_DROP"],
       droppedFor: resolvedNickname ?? undefined,
-      sort: "NEWEST" as const,
+      sort: "NEWEST",
       limit: 24,
     }),
     [resolvedNickname],
