@@ -1,4 +1,4 @@
-name: Temporary Production Event Startup Diagnostics
+name: Temporary Emergency Event Service Check
 
 on:
   push:
@@ -9,73 +9,32 @@ permissions:
   contents: read
 
 jobs:
-  inspect:
-    runs-on:
-      - self-hosted
-      - mnemos-production
-    timeout-minutes: 5
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout current master
+      - name: Checkout emergency fix
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: e83985a9c5f1856aa9e2a7648f286f2dbe2bfa52
+          ref: 76a5dfed11c327eba322834f4e4bc21881933081
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Inspect failed event-service startup
+      - name: Set up Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Verify event service
         shell: bash
         run: |
           set -euo pipefail
-
-          service="mnemos_event-service"
-          target_image="ghcr.io/knliiss/mnemos-event-service:e83985a9c5f1856aa9e2a7648f286f2dbe2bfa52"
-
-          task_id="$(
-            sudo -n docker service ps \
-              --no-trunc \
-              --format '{{.ID}}|{{.Image}}|{{.CurrentState}}' \
-              "$service" |
-              awk -F'|' -v image="$target_image" '$2 == image && $3 ~ /^Failed / { print $1; exit }'
-          )"
-
-          if [ -z "$task_id" ]; then
-            echo "No failed task found for target image" >&2
-            sudo -n docker service ps \
-              --no-trunc \
-              --format '{{.ID}} {{.Image}} {{.CurrentState}} {{.Error}}' \
-              "$service"
-            exit 1
-          fi
-
-          container_id="$(
-            sudo -n docker inspect \
-              --format '{{.Status.ContainerStatus.ContainerID}}' \
-              "$task_id"
-          )"
-
-          if [ -z "$container_id" ]; then
-            echo "Failed task has no container id" >&2
-            sudo -n docker inspect \
-              --format 'task={{.ID}} state={{.Status.State}} message={{.Status.Message}} error={{.Status.Err}}' \
-              "$task_id"
-            exit 1
-          fi
-
-          echo "Failed task: $task_id"
-          sudo -n docker inspect \
-            --format 'state={{.Status.State}} message={{.Status.Message}} error={{.Status.Err}}' \
-            "$task_id"
-
-          echo "===== EVENT SERVICE STARTUP LOG ====="
-          sudo -n docker logs \
-            --tail 350 \
-            "$container_id" 2>&1 |
-            sed -E \
-              -e 's/(password|secret|token|api[-_]?key)([=:][^[:space:]]*)/\1=<redacted>/Ig' \
-              -e 's/[0-9a-f]{64}/<redacted-hex64>/g' \
-              -e 's/(password=\")[^\"]+(\")/\1<redacted>\2/Ig'
-
-          echo "===== CURRENT PRODUCTION HEALTH ====="
-          sudo -n sh scripts/verify-production-availability.sh
-          sudo -n sh scripts/check-production-health.sh
+          ./gradlew \
+            :apps:event-service:check \
+            :apps:event-service:bootJar \
+            --no-daemon
