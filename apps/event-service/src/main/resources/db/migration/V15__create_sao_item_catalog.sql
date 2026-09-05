@@ -3,6 +3,7 @@ CREATE TABLE sao_catalog_items (
     default_name varchar(128) NOT NULL,
     item_type varchar(32) NOT NULL,
     rarity varchar(32),
+    active boolean NOT NULL,
     source_hash varchar(64) NOT NULL,
     updated_at timestamptz NOT NULL
 );
@@ -12,6 +13,9 @@ CREATE INDEX idx_sao_catalog_items_default_name_lower
 
 CREATE INDEX idx_sao_catalog_items_type_rarity
     ON sao_catalog_items (item_type, rarity);
+
+CREATE INDEX idx_sao_catalog_items_active
+    ON sao_catalog_items (active);
 
 CREATE TABLE sao_catalog_item_locations (
     game_key varchar(160) NOT NULL,
