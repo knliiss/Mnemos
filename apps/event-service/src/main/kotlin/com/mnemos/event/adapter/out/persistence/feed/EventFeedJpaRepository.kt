@@ -16,6 +16,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     drop_event.id AS event_id,
                     drop_event.occurred_at AS occurred_at,
                     item.id AS item_id,
+                    item.game_key AS item_key,
                     item.name AS item_name,
                     item.rarity AS item_rarity,
                     item.type AS item_type,
@@ -38,6 +39,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     NULL::text,
                     NULL::text,
                     NULL::text,
+                    NULL::text,
                     booster.type,
                     booster.activated_by,
                     NULL::text,
@@ -51,6 +53,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     global_event.id,
                     global_event.started_at,
                     NULL::uuid,
+                    NULL::text,
                     NULL::text,
                     NULL::text,
                     NULL::text,
@@ -75,6 +78,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     NULL::text,
                     NULL::text,
                     NULL::text,
+                    NULL::text,
                     string_agg(location.location::text, ',' ORDER BY location.location)
                 FROM raid_events raid
                 LEFT JOIN raid_event_locations location ON location.raid_event_id = raid.id
@@ -85,6 +89,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                 event_id AS "eventId",
                 occurred_at AS "occurredAt",
                 item_id AS "itemId",
+                item_key AS "itemKey",
                 item_name AS "itemName",
                 item_rarity AS "itemRarity",
                 item_type AS "itemType",

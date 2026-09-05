@@ -19,6 +19,7 @@ object ItemDropIntegrationEventMapper {
             payload =
                 ItemDroppedV1(
                     itemId = item.id.id,
+                    itemKey = item.gameKey,
                     itemName = item.name,
                     itemType = item.type.toContract(),
                     itemRarity = item.rarity.toContract(),

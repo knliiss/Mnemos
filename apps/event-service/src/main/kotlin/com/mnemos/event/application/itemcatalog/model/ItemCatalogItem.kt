@@ -6,6 +6,7 @@ import com.mnemos.event.domain.item.model.ItemId
 
 data class ItemCatalogItem(
     val id: ItemId,
+    val gameKey: String? = null,
     val name: String,
     val type: DomainItemType,
     val rarity: DomainItemRarity,

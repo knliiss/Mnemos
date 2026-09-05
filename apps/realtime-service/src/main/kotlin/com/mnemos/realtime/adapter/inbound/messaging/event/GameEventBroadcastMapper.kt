@@ -28,6 +28,7 @@ object GameEventBroadcastMapper {
                     itemDrop =
                         GameEventBroadcastPayload.ItemDrop(
                             itemId = itemId,
+                            itemKey = itemKey,
                             itemName = itemName,
                             itemType = itemType.name,
                             itemRarity = itemRarity.name,

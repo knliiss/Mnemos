@@ -12,6 +12,8 @@ interface EventFeedProjection {
 
     fun getItemId(): UUID?
 
+    fun getItemKey(): String?
+
     fun getItemName(): String?
 
     fun getItemRarity(): String?

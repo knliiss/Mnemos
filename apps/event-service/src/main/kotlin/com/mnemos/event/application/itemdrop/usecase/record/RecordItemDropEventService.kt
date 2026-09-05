@@ -23,9 +23,10 @@ class RecordItemDropEventService(
     override fun execute(command: RecordItemDropEventCommand): RecordItemDropResult {
         val item =
             itemRepository.getOrCreate(
-                command.itemName,
-                command.itemType,
-                command.itemRarity,
+                itemKey = command.itemKey,
+                itemName = command.itemName,
+                type = command.itemType,
+                rarity = command.itemRarity,
             )
         val playerId = playerIdentityRepository.findCurrentOwnerId(command.droppedFor)
         val resolutionRequestedAt = if (playerId == null) Instant.now(clock) else null

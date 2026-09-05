@@ -14,6 +14,7 @@ object ItemDroppedEventMapper {
             messageId = aggregateId,
             occurredAt = occurredAt,
             droppedFor = payload.droppedFor,
+            itemKey = payload.itemKey,
             itemName = payload.itemName,
             itemRarity = payload.itemRarity.toDomain(),
             itemType = payload.itemType.toDomain(),

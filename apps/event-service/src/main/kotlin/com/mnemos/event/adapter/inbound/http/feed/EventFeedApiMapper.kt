@@ -41,6 +41,7 @@ object EventFeedApiMapper {
                     eventId = eventId.id,
                     occurredAt = occurredAt,
                     itemId = itemId.id,
+                    itemKey = itemKey,
                     itemName = itemName,
                     itemRarity = itemRarity,
                     itemType = itemType,

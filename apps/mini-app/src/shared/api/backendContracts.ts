@@ -119,6 +119,7 @@ export type EventFeedType = "ITEM_DROP" | "BOOSTER" | "GLOBAL" | "RAID"
 
 export type ItemCatalogResponse = {
   id: string
+  gameKey: string | null
   name: string
   type: BetItemType
   rarity: ItemRarity
@@ -129,6 +130,7 @@ export type ItemDropFeedResponse = {
   eventId: string
   occurredAt: string
   itemId: string
+  itemKey: string | null
   itemName: string
   itemRarity: ItemRarity
   itemType: string

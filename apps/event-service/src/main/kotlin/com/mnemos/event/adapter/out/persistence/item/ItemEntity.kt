@@ -15,6 +15,8 @@ import java.util.UUID
 class ItemEntity(
     @Id
     var id: UUID,
+    @Column(name = "game_key", updatable = false)
+    var gameKey: String?,
     @Column(name = "name", nullable = false, updatable = false)
     var name: String,
     @Column(name = "type", nullable = false, updatable = false)
