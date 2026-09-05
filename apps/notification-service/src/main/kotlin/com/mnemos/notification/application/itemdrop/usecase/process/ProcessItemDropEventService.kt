@@ -23,6 +23,7 @@ class ProcessItemDropEventService(
             payload =
                 ItemDropNotificationPayload(
                     droppedFor = command.droppedFor,
+                    itemKey = command.itemKey,
                     itemName = command.itemName,
                     itemRarity = command.itemRarity,
                     itemType = command.itemType,
