@@ -4,6 +4,7 @@ import { i18n } from "@/shared/i18n"
 import type { LocalizationLanguage } from "@/ui/model"
 
 const REFRESH_INTERVAL_MS = 300_000
+const STYLE_PREFIX_PATTERN = /^¨[0-9a-fA-F]{6}/
 
 const languageMapping: Record<
   LocalizationLanguage,
@@ -90,10 +91,14 @@ export function toNestedResources(
       cursor = cursor[segment] as Record<string, unknown>
     }
 
-    cursor[segments[segments.length - 1]] = value
+    cursor[segments[segments.length - 1]] = normalizeSaoValue(value)
   }
 
   return root
+}
+
+export function normalizeSaoValue(value: string): string {
+  return value.replace(STYLE_PREFIX_PATTERN, "").trim()
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
