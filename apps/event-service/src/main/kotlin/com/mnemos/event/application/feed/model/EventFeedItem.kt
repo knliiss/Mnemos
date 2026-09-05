@@ -16,7 +16,7 @@ data class ItemDropFeedItem(
     override val eventId: EventId,
     override val occurredAt: Instant,
     val itemId: ItemId,
-    val itemKey: String?,
+    val itemKey: String? = null,
     val itemName: String,
     val itemRarity: DomainItemRarity,
     val itemType: String,
