@@ -30,8 +30,8 @@ jobs:
 
           path = Path("scripts/render_sao_pet_artwork.py")
           source = path.read_text(encoding="utf-8")
-          old = "mappings = \\\"\\n\\\".join(f'  \\\"{item_id}\\\": {index},' for index, item_id in enumerate(item_ids))"
-          new = "mappings = \\\"\\n\\\".join(f\\\"  {item_id}: {index},\\\" for index, item_id in enumerate(item_ids))"
+          old = '''mappings = "\\n".join(f'  "{item_id}": {index},' for index, item_id in enumerate(item_ids))'''
+          new = '''mappings = "\\n".join(f"  {item_id}: {index}," for index, item_id in enumerate(item_ids))'''
 
           if old not in source:
               raise SystemExit("Expected PET mapping generator expression was not found")
