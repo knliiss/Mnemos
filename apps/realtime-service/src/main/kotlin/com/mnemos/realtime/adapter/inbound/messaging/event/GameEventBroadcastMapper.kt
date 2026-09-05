@@ -124,11 +124,11 @@ object GameEventBroadcastMapper {
 
     private fun globalLocalizationKey(type: String): String =
         when (type) {
-            "DARKNESS" -> "sao.event.darkness.alert"
-            "MOON" -> "sao.event.blood_moon.alert"
-            "ECLIPSE" -> "sao.event.solar_eclipse.alert"
-            "EXPLOSION" -> "sao.event.sunburst.alert"
-            "COMET_CHAOS" -> "sao.event.comet_chaos.alert"
+            "DARKNESS" -> "sao.event.darkness.name"
+            "MOON" -> "sao.event.blood_moon.name"
+            "ECLIPSE" -> "sao.event.solar_eclipse.name"
+            "EXPLOSION" -> "sao.event.sunburst.name"
+            "COMET_CHAOS" -> "sao.event.comet_chaos.name"
             else -> error("Unsupported global event type: $type")
         }
 
