@@ -24,6 +24,7 @@ data class ItemDropFeedItemResponse(
     override val eventId: UUID,
     override val occurredAt: Instant,
     val itemId: UUID,
+    val itemKey: String?,
     val itemName: String,
     val itemRarity: DomainItemRarity,
     val itemType: String,
