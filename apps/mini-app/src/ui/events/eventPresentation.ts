@@ -22,7 +22,7 @@ export function eventKindLabel(t: TFunction, kind: EventKind) {
 }
 
 export function eventTitle(t: TFunction, event: FeedEvent) {
-  if (event.kind === "ITEM_DROP" && event.localizationKey) {
+  if (event.localizationKey) {
     return t(event.localizationKey, { defaultValue: event.title })
   }
 
@@ -54,8 +54,10 @@ export function eventFeedDescription(t: TFunction, event: FeedEvent) {
     return t("events.feed.globalDescription")
   }
 
-  return event.detail
-    ? t("events.feed.locations", { locations: event.detail })
+  const locations = localizedRaidLocations(t, event)
+
+  return locations
+    ? t("events.feed.locations", { locations })
     : t("events.feed.raidDescription")
 }
 
@@ -69,7 +71,9 @@ export function eventSubject(t: TFunction, event: FeedEvent) {
   }
 
   if (event.kind === "RAID") {
-    return t("events.feed.locations", { locations: event.detail })
+    const locations = localizedRaidLocations(t, event)
+
+    return t("events.feed.locations", { locations: locations || event.detail })
   }
 
   return event.detail
@@ -135,7 +139,9 @@ export function notificationRuleDescription(t: TFunction, event: FeedEvent) {
     return t("events.detail.globalRule", { event: eventTitle(t, event) })
   }
 
-  return t("events.detail.raidRule", { locations: event.detail })
+  const locations = localizedRaidLocations(t, event)
+
+  return t("events.detail.raidRule", { locations: locations || event.detail })
 }
 
 export function parseEventLocations(value: string) {
@@ -155,4 +161,18 @@ export function localeForLanguage(language?: string) {
   }
 
   return "uk-UA"
+}
+
+function localizedRaidLocations(t: TFunction, event: FeedEvent): string {
+  if (event.kind !== "RAID") {
+    return ""
+  }
+
+  return parseEventLocations(event.detail)
+    .map((locationId) =>
+      t(`sao.location.${locationId}.name`, {
+        defaultValue: String(locationId),
+      }),
+    )
+    .join(" · ")
 }
