@@ -51,9 +51,31 @@ class SaoCatalogParserTest {
         assertEquals(setOf(17), pet.locationIds)
 
         assertEquals(SaoCatalogItemRarity.LEGENDARY, book.rarity)
-        assertTrue(book.locationIds.isEmpty())
+        assertEquals(setOf(17), book.locationIds)
         assertTrue(aura.locationIds.isEmpty())
         assertTrue(jewelry.locationIds.isEmpty())
+    }
+
+    @Test
+    fun `location-like ids are ignored when localization does not define that location`() {
+        val parsed =
+            parser.parse(
+                packs =
+                    listOf(
+                        pack(
+                            locale = "ru_RU",
+                            properties =
+                                mapOf(
+                                    "sao.location.17.name" to "Подводный храм",
+                                    "sao.item.l999_1.name" to "¨37efefНеизвестный клинок",
+                                    "sao.item.book_l999_1.name" to "¨a91925Неизвестная книга",
+                                ),
+                        ),
+                    ),
+                now = now,
+            )
+
+        assertTrue(parsed.items.all { item -> item.locationIds.isEmpty() })
     }
 
     @Test
