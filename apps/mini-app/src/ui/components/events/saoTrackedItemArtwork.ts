@@ -173,6 +173,7 @@ const ITEM_ATLAS_INDEX: Record<string, number> = {
   l9_10: 162,
   l9_11: 163,
   l9_12: 164,
+  d3_504: 165,
 }
 
 export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {
