@@ -4,6 +4,10 @@ data class InternalTelegramUserSettingsResponse(
     val localizationLanguage: InternalTelegramLocalizationLanguage,
 )
 
+data class InternalUserLocalizationResponse(
+    val localizationLanguage: InternalTelegramLocalizationLanguage,
+)
+
 data class UpdateInternalTelegramUserLocalizationRequest(
     val localizationLanguage: InternalTelegramLocalizationLanguage,
 )
