@@ -32,17 +32,6 @@ jobs:
             numpy==2.3.2 \
             Pillow==11.3.0
 
-      - name: Restore inventory weapon atlas
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          source_file=".tmp/inventory-artwork/weapon-atlas.part00"
-          target_file="apps/mini-app/public/event-icons/sao-tracked-item-models.webp"
-
-          test -s "$source_file"
-          base64 --decode "$source_file" > "$target_file"
-
       - name: Rebuild pet inventory atlas
         shell: bash
         run: |
@@ -50,7 +39,7 @@ jobs:
 
           "$RUNNER_TEMP/inventory-artwork-venv/bin/python" scripts/render_sao_pet_artwork.py
 
-      - name: Validate generated artwork
+      - name: Validate inventory artwork
         shell: bash
         run: |
           set -euo pipefail
@@ -59,29 +48,30 @@ jobs:
           from pathlib import Path
           from PIL import Image
 
-          weapon = Path("apps/mini-app/public/event-icons/sao-tracked-item-models.webp")
-          pets = Path("apps/mini-app/public/event-icons/sao-pets.webp")
-
           expected = {
-              weapon: (512, 512),
-              pets: (1024, 960),
+              Path("apps/mini-app/public/event-icons/sao-tracked-item-models.webp"): (512, 512),
+              Path("apps/mini-app/public/event-icons/sao-pets.webp"): (1024, 960),
           }
 
           for path, expected_size in expected.items():
+              payload = path.read_bytes()
+              if payload[:4] != b"RIFF" or payload[8:12] != b"WEBP":
+                  raise SystemExit(f"Invalid WebP payload: {path}")
+
               image = Image.open(path)
               image.load()
 
               if image.size != expected_size:
                   raise SystemExit(f"Unexpected artwork size for {path}: {image.size}")
 
-              payload = path.read_bytes()
-              if payload[:4] != b"RIFF" or payload[8:12] != b"WEBP":
-                  raise SystemExit(f"Invalid WebP payload: {path}")
-
               if image.getbbox() is None:
                   raise SystemExit(f"Artwork is fully transparent: {path}")
 
               print(f"validated {path}: {image.size}, {len(payload)} bytes")
+
+          source = Path("apps/mini-app/src/ui/components/events/saoPetArtwork.ts").read_text()
+          if "SAO_PET_ATLAS_ITEM_COUNT = 231" not in source:
+              raise SystemExit("PET atlas mapping does not contain all 231 current pets")
           PY
 
       - name: Commit generated inventory artwork
@@ -89,7 +79,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          rm -rf .tmp/inventory-artwork
           rm -f .github/workflows/tmp-rebuild-inventory-artwork.yml
 
           git config user.name "github-actions[bot]"
