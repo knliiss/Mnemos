@@ -1,4 +1,3 @@
-import type { Resource } from "i18next"
 import { getSaoLocalization } from "@/shared/api/saoLocalizationApi"
 import { ApiError } from "@/shared/api/httpClient"
 import { i18n } from "@/shared/i18n"
@@ -67,7 +66,9 @@ export function saoLocalizationRefreshIntervalMs(): number {
   return REFRESH_INTERVAL_MS
 }
 
-export function toNestedResources(properties: Record<string, string>): Resource {
+export function toNestedResources(
+  properties: Record<string, string>,
+): Record<string, unknown> {
   const root: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(properties)) {
@@ -92,7 +93,7 @@ export function toNestedResources(properties: Record<string, string>): Resource 
     cursor[segments[segments.length - 1]] = value
   }
 
-  return root as Resource
+  return root
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
