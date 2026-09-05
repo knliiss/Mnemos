@@ -20,16 +20,13 @@ data class NotificationLocalizationContext(
             ?.let(::gameValue)
             ?: payload.itemName
 
-    fun itemTypeName(type: NotificationItemType): String =
-        gameValue(itemTypeKey(type)) ?: localizedItemTypeFallback(type)
+    fun itemTypeName(type: NotificationItemType): String = gameValue(itemTypeKey(type)) ?: localizedItemTypeFallback(type)
 
-    fun itemRarityName(rarity: NotificationItemRarity): String =
-        gameValue(itemRarityKey(rarity)) ?: localizedItemRarityFallback(rarity)
+    fun itemRarityName(rarity: NotificationItemRarity): String = gameValue(itemRarityKey(rarity)) ?: localizedItemRarityFallback(rarity)
 
     fun boosterName(payload: BoosterNotificationPayload): String = boosterName(payload.boosterType)
 
-    fun boosterName(type: DomainBoosterType): String =
-        gameValue(boosterKey(type)) ?: localizedBoosterFallback(type)
+    fun boosterName(type: DomainBoosterType): String = gameValue(boosterKey(type)) ?: localizedBoosterFallback(type)
 
     fun dungeonName(type: DomainDungeonType): String =
         when (language) {
