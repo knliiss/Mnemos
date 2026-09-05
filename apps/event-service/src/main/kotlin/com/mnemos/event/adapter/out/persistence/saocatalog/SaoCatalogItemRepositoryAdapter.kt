@@ -65,7 +65,7 @@ class SaoCatalogItemRepositoryAdapter(
             )
 
         return SaoCatalogItemPage(
-            items = result.content.map(SaoCatalogItemEntity::toModel),
+            items = result.content.map { entity -> entity.toModel() },
             page = result.number,
             size = result.size,
             totalItems = result.totalElements,
