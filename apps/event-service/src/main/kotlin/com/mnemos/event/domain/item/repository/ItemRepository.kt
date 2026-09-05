@@ -6,6 +6,7 @@ import com.mnemos.event.domain.item.model.Item
 
 interface ItemRepository {
     fun getOrCreate(
+        itemKey: String?,
         itemName: String,
         type: DomainItemType,
         rarity: DomainItemRarity,
