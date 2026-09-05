@@ -28,6 +28,8 @@ class SaoCatalogItemEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "rarity", length = 32)
     var rarity: SaoCatalogItemRarity?,
+    @Column(name = "active", nullable = false)
+    var active: Boolean,
     @Column(name = "source_hash", nullable = false, length = 64)
     var sourceHash: String,
     @Column(name = "updated_at", nullable = false)
