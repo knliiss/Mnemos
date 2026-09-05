@@ -269,6 +269,8 @@ class StandardMessageResolver {
 
             NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY ->
                 ItemPresentation(emoji, "Новое мифическое украшение", "мифическое украшение", "мифическое украшение")
+
+            else -> unsupportedItemPresentation(type, rarity)
         }
 
     private fun resolveUkrainianItem(
@@ -306,6 +308,8 @@ class StandardMessageResolver {
 
             NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY ->
                 ItemPresentation(emoji, "Нова міфічна реліквія", "міфічну реліквію", "міфічна реліквія")
+
+            else -> unsupportedItemPresentation(type, rarity)
         }
 
     private fun itemEmoji(
@@ -323,7 +327,13 @@ class StandardMessageResolver {
             NotificationItemRarity.MYTHICAL to NotificationItemType.BOOK -> "📜"
             NotificationItemRarity.SECRET to NotificationItemType.JEWELRY -> "💍"
             NotificationItemRarity.MYTHICAL to NotificationItemType.JEWELRY -> "💎"
+            else -> unsupportedItemPresentation(type, rarity)
         }
+
+    private fun unsupportedItemPresentation(
+        type: NotificationItemType,
+        rarity: NotificationItemRarity,
+    ): Nothing = error("Unsupported item presentation: type=$type, rarity=$rarity")
 
     private fun resolveBooster(
         type: DomainBoosterType,
