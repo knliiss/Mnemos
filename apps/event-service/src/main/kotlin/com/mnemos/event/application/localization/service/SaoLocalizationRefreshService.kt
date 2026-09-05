@@ -3,6 +3,7 @@ package com.mnemos.event.application.localization.service
 import com.mnemos.event.application.localization.model.SaoLocalizationPack
 import com.mnemos.event.application.localization.port.out.SaoLocalizationPackRepository
 import com.mnemos.event.application.localization.port.out.SaoLocalizationSource
+import com.mnemos.event.application.saocatalog.service.SaoCatalogSynchronizationService
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
@@ -15,11 +16,13 @@ import java.time.Instant
 class SaoLocalizationRefreshService(
     private val source: SaoLocalizationSource,
     private val repository: SaoLocalizationPackRepository,
+    private val catalogSynchronizationService: SaoCatalogSynchronizationService,
     private val clock: Clock,
 ) {
     @EventListener(ApplicationReadyEvent::class)
     fun refreshAfterStartup() {
         refresh()
+        catalogSynchronizationService.synchronize()
     }
 
     @Scheduled(
@@ -27,21 +30,23 @@ class SaoLocalizationRefreshService(
         fixedDelayString = "\${mnemos.event.sao-localization.refresh-interval-ms:300000}",
     )
     fun refreshScheduled() {
-        refresh()
+        if (refresh()) {
+            catalogSynchronizationService.synchronize()
+        }
     }
 
-    fun refresh() {
+    fun refresh(): Boolean {
         val descriptors =
             try {
                 source.listPacks()
             } catch (exception: Exception) {
                 logger.warn("Failed to refresh SAO localization manifest; keeping persisted packs", exception)
-                return
+                return false
             }
 
         if (descriptors.isEmpty()) {
             logger.warn("Cristalix localization manifest does not contain SAO packs")
-            return
+            return false
         }
 
         val currentHashes = repository.findAll().associate { pack -> pack.locale to pack.hash }
@@ -76,6 +81,8 @@ class SaoLocalizationRefreshService(
         if (updatedCount > 0) {
             logger.info("Updated {} SAO localization pack(s)", updatedCount)
         }
+
+        return updatedCount > 0
     }
 
     private companion object {
