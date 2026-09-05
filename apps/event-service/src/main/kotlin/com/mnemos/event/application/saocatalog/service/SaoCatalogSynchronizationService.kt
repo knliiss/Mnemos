@@ -1,8 +1,14 @@
 package com.mnemos.event.application.saocatalog.service
 
 import com.mnemos.event.application.localization.port.out.SaoLocalizationPackRepository
+import com.mnemos.event.application.saocatalog.model.SaoCatalogItem
+import com.mnemos.event.application.saocatalog.model.SaoCatalogItemRarity
+import com.mnemos.event.application.saocatalog.model.SaoCatalogItemType
 import com.mnemos.event.application.saocatalog.port.out.LegacyItemIdentityRepository
 import com.mnemos.event.application.saocatalog.port.out.SaoCatalogItemRepository
+import com.mnemos.event.domain.item.model.DomainItemRarity
+import com.mnemos.event.domain.item.model.DomainItemType
+import com.mnemos.event.domain.item.repository.ItemRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,6 +20,7 @@ class SaoCatalogSynchronizationService(
     private val localizationRepository: SaoLocalizationPackRepository,
     private val catalogRepository: SaoCatalogItemRepository,
     private val legacyItemIdentityRepository: LegacyItemIdentityRepository,
+    private val itemRepository: ItemRepository,
     private val parser: SaoCatalogParser,
     private val clock: Clock,
 ) {
@@ -33,6 +40,7 @@ class SaoCatalogSynchronizationService(
         }
 
         catalogRepository.replaceAll(parsed.items)
+        synchronizeTrackedItems(parsed.items)
 
         var resolvedHistoricalItems = 0
         var unresolvedHistoricalItems = 0
@@ -92,6 +100,37 @@ class SaoCatalogSynchronizationService(
 
         return result
     }
+
+    private fun synchronizeTrackedItems(items: Collection<SaoCatalogItem>) {
+        for (item in items) {
+            val rarity = item.rarity.toDomainRarity() ?: continue
+            val type = item.type.toDomainType() ?: continue
+
+            itemRepository.getOrCreate(
+                itemKey = item.gameKey,
+                itemName = item.defaultName,
+                type = type,
+                rarity = rarity,
+            )
+        }
+    }
+
+    private fun SaoCatalogItemRarity?.toDomainRarity(): DomainItemRarity? =
+        when (this) {
+            SaoCatalogItemRarity.MYTHICAL -> DomainItemRarity.MYTHICAL
+            SaoCatalogItemRarity.SECRET -> DomainItemRarity.SECRET
+            else -> null
+        }
+
+    private fun SaoCatalogItemType.toDomainType(): DomainItemType? =
+        when (this) {
+            SaoCatalogItemType.WEAPON -> DomainItemType.SWORD
+            SaoCatalogItemType.PET -> DomainItemType.PET
+            SaoCatalogItemType.AURA -> DomainItemType.AURA
+            SaoCatalogItemType.BOOK -> DomainItemType.BOOK
+            SaoCatalogItemType.JEWELRY -> DomainItemType.JEWELRY
+            SaoCatalogItemType.OTHER -> null
+        }
 
     private companion object {
         val logger = LoggerFactory.getLogger(SaoCatalogSynchronizationService::class.java)
