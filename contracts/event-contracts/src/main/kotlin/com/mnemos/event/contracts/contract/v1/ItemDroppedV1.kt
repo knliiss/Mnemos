@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class ItemDroppedV1(
     val itemId: UUID,
+    val itemKey: String? = null,
     val itemName: String,
     val itemType: ContractItemType,
     val itemRarity: ContractItemRarity,
