@@ -45,7 +45,5 @@ export async function getSaoCatalogItems(
 
   const query = params.toString()
 
-  return api<SaoCatalogItemPageResponse>(
-    `/api/v1/events/catalog/items${query ? `?${query}` : ""}`,
-  )
+  return api<SaoCatalogItemPageResponse>(`/api/v1/events/catalog/items${query ? `?${query}` : ""}`)
 }
