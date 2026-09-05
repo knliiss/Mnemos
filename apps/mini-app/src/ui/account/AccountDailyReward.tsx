@@ -85,8 +85,10 @@ export function AccountDailyReward() {
     }
   }
 
+  const claimedClassName = reward?.claimedToday && !rewardResult ? "is-claimed" : ""
+
   return (
-    <section className={`account-home-reward ${reward?.claimedToday ? "is-claimed" : ""}`}>
+    <section className={`account-home-reward ${claimedClassName}`}>
       <span className="account-home-reward__flame" aria-hidden="true">
         <i />
         <motion.img
