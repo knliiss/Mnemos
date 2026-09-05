@@ -19,8 +19,7 @@ class SaoLocalizationController(
     private val catalogService: SaoLocalizationCatalogService,
 ) {
     @GetMapping
-    fun list(): List<SaoLocalizationPackSummaryResponse> =
-        catalogService.list().map { pack -> pack.toSummaryResponse() }
+    fun list(): List<SaoLocalizationPackSummaryResponse> = catalogService.list().map { pack -> pack.toSummaryResponse() }
 
     @GetMapping("/{locale}")
     fun get(
