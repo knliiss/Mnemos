@@ -14,82 +14,65 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Resolve SAO jewelry localization values
+      - name: Search SAO payload for resource-pack identities
         shell: bash
         run: |
           set -euo pipefail
 
           index="$RUNNER_TEMP/lang.json"
+          sao="$RUNNER_TEMP/sao.json"
+
           curl --fail --silent --show-error --location \
             https://webdata.c7x.dev/client/lang.json \
             --output "$index"
 
-          INDEX="$index" OUT="$RUNNER_TEMP" python3 - <<'PY'
+          INDEX="$index" SAO="$sao" python3 - <<'PY'
           import json
           import os
           import subprocess
 
           index = json.load(open(os.environ["INDEX"], encoding="utf-8"))
           russian = next(entry for entry in index["langs"] if entry.get("lang") == "ru_RU")
-
-          for position, pie in enumerate(russian.get("pies", [])):
-              path = os.path.join(os.environ["OUT"], f"pie-{position}.json")
-              subprocess.run(
-                  ["curl", "--fail", "--silent", "--show-error", "--location", pie["url"], "--output", path],
-                  check=True,
-              )
-              print(f"downloaded_pie={pie.get('pieKey')} path={path}")
+          pie = next(pie for pie in russian["pies"] if pie.get("pieKey") == "sao")
+          print("sao_hash=" + pie["hash"])
+          subprocess.run(
+              ["curl", "--fail", "--silent", "--show-error", "--location", pie["url"], "--output", os.environ["SAO"]],
+              check=True,
+          )
           PY
 
-          python3 - <<'PY' "$RUNNER_TEMP"
-          import glob
+          python3 - <<'PY' "$sao"
           import json
-          import os
-          import re
           import sys
 
-          directory = sys.argv[1]
-          selected = {
-              "sao.item.d1_284.name",
-              "sao.item.d1_324.name",
-              "sao.item.d1_404.name",
-              "sao.item.d1_444.name",
-              "sao.item.d1_484.name",
-              "sao.item.d1_503.name",
-              "sao.item.d1_504.name",
-              "sao.item.d2_44.name",
-              "sao.item.d2_84.name",
-              "sao.item.d2_124.name",
-              "sao.item.d2_504.name",
-              "sao.item.d3_44.name",
-              "sao.item.d4_44.name",
-          }
-          jewelry_pattern = re.compile(r"^sao\.item\.d[1-4]_\d+\.name$")
+          payload = json.load(open(sys.argv[1], encoding="utf-8"))
+          needles = (
+              "bracelet_a_1", "bracelet_a_2", "bracelet_b_1", "bracelet_c_1",
+              "necklace_a_1", "necklace_b_1", "necklace_c_1", "necklace_d_1", "necklace_e_1",
+              "ring_a_1", "ring_b_1", "ring_c_1", "ring_d_1", "ring_e_1",
+              "d2_n_1", "d2_n_4", "d2_n_52",
+              "d3ring1", "d3ring4", "d3ring49",
+              "d4ring1", "d4ring4", "d4ring52",
+          )
 
-          found = {}
+          matches = []
 
-          def walk(value):
+          def walk(value, trail=()):
               if isinstance(value, dict):
                   for key, child in value.items():
-                      if key in selected or jewelry_pattern.match(str(key)):
-                          found[str(key)] = child
-                      walk(child)
+                      text = str(key)
+                      if any(needle.lower() in text.lower() for needle in needles):
+                          matches.append(("key", "/".join(trail + (text,)), repr(child)[:1200]))
+                      walk(child, trail + (text,))
               elif isinstance(value, list):
-                  for child in value:
-                      walk(child)
+                  for index, child in enumerate(value):
+                      walk(child, trail + (str(index),))
+              elif isinstance(value, str):
+                  if any(needle.lower() in value.lower() for needle in needles):
+                      matches.append(("value", "/".join(trail), repr(value)[:1200]))
 
-          for path in sorted(glob.glob(os.path.join(directory, "pie-*.json"))):
-              try:
-                  payload = json.load(open(path, encoding="utf-8"))
-              except Exception as error:
-                  print(f"parse_error={os.path.basename(path)}:{error}")
-                  continue
-              walk(payload)
-
-          print(f"jewelry_key_count={len(found)}")
-          for key in sorted(found):
-              if key in selected:
-                  print(f"selected={key} => {found[key]!r}")
-          for key in sorted(found):
-              print(f"jewelry={key} => {found[key]!r}")
+          walk(payload)
+          print("identity_matches=" + str(len(matches)))
+          for kind, trail, value in matches:
+              print(f"{kind}_match={trail} => {value}")
           PY
