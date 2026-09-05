@@ -58,6 +58,18 @@ class InternalTelegramUserEndpointSecurityTest {
         assertFalse(authorization.contains("reward-service"))
     }
 
+    @Test
+    fun `user localization is restricted to notification service`() {
+        val authorization = authorizationFor(InternalUserLocalizationController::class.java)
+
+        assertTrue(authorization.contains("notification-service"))
+        assertFalse(authorization.contains("payment-service"))
+        assertFalse(authorization.contains("personalization-service"))
+        assertFalse(authorization.contains("telegram-bot-service"))
+        assertFalse(authorization.contains("bet-service"))
+        assertFalse(authorization.contains("reward-service"))
+    }
+
     private fun authorizationFor(controllerType: Class<*>): String =
         requireNotNull(controllerType.getAnnotation(PreAuthorize::class.java)).value
 }
