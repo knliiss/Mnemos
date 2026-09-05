@@ -1,0 +1,94 @@
+name: Temporary Production Event API Credential Runtime
+
+on:
+  push:
+    branches:
+      - ops/production-event-api-key-runtime
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout trusted master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 37cd08e9d1a1c64d866a214cb0405a16fe1816da
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact trusted revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "37cd08e9d1a1c64d866a214cb0405a16fe1816da"
+
+      - name: Apply event API credential to runtime services
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          key="$(
+            sudo -n awk -F= '
+              $1 == "NOTIFICATION_SERVICE_EVENT_API_KEY" {
+                print substr($0, length($1) + 2)
+                exit
+              }
+            ' /etc/mnemos/mnemos.env
+          )"
+
+          if [ -z "$key" ]; then
+            echo "NOTIFICATION_SERVICE_EVENT_API_KEY is missing from production environment" >&2
+            exit 1
+          fi
+
+          for service in mnemos_event-service mnemos_notification-service; do
+            sudo -n docker service update \
+              --detach=true \
+              --env-add "NOTIFICATION_SERVICE_EVENT_API_KEY=$key" \
+              "$service" >/dev/null
+
+            image="$(
+              sudo -n docker service inspect \
+                --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' \
+                "$service"
+            )"
+
+            sudo -n sh scripts/wait-production-service.sh \
+              "$service" \
+              "$image" \
+              300 \
+              15
+          done
+
+      - name: Verify credential presence and production availability
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for service in mnemos_event-service mnemos_notification-service; do
+            count="$(
+              sudo -n docker service inspect \
+                --format '{{range .Spec.TaskTemplate.ContainerSpec.Env}}{{println .}}{{end}}' \
+                "$service" |
+                awk -F= '$1 == "NOTIFICATION_SERVICE_EVENT_API_KEY" { count++ } END { print count + 0 }'
+            )"
+
+            if [ "$count" -ne 1 ]; then
+              echo "$service does not contain exactly one event API credential" >&2
+              exit 1
+            fi
+          done
+
+          sudo -n sh scripts/verify-production-availability.sh
+          sudo -n sh scripts/check-production-health.sh
