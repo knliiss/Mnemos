@@ -22,6 +22,10 @@
   font-size: 11px;
 }
 
+.events-feed-row__time {
+  margin-top: 14px;
+}
+
 .events-feed-search input {
   font-size: 13px;
 }
