@@ -23,8 +23,10 @@ jobs:
       - name: Fetch and inspect live SAO localization
         shell: python
         run: |
+          import collections
           import hashlib
           import json
+          import re
           import urllib.request
           from pathlib import Path
 
@@ -77,7 +79,7 @@ jobs:
               if key.startswith("sao.event.") or key.startswith("sao.msg.")
           }
 
-          report = {
+          raw_report = {
               "locale": "ru_RU",
               "hash": sao["hash"],
               "itemPropertyCount": len(item_properties),
@@ -87,20 +89,124 @@ jobs:
               "eventProperties": event_properties,
           }
 
-          output = Path("tmp/sao-live-catalog-analysis.json")
-          output.parent.mkdir(parents=True, exist_ok=True)
-          output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+          style_pattern = re.compile(r"^¨([0-9a-fA-F]{6})")
+          location_pattern = re.compile(r"(?:^|_)l(\d+)(?:_|$)")
+
+          def family(item_id):
+              if re.match(r"^l\d", item_id):
+                  return "WEAPON"
+              if item_id.startswith("pet"):
+                  return "PET"
+              if item_id.startswith("aura"):
+                  return "AURA"
+              if item_id.startswith("book"):
+                  return "BOOK"
+              if re.match(r"^d\d", item_id):
+                  return "JEWELRY"
+              return "OTHER"
+
+          def location_candidate(item_id, item_family):
+              match = location_pattern.search(item_id)
+              if match:
+                  return int(match.group(1))
+              if item_family == "WEAPON":
+                  match = re.match(r"^l(\d+)(?:_|$)", item_id)
+                  if match:
+                      return int(match.group(1))
+              if item_family == "JEWELRY":
+                  match = re.match(r"^d(\d+)(?:_|$)", item_id)
+                  if match:
+                      return int(match.group(1))
+              return None
+
+          tracked = []
+          colors_by_family = collections.defaultdict(collections.Counter)
+          locations_by_family = collections.defaultdict(collections.Counter)
+          unknown_style = []
+
+          for key, value in sorted(item_properties.items()):
+              if not key.endswith(".name"):
+                  continue
+
+              item_id = key[len("sao.item."):-len(".name")]
+              item_family = family(item_id)
+              if item_family == "OTHER":
+                  continue
+
+              style_match = style_pattern.match(value)
+              style = style_match.group(1).lower() if style_match else None
+              display_name = style_pattern.sub("", value).strip()
+              location = location_candidate(item_id, item_family)
+
+              colors_by_family[item_family][style or "<none>"] += 1
+              locations_by_family[item_family][str(location) if location is not None else "<none>"] += 1
+
+              if style is None:
+                  unknown_style.append(key)
+
+              tracked.append({
+                  "key": key,
+                  "id": item_id,
+                  "name": display_name,
+                  "family": item_family,
+                  "style": style,
+                  "locationCandidate": location,
+              })
+
+          rarity_properties = {
+              key: value
+              for key, value in sorted(properties.items())
+              if key.startswith("sao.enum.rarity.")
+          }
+          location_named_properties = {
+              key: value
+              for key, value in sorted(properties.items())
+              if key.startswith("sao.location.")
+              or key.startswith("sao.locations.")
+              or key.startswith("sao.floor.")
+              or key.startswith("sao.zone.")
+          }
+
+          summary = {
+              "hash": sao["hash"],
+              "trackedItemCount": len(tracked),
+              "countsByFamily": dict(collections.Counter(item["family"] for item in tracked)),
+              "stylesByFamily": {
+                  item_family: dict(sorted(counter.items()))
+                  for item_family, counter in sorted(colors_by_family.items())
+              },
+              "locationCandidatesByFamily": {
+                  item_family: dict(sorted(counter.items(), key=lambda pair: pair[0]))
+                  for item_family, counter in sorted(locations_by_family.items())
+              },
+              "rarityProperties": rarity_properties,
+              "locationNamedProperties": location_named_properties,
+              "unknownStyleKeys": unknown_style,
+              "trackedItems": tracked,
+              "eventProperties": event_properties,
+          }
+
+          output_dir = Path("tmp")
+          output_dir.mkdir(parents=True, exist_ok=True)
+          (output_dir / "sao-live-catalog-analysis.json").write_text(
+              json.dumps(raw_report, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          (output_dir / "sao-catalog-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
 
       - name: Commit inspection report
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tmp/sao-live-catalog-analysis.json
+          git add tmp/sao-live-catalog-analysis.json tmp/sao-catalog-summary.json
 
           if git diff --cached --quiet; then
             exit 0
           fi
 
-          git commit -m "Capture live SAO catalog inspection"
+          git commit -m "Capture SAO catalog metadata summary"
           git push origin HEAD:feat/sao-localization-presentation
