@@ -10,9 +10,7 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryItem
 import com.mnemos.telegram.bot.application.events.model.EventHistoryPage
 
 object EventHistoryMapper {
-    fun InternalEventFeedResponse.toModel(
-        localization: Map<String, String> = emptyMap(),
-    ): EventHistoryPage =
+    fun InternalEventFeedResponse.toModel(localization: Map<String, String> = emptyMap()): EventHistoryPage =
         EventHistoryPage(
             items = items.map { item -> item.toModel(localization) },
             cursor = cursor,
