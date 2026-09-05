@@ -2,13 +2,7 @@ import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
 import "../../events/event-art.css"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
-import {
-  resolveSaoItemAtlasSprite,
-  SAO_ITEM_ATLAS_COLUMNS,
-  SAO_ITEM_ATLAS_PATH,
-  SAO_ITEM_ATLAS_ROWS,
-  type SaoItemAtlasSprite,
-} from "./saoTrackedItemArtwork"
+import { resolveSaoItemAtlasSprite, type SaoItemAtlasSprite } from "./saoTrackedItemArtwork"
 
 type Props = {
   event: FeedEvent
@@ -168,9 +162,9 @@ function ArtFrame({
 
 function itemSpriteStyle(sprite: SaoItemAtlasSprite, contentSize: number): CSSProperties {
   return {
-    backgroundImage: `url(${SAO_ITEM_ATLAS_PATH})`,
+    backgroundImage: `url(${sprite.atlas.path})`,
     backgroundRepeat: "no-repeat",
-    backgroundSize: `${SAO_ITEM_ATLAS_COLUMNS * contentSize}px ${SAO_ITEM_ATLAS_ROWS * contentSize}px`,
+    backgroundSize: `${sprite.atlas.columns * contentSize}px ${sprite.atlas.rows * contentSize}px`,
     backgroundPosition: `${-sprite.column * contentSize}px ${-sprite.row * contentSize}px`,
     imageRendering: "pixelated",
   }

@@ -1,11 +1,33 @@
+export type SaoItemAtlas = {
+  path: string
+  columns: number
+  rows: number
+}
+
 export type SaoItemAtlasSprite = {
   column: number
   row: number
+  atlas: SaoItemAtlas
 }
 
 export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.webp"
 export const SAO_ITEM_ATLAS_COLUMNS = 16
 export const SAO_ITEM_ATLAS_ROWS = 11
+export const SAO_MODEL_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-item-models.webp"
+export const SAO_MODEL_ITEM_ATLAS_COLUMNS = 8
+export const SAO_MODEL_ITEM_ATLAS_ROWS = 8
+
+const TRACKED_ITEM_ATLAS: SaoItemAtlas = {
+  path: SAO_ITEM_ATLAS_PATH,
+  columns: SAO_ITEM_ATLAS_COLUMNS,
+  rows: SAO_ITEM_ATLAS_ROWS,
+}
+
+const MODEL_ITEM_ATLAS: SaoItemAtlas = {
+  path: SAO_MODEL_ITEM_ATLAS_PATH,
+  columns: SAO_MODEL_ITEM_ATLAS_COLUMNS,
+  rows: SAO_MODEL_ITEM_ATLAS_ROWS,
+}
 
 const ITEM_ATLAS_INDEX: Record<string, number> = {
   auraBone: 0,
@@ -176,20 +198,93 @@ const ITEM_ATLAS_INDEX: Record<string, number> = {
   d3_504: 165,
 }
 
+const MODEL_ITEM_ATLAS_INDEX: Record<string, number> = {
+  l10_11: 0,
+  l10_12: 1,
+  l11_11: 2,
+  l11_12: 3,
+  l12_11: 4,
+  l12_12: 5,
+  l13_11: 6,
+  l13_12: 7,
+  l14_11: 8,
+  l14_12: 9,
+  l15_11: 10,
+  l15_12: 11,
+  l16_11: 12,
+  l16_12: 13,
+  l17_11: 14,
+  l17_12: 15,
+  l18_11: 16,
+  l18_12: 17,
+  l19_11: 18,
+  l19_12: 19,
+  l1_8: 20,
+  l1_9: 21,
+  l20_11: 22,
+  l20_12: 23,
+  l21_10: 24,
+  l21_11: 25,
+  l21_12: 26,
+  l22_10: 27,
+  l22_11: 28,
+  l22_12: 29,
+  l23_10: 30,
+  l23_11: 31,
+  l23_12: 32,
+  l24_10: 33,
+  l24_11: 34,
+  l24_12: 35,
+  l25_10: 36,
+  l25_11: 37,
+  l25_12: 38,
+  l26_10: 39,
+  l26_11: 40,
+  l26_12: 41,
+  l27_10: 42,
+  l27_11: 43,
+  l27_12: 44,
+  l28_10: 45,
+  l28_11: 46,
+  l28_12: 47,
+  l2_10: 48,
+  l3_10: 49,
+  l4_10: 50,
+  l5_10: 51,
+  l6_10: 52,
+  l7_10: 53,
+  l7_11: 54,
+  l8_11: 55,
+  l9_10: 56,
+  l9_11: 57,
+  l9_12: 58,
+}
+
 export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {
   if (!localizationKey?.startsWith("sao.item.") || !localizationKey.endsWith(".name")) {
     return null
   }
 
   const itemId = localizationKey.slice("sao.item.".length, -".name".length)
+  const modelIndex = MODEL_ITEM_ATLAS_INDEX[itemId]
+
+  if (modelIndex !== undefined) {
+    return toSprite(modelIndex, MODEL_ITEM_ATLAS)
+  }
+
   const index = ITEM_ATLAS_INDEX[itemId]
 
   if (index === undefined) {
     return null
   }
 
+  return toSprite(index, TRACKED_ITEM_ATLAS)
+}
+
+function toSprite(index: number, atlas: SaoItemAtlas): SaoItemAtlasSprite {
   return {
-    column: index % SAO_ITEM_ATLAS_COLUMNS,
-    row: Math.floor(index / SAO_ITEM_ATLAS_COLUMNS),
+    column: index % atlas.columns,
+    row: Math.floor(index / atlas.columns),
+    atlas,
   }
 }
