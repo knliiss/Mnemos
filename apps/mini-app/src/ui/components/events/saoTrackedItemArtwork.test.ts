@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  resolveSaoItemAtlasSprite,
-  SAO_ITEM_ATLAS_PATH,
-} from "./saoTrackedItemArtwork"
+import { resolveSaoItemAtlasSprite, SAO_ITEM_ATLAS_PATH } from "./saoTrackedItemArtwork"
 
 describe("SAO tracked item artwork", () => {
   it("maps canonical localization keys to their atlas cells", () => {
