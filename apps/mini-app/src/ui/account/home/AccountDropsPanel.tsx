@@ -35,14 +35,12 @@ export function AccountDropsPanel({
   return (
     <section className="account-home-panel account-home-drops">
       <header className="account-home-panel__head account-home-drops__head">
-        <span>
+        <button type="button" className="account-home-drops__title-action" onClick={openActivity}>
           <small>{t("accountHome.activity")}</small>
-          <strong>{t("accountHome.latestDrops")}</strong>
-        </span>
-
-        <button type="button" className="account-home-panel__more" onClick={openActivity}>
-          {t("accountHome.viewAll")}
-          <span aria-hidden="true">›</span>
+          <span className="account-home-drops__title-row">
+            <strong>{t("accountHome.latestDrops")}</strong>
+            <span aria-hidden="true">›</span>
+          </span>
         </button>
 
         <img
