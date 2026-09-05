@@ -22,6 +22,11 @@ type PublicProfileActivityPageProps = {
   back: () => void
 }
 
+type ResolvedProfileIdentity = {
+  accountId: string
+  nickname: string
+}
+
 export function PublicProfileActivityPage({
   accountId,
   nickname,
@@ -32,9 +37,8 @@ export function PublicProfileActivityPage({
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const directNickname = nickname?.trim() || null
   const directAccountId = accountId?.trim() || null
-  const [resolvedNickname, setResolvedNickname] = useState<string | null>(directNickname)
-  const [resolvingProfile, setResolvingProfile] = useState(!directNickname && Boolean(directAccountId))
-  const [resolutionFailed, setResolutionFailed] = useState(false)
+  const [resolvedProfile, setResolvedProfile] = useState<ResolvedProfileIdentity | null>(null)
+  const [failedAccountId, setFailedAccountId] = useState<string | null>(null)
   const [resolutionRevision, setResolutionRevision] = useState(0)
   const loadMoreAnchor = useRef<HTMLDivElement | null>(null)
   const {
@@ -46,6 +50,15 @@ export function PublicProfileActivityPage({
     loadMoreEvents,
   } = useEventFeedData()
 
+  const resolvedNickname =
+    directNickname ??
+    (resolvedProfile?.accountId === directAccountId ? resolvedProfile.nickname : null)
+  const resolutionFailed = Boolean(
+    !directNickname && directAccountId && failedAccountId === directAccountId,
+  )
+  const resolvingProfile = Boolean(
+    !directNickname && directAccountId && !resolvedNickname && !resolutionFailed,
+  )
   const feedQuery = useMemo<EventFeedQuery>(
     () => ({
       types: ["ITEM_DROP"],
@@ -57,37 +70,31 @@ export function PublicProfileActivityPage({
   )
 
   useEffect(() => {
-    if (directNickname) {
-      setResolvedNickname(directNickname)
-      setResolvingProfile(false)
-      setResolutionFailed(false)
-      return
-    }
-
-    if (!directAccountId) {
-      setResolvedNickname(null)
-      setResolvingProfile(false)
-      setResolutionFailed(true)
+    if (directNickname || !directAccountId) {
       return
     }
 
     let cancelled = false
-    setResolvingProfile(true)
-    setResolutionFailed(false)
 
     void getPublicProfile(directAccountId)
       .then((profile) => {
-        if (!cancelled) {
-          setResolvedNickname(profile.cristalixNickname)
-          setResolvingProfile(false)
+        if (cancelled) {
+          return
         }
+
+        setResolvedProfile({
+          accountId: directAccountId,
+          nickname: profile.cristalixNickname,
+        })
+        setFailedAccountId(null)
       })
       .catch((error) => {
-        if (!cancelled) {
-          handleError(error)
-          setResolutionFailed(true)
-          setResolvingProfile(false)
+        if (cancelled) {
+          return
         }
+
+        handleError(error)
+        setFailedAccountId(directAccountId)
       })
 
     return () => {
@@ -123,6 +130,10 @@ export function PublicProfileActivityPage({
 
     return () => observer.disconnect()
   }, [eventsHasMore, feedQuery, loadMoreEvents, loadingEvents, resolvedNickname])
+
+  if (!directNickname && !directAccountId) {
+    return <FeatureError back={back} onRetry={() => undefined} />
+  }
 
   if (resolvingProfile) {
     return (
