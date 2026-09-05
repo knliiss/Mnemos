@@ -14,11 +14,11 @@ object SaoEventLocalizationKeys {
 
     fun global(type: DomainGlobalEventType): String =
         when (type) {
-            DomainGlobalEventType.DARKNESS -> "sao.event.darkness.alert"
-            DomainGlobalEventType.MOON -> "sao.event.blood_moon.alert"
-            DomainGlobalEventType.ECLIPSE -> "sao.event.solar_eclipse.alert"
-            DomainGlobalEventType.EXPLOSION -> "sao.event.sunburst.alert"
-            DomainGlobalEventType.COMET_CHAOS -> "sao.event.comet_chaos.alert"
+            DomainGlobalEventType.DARKNESS -> "sao.event.darkness.name"
+            DomainGlobalEventType.MOON -> "sao.event.blood_moon.name"
+            DomainGlobalEventType.ECLIPSE -> "sao.event.solar_eclipse.name"
+            DomainGlobalEventType.EXPLOSION -> "sao.event.sunburst.name"
+            DomainGlobalEventType.COMET_CHAOS -> "sao.event.comet_chaos.name"
         }
 
     fun location(locationId: Int): String = "sao.location.$locationId.name"
