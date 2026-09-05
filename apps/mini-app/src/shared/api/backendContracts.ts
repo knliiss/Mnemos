@@ -169,3 +169,16 @@ export type EventFeedResponse = {
   items: EventFeedItemResponse[]
   cursor: string | null
 }
+
+export type SaoLocalizationPackResponse = {
+  locale: string
+  hash: string
+  properties: Record<string, string>
+  updatedAt: string
+}
+
+export type SaoLocalizationPackSummaryResponse = {
+  locale: string
+  hash: string
+  updatedAt: string
+}
