@@ -8,6 +8,7 @@ object ItemPersistenceMapper {
     fun ItemEntity.toDomain(): Item =
         Item(
             id = ItemId(id),
+            gameKey = gameKey,
             name = name,
             type = type,
             rarity = rarity,
