@@ -375,26 +375,119 @@ class StandardMessageResolver {
 
     private fun resolveEnglishDungeon(type: DomainDungeonType): DungeonPresentation =
         when (type) {
-            DomainDungeonType.EASY -> DungeonPresentation("🌿", "Easy dungeon opened", "Easy dungeon", "is open", "Time for a quick loot run.")
-            DomainDungeonType.MEDIUM -> DungeonPresentation("🏰", "Medium dungeon opened", "Medium dungeon", "is open", "The medium dungeon is now available.")
-            DomainDungeonType.HARD -> DungeonPresentation("🔥", "Hard dungeon opened", "Hard dungeon", "is open", "Get ready — this one will not be easy.")
-            DomainDungeonType.EXPERT -> DungeonPresentation("💀", "Expert dungeon opened", "Expert dungeon", "is open", "For players ready for the toughest challenge.")
+            DomainDungeonType.EASY ->
+                DungeonPresentation(
+                    emoji = "🌿",
+                    title = "Easy dungeon opened",
+                    compact = "Easy dungeon",
+                    compactSuffix = "is open",
+                    body = "Time for a quick loot run.",
+                )
+
+            DomainDungeonType.MEDIUM ->
+                DungeonPresentation(
+                    emoji = "🏰",
+                    title = "Medium dungeon opened",
+                    compact = "Medium dungeon",
+                    compactSuffix = "is open",
+                    body = "The medium dungeon is now available.",
+                )
+
+            DomainDungeonType.HARD ->
+                DungeonPresentation(
+                    emoji = "🔥",
+                    title = "Hard dungeon opened",
+                    compact = "Hard dungeon",
+                    compactSuffix = "is open",
+                    body = "Get ready — this one will not be easy.",
+                )
+
+            DomainDungeonType.EXPERT ->
+                DungeonPresentation(
+                    emoji = "💀",
+                    title = "Expert dungeon opened",
+                    compact = "Expert dungeon",
+                    compactSuffix = "is open",
+                    body = "For players ready for the toughest challenge.",
+                )
         }
 
     private fun resolveRussianDungeon(type: DomainDungeonType): DungeonPresentation =
         when (type) {
-            DomainDungeonType.EASY -> DungeonPresentation("🌿", "Открылось лёгкое подземелье", "Лёгкое подземелье", "уже открыто", "Самое время отправиться за быстрой добычей.")
-            DomainDungeonType.MEDIUM -> DungeonPresentation("🏰", "Открылось среднее подземелье", "Среднее подземелье", "уже открыто", "Подземелье средней сложности уже доступно.")
-            DomainDungeonType.HARD -> DungeonPresentation("🔥", "Открылось сложное подземелье", "Сложное подземелье", "уже открыто", "Приготовьтесь — лёгкой прогулки здесь не будет.")
-            DomainDungeonType.EXPERT -> DungeonPresentation("💀", "Открылось экспертное подземелье", "Экспертное подземелье", "уже открыто", "Для тех, кто готов к самому серьёзному испытанию.")
+            DomainDungeonType.EASY ->
+                DungeonPresentation(
+                    emoji = "🌿",
+                    title = "Открылось лёгкое подземелье",
+                    compact = "Лёгкое подземелье",
+                    compactSuffix = "уже открыто",
+                    body = "Самое время отправиться за быстрой добычей.",
+                )
+
+            DomainDungeonType.MEDIUM ->
+                DungeonPresentation(
+                    emoji = "🏰",
+                    title = "Открылось среднее подземелье",
+                    compact = "Среднее подземелье",
+                    compactSuffix = "уже открыто",
+                    body = "Подземелье средней сложности уже доступно.",
+                )
+
+            DomainDungeonType.HARD ->
+                DungeonPresentation(
+                    emoji = "🔥",
+                    title = "Открылось сложное подземелье",
+                    compact = "Сложное подземелье",
+                    compactSuffix = "уже открыто",
+                    body = "Приготовьтесь — лёгкой прогулки здесь не будет.",
+                )
+
+            DomainDungeonType.EXPERT ->
+                DungeonPresentation(
+                    emoji = "💀",
+                    title = "Открылось экспертное подземелье",
+                    compact = "Экспертное подземелье",
+                    compactSuffix = "уже открыто",
+                    body = "Для тех, кто готов к самому серьёзному испытанию.",
+                )
         }
 
     private fun resolveUkrainianDungeon(type: DomainDungeonType): DungeonPresentation =
         when (type) {
-            DomainDungeonType.EASY -> DungeonPresentation("🌿", "Відкрилося легке підземелля", "Легке підземелля", "вже відкрите", "Саме час вирушити за швидкою здобиччю.")
-            DomainDungeonType.MEDIUM -> DungeonPresentation("🏰", "Відкрилося середнє підземелля", "Середнє підземелля", "вже відкрите", "Підземелля середньої складності вже доступне.")
-            DomainDungeonType.HARD -> DungeonPresentation("🔥", "Відкрилося складне підземелля", "Складне підземелля", "вже відкрите", "Приготуйтеся — легкої прогулянки тут не буде.")
-            DomainDungeonType.EXPERT -> DungeonPresentation("💀", "Відкрилося експертне підземелля", "Експертне підземелля", "вже відкрите", "Для тих, хто готовий до найсерйознішого випробування.")
+            DomainDungeonType.EASY ->
+                DungeonPresentation(
+                    emoji = "🌿",
+                    title = "Відкрилося легке підземелля",
+                    compact = "Легке підземелля",
+                    compactSuffix = "вже відкрите",
+                    body = "Саме час вирушити за швидкою здобиччю.",
+                )
+
+            DomainDungeonType.MEDIUM ->
+                DungeonPresentation(
+                    emoji = "🏰",
+                    title = "Відкрилося середнє підземелля",
+                    compact = "Середнє підземелля",
+                    compactSuffix = "вже відкрите",
+                    body = "Підземелля середньої складності вже доступне.",
+                )
+
+            DomainDungeonType.HARD ->
+                DungeonPresentation(
+                    emoji = "🔥",
+                    title = "Відкрилося складне підземелля",
+                    compact = "Складне підземелля",
+                    compactSuffix = "вже відкрите",
+                    body = "Приготуйтеся — легкої прогулянки тут не буде.",
+                )
+
+            DomainDungeonType.EXPERT ->
+                DungeonPresentation(
+                    emoji = "💀",
+                    title = "Відкрилося експертне підземелля",
+                    compact = "Експертне підземелля",
+                    compactSuffix = "вже відкрите",
+                    body = "Для тих, хто готовий до найсерйознішого випробування.",
+                )
         }
 
     private fun resolveGlobal(
