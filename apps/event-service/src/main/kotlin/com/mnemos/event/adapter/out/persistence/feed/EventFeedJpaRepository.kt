@@ -16,7 +16,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     drop_event.id AS event_id,
                     drop_event.occurred_at AS occurred_at,
                     item.id AS item_id,
-                    item.game_key AS item_key,
+                    coalesce(item.game_key, identity.game_key) AS item_key,
                     item.name AS item_name,
                     item.rarity AS item_rarity,
                     item.type AS item_type,
@@ -27,6 +27,7 @@ interface EventFeedJpaRepository : JpaRepository<ItemDropEventEntity, UUID> {
                     NULL::text AS raid_locations
                 FROM item_drop_events drop_event
                 JOIN items item ON item.id = drop_event.item_id
+                LEFT JOIN item_canonical_identities identity ON identity.item_id = item.id
 
                 UNION ALL
 
