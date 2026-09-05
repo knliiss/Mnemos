@@ -31,6 +31,13 @@ function queryKey(query: EventFeedQuery): string {
   })
 }
 
+function appendUniqueEvents(current: FeedEvent[], next: FeedEvent[]): FeedEvent[] {
+  const knownIds = new Set(current.map((item) => item.id))
+  const uniqueItems = next.filter((item) => !knownIds.has(item.id))
+
+  return [...current, ...uniqueItems]
+}
+
 export function useEventFeedData(): EventFeedData {
   const [feed, setFeed] = useState<FeedEvent[]>([])
   const [eventCursor, setEventCursor] = useState<string | null>(null)
@@ -40,11 +47,15 @@ export function useEventFeedData(): EventFeedData {
   const requestRevision = useRef(0)
   const queryKeyRef = useRef<string | null>(null)
   const activeQueryRef = useRef<EventFeedQuery>({})
+  const feedRef = useRef<FeedEvent[]>([])
   const loadingRef = useRef(true)
 
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
     const revision = requestRevision.current + 1
     const nextQueryKey = queryKey(query)
+    const sameQuery = queryKeyRef.current === nextQueryKey
+    const limit = query.limit ?? 50
+    const targetItemCount = sameQuery ? Math.max(feedRef.current.length, limit) : limit
 
     requestRevision.current = revision
     activeQueryRef.current = query
@@ -52,27 +63,46 @@ export function useEventFeedData(): EventFeedData {
     setLoadingEvents(true)
     setEventsError(false)
 
-    if (queryKeyRef.current !== nextQueryKey) {
-      queryKeyRef.current = nextQueryKey
-      setFeed([])
-      setEventCursor(null)
-      setEventsHasMore(true)
-    }
-
     try {
-      const limit = query.limit ?? 50
-      const response = await getEventFeed({
-        ...query,
-        after: null,
-      })
+      let after: string | null = null
+      let nextFeed: FeedEvent[] = []
+      let nextCursor: string | null = null
+      let nextHasMore = true
+      const seenCursors = new Set<string>()
+
+      while (nextFeed.length < targetItemCount && nextHasMore) {
+        const response = await getEventFeed({
+          ...query,
+          after,
+        })
+
+        if (revision !== requestRevision.current) {
+          return
+        }
+
+        const pageItems = response.items.map(toFeedEvent)
+        nextFeed = appendUniqueEvents(nextFeed, pageItems)
+        nextCursor = response.cursor
+        nextHasMore = pageItems.length >= limit && response.cursor !== null
+
+        if (response.cursor === null || seenCursors.has(response.cursor)) {
+          nextHasMore = false
+          break
+        }
+
+        seenCursors.add(response.cursor)
+        after = response.cursor
+      }
 
       if (revision !== requestRevision.current) {
         return
       }
 
-      setFeed(response.items.map(toFeedEvent))
-      setEventCursor(response.cursor)
-      setEventsHasMore(response.items.length >= limit && response.cursor !== null)
+      queryKeyRef.current = nextQueryKey
+      feedRef.current = nextFeed
+      setFeed(nextFeed)
+      setEventCursor(nextCursor)
+      setEventsHasMore(nextHasMore)
     } catch (error) {
       if (revision === requestRevision.current) {
         setEventsError(true)
@@ -112,10 +142,10 @@ export function useEventFeedData(): EventFeedData {
         const nextItems = response.items.map(toFeedEvent)
 
         setFeed((current) => {
-          const knownIds = new Set(current.map((item) => item.id))
-          const uniqueItems = nextItems.filter((item) => !knownIds.has(item.id))
+          const merged = appendUniqueEvents(current, nextItems)
+          feedRef.current = merged
 
-          return [...current, ...uniqueItems]
+          return merged
         })
         setEventCursor(response.cursor)
         setEventsHasMore(nextItems.length >= limit && response.cursor !== null)
