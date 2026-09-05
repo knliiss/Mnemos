@@ -1,0 +1,107 @@
+name: Temporary Inventory Artwork Rebuild
+
+on:
+  push:
+    branches:
+      - fix/inventory-artwork-and-3d-heads
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/inventory-artwork-and-3d-heads
+          fetch-depth: 0
+
+      - name: Prepare Python renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 -m venv "$RUNNER_TEMP/inventory-artwork-venv"
+          "$RUNNER_TEMP/inventory-artwork-venv/bin/python" -m pip install \
+            --disable-pip-version-check \
+            numpy==2.3.2 \
+            Pillow==11.3.0
+
+      - name: Restore inventory weapon atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_file=".tmp/inventory-artwork/weapon-atlas.part00"
+          target_file="apps/mini-app/public/event-icons/sao-tracked-item-models.webp"
+
+          test -s "$source_file"
+          base64 --decode "$source_file" > "$target_file"
+
+      - name: Rebuild pet inventory atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          "$RUNNER_TEMP/inventory-artwork-venv/bin/python" scripts/render_sao_pet_artwork.py
+
+      - name: Validate generated artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          "$RUNNER_TEMP/inventory-artwork-venv/bin/python" - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          weapon = Path("apps/mini-app/public/event-icons/sao-tracked-item-models.webp")
+          pets = Path("apps/mini-app/public/event-icons/sao-pets.webp")
+
+          expected = {
+              weapon: (512, 512),
+              pets: (1024, 960),
+          }
+
+          for path, expected_size in expected.items():
+              image = Image.open(path)
+              image.load()
+
+              if image.size != expected_size:
+                  raise SystemExit(f"Unexpected artwork size for {path}: {image.size}")
+
+              payload = path.read_bytes()
+              if payload[:4] != b"RIFF" or payload[8:12] != b"WEBP":
+                  raise SystemExit(f"Invalid WebP payload: {path}")
+
+              if image.getbbox() is None:
+                  raise SystemExit(f"Artwork is fully transparent: {path}")
+
+              print(f"validated {path}: {image.size}, {len(payload)} bytes")
+          PY
+
+      - name: Commit generated inventory artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf .tmp/inventory-artwork
+          rm -f .github/workflows/tmp-rebuild-inventory-artwork.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git diff --cached --check
+
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+
+          git commit -m "Rebuild SAO inventory artwork"
+          git push origin HEAD:fix/inventory-artwork-and-3d-heads
