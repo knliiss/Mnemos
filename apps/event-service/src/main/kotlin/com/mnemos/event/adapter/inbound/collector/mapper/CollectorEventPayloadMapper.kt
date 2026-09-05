@@ -16,6 +16,7 @@ object CollectorEventPayloadMapper {
         when (this) {
             is ItemDropCollectorEventPayload ->
                 ItemDropCollectorEventReport(
+                    itemKey = itemKey,
                     itemName = itemName,
                     itemType = itemType,
                     itemRarity = itemRarity,
