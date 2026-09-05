@@ -93,7 +93,7 @@ const eventAssets: Partial<Record<Variant, string>> = {
   "booster-money": "/event-icons/booster-money.png",
   "booster-damage": "/event-icons/booster-damage.png",
   "booster-power": "/event-icons/booster-power.png",
-  dungeon: "/event-icons/dungeon.svg",
+  dungeon: "/event-icons/dungeon.png",
   raid: "/event-icons/raid.png",
   "global-moon": "/event-icons/moon.png",
   "global-eclipse": "/event-icons/eclipse.png",
