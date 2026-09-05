@@ -1,5 +1,5 @@
 .account-home-drops__head {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .account-home-panel__more {
