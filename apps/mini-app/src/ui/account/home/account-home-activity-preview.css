@@ -44,6 +44,32 @@
   pointer-events: none;
 }
 
+.account-home-drops .account-home-drop {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--event-accent, #9aa295) 12%,
+    rgba(235, 241, 213, 0.05)
+  );
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--event-accent, #9aa295) 6%, transparent),
+    transparent 34%
+  );
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--event-accent, #9aa295) 42%, transparent);
+}
+
+.account-home-drops .account-home-drop__copy strong {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 18%, #e6eae2);
+}
+
+.account-home-drops .account-home-drop__copy small {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 52%, #737c70);
+}
+
+.account-home-drops .account-home-drop time {
+  color: color-mix(in srgb, var(--event-accent, #9aa295) 24%, #747d71);
+}
+
 .account-home-drops__empty {
   display: grid;
   justify-items: start;
