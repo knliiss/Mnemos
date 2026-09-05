@@ -17,6 +17,7 @@ object ItemPersistenceMapper {
     fun ItemEntity.toCatalogItem(): ItemCatalogItem =
         ItemCatalogItem(
             id = ItemId(id),
+            gameKey = gameKey,
             name = name,
             type = type,
             rarity = rarity,
