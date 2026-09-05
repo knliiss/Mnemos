@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Search SAO payload for resource-pack identities
+      - name: Rank SAO jewelry identities against resource textures
         shell: bash
         run: |
           set -euo pipefail
@@ -29,50 +29,56 @@ jobs:
           INDEX="$index" SAO="$sao" python3 - <<'PY'
           import json
           import os
+          import re
           import subprocess
 
           index = json.load(open(os.environ["INDEX"], encoding="utf-8"))
           russian = next(entry for entry in index["langs"] if entry.get("lang") == "ru_RU")
           pie = next(pie for pie in russian["pies"] if pie.get("pieKey") == "sao")
-          print("sao_hash=" + pie["hash"])
           subprocess.run(
               ["curl", "--fail", "--silent", "--show-error", "--location", pie["url"], "--output", os.environ["SAO"]],
               check=True,
           )
-          PY
 
-          python3 - <<'PY' "$sao"
-          import json
-          import sys
+          payload = json.load(open(os.environ["SAO"], encoding="utf-8"))
+          found = {}
+          pattern = re.compile(r"^sao\.item\.(d[1-4]_(\d+))\.name$")
 
-          payload = json.load(open(sys.argv[1], encoding="utf-8"))
-          needles = (
-              "bracelet_a_1", "bracelet_a_2", "bracelet_b_1", "bracelet_c_1",
-              "necklace_a_1", "necklace_b_1", "necklace_c_1", "necklace_d_1", "necklace_e_1",
-              "ring_a_1", "ring_b_1", "ring_c_1", "ring_d_1", "ring_e_1",
-              "d2_n_1", "d2_n_4", "d2_n_52",
-              "d3ring1", "d3ring4", "d3ring49",
-              "d4ring1", "d4ring4", "d4ring52",
-          )
-
-          matches = []
-
-          def walk(value, trail=()):
+          def walk(value):
               if isinstance(value, dict):
                   for key, child in value.items():
-                      text = str(key)
-                      if any(needle.lower() in text.lower() for needle in needles):
-                          matches.append(("key", "/".join(trail + (text,)), repr(child)[:1200]))
-                      walk(child, trail + (text,))
+                      match = pattern.match(str(key))
+                      if match:
+                          found[match.group(1)] = child
+                      walk(child)
               elif isinstance(value, list):
-                  for index, child in enumerate(value):
-                      walk(child, trail + (str(index),))
-              elif isinstance(value, str):
-                  if any(needle.lower() in value.lower() for needle in needles):
-                      matches.append(("value", "/".join(trail), repr(value)[:1200]))
+                  for child in value:
+                      walk(child)
 
           walk(payload)
-          print("identity_matches=" + str(len(matches)))
-          for kind, trail, value in matches:
-              print(f"{kind}_match={trail} => {value}")
+
+          selected = {
+              "d1_284", "d1_324", "d1_404", "d1_444", "d1_484", "d1_503", "d1_504",
+              "d2_44", "d2_84", "d2_124", "d2_164", "d2_204", "d2_244", "d2_284", "d2_324", "d2_364", "d2_404", "d2_444", "d2_484", "d2_504",
+              "d3_44", "d3_84", "d3_124", "d3_164", "d3_244", "d3_284", "d3_324", "d3_364", "d3_404", "d3_444", "d3_484", "d3_504",
+              "d4_44", "d4_84", "d4_124", "d4_164", "d4_204", "d4_244", "d4_284", "d4_324", "d4_364", "d4_404", "d4_444",
+          }
+
+          for family in ("d1", "d2", "d3", "d4"):
+              items = [(key, value) for key, value in found.items() if key.startswith(family + "_")]
+              items.sort(key=lambda pair: int(pair[0].split("_", 1)[1]))
+              print(f"family={family} count={len(items)}")
+              for rank, (key, value) in enumerate(items, start=1):
+                  if key in selected:
+                      print(f"selected_rank={key} rank={rank} value={value!r}")
+
+              expected = []
+              for base in (4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 50):
+                  for rarity in (1, 2, 3, 4):
+                      expected.append(base * 10 + rarity if base >= 10 else base * 10 + rarity)
+              actual = {int(key.split("_", 1)[1]) for key, _ in items}
+              # Print numeric gaps only inside the canonical group pattern observed in the feed.
+              canonical = [group * 10 + rarity for group in (4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 50) for rarity in (1, 2, 3, 4)]
+              gaps = [number for number in canonical if number not in actual]
+              print(f"gaps={family}:{','.join(map(str, gaps))}")
           PY
