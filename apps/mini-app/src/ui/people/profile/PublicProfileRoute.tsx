@@ -7,7 +7,6 @@ import { Glyph } from "../../shared/MnemosIcon"
 import { PageHeader } from "../../shared/Primitives"
 import { FeatureError } from "../../system/FeatureError"
 import { FeatureLoading } from "../../system/FeatureLoading"
-import { PublicProfileActivityPage } from "./activity/PublicProfileActivityPage"
 import "./profile-state.css"
 import { PublicProfilePage } from "./PublicProfilePage"
 
@@ -15,12 +14,11 @@ type Props = {
   activeAccount: Account
   accountId?: string
   nickname?: string
-  section?: string
   navigate: (route: Route) => void
   back: () => void
 }
 
-type NicknameProfileRouteProps = Omit<Props, "accountId" | "section"> & {
+type NicknameProfileRouteProps = Omit<Props, "accountId"> & {
   nickname: string
 }
 
@@ -105,25 +103,7 @@ function NicknameProfileRoute({
   )
 }
 
-export function PublicProfileRoute({
-  activeAccount,
-  accountId,
-  nickname,
-  section,
-  navigate,
-  back,
-}: Props) {
-  if (section === "activity") {
-    return (
-      <PublicProfileActivityPage
-        accountId={accountId}
-        nickname={nickname}
-        navigate={navigate}
-        back={back}
-      />
-    )
-  }
-
+export function PublicProfileRoute({ activeAccount, accountId, nickname, navigate, back }: Props) {
   const directAccountId = accountId?.trim()
 
   if (directAccountId) {
