@@ -44,6 +44,9 @@ services:
       ACCOUNT_SERVICE_URL: http://account-service:8081
       NOTIFICATION_SERVICE_ACCOUNT_API_KEY: ${NOTIFICATION_SERVICE_ACCOUNT_API_KEY}
 
+      EVENT_SERVICE_URL: http://event-service:8083
+      NOTIFICATION_SERVICE_EVENT_API_KEY: ${NOTIFICATION_SERVICE_EVENT_API_KEY}
+
       NOTIFICATION_DELIVERY_ENABLED: ${TELEGRAM_BOT_ENABLED:-false}
       TELEGRAM_BOT_SERVICE_URL: http://telegram-bot-service:8094
       NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY: ${NOTIFICATION_SERVICE_TELEGRAM_BOT_API_KEY}
@@ -56,6 +59,8 @@ services:
       app-postgres-security-init:
         condition: service_completed_successfully
       account-service:
+        condition: service_started
+      event-service:
         condition: service_started
       keycloak:
         condition: service_healthy
