@@ -181,11 +181,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = useCallback(
     async (language: LocalizationLanguage) => {
-      await updateCurrentLanguage(language)
+      const updatedUser = await updateCurrentLanguage(language)
+
       await i18n.changeLanguage(language.toLowerCase())
-      await refresh()
+      setContext((current) =>
+        current === null
+          ? current
+          : {
+              ...current,
+              user: updatedUser,
+            },
+      )
     },
-    [i18n, refresh],
+    [i18n],
   )
 
   useEffect(() => {
