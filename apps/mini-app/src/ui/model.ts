@@ -152,6 +152,7 @@ export type FeedEvent = {
   relative: string
   meta?: string
   rarity?: ItemRarity
+  localizationKey?: string
 }
 
 type SubscriptionBase = {
