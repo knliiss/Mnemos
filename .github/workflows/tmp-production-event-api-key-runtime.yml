@@ -20,6 +20,12 @@ jobs:
           ref: a8235ff2f338e50195546bf27e9578d6a7d12aaa
           persist-credentials: false
 
+      - name: Install image inspector
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet pillow
+
       - name: Inspect tracked item atlas and deployed asset
         shell: bash
         run: |
@@ -28,54 +34,54 @@ jobs:
           atlas="apps/mini-app/public/event-icons/sao-tracked-items.webp"
           prod="$RUNNER_TEMP/prod-sao-tracked-items.webp"
 
-          file "$atlas"
-          identify "$atlas"
-
-          echo "repo_sha256=$(sha256sum "$atlas" | awk '{print $1}')"
-
           curl --fail --silent --show-error --location \
             https://app.knalis.rest/event-icons/sao-tracked-items.webp \
             --output "$prod"
 
-          file "$prod"
-          identify "$prod"
+          echo "repo_sha256=$(sha256sum "$atlas" | awk '{print $1}')"
           echo "prod_sha256=$(sha256sum "$prod" | awk '{print $1}')"
 
           if ! cmp --silent "$atlas" "$prod"; then
             echo "Production atlas differs from repository atlas" >&2
-            exit 1
+            exit 2
           fi
 
-          mean_alpha="$(convert "$atlas" -alpha extract -format '%[fx:mean]' info:)"
-          echo "atlas_mean_alpha=$mean_alpha"
+          ATLAS="$atlas" PROD="$prod" python3 - <<'PY'
+          import os
+          from PIL import Image
 
-          empty=0
-          nonempty=0
+          atlas_path = os.environ["ATLAS"]
+          prod_path = os.environ["PROD"]
 
-          for index in $(seq 0 164); do
-            column=$((index % 16))
-            row=$((index / 16))
-            x=$((column * 16))
-            y=$((row * 16))
+          for label, path in (("repo", atlas_path), ("prod", prod_path)):
+              image = Image.open(path).convert("RGBA")
+              print(f"{label}_size={image.size[0]}x{image.size[1]}")
+              print(f"{label}_mode={image.mode}")
 
-            alpha="$(
-              convert "$atlas" \
-                -crop "16x16+$x+$y" \
-                +repage \
-                -alpha extract \
-                -format '%[fx:mean]' \
-                info:
-            )"
+          image = Image.open(atlas_path).convert("RGBA")
+          if image.size != (256, 176):
+              raise SystemExit(f"Unexpected atlas size: {image.size}")
 
-            if awk -v alpha="$alpha" 'BEGIN { exit !(alpha < 0.001) }'; then
-              echo "empty_cell=$index"
-              empty=$((empty + 1))
-            else
-              nonempty=$((nonempty + 1))
-            fi
-          done
+          empty = []
+          occupied = []
 
-          echo "nonempty_cells=$nonempty"
-          echo "empty_cells=$empty"
+          for index in range(165):
+              column = index % 16
+              row = index // 16
+              crop = image.crop((column * 16, row * 16, column * 16 + 16, row * 16 + 16))
+              alpha = crop.getchannel("A")
+              nonzero = sum(1 for value in alpha.getdata() if value != 0)
 
-          test "$nonempty" -gt 0
+              if nonzero == 0:
+                  empty.append(index)
+              else:
+                  occupied.append((index, nonzero))
+
+          print(f"occupied_cells={len(occupied)}")
+          print(f"empty_cells={len(empty)}")
+          print(f"empty_cell_indexes={','.join(map(str, empty))}")
+          print("sample_occupied=" + ",".join(f"{index}:{pixels}" for index, pixels in occupied[:20]))
+
+          if not occupied:
+              raise SystemExit("Tracked item atlas has no visible pixels")
+          PY
