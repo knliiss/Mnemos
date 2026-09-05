@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { Glyph } from "../../shared/MnemosIcon"
-import { createSteveHeadTexture, renderMinecraftHead } from "./minecraftHeadRenderer"
+import { createSteveHeadTexture, renderMinecraftHead } from "../../shared/minecraftHeadRenderer"
 import { resolveMinecraftSkinTextureScale } from "./minecraftSkinTexture"
 import "./cristalix-head.css"
 

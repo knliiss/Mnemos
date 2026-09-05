@@ -2,7 +2,8 @@ import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
 import "../../events/event-art.css"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
-import { resolveSaoPetAtlasSprite } from "./saoPetArtwork"
+import { PetInventoryArt } from "./PetInventoryArt"
+import { resolveSaoPetInventoryTextureUrl } from "./saoPetInventoryArtwork"
 import { resolveSaoItemAtlasSprite, type SaoItemAtlasSprite } from "./saoTrackedItemArtwork"
 
 type Props = {
@@ -16,6 +17,7 @@ export function EventArt({ event, size = 46 }: Props) {
       ? `event-art--rarity-${event.rarity.toLowerCase()}`
       : ""
   const itemSprite = resolveEventItemSprite(event)
+  const petTextureUrl = resolveEventPetTextureUrl(event)
 
   return (
     <ArtFrame
@@ -23,6 +25,7 @@ export function EventArt({ event, size = 46 }: Props) {
       size={size}
       extraClass={rarityClass}
       itemSprite={itemSprite}
+      petTextureUrl={petTextureUrl}
     />
   )
 }
@@ -33,10 +36,18 @@ function resolveEventItemSprite(event: FeedEvent): SaoItemAtlasSprite | null {
   }
 
   if (event.meta === "PET") {
-    return resolveSaoPetAtlasSprite(event.localizationKey)
+    return null
   }
 
   return resolveSaoItemAtlasSprite(event.localizationKey)
+}
+
+function resolveEventPetTextureUrl(event: FeedEvent): string | null {
+  if (event.kind !== "ITEM_DROP" || event.meta !== "PET") {
+    return null
+  }
+
+  return resolveSaoPetInventoryTextureUrl(event.localizationKey)
 }
 
 export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
@@ -129,13 +140,15 @@ function ArtFrame({
   size,
   extraClass = "",
   itemSprite = null,
+  petTextureUrl = null,
 }: {
   variant: Variant
   size: number
   extraClass?: string
   itemSprite?: SaoItemAtlasSprite | null
+  petTextureUrl?: string | null
 }) {
-  const asset = itemSprite ? null : eventAssets[variant]
+  const asset = itemSprite || petTextureUrl ? null : eventAssets[variant]
   const global = variant.startsWith("global-")
   const contentSize = global
     ? Math.min(24, Math.max(16, Math.round(size * 0.52)))
@@ -148,11 +161,13 @@ function ArtFrame({
 
   return (
     <span
-      className={`event-art event-art--${variant} ${asset || itemSprite ? "event-art--asset" : "event-art--vectorized"} ${extraClass}`.trim()}
+      className={`event-art event-art--${variant} ${asset || itemSprite || petTextureUrl ? "event-art--asset" : "event-art--vectorized"} ${extraClass}`.trim()}
       style={style}
       aria-hidden="true"
     >
-      {itemSprite ? (
+      {petTextureUrl ? (
+        <PetInventoryArt textureUrl={petTextureUrl} />
+      ) : itemSprite ? (
         <span className="event-art__image" style={itemSpriteStyle(itemSprite, contentSize)} />
       ) : asset ? (
         <img className="event-art__image" src={asset} alt="" draggable={false} decoding="async" />
