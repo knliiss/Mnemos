@@ -6,6 +6,7 @@ import java.util.UUID
 
 data class ItemCatalogResponse(
     val id: UUID,
+    val gameKey: String?,
     val name: String,
     val type: DomainItemType,
     val rarity: DomainItemRarity,
