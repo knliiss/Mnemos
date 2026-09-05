@@ -51,7 +51,7 @@ fi
 
 require_contains "$csp" "default-src 'self'" "a self-only default source"
 require_contains "$csp" "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com" "the required style sources"
-require_contains "$csp" "img-src 'self' data: blob: https://api.knalis.rest https://webdata.c7x.dev" "the required image sources"
+require_contains "$csp" "img-src 'self' data: blob: https://api.knalis.rest https://webdata.c7x.dev https://rustorage.c7x.dev" "the required image sources including canonical SAO PET textures"
 require_contains "$csp" "connect-src 'self' https://api.knalis.rest https://auth.knalis.rest" "the production API and Keycloak connection sources"
 require_contains "$csp" "font-src 'self' data: https://fonts.gstatic.com" "the required font sources"
 require_contains "$csp" "frame-src 'self' https://auth.knalis.rest" "the Keycloak silent SSO frame source"
