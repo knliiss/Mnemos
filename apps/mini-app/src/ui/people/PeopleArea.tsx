@@ -3,6 +3,7 @@ import type { Account, Route } from "../model"
 import type { UserBadgesController } from "../shell/badges/useUserBadges"
 import { FeatureLoading } from "../system/FeatureLoading"
 import { UserPersonalizationSettings } from "./personalization/UserPersonalizationSettings"
+import { PublicProfileActivityPage } from "./profile/activity/PublicProfileActivityPage"
 import { PublicProfileRoute } from "./profile/PublicProfileRoute"
 import { SearchPage } from "./profile/SearchPage"
 import { SaoRealmPage } from "./realms/SaoRealmPage"
@@ -39,13 +40,23 @@ export function PeopleArea(props: Props) {
     return <SaoRealmPage navigate={props.navigate} back={props.back} />
   }
 
+  if (props.routeId === "profile-activity" && props.activeAccount) {
+    return (
+      <PublicProfileActivityPage
+        accountId={props.params?.accountId}
+        nickname={props.params?.nickname}
+        navigate={props.navigate}
+        back={props.back}
+      />
+    )
+  }
+
   if (props.routeId === "public-profile" && props.activeAccount) {
     return (
       <PublicProfileRoute
         activeAccount={props.activeAccount}
         accountId={props.params?.accountId}
         nickname={props.params?.nickname}
-        section={props.params?.section}
         navigate={props.navigate}
         back={props.back}
       />
