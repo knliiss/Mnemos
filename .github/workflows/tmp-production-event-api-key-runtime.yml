@@ -1,4 +1,4 @@
-name: Temporary SAO Atlas Recovery
+name: Temporary SAO Localization Diagnostics
 
 on:
   push:
@@ -9,45 +9,56 @@ permissions:
   contents: read
 
 jobs:
-  recover:
+  inspect:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
-      - name: Checkout atlas source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: 4dfd8fb8ef7b4e63662c381f4476d22811df1e59
-          persist-credentials: false
-
-      - name: Try independent WebP decoders
+      - name: Inspect canonical SAO jewelry localization
         shell: bash
         run: |
           set -euo pipefail
 
-          atlas="apps/mini-app/public/event-icons/sao-tracked-items.webp"
-          output="$RUNNER_TEMP/sao-tracked-items.png"
+          curl --fail --silent --show-error --location \
+            https://webdata.c7x.dev/client/lang.json \
+            --output "$RUNNER_TEMP/lang.json"
 
-          file "$atlas"
-          ffprobe -hide_banner "$atlas" || true
-
-          if ffmpeg -v error -y -i "$atlas" "$output"; then
-            echo "ffmpeg_decode=success"
-            file "$output"
-            python3 - <<'PY' "$output"
+          python3 - <<'PY' "$RUNNER_TEMP/lang.json"
+          import json
           import sys
-          from PIL import Image
 
           path = sys.argv[1]
-          image = Image.open(path).convert("RGBA")
-          print(f"decoded_size={image.width}x{image.height}")
-          visible = sum(1 for pixel in image.getdata() if pixel[3] != 0)
-          print(f"visible_pixels={visible}")
-          if image.size != (256, 176) or visible == 0:
-              raise SystemExit("Recovered atlas is invalid")
-          PY
-            exit 0
-          fi
+          data = json.load(open(path, encoding="utf-8"))
 
-          echo "ffmpeg_decode=failed"
-          exit 1
+          print("top_level_type=" + type(data).__name__)
+          if isinstance(data, dict):
+              print("top_level_keys=" + ",".join(list(data)[:20]))
+
+          targets = {
+              "sao.item.d1_284.name",
+              "sao.item.d1_324.name",
+              "sao.item.d1_404.name",
+              "sao.item.d1_444.name",
+              "sao.item.d1_484.name",
+              "sao.item.d1_503.name",
+              "sao.item.d1_504.name",
+              "sao.item.d2_44.name",
+              "sao.item.d2_84.name",
+              "sao.item.d2_124.name",
+              "sao.item.d2_504.name",
+              "sao.item.d3_44.name",
+              "sao.item.d4_44.name",
+          }
+
+          def walk(value, trail=()):
+              if isinstance(value, dict):
+                  for key, child in value.items():
+                      if key in targets:
+                          print("match=" + "/".join(trail + (key,)) + " => " + repr(child))
+                      walk(child, trail + (str(key),))
+              elif isinstance(value, list):
+                  for index, child in enumerate(value):
+                      walk(child, trail + (str(index),))
+
+          walk(data)
+          PY
