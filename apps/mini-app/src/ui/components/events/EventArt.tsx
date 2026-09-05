@@ -149,10 +149,7 @@ function ArtFrame({
       aria-hidden="true"
     >
       {itemSprite ? (
-        <span
-          className="event-art__image"
-          style={itemSpriteStyle(itemSprite, contentSize)}
-        />
+        <span className="event-art__image" style={itemSpriteStyle(itemSprite, contentSize)} />
       ) : asset ? (
         <img className="event-art__image" src={asset} alt="" draggable={false} decoding="async" />
       ) : (
