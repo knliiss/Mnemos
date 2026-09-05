@@ -12,6 +12,7 @@ sealed interface NotificationPayload {
 
 data class ItemDropNotificationPayload(
     val droppedFor: String,
+    val itemKey: String?,
     val itemName: String,
     val itemType: NotificationItemType,
     val itemRarity: NotificationItemRarity,
