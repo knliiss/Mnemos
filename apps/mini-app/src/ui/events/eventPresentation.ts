@@ -56,9 +56,7 @@ export function eventFeedDescription(t: TFunction, event: FeedEvent) {
 
   const locations = localizedRaidLocations(t, event)
 
-  return locations
-    ? t("events.feed.locations", { locations })
-    : t("events.feed.raidDescription")
+  return locations ? t("events.feed.locations", { locations }) : t("events.feed.raidDescription")
 }
 
 export function eventKindCaption(t: TFunction, event: FeedEvent) {
