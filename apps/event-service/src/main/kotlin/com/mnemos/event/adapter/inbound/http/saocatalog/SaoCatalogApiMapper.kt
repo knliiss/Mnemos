@@ -17,7 +17,7 @@ object SaoCatalogApiMapper {
 
     fun SaoCatalogItemPage.toResponse(): SaoCatalogItemPageResponse =
         SaoCatalogItemPageResponse(
-            items = items.map(SaoCatalogItem::toResponse),
+            items = items.map { item -> item.toResponse() },
             page = page,
             size = size,
             totalItems = totalItems,
