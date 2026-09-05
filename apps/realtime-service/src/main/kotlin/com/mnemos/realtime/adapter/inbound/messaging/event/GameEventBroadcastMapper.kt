@@ -53,7 +53,14 @@ object GameEventBroadcastMapper {
                     eventType = EventEventType.RAID_STARTED,
                     occurredAt = occurredAt,
                     itemDrop = null,
-                    raid = GameEventBroadcastPayload.Raid(locations = locations),
+                    raid =
+                        GameEventBroadcastPayload.Raid(
+                            locations = locations,
+                            locationLocalizationKeys =
+                                locations
+                                    .sorted()
+                                    .map { location -> "sao.location.$location.name" },
+                        ),
                     booster = null,
                     global = null,
                 ),
@@ -77,6 +84,7 @@ object GameEventBroadcastMapper {
                         GameEventBroadcastPayload.Booster(
                             activatedBy = activatedBy,
                             type = type.name,
+                            localizationKey = boosterLocalizationKey(type.name),
                         ),
                     global = null,
                 ),
@@ -97,9 +105,32 @@ object GameEventBroadcastMapper {
                     itemDrop = null,
                     raid = null,
                     booster = null,
-                    global = GameEventBroadcastPayload.Global(type = type.name),
+                    global =
+                        GameEventBroadcastPayload.Global(
+                            type = type.name,
+                            localizationKey = globalLocalizationKey(type.name),
+                        ),
                 ),
         )
+
+    private fun boosterLocalizationKey(type: String): String =
+        when (type) {
+            "LUCK" -> "sao.enum.boost.luck.name"
+            "MONEY" -> "sao.enum.boost.coin.name"
+            "DAMAGE" -> "sao.enum.boost.damage.name"
+            "POWER" -> "sao.enum.boost.power.name"
+            else -> error("Unsupported booster type: $type")
+        }
+
+    private fun globalLocalizationKey(type: String): String =
+        when (type) {
+            "DARKNESS" -> "sao.event.darkness.alert"
+            "MOON" -> "sao.event.blood_moon.alert"
+            "ECLIPSE" -> "sao.event.solar_eclipse.alert"
+            "EXPLOSION" -> "sao.event.sunburst.alert"
+            "COMET_CHAOS" -> "sao.event.comet_chaos.alert"
+            else -> error("Unsupported global event type: $type")
+        }
 
     private fun gameEventBroadcast(
         eventId: UUID,
