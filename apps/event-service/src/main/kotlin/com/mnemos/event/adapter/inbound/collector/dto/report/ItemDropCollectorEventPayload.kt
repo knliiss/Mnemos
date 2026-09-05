@@ -7,8 +7,13 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class ItemDropCollectorEventPayload(
+    @field:Size(max = 160)
+    @field:Pattern(
+        regexp = "^sao\\.item\\.[A-Za-z0-9_.-]+\\.name$",
+    )
+    val itemKey: String? = null,
     @field:NotBlank
-    @field:Size(min = 4, max = 24)
+    @field:Size(min = 4, max = 96)
     val itemName: String,
     val itemType: DomainItemType,
     val itemRarity: DomainItemRarity,
