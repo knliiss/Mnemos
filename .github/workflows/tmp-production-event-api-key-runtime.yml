@@ -1,4 +1,4 @@
-name: Temporary Prioritize Emergency Event Deploy
+name: Temporary SAO Artwork Diagnostics
 
 on:
   push:
@@ -6,41 +6,76 @@ on:
       - ops/production-event-api-key-runtime
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
-  cancel-superseded-notification:
+  inspect:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
-      - name: Cancel notification deploy before production mutation
+      - name: Checkout production source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: a8235ff2f338e50195546bf27e9578d6a7d12aaa
+          persist-credentials: false
+
+      - name: Inspect tracked item atlas and deployed asset
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          RUN_ID: "33952675060"
         run: |
           set -euo pipefail
 
-          response_file="$RUNNER_TEMP/cancel-response.json"
-          status="$(
-            curl \
-              --silent \
-              --show-error \
-              --output "$response_file" \
-              --write-out '%{http_code}' \
-              --request POST \
-              --header "Accept: application/vnd.github+json" \
-              --header "Authorization: Bearer $GH_TOKEN" \
-              --header "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/$REPOSITORY/actions/runs/$RUN_ID/cancel"
-          )"
+          atlas="apps/mini-app/public/event-icons/sao-tracked-items.webp"
+          prod="$RUNNER_TEMP/prod-sao-tracked-items.webp"
 
-          if [ "$status" != "202" ] && [ "$status" != "409" ]; then
-            cat "$response_file" >&2
+          file "$atlas"
+          identify "$atlas"
+
+          echo "repo_sha256=$(sha256sum "$atlas" | awk '{print $1}')"
+
+          curl --fail --silent --show-error --location \
+            https://app.knalis.rest/event-icons/sao-tracked-items.webp \
+            --output "$prod"
+
+          file "$prod"
+          identify "$prod"
+          echo "prod_sha256=$(sha256sum "$prod" | awk '{print $1}')"
+
+          if ! cmp --silent "$atlas" "$prod"; then
+            echo "Production atlas differs from repository atlas" >&2
             exit 1
           fi
 
-          echo "Notification deploy cancellation request accepted or run already terminal."
+          mean_alpha="$(convert "$atlas" -alpha extract -format '%[fx:mean]' info:)"
+          echo "atlas_mean_alpha=$mean_alpha"
+
+          empty=0
+          nonempty=0
+
+          for index in $(seq 0 164); do
+            column=$((index % 16))
+            row=$((index / 16))
+            x=$((column * 16))
+            y=$((row * 16))
+
+            alpha="$(
+              convert "$atlas" \
+                -crop "16x16+$x+$y" \
+                +repage \
+                -alpha extract \
+                -format '%[fx:mean]' \
+                info:
+            )"
+
+            if awk -v alpha="$alpha" 'BEGIN { exit !(alpha < 0.001) }'; then
+              echo "empty_cell=$index"
+              empty=$((empty + 1))
+            else
+              nonempty=$((nonempty + 1))
+            fi
+          done
+
+          echo "nonempty_cells=$nonempty"
+          echo "empty_cells=$empty"
+
+          test "$nonempty" -gt 0
