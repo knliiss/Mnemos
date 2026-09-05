@@ -1,5 +1,7 @@
 package com.mnemos.notification.adapter.out.message.local
 
+import com.mnemos.common.core.model.user.LocalizationLanguage
+import com.mnemos.notification.application.notification.localization.model.NotificationLocalizationContext
 import com.mnemos.notification.application.notification.model.BoosterNotificationPayload
 import com.mnemos.notification.application.notification.model.DungeonNotificationPayload
 import com.mnemos.notification.application.notification.model.GlobalNotificationPayload
@@ -20,18 +22,24 @@ class PersonalizedMessageResolver {
     fun resolve(
         item: NotificationItem,
         pack: ActiveNotificationPack,
+    ): ResolvedNotification = resolve(item, pack, DEFAULT_LOCALIZATION)
+
+    fun resolve(
+        item: NotificationItem,
+        pack: ActiveNotificationPack,
+        localization: NotificationLocalizationContext,
     ): ResolvedNotification {
         val payload = item.payload
         val template = pack.templates.getValue(payload.type)
         val variant = selectVariant(template, payload)
         val selected = SelectedTemplate.from(template, variant)
-        val values = values(payload)
+        val values = values(payload, localization)
 
         return ResolvedNotification(
             type = payload.type,
-            soloTitle = selected.withEmoji(render(selected.soloTitle, values, pack)),
-            soloBody = render(selected.soloBody, values, pack),
-            compact = selected.withEmoji(render(selected.compact, values, pack)),
+            soloTitle = selected.withEmoji(render(selected.soloTitle, values, pack, localization)),
+            soloBody = render(selected.soloBody, values, pack, localization),
+            compact = selected.withEmoji(render(selected.compact, values, pack, localization)),
             aggregateTitle = selected.withEmoji(TelegramHtmlEscaper.escape(selected.aggregateTitle)),
             defaultAggregateTitle = template.withEmoji(TelegramHtmlEscaper.escape(template.aggregateTitle)),
             variantId = variant?.id,
@@ -74,12 +82,15 @@ class PersonalizedMessageResolver {
             is PlayerOfflineNotificationPayload -> emptyMap()
         }
 
-    private fun values(payload: NotificationPayload): Map<String, String> =
+    private fun values(
+        payload: NotificationPayload,
+        localization: NotificationLocalizationContext,
+    ): Map<String, String> =
         when (payload) {
             is ItemDropNotificationPayload ->
                 mapOf(
                     "player" to payload.droppedFor,
-                    "item" to payload.itemName,
+                    "item" to localization.itemName(payload),
                     "rarity" to payload.itemRarity.name,
                     "itemType" to payload.itemType.name,
                 )
@@ -92,7 +103,7 @@ class PersonalizedMessageResolver {
 
             is DungeonNotificationPayload -> mapOf("dungeon" to payload.dungeonType.name)
 
-            is RaidNotificationPayload -> mapOf("locations" to payload.locations.sorted().joinToString(", "))
+            is RaidNotificationPayload -> mapOf("locations" to localization.raidLocations(payload))
 
             is GlobalNotificationPayload -> mapOf("event" to payload.eventType.name)
 
@@ -108,6 +119,7 @@ class PersonalizedMessageResolver {
         template: String,
         values: Map<String, String>,
         pack: ActiveNotificationPack,
+        localization: NotificationLocalizationContext,
     ): String {
         val escapedTemplate = TelegramHtmlEscaper.escape(template)
 
@@ -118,7 +130,7 @@ class PersonalizedMessageResolver {
                 requireNotNull(values[name]) {
                     "Notification template value is missing for placeholder {$name}"
                 }
-            val renderedValue = resolveValue(pack, name, rawValue, form)
+            val renderedValue = resolveValue(pack, name, rawValue, form, localization)
 
             TelegramHtmlEscaper.escape(renderedValue)
         }
@@ -129,6 +141,7 @@ class PersonalizedMessageResolver {
         placeholder: String,
         rawValue: String,
         form: String?,
+        localization: NotificationLocalizationContext,
     ): String {
         val valueKey = NotificationPackValueKey.forPlaceholder(placeholder)
 
@@ -146,12 +159,16 @@ class PersonalizedMessageResolver {
             return packValue
         }
 
-        return StandardNotificationValueDictionary.resolve(valueKey, rawValue, form)
-            ?: if (form == null || form == "default") {
-                rawValue
-            } else {
-                error("Notification value $valueKey/$rawValue does not define form $form")
-            }
+        return StandardNotificationValueDictionary.resolve(
+            key = valueKey,
+            rawValue = rawValue,
+            form = form,
+            localization = localization,
+        ) ?: if (form == null || form == "default") {
+            rawValue
+        } else {
+            error("Notification value $valueKey/$rawValue does not define form $form")
+        }
     }
 
     private fun SelectedTemplate.withEmoji(value: String): String =
@@ -202,5 +219,10 @@ class PersonalizedMessageResolver {
 
     private companion object {
         val PLACEHOLDER = Regex("\\{([a-zA-Z][a-zA-Z0-9_]*)(?:\\.([a-zA-Z][a-zA-Z0-9_]*))?}")
+        val DEFAULT_LOCALIZATION =
+            NotificationLocalizationContext(
+                language = LocalizationLanguage.RU,
+                saoProperties = emptyMap(),
+            )
     }
 }
