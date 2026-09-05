@@ -31,6 +31,7 @@ class ConfirmedEventRecorder(
             is ItemDropCollectorEventReport ->
                 recordItemDropEventUseCase.execute(
                     RecordItemDropEventCommand(
+                        itemKey = report.itemKey,
                         itemName = report.itemName,
                         itemType = report.itemType,
                         itemRarity = report.itemRarity,
