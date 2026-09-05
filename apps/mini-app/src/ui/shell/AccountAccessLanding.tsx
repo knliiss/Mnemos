@@ -5,6 +5,7 @@ import "../account/onboarding/account-onboarding.css"
 import "../account/onboarding/account-onboarding-layout.css"
 import "../account/onboarding/account-access-landing.css"
 import { AccountArea } from "../account/AccountArea"
+import { CristalixHead } from "../components/profile/CristalixHead"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, Route } from "../model"
 
@@ -83,7 +84,11 @@ export function AccountAccessLanding({ route, navigate, back }: Props) {
                   onClick={() => void selectAccount(account)}
                 >
                   <span className="account-access-landing__skin" aria-hidden="true">
-                    <img src={account.skinUrl} alt="" />
+                    <CristalixHead
+                      skinUrl={account.skinUrl}
+                      size={52}
+                      className="account-access-landing__head"
+                    />
                   </span>
 
                   <span className="account-access-landing__account-copy">
