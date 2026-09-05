@@ -33,7 +33,8 @@ class SaoCatalogParser {
             itemKeys.mapNotNull { gameKey ->
                 val source = selectSourceValue(gameKey, preferredPack, packs) ?: return@mapNotNull null
                 val type = resolveType(gameKey)
-                val rarity = resolveRarity(source.value)
+                val style = parseStyle(source.value)
+                val rarity = style?.color?.let(RARITY_BY_STYLE::get)
 
                 if (rarity == null) {
                     unresolvedRarityKeys += gameKey
@@ -44,6 +45,7 @@ class SaoCatalogParser {
                     defaultName = stripStylePrefix(source.value).trim(),
                     type = type,
                     rarity = rarity,
+                    styleColor = style?.cssColor,
                     locationIds = resolveLocations(gameKey, type, locationIds),
                     sourceHash = source.pack.hash,
                     updatedAt = now,
@@ -161,8 +163,8 @@ class SaoCatalogParser {
         }
     }
 
-    private fun resolveRarity(value: String): SaoCatalogItemRarity? {
-        val style =
+    private fun parseStyle(value: String): ItemStyle? {
+        val color =
             STYLE_PREFIX
                 .find(value)
                 ?.groupValues
@@ -170,7 +172,7 @@ class SaoCatalogParser {
                 ?.lowercase()
                 ?: return null
 
-        return RARITY_BY_STYLE[style]
+        return ItemStyle(color = color)
     }
 
     private fun SaoCatalogItemType.toDomainType(): DomainItemType? =
@@ -223,6 +225,13 @@ class SaoCatalogParser {
         val pack: SaoLocalizationPack,
         val value: String,
     )
+
+    private data class ItemStyle(
+        val color: String,
+    ) {
+        val cssColor: String
+            get() = "#$color"
+    }
 }
 
 data class ParsedSaoCatalog(

@@ -26,6 +26,7 @@ class SaoCatalogItemRepositoryAdapter(
                             defaultName = item.defaultName,
                             type = item.type,
                             rarity = item.rarity,
+                            styleColor = item.styleColor,
                             active = true,
                             sourceHash = item.sourceHash,
                             updatedAt = item.updatedAt,
@@ -35,6 +36,7 @@ class SaoCatalogItemRepositoryAdapter(
                 entity.defaultName = item.defaultName
                 entity.type = item.type
                 entity.rarity = item.rarity
+                entity.styleColor = item.styleColor
                 entity.active = true
                 entity.sourceHash = item.sourceHash
                 entity.updatedAt = item.updatedAt
@@ -79,6 +81,7 @@ class SaoCatalogItemRepositoryAdapter(
             defaultName = defaultName,
             type = type,
             rarity = rarity,
+            styleColor = styleColor,
             locationIds = locationIds.toSet(),
             sourceHash = sourceHash,
             updatedAt = updatedAt,

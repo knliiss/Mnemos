@@ -8,6 +8,7 @@ data class SaoCatalogItemResponse(
     val defaultName: String,
     val type: SaoCatalogItemType,
     val rarity: SaoCatalogItemRarity?,
+    val styleColor: String?,
     val locations: List<SaoCatalogItemLocationResponse>,
 )
 

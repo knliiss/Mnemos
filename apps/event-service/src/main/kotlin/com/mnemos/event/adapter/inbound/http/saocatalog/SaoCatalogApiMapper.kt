@@ -30,6 +30,7 @@ object SaoCatalogApiMapper {
             defaultName = defaultName,
             type = type,
             rarity = rarity,
+            styleColor = styleColor,
             locations =
                 locationIds
                     .sorted()

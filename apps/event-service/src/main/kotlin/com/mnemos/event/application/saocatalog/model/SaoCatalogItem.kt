@@ -7,6 +7,7 @@ data class SaoCatalogItem(
     val defaultName: String,
     val type: SaoCatalogItemType,
     val rarity: SaoCatalogItemRarity?,
+    val styleColor: String?,
     val locationIds: Set<Int>,
     val sourceHash: String,
     val updatedAt: Instant,

@@ -15,7 +15,7 @@ class SaoCatalogParserTest {
     private val now = Instant.parse("2026-09-05T00:00:00Z")
 
     @Test
-    fun `catalog derives explicit rarity and safe locations without guessing`() {
+    fun `catalog derives explicit rarity style color and safe locations without guessing`() {
         val parsed =
             parser.parse(
                 packs =
@@ -43,15 +43,21 @@ class SaoCatalogParserTest {
         val jewelry = parsed.items.single { item -> item.gameKey == "sao.item.d1_1.name" }
 
         assertEquals(SaoCatalogItemType.WEAPON, weapon.type)
+        assertEquals("Клинок глубин", weapon.defaultName)
         assertEquals(SaoCatalogItemRarity.SECRET, weapon.rarity)
+        assertEquals("#37efef", weapon.styleColor)
         assertEquals(setOf(17), weapon.locationIds)
 
         assertEquals(SaoCatalogItemType.PET, pet.type)
         assertEquals(SaoCatalogItemRarity.MYTHICAL, pet.rarity)
+        assertEquals("#a91925", pet.styleColor)
         assertEquals(setOf(17), pet.locationIds)
 
         assertEquals(SaoCatalogItemRarity.LEGENDARY, book.rarity)
+        assertEquals("#efac00", book.styleColor)
         assertEquals(setOf(17), book.locationIds)
+        assertEquals("#707070", aura.styleColor)
+        assertEquals("#2a66bd", jewelry.styleColor)
         assertTrue(aura.locationIds.isEmpty())
         assertTrue(jewelry.locationIds.isEmpty())
     }
@@ -79,14 +85,14 @@ class SaoCatalogParserTest {
     }
 
     @Test
-    fun `unknown rarity stays unresolved instead of being invented`() {
+    fun `unknown rarity stays unresolved while known style color is preserved`() {
         val parsed =
             parser.parse(
                 packs =
                     listOf(
                         pack(
                             locale = "ru_RU",
-                            properties = mapOf("sao.item.l1_1.name" to "Без цветового кода"),
+                            properties = mapOf("sao.item.l1_1.name" to "¨123456Без известной редкости"),
                         ),
                     ),
                 now = now,
@@ -95,6 +101,7 @@ class SaoCatalogParserTest {
         val item = parsed.items.single()
 
         assertNull(item.rarity)
+        assertEquals("#123456", item.styleColor)
         assertEquals(setOf(item.gameKey), parsed.unresolvedRarityKeys)
     }
 
