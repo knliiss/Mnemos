@@ -449,7 +449,7 @@ def build_atlas(item_ids: list[str], cells_dir: Path) -> tuple[int, int]:
 
 
 def write_typescript(item_ids: list[str], columns: int, rows: int) -> None:
-    mappings = "\n".join(f'  "{item_id}": {index},' for index, item_id in enumerate(item_ids))
+    mappings = "\n".join(f"  {item_id}: {index}," for index, item_id in enumerate(item_ids))
     source = f'''import type {{ SaoItemAtlas, SaoItemAtlasSprite }} from "./saoTrackedItemArtwork"
 
 export const SAO_PET_ATLAS_PATH = "/event-icons/sao-pets.webp"
