@@ -16,9 +16,7 @@ class SaoLocalizationPackRepositoryAdapter(
             .orElse(null)
             ?.toModel()
 
-    override fun findAll(): List<SaoLocalizationPack> =
-        repository.findAll().map { entity -> entity.toModel() }
+    override fun findAll(): List<SaoLocalizationPack> = repository.findAll().map { entity -> entity.toModel() }
 
-    override fun save(pack: SaoLocalizationPack): SaoLocalizationPack =
-        repository.save(pack.toEntity()).toModel()
+    override fun save(pack: SaoLocalizationPack): SaoLocalizationPack = repository.save(pack.toEntity()).toModel()
 }
