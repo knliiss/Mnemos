@@ -1,4 +1,4 @@
-name: Temporary Production Outage Check
+name: Temporary Production Ingress Probe
 
 on:
   push:
@@ -23,33 +23,59 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Inspect production services
+      - name: Probe external production ingress
         shell: bash
         run: |
           set -euo pipefail
 
-          echo "===== SERVICE REPLICAS ====="
-          sudo -n docker service ls \
-            --format '{{.Name}}|{{.Replicas}}|{{.Image}}' |
-            sort
+          probe() {
+            url="$1"
+            name="$2"
 
-          echo "===== NON-RUNNING APP TASKS ====="
-          sudo -n docker service ls --format '{{.Name}}' |
-            awk '/^mnemos_/' |
-            while read -r service; do
-              sudo -n docker service ps \
-                --no-trunc \
-                --filter desired-state=running \
-                --format '{{.Name}}|{{.CurrentState}}|{{.Error}}|{{.Image}}' \
-                "$service" |
-                awk -F'|' '$2 !~ /^Running / { print }'
-            done
+            echo "===== $name: $url ====="
+            curl \
+              --silent \
+              --show-error \
+              --location \
+              --connect-timeout 5 \
+              --max-time 15 \
+              --output /tmp/mnemos-probe-body \
+              --write-out 'http=%{http_code} remote_ip=%{remote_ip} time=%{time_total}\n' \
+              "$url" || true
 
-          echo "===== AVAILABILITY ====="
-          sudo -n sh scripts/verify-production-availability.sh
+            head -c 500 /tmp/mnemos-probe-body 2>/dev/null || true
+            echo
+          }
 
-          echo "===== HEALTH ====="
-          sudo -n sh scripts/check-production-health.sh
+          probe "https://app.knalis.rest" "APP"
+          probe "https://api.knalis.rest" "API"
+          probe "https://auth.knalis.rest/realms/mnemos/.well-known/openid-configuration" "AUTH"
 
-          echo "===== TELEGRAM POLLER ====="
-          sudo -n sh scripts/verify-production-telegram-poller.sh
+          echo "===== CLOUDFLARED ====="
+          sudo -n docker service ps \
+            --no-trunc \
+            --format '{{.Name}}|{{.CurrentState}}|{{.Error}}|{{.Image}}' \
+            mnemos_cloudflared
+
+          echo "===== CLOUDFLARED RECENT LOGS ====="
+          sudo -n docker service logs \
+            --since 10m \
+            --tail 100 \
+            mnemos_cloudflared 2>&1 |
+            sed -E \
+              -e 's/[0-9a-f]{64}/<redacted-hex64>/g' \
+              -e 's/(token|secret|password)([=:][^[:space:]]*)/\1=<redacted>/Ig' || true
+
+          echo "===== INTERNAL GATEWAY ====="
+          gateway_task="$(
+            sudo -n docker ps \
+              --filter label=com.docker.swarm.service.name=mnemos_gateway-service \
+              --format '{{.ID}}' |
+              head -n 1
+          )"
+
+          if [ -n "$gateway_task" ]; then
+            sudo -n docker exec "$gateway_task" \
+              wget -q -O - http://127.0.0.1:8080/actuator/health/readiness || true
+            echo
+          fi
