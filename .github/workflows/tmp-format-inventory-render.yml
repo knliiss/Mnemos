@@ -1,0 +1,70 @@
+name: Temporary Format Inventory Render
+
+on:
+  push:
+    branches:
+      - fix/inventory-artwork-and-3d-heads
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/inventory-artwork-and-3d-heads
+
+      - name: Keep generated PET mapping Prettier-stable
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/render_sao_pet_artwork.py")
+          source = path.read_text(encoding="utf-8")
+          old = "mappings = \\\"\\n\\\".join(f'  \\\"{item_id}\\\": {index},' for index, item_id in enumerate(item_ids))"
+          new = "mappings = \\\"\\n\\\".join(f\\\"  {item_id}: {index},\\\" for index, item_id in enumerate(item_ids))"
+
+          if old not in source:
+              raise SystemExit("Expected PET mapping generator expression was not found")
+
+          path.write_text(source.replace(old, new), encoding="utf-8")
+          PY
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Format Mini App
+        working-directory: apps/mini-app
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run format
+
+      - name: Commit formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -f .github/workflows/tmp-format-inventory-render.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git diff --cached --check
+          git commit -m "Format inventory render sources"
+          git push origin HEAD:fix/inventory-artwork-and-3d-heads
