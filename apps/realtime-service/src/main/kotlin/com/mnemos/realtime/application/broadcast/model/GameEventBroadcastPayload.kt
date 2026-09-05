@@ -23,15 +23,18 @@ data class GameEventBroadcastPayload(
 
     data class Raid(
         val locations: Set<Int>,
+        val locationLocalizationKeys: List<String>,
     )
 
     data class Booster(
         val activatedBy: String,
         val type: String,
+        val localizationKey: String,
     )
 
     data class Global(
         val type: String,
+        val localizationKey: String,
     )
 
     init {
