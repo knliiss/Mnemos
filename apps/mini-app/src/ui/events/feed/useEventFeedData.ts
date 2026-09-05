@@ -53,9 +53,8 @@ export function useEventFeedData(): EventFeedData {
   const refreshEvents = useCallback(async (query: EventFeedQuery = {}) => {
     const revision = requestRevision.current + 1
     const nextQueryKey = queryKey(query)
-    const sameQuery = queryKeyRef.current === nextQueryKey
     const limit = query.limit ?? 50
-    const targetItemCount = sameQuery ? Math.max(feedRef.current.length, limit) : limit
+    const targetItemCount = Math.max(feedRef.current.length, limit)
 
     requestRevision.current = revision
     activeQueryRef.current = query
