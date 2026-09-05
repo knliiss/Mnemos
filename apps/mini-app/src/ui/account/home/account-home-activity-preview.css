@@ -1,5 +1,20 @@
 .account-home-drops__head {
+  position: relative;
   grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 62px;
+}
+
+.account-home-drops__activity-art {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: 11px;
+  width: 62px;
+  height: 44px;
+  object-fit: contain;
+  opacity: 0.62;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .account-home-panel__more {
@@ -9,7 +24,7 @@
   align-items: center;
   gap: 5px;
   min-height: 30px;
-  margin-right: 72px;
+  margin-right: 66px;
   padding: 0 8px;
   border: 1px solid rgba(203, 255, 45, 0.08);
   border-radius: 9px;
@@ -49,17 +64,24 @@
 }
 
 @media (max-width: 430px) {
+  .account-home-drops__activity-art {
+    right: 8px;
+    width: 52px;
+    height: 40px;
+    opacity: 0.5;
+  }
+
   .account-home-panel__more {
-    margin-right: 58px;
+    margin-right: 54px;
   }
 }
 
 @media (max-width: 365px) {
-  .account-home-panel__more {
-    margin-right: 0;
+  .account-home-drops__activity-art {
+    display: none;
   }
 
-  .account-home-drops__activity-art {
-    opacity: 0.28;
+  .account-home-panel__more {
+    margin-right: 0;
   }
 }
