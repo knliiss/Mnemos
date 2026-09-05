@@ -73,8 +73,7 @@ class SaoCatalogParser {
             .sortedBy(SaoLocalizationPack::locale)
             .mapNotNull { pack ->
                 pack.properties[gameKey]?.let { value -> LocalizedValue(pack, value) }
-            }
-            .firstOrNull()
+            }.firstOrNull()
     }
 
     private fun buildUnambiguousAliases(
@@ -117,8 +116,7 @@ class SaoCatalogParser {
                     ?.groupValues
                     ?.get(1)
                     ?.toIntOrNull()
-            }
-            .toSet()
+            }.toSet()
 
     private fun resolveLocations(
         gameKey: String,
