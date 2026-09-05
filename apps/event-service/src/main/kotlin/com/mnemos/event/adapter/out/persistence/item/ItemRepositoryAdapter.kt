@@ -132,28 +132,50 @@ class ItemRepositoryAdapter(
         """
 
         const val FIND_OR_CREATE_LEGACY_SQL = """
-            INSERT INTO items AS existing (
-                id,
-                game_key,
-                name,
-                type,
-                rarity
-            ) VALUES (
-                :id,
-                NULL,
-                :itemName,
-                :type,
-                :rarity
+            WITH candidate AS (
+                SELECT
+                    id,
+                    game_key,
+                    name,
+                    type,
+                    rarity
+                FROM items
+                WHERE LOWER(name) = LOWER(:itemName)
+                  AND type = :type
+                ORDER BY
+                    CASE WHEN game_key IS NULL THEN 1 ELSE 0 END,
+                    id
+                LIMIT 1
+            ),
+            inserted AS (
+                INSERT INTO items AS existing (
+                    id,
+                    game_key,
+                    name,
+                    type,
+                    rarity
+                )
+                SELECT
+                    :id,
+                    NULL,
+                    :itemName,
+                    :type,
+                    :rarity
+                WHERE NOT EXISTS (SELECT 1 FROM candidate)
+                ON CONFLICT (LOWER(name), type) WHERE game_key IS NULL
+                DO UPDATE SET
+                    name = existing.name
+                RETURNING
+                    existing.id,
+                    existing.game_key,
+                    existing.name,
+                    existing.type,
+                    existing.rarity
             )
-            ON CONFLICT (LOWER(name), type) WHERE game_key IS NULL
-            DO UPDATE SET
-                name = existing.name
-            RETURNING
-                existing.id,
-                existing.game_key,
-                existing.name,
-                existing.type,
-                existing.rarity
+            SELECT * FROM candidate
+            UNION ALL
+            SELECT * FROM inserted
+            LIMIT 1
         """
     }
 }
