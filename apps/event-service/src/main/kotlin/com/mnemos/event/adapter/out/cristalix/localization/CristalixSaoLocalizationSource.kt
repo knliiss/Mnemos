@@ -11,11 +11,11 @@ import java.security.MessageDigest
 
 @Component
 class CristalixSaoLocalizationSource(
-    restClientBuilder: RestClient.Builder,
     private val objectMapper: ObjectMapper,
 ) : SaoLocalizationSource {
     private val restClient =
-        restClientBuilder
+        RestClient
+            .builder()
             .defaultHeader(HttpHeaders.USER_AGENT, USER_AGENT)
             .build()
 
