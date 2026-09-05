@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable
     configuration = [NotificationEventServiceFeignConfiguration::class],
 )
 fun interface NotificationEventServiceClient {
-    @GetMapping("/api/v1/events/localizations/sao/{locale}")
+    @GetMapping("/internal/v1/events/localizations/sao/{locale}")
     fun getSaoLocalization(
         @PathVariable locale: String,
     ): NotificationSaoLocalizationResponse
