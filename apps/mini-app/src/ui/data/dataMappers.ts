@@ -69,6 +69,7 @@ export function toFeedEvent(event: EventFeedItemResponse): FeedEvent {
       relative: event.occurredAt,
       meta: event.itemType,
       rarity: event.itemRarity,
+      localizationKey: event.itemKey ?? undefined,
     }
   }
 
