@@ -1,6 +1,5 @@
 package com.mnemos.event.adapter.out.cristalix.localization
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mnemos.event.application.localization.model.SaoLocalizationPackDescriptor
 import com.mnemos.event.application.localization.port.out.SaoLocalizationSource
@@ -10,9 +9,9 @@ import org.springframework.web.client.RestClient
 import java.security.MessageDigest
 
 @Component
-class CristalixSaoLocalizationSource(
-    private val objectMapper: ObjectMapper,
-) : SaoLocalizationSource {
+class CristalixSaoLocalizationSource : SaoLocalizationSource {
+    private val objectMapper = ObjectMapper()
+
     private val restClient =
         RestClient
             .builder()
@@ -20,28 +19,48 @@ class CristalixSaoLocalizationSource(
             .build()
 
     override fun listPacks(): List<SaoLocalizationPackDescriptor> {
-        val manifest =
+        val bytes =
             requireNotNull(
                 restClient
                     .get()
                     .uri(MANIFEST_URL)
                     .retrieve()
-                    .body(LocalizationManifest::class.java),
+                    .body(ByteArray::class.java),
             ) {
                 "Cristalix localization manifest is empty"
             }
 
-        return manifest.langs
+        val languages = objectMapper.readTree(bytes).path("langs")
+        require(languages.isArray) {
+            "Cristalix localization manifest has no langs array"
+        }
+
+        return languages
             .mapNotNull { language ->
-                language.pies
-                    .firstOrNull { pie -> pie.pieKey == SAO_PIE_KEY }
-                    ?.let { pie ->
-                        SaoLocalizationPackDescriptor(
-                            locale = language.lang,
-                            hash = pie.hash,
-                            url = pie.url,
-                        )
-                    }
+                val locale = language.path("lang").asText()
+                val pies = language.path("pies")
+
+                if (locale.isBlank() || !pies.isArray) {
+                    return@mapNotNull null
+                }
+
+                val saoPie =
+                    pies.firstOrNull { pie ->
+                        pie.path("pieKey").asText() == SAO_PIE_KEY
+                    } ?: return@mapNotNull null
+
+                val hash = saoPie.path("hash").asText()
+                val url = saoPie.path("url").asText()
+
+                if (hash.isBlank() || url.isBlank()) {
+                    return@mapNotNull null
+                }
+
+                SaoLocalizationPackDescriptor(
+                    locale = locale,
+                    hash = hash,
+                    url = url,
+                )
             }.sortedBy(SaoLocalizationPackDescriptor::locale)
     }
 
@@ -63,12 +82,22 @@ class CristalixSaoLocalizationSource(
                 "expected ${descriptor.hash}, got $actualHash"
         }
 
-        val pack = objectMapper.readValue(bytes, LocalizationPack::class.java)
-        require(pack.properties.isNotEmpty()) {
+        val propertiesNode = objectMapper.readTree(bytes).path("properties")
+        require(propertiesNode.isObject) {
+            "Cristalix SAO localization pack ${descriptor.locale} has no properties object"
+        }
+
+        val properties =
+            propertiesNode
+                .fields()
+                .asSequence()
+                .associate { entry -> entry.key to entry.value.asText() }
+
+        require(properties.isNotEmpty()) {
             "Cristalix SAO localization pack ${descriptor.locale} has no properties"
         }
 
-        return pack.properties
+        return properties
     }
 
     private fun ByteArray.sha256Hex(): String =
@@ -76,26 +105,6 @@ class CristalixSaoLocalizationSource(
             .getInstance("SHA-256")
             .digest(this)
             .joinToString(separator = "") { byte -> "%02x".format(byte.toInt() and 0xff) }
-
-    private data class LocalizationManifest(
-        val langs: List<LocalizationManifestLanguage>,
-    )
-
-    private data class LocalizationManifestLanguage(
-        val lang: String,
-        val pies: List<LocalizationPie>,
-    )
-
-    private data class LocalizationPie(
-        @field:JsonProperty("pieKey")
-        val pieKey: String,
-        val hash: String,
-        val url: String,
-    )
-
-    private data class LocalizationPack(
-        val properties: Map<String, String>,
-    )
 
     private companion object {
         const val MANIFEST_URL = "https://webdata.c7x.dev/client/lang.json"
