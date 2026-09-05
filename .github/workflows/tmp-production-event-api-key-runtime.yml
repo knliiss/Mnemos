@@ -1,4 +1,4 @@
-name: Temporary SAO Artwork Diagnostics
+name: Temporary SAO Atlas Recovery
 
 on:
   push:
@@ -9,79 +9,45 @@ permissions:
   contents: read
 
 jobs:
-  inspect:
+  recover:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
-      - name: Checkout production source
+      - name: Checkout atlas source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: a8235ff2f338e50195546bf27e9578d6a7d12aaa
+          ref: 4dfd8fb8ef7b4e63662c381f4476d22811df1e59
           persist-credentials: false
 
-      - name: Install image inspector
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --quiet pillow
-
-      - name: Inspect tracked item atlas and deployed asset
+      - name: Try independent WebP decoders
         shell: bash
         run: |
           set -euo pipefail
 
           atlas="apps/mini-app/public/event-icons/sao-tracked-items.webp"
-          prod="$RUNNER_TEMP/prod-sao-tracked-items.webp"
+          output="$RUNNER_TEMP/sao-tracked-items.png"
 
-          curl --fail --silent --show-error --location \
-            https://app.knalis.rest/event-icons/sao-tracked-items.webp \
-            --output "$prod"
+          file "$atlas"
+          ffprobe -hide_banner "$atlas" || true
 
-          echo "repo_sha256=$(sha256sum "$atlas" | awk '{print $1}')"
-          echo "prod_sha256=$(sha256sum "$prod" | awk '{print $1}')"
-
-          if ! cmp --silent "$atlas" "$prod"; then
-            echo "Production atlas differs from repository atlas" >&2
-            exit 2
-          fi
-
-          ATLAS="$atlas" PROD="$prod" python3 - <<'PY'
-          import os
+          if ffmpeg -v error -y -i "$atlas" "$output"; then
+            echo "ffmpeg_decode=success"
+            file "$output"
+            python3 - <<'PY' "$output"
+          import sys
           from PIL import Image
 
-          atlas_path = os.environ["ATLAS"]
-          prod_path = os.environ["PROD"]
-
-          for label, path in (("repo", atlas_path), ("prod", prod_path)):
-              image = Image.open(path).convert("RGBA")
-              print(f"{label}_size={image.size[0]}x{image.size[1]}")
-              print(f"{label}_mode={image.mode}")
-
-          image = Image.open(atlas_path).convert("RGBA")
-          if image.size != (256, 176):
-              raise SystemExit(f"Unexpected atlas size: {image.size}")
-
-          empty = []
-          occupied = []
-
-          for index in range(165):
-              column = index % 16
-              row = index // 16
-              crop = image.crop((column * 16, row * 16, column * 16 + 16, row * 16 + 16))
-              alpha = crop.getchannel("A")
-              nonzero = sum(1 for value in alpha.getdata() if value != 0)
-
-              if nonzero == 0:
-                  empty.append(index)
-              else:
-                  occupied.append((index, nonzero))
-
-          print(f"occupied_cells={len(occupied)}")
-          print(f"empty_cells={len(empty)}")
-          print(f"empty_cell_indexes={','.join(map(str, empty))}")
-          print("sample_occupied=" + ",".join(f"{index}:{pixels}" for index, pixels in occupied[:20]))
-
-          if not occupied:
-              raise SystemExit("Tracked item atlas has no visible pixels")
+          path = sys.argv[1]
+          image = Image.open(path).convert("RGBA")
+          print(f"decoded_size={image.width}x{image.height}")
+          visible = sum(1 for pixel in image.getdata() if pixel[3] != 0)
+          print(f"visible_pixels={visible}")
+          if image.size != (256, 176) or visible == 0:
+              raise SystemExit("Recovered atlas is invalid")
           PY
+            exit 0
+          fi
+
+          echo "ffmpeg_decode=failed"
+          exit 1
