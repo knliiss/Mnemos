@@ -5,6 +5,7 @@ import com.mnemos.event.application.saocatalog.port.out.LegacyItemIdentityReposi
 import com.mnemos.event.application.saocatalog.port.out.SaoCatalogItemRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Instant
 
@@ -16,6 +17,7 @@ class SaoCatalogSynchronizationService(
     private val parser: SaoCatalogParser,
     private val clock: Clock,
 ) {
+    @Transactional
     fun synchronize(): SaoCatalogSynchronizationResult {
         val packs = localizationRepository.findAll()
 
