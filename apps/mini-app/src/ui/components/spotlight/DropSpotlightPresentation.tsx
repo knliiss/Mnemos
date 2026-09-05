@@ -41,7 +41,7 @@ export function DropSpotlightPresentation({
     rarity: itemRarity,
     itemType,
   }
-  const fallbackBody = `${droppedFor} · ${itemRarity} · ${itemType}`
+  const fallbackBody = `${droppedFor} · ${itemType}`
   const title = renderedTemplate(template?.soloTitle, values) || itemName
   const bodyTemplate = presentationMode === "COMPACT" ? template?.compact : template?.soloBody
   const body = renderedTemplate(bodyTemplate, values) || fallbackBody
@@ -87,7 +87,7 @@ export function DropSpotlightPresentation({
 
       <span className="realtime-spotlight__copy">
         <small>
-          <i /> MNEMOS SPOTLIGHT · {itemRarity}
+          <i /> MNEMOS SPOTLIGHT
         </small>
         <strong>{title}</strong>
         {compact ? <em>{body}</em> : <p>{body}</p>}
@@ -140,8 +140,7 @@ function ItemDropStudioPreview({
   }
   const title = renderedTemplate(template?.soloTitle, values) || itemName
   const bodyTemplate = presentationMode === "COMPACT" ? template?.compact : template?.soloBody
-  const body =
-    renderedTemplate(bodyTemplate, values) || `${droppedFor} · ${itemRarity} · ${itemType}`
+  const body = renderedTemplate(bodyTemplate, values) || `${droppedFor} · ${itemType}`
   const resolvedItemType = resolveSpotlightItemType(itemType)
 
   return (
@@ -163,9 +162,7 @@ function ItemDropStudioPreview({
         <em>{body}</em>
       </span>
 
-      <i className="item-drop-studio-preview__meta">
-        {itemRarity} · {itemType}
-      </i>
+      <i className="item-drop-studio-preview__meta">{itemType}</i>
     </div>
   )
 }

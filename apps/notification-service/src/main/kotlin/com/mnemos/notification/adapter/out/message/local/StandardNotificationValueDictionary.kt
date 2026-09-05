@@ -1,6 +1,13 @@
 package com.mnemos.notification.adapter.out.message.local
 
+import com.mnemos.common.core.model.user.LocalizationLanguage
+import com.mnemos.notification.application.notification.localization.model.NotificationLocalizationContext
+import com.mnemos.notification.application.notification.model.NotificationItemRarity
+import com.mnemos.notification.application.notification.model.NotificationItemType
 import com.mnemos.notification.application.notification.personalization.model.NotificationPackValueForms
+import com.mnemos.notification.domain.booster.model.DomainBoosterType
+import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
+import com.mnemos.notification.domain.global.model.DomainGlobalEventType
 import com.mnemos.personalization.contracts.shared.NotificationPackValueKey
 
 object StandardNotificationValueDictionary {
@@ -9,6 +16,50 @@ object StandardNotificationValueDictionary {
         rawValue: String,
         form: String?,
     ): String? = values[key]?.get(rawValue)?.resolve(form)
+
+    fun resolve(
+        key: NotificationPackValueKey,
+        rawValue: String,
+        form: String?,
+        localization: NotificationLocalizationContext,
+    ): String? {
+        val localizedDefault = localizedDefault(key, rawValue, localization) ?: return null
+
+        if (form == null || form == "default") {
+            return localizedDefault
+        }
+
+        if (localization.language != LocalizationLanguage.RU) {
+            return localizedDefault
+        }
+
+        return values[key]?.get(rawValue)?.resolve(form) ?: localizedDefault
+    }
+
+    private fun localizedDefault(
+        key: NotificationPackValueKey,
+        rawValue: String,
+        localization: NotificationLocalizationContext,
+    ): String? =
+        when (key) {
+            NotificationPackValueKey.BOOSTER ->
+                enumValueOrNull<DomainBoosterType>(rawValue)?.let(localization::boosterName)
+
+            NotificationPackValueKey.DUNGEON ->
+                enumValueOrNull<DomainDungeonType>(rawValue)?.let(localization::dungeonName)
+
+            NotificationPackValueKey.GLOBAL_EVENT ->
+                enumValueOrNull<DomainGlobalEventType>(rawValue)?.let(localization::globalName)
+
+            NotificationPackValueKey.ITEM_RARITY ->
+                enumValueOrNull<NotificationItemRarity>(rawValue)?.let(localization::itemRarityName)
+
+            NotificationPackValueKey.ITEM_TYPE ->
+                enumValueOrNull<NotificationItemType>(rawValue)?.let(localization::itemTypeName)
+        }
+
+    private inline fun <reified T : Enum<T>> enumValueOrNull(value: String): T? =
+        enumValues<T>().firstOrNull { entry -> entry.name == value }
 
     private val values: Map<NotificationPackValueKey, Map<String, NotificationPackValueForms>> =
         mapOf(

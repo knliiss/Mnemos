@@ -22,6 +22,10 @@ export function eventKindLabel(t: TFunction, kind: EventKind) {
 }
 
 export function eventTitle(t: TFunction, event: FeedEvent) {
+  if (event.localizationKey) {
+    return t(event.localizationKey, { defaultValue: event.title })
+  }
+
   if (event.kind === "GLOBAL") {
     return t(`events.globals.${event.title}`, { defaultValue: event.title })
   }
@@ -39,7 +43,7 @@ export function eventTitle(t: TFunction, event: FeedEvent) {
 
 export function eventFeedDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return [event.detail, event.rarity].filter(Boolean).join(" · ")
+    return event.detail
   }
 
   if (event.kind === "BOOSTER") {
@@ -50,9 +54,9 @@ export function eventFeedDescription(t: TFunction, event: FeedEvent) {
     return t("events.feed.globalDescription")
   }
 
-  return event.detail
-    ? t("events.feed.locations", { locations: event.detail })
-    : t("events.feed.raidDescription")
+  const locations = localizedRaidLocations(t, event)
+
+  return locations ? t("events.feed.locations", { locations }) : t("events.feed.raidDescription")
 }
 
 export function eventKindCaption(t: TFunction, event: FeedEvent) {
@@ -65,7 +69,9 @@ export function eventSubject(t: TFunction, event: FeedEvent) {
   }
 
   if (event.kind === "RAID") {
-    return t("events.feed.locations", { locations: event.detail })
+    const locations = localizedRaidLocations(t, event)
+
+    return t("events.feed.locations", { locations: locations || event.detail })
   }
 
   return event.detail
@@ -73,7 +79,7 @@ export function eventSubject(t: TFunction, event: FeedEvent) {
 
 export function eventDetailDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return `${eventTitle(t, event)} · ${rarityLabel(t, event.rarity) ?? eventTypeLabel(t, event)}`
+    return `${eventTitle(t, event)} · ${eventTypeLabel(t, event)}`
   }
 
   if (event.kind === "BOOSTER" || event.kind === "GLOBAL") {
@@ -120,7 +126,7 @@ export function belongsToAccount(event: FeedEvent, account: Account) {
 
 export function notificationRuleDescription(t: TFunction, event: FeedEvent) {
   if (event.kind === "ITEM_DROP") {
-    return t("events.detail.itemRule", { item: event.title })
+    return t("events.detail.itemRule", { item: eventTitle(t, event) })
   }
 
   if (event.kind === "BOOSTER") {
@@ -131,7 +137,9 @@ export function notificationRuleDescription(t: TFunction, event: FeedEvent) {
     return t("events.detail.globalRule", { event: eventTitle(t, event) })
   }
 
-  return t("events.detail.raidRule", { locations: event.detail })
+  const locations = localizedRaidLocations(t, event)
+
+  return t("events.detail.raidRule", { locations: locations || event.detail })
 }
 
 export function parseEventLocations(value: string) {
@@ -151,4 +159,18 @@ export function localeForLanguage(language?: string) {
   }
 
   return "uk-UA"
+}
+
+function localizedRaidLocations(t: TFunction, event: FeedEvent): string {
+  if (event.kind !== "RAID") {
+    return ""
+  }
+
+  return parseEventLocations(event.detail)
+    .map((locationId) =>
+      t(`sao.location.${locationId}.name`, {
+        defaultValue: String(locationId),
+      }),
+    )
+    .join(" · ")
 }

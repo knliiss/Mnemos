@@ -76,6 +76,7 @@ class EventHistoryMenuScreenDataProvider(
                 globalType = globalType,
                 raidLocation = raidLocation,
                 wipeId = resolvedWipe?.id,
+                telegramId = session.telegramId,
             )
 
         return TelegramMenuScreenData.EventHistory(

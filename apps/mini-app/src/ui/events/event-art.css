@@ -62,13 +62,11 @@
   transform: scale(1.72) !important;
 }
 
-.event-art--rarity-secret,
 .event-art--drop-aura,
 .event-art--drop-jewelry {
   --event-art-color: #46d7d7 !important;
 }
 
-.event-art--rarity-mythical,
 .event-art--drop-sword {
   --event-art-color: #df405a !important;
 }
@@ -76,6 +74,14 @@
 .event-art--drop-pet,
 .event-art--drop-book {
   --event-art-color: #c68a52 !important;
+}
+
+.event-art--rarity-secret {
+  --event-art-color: #37efef !important;
+}
+
+.event-art--rarity-mythical {
+  --event-art-color: #a91925 !important;
 }
 
 .event-art--booster-luck {

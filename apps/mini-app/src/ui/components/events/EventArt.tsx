@@ -2,6 +2,13 @@ import type { CSSProperties } from "react"
 import { useTranslation } from "react-i18next"
 import "../../events/event-art.css"
 import type { BetItemType, BoosterType, FeedEvent, GlobalEventType } from "../../model"
+import {
+  resolveSaoItemAtlasSprite,
+  SAO_ITEM_ATLAS_COLUMNS,
+  SAO_ITEM_ATLAS_PATH,
+  SAO_ITEM_ATLAS_ROWS,
+  type SaoItemAtlasSprite,
+} from "./saoTrackedItemArtwork"
 
 type Props = {
   event: FeedEvent
@@ -13,8 +20,19 @@ export function EventArt({ event, size = 46 }: Props) {
     event.kind === "ITEM_DROP" && event.rarity
       ? `event-art--rarity-${event.rarity.toLowerCase()}`
       : ""
+  const itemSprite =
+    event.kind === "ITEM_DROP" && event.meta !== "PET"
+      ? resolveSaoItemAtlasSprite(event.localizationKey)
+      : null
 
-  return <ArtFrame variant={getVariant(event)} size={size} extraClass={rarityClass} />
+  return (
+    <ArtFrame
+      variant={getVariant(event)}
+      size={size}
+      extraClass={rarityClass}
+      itemSprite={itemSprite}
+    />
+  )
 }
 
 export function ItemTypeArt({ itemType, size = 46 }: { itemType: BetItemType; size?: number }) {
@@ -106,12 +124,14 @@ function ArtFrame({
   variant,
   size,
   extraClass = "",
+  itemSprite = null,
 }: {
   variant: Variant
   size: number
   extraClass?: string
+  itemSprite?: SaoItemAtlasSprite | null
 }) {
-  const asset = eventAssets[variant]
+  const asset = itemSprite ? null : eventAssets[variant]
   const global = variant.startsWith("global-")
   const contentSize = global
     ? Math.min(24, Math.max(16, Math.round(size * 0.52)))
@@ -124,11 +144,13 @@ function ArtFrame({
 
   return (
     <span
-      className={`event-art event-art--${variant} ${asset ? "event-art--asset" : "event-art--vectorized"} ${extraClass}`.trim()}
+      className={`event-art event-art--${variant} ${asset || itemSprite ? "event-art--asset" : "event-art--vectorized"} ${extraClass}`.trim()}
       style={style}
       aria-hidden="true"
     >
-      {asset ? (
+      {itemSprite ? (
+        <span className="event-art__image" style={itemSpriteStyle(itemSprite, contentSize)} />
+      ) : asset ? (
         <img className="event-art__image" src={asset} alt="" draggable={false} decoding="async" />
       ) : (
         <svg
@@ -142,6 +164,16 @@ function ArtFrame({
       )}
     </span>
   )
+}
+
+function itemSpriteStyle(sprite: SaoItemAtlasSprite, contentSize: number): CSSProperties {
+  return {
+    backgroundImage: `url(${SAO_ITEM_ATLAS_PATH})`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: `${SAO_ITEM_ATLAS_COLUMNS * contentSize}px ${SAO_ITEM_ATLAS_ROWS * contentSize}px`,
+    backgroundPosition: `${-sprite.column * contentSize}px ${-sprite.row * contentSize}px`,
+    imageRendering: "pixelated",
+  }
 }
 
 function dropVariant(itemType: BetItemType): Variant {

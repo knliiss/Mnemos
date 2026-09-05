@@ -143,6 +143,7 @@ export type GameEventBroadcast = {
     occurredAt: string
     itemDrop: {
       itemId: string
+      itemKey: string | null
       itemName: string
       itemType: string
       itemRarity: string
@@ -150,13 +151,16 @@ export type GameEventBroadcast = {
     } | null
     raid: {
       locations: number[]
+      locationLocalizationKeys: string[]
     } | null
     booster: {
       activatedBy: string
       type: string
+      localizationKey: string
     } | null
     global: {
       type: string
+      localizationKey: string
     } | null
   }
 }

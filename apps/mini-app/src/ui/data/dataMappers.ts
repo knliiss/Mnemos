@@ -69,6 +69,7 @@ export function toFeedEvent(event: EventFeedItemResponse): FeedEvent {
       relative: event.occurredAt,
       meta: event.itemType,
       rarity: event.itemRarity,
+      localizationKey: event.itemKey ?? undefined,
     }
   }
 
@@ -81,6 +82,7 @@ export function toFeedEvent(event: EventFeedItemResponse): FeedEvent {
       occurredAt: event.occurredAt,
       relative: event.occurredAt,
       meta: "BOOSTER",
+      localizationKey: event.localizationKey,
     }
   }
 
@@ -92,6 +94,7 @@ export function toFeedEvent(event: EventFeedItemResponse): FeedEvent {
       detail: "GLOBAL",
       occurredAt: event.occurredAt,
       relative: event.occurredAt,
+      localizationKey: event.localizationKey,
     }
   }
 

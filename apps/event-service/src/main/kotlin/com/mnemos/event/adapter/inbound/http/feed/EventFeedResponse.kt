@@ -36,6 +36,7 @@ data class BoosterFeedItemResponse(
     override val eventId: UUID,
     override val occurredAt: Instant,
     val boosterType: DomainBoosterType,
+    val localizationKey: String,
     val activatedBy: String,
 ) : EventFeedItemResponse
 
@@ -44,6 +45,7 @@ data class GlobalFeedItemResponse(
     override val eventId: UUID,
     override val occurredAt: Instant,
     val globalType: DomainGlobalEventType,
+    val localizationKey: String,
 ) : EventFeedItemResponse
 
 data class RaidFeedItemResponse(
@@ -51,6 +53,7 @@ data class RaidFeedItemResponse(
     override val eventId: UUID,
     override val occurredAt: Instant,
     val locations: List<Int>,
+    val locationLocalizationKeys: List<String>,
 ) : EventFeedItemResponse
 
 data class EventFeedResponse(

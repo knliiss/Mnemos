@@ -16,14 +16,21 @@ import com.mnemos.telegram.bot.application.events.model.EventHistoryQuery
 import com.mnemos.telegram.bot.application.events.model.EventHistoryResult
 import com.mnemos.telegram.bot.application.events.model.EventHistorySort
 import com.mnemos.telegram.bot.application.events.port.out.EventHistoryGateway
+import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageResolver
+import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class EventHistoryGatewayAdapter(
     private val client: EventServiceClient,
+    private val languageResolver: TelegramSettingsLanguageResolver,
 ) : EventHistoryGateway {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val localizationCache = ConcurrentHashMap<String, CachedLocalization>()
 
     override fun getPage(query: EventHistoryQuery): EventHistoryResult {
         val result =
@@ -42,14 +49,34 @@ class EventHistoryGatewayAdapter(
                         sort = query.sort.toInternalSort(),
                         limit = PAGE_SIZE,
                     )
+                val locale = query.telegramId?.let(languageResolver::resolve)?.let(::saoLocale) ?: DEFAULT_LOCALE
+                val localization = loadLocalization(locale)
 
-                EventHistoryResult.Available(response.toModel())
+                EventHistoryResult.Available(response.toModel(localization))
             } catch (exception: RuntimeException) {
                 logger.warn("Could not load event history from event-service", exception)
                 EventHistoryResult.Unavailable
             }
 
         return result
+    }
+
+    private fun loadLocalization(locale: String): Map<String, String> {
+        val now = Instant.now()
+        val cached = localizationCache[locale]
+
+        if (cached != null && cached.fetchedAt.plus(LOCALIZATION_CACHE_TTL).isAfter(now)) {
+            return cached.properties
+        }
+
+        return try {
+            client.getSaoLocalization(locale).properties.also { properties ->
+                localizationCache[locale] = CachedLocalization(properties = properties, fetchedAt = now)
+            }
+        } catch (exception: RuntimeException) {
+            logger.warn("Could not load SAO localization for event history: locale={}", locale, exception)
+            cached?.properties.orEmpty()
+        }
     }
 
     private fun EventHistoryFilter.toInternalType(): InternalEventFeedType? =
@@ -75,7 +102,21 @@ class EventHistoryGatewayAdapter(
 
     private fun EventHistoryGlobalType.toContract(): ContractGlobalEventType = ContractGlobalEventType.valueOf(name)
 
+    private fun saoLocale(language: TelegramSettingsLanguage): String =
+        when (language) {
+            TelegramSettingsLanguage.EN -> "en_US"
+            TelegramSettingsLanguage.RU -> "ru_RU"
+            TelegramSettingsLanguage.UK -> "uk_UA"
+        }
+
+    private data class CachedLocalization(
+        val properties: Map<String, String>,
+        val fetchedAt: Instant,
+    )
+
     private companion object {
         const val PAGE_SIZE = 8
+        const val DEFAULT_LOCALE = "ru_RU"
+        val LOCALIZATION_CACHE_TTL: Duration = Duration.ofMinutes(5)
     }
 }
