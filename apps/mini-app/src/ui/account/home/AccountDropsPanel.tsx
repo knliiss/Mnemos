@@ -36,9 +36,6 @@ export function AccountDropsPanel({
   return (
     <section className="account-home-panel account-home-drops">
       <header className="account-home-panel__head account-home-drops__head">
-        <span className="account-home-drops__title-icon">
-          <img src="/ui-icons/drop-stack.svg" alt="" aria-hidden="true" />
-        </span>
         <span>
           <small>{t("accountHome.activity")}</small>
           <strong>{t("accountHome.latestDrops")}</strong>
