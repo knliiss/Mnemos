@@ -142,6 +142,7 @@ export type BoosterFeedResponse = {
   eventId: string
   occurredAt: string
   boosterType: BoosterType
+  localizationKey: string
   activatedBy: string
 }
 
@@ -150,6 +151,7 @@ export type GlobalFeedResponse = {
   eventId: string
   occurredAt: string
   globalType: GlobalEventType
+  localizationKey: string
 }
 
 export type RaidFeedResponse = {
@@ -157,6 +159,7 @@ export type RaidFeedResponse = {
   eventId: string
   occurredAt: string
   locations: number[]
+  locationLocalizationKeys: string[]
 }
 
 export type EventFeedItemResponse =
@@ -181,4 +184,37 @@ export type SaoLocalizationPackSummaryResponse = {
   locale: string
   hash: string
   updatedAt: string
+}
+
+export type SaoCatalogItemType = "WEAPON" | "PET" | "AURA" | "BOOK" | "JEWELRY" | "OTHER"
+
+export type SaoCatalogItemRarity =
+  | "COMMON"
+  | "RARE"
+  | "EPIC"
+  | "LEGENDARY"
+  | "MYTHICAL"
+  | "SECRET"
+  | "OTHER"
+
+export type SaoCatalogItemLocationResponse = {
+  id: number
+  nameKey: string
+  descriptionKey: string
+}
+
+export type SaoCatalogItemResponse = {
+  gameKey: string
+  defaultName: string
+  type: SaoCatalogItemType
+  rarity: SaoCatalogItemRarity | null
+  locations: SaoCatalogItemLocationResponse[]
+}
+
+export type SaoCatalogItemPageResponse = {
+  items: SaoCatalogItemResponse[]
+  page: number
+  size: number
+  totalItems: number
+  totalPages: number
 }
