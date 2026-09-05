@@ -1,0 +1,41 @@
+name: Temporary Production Env Migration
+
+on:
+  push:
+    branches:
+      - ops/production-env-migrate-notification-event-key
+
+concurrency:
+  group: mnemos-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on:
+      - self-hosted
+      - mnemos-production
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout trusted master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 37cd08e9d1a1c64d866a214cb0405a16fe1816da
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact trusted revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "37cd08e9d1a1c64d866a214cb0405a16fe1816da"
+
+      - name: Migrate and validate production environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n sh scripts/migrate-production-env.sh
+          sudo -n sh scripts/validate-production-env.sh
