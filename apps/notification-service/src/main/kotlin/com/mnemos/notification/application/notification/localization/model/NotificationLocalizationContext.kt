@@ -8,6 +8,7 @@ import com.mnemos.notification.application.notification.model.NotificationItemRa
 import com.mnemos.notification.application.notification.model.NotificationItemType
 import com.mnemos.notification.application.notification.model.RaidNotificationPayload
 import com.mnemos.notification.domain.booster.model.DomainBoosterType
+import com.mnemos.notification.domain.dungeon.model.DomainDungeonType
 import com.mnemos.notification.domain.global.model.DomainGlobalEventType
 
 data class NotificationLocalizationContext(
@@ -25,8 +26,37 @@ data class NotificationLocalizationContext(
     fun itemRarityName(rarity: NotificationItemRarity): String =
         gameValue(itemRarityKey(rarity)) ?: localizedItemRarityFallback(rarity)
 
-    fun boosterName(payload: BoosterNotificationPayload): String =
-        gameValue(boosterKey(payload.boosterType)) ?: localizedBoosterFallback(payload.boosterType)
+    fun boosterName(payload: BoosterNotificationPayload): String = boosterName(payload.boosterType)
+
+    fun boosterName(type: DomainBoosterType): String =
+        gameValue(boosterKey(type)) ?: localizedBoosterFallback(type)
+
+    fun dungeonName(type: DomainDungeonType): String =
+        when (language) {
+            LocalizationLanguage.EN ->
+                when (type) {
+                    DomainDungeonType.EASY -> "Easy dungeon"
+                    DomainDungeonType.MEDIUM -> "Medium dungeon"
+                    DomainDungeonType.HARD -> "Hard dungeon"
+                    DomainDungeonType.EXPERT -> "Expert dungeon"
+                }
+
+            LocalizationLanguage.RU ->
+                when (type) {
+                    DomainDungeonType.EASY -> "Лёгкое подземелье"
+                    DomainDungeonType.MEDIUM -> "Среднее подземелье"
+                    DomainDungeonType.HARD -> "Сложное подземелье"
+                    DomainDungeonType.EXPERT -> "Экспертное подземелье"
+                }
+
+            LocalizationLanguage.UK ->
+                when (type) {
+                    DomainDungeonType.EASY -> "Легке підземелля"
+                    DomainDungeonType.MEDIUM -> "Середнє підземелля"
+                    DomainDungeonType.HARD -> "Складне підземелля"
+                    DomainDungeonType.EXPERT -> "Експертне підземелля"
+                }
+        }
 
     fun raidLocations(payload: RaidNotificationPayload): String =
         payload.locations
