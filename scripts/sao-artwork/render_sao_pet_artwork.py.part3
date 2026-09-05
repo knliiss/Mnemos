@@ -1,0 +1,145 @@
+                (vertices[:, 0] - center[0]) * scale + RENDER_SIZE / 2,
+                RENDER_SIZE / 2 - (vertices[:, 1] - center[1]) * scale,
+                vertices[:, 2],
+            )
+        )
+
+        for indices in ((0, 1, 2), (0, 2, 3)):
+            rasterize_triangle(
+                output,
+                depth_buffer,
+                texture,
+                screen[list(indices)],
+                uv[list(indices)],
+                shade,
+            )
+
+    image = Image.fromarray(output, "RGBA")
+    bounds = image.getbbox()
+    if not bounds:
+        return Image.new("RGBA", (CELL_SIZE, CELL_SIZE), (0, 0, 0, 0))
+
+    cropped = image.crop(bounds)
+    square_size = max(cropped.size)
+    square = Image.new("RGBA", (square_size, square_size), (0, 0, 0, 0))
+    square.alpha_composite(
+        cropped,
+        ((square_size - cropped.width) // 2, (square_size - cropped.height) // 2),
+    )
+    return square.resize((CELL_SIZE, CELL_SIZE), Image.Resampling.NEAREST)
+
+
+def render_pet_file(model_path: str, skin_path: str, output_path: str) -> str:
+    model = json.loads(Path(model_path).read_text(encoding="utf-8"))
+    texture = Image.open(skin_path)
+    rendered = render_pet(model, texture)
+    rendered.save(output_path, format="PNG", optimize=True)
+    return output_path
+
+
+def render_all(item_ids: list[str], skins_dir: Path, cells_dir: Path) -> None:
+    worker_count = min(4, max(1, os.cpu_count() or 1))
+    cells_dir.mkdir(parents=True, exist_ok=True)
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=worker_count) as executor:
+        futures = [
+            executor.submit(
+                render_pet_file,
+                str(MODEL_PATH),
+                str(skins_dir / f"{item_id}.png"),
+                str(cells_dir / f"{item_id}.png"),
+            )
+            for item_id in item_ids
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            future.result()
+
+
+def build_atlas(item_ids: list[str], cells_dir: Path) -> tuple[int, int]:
+    rows = math.ceil(len(item_ids) / ATLAS_COLUMNS)
+    atlas = Image.new(
+        "RGBA",
+        (ATLAS_COLUMNS * CELL_SIZE, rows * CELL_SIZE),
+        (0, 0, 0, 0),
+    )
+
+    for index, item_id in enumerate(item_ids):
+        cell = Image.open(cells_dir / f"{item_id}.png").convert("RGBA")
+        x = (index % ATLAS_COLUMNS) * CELL_SIZE
+        y = (index // ATLAS_COLUMNS) * CELL_SIZE
+        atlas.alpha_composite(cell, (x, y))
+
+    ATLAS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    atlas.save(ATLAS_PATH, format="WEBP", lossless=True, method=6)
+    return ATLAS_COLUMNS, rows
+
+
+def write_typescript(item_ids: list[str], columns: int, rows: int) -> None:
+    mappings = "\n".join(f'  "{item_id}": {index},' for index, item_id in enumerate(item_ids))
+    source = f'''import type {{ SaoItemAtlas, SaoItemAtlasSprite }} from "./saoTrackedItemArtwork"
+
+export const SAO_PET_ATLAS_PATH = "/event-icons/sao-pets.webp"
+export const SAO_PET_ATLAS_COLUMNS = {columns}
+export const SAO_PET_ATLAS_ROWS = {rows}
+export const SAO_PET_ATLAS_ITEM_COUNT = {len(item_ids)}
+
+const PET_ATLAS: SaoItemAtlas = {{
+  path: SAO_PET_ATLAS_PATH,
+  columns: SAO_PET_ATLAS_COLUMNS,
+  rows: SAO_PET_ATLAS_ROWS,
+}}
+
+const PET_ATLAS_INDEX: Record<string, number> = {{
+{mappings}
+}}
+
+export function resolveSaoPetAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {{
+  if (!localizationKey?.startsWith("sao.item.pet_") || !localizationKey.endsWith(".name")) {{
+    return null
+  }}
+
+  const itemId = localizationKey.slice("sao.item.".length, -".name".length)
+  const index = PET_ATLAS_INDEX[itemId]
+
+  if (index === undefined) {{
+    return null
+  }}
+
+  return {{
+    column: index % PET_ATLAS.columns,
+    row: Math.floor(index / PET_ATLAS.columns),
+    atlas: PET_ATLAS,
+  }}
+}}
+'''
+    TYPESCRIPT_PATH.write_text(source, encoding="utf-8")
+
+
+def main() -> None:
+    if not MODEL_PATH.exists():
+        raise SystemExit(f"Missing pet model: {MODEL_PATH}")
+
+    item_ids = discover_pet_ids()
+    if not item_ids:
+        raise SystemExit("No SAO pet items discovered from localization")
+
+    with tempfile.TemporaryDirectory(prefix="mnemos-sao-pets-") as temp:
+        temp_dir = Path(temp)
+        skins_dir = temp_dir / "skins"
+        cells_dir = temp_dir / "cells"
+        skins_dir.mkdir()
+
+        print(f"Discovered {len(item_ids)} SAO pet items")
+        download_skins(item_ids, skins_dir)
+        print("Downloaded all SAO pet skins")
+        render_all(item_ids, skins_dir, cells_dir)
+        print("Rendered all SAO pet models")
+        columns, rows = build_atlas(item_ids, cells_dir)
+        write_typescript(item_ids, columns, rows)
+
+    print(f"Wrote {ATLAS_PATH.relative_to(ROOT)}")
+    print(f"Wrote {TYPESCRIPT_PATH.relative_to(ROOT)}")
+
+
+if __name__ == "__main__":
+    main()
