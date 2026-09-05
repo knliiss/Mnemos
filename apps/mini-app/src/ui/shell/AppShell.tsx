@@ -4,7 +4,8 @@ import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationB
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, RootRoute, Route } from "../model"
-import { initialStack, isRootRoute } from "../navigation/routeRegistry"
+import { persistNavigationStack, restoreNavigationStack } from "../navigation/navigationSession"
+import { isRootRoute } from "../navigation/routeRegistry"
 import "../shared/layout.css"
 import "../shared/form-controls.css"
 import "./badges/user-badges.css"
@@ -23,7 +24,7 @@ import { UserHubTrigger } from "./UserHubTrigger"
 export function AppShell() {
   const data = useMnemosData()
   const userBadges = useUserBadges()
-  const [stack, setStack] = useState<Route[]>(initialStack)
+  const [stack, setStack] = useState<Route[]>(restoreNavigationStack)
   const [userHubOpen, setUserHubOpen] = useState(
     () => new URLSearchParams(window.location.search).get("hub") === "1",
   )
@@ -71,6 +72,10 @@ export function AppShell() {
     setAccountPickerOpen(false)
     setStack([{ id: route }])
   }
+
+  useEffect(() => {
+    persistNavigationStack(stack)
+  }, [stack])
 
   useEffect(() => {
     const currentActiveAccountId = activeAccount?.id ?? null
