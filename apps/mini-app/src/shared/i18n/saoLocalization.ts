@@ -67,9 +67,7 @@ export function saoLocalizationRefreshIntervalMs(): number {
   return REFRESH_INTERVAL_MS
 }
 
-export function toNestedResources(
-  properties: Record<string, string>,
-): Record<string, unknown> {
+export function toNestedResources(properties: Record<string, string>): Record<string, unknown> {
   const root: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(properties)) {
