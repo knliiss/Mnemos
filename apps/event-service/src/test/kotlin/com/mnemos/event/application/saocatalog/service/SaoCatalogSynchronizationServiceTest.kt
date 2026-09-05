@@ -9,8 +9,11 @@ import com.mnemos.event.application.saocatalog.model.SaoCatalogItemType
 import com.mnemos.event.application.saocatalog.port.out.LegacyItemIdentity
 import com.mnemos.event.application.saocatalog.port.out.LegacyItemIdentityRepository
 import com.mnemos.event.application.saocatalog.port.out.SaoCatalogItemRepository
+import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
+import com.mnemos.event.domain.item.model.Item
 import com.mnemos.event.domain.item.model.ItemId
+import com.mnemos.event.domain.item.repository.ItemRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -39,6 +42,7 @@ class SaoCatalogSynchronizationServiceTest {
                 ),
             )
         val catalogRepository = FakeCatalogRepository()
+        val itemRepository = FakeItemRepository()
         val aliasItemId = ItemId.generate()
         val canonicalItemId = ItemId.generate()
         val legacyRepository =
@@ -63,6 +67,7 @@ class SaoCatalogSynchronizationServiceTest {
                 localizationRepository = localizationRepository,
                 catalogRepository = catalogRepository,
                 legacyItemIdentityRepository = legacyRepository,
+                itemRepository = itemRepository,
                 parser = SaoCatalogParser(),
                 clock = clock,
             )
@@ -76,6 +81,46 @@ class SaoCatalogSynchronizationServiceTest {
         assertEquals("sao.item.l1_1.name", legacyRepository.savedCanonicalIdentities[aliasItemId])
         assertEquals("sao.item.l1_1.name", legacyRepository.savedCanonicalIdentities[canonicalItemId])
         assertEquals(setOf("sao.item.l1_1.name"), catalogRepository.replacedItems.map { item -> item.gameKey }.toSet())
+    }
+
+    @Test
+    fun `synchronization seeds only mythical and secret domain items`() {
+        val localizationRepository =
+            FakeLocalizationRepository(
+                listOf(
+                    pack(
+                        locale = "ru_RU",
+                        properties =
+                            mapOf(
+                                "sao.item.l1_1.name" to "¨37efefСекретный клинок",
+                                "sao.item.auraPumpkin.name" to "¨a91925Мифическая аура",
+                                "sao.item.l1_2.name" to "¨707070Обычный клинок",
+                                "sao.item.icon_service.name" to "¨37efefСлужебный предмет",
+                            ),
+                    ),
+                ),
+            )
+        val itemRepository = FakeItemRepository()
+        val service =
+            SaoCatalogSynchronizationService(
+                localizationRepository = localizationRepository,
+                catalogRepository = FakeCatalogRepository(),
+                legacyItemIdentityRepository = FakeLegacyItemIdentityRepository(emptyList()),
+                itemRepository = itemRepository,
+                parser = SaoCatalogParser(),
+                clock = clock,
+            )
+
+        service.synchronize()
+
+        assertEquals(2, itemRepository.savedItems.size)
+        assertEquals(
+            setOf(
+                "sao.item.l1_1.name" to DomainItemRarity.SECRET,
+                "sao.item.auraPumpkin.name" to DomainItemRarity.MYTHICAL,
+            ),
+            itemRepository.savedItems.map { item -> item.gameKey to item.rarity }.toSet(),
+        )
     }
 
     @Test
@@ -110,6 +155,7 @@ class SaoCatalogSynchronizationServiceTest {
                 localizationRepository = localizationRepository,
                 catalogRepository = catalogRepository,
                 legacyItemIdentityRepository = legacyRepository,
+                itemRepository = FakeItemRepository(),
                 parser = SaoCatalogParser(),
                 clock = clock,
             )
@@ -142,6 +188,7 @@ class SaoCatalogSynchronizationServiceTest {
                 localizationRepository = localizationRepository,
                 catalogRepository = catalogRepository,
                 legacyItemIdentityRepository = legacyRepository,
+                itemRepository = FakeItemRepository(),
                 parser = SaoCatalogParser(),
                 clock = clock,
             )
@@ -198,6 +245,29 @@ class SaoCatalogSynchronizationServiceTest {
                 totalItems = 0,
                 totalPages = 0,
             )
+    }
+
+    private class FakeItemRepository : ItemRepository {
+        val savedItems = mutableListOf<Item>()
+
+        override fun getOrCreate(
+            itemKey: String?,
+            itemName: String,
+            type: DomainItemType,
+            rarity: DomainItemRarity,
+        ): Item {
+            val item =
+                Item(
+                    gameKey = itemKey,
+                    name = itemName,
+                    type = type,
+                    rarity = rarity,
+                )
+
+            savedItems += item
+
+            return item
+        }
     }
 
     private class FakeLegacyItemIdentityRepository(
