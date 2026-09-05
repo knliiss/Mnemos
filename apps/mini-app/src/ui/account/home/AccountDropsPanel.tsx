@@ -6,13 +6,31 @@ import type { FeedEvent, Route } from "../../model"
 import { formatOccurredAt } from "../../timePresentation"
 
 type AccountDropsPanelProps = {
+  accountId: string
+  accountNickname: string
   drops: FeedEvent[]
   locale: string
   navigate: (route: Route) => void
 }
 
-export function AccountDropsPanel({ drops, locale, navigate }: AccountDropsPanelProps) {
+export function AccountDropsPanel({
+  accountId,
+  accountNickname,
+  drops,
+  locale,
+  navigate,
+}: AccountDropsPanelProps) {
   const { t } = useTranslation()
+
+  const openActivity = () => {
+    navigate({
+      id: "profile-activity",
+      params: {
+        accountId,
+        nickname: accountNickname,
+      },
+    })
+  }
 
   return (
     <section className="account-home-panel account-home-drops">
@@ -24,6 +42,12 @@ export function AccountDropsPanel({ drops, locale, navigate }: AccountDropsPanel
           <small>{t("accountHome.activity")}</small>
           <strong>{t("accountHome.latestDrops")}</strong>
         </span>
+
+        <button type="button" className="account-home-panel__more" onClick={openActivity}>
+          {t("accountHome.viewAll")}
+          <span aria-hidden="true">›</span>
+        </button>
+
         <img
           className="account-home-drops__activity-art"
           src="/ui-illustrations/account-activity.svg"
@@ -55,7 +79,10 @@ export function AccountDropsPanel({ drops, locale, navigate }: AccountDropsPanel
             )
           })
         ) : (
-          <p className="inline-hint inline-hint--left">{t("accountHome.noDrops")}</p>
+          <button type="button" className="account-home-drops__empty" onClick={openActivity}>
+            <span>{t("accountHome.noDrops")}</span>
+            <small>{t("accountHome.viewAll")} ›</small>
+          </button>
         )}
       </div>
     </section>
