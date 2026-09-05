@@ -8,6 +8,7 @@ import com.mnemos.event.application.feed.model.EventFeedQuery
 import com.mnemos.event.application.feed.model.GlobalFeedItem
 import com.mnemos.event.application.feed.model.ItemDropFeedItem
 import com.mnemos.event.application.feed.model.RaidFeedItem
+import com.mnemos.event.application.localization.model.SaoEventLocalizationKeys
 import com.mnemos.event.domain.EventId
 import com.mnemos.event.domain.wipe.model.WipeId
 
@@ -53,6 +54,7 @@ object EventFeedApiMapper {
                     eventId = eventId.id,
                     occurredAt = occurredAt,
                     boosterType = boosterType,
+                    localizationKey = SaoEventLocalizationKeys.booster(boosterType),
                     activatedBy = activatedBy,
                 )
 
@@ -61,6 +63,7 @@ object EventFeedApiMapper {
                     eventId = eventId.id,
                     occurredAt = occurredAt,
                     globalType = globalType,
+                    localizationKey = SaoEventLocalizationKeys.global(globalType),
                 )
 
             is RaidFeedItem ->
@@ -68,6 +71,7 @@ object EventFeedApiMapper {
                     eventId = eventId.id,
                     occurredAt = occurredAt,
                     locations = locations,
+                    locationLocalizationKeys = locations.map(SaoEventLocalizationKeys::location),
                 )
         }
 }
