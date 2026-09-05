@@ -14,6 +14,7 @@ data class GameEventBroadcastPayload(
 ) {
     data class ItemDrop(
         val itemId: UUID,
+        val itemKey: String? = null,
         val itemName: String,
         val itemType: String,
         val itemRarity: String,
