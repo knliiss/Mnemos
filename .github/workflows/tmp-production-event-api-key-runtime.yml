@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Inspect canonical SAO jewelry localization
+      - name: Inspect canonical SAO localization payload
         shell: bash
         run: |
           set -euo pipefail
@@ -27,38 +27,47 @@ jobs:
           import json
           import sys
 
-          path = sys.argv[1]
-          data = json.load(open(path, encoding="utf-8"))
+          data = json.load(open(sys.argv[1], encoding="utf-8"))
+          langs = data.get("langs")
 
-          print("top_level_type=" + type(data).__name__)
-          if isinstance(data, dict):
-              print("top_level_keys=" + ",".join(list(data)[:20]))
+          print("langs_type=" + type(langs).__name__)
+          if isinstance(langs, dict):
+              print("langs_keys=" + ",".join(list(langs)[:30]))
+              for key, value in list(langs.items())[:5]:
+                  print("lang_entry=" + repr(key) + " => " + repr(value)[:1200])
+          elif isinstance(langs, list):
+              print("langs_count=" + str(len(langs)))
+              for index, value in enumerate(langs[:5]):
+                  print("lang_entry=" + str(index) + " => " + repr(value)[:1200])
 
-          targets = {
-              "sao.item.d1_284.name",
-              "sao.item.d1_324.name",
-              "sao.item.d1_404.name",
-              "sao.item.d1_444.name",
-              "sao.item.d1_484.name",
-              "sao.item.d1_503.name",
-              "sao.item.d1_504.name",
-              "sao.item.d2_44.name",
-              "sao.item.d2_84.name",
-              "sao.item.d2_124.name",
-              "sao.item.d2_504.name",
-              "sao.item.d3_44.name",
-              "sao.item.d4_44.name",
-          }
+          needles = (
+              "d1_284",
+              "d1_324",
+              "d1_404",
+              "d1_444",
+              "d1_484",
+              "d1_503",
+              "d1_504",
+              "d2_44",
+              "d2_84",
+              "d2_124",
+              "d2_504",
+              "d3_44",
+              "d4_44",
+          )
 
           def walk(value, trail=()):
               if isinstance(value, dict):
                   for key, child in value.items():
-                      if key in targets:
-                          print("match=" + "/".join(trail + (key,)) + " => " + repr(child))
-                      walk(child, trail + (str(key),))
+                      key_text = str(key)
+                      if any(needle in key_text for needle in needles):
+                          print("key_match=" + "/".join(trail + (key_text,)) + " => " + repr(child)[:1000])
+                      walk(child, trail + (key_text,))
               elif isinstance(value, list):
                   for index, child in enumerate(value):
                       walk(child, trail + (str(index),))
+              elif isinstance(value, str) and any(needle in value for needle in needles):
+                  print("value_match=" + "/".join(trail) + " => " + repr(value)[:1000])
 
           walk(data)
           PY
