@@ -1,0 +1,106 @@
+name: Inspect SAO catalog
+
+on:
+  push:
+    branches:
+      - feat/sao-localization-presentation
+    paths:
+      - .github/workflows/inspect-sao-catalog.yml
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/sao-localization-presentation
+          fetch-depth: 0
+
+      - name: Fetch and inspect live SAO localization
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import urllib.request
+          from pathlib import Path
+
+          manifest_url = "https://webdata.c7x.dev/client/lang.json"
+
+          with urllib.request.urlopen(manifest_url, timeout=20) as response:
+              manifest = json.load(response)
+
+          ru = next(language for language in manifest["langs"] if language["lang"] == "ru_RU")
+          sao = next(pie for pie in ru["pies"] if pie["pieKey"] == "sao")
+
+          with urllib.request.urlopen(sao["url"], timeout=20) as response:
+              payload = response.read()
+
+          actual_hash = hashlib.sha256(payload).hexdigest()
+          if actual_hash != sao["hash"]:
+              raise RuntimeError(f"hash mismatch: expected {sao['hash']}, got {actual_hash}")
+
+          pack = json.loads(payload)
+          properties = pack["properties"]
+
+          item_properties = {
+              key: value
+              for key, value in sorted(properties.items())
+              if key.startswith("sao.item.")
+          }
+
+          interesting_terms = (
+              "location",
+              "floor",
+              "drop",
+              "loot",
+              "boss",
+              "mob",
+              "dungeon",
+              "raid",
+              "zone",
+              "region",
+              "island",
+              "level",
+          )
+          related_properties = {
+              key: value
+              for key, value in sorted(properties.items())
+              if any(term in key.lower() for term in interesting_terms)
+          }
+          event_properties = {
+              key: value
+              for key, value in sorted(properties.items())
+              if key.startswith("sao.event.") or key.startswith("sao.msg.")
+          }
+
+          report = {
+              "locale": "ru_RU",
+              "hash": sao["hash"],
+              "itemPropertyCount": len(item_properties),
+              "itemNameCount": sum(key.endswith(".name") for key in item_properties),
+              "itemProperties": item_properties,
+              "relatedProperties": related_properties,
+              "eventProperties": event_properties,
+          }
+
+          output = Path("tmp/sao-live-catalog-analysis.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+
+      - name: Commit inspection report
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tmp/sao-live-catalog-analysis.json
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "Capture live SAO catalog inspection"
+          git push origin HEAD:feat/sao-localization-presentation
