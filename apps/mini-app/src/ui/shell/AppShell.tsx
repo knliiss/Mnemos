@@ -4,10 +4,7 @@ import { ErrorNotificationBridge } from "../components/errors/ErrorNotificationB
 import { ErrorNotificationProvider } from "../components/errors/ErrorNotifications"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import type { Account, RootRoute, Route } from "../model"
-import {
-  persistNavigationStack,
-  restoreNavigationStack,
-} from "../navigation/navigationSession"
+import { persistNavigationStack, restoreNavigationStack } from "../navigation/navigationSession"
 import { isRootRoute } from "../navigation/routeRegistry"
 import "../shared/layout.css"
 import "../shared/form-controls.css"
