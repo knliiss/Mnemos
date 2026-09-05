@@ -20,11 +20,11 @@ class NotificationLocalizationService(
     private val saoLocalizationGateway: SaoLocalizationGateway,
     @Value("\${mnemos.notification.localization.cache-ttl:5m}")
     private val cacheTtl: Duration,
-) {
+) : NotificationLocalizationResolver {
     private val languageCache = ConcurrentHashMap<UUID, CachedValue<LocalizationLanguage>>()
     private val packCache = ConcurrentHashMap<String, CachedValue<SaoLocalizationPack>>()
 
-    fun resolve(userId: UserId): NotificationLocalizationContext {
+    override fun resolve(userId: UserId): NotificationLocalizationContext {
         val language = resolveLanguage(userId)
         val pack = resolvePack(saoLocale(language))
 
