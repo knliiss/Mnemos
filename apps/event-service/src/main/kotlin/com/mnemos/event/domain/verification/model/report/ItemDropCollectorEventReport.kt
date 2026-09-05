@@ -4,6 +4,7 @@ import com.mnemos.event.domain.item.model.DomainItemRarity
 import com.mnemos.event.domain.item.model.DomainItemType
 
 data class ItemDropCollectorEventReport(
+    val itemKey: String? = null,
     val itemName: String,
     val itemType: DomainItemType,
     val droppedFor: String,
