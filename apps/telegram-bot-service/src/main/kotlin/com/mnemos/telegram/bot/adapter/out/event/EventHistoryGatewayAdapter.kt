@@ -20,6 +20,9 @@ import com.mnemos.telegram.bot.application.settings.TelegramSettingsLanguageReso
 import com.mnemos.telegram.bot.application.settings.model.TelegramSettingsLanguage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class EventHistoryGatewayAdapter(
@@ -27,6 +30,7 @@ class EventHistoryGatewayAdapter(
     private val languageResolver: TelegramSettingsLanguageResolver,
 ) : EventHistoryGateway {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val localizationCache = ConcurrentHashMap<String, CachedLocalization>()
 
     override fun getPage(query: EventHistoryQuery): EventHistoryResult {
         val result =
@@ -57,13 +61,23 @@ class EventHistoryGatewayAdapter(
         return result
     }
 
-    private fun loadLocalization(locale: String): Map<String, String> =
-        try {
-            client.getSaoLocalization(locale).properties
+    private fun loadLocalization(locale: String): Map<String, String> {
+        val now = Instant.now()
+        val cached = localizationCache[locale]
+
+        if (cached != null && cached.fetchedAt.plus(LOCALIZATION_CACHE_TTL).isAfter(now)) {
+            return cached.properties
+        }
+
+        return try {
+            client.getSaoLocalization(locale).properties.also { properties ->
+                localizationCache[locale] = CachedLocalization(properties = properties, fetchedAt = now)
+            }
         } catch (exception: RuntimeException) {
             logger.warn("Could not load SAO localization for event history: locale={}", locale, exception)
-            emptyMap()
+            cached?.properties.orEmpty()
         }
+    }
 
     private fun EventHistoryFilter.toInternalType(): InternalEventFeedType? =
         when (this) {
@@ -95,8 +109,14 @@ class EventHistoryGatewayAdapter(
             TelegramSettingsLanguage.UK -> "uk_UA"
         }
 
+    private data class CachedLocalization(
+        val properties: Map<String, String>,
+        val fetchedAt: Instant,
+    )
+
     private companion object {
         const val PAGE_SIZE = 8
         const val DEFAULT_LOCALE = "ru_RU"
+        val LOCALIZATION_CACHE_TTL: Duration = Duration.ofMinutes(5)
     }
 }
