@@ -3,7 +3,7 @@ export type SaoItemAtlasSprite = {
   row: number
 }
 
-export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.webp"
+export const SAO_ITEM_ATLAS_PATH = "/event-icons/sao-tracked-items.png"
 export const SAO_ITEM_ATLAS_COLUMNS = 16
 export const SAO_ITEM_ATLAS_ROWS = 11
 
@@ -173,6 +173,7 @@ const ITEM_ATLAS_INDEX: Record<string, number> = {
   l9_10: 162,
   l9_11: 163,
   l9_12: 164,
+  d3_504: 165,
 }
 
 export function resolveSaoItemAtlasSprite(localizationKey?: string): SaoItemAtlasSprite | null {
