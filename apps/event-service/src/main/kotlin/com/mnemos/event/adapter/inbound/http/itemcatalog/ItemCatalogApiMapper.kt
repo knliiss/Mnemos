@@ -13,6 +13,7 @@ object ItemCatalogApiMapper {
     fun ItemCatalogItem.toResponse(): ItemCatalogResponse =
         ItemCatalogResponse(
             id = id.id,
+            gameKey = gameKey,
             name = name,
             type = type,
             rarity = rarity,
