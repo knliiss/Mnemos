@@ -24,11 +24,10 @@ export function AccountDropsPanel({
 
   const openActivity = () => {
     navigate({
-      id: "public-profile",
+      id: "profile-activity",
       params: {
         accountId,
         nickname: accountNickname,
-        section: "activity",
       },
     })
   }
