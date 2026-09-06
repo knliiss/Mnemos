@@ -1,4 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react"
+import { PetInventoryArt } from "../components/events/PetInventoryArt"
+import { resolveSaoPetInventoryTextureUrl } from "../components/events/saoPetInventoryArtwork"
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
 import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
@@ -117,6 +119,7 @@ type GuideLocationCardProps = {
 function GuideLocationCard({ location, catalogs, text, ui, onOpen }: GuideLocationCardProps) {
   const entities = confirmedLocationEntities(location, catalogs)
   const creatureCount = entities.mobKeys.length + entities.cometMobKeys.length
+  const petCount = entities.petKeys.length + entities.donatePetKeys.length
   const economy = GUIDE_LOCATION_ECONOMY[location.id]
 
   return (
@@ -146,9 +149,9 @@ function GuideLocationCard({ location, catalogs, text, ui, onOpen }: GuideLocati
               {text("sao.ui.weapon")}: {entities.weaponKeys.length}
             </i>
           ) : null}
-          {entities.petKeys.length ? (
+          {petCount ? (
             <i>
-              {text("sao.ui.pet")}: {entities.petKeys.length}
+              {text("sao.ui.pet")}: {petCount}
             </i>
           ) : null}
           {economy ? (
@@ -292,13 +295,27 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
 
       {entities.petKeys.length ? (
         <GuideSection title={text("sao.ui.pet")} count={entities.petKeys.length}>
-          <GuideEntityList keys={entities.petKeys} text={text} codePrefix="PET" />
+          <GuideEntityList
+            keys={entities.petKeys}
+            text={text}
+            codePrefix="PET"
+            artwork="pet"
+          />
         </GuideSection>
       ) : null}
 
-      {entities.dungeonPetKeys.length ? (
-        <GuideSection title={`${text("sao.ui.pet")} · DG`} count={entities.dungeonPetKeys.length}>
-          <GuideEntityList keys={entities.dungeonPetKeys} text={text} codePrefix="DG" />
+      {entities.donatePetKeys.length ? (
+        <GuideSection
+          title={`${text("sao.ui.pet")} · ${text("sao.ui.case_donate")}`}
+          count={entities.donatePetKeys.length}
+          accent
+        >
+          <GuideEntityList
+            keys={entities.donatePetKeys}
+            text={text}
+            codePrefix="PETD"
+            artwork="pet"
+          />
         </GuideSection>
       ) : null}
 
@@ -328,12 +345,12 @@ function confirmedLocationEntities(location: GuideLocation, catalogs: SaoCatalog
     cometMobKeys: confirmedKeys(location.cometMobKeys),
     weaponKeys: confirmedKeys(location.weaponKeys),
     petKeys: confirmedKeys(location.petKeys),
-    dungeonPetKeys: confirmedKeys(location.dungeonPetKeys),
+    donatePetKeys: confirmedKeys(location.donatePetKeys),
     materialKeys: confirmedKeys(location.materialKeys),
   }
 }
 
-type GuideEntityArtwork = "weapon"
+type GuideEntityArtwork = "weapon" | "pet"
 
 function GuideEntityList({
   keys,
@@ -346,22 +363,28 @@ function GuideEntityList({
   codePrefix: string
   artwork?: GuideEntityArtwork
 }) {
-  const illustrated = artwork === "weapon"
+  const illustrated = Boolean(artwork)
 
   return (
     <div className={`guide-entity-list ${illustrated ? "guide-entity-list--illustrated" : ""}`}>
       {keys.map((key, index) => {
         const entityIndex = guideEntityIndex(key, index + 1)
-        const artworkStyle = artwork === "weapon" ? guideWeaponArtworkStyle(key) : undefined
+        const weaponArtworkStyle = artwork === "weapon" ? guideWeaponArtworkStyle(key) : undefined
+        const petTextureUrl = artwork === "pet" ? resolveSaoPetInventoryTextureUrl(key) : null
 
         return (
           <span key={key} className="guide-entity-row">
-            {artworkStyle ? (
+            {weaponArtworkStyle ? (
               <span
                 className="guide-entity-row__art guide-entity-row__art--weapon"
-                style={artworkStyle}
+                style={weaponArtworkStyle}
                 aria-hidden="true"
               >
+                <b>{String(entityIndex).padStart(2, "0")}</b>
+              </span>
+            ) : petTextureUrl ? (
+              <span className="guide-entity-row__art guide-entity-row__art--pet" aria-hidden="true">
+                <PetInventoryArt textureUrl={petTextureUrl} />
                 <b>{String(entityIndex).padStart(2, "0")}</b>
               </span>
             ) : (
