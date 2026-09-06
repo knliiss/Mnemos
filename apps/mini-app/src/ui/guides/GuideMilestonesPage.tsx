@@ -35,14 +35,13 @@ function GuideDungeonsPage({
 }) {
   const dungeons: Array<{
     type: GuideDungeonType
-    alias: string
     copy: string
     tone: string
   }> = [
-    { type: "EASY", alias: "LP", copy: ui.dungeonEasyCopy, tone: "lp" },
-    { type: "NORMAL", alias: "SP", copy: ui.dungeonNormalCopy, tone: "sp" },
-    { type: "HARD", alias: "SLP", copy: ui.dungeonHardCopy, tone: "slp" },
-    { type: "INSANE", alias: "EP", copy: ui.dungeonInsaneCopy, tone: "ep" },
+    { type: "EASY", copy: ui.dungeonEasyCopy, tone: "lp" },
+    { type: "NORMAL", copy: ui.dungeonNormalCopy, tone: "sp" },
+    { type: "HARD", copy: ui.dungeonHardCopy, tone: "slp" },
+    { type: "INSANE", copy: ui.dungeonInsaneCopy, tone: "ep" },
   ]
 
   return (
@@ -55,7 +54,7 @@ function GuideDungeonsPage({
           <i>DG</i>
         </div>
         <span>
-          <small>LP · SP · SLP · EP</small>
+          <small>{ui.dungeonDifficultyRange}</small>
           <strong>{ui.dungeons}</strong>
           <p>{ui.dungeonsCopy}</p>
         </span>
@@ -70,9 +69,7 @@ function GuideDungeonsPage({
             <header>
               <span>
                 <b>{text(`sao.dungeon.${dungeon.type}.name`)}</b>
-                <small>
-                  {dungeon.alias} · {dungeon.copy}
-                </small>
+                <small>{dungeon.copy}</small>
               </span>
               <i>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</i>
             </header>
