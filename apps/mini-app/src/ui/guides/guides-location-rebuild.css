@@ -244,7 +244,12 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(0deg, rgba(7, 11, 7, 0.98) 0%, rgba(7, 11, 7, 0.64) 42%, rgba(7, 11, 7, 0.08) 78%),
+    linear-gradient(
+      0deg,
+      rgba(7, 11, 7, 0.98) 0%,
+      rgba(7, 11, 7, 0.64) 42%,
+      rgba(7, 11, 7, 0.08) 78%
+    ),
     linear-gradient(90deg, rgba(7, 11, 7, 0.15), transparent 50%);
 }
 
@@ -943,21 +948,22 @@
   text-align: left;
 }
 
+.guide-mob-card__summary--no-art {
+  grid-template-columns: minmax(0, 1fr) 18px;
+  padding-left: 12px;
+}
+
 .guide-mob-card__portrait {
-  display: grid;
+  display: block;
   width: 64px;
   height: 64px;
-  place-items: center;
   overflow: hidden;
   border: 1px solid rgba(182, 211, 120, 0.12);
   border-radius: 11px;
-  background: rgba(8, 12, 8, 0.72);
+  background-color: rgba(8, 12, 8, 0.72);
 }
 
-.guide-mob-card__portrait img {
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
+.guide-mob-card__portrait--model {
   image-rendering: pixelated;
 }
 
