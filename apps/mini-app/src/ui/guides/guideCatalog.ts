@@ -171,10 +171,7 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
   ),
   materialKeys:
     id >= 11
-      ? [
-          `sao.item.weapon_upgrade_material_${id}.name`,
-          `sao.item.comet_shard_${id}_1.name`,
-        ]
+      ? [`sao.item.weapon_upgrade_material_${id}.name`, `sao.item.comet_shard_${id}_1.name`]
       : [],
 }))
 
