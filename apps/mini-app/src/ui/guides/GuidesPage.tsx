@@ -7,6 +7,7 @@ import { GuideRebirthPage } from "./GuideRebirthPage"
 import { useSaoGuideLocalization } from "./guideLocalization"
 import { guideUiText } from "./guideUiText"
 import "./guides.css"
+import "./guides-sections.css"
 
 type Props = {
   back: () => void
