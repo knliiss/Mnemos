@@ -145,6 +145,10 @@ export function locationMatchesQuery(
     ]),
     ...location.mobKeys,
     ...location.cometMobKeys,
+    ...location.weaponKeys,
+    ...location.petKeys,
+    ...location.dungeonPetKeys,
+    ...location.materialKeys,
   ]
   const aliases = [
     String(location.id),
