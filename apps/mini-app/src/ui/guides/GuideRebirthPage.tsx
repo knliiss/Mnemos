@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
-import { GUIDE_RANK_NAMES_RU, guideRankName } from "./guideRanks"
 import { guideUiText } from "./guideUiText"
 
 type Props = {
   ui: ReturnType<typeof guideUiText>
+  text: (key: string) => string
   initialCurrentRank?: number | null
   back: () => void
 }
 
-export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
+export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) {
   const initialRank = Math.min(Math.max(initialCurrentRank ?? 1, 1), 67)
   const [currentRank, setCurrentRank] = useState(initialRank)
   const [targetRank, setTargetRank] = useState(Math.min(Math.max(initialRank + 1, 10), 68))
@@ -20,6 +20,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
   )
   const validRange = targetRank > currentRank
   const locationCount = new Set(steps.map((step) => step.location)).size
+  const rankName = (rank: number) => text(`sao.rebirth.${rank}.name`)
 
   return (
     <div className="screen guides-screen guide-rebirth-screen">
@@ -46,7 +47,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
           >
             {rankOptions(1, 67).map((rank) => (
               <option key={rank} value={rank}>
-                #{rank} · {guideRankName(rank)}
+                #{rank} · {rankName(rank)}
               </option>
             ))}
           </select>
@@ -64,7 +65,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
           >
             {rankOptions(2, 68).map((rank) => (
               <option key={rank} value={rank}>
-                #{rank} · {guideRankName(rank)}
+                #{rank} · {rankName(rank)}
               </option>
             ))}
           </select>
@@ -84,7 +85,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
             </span>
             <span>
               <b>#{targetRank}</b>
-              <small>{guideRankName(targetRank)}</small>
+              <small>{rankName(targetRank)}</small>
             </span>
           </section>
 
@@ -94,8 +95,8 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
                 <header>
                   <span className="guide-rank-step__number">#{step.rank}</span>
                   <span className="guide-rank-step__title">
-                    <strong>{guideRankName(step.rank)}</strong>
-                    <small>→ {guideRankName(step.nextRank)}</small>
+                    <strong>{rankName(step.rank)}</strong>
+                    <small>→ {rankName(step.nextRank)}</small>
                   </span>
                   <span className="guide-rank-step__location">L{step.location}</span>
                 </header>
@@ -140,9 +141,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
 }
 
 function rankOptions(from: number, to: number) {
-  return Object.keys(GUIDE_RANK_NAMES_RU)
-    .map(Number)
-    .filter((rank) => rank >= from && rank <= to)
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index)
 }
 
 function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
