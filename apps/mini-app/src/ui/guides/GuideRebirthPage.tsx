@@ -5,12 +5,14 @@ import { guideUiText } from "./guideUiText"
 
 type Props = {
   ui: ReturnType<typeof guideUiText>
+  initialCurrentRank?: number | null
   back: () => void
 }
 
-export function GuideRebirthPage({ ui, back }: Props) {
-  const [currentRank, setCurrentRank] = useState(1)
-  const [targetRank, setTargetRank] = useState(10)
+export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
+  const initialRank = Math.min(Math.max(initialCurrentRank ?? 1, 1), 67)
+  const [currentRank, setCurrentRank] = useState(initialRank)
+  const [targetRank, setTargetRank] = useState(Math.min(Math.max(initialRank + 1, 10), 68))
   const steps = useMemo(
     () =>
       GUIDE_REBIRTH_STEPS.filter(
