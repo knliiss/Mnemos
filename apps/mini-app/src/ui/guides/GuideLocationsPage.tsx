@@ -136,8 +136,16 @@ function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProp
         <span className="guide-location-card__stats">
           {location.npcs.length ? <i>{ui.npcCount(location.npcs.length)}</i> : null}
           {creatureCount ? <i>{ui.creaturesCount(creatureCount)}</i> : null}
-          {location.weaponKeys.length ? <i>{text("sao.ui.weapon")}: {location.weaponKeys.length}</i> : null}
-          {location.petKeys.length ? <i>{text("sao.ui.pet")}: {location.petKeys.length}</i> : null}
+          {location.weaponKeys.length ? (
+            <i>
+              {text("sao.ui.weapon")}: {location.weaponKeys.length}
+            </i>
+          ) : null}
+          {location.petKeys.length ? (
+            <i>
+              {text("sao.ui.pet")}: {location.petKeys.length}
+            </i>
+          ) : null}
           {economy ? (
             <i>
               {ui.firstCase}: {economy.caseOne}
@@ -328,7 +336,9 @@ function GuideEntityList({
           )}
           <span>
             <strong>{text(key)}</strong>
-            <small>{codePrefix}-{String(index + 1).padStart(2, "0")}</small>
+            <small>
+              {codePrefix}-{String(index + 1).padStart(2, "0")}
+            </small>
           </span>
         </span>
       ))}
