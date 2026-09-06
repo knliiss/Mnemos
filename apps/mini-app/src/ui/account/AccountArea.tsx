@@ -1,12 +1,12 @@
-import type { ReactNode } from "react"
+import { lazy, Suspense, type ReactNode } from "react"
 import type { Badge } from "@/shared/api/badgeApi"
 import "../events/event-surfaces.css"
 import type { Route } from "../model"
 import { useMnemosData } from "../data/MnemosDataProvider"
 import { canAccessGuides } from "../guides/guideAccess"
-import { GuidesPage } from "../guides/GuidesPage"
 import { LeaderboardPage } from "../leaderboards/LeaderboardPage"
 import { FeatureError } from "../system/FeatureError"
+import { FeatureLoading } from "../system/FeatureLoading"
 import { NotFoundFeature } from "../system/NotFoundFeature"
 import { AccountSettings } from "./AccountSettings"
 import "./role-shared.css"
@@ -19,6 +19,10 @@ import { AccountJoin } from "./onboarding/AccountJoin"
 import { RoleEditor } from "./RoleEditor"
 import { RolesOverview } from "./RolesOverview"
 import { AccountWallet } from "./wallet/AccountWallet"
+
+const GuidesPage = lazy(() =>
+  import("../guides/GuidesPage").then((module) => ({ default: module.GuidesPage })),
+)
 
 type Props = {
   navigate: (route: Route) => void
@@ -69,7 +73,11 @@ export function AccountArea(props: Props) {
       )
     }
 
-    return <GuidesPage back={props.back} />
+    return (
+      <Suspense fallback={<FeatureLoading />}>
+        <GuidesPage back={props.back} />
+      </Suspense>
+    )
   }
 
   if (props.routeId === "account-wallet") {
