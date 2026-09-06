@@ -28,7 +28,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
 
       <section className="guide-context-hero guide-context-hero--trainer">
         <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          <img src="/ui-illustrations/guides-trainer.svg" alt="" />
           <i>RB</i>
         </div>
         <span>
