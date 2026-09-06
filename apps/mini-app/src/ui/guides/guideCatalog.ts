@@ -169,7 +169,13 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
     id > 0 ? DONATE_PET_COUNT : undefined,
     (index) => `sao.item.petd_l${id}_${index}.name`,
   ),
-  materialKeys: id >= 11 ? [`sao.item.weapon_upgrade_material_${id}.name`] : [],
+  materialKeys:
+    id >= 11
+      ? [
+          `sao.item.weapon_upgrade_material_${id}.name`,
+          `sao.item.comet_shard_${id}_1.name`,
+        ]
+      : [],
 }))
 
 export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; description: string }> = {
