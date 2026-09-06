@@ -41,6 +41,32 @@ describe("guide catalog", () => {
       "Goblin Warrior",
     ])
   })
+
+  it("maps source-backed weapon and pet localization keys by location", () => {
+    const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
+    const secretLand = GUIDE_LOCATIONS.find((candidate) => candidate.id === 10)!
+    const containerYard = GUIDE_LOCATIONS.find((candidate) => candidate.id === 11)!
+    const vikingValley = GUIDE_LOCATIONS.find((candidate) => candidate.id === 12)!
+
+    expect(darkForest.weaponKeys).toEqual(
+      Array.from({ length: 9 }, (_, index) => `sao.item.l1_${index + 1}.name`),
+    )
+    expect(darkForest.petKeys).toHaveLength(11)
+    expect(darkForest.dungeonPetKeys).toHaveLength(5)
+    expect(secretLand.weaponKeys).toHaveLength(12)
+    expect(containerYard.materialKeys).toEqual(["sao.item.weapon_upgrade_material_11.name"])
+    expect(vikingValley.petKeys).toHaveLength(14)
+  })
+
+  it("keeps special areas outside numbered equipment mappings", () => {
+    const starterVillage = GUIDE_LOCATIONS.find((candidate) => candidate.id === 0)!
+    const dungeonHall = GUIDE_LOCATIONS.find((candidate) => candidate.id === -1)!
+
+    expect(starterVillage.weaponKeys).toEqual([])
+    expect(starterVillage.petKeys).toEqual([])
+    expect(dungeonHall.weaponKeys).toEqual([])
+    expect(dungeonHall.petKeys).toEqual([])
+  })
 })
 
 describe("guide progression", () => {
@@ -112,6 +138,30 @@ describe("guide localization", () => {
     expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новичок", catalogs)).toBe(true)
     expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новачок", catalogs)).toBe(true)
     expect(localizationKeyMatchesQuery("sao.dungeon.EASY.name", "LP", catalogs, ["LP"])).toBe(true)
+  })
+
+  it("searches location weapons and pets in every loaded SAO language", () => {
+    const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
+    const weaponKey = darkForest.weaponKeys[0]
+    const petKey = darkForest.petKeys[0]
+    const catalogs = {
+      en_US: {
+        [weaponKey]: "Old Sword",
+        [petKey]: "Treeling",
+      },
+      ru_RU: {
+        [weaponKey]: "Старый меч",
+        [petKey]: "Древень",
+      },
+      uk_UA: {
+        [weaponKey]: "Старий меч",
+        [petKey]: "Деревень",
+      },
+    }
+
+    expect(locationMatchesQuery(darkForest, "Старый меч", catalogs)).toBe(true)
+    expect(locationMatchesQuery(darkForest, "Деревень", catalogs)).toBe(true)
+    expect(locationMatchesQuery(darkForest, "Treeling", catalogs)).toBe(true)
   })
 
   it("searches bundled aliases independently from display language", () => {
