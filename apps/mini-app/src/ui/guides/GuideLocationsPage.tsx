@@ -5,6 +5,7 @@ import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from ".
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideRankName } from "./guideRanks"
 import { guideUiText } from "./guideUiText"
+import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 
 type GuideUi = ReturnType<typeof guideUiText>
 
@@ -284,20 +285,20 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
             keys={entities.weaponKeys}
             text={text}
             codePrefix={`L${location.id}`}
-            illustrated
+            artwork="weapon"
           />
         </GuideSection>
       ) : null}
 
       {entities.petKeys.length ? (
         <GuideSection title={text("sao.ui.pet")} count={entities.petKeys.length}>
-          <GuideEntityList keys={entities.petKeys} text={text} codePrefix="PET" illustrated />
+          <GuideEntityList keys={entities.petKeys} text={text} codePrefix="PET" />
         </GuideSection>
       ) : null}
 
       {entities.dungeonPetKeys.length ? (
         <GuideSection title={`${text("sao.ui.pet")} · DG`} count={entities.dungeonPetKeys.length}>
-          <GuideEntityList keys={entities.dungeonPetKeys} text={text} codePrefix="DG" illustrated />
+          <GuideEntityList keys={entities.dungeonPetKeys} text={text} codePrefix="DG" />
         </GuideSection>
       ) : null}
 
@@ -332,37 +333,49 @@ function confirmedLocationEntities(location: GuideLocation, catalogs: SaoCatalog
   }
 }
 
+type GuideEntityArtwork = "weapon"
+
 function GuideEntityList({
   keys,
   text,
   codePrefix,
-  illustrated = false,
+  artwork,
 }: {
   keys: string[]
   text: (key: string) => string
   codePrefix: string
-  illustrated?: boolean
+  artwork?: GuideEntityArtwork
 }) {
+  const illustrated = artwork === "weapon"
+
   return (
     <div className={`guide-entity-list ${illustrated ? "guide-entity-list--illustrated" : ""}`}>
-      {keys.map((key, index) => (
-        <span key={key} className="guide-entity-row">
-          {illustrated ? (
-            <span className="guide-entity-row__art" aria-hidden="true">
-              <i />
-              <b>{String(index + 1).padStart(2, "0")}</b>
+      {keys.map((key, index) => {
+        const entityIndex = guideEntityIndex(key, index + 1)
+        const artworkStyle = artwork === "weapon" ? guideWeaponArtworkStyle(key) : undefined
+
+        return (
+          <span key={key} className="guide-entity-row">
+            {artworkStyle ? (
+              <span
+                className="guide-entity-row__art guide-entity-row__art--weapon"
+                style={artworkStyle}
+                aria-hidden="true"
+              >
+                <b>{String(entityIndex).padStart(2, "0")}</b>
+              </span>
+            ) : (
+              <i>{String(entityIndex).padStart(2, "0")}</i>
+            )}
+            <span>
+              <strong>{text(key)}</strong>
+              <small>
+                {codePrefix}-{String(entityIndex).padStart(2, "0")}
+              </small>
             </span>
-          ) : (
-            <i>{String(index + 1).padStart(2, "0")}</i>
-          )}
-          <span>
-            <strong>{text(key)}</strong>
-            <small>
-              {codePrefix}-{String(index + 1).padStart(2, "0")}
-            </small>
           </span>
-        </span>
-      ))}
+        )
+      })}
     </div>
   )
 }
