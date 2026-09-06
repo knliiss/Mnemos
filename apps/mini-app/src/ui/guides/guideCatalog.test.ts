@@ -44,13 +44,32 @@ describe("guide catalog", () => {
 
   it("maps source-backed weapon and pet localization keys by location", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
+    const pirateShip = GUIDE_LOCATIONS.find((candidate) => candidate.id === 2)!
     const secretLand = GUIDE_LOCATIONS.find((candidate) => candidate.id === 10)!
     const containerYard = GUIDE_LOCATIONS.find((candidate) => candidate.id === 11)!
     const vikingValley = GUIDE_LOCATIONS.find((candidate) => candidate.id === 12)!
 
-    expect(darkForest.weaponKeys).toEqual(
-      Array.from({ length: 9 }, (_, index) => `sao.item.l1_${index + 1}.name`),
-    )
+    expect(darkForest.weaponKeys).toEqual([
+      "sao.item.l1_1.name",
+      "sao.item.l1_2.name",
+      "sao.item.l1_4.name",
+      "sao.item.l1_5.name",
+      "sao.item.l1_6.name",
+      "sao.item.l1_7.name",
+      "sao.item.l1_8.name",
+      "sao.item.l1_9.name",
+    ])
+    expect(pirateShip.weaponKeys).toEqual([
+      "sao.item.l2_1.name",
+      "sao.item.l2_2.name",
+      "sao.item.l2_3.name",
+      "sao.item.l2_5.name",
+      "sao.item.l2_6.name",
+      "sao.item.l2_7.name",
+      "sao.item.l2_8.name",
+      "sao.item.l2_9.name",
+      "sao.item.l2_10.name",
+    ])
     expect(darkForest.petKeys).toHaveLength(11)
     expect(darkForest.dungeonPetKeys).toHaveLength(5)
     expect(secretLand.weaponKeys).toHaveLength(12)
