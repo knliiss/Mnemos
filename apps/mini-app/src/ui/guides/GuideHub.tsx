@@ -91,10 +91,9 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
   const mechanicResults = useMemo(
     () =>
       normalizedQuery
-        ? GUIDE_MECHANICS.filter((mechanic) => mechanicMatchesQuery(mechanic, query, catalogs)).slice(
-            0,
-            5,
-          )
+        ? GUIDE_MECHANICS.filter((mechanic) =>
+            mechanicMatchesQuery(mechanic, query, catalogs),
+          ).slice(0, 5)
         : [],
     [catalogs, normalizedQuery, query],
   )
