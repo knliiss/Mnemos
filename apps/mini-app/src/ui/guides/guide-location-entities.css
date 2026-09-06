@@ -48,12 +48,12 @@
   letter-spacing: 0.05em;
 }
 
-.guide-entity-list--materials .guide-entity-row {
+.guide-section--accent .guide-entity-list:not(.guide-entity-list--illustrated) .guide-entity-row {
   align-items: start;
   padding-block: 8px;
 }
 
-.guide-entity-list--materials .guide-entity-row small {
+.guide-section--accent .guide-entity-list:not(.guide-entity-list--illustrated) .guide-entity-row small {
   color: #89977e;
   font-family: inherit;
   font-size: 7px;
