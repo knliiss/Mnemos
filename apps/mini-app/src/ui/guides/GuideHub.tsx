@@ -175,16 +175,16 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
   ])
 
   return (
-    <div className="screen guides-screen guides-hub-screen">
+    <div className="screen guides-screen guides-hub-screen guides-hub-screen--rebuild">
       <GuideHubHeader title={ui.title} back={back} backLabel={ui.back} />
 
-      <section className="guides-hub-intro">
+      <section className="guides-hub-intro guides-hub-intro--rebuild">
         <small>{ui.eyebrow}</small>
         <strong>{ui.heroTitle}</strong>
         <p>{ui.heroCopy}</p>
       </section>
 
-      <label className="guides-search guides-search--hub">
+      <label className="guides-search guides-search--hub guides-search--rebuild">
         <span className="guides-search__mark" aria-hidden="true" />
         <input
           type="search"
@@ -206,7 +206,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
       </label>
 
       {normalizedQuery ? (
-        <section className="guide-hub-search-results">
+        <section className="guide-hub-search-results guide-hub-search-results--rebuild">
           {searchResults.map((result) => (
             <button key={result.key} type="button" onClick={result.onOpen}>
               <span className="guide-hub-search-results__kind">{result.kind}</span>
@@ -229,7 +229,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
             title={ui.locations}
             copy={ui.locationsCopy}
             meta={`${GUIDE_LOCATIONS.length}`}
-            artwork="/guides/locations-v2/location-01.webp"
             onClick={() => openSection("locations")}
           />
           <GuideHubCard
@@ -237,7 +236,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta={`${DUNGEONS.length}`}
-            artwork="/event-icons/dungeon.png"
             onClick={() => openSection("dungeons")}
           />
           {verifiedMechanics.length ? (
@@ -246,7 +244,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
               title={ui.mechanics}
               copy={ui.mechanicsCopy}
               meta={`${verifiedMechanics.length}`}
-              artwork="/event-icons/book.png"
               onClick={() => openSection("mechanics")}
             />
           ) : null}
@@ -261,26 +258,31 @@ function GuideHubCard({
   title,
   copy,
   meta,
-  artwork,
   onClick,
 }: {
   tone: GuideHubSection
   title: string
   copy: string
   meta: string
-  artwork: string
   onClick: () => void
 }) {
   return (
-    <button type="button" className={`guide-hub-card guide-hub-card--${tone}`} onClick={onClick}>
-      <span className="guide-hub-card__art guide-hub-card__art--game" aria-hidden="true">
-        <img src={artwork} alt="" />
-        <i>{meta}</i>
+    <button
+      type="button"
+      className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--rebuild`}
+      onClick={onClick}
+    >
+      <span className={`guide-hub-card__diagram guide-hub-card__diagram--${tone}`} aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
       </span>
       <span className="guide-hub-card__copy">
         <strong>{title}</strong>
         <small>{copy}</small>
       </span>
+      <span className="guide-hub-card__meta">{meta}</span>
       <span className="guide-hub-card__open" aria-hidden="true">
         ›
       </span>
