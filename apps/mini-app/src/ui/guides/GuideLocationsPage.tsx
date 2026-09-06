@@ -302,11 +302,7 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
       ) : null}
 
       {entities.donatePetKeys.length ? (
-        <GuideSection
-          title={`${text("sao.ui.pet")} · ${text("sao.ui.case_donate")}`}
-          count={entities.donatePetKeys.length}
-          accent
-        >
+        <GuideSection title={ui.premiumPets} count={entities.donatePetKeys.length} accent>
           <GuideEntityList
             keys={entities.donatePetKeys}
             text={text}
