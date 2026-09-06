@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
+import { GUIDE_CRITICAL_CATALOGS } from "./guideCriticalCatalogs"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
 
 export type SaoCatalogs = Record<string, Record<string, string>>
@@ -19,7 +20,13 @@ type LocalizationPie = {
 }
 
 const LANGUAGE_INDEX_URL = "https://webdata.c7x.dev/client/lang.json"
-const BUNDLED_CATALOGS: SaoCatalogs = { en_US: GUIDE_EN_FALLBACK }
+const BUNDLED_CATALOGS: SaoCatalogs = {
+  ...GUIDE_CRITICAL_CATALOGS,
+  en_US: {
+    ...GUIDE_EN_FALLBACK,
+    ...GUIDE_CRITICAL_CATALOGS.en_US,
+  },
+}
 
 let remoteCatalogsPromise: Promise<SaoCatalogs> | null = null
 
@@ -34,10 +41,7 @@ export function useSaoGuideLocalization(uiLanguage: string | undefined) {
         return
       }
 
-      setCatalogs({
-        ...BUNDLED_CATALOGS,
-        ...remoteCatalogs,
-      })
+      setCatalogs((currentCatalogs) => mergeCatalogs(currentCatalogs, remoteCatalogs))
     })
 
     return () => {
@@ -242,6 +246,19 @@ async function fetchRemoteSaoCatalogs(): Promise<SaoCatalogs> {
   return Object.fromEntries(
     results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : [])),
   )
+}
+
+function mergeCatalogs(base: SaoCatalogs, overrides: SaoCatalogs): SaoCatalogs {
+  const merged: SaoCatalogs = { ...base }
+
+  for (const [language, catalog] of Object.entries(overrides)) {
+    merged[language] = {
+      ...(merged[language] ?? {}),
+      ...catalog,
+    }
+  }
+
+  return merged
 }
 
 function unique(values: string[]) {
