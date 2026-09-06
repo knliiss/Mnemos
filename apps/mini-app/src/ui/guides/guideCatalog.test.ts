@@ -44,7 +44,7 @@ describe("guide catalog", () => {
     ])
   })
 
-  it("maps source-backed weapon and pet localization keys by location", () => {
+  it("maps source-backed weapon, pet and material localization keys by location", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
     const pirateShip = GUIDE_LOCATIONS.find((candidate) => candidate.id === 2)!
     const secretLand = GUIDE_LOCATIONS.find((candidate) => candidate.id === 10)!
@@ -81,7 +81,10 @@ describe("guide catalog", () => {
       "sao.item.petd_l1_5.name",
     ])
     expect(secretLand.weaponKeys).toHaveLength(12)
-    expect(containerYard.materialKeys).toEqual(["sao.item.weapon_upgrade_material_11.name"])
+    expect(containerYard.materialKeys).toEqual([
+      "sao.item.weapon_upgrade_material_11.name",
+      "sao.item.comet_shard_11_1.name",
+    ])
     expect(vikingValley.petKeys).toHaveLength(14)
   })
 
