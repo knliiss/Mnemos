@@ -295,12 +295,7 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
 
       {entities.petKeys.length ? (
         <GuideSection title={text("sao.ui.pet")} count={entities.petKeys.length}>
-          <GuideEntityList
-            keys={entities.petKeys}
-            text={text}
-            codePrefix="PET"
-            artwork="pet"
-          />
+          <GuideEntityList keys={entities.petKeys} text={text} codePrefix="PET" artwork="pet" />
         </GuideSection>
       ) : null}
 
