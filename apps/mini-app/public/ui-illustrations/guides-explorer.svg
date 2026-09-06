@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 144" shape-rendering="crispEdges">
+  <rect x="18" y="118" width="164" height="4" fill="#080A08" opacity=".34"/>
+  <rect x="38" y="122" width="124" height="4" fill="#080A08" opacity=".2"/>
+
+  <g opacity=".66">
+    <rect x="14" y="82" width="38" height="4" fill="#64764B"/>
+    <rect x="18" y="76" width="30" height="4" fill="#7C9257"/>
+    <rect x="22" y="70" width="22" height="4" fill="#A8C85A"/>
+    <rect x="28" y="64" width="10" height="4" fill="#CFFF35"/>
+    <rect x="24" y="86" width="18" height="24" fill="#283021"/>
+    <rect x="28" y="90" width="10" height="16" fill="#121711"/>
+  </g>
+
+  <g opacity=".78">
+    <rect x="148" y="22" width="30" height="4" fill="#A8C85A"/>
+    <rect x="144" y="26" width="38" height="34" fill="#151B12" stroke="#728650" stroke-width="3"/>
+    <rect x="152" y="34" width="4" height="18" fill="#CFFF35"/>
+    <rect x="156" y="40" width="10" height="4" fill="#CFFF35"/>
+    <rect x="166" y="32" width="4" height="16" fill="#D7A34F"/>
+    <rect x="150" y="54" width="24" height="2" fill="#5A6D43"/>
+  </g>
+
+  <image href="/ui-illustrations/mnemos-mascot-cat.svg" x="42" y="12" width="118" height="106"/>
+
+  <g>
+    <rect x="62" y="92" width="18" height="4" fill="#151A13"/>
+    <rect x="58" y="96" width="26" height="24" fill="#37412C"/>
+    <rect x="62" y="100" width="18" height="14" fill="#4C593A"/>
+    <rect x="66" y="104" width="10" height="4" fill="#D7A34F"/>
+    <rect x="62" y="116" width="18" height="4" fill="#1E251A"/>
+  </g>
+
+  <g>
+    <rect x="136" y="74" width="4" height="38" fill="#8C6A3E"/>
+    <rect x="132" y="70" width="12" height="8" fill="#D7A34F"/>
+    <rect x="130" y="68" width="16" height="4" fill="#CFFF35"/>
+  </g>
+</svg>
