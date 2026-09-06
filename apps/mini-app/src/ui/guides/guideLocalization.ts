@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_CRITICAL_CATALOGS } from "./guideCriticalCatalogs"
+import { GUIDE_EN_PROGRESSION_FALLBACK } from "./guideEnglishProgressionFallback"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
 import { GUIDE_INTERFACE_CATALOGS } from "./guideInterfaceCatalogs"
 
@@ -22,7 +23,15 @@ type LocalizationPie = {
 
 const LANGUAGE_INDEX_URL = "https://webdata.c7x.dev/client/lang.json"
 const BUNDLED_CATALOGS = mergeCatalogs(
-  mergeCatalogs({ en_US: GUIDE_EN_FALLBACK }, GUIDE_CRITICAL_CATALOGS),
+  mergeCatalogs(
+    {
+      en_US: {
+        ...GUIDE_EN_FALLBACK,
+        ...GUIDE_EN_PROGRESSION_FALLBACK,
+      },
+    },
+    GUIDE_CRITICAL_CATALOGS,
+  ),
   GUIDE_INTERFACE_CATALOGS,
 )
 
