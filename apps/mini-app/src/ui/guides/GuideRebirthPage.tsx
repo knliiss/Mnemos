@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { GuideRankPicker } from "./GuideRankPicker"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
 
@@ -43,37 +44,31 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
       </section>
 
       <section className="guide-rank-calculator" aria-label={ui.calculator}>
-        <label>
-          <small>{ui.currentRank}</small>
-          <select
-            value={currentRank}
-            onChange={(event) => changeCurrentRank(Number(event.target.value))}
-          >
-            {rankOptions(1, 67).map((rank) => (
-              <option key={rank} value={rank}>
-                #{rank} · {rankName(rank)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <GuideRankPicker
+          label={ui.currentRank}
+          value={currentRank}
+          min={1}
+          max={67}
+          rankName={rankName}
+          searchPlaceholder={ui.currentRank}
+          closeLabel={ui.back}
+          onChange={changeCurrentRank}
+        />
 
         <span className="guide-rank-calculator__arrow" aria-hidden="true">
           →
         </span>
 
-        <label>
-          <small>{ui.targetRank}</small>
-          <select
-            value={targetRank}
-            onChange={(event) => setTargetRank(Number(event.target.value))}
-          >
-            {rankOptions(currentRank + 1, 68).map((rank) => (
-              <option key={rank} value={rank}>
-                #{rank} · {rankName(rank)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <GuideRankPicker
+          label={ui.targetRank}
+          value={targetRank}
+          min={currentRank + 1}
+          max={68}
+          rankName={rankName}
+          searchPlaceholder={ui.targetRank}
+          closeLabel={ui.back}
+          onChange={setTargetRank}
+        />
       </section>
 
       <section className="guide-rank-summary">
@@ -133,10 +128,6 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
       </section>
     </div>
   )
-}
-
-function rankOptions(from: number, to: number) {
-  return Array.from({ length: to - from + 1 }, (_, index) => from + index)
 }
 
 function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiText>) {
