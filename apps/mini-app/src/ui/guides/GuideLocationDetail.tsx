@@ -12,6 +12,7 @@ import {
 import { guideCaseEconomy } from "./guideLocationEconomyMath"
 import { guideLocationUiText } from "./guideLocationUiText"
 import { localizationKeyExists, type SaoCatalogs } from "./guideLocalization"
+import { guideMobArtworkStyle } from "./guideMobArtwork"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
@@ -348,16 +349,22 @@ function GuideMobCard({
   onToggle: () => void
   onSelectDrop: (drop: GuideDumpDrop) => void
 }) {
+  const artworkStyle = guideMobArtworkStyle(mob.key)
+
   return (
     <article className={`guide-mob-card ${expanded ? "is-expanded" : ""}`}>
-      <button type="button" className="guide-mob-card__summary" onClick={onToggle}>
-        <span className="guide-mob-card__portrait" aria-hidden="true">
-          <img
-            src={`https://storage.c7x.dev/butowka/sao/global/img/mob/${mob.artworkId}.png`}
-            alt=""
-            loading="lazy"
+      <button
+        type="button"
+        className={`guide-mob-card__summary ${artworkStyle ? "" : "guide-mob-card__summary--no-art"}`}
+        onClick={onToggle}
+      >
+        {artworkStyle ? (
+          <span
+            className="guide-mob-card__portrait guide-mob-card__portrait--model"
+            style={artworkStyle}
+            aria-hidden="true"
           />
-        </span>
+        ) : null}
         <span className="guide-mob-card__copy">
           <strong>{text(mob.key)}</strong>
           <small>
@@ -475,10 +482,7 @@ function rarityLabel(rarity: GuideDumpDrop["rarity"], text: (key: string) => str
   return text(`sao.enum.rarity.${rarity.toLowerCase()}.name`)
 }
 
-function locationLabel(
-  locationId: number,
-  locationUi: ReturnType<typeof guideLocationUiText>,
-) {
+function locationLabel(locationId: number, locationUi: ReturnType<typeof guideLocationUiText>) {
   return locationId > 0 ? locationUi.locationNumber(locationId) : locationUi.specialZone
 }
 
