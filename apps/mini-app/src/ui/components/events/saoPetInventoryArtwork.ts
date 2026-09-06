@@ -1,5 +1,5 @@
 const PET_TEXTURE_BASE_URL = "https://rustorage.c7x.dev/butowka/sao/global/img/pet"
-const PET_ITEM_ID = /^pet_l\d+_\d+$/
+const PET_ITEM_ID = /^(?:pet|petd)_l\d+_\d+$/
 
 export function resolveSaoPetInventoryTextureUrl(localizationKey?: string): string | null {
   if (!localizationKey?.startsWith("sao.item.") || !localizationKey.endsWith(".name")) {
