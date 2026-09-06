@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { canAccessGuides } from "./guideAccess"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
 import {
@@ -7,7 +8,8 @@ import {
   resolveSaoText,
   saoLanguageForUi,
 } from "./guideLocalization"
-import { canAccessGuides } from "./guideAccess"
+import { GUIDE_CASE_MILESTONES, GUIDE_DUNGEON_MILESTONES } from "./guideMilestones"
+import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 
 describe("guide catalog", () => {
   it("contains starter village, dungeon hall and all 28 numbered locations", () => {
@@ -37,6 +39,46 @@ describe("guide catalog", () => {
       "Goblin Scout",
       "Goblin Warrior",
     ])
+  })
+})
+
+describe("guide progression", () => {
+  it("uses detailed per-location RB values over conflicting summary values", () => {
+    expect(GUIDE_REBIRTH_STEPS).toHaveLength(67)
+    expect(GUIDE_REBIRTH_STEPS.find((step) => step.rank === 46)?.growth).toBe("x5")
+    expect(GUIDE_REBIRTH_STEPS.find((step) => step.rank === 50)?.growth).toBe("x2.39")
+    expect(GUIDE_REBIRTH_STEPS.find((step) => step.rank === 51)?.growth).toBe("x2")
+  })
+
+  it("keeps detailed late-game ranks missing from the old summary", () => {
+    expect(GUIDE_REBIRTH_STEPS.find((step) => step.rank === 65)).toMatchObject({
+      requirement: "345Sgt",
+      growth: "x5.19",
+      nextRank: 66,
+    })
+    expect(GUIDE_REBIRTH_STEPS.find((step) => step.rank === 67)).toMatchObject({
+      requirement: "1.93Noi",
+      growth: "x3.75",
+      nextRank: 68,
+    })
+  })
+
+  it("contains the verified dungeon and case milestones", () => {
+    expect(GUIDE_DUNGEON_MILESTONES.EASY.at(-1)).toEqual({
+      stage: 50,
+      reward: "PET_SLOT",
+      value: "1",
+    })
+    expect(GUIDE_DUNGEON_MILESTONES.INSANE.at(-1)).toEqual({
+      stage: 36,
+      reward: "LUCK",
+      value: "15%",
+    })
+    expect(GUIDE_CASE_MILESTONES.at(-1)).toEqual({
+      opened: 5_000_000,
+      reward: "LUCK",
+      value: "7%",
+    })
   })
 })
 
