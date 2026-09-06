@@ -23,6 +23,39 @@ export type GuideLocation = {
 
 const LOCATION_IDS = [-1, 0, ...Array.from({ length: 28 }, (_, index) => index + 1)]
 
+const LOCATION_ARTWORK_URLS: Record<number, string> = {
+  [-1]: "/guides/locations/location-dungeon-hall.webp",
+  0: "/guides/locations/location-00-starter-village.webp",
+  1: "/guides/locations/location-01-dark-forest.webp",
+  2: "/guides/locations/location-02-pirate-ship.webp",
+  3: "/guides/locations/location-03-shinobi.webp",
+  4: "/guides/locations/location-04-polar-tundra.webp",
+  5: "/guides/locations/location-05-aether-city.webp",
+  6: "/guides/locations/location-06-hell.webp",
+  7: "/guides/locations/location-07-ancient-sands.webp",
+  8: "/guides/locations/location-08-enchanted-forest.webp",
+  9: "/guides/locations/location-09-magic-mine.webp",
+  10: "/guides/locations/location-10-secret-land.webp",
+  11: "/guides/locations/location-11-container-yard.webp",
+  12: "/guides/locations/location-12-viking-valley.webp",
+  13: "/guides/locations/location-13-abandoned-prison.webp",
+  14: "/guides/locations/location-14-oasis.webp",
+  15: "/guides/locations/location-15-canyon.webp",
+  16: "/guides/locations/location-16-obelisk-meadows.webp",
+  17: "/guides/locations/location-17-sunken-temple.webp",
+  18: "/guides/locations/location-18-port.webp",
+  19: "/guides/locations/location-19-blazing-abyss.webp",
+  20: "/guides/locations/location-20-sea-castle.webp",
+  21: "/guides/locations/location-21-taiping-tower.webp",
+  22: "/guides/locations/location-22-mushroom-world.webp",
+  23: "/guides/locations/location-23-palisade.webp",
+  24: "/guides/locations/location-24-robot-village.webp",
+  25: "/guides/locations/location-25-cosmodriver.webp",
+  26: "/guides/locations/location-26-cursed-mall.webp",
+  27: "/guides/locations/location-27-bio-lab.webp",
+  28: "/guides/locations/location-28-waterfall.webp",
+}
+
 export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map(buildLocation)
 
 export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; description: string }> = {
@@ -45,7 +78,7 @@ function buildLocation(id: number): GuideLocation {
 
   return {
     id,
-    artworkUrl: locationArtworkUrl(id),
+    artworkUrl: LOCATION_ARTWORK_URLS[id],
     nameKey: `sao.location.${id}.name`,
     descriptionKey: `sao.location.${id}.description`,
     npcs:
@@ -65,18 +98,6 @@ function buildLocation(id: number): GuideLocation {
         ? [`sao.item.weapon_upgrade_material_${id}.name`, `sao.item.comet_shard_${id}_1.name`]
         : [],
   }
-}
-
-function locationArtworkUrl(id: number) {
-  if (id === -1) {
-    return "/guides/locations-v2/location-dungeon-hall.webp"
-  }
-
-  if (id === 0) {
-    return "/guides/locations-v2/location-starter-village.webp"
-  }
-
-  return `/guides/locations-v2/location-${String(id).padStart(2, "0")}.webp`
 }
 
 function unique(values: string[]) {
