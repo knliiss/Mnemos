@@ -2,7 +2,7 @@ import type { CSSProperties } from "react"
 
 const MOB_KEY_PATTERN = /^sao\.mob\.mob(\d+)_(\d+)\.name$/
 const ATLAS_COLUMNS = 14
-const DISPLAY_CELL_SIZE = 48
+const DISPLAY_CELL_SIZE = 64
 const ROWS_PER_STRIP = 2
 
 const MOB_COUNTS: Record<number, number> = {
