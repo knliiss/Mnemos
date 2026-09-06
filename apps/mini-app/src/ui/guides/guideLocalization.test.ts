@@ -36,7 +36,7 @@ describe("guide localization", () => {
       tr_TR: { "sao.location.1.name": "Karanlık Orman" },
     }
 
-    expect(localizationKeyMatchesQuery("sao.location.1.name", "Karanlik", catalogs)).toBe(true)
+    expect(localizationKeyMatchesQuery("sao.location.1.name", "Karanlık", catalogs)).toBe(true)
     expect(localizationKeyMatchesQuery("sao.location.1.name", "темный", catalogs)).toBe(true)
     expect(
       localizationKeyMatchesQuery("sao.location.1.name", "first zone", catalogs, ["first zone"]),
