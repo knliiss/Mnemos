@@ -5,9 +5,10 @@ import {
   locationMatchesQuery,
   type SaoCatalogs,
 } from "./guideLocalization"
+import { GUIDE_MECHANICS, mechanicMatchesQuery } from "./guideMechanics"
 import { guideUiText } from "./guideUiText"
 
-export type GuideHubSection = "locations" | "rebirth" | "dungeons" | "cases"
+export type GuideHubSection = "locations" | "rebirth" | "dungeons" | "cases" | "mechanics"
 
 type Props = {
   ui: ReturnType<typeof guideUiText>
@@ -87,6 +88,16 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
         : false,
     [catalogs, normalizedQuery, query],
   )
+  const mechanicResults = useMemo(
+    () =>
+      normalizedQuery
+        ? GUIDE_MECHANICS.filter((mechanic) => mechanicMatchesQuery(mechanic, query, catalogs)).slice(
+            0,
+            5,
+          )
+        : [],
+    [catalogs, normalizedQuery, query],
+  )
   const searchResults = useMemo<HubSearchResult[]>(() => {
     const results: HubSearchResult[] = []
 
@@ -120,6 +131,16 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       })
     }
 
+    for (const mechanic of mechanicResults) {
+      results.push({
+        key: `mechanic-${mechanic.id}`,
+        kind: ui.mechanics,
+        title: text(mechanic.titleKey),
+        meta: text(mechanic.whereKey),
+        onOpen: () => openSection("mechanics"),
+      })
+    }
+
     if (caseMatches) {
       results.push({
         key: "cases",
@@ -135,6 +156,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
     caseMatches,
     dungeonResults,
     locationResults,
+    mechanicResults,
     openLocation,
     openRank,
     openSection,
@@ -232,6 +254,14 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             meta="25 → 5M"
             illustration="/ui-illustrations/account-activity.svg"
             onClick={() => openSection("cases")}
+          />
+          <GuideHubCard
+            tone="mechanics"
+            title={ui.mechanics}
+            copy={ui.mechanicsCopy}
+            meta={`${GUIDE_MECHANICS.length}`}
+            illustration="/ui-illustrations/account-settings.svg"
+            onClick={() => openSection("mechanics")}
           />
         </section>
       )}
