@@ -5,7 +5,7 @@ import {
   locationMatchesQuery,
   type SaoCatalogs,
 } from "./guideLocalization"
-import { GUIDE_MECHANICS, mechanicMatchesQuery } from "./guideMechanics"
+import { mechanicMatchesQuery, verifiedGuideMechanics } from "./guideMechanics"
 import { guideUiText } from "./guideUiText"
 
 export type GuideHubSection = "locations" | "rebirth" | "dungeons" | "cases" | "mechanics"
@@ -38,6 +38,7 @@ const DUNGEONS = [
 export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, openRank }: Props) {
   const [query, setQuery] = useState("")
   const normalizedQuery = query.trim()
+  const verifiedMechanics = useMemo(() => verifiedGuideMechanics(catalogs), [catalogs])
   const locationResults = useMemo(
     () =>
       normalizedQuery
@@ -91,11 +92,11 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
   const mechanicResults = useMemo(
     () =>
       normalizedQuery
-        ? GUIDE_MECHANICS.filter((mechanic) =>
-            mechanicMatchesQuery(mechanic, query, catalogs),
-          ).slice(0, 5)
+        ? verifiedMechanics
+            .filter((mechanic) => mechanicMatchesQuery(mechanic, query, catalogs))
+            .slice(0, 5)
         : [],
-    [catalogs, normalizedQuery, query],
+    [catalogs, normalizedQuery, query, verifiedMechanics],
   )
   const searchResults = useMemo<HubSearchResult[]>(() => {
     const results: HubSearchResult[] = []
@@ -251,14 +252,16 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             illustration="/ui-illustrations/account-activity.svg"
             onClick={() => openSection("cases")}
           />
-          <GuideHubCard
-            tone="mechanics"
-            title={ui.mechanics}
-            copy={ui.mechanicsCopy}
-            meta={`${GUIDE_MECHANICS.length}`}
-            illustration="/ui-illustrations/account-settings.svg"
-            onClick={() => openSection("mechanics")}
-          />
+          {verifiedMechanics.length ? (
+            <GuideHubCard
+              tone="mechanics"
+              title={ui.mechanics}
+              copy={ui.mechanicsCopy}
+              meta={`${verifiedMechanics.length}`}
+              illustration="/ui-illustrations/account-settings.svg"
+              onClick={() => openSection("mechanics")}
+            />
+          ) : null}
         </section>
       )}
     </div>
