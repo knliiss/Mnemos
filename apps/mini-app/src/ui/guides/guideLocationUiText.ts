@@ -3,7 +3,8 @@ type GuideLocationUiLanguage = "en" | "ru" | "uk"
 const TEXT = {
   en: {
     locationArchive: "Locations",
-    locationArchiveCopy: "Current names and descriptions with source-backed cases, mobs, drops and rebirth progression.",
+    locationArchiveCopy:
+      "Current names and descriptions with source-backed cases, mobs, drops and rebirth progression.",
     searchPlaceholder: "Location, mob, case or drop",
     purchasePrice: "Unlock price",
     cases: "Cases",
@@ -19,7 +20,8 @@ const TEXT = {
     eightHours: "8 hours",
     twelveHours: "12 hours",
     economy: "Opening cost",
-    economyNote: "Calculated from this regular case price. Drop chances are account-specific and are not shown.",
+    economyNote:
+      "Calculated from this regular case price. Drop chances are account-specific and are not shown.",
     rebirth: "Rebirths on this location",
     requirement: "Power required",
     growth: "Growth",
@@ -29,7 +31,8 @@ const TEXT = {
     raidNpc: "Raid portal",
     questNpc: "Quest giver",
     detailsUnavailable: "Detailed data is not available",
-    detailsUnavailableCopy: "The dump was recorded while this location was locked. The current localized name, description and unlock price are shown, but mobs, cases and drops are intentionally not guessed.",
+    detailsUnavailableCopy:
+      "The dump was recorded while this location was locked. The current localized name, description and unlock price are shown, but mobs, cases and drops are intentionally not guessed.",
     sourceUnavailable: "No verified details in the source dump",
     openMob: "Show drops",
     closeMob: "Hide drops",
@@ -46,7 +49,8 @@ const TEXT = {
   },
   ru: {
     locationArchive: "Локации",
-    locationArchiveCopy: "Актуальные названия и описания, кейсы, мобы, дропы и прогрессия РБ из подтвержденных источников.",
+    locationArchiveCopy:
+      "Актуальные названия и описания, кейсы, мобы, дропы и прогрессия РБ из подтвержденных источников.",
     searchPlaceholder: "Локация, моб, кейс или дроп",
     purchasePrice: "Цена открытия",
     cases: "Кейсы",
@@ -62,7 +66,8 @@ const TEXT = {
     eightHours: "8 часов",
     twelveHours: "12 часов",
     economy: "Стоимость открытия",
-    economyNote: "Расчет от цены этого обычного кейса. Шансы дропа индивидуальны для аккаунта и не показываются.",
+    economyNote:
+      "Расчет от цены этого обычного кейса. Шансы дропа индивидуальны для аккаунта и не показываются.",
     rebirth: "РБ на этой локации",
     requirement: "Нужно силы",
     growth: "Прирост",
@@ -72,7 +77,8 @@ const TEXT = {
     raidNpc: "Портал в рейд",
     questNpc: "Квестовый NPC",
     detailsUnavailable: "Подробные данные пока недоступны",
-    detailsUnavailableCopy: "Дамп был снят, когда эта локация была заблокирована. Показываем актуальное локализованное название, описание и цену открытия, но не выдумываем мобов, кейсы и дропы.",
+    detailsUnavailableCopy:
+      "Дамп был снят, когда эта локация была заблокирована. Показываем актуальное локализованное название, описание и цену открытия, но не выдумываем мобов, кейсы и дропы.",
     sourceUnavailable: "В исходном дампе нет подтвержденных деталей",
     openMob: "Показать дропы",
     closeMob: "Скрыть дропы",
@@ -89,7 +95,8 @@ const TEXT = {
   },
   uk: {
     locationArchive: "Локації",
-    locationArchiveCopy: "Актуальні назви й описи, кейси, моби, дропи та прогресія РБ із підтверджених джерел.",
+    locationArchiveCopy:
+      "Актуальні назви й описи, кейси, моби, дропи та прогресія РБ із підтверджених джерел.",
     searchPlaceholder: "Локація, моб, кейс або дроп",
     purchasePrice: "Ціна відкриття",
     cases: "Кейси",
@@ -105,7 +112,8 @@ const TEXT = {
     eightHours: "8 годин",
     twelveHours: "12 годин",
     economy: "Вартість відкриття",
-    economyNote: "Розрахунок від ціни цього звичайного кейса. Шанси дропу індивідуальні для акаунта й не показуються.",
+    economyNote:
+      "Розрахунок від ціни цього звичайного кейса. Шанси дропу індивідуальні для акаунта й не показуються.",
     rebirth: "РБ на цій локації",
     requirement: "Потрібно сили",
     growth: "Приріст",
@@ -115,7 +123,8 @@ const TEXT = {
     raidNpc: "Портал у рейд",
     questNpc: "Квестовий NPC",
     detailsUnavailable: "Детальні дані поки недоступні",
-    detailsUnavailableCopy: "Дамп було знято, коли ця локація була заблокована. Показуємо актуальну локалізовану назву, опис і ціну відкриття, але не вигадуємо мобів, кейси та дропи.",
+    detailsUnavailableCopy:
+      "Дамп було знято, коли ця локація була заблокована. Показуємо актуальну локалізовану назву, опис і ціну відкриття, але не вигадуємо мобів, кейси та дропи.",
     sourceUnavailable: "У вихідному дампі немає підтверджених деталей",
     openMob: "Показати дропи",
     closeMob: "Сховати дропи",
