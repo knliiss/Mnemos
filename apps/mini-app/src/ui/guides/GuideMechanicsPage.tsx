@@ -68,6 +68,7 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
           value={query}
           onInput={(event) => setQuery(event.currentTarget.value)}
           placeholder={ui.mechanicsSearchPlaceholder}
+          aria-label={ui.mechanicsSearchPlaceholder}
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
