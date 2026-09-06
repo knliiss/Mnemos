@@ -13,6 +13,7 @@ import "./guides-sections.css"
 import "./guides-accessibility.css"
 import "./guides-redesign.css"
 import "./guides-location-rebuild.css"
+import "./guides-hub-rebuild.css"
 
 type Props = {
   back: () => void
