@@ -51,7 +51,7 @@ function GuideDungeonsPage({
 
       <section className="guide-context-hero guide-context-hero--explorer">
         <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          <img src="/ui-illustrations/guides-explorer.svg" alt="" />
           <i>DG</i>
         </div>
         <span>
@@ -103,7 +103,7 @@ function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
 
       <section className="guide-context-hero guide-context-hero--cases">
         <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
           <i>CS</i>
         </div>
         <span>
