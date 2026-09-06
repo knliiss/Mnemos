@@ -46,10 +46,19 @@ const SUFFIXES = [
 ] as const
 
 const FIFTEEN_MINUTE_MULTIPLIER = 9_000
-const NORMAL_CASES_PER_MINUTE = FIFTEEN_MINUTE_MULTIPLIER / 15
-const EXPLOSION_NORMAL_MINUTES = 5
-const EXPLOSION_EXPENSIVE_MINUTES = 20
-const EXPLOSION_PRICE_MULTIPLIER = 1.3
+const ONE_HOUR_MULTIPLIER = 36_000
+const EIGHT_HOUR_MULTIPLIER = 288_000
+const TWELVE_HOUR_MULTIPLIER = 432_000
+
+// The detailed legacy SAO reference consistently used 2,250x for Darkness and
+// 3,675x for Darkness + Explosion. Preserve that 49/30 relation after moving
+// the current 15-minute/Darkness baseline to 9,000x instead of inventing a new
+// event-price formula from tooltip wording.
+const LEGACY_DARKNESS_MULTIPLIER = 2_250
+const LEGACY_DARKNESS_AND_EXPLOSION_MULTIPLIER = 3_675
+const EXPLOSION_MULTIPLIER =
+  FIFTEEN_MINUTE_MULTIPLIER *
+  (LEGACY_DARKNESS_AND_EXPLOSION_MULTIPLIER / LEGACY_DARKNESS_MULTIPLIER)
 
 export function guideCaseEconomy(price: string): GuideCaseEconomy | null {
   const parsed = parseCompactNumber(price)
@@ -58,18 +67,12 @@ export function guideCaseEconomy(price: string): GuideCaseEconomy | null {
     return null
   }
 
-  const fifteenMinutesAndDarkness = parsed.value * FIFTEEN_MINUTE_MULTIPLIER
-  const explosion =
-    parsed.value *
-    NORMAL_CASES_PER_MINUTE *
-    (EXPLOSION_NORMAL_MINUTES + EXPLOSION_EXPENSIVE_MINUTES * EXPLOSION_PRICE_MULTIPLIER)
-
   return {
-    fifteenMinutesAndDarkness: formatCompactNumber(fifteenMinutesAndDarkness),
-    explosion: formatCompactNumber(explosion),
-    oneHour: formatCompactNumber(parsed.value * 36_000),
-    eightHours: formatCompactNumber(parsed.value * 288_000),
-    twelveHours: formatCompactNumber(parsed.value * 432_000),
+    fifteenMinutesAndDarkness: formatCompactNumber(parsed.value * FIFTEEN_MINUTE_MULTIPLIER),
+    explosion: formatCompactNumber(parsed.value * EXPLOSION_MULTIPLIER),
+    oneHour: formatCompactNumber(parsed.value * ONE_HOUR_MULTIPLIER),
+    eightHours: formatCompactNumber(parsed.value * EIGHT_HOUR_MULTIPLIER),
+    twelveHours: formatCompactNumber(parsed.value * TWELVE_HOUR_MULTIPLIER),
   }
 }
 
