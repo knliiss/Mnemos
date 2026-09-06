@@ -139,7 +139,7 @@ export function GuideHub({
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta="LP · SP · SLP · EP"
-            illustration="/ui-illustrations/current-events.svg"
+            illustration="/ui-illustrations/admin-bets.svg"
             onClick={() => openSection("dungeons")}
           />
           <GuideHubCard
