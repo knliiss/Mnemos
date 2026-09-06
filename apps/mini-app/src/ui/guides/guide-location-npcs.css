@@ -12,9 +12,7 @@
   overflow: hidden;
   border-color: rgba(76, 142, 236, 0.12);
   border-radius: 4px;
-  background:
-    linear-gradient(90deg, rgba(27, 55, 83, 0.2), transparent 46%),
-    rgba(9, 12, 10, 0.9);
+  background: linear-gradient(90deg, rgba(27, 55, 83, 0.2), transparent 46%), rgba(9, 12, 10, 0.9);
   box-shadow:
     inset 2px 0 rgba(74, 140, 236, 0.42),
     inset 0 1px rgba(255, 255, 255, 0.018);
@@ -41,8 +39,7 @@
   border-radius: 2px;
   background:
     linear-gradient(135deg, rgba(74, 140, 236, 0.12), transparent 54%),
-    linear-gradient(0deg, rgba(168, 200, 90, 0.03), rgba(255, 255, 255, 0.015)),
-    #101410;
+    linear-gradient(0deg, rgba(168, 200, 90, 0.03), rgba(255, 255, 255, 0.015)), #101410;
 }
 
 .guide-npc-card__gameplate i {
