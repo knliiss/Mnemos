@@ -12,7 +12,7 @@ import "./guide-location-npcs.css"
 import "./guides.css"
 import "./guides-sections.css"
 import "./guides-accessibility.css"
-import "./guides-polish.css"
+import "./guides-redesign.css"
 
 type Props = {
   back: () => void
