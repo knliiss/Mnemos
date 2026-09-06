@@ -88,7 +88,7 @@ export function resolveSaoText(key: string, preferredLanguage: string, catalogs:
     }
   }
 
-  return canonicalLabel(key)
+  return key
 }
 
 export function localizationKeyExists(key: string, catalogs: SaoCatalogs) {
@@ -239,8 +239,4 @@ async function fetchRemoteSaoCatalogs(): Promise<SaoCatalogs> {
 
 function unique(values: string[]) {
   return [...new Set(values)]
-}
-
-function canonicalLabel(key: string) {
-  return key.split(".").at(-2)?.replaceAll("_", " ") ?? key
 }
