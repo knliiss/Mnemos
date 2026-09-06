@@ -4,11 +4,7 @@ import { resolveSaoPetInventoryTextureUrl } from "../components/events/saoPetInv
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { guideCometArtworkStyle } from "./guideCometArtwork"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
-import {
-  localizationKeyExists,
-  locationMatchesQuery,
-  type SaoCatalogs,
-} from "./guideLocalization"
+import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
 import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
