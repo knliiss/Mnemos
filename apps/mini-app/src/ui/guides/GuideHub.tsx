@@ -40,10 +40,9 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
   const locationResults = useMemo(
     () =>
       normalizedQuery
-        ? GUIDE_LOCATIONS.filter((location) => locationMatchesQuery(location, query, catalogs)).slice(
-            0,
-            6,
-          )
+        ? GUIDE_LOCATIONS.filter((location) =>
+            locationMatchesQuery(location, query, catalogs),
+          ).slice(0, 6)
         : [],
     [catalogs, normalizedQuery, query],
   )
@@ -77,7 +76,13 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
     () =>
       normalizedQuery
         ? ["sao.ui.case_pet_name", "sao.ui.case_aura_name", "sao.ui.case_shard_name"].some((key) =>
-            localizationKeyMatchesQuery(key, query, catalogs, ["case", "cases", "кейс", "кейсы", "кейси"]),
+            localizationKeyMatchesQuery(key, query, catalogs, [
+              "case",
+              "cases",
+              "кейс",
+              "кейсы",
+              "кейси",
+            ]),
           )
         : false,
     [catalogs, normalizedQuery, query],
@@ -126,7 +131,17 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
     }
 
     return results.slice(0, 12)
-  }, [caseMatches, dungeonResults, locationResults, openLocation, openRank, openSection, rankResults, text, ui])
+  }, [
+    caseMatches,
+    dungeonResults,
+    locationResults,
+    openLocation,
+    openRank,
+    openSection,
+    rankResults,
+    text,
+    ui,
+  ])
 
   return (
     <div className="screen guides-screen guides-hub-screen">
