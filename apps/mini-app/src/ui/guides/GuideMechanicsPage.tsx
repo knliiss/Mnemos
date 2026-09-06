@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react"
 import {
-  GUIDE_MECHANICS,
   GUIDE_MECHANIC_CHAPTER_KEYS,
   mechanicMatchesQuery,
+  verifiedGuideMechanics,
   type GuideMechanic,
   type GuideMechanicChapter,
 } from "./guideMechanics"
@@ -28,12 +28,13 @@ const CHAPTERS: GuideMechanicChapter[] = [
 
 export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
   const [query, setQuery] = useState("")
+  const verifiedMechanics = useMemo(() => verifiedGuideMechanics(catalogs), [catalogs])
   const mechanics = useMemo(
     () =>
       query.trim()
-        ? GUIDE_MECHANICS.filter((mechanic) => mechanicMatchesQuery(mechanic, query, catalogs))
-        : GUIDE_MECHANICS,
-    [catalogs, query],
+        ? verifiedMechanics.filter((mechanic) => mechanicMatchesQuery(mechanic, query, catalogs))
+        : verifiedMechanics,
+    [catalogs, query, verifiedMechanics],
   )
   const grouped = useMemo(
     () =>
