@@ -91,6 +91,10 @@ export function resolveSaoText(key: string, preferredLanguage: string, catalogs:
   return canonicalLabel(key)
 }
 
+export function localizationKeyExists(key: string, catalogs: SaoCatalogs) {
+  return Object.values(catalogs).some((catalog) => Boolean(cleanGameFormatting(catalog[key])))
+}
+
 export function localizationKeyMatchesQuery(
   key: string,
   query: string,
@@ -135,20 +139,23 @@ export function locationMatchesQuery(
     return true
   }
 
-  const searchableKeys = [
-    location.nameKey,
-    location.descriptionKey,
-    ...location.npcs.flatMap((npc) => [
-      npc.nameKey,
-      GUIDE_NPC_ROLE_KEYS[npc.role].role,
-      GUIDE_NPC_ROLE_KEYS[npc.role].description,
-    ]),
+  const confirmedEntityKeys = [
+    ...location.npcs.flatMap((npc) => [npc.nameKey]),
     ...location.mobKeys,
     ...location.cometMobKeys,
     ...location.weaponKeys,
     ...location.petKeys,
     ...location.dungeonPetKeys,
     ...location.materialKeys,
+  ].filter((key) => localizationKeyExists(key, catalogs))
+  const searchableKeys = [
+    location.nameKey,
+    location.descriptionKey,
+    ...location.npcs.flatMap((npc) => [
+      GUIDE_NPC_ROLE_KEYS[npc.role].role,
+      GUIDE_NPC_ROLE_KEYS[npc.role].description,
+    ]),
+    ...confirmedEntityKeys,
   ]
   const aliases = [
     String(location.id),
