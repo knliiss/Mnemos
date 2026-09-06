@@ -1,5 +1,6 @@
 export const GUIDE_EN_FALLBACK: Record<string, string> = {
-  "sao.enum.npc.quest.description": "This character hands out quests for the location. Complete them all and you get a power booster as a reward",
+  "sao.enum.npc.quest.description":
+    "This character hands out quests for the location. Complete them all and you get a power booster as a reward",
   "sao.enum.npc.quest.role": "Questgiver",
   "sao.enum.npc.raid_join.description": "This character teleports you to the raid",
   "sao.enum.npc.raid_join.role": "Portal to the raid",
@@ -33,7 +34,8 @@ export const GUIDE_EN_FALLBACK: Record<string, string> = {
   "sao.location.2.name": "Pirate Ship",
   "sao.location.20.description": "A citadel on the cliffs. Storming it means defying the elements",
   "sao.location.20.name": "Sea Castle",
-  "sao.location.21.description": "A majestic pagoda reaching for the sky. A place of power and lore",
+  "sao.location.21.description":
+    "A majestic pagoda reaching for the sky. A place of power and lore",
   "sao.location.21.name": "Taiping Tower",
   "sao.location.22.description": "Spores swirl in the air, cloud the mind and open other realities",
   "sao.location.22.name": "Mushroom World",
@@ -49,7 +51,8 @@ export const GUIDE_EN_FALLBACK: Record<string, string> = {
   "sao.location.27.name": "Bio-Lab",
   "sao.location.28.description": "A scenic waterfall with mighty streams and hidden secrets.",
   "sao.location.28.name": "Waterfall",
-  "sao.location.3.description": "A strike out of silence. \nAn instant attack, then a vanish in smoke",
+  "sao.location.3.description":
+    "A strike out of silence. \nAn instant attack, then a vanish in smoke",
   "sao.location.3.name": "Shinobi",
   "sao.location.4.description": "A harsh land of ice and snow. A test of endurance for a traveller",
   "sao.location.4.name": "Polar Tundra",

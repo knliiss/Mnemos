@@ -70,17 +70,15 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id, atlasIndex
       : [],
   mobKeys:
     id > 0
-      ? Array.from({ length: MOB_COUNTS[id] ?? 0 }, (_, index) =>
-          `sao.mob.mob${id}_${index + 1}.name`,
+      ? Array.from(
+          { length: MOB_COUNTS[id] ?? 0 },
+          (_, index) => `sao.mob.mob${id}_${index + 1}.name`,
         )
       : [],
   cometMobKeys: id >= 11 ? [`sao.mob.comet${id}_1.name`] : [],
 }))
 
-export const GUIDE_NPC_ROLE_KEYS: Record<
-  GuideNpcRole,
-  { role: string; description: string }
-> = {
+export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; description: string }> = {
   RAID_JOIN: {
     role: "sao.enum.npc.raid_join.role",
     description: "sao.enum.npc.raid_join.description",

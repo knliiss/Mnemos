@@ -16,24 +16,15 @@ type Props = {
   openRank: (rank: number) => void
 }
 
-export function GuideHub({
-  ui,
-  catalogs,
-  text,
-  back,
-  openSection,
-  openLocation,
-  openRank,
-}: Props) {
+export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, openRank }: Props) {
   const [query, setQuery] = useState("")
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const locationResults = useMemo(
     () =>
       normalizedQuery
-        ? GUIDE_LOCATIONS.filter((location) => locationMatchesQuery(location, query, catalogs)).slice(
-            0,
-            6,
-          )
+        ? GUIDE_LOCATIONS.filter((location) =>
+            locationMatchesQuery(location, query, catalogs),
+          ).slice(0, 6)
         : [],
     [catalogs, normalizedQuery, query],
   )
@@ -94,7 +85,11 @@ export function GuideHub({
       {normalizedQuery ? (
         <section className="guide-hub-search-results">
           {locationResults.map((location) => (
-            <button key={`location-${location.id}`} type="button" onClick={() => openLocation(location.id)}>
+            <button
+              key={`location-${location.id}`}
+              type="button"
+              onClick={() => openLocation(location.id)}
+            >
               <span className="guide-hub-search-results__kind">{ui.location}</span>
               <strong>{text(location.nameKey)}</strong>
               <small>{location.id > 0 ? `#${location.id}` : ui.special}</small>

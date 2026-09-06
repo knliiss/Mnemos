@@ -145,7 +145,11 @@ function GuideLocationCard({ location, text, ui, atlasUrl, onOpen }: GuideLocati
         <span className="guide-location-card__stats">
           {location.npcs.length ? <i>{ui.npcCount(location.npcs.length)}</i> : null}
           {creatureCount ? <i>{ui.creaturesCount(creatureCount)}</i> : null}
-          {economy ? <i>{ui.firstCase}: {economy.caseOne}</i> : null}
+          {economy ? (
+            <i>
+              {ui.firstCase}: {economy.caseOne}
+            </i>
+          ) : null}
         </span>
 
         <span className="guide-location-card__open">{ui.open}</span>
@@ -208,7 +212,9 @@ function GuideLocationDetail({ location, text, ui, atlasUrl, back }: GuideLocati
             {rebirthSteps.map((step) => (
               <article key={step.rank} className="guide-location-rebirth-row">
                 <span>
-                  <small>#{step.rank} → #{step.nextRank}</small>
+                  <small>
+                    #{step.rank} → #{step.nextRank}
+                  </small>
                   <strong>
                     {guideRankName(step.rank)} → {guideRankName(step.nextRank)}
                   </strong>

@@ -107,8 +107,7 @@ const GUIDE_UI_TEXT = {
     npc: "NPC",
     mobs: "Существа",
     cometMobs: "Кометные существа",
-    noStaticPopulation:
-      "Для этой особой зоны в локализации SAO нет отдельного списка существ.",
+    noStaticPopulation: "Для этой особой зоны в локализации SAO нет отдельного списка существ.",
     creaturesCount: "Существ: {{count}}",
     npcCount: "NPC: {{count}}",
     liveLanguages: "Мультиязычный индекс SAO",
@@ -188,8 +187,7 @@ const GUIDE_UI_TEXT = {
     npc: "NPC",
     mobs: "Істоти",
     cometMobs: "Кометні істоти",
-    noStaticPopulation:
-      "Для цієї особливої зони в локалізації SAO немає окремого списку істот.",
+    noStaticPopulation: "Для цієї особливої зони в локалізації SAO немає окремого списку істот.",
     creaturesCount: "Істот: {{count}}",
     npcCount: "NPC: {{count}}",
     liveLanguages: "Багатомовний індекс SAO",

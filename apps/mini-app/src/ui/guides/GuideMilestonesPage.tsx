@@ -54,7 +54,10 @@ function GuideDungeonsPage({ ui, back }: { ui: GuideUi; back: () => void }) {
 
       <section className="guide-dungeon-grid">
         {dungeons.map((dungeon) => (
-          <article key={dungeon.type} className={`guide-dungeon-card guide-dungeon-card--${dungeon.tone}`}>
+          <article
+            key={dungeon.type}
+            className={`guide-dungeon-card guide-dungeon-card--${dungeon.tone}`}
+          >
             <header>
               <span>
                 <b>{dungeon.label}</b>

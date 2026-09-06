@@ -17,8 +17,7 @@
   border-radius: 13px;
   color: inherit;
   background:
-    linear-gradient(135deg, rgba(29, 35, 24, 0.9), rgba(16, 20, 14, 0.94)),
-    rgba(16, 20, 14, 0.92);
+    linear-gradient(135deg, rgba(29, 35, 24, 0.9), rgba(16, 20, 14, 0.94)), rgba(16, 20, 14, 0.92);
   text-align: left;
 }
 

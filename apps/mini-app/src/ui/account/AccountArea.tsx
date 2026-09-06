@@ -62,7 +62,10 @@ export function AccountArea(props: Props) {
   if (props.routeId === "guides") {
     if (!canAccessGuides(product.user.systemRoles)) {
       return (
-        <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
+        <NotFoundFeature
+          requested={props.routeId}
+          onHome={() => props.navigate({ id: "account" })}
+        />
       )
     }
 

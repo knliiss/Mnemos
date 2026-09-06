@@ -621,9 +621,7 @@
   overflow: hidden;
   border: 1px solid rgba(168, 200, 90, 0.18);
   border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(168, 200, 90, 0.12), transparent 55%),
-    #11150f;
+  background: linear-gradient(135deg, rgba(168, 200, 90, 0.12), transparent 55%), #11150f;
 }
 
 .guide-npc-card__portrait i {

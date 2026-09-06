@@ -15,9 +15,7 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
   const [targetRank, setTargetRank] = useState(Math.min(Math.max(initialRank + 1, 10), 68))
   const steps = useMemo(
     () =>
-      GUIDE_REBIRTH_STEPS.filter(
-        (step) => step.rank >= currentRank && step.nextRank <= targetRank,
-      ),
+      GUIDE_REBIRTH_STEPS.filter((step) => step.rank >= currentRank && step.nextRank <= targetRank),
     [currentRank, targetRank],
   )
   const validRange = targetRank > currentRank
@@ -42,7 +40,10 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
       <section className="guide-rank-calculator">
         <label>
           <small>{ui.currentRank}</small>
-          <select value={currentRank} onChange={(event) => setCurrentRank(Number(event.target.value))}>
+          <select
+            value={currentRank}
+            onChange={(event) => setCurrentRank(Number(event.target.value))}
+          >
             {rankOptions(1, 67).map((rank) => (
               <option key={rank} value={rank}>
                 #{rank} · {guideRankName(rank)}
@@ -57,7 +58,10 @@ export function GuideRebirthPage({ ui, initialCurrentRank, back }: Props) {
 
         <label>
           <small>{ui.targetRank}</small>
-          <select value={targetRank} onChange={(event) => setTargetRank(Number(event.target.value))}>
+          <select
+            value={targetRank}
+            onChange={(event) => setTargetRank(Number(event.target.value))}
+          >
             {rankOptions(2, 68).map((rank) => (
               <option key={rank} value={rank}>
                 #{rank} · {guideRankName(rank)}
