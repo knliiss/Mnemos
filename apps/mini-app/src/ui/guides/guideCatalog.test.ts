@@ -3,12 +3,14 @@ import { canAccessGuides } from "./guideAccess"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
 import {
+  localizationKeyExists,
   localizationKeyMatchesQuery,
   locationMatchesQuery,
   normalizeGuideSearchText,
   resolveSaoText,
   saoLanguageForUi,
 } from "./guideLocalization"
+import { verifiedGuideMechanics } from "./guideMechanics"
 import { GUIDE_CASE_MILESTONES, GUIDE_DUNGEON_MILESTONES } from "./guideMilestones"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 
@@ -159,6 +161,16 @@ describe("guide localization", () => {
     expect(localizationKeyMatchesQuery("sao.dungeon.EASY.name", "LP", catalogs, ["LP"])).toBe(true)
   })
 
+  it("tracks whether an entity is actually backed by a loaded SAO catalog", () => {
+    const catalogs = {
+      en_US: { "sao.item.l1_1.name": "Old Sword" },
+      ru_RU: {},
+    }
+
+    expect(localizationKeyExists("sao.item.l1_1.name", catalogs)).toBe(true)
+    expect(localizationKeyExists("sao.item.l1_3.name", catalogs)).toBe(false)
+  })
+
   it("searches location weapons and pets in every loaded SAO language", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
     const weaponKey = darkForest.weaponKeys[0]
@@ -183,6 +195,19 @@ describe("guide localization", () => {
     expect(locationMatchesQuery(darkForest, "Treeling", catalogs)).toBe(true)
   })
 
+  it("does not search guessed location entities that are missing from loaded catalogs", () => {
+    const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
+    const missingWeaponKey = darkForest.weaponKeys[0]
+    const catalogs = {
+      en_US: {
+        [darkForest.nameKey]: "Dark Forest",
+      },
+    }
+
+    expect(localizationKeyExists(missingWeaponKey, catalogs)).toBe(false)
+    expect(locationMatchesQuery(darkForest, "Old Sword", catalogs)).toBe(false)
+  })
+
   it("searches bundled aliases independently from display language", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
 
@@ -200,6 +225,25 @@ describe("guide localization", () => {
 
   it("normalizes diacritics and game formatting", () => {
     expect(normalizeGuideSearchText("¨4a8cec<Portal>  Café")).toBe("portal cafe")
+  })
+
+  it("keeps mechanics hidden until a complete localized article is available", () => {
+    const emptyCatalogs = {
+      en_US: {},
+    }
+    const completeCatalogs = {
+      en_US: {
+        "sao.guide.first_hit.title": "First hit",
+        "sao.guide.first_hit.text": "Hit your first enemy.",
+        "sao.guide.first_hit.hint": "Approach an enemy.",
+        "sao.guide.first_hit.where": "Starter Village",
+      },
+    }
+
+    expect(verifiedGuideMechanics(emptyCatalogs)).toEqual([])
+    expect(verifiedGuideMechanics(completeCatalogs).map((mechanic) => mechanic.id)).toEqual([
+      "first_hit",
+    ])
   })
 })
 
