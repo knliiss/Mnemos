@@ -91,6 +91,39 @@ export function resolveSaoText(key: string, preferredLanguage: string, catalogs:
   return canonicalLabel(key)
 }
 
+export function localizationKeyMatchesQuery(
+  key: string,
+  query: string,
+  catalogs: SaoCatalogs,
+  aliases: string[] = [],
+) {
+  const normalizedQuery = normalizeGuideSearchText(query)
+
+  if (!normalizedQuery) {
+    return true
+  }
+
+  const values = new Set(aliases)
+
+  for (const catalog of Object.values(catalogs)) {
+    const value = catalog[key]
+
+    if (value) {
+      values.add(value)
+    }
+  }
+
+  for (const catalog of Object.values(BUNDLED_CATALOGS)) {
+    const value = catalog[key]
+
+    if (value) {
+      values.add(value)
+    }
+  }
+
+  return [...values].some((value) => normalizeGuideSearchText(value).includes(normalizedQuery))
+}
+
 export function locationMatchesQuery(
   location: GuideLocation,
   query: string,
@@ -113,34 +146,15 @@ export function locationMatchesQuery(
     ...location.mobKeys,
     ...location.cometMobKeys,
   ]
-  const values = new Set<string>()
+  const aliases = [
+    String(location.id),
+    `location ${location.id}`,
+    `локация ${location.id}`,
+    `локація ${location.id}`,
+  ]
 
-  values.add(String(location.id))
-  values.add(`location ${location.id}`)
-  values.add(`локация ${location.id}`)
-  values.add(`локація ${location.id}`)
-
-  for (const catalog of Object.values(catalogs)) {
-    for (const key of searchableKeys) {
-      const value = catalog[key]
-
-      if (value) {
-        values.add(value)
-      }
-    }
-  }
-
-  for (const catalog of Object.values(BUNDLED_CATALOGS)) {
-    for (const key of searchableKeys) {
-      const value = catalog[key]
-
-      if (value) {
-        values.add(value)
-      }
-    }
-  }
-
-  return [...values].some((value) => normalizeGuideSearchText(value).includes(normalizedQuery))
+  return searchableKeys.some((key) => localizationKeyMatchesQuery(key, query, catalogs)) ||
+    aliases.some((value) => normalizeGuideSearchText(value).includes(normalizedQuery))
 }
 
 export function normalizeGuideSearchText(value: string) {
