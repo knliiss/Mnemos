@@ -6,22 +6,22 @@ describe("Guide mob artwork", () => {
     expect(guideMobArtworkStyle("sao.mob.mob1_1.name")).toMatchObject({
       backgroundImage: "url(/guides/entities/mob-model-atlas-1.webp)",
       backgroundPosition: "0px 0px",
-      backgroundSize: "672px 96px",
+      backgroundSize: "896px 128px",
     })
   })
 
   it("maps location eight using the dump-backed five mob layout", () => {
     expect(guideMobArtworkStyle("sao.mob.mob8_5.name")).toMatchObject({
       backgroundImage: "url(/guides/entities/mob-model-atlas-2.webp)",
-      backgroundPosition: "-192px 0px",
+      backgroundPosition: "-256px 0px",
     })
   })
 
   it("maps the last verified current resource-pack mob", () => {
     expect(guideMobArtworkStyle("sao.mob.mob25_7.name")).toMatchObject({
       backgroundImage: "url(/guides/entities/mob-model-atlas-6.webp)",
-      backgroundPosition: "-528px 0px",
-      backgroundSize: "672px 48px",
+      backgroundPosition: "-704px 0px",
+      backgroundSize: "896px 64px",
     })
   })
 
