@@ -31,10 +31,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
   const selectedLocation =
     GUIDE_LOCATIONS.find((location) => location.id === selectedLocationId) ?? null
   const locations = useMemo(
-    () =>
-      GUIDE_LOCATIONS.filter((location) =>
-        locationMatchesDumpQuery(location, query, catalogs),
-      ),
+    () => GUIDE_LOCATIONS.filter((location) => locationMatchesDumpQuery(location, query, catalogs)),
     [catalogs, query],
   )
 
@@ -124,9 +121,7 @@ function GuideLocationIndexCard({
     <button type="button" className="guide-location-index-card" onClick={onOpen}>
       <span className="guide-location-index-card__banner">
         <img src={location.artworkUrl} alt="" loading="lazy" aria-hidden="true" />
-        <span>
-          {location.id > 0 ? `#${location.id}` : locationUi.specialZone}
-        </span>
+        <span>{location.id > 0 ? `#${location.id}` : locationUi.specialZone}</span>
       </span>
 
       <span className="guide-location-index-card__body">
@@ -142,11 +137,11 @@ function GuideLocationIndexCard({
           </i>
           <i>
             <small>{locationUi.cases}</small>
-            <b>{detailsAvailable ? dump?.cases.length ?? 0 : "—"}</b>
+            <b>{detailsAvailable ? (dump?.cases.length ?? 0) : "—"}</b>
           </i>
           <i>
             <small>{locationUi.mobs}</small>
-            <b>{detailsAvailable ? dump?.mobs.length ?? 0 : "—"}</b>
+            <b>{detailsAvailable ? (dump?.mobs.length ?? 0) : "—"}</b>
           </i>
         </span>
       </span>
@@ -176,11 +171,7 @@ function GuideLocationsHeader({
   )
 }
 
-function locationMatchesDumpQuery(
-  location: GuideLocation,
-  query: string,
-  catalogs: SaoCatalogs,
-) {
+function locationMatchesDumpQuery(location: GuideLocation, query: string, catalogs: SaoCatalogs) {
   if (locationMatchesQuery(location, query, catalogs)) {
     return true
   }
@@ -192,10 +183,7 @@ function locationMatchesDumpQuery(
   }
 
   const keys = [
-    ...dump.cases.flatMap((caseData) => [
-      caseData.key,
-      ...caseData.drops.map((drop) => drop.key),
-    ]),
+    ...dump.cases.flatMap((caseData) => [caseData.key, ...caseData.drops.map((drop) => drop.key)]),
     ...dump.mobs.flatMap((mob) => [mob.key, ...mob.drops.map((drop) => drop.key)]),
   ]
 
