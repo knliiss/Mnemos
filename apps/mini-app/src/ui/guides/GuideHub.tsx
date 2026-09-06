@@ -170,10 +170,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
 
       <section className="guides-hero guides-hero--hub">
         <div className="guides-hero__mascot" aria-hidden="true">
-          <span className="guides-hero__map-lines" />
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
-          <span className="guides-hero__compass">N</span>
-          <span className="guides-hero__scroll">SAO</span>
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
         </div>
 
         <div className="guides-hero__copy">
@@ -227,7 +224,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             title={ui.locations}
             copy={ui.locationsCopy}
             meta={`${GUIDE_LOCATIONS.length}`}
-            illustration="/ui-illustrations/account-guides.svg"
+            illustration="/ui-illustrations/guides-cartographer.svg"
             onClick={() => openSection("locations")}
           />
           <GuideHubCard
@@ -235,7 +232,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             title={ui.rebirth}
             copy={ui.rebirthCopy}
             meta="1 → 68"
-            illustration="/ui-illustrations/admin-leaderboards.svg"
+            illustration="/ui-illustrations/guides-trainer.svg"
             onClick={() => openSection("rebirth")}
           />
           <GuideHubCard
@@ -243,7 +240,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta="LP · SP · SLP · EP"
-            illustration="/ui-illustrations/admin-bets.svg"
+            illustration="/ui-illustrations/guides-explorer.svg"
             onClick={() => openSection("dungeons")}
           />
           <GuideHubCard
