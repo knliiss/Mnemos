@@ -81,10 +81,27 @@
   image-rendering: auto;
 }
 
+.guide-entity-row__art--pet {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(174, 207, 109, 0.12), transparent 62%),
+    #11150f;
+}
+
+.guide-entity-row__art--pet .event-art__image {
+  display: block;
+  width: 30px !important;
+  height: 30px !important;
+  max-width: none !important;
+  max-height: none !important;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.35));
+}
+
 .guide-entity-row__art b {
   position: absolute;
   right: 3px;
   bottom: 2px;
+  z-index: 2;
   padding: 1px 2px;
   border-radius: 3px;
   background: rgba(7, 10, 6, 0.76);
