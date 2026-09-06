@@ -7,8 +7,9 @@ describe("Guide location economy", () => {
     expect(guideCaseEconomy("50K")?.fifteenMinutesAndDarkness).toBe("450M")
   })
 
-  it("prices the explosion as five normal minutes plus twenty minutes at +30%", () => {
-    expect(guideCaseEconomy("500")?.explosion).toBe("9.3M")
+  it("preserves the detailed legacy Darkness to Explosion ratio", () => {
+    expect(guideCaseEconomy("500")?.explosion).toBe("7.35M")
+    expect(guideCaseEconomy("50K")?.explosion).toBe("735M")
   })
 
   it("derives longer periods from the same case opening rate", () => {
