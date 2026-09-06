@@ -5,7 +5,6 @@ import type { Route } from "../../model"
 type AccountQuickActionsProps = {
   navigate: (route: Route) => void
   canOpenGuides: boolean
-  openGuides: () => void
 }
 
 type QuickAction = {
@@ -14,14 +13,9 @@ type QuickAction = {
   copy: string
   illustration: string
   route?: Route
-  action?: () => void
 }
 
-export function AccountQuickActions({
-  navigate,
-  canOpenGuides,
-  openGuides,
-}: AccountQuickActionsProps) {
+export function AccountQuickActions({ navigate, canOpenGuides }: AccountQuickActionsProps) {
   const { t } = useTranslation()
   const actions: QuickAction[] = [
     {
@@ -43,7 +37,7 @@ export function AccountQuickActions({
       title: t("accountHome.guides"),
       copy: canOpenGuides ? "SAO" : t("accountHome.guidesSoon"),
       illustration: "/ui-illustrations/account-guides.svg",
-      action: canOpenGuides ? openGuides : undefined,
+      route: canOpenGuides ? { id: "guides" } : undefined,
     },
     {
       key: "leaderboards",
@@ -66,36 +60,29 @@ export function AccountQuickActions({
       className="account-home-actions account-home-actions--dashboard"
       aria-label={t("accountHome.managementAria")}
     >
-      {actions.map((action) => {
-        const enabled = Boolean(action.route || action.action)
+      {actions.map((action) => (
+        <motion.button
+          type="button"
+          key={action.key}
+          className={`account-home-action account-home-action--${action.key}`}
+          whileTap={action.route ? { scale: 0.975 } : undefined}
+          disabled={!action.route}
+          onClick={() => {
+            if (action.route) {
+              navigate(action.route)
+            }
+          }}
+        >
+          <span className="account-home-action__art" aria-hidden="true">
+            <img src={action.illustration} alt="" />
+          </span>
 
-        return (
-          <motion.button
-            type="button"
-            key={action.key}
-            className={`account-home-action account-home-action--${action.key}`}
-            whileTap={enabled ? { scale: 0.975 } : undefined}
-            disabled={!enabled}
-            onClick={() => {
-              if (action.route) {
-                navigate(action.route)
-                return
-              }
-
-              action.action?.()
-            }}
-          >
-            <span className="account-home-action__art" aria-hidden="true">
-              <img src={action.illustration} alt="" />
-            </span>
-
-            <span className="account-home-action__copy">
-              <strong>{action.title}</strong>
-              <small>{action.copy}</small>
-            </span>
-          </motion.button>
-        )
-      })}
+          <span className="account-home-action__copy">
+            <strong>{action.title}</strong>
+            <small>{action.copy}</small>
+          </span>
+        </motion.button>
+      ))}
     </nav>
   )
 }
