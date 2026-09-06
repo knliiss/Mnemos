@@ -14,7 +14,10 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
 
   if (petTextureUrl) {
     return (
-      <span className={`guide-drop-art guide-drop-art--pet guide-drop-art--${size}`} aria-hidden="true">
+      <span
+        className={`guide-drop-art guide-drop-art--pet guide-drop-art--${size}`}
+        aria-hidden="true"
+      >
         <PetInventoryArt textureUrl={petTextureUrl} />
       </span>
     )
@@ -34,7 +37,10 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
 
   if (localizationKey.startsWith("sao.item.aura")) {
     return (
-      <span className={`guide-drop-art guide-drop-art--aura guide-drop-art--${size}`} aria-hidden="true">
+      <span
+        className={`guide-drop-art guide-drop-art--aura guide-drop-art--${size}`}
+        aria-hidden="true"
+      >
         <i />
         <b />
       </span>
@@ -42,7 +48,10 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
   }
 
   return (
-    <span className={`guide-drop-art guide-drop-art--artifact guide-drop-art--${size}`} aria-hidden="true">
+    <span
+      className={`guide-drop-art guide-drop-art--artifact guide-drop-art--${size}`}
+      aria-hidden="true"
+    >
       <i />
       <b />
       <em />
