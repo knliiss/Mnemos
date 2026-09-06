@@ -3,6 +3,7 @@ import { canAccessGuides } from "./guideAccess"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
 import {
+  localizationKeyMatchesQuery,
   locationMatchesQuery,
   normalizeGuideSearchText,
   resolveSaoText,
@@ -98,6 +99,21 @@ describe("guide localization", () => {
 
     expect(resolveSaoText("key", "uk_UA", catalogs)).toBe("Українська")
     expect(resolveSaoText("key", "hy_AM", catalogs)).toBe("Русский")
+  })
+
+  it("matches one localization key across every loaded SAO language", () => {
+    const catalogs = {
+      en_US: { "sao.rebirth.1.name": "Beginner" },
+      ru_RU: { "sao.rebirth.1.name": "Новичок" },
+      uk_UA: { "sao.rebirth.1.name": "Новачок" },
+    }
+
+    expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Beginner", catalogs)).toBe(true)
+    expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новичок", catalogs)).toBe(true)
+    expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новачок", catalogs)).toBe(true)
+    expect(
+      localizationKeyMatchesQuery("sao.dungeon.EASY.name", "LP", catalogs, ["LP"]),
+    ).toBe(true)
   })
 
   it("searches bundled aliases independently from display language", () => {
