@@ -55,6 +55,8 @@ jobs:
               "deploy/mini-app-1e93c2f7": "1e93c2f73386255de4fa8616a8cb635402ff42bd",
               "deploy/mini-app-wallet-purchase-mockup": "fcb1371b66ae7b6f703d74e64368fe49e67133a0",
               "feat/deployment-hotfix-system": "617b6cbbea5be965b0d72b939dbb0d93562952db",
+              "feat/guides-assets-stage": "1f56b61719021f18a6f0380c2b4b30aaa9c60879",
+              "feat/guides-assets-stage-2": "2e3b2284f7f9760b9164dc5e695324b764c069ab",
               "fix/production-stack-smoke-master-gate": "92d71797578ca29b08478f0f26deea53da51ce33",
               "fix/production-swarm-runtime": "12f7c9e6ee850fb9ef1218f3a6eb9f30c4a931be",
               "fix/production-telegram-rollout": "ebe754f2091a48c670bd9c9c5c4050e64544a868",
