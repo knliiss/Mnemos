@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react"
 
-const MATERIAL_KEY_PATTERN =
-  /^sao\.item\.(weapon_upgrade_material|comet_shard)_(\d+)(?:_1)?\.name$/
+const MATERIAL_KEY_PATTERN = /^sao\.item\.(weapon_upgrade_material|comet_shard)_(\d+)(?:_1)?\.name$/
 const MATERIAL_ATLAS_URL = "/guides/entities/material-atlas.webp"
 const FIRST_LOCATION = 11
 const LAST_LOCATION = 28
