@@ -1,7 +1,11 @@
 import { useMemo, useState, type ReactNode } from "react"
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
-import { locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
+import {
+  localizationKeyExists,
+  locationMatchesQuery,
+  type SaoCatalogs,
+} from "./guideLocalization"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideRankName } from "./guideRanks"
 import { guideUiText } from "./guideUiText"
@@ -32,6 +36,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
     return (
       <GuideLocationDetail
         location={selectedLocation}
+        catalogs={catalogs}
         text={text}
         ui={ui}
         back={() => setSelectedLocationId(null)}
@@ -86,6 +91,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
             <GuideLocationCard
               key={location.id}
               location={location}
+              catalogs={catalogs}
               text={text}
               ui={ui}
               onOpen={() => setSelectedLocationId(location.id)}
@@ -105,13 +111,15 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
 
 type GuideLocationCardProps = {
   location: GuideLocation
+  catalogs: SaoCatalogs
   text: (key: string) => string
   ui: GuideUi
   onOpen: () => void
 }
 
-function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProps) {
-  const creatureCount = location.mobKeys.length + location.cometMobKeys.length
+function GuideLocationCard({ location, catalogs, text, ui, onOpen }: GuideLocationCardProps) {
+  const entities = confirmedLocationEntities(location, catalogs)
+  const creatureCount = entities.mobKeys.length + entities.cometMobKeys.length
   const economy = GUIDE_LOCATION_ECONOMY[location.id]
 
   return (
@@ -134,16 +142,16 @@ function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProp
         </span>
 
         <span className="guide-location-card__stats">
-          {location.npcs.length ? <i>{ui.npcCount(location.npcs.length)}</i> : null}
+          {entities.npcs.length ? <i>{ui.npcCount(entities.npcs.length)}</i> : null}
           {creatureCount ? <i>{ui.creaturesCount(creatureCount)}</i> : null}
-          {location.weaponKeys.length ? (
+          {entities.weaponKeys.length ? (
             <i>
-              {text("sao.ui.weapon")}: {location.weaponKeys.length}
+              {text("sao.ui.weapon")}: {entities.weaponKeys.length}
             </i>
           ) : null}
-          {location.petKeys.length ? (
+          {entities.petKeys.length ? (
             <i>
-              {text("sao.ui.pet")}: {location.petKeys.length}
+              {text("sao.ui.pet")}: {entities.petKeys.length}
             </i>
           ) : null}
           {economy ? (
@@ -161,13 +169,15 @@ function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProp
 
 type GuideLocationDetailProps = {
   location: GuideLocation
+  catalogs: SaoCatalogs
   text: (key: string) => string
   ui: GuideUi
   back: () => void
 }
 
-function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailProps) {
-  const creatureCount = location.mobKeys.length + location.cometMobKeys.length
+function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocationDetailProps) {
+  const entities = confirmedLocationEntities(location, catalogs)
+  const creatureCount = entities.mobKeys.length + entities.cometMobKeys.length
   const economy = GUIDE_LOCATION_ECONOMY[location.id]
   const rebirthSteps = GUIDE_REBIRTH_STEPS.filter((step) => step.location === location.id)
 
@@ -191,15 +201,15 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
 
       <section className="guide-location-facts">
         <span>
-          <b>{location.npcs.length}</b>
+          <b>{entities.npcs.length}</b>
           <small>{ui.npc}</small>
         </span>
         <span>
-          <b>{location.mobKeys.length}</b>
+          <b>{entities.mobKeys.length}</b>
           <small>{ui.mobs}</small>
         </span>
         <span>
-          <b>{location.weaponKeys.length}</b>
+          <b>{entities.weaponKeys.length}</b>
           <small>{text("sao.ui.weapon")}</small>
         </span>
       </section>
@@ -229,10 +239,10 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
         </GuideSection>
       ) : null}
 
-      {location.npcs.length ? (
-        <GuideSection title={ui.npc} count={location.npcs.length}>
+      {entities.npcs.length ? (
+        <GuideSection title={ui.npc} count={entities.npcs.length}>
           <div className="guide-npc-grid guide-npc-grid--ingame">
-            {location.npcs.map((npc) => {
+            {entities.npcs.map((npc) => {
               const roleKeys = GUIDE_NPC_ROLE_KEYS[npc.role]
 
               return (
@@ -253,16 +263,16 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
         </GuideSection>
       ) : null}
 
-      {location.mobKeys.length ? (
-        <GuideSection title={ui.mobs} count={location.mobKeys.length}>
-          <GuideEntityList keys={location.mobKeys} text={text} codePrefix="MOB" />
+      {entities.mobKeys.length ? (
+        <GuideSection title={ui.mobs} count={entities.mobKeys.length}>
+          <GuideEntityList keys={entities.mobKeys} text={text} codePrefix="MOB" />
         </GuideSection>
       ) : null}
 
-      {location.cometMobKeys.length ? (
-        <GuideSection title={ui.cometMobs} count={location.cometMobKeys.length} accent>
+      {entities.cometMobKeys.length ? (
+        <GuideSection title={ui.cometMobs} count={entities.cometMobKeys.length} accent>
           <div className="guide-comet-list">
-            {location.cometMobKeys.map((key) => (
+            {entities.cometMobKeys.map((key) => (
               <span key={key} className="guide-comet-card">
                 <i aria-hidden="true">✦</i>
                 <strong>{text(key)}</strong>
@@ -272,10 +282,10 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
         </GuideSection>
       ) : null}
 
-      {location.weaponKeys.length ? (
-        <GuideSection title={text("sao.ui.weapon")} count={location.weaponKeys.length}>
+      {entities.weaponKeys.length ? (
+        <GuideSection title={text("sao.ui.weapon")} count={entities.weaponKeys.length}>
           <GuideEntityList
-            keys={location.weaponKeys}
+            keys={entities.weaponKeys}
             text={text}
             codePrefix={`L${location.id}`}
             illustrated
@@ -283,25 +293,25 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
         </GuideSection>
       ) : null}
 
-      {location.petKeys.length ? (
-        <GuideSection title={text("sao.ui.pet")} count={location.petKeys.length}>
-          <GuideEntityList keys={location.petKeys} text={text} codePrefix="PET" illustrated />
+      {entities.petKeys.length ? (
+        <GuideSection title={text("sao.ui.pet")} count={entities.petKeys.length}>
+          <GuideEntityList keys={entities.petKeys} text={text} codePrefix="PET" illustrated />
         </GuideSection>
       ) : null}
 
-      {location.dungeonPetKeys.length ? (
-        <GuideSection title={`${text("sao.ui.pet")} · DG`} count={location.dungeonPetKeys.length}>
-          <GuideEntityList keys={location.dungeonPetKeys} text={text} codePrefix="DG" illustrated />
+      {entities.dungeonPetKeys.length ? (
+        <GuideSection title={`${text("sao.ui.pet")} · DG`} count={entities.dungeonPetKeys.length}>
+          <GuideEntityList keys={entities.dungeonPetKeys} text={text} codePrefix="DG" illustrated />
         </GuideSection>
       ) : null}
 
-      {location.materialKeys.length ? (
-        <GuideSection title={ui.reward} count={location.materialKeys.length} accent>
-          <GuideEntityList keys={location.materialKeys} text={text} codePrefix="MAT" />
+      {entities.materialKeys.length ? (
+        <GuideSection title={ui.reward} count={entities.materialKeys.length} accent>
+          <GuideEntityList keys={entities.materialKeys} text={text} codePrefix="MAT" />
         </GuideSection>
       ) : null}
 
-      {!creatureCount && !location.npcs.length ? (
+      {!creatureCount && !entities.npcs.length ? (
         <section className="guide-location-special-note">
           <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
           <small>{ui.noStaticPopulation}</small>
@@ -309,6 +319,20 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
       ) : null}
     </div>
   )
+}
+
+function confirmedLocationEntities(location: GuideLocation, catalogs: SaoCatalogs) {
+  const confirmedKeys = (keys: string[]) => keys.filter((key) => localizationKeyExists(key, catalogs))
+
+  return {
+    npcs: location.npcs.filter((npc) => localizationKeyExists(npc.nameKey, catalogs)),
+    mobKeys: confirmedKeys(location.mobKeys),
+    cometMobKeys: confirmedKeys(location.cometMobKeys),
+    weaponKeys: confirmedKeys(location.weaponKeys),
+    petKeys: confirmedKeys(location.petKeys),
+    dungeonPetKeys: confirmedKeys(location.dungeonPetKeys),
+    materialKeys: confirmedKeys(location.materialKeys),
+  }
 }
 
 function GuideEntityList({
