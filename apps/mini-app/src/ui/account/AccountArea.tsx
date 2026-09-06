@@ -3,6 +3,8 @@ import type { Badge } from "@/shared/api/badgeApi"
 import "../events/event-surfaces.css"
 import type { Route } from "../model"
 import { useMnemosData } from "../data/MnemosDataProvider"
+import { canAccessGuides } from "../guides/guideAccess"
+import { GuidesPage } from "../guides/GuidesPage"
 import { LeaderboardPage } from "../leaderboards/LeaderboardPage"
 import { FeatureError } from "../system/FeatureError"
 import { NotFoundFeature } from "../system/NotFoundFeature"
@@ -55,6 +57,16 @@ export function AccountArea(props: Props) {
 
   if (props.routeId === "leaderboards") {
     return <LeaderboardPage navigate={props.navigate} back={props.back} />
+  }
+
+  if (props.routeId === "guides") {
+    if (!canAccessGuides(product.user.systemRoles)) {
+      return (
+        <NotFoundFeature requested={props.routeId} onHome={() => props.navigate({ id: "account" })} />
+      )
+    }
+
+    return <GuidesPage back={props.back} />
   }
 
   if (props.routeId === "account-wallet") {
