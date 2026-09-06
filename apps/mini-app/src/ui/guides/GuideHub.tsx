@@ -65,7 +65,9 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
         ]),
       )
       .map((rank) => ({ rank, locationId: locationForRank(rank) }))
-      .filter((result): result is { rank: number; locationId: number } => result.locationId !== null)
+      .filter(
+        (result): result is { rank: number; locationId: number } => result.locationId !== null,
+      )
       .slice(0, 6)
   }, [catalogs, normalizedQuery, query])
   const caseResults = useMemo(() => {
@@ -272,7 +274,10 @@ function GuideHubCard({
       className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--rebuild`}
       onClick={onClick}
     >
-      <span className={`guide-hub-card__diagram guide-hub-card__diagram--${tone}`} aria-hidden="true">
+      <span
+        className={`guide-hub-card__diagram guide-hub-card__diagram--${tone}`}
+        aria-hidden="true"
+      >
         <i />
         <i />
         <i />
