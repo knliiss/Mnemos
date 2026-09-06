@@ -4,6 +4,7 @@ import { resolveSaoPetInventoryTextureUrl } from "../components/events/saoPetInv
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
 import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
+import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
 import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
@@ -65,6 +66,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
           value={query}
           onInput={(event) => setQuery(event.currentTarget.value)}
           placeholder={ui.searchPlaceholder}
+          aria-label={ui.searchPlaceholder}
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
@@ -408,14 +410,26 @@ function GuideMaterialList({
   text: (key: string) => string
 }) {
   return (
-    <div className="guide-entity-list">
+    <div className="guide-entity-list guide-entity-list--illustrated">
       {keys.map((key, index) => {
         const loreKey = key.replace(/\.name$/, ".lore")
         const hasLore = loreKey !== key && localizationKeyExists(loreKey, catalogs)
+        const entityIndex = guideEntityIndex(key, index + 1)
+        const artworkStyle = guideMaterialArtworkStyle(key)
 
         return (
           <span key={key} className="guide-entity-row">
-            <i>{String(guideEntityIndex(key, index + 1)).padStart(2, "0")}</i>
+            {artworkStyle ? (
+              <span
+                className="guide-entity-row__art guide-entity-row__art--weapon"
+                style={artworkStyle}
+                aria-hidden="true"
+              >
+                <b>{String(entityIndex).padStart(2, "0")}</b>
+              </span>
+            ) : (
+              <i>{String(entityIndex).padStart(2, "0")}</i>
+            )}
             <span>
               <strong>{text(key)}</strong>
               {hasLore ? <small>{text(loreKey)}</small> : null}
