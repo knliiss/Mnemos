@@ -13,6 +13,10 @@ export type GuideLocation = {
   npcs: GuideNpc[]
   mobKeys: string[]
   cometMobKeys: string[]
+  weaponKeys: string[]
+  petKeys: string[]
+  dungeonPetKeys: string[]
+  materialKeys: string[]
 }
 
 const LOCATION_ARTWORK_URLS: Record<number, string> = {
@@ -79,6 +83,69 @@ const MOB_COUNTS: Record<number, number> = {
   28: 7,
 }
 
+const WEAPON_COUNTS: Record<number, number> = {
+  1: 9,
+  2: 10,
+  3: 10,
+  4: 10,
+  5: 10,
+  6: 10,
+  7: 11,
+  8: 11,
+  9: 12,
+  10: 12,
+  11: 12,
+  12: 12,
+  13: 12,
+  14: 12,
+  15: 12,
+  16: 12,
+  17: 12,
+  18: 12,
+  19: 12,
+  20: 12,
+  21: 12,
+  22: 12,
+  23: 12,
+  24: 12,
+  25: 12,
+  26: 12,
+  27: 12,
+  28: 12,
+}
+
+const PET_COUNTS: Record<number, number> = {
+  1: 11,
+  2: 6,
+  3: 6,
+  4: 6,
+  5: 7,
+  6: 6,
+  7: 8,
+  8: 8,
+  9: 8,
+  10: 8,
+  11: 8,
+  12: 14,
+  13: 8,
+  14: 8,
+  15: 8,
+  16: 8,
+  17: 8,
+  18: 8,
+  19: 8,
+  20: 8,
+  21: 8,
+  22: 9,
+  23: 9,
+  24: 9,
+  25: 9,
+  26: 9,
+  27: 9,
+  28: 9,
+}
+
+const DUNGEON_PET_COUNT = 5
 const LOCATION_IDS = [0, ...Array.from({ length: 28 }, (_, index) => index + 1), -1]
 
 export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
@@ -93,14 +160,16 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
           { nameKey: `sao.npc.${id}_QUEST.name`, role: "QUEST" },
         ]
       : [],
-  mobKeys:
-    id > 0
-      ? Array.from(
-          { length: MOB_COUNTS[id] ?? 0 },
-          (_, index) => `sao.mob.mob${id}_${index + 1}.name`,
-        )
-      : [],
+  mobKeys: numberedKeys(id, MOB_COUNTS[id], (index) => `sao.mob.mob${id}_${index}.name`),
   cometMobKeys: id >= 11 ? [`sao.mob.comet${id}_1.name`] : [],
+  weaponKeys: numberedKeys(id, WEAPON_COUNTS[id], (index) => `sao.item.l${id}_${index}.name`),
+  petKeys: numberedKeys(id, PET_COUNTS[id], (index) => `sao.item.pet_l${id}_${index}.name`),
+  dungeonPetKeys: numberedKeys(
+    id,
+    id > 0 ? DUNGEON_PET_COUNT : undefined,
+    (index) => `sao.item.petd_l${id}_${index}.name`,
+  ),
+  materialKeys: id >= 11 ? [`sao.item.weapon_upgrade_material_${id}.name`] : [],
 }))
 
 export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; description: string }> = {
@@ -112,4 +181,16 @@ export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; descripti
     role: "sao.enum.npc.quest.role",
     description: "sao.enum.npc.quest.description",
   },
+}
+
+function numberedKeys(
+  locationId: number,
+  count: number | undefined,
+  key: (index: number) => string,
+) {
+  if (locationId <= 0 || !count) {
+    return []
+  }
+
+  return Array.from({ length: count }, (_, index) => key(index + 1))
 }
