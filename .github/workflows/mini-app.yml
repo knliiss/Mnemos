@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -32,8 +32,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -51,25 +49,18 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Format Guides branch
-        if: github.event_name == 'pull_request' && github.head_ref == 'feat/guides'
+      - name: Check formatting
+        id: formatting
+        run: npm run format:check
+
+      - name: Show formatting diff
+        if: failure() && steps.formatting.outcome == 'failure'
         shell: bash
         run: |
           set -euo pipefail
-          npm run format
 
-          if git diff --quiet -- src; then
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src
-          git commit -m "Format SAO Guides frontend"
-          git push origin HEAD:${{ github.head_ref }}
-
-      - name: Check formatting
-        run: npm run format:check
+          npm run format >/dev/null
+          git diff -- src
 
       - name: Test
         run: npm test
