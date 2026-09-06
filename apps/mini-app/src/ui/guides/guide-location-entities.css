@@ -48,6 +48,21 @@
   letter-spacing: 0.05em;
 }
 
+.guide-entity-list--materials .guide-entity-row {
+  align-items: start;
+  padding-block: 8px;
+}
+
+.guide-entity-list--materials .guide-entity-row small {
+  color: #89977e;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 550;
+  line-height: 1.45;
+  letter-spacing: 0;
+  white-space: pre-line;
+}
+
 .guide-entity-list--illustrated {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
