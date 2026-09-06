@@ -96,7 +96,12 @@ export function GuideRankPicker({
             }
           }}
         >
-          <section className="guide-rank-picker__dialog" role="dialog" aria-modal="true" aria-label={label}>
+          <section
+            className="guide-rank-picker__dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={label}
+          >
             <header>
               <span>
                 <small>{label}</small>
@@ -132,7 +137,11 @@ export function GuideRankPicker({
                   type="button"
                   role="option"
                   aria-selected={rank === value}
-                  className={rank === value ? "guide-rank-picker__option is-selected" : "guide-rank-picker__option"}
+                  className={
+                    rank === value
+                      ? "guide-rank-picker__option is-selected"
+                      : "guide-rank-picker__option"
+                  }
                   onClick={() => selectRank(rank)}
                 >
                   <span>#{rank}</span>
