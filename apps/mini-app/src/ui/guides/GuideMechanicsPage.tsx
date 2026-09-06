@@ -144,7 +144,15 @@ function GuideMechanicCard({
   )
 }
 
-function GuideHeader({ title, back, backLabel }: { title: string; back: () => void; backLabel: string }) {
+function GuideHeader({
+  title,
+  back,
+  backLabel,
+}: {
+  title: string
+  back: () => void
+  backLabel: string
+}) {
   return (
     <header className="guides-page-header">
       <button type="button" onClick={back} aria-label={backLabel}>
