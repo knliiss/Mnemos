@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
   GUIDE_CASE_MILESTONES,
   GUIDE_DUNGEON_MILESTONES,
@@ -16,6 +17,19 @@ type Props = {
   back: () => void
 }
 
+type DungeonPresentation = {
+  type: GuideDungeonType
+  alias: "LP" | "SP" | "SLP" | "EP"
+  tone: string
+}
+
+const DUNGEONS: DungeonPresentation[] = [
+  { type: "EASY", alias: "LP", tone: "lp" },
+  { type: "NORMAL", alias: "SP", tone: "sp" },
+  { type: "HARD", alias: "SLP", tone: "slp" },
+  { type: "INSANE", alias: "EP", tone: "ep" },
+]
+
 export function GuideMilestonesPage({ kind, ui, text, back }: Props) {
   if (kind === "cases") {
     return <GuideCasesPage ui={ui} back={back} />
@@ -33,19 +47,14 @@ function GuideDungeonsPage({
   text: (key: string) => string
   back: () => void
 }) {
-  const dungeons: Array<{
-    type: GuideDungeonType
-    copy: string
-    tone: string
-  }> = [
-    { type: "EASY", copy: ui.dungeonEasyCopy, tone: "lp" },
-    { type: "NORMAL", copy: ui.dungeonNormalCopy, tone: "sp" },
-    { type: "HARD", copy: ui.dungeonHardCopy, tone: "slp" },
-    { type: "INSANE", copy: ui.dungeonInsaneCopy, tone: "ep" },
-  ]
+  const [activeType, setActiveType] = useState<GuideDungeonType>("EASY")
+  const activeDungeon = DUNGEONS.find((dungeon) => dungeon.type === activeType) ?? DUNGEONS[0]
+  const milestones = GUIDE_DUNGEON_MILESTONES[activeDungeon.type]
+  const dungeonName = text(`sao.dungeon.${activeDungeon.type}.name`)
+  const dungeonDescription = text(`sao.dungeon.${activeDungeon.type}.description`)
 
   return (
-    <div className="screen guides-screen guide-milestones-screen">
+    <div className="screen guides-screen guide-milestones-screen guide-dungeons-screen">
       <GuideSubpageHeader title={ui.dungeons} back={back} backLabel={ui.back} sigil="DG" />
 
       <section className="guide-context-hero guide-context-hero--explorer">
@@ -60,34 +69,51 @@ function GuideDungeonsPage({
         </span>
       </section>
 
-      <section className="guide-dungeon-grid">
-        {dungeons.map((dungeon) => (
-          <article
-            key={dungeon.type}
-            className={`guide-dungeon-card guide-dungeon-card--${dungeon.tone}`}
-          >
-            <header>
-              <span>
-                <b>{text(`sao.dungeon.${dungeon.type}.name`)}</b>
-                <small>{dungeon.copy}</small>
-              </span>
-              <i>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</i>
-            </header>
+      <section className="guide-dungeon-selector" aria-label={ui.dungeons}>
+        {DUNGEONS.map((dungeon) => {
+          const selected = dungeon.type === activeType
 
-            <div className="guide-milestone-list">
-              {GUIDE_DUNGEON_MILESTONES[dungeon.type].map((milestone) => (
-                <span key={milestone.stage} className="guide-milestone-row">
-                  <i>{milestone.stage}</i>
-                  <span>
-                    <small>{ui.stage}</small>
-                    <strong>{rewardLabel(milestone.reward, ui)}</strong>
-                  </span>
-                  <b>{milestone.value}</b>
-                </span>
-              ))}
-            </div>
-          </article>
-        ))}
+          return (
+            <button
+              key={dungeon.type}
+              type="button"
+              className={`guide-dungeon-selector__item guide-dungeon-selector__item--${dungeon.tone} ${selected ? "is-selected" : ""}`}
+              aria-pressed={selected}
+              onClick={() => setActiveType(dungeon.type)}
+            >
+              <span>{dungeon.alias}</span>
+              <strong>{text(`sao.dungeon.${dungeon.type}.name`)}</strong>
+              <small>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</small>
+            </button>
+          )
+        })}
+      </section>
+
+      <section className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone}`}>
+        <header className="guide-dungeon-detail__header">
+          <span className="guide-dungeon-detail__alias">{activeDungeon.alias}</span>
+          <span>
+            <strong>{dungeonName}</strong>
+            <small>{dungeonDescription}</small>
+          </span>
+          <b>{milestones.length}</b>
+        </header>
+
+        <div className="guide-milestone-list guide-milestone-list--large">
+          {milestones.map((milestone) => (
+            <article key={milestone.stage} className="guide-milestone-row">
+              <span className="guide-milestone-row__stage">
+                <small>{ui.stage}</small>
+                <b>{milestone.stage}</b>
+              </span>
+              <span className="guide-milestone-row__reward">
+                <small>{ui.reward}</small>
+                <strong>{rewardLabel(milestone.reward, ui)}</strong>
+              </span>
+              <span className="guide-milestone-row__value">{milestone.value}</span>
+            </article>
+          ))}
+        </div>
       </section>
     </div>
   )
@@ -95,7 +121,7 @@ function GuideDungeonsPage({
 
 function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
   return (
-    <div className="screen guides-screen guide-milestones-screen">
+    <div className="screen guides-screen guide-milestones-screen guide-cases-screen">
       <GuideSubpageHeader title={ui.cases} back={back} backLabel={ui.back} sigil="CS" />
 
       <section className="guide-context-hero guide-context-hero--cases">
@@ -111,8 +137,11 @@ function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
       </section>
 
       <section className="guide-case-timeline">
-        {GUIDE_CASE_MILESTONES.map((milestone) => (
+        {GUIDE_CASE_MILESTONES.map((milestone, index) => (
           <article key={milestone.opened} className="guide-case-milestone">
+            <span className="guide-case-milestone__index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
             <span className="guide-case-milestone__count">
               <b>{compactNumber(milestone.opened)}</b>
               <small>{ui.caseOpened}</small>
@@ -121,7 +150,7 @@ function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
               <small>{ui.caseReward}</small>
               <strong>{caseRewardLabel(milestone.reward, ui)}</strong>
             </span>
-            <i>{milestone.value}</i>
+            <span className="guide-case-milestone__value">{milestone.value}</span>
           </article>
         ))}
       </section>

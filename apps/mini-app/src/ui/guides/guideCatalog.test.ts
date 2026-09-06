@@ -15,12 +15,11 @@ import { GUIDE_CASE_MILESTONES, GUIDE_DUNGEON_MILESTONES } from "./guideMileston
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 
 describe("guide catalog", () => {
-  it("contains starter village, dungeon hall and all 28 numbered locations", () => {
-    expect(GUIDE_LOCATIONS).toHaveLength(30)
+  it("contains starter village and all 28 numbered locations", () => {
+    expect(GUIDE_LOCATIONS).toHaveLength(29)
     expect(GUIDE_LOCATIONS.map((location) => location.id)).toEqual([
       0,
       ...Array.from({ length: 28 }, (_, index) => index + 1),
-      -1,
     ])
   })
 
@@ -88,16 +87,12 @@ describe("guide catalog", () => {
     expect(vikingValley.petKeys).toHaveLength(14)
   })
 
-  it("keeps special areas outside numbered equipment mappings", () => {
+  it("keeps starter village outside numbered equipment mappings", () => {
     const starterVillage = GUIDE_LOCATIONS.find((candidate) => candidate.id === 0)!
-    const dungeonHall = GUIDE_LOCATIONS.find((candidate) => candidate.id === -1)!
 
     expect(starterVillage.weaponKeys).toEqual([])
     expect(starterVillage.petKeys).toEqual([])
     expect(starterVillage.donatePetKeys).toEqual([])
-    expect(dungeonHall.weaponKeys).toEqual([])
-    expect(dungeonHall.petKeys).toEqual([])
-    expect(dungeonHall.donatePetKeys).toEqual([])
   })
 })
 

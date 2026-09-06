@@ -20,7 +20,6 @@ export type GuideLocation = {
 }
 
 const LOCATION_ARTWORK_URLS: Record<number, string> = {
-  [-1]: "/guides/locations/location-special-dungeon-hall.webp",
   0: "/guides/locations/location-00-starter-village.webp",
   1: "/guides/locations/location-01-dark-forest.webp",
   2: "/guides/locations/location-02-pirate-ship.webp",
@@ -146,7 +145,7 @@ const PET_COUNTS: Record<number, number> = {
 }
 
 const DONATE_PET_COUNT = 5
-const LOCATION_IDS = [0, ...Array.from({ length: 28 }, (_, index) => index + 1), -1]
+const LOCATION_IDS = [0, ...Array.from({ length: 28 }, (_, index) => index + 1)]
 
 export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
   id,

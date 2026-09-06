@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
+import { GUIDE_CRITICAL_CATALOGS } from "./guideCriticalCatalogs"
+import { GUIDE_EN_PROGRESSION_FALLBACK } from "./guideEnglishProgressionFallback"
 import { GUIDE_EN_FALLBACK } from "./guideEnglishFallback"
+import { GUIDE_INTERFACE_CATALOGS } from "./guideInterfaceCatalogs"
 
 export type SaoCatalogs = Record<string, Record<string, string>>
 
@@ -19,7 +22,18 @@ type LocalizationPie = {
 }
 
 const LANGUAGE_INDEX_URL = "https://webdata.c7x.dev/client/lang.json"
-const BUNDLED_CATALOGS: SaoCatalogs = { en_US: GUIDE_EN_FALLBACK }
+const BUNDLED_CATALOGS = mergeCatalogs(
+  mergeCatalogs(
+    {
+      en_US: {
+        ...GUIDE_EN_FALLBACK,
+        ...GUIDE_EN_PROGRESSION_FALLBACK,
+      },
+    },
+    GUIDE_CRITICAL_CATALOGS,
+  ),
+  GUIDE_INTERFACE_CATALOGS,
+)
 
 let remoteCatalogsPromise: Promise<SaoCatalogs> | null = null
 
@@ -34,10 +48,7 @@ export function useSaoGuideLocalization(uiLanguage: string | undefined) {
         return
       }
 
-      setCatalogs({
-        ...BUNDLED_CATALOGS,
-        ...remoteCatalogs,
-      })
+      setCatalogs((currentCatalogs) => mergeCatalogs(currentCatalogs, remoteCatalogs))
     })
 
     return () => {
@@ -80,8 +91,8 @@ export function resolveSaoText(key: string, preferredLanguage: string, catalogs:
     }
   }
 
-  for (const fallbackCatalog of Object.values(BUNDLED_CATALOGS)) {
-    const value = cleanGameFormatting(fallbackCatalog[key])
+  for (const language of fallbackChain) {
+    const value = cleanGameFormatting(BUNDLED_CATALOGS[language]?.[key])
 
     if (value) {
       return value
@@ -242,6 +253,19 @@ async function fetchRemoteSaoCatalogs(): Promise<SaoCatalogs> {
   return Object.fromEntries(
     results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : [])),
   )
+}
+
+function mergeCatalogs(base: SaoCatalogs, overrides: SaoCatalogs): SaoCatalogs {
+  const merged: SaoCatalogs = { ...base }
+
+  for (const [language, catalog] of Object.entries(overrides)) {
+    merged[language] = {
+      ...(merged[language] ?? {}),
+      ...catalog,
+    }
+  }
+
+  return merged
 }
 
 function unique(values: string[]) {

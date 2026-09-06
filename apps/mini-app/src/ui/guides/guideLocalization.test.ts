@@ -29,6 +29,15 @@ describe("guide localization", () => {
     expect(resolveSaoText("sao.example.missing", "uk_UA", catalogs)).toBe("sao.example.missing")
   })
 
+  it("keeps critical interface and progression labels concrete before remote catalogs load", () => {
+    const emptyCatalogs: SaoCatalogs = {}
+
+    expect(resolveSaoText("sao.ui.weapon", "uk_UA", emptyCatalogs)).toBe("Зброя")
+    expect(resolveSaoText("sao.ui.pet", "ru_RU", emptyCatalogs)).toBe("Питомцы")
+    expect(resolveSaoText("sao.ui.weapon", "en_US", emptyCatalogs)).toBe("Weapons")
+    expect(resolveSaoText("sao.rebirth.68.name", "en_US", emptyCatalogs)).toBe("Archangel")
+  })
+
   it("matches aliases and values from every loaded SAO language", () => {
     const catalogs: SaoCatalogs = {
       en_US: { "sao.location.1.name": "Dark Forest" },

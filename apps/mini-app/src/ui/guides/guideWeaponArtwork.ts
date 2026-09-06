@@ -4,7 +4,7 @@ const WEAPON_KEY_PATTERN = /^sao\.item\.l(\d+)_(\d+)\.name$/
 const WEAPON_ATLAS_URL = "/guides/entities/weapon-atlas.webp"
 const ATLAS_COLUMNS = 12
 const ATLAS_ROWS = 28
-const DISPLAY_CELL_SIZE = 38
+const DISPLAY_CELL_SIZE = 56
 
 export function guideWeaponArtworkStyle(key: string): CSSProperties | undefined {
   const match = WEAPON_KEY_PATTERN.exec(key)

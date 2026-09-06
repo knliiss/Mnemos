@@ -2,9 +2,11 @@ import { useMemo, useState, type ReactNode } from "react"
 import { PetInventoryArt } from "../components/events/PetInventoryArt"
 import { resolveSaoPetInventoryTextureUrl } from "../components/events/saoPetInventoryArtwork"
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
+import { guideCometArtworkStyle } from "./guideCometArtwork"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
 import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
 import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
+import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
 import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
@@ -206,7 +208,7 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
           <small>{ui.npc}</small>
         </span>
         <span>
-          <b>{entities.mobKeys.length}</b>
+          <b>{creatureCount}</b>
           <small>{ui.mobs}</small>
         </span>
         <span>
@@ -246,16 +248,20 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
           <div className="guide-npc-grid guide-npc-grid--ingame">
             {entities.npcs.map((npc) => {
               const roleKeys = GUIDE_NPC_ROLE_KEYS[npc.role]
+              const artworkStyle = guideNpcArtworkStyle(location.id, npc.role)
 
               return (
                 <article key={npc.nameKey} className="guide-npc-card guide-npc-card--ingame">
-                  <span className="guide-npc-card__gameplate" aria-hidden="true">
-                    <i />
-                    <small>NPC</small>
-                  </span>
+                  {artworkStyle ? (
+                    <span
+                      className="guide-npc-card__portrait"
+                      style={artworkStyle}
+                      aria-hidden="true"
+                    />
+                  ) : null}
                   <span className="guide-npc-card__copy">
                     <strong>{text(npc.nameKey)}</strong>
-                    <em>&lt;{text(roleKeys.role)}&gt;</em>
+                    <em>{text(roleKeys.role)}</em>
                     <small>{text(roleKeys.description)}</small>
                   </span>
                 </article>
@@ -274,12 +280,25 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
       {entities.cometMobKeys.length ? (
         <GuideSection title={ui.cometMobs} count={entities.cometMobKeys.length} accent>
           <div className="guide-comet-list">
-            {entities.cometMobKeys.map((key) => (
-              <span key={key} className="guide-comet-card">
-                <i aria-hidden="true">✦</i>
-                <strong>{text(key)}</strong>
-              </span>
-            ))}
+            {entities.cometMobKeys.map((key) => {
+              const artworkStyle = guideCometArtworkStyle(key)
+
+              return (
+                <span key={key} className="guide-comet-card">
+                  {artworkStyle ? (
+                    <span
+                      className="guide-comet-card__art"
+                      style={artworkStyle}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <span className="guide-comet-card__copy">
+                    <small>{ui.cometMobs}</small>
+                    <strong>{text(key)}</strong>
+                  </span>
+                </span>
+              )
+            })}
           </div>
         </GuideSection>
       ) : null}

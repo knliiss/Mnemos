@@ -5,15 +5,16 @@ describe("guide material artwork", () => {
   it("maps upgrade materials and comet shards to the confirmed resource-pack atlas", () => {
     expect(guideMaterialArtworkStyle("sao.item.weapon_upgrade_material_11.name")).toMatchObject({
       backgroundPosition: "0px 0px",
+      backgroundSize: "112px 1008px",
     })
     expect(guideMaterialArtworkStyle("sao.item.comet_shard_11_1.name")).toMatchObject({
-      backgroundPosition: "-38px 0px",
+      backgroundPosition: "-56px 0px",
     })
     expect(guideMaterialArtworkStyle("sao.item.weapon_upgrade_material_28.name")).toMatchObject({
-      backgroundPosition: "0px -646px",
+      backgroundPosition: "0px -952px",
     })
     expect(guideMaterialArtworkStyle("sao.item.comet_shard_28_1.name")).toMatchObject({
-      backgroundPosition: "-38px -646px",
+      backgroundPosition: "-56px -952px",
     })
   })
 
