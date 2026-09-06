@@ -4,12 +4,12 @@ import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 describe("guide weapon artwork", () => {
   it("maps confirmed weapon keys to their resource-pack atlas cell", () => {
     expect(guideWeaponArtworkStyle("sao.item.l1_4.name")).toMatchObject({
-      backgroundPosition: "-114px 0px",
-      backgroundSize: "456px 1064px",
+      backgroundPosition: "-168px 0px",
+      backgroundSize: "672px 1568px",
     })
 
     expect(guideWeaponArtworkStyle("sao.item.l28_12.name")).toMatchObject({
-      backgroundPosition: "-418px -1026px",
+      backgroundPosition: "-616px -1512px",
     })
   })
 
