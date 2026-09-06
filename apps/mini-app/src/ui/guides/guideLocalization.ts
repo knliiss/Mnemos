@@ -145,7 +145,7 @@ export function locationMatchesQuery(
     ...location.cometMobKeys,
     ...location.weaponKeys,
     ...location.petKeys,
-    ...location.dungeonPetKeys,
+    ...location.donatePetKeys,
     ...location.materialKeys,
   ].filter((key) => localizationKeyExists(key, catalogs))
   const searchableKeys = [
