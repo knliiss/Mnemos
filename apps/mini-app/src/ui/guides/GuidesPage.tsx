@@ -10,8 +10,8 @@ import { guideUiText } from "./guideUiText"
 import "./guide-location-entities.css"
 import "./guide-location-npcs.css"
 import "./guides.css"
-import "./guides-accessibility.css"
 import "./guides-sections.css"
+import "./guides-accessibility.css"
 
 type Props = {
   back: () => void
