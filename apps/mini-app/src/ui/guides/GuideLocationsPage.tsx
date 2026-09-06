@@ -45,7 +45,7 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
 
       <section className="guide-context-hero guide-context-hero--cartographer">
         <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
+          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
           <i>MAP</i>
         </div>
         <span>
@@ -136,6 +136,8 @@ function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProp
         <span className="guide-location-card__stats">
           {location.npcs.length ? <i>{ui.npcCount(location.npcs.length)}</i> : null}
           {creatureCount ? <i>{ui.creaturesCount(creatureCount)}</i> : null}
+          {location.weaponKeys.length ? <i>{text("sao.ui.weapon")}: {location.weaponKeys.length}</i> : null}
+          {location.petKeys.length ? <i>{text("sao.ui.pet")}: {location.petKeys.length}</i> : null}
           {economy ? (
             <i>
               {ui.firstCase}: {economy.caseOne}
@@ -189,8 +191,8 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
           <small>{ui.mobs}</small>
         </span>
         <span>
-          <b>{location.cometMobKeys.length}</b>
-          <small>{ui.cometMobs}</small>
+          <b>{location.weaponKeys.length}</b>
+          <small>{text("sao.ui.weapon")}</small>
         </span>
       </section>
 
@@ -245,14 +247,7 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
 
       {location.mobKeys.length ? (
         <GuideSection title={ui.mobs} count={location.mobKeys.length}>
-          <div className="guide-mob-list">
-            {location.mobKeys.map((key, index) => (
-              <span key={key} className="guide-mob-row">
-                <i>{String(index + 1).padStart(2, "0")}</i>
-                <strong>{text(key)}</strong>
-              </span>
-            ))}
-          </div>
+          <GuideEntityList keys={location.mobKeys} text={text} codePrefix="MOB" />
         </GuideSection>
       ) : null}
 
@@ -269,12 +264,74 @@ function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailPr
         </GuideSection>
       ) : null}
 
+      {location.weaponKeys.length ? (
+        <GuideSection title={text("sao.ui.weapon")} count={location.weaponKeys.length}>
+          <GuideEntityList
+            keys={location.weaponKeys}
+            text={text}
+            codePrefix={`L${location.id}`}
+            illustrated
+          />
+        </GuideSection>
+      ) : null}
+
+      {location.petKeys.length ? (
+        <GuideSection title={text("sao.ui.pet")} count={location.petKeys.length}>
+          <GuideEntityList keys={location.petKeys} text={text} codePrefix="PET" illustrated />
+        </GuideSection>
+      ) : null}
+
+      {location.dungeonPetKeys.length ? (
+        <GuideSection title={`${text("sao.ui.pet")} · DG`} count={location.dungeonPetKeys.length}>
+          <GuideEntityList keys={location.dungeonPetKeys} text={text} codePrefix="DG" illustrated />
+        </GuideSection>
+      ) : null}
+
+      {location.materialKeys.length ? (
+        <GuideSection title={ui.reward} count={location.materialKeys.length} accent>
+          <GuideEntityList keys={location.materialKeys} text={text} codePrefix="MAT" />
+        </GuideSection>
+      ) : null}
+
       {!creatureCount && !location.npcs.length ? (
         <section className="guide-location-special-note">
           <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
           <small>{ui.noStaticPopulation}</small>
         </section>
       ) : null}
+    </div>
+  )
+}
+
+function GuideEntityList({
+  keys,
+  text,
+  codePrefix,
+  illustrated = false,
+}: {
+  keys: string[]
+  text: (key: string) => string
+  codePrefix: string
+  illustrated?: boolean
+}) {
+  return (
+    <div className={`guide-entity-list ${illustrated ? "guide-entity-list--illustrated" : ""}`}>
+      {keys.map((key, index) => (
+        <span key={key} className="guide-entity-row">
+          {illustrated ? (
+            <span className="guide-entity-row__art" aria-hidden="true">
+              <i />
+              <b>{String(index + 1).padStart(2, "0")}</b>
+            </span>
+          ) : (
+            <i>{String(index + 1).padStart(2, "0")}</i>
+          )}
+          <span>
+            <strong>{text(key)}</strong>
+            <small>{codePrefix}-{String(index + 1).padStart(2, "0")}</small>
+          </span>
+        </span>
+      ))}
     </div>
   )
 }
