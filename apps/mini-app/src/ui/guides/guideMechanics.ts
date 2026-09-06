@@ -1,4 +1,8 @@
-import { localizationKeyMatchesQuery, type SaoCatalogs } from "./guideLocalization"
+import {
+  localizationKeyExists,
+  localizationKeyMatchesQuery,
+  type SaoCatalogs,
+} from "./guideLocalization"
 
 export type GuideMechanicChapter =
   | "FIRST_STEPS"
@@ -68,6 +72,14 @@ export const GUIDE_MECHANIC_CHAPTER_KEYS: Record<GuideMechanicChapter, string> =
   RAIDS: "sao.guide.chapter.raids",
   DUNGEONS: "sao.guide.chapter.dungeons",
   ENDGAME: "sao.guide.chapter.endgame",
+}
+
+export function verifiedGuideMechanics(catalogs: SaoCatalogs) {
+  return GUIDE_MECHANICS.filter((mechanic) =>
+    [mechanic.titleKey, mechanic.textKey, mechanic.hintKey, mechanic.whereKey].every((key) =>
+      localizationKeyExists(key, catalogs),
+    ),
+  )
 }
 
 export function mechanicMatchesQuery(
