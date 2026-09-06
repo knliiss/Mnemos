@@ -15,7 +15,7 @@ export type GuideLocation = {
   cometMobKeys: string[]
   weaponKeys: string[]
   petKeys: string[]
-  dungeonPetKeys: string[]
+  donatePetKeys: string[]
   materialKeys: string[]
 }
 
@@ -145,7 +145,7 @@ const PET_COUNTS: Record<number, number> = {
   28: 9,
 }
 
-const DUNGEON_PET_COUNT = 5
+const DONATE_PET_COUNT = 5
 const LOCATION_IDS = [0, ...Array.from({ length: 28 }, (_, index) => index + 1), -1]
 
 export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
@@ -164,9 +164,9 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
   cometMobKeys: id >= 11 ? [`sao.mob.comet${id}_1.name`] : [],
   weaponKeys: indexedKeys(WEAPON_INDEXES[id], (index) => `sao.item.l${id}_${index}.name`),
   petKeys: numberedKeys(id, PET_COUNTS[id], (index) => `sao.item.pet_l${id}_${index}.name`),
-  dungeonPetKeys: numberedKeys(
+  donatePetKeys: numberedKeys(
     id,
-    id > 0 ? DUNGEON_PET_COUNT : undefined,
+    id > 0 ? DONATE_PET_COUNT : undefined,
     (index) => `sao.item.petd_l${id}_${index}.name`,
   ),
   materialKeys: id >= 11 ? [`sao.item.weapon_upgrade_material_${id}.name`] : [],
