@@ -70,12 +70,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
     }
 
     return DUNGEONS.filter(({ type, searchAliases }) =>
-      localizationKeyMatchesQuery(
-        `sao.dungeon.${type}.name`,
-        query,
-        catalogs,
-        [...searchAliases],
-      ),
+      localizationKeyMatchesQuery(`sao.dungeon.${type}.name`, query, catalogs, [...searchAliases]),
     )
   }, [catalogs, normalizedQuery, query])
   const caseMatches = useMemo(
