@@ -29,7 +29,7 @@ describe("GuideRankPicker", () => {
   it("focuses search on open and restores trigger focus after Escape", async () => {
     renderPicker()
 
-    const trigger = screen.getByRole("button", { name: /#2 Rank 2/ })
+    const trigger = screen.getByRole("button", { name: /Rank 2/ })
     fireEvent.click(trigger)
 
     const search = screen.getByRole("searchbox", { name: "Find rank" })
@@ -49,15 +49,15 @@ describe("GuideRankPicker", () => {
   it("filters ranks, selects one and restores trigger focus", async () => {
     const onChange = renderPicker()
 
-    const trigger = screen.getByRole("button", { name: /#2 Rank 2/ })
+    const trigger = screen.getByRole("button", { name: /Rank 2/ })
     fireEvent.click(trigger)
 
     const search = screen.getByRole("searchbox", { name: "Find rank" })
     fireEvent.input(search, { target: { value: "Rank 3" } })
 
-    expect(screen.queryByRole("option", { name: /#1 Rank 1/ })).toBeNull()
+    expect(screen.queryByRole("option", { name: /Rank 1/ })).toBeNull()
 
-    const rankThree = screen.getByRole("option", { name: /#3 Rank 3/ })
+    const rankThree = screen.getByRole("option", { name: /Rank 3/ })
     fireEvent.click(rankThree)
 
     expect(onChange).toHaveBeenCalledWith(3)
