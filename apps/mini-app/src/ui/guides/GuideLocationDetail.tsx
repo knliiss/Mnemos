@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { BottomSheet } from "../shared/Primitives"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
@@ -90,7 +90,6 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
                   <GuideCaseCard
                     key={`${caseData.key}-${index}`}
                     caseData={caseData}
-                    index={index}
                     text={text}
                     locationUi={locationUi}
                     onSelectDrop={(drop) =>
@@ -256,7 +255,7 @@ function GuideLocationSection({
 }: {
   title: string
   count: number
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="guide-location-section">
@@ -271,13 +270,11 @@ function GuideLocationSection({
 
 function GuideCaseCard({
   caseData,
-  index,
   text,
   locationUi,
   onSelectDrop,
 }: {
   caseData: GuideDumpCase
-  index: number
   text: (key: string) => string
   locationUi: ReturnType<typeof guideLocationUiText>
   onSelectDrop: (drop: GuideDumpDrop) => void
