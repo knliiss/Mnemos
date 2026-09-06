@@ -23,6 +23,8 @@ type AccountOverviewProps = {
   locale: string
   userHubTrigger?: ReactNode
   navigate: (route: Route) => void
+  canOpenGuides: boolean
+  openGuides: () => void
 }
 
 export function AccountOverview({
@@ -30,6 +32,8 @@ export function AccountOverview({
   locale,
   userHubTrigger,
   navigate,
+  canOpenGuides,
+  openGuides,
 }: AccountOverviewProps) {
   const { t } = useTranslation()
   const data = useMnemosData()
@@ -141,7 +145,11 @@ export function AccountOverview({
 
       <AccountWalletCard account={account} locale={locale} navigate={navigate} />
 
-      <AccountQuickActions navigate={navigate} />
+      <AccountQuickActions
+        navigate={navigate}
+        canOpenGuides={canOpenGuides}
+        openGuides={openGuides}
+      />
     </>
   )
 }
