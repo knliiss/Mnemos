@@ -5,7 +5,6 @@ import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guid
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
 import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
-import { guideRankName } from "./guideRanks"
 import { guideUiText } from "./guideUiText"
 import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 
@@ -226,7 +225,8 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
                     #{step.rank} → #{step.nextRank}
                   </small>
                   <strong>
-                    {guideRankName(step.rank)} → {guideRankName(step.nextRank)}
+                    {text(`sao.rebirth.${step.rank}.name`)} →{" "}
+                    {text(`sao.rebirth.${step.nextRank}.name`)}
                   </strong>
                 </span>
                 <span>
@@ -316,7 +316,7 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
 
       {entities.materialKeys.length ? (
         <GuideSection title={ui.reward} count={entities.materialKeys.length} accent>
-          <GuideEntityList keys={entities.materialKeys} text={text} codePrefix="MAT" />
+          <GuideMaterialList keys={entities.materialKeys} catalogs={catalogs} text={text} />
         </GuideSection>
       ) : null}
 
@@ -390,6 +390,35 @@ function GuideEntityList({
               <small>
                 {codePrefix}-{String(entityIndex).padStart(2, "0")}
               </small>
+            </span>
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
+function GuideMaterialList({
+  keys,
+  catalogs,
+  text,
+}: {
+  keys: string[]
+  catalogs: SaoCatalogs
+  text: (key: string) => string
+}) {
+  return (
+    <div className="guide-entity-list">
+      {keys.map((key, index) => {
+        const loreKey = key.replace(/\.name$/, ".lore")
+        const hasLore = loreKey !== key && localizationKeyExists(loreKey, catalogs)
+
+        return (
+          <span key={key} className="guide-entity-row">
+            <i>{String(guideEntityIndex(key, index + 1)).padStart(2, "0")}</i>
+            <span>
+              <strong>{text(key)}</strong>
+              {hasLore ? <small>{text(loreKey)}</small> : null}
             </span>
           </span>
         )
