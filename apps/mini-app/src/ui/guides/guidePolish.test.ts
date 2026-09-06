@@ -35,12 +35,8 @@ describe("guide source-backed artwork", () => {
 
 describe("guide cold-start localization", () => {
   it("keeps Ukrainian RB and dungeon labels readable without remote localization", () => {
-    expect(resolveSaoText("sao.rebirth.1.name", "uk_UA", GUIDE_CRITICAL_CATALOGS)).toBe(
-      "Новачок",
-    )
-    expect(resolveSaoText("sao.rebirth.68.name", "uk_UA", GUIDE_CRITICAL_CATALOGS)).toBe(
-      "Архангел",
-    )
+    expect(resolveSaoText("sao.rebirth.1.name", "uk_UA", GUIDE_CRITICAL_CATALOGS)).toBe("Новачок")
+    expect(resolveSaoText("sao.rebirth.68.name", "uk_UA", GUIDE_CRITICAL_CATALOGS)).toBe("Архангел")
     expect(resolveSaoText("sao.dungeon.EASY.name", "uk_UA", GUIDE_CRITICAL_CATALOGS)).toBe(
       "Легке підземелля",
     )
@@ -50,9 +46,7 @@ describe("guide cold-start localization", () => {
   })
 
   it("keeps Russian and English critical fallback chains concrete", () => {
-    expect(resolveSaoText("sao.rebirth.50.name", "ru_RU", GUIDE_CRITICAL_CATALOGS)).toBe(
-      "Царь",
-    )
+    expect(resolveSaoText("sao.rebirth.50.name", "ru_RU", GUIDE_CRITICAL_CATALOGS)).toBe("Царь")
     expect(resolveSaoText("sao.dungeon.INSANE.name", "en_US", GUIDE_CRITICAL_CATALOGS)).toBe(
       "Expert Dungeon",
     )
