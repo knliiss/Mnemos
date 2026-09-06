@@ -74,25 +74,21 @@
   overflow: hidden;
   border: 1px solid rgba(168, 200, 90, 0.14);
   border-radius: 8px;
-  background: linear-gradient(145deg, rgba(168, 200, 90, 0.1), transparent 55%), #11150f;
+  background-color: #11150f;
 }
 
-.guide-entity-row__art i {
-  width: 20px;
-  height: 7px;
-  border: 1px solid rgba(180, 210, 111, 0.34);
-  border-radius: 7px 2px 7px 2px;
-  box-shadow:
-    -5px 5px 0 -3px rgba(215, 163, 79, 0.38),
-    5px -5px 0 -3px rgba(78, 137, 135, 0.35);
-  transform: rotate(-38deg);
+.guide-entity-row__art--weapon {
+  image-rendering: auto;
 }
 
 .guide-entity-row__art b {
   position: absolute;
   right: 3px;
   bottom: 2px;
-  color: #788b58;
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: rgba(7, 10, 6, 0.76);
+  color: #8fa565;
   font-family: var(--font-meta);
   font-size: 5px;
   font-weight: 900;
