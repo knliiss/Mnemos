@@ -74,9 +74,7 @@
   overflow: hidden;
   border: 1px solid rgba(168, 200, 90, 0.14);
   border-radius: 8px;
-  background:
-    linear-gradient(145deg, rgba(168, 200, 90, 0.1), transparent 55%),
-    #11150f;
+  background: linear-gradient(145deg, rgba(168, 200, 90, 0.1), transparent 55%), #11150f;
 }
 
 .guide-entity-row__art i {
