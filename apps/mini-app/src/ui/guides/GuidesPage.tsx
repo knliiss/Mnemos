@@ -42,6 +42,7 @@ export function GuidesPage({ back }: Props) {
     return (
       <GuideRebirthPage
         ui={ui}
+        text={localization.text}
         initialCurrentRank={initialRank}
         back={() => {
           setInitialRank(null)
@@ -52,7 +53,14 @@ export function GuidesPage({ back }: Props) {
   }
 
   if (view === "dungeons" || view === "cases") {
-    return <GuideMilestonesPage kind={view} ui={ui} back={() => setView("hub")} />
+    return (
+      <GuideMilestonesPage
+        kind={view}
+        ui={ui}
+        text={localization.text}
+        back={() => setView("hub")}
+      />
+    )
   }
 
   return (
