@@ -73,7 +73,13 @@ describe("guide catalog", () => {
       "sao.item.l2_10.name",
     ])
     expect(darkForest.petKeys).toHaveLength(11)
-    expect(darkForest.dungeonPetKeys).toHaveLength(5)
+    expect(darkForest.donatePetKeys).toEqual([
+      "sao.item.petd_l1_1.name",
+      "sao.item.petd_l1_2.name",
+      "sao.item.petd_l1_3.name",
+      "sao.item.petd_l1_4.name",
+      "sao.item.petd_l1_5.name",
+    ])
     expect(secretLand.weaponKeys).toHaveLength(12)
     expect(containerYard.materialKeys).toEqual(["sao.item.weapon_upgrade_material_11.name"])
     expect(vikingValley.petKeys).toHaveLength(14)
@@ -85,8 +91,10 @@ describe("guide catalog", () => {
 
     expect(starterVillage.weaponKeys).toEqual([])
     expect(starterVillage.petKeys).toEqual([])
+    expect(starterVillage.donatePetKeys).toEqual([])
     expect(dungeonHall.weaponKeys).toEqual([])
     expect(dungeonHall.petKeys).toEqual([])
+    expect(dungeonHall.donatePetKeys).toEqual([])
   })
 })
 
@@ -175,24 +183,29 @@ describe("guide localization", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
     const weaponKey = darkForest.weaponKeys[0]
     const petKey = darkForest.petKeys[0]
+    const donatePetKey = darkForest.donatePetKeys[0]
     const catalogs = {
       en_US: {
         [weaponKey]: "Old Sword",
         [petKey]: "Treeling",
+        [donatePetKey]: "Nocturne",
       },
       ru_RU: {
         [weaponKey]: "Старый меч",
         [petKey]: "Древень",
+        [donatePetKey]: "Ноктюрн",
       },
       uk_UA: {
         [weaponKey]: "Старий меч",
         [petKey]: "Деревень",
+        [donatePetKey]: "Ноктюрн",
       },
     }
 
     expect(locationMatchesQuery(darkForest, "Старый меч", catalogs)).toBe(true)
     expect(locationMatchesQuery(darkForest, "Деревень", catalogs)).toBe(true)
     expect(locationMatchesQuery(darkForest, "Treeling", catalogs)).toBe(true)
+    expect(locationMatchesQuery(darkForest, "Nocturne", catalogs)).toBe(true)
   })
 
   it("does not search guessed location entities that are missing from loaded catalogs", () => {
