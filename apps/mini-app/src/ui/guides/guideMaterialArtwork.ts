@@ -6,7 +6,7 @@ const FIRST_LOCATION = 11
 const LAST_LOCATION = 28
 const ATLAS_COLUMNS = 2
 const ATLAS_ROWS = LAST_LOCATION - FIRST_LOCATION + 1
-const DISPLAY_CELL_SIZE = 38
+const DISPLAY_CELL_SIZE = 56
 
 export function guideMaterialArtworkStyle(key: string): CSSProperties | undefined {
   const match = MATERIAL_KEY_PATTERN.exec(key)
