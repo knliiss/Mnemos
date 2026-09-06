@@ -29,10 +29,10 @@ type HubSearchResult = {
 }
 
 const DUNGEONS = [
-  { type: "EASY", alias: "LP" },
-  { type: "NORMAL", alias: "SP" },
-  { type: "HARD", alias: "SLP" },
-  { type: "INSANE", alias: "EP" },
+  { type: "EASY", searchAliases: ["LP"] },
+  { type: "NORMAL", searchAliases: ["SP"] },
+  { type: "HARD", searchAliases: ["SLP"] },
+  { type: "INSANE", searchAliases: ["EP"] },
 ] as const
 
 export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, openRank }: Props) {
@@ -69,8 +69,13 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       return []
     }
 
-    return DUNGEONS.filter(({ type, alias }) =>
-      localizationKeyMatchesQuery(`sao.dungeon.${type}.name`, query, catalogs, [alias]),
+    return DUNGEONS.filter(({ type, searchAliases }) =>
+      localizationKeyMatchesQuery(
+        `sao.dungeon.${type}.name`,
+        query,
+        catalogs,
+        [...searchAliases],
+      ),
     )
   }, [catalogs, normalizedQuery, query])
   const caseMatches = useMemo(
@@ -125,7 +130,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
         key: `dungeon-${dungeon.type}`,
         kind: ui.dungeons,
         title: text(`sao.dungeon.${dungeon.type}.name`),
-        meta: dungeon.alias,
+        meta: ui.dungeonMilestones,
         onOpen: () => openSection("dungeons"),
       })
     }
@@ -239,7 +244,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
             tone="dungeons"
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
-            meta="LP · SP · SLP · EP"
+            meta={`${DUNGEONS.length}`}
             illustration="/ui-illustrations/guides-explorer.svg"
             onClick={() => openSection("dungeons")}
           />
