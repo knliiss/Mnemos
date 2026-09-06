@@ -1,0 +1,107 @@
+.guide-entity-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(222, 233, 198, 0.06);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.guide-entity-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 5px 9px;
+  background: rgba(14, 17, 12, 0.82);
+}
+
+.guide-entity-row > i {
+  color: #667858;
+  font-family: var(--font-meta);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.guide-entity-row > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guide-entity-row strong {
+  overflow: hidden;
+  color: #d8ded1;
+  font-size: 9px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-entity-row small {
+  color: #64705c;
+  font-family: var(--font-meta);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.guide-entity-list--illustrated {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.guide-entity-list--illustrated .guide-entity-row {
+  grid-template-columns: 38px minmax(0, 1fr);
+  min-height: 50px;
+  padding: 6px;
+  border: 1px solid rgba(205, 223, 161, 0.07);
+  border-radius: 9px;
+  background: rgba(24, 29, 20, 0.76);
+}
+
+.guide-entity-row__art {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(168, 200, 90, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(168, 200, 90, 0.1), transparent 55%),
+    #11150f;
+}
+
+.guide-entity-row__art i {
+  width: 20px;
+  height: 7px;
+  border: 1px solid rgba(180, 210, 111, 0.34);
+  border-radius: 7px 2px 7px 2px;
+  box-shadow:
+    -5px 5px 0 -3px rgba(215, 163, 79, 0.38),
+    5px -5px 0 -3px rgba(78, 137, 135, 0.35);
+  transform: rotate(-38deg);
+}
+
+.guide-entity-row__art b {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  color: #788b58;
+  font-family: var(--font-meta);
+  font-size: 5px;
+  font-weight: 900;
+}
+
+@media (max-width: 520px) {
+  .guide-entity-list--illustrated {
+    grid-template-columns: 1fr;
+  }
+}
