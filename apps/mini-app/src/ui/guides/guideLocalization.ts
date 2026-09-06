@@ -153,8 +153,10 @@ export function locationMatchesQuery(
     `локація ${location.id}`,
   ]
 
-  return searchableKeys.some((key) => localizationKeyMatchesQuery(key, query, catalogs)) ||
+  return (
+    searchableKeys.some((key) => localizationKeyMatchesQuery(key, query, catalogs)) ||
     aliases.some((value) => normalizeGuideSearchText(value).includes(normalizedQuery))
+  )
 }
 
 export function normalizeGuideSearchText(value: string) {
