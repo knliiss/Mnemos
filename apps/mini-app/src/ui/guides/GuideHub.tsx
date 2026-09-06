@@ -188,6 +188,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
           value={query}
           onInput={(event) => setQuery(event.currentTarget.value)}
           placeholder={ui.searchPlaceholder}
+          aria-label={ui.searchPlaceholder}
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
