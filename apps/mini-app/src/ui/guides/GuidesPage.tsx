@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { GuideHub, type GuideHubSection } from "./GuideHub"
 import { GuideLocationsPage } from "./GuideLocationsPage"
+import { GuideMechanicsPage } from "./GuideMechanicsPage"
 import { GuideMilestonesPage } from "./GuideMilestonesPage"
 import { GuideRebirthPage } from "./GuideRebirthPage"
 import { useSaoGuideLocalization } from "./guideLocalization"
@@ -48,6 +49,17 @@ export function GuidesPage({ back }: Props) {
           setInitialRank(null)
           setView("hub")
         }}
+      />
+    )
+  }
+
+  if (view === "mechanics") {
+    return (
+      <GuideMechanicsPage
+        ui={ui}
+        catalogs={localization.catalogs}
+        text={localization.text}
+        back={() => setView("hub")}
       />
     )
   }
