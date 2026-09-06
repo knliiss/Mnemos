@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 type Props = {
   label: string
@@ -42,6 +42,11 @@ export function GuideRankPicker({
       return name.includes(normalizedQuery) || String(rank).includes(normalizedQuery)
     })
   }, [query, rankName, ranks])
+  const closePicker = useCallback(() => {
+    setQuery("")
+    setOpen(false)
+    window.setTimeout(() => triggerRef.current?.focus(), 0)
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -51,8 +56,7 @@ export function GuideRankPicker({
     const timer = window.setTimeout(() => searchRef.current?.focus(), 0)
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false)
-        triggerRef.current?.focus()
+        closePicker()
       }
     }
 
@@ -62,13 +66,11 @@ export function GuideRankPicker({
       window.clearTimeout(timer)
       window.removeEventListener("keydown", onKeyDown)
     }
-  }, [open])
+  }, [closePicker, open])
 
   const selectRank = (rank: number) => {
     onChange(rank)
-    setQuery("")
-    setOpen(false)
-    window.setTimeout(() => triggerRef.current?.focus(), 0)
+    closePicker()
   }
 
   return (
@@ -92,7 +94,7 @@ export function GuideRankPicker({
           className="guide-rank-picker__backdrop"
           onMouseDown={(event) => {
             if (event.currentTarget === event.target) {
-              setOpen(false)
+              closePicker()
             }
           }}
         >
@@ -109,7 +111,7 @@ export function GuideRankPicker({
                   #{value} · {rankName(value)}
                 </strong>
               </span>
-              <button type="button" onClick={() => setOpen(false)} aria-label={closeLabel}>
+              <button type="button" onClick={closePicker} aria-label={closeLabel}>
                 <span aria-hidden="true">×</span>
               </button>
             </header>
