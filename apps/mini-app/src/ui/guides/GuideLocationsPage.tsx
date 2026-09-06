@@ -1,11 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react"
 import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
-import {
-  localizationKeyExists,
-  locationMatchesQuery,
-  type SaoCatalogs,
-} from "./guideLocalization"
+import { localizationKeyExists, locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideRankName } from "./guideRanks"
 import { guideUiText } from "./guideUiText"
@@ -322,7 +318,8 @@ function GuideLocationDetail({ location, catalogs, text, ui, back }: GuideLocati
 }
 
 function confirmedLocationEntities(location: GuideLocation, catalogs: SaoCatalogs) {
-  const confirmedKeys = (keys: string[]) => keys.filter((key) => localizationKeyExists(key, catalogs))
+  const confirmedKeys = (keys: string[]) =>
+    keys.filter((key) => localizationKeyExists(key, catalogs))
 
   return {
     npcs: location.npcs.filter((npc) => localizationKeyExists(npc.nameKey, catalogs)),
