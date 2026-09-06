@@ -83,35 +83,35 @@ const MOB_COUNTS: Record<number, number> = {
   28: 7,
 }
 
-const WEAPON_COUNTS: Record<number, number> = {
-  1: 9,
-  2: 10,
-  3: 10,
-  4: 10,
-  5: 10,
-  6: 10,
-  7: 11,
-  8: 11,
-  9: 12,
-  10: 12,
-  11: 12,
-  12: 12,
-  13: 12,
-  14: 12,
-  15: 12,
-  16: 12,
-  17: 12,
-  18: 12,
-  19: 12,
-  20: 12,
-  21: 12,
-  22: 12,
-  23: 12,
-  24: 12,
-  25: 12,
-  26: 12,
-  27: 12,
-  28: 12,
+const WEAPON_INDEXES: Record<number, number[]> = {
+  1: [1, 2, 4, 5, 6, 7, 8, 9],
+  2: [1, 2, 3, 5, 6, 7, 8, 9, 10],
+  3: range(10),
+  4: range(10),
+  5: range(10),
+  6: range(10),
+  7: range(11),
+  8: range(11),
+  9: range(12),
+  10: range(12),
+  11: range(12),
+  12: range(12),
+  13: range(12),
+  14: range(12),
+  15: range(12),
+  16: range(12),
+  17: range(12),
+  18: range(12),
+  19: range(12),
+  20: range(12),
+  21: range(12),
+  22: range(12),
+  23: range(12),
+  24: range(12),
+  25: range(12),
+  26: range(12),
+  27: range(12),
+  28: range(12),
 }
 
 const PET_COUNTS: Record<number, number> = {
@@ -162,7 +162,7 @@ export const GUIDE_LOCATIONS: GuideLocation[] = LOCATION_IDS.map((id) => ({
       : [],
   mobKeys: numberedKeys(id, MOB_COUNTS[id], (index) => `sao.mob.mob${id}_${index}.name`),
   cometMobKeys: id >= 11 ? [`sao.mob.comet${id}_1.name`] : [],
-  weaponKeys: numberedKeys(id, WEAPON_COUNTS[id], (index) => `sao.item.l${id}_${index}.name`),
+  weaponKeys: indexedKeys(WEAPON_INDEXES[id], (index) => `sao.item.l${id}_${index}.name`),
   petKeys: numberedKeys(id, PET_COUNTS[id], (index) => `sao.item.pet_l${id}_${index}.name`),
   dungeonPetKeys: numberedKeys(
     id,
@@ -183,6 +183,18 @@ export const GUIDE_NPC_ROLE_KEYS: Record<GuideNpcRole, { role: string; descripti
   },
 }
 
+function range(count: number) {
+  return Array.from({ length: count }, (_, index) => index + 1)
+}
+
+function indexedKeys(indexes: number[] | undefined, key: (index: number) => string) {
+  if (!indexes) {
+    return []
+  }
+
+  return indexes.map(key)
+}
+
 function numberedKeys(
   locationId: number,
   count: number | undefined,
@@ -192,5 +204,5 @@ function numberedKeys(
     return []
   }
 
-  return Array.from({ length: count }, (_, index) => key(index + 1))
+  return range(count).map(key)
 }
