@@ -1,10 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react"
-import {
-  GUIDE_LOCATION_ATLAS_PARTS,
-  GUIDE_LOCATIONS,
-  GUIDE_NPC_ROLE_KEYS,
-  type GuideLocation,
-} from "./guideCatalog"
+import { useMemo, useState, type ReactNode } from "react"
+import { GUIDE_LOCATIONS, GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_LOCATION_ECONOMY } from "./guideLocationEconomy"
 import { locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
@@ -22,7 +17,6 @@ type Props = {
 }
 
 export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back }: Props) {
-  const atlasUrl = useGuideAtlasUrl()
   const [query, setQuery] = useState("")
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(
     initialLocationId ?? null,
@@ -40,7 +34,6 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
         location={selectedLocation}
         text={text}
         ui={ui}
-        atlasUrl={atlasUrl}
         back={() => setSelectedLocationId(null)}
       />
     )
@@ -95,7 +88,6 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
               location={location}
               text={text}
               ui={ui}
-              atlasUrl={atlasUrl}
               onOpen={() => setSelectedLocationId(location.id)}
             />
           ))}
@@ -115,11 +107,10 @@ type GuideLocationCardProps = {
   location: GuideLocation
   text: (key: string) => string
   ui: GuideUi
-  atlasUrl: string | null
   onOpen: () => void
 }
 
-function GuideLocationCard({ location, text, ui, atlasUrl, onOpen }: GuideLocationCardProps) {
+function GuideLocationCard({ location, text, ui, onOpen }: GuideLocationCardProps) {
   const creatureCount = location.mobKeys.length + location.cometMobKeys.length
   const economy = GUIDE_LOCATION_ECONOMY[location.id]
 
@@ -128,7 +119,7 @@ function GuideLocationCard({ location, text, ui, atlasUrl, onOpen }: GuideLocati
       <span className="guide-location-card__visual">
         <span
           className="guide-location-artwork"
-          style={guideArtworkStyle(location, atlasUrl)}
+          style={{ backgroundImage: `url(${location.artworkUrl})` }}
           aria-hidden="true"
         />
         <span className="guide-location-card__number">
@@ -162,11 +153,10 @@ type GuideLocationDetailProps = {
   location: GuideLocation
   text: (key: string) => string
   ui: GuideUi
-  atlasUrl: string | null
   back: () => void
 }
 
-function GuideLocationDetail({ location, text, ui, atlasUrl, back }: GuideLocationDetailProps) {
+function GuideLocationDetail({ location, text, ui, back }: GuideLocationDetailProps) {
   const creatureCount = location.mobKeys.length + location.cometMobKeys.length
   const economy = GUIDE_LOCATION_ECONOMY[location.id]
   const rebirthSteps = GUIDE_REBIRTH_STEPS.filter((step) => step.location === location.id)
@@ -178,7 +168,7 @@ function GuideLocationDetail({ location, text, ui, atlasUrl, back }: GuideLocati
       <section className="guide-location-hero">
         <span
           className="guide-location-artwork guide-location-artwork--hero"
-          style={guideArtworkStyle(location, atlasUrl)}
+          style={{ backgroundImage: `url(${location.artworkUrl})` }}
           aria-hidden="true"
         />
         <span className="guide-location-hero__shade" />
@@ -231,15 +221,15 @@ function GuideLocationDetail({ location, text, ui, atlasUrl, back }: GuideLocati
 
       {location.npcs.length ? (
         <GuideSection title={ui.npc} count={location.npcs.length}>
-          <div className="guide-npc-grid">
+          <div className="guide-npc-grid guide-npc-grid--ingame">
             {location.npcs.map((npc) => {
               const roleKeys = GUIDE_NPC_ROLE_KEYS[npc.role]
 
               return (
-                <article key={npc.nameKey} className="guide-npc-card">
-                  <span className="guide-npc-card__portrait" aria-hidden="true">
+                <article key={npc.nameKey} className="guide-npc-card guide-npc-card--ingame">
+                  <span className="guide-npc-card__gameplate" aria-hidden="true">
                     <i />
-                    <b>{text(npc.nameKey).slice(0, 1)}</b>
+                    <small>NPC</small>
                   </span>
                   <span className="guide-npc-card__copy">
                     <strong>{text(npc.nameKey)}</strong>
@@ -344,58 +334,6 @@ function GuideSection({
       {children}
     </section>
   )
-}
-
-function guideArtworkStyle(location: GuideLocation, atlasUrl: string | null) {
-  return {
-    backgroundImage: atlasUrl ? `url(${atlasUrl})` : undefined,
-    backgroundPosition: location.artworkPosition,
-    backgroundSize: "500% 600%",
-  }
-}
-
-function useGuideAtlasUrl() {
-  const [atlasUrl, setAtlasUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    let objectUrl: string | null = null
-    let active = true
-
-    void Promise.all(
-      GUIDE_LOCATION_ATLAS_PARTS.map(async (part) => {
-        const response = await fetch(part)
-
-        if (!response.ok) {
-          throw new Error("atlas")
-        }
-
-        return response.text()
-      }),
-    )
-      .then((parts) => {
-        const base64 = parts.join("")
-
-        if (!active) {
-          return
-        }
-
-        const binary = atob(base64.trim())
-        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
-        objectUrl = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }))
-        setAtlasUrl(objectUrl)
-      })
-      .catch(() => undefined)
-
-    return () => {
-      active = false
-
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl)
-      }
-    }
-  }, [])
-
-  return atlasUrl
 }
 
 function GuideHeader({
