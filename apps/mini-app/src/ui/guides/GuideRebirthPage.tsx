@@ -18,9 +18,13 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
       GUIDE_REBIRTH_STEPS.filter((step) => step.rank >= currentRank && step.nextRank <= targetRank),
     [currentRank, targetRank],
   )
-  const validRange = targetRank > currentRank
   const locationCount = new Set(steps.map((step) => step.location)).size
   const rankName = (rank: number) => text(`sao.rebirth.${rank}.name`)
+
+  const changeCurrentRank = (rank: number) => {
+    setCurrentRank(rank)
+    setTargetRank((currentTarget) => Math.max(currentTarget, rank + 1))
+  }
 
   return (
     <div className="screen guides-screen guide-rebirth-screen">
@@ -38,12 +42,12 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         </span>
       </section>
 
-      <section className="guide-rank-calculator">
+      <section className="guide-rank-calculator" aria-label={ui.calculator}>
         <label>
           <small>{ui.currentRank}</small>
           <select
             value={currentRank}
-            onChange={(event) => setCurrentRank(Number(event.target.value))}
+            onChange={(event) => changeCurrentRank(Number(event.target.value))}
           >
             {rankOptions(1, 67).map((rank) => (
               <option key={rank} value={rank}>
@@ -63,7 +67,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
             value={targetRank}
             onChange={(event) => setTargetRank(Number(event.target.value))}
           >
-            {rankOptions(2, 68).map((rank) => (
+            {rankOptions(currentRank + 1, 68).map((rank) => (
               <option key={rank} value={rank}>
                 #{rank} · {rankName(rank)}
               </option>
@@ -72,70 +76,61 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         </label>
       </section>
 
-      {validRange ? (
-        <>
-          <section className="guide-rank-summary">
-            <span>
-              <b>{steps.length}</b>
-              <small>{ui.transitions}</small>
-            </span>
-            <span>
-              <b>{locationCount}</b>
-              <small>{ui.locationsUsed}</small>
-            </span>
-            <span>
-              <b>#{targetRank}</b>
-              <small>{rankName(targetRank)}</small>
-            </span>
-          </section>
+      <section className="guide-rank-summary">
+        <span>
+          <b>{steps.length}</b>
+          <small>{ui.transitions}</small>
+        </span>
+        <span>
+          <b>{locationCount}</b>
+          <small>{ui.locationsUsed}</small>
+        </span>
+        <span>
+          <b>#{targetRank}</b>
+          <small>{rankName(targetRank)}</small>
+        </span>
+      </section>
 
-          <section className="guide-rank-route">
-            {steps.map((step) => (
-              <article key={step.rank} className="guide-rank-step">
-                <header>
-                  <span className="guide-rank-step__number">#{step.rank}</span>
-                  <span className="guide-rank-step__title">
-                    <strong>{rankName(step.rank)}</strong>
-                    <small>→ {rankName(step.nextRank)}</small>
-                  </span>
-                  <span className="guide-rank-step__location">L{step.location}</span>
-                </header>
+      <section className="guide-rank-route">
+        {steps.map((step) => (
+          <article key={step.rank} className="guide-rank-step">
+            <header>
+              <span className="guide-rank-step__number">#{step.rank}</span>
+              <span className="guide-rank-step__title">
+                <strong>{rankName(step.rank)}</strong>
+                <small>→ {rankName(step.nextRank)}</small>
+              </span>
+              <span className="guide-rank-step__location">L{step.location}</span>
+            </header>
 
-                <div className="guide-rank-step__facts">
-                  <span>
-                    <small>{ui.requirement}</small>
-                    <b>{step.requirement}</b>
-                  </span>
-                  <span>
-                    <small>{ui.growth}</small>
-                    <b>{step.growth}</b>
-                  </span>
-                </div>
+            <div className="guide-rank-step__facts">
+              <span>
+                <small>{ui.requirement}</small>
+                <b>{step.requirement}</b>
+              </span>
+              <span>
+                <small>{ui.growth}</small>
+                <b>{step.growth}</b>
+              </span>
+            </div>
 
-                <div className="guide-rank-step__boosts">
-                  <small>{ui.boosts}</small>
-                  {step.boosts.length ? (
-                    <span>
-                      {step.boosts.map((boost) => (
-                        <i key={`${boost.stat}-${boost.amount}`}>
-                          {boostLabel(boost.stat, ui)} +{boost.amount}%
-                        </i>
-                      ))}
-                    </span>
-                  ) : (
-                    <em>{ui.noBoosts}</em>
-                  )}
-                </div>
-              </article>
-            ))}
-          </section>
-        </>
-      ) : (
-        <section className="guides-empty guide-rank-empty">
-          <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
-          <strong>{ui.chooseForwardRank}</strong>
-        </section>
-      )}
+            <div className="guide-rank-step__boosts">
+              <small>{ui.boosts}</small>
+              {step.boosts.length ? (
+                <span>
+                  {step.boosts.map((boost) => (
+                    <i key={`${boost.stat}-${boost.amount}`}>
+                      {boostLabel(boost.stat, ui)} +{boost.amount}%
+                    </i>
+                  ))}
+                </span>
+              ) : (
+                <em>{ui.noBoosts}</em>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
     </div>
   )
 }
