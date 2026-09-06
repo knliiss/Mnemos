@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import type { Badge } from "@/shared/api/badgeApi"
 import { useTranslation } from "react-i18next"
 import { useMnemosData } from "../../data/MnemosDataProvider"
 import { canAccessGuides } from "../../guides/guideAccess"
-import { GuidesPage } from "../../guides/GuidesPage"
 import type { Route } from "../../model"
 import { AccountMemberManagement } from "../AccountMemberManagement"
 import { localeForLanguage } from "../accountPresentation"
@@ -34,7 +33,6 @@ export function AccountHome({
 }: Props) {
   const { i18n } = useTranslation()
   const data = useMnemosData()
-  const [guidesOpen, setGuidesOpen] = useState(false)
   const activeAccount = data.activeAccount
   const selectedMember = data.members.find((member) => member.id === initialMemberId) ?? null
   const showingMemberDetail = Boolean(initialMemberId && selectedMember)
@@ -45,10 +43,6 @@ export function AccountHome({
 
   if (!activeAccount) {
     return null
-  }
-
-  if (guidesOpen && guideAccess) {
-    return <GuidesPage back={() => setGuidesOpen(false)} />
   }
 
   if (initialMemberId && selectedMember) {
@@ -73,7 +67,6 @@ export function AccountHome({
         userHubTrigger={rootUserAccess}
         navigate={navigate}
         canOpenGuides={guideAccess}
-        openGuides={() => setGuidesOpen(true)}
       />
 
       <AccountMembersPanel
