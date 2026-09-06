@@ -91,8 +91,8 @@ export function resolveSaoText(key: string, preferredLanguage: string, catalogs:
     }
   }
 
-  for (const fallbackCatalog of Object.values(BUNDLED_CATALOGS)) {
-    const value = cleanGameFormatting(fallbackCatalog[key])
+  for (const language of fallbackChain) {
+    const value = cleanGameFormatting(BUNDLED_CATALOGS[language]?.[key])
 
     if (value) {
       return value
