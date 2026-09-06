@@ -111,9 +111,7 @@ describe("guide localization", () => {
     expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Beginner", catalogs)).toBe(true)
     expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новичок", catalogs)).toBe(true)
     expect(localizationKeyMatchesQuery("sao.rebirth.1.name", "Новачок", catalogs)).toBe(true)
-    expect(
-      localizationKeyMatchesQuery("sao.dungeon.EASY.name", "LP", catalogs, ["LP"]),
-    ).toBe(true)
+    expect(localizationKeyMatchesQuery("sao.dungeon.EASY.name", "LP", catalogs, ["LP"])).toBe(true)
   })
 
   it("searches bundled aliases independently from display language", () => {
