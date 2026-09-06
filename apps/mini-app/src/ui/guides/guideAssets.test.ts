@@ -15,11 +15,7 @@ describe("guide location artwork", () => {
     const starterVillage = GUIDE_LOCATIONS.find((location) => location.id === 0)
     const dungeonHall = GUIDE_LOCATIONS.find((location) => location.id === -1)
 
-    expect(starterVillage?.artworkUrl).toBe(
-      "/guides/locations/location-00-starter-village.webp",
-    )
-    expect(dungeonHall?.artworkUrl).toBe(
-      "/guides/locations/location-special-dungeon-hall.webp",
-    )
+    expect(starterVillage?.artworkUrl).toBe("/guides/locations/location-00-starter-village.webp")
+    expect(dungeonHall?.artworkUrl).toBe("/guides/locations/location-special-dungeon-hall.webp")
   })
 })
