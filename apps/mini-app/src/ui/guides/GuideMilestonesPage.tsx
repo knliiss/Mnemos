@@ -12,28 +12,37 @@ type GuideUi = ReturnType<typeof guideUiText>
 type Props = {
   kind: "dungeons" | "cases"
   ui: GuideUi
+  text: (key: string) => string
   back: () => void
 }
 
-export function GuideMilestonesPage({ kind, ui, back }: Props) {
+export function GuideMilestonesPage({ kind, ui, text, back }: Props) {
   if (kind === "cases") {
     return <GuideCasesPage ui={ui} back={back} />
   }
 
-  return <GuideDungeonsPage ui={ui} back={back} />
+  return <GuideDungeonsPage ui={ui} text={text} back={back} />
 }
 
-function GuideDungeonsPage({ ui, back }: { ui: GuideUi; back: () => void }) {
+function GuideDungeonsPage({
+  ui,
+  text,
+  back,
+}: {
+  ui: GuideUi
+  text: (key: string) => string
+  back: () => void
+}) {
   const dungeons: Array<{
     type: GuideDungeonType
-    label: string
+    alias: string
     copy: string
     tone: string
   }> = [
-    { type: "EASY", label: ui.dungeonEasy, copy: ui.dungeonEasyCopy, tone: "lp" },
-    { type: "NORMAL", label: ui.dungeonNormal, copy: ui.dungeonNormalCopy, tone: "sp" },
-    { type: "HARD", label: ui.dungeonHard, copy: ui.dungeonHardCopy, tone: "slp" },
-    { type: "INSANE", label: ui.dungeonInsane, copy: ui.dungeonInsaneCopy, tone: "ep" },
+    { type: "EASY", alias: "LP", copy: ui.dungeonEasyCopy, tone: "lp" },
+    { type: "NORMAL", alias: "SP", copy: ui.dungeonNormalCopy, tone: "sp" },
+    { type: "HARD", alias: "SLP", copy: ui.dungeonHardCopy, tone: "slp" },
+    { type: "INSANE", alias: "EP", copy: ui.dungeonInsaneCopy, tone: "ep" },
   ]
 
   return (
@@ -60,8 +69,10 @@ function GuideDungeonsPage({ ui, back }: { ui: GuideUi; back: () => void }) {
           >
             <header>
               <span>
-                <b>{dungeon.label}</b>
-                <small>{dungeon.copy}</small>
+                <b>{text(`sao.dungeon.${dungeon.type}.name`)}</b>
+                <small>
+                  {dungeon.alias} · {dungeon.copy}
+                </small>
               </span>
               <i>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</i>
             </header>
