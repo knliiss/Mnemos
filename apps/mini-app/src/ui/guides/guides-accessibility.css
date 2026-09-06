@@ -32,6 +32,11 @@
   height: 44px;
 }
 
+.guide-location-artwork {
+  background-position: center;
+  background-size: cover;
+}
+
 .guide-hub-card,
 .guide-location-card,
 .guide-hub-search-results > button {
