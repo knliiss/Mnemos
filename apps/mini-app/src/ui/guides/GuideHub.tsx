@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
-import { locationMatchesQuery, type SaoCatalogs } from "./guideLocalization"
-import { GUIDE_RANK_NAMES_RU } from "./guideRanks"
+import {
+  localizationKeyMatchesQuery,
+  locationMatchesQuery,
+  type SaoCatalogs,
+} from "./guideLocalization"
 import { guideUiText } from "./guideUiText"
 
 export type GuideHubSection = "locations" | "rebirth" | "dungeons" | "cases"
@@ -16,15 +19,31 @@ type Props = {
   openRank: (rank: number) => void
 }
 
+type HubSearchResult = {
+  key: string
+  kind: string
+  title: string
+  meta: string
+  onOpen: () => void
+}
+
+const DUNGEONS = [
+  { type: "EASY", alias: "LP" },
+  { type: "NORMAL", alias: "SP" },
+  { type: "HARD", alias: "SLP" },
+  { type: "INSANE", alias: "EP" },
+] as const
+
 export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, openRank }: Props) {
   const [query, setQuery] = useState("")
-  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const normalizedQuery = query.trim()
   const locationResults = useMemo(
     () =>
       normalizedQuery
-        ? GUIDE_LOCATIONS.filter((location) =>
-            locationMatchesQuery(location, query, catalogs),
-          ).slice(0, 6)
+        ? GUIDE_LOCATIONS.filter((location) => locationMatchesQuery(location, query, catalogs)).slice(
+            0,
+            6,
+          )
         : [],
     [catalogs, normalizedQuery, query],
   )
@@ -33,15 +52,81 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       return []
     }
 
-    return Object.entries(GUIDE_RANK_NAMES_RU)
-      .map(([rank, name]) => ({ rank: Number(rank), name }))
-      .filter(({ rank, name }) => {
-        const searchable = `${rank} ${name}`.toLocaleLowerCase()
-        return searchable.includes(normalizedQuery)
-      })
+    return Array.from({ length: 68 }, (_, index) => index + 1)
+      .filter((rank) =>
+        localizationKeyMatchesQuery(`sao.rebirth.${rank}.name`, query, catalogs, [
+          String(rank),
+          `rank ${rank}`,
+          `rb ${rank}`,
+          `рб ${rank}`,
+          `ранг ${rank}`,
+        ]),
+      )
       .slice(0, 6)
-  }, [normalizedQuery])
-  const hasSearchResults = locationResults.length > 0 || rankResults.length > 0
+  }, [catalogs, normalizedQuery, query])
+  const dungeonResults = useMemo(() => {
+    if (!normalizedQuery) {
+      return []
+    }
+
+    return DUNGEONS.filter(({ type, alias }) =>
+      localizationKeyMatchesQuery(`sao.dungeon.${type}.name`, query, catalogs, [alias]),
+    )
+  }, [catalogs, normalizedQuery, query])
+  const caseMatches = useMemo(
+    () =>
+      normalizedQuery
+        ? ["sao.ui.case_pet_name", "sao.ui.case_aura_name", "sao.ui.case_shard_name"].some((key) =>
+            localizationKeyMatchesQuery(key, query, catalogs, ["case", "cases", "кейс", "кейсы", "кейси"]),
+          )
+        : false,
+    [catalogs, normalizedQuery, query],
+  )
+  const searchResults = useMemo<HubSearchResult[]>(() => {
+    const results: HubSearchResult[] = []
+
+    for (const location of locationResults) {
+      results.push({
+        key: `location-${location.id}`,
+        kind: ui.location,
+        title: text(location.nameKey),
+        meta: location.id > 0 ? `#${location.id}` : ui.special,
+        onOpen: () => openLocation(location.id),
+      })
+    }
+
+    for (const rank of rankResults) {
+      results.push({
+        key: `rank-${rank}`,
+        kind: ui.rank,
+        title: text(`sao.rebirth.${rank}.name`),
+        meta: `#${rank}`,
+        onOpen: () => openRank(rank),
+      })
+    }
+
+    for (const dungeon of dungeonResults) {
+      results.push({
+        key: `dungeon-${dungeon.type}`,
+        kind: ui.dungeons,
+        title: text(`sao.dungeon.${dungeon.type}.name`),
+        meta: dungeon.alias,
+        onOpen: () => openSection("dungeons"),
+      })
+    }
+
+    if (caseMatches) {
+      results.push({
+        key: "cases",
+        kind: ui.cases,
+        title: ui.cases,
+        meta: "25 → 5M",
+        onOpen: () => openSection("cases"),
+      })
+    }
+
+    return results.slice(0, 12)
+  }, [caseMatches, dungeonResults, locationResults, openLocation, openRank, openSection, rankResults, text, ui])
 
   return (
     <div className="screen guides-screen guides-hub-screen">
@@ -84,27 +169,15 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
 
       {normalizedQuery ? (
         <section className="guide-hub-search-results">
-          {locationResults.map((location) => (
-            <button
-              key={`location-${location.id}`}
-              type="button"
-              onClick={() => openLocation(location.id)}
-            >
-              <span className="guide-hub-search-results__kind">{ui.location}</span>
-              <strong>{text(location.nameKey)}</strong>
-              <small>{location.id > 0 ? `#${location.id}` : ui.special}</small>
+          {searchResults.map((result) => (
+            <button key={result.key} type="button" onClick={result.onOpen}>
+              <span className="guide-hub-search-results__kind">{result.kind}</span>
+              <strong>{result.title}</strong>
+              <small>{result.meta}</small>
             </button>
           ))}
 
-          {rankResults.map(({ rank, name }) => (
-            <button key={`rank-${rank}`} type="button" onClick={() => openRank(rank)}>
-              <span className="guide-hub-search-results__kind">{ui.rank}</span>
-              <strong>{name}</strong>
-              <small>#{rank}</small>
-            </button>
-          ))}
-
-          {!hasSearchResults ? (
+          {!searchResults.length ? (
             <div className="guide-hub-search-results__empty">
               <strong>{ui.noResults}</strong>
               <small>{ui.noResultsCopy}</small>
