@@ -15,6 +15,7 @@ const routeRegistry: Record<RouteId, RouteDefinition> = {
 
   account: { area: "account", root: true },
   leaderboards: { area: "account" },
+  guides: { area: "account" },
   member: { area: "account" },
   roles: { area: "account" },
   "role-editor": { area: "account" },

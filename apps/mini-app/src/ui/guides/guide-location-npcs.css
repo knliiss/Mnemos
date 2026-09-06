@@ -1,0 +1,85 @@
+.guide-npc-grid--ingame {
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.guide-npc-card--ingame {
+  position: relative;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 64px;
+  padding: 7px 10px 7px 7px;
+  overflow: hidden;
+  border-color: rgba(76, 142, 236, 0.12);
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(27, 55, 83, 0.2), transparent 46%), rgba(9, 12, 10, 0.9);
+  box-shadow:
+    inset 2px 0 rgba(74, 140, 236, 0.42),
+    inset 0 1px rgba(255, 255, 255, 0.018);
+}
+
+.guide-npc-card--ingame::after {
+  position: absolute;
+  inset: auto 8px 6px auto;
+  width: 12px;
+  height: 2px;
+  background: #4a8cec;
+  content: "";
+  opacity: 0.3;
+}
+
+.guide-npc-card__gameplate {
+  position: relative;
+  display: grid;
+  width: 58px;
+  height: 50px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(74, 140, 236, 0.18);
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, rgba(74, 140, 236, 0.12), transparent 54%),
+    linear-gradient(0deg, rgba(168, 200, 90, 0.03), rgba(255, 255, 255, 0.015)), #101410;
+}
+
+.guide-npc-card__gameplate i {
+  position: absolute;
+  width: 31px;
+  height: 36px;
+  border: 1px solid rgba(130, 159, 104, 0.13);
+  border-bottom-color: rgba(74, 140, 236, 0.24);
+  clip-path: polygon(18% 0, 82% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+}
+
+.guide-npc-card__gameplate small {
+  position: relative;
+  z-index: 1;
+  margin-top: 30px;
+  color: #526b8f;
+  font-family: var(--font-meta);
+  font-size: 5px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.guide-npc-card--ingame .guide-npc-card__copy {
+  align-content: center;
+  gap: 3px;
+}
+
+.guide-npc-card--ingame .guide-npc-card__copy strong {
+  color: #e8ece5;
+  font-size: 10.5px;
+  font-weight: 720;
+}
+
+.guide-npc-card--ingame .guide-npc-card__copy em {
+  color: #4a8cec;
+  font-size: 7.5px;
+}
+
+.guide-npc-card--ingame .guide-npc-card__copy small {
+  color: #747d72;
+  font-size: 7.5px;
+  -webkit-line-clamp: 2;
+}

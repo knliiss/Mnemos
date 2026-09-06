@@ -4,6 +4,7 @@ import type { Route } from "../../model"
 
 type AccountQuickActionsProps = {
   navigate: (route: Route) => void
+  canOpenGuides: boolean
 }
 
 type QuickAction = {
@@ -14,7 +15,7 @@ type QuickAction = {
   route?: Route
 }
 
-export function AccountQuickActions({ navigate }: AccountQuickActionsProps) {
+export function AccountQuickActions({ navigate, canOpenGuides }: AccountQuickActionsProps) {
   const { t } = useTranslation()
   const actions: QuickAction[] = [
     {
@@ -34,8 +35,9 @@ export function AccountQuickActions({ navigate }: AccountQuickActionsProps) {
     {
       key: "guides",
       title: t("accountHome.guides"),
-      copy: t("accountHome.guidesSoon"),
+      copy: canOpenGuides ? "SAO" : t("accountHome.guidesSoon"),
       illustration: "/ui-illustrations/account-guides.svg",
+      route: canOpenGuides ? { id: "guides" } : undefined,
     },
     {
       key: "leaderboards",

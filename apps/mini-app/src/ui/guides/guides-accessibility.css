@@ -1,0 +1,69 @@
+.guides-page-header {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  min-height: 52px;
+}
+
+.guides-page-header > button {
+  width: 44px;
+  height: 44px;
+  touch-action: manipulation;
+}
+
+.guides-page-header__sigil {
+  justify-self: end;
+}
+
+.guides-search {
+  min-height: 48px;
+}
+
+.guides-search input,
+.guide-rank-calculator select {
+  font-size: 16px;
+}
+
+.guides-search button {
+  width: 44px;
+  height: 44px;
+  touch-action: manipulation;
+}
+
+.guide-rank-calculator select {
+  height: 44px;
+}
+
+.guide-location-artwork {
+  background-position: center;
+  background-size: cover;
+}
+
+.guide-hub-card,
+.guide-location-card,
+.guide-hub-search-results > button {
+  touch-action: manipulation;
+}
+
+.guides-page-header > button:focus-visible,
+.guides-search input:focus-visible,
+.guides-search button:focus-visible,
+.guide-hub-card:focus-visible,
+.guide-location-card:focus-visible,
+.guide-hub-search-results > button:focus-visible,
+.guide-rank-calculator select:focus-visible {
+  outline: 2px solid var(--guide-accent-bright);
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
+  .guides-page-header > strong {
+    padding: 0 6px;
+  }
+
+  .guide-location-facts {
+    gap: 5px;
+  }
+
+  .guide-location-facts > span {
+    padding-inline: 6px;
+  }
+}

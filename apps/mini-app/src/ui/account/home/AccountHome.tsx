@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import type { Badge } from "@/shared/api/badgeApi"
 import { useTranslation } from "react-i18next"
 import { useMnemosData } from "../../data/MnemosDataProvider"
+import { canAccessGuides } from "../../guides/guideAccess"
 import type { Route } from "../../model"
 import { AccountMemberManagement } from "../AccountMemberManagement"
 import { localeForLanguage } from "../accountPresentation"
@@ -37,6 +38,7 @@ export function AccountHome({
   const showingMemberDetail = Boolean(initialMemberId && selectedMember)
   const locale = localeForLanguage(i18n.resolvedLanguage)
   const actorMember = activeAccount ? resolveActorMember(activeAccount, data.members) : null
+  const guideAccess = canAccessGuides(data.user.systemRoles)
   const { drops } = useLatestAccountDrops(activeAccount?.nickname ?? null, !showingMemberDetail)
 
   if (!activeAccount) {
@@ -64,6 +66,7 @@ export function AccountHome({
         locale={locale}
         userHubTrigger={rootUserAccess}
         navigate={navigate}
+        canOpenGuides={guideAccess}
       />
 
       <AccountMembersPanel

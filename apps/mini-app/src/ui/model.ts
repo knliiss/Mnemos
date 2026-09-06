@@ -80,6 +80,7 @@ export type RouteId =
   | "event-detail"
   | "subscriptions"
   | "leaderboards"
+  | "guides"
   | "member"
   | "roles"
   | "role-editor"

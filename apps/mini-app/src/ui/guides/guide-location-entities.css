@@ -1,0 +1,135 @@
+.guide-entity-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(222, 233, 198, 0.06);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.guide-entity-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  padding: 5px 9px;
+  background: rgba(14, 17, 12, 0.82);
+}
+
+.guide-entity-row > i {
+  color: #667858;
+  font-family: var(--font-meta);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.guide-entity-row > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guide-entity-row strong {
+  overflow: hidden;
+  color: #d8ded1;
+  font-size: 9px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-entity-row small {
+  color: #64705c;
+  font-family: var(--font-meta);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.guide-section--accent .guide-entity-list:not(.guide-entity-list--illustrated) .guide-entity-row {
+  align-items: start;
+  padding-block: 8px;
+}
+
+.guide-section--accent
+  .guide-entity-list:not(.guide-entity-list--illustrated)
+  .guide-entity-row
+  small {
+  color: #89977e;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 550;
+  line-height: 1.45;
+  letter-spacing: 0;
+  white-space: pre-line;
+}
+
+.guide-entity-list--illustrated {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.guide-entity-list--illustrated .guide-entity-row {
+  grid-template-columns: 38px minmax(0, 1fr);
+  min-height: 50px;
+  padding: 6px;
+  border: 1px solid rgba(205, 223, 161, 0.07);
+  border-radius: 9px;
+  background: rgba(24, 29, 20, 0.76);
+}
+
+.guide-entity-row__art {
+  position: relative;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(168, 200, 90, 0.14);
+  border-radius: 8px;
+  background-color: #11150f;
+}
+
+.guide-entity-row__art--weapon {
+  image-rendering: auto;
+}
+
+.guide-entity-row__art--pet {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(174, 207, 109, 0.12), transparent 62%), #11150f;
+}
+
+.guide-entity-row__art--pet .event-art__image {
+  display: block;
+  width: 30px !important;
+  height: 30px !important;
+  max-width: none !important;
+  max-height: none !important;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.35));
+}
+
+.guide-entity-row__art b {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  z-index: 2;
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: rgba(7, 10, 6, 0.76);
+  color: #8fa565;
+  font-family: var(--font-meta);
+  font-size: 5px;
+  font-weight: 900;
+}
+
+@media (max-width: 520px) {
+  .guide-entity-list--illustrated {
+    grid-template-columns: 1fr;
+  }
+}
