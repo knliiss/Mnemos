@@ -1,0 +1,150 @@
+.guides-screen > .page-header {
+  position: sticky;
+  z-index: 50;
+  top: 6px;
+  margin: 0 0 10px;
+  padding: 6px 8px;
+  border: 1px solid rgba(204, 255, 47, 0.1);
+  border-radius: 14px;
+  background: rgba(10, 15, 10, 0.9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.guides-screen > .page-header .page-header__lead {
+  min-width: 0;
+  gap: 8px;
+}
+
+.guides-screen > .page-header .page-header__copy {
+  min-width: 0;
+  gap: 1px;
+}
+
+.guides-screen > .page-header .page-header__copy .eyebrow {
+  font-size: 8px;
+  line-height: 1.1;
+}
+
+.guides-screen > .page-header .page-header__copy h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guides-screen > .page-header .icon-button--back {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid rgba(204, 255, 47, 0.1);
+  border-radius: 10px;
+  background: rgba(204, 255, 47, 0.035);
+}
+
+.guide-section-intro__art {
+  width: clamp(66px, 11vw, 92px);
+  height: 62px;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.24));
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__item {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+.guide-dungeon-selector__copy {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.guide-dungeon-selector--redesign .guide-dungeon-selector__copy strong {
+  overflow: visible;
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header > span:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header strong {
+  line-height: 1.25;
+}
+
+.guide-dungeon-detail--redesign .guide-dungeon-detail__header small {
+  line-height: 1.5;
+}
+
+.guide-rank-step--redesign > header {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.guide-rank-step__number {
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  color: #b8ce79;
+  background: transparent;
+  font-size: 9px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.guide-location-rebirth-card--redesign > header {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__rank {
+  width: auto;
+  height: auto;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  color: #b8ce79;
+  background: transparent;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner {
+  background-color: rgba(7, 11, 7, 0.75);
+}
+
+@media (max-width: 560px) {
+  .guides-screen > .page-header {
+    top: 5px;
+    margin: 0 0 8px;
+    padding: 5px 7px;
+    border-radius: 13px;
+  }
+
+  .guide-section-intro__art {
+    width: 68px;
+    height: 54px;
+  }
+
+  .guide-rank-step--redesign > header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .guide-rank-step__location {
+    grid-column: 2;
+  }
+}
