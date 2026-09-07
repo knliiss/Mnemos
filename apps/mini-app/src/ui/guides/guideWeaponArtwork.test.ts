@@ -2,25 +2,25 @@ import { describe, expect, it } from "vitest"
 import { guideEntityIndex, guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 
 describe("guide weapon artwork", () => {
-  it("maps confirmed weapon keys to compact resource-pack sheets", () => {
+  it("maps confirmed weapon keys to the source-backed resource-pack atlas", () => {
     expect(guideWeaponArtworkStyle("sao.item.l1_4.name")).toMatchObject({
-      backgroundImage: "url(/guides/entities/weapon-atlas-1.webp)",
+      backgroundImage: "url(/guides/entities/weapon-atlas.webp)",
       backgroundPosition: "-168px 0px",
-      backgroundSize: "672px 224px",
+      backgroundSize: "672px 1568px",
     })
 
     expect(guideWeaponArtworkStyle("sao.item.l28_12.name")).toMatchObject({
-      backgroundImage: "url(/guides/entities/weapon-atlas-7.webp)",
-      backgroundPosition: "-616px -168px",
-      backgroundSize: "672px 224px",
+      backgroundImage: "url(/guides/entities/weapon-atlas.webp)",
+      backgroundPosition: "-616px -1512px",
+      backgroundSize: "672px 1568px",
     })
   })
 
   it("scales the exact same source cell for full in-app detail artwork", () => {
     expect(guideWeaponArtworkStyle("sao.item.l5_2.name", 92)).toMatchObject({
-      backgroundImage: "url(/guides/entities/weapon-atlas-2.webp)",
-      backgroundPosition: "-92px 0px",
-      backgroundSize: "1104px 368px",
+      backgroundImage: "url(/guides/entities/weapon-atlas.webp)",
+      backgroundPosition: "-92px -368px",
+      backgroundSize: "1104px 2576px",
     })
   })
 
