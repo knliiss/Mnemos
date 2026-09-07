@@ -1,13 +1,20 @@
 import type { CSSProperties } from "react"
 import { PetInventoryArt } from "../components/events/PetInventoryArt"
 import { resolveSaoPetInventoryTextureUrl } from "../components/events/saoPetInventoryArtwork"
+import {
+  resolveSaoItemAtlasSprite,
+  type SaoItemAtlasSprite,
+} from "../components/events/saoTrackedItemArtwork"
 import { guideMaterialArtworkStyle } from "./guideMaterialArtwork"
+import { guideSourceItemArtworkStyle } from "./guideSourceItemArtwork"
 import { guideWeaponArtworkStyle } from "./guideWeaponArtwork"
 
 type Props = {
   localizationKey: string
   size?: "card" | "detail"
 }
+
+type ArtworkType = "source" | "tracked" | "weapon" | "material" | "missing"
 
 export function GuideDropArt({ localizationKey, size = "card" }: Props) {
   const petTextureUrl = resolveSaoPetInventoryTextureUrl(localizationKey)
@@ -23,6 +30,25 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
     )
   }
 
+  const displayCellSize = size === "detail" ? 92 : 56
+  const sourceStyle = guideSourceItemArtworkStyle(localizationKey, displayCellSize)
+
+  if (sourceStyle) {
+    return <GuideAtlasArtwork style={sourceStyle} size={size} type="source" />
+  }
+
+  const trackedSprite = resolveSaoItemAtlasSprite(localizationKey)
+
+  if (trackedSprite) {
+    return (
+      <GuideAtlasArtwork
+        style={trackedItemStyle(trackedSprite, displayCellSize)}
+        size={size}
+        type="tracked"
+      />
+    )
+  }
+
   const weaponStyle = guideWeaponArtworkStyle(localizationKey)
 
   if (weaponStyle) {
@@ -35,28 +61,7 @@ export function GuideDropArt({ localizationKey, size = "card" }: Props) {
     return <GuideAtlasArtwork style={materialStyle} size={size} type="material" />
   }
 
-  if (localizationKey.startsWith("sao.item.aura")) {
-    return (
-      <span
-        className={`guide-drop-art guide-drop-art--aura guide-drop-art--${size}`}
-        aria-hidden="true"
-      >
-        <i />
-        <b />
-      </span>
-    )
-  }
-
-  return (
-    <span
-      className={`guide-drop-art guide-drop-art--artifact guide-drop-art--${size}`}
-      aria-hidden="true"
-    >
-      <i />
-      <b />
-      <em />
-    </span>
-  )
+  return <GuideAtlasArtwork style={{}} size={size} type="missing" />
 }
 
 function GuideAtlasArtwork({
@@ -66,7 +71,7 @@ function GuideAtlasArtwork({
 }: {
   style: CSSProperties
   size: "card" | "detail"
-  type: "weapon" | "material"
+  type: ArtworkType
 }) {
   return (
     <span
@@ -75,4 +80,14 @@ function GuideAtlasArtwork({
       aria-hidden="true"
     />
   )
+}
+
+function trackedItemStyle(sprite: SaoItemAtlasSprite, displayCellSize: number): CSSProperties {
+  return {
+    backgroundImage: `url(${sprite.atlas.path})`,
+    backgroundPosition: `${-sprite.column * displayCellSize}px ${-sprite.row * displayCellSize}px`,
+    backgroundRepeat: "no-repeat",
+    backgroundSize: `${sprite.atlas.columns * displayCellSize}px ${sprite.atlas.rows * displayCellSize}px`,
+    imageRendering: "pixelated",
+  }
 }

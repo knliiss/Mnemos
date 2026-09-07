@@ -15,6 +15,11 @@ import { localizationKeyExists, type SaoCatalogs } from "./guideLocalization"
 import { guideMobArtworkStyle } from "./guideMobArtwork"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
+import {
+  getGuideSourceItemStats,
+  getGuideSourceMobStats,
+  type GuideSourceMobStats,
+} from "./guideSourceStats"
 import { guideUiText } from "./guideUiText"
 
 type GuideUi = ReturnType<typeof guideUiText>
@@ -350,6 +355,7 @@ function GuideMobCard({
   onSelectDrop: (drop: GuideDumpDrop) => void
 }) {
   const artworkStyle = guideMobArtworkStyle(mob.key)
+  const sourceStats = getGuideSourceMobStats(mob.key)
 
   return (
     <article className={`guide-mob-card ${expanded ? "is-expanded" : ""}`}>
@@ -368,7 +374,9 @@ function GuideMobCard({
         <span className="guide-mob-card__copy">
           <strong>{text(mob.key)}</strong>
           <small>
-            {locationUi.drops}: {mob.drops.length}
+            {sourceStats
+              ? `${locationUi.health}: ${sourceStats.health}`
+              : `${locationUi.drops}: ${mob.drops.length}`}
           </small>
         </span>
         <span className="guide-mob-card__toggle" aria-hidden="true" />
@@ -376,10 +384,41 @@ function GuideMobCard({
 
       {expanded ? (
         <div className="guide-mob-card__drops">
+          {sourceStats ? <GuideMobFacts stats={sourceStats} locationUi={locationUi} /> : null}
           <GuideDropGrid drops={mob.drops} text={text} onSelectDrop={onSelectDrop} />
         </div>
       ) : null}
     </article>
+  )
+}
+
+function GuideMobFacts({
+  stats,
+  locationUi,
+}: {
+  stats: GuideSourceMobStats
+  locationUi: ReturnType<typeof guideLocationUiText>
+}) {
+  return (
+    <div className="guide-mob-card__facts">
+      <GuideSourceFact label={locationUi.spawnType} value={locationUi.mobSpawn[stats.spawn]} />
+      <GuideSourceFact label={locationUi.health} value={stats.health} />
+      <GuideSourceFact label={locationUi.moneyDrop} value={stats.moneyDrop} />
+      <GuideSourceFact
+        label={locationUi.killTime}
+        value={locationUi.formatKillTime(stats.killTime)}
+      />
+      <GuideSourceFact label={locationUi.kills} value={stats.kills} />
+    </div>
+  )
+}
+
+function GuideSourceFact({ label, value }: { label: string; value: string }) {
+  return (
+    <span>
+      <small>{label}</small>
+      <strong>{value || "—"}</strong>
+    </span>
   )
 }
 
@@ -429,6 +468,7 @@ function GuideDropSheet({
   const loreKey = selection.drop.key.replace(/\.name$/, ".lore")
   const lore = text(loreKey)
   const hasLore = lore !== loreKey
+  const sourceStats = getGuideSourceItemStats(selection.drop.key)
 
   return (
     <BottomSheet title={locationUi.itemDetails} onClose={onClose}>
@@ -453,7 +493,20 @@ function GuideDropSheet({
           </span>
         </div>
 
-        <p className="guide-drop-sheet__chance-note">{locationUi.noChance}</p>
+        {sourceStats.length ? (
+          <section className="guide-drop-sheet__stats">
+            <strong>{locationUi.itemStats}</strong>
+            <div className="guide-drop-sheet__facts guide-drop-sheet__facts--stats">
+              {sourceStats.map((stat) => (
+                <GuideSourceFact
+                  key={stat.type}
+                  label={locationUi.itemStat[stat.type]}
+                  value={stat.value}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     </BottomSheet>
   )
