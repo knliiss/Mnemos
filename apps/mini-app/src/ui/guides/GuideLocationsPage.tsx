@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { PageHeader } from "../shared/Primitives"
 import { GUIDE_LOCATIONS, type GuideLocation } from "./guideCatalog"
 import { GuideLocationDetail } from "./GuideLocationDetail"
+import { guideLocationArtworkStyle } from "./guideLocationArtwork"
 import { GUIDE_DUMP_LOCATION_BY_ID } from "./guideLocationDumpData"
 import { guideLocationUiText } from "./guideLocationUiText"
 import {
@@ -58,7 +59,6 @@ export function GuideLocationsPage({ ui, catalogs, text, initialLocationId, back
           <strong>{locationUi.locationArchive}</strong>
           <p>{locationUi.locationArchiveCopy}</p>
         </span>
-        <b>{GUIDE_LOCATIONS.length}</b>
       </section>
 
       <GuideSearch
@@ -106,6 +106,7 @@ function GuideLocationIndexCard({
 }) {
   const dump = GUIDE_DUMP_LOCATION_BY_ID.get(location.id)
   const detailsAvailable = dump?.detailsAvailable ?? false
+  const artworkStyle = guideLocationArtworkStyle(location.id)
 
   return (
     <button
@@ -113,13 +114,19 @@ function GuideLocationIndexCard({
       className="guide-location-index-card guide-location-index-card--redesign"
       onClick={onOpen}
     >
-      <span className="guide-location-index-card__banner">
-        <img src={location.artworkUrl} alt="" loading="lazy" aria-hidden="true" />
-        <span>{location.id > 0 ? `#${location.id}` : locationUi.specialZone}</span>
-      </span>
+      {artworkStyle ? (
+        <span
+          className="guide-location-index-card__banner"
+          style={artworkStyle}
+          aria-hidden="true"
+        />
+      ) : null}
 
       <span className="guide-location-index-card__body">
         <span className="guide-location-index-card__copy">
+          <small className="guide-location-index-card__location-number">
+            {location.id > 0 ? `#${location.id}` : locationUi.specialZone}
+          </small>
           <strong>{text(location.nameKey)}</strong>
           <small>{text(location.descriptionKey)}</small>
         </span>
