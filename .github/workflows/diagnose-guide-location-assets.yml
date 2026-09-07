@@ -1,0 +1,60 @@
+name: Diagnose Guide banner binaries
+
+on:
+  push:
+    branches:
+      - fix/guides-full-location-atlas
+    paths:
+      - .github/workflows/diagnose-guide-location-assets.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/guides-full-location-atlas
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Inspect every Guide image binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          from PIL import Image
+
+          root = Path("apps/mini-app")
+          catalog = (root / "src/ui/guides/guideCatalog.ts").read_text()
+          names = re.findall(r'"/guides/locations/(location-[^"]+\.webp)"', catalog)
+          paths = [root / "public/guides/locations" / name for name in names]
+          paths += [
+              root / "public/guides/entities/npc-atlas.webp",
+              root / "public/guides/entities/weapon-atlas.webp",
+          ]
+
+          failures = []
+          for path in paths:
+              data = path.read_bytes()
+              declared = int.from_bytes(data[4:8], "little") + 8 if len(data) >= 12 else -1
+              header = data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+              chunk = data[12:16].decode("ascii", errors="replace") if len(data) >= 16 else "----"
+              print(f"CHECK {path}: bytes={len(data)} declared={declared} header={header} chunk={chunk}")
+              try:
+                  with Image.open(path) as image:
+                      image.load()
+                      print(f"OK    {path}: format={image.format} size={image.size} mode={image.mode}")
+              except Exception as exc:
+                  print(f"FAIL  {path}: {type(exc).__name__}: {exc}")
+                  failures.append(str(path))
+
+          if failures:
+              raise SystemExit("decoder failures: " + ", ".join(failures))
+          PY
