@@ -19,8 +19,7 @@
   border: 1px solid var(--guide-border);
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(203, 255, 45, 0.035), transparent 56%),
-    var(--guide-surface);
+    linear-gradient(135deg, rgba(203, 255, 45, 0.035), transparent 56%), var(--guide-surface);
 }
 
 .guide-section-intro > span,
@@ -212,7 +211,12 @@
 }
 
 .guide-location-hero--redesign .guide-location-hero__shade {
-  background: linear-gradient(0deg, rgba(7, 10, 7, 0.97), rgba(7, 10, 7, 0.28) 58%, transparent 82%);
+  background: linear-gradient(
+    0deg,
+    rgba(7, 10, 7, 0.97),
+    rgba(7, 10, 7, 0.28) 58%,
+    transparent 82%
+  );
 }
 
 .guide-location-npc-card--redesign,
@@ -307,6 +311,43 @@
   min-width: 0;
 }
 
+.guide-location-rebirth-list--redesign {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.guide-location-rebirth-card--redesign {
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.guide-location-rebirth-card--redesign > header {
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__rank {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 8px;
+}
+
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__facts {
+  gap: 5px;
+}
+
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__facts > span {
+  padding: 6px 7px;
+}
+
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__boosts i,
+.guide-location-rebirth-card--redesign .guide-location-rebirth-card__boosts em {
+  padding: 4px 6px;
+}
+
 .guide-rank-route--redesign {
   gap: 8px;
 }
@@ -365,6 +406,12 @@
 .guide-rank-step__boosts i {
   padding: 4px 7px;
   font-size: 8px;
+}
+
+@media (max-width: 900px) {
+  .guide-location-rebirth-list--redesign {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -442,6 +489,10 @@
 
   .guide-dungeon-detail--redesign .guide-dungeon-detail__header {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .guide-location-rebirth-list--redesign {
+    grid-template-columns: 1fr;
   }
 
   .guide-rank-step--redesign > header {
