@@ -51,11 +51,7 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
     <div className="screen guides-screen guide-mechanics-screen guide-mechanics-screen--redesign">
       <PageHeader title={ui.mechanics} eyebrow={ui.mechanicsEyebrow} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--mechanics">
-        <div className="guide-context-hero__mascot" aria-hidden="true">
-          <span className="guide-context-hero__orbit" />
-          <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
-        </div>
+      <section className="guide-section-intro guide-section-intro--mechanics">
         <span>
           <strong>{ui.mechanics}</strong>
           <p>{ui.mechanicsCopy}</p>
@@ -95,7 +91,6 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
         </div>
       ) : (
         <section className="guides-empty guides-empty--mechanics">
-          <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
           <strong>{ui.noResults}</strong>
           <small>{ui.mechanicsNoResultsCopy}</small>
         </section>
