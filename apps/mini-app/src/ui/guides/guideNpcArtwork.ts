@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react"
 import type { GuideNpcRole } from "./guideCatalog"
 
+const NPC_ATLAS_URL = "/guides/entities/npc-atlas.webp"
 const FIRST_LOCATION = 1
 const LAST_LOCATION = 28
-const LOCATIONS_PER_SHEET = 4
+const LAST_LOCATION_WITH_SPECIFIC_QUEST_ICON = 26
 const ATLAS_COLUMNS = 2
-const ATLAS_ROWS = LOCATIONS_PER_SHEET
+const ATLAS_ROWS = LAST_LOCATION
 const DISPLAY_CELL_SIZE = 76
 
 export function guideNpcArtworkStyle(
@@ -16,12 +17,15 @@ export function guideNpcArtworkStyle(
     return undefined
   }
 
-  const sheetIndex = Math.floor((locationId - FIRST_LOCATION) / LOCATIONS_PER_SHEET) + 1
-  const row = (locationId - FIRST_LOCATION) % LOCATIONS_PER_SHEET
+  if (role === "QUEST" && locationId > LAST_LOCATION_WITH_SPECIFIC_QUEST_ICON) {
+    return undefined
+  }
+
   const column = role === "RAID_JOIN" ? 0 : 1
+  const row = locationId - FIRST_LOCATION
 
   return {
-    backgroundImage: `url(/guides/entities/npc-atlas-${sheetIndex}.webp)`,
+    backgroundImage: `url(${NPC_ATLAS_URL})`,
     backgroundPosition: `${-column * DISPLAY_CELL_SIZE}px ${-row * DISPLAY_CELL_SIZE}px`,
     backgroundRepeat: "no-repeat",
     backgroundSize: `${ATLAS_COLUMNS * DISPLAY_CELL_SIZE}px ${ATLAS_ROWS * DISPLAY_CELL_SIZE}px`,
