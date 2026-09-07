@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { resolveMinecraftSkinTextureScale } from "../profile/minecraftSkinTexture"
 import { renderMinecraftHead } from "../../shared/minecraftHeadRenderer"
 
 const FALLBACK_PET_ASSET = "/event-icons/pet.png"
@@ -25,9 +26,16 @@ export function PetInventoryArt({ textureUrl }: Props) {
     const image = new Image()
     image.decoding = "async"
 
+    const markFailed = () => {
+      setLoadedTextureUrl((current) => (current === textureUrl ? null : current))
+      setFailedTextureUrl(textureUrl)
+    }
+
     image.onload = () => {
-      if (!renderMinecraftHead(canvas, image, 1)) {
-        setFailedTextureUrl(textureUrl)
+      const textureScale = resolveMinecraftSkinTextureScale(image.naturalWidth, image.naturalHeight)
+
+      if (textureScale === null || !renderMinecraftHead(canvas, image, textureScale)) {
+        markFailed()
         return
       }
 
@@ -35,11 +43,7 @@ export function PetInventoryArt({ textureUrl }: Props) {
       setLoadedTextureUrl(textureUrl)
     }
 
-    image.onerror = () => {
-      setLoadedTextureUrl((current) => (current === textureUrl ? null : current))
-      setFailedTextureUrl(textureUrl)
-    }
-
+    image.onerror = markFailed
     image.src = textureUrl
 
     return () => {
