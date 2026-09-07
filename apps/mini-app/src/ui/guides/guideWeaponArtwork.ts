@@ -1,11 +1,11 @@
 import type { CSSProperties } from "react"
 
 const WEAPON_KEY_PATTERN = /^sao\.item\.l(\d+)_(\d+)\.name$/
+const WEAPON_ATLAS_URL = "/guides/entities/weapon-atlas.webp"
 const FIRST_LOCATION = 1
 const LAST_LOCATION = 28
-const LOCATIONS_PER_SHEET = 4
 const ATLAS_COLUMNS = 12
-const ATLAS_ROWS = LOCATIONS_PER_SHEET
+const ATLAS_ROWS = LAST_LOCATION
 const DEFAULT_DISPLAY_CELL_SIZE = 56
 
 export function guideWeaponArtworkStyle(
@@ -30,12 +30,9 @@ export function guideWeaponArtworkStyle(
     return undefined
   }
 
-  const sheetIndex = Math.floor((location - FIRST_LOCATION) / LOCATIONS_PER_SHEET) + 1
-  const row = (location - FIRST_LOCATION) % LOCATIONS_PER_SHEET
-
   return {
-    backgroundImage: `url(/guides/entities/weapon-atlas-${sheetIndex}.webp)`,
-    backgroundPosition: `${-(itemIndex - 1) * displayCellSize}px ${-row * displayCellSize}px`,
+    backgroundImage: `url(${WEAPON_ATLAS_URL})`,
+    backgroundPosition: `${-(itemIndex - 1) * displayCellSize}px ${-(location - 1) * displayCellSize}px`,
     backgroundRepeat: "no-repeat",
     backgroundSize: `${ATLAS_COLUMNS * displayCellSize}px ${ATLAS_ROWS * displayCellSize}px`,
     imageRendering: "pixelated",
