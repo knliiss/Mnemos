@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { PageHeader } from "../shared/Primitives"
 import {
   GUIDE_CASE_MILESTONES,
   GUIDE_DUNGEON_MILESTONES,
@@ -19,15 +20,14 @@ type Props = {
 
 type DungeonPresentation = {
   type: GuideDungeonType
-  alias: "LP" | "SP" | "SLP" | "EP"
   tone: string
 }
 
 const DUNGEONS: DungeonPresentation[] = [
-  { type: "EASY", alias: "LP", tone: "lp" },
-  { type: "NORMAL", alias: "SP", tone: "sp" },
-  { type: "HARD", alias: "SLP", tone: "slp" },
-  { type: "INSANE", alias: "EP", tone: "ep" },
+  { type: "EASY", tone: "easy" },
+  { type: "NORMAL", tone: "normal" },
+  { type: "HARD", tone: "hard" },
+  { type: "INSANE", tone: "insane" },
 ]
 
 export function GuideMilestonesPage({ kind, ui, text, back }: Props) {
@@ -54,22 +54,22 @@ function GuideDungeonsPage({
   const dungeonDescription = text(`sao.dungeon.${activeDungeon.type}.description`)
 
   return (
-    <div className="screen guides-screen guide-milestones-screen guide-dungeons-screen">
-      <GuideSubpageHeader title={ui.dungeons} back={back} backLabel={ui.back} sigil="DG" />
+    <div className="screen guides-screen guide-milestones-screen guide-dungeons-screen guide-dungeons-screen--redesign">
+      <PageHeader title={ui.dungeons} eyebrow={ui.dungeonMilestones} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--explorer">
+      <section className="guide-context-hero guide-context-hero--dungeons">
         <div className="guide-context-hero__mascot" aria-hidden="true">
           <img src="/ui-illustrations/guides-explorer.svg" alt="" />
-          <i>DG</i>
         </div>
         <span>
           <small>{ui.dungeonDifficultyRange}</small>
           <strong>{ui.dungeons}</strong>
           <p>{ui.dungeonsCopy}</p>
         </span>
+        <b>{DUNGEONS.length}</b>
       </section>
 
-      <section className="guide-dungeon-selector" aria-label={ui.dungeons}>
+      <section className="guide-dungeon-selector guide-dungeon-selector--redesign" aria-label={ui.dungeons}>
         {DUNGEONS.map((dungeon) => {
           const selected = dungeon.type === activeType
 
@@ -81,17 +81,24 @@ function GuideDungeonsPage({
               aria-pressed={selected}
               onClick={() => setActiveType(dungeon.type)}
             >
-              <span>{dungeon.alias}</span>
-              <strong>{text(`sao.dungeon.${dungeon.type}.name`)}</strong>
-              <small>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</small>
+              <span className="guide-dungeon-selector__art" aria-hidden="true">
+                <img src="/ui-illustrations/guides-explorer.svg" alt="" />
+              </span>
+              <span className="guide-dungeon-selector__copy">
+                <strong>{text(`sao.dungeon.${dungeon.type}.name`)}</strong>
+                <small>{text(`sao.dungeon.${dungeon.type}.description`)}</small>
+              </span>
+              <b>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</b>
             </button>
           )
         })}
       </section>
 
-      <section className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone}`}>
+      <section className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone} guide-dungeon-detail--redesign`}>
         <header className="guide-dungeon-detail__header">
-          <span className="guide-dungeon-detail__alias">{activeDungeon.alias}</span>
+          <span className="guide-dungeon-detail__illustration" aria-hidden="true">
+            <img src="/ui-illustrations/guides-explorer.svg" alt="" />
+          </span>
           <span>
             <strong>{dungeonName}</strong>
             <small>{dungeonDescription}</small>
@@ -99,9 +106,9 @@ function GuideDungeonsPage({
           <b>{milestones.length}</b>
         </header>
 
-        <div className="guide-milestone-list guide-milestone-list--large">
+        <div className="guide-milestone-list guide-milestone-list--redesign">
           {milestones.map((milestone) => (
-            <article key={milestone.stage} className="guide-milestone-row">
+            <article key={milestone.stage} className="guide-milestone-row guide-milestone-row--redesign">
               <span className="guide-milestone-row__stage">
                 <small>{ui.stage}</small>
                 <b>{milestone.stage}</b>
@@ -121,27 +128,24 @@ function GuideDungeonsPage({
 
 function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
   return (
-    <div className="screen guides-screen guide-milestones-screen guide-cases-screen">
-      <GuideSubpageHeader title={ui.cases} back={back} backLabel={ui.back} sigil="CS" />
+    <div className="screen guides-screen guide-milestones-screen guide-cases-screen guide-cases-screen--redesign">
+      <PageHeader title={ui.cases} eyebrow={ui.caseOpened} back={back} />
 
       <section className="guide-context-hero guide-context-hero--cases">
         <div className="guide-context-hero__mascot" aria-hidden="true">
           <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
-          <i>CS</i>
         </div>
         <span>
           <small>{ui.caseOpened}</small>
           <strong>{ui.cases}</strong>
           <p>{ui.casesCopy}</p>
         </span>
+        <b>{GUIDE_CASE_MILESTONES.length}</b>
       </section>
 
-      <section className="guide-case-timeline">
-        {GUIDE_CASE_MILESTONES.map((milestone, index) => (
-          <article key={milestone.opened} className="guide-case-milestone">
-            <span className="guide-case-milestone__index" aria-hidden="true">
-              {String(index + 1).padStart(2, "0")}
-            </span>
+      <section className="guide-case-timeline guide-case-timeline--redesign">
+        {GUIDE_CASE_MILESTONES.map((milestone) => (
+          <article key={milestone.opened} className="guide-case-milestone guide-case-milestone--redesign">
             <span className="guide-case-milestone__count">
               <b>{compactNumber(milestone.opened)}</b>
               <small>{ui.caseOpened}</small>
@@ -195,28 +199,4 @@ function compactNumber(value: number) {
   }
 
   return String(value)
-}
-
-function GuideSubpageHeader({
-  title,
-  back,
-  backLabel,
-  sigil,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-  sigil: string
-}) {
-  return (
-    <header className="guides-page-header">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span className="guides-page-header__sigil" aria-hidden="true">
-        {sigil}
-      </span>
-    </header>
-  )
 }
