@@ -63,7 +63,12 @@ function GuideDungeonsPage({
           <strong>{ui.dungeons}</strong>
           <p>{ui.dungeonsCopy}</p>
         </span>
-        <b>{DUNGEONS.length}</b>
+        <img
+          className="guide-section-intro__art"
+          src="/ui-illustrations/guides-dungeons.svg"
+          alt=""
+          aria-hidden="true"
+        />
       </section>
 
       <section
@@ -84,7 +89,6 @@ function GuideDungeonsPage({
               <span className="guide-dungeon-selector__copy">
                 <strong>{text(`sao.dungeon.${dungeon.type}.name`)}</strong>
               </span>
-              <b>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</b>
             </button>
           )
         })}
@@ -98,7 +102,6 @@ function GuideDungeonsPage({
             <strong>{dungeonName}</strong>
             <small>{dungeonDescription}</small>
           </span>
-          <b>{milestones.length}</b>
         </header>
 
         <div className="guide-milestone-list guide-milestone-list--redesign">
