@@ -116,6 +116,8 @@ function GuideLocationIndexCard({
         className="guide-location-index-card__banner"
         src={location.artworkUrl}
         alt=""
+        loading="eager"
+        decoding="async"
         aria-hidden="true"
       />
 
