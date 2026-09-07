@@ -4,6 +4,7 @@ import type { GuideNpcRole } from "./guideCatalog"
 const NPC_ATLAS_URL = "/guides/entities/npc-atlas.webp"
 const FIRST_LOCATION = 1
 const LAST_LOCATION = 28
+const LAST_LOCATION_WITH_SPECIFIC_QUEST_ICON = 26
 const ATLAS_COLUMNS = 2
 const ATLAS_ROWS = LAST_LOCATION
 const DISPLAY_CELL_SIZE = 76
@@ -13,6 +14,10 @@ export function guideNpcArtworkStyle(
   role: GuideNpcRole,
 ): CSSProperties | undefined {
   if (locationId < FIRST_LOCATION || locationId > LAST_LOCATION) {
+    return undefined
+  }
+
+  if (role === "QUEST" && locationId > LAST_LOCATION_WITH_SPECIFIC_QUEST_ICON) {
     return undefined
   }
 
