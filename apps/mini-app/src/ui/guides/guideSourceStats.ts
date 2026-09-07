@@ -53,10 +53,7 @@ const rawItemStats = [
 ]
 
 const ITEM_STATS = new Map(
-  rawItemStats.map(([itemId, stats]) => [
-    itemId,
-    stats.map(([type, value]) => ({ type, value })),
-  ]),
+  rawItemStats.map(([itemId, stats]) => [itemId, stats.map(([type, value]) => ({ type, value }))]),
 )
 
 const MOB_STATS = new Map(
