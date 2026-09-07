@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { PageHeader } from "../shared/Primitives"
 import { GuideRankPicker } from "./GuideRankPicker"
 import { GUIDE_REBIRTH_STEPS, type GuideRebirthBoostStat } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
@@ -28,22 +29,22 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
   }
 
   return (
-    <div className="screen guides-screen guide-rebirth-screen">
-      <GuideSubpageHeader title={ui.rebirth} back={back} backLabel={ui.back} />
+    <div className="screen guides-screen guide-rebirth-screen guide-rebirth-screen--redesign">
+      <PageHeader title={ui.rebirth} eyebrow={ui.calculator} back={back} />
 
       <section className="guide-context-hero guide-context-hero--trainer">
         <div className="guide-context-hero__mascot" aria-hidden="true">
           <img src="/ui-illustrations/guides-trainer.svg" alt="" />
-          <i>RB</i>
         </div>
         <span>
           <small>{ui.calculator}</small>
           <strong>{ui.rebirth}</strong>
           <p>{ui.calculatorCopy}</p>
         </span>
+        <b>{steps.length}</b>
       </section>
 
-      <section className="guide-rank-calculator" aria-label={ui.calculator}>
+      <section className="guide-rank-calculator guide-rank-calculator--redesign" aria-label={ui.calculator}>
         <GuideRankPicker
           label={ui.currentRank}
           value={currentRank}
@@ -55,9 +56,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
           onChange={changeCurrentRank}
         />
 
-        <span className="guide-rank-calculator__arrow" aria-hidden="true">
-          →
-        </span>
+        <span className="guide-rank-calculator__connector" aria-hidden="true" />
 
         <GuideRankPicker
           label={ui.targetRank}
@@ -71,7 +70,7 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         />
       </section>
 
-      <section className="guide-rank-summary">
+      <section className="guide-rank-summary guide-rank-summary--redesign">
         <span>
           <b>{steps.length}</b>
           <small>{ui.transitions}</small>
@@ -86,16 +85,18 @@ export function GuideRebirthPage({ ui, text, initialCurrentRank, back }: Props) 
         </span>
       </section>
 
-      <section className="guide-rank-route">
+      <section className="guide-rank-route guide-rank-route--redesign">
         {steps.map((step) => (
-          <article key={step.rank} className="guide-rank-step">
+          <article key={step.rank} className="guide-rank-step guide-rank-step--redesign">
             <header>
               <span className="guide-rank-step__number">#{step.rank}</span>
               <span className="guide-rank-step__title">
                 <strong>{rankName(step.rank)}</strong>
                 <small>→ {rankName(step.nextRank)}</small>
               </span>
-              <span className="guide-rank-step__location">L{step.location}</span>
+              <span className="guide-rank-step__location">
+                {ui.location} #{step.location}
+              </span>
             </header>
 
             <div className="guide-rank-step__facts">
@@ -141,26 +142,4 @@ function boostLabel(stat: GuideRebirthBoostStat, ui: ReturnType<typeof guideUiTe
   }
 
   return labels[stat]
-}
-
-function GuideSubpageHeader({
-  title,
-  back,
-  backLabel,
-}: {
-  title: string
-  back: () => void
-  backLabel: string
-}) {
-  return (
-    <header className="guides-page-header">
-      <button type="button" onClick={back} aria-label={backLabel}>
-        <span aria-hidden="true">‹</span>
-      </button>
-      <strong>{title}</strong>
-      <span className="guides-page-header__sigil" aria-hidden="true">
-        RB
-      </span>
-    </header>
-  )
 }
