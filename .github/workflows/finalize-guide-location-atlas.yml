@@ -1,0 +1,290 @@
+name: Finalize full Guide location atlas
+
+on:
+  push:
+    branches:
+      - fix/guides-full-location-atlas
+    paths:
+      - .github/workflows/finalize-guide-location-atlas.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout corrective branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/guides-full-location-atlas
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install atlas tooling
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Build full location atlas and patch runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          from PIL import Image, ImageOps, ImageStat
+
+          root = Path.cwd()
+          mini_app = root / "apps/mini-app"
+          locations_dir = mini_app / "public/guides/locations"
+          entities_dir = mini_app / "public/guides/entities"
+          catalog_path = mini_app / "src/ui/guides/guideCatalog.ts"
+
+          catalog = catalog_path.read_text()
+          source_names = re.findall(r'"/guides/locations/(location-[^"]+\.webp)"', catalog)
+
+          if len(source_names) != 30 or len(set(source_names)) != 30:
+              raise SystemExit(f"expected 30 unique location source banners, got {len(source_names)}")
+
+          cell_width = 512
+          cell_height = 256
+          columns = 5
+          rows = 6
+          atlas = Image.new("RGB", (cell_width * columns, cell_height * rows), (7, 11, 7))
+
+          for index, source_name in enumerate(source_names):
+              source_path = locations_dir / source_name
+              if not source_path.is_file():
+                  raise SystemExit(f"missing source location banner: {source_path}")
+
+              with Image.open(source_path) as source:
+                  frame = ImageOps.fit(
+                      source.convert("RGB"),
+                      (cell_width, cell_height),
+                      method=Image.Resampling.LANCZOS,
+                      centering=(0.5, 0.5),
+                  )
+
+              column = index % columns
+              row = index // columns
+              atlas.paste(frame, (column * cell_width, row * cell_height))
+
+          atlas_path = locations_dir / "location-atlas.webp"
+          atlas.save(atlas_path, format="WEBP", quality=90, method=6)
+
+          def assert_riff_complete(path: Path) -> None:
+              data = path.read_bytes()
+              if data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+                  raise SystemExit(f"{path} is not a RIFF WebP")
+              declared_size = int.from_bytes(data[4:8], "little") + 8
+              if declared_size != len(data):
+                  raise SystemExit(
+                      f"{path} is truncated or padded: declared={declared_size}, actual={len(data)}"
+                  )
+
+          def assert_non_uniform(cell: Image.Image, label: str) -> None:
+              variance = sum(ImageStat.Stat(cell.convert("RGBA")).var)
+              if variance <= 1.0:
+                  raise SystemExit(f"atlas cell is blank/uniform: {label} (variance={variance})")
+
+          assert_riff_complete(atlas_path)
+
+          with Image.open(atlas_path) as rebuilt:
+              rebuilt.load()
+              if rebuilt.size != (cell_width * columns, cell_height * rows):
+                  raise SystemExit(f"unexpected location atlas dimensions: {rebuilt.size}")
+
+              for index, source_name in enumerate(source_names):
+                  column = index % columns
+                  row = index // columns
+                  box = (
+                      column * cell_width,
+                      row * cell_height,
+                      (column + 1) * cell_width,
+                      (row + 1) * cell_height,
+                  )
+                  assert_non_uniform(rebuilt.crop(box), source_name)
+
+          npc_path = entities_dir / "npc-atlas.webp"
+          assert_riff_complete(npc_path)
+          with Image.open(npc_path) as npc_atlas:
+              npc_atlas.load()
+              if npc_atlas.size != (48, 672):
+                  raise SystemExit(f"unexpected NPC atlas dimensions: {npc_atlas.size}")
+
+              npc_cell_width = npc_atlas.width // 2
+              npc_cell_height = npc_atlas.height // 28
+              if npc_cell_width != npc_cell_height:
+                  raise SystemExit("NPC atlas cells are not square")
+
+              for row in range(28):
+                  for column in range(2):
+                      box = (
+                          column * npc_cell_width,
+                          row * npc_cell_height,
+                          (column + 1) * npc_cell_width,
+                          (row + 1) * npc_cell_height,
+                      )
+                      assert_non_uniform(npc_atlas.crop(box), f"NPC {row + 1}:{column + 1}")
+
+          weapon_path = entities_dir / "weapon-atlas.webp"
+          assert_riff_complete(weapon_path)
+          with Image.open(weapon_path) as weapon_atlas:
+              weapon_atlas.load()
+              if weapon_atlas.width % 12 or weapon_atlas.height % 28:
+                  raise SystemExit(f"weapon atlas is not a 12x28 grid: {weapon_atlas.size}")
+
+              weapon_cell_width = weapon_atlas.width // 12
+              weapon_cell_height = weapon_atlas.height // 28
+              if weapon_cell_width != weapon_cell_height:
+                  raise SystemExit(
+                      f"weapon atlas cells are not square: {weapon_cell_width}x{weapon_cell_height}"
+                  )
+
+              early_indexes = {
+                  1: [1, 2, 4, 5, 6, 7, 8, 9],
+                  2: [1, 2, 3, 5, 6, 7, 8, 9, 10],
+                  3: list(range(1, 11)),
+                  4: list(range(1, 11)),
+                  5: list(range(1, 11)),
+                  6: list(range(1, 11)),
+                  7: list(range(1, 12)),
+                  8: list(range(1, 12)),
+              }
+
+              verified_cells = []
+              for location in range(1, 29):
+                  indexes = early_indexes.get(location, list(range(1, 13)))
+                  verified_cells.extend((location, item_index) for item_index in indexes)
+
+              for location, item_index in verified_cells:
+                  column = item_index - 1
+                  row = location - 1
+                  box = (
+                      column * weapon_cell_width,
+                      row * weapon_cell_height,
+                      (column + 1) * weapon_cell_width,
+                      (row + 1) * weapon_cell_height,
+                  )
+                  assert_non_uniform(
+                      weapon_atlas.crop(box), f"weapon L{location}:{item_index}"
+                  )
+
+          guide_location_artwork = mini_app / "src/ui/guides/guideLocationArtwork.ts"
+          guide_location_artwork.write_text(
+              '''import type { CSSProperties } from "react"\n\nconst LOCATION_ATLAS_URL = "/guides/locations/location-atlas.webp"\nconst LOCATION_IDS = [-1, 0, ...Array.from({ length: 28 }, (_, index) => index + 1)]\nconst ATLAS_COLUMNS = 5\nconst ATLAS_ROWS = 6\n\nexport function guideLocationArtworkStyle(locationId: number): CSSProperties | undefined {\n  const index = LOCATION_IDS.indexOf(locationId)\n\n  if (index < 0) {\n    return undefined\n  }\n\n  const column = index % ATLAS_COLUMNS\n  const row = Math.floor(index / ATLAS_COLUMNS)\n  const horizontalPosition = (column / (ATLAS_COLUMNS - 1)) * 100\n  const verticalPosition = (row / (ATLAS_ROWS - 1)) * 100\n\n  return {\n    backgroundImage: `url(${LOCATION_ATLAS_URL})`,\n    backgroundPosition: `${horizontalPosition}% ${verticalPosition}%`,\n    backgroundRepeat: "no-repeat",\n    backgroundSize: `${ATLAS_COLUMNS * 100}% ${ATLAS_ROWS * 100}%`,\n  }\n}\n'''
+          )
+
+          locations_page_path = mini_app / "src/ui/guides/GuideLocationsPage.tsx"
+          locations_page = locations_page_path.read_text()
+          locations_page = locations_page.replace(
+              'import { GUIDE_DUMP_LOCATION_BY_ID } from "./guideLocationDumpData"\n',
+              'import { GUIDE_DUMP_LOCATION_BY_ID } from "./guideLocationDumpData"\n'
+              'import { guideLocationArtworkStyle } from "./guideLocationArtwork"\n',
+          )
+          locations_page = locations_page.replace(
+              '  const detailsAvailable = dump?.detailsAvailable ?? false\n\n  return (',
+              '  const detailsAvailable = dump?.detailsAvailable ?? false\n'
+              '  const artworkStyle = guideLocationArtworkStyle(location.id)\n\n'
+              '  return (',
+          )
+          old_index_art = '''      <img\n        className="guide-location-index-card__banner"\n        src={location.artworkUrl}\n        alt=""\n        loading="eager"\n        decoding="async"\n        aria-hidden="true"\n      />'''
+          new_index_art = '''      <span\n        className="guide-location-index-card__banner guide-location-atlas-artwork"\n        style={artworkStyle}\n        aria-hidden="true"\n      />'''
+          if old_index_art not in locations_page:
+              raise SystemExit("GuideLocationsPage index banner source pattern was not found")
+          locations_page = locations_page.replace(old_index_art, new_index_art)
+          locations_page_path.write_text(locations_page)
+
+          detail_path = mini_app / "src/ui/guides/GuideLocationDetail.tsx"
+          detail = detail_path.read_text()
+          detail = detail.replace(
+              'import { guideLocationUiText } from "./guideLocationUiText"\n',
+              'import { guideLocationArtworkStyle } from "./guideLocationArtwork"\n'
+              'import { guideLocationUiText } from "./guideLocationUiText"\n',
+          )
+          detail = detail.replace(
+              '  const confirmedNpcs = location.npcs.filter((npc) => localizationKeyExists(npc.nameKey, catalogs))\n',
+              '  const confirmedNpcs = location.npcs.filter((npc) => localizationKeyExists(npc.nameKey, catalogs))\n'
+              '  const locationArtworkStyle = guideLocationArtworkStyle(location.id)\n',
+          )
+          old_hero_art = '        <img src={location.artworkUrl} alt="" aria-hidden="true" />'
+          new_hero_art = '''        <span\n          className="guide-location-hero__artwork guide-location-atlas-artwork"\n          style={locationArtworkStyle}\n          aria-hidden="true"\n        />'''
+          if old_hero_art not in detail:
+              raise SystemExit("GuideLocationDetail hero source pattern was not found")
+          detail = detail.replace(old_hero_art, new_hero_art)
+          detail_path.write_text(detail)
+
+          location_test = mini_app / "src/ui/guides/guideLocationArtwork.test.ts"
+          location_test.write_text(
+              '''import { describe, expect, it } from "vitest"\nimport { guideLocationArtworkStyle } from "./guideLocationArtwork"\n\nconst LOCATION_IDS = [-1, 0, ...Array.from({ length: 28 }, (_, index) => index + 1)]\n\ndescribe("guide location atlas artwork", () => {\n  it("maps both special zones and every numbered location to one full atlas", () => {\n    const styles = LOCATION_IDS.map((locationId) => guideLocationArtworkStyle(locationId))\n\n    expect(styles).toHaveLength(30)\n    expect(styles.every(Boolean)).toBe(true)\n    expect(new Set(styles.map((style) => style?.backgroundImage))).toEqual(\n      new Set(["url(/guides/locations/location-atlas.webp)"]),\n    )\n    expect(new Set(styles.map((style) => style?.backgroundPosition))).toHaveLength(30)\n    expect(styles.every((style) => style?.backgroundSize === "500% 600%")).toBe(true)\n  })\n\n  it("rejects location ids outside the atlas", () => {\n    expect(guideLocationArtworkStyle(-2)).toBeUndefined()\n    expect(guideLocationArtworkStyle(29)).toBeUndefined()\n  })\n})\n'''
+          )
+
+          binary_test = mini_app / "src/ui/guides/guideAtlasBinary.test.js"
+          binary_test.write_text(
+              '''import { readFileSync } from "node:fs"\nimport { describe, expect, it } from "vitest"\n\nfunction ascii(bytes, offset, length) {\n  return String.fromCharCode(...bytes.subarray(offset, offset + length))\n}\n\nfunction uint16le(bytes, offset) {\n  return bytes[offset] + bytes[offset + 1] * 256\n}\n\nfunction uint24le(bytes, offset) {\n  return bytes[offset] + bytes[offset + 1] * 256 + bytes[offset + 2] * 65536\n}\n\nfunction uint32le(bytes, offset) {\n  return (\n    bytes[offset] +\n    bytes[offset + 1] * 256 +\n    bytes[offset + 2] * 65536 +\n    bytes[offset + 3] * 16777216\n  )\n}\n\nfunction readWebp(url) {\n  const bytes = readFileSync(url)\n\n  if (ascii(bytes, 0, 4) !== "RIFF" || ascii(bytes, 8, 4) !== "WEBP") {\n    throw new Error(`Not a RIFF WebP: ${url}`)\n  }\n\n  const declaredLength = uint32le(bytes, 4) + 8\n  if (declaredLength !== bytes.length) {\n    throw new Error(`Truncated WebP: ${url}; declared=${declaredLength}, actual=${bytes.length}`)\n  }\n\n  let offset = 12\n  while (offset + 8 <= bytes.length) {\n    const chunkType = ascii(bytes, offset, 4)\n    const chunkLength = uint32le(bytes, offset + 4)\n    const payload = offset + 8\n\n    if (chunkType === "VP8X") {\n      return {\n        width: uint24le(bytes, payload + 4) + 1,\n        height: uint24le(bytes, payload + 7) + 1,\n        length: bytes.length,\n      }\n    }\n\n    if (chunkType === "VP8 ") {\n      if (bytes[payload + 3] !== 0x9d || bytes[payload + 4] !== 0x01 || bytes[payload + 5] !== 0x2a) {\n        throw new Error(`Invalid VP8 keyframe header: ${url}`)\n      }\n\n      return {\n        width: uint16le(bytes, payload + 6) & 0x3fff,\n        height: uint16le(bytes, payload + 8) & 0x3fff,\n        length: bytes.length,\n      }\n    }\n\n    if (chunkType === "VP8L") {\n      if (bytes[payload] !== 0x2f) {\n        throw new Error(`Invalid VP8L signature: ${url}`)\n      }\n\n      const packed = uint32le(bytes, payload + 1)\n      return {\n        width: (packed & 0x3fff) + 1,\n        height: ((packed >>> 14) & 0x3fff) + 1,\n        length: bytes.length,\n      }\n    }\n\n    offset = payload + chunkLength + (chunkLength % 2)\n  }\n\n  throw new Error(`WebP image payload not found: ${url}`)\n}\n\nconst LOCATION_ATLAS = new URL("../../../public/guides/locations/location-atlas.webp", import.meta.url)\nconst NPC_ATLAS = new URL("../../../public/guides/entities/npc-atlas.webp", import.meta.url)\nconst WEAPON_ATLAS = new URL("../../../public/guides/entities/weapon-atlas.webp", import.meta.url)\n\ndescribe("guide atlas binaries", () => {\n  it("keeps the complete 5x6 location atlas", () => {\n    const atlas = readWebp(LOCATION_ATLAS)\n\n    expect([atlas.width, atlas.height]).toEqual([2560, 1536])\n    expect(atlas.length).toBeGreaterThan(1024)\n  })\n\n  it("keeps the complete 2x28 NPC atlas", () => {\n    const atlas = readWebp(NPC_ATLAS)\n\n    expect([atlas.width, atlas.height]).toEqual([48, 672])\n    expect(atlas.width / 2).toBe(atlas.height / 28)\n  })\n\n  it("keeps the weapon atlas aligned to a 12x28 square-cell grid", () => {\n    const atlas = readWebp(WEAPON_ATLAS)\n    const cellWidth = atlas.width / 12\n    const cellHeight = atlas.height / 28\n\n    expect(Number.isInteger(cellWidth)).toBe(true)\n    expect(Number.isInteger(cellHeight)).toBe(true)\n    expect(cellWidth).toBeGreaterThan(0)\n    expect(cellWidth).toBe(cellHeight)\n  })\n})\n'''
+          )
+
+          css_path = mini_app / "src/ui/guides/guides-source-fix.css"
+          css = css_path.read_text()
+          marker = "/* Full 30-cell location atlas runtime. */"
+          if marker not in css:
+              css += '''\n\n/* Full 30-cell location atlas runtime. */\n.guide-location-index-card--redesign > .guide-location-index-card__banner.guide-location-atlas-artwork {\n  display: block;\n  width: 100%;\n  height: auto;\n  min-height: 0;\n  aspect-ratio: 2 / 1;\n  padding: 0;\n  border: 0;\n  background-color: #0b100a;\n  transform-origin: center;\n  transition: transform 180ms ease;\n}\n\n.guide-location-index-card--redesign:hover\n  > .guide-location-index-card__banner.guide-location-atlas-artwork {\n  transform: scale(1.018);\n}\n\n.guide-location-hero--redesign {\n  min-height: 0;\n  aspect-ratio: 2 / 1;\n}\n\n.guide-location-hero--redesign > .guide-location-hero__artwork.guide-location-atlas-artwork {\n  position: absolute;\n  inset: 0;\n  display: block;\n  width: 100%;\n  height: 100%;\n  background-color: #0b100a;\n}\n'''
+          css_path.write_text(css)
+
+          remaining_runtime_refs = []
+          for source_path in [locations_page_path, detail_path]:
+              if "location.artworkUrl" in source_path.read_text():
+                  remaining_runtime_refs.append(str(source_path))
+          if remaining_runtime_refs:
+              raise SystemExit(f"individual location artwork remains in runtime: {remaining_runtime_refs}")
+
+          print(f"built {atlas_path}: {atlas_path.stat().st_size} bytes, 2560x1536, 30 cells")
+          print("validated NPC atlas: 48x672, all 56 cells non-uniform")
+          print(
+              f"validated weapon atlas: {weapon_atlas.width}x{weapon_atlas.height}, "
+              f"cell={weapon_cell_width}px, verified cells={len(verified_cells)}"
+          )
+          PY
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: apps/mini-app/.node-version
+          cache: npm
+          cache-dependency-path: apps/mini-app/package-lock.json
+
+      - name: Verify corrected Mini App locally in runner
+        working-directory: apps/mini-app
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run format
+          npm run lint
+          npm test
+          npm run build
+
+      - name: Commit finalized atlas and runtime changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git rm .github/workflows/finalize-guide-location-atlas.yml
+          git add \
+            apps/mini-app/public/guides/locations/location-atlas.webp \
+            apps/mini-app/src/ui/guides/GuideLocationDetail.tsx \
+            apps/mini-app/src/ui/guides/GuideLocationsPage.tsx \
+            apps/mini-app/src/ui/guides/guideLocationArtwork.ts \
+            apps/mini-app/src/ui/guides/guideLocationArtwork.test.ts \
+            apps/mini-app/src/ui/guides/guideAtlasBinary.test.js \
+            apps/mini-app/src/ui/guides/guides-source-fix.css
+
+          git commit -m "Use complete Guide location atlas for hero banners"
+          git push origin HEAD:fix/guides-full-location-atlas
