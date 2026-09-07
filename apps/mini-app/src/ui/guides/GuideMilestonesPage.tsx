@@ -57,10 +57,7 @@ function GuideDungeonsPage({
     <div className="screen guides-screen guide-milestones-screen guide-dungeons-screen guide-dungeons-screen--redesign">
       <PageHeader title={ui.dungeons} eyebrow={ui.dungeonMilestones} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--dungeons">
-        <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/guides-explorer.svg" alt="" />
-        </div>
+      <section className="guide-section-intro guide-section-intro--dungeons">
         <span>
           <small>{ui.dungeonDifficultyRange}</small>
           <strong>{ui.dungeons}</strong>
@@ -84,12 +81,8 @@ function GuideDungeonsPage({
               aria-pressed={selected}
               onClick={() => setActiveType(dungeon.type)}
             >
-              <span className="guide-dungeon-selector__art" aria-hidden="true">
-                <img src="/ui-illustrations/guides-explorer.svg" alt="" />
-              </span>
               <span className="guide-dungeon-selector__copy">
                 <strong>{text(`sao.dungeon.${dungeon.type}.name`)}</strong>
-                <small>{text(`sao.dungeon.${dungeon.type}.description`)}</small>
               </span>
               <b>{GUIDE_DUNGEON_MILESTONES[dungeon.type].length}</b>
             </button>
@@ -101,9 +94,6 @@ function GuideDungeonsPage({
         className={`guide-dungeon-detail guide-dungeon-detail--${activeDungeon.tone} guide-dungeon-detail--redesign`}
       >
         <header className="guide-dungeon-detail__header">
-          <span className="guide-dungeon-detail__illustration" aria-hidden="true">
-            <img src="/ui-illustrations/guides-explorer.svg" alt="" />
-          </span>
           <span>
             <strong>{dungeonName}</strong>
             <small>{dungeonDescription}</small>
@@ -139,10 +129,7 @@ function GuideCasesPage({ ui, back }: { ui: GuideUi; back: () => void }) {
     <div className="screen guides-screen guide-milestones-screen guide-cases-screen guide-cases-screen--redesign">
       <PageHeader title={ui.cases} eyebrow={ui.caseOpened} back={back} />
 
-      <section className="guide-context-hero guide-context-hero--cases">
-        <div className="guide-context-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
-        </div>
+      <section className="guide-section-intro guide-section-intro--cases">
         <span>
           <small>{ui.caseOpened}</small>
           <strong>{ui.cases}</strong>
