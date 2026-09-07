@@ -7,11 +7,13 @@ on:
     paths:
       - "apps/mini-app/**"
       - "scripts/verify-mini-app-security-headers.sh"
+      - "scripts/verify-guide-assets.mjs"
       - ".github/workflows/mini-app.yml"
   pull_request:
     paths:
       - "apps/mini-app/**"
       - "scripts/verify-mini-app-security-headers.sh"
+      - "scripts/verify-guide-assets.mjs"
       - ".github/workflows/mini-app.yml"
 
 concurrency:
@@ -67,6 +69,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Verify Guide binary assets
+        working-directory: .
+        run: |
+          node scripts/verify-guide-assets.mjs apps/mini-app/public/guides
+          node scripts/verify-guide-assets.mjs apps/mini-app/dist/guides
 
       - name: Verify browser security headers
         working-directory: .
