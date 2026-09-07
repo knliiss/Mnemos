@@ -4,8 +4,7 @@ import { guideMobArtworkStyle } from "./guideMobArtwork"
 describe("Guide mob artwork", () => {
   it("maps early dump mobs to the verified source artwork", () => {
     expect(guideMobArtworkStyle("sao.mob.mob1_1.name")).toMatchObject({
-      backgroundImage:
-        "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob1_1.png)",
+      backgroundImage: "url(https://storage.c7x.dev/butowka/sao/global/img/mob/mob1_1.png)",
       backgroundPosition: "center",
       backgroundSize: "contain",
     })
