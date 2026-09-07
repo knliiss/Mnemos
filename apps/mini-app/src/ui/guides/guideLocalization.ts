@@ -1,3 +1,4 @@
+import { getSaoLocalization, listSaoLocalizations } from "@/shared/api/saoLocalizationApi"
 import { useEffect, useMemo, useState } from "react"
 import { GUIDE_NPC_ROLE_KEYS, type GuideLocation } from "./guideCatalog"
 import { GUIDE_CRITICAL_CATALOGS } from "./guideCriticalCatalogs"
@@ -7,21 +8,6 @@ import { GUIDE_INTERFACE_CATALOGS } from "./guideInterfaceCatalogs"
 
 export type SaoCatalogs = Record<string, Record<string, string>>
 
-type LocalizationIndex = {
-  langs?: Array<{
-    lang?: string
-    pies?: Array<{
-      pieKey?: string
-      url?: string
-    }>
-  }>
-}
-
-type LocalizationPie = {
-  properties?: Record<string, string>
-}
-
-const LANGUAGE_INDEX_URL = "https://webdata.c7x.dev/client/lang.json"
 const BUNDLED_CATALOGS = mergeCatalogs(
   mergeCatalogs(
     {
@@ -110,7 +96,7 @@ export function localizationKeyMatchesQuery(
   key: string,
   query: string,
   catalogs: SaoCatalogs,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ) {
   const normalizedQuery = normalizeGuideSearchText(query)
 
@@ -214,39 +200,11 @@ async function loadRemoteSaoCatalogs() {
 }
 
 async function fetchRemoteSaoCatalogs(): Promise<SaoCatalogs> {
-  const indexResponse = await fetch(LANGUAGE_INDEX_URL, {
-    cache: "no-store",
-    credentials: "omit",
-  })
-
-  if (!indexResponse.ok) {
-    return {}
-  }
-
-  const index = (await indexResponse.json()) as LocalizationIndex
-  const saoPies = (index.langs ?? []).flatMap((language) => {
-    const saoPie = language.pies?.find((pie) => pie.pieKey === "sao")
-
-    if (!language.lang || !saoPie?.url) {
-      return []
-    }
-
-    return [{ language: language.lang, url: saoPie.url }]
-  })
+  const summaries = await listSaoLocalizations()
   const results = await Promise.allSettled(
-    saoPies.map(async ({ language, url }) => {
-      const response = await fetch(url, {
-        cache: "force-cache",
-        credentials: "omit",
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to load SAO localization ${language}`)
-      }
-
-      const pie = (await response.json()) as LocalizationPie
-
-      return [language, pie.properties ?? {}] as const
+    summaries.map(async ({ locale }) => {
+      const pack = await getSaoLocalization(locale)
+      return [locale, pack.properties] as const
     }),
   )
 

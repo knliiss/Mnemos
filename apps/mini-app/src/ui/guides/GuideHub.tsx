@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react"
 import { GUIDE_LOCATIONS } from "./guideCatalog"
+import { GUIDE_DUMP_LOCATIONS } from "./guideLocationDumpData"
 import {
   localizationKeyMatchesQuery,
   locationMatchesQuery,
   type SaoCatalogs,
 } from "./guideLocalization"
 import { mechanicMatchesQuery, verifiedGuideMechanics } from "./guideMechanics"
+import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 import { guideUiText } from "./guideUiText"
 
-export type GuideHubSection = "locations" | "rebirth" | "dungeons" | "cases" | "mechanics"
+export type GuideHubSection = "locations" | "dungeons" | "mechanics"
 
 type Props = {
   ui: ReturnType<typeof guideUiText>
@@ -17,7 +19,6 @@ type Props = {
   back: () => void
   openSection: (section: GuideHubSection) => void
   openLocation: (locationId: number) => void
-  openRank: (rank: number) => void
 }
 
 type HubSearchResult = {
@@ -35,7 +36,7 @@ const DUNGEONS = [
   { type: "INSANE", searchAliases: ["EP"] },
 ] as const
 
-export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, openRank }: Props) {
+export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }: Props) {
   const [query, setQuery] = useState("")
   const normalizedQuery = query.trim()
   const verifiedMechanics = useMemo(() => verifiedGuideMechanics(catalogs), [catalogs])
@@ -44,7 +45,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       normalizedQuery
         ? GUIDE_LOCATIONS.filter((location) =>
             locationMatchesQuery(location, query, catalogs),
-          ).slice(0, 6)
+          ).slice(0, 8)
         : [],
     [catalogs, normalizedQuery, query],
   )
@@ -63,7 +64,30 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
           `ранг ${rank}`,
         ]),
       )
+      .map((rank) => ({ rank, locationId: locationForRank(rank) }))
+      .filter(
+        (result): result is { rank: number; locationId: number } => result.locationId !== null,
+      )
       .slice(0, 6)
+  }, [catalogs, normalizedQuery, query])
+  const caseResults = useMemo(() => {
+    if (!normalizedQuery) {
+      return []
+    }
+
+    return GUIDE_DUMP_LOCATIONS.flatMap((location) =>
+      location.cases.flatMap((caseData) =>
+        localizationKeyMatchesQuery(caseData.key, query, catalogs, [
+          "case",
+          "cases",
+          "кейс",
+          "кейсы",
+          "кейси",
+        ])
+          ? [{ locationId: location.id, key: caseData.key }]
+          : [],
+      ),
+    ).slice(0, 6)
   }, [catalogs, normalizedQuery, query])
   const dungeonResults = useMemo(() => {
     if (!normalizedQuery) {
@@ -71,24 +95,9 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
     }
 
     return DUNGEONS.filter(({ type, searchAliases }) =>
-      localizationKeyMatchesQuery(`sao.dungeon.${type}.name`, query, catalogs, [...searchAliases]),
+      localizationKeyMatchesQuery(`sao.dungeon.${type}.name`, query, catalogs, searchAliases),
     )
   }, [catalogs, normalizedQuery, query])
-  const caseMatches = useMemo(
-    () =>
-      normalizedQuery
-        ? ["sao.ui.case_pet_name", "sao.ui.case_aura_name", "sao.ui.case_shard_name"].some((key) =>
-            localizationKeyMatchesQuery(key, query, catalogs, [
-              "case",
-              "cases",
-              "кейс",
-              "кейсы",
-              "кейси",
-            ]),
-          )
-        : false,
-    [catalogs, normalizedQuery, query],
-  )
   const mechanicResults = useMemo(
     () =>
       normalizedQuery
@@ -111,13 +120,26 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       })
     }
 
-    for (const rank of rankResults) {
+    for (const { rank, locationId } of rankResults) {
       results.push({
         key: `rank-${rank}`,
-        kind: ui.rank,
+        kind: ui.rebirth,
         title: text(`sao.rebirth.${rank}.name`),
-        meta: `#${rank}`,
-        onOpen: () => openRank(rank),
+        meta: `${ui.location} #${locationId}`,
+        onOpen: () => openLocation(locationId),
+      })
+    }
+
+    for (const caseResult of caseResults) {
+      results.push({
+        key: `${caseResult.locationId}-${caseResult.key}`,
+        kind: ui.cases,
+        title: text(caseResult.key),
+        meta:
+          caseResult.locationId > 0
+            ? `${ui.location} #${caseResult.locationId}`
+            : text(`sao.location.${caseResult.locationId}.name`),
+        onOpen: () => openLocation(caseResult.locationId),
       })
     }
 
@@ -141,24 +163,13 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       })
     }
 
-    if (caseMatches) {
-      results.push({
-        key: "cases",
-        kind: ui.cases,
-        title: ui.cases,
-        meta: "25 → 5M",
-        onOpen: () => openSection("cases"),
-      })
-    }
-
-    return results.slice(0, 12)
+    return results.slice(0, 14)
   }, [
-    caseMatches,
+    caseResults,
     dungeonResults,
     locationResults,
     mechanicResults,
     openLocation,
-    openRank,
     openSection,
     rankResults,
     text,
@@ -166,22 +177,16 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
   ])
 
   return (
-    <div className="screen guides-screen guides-hub-screen">
+    <div className="screen guides-screen guides-hub-screen guides-hub-screen--rebuild">
       <GuideHubHeader title={ui.title} back={back} backLabel={ui.back} />
 
-      <section className="guides-hero guides-hero--hub">
-        <div className="guides-hero__mascot" aria-hidden="true">
-          <img src="/ui-illustrations/guides-cartographer.svg" alt="" />
-        </div>
-
-        <div className="guides-hero__copy">
-          <small>{ui.eyebrow}</small>
-          <strong>{ui.heroTitle}</strong>
-          <p>{ui.heroCopy}</p>
-        </div>
+      <section className="guides-hub-intro guides-hub-intro--rebuild">
+        <small>{ui.eyebrow}</small>
+        <strong>{ui.heroTitle}</strong>
+        <p>{ui.heroCopy}</p>
       </section>
 
-      <label className="guides-search guides-search--hub">
+      <label className="guides-search guides-search--hub guides-search--rebuild">
         <span className="guides-search__mark" aria-hidden="true" />
         <input
           type="search"
@@ -203,7 +208,7 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
       </label>
 
       {normalizedQuery ? (
-        <section className="guide-hub-search-results">
+        <section className="guide-hub-search-results guide-hub-search-results--rebuild">
           {searchResults.map((result) => (
             <button key={result.key} type="button" onClick={result.onOpen}>
               <span className="guide-hub-search-results__kind">{result.kind}</span>
@@ -220,38 +225,20 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
           ) : null}
         </section>
       ) : (
-        <section className="guide-hub-grid">
+        <section className="guide-hub-grid guide-hub-grid--location-centric">
           <GuideHubCard
             tone="locations"
             title={ui.locations}
             copy={ui.locationsCopy}
             meta={`${GUIDE_LOCATIONS.length}`}
-            illustration="/ui-illustrations/guides-cartographer.svg"
             onClick={() => openSection("locations")}
-          />
-          <GuideHubCard
-            tone="rebirth"
-            title={ui.rebirth}
-            copy={ui.rebirthCopy}
-            meta="1 → 68"
-            illustration="/ui-illustrations/guides-trainer.svg"
-            onClick={() => openSection("rebirth")}
           />
           <GuideHubCard
             tone="dungeons"
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
             meta={`${DUNGEONS.length}`}
-            illustration="/ui-illustrations/guides-explorer.svg"
             onClick={() => openSection("dungeons")}
-          />
-          <GuideHubCard
-            tone="cases"
-            title={ui.cases}
-            copy={ui.casesCopy}
-            meta="25 → 5M"
-            illustration="/ui-illustrations/account-activity.svg"
-            onClick={() => openSection("cases")}
           />
           {verifiedMechanics.length ? (
             <GuideHubCard
@@ -259,7 +246,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation, 
               title={ui.mechanics}
               copy={ui.mechanicsCopy}
               meta={`${verifiedMechanics.length}`}
-              illustration="/ui-illustrations/account-settings.svg"
               onClick={() => openSection("mechanics")}
             />
           ) : null}
@@ -274,26 +260,34 @@ function GuideHubCard({
   title,
   copy,
   meta,
-  illustration,
   onClick,
 }: {
   tone: GuideHubSection
   title: string
   copy: string
   meta: string
-  illustration: string
   onClick: () => void
 }) {
   return (
-    <button type="button" className={`guide-hub-card guide-hub-card--${tone}`} onClick={onClick}>
-      <span className="guide-hub-card__art" aria-hidden="true">
-        <img src={illustration} alt="" />
-        <i>{meta}</i>
+    <button
+      type="button"
+      className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--rebuild`}
+      onClick={onClick}
+    >
+      <span
+        className={`guide-hub-card__diagram guide-hub-card__diagram--${tone}`}
+        aria-hidden="true"
+      >
+        <i />
+        <i />
+        <i />
+        <i />
       </span>
       <span className="guide-hub-card__copy">
         <strong>{title}</strong>
         <small>{copy}</small>
       </span>
+      <span className="guide-hub-card__meta">{meta}</span>
       <span className="guide-hub-card__open" aria-hidden="true">
         ›
       </span>
@@ -311,14 +305,21 @@ function GuideHubHeader({
   backLabel: string
 }) {
   return (
-    <header className="guides-page-header">
+    <header className="guides-page-header guides-page-header--plain">
       <button type="button" onClick={back} aria-label={backLabel}>
         <span aria-hidden="true">‹</span>
       </button>
       <strong>{title}</strong>
-      <span className="guides-page-header__sigil" aria-hidden="true">
-        SAO
-      </span>
+      <span aria-hidden="true" />
     </header>
   )
+}
+
+function locationForRank(rank: number) {
+  if (rank === 68) {
+    return 28
+  }
+
+  const step = GUIDE_REBIRTH_STEPS.find((candidate) => candidate.rank === rank)
+  return step?.location ?? null
 }

@@ -4,7 +4,6 @@ import { GuideHub, type GuideHubSection } from "./GuideHub"
 import { GuideLocationsPage } from "./GuideLocationsPage"
 import { GuideMechanicsPage } from "./GuideMechanicsPage"
 import { GuideMilestonesPage } from "./GuideMilestonesPage"
-import { GuideRebirthPage } from "./GuideRebirthPage"
 import { useSaoGuideLocalization } from "./guideLocalization"
 import { guideUiText } from "./guideUiText"
 import "./guide-location-entities.css"
@@ -13,6 +12,8 @@ import "./guides.css"
 import "./guides-sections.css"
 import "./guides-accessibility.css"
 import "./guides-redesign.css"
+import "./guides-location-rebuild.css"
+import "./guides-hub-rebuild.css"
 
 type Props = {
   back: () => void
@@ -26,7 +27,6 @@ export function GuidesPage({ back }: Props) {
   const localization = useSaoGuideLocalization(i18n.resolvedLanguage)
   const [view, setView] = useState<GuideView>("hub")
   const [initialLocationId, setInitialLocationId] = useState<number | null>(null)
-  const [initialRank, setInitialRank] = useState<number | null>(null)
 
   if (view === "locations") {
     return (
@@ -37,20 +37,6 @@ export function GuidesPage({ back }: Props) {
         initialLocationId={initialLocationId}
         back={() => {
           setInitialLocationId(null)
-          setView("hub")
-        }}
-      />
-    )
-  }
-
-  if (view === "rebirth") {
-    return (
-      <GuideRebirthPage
-        ui={ui}
-        text={localization.text}
-        initialCurrentRank={initialRank}
-        back={() => {
-          setInitialRank(null)
           setView("hub")
         }}
       />
@@ -68,10 +54,10 @@ export function GuidesPage({ back }: Props) {
     )
   }
 
-  if (view === "dungeons" || view === "cases") {
+  if (view === "dungeons") {
     return (
       <GuideMilestonesPage
-        kind={view}
+        kind="dungeons"
         ui={ui}
         text={localization.text}
         back={() => setView("hub")}
@@ -89,10 +75,6 @@ export function GuidesPage({ back }: Props) {
       openLocation={(locationId) => {
         setInitialLocationId(locationId)
         setView("locations")
-      }}
-      openRank={(rank) => {
-        setInitialRank(Math.min(rank, 67))
-        setView("rebirth")
       }}
     />
   )
