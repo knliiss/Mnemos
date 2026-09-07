@@ -8,6 +8,7 @@ import {
   type GuideMechanicChapter,
 } from "./guideMechanics"
 import type { SaoCatalogs } from "./guideLocalization"
+import { GuideSearch } from "./GuideSearch"
 import { guideUiText } from "./guideUiText"
 
 type Props = {
@@ -47,51 +48,41 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
   )
 
   return (
-    <div className="screen guides-screen guide-mechanics-screen">
+    <div className="screen guides-screen guide-mechanics-screen guide-mechanics-screen--redesign">
       <PageHeader title={ui.mechanics} eyebrow={ui.mechanicsEyebrow} back={back} />
 
       <section className="guide-context-hero guide-context-hero--mechanics">
         <div className="guide-context-hero__mascot" aria-hidden="true">
+          <span className="guide-context-hero__orbit" />
           <img src="/ui-illustrations/mnemos-mascot-cat.svg" alt="" />
         </div>
         <span>
           <strong>{ui.mechanics}</strong>
           <p>{ui.mechanicsCopy}</p>
         </span>
+        <b>{verifiedMechanics.length}</b>
       </section>
 
-      <label className="guides-search guides-search--app-pattern">
-        <span className="guides-search__mark" aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onInput={(event) => setQuery(event.currentTarget.value)}
-          placeholder={ui.mechanicsSearchPlaceholder}
-          aria-label={ui.mechanicsSearchPlaceholder}
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          enterKeyHint="search"
-        />
-        {query ? (
-          <button type="button" onClick={() => setQuery("")} aria-label={ui.clearSearch}>
-            ×
-          </button>
-        ) : null}
-      </label>
+      <GuideSearch
+        value={query}
+        placeholder={ui.mechanicsSearchPlaceholder}
+        clearLabel={ui.clearSearch}
+        onChange={setQuery}
+      />
 
       {grouped.length ? (
-        <div className="guide-mechanics-chapters">
+        <div className="guide-mechanics-chapters guide-mechanics-chapters--redesign">
           {grouped.map(({ chapter, mechanics: chapterMechanics }) => (
-            <section key={chapter} className="guide-mechanics-chapter">
+            <section key={chapter} className="guide-mechanics-chapter guide-mechanics-chapter--redesign">
               <header>
-                <small>{ui.mechanicsEyebrow}</small>
-                <strong>{text(GUIDE_MECHANIC_CHAPTER_KEYS[chapter])}</strong>
+                <span>
+                  <small>{ui.mechanicsEyebrow}</small>
+                  <strong>{text(GUIDE_MECHANIC_CHAPTER_KEYS[chapter])}</strong>
+                </span>
                 <b>{chapterMechanics.length}</b>
               </header>
 
-              <div className="guide-mechanics-list">
+              <div className="guide-mechanics-list guide-mechanics-list--redesign">
                 {chapterMechanics.map((mechanic) => (
                   <GuideMechanicCard key={mechanic.id} mechanic={mechanic} text={text} ui={ui} />
                 ))}
@@ -100,7 +91,7 @@ export function GuideMechanicsPage({ ui, catalogs, text, back }: Props) {
           ))}
         </div>
       ) : (
-        <section className="guides-empty">
+        <section className="guides-empty guides-empty--mechanics">
           <img src="/ui-illustrations/account-guides.svg" alt="" aria-hidden="true" />
           <strong>{ui.noResults}</strong>
           <small>{ui.mechanicsNoResultsCopy}</small>
@@ -120,7 +111,7 @@ function GuideMechanicCard({
   ui: ReturnType<typeof guideUiText>
 }) {
   return (
-    <article className="guide-mechanic-card guide-mechanic-card--content-first">
+    <article className="guide-mechanic-card guide-mechanic-card--redesign">
       <div className="guide-mechanic-card__body">
         <strong>{text(mechanic.titleKey)}</strong>
         <p>{text(mechanic.textKey)}</p>
