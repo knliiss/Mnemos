@@ -1,0 +1,32 @@
+.guide-location-index-card--redesign .guide-location-index-card__banner,
+.guide-location-hero--redesign {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(203, 255, 45, 0.035), transparent 70%),
+    #090d09;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner img,
+.guide-location-hero--redesign > img {
+  object-fit: contain;
+  object-position: center center;
+}
+
+.guide-location-index-card--redesign .guide-location-index-card__banner::after {
+  background: linear-gradient(90deg, transparent 64%, rgba(9, 12, 9, 0.72));
+}
+
+.guide-location-npc-card__fallback,
+.guide-mob-card__summary--no-art .guide-mob-card__fallback {
+  display: none;
+}
+
+.guide-location-npc-card--redesign:has(.guide-location-npc-card__fallback) {
+  grid-template-columns: minmax(0, 1fr);
+  padding-left: 12px;
+}
+
+@media (max-width: 560px) {
+  .guide-location-index-card--redesign .guide-location-index-card__banner::after {
+    background: linear-gradient(0deg, rgba(9, 12, 9, 0.48), transparent 58%);
+  }
+}
