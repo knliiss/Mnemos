@@ -5,7 +5,7 @@ import { resolveSaoText } from "./guideLocalization"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 
 describe("guide source-backed artwork", () => {
-  it("maps raid and quest NPC portraits across the 28 numbered locations", () => {
+  it("maps only NPC portraits that exist in the resource pack", () => {
     expect(guideNpcArtworkStyle(1, "RAID_JOIN")).toMatchObject({
       backgroundPosition: "0px 0px",
       backgroundSize: "152px 2128px",
@@ -13,8 +13,13 @@ describe("guide source-backed artwork", () => {
     expect(guideNpcArtworkStyle(1, "QUEST")).toMatchObject({
       backgroundPosition: "-76px 0px",
     })
-    expect(guideNpcArtworkStyle(28, "QUEST")).toMatchObject({
-      backgroundPosition: "-76px -2052px",
+    expect(guideNpcArtworkStyle(26, "QUEST")).toMatchObject({
+      backgroundPosition: "-76px -1900px",
+    })
+    expect(guideNpcArtworkStyle(27, "QUEST")).toBeUndefined()
+    expect(guideNpcArtworkStyle(28, "QUEST")).toBeUndefined()
+    expect(guideNpcArtworkStyle(28, "RAID_JOIN")).toMatchObject({
+      backgroundPosition: "0px -2052px",
     })
     expect(guideNpcArtworkStyle(0, "QUEST")).toBeUndefined()
     expect(guideNpcArtworkStyle(29, "RAID_JOIN")).toBeUndefined()
