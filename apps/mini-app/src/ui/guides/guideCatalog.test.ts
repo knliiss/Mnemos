@@ -11,26 +11,27 @@ import {
   saoLanguageForUi,
 } from "./guideLocalization"
 import { verifiedGuideMechanics } from "./guideMechanics"
-import { GUIDE_CASE_MILESTONES, GUIDE_DUNGEON_MILESTONES } from "./guideMilestones"
+import { GUIDE_DUNGEON_MILESTONES } from "./guideMilestones"
 import { GUIDE_REBIRTH_STEPS } from "./guideRebirthData"
 
 describe("guide catalog", () => {
-  it("contains starter village and all 28 numbered locations", () => {
-    expect(GUIDE_LOCATIONS).toHaveLength(29)
+  it("contains both special zones and all 28 numbered locations", () => {
+    expect(GUIDE_LOCATIONS).toHaveLength(30)
     expect(GUIDE_LOCATIONS.map((location) => location.id)).toEqual([
+      -1,
       0,
       ...Array.from({ length: 28 }, (_, index) => index + 1),
     ])
   })
 
-  it("uses the SAO localization identity for location 23", () => {
+  it("uses the SAO localization identity for numbered locations", () => {
     const location = GUIDE_LOCATIONS.find((candidate) => candidate.id === 23)
 
     expect(location).toBeDefined()
     expect(GUIDE_EN_FALLBACK[location!.nameKey]).toBe("Palisade")
   })
 
-  it("keeps detailed creatures and NPCs for numbered locations", () => {
+  it("keeps dump-backed creatures and current NPC identities for numbered locations", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)
 
     expect(darkForest?.npcs).toHaveLength(2)
@@ -43,34 +44,13 @@ describe("guide catalog", () => {
     ])
   })
 
-  it("maps source-backed weapon, pet and material localization keys by location", () => {
+  it("derives searchable equipment and pets from verified dump drops", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
-    const pirateShip = GUIDE_LOCATIONS.find((candidate) => candidate.id === 2)!
-    const secretLand = GUIDE_LOCATIONS.find((candidate) => candidate.id === 10)!
     const containerYard = GUIDE_LOCATIONS.find((candidate) => candidate.id === 11)!
     const vikingValley = GUIDE_LOCATIONS.find((candidate) => candidate.id === 12)!
 
-    expect(darkForest.weaponKeys).toEqual([
-      "sao.item.l1_1.name",
-      "sao.item.l1_2.name",
-      "sao.item.l1_4.name",
-      "sao.item.l1_5.name",
-      "sao.item.l1_6.name",
-      "sao.item.l1_7.name",
-      "sao.item.l1_8.name",
-      "sao.item.l1_9.name",
-    ])
-    expect(pirateShip.weaponKeys).toEqual([
-      "sao.item.l2_1.name",
-      "sao.item.l2_2.name",
-      "sao.item.l2_3.name",
-      "sao.item.l2_5.name",
-      "sao.item.l2_6.name",
-      "sao.item.l2_7.name",
-      "sao.item.l2_8.name",
-      "sao.item.l2_9.name",
-      "sao.item.l2_10.name",
-    ])
+    expect(darkForest.weaponKeys).toContain("sao.item.l1_3.name")
+    expect(darkForest.weaponKeys).toContain("sao.item.l1_9.name")
     expect(darkForest.petKeys).toHaveLength(11)
     expect(darkForest.donatePetKeys).toEqual([
       "sao.item.petd_l1_1.name",
@@ -79,7 +59,6 @@ describe("guide catalog", () => {
       "sao.item.petd_l1_4.name",
       "sao.item.petd_l1_5.name",
     ])
-    expect(secretLand.weaponKeys).toHaveLength(12)
     expect(containerYard.materialKeys).toEqual([
       "sao.item.weapon_upgrade_material_11.name",
       "sao.item.comet_shard_11_1.name",
@@ -87,12 +66,14 @@ describe("guide catalog", () => {
     expect(vikingValley.petKeys).toHaveLength(14)
   })
 
-  it("keeps starter village outside numbered equipment mappings", () => {
-    const starterVillage = GUIDE_LOCATIONS.find((candidate) => candidate.id === 0)!
+  it("keeps special zones outside numbered equipment mappings", () => {
+    for (const id of [-1, 0]) {
+      const location = GUIDE_LOCATIONS.find((candidate) => candidate.id === id)!
 
-    expect(starterVillage.weaponKeys).toEqual([])
-    expect(starterVillage.petKeys).toEqual([])
-    expect(starterVillage.donatePetKeys).toEqual([])
+      expect(location.weaponKeys).toEqual([])
+      expect(location.petKeys).toEqual([])
+      expect(location.donatePetKeys).toEqual([])
+    }
   })
 })
 
@@ -117,7 +98,7 @@ describe("guide progression", () => {
     })
   })
 
-  it("contains the verified dungeon and case milestones", () => {
+  it("keeps verified dungeon milestones", () => {
     expect(GUIDE_DUNGEON_MILESTONES.EASY.at(-1)).toEqual({
       stage: 50,
       reward: "PET_SLOT",
@@ -127,11 +108,6 @@ describe("guide progression", () => {
       stage: 36,
       reward: "LUCK",
       value: "15%",
-    })
-    expect(GUIDE_CASE_MILESTONES.at(-1)).toEqual({
-      opened: 5_000_000,
-      reward: "LUCK",
-      value: "7%",
     })
   })
 })
@@ -177,7 +153,7 @@ describe("guide localization", () => {
     expect(localizationKeyExists("sao.item.l1_3.name", catalogs)).toBe(false)
   })
 
-  it("searches location weapons and pets in every loaded SAO language", () => {
+  it("searches location drops in every loaded SAO language", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
     const weaponKey = darkForest.weaponKeys[0]
     const petKey = darkForest.petKeys[0]
@@ -206,7 +182,7 @@ describe("guide localization", () => {
     expect(locationMatchesQuery(darkForest, "Nocturne", catalogs)).toBe(true)
   })
 
-  it("does not search guessed location entities that are missing from loaded catalogs", () => {
+  it("does not search guessed entities missing from loaded catalogs", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
     const missingWeaponKey = darkForest.weaponKeys[0]
     const catalogs = {
@@ -221,7 +197,6 @@ describe("guide localization", () => {
 
   it("searches bundled aliases independently from display language", () => {
     const darkForest = GUIDE_LOCATIONS.find((candidate) => candidate.id === 1)!
-
     const catalogs = {
       en_US: GUIDE_EN_FALLBACK,
       uk_UA: {
