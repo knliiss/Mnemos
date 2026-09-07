@@ -1,9 +1,11 @@
 import type { CSSProperties } from "react"
 
 const MOB_KEY_PATTERN = /^sao\.mob\.mob(\d+)_(\d+)\.name$/
-const ATLAS_COLUMNS = 14
-const DISPLAY_CELL_SIZE = 64
-const ROWS_PER_STRIP = 2
+const MOB_SOURCE_BASE_URL = "https://storage.c7x.dev/butowka/sao/global/img/mob"
+const MISSING_SOURCE_ARTWORK = new Set(["17_7"])
+const SOURCE_URL_OVERRIDES: Record<string, string> = {
+  "13_2": `${MOB_SOURCE_BASE_URL}/mob12_2.png`,
+}
 
 const MOB_COUNTS: Record<number, number> = {
   1: 4,
@@ -31,6 +33,8 @@ const MOB_COUNTS: Record<number, number> = {
   23: 7,
   24: 7,
   25: 7,
+  26: 7,
+  27: 7,
 }
 
 export function guideMobArtworkStyle(key: string): CSSProperties | undefined {
@@ -48,27 +52,19 @@ export function guideMobArtworkStyle(key: string): CSSProperties | undefined {
     return undefined
   }
 
-  const atlasIndex = mobAtlasIndex(locationId, mobIndex)
-  const globalRow = Math.floor(atlasIndex / ATLAS_COLUMNS)
-  const column = atlasIndex % ATLAS_COLUMNS
-  const stripIndex = Math.floor(globalRow / ROWS_PER_STRIP) + 1
-  const stripRow = globalRow % ROWS_PER_STRIP
-  const stripRows = stripIndex === 6 ? 1 : ROWS_PER_STRIP
+  const sourceId = `${locationId}_${mobIndex}`
+
+  if (MISSING_SOURCE_ARTWORK.has(sourceId)) {
+    return undefined
+  }
+
+  const sourceUrl =
+    SOURCE_URL_OVERRIDES[sourceId] ?? `${MOB_SOURCE_BASE_URL}/mob${locationId}_${mobIndex}.png`
 
   return {
-    backgroundImage: `url(/guides/entities/mob-model-atlas-${stripIndex}.webp)`,
-    backgroundPosition: `${-column * DISPLAY_CELL_SIZE}px ${-stripRow * DISPLAY_CELL_SIZE}px`,
+    backgroundImage: `url(${sourceUrl})`,
+    backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
-    backgroundSize: `${ATLAS_COLUMNS * DISPLAY_CELL_SIZE}px ${stripRows * DISPLAY_CELL_SIZE}px`,
+    backgroundSize: "contain",
   }
-}
-
-function mobAtlasIndex(locationId: number, mobIndex: number) {
-  let offset = 0
-
-  for (let id = 1; id < locationId; id += 1) {
-    offset += MOB_COUNTS[id] ?? 0
-  }
-
-  return offset + mobIndex - 1
 }
