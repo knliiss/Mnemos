@@ -38,6 +38,12 @@ const DUNGEONS = [
   { type: "INSANE", searchAliases: ["EP"] },
 ] as const
 
+const HUB_ILLUSTRATIONS: Record<GuideHubSection, string> = {
+  locations: "/ui-illustrations/guides-locations.svg",
+  dungeons: "/ui-illustrations/guides-dungeons.svg",
+  mechanics: "/ui-illustrations/guides-mechanics.svg",
+}
+
 export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }: Props) {
   const [query, setQuery] = useState("")
   const normalizedQuery = query.trim()
@@ -188,21 +194,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
           <strong>{ui.heroTitle}</strong>
           <p>{ui.heroCopy}</p>
         </span>
-
-        <div className="guides-hub-intro__facts">
-          <span>
-            <b>{GUIDE_LOCATIONS.length}</b>
-            <small>{ui.locations}</small>
-          </span>
-          <span>
-            <b>{DUNGEONS.length}</b>
-            <small>{ui.dungeons}</small>
-          </span>
-          <span>
-            <b>{verifiedMechanics.length}</b>
-            <small>{ui.mechanics}</small>
-          </span>
-        </div>
       </section>
 
       <GuideSearch
@@ -235,14 +226,12 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
             tone="locations"
             title={ui.locations}
             copy={ui.locationsCopy}
-            meta={`${GUIDE_LOCATIONS.length}`}
             onClick={() => openSection("locations")}
           />
           <GuideHubCard
             tone="dungeons"
             title={ui.dungeons}
             copy={ui.dungeonsCopy}
-            meta={`${DUNGEONS.length}`}
             onClick={() => openSection("dungeons")}
           />
           {verifiedMechanics.length ? (
@@ -250,7 +239,6 @@ export function GuideHub({ ui, catalogs, text, back, openSection, openLocation }
               tone="mechanics"
               title={ui.mechanics}
               copy={ui.mechanicsCopy}
-              meta={`${verifiedMechanics.length}`}
               onClick={() => openSection("mechanics")}
             />
           ) : null}
@@ -264,13 +252,11 @@ function GuideHubCard({
   tone,
   title,
   copy,
-  meta,
   onClick,
 }: {
   tone: GuideHubSection
   title: string
   copy: string
-  meta: string
   onClick: () => void
 }) {
   return (
@@ -279,7 +265,9 @@ function GuideHubCard({
       className={`guide-hub-card guide-hub-card--${tone} guide-hub-card--redesign`}
       onClick={onClick}
     >
-      <span className="guide-hub-card__meta">{meta}</span>
+      <span className="guide-hub-card__illustration" aria-hidden="true">
+        <img src={HUB_ILLUSTRATIONS[tone]} alt="" />
+      </span>
       <span className="guide-hub-card__copy">
         <strong>{title}</strong>
         <small>{copy}</small>
