@@ -83,7 +83,10 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
         </div>
       </section>
 
-      <section className="guide-location-summary guide-location-summary--redesign" aria-label={text(location.nameKey)}>
+      <section
+        className="guide-location-summary guide-location-summary--redesign"
+        aria-label={text(location.nameKey)}
+      >
         <GuideSummaryFact label={locationUi.purchasePrice} value={dump?.purchasePrice || "—"} />
         <GuideSummaryFact label={locationUi.cases} value={locationUi.count(cases.length)} />
         <GuideSummaryFact label={locationUi.mobs} value={locationUi.count(mobs.length)} />
@@ -123,7 +126,10 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
             <GuideLocationSection title={locationUi.rebirth} count={rebirthSteps.length}>
               <div className="guide-location-rebirth-list guide-location-rebirth-list--redesign">
                 {rebirthSteps.map((step) => (
-                  <article key={step.rank} className="guide-location-rebirth-card guide-location-rebirth-card--redesign">
+                  <article
+                    key={step.rank}
+                    className="guide-location-rebirth-card guide-location-rebirth-card--redesign"
+                  >
                     <header>
                       <span className="guide-location-rebirth-card__rank">#{step.rank}</span>
                       <span>
@@ -171,7 +177,10 @@ export function GuideLocationDetail({ location, catalogs, text, ui, back }: Prop
                   const roleKeys = GUIDE_NPC_ROLE_KEYS[npc.role]
 
                   return (
-                    <article key={npc.nameKey} className="guide-location-npc-card guide-location-npc-card--redesign">
+                    <article
+                      key={npc.nameKey}
+                      className="guide-location-npc-card guide-location-npc-card--redesign"
+                    >
                       {artworkStyle ? (
                         <span
                           className="guide-location-npc-card__portrait"
@@ -271,7 +280,9 @@ function GuideCaseCard({
   const economy = caseData.kind === "NORMAL" ? guideCaseEconomy(caseData.price) : null
 
   return (
-    <article className={`guide-case-card guide-case-card--${caseData.kind.toLowerCase()} guide-case-card--redesign`}>
+    <article
+      className={`guide-case-card guide-case-card--${caseData.kind.toLowerCase()} guide-case-card--redesign`}
+    >
       <header className="guide-case-card__header">
         <span>
           <small>{caseKindLabel(caseData.kind, locationUi)}</small>
@@ -461,10 +472,7 @@ function GuideDropDetail({
     <div className="screen guides-screen guide-drop-detail-screen">
       <PageHeader title={text(selection.drop.key)} eyebrow={locationUi.itemDetails} back={back} />
 
-      <section
-        className="guide-drop-detail-hero"
-        data-rarity={selection.drop.rarity.toLowerCase()}
-      >
+      <section className="guide-drop-detail-hero" data-rarity={selection.drop.rarity.toLowerCase()}>
         <div className="guide-drop-detail-hero__art">
           <GuideDropArt localizationKey={selection.drop.key} size="detail" />
         </div>
