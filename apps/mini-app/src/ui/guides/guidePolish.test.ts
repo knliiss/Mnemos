@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest"
 import { guideCometArtworkStyle } from "./guideCometArtwork"
 import { GUIDE_CRITICAL_CATALOGS } from "./guideCriticalCatalogs"
+import { guideLocationArtworkStyle } from "./guideLocationArtwork"
 import { resolveSaoText } from "./guideLocalization"
 import { guideNpcArtworkStyle } from "./guideNpcArtwork"
 
 describe("guide source-backed artwork", () => {
-  it("maps only NPC portraits that exist in the resource pack", () => {
+  it("maps every location NPC to a source-backed atlas portrait", () => {
     expect(guideNpcArtworkStyle(1, "RAID_JOIN")).toMatchObject({
       backgroundImage: "url(/guides/entities/npc-atlas.webp)",
       backgroundPosition: "0px 0px",
@@ -17,13 +18,29 @@ describe("guide source-backed artwork", () => {
     expect(guideNpcArtworkStyle(26, "QUEST")).toMatchObject({
       backgroundPosition: "-76px -1900px",
     })
-    expect(guideNpcArtworkStyle(27, "QUEST")).toBeUndefined()
-    expect(guideNpcArtworkStyle(28, "QUEST")).toBeUndefined()
+    expect(guideNpcArtworkStyle(27, "QUEST")).toMatchObject({
+      backgroundPosition: "-76px -1976px",
+    })
+    expect(guideNpcArtworkStyle(28, "QUEST")).toMatchObject({
+      backgroundPosition: "-76px -2052px",
+    })
     expect(guideNpcArtworkStyle(28, "RAID_JOIN")).toMatchObject({
       backgroundPosition: "0px -2052px",
     })
     expect(guideNpcArtworkStyle(0, "QUEST")).toBeUndefined()
     expect(guideNpcArtworkStyle(29, "RAID_JOIN")).toBeUndefined()
+  })
+
+  it("maps all dumped location banners to the complete location atlas", () => {
+    expect(guideLocationArtworkStyle(-1)).toMatchObject({
+      backgroundImage: "url(/guides/locations/location-atlas.webp)",
+      backgroundPosition: "0% 0%",
+      backgroundSize: "500% 600%",
+    })
+    expect(guideLocationArtworkStyle(28)).toMatchObject({
+      backgroundPosition: "100% 100%",
+    })
+    expect(guideLocationArtworkStyle(29)).toBeUndefined()
   })
 
   it("maps every supported comet creature to the rendered resource-pack atlas", () => {
